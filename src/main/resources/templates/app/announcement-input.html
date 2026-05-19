@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('공고 입력', ~{::main})}">
+<main class="announcement-page"
+      data-announcement-app
+      th:data-list-url="@{/api/v1/announcements}"
+      th:data-base-url="@{/api/v1/announcements}">
+    <section class="announcement-shell" aria-label="공고 입력">
+        <div class="announcement-workspace">
+            <section class="announcement-hero">
+                <div>
+                    <span class="eyebrow">Announcement Gate 1</span>
+                    <h2>현재 진행중/예정 공고를 빠르게 입력합니다.</h2>
+                    <p>공고 대표 대상을 먼저 선택하고, 기본 정보와 필수조건, 필요 서류, 진행 단계를 순서대로 저장합니다.</p>
+                </div>
+                <div class="hero-status" aria-label="공고 저장 상태">
+                    <span>현재 공고 ID</span>
+                    <strong data-current-announcement-id>신규 입력</strong>
+                    <small>기본 정보 저장 후 조건과 단계 저장이 가능합니다.</small>
+                </div>
+            </section>
+
+            <form class="target-panel" data-target-form aria-labelledby="target-title">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Step 1</span>
+                        <h2 id="target-title">공고 대표 대상</h2>
+                    </div>
+                    <span class="soft-status">선택 대상만 조건 입력</span>
+                </div>
+                <div class="target-grid" role="radiogroup" aria-label="공고 대표 대상">
+                    <label class="target-card is-active" data-target-card>
+                        <input type="radio" name="targetTypeCode" value="BUSINESS" checked>
+                        <span>사업자 지원</span>
+                        <small>업종, 사업자 유형, 업력, 매출 기준</small>
+                    </label>
+                    <label class="target-card" data-target-card>
+                        <input type="radio" name="targetTypeCode" value="PERSONAL">
+                        <span>개인 지원</span>
+                        <small>연령, 소득, 거주지 기준</small>
+                    </label>
+                    <label class="target-card" data-target-card>
+                        <input type="radio" name="targetTypeCode" value="SPOUSE">
+                        <span>배우자 지원</span>
+                        <small>배우자 소득 및 관계 기준</small>
+                    </label>
+                    <label class="target-card" data-target-card>
+                        <input type="radio" name="targetTypeCode" value="CHILD">
+                        <span>자녀 지원</span>
+                        <small>자녀 연령 및 재학 기준</small>
+                    </label>
+                    <label class="target-card" data-target-card>
+                        <input type="radio" name="targetTypeCode" value="PARENT">
+                        <span>부모 지원</span>
+                        <small>부모 연령 및 부양 기준</small>
+                    </label>
+                </div>
+            </form>
+
+            <form class="announcement-form" data-announcement-basic-form novalidate>
+                <section class="form-panel">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Step 2</span>
+                            <h2>기본 정보</h2>
+                        </div>
+                        <button class="secondary-action" type="button" data-reset-form>신규 입력</button>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field-block span-2">
+                            <label for="announcementTitle">공고명</label>
+                            <input id="announcementTitle" name="title" type="text" maxlength="300" placeholder="예: 소상공인 디지털 전환 지원사업" required>
+                        </div>
+                        <div class="field-block">
+                            <label for="agencyName">기관명</label>
+                            <input id="agencyName" name="agencyName" type="text" maxlength="200" placeholder="예: 서울시" required>
+                        </div>
+                        <div class="field-block">
+                            <label for="incomeJudgementCode">소득/매출 판단 기준</label>
+                            <select id="incomeJudgementCode" name="incomeJudgementCode" required>
+                                <option value="VAT_TAX_BASE_ONLY">부가세 기준만 사용</option>
+                                <option value="INCOME_CERT_ONLY">소득증명만 사용</option>
+                                <option value="HEALTH_INSURANCE_ONLY">건강보험료만 사용</option>
+                                <option value="ANY_ONE_DOCUMENT">서류 중 하나 선택</option>
+                                <option value="INCOME_OR_HEALTH_INSURANCE">소득 또는 건강보험료</option>
+                                <option value="NO_LIMIT">제한 없음</option>
+                            </select>
+                        </div>
+                        <div class="field-block span-2">
+                            <label for="summary">운영 메모</label>
+                            <textarea id="summary" name="summary" rows="3" placeholder="공고 요약, 접수 유의사항, 운영자가 확인할 메모"></textarea>
+                        </div>
+                        <div class="field-block">
+                            <label for="applicationStartDate">신청 시작일</label>
+                            <input id="applicationStartDate" name="applicationStartDate" type="date">
+                        </div>
+                        <div class="field-block">
+                            <label for="applicationEndDate">신청 마감일</label>
+                            <input id="applicationEndDate" name="applicationEndDate" type="date">
+                        </div>
+                        <div class="field-block">
+                            <label for="minAmount">공고 기준 지원금액 범위</label>
+                            <div class="amount-range">
+                                <input id="minAmount" name="minAmount" type="number" min="0" step="10000" placeholder="최소">
+                                <input name="maxAmount" type="number" min="0" step="10000" placeholder="최대">
+                            </div>
+                            <small>참고 표시 전용이며, 매칭 결과 금액으로 확정하지 않습니다.</small>
+                        </div>
+                    </div>
+
+                    <div class="option-section">
+                        <h3>신청/접수 옵션</h3>
+                        <div class="option-grid">
+                            <fieldset>
+                                <legend>신청 방법</legend>
+                                <label><input type="checkbox" data-option-group="APPLICATION_METHOD" value="ONLINE" checked> 온라인</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_METHOD" value="VISIT"> 방문</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_METHOD" value="MAIL"> 우편</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_METHOD" value="EMAIL"> 이메일</label>
+                            </fieldset>
+                            <fieldset>
+                                <legend>신청 상세</legend>
+                                <label><input type="checkbox" data-option-group="APPLICATION_REQUIREMENT" value="DIRECT_APPLICATION"> 직접 신청</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_REQUIREMENT" value="PROXY_ALLOWED"> 대리 신청 가능</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_REQUIREMENT" value="RESERVATION_REQUIRED"> 예약 필요</label>
+                                <label><input type="checkbox" data-option-group="APPLICATION_REQUIREMENT" value="CERTIFICATE_REQUIRED"> 인증서 필요</label>
+                            </fieldset>
+                            <div class="field-block">
+                                <label for="receptionType">접수 성격</label>
+                                <select id="receptionType" data-single-option-group="RECEPTION_TYPE">
+                                    <option value="">선택 안 함</option>
+                                    <option value="BUDGET_EXHAUSTION">예산 소진 시 종료</option>
+                                    <option value="FIRST_COME">선착순 접수</option>
+                                    <option value="ALWAYS_OPEN">상시 접수</option>
+                                    <option value="PERIOD">기간 접수</option>
+                                    <option value="EARLY_CLOSE_POSSIBLE">조기 마감 가능</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="selectionMethod">선정 방식</label>
+                                <select id="selectionMethod" data-single-option-group="SELECTION_METHOD">
+                                    <option value="">선택 안 함</option>
+                                    <option value="FIRST_COME">선착순</option>
+                                    <option value="REVIEW">심사</option>
+                                    <option value="LOTTERY">추첨</option>
+                                    <option value="ELIGIBILITY">자격 확인</option>
+                                    <option value="BUDGET">예산 배정</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="paymentMethod">지급 방식</label>
+                                <select id="paymentMethod" data-single-option-group="PAYMENT_METHOD">
+                                    <option value="">선택 안 함</option>
+                                    <option value="CASH">현금</option>
+                                    <option value="VOUCHER">바우처</option>
+                                    <option value="POINT">포인트</option>
+                                    <option value="GOODS">물품</option>
+                                    <option value="REFUND">환급</option>
+                                    <option value="LOAN">융자</option>
+                                    <option value="GUARANTEE">보증</option>
+                                    <option value="INTEREST">이자 지원</option>
+                                    <option value="TAX_REDUCTION">세액 감면</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit" data-basic-submit>기본 정보 저장</button>
+                    </div>
+                </section>
+            </form>
+
+            <form class="announcement-form" data-announcement-conditions-form novalidate>
+                <section class="form-panel">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Step 3</span>
+                            <h2>조건 및 필요 서류</h2>
+                        </div>
+                        <span class="soft-status" data-active-target-label>사업자 지원</span>
+                    </div>
+
+                    <section class="target-condition-panel is-active" data-business-panel>
+                        <h3>사업자 조건</h3>
+                        <div class="form-grid">
+                            <div class="field-block">
+                                <label for="industryInclude">대상 업종 코드</label>
+                                <input id="industryInclude" name="industryInclude" type="text" maxlength="30" placeholder="예: 47911">
+                            </div>
+                            <div class="field-block">
+                                <label for="industryExclude">제외 업종 코드</label>
+                                <input id="industryExclude" name="industryExclude" type="text" maxlength="30" placeholder="예: 56121">
+                            </div>
+                            <div class="field-block">
+                                <label for="businessType">사업자 유형</label>
+                                <select id="businessType" name="businessType">
+                                    <option value="">선택 안 함</option>
+                                    <option value="SOLE_PROPRIETOR">개인사업자</option>
+                                    <option value="CORPORATION">법인사업자</option>
+                                    <option value="SIMPLIFIED_TAXPAYER">간이과세자</option>
+                                    <option value="GENERAL_TAXPAYER">일반과세자</option>
+                                    <option value="TAX_EXEMPT">면세사업자</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="businessStage">기업 형태</label>
+                                <select id="businessStage" name="businessStage">
+                                    <option value="">선택 안 함</option>
+                                    <option value="PRE_STARTUP">예비창업</option>
+                                    <option value="EARLY_STARTUP">초기창업</option>
+                                    <option value="OPERATING">운영중</option>
+                                    <option value="SUSPENDED">휴업중</option>
+                                    <option value="CLOSING_SOON">폐업예정</option>
+                                    <option value="CLOSED">폐업완료</option>
+                                    <option value="RESTARTUP_PREPARING">재창업준비</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="businessNumericKey">수치 조건</label>
+                                <select id="businessNumericKey" name="businessNumericKey">
+                                    <option value="">선택 안 함</option>
+                                    <option value="YEARS_IN_BUSINESS">업력</option>
+                                    <option value="ANNUAL_REVENUE">매출</option>
+                                    <option value="EMPLOYEE_COUNT">직원 수</option>
+                                    <option value="REGULAR_EMPLOYEE_COUNT">상시근로자 수</option>
+                                    <option value="NEW_HIRE_PLAN_COUNT">신규 채용 예정 인원</option>
+                                    <option value="CREDIT_SCORE">신용 점수</option>
+                                </select>
+                            </div>
+                            <div class="field-block condition-number-row">
+                                <label for="businessComparator">비교 방식</label>
+                                <select id="businessComparator" name="businessComparator">
+                                    <option value="LTE">이하</option>
+                                    <option value="GTE">이상</option>
+                                    <option value="GT">초과</option>
+                                    <option value="LT">미만</option>
+                                    <option value="EQ">동일</option>
+                                    <option value="BETWEEN">구간</option>
+                                </select>
+                                <input name="businessValueNumber" type="number" min="0" step="1" placeholder="값">
+                                <input name="businessMinNumber" type="number" min="0" step="1" placeholder="최소">
+                                <input name="businessMaxNumber" type="number" min="0" step="1" placeholder="최대">
+                                <select name="businessUnitCode" aria-label="수치 단위">
+                                    <option value="">단위 없음</option>
+                                    <option value="KRW">원</option>
+                                    <option value="COUNT">명/건</option>
+                                    <option value="YEAR">년</option>
+                                    <option value="POINT">점</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="target-condition-panel" data-non-business-panel>
+                        <h3 data-target-specific-title>개인/가족 조건</h3>
+                        <div class="form-grid">
+                            <div class="field-block">
+                                <label for="targetNumericKey">수치 조건</label>
+                                <select id="targetNumericKey" name="targetNumericKey">
+                                    <option value="">선택 안 함</option>
+                                    <option value="AGE">연령</option>
+                                    <option value="INCOME">소득</option>
+                                    <option value="HEALTH_INSURANCE_AMOUNT">건강보험료</option>
+                                </select>
+                            </div>
+                            <div class="field-block condition-number-row">
+                                <label for="targetComparator">비교 방식</label>
+                                <select id="targetComparator" name="targetComparator">
+                                    <option value="LTE">이하</option>
+                                    <option value="GTE">이상</option>
+                                    <option value="GT">초과</option>
+                                    <option value="LT">미만</option>
+                                    <option value="EQ">동일</option>
+                                    <option value="BETWEEN">구간</option>
+                                </select>
+                                <input name="targetValueNumber" type="number" min="0" step="1" placeholder="값">
+                                <input name="targetMinNumber" type="number" min="0" step="1" placeholder="최소">
+                                <input name="targetMaxNumber" type="number" min="0" step="1" placeholder="최대">
+                                <select name="targetUnitCode" aria-label="수치 단위">
+                                    <option value="">단위 없음</option>
+                                    <option value="KRW">원</option>
+                                    <option value="YEAR">세</option>
+                                    <option value="COUNT">명/건</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="targetOptionKey">상태 조건</label>
+                                <select id="targetOptionKey" name="targetOptionKey">
+                                    <option value="">선택 안 함</option>
+                                    <option value="RESIDENCE">거주지</option>
+                                    <option value="HOUSEHOLD_TYPE">가구 형태</option>
+                                    <option value="EMPLOYMENT_STATUS">고용 상태</option>
+                                    <option value="FAMILY_RELATION">가족 관계</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="targetOptionCode">상태 코드/값</label>
+                                <input id="targetOptionCode" name="targetOptionCode" type="text" maxlength="80" placeholder="예: SEOUL 또는 HOUSEHOLD_HEAD">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="document-panel">
+                        <h3>필요 서류</h3>
+                        <div class="document-grid">
+                            <label><input type="checkbox" data-document-code="BUSINESS_REGISTRATION" checked> 사업자등록증</label>
+                            <label><input type="checkbox" data-document-code="INCOME_CERTIFICATE"> 소득증명</label>
+                            <label><input type="checkbox" data-document-code="HEALTH_INSURANCE"> 건강보험료 납부확인</label>
+                            <label><input type="checkbox" data-document-code="VAT_TAX_BASE"> 부가세 과세표준</label>
+                            <label><input type="checkbox" data-document-code="FAMILY_RELATION"> 가족관계증명</label>
+                            <label><input type="checkbox" data-document-code="EMPLOYMENT_CERTIFICATE"> 고용 확인 서류</label>
+                        </div>
+                    </section>
+
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit" data-conditions-submit>조건/서류 저장</button>
+                    </div>
+                </section>
+            </form>
+
+            <form class="announcement-form" data-announcement-steps-form novalidate>
+                <section class="form-panel">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Step 4</span>
+                            <h2>진행 단계</h2>
+                        </div>
+                        <span class="soft-status">저장 시 전체 단계 교체</span>
+                    </div>
+
+                    <div class="steps-editor">
+                        <article class="step-editor" data-step-row>
+                            <div class="step-order">1</div>
+                            <div class="form-grid">
+                                <div class="field-block">
+                                    <label>단계명</label>
+                                    <input name="stepName" type="text" maxlength="100" value="안내 발송">
+                                </div>
+                                <div class="field-block">
+                                    <label>완료 조건</label>
+                                    <select name="completionConditionCode">
+                                        <option value="BUTTON_CLICK">버튼 선택</option>
+                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
+                                        <option value="STATUS_CONFIRMED">상태 확인</option>
+                                    </select>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>안내 문구</label>
+                                    <textarea name="guideMessage" rows="2">현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.</textarea>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>행동 안내</label>
+                                    <textarea name="actionGuide" rows="2">진행 의사를 선택하세요.</textarea>
+                                </div>
+                                <div class="field-block">
+                                    <label>다음 조건 코드</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" value="WANTS_TO_PROGRESS">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 라벨</label>
+                                    <input name="buttonLabel" type="text" maxlength="100" value="진행 원함">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 코드</label>
+                                    <input name="buttonCode" type="text" maxlength="80" value="WANTS_TO_PROGRESS">
+                                </div>
+                                <div class="field-block">
+                                    <label>요구 서류</label>
+                                    <select name="stepDocumentTypeCode">
+                                        <option value="">없음</option>
+                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
+                                        <option value="INCOME_CERTIFICATE">소득증명</option>
+                                        <option value="HEALTH_INSURANCE">건강보험료 납부확인</option>
+                                    </select>
+                                </div>
+                                <label class="inline-check">
+                                    <input name="stepActive" type="checkbox" checked> 사용
+                                </label>
+                            </div>
+                        </article>
+
+                        <article class="step-editor" data-step-row>
+                            <div class="step-order">2</div>
+                            <div class="form-grid">
+                                <div class="field-block">
+                                    <label>단계명</label>
+                                    <input name="stepName" type="text" maxlength="100" value="신청 접수">
+                                </div>
+                                <div class="field-block">
+                                    <label>완료 조건</label>
+                                    <select name="completionConditionCode">
+                                        <option value="BUTTON_CLICK">버튼 선택</option>
+                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
+                                        <option value="STATUS_CONFIRMED">상태 확인</option>
+                                    </select>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>안내 문구</label>
+                                    <textarea name="guideMessage" rows="2">필수 서류와 신청 정보를 확인합니다.</textarea>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>행동 안내</label>
+                                    <textarea name="actionGuide" rows="2">신청 완료 여부를 확인하세요.</textarea>
+                                </div>
+                                <div class="field-block">
+                                    <label>다음 조건 코드</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" value="APPLICATION_SUBMITTED">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 라벨</label>
+                                    <input name="buttonLabel" type="text" maxlength="100" value="신청 완료">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 코드</label>
+                                    <input name="buttonCode" type="text" maxlength="80" value="APPLICATION_SUBMITTED">
+                                </div>
+                                <div class="field-block">
+                                    <label>요구 서류</label>
+                                    <select name="stepDocumentTypeCode">
+                                        <option value="">없음</option>
+                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
+                                        <option value="INCOME_CERTIFICATE">소득증명</option>
+                                        <option value="HEALTH_INSURANCE">건강보험료 납부확인</option>
+                                    </select>
+                                </div>
+                                <label class="inline-check">
+                                    <input name="stepActive" type="checkbox" checked> 사용
+                                </label>
+                            </div>
+                        </article>
+
+                        <article class="step-editor" data-step-row>
+                            <div class="step-order">3</div>
+                            <div class="form-grid">
+                                <div class="field-block">
+                                    <label>단계명</label>
+                                    <input name="stepName" type="text" maxlength="100" value="결과 확인">
+                                </div>
+                                <div class="field-block">
+                                    <label>완료 조건</label>
+                                    <select name="completionConditionCode">
+                                        <option value="STATUS_CONFIRMED">상태 확인</option>
+                                        <option value="BUTTON_CLICK">버튼 선택</option>
+                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
+                                    </select>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>안내 문구</label>
+                                    <textarea name="guideMessage" rows="2">기관 결과를 확인하고 사용자 진행 상태에 반영합니다.</textarea>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>행동 안내</label>
+                                    <textarea name="actionGuide" rows="2">확인된 결과만 최종 매칭으로 표시합니다.</textarea>
+                                </div>
+                                <div class="field-block">
+                                    <label>다음 조건 코드</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" value="RESULT_CONFIRMED">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 라벨</label>
+                                    <input name="buttonLabel" type="text" maxlength="100" value="결과 확인">
+                                </div>
+                                <div class="field-block">
+                                    <label>버튼 코드</label>
+                                    <input name="buttonCode" type="text" maxlength="80" value="RESULT_CONFIRMED">
+                                </div>
+                                <div class="field-block">
+                                    <label>요구 서류</label>
+                                    <select name="stepDocumentTypeCode">
+                                        <option value="">없음</option>
+                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
+                                        <option value="INCOME_CERTIFICATE">소득증명</option>
+                                        <option value="HEALTH_INSURANCE">건강보험료 납부확인</option>
+                                    </select>
+                                </div>
+                                <label class="inline-check">
+                                    <input name="stepActive" type="checkbox" checked> 사용
+                                </label>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit" data-steps-submit>진행 단계 저장</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+
+        <aside class="announcement-side">
+            <section class="side-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">List</span>
+                        <h2>공고 목록</h2>
+                    </div>
+                </div>
+                <form class="announcement-search" data-announcement-search-form>
+                    <input name="keyword" type="search" placeholder="공고명 또는 기관명 검색">
+                    <select name="targetTypeCode" aria-label="대표 대상 필터">
+                        <option value="">전체 대상</option>
+                        <option value="BUSINESS">사업자</option>
+                        <option value="PERSONAL">개인</option>
+                        <option value="SPOUSE">배우자</option>
+                        <option value="CHILD">자녀</option>
+                        <option value="PARENT">부모</option>
+                    </select>
+                    <button class="secondary-action" type="submit">조회</button>
+                </form>
+                <div class="announcement-list" data-announcement-list aria-live="polite">
+                    <p class="empty-state">공고 목록을 불러오는 중입니다.</p>
+                </div>
+            </section>
+
+            <form class="side-panel" data-announcement-status-form novalidate>
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Status</span>
+                        <h2>수동 상태</h2>
+                    </div>
+                </div>
+                <div class="field-block">
+                    <label for="manualStatusCode">상태</label>
+                    <select id="manualStatusCode" name="manualStatusCode">
+                        <option value="NORMAL">정상 노출</option>
+                        <option value="PAUSED">일시중지</option>
+                        <option value="EARLY_CLOSED">조기마감</option>
+                        <option value="SUSPENDED">접수중단</option>
+                        <option value="BUDGET_EXHAUSTED">예산소진</option>
+                        <option value="CLOSED">종료</option>
+                        <option value="HIDDEN">숨김처리</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="manualStatusReason">변경 사유</label>
+                    <textarea id="manualStatusReason" name="reason" rows="3" placeholder="내부 운영 확인용 사유"></textarea>
+                </div>
+                <button class="primary-action button-action" type="submit" data-status-submit>상태 저장</button>
+            </form>
+
+            <section class="side-panel response-panel" aria-label="처리 결과">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Response</span>
+                        <h2>처리 결과</h2>
+                    </div>
+                </div>
+                <p class="announcement-message" data-announcement-message role="status">공고 기본 정보를 저장하면 조건과 단계 저장이 가능합니다.</p>
+            </section>
+        </aside>
+    </section>
+    <script th:src="@{/js/saneb-announcement-input.js}"></script>
+</main>
+</html>

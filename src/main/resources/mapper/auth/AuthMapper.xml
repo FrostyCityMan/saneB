@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.auth.dao.AuthDao">
+
+    <resultMap id="AuthUserDetailsRowMap" type="com.saneb.domain.auth.vo.AuthUserDetailsRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+            <arg column="password_hash" javaType="java.lang.String"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="password_reset_required" javaType="boolean"/>
+            <arg column="member_profile_id" javaType="java.util.UUID"/>
+            <arg column="business_profile_id" javaType="java.util.UUID"/>
+            <arg column="partner_profile_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAuthUserDetailsByLoginId" resultMap="AuthUserDetailsRowMap">
+        -- 인증 사용자 기본 정보와 대표 프로필 식별자를 조회한다.
+        SELECT
+            u.id AS user_id,
+            u.login_id,
+            u.password_hash,
+            u.name,
+            u.status_code,
+            u.password_reset_required,
+            (
+                SELECT mp.id
+                FROM member_profiles mp
+                WHERE mp.user_id = u.id
+                ORDER BY mp.created_at DESC
+                LIMIT 1
+            ) AS member_profile_id,
+            (
+                SELECT bp.id
+                FROM business_profiles bp
+                WHERE bp.user_id = u.id
+                ORDER BY bp.created_at DESC
+                LIMIT 1
+            ) AS business_profile_id,
+            (
+                SELECT pp.id
+                FROM partner_profiles pp
+                WHERE pp.user_id = u.id
+                ORDER BY pp.created_at DESC
+                LIMIT 1
+            ) AS partner_profile_id
+        FROM users u
+        WHERE u.login_id = #{loginId}
+    </select>
+
+    <select id="selectRoleCodeListByUserId" resultType="java.lang.String">
+        -- 사용자 역할 코드를 표시 우선순위 순서로 조회한다.
+        SELECT
+            ur.role_code
+        FROM user_roles ur
+        INNER JOIN roles r ON r.role_code = ur.role_code
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.sort_order ASC, ur.role_code ASC
+    </select>
+
+    <insert id="insertAuthLoginHistory">
+        -- 로그인 성공과 실패 이력을 저장한다.
+        INSERT INTO auth_login_histories (
+            user_id,
+            login_id,
+            login_result_code,
+            ip_address,
+            user_agent,
+            failure_reason_code
+        ) VALUES (
+            #{userId},
+            #{loginId},
+            #{loginResultCode},
+            CAST(#{ipAddress,jdbcType=VARCHAR} AS inet),
+            #{userAgent},
+            #{failureReasonCode}
+        )
+    </insert>
+
+    <update id="updateUserLastLoginAt">
+        -- 로그인 성공 시 마지막 로그인 시각을 갱신한다.
+        UPDATE users
+        SET
+            last_login_at = now(),
+            updated_at = now()
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updatePassword">
+        -- 사용자 비밀번호 해시와 비밀번호 재설정 상태를 갱신한다.
+        UPDATE users
+        SET
+            password_hash = #{passwordHash},
+            password_reset_required = false,
+            updated_by = #{userId},
+            updated_at = now()
+        WHERE id = #{userId}
+    </update>
+</mapper>

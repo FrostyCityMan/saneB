@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: saneB
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/saneb}
+    username: ${DB_USERNAME:saneb}
+    password: ${DB_PASSWORD:saneb}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  thymeleaf:
+    check-template-location: false
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-handlers-package: com.saneb.config.typehandler
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+    com.saneb: INFO

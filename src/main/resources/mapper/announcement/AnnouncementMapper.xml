@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcement.dao.AnnouncementDao">
+
+    <resultMap id="AnnouncementSummaryRowMap" type="com.saneb.domain.announcement.vo.AnnouncementSummaryRow">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="target_type_code" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="application_start_date" javaType="java.time.LocalDate"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="manual_status_code" javaType="java.lang.String"/>
+            <arg column="approval_status_code" javaType="java.lang.String"/>
+            <arg column="min_amount" javaType="java.math.BigDecimal"/>
+            <arg column="max_amount" javaType="java.math.BigDecimal"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementDetailsRowMap" type="com.saneb.domain.announcement.vo.AnnouncementDetailsRow">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="target_type_code" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="summary" javaType="java.lang.String"/>
+            <arg column="application_start_date" javaType="java.time.LocalDate"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="manual_status_code" javaType="java.lang.String"/>
+            <arg column="approval_status_code" javaType="java.lang.String"/>
+            <arg column="income_judgement_code" javaType="java.lang.String"/>
+            <arg column="min_amount" javaType="java.math.BigDecimal"/>
+            <arg column="max_amount" javaType="java.math.BigDecimal"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementOptionRowMap" type="com.saneb.domain.announcement.vo.AnnouncementOptionRow">
+        <constructor>
+            <arg column="option_group_code" javaType="java.lang.String"/>
+            <arg column="option_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementIndustryConditionRowMap" type="com.saneb.domain.announcement.vo.AnnouncementIndustryConditionRow">
+        <constructor>
+            <arg column="condition_type_code" javaType="java.lang.String"/>
+            <arg column="ksic_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementNumericConditionRowMap" type="com.saneb.domain.announcement.vo.AnnouncementNumericConditionRow">
+        <constructor>
+            <arg column="condition_scope_code" javaType="java.lang.String"/>
+            <arg column="condition_key" javaType="java.lang.String"/>
+            <arg column="comparator_code" javaType="java.lang.String"/>
+            <arg column="value_number" javaType="java.math.BigDecimal"/>
+            <arg column="min_number" javaType="java.math.BigDecimal"/>
+            <arg column="max_number" javaType="java.math.BigDecimal"/>
+            <arg column="unit_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementOptionConditionRowMap" type="com.saneb.domain.announcement.vo.AnnouncementOptionConditionRow">
+        <constructor>
+            <arg column="condition_scope_code" javaType="java.lang.String"/>
+            <arg column="condition_key" javaType="java.lang.String"/>
+            <arg column="option_code" javaType="java.lang.String"/>
+            <arg column="option_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementDocumentRequirementRowMap" type="com.saneb.domain.announcement.vo.AnnouncementDocumentRequirementRow">
+        <constructor>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="is_required" javaType="boolean"/>
+            <arg column="sort_order" javaType="int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementProgressStepRowMap" type="com.saneb.domain.announcement.vo.AnnouncementProgressStepRow">
+        <constructor>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="step_order" javaType="int"/>
+            <arg column="step_name" javaType="java.lang.String"/>
+            <arg column="guide_message" javaType="java.lang.String"/>
+            <arg column="action_guide" javaType="java.lang.String"/>
+            <arg column="completion_condition_code" javaType="java.lang.String"/>
+            <arg column="next_condition_code" javaType="java.lang.String"/>
+            <arg column="is_active" javaType="boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementStepDocumentRowMap" type="com.saneb.domain.announcement.vo.AnnouncementStepDocumentRow">
+        <constructor>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="is_required" javaType="boolean"/>
+            <arg column="sort_order" javaType="int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementStepButtonRowMap" type="com.saneb.domain.announcement.vo.AnnouncementStepButtonRow">
+        <constructor>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="button_code" javaType="java.lang.String"/>
+            <arg column="button_label" javaType="java.lang.String"/>
+            <arg column="button_action_code" javaType="java.lang.String"/>
+            <arg column="next_step_id" javaType="java.util.UUID"/>
+            <arg column="sort_order" javaType="int"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="AnnouncementSearchWhere">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    a.title ILIKE concat('%', #{keyword}, '%')
+                    OR a.agency_name ILIKE concat('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="targetTypeCode != null and targetTypeCode != ''">
+                AND a.target_type_code = #{targetTypeCode}
+            </if>
+            <if test="manualStatusCode != null and manualStatusCode != ''">
+                AND a.manual_status_code = #{manualStatusCode}
+            </if>
+            <if test="approvalStatusCode != null and approvalStatusCode != ''">
+                AND a.approval_status_code = #{approvalStatusCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectAnnouncementList" resultMap="AnnouncementSummaryRowMap">
+        -- Select announcement list for operation input screens.
+        SELECT
+            a.id AS announcement_id,
+            a.target_type_code,
+            a.title,
+            a.agency_name,
+            a.application_start_date,
+            a.application_end_date,
+            a.manual_status_code,
+            a.approval_status_code,
+            a.min_amount,
+            a.max_amount,
+            a.created_at,
+            a.updated_at
+        FROM announcements a
+        <include refid="AnnouncementSearchWhere"/>
+        ORDER BY a.created_at DESC, a.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectAnnouncementCount" resultType="long">
+        -- Count announcements for paginated list.
+        SELECT
+            count(1)
+        FROM announcements a
+        <include refid="AnnouncementSearchWhere"/>
+    </select>
+
+    <select id="selectAnnouncementDetails" resultMap="AnnouncementDetailsRowMap">
+        -- Select announcement details by primary key.
+        SELECT
+            a.id AS announcement_id,
+            a.target_type_code,
+            a.title,
+            a.agency_name,
+            a.summary,
+            a.application_start_date,
+            a.application_end_date,
+            a.manual_status_code,
+            a.approval_status_code,
+            a.income_judgement_code,
+            a.min_amount,
+            a.max_amount,
+            a.created_at,
+            a.updated_at
+        FROM announcements a
+        WHERE a.id = #{announcementId}
+    </select>
+
+    <select id="selectAnnouncementOptionList" resultMap="AnnouncementOptionRowMap">
+        -- Select announcement option codes.
+        SELECT
+            ao.option_group_code,
+            ao.option_code
+        FROM announcement_options ao
+        WHERE ao.announcement_id = #{announcementId}
+        ORDER BY ao.option_group_code ASC, ao.option_code ASC
+    </select>
+
+    <select id="selectAnnouncementIndustryConditionList" resultMap="AnnouncementIndustryConditionRowMap">
+        -- Select industry include and exclude conditions.
+        SELECT
+            aic.condition_type_code,
+            aic.ksic_code
+        FROM announcement_industry_conditions aic
+        WHERE aic.announcement_id = #{announcementId}
+        ORDER BY aic.condition_type_code ASC, aic.ksic_code ASC
+    </select>
+
+    <select id="selectAnnouncementNumericConditionList" resultMap="AnnouncementNumericConditionRowMap">
+        -- Select numeric eligibility conditions.
+        SELECT
+            anc.condition_scope_code,
+            anc.condition_key,
+            anc.comparator_code,
+            anc.value_number,
+            anc.min_number,
+            anc.max_number,
+            anc.unit_code
+        FROM announcement_numeric_conditions anc
+        WHERE anc.announcement_id = #{announcementId}
+        ORDER BY anc.condition_scope_code ASC, anc.condition_key ASC
+    </select>
+
+    <select id="selectAnnouncementOptionConditionList" resultMap="AnnouncementOptionConditionRowMap">
+        -- Select option eligibility conditions.
+        SELECT
+            aoc.condition_scope_code,
+            aoc.condition_key,
+            aoc.option_code,
+            aoc.option_text
+        FROM announcement_option_conditions aoc
+        WHERE aoc.announcement_id = #{announcementId}
+        ORDER BY aoc.condition_scope_code ASC, aoc.condition_key ASC, aoc.option_code ASC
+    </select>
+
+    <select id="selectAnnouncementDocumentRequirementList" resultMap="AnnouncementDocumentRequirementRowMap">
+        -- Select announcement-level document requirements.
+        SELECT
+            adr.document_type_code,
+            adr.is_required,
+            adr.sort_order
+        FROM announcement_document_requirements adr
+        WHERE adr.announcement_id = #{announcementId}
+        ORDER BY adr.sort_order ASC, adr.document_type_code ASC
+    </select>
+
+    <select id="selectAnnouncementProgressStepList" resultMap="AnnouncementProgressStepRowMap">
+        -- Select announcement progress steps.
+        SELECT
+            aps.id AS step_id,
+            aps.step_order,
+            aps.step_name,
+            aps.guide_message,
+            aps.action_guide,
+            aps.completion_condition_code,
+            aps.next_condition_code,
+            aps.is_active
+        FROM announcement_progress_steps aps
+        WHERE aps.announcement_id = #{announcementId}
+        ORDER BY aps.step_order ASC
+    </select>
+
+    <select id="selectAnnouncementStepDocumentList" resultMap="AnnouncementStepDocumentRowMap">
+        -- Select progress step document requirements.
+        SELECT
+            asd.step_id,
+            asd.document_type_code,
+            asd.is_required,
+            asd.sort_order
+        FROM announcement_step_documents asd
+        INNER JOIN announcement_progress_steps aps ON aps.id = asd.step_id
+        WHERE aps.announcement_id = #{announcementId}
+        ORDER BY aps.step_order ASC, asd.sort_order ASC, asd.document_type_code ASC
+    </select>
+
+    <select id="selectAnnouncementStepButtonList" resultMap="AnnouncementStepButtonRowMap">
+        -- Select progress step buttons.
+        SELECT
+            asb.step_id,
+            asb.button_code,
+            asb.button_label,
+            asb.button_action_code,
+            asb.next_step_id,
+            asb.sort_order
+        FROM announcement_step_buttons asb
+        INNER JOIN announcement_progress_steps aps ON aps.id = asb.step_id
+        WHERE aps.announcement_id = #{announcementId}
+        ORDER BY aps.step_order ASC, asb.sort_order ASC, asb.button_code ASC
+    </select>
+
+    <insert id="insertAnnouncement">
+        -- Insert announcement base information.
+        INSERT INTO announcements (
+            id,
+            target_type_code,
+            title,
+            agency_name,
+            summary,
+            application_start_date,
+            application_end_date,
+            income_judgement_code,
+            min_amount,
+            max_amount,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{id},
+            #{targetTypeCode},
+            #{title},
+            #{agencyName},
+            #{summary},
+            #{applicationStartDate},
+            #{applicationEndDate},
+            #{incomeJudgementCode},
+            #{minAmount},
+            #{maxAmount},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateAnnouncement">
+        -- Update announcement base information.
+        UPDATE announcements
+        SET
+            target_type_code = #{targetTypeCode},
+            title = #{title},
+            agency_name = #{agencyName},
+            summary = #{summary},
+            application_start_date = #{applicationStartDate},
+            application_end_date = #{applicationEndDate},
+            income_judgement_code = #{incomeJudgementCode},
+            min_amount = #{minAmount},
+            max_amount = #{maxAmount},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAnnouncementManualStatus">
+        -- Update announcement manual operating status.
+        UPDATE announcements
+        SET
+            manual_status_code = #{manualStatusCode},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{announcementId}
+    </update>
+
+    <insert id="insertAnnouncementStatusHistory">
+        -- Insert manual status change history.
+        INSERT INTO announcement_status_histories (
+            announcement_id,
+            before_status_code,
+            after_status_code,
+            reason,
+            changed_by
+        ) VALUES (
+            #{announcementId},
+            #{beforeStatusCode},
+            #{afterStatusCode},
+            #{reason},
+            #{changedBy}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementOptions">
+        -- Replace option codes for an announcement.
+        DELETE FROM announcement_options
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementOption">
+        -- Insert announcement option code.
+        INSERT INTO announcement_options (
+            announcement_id,
+            option_group_code,
+            option_code,
+            created_by
+        ) VALUES (
+            #{announcementId},
+            #{optionGroupCode},
+            #{optionCode},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementIndustryConditions">
+        -- Replace industry conditions for an announcement.
+        DELETE FROM announcement_industry_conditions
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementIndustryCondition">
+        -- Insert industry condition.
+        INSERT INTO announcement_industry_conditions (
+            announcement_id,
+            condition_type_code,
+            ksic_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{announcementId},
+            #{conditionTypeCode},
+            #{ksicCode},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementNumericConditions">
+        -- Replace numeric conditions for an announcement.
+        DELETE FROM announcement_numeric_conditions
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementNumericCondition">
+        -- Insert numeric condition.
+        INSERT INTO announcement_numeric_conditions (
+            announcement_id,
+            condition_scope_code,
+            condition_key,
+            comparator_code,
+            value_number,
+            min_number,
+            max_number,
+            unit_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{announcementId},
+            #{conditionScopeCode},
+            #{conditionKey},
+            #{comparatorCode},
+            #{valueNumber},
+            #{minNumber},
+            #{maxNumber},
+            #{unitCode},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementOptionConditions">
+        -- Replace option conditions for an announcement.
+        DELETE FROM announcement_option_conditions
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementOptionCondition">
+        -- Insert option condition.
+        INSERT INTO announcement_option_conditions (
+            announcement_id,
+            condition_scope_code,
+            condition_key,
+            option_code,
+            option_text,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{announcementId},
+            #{conditionScopeCode},
+            #{conditionKey},
+            #{optionCode},
+            #{optionText},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementDocumentRequirements">
+        -- Replace announcement-level document requirements.
+        DELETE FROM announcement_document_requirements
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementDocumentRequirement">
+        -- Insert announcement-level document requirement.
+        INSERT INTO announcement_document_requirements (
+            announcement_id,
+            document_type_code,
+            is_required,
+            sort_order,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{announcementId},
+            #{documentTypeCode},
+            #{required},
+            #{sortOrder},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteAnnouncementStepButtons">
+        -- Replace step buttons for an announcement.
+        DELETE FROM announcement_step_buttons asb
+        USING announcement_progress_steps aps
+        WHERE asb.step_id = aps.id
+          AND aps.announcement_id = #{announcementId}
+    </delete>
+
+    <delete id="deleteAnnouncementStepDocuments">
+        -- Replace step documents for an announcement.
+        DELETE FROM announcement_step_documents asd
+        USING announcement_progress_steps aps
+        WHERE asd.step_id = aps.id
+          AND aps.announcement_id = #{announcementId}
+    </delete>
+
+    <delete id="deleteAnnouncementProgressSteps">
+        -- Replace progress steps for an announcement.
+        DELETE FROM announcement_progress_steps
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementProgressStep">
+        -- Insert progress step.
+        INSERT INTO announcement_progress_steps (
+            id,
+            announcement_id,
+            step_order,
+            step_name,
+            guide_message,
+            action_guide,
+            completion_condition_code,
+            next_condition_code,
+            is_active,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{id},
+            #{announcementId},
+            #{stepOrder},
+            #{stepName},
+            #{guideMessage},
+            #{actionGuide},
+            #{completionConditionCode},
+            #{nextConditionCode},
+            #{active},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <insert id="insertAnnouncementStepDocument">
+        -- Insert progress step document requirement.
+        INSERT INTO announcement_step_documents (
+            step_id,
+            document_type_code,
+            is_required,
+            sort_order,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{stepId},
+            #{documentTypeCode},
+            #{required},
+            #{sortOrder},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <insert id="insertAnnouncementStepButton">
+        -- Insert progress step button.
+        INSERT INTO announcement_step_buttons (
+            step_id,
+            button_code,
+            button_label,
+            button_action_code,
+            next_step_id,
+            sort_order,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{stepId},
+            #{buttonCode},
+            #{buttonLabel},
+            #{buttonActionCode},
+            #{nextStepId},
+            #{sortOrder},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+</mapper>

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>로그인 | saneB</title>
+    <link rel="icon" href="data:,">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/saneb-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/saneb-login.css}">
+    <script th:src="@{/js/saneb-login.js}" defer></script>
+</head>
+<body class="saneb-body saneb-login-body">
+<main class="login-shell" aria-label="saneB 로그인">
+    <section class="login-showcase" aria-labelledby="login-product-title">
+        <a class="login-brand" th:href="@{/login}" aria-label="saneB 로그인">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 2.4 20 5.7v5.8c0 5.1-3.3 8.4-8 10.1-4.7-1.7-8-5-8-10.1V5.7l8-3.3Z"/>
+                    <path d="m8.3 12.1 2.3 2.2 5.1-5.4"/>
+                </svg>
+            </span>
+            <span>saneB</span>
+        </a>
+
+        <div class="showcase-copy">
+            <h1 id="login-product-title">공공지원사업을 더 정확하고 안전하게</h1>
+            <p>파트너 검증을 통해 최종 매칭만 확정하고, 신청 진행 현황을 체계적으로 관리합니다.</p>
+        </div>
+
+        <section class="dashboard-preview" aria-label="대시보드 미리보기">
+            <aside class="preview-nav">
+                <strong>saneB</strong>
+                <span class="preview-nav-item active">
+                    <span class="mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8v8.7a.8.8 0 0 1-.8.8h-5v-5.7H9.8v5.7h-5a.8.8 0 0 1-.8-.8v-8.7Z"/></svg>
+                    </span>
+                    대시보드
+                </span>
+                <span class="preview-nav-item">
+                    <span class="mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3.6 19 6.4v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6.4l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.5-4.7"/></svg>
+                    </span>
+                    파트너 검증
+                </span>
+                <span class="preview-nav-item">
+                    <span class="mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M7 5.5h10v15H7v-15Z"/><path d="M9 3.5h6v4H9zM9.5 11h5M9.5 14.5h5M9.5 18h3"/></svg>
+                    </span>
+                    정책자금 후보
+                </span>
+                <span class="preview-nav-item">
+                    <span class="mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M5 6.8h14v13H5z"/><path d="M8 6.6V4.4h8v2.2M8.2 12h7.6M8.2 16h5"/></svg>
+                    </span>
+                    진행 현황
+                </span>
+            </aside>
+
+            <div class="preview-content">
+                <div class="preview-title">대시보드</div>
+                <section class="preview-action">
+                    <div>
+                        <span>현재 해야 할 행동</span>
+                        <strong>사업자등록증 확인이 필요합니다.</strong>
+                        <small>파트너 검증을 위해 필수 서류를 확인해 주세요.</small>
+                    </div>
+                    <button type="button" tabindex="-1">서류 확인하기</button>
+                </section>
+
+                <div class="preview-metrics">
+                    <div>
+                        <span>정책자금 후보</span>
+                        <strong>12 건</strong>
+                        <small>검증 전 참고 결과</small>
+                    </div>
+                    <div>
+                        <span>지원금 후보</span>
+                        <strong>8 건</strong>
+                        <small>검증 전 참고 결과</small>
+                    </div>
+                    <div>
+                        <span>최종 매칭 결과</span>
+                        <strong>0 건</strong>
+                        <small>검증 이후 확정</small>
+                    </div>
+                </div>
+
+                <div class="preview-progress" aria-label="진행 현황 예시">
+                    <span class="done">1</span>
+                    <i></i>
+                    <span class="active">2</span>
+                    <i></i>
+                    <span>3</span>
+                    <i></i>
+                    <span>4</span>
+                    <i></i>
+                    <span>5</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-strip" aria-label="서비스 기준">
+            <article>
+                <span class="trust-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.4 20 5.7v5.8c0 5.1-3.3 8.4-8 10.1-4.7-1.7-8-5-8-10.1V5.7l8-3.3Z"/><path d="m8.3 12.1 2.3 2.2 5.1-5.4"/></svg>
+                </span>
+                <div>
+                    <strong>보안 접속</strong>
+                    <p>안전한 연결 기준으로 정보를 보호합니다.</p>
+                </div>
+            </article>
+            <article>
+                <span class="trust-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3.6 19 6.4v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6.4l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.5-4.7"/></svg>
+                </span>
+                <div>
+                    <strong>파트너 검증</strong>
+                    <p>검증 완료 이후 최종 매칭을 확인합니다.</p>
+                </div>
+            </article>
+            <article>
+                <span class="trust-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M7 3.8h8.3L19 7.5v12.7H7V3.8Z"/><path d="M15.2 4.1v3.7h3.5M10 12h5M10 15.5h4"/></svg>
+                </span>
+                <div>
+                    <strong>체계적 관리</strong>
+                    <p>후보 확인부터 진행 현황까지 한 화면에서 관리합니다.</p>
+                </div>
+            </article>
+        </section>
+    </section>
+
+    <section class="login-workspace" aria-labelledby="login-title">
+        <div class="login-card">
+            <div class="login-lock" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M7.5 10V7.8a4.5 4.5 0 0 1 9 0V10"/>
+                    <path d="M6.2 10h11.6v9.2H6.2z"/>
+                    <path d="M12 14v2.2"/>
+                </svg>
+            </div>
+            <h2 id="login-title">로그인</h2>
+            <p class="login-intro">saneB 서비스에 오신 것을 환영합니다. 아이디와 비밀번호를 입력해 주세요.</p>
+
+            <form class="login-form" data-login-form th:action="@{/api/v1/auth/login}" method="post" novalidate>
+                <div class="login-field">
+                    <label for="loginId">아이디</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 12.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/></svg>
+                        </span>
+                        <input id="loginId" name="loginId" type="text" autocomplete="username" placeholder="아이디를 입력하세요" required>
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="password">비밀번호</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M7.5 10V7.8a4.5 4.5 0 0 1 9 0V10"/><path d="M6.2 10h11.6v9.2H6.2z"/></svg>
+                        </span>
+                        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="비밀번호를 입력하세요" required>
+                        <button class="password-toggle" type="button" data-password-toggle aria-label="비밀번호 보기" aria-pressed="false">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M3.8 12s3-5.2 8.2-5.2S20.2 12 20.2 12s-3 5.2-8.2 5.2S3.8 12 3.8 12Z"/>
+                                <path d="M12 14.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="login-message" data-login-message role="alert" hidden></p>
+
+                <div class="login-policy-row">
+                    <span>Backend 인증 응답 기준으로 이동합니다.</span>
+                    <span>비밀번호 변경 화면은 별도 Gate 후 연결합니다.</span>
+                </div>
+
+                <button class="login-submit" type="submit" data-login-submit>로그인하기</button>
+            </form>
+
+            <section class="secure-note" aria-label="보안 접속 안내">
+                <span class="trust-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.4 20 5.7v5.8c0 5.1-3.3 8.4-8 10.1-4.7-1.7-8-5-8-10.1V5.7l8-3.3Z"/><path d="m8.3 12.1 2.3 2.2 5.1-5.4"/></svg>
+                </span>
+                <div>
+                    <strong>보안 접속</strong>
+                    <p>이 사이트는 서버 인증 세션을 기준으로 접근을 관리합니다.</p>
+                </div>
+            </section>
+        </div>
+
+        <section class="login-help" aria-label="고객센터">
+            <div>
+                <span class="support-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 13.2a8 8 0 0 1 16 0v3.1a2 2 0 0 1-2 2h-2.3v-6H20M4 12.8h4.3v6H6a2 2 0 0 1-2-2v-4Z"/><path d="M9 20h6"/></svg>
+                </span>
+                <div>
+                    <strong>도움이 필요하신가요?</strong>
+                    <p>서비스 이용 문의는 고객센터로 연락주세요.</p>
+                </div>
+            </div>
+            <div class="help-number">
+                <strong>1588-1234</strong>
+                <span>평일 09:00 ~ 18:00</span>
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer class="login-footer">
+    <span>© 2026 saneB. All rights reserved.</span>
+    <a href="#">이용약관</a>
+    <a href="#">개인정보처리방침</a>
+</footer>
+</body>
+</html>
