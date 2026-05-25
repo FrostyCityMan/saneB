@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.dashboard.dao.DashboardDao">
+
+    <resultMap id="DashboardVerificationStatusRowMap" type="com.saneb.domain.dashboard.vo.DashboardVerificationStatusRow">
+        <constructor>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="verified_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="DashboardCandidateSummaryRowMap" type="com.saneb.domain.dashboard.vo.DashboardCandidateSummaryRow">
+        <constructor>
+            <arg column="policy_fund_count" javaType="_int"/>
+            <arg column="support_fund_count" javaType="_int"/>
+            <arg column="subsidy_count" javaType="_int"/>
+            <arg column="final_matched_count" javaType="_int"/>
+            <arg column="min_amount" javaType="java.math.BigDecimal"/>
+            <arg column="max_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="DashboardProgressSummaryRowMap" type="com.saneb.domain.dashboard.vo.DashboardProgressSummaryRow">
+        <constructor>
+            <arg column="in_progress_count" javaType="_int"/>
+            <arg column="waiting_result_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+            <arg column="supplement_requested_count" javaType="_int"/>
+            <arg column="stopped_count" javaType="_int"/>
+            <arg column="total_received_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="DashboardCurrentStepRowMap" type="com.saneb.domain.dashboard.vo.DashboardCurrentStepRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="step_status_code" javaType="java.lang.String"/>
+            <arg column="step_name" javaType="java.lang.String"/>
+            <arg column="guide_message" javaType="java.lang.String"/>
+            <arg column="action_guide" javaType="java.lang.String"/>
+            <arg column="button_label" javaType="java.lang.String"/>
+            <arg column="due_date" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectUserIdByLoginId" resultType="java.util.UUID">
+        -- 인증명 기준 사용자 식별자를 조회한다.
+        SELECT
+            u.id
+        FROM users u
+        WHERE u.login_id = #{loginId}
+    </select>
+
+    <select id="selectCurrentVerificationStatus" resultMap="DashboardVerificationStatusRowMap">
+        -- 사용자의 현재 파트너 검증 상태를 조회한다.
+        SELECT
+            pv.status_code,
+            pv.verified_at
+        FROM partner_verifications pv
+        WHERE pv.member_user_id = #{userId}
+          AND pv.is_current = true
+        ORDER BY pv.created_at DESC, pv.id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectCandidateSummary" resultMap="DashboardCandidateSummaryRowMap">
+        -- matching_cases 기준 진행 가능한 후보와 공고 기준 지원금액 범위를 집계한다.
+        WITH candidate_cases AS (
+            SELECT
+                mc.id,
+                mc.announcement_id,
+                mc.status_code
+            FROM matching_cases mc
+            WHERE mc.member_user_id = #{userId}
+              AND mc.status_code IN ('MATCHED', 'REVIEW_REQUIRED', 'PROGRESSED')
+        )
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE EXISTS (
+                    SELECT
+                        1
+                    FROM announcement_options ao
+                    WHERE ao.announcement_id = cc.announcement_id
+                      AND ao.option_group_code = 'PAYMENT_METHOD'
+                      AND ao.option_code IN ('LOAN', 'GUARANTEE', 'INTEREST_SUPPORT')
+                )
+            ) AS integer) AS policy_fund_count,
+            CAST(count(1) FILTER (
+                WHERE EXISTS (
+                    SELECT
+                        1
+                    FROM announcement_options ao
+                    WHERE ao.announcement_id = cc.announcement_id
+                      AND ao.option_group_code = 'PAYMENT_METHOD'
+                      AND ao.option_code IN ('VOUCHER', 'POINT', 'GOODS', 'TAX_DEDUCTION')
+                )
+            ) AS integer) AS support_fund_count,
+            CAST(count(1) FILTER (
+                WHERE EXISTS (
+                    SELECT
+                        1
+                    FROM announcement_options ao
+                    WHERE ao.announcement_id = cc.announcement_id
+                      AND ao.option_group_code = 'PAYMENT_METHOD'
+                      AND ao.option_code IN ('CASH', 'REFUND')
+                )
+            ) AS integer) AS subsidy_count,
+            CAST(count(1) FILTER (
+                WHERE cc.status_code IN ('MATCHED', 'PROGRESSED')
+            ) AS integer) AS final_matched_count,
+            min(a.min_amount) AS min_amount,
+            max(a.max_amount) AS max_amount
+        FROM candidate_cases cc
+        INNER JOIN announcements a ON a.id = cc.announcement_id
+    </select>
+
+    <select id="selectProgressSummary" resultMap="DashboardProgressSummaryRowMap">
+        -- 사용자 신청 진행 상태와 확정 수령 금액을 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE ap.status_code IN ('READY', 'IN_PROGRESS')
+            ) AS integer) AS in_progress_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'WAITING_RESULT'
+            ) AS integer) AS waiting_result_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'APPROVED'
+            ) AS integer) AS approved_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'SUPPLEMENT_REQUESTED'
+            ) AS integer) AS supplement_requested_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'STOPPED'
+            ) AS integer) AS stopped_count,
+            COALESCE(
+                sum(
+                    CASE
+                        WHEN ap.received_amount IS NOT NULL
+                             AND (
+                                 ap.status_code IN ('APPROVED', 'COMPLETED')
+                                 OR ap.result_code = 'APPROVED'
+                             )
+                        THEN ap.received_amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS total_received_amount
+        FROM application_progresses ap
+        WHERE ap.member_user_id = #{userId}
+    </select>
+
+    <select id="selectCurrentStepDetails" resultMap="DashboardCurrentStepRowMap">
+        -- READY 또는 IN_PROGRESS 상태의 현재 처리 단계 1건을 조회한다.
+        SELECT
+            ap.id AS progress_id,
+            step_state.status_code AS step_status_code,
+            progress_step.step_name,
+            progress_step.guide_message,
+            progress_step.action_guide,
+            (
+                SELECT
+                    step_button.button_label
+                FROM announcement_step_buttons step_button
+                WHERE step_button.step_id = step_state.step_id
+                ORDER BY step_button.sort_order ASC, step_button.id ASC
+                LIMIT 1
+            ) AS button_label,
+            a.application_end_date AS due_date
+        FROM application_step_states step_state
+        INNER JOIN application_progresses ap ON ap.id = step_state.progress_id
+        INNER JOIN announcement_progress_steps progress_step ON progress_step.id = step_state.step_id
+        INNER JOIN announcements a ON a.id = ap.announcement_id
+        WHERE ap.member_user_id = #{userId}
+          AND step_state.status_code IN ('READY', 'IN_PROGRESS')
+        ORDER BY
+            CASE step_state.status_code
+                WHEN 'IN_PROGRESS' THEN 1
+                WHEN 'READY' THEN 2
+                ELSE 9
+            END ASC,
+            COALESCE(step_state.started_at, step_state.created_at) ASC,
+            progress_step.step_order ASC,
+            step_state.id ASC
+        LIMIT 1
+    </select>
+</mapper>

@@ -552,15 +552,26 @@ Member / Business / Family API skeleton 착수 기준:
 {
   "resultCode": "APPROVED",
   "resultNote": "승인 완료",
-  "resultDate": "2026-07-01"
+  "resultDate": "2026-07-01",
+  "receivedAmount": 7000000
 }
 ```
 
 완료 조건을 충족하지 않은 단계 이동은 `PROGRESS_CONDITION_NOT_MET`로 거절한다.
+`receivedAmount`는 최종 결과가 `APPROVED`인 경우에만 저장한다. Dashboard의 `totalReceivedAmount`는 `application_progresses.received_amount`가 있고 승인 결과인 진행 건만 합산한다.
 
 ## 10. Dashboard API
 
 대시보드 API는 읽기 전용 집계 계약이다. Frontend는 이 응답을 기준으로 화면을 표시하며, 브라우저에서 매칭/우선순위/선정확률/가점 계산을 수행하지 않는다.
+
+MVP v1 DB 집계 기준:
+
+- 진행 가능한 후보는 `matching_cases` 기준으로 집계한다. `MATCHED`, `REVIEW_REQUIRED`, `PROGRESSED`만 후보로 포함하며, 해당 데이터가 없으면 empty state를 반환한다.
+- 후보 유형은 V1의 별도 유형 컬럼을 추가하지 않고 `announcement_options.option_group_code = PAYMENT_METHOD` 기준으로 분류한다. `LOAN`, `GUARANTEE`, `INTEREST_SUPPORT`는 `policyFund`, `VOUCHER`, `POINT`, `GOODS`, `TAX_DEDUCTION`은 `supportFund`, `CASH`, `REFUND`는 `subsidy`로 집계한다.
+- 금액 범위는 후보 `matching_cases`에 연결된 `announcements.min_amount`, `announcements.max_amount`의 최소/최대값만 사용한다. `application_progresses.received_amount`와 혼합하지 않는다.
+- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 없으면 파트너 검증 상태를 기준으로 `VERIFICATION_DOCUMENT_REQUIRED` 또는 `NONE`을 반환한다.
+- 진행/승인/수령 금액은 `application_progresses` 기준으로 집계한다. 누적 수령 금액은 `received_amount`가 있고 `status_code IN (APPROVED, COMPLETED)` 또는 `result_code = APPROVED`인 행만 합산한다.
+- 개인정보 원문은 대시보드 집계에 포함하지 않고, 사용자 식별자와 진행/공고 운영 데이터만 조인한다.
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|

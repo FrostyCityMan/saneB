@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.matching.dao.MatchingDao">
+
+    <resultMap id="MatchingCaseRowMap" type="com.saneb.domain.matching.vo.MatchingCaseRow">
+        <constructor>
+            <arg column="matching_case_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="blocked_reason_code" javaType="java.lang.String"/>
+            <arg column="matched_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="reviewed_by" javaType="java.util.UUID"/>
+            <arg column="reviewed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="MatchingResultDetailRowMap" type="com.saneb.domain.matching.vo.MatchingResultDetailRow">
+        <constructor>
+            <arg column="matching_result_detail_id" javaType="java.util.UUID"/>
+            <arg column="matching_case_id" javaType="java.util.UUID"/>
+            <arg column="condition_scope_code" javaType="java.lang.String"/>
+            <arg column="condition_key" javaType="java.lang.String"/>
+            <arg column="result_code" javaType="java.lang.String"/>
+            <arg column="basis_value" javaType="java.lang.String"/>
+            <arg column="required_value" javaType="java.lang.String"/>
+            <arg column="reason" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementMatchingRowMap" type="com.saneb.domain.matching.vo.AnnouncementMatchingRow">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="manual_status_code" javaType="java.lang.String"/>
+            <arg column="approval_status_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationMatchingRowMap" type="com.saneb.domain.matching.vo.VerificationMatchingRow">
+        <constructor>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="is_current" javaType="java.lang.Boolean"/>
+            <arg column="is_matching_blocked" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="MatchingCaseSearchWhere">
+        <where>
+            <if test="announcementId != null">
+                AND mc.announcement_id = #{announcementId}
+            </if>
+            <if test="memberUserId != null">
+                AND mc.member_user_id = #{memberUserId}
+            </if>
+            <if test="verificationId != null">
+                AND mc.verification_id = #{verificationId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND mc.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectMatchingCaseList" resultMap="MatchingCaseRowMap">
+        -- Select matching cases for paginated operation screens.
+        SELECT
+            mc.id AS matching_case_id,
+            mc.announcement_id,
+            mc.member_user_id,
+            mc.verification_id,
+            mc.status_code,
+            mc.blocked_reason_code,
+            mc.matched_at,
+            mc.reviewed_by,
+            mc.reviewed_at,
+            mc.created_at,
+            mc.updated_at
+        FROM matching_cases mc
+        <include refid="MatchingCaseSearchWhere"/>
+        ORDER BY mc.created_at DESC, mc.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectMatchingCaseCount" resultType="long">
+        -- Count matching cases for paginated list.
+        SELECT
+            count(1)
+        FROM matching_cases mc
+        <include refid="MatchingCaseSearchWhere"/>
+    </select>
+
+    <select id="selectMatchingCaseDetails" resultMap="MatchingCaseRowMap">
+        -- Select matching case details by primary key.
+        SELECT
+            mc.id AS matching_case_id,
+            mc.announcement_id,
+            mc.member_user_id,
+            mc.verification_id,
+            mc.status_code,
+            mc.blocked_reason_code,
+            mc.matched_at,
+            mc.reviewed_by,
+            mc.reviewed_at,
+            mc.created_at,
+            mc.updated_at
+        FROM matching_cases mc
+        WHERE mc.id = #{matchingCaseId}
+    </select>
+
+    <select id="selectMatchingCaseDetailsByBusinessKey" resultMap="MatchingCaseRowMap">
+        -- Select matching case by business unique key to avoid duplicate creation.
+        SELECT
+            mc.id AS matching_case_id,
+            mc.announcement_id,
+            mc.member_user_id,
+            mc.verification_id,
+            mc.status_code,
+            mc.blocked_reason_code,
+            mc.matched_at,
+            mc.reviewed_by,
+            mc.reviewed_at,
+            mc.created_at,
+            mc.updated_at
+        FROM matching_cases mc
+        WHERE mc.announcement_id = #{announcementId}
+          AND mc.member_user_id = #{memberUserId}
+          AND mc.verification_id = #{verificationId}
+    </select>
+
+    <select id="selectMatchingResultDetailList" resultMap="MatchingResultDetailRowMap">
+        -- Select condition-level matching result details.
+        SELECT
+            mrd.id AS matching_result_detail_id,
+            mrd.matching_case_id,
+            mrd.condition_scope_code,
+            mrd.condition_key,
+            mrd.result_code,
+            mrd.basis_value,
+            mrd.required_value,
+            mrd.reason,
+            mrd.created_at
+        FROM matching_result_details mrd
+        WHERE mrd.matching_case_id = #{matchingCaseId}
+        ORDER BY mrd.condition_scope_code ASC, mrd.condition_key ASC
+    </select>
+
+    <select id="selectAnnouncementForMatching" resultMap="AnnouncementMatchingRowMap">
+        -- Select announcement status fields needed before matching creation.
+        SELECT
+            a.id AS announcement_id,
+            a.manual_status_code,
+            a.approval_status_code
+        FROM announcements a
+        WHERE a.id = #{announcementId}
+    </select>
+
+    <select id="selectVerificationForMatching" resultMap="VerificationMatchingRowMap">
+        -- Select verification status fields needed before matching creation.
+        SELECT
+            pv.id AS verification_id,
+            pv.member_user_id,
+            pv.status_code,
+            pv.is_current,
+            pv.is_matching_blocked
+        FROM partner_verifications pv
+        WHERE pv.id = #{verificationId}
+    </select>
+
+    <select id="selectCheckedRestrictionFlagCodeList" resultType="string">
+        -- Select checked restriction flags used for MVP status classification.
+        SELECT
+            vrf.restriction_code
+        FROM verification_restriction_flags vrf
+        WHERE vrf.verification_id = #{verificationId}
+          AND vrf.is_checked = true
+        ORDER BY vrf.restriction_code ASC
+    </select>
+
+    <insert id="insertMatchingCase">
+        -- Insert matching case with only status and restriction reason fields.
+        INSERT INTO matching_cases (
+            id,
+            announcement_id,
+            member_user_id,
+            verification_id,
+            status_code,
+            blocked_reason_code,
+            matched_at,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{matchingCaseId},
+            #{announcementId},
+            #{memberUserId},
+            #{verificationId},
+            #{statusCode},
+            #{blockedReasonCode},
+            now(),
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <insert id="insertMatchingResultDetail">
+        -- Insert MVP matching result detail with only PASS, FAIL, SKIPPED, or REVIEW_REQUIRED.
+        INSERT INTO matching_result_details (
+            id,
+            matching_case_id,
+            condition_scope_code,
+            condition_key,
+            result_code,
+            basis_value,
+            required_value,
+            reason,
+            created_by
+        ) VALUES (
+            #{matchingResultDetailId},
+            #{matchingCaseId},
+            #{conditionScopeCode},
+            #{conditionKey},
+            #{resultCode},
+            #{basisValue},
+            #{requiredValue},
+            #{reason},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateMatchingCaseStatus">
+        -- Update matching case status manually without creating application progress.
+        UPDATE matching_cases
+        SET
+            status_code = #{statusCode},
+            blocked_reason_code = #{blockedReasonCode},
+            reviewed_by = #{actorUserId},
+            reviewed_at = now(),
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{matchingCaseId}
+    </update>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII matching operation audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

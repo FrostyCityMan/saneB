@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.applicationprogress.dao.ApplicationProgressDao">
+
+    <resultMap id="ApplicationProgressRowMap" type="com.saneb.domain.applicationprogress.vo.ApplicationProgressRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="matching_case_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="current_step_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="receipt_no" javaType="java.lang.String"/>
+            <arg column="receipt_date" javaType="java.time.LocalDate"/>
+            <arg column="result_code" javaType="java.lang.String"/>
+            <arg column="result_note" javaType="java.lang.String"/>
+            <arg column="result_date" javaType="java.time.LocalDate"/>
+            <arg column="received_amount" javaType="java.math.BigDecimal"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="MatchingCaseProgressRowMap" type="com.saneb.domain.applicationprogress.vo.MatchingCaseProgressRow">
+        <constructor>
+            <arg column="matching_case_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementProgressStepRowMap" type="com.saneb.domain.applicationprogress.vo.AnnouncementProgressStepRow">
+        <constructor>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="step_order" javaType="java.lang.Integer"/>
+            <arg column="step_name" javaType="java.lang.String"/>
+            <arg column="is_active" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationStepStateRowMap" type="com.saneb.domain.applicationprogress.vo.ApplicationStepStateRow">
+        <constructor>
+            <arg column="step_state_id" javaType="java.util.UUID"/>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="step_order" javaType="java.lang.Integer"/>
+            <arg column="step_name" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationChecklistRowMap" type="com.saneb.domain.applicationprogress.vo.ApplicationChecklistRow">
+        <constructor>
+            <arg column="checklist_id" javaType="java.util.UUID"/>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="step_document_id" javaType="java.util.UUID"/>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="is_required" javaType="java.lang.Boolean"/>
+            <arg column="is_checked" javaType="java.lang.Boolean"/>
+            <arg column="checked_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="checked_by" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="StepButtonRowMap" type="com.saneb.domain.applicationprogress.vo.StepButtonRow">
+        <constructor>
+            <arg column="step_id" javaType="java.util.UUID"/>
+            <arg column="button_code" javaType="java.lang.String"/>
+            <arg column="button_action_code" javaType="java.lang.String"/>
+            <arg column="next_step_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="ApplicationProgressSearchWhere">
+        <where>
+            <if test="announcementId != null">
+                AND ap.announcement_id = #{announcementId}
+            </if>
+            <if test="memberUserId != null">
+                AND ap.member_user_id = #{memberUserId}
+            </if>
+            <if test="matchingCaseId != null">
+                AND ap.matching_case_id = #{matchingCaseId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND ap.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectApplicationProgressList" resultMap="ApplicationProgressRowMap">
+        -- Select application progress list for paginated operation and user screens.
+        SELECT
+            ap.id AS progress_id,
+            ap.matching_case_id,
+            ap.announcement_id,
+            ap.member_user_id,
+            ap.current_step_id,
+            ap.status_code,
+            ap.receipt_no,
+            ap.receipt_date,
+            ap.result_code,
+            ap.result_note,
+            ap.result_date,
+            ap.received_amount,
+            ap.created_at,
+            ap.updated_at
+        FROM application_progresses ap
+        <include refid="ApplicationProgressSearchWhere"/>
+        ORDER BY ap.created_at DESC, ap.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectApplicationProgressCount" resultType="long">
+        -- Count application progress rows for paginated list.
+        SELECT
+            count(1)
+        FROM application_progresses ap
+        <include refid="ApplicationProgressSearchWhere"/>
+    </select>
+
+    <select id="selectApplicationProgressDetails" resultMap="ApplicationProgressRowMap">
+        -- Select application progress details by primary key.
+        SELECT
+            ap.id AS progress_id,
+            ap.matching_case_id,
+            ap.announcement_id,
+            ap.member_user_id,
+            ap.current_step_id,
+            ap.status_code,
+            ap.receipt_no,
+            ap.receipt_date,
+            ap.result_code,
+            ap.result_note,
+            ap.result_date,
+            ap.received_amount,
+            ap.created_at,
+            ap.updated_at
+        FROM application_progresses ap
+        WHERE ap.id = #{progressId}
+    </select>
+
+    <select id="selectApplicationProgressByMatchingCaseId" resultMap="ApplicationProgressRowMap">
+        -- Select application progress by matching case unique key.
+        SELECT
+            ap.id AS progress_id,
+            ap.matching_case_id,
+            ap.announcement_id,
+            ap.member_user_id,
+            ap.current_step_id,
+            ap.status_code,
+            ap.receipt_no,
+            ap.receipt_date,
+            ap.result_code,
+            ap.result_note,
+            ap.result_date,
+            ap.received_amount,
+            ap.created_at,
+            ap.updated_at
+        FROM application_progresses ap
+        WHERE ap.matching_case_id = #{matchingCaseId}
+    </select>
+
+    <select id="selectMatchingCaseForProgress" resultMap="MatchingCaseProgressRowMap">
+        -- Select matching case fields required for progress creation.
+        SELECT
+            mc.id AS matching_case_id,
+            mc.announcement_id,
+            mc.member_user_id,
+            mc.status_code
+        FROM matching_cases mc
+        WHERE mc.id = #{matchingCaseId}
+    </select>
+
+    <select id="selectActiveAnnouncementProgressStepList" resultMap="AnnouncementProgressStepRowMap">
+        -- Select active announcement progress steps ordered for initialization.
+        SELECT
+            aps.id AS step_id,
+            aps.step_order,
+            aps.step_name,
+            aps.is_active
+        FROM announcement_progress_steps aps
+        WHERE aps.announcement_id = #{announcementId}
+          AND aps.is_active = true
+        ORDER BY aps.step_order ASC, aps.id ASC
+    </select>
+
+    <select id="selectApplicationStepStateList" resultMap="ApplicationStepStateRowMap">
+        -- Select initialized step states for a progress.
+        SELECT
+            ass.id AS step_state_id,
+            ass.progress_id,
+            ass.step_id,
+            aps.step_order,
+            aps.step_name,
+            ass.status_code,
+            ass.started_at,
+            ass.completed_at
+        FROM application_step_states ass
+        INNER JOIN announcement_progress_steps aps ON aps.id = ass.step_id
+        WHERE ass.progress_id = #{progressId}
+        ORDER BY aps.step_order ASC, aps.id ASC
+    </select>
+
+    <select id="selectApplicationStepState" resultMap="ApplicationStepStateRowMap">
+        -- Select one initialized step state.
+        SELECT
+            ass.id AS step_state_id,
+            ass.progress_id,
+            ass.step_id,
+            aps.step_order,
+            aps.step_name,
+            ass.status_code,
+            ass.started_at,
+            ass.completed_at
+        FROM application_step_states ass
+        INNER JOIN announcement_progress_steps aps ON aps.id = ass.step_id
+        WHERE ass.progress_id = #{progressId}
+          AND ass.step_id = #{stepId}
+    </select>
+
+    <select id="selectApplicationChecklistList" resultMap="ApplicationChecklistRowMap">
+        -- Select progress checklist states with document metadata.
+        SELECT
+            asc1.id AS checklist_id,
+            asc1.progress_id,
+            asd.id AS step_document_id,
+            asd.step_id,
+            asd.document_type_code,
+            asd.is_required,
+            COALESCE(asc1.is_checked, false) AS is_checked,
+            asc1.checked_at,
+            asc1.checked_by
+        FROM application_progresses ap
+        INNER JOIN announcement_progress_steps aps ON aps.announcement_id = ap.announcement_id
+        INNER JOIN announcement_step_documents asd ON asd.step_id = aps.id
+        LEFT JOIN application_step_checklists asc1
+            ON asc1.progress_id = ap.id
+           AND asc1.step_document_id = asd.id
+        WHERE ap.id = #{progressId}
+        ORDER BY aps.step_order ASC, asd.sort_order ASC, asd.id ASC
+    </select>
+
+    <select id="selectStepButton" resultMap="StepButtonRowMap">
+        -- Select configured button for a progress step action.
+        SELECT
+            asb.step_id,
+            asb.button_code,
+            asb.button_action_code,
+            asb.next_step_id
+        FROM announcement_step_buttons asb
+        WHERE asb.step_id = #{stepId}
+          AND asb.button_code = #{buttonCode}
+    </select>
+
+    <select id="selectNextActiveStepId" resultType="java.util.UUID">
+        -- Select next active step when a button does not explicitly define one.
+        SELECT
+            aps.id
+        FROM announcement_progress_steps aps
+        WHERE aps.announcement_id = #{announcementId}
+          AND aps.is_active = true
+          AND aps.step_order &gt; #{stepOrder}
+        ORDER BY aps.step_order ASC, aps.id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectRequiredUncheckedDocumentCount" resultType="long">
+        -- Count required step documents that are not checked for the progress.
+        SELECT
+            count(1)
+        FROM announcement_step_documents asd
+        LEFT JOIN application_step_checklists asc1
+            ON asc1.step_document_id = asd.id
+           AND asc1.progress_id = #{progressId}
+        WHERE asd.step_id = #{stepId}
+          AND asd.is_required = true
+          AND COALESCE(asc1.is_checked, false) = false
+    </select>
+
+    <select id="selectStepDocumentBelongsToStepCount" resultType="long">
+        -- Validate step document ownership before checklist save.
+        SELECT
+            count(1)
+        FROM announcement_step_documents asd
+        WHERE asd.id = #{stepDocumentId}
+          AND asd.step_id = #{stepId}
+    </select>
+
+    <insert id="insertApplicationProgress">
+        -- Insert application progress from one MATCHED matching case.
+        INSERT INTO application_progresses (
+            id,
+            matching_case_id,
+            announcement_id,
+            member_user_id,
+            current_step_id,
+            status_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{progressId},
+            #{matchingCaseId},
+            #{announcementId},
+            #{memberUserId},
+            #{currentStepId},
+            'READY',
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <insert id="insertApplicationStepState">
+        -- Insert initialized step state for a progress.
+        INSERT INTO application_step_states (
+            id,
+            progress_id,
+            step_id,
+            status_code,
+            started_at,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{stepStateId},
+            #{progressId},
+            #{stepId},
+            #{statusCode},
+            CASE WHEN #{statusCode} = 'READY' THEN now() ELSE NULL END,
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateMatchingCaseStatusToProgressed">
+        -- Mark matching case as progressed after application progress creation.
+        UPDATE matching_cases
+        SET
+            status_code = 'PROGRESSED',
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{matchingCaseId}
+          AND status_code = 'MATCHED'
+    </update>
+
+    <update id="updateApplicationStepStateStatus">
+        -- Update one progress step state.
+        UPDATE application_step_states
+        SET
+            status_code = #{statusCode},
+            started_at = CASE
+                WHEN #{statusCode} IN ('READY', 'IN_PROGRESS') AND started_at IS NULL THEN now()
+                ELSE started_at
+            END,
+            completed_at = CASE
+                WHEN #{statusCode} = 'COMPLETED' THEN now()
+                ELSE completed_at
+            END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE progress_id = #{progressId}
+          AND step_id = #{stepId}
+    </update>
+
+    <update id="updateApplicationProgressCurrentStep">
+        -- Update current step pointer and progress status.
+        UPDATE application_progresses
+        SET
+            current_step_id = #{currentStepId,jdbcType=OTHER},
+            status_code = #{statusCode},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{progressId}
+    </update>
+
+    <insert id="insertApplicationActionLog">
+        -- Insert sanitized progress action log without raw personal input.
+        INSERT INTO application_action_logs (
+            progress_id,
+            step_id,
+            actor_user_id,
+            action_code,
+            button_code,
+            input_json
+        ) VALUES (
+            #{progressId},
+            #{stepId},
+            #{actorUserId},
+            #{actionCode},
+            #{buttonCode},
+            CAST(#{inputJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+
+    <insert id="saveApplicationChecklist">
+        -- Upsert one progress checklist state.
+        INSERT INTO application_step_checklists (
+            progress_id,
+            step_document_id,
+            is_checked,
+            checked_at,
+            checked_by,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{progressId},
+            #{stepDocumentId},
+            #{checked},
+            CASE WHEN #{checked} = true THEN now() ELSE NULL END,
+            CASE WHEN #{checked} = true THEN #{actorUserId} ELSE NULL END,
+            #{actorUserId},
+            #{actorUserId}
+        )
+        ON CONFLICT (progress_id, step_document_id) DO UPDATE
+        SET
+            is_checked = EXCLUDED.is_checked,
+            checked_at = EXCLUDED.checked_at,
+            checked_by = EXCLUDED.checked_by,
+            updated_by = EXCLUDED.updated_by,
+            updated_at = now()
+    </insert>
+
+    <update id="updateApplicationProgressReceipt">
+        -- Save receipt fields and move progress to waiting result.
+        UPDATE application_progresses
+        SET
+            receipt_no = #{receiptNo},
+            receipt_date = #{receiptDate},
+            status_code = 'WAITING_RESULT',
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{progressId}
+    </update>
+
+    <update id="updateApplicationProgressResult">
+        -- Save final result fields and received amount without deriving scoring metrics.
+        UPDATE application_progresses
+        SET
+            status_code = #{statusCode},
+            result_code = #{resultCode},
+            result_note = #{resultNote},
+            result_date = #{resultDate},
+            received_amount = #{receivedAmount},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{progressId}
+    </update>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII application progress audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

@@ -21,13 +21,19 @@ class FlywayMigrationIntegrationTest {
     private DataSource dataSource;
 
     @Test
-    void v1MigrationAppliesToPostgreSql() throws SQLException {
+    void mvpMigrationsApplyToPostgreSql() throws SQLException {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             assertThat(selectLong(statement, """
                     select count(1)
                     from flyway_schema_history
                     where version = '1'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '4'
                       and success = true
                     """)).isEqualTo(1);
 
@@ -60,7 +66,10 @@ class FlywayMigrationIntegrationTest {
                 "announcement_progress_steps",
                 "application_progresses",
                 "application_action_logs",
-                "audit_logs"
+                "audit_logs",
+                "announcement_input_requirements",
+                "announcement_input_options",
+                "application_input_values"
         );
     }
 

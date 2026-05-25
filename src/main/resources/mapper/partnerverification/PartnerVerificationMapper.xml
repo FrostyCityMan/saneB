@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.partnerverification.dao.PartnerVerificationDao">
+
+    <resultMap id="PartnerVerificationRowMap" type="com.saneb.domain.partnerverification.vo.PartnerVerificationRow">
+        <constructor>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="partner_user_id" javaType="java.util.UUID"/>
+            <arg column="business_profile_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="is_current" javaType="java.lang.Boolean"/>
+            <arg column="is_matching_blocked" javaType="java.lang.Boolean"/>
+            <arg column="submitted_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="verified_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="reviewed_by" javaType="java.util.UUID"/>
+            <arg column="review_note" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationMemberValuesRowMap" type="com.saneb.domain.partnerverification.vo.VerificationMemberValuesRow">
+        <constructor>
+            <arg column="birth_year" javaType="java.lang.Integer"/>
+            <arg column="address" javaType="java.lang.String"/>
+            <arg column="region_code" javaType="java.lang.String"/>
+            <arg column="is_householder" javaType="java.lang.Boolean"/>
+            <arg column="is_household_member" javaType="java.lang.Boolean"/>
+            <arg column="health_insurance_basis_code" javaType="java.lang.String"/>
+            <arg column="has_income" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationBusinessValuesRowMap" type="com.saneb.domain.partnerverification.vo.VerificationBusinessValuesRow">
+        <constructor>
+            <arg column="annual_revenue" javaType="java.math.BigDecimal"/>
+            <arg column="employee_count" javaType="java.lang.Integer"/>
+            <arg column="regular_employee_count" javaType="java.lang.Integer"/>
+            <arg column="tax_status_code" javaType="java.lang.String"/>
+            <arg column="nice_credit_score" javaType="java.lang.Integer"/>
+            <arg column="kcb_credit_score" javaType="java.lang.Integer"/>
+            <arg column="has_existing_loan" javaType="java.lang.Boolean"/>
+            <arg column="has_policy_fund_usage" javaType="java.lang.Boolean"/>
+            <arg column="has_guarantee_usage" javaType="java.lang.Boolean"/>
+            <arg column="financial_checked_on" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationFamilyValueRowMap" type="com.saneb.domain.partnerverification.vo.VerificationFamilyValueRow">
+        <constructor>
+            <arg column="relation_type_code" javaType="java.lang.String"/>
+            <arg column="birth_year" javaType="java.lang.Integer"/>
+            <arg column="address" javaType="java.lang.String"/>
+            <arg column="school_age_status_code" javaType="java.lang.String"/>
+            <arg column="enrollment_status_code" javaType="java.lang.String"/>
+            <arg column="is_cohabiting" javaType="java.lang.Boolean"/>
+            <arg column="is_supported" javaType="java.lang.Boolean"/>
+            <arg column="has_income" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationRestrictionFlagRowMap" type="com.saneb.domain.partnerverification.vo.VerificationRestrictionFlagRow">
+        <constructor>
+            <arg column="restriction_code" javaType="java.lang.String"/>
+            <arg column="is_checked" javaType="java.lang.Boolean"/>
+            <arg column="note" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="VerificationDocumentRowMap" type="com.saneb.domain.partnerverification.vo.VerificationDocumentRow">
+        <constructor>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="source_type_code" javaType="java.lang.String"/>
+            <arg column="is_checked" javaType="java.lang.Boolean"/>
+            <arg column="checked_by" javaType="java.util.UUID"/>
+            <arg column="checked_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="note" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="PartnerVerificationSearchWhere">
+        <where>
+            <if test="memberUserId != null">
+                AND pv.member_user_id = #{memberUserId}
+            </if>
+            <if test="partnerUserId != null">
+                AND pv.partner_user_id = #{partnerUserId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND pv.status_code = #{statusCode}
+            </if>
+            <if test="current != null">
+                AND pv.is_current = #{current}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectPartnerVerificationList" resultMap="PartnerVerificationRowMap">
+        -- Select partner verification list for paginated operation screens.
+        SELECT
+            pv.id AS verification_id,
+            pv.member_user_id,
+            pv.partner_user_id,
+            pv.business_profile_id,
+            pv.status_code,
+            pv.is_current,
+            pv.is_matching_blocked,
+            pv.submitted_at,
+            pv.verified_at,
+            pv.reviewed_by,
+            pv.review_note,
+            pv.created_at,
+            pv.updated_at
+        FROM partner_verifications pv
+        <include refid="PartnerVerificationSearchWhere"/>
+        ORDER BY pv.created_at DESC, pv.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectPartnerVerificationCount" resultType="long">
+        -- Count partner verifications for paginated list.
+        SELECT
+            count(1)
+        FROM partner_verifications pv
+        <include refid="PartnerVerificationSearchWhere"/>
+    </select>
+
+    <select id="selectPartnerVerificationDetails" resultMap="PartnerVerificationRowMap">
+        -- Select partner verification details by primary key.
+        SELECT
+            pv.id AS verification_id,
+            pv.member_user_id,
+            pv.partner_user_id,
+            pv.business_profile_id,
+            pv.status_code,
+            pv.is_current,
+            pv.is_matching_blocked,
+            pv.submitted_at,
+            pv.verified_at,
+            pv.reviewed_by,
+            pv.review_note,
+            pv.created_at,
+            pv.updated_at
+        FROM partner_verifications pv
+        WHERE pv.id = #{verificationId}
+    </select>
+
+    <select id="selectVerificationMemberValues" resultMap="VerificationMemberValuesRowMap">
+        -- Select member verification values snapshot.
+        SELECT
+            vmv.birth_year,
+            vmv.address,
+            vmv.region_code,
+            vmv.is_householder,
+            vmv.is_household_member,
+            vmv.health_insurance_basis_code,
+            vmv.has_income
+        FROM verification_member_values vmv
+        WHERE vmv.verification_id = #{verificationId}
+    </select>
+
+    <select id="selectVerificationBusinessValues" resultMap="VerificationBusinessValuesRowMap">
+        -- Select business and financial verification values snapshot.
+        SELECT
+            vbv.annual_revenue,
+            vbv.employee_count,
+            vbv.regular_employee_count,
+            vbv.tax_status_code,
+            vbv.nice_credit_score,
+            vbv.kcb_credit_score,
+            vbv.has_existing_loan,
+            vbv.has_policy_fund_usage,
+            vbv.has_guarantee_usage,
+            vbv.financial_checked_on
+        FROM verification_business_values vbv
+        WHERE vbv.verification_id = #{verificationId}
+    </select>
+
+    <select id="selectVerificationFamilyValueList" resultMap="VerificationFamilyValueRowMap">
+        -- Select family verification value snapshots.
+        SELECT
+            vfv.relation_type_code,
+            vfv.birth_year,
+            vfv.address,
+            vfv.school_age_status_code,
+            vfv.enrollment_status_code,
+            vfv.is_cohabiting,
+            vfv.is_supported,
+            vfv.has_income
+        FROM verification_family_values vfv
+        WHERE vfv.verification_id = #{verificationId}
+        ORDER BY vfv.relation_type_code ASC, vfv.created_at ASC, vfv.id ASC
+    </select>
+
+    <select id="selectVerificationRestrictionFlagList" resultMap="VerificationRestrictionFlagRowMap">
+        -- Select verification restriction flags.
+        SELECT
+            vrf.restriction_code,
+            vrf.is_checked,
+            vrf.note
+        FROM verification_restriction_flags vrf
+        WHERE vrf.verification_id = #{verificationId}
+        ORDER BY vrf.restriction_code ASC
+    </select>
+
+    <select id="selectVerificationDocumentList" resultMap="VerificationDocumentRowMap">
+        -- Select verification document check states.
+        SELECT
+            vd.document_type_code,
+            vd.source_type_code,
+            vd.is_checked,
+            vd.checked_by,
+            vd.checked_at,
+            vd.note
+        FROM verification_documents vd
+        WHERE vd.verification_id = #{verificationId}
+        ORDER BY vd.document_type_code ASC
+    </select>
+
+    <select id="selectUserCountById" resultType="long">
+        -- Check user existence by primary key.
+        SELECT
+            count(1)
+        FROM users u
+        WHERE u.id = #{userId}
+    </select>
+
+    <select id="selectBusinessProfileCountById" resultType="long">
+        -- Check business profile existence by primary key.
+        SELECT
+            count(1)
+        FROM business_profiles bp
+        WHERE bp.id = #{businessProfileId}
+    </select>
+
+    <update id="updateCurrentVerificationInactiveByMemberUserId">
+        -- Mark existing current verification as non-current before creating a new one.
+        UPDATE partner_verifications
+        SET
+            is_current = false,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE member_user_id = #{memberUserId}
+          AND is_current = true
+    </update>
+
+    <insert id="insertPartnerVerification">
+        -- Insert a draft current partner verification.
+        INSERT INTO partner_verifications (
+            id,
+            member_user_id,
+            partner_user_id,
+            business_profile_id,
+            status_code,
+            is_current,
+            is_matching_blocked,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{id},
+            #{memberUserId},
+            #{partnerUserId},
+            #{businessProfileId},
+            'DRAFT',
+            true,
+            false,
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteVerificationMemberValues">
+        -- Replace member verification values.
+        DELETE FROM verification_member_values
+        WHERE verification_id = #{verificationId}
+    </delete>
+
+    <insert id="insertVerificationMemberValues">
+        -- Insert member verification values.
+        INSERT INTO verification_member_values (
+            verification_id,
+            birth_year,
+            address,
+            region_code,
+            is_householder,
+            is_household_member,
+            health_insurance_basis_code,
+            has_income,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{verificationId},
+            #{birthYear},
+            #{address},
+            #{regionCode},
+            #{householder},
+            #{householdMember},
+            #{healthInsuranceBasisCode},
+            #{hasIncome},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteVerificationBusinessValues">
+        -- Replace business verification values.
+        DELETE FROM verification_business_values
+        WHERE verification_id = #{verificationId}
+    </delete>
+
+    <insert id="insertVerificationBusinessValues">
+        -- Insert business and financial verification values.
+        INSERT INTO verification_business_values (
+            verification_id,
+            annual_revenue,
+            employee_count,
+            regular_employee_count,
+            tax_status_code,
+            nice_credit_score,
+            kcb_credit_score,
+            has_existing_loan,
+            has_policy_fund_usage,
+            has_guarantee_usage,
+            financial_checked_on,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{verificationId},
+            #{annualRevenue},
+            #{employeeCount},
+            #{regularEmployeeCount},
+            #{taxStatusCode},
+            #{niceCreditScore},
+            #{kcbCreditScore},
+            #{hasExistingLoan},
+            #{hasPolicyFundUsage},
+            #{hasGuaranteeUsage},
+            #{financialCheckedOn},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteVerificationFamilyValues">
+        -- Replace family verification values.
+        DELETE FROM verification_family_values
+        WHERE verification_id = #{verificationId}
+    </delete>
+
+    <insert id="insertVerificationFamilyValue">
+        -- Insert family verification value.
+        INSERT INTO verification_family_values (
+            verification_id,
+            relation_type_code,
+            birth_year,
+            address,
+            school_age_status_code,
+            enrollment_status_code,
+            is_cohabiting,
+            is_supported,
+            has_income,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{verificationId},
+            #{relationTypeCode},
+            #{birthYear},
+            #{address},
+            #{schoolAgeStatusCode},
+            #{enrollmentStatusCode},
+            #{cohabiting},
+            #{supported},
+            #{hasIncome},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteVerificationRestrictionFlags">
+        -- Replace verification restriction flags.
+        DELETE FROM verification_restriction_flags
+        WHERE verification_id = #{verificationId}
+    </delete>
+
+    <insert id="insertVerificationRestrictionFlag">
+        -- Insert verification restriction flag.
+        INSERT INTO verification_restriction_flags (
+            verification_id,
+            restriction_code,
+            is_checked,
+            note,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{verificationId},
+            #{restrictionCode},
+            #{checked},
+            #{note},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteVerificationDocuments">
+        -- Replace verification document check states.
+        DELETE FROM verification_documents
+        WHERE verification_id = #{verificationId}
+    </delete>
+
+    <insert id="insertVerificationDocument">
+        -- Insert verification document check state.
+        INSERT INTO verification_documents (
+            verification_id,
+            document_type_code,
+            source_type_code,
+            is_checked,
+            checked_by,
+            checked_at,
+            note,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{verificationId},
+            #{documentTypeCode},
+            #{sourceTypeCode},
+            #{checked},
+            CASE WHEN #{checked} = true THEN #{checkedBy} ELSE NULL END,
+            CASE WHEN #{checked} = true THEN now() ELSE NULL END,
+            #{note},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updatePartnerVerificationStatus">
+        -- Update partner verification status in the approved MVP state flow.
+        UPDATE partner_verifications
+        SET
+            status_code = #{statusCode},
+            submitted_at = CASE
+                WHEN #{statusCode} = 'SUBMITTED' THEN now()
+                ELSE submitted_at
+            END,
+            verified_at = CASE
+                WHEN #{statusCode} = 'VERIFIED' THEN now()
+                ELSE verified_at
+            END,
+            reviewed_by = CASE
+                WHEN #{statusCode} IN ('VERIFIED', 'REJECTED', 'EXPIRED') THEN #{reviewedBy}
+                ELSE reviewed_by
+            END,
+            review_note = CASE
+                WHEN #{statusCode} IN ('VERIFIED', 'REJECTED', 'EXPIRED') THEN #{reviewNote}
+                ELSE review_note
+            END,
+            updated_by = #{reviewedBy},
+            updated_at = now()
+        WHERE id = #{verificationId}
+    </update>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII operation audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

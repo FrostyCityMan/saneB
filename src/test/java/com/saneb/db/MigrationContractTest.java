@@ -48,8 +48,28 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v4MigrationContainsDynamicAnnouncementInputTables() throws IOException {
+        String sql = selectV4Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_input_requirements",
+                "CREATE TABLE announcement_input_options",
+                "CREATE TABLE application_input_values",
+                "CONSTRAINT uq_announcement_input_requirements_field_key",
+                "CONSTRAINT uq_announcement_input_options_code",
+                "CREATE UNIQUE INDEX uq_application_input_values_single_value",
+                "CREATE UNIQUE INDEX uq_application_input_values_option_value"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV4Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V4__create_dynamic_announcement_inputs.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

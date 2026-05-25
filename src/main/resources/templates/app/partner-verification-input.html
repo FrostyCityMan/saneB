@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('파트너 검증 입력', ~{::main})}">
+<main class="flow-page">
+    <section class="flow-shell verification-flow-shell" aria-label="파트너 검증 입력">
+        <div class="flow-workspace">
+            <section class="flow-hero">
+                <div>
+                    <span class="eyebrow">Partner Input</span>
+                    <h2>파트너와 운영자가 검증 서류 확인 값을 입력합니다.</h2>
+                    <p>이번 Gate 1에서는 확정된 documents 저장 계약만 연결합니다. 회원값, 사업자값, 제한 플래그 입력은 별도 계약 범위에서 다룹니다.</p>
+                </div>
+                <div class="flow-hero-status">
+                    <span>검증 상태</span>
+                    <strong th:text="${page.details.statusLabel}">작성 중</strong>
+                    <small th:text="${page.details.current ? '현재 검증 건' : '과거 검증 건'}">현재 검증 건</small>
+                </div>
+            </section>
+
+            <p class="flow-message"
+               th:if="${message != null}"
+               th:classappend="${messageType == 'error'} ? ' is-error' : ' is-success'"
+               th:text="${message}">저장 결과</p>
+
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Documents</span>
+                        <h2>검증 서류 입력</h2>
+                    </div>
+                    <a th:href="@{/app/member/verifications/{verificationId}(verificationId=${page.details.verificationId})}">
+                        진행 보기
+                    </a>
+                </div>
+                <form class="flow-form"
+                      th:action="@{/app/partner-verifications/{verificationId}/documents(verificationId=${page.details.verificationId})}"
+                      method="post">
+                    <div class="verification-document-list">
+                        <article class="verification-document-row"
+                                 th:each="document, stat : ${page.details.documents}">
+                            <input type="hidden" name="documentTypeCode" th:value="${document.documentTypeCode}">
+                            <input type="hidden" name="sourceTypeCode" th:value="${document.sourceTypeCode}">
+                            <label>
+                                <input type="checkbox"
+                                       name="checkedIndex"
+                                       th:value="${stat.index}"
+                                       th:checked="${document.checked}">
+                                <span>
+                                    <strong th:text="${document.documentTypeLabel}">서류명</strong>
+                                    <small th:text="${document.sourceTypeLabel}">파트너 확인</small>
+                                </span>
+                            </label>
+                            <textarea name="note" rows="2" maxlength="2000"
+                                      placeholder="확인 근거 또는 보완 요청 메모"
+                                      th:text="${document.note}"></textarea>
+                            <small>
+                                최근 확인:
+                                <span th:text="${document.checkedAtText}">기록 없음</span>
+                            </small>
+                        </article>
+                    </div>
+                    <p class="empty-state" th:if="${#lists.isEmpty(page.details.documents)}">등록된 서류 항목이 없습니다.</p>
+                    <div class="form-actions" th:if="${!#lists.isEmpty(page.details.documents)}">
+                        <button class="primary-action button-action" type="submit">검증 서류 저장</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <aside class="flow-side">
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Target</span>
+                        <h2>검증 대상</h2>
+                    </div>
+                </div>
+                <dl class="flow-summary-list">
+                    <div>
+                        <dt>검증 ID</dt>
+                        <dd th:text="${page.details.verificationId}">uuid</dd>
+                    </div>
+                    <div>
+                        <dt>회원</dt>
+                        <dd th:text="${page.details.memberUserId}">uuid</dd>
+                    </div>
+                    <div>
+                        <dt>사업자 프로필</dt>
+                        <dd th:text="${page.details.businessProfileId == null ? '미지정' : page.details.businessProfileId}">uuid</dd>
+                    </div>
+                    <div>
+                        <dt>매칭 차단</dt>
+                        <dd th:text="${page.details.matchingBlocked ? '차단' : '차단 없음'}">차단 없음</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Policy</span>
+                        <h2>입력 기준</h2>
+                    </div>
+                </div>
+                <p class="flow-note">서류 확인값과 메모만 저장합니다. Backend status 전이와 매칭 연결은 별도 계약에 따릅니다.</p>
+            </section>
+        </aside>
+    </section>
+</main>
+</html>

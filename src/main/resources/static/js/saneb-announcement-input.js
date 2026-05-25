@@ -18,6 +18,28 @@
         PARENT: "부모 조건"
     };
 
+    const fieldTypeLabels = {
+        TEXT: "TEXT",
+        TEXTAREA: "TEXTAREA",
+        NUMBER: "NUMBER",
+        AMOUNT: "AMOUNT",
+        DATE: "DATE",
+        BOOLEAN: "BOOLEAN",
+        SELECT: "SELECT",
+        RADIO: "RADIO",
+        MULTI_SELECT: "MULTI_SELECT"
+    };
+    const scopeLabels = {
+        BUSINESS: "BUSINESS",
+        PERSONAL: "PERSONAL",
+        SPOUSE: "SPOUSE",
+        CHILD: "CHILD",
+        PARENT: "PARENT",
+        APPLICATION: "APPLICATION",
+        SUPPORT: "SUPPORT"
+    };
+    const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
+
     const baseUrl = app.dataset.baseUrl;
     const listUrl = app.dataset.listUrl;
     const listContainer = app.querySelector("[data-announcement-list]");
@@ -32,6 +54,9 @@
     const nonBusinessPanel = app.querySelector("[data-non-business-panel]");
     const activeTargetLabel = app.querySelector("[data-active-target-label]");
     const targetSpecificTitle = app.querySelector("[data-target-specific-title]");
+    const dynamicRequirementsForm = app.querySelector("[data-dynamic-requirements-form]");
+    const dynamicRequirementsList = app.querySelector("[data-dynamic-requirements-list]");
+    const dynamicRequirementsSummary = app.querySelector("[data-dynamic-requirements-summary]");
     let currentAnnouncementId = "";
 
     const selectErrorMessage = (payload, fallback) => {
@@ -382,6 +407,212 @@
         });
     };
 
+    const optionListText = (options) => (options || [])
+            .map((option) => `${option.optionCode || ""}=${option.optionLabel || ""}`)
+            .join("\n");
+
+    const setDynamicRequirementSummary = (text) => {
+        if (dynamicRequirementsSummary) {
+            dynamicRequirementsSummary.textContent = text;
+        }
+    };
+
+    const createSelect = (name, values, selectedValue) => {
+        const select = document.createElement("select");
+        select.name = name;
+        Object.entries(values).forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            option.selected = value === selectedValue;
+            select.append(option);
+        });
+        return select;
+    };
+
+    const createDynamicRequirementRow = (requirement = {}) => {
+        const row = document.createElement("article");
+        row.className = "dynamic-requirement-row";
+        row.dataset.dynamicRequirementRow = "true";
+
+        const fieldKeyBlock = document.createElement("div");
+        fieldKeyBlock.className = "field-block";
+        const fieldKeyLabel = document.createElement("label");
+        fieldKeyLabel.textContent = "fieldKey";
+        const fieldKeyInput = document.createElement("input");
+        fieldKeyInput.name = "fieldKey";
+        fieldKeyInput.type = "text";
+        fieldKeyInput.maxLength = 80;
+        fieldKeyInput.required = true;
+        fieldKeyInput.value = requirement.fieldKey || "";
+        fieldKeyBlock.append(fieldKeyLabel, fieldKeyInput);
+
+        const labelBlock = document.createElement("div");
+        labelBlock.className = "field-block";
+        const labelLabel = document.createElement("label");
+        labelLabel.textContent = "fieldLabel";
+        const labelInput = document.createElement("input");
+        labelInput.name = "fieldLabel";
+        labelInput.type = "text";
+        labelInput.maxLength = 200;
+        labelInput.required = true;
+        labelInput.value = requirement.fieldLabel || "";
+        labelBlock.append(labelLabel, labelInput);
+
+        const fieldTypeBlock = document.createElement("div");
+        fieldTypeBlock.className = "field-block";
+        const fieldTypeLabel = document.createElement("label");
+        fieldTypeLabel.textContent = "fieldTypeCode";
+        const fieldTypeSelect = createSelect("fieldTypeCode", fieldTypeLabels, requirement.fieldTypeCode || "TEXT");
+        fieldTypeBlock.append(fieldTypeLabel, fieldTypeSelect);
+
+        const scopeBlock = document.createElement("div");
+        scopeBlock.className = "field-block";
+        const scopeLabel = document.createElement("label");
+        scopeLabel.textContent = "scopeCode";
+        const scopeSelect = createSelect("scopeCode", scopeLabels, requirement.scopeCode || "APPLICATION");
+        scopeBlock.append(scopeLabel, scopeSelect);
+
+        const optionBlock = document.createElement("div");
+        optionBlock.className = "field-block span-2 dynamic-options-block";
+        const optionLabel = document.createElement("label");
+        optionLabel.textContent = "options";
+        const optionTextarea = document.createElement("textarea");
+        optionTextarea.name = "options";
+        optionTextarea.rows = 3;
+        optionTextarea.placeholder = "OPTION_CODE=Option label";
+        optionTextarea.value = optionListText(requirement.options);
+        const optionHelp = document.createElement("small");
+        optionHelp.textContent = "SELECT, RADIO, MULTI_SELECT only. One option per line.";
+        optionBlock.append(optionLabel, optionTextarea, optionHelp);
+
+        const helpBlock = document.createElement("div");
+        helpBlock.className = "field-block span-2";
+        const helpLabel = document.createElement("label");
+        helpLabel.textContent = "helpText";
+        const helpInput = document.createElement("textarea");
+        helpInput.name = "helpText";
+        helpInput.rows = 2;
+        helpInput.value = requirement.helpText || "";
+        helpBlock.append(helpLabel, helpInput);
+
+        const flags = document.createElement("div");
+        flags.className = "dynamic-requirement-flags";
+        flags.innerHTML = `
+            <label><input type="checkbox" name="required"> required</label>
+            <label><input type="checkbox" name="sensitive"> sensitive</label>
+        `;
+        flags.querySelector("[name='required']").checked = Boolean(requirement.required);
+        flags.querySelector("[name='sensitive']").checked = Boolean(requirement.sensitive);
+
+        const sortBlock = document.createElement("div");
+        sortBlock.className = "field-block";
+        const sortLabel = document.createElement("label");
+        sortLabel.textContent = "sortOrder";
+        const sortInput = document.createElement("input");
+        sortInput.name = "sortOrder";
+        sortInput.type = "number";
+        sortInput.min = "0";
+        sortInput.step = "1";
+        sortInput.value = Number.isFinite(Number(requirement.sortOrder)) ? requirement.sortOrder : 0;
+        sortBlock.append(sortLabel, sortInput);
+
+        const actions = document.createElement("div");
+        actions.className = "dynamic-requirement-actions";
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "secondary-action";
+        remove.dataset.dynamicRequirementRemove = "true";
+        remove.textContent = "삭제";
+        actions.append(remove);
+
+        row.append(fieldKeyBlock, labelBlock, fieldTypeBlock, scopeBlock, sortBlock, flags, optionBlock, helpBlock, actions);
+
+        const updateOptionVisibility = () => {
+            optionBlock.hidden = !optionFieldTypes.has(fieldTypeSelect.value);
+        };
+        fieldTypeSelect.addEventListener("change", updateOptionVisibility);
+        updateOptionVisibility();
+        return row;
+    };
+
+    const renderDynamicRequirements = (requirements = []) => {
+        if (!dynamicRequirementsList) {
+            return;
+        }
+        dynamicRequirementsList.replaceChildren();
+        if (!requirements.length) {
+            const empty = document.createElement("p");
+            empty.className = "empty-state";
+            empty.textContent = currentAnnouncementId
+                    ? "등록된 동적 입력 항목이 없습니다."
+                    : "공고를 저장하거나 선택하면 동적 입력 항목을 설정할 수 있습니다.";
+            dynamicRequirementsList.append(empty);
+        } else {
+            requirements.forEach((requirement) => {
+                dynamicRequirementsList.append(createDynamicRequirementRow(requirement));
+            });
+        }
+        setDynamicRequirementSummary(`${requirements.length}개 항목`);
+    };
+
+    const parseDynamicOptions = (textarea) => {
+        const lines = String(textarea.value || "")
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean);
+        return lines.map((line, index) => {
+            const separatorIndex = line.indexOf("=");
+            const optionCode = separatorIndex >= 0 ? line.slice(0, separatorIndex).trim() : line;
+            const optionLabel = separatorIndex >= 0 ? line.slice(separatorIndex + 1).trim() : line;
+            if (!optionCode || !optionLabel) {
+                throw new Error("Option requires optionCode and optionLabel.");
+            }
+            return {
+                optionCode,
+                optionLabel,
+                sortOrder: index + 1
+            };
+        });
+    };
+
+    const buildDynamicRequirementsRequest = () => {
+        const rows = Array.from(app.querySelectorAll("[data-dynamic-requirement-row]"));
+        return {
+            requirements: rows.map((row, index) => {
+                const fieldTypeCode = valueOf(row, "[name='fieldTypeCode']");
+                const options = optionFieldTypes.has(fieldTypeCode)
+                        ? parseDynamicOptions(row.querySelector("[name='options']"))
+                        : [];
+                if (optionFieldTypes.has(fieldTypeCode) && options.length === 0) {
+                    throw new Error("Option field type requires at least one option.");
+                }
+                return {
+                    fieldKey: valueOf(row, "[name='fieldKey']"),
+                    fieldLabel: valueOf(row, "[name='fieldLabel']"),
+                    fieldTypeCode,
+                    scopeCode: valueOf(row, "[name='scopeCode']"),
+                    required: Boolean(row.querySelector("[name='required']")?.checked),
+                    sensitive: Boolean(row.querySelector("[name='sensitive']")?.checked),
+                    sortOrder: numberOf(row, "[name='sortOrder']") ?? index,
+                    helpText: nullIfBlank(valueOf(row, "[name='helpText']")),
+                    options
+                };
+            })
+        };
+    };
+
+    const loadDynamicRequirements = async (announcementId) => {
+        if (!announcementId || !dynamicRequirementsList) {
+            renderDynamicRequirements([]);
+            setDynamicRequirementSummary("공고 저장 후 설정");
+            return;
+        }
+        setDynamicRequirementSummary("불러오는 중");
+        const data = await requestJson(`${baseUrl}/${encodeURIComponent(announcementId)}/input-requirements`, { method: "GET" });
+        renderDynamicRequirements(data ? data.requirements : []);
+    };
+
     const loadAnnouncementList = async () => {
         const params = new URLSearchParams({ page: "1", size: "8" });
         if (searchForm) {
@@ -514,6 +745,9 @@
         applySteps(details.steps);
         statusForm.querySelector("[name='manualStatusCode']").value = details.manualStatusCode || "NORMAL";
         statusForm.querySelector("[name='reason']").value = "";
+        loadDynamicRequirements(details.announcementId).catch((error) => {
+            setMessage(error.message, "error");
+        });
     };
 
     const loadDetails = async (announcementId) => {
@@ -537,6 +771,8 @@
         if (businessDocument) {
             businessDocument.checked = true;
         }
+        renderDynamicRequirements([]);
+        setDynamicRequirementSummary("공고 저장 후 설정");
         updateTargetUi();
         setMessage("신규 공고 입력 상태입니다.");
     };
@@ -560,6 +796,49 @@
 
         if (event.target.matches("[data-reset-form]")) {
             resetForNewInput();
+            return;
+        }
+
+        if (event.target.matches("[data-dynamic-requirement-add]")) {
+            event.preventDefault();
+            if (!currentAnnouncementId) {
+                setMessage("공고를 먼저 저장하거나 선택하세요.", "error");
+                return;
+            }
+            if (dynamicRequirementsList && dynamicRequirementsList.querySelector(".empty-state")) {
+                dynamicRequirementsList.replaceChildren();
+            }
+            dynamicRequirementsList?.append(createDynamicRequirementRow({
+                fieldTypeCode: "TEXT",
+                scopeCode: selectedTargetCode(),
+                required: true,
+                sensitive: false,
+                sortOrder: app.querySelectorAll("[data-dynamic-requirement-row]").length + 1,
+                options: []
+            }));
+            setDynamicRequirementSummary(`${app.querySelectorAll("[data-dynamic-requirement-row]").length}개 항목`);
+            return;
+        }
+
+        if (event.target.matches("[data-dynamic-requirement-reload]")) {
+            event.preventDefault();
+            if (!currentAnnouncementId) {
+                setMessage("공고를 먼저 저장하거나 선택하세요.", "error");
+                return;
+            }
+            try {
+                await loadDynamicRequirements(currentAnnouncementId);
+                setMessage("동적 입력 항목을 다시 불러왔습니다.", "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            }
+            return;
+        }
+
+        if (event.target.matches("[data-dynamic-requirement-remove]")) {
+            event.preventDefault();
+            event.target.closest("[data-dynamic-requirement-row]")?.remove();
+            setDynamicRequirementSummary(`${app.querySelectorAll("[data-dynamic-requirement-row]").length}개 항목`);
         }
     });
 
@@ -652,6 +931,30 @@
         }
     });
 
+    if (dynamicRequirementsForm) {
+        dynamicRequirementsForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = app.querySelector("[data-dynamic-requirements-submit]");
+            if (!currentAnnouncementId) {
+                setMessage("공고를 먼저 저장하거나 선택하세요.", "error");
+                return;
+            }
+            try {
+                setBusy(button, true, "저장 중");
+                const data = await requestJson(`${baseUrl}/${encodeURIComponent(currentAnnouncementId)}/input-requirements`, {
+                    method: "PUT",
+                    body: JSON.stringify(buildDynamicRequirementsRequest())
+                });
+                renderDynamicRequirements(data ? data.requirements : []);
+                setMessage("동적 입력 항목이 저장되었습니다.", "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            } finally {
+                setBusy(button, false);
+            }
+        });
+    }
+
     if (searchForm) {
         searchForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -660,5 +963,6 @@
     }
 
     updateTargetUi();
+    renderDynamicRequirements([]);
     loadAnnouncementList();
 })();

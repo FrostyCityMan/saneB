@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -41,55 +42,63 @@ class AnnouncementSmokeIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void localSeedUserCompletesAnnouncementInputFlow() throws Exception {
+    void localSeedOperatorCompletesOperationAnnouncementInputFlow() throws Exception {
         MockHttpSession session = loginLocalOperator();
-        String uniqueTitle = "Gate Announcement " + UUID.randomUUID();
+        String titlePrefix = "Gate Operation Announcement " + UUID.randomUUID();
+        List<UUID> announcementIds = new ArrayList<>();
 
-        MvcResult createResult = mockMvc.perform(post("/api/v1/announcements")
-                        .session(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(saveRequest(uniqueTitle)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.title").value(uniqueTitle))
-                .andExpect(jsonPath("$.data.manualStatusCode").value("NORMAL"))
-                .andExpect(jsonPath("$.data.approvalStatusCode").value("DRAFT"))
-                .andExpect(jsonPath("$.data.options[0].optionCode").value("ONLINE"))
-                .andReturn();
-        UUID announcementId = selectAnnouncementId(createResult);
+        for (int i = 1; i <= 3; i++) {
+            String title = titlePrefix + " " + i;
+            MvcResult createResult = mockMvc.perform(post("/api/v1/announcements")
+                            .session(session)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(saveRequest(title)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.title").value(title))
+                    .andExpect(jsonPath("$.data.manualStatusCode").value("NORMAL"))
+                    .andExpect(jsonPath("$.data.approvalStatusCode").value("DRAFT"))
+                    .andExpect(jsonPath("$.data.options[0].optionCode").value("ONLINE"))
+                    .andReturn();
+            UUID announcementId = selectAnnouncementId(createResult);
+            announcementIds.add(announcementId);
+
+            String updatedTitle = title + " Updated";
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}", announcementId)
+                            .session(session)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(saveRequest(updatedTitle)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.title").value(updatedTitle));
+
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}/conditions", announcementId)
+                            .session(session)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(conditionsRequest()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}/steps", announcementId)
+                            .session(session)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(stepsRequest()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
 
         mockMvc.perform(get("/api/v1/announcements")
                         .session(session)
-                        .param("keyword", uniqueTitle)
+                        .param("keyword", titlePrefix)
                         .param("page", "1")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.items[0].announcementId").value(announcementId.toString()));
+                .andExpect(jsonPath("$.data.totalCount").value(3));
 
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}", announcementId)
-                        .session(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(saveRequest(uniqueTitle + " Updated")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.title").value(uniqueTitle + " Updated"));
+        UUID firstAnnouncementId = announcementIds.getFirst();
 
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}/conditions", announcementId)
-                        .session(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(conditionsRequest()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}/steps", announcementId)
-                        .session(session)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(stepsRequest()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
-        mockMvc.perform(patch("/api/v1/announcements/{announcementId}/manual-status", announcementId)
+        mockMvc.perform(patch("/api/v1/announcements/{announcementId}/manual-status", firstAnnouncementId)
                         .session(session)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -101,7 +110,7 @@ class AnnouncementSmokeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        mockMvc.perform(get("/api/v1/announcements/{announcementId}", announcementId)
+        mockMvc.perform(get("/api/v1/announcements/{announcementId}", firstAnnouncementId)
                         .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -110,10 +119,19 @@ class AnnouncementSmokeIntegrationTest {
                 .andExpect(jsonPath("$.data.steps[0].stepName").value("Guide Sent"))
                 .andExpect(jsonPath("$.data.steps[0].buttons[0].buttonCode").value("WANTS_TO_PROGRESS"));
 
-        assertThat(selectCount("announcement_numeric_conditions", announcementId)).isEqualTo(1);
-        assertThat(selectCount("announcement_progress_steps", announcementId)).isEqualTo(1);
-        assertThat(selectStatusHistoryCount(announcementId)).isEqualTo(1);
-        assertThat(selectCount("matching_cases", announcementId)).isEqualTo(0);
+        assertThat(selectAnnouncementCountByTitlePrefix(titlePrefix)).isEqualTo(3);
+        for (UUID announcementId : announcementIds) {
+            assertThat(selectCount("announcement_options", announcementId)).isEqualTo(1);
+            assertThat(selectCount("announcement_industry_conditions", announcementId)).isEqualTo(1);
+            assertThat(selectCount("announcement_numeric_conditions", announcementId)).isEqualTo(1);
+            assertThat(selectCount("announcement_option_conditions", announcementId)).isEqualTo(1);
+            assertThat(selectCount("announcement_document_requirements", announcementId)).isEqualTo(1);
+            assertThat(selectCount("announcement_progress_steps", announcementId)).isEqualTo(1);
+            assertThat(selectStepDocumentCount(announcementId)).isEqualTo(1);
+            assertThat(selectStepButtonCount(announcementId)).isEqualTo(1);
+            assertThat(selectCount("matching_cases", announcementId)).isEqualTo(0);
+        }
+        assertThat(selectStatusHistoryCount(firstAnnouncementId)).isEqualTo(1);
     }
 
     private MockHttpSession loginLocalOperator() throws Exception {
@@ -139,9 +157,50 @@ class AnnouncementSmokeIntegrationTest {
         return UUID.fromString(root.path("data").path("announcementId").asText());
     }
 
+    private long selectAnnouncementCountByTitlePrefix(String titlePrefix) {
+        Long count = jdbcTemplate.queryForObject(
+                """
+                        SELECT count(1)
+                        FROM announcements
+                        WHERE title LIKE concat(?, '%')
+                        """,
+                Long.class,
+                titlePrefix
+        );
+        return count == null ? 0 : count;
+    }
+
     private long selectCount(String tableName, UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 "SELECT count(1) FROM " + tableName + " WHERE announcement_id = ?",
+                Long.class,
+                announcementId
+        );
+        return count == null ? 0 : count;
+    }
+
+    private long selectStepDocumentCount(UUID announcementId) {
+        Long count = jdbcTemplate.queryForObject(
+                """
+                        SELECT count(1)
+                        FROM announcement_step_documents asd
+                        INNER JOIN announcement_progress_steps aps ON aps.id = asd.step_id
+                        WHERE aps.announcement_id = ?
+                        """,
+                Long.class,
+                announcementId
+        );
+        return count == null ? 0 : count;
+    }
+
+    private long selectStepButtonCount(UUID announcementId) {
+        Long count = jdbcTemplate.queryForObject(
+                """
+                        SELECT count(1)
+                        FROM announcement_step_buttons asb
+                        INNER JOIN announcement_progress_steps aps ON aps.id = asb.step_id
+                        WHERE aps.announcement_id = ?
+                        """,
                 Long.class,
                 announcementId
         );

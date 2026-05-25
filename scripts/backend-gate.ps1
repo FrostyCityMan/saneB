@@ -88,7 +88,11 @@ function Invoke-GateCommand {
 
     $problemsReport = Join-Path (Get-Location) 'build\reports\problems\problems-report.html'
     if (Test-Path -LiteralPath $problemsReport) {
-        Remove-Item -LiteralPath $problemsReport -Force
+        try {
+            Remove-Item -LiteralPath $problemsReport -Force
+        } catch {
+            Write-Warning "Cannot remove Gradle problems report artifact. Continuing gate command. Path=$problemsReport"
+        }
     }
 
     & $Command
@@ -98,12 +102,12 @@ function Invoke-GateCommand {
 }
 
 if (-not $SkipTests) {
-    Invoke-GateCommand { .\gradlew.bat cleanTest test --console=plain }
+    Invoke-GateCommand { .\gradlew.bat cleanTest test --console=plain --no-problems-report }
 }
 
 if (-not $SkipSmokeRun) {
     Invoke-GateCommand {
-        .\gradlew.bat bootRun --console=plain --args="--spring.profiles.active=local --spring.main.web-application-type=none --spring.flyway.enabled=false"
+        .\gradlew.bat bootRun --console=plain --no-problems-report --args="--spring.profiles.active=local --spring.main.web-application-type=none --spring.flyway.enabled=false"
     }
 }
 
@@ -119,6 +123,14 @@ function Invoke-FlywayDockerGate {
     $previousFlywayIntegration = $env:SANEB_FLYWAY_INTEGRATION
     $previousAuthSmoke = $env:SANEB_AUTH_SMOKE
     $previousAnnouncementSmoke = $env:SANEB_ANNOUNCEMENT_SMOKE
+    $previousDashboardSmoke = $env:SANEB_DASHBOARD_SMOKE
+    $previousDashboardMatrixQa = $env:SANEB_DASHBOARD_MATRIX_QA
+    $previousPartnerVerificationSmoke = $env:SANEB_PARTNER_VERIFICATION_SMOKE
+    $previousMatchingSmoke = $env:SANEB_MATCHING_SMOKE
+    $previousApplicationProgressSmoke = $env:SANEB_APPLICATION_PROGRESS_SMOKE
+    $previousDynamicInputSmoke = $env:SANEB_DYNAMIC_INPUT_SMOKE
+    $previousBackendRehearsal = $env:SANEB_BACKEND_REHEARSAL
+    $previousFlywayOutOfOrder = $env:SPRING_FLYWAY_OUT_OF_ORDER
 
     try {
         Invoke-GateCommand { docker version --format '{{.Server.Version}}' }
@@ -164,13 +176,36 @@ function Invoke-FlywayDockerGate {
         $env:SANEB_FLYWAY_INTEGRATION = 'true'
 
         Write-Host "DB_URL=jdbc:postgresql://localhost:$hostPort/$databaseName"
-        Invoke-GateCommand { .\gradlew.bat flywayIntegrationTest --rerun-tasks --console=plain }
+        Invoke-GateCommand { .\gradlew.bat flywayIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SPRING_FLYWAY_OUT_OF_ORDER = 'true'
 
         $env:SANEB_ANNOUNCEMENT_SMOKE = 'true'
-        Invoke-GateCommand { .\gradlew.bat announcementSmokeIntegrationTest --rerun-tasks --console=plain }
+        Invoke-GateCommand { .\gradlew.bat announcementSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
 
         $env:SANEB_AUTH_SMOKE = 'true'
-        Invoke-GateCommand { .\gradlew.bat authSmokeIntegrationTest --rerun-tasks --console=plain }
+        Invoke-GateCommand { .\gradlew.bat authSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_DASHBOARD_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat dashboardSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_DASHBOARD_MATRIX_QA = 'true'
+        Invoke-GateCommand { .\gradlew.bat dashboardStatusMatrixIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_PARTNER_VERIFICATION_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat partnerVerificationSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_MATCHING_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat matchingSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_APPLICATION_PROGRESS_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat applicationProgressSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_DYNAMIC_INPUT_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat dynamicInputSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
+        $env:SANEB_BACKEND_REHEARSAL = 'true'
+        Invoke-GateCommand { .\gradlew.bat backendRehearsalIntegrationTest --rerun-tasks --console=plain --no-problems-report }
     } finally {
         $env:DB_URL = $previousDbUrl
         $env:DB_USERNAME = $previousDbUsername
@@ -178,6 +213,14 @@ function Invoke-FlywayDockerGate {
         $env:SANEB_FLYWAY_INTEGRATION = $previousFlywayIntegration
         $env:SANEB_AUTH_SMOKE = $previousAuthSmoke
         $env:SANEB_ANNOUNCEMENT_SMOKE = $previousAnnouncementSmoke
+        $env:SANEB_DASHBOARD_SMOKE = $previousDashboardSmoke
+        $env:SANEB_DASHBOARD_MATRIX_QA = $previousDashboardMatrixQa
+        $env:SANEB_PARTNER_VERIFICATION_SMOKE = $previousPartnerVerificationSmoke
+        $env:SANEB_MATCHING_SMOKE = $previousMatchingSmoke
+        $env:SANEB_APPLICATION_PROGRESS_SMOKE = $previousApplicationProgressSmoke
+        $env:SANEB_DYNAMIC_INPUT_SMOKE = $previousDynamicInputSmoke
+        $env:SANEB_BACKEND_REHEARSAL = $previousBackendRehearsal
+        $env:SPRING_FLYWAY_OUT_OF_ORDER = $previousFlywayOutOfOrder
 
         docker rm -f $containerName | Out-Null
     }

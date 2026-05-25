@@ -487,6 +487,37 @@
                     </div>
                 </section>
             </form>
+
+            <form class="announcement-form" data-dynamic-requirements-form novalidate>
+                <section class="form-panel dynamic-input-config-panel">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Step 5</span>
+                            <h2>동적 입력 항목</h2>
+                        </div>
+                        <span class="soft-status" data-dynamic-requirements-summary>공고 저장 후 설정</span>
+                    </div>
+
+                    <p class="dynamic-input-help">
+                        신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. fieldTypeCode와 scopeCode는 Backend 계약 값만 사용합니다.
+                    </p>
+
+                    <div class="dynamic-requirements-toolbar">
+                        <button class="secondary-action" type="button" data-dynamic-requirement-add>항목 추가</button>
+                        <button class="secondary-action" type="button" data-dynamic-requirement-reload>다시 불러오기</button>
+                    </div>
+
+                    <div class="dynamic-requirement-list" data-dynamic-requirements-list>
+                        <p class="empty-state">공고를 저장하거나 선택하면 동적 입력 항목을 설정할 수 있습니다.</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit" data-dynamic-requirements-submit>
+                            동적 입력 항목 저장
+                        </button>
+                    </div>
+                </section>
+            </form>
         </div>
 
         <aside class="announcement-side">

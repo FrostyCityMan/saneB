@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.dynamicinput.dao.DynamicAnnouncementInputDao">
+
+    <resultMap id="AnnouncementInputRequirementRowMap" type="com.saneb.domain.dynamicinput.vo.AnnouncementInputRequirementRow">
+        <constructor>
+            <arg column="requirement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="field_key" javaType="java.lang.String"/>
+            <arg column="field_label" javaType="java.lang.String"/>
+            <arg column="field_type_code" javaType="java.lang.String"/>
+            <arg column="scope_code" javaType="java.lang.String"/>
+            <arg column="is_required" javaType="java.lang.Boolean"/>
+            <arg column="is_sensitive" javaType="java.lang.Boolean"/>
+            <arg column="sort_order" javaType="int"/>
+            <arg column="help_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementInputOptionRowMap" type="com.saneb.domain.dynamicinput.vo.AnnouncementInputOptionRow">
+        <constructor>
+            <arg column="option_id" javaType="java.util.UUID"/>
+            <arg column="requirement_id" javaType="java.util.UUID"/>
+            <arg column="option_code" javaType="java.lang.String"/>
+            <arg column="option_label" javaType="java.lang.String"/>
+            <arg column="sort_order" javaType="int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationProgressInputRowMap" type="com.saneb.domain.dynamicinput.vo.ApplicationProgressInputRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationInputValueRowMap" type="com.saneb.domain.dynamicinput.vo.ApplicationInputValueRow">
+        <constructor>
+            <arg column="input_value_id" javaType="java.util.UUID"/>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="requirement_id" javaType="java.util.UUID"/>
+            <arg column="value_text" javaType="java.lang.String"/>
+            <arg column="value_number" javaType="java.math.BigDecimal"/>
+            <arg column="value_date" javaType="java.time.LocalDate"/>
+            <arg column="value_boolean" javaType="java.lang.Boolean"/>
+            <arg column="option_code" javaType="java.lang.String"/>
+            <arg column="submitted_by" javaType="java.util.UUID"/>
+            <arg column="submitted_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAnnouncementCount" resultType="long">
+        -- Count announcements for dynamic input ownership validation.
+        SELECT
+            count(1)
+        FROM announcements a
+        WHERE a.id = #{announcementId}
+    </select>
+
+    <select id="selectAnnouncementInputRequirementList" resultMap="AnnouncementInputRequirementRowMap">
+        -- Select dynamic input requirements configured for an announcement.
+        SELECT
+            air.id AS requirement_id,
+            air.announcement_id,
+            air.field_key,
+            air.field_label,
+            air.field_type_code,
+            air.scope_code,
+            air.is_required,
+            air.is_sensitive,
+            air.sort_order,
+            air.help_text
+        FROM announcement_input_requirements air
+        WHERE air.announcement_id = #{announcementId}
+        ORDER BY air.sort_order ASC, air.field_key ASC, air.id ASC
+    </select>
+
+    <select id="selectAnnouncementInputOptionList" resultMap="AnnouncementInputOptionRowMap">
+        -- Select dynamic input options for all announcement requirements.
+        SELECT
+            aio.id AS option_id,
+            aio.requirement_id,
+            aio.option_code,
+            aio.option_label,
+            aio.sort_order
+        FROM announcement_input_options aio
+        INNER JOIN announcement_input_requirements air ON air.id = aio.requirement_id
+        WHERE air.announcement_id = #{announcementId}
+        ORDER BY air.sort_order ASC, aio.sort_order ASC, aio.option_code ASC, aio.id ASC
+    </select>
+
+    <select id="selectAnnouncementInputOptionListByRequirementId" resultMap="AnnouncementInputOptionRowMap">
+        -- Select dynamic input options for one requirement.
+        SELECT
+            aio.id AS option_id,
+            aio.requirement_id,
+            aio.option_code,
+            aio.option_label,
+            aio.sort_order
+        FROM announcement_input_options aio
+        WHERE aio.requirement_id = #{requirementId}
+        ORDER BY aio.sort_order ASC, aio.option_code ASC, aio.id ASC
+    </select>
+
+    <select id="selectApplicationProgressCountByAnnouncementId" resultType="long">
+        -- Count progresses to protect immutable dynamic input contract fields.
+        SELECT
+            count(1)
+        FROM application_progresses ap
+        WHERE ap.announcement_id = #{announcementId}
+    </select>
+
+    <select id="selectApplicationInputValueCountByRequirementId" resultType="long">
+        -- Count submitted input values for one requirement.
+        SELECT
+            count(1)
+        FROM application_input_values aiv
+        WHERE aiv.requirement_id = #{requirementId}
+    </select>
+
+    <select id="selectApplicationInputValueCountByRequirementOption" resultType="long">
+        -- Count submitted input values for one option.
+        SELECT
+            count(1)
+        FROM application_input_values aiv
+        WHERE aiv.requirement_id = #{requirementId}
+          AND aiv.option_code = #{optionCode}
+    </select>
+
+    <insert id="insertAnnouncementInputRequirement">
+        -- Insert dynamic announcement input requirement.
+        INSERT INTO announcement_input_requirements (
+            id,
+            announcement_id,
+            field_key,
+            field_label,
+            field_type_code,
+            scope_code,
+            is_required,
+            is_sensitive,
+            sort_order,
+            help_text,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{requirementId},
+            #{announcementId},
+            #{fieldKey},
+            #{fieldLabel},
+            #{fieldTypeCode},
+            #{scopeCode},
+            #{required},
+            #{sensitive},
+            #{sortOrder},
+            #{helpText},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateAnnouncementInputRequirement">
+        -- Update dynamic announcement input requirement without changing primary key.
+        UPDATE announcement_input_requirements
+        SET
+            field_label = #{fieldLabel},
+            field_type_code = #{fieldTypeCode},
+            scope_code = #{scopeCode},
+            is_required = #{required},
+            is_sensitive = #{sensitive},
+            sort_order = #{sortOrder},
+            help_text = #{helpText},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{requirementId}
+          AND announcement_id = #{announcementId}
+          AND field_key = #{fieldKey}
+    </update>
+
+    <delete id="deleteAnnouncementInputOptionsByRequirementId">
+        -- Delete options while replacing a requirement before progress values exist.
+        DELETE FROM announcement_input_options
+        WHERE requirement_id = #{requirementId}
+    </delete>
+
+    <delete id="deleteAnnouncementInputOption">
+        -- Delete one option when no submitted input value references it.
+        DELETE FROM announcement_input_options
+        WHERE requirement_id = #{requirementId}
+          AND option_code = #{optionCode}
+    </delete>
+
+    <delete id="deleteAnnouncementInputRequirement">
+        -- Delete dynamic input requirement before progress values exist.
+        DELETE FROM announcement_input_requirements
+        WHERE id = #{requirementId}
+    </delete>
+
+    <insert id="insertAnnouncementInputOption">
+        -- Insert dynamic input option.
+        INSERT INTO announcement_input_options (
+            id,
+            requirement_id,
+            option_code,
+            option_label,
+            sort_order,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{optionId},
+            #{requirementId},
+            #{optionCode},
+            #{optionLabel},
+            #{sortOrder},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateAnnouncementInputOption">
+        -- Update dynamic input option label and display order.
+        UPDATE announcement_input_options
+        SET
+            option_label = #{optionLabel},
+            sort_order = #{sortOrder},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{optionId}
+          AND requirement_id = #{requirementId}
+          AND option_code = #{optionCode}
+    </update>
+
+    <select id="selectApplicationProgressForInput" resultMap="ApplicationProgressInputRowMap">
+        -- Select progress ownership and announcement for dynamic input values.
+        SELECT
+            ap.id AS progress_id,
+            ap.announcement_id,
+            ap.member_user_id
+        FROM application_progresses ap
+        WHERE ap.id = #{progressId}
+    </select>
+
+    <select id="selectApplicationInputValueList" resultMap="ApplicationInputValueRowMap">
+        -- Select submitted dynamic input values for one progress.
+        SELECT
+            aiv.id AS input_value_id,
+            aiv.progress_id,
+            aiv.requirement_id,
+            aiv.value_text,
+            aiv.value_number,
+            aiv.value_date,
+            aiv.value_boolean,
+            aiv.option_code,
+            aiv.submitted_by,
+            aiv.submitted_at
+        FROM application_input_values aiv
+        WHERE aiv.progress_id = #{progressId}
+        ORDER BY aiv.submitted_at DESC, aiv.option_code ASC, aiv.id ASC
+    </select>
+
+    <delete id="deleteApplicationInputValues">
+        -- Replace submitted dynamic input values for one progress.
+        DELETE FROM application_input_values
+        WHERE progress_id = #{progressId}
+    </delete>
+
+    <insert id="insertApplicationInputValue">
+        -- Insert one submitted dynamic input value without audit metadata.
+        INSERT INTO application_input_values (
+            id,
+            progress_id,
+            requirement_id,
+            value_text,
+            value_number,
+            value_date,
+            value_boolean,
+            option_code,
+            submitted_by
+        ) VALUES (
+            #{inputValueId},
+            #{progressId},
+            #{requirementId},
+            #{valueText},
+            #{valueNumber},
+            #{valueDate},
+            #{valueBoolean},
+            #{optionCode},
+            #{submittedBy}
+        )
+    </insert>
+
+    <select id="selectMissingRequiredApplicationInputCount" resultType="long">
+        -- Count missing required dynamic input values before progress action.
+        SELECT
+            count(1)
+        FROM application_progresses ap
+        INNER JOIN announcement_input_requirements air ON air.announcement_id = ap.announcement_id
+        WHERE ap.id = #{progressId}
+          AND air.is_required = true
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM application_input_values aiv
+              WHERE aiv.progress_id = ap.id
+                AND aiv.requirement_id = air.id
+          )
+    </select>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII dynamic input audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

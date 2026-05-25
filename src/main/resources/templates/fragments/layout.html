@@ -47,7 +47,9 @@
                 </span>
                 <span>사업 정보</span>
             </a>
-            <a class="side-link" href="#">
+            <a class="side-link"
+               th:href="@{/app/member/verifications/current}"
+               th:classappend="${page.activeNav == 'VERIFICATION_PROGRESS' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M12 3.6 19 6.4v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6.4l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.5-4.7"/></svg>
                 </span>
@@ -71,7 +73,9 @@
                 </span>
                 <span>보조금 후보</span>
             </a>
-            <a class="side-link" href="#">
+            <a class="side-link"
+               th:href="@{/app/application-progresses}"
+               th:classappend="${page.activeNav == 'APPLICATION_PROGRESS'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 6.8h14v13H5z"/><path d="M8 6.6V4.4h8v2.2M8.2 12h7.6M8.2 16h5"/></svg>
                 </span>

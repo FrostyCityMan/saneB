@@ -4,42 +4,41 @@
 <main class="dashboard-page">
     <section class="dashboard-grid" aria-label="사용자 대시보드">
         <div class="primary-column">
-            <section class="action-panel">
-                <div class="section-label">현재 해야 할 행동</div>
-                <div class="action-content">
-                    <div class="action-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M7 3.8h8.3L19 7.5v12.7H7V3.8Z"/>
-                            <path d="M15.2 4.1v3.7h3.5M10 12h5M10 15.5h4"/>
-                        </svg>
-                        <span>!</span>
-                    </div>
-                    <div class="action-copy">
-                        <h2 th:text="${page.currentAction.title}">전자증명 검증이 필요합니다.</h2>
-                        <p th:text="${page.currentAction.description}">최종 매칭 전 파트너 검증과 필수 서류 확인이 필요합니다.</p>
-                        <span class="status-chip" th:text="${page.verificationStatusLabel}">검증 전</span>
-                    </div>
-                    <div class="action-controls">
-                        <a class="primary-action"
-                           th:href="${page.currentAction.route == null ? '#' : page.currentAction.route}"
-                           th:text="${page.currentAction.primaryButtonLabel == null ? '확인하기' : page.currentAction.primaryButtonLabel}">
-                            검증 진행하기
-                        </a>
-                        <span th:text="${page.currentAction.dueDateText}">권장 완료일 미지정</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="summary-panel">
+            <section class="summary-panel dashboard-top-panel">
                 <div class="summary-header">
                     <div>
-                        <div class="section-label">후보 결과</div>
-                        <p th:text="${page.noticeMessage}">전자증명 검증 전 참고 결과입니다.</p>
+                        <div class="section-label">진행 가능 현황</div>
+                        <p th:text="${page.noticeMessage}">검증 전 참고 결과입니다.</p>
                     </div>
                     <span class="soft-status" th:text="${page.serviceStatusLabel}">검증 필요</span>
                 </div>
 
-                <div class="metric-grid">
+                <div class="top-summary-grid">
+                    <article class="top-summary-card">
+                        <span>앞으로 진행 가능한 항목</span>
+                        <strong>
+                            <span th:text="${page.candidateMetrics[0].value + page.candidateMetrics[1].value + page.candidateMetrics[2].value}">0</span>
+                            건
+                        </strong>
+                        <small>후보 기준 집계</small>
+                    </article>
+                    <article class="top-summary-card amount-card">
+                        <span>공고 기준 지원금액 범위</span>
+                        <strong th:text="${page.supportAmountRangeText}">확인 대기</strong>
+                        <small>확정 수령 금액이 아닌 공고 기준 범위</small>
+                    </article>
+                    <article class="top-summary-card final-match-card">
+                        <span>최종 매칭 결과</span>
+                        <strong>
+                            <span th:text="${page.finalMatchedCount}">0</span>
+                            건
+                        </strong>
+                        <small>검증 이후 결과</small>
+                    </article>
+                </div>
+
+                <div class="metric-grid compact-candidates">
+                    <div class="candidate-grid-label">후보 결과</div>
                     <article class="metric-card" th:each="metric : ${page.candidateMetrics}">
                         <div class="metric-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24">
@@ -53,78 +52,59 @@
                             <small>검증 전 참고 결과</small>
                         </div>
                     </article>
-
-                    <article class="metric-card amount-card">
-                        <div class="metric-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M7 7.2h10a3.8 3.8 0 0 1 0 7.6H7V7.2Z"/>
-                                <path d="M8.5 10.2h7M8.5 12.4h5M6 5.2v13.6M18 5.2v13.6"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span>공고 기준 지원금액 범위</span>
-                            <strong th:text="${page.supportAmountRangeText}">확인 대기</strong>
-                            <small>공고 등록값 기준</small>
-                        </div>
-                    </article>
                 </div>
+            </section>
 
-                <div class="summary-note-row">
-                    <div class="summary-note">
-                        <span class="info-icon" aria-hidden="true">i</span>
-                        <p>이 결과는 파트너 검증 완료 전 참고 정보입니다. 검증 이후 최종 매칭이 확정됩니다.</p>
+            <section class="action-panel">
+                <div class="section-label">현재 해야 할 행동</div>
+                <div class="action-content">
+                    <div class="action-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 3.8h8.3L19 7.5v12.7H7V3.8Z"/>
+                            <path d="M15.2 4.1v3.7h3.5M10 12h5M10 15.5h4"/>
+                        </svg>
+                        <span>!</span>
                     </div>
-                    <div class="final-inline">
-                        <span>최종 매칭 결과</span>
-                        <strong><span th:text="${page.finalMatchedCount}">0</span> 건</strong>
+                    <div class="action-copy">
+                        <span class="status-chip" th:text="${page.currentAction.actionCode}">ACTION_REQUIRED</span>
+                        <h2 th:text="${page.currentAction.title}">전자증명 확인이 필요합니다.</h2>
+                        <p th:text="${page.currentAction.description}">현재 처리해야 할 행동을 확인해 주세요.</p>
+                    </div>
+                    <div class="action-controls">
+                        <a class="primary-action"
+                           th:if="${page.currentAction.route != null}"
+                           th:href="${page.currentAction.route}"
+                           th:text="${page.currentAction.primaryButtonLabel == null ? '확인하기' : page.currentAction.primaryButtonLabel}">
+                            확인하기
+                        </a>
+                        <span class="passive-action"
+                              th:if="${page.currentAction.route == null}"
+                              th:text="${page.currentAction.primaryButtonLabel == null ? '처리할 행동 없음' : page.currentAction.primaryButtonLabel}">
+                            처리할 행동 없음
+                        </span>
+                        <span th:text="${page.currentAction.dueDateText}">권장 완료일 미지정</span>
                     </div>
                 </div>
             </section>
 
-            <section class="split-panels">
-                <article class="plain-panel check-panel">
-                    <div class="panel-heading">
-                        <h2>검증 확인 항목</h2>
-                        <a href="#">전체 보기 ›</a>
-                    </div>
-                    <div class="check-table" aria-label="검증 확인 항목">
-                        <div class="check-row">
-                            <span>파트너 검증 상태</span>
-                            <strong th:text="${page.verificationStatusLabel}">검증 전</strong>
-                            <small>최종 매칭 전 확인</small>
-                        </div>
-                        <div class="check-row">
-                            <span>현재 행동</span>
-                            <strong th:text="${page.currentAction.title}">전자증명 검증이 필요합니다.</strong>
-                            <small th:text="${page.currentAction.dueDateText}">권장 완료일 미지정</small>
-                        </div>
-                        <div class="check-row">
-                            <span>재검증 상태</span>
-                            <strong th:text="${page.reverification.title}">재검증 필요 상태가 없습니다.</strong>
-                            <small th:text="${page.reverification.lastVerifiedAtText}">검증 이력 없음</small>
-                        </div>
-                        <div class="check-row">
-                            <span>기본 진입 경로</span>
-                            <strong th:text="${page.auth.defaultRoute}">/app/dashboard</strong>
-                            <small>Backend 응답 기준</small>
-                        </div>
-                    </div>
-                </article>
-
+            <section class="split-panels dashboard-bottom-grid">
                 <article class="plain-panel progress-panel">
                     <div class="panel-heading">
-                        <h2>진행 현황</h2>
+                        <h2>누적 진행 현황</h2>
                     </div>
-                    <div class="progress-rail" aria-label="진행 단계 예시">
-                        <div class="rail-step done">1</div>
-                        <div class="rail-line done"></div>
-                        <div class="rail-step active">2</div>
-                        <div class="rail-line"></div>
-                        <div class="rail-step">3</div>
-                        <div class="rail-line"></div>
-                        <div class="rail-step">4</div>
-                        <div class="rail-line"></div>
-                        <div class="rail-step">5</div>
+                    <div class="bottom-total-grid">
+                        <div>
+                            <span>누적 진행 건수</span>
+                            <strong><span th:text="${page.progressMetrics[0].value}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>누적 승인 건수</span>
+                            <strong><span th:text="${page.progressMetrics[2].value}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>누적 수령 금액</span>
+                            <strong th:text="${page.totalReceivedAmountText}">0원</strong>
+                        </div>
                     </div>
                     <div class="progress-metrics">
                         <div th:each="metric : ${page.progressMetrics}">
@@ -132,9 +112,28 @@
                             <strong><span th:text="${metric.value}">0</span> 건</strong>
                         </div>
                     </div>
-                    <div class="received-amount">
-                        <span>확인된 수령 금액</span>
-                        <strong th:text="${page.totalReceivedAmountText}">0원</strong>
+                </article>
+
+                <article class="plain-panel check-panel">
+                    <div class="panel-heading">
+                        <h2>검증 및 진입 정보</h2>
+                    </div>
+                    <div class="check-table" aria-label="검증 및 진입 정보">
+                        <div class="check-row">
+                            <span>파트너 검증</span>
+                            <strong th:text="${page.verificationStatusLabel}">검증 필요</strong>
+                            <small>Backend 상태값 기준</small>
+                        </div>
+                        <div class="check-row">
+                            <span>현재 행동</span>
+                            <strong th:text="${page.currentAction.title}">전자증명 확인이 필요합니다.</strong>
+                            <small th:text="${page.currentAction.dueDateText}">권장 완료일 미지정</small>
+                        </div>
+                        <div class="check-row">
+                            <span>재검증</span>
+                            <strong th:text="${page.reverification.title}">재검증 필요 상태가 없습니다.</strong>
+                            <small th:text="${page.reverification.lastVerifiedAtText}">검증 이력 없음</small>
+                        </div>
                     </div>
                 </article>
             </section>
@@ -151,15 +150,15 @@
                         <path d="m8.6 12 2.2 2.1 4.6-4.7"/>
                     </svg>
                 </div>
-                <strong th:text="${page.verificationStatusLabel}">검증 전</strong>
-                <p>검증값이 완료된 뒤 최종 매칭을 확인합니다.</p>
+                <strong th:text="${page.verificationStatusLabel}">검증 필요</strong>
+                <p>검증 상태는 Backend 응답 기준으로 표시합니다.</p>
                 <dl class="verification-meta">
                     <div>
                         <dt>계정</dt>
                         <dd th:text="${page.auth.loginId}">user01</dd>
                     </div>
                     <div>
-                        <dt>대표 권한</dt>
+                        <dt>권한</dt>
                         <dd th:text="${page.roleLabel}">일반 사용자</dd>
                     </div>
                     <div>
@@ -173,7 +172,7 @@
                 <div class="info-icon" aria-hidden="true">i</div>
                 <div>
                     <h2 th:text="${page.reverification.title}">재검증 필요 상태가 없습니다.</h2>
-                    <p th:text="${page.reverification.description}">최근 검증값 기준으로 추가 확인 요청이 없습니다.</p>
+                    <p th:text="${page.reverification.description}">추가 확인 요청이 없습니다.</p>
                     <span>최근 검증: <strong th:text="${page.reverification.lastVerifiedAtText}">검증 이력 없음</strong></span>
                     <ul th:if="${page.reverification.required}">
                         <li th:each="item : ${page.reverification.requiredItems}" th:text="${item}">사업 상태</li>
@@ -184,28 +183,27 @@
             <section class="recent-panel">
                 <div class="panel-heading">
                     <h2>최근 상태 및 알림</h2>
-                    <a href="#">전체 보기 ›</a>
                 </div>
                 <div class="recent-list">
                     <div class="recent-item">
                         <span class="recent-icon warn" aria-hidden="true">!</span>
                         <div>
-                            <strong th:text="${page.currentAction.title}">전자증명 검증이 필요합니다.</strong>
-                            <p th:text="${page.currentAction.description}">필수 서류 확인이 필요합니다.</p>
+                            <strong th:text="${page.currentAction.title}">전자증명 확인이 필요합니다.</strong>
+                            <p th:text="${page.currentAction.description}">현재 처리해야 할 행동입니다.</p>
                         </div>
                     </div>
                     <div class="recent-item">
                         <span class="recent-icon ok" aria-hidden="true">✓</span>
                         <div>
-                            <strong th:text="${page.noticeMessage}">전자증명 검증 전 참고 결과입니다.</strong>
-                            <p>후보 결과와 최종 매칭 결과는 분리됩니다.</p>
+                            <strong>누적 승인 건수</strong>
+                            <p><span th:text="${page.progressMetrics[2].value}">0</span>건이 승인 상태입니다.</p>
                         </div>
                     </div>
                     <div class="recent-item">
                         <span class="recent-icon info" aria-hidden="true">i</span>
                         <div>
-                            <strong th:text="${page.reverification.title}">재검증 필요 상태가 없습니다.</strong>
-                            <p th:text="${page.reverification.description}">추가 확인 요청이 없습니다.</p>
+                            <strong th:text="${page.noticeMessage}">검증 전 참고 결과입니다.</strong>
+                            <p>후보와 최종 매칭 결과를 분리해 표시합니다.</p>
                         </div>
                     </div>
                 </div>
