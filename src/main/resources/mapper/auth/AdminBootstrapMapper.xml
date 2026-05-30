@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.auth.dao.AdminBootstrapDao">
+
+    <select id="selectActiveAdminCount" resultType="int">
+        -- 운영 가능한 활성 관리자 계정 수를 조회한다.
+        SELECT
+            CAST(count(1) AS integer)
+        FROM users u
+        INNER JOIN user_roles ur ON ur.user_id = u.id
+        WHERE ur.role_code = 'ADMIN'
+          AND u.status_code = 'ACTIVE'
+    </select>
+
+    <select id="selectUserIdByLoginId" resultType="java.util.UUID">
+        -- 로그인 ID 기준 사용자 식별자를 조회한다.
+        SELECT
+            u.id
+        FROM users u
+        WHERE u.login_id = #{loginId}
+    </select>
+
+    <insert id="insertAdminUser">
+        -- 초기 관리자 사용자 계정을 저장한다.
+        INSERT INTO users (
+            id,
+            login_id,
+            password_hash,
+            name,
+            status_code,
+            password_reset_required,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{userId},
+            #{loginId},
+            #{passwordHash},
+            #{name},
+            'ACTIVE',
+            true,
+            now(),
+            now()
+        )
+    </insert>
+
+    <update id="updateAdminUser">
+        -- 기존 bootstrap 로그인 계정을 활성 관리자 계정으로 전환한다.
+        UPDATE users
+        SET
+            password_hash = #{passwordHash},
+            name = #{name},
+            status_code = 'ACTIVE',
+            password_reset_required = true,
+            updated_at = now()
+        WHERE id = #{userId}
+    </update>
+
+    <insert id="insertAdminRole">
+        -- 사용자에게 관리자 권한을 부여한다.
+        INSERT INTO user_roles (
+            user_id,
+            role_code,
+            created_at
+        ) VALUES (
+            #{userId},
+            'ADMIN',
+            now()
+        )
+        ON CONFLICT (user_id, role_code) DO NOTHING
+    </insert>
+</mapper>

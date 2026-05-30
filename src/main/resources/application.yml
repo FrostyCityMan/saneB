@@ -27,3 +27,11 @@ logging:
   level:
     root: INFO
     com.saneb: INFO
+
+saneb:
+  bootstrap:
+    admin:
+      enabled: ${SANEB_BOOTSTRAP_ADMIN_ENABLED:false}
+      login-id: ${SANEB_BOOTSTRAP_ADMIN_LOGIN_ID:}
+      password: ${SANEB_BOOTSTRAP_ADMIN_PASSWORD:}
+      name: ${SANEB_BOOTSTRAP_ADMIN_NAME:기초 관리자}

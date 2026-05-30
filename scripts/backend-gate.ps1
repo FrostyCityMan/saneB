@@ -122,6 +122,7 @@ function Invoke-FlywayDockerGate {
     $previousDbPassword = $env:DB_PASSWORD
     $previousFlywayIntegration = $env:SANEB_FLYWAY_INTEGRATION
     $previousAuthSmoke = $env:SANEB_AUTH_SMOKE
+    $previousAdminBootstrapSmoke = $env:SANEB_ADMIN_BOOTSTRAP_SMOKE
     $previousAnnouncementSmoke = $env:SANEB_ANNOUNCEMENT_SMOKE
     $previousDashboardSmoke = $env:SANEB_DASHBOARD_SMOKE
     $previousDashboardMatrixQa = $env:SANEB_DASHBOARD_MATRIX_QA
@@ -186,6 +187,9 @@ function Invoke-FlywayDockerGate {
         $env:SANEB_AUTH_SMOKE = 'true'
         Invoke-GateCommand { .\gradlew.bat authSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
 
+        $env:SANEB_ADMIN_BOOTSTRAP_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat adminBootstrapSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
         $env:SANEB_DASHBOARD_SMOKE = 'true'
         Invoke-GateCommand { .\gradlew.bat dashboardSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
 
@@ -212,6 +216,7 @@ function Invoke-FlywayDockerGate {
         $env:DB_PASSWORD = $previousDbPassword
         $env:SANEB_FLYWAY_INTEGRATION = $previousFlywayIntegration
         $env:SANEB_AUTH_SMOKE = $previousAuthSmoke
+        $env:SANEB_ADMIN_BOOTSTRAP_SMOKE = $previousAdminBootstrapSmoke
         $env:SANEB_ANNOUNCEMENT_SMOKE = $previousAnnouncementSmoke
         $env:SANEB_DASHBOARD_SMOKE = $previousDashboardSmoke
         $env:SANEB_DASHBOARD_MATRIX_QA = $previousDashboardMatrixQa

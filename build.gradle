@@ -57,6 +57,18 @@ tasks.register('authSmokeIntegrationTest', Test) {
     shouldRunAfter flywayIntegrationTest
 }
 
+tasks.register('adminBootstrapSmokeIntegrationTest', Test) {
+    description = 'Runs admin bootstrap smoke tests against real PostgreSQL.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AdminBootstrapSmokeIntegrationTest.class'
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/adminBootstrapSmokeIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/adminBootstrapSmokeIntegrationTest')
+    shouldRunAfter flywayIntegrationTest
+}
+
 tasks.register('announcementSmokeIntegrationTest', Test) {
     description = 'Runs announcement input smoke tests against real PostgreSQL with local seed data.'
     group = 'verification'
