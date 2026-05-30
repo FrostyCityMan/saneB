@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -51,60 +52,88 @@ class BackendRehearsalIntegrationTest {
         MockHttpSession operatorSession = login("local_operator");
         MockHttpSession userSession = login("local_user");
         String fixtureKey = UUID.randomUUID().toString();
+        List<UUID> operationAnnouncementIds = new ArrayList<>();
+        UUID announcementId = null;
+        UUID stepId = null;
+        RequirementIds requirementIds = null;
 
-        MvcResult announcementCreateResult = mockMvc.perform(post("/api/v1/announcements")
+        for (int index = 1; index <= 3; index++) {
+            String title = "Operational Announcement Rehearsal " + index + " " + fixtureKey;
+            MvcResult announcementCreateResult = mockMvc.perform(post("/api/v1/announcements")
+                            .session(operatorSession)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(announcementRequest(title)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.approvalStatusCode").value("DRAFT"))
+                    .andReturn();
+            UUID createdAnnouncementId = selectUuid(announcementCreateResult, "data", "announcementId");
+            operationAnnouncementIds.add(createdAnnouncementId);
+
+            String updatedTitle = "Operational Announcement Rehearsal Updated " + index + " " + fixtureKey;
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}", createdAnnouncementId)
+                            .session(operatorSession)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(announcementRequest(updatedTitle)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.title").value(updatedTitle));
+
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}/conditions", createdAnnouncementId)
+                            .session(operatorSession)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(conditionsRequest()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            mockMvc.perform(put("/api/v1/announcements/{announcementId}/steps", createdAnnouncementId)
+                            .session(operatorSession)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(stepsRequest()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            MvcResult announcementDetailsResult = mockMvc.perform(get("/api/v1/announcements/{announcementId}", createdAnnouncementId)
+                            .session(operatorSession))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.conditions.numericConditions[0].conditionKey").value("ANNUAL_REVENUE"))
+                    .andExpect(jsonPath("$.data.steps[0].buttons[0].buttonCode").value("SUBMIT_APPLICATION"))
+                    .andReturn();
+
+            MvcResult requirementsResult = mockMvc.perform(put("/api/v1/announcements/{announcementId}/input-requirements", createdAnnouncementId)
+                            .session(operatorSession)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(inputRequirementsRequest()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.requirements").value(org.hamcrest.Matchers.hasSize(3)))
+                    .andExpect(jsonPath("$.data.requirements[0].fieldTypeCode").value("TEXT"))
+                    .andExpect(jsonPath("$.data.requirements[0].sensitive").value(true))
+                    .andExpect(jsonPath("$.data.requirements[2].fieldTypeCode").value("MULTI_SELECT"))
+                    .andReturn();
+
+            if (index == 1) {
+                announcementId = createdAnnouncementId;
+                stepId = selectUuid(announcementDetailsResult, "data", "steps", "0", "stepId");
+                requirementIds = selectRequirementIds(requirementsResult);
+            }
+        }
+
+        assertThat(operationAnnouncementIds).hasSize(3);
+        assertThat(operationAnnouncementIds).doesNotHaveDuplicates();
+        assertThat(announcementId).isNotNull();
+        assertThat(stepId).isNotNull();
+        assertThat(requirementIds).isNotNull();
+
+        mockMvc.perform(get("/api/v1/announcements")
                         .session(operatorSession)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(announcementRequest("Backend Rehearsal " + fixtureKey)))
+                        .param("keyword", fixtureKey)
+                        .param("page", "1")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.approvalStatusCode").value("DRAFT"))
-                .andReturn();
-        UUID announcementId = selectUuid(announcementCreateResult, "data", "announcementId");
-
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}", announcementId)
-                        .session(operatorSession)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(announcementRequest("Backend Rehearsal Updated " + fixtureKey)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.title").value("Backend Rehearsal Updated " + fixtureKey));
-
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}/conditions", announcementId)
-                        .session(operatorSession)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(conditionsRequest()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
-        mockMvc.perform(put("/api/v1/announcements/{announcementId}/steps", announcementId)
-                        .session(operatorSession)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(stepsRequest()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-
-        MvcResult announcementDetailsResult = mockMvc.perform(get("/api/v1/announcements/{announcementId}", announcementId)
-                        .session(operatorSession))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.conditions.numericConditions[0].conditionKey").value("ANNUAL_REVENUE"))
-                .andExpect(jsonPath("$.data.steps[0].buttons[0].buttonCode").value("SUBMIT_APPLICATION"))
-                .andReturn();
-        UUID stepId = selectUuid(announcementDetailsResult, "data", "steps", "0", "stepId");
-
-        MvcResult requirementsResult = mockMvc.perform(put("/api/v1/announcements/{announcementId}/input-requirements", announcementId)
-                        .session(operatorSession)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(inputRequirementsRequest()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.requirements").value(org.hamcrest.Matchers.hasSize(3)))
-                .andExpect(jsonPath("$.data.requirements[0].fieldTypeCode").value("TEXT"))
-                .andExpect(jsonPath("$.data.requirements[0].sensitive").value(true))
-                .andExpect(jsonPath("$.data.requirements[2].fieldTypeCode").value("MULTI_SELECT"))
-                .andReturn();
-        RequirementIds requirementIds = selectRequirementIds(requirementsResult);
+                .andExpect(jsonPath("$.data.totalCount").value(3));
 
         mockMvc.perform(get("/api/v1/announcements/{announcementId}/input-requirements", announcementId)
                         .session(operatorSession))
