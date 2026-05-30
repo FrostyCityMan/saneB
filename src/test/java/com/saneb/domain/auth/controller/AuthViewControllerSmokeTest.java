@@ -3,6 +3,7 @@ package com.saneb.domain.auth.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -40,5 +41,14 @@ class AuthViewControllerSmokeTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/app/dashboard"))
                 .andExpect(header().string("Location", "/app/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void logoutRedirectsAuthenticatedUserToLoginPage() throws Exception {
+        mockMvc.perform(post("/logout"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(header().string("Location", "/login"));
     }
 }

@@ -29,6 +29,7 @@ class DashboardSmokeIntegrationTest {
 
     private static final UUID LOCAL_USER_ID = UUID.fromString("10000000-0000-0000-0000-000000000001");
     private static final UUID LOCAL_OPERATOR_ID = UUID.fromString("10000000-0000-0000-0000-000000000002");
+    private static final UUID LOCAL_MATCH_PROGRESS_ID = UUID.fromString("70000000-0000-0000-0000-000000000003");
 
     @Autowired
     private MockMvc mockMvc;
@@ -80,6 +81,32 @@ class DashboardSmokeIntegrationTest {
                 .andExpect(jsonPath("$.data.reasonCode").doesNotExist());
 
         assertMatchingCasesRemainOwnedByFixture(fixture);
+    }
+
+    @Test
+    void localSeedMatchUserCanOpenSeededMatchingProgress() throws Exception {
+        MockHttpSession session = login("local_match_user");
+
+        mockMvc.perform(get("/api/v1/dashboard/me/summary").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.serviceStatusCode").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.data.candidateCounts.policyFund").value(1))
+                .andExpect(jsonPath("$.data.finalMatchedCount").value(1))
+                .andExpect(jsonPath("$.data.supportAmountRange.minAmount").value(2500000))
+                .andExpect(jsonPath("$.data.supportAmountRange.maxAmount").value(6000000))
+                .andExpect(jsonPath("$.data.verificationStatusCode").value("VERIFIED"));
+
+        mockMvc.perform(get("/api/v1/dashboard/me/current-action").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.actionCode").value("PROGRESS_ACTION_REQUIRED"))
+                .andExpect(jsonPath("$.data.title").value("진행 의사 확인"))
+                .andExpect(jsonPath("$.data.primaryButtonLabel").value("진행 원함"))
+                .andExpect(jsonPath("$.data.route").value("/app/application-progresses/" + LOCAL_MATCH_PROGRESS_ID));
+
+        mockMvc.perform(get("/app/application-progresses/{progressId}", LOCAL_MATCH_PROGRESS_ID).session(session))
+                .andExpect(status().isOk());
     }
 
     private DashboardFixture insertDashboardFixture() {
@@ -313,21 +340,25 @@ class DashboardSmokeIntegrationTest {
     }
 
     private MockHttpSession loginLocalUser() throws Exception {
+        return login("local_user");
+    }
+
+    private MockHttpSession login(String loginId) throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("""
                                     {
-                                      "loginId": "local_user",
+                                      "loginId": "%s",
                                       "password": "%s"
                                     }
-                                    """.formatted(password)))
+                                    """.formatted(loginId, password)))
                     .andReturn();
             if (result.getResponse().getStatus() == 200 && result.getRequest().getSession(false) instanceof MockHttpSession session) {
                 return session;
             }
         }
-        throw new IllegalStateException("local_user login failed for dashboard smoke.");
+        throw new IllegalStateException(loginId + " login failed for dashboard smoke.");
     }
 
     private void assertMatchingCasesRemainOwnedByFixture(DashboardFixture fixture) {
