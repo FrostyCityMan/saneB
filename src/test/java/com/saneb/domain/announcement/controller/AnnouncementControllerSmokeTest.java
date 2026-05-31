@@ -2,6 +2,7 @@ package com.saneb.domain.announcement.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -143,6 +144,10 @@ class AnnouncementControllerSmokeTest {
                                     {
                                       "conditionTypeCode": "INCLUDE",
                                       "ksicCode": "47911"
+                                    },
+                                    {
+                                      "conditionTypeCode": "EXCLUDE",
+                                      "ksicCode": "56121"
                                     }
                                   ],
                                   "numericConditions": [
@@ -152,6 +157,20 @@ class AnnouncementControllerSmokeTest {
                                       "comparatorCode": "LTE",
                                       "valueNumber": 300000000,
                                       "unitCode": "KRW"
+                                    },
+                                    {
+                                      "conditionScopeCode": "BUSINESS",
+                                      "conditionKey": "EMPLOYEE_COUNT",
+                                      "comparatorCode": "LTE",
+                                      "valueNumber": 5,
+                                      "unitCode": "COUNT"
+                                    },
+                                    {
+                                      "conditionScopeCode": "PERSONAL",
+                                      "conditionKey": "AGE",
+                                      "comparatorCode": "GTE",
+                                      "valueNumber": 19,
+                                      "unitCode": "YEAR"
                                     }
                                   ],
                                   "optionConditions": [
@@ -159,6 +178,16 @@ class AnnouncementControllerSmokeTest {
                                       "conditionScopeCode": "BUSINESS",
                                       "conditionKey": "BUSINESS_TYPE",
                                       "optionCode": "SOLE_PROPRIETOR"
+                                    },
+                                    {
+                                      "conditionScopeCode": "BUSINESS",
+                                      "conditionKey": "BUSINESS_STAGE",
+                                      "optionCode": "OPERATING"
+                                    },
+                                    {
+                                      "conditionScopeCode": "APPLICATION",
+                                      "conditionKey": "APPLICATION_METHOD",
+                                      "optionCode": "ONLINE"
                                     }
                                   ],
                                   "documentRequirements": [
@@ -166,6 +195,21 @@ class AnnouncementControllerSmokeTest {
                                       "documentTypeCode": "BUSINESS_REGISTRATION",
                                       "required": true,
                                       "sortOrder": 1
+                                    },
+                                    {
+                                      "documentTypeCode": "INCOME_CERTIFICATE",
+                                      "required": true,
+                                      "sortOrder": 2
+                                    },
+                                    {
+                                      "documentTypeCode": "HEALTH_INSURANCE",
+                                      "required": false,
+                                      "sortOrder": 3
+                                    },
+                                    {
+                                      "documentTypeCode": "CUSTOM_DOCUMENT",
+                                      "required": true,
+                                      "sortOrder": 4
                                     }
                                   ]
                                 }
@@ -173,10 +217,10 @@ class AnnouncementControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(announcementDao).insertAnnouncementIndustryCondition(any());
-        verify(announcementDao).insertAnnouncementNumericCondition(any());
-        verify(announcementDao).insertAnnouncementOptionCondition(any());
-        verify(announcementDao).insertAnnouncementDocumentRequirement(any());
+        verify(announcementDao, times(2)).insertAnnouncementIndustryCondition(any());
+        verify(announcementDao, times(3)).insertAnnouncementNumericCondition(any());
+        verify(announcementDao, times(3)).insertAnnouncementOptionCondition(any());
+        verify(announcementDao, times(4)).insertAnnouncementDocumentRequirement(any());
     }
 
     @Test
@@ -189,39 +233,20 @@ class AnnouncementControllerSmokeTest {
                         .content("""
                                 {
                                   "steps": [
-                                    {
-                                      "stepOrder": 1,
-                                      "stepName": "Guide Sent",
-                                      "guideMessage": "Check the guide.",
-                                      "actionGuide": "Select next action.",
-                                      "completionConditionCode": "BUTTON_CLICK",
-                                      "nextConditionCode": "WANTS_TO_PROGRESS",
-                                      "active": true,
-                                      "buttons": [
-                                        {
-                                          "buttonCode": "WANTS_TO_PROGRESS",
-                                          "buttonLabel": "Proceed",
-                                          "buttonActionCode": "MOVE_NEXT",
-                                          "sortOrder": 1
-                                        }
-                                      ],
-                                      "documents": [
-                                        {
-                                          "documentTypeCode": "BUSINESS_REGISTRATION",
-                                          "required": true,
-                                          "sortOrder": 1
-                                        }
-                                      ]
-                                    }
+                                    { "stepOrder": 1, "stepName": "Guide Sent", "guideMessage": "Check the guide.", "actionGuide": "Select next action.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_1_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_1_DONE", "buttonLabel": "Step 1 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "BUSINESS_REGISTRATION", "required": true, "sortOrder": 1 }] },
+                                    { "stepOrder": 2, "stepName": "Prepare Documents", "guideMessage": "Prepare required files.", "actionGuide": "Confirm preparation.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_2_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_2_DONE", "buttonLabel": "Step 2 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "INCOME_CERTIFICATE", "required": true, "sortOrder": 1 }] },
+                                    { "stepOrder": 3, "stepName": "Submit Application", "guideMessage": "Submit to agency.", "actionGuide": "Confirm submission.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_3_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_3_DONE", "buttonLabel": "Step 3 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "HEALTH_INSURANCE", "required": true, "sortOrder": 1 }] },
+                                    { "stepOrder": 4, "stepName": "Agency Review", "guideMessage": "Wait for review.", "actionGuide": "Confirm review status.", "completionConditionCode": "STATUS_CONFIRMED", "nextConditionCode": "STEP_4_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_4_DONE", "buttonLabel": "Step 4 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [] },
+                                    { "stepOrder": 5, "stepName": "Result Confirmed", "guideMessage": "Confirm result.", "actionGuide": "Record final result.", "completionConditionCode": "STATUS_CONFIRMED", "nextConditionCode": "STEP_5_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_5_DONE", "buttonLabel": "Step 5 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [] }
                                   ]
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(announcementDao).insertAnnouncementProgressStep(any());
-        verify(announcementDao).insertAnnouncementStepButton(any());
-        verify(announcementDao).insertAnnouncementStepDocument(any());
+        verify(announcementDao, times(5)).insertAnnouncementProgressStep(any());
+        verify(announcementDao, times(5)).insertAnnouncementStepButton(any());
+        verify(announcementDao, times(3)).insertAnnouncementStepDocument(any());
     }
 
     @Test

@@ -182,135 +182,135 @@
                         <span class="soft-status" data-active-target-label>사업자 지원</span>
                     </div>
 
-                    <section class="target-condition-panel is-active" data-business-panel>
-                        <h3>사업자 조건</h3>
-                        <div class="form-grid">
-                            <div class="field-block">
-                                <label for="industryInclude">대상 업종 코드</label>
-                                <input id="industryInclude" name="industryInclude" type="text" maxlength="30" placeholder="예: 47911">
-                            </div>
-                            <div class="field-block">
-                                <label for="industryExclude">제외 업종 코드</label>
-                                <input id="industryExclude" name="industryExclude" type="text" maxlength="30" placeholder="예: 56121">
-                            </div>
-                            <div class="field-block">
-                                <label for="businessType">사업자 유형</label>
-                                <select id="businessType" name="businessType">
-                                    <option value="">선택 안 함</option>
-                                    <option value="SOLE_PROPRIETOR">개인사업자</option>
-                                    <option value="CORPORATION">법인사업자</option>
-                                    <option value="SIMPLIFIED_TAXPAYER">간이과세자</option>
-                                    <option value="GENERAL_TAXPAYER">일반과세자</option>
-                                    <option value="TAX_EXEMPT">면세사업자</option>
-                                </select>
-                            </div>
-                            <div class="field-block">
-                                <label for="businessStage">기업 형태</label>
-                                <select id="businessStage" name="businessStage">
-                                    <option value="">선택 안 함</option>
-                                    <option value="PRE_STARTUP">예비창업</option>
-                                    <option value="EARLY_STARTUP">초기창업</option>
-                                    <option value="OPERATING">운영중</option>
-                                    <option value="SUSPENDED">휴업중</option>
-                                    <option value="CLOSING_SOON">폐업예정</option>
-                                    <option value="CLOSED">폐업완료</option>
-                                    <option value="RESTARTUP_PREPARING">재창업준비</option>
-                                </select>
-                            </div>
-                            <div class="field-block">
-                                <label for="businessNumericKey">수치 조건</label>
-                                <select id="businessNumericKey" name="businessNumericKey">
-                                    <option value="">선택 안 함</option>
-                                    <option value="YEARS_IN_BUSINESS">업력</option>
-                                    <option value="ANNUAL_REVENUE">매출</option>
-                                    <option value="EMPLOYEE_COUNT">직원 수</option>
-                                    <option value="REGULAR_EMPLOYEE_COUNT">상시근로자 수</option>
-                                    <option value="NEW_HIRE_PLAN_COUNT">신규 채용 예정 인원</option>
-                                    <option value="CREDIT_SCORE">신용 점수</option>
-                                </select>
-                            </div>
-                            <div class="field-block condition-number-row">
-                                <label for="businessComparator">비교 방식</label>
-                                <select id="businessComparator" name="businessComparator">
-                                    <option value="LTE">이하</option>
-                                    <option value="GTE">이상</option>
-                                    <option value="GT">초과</option>
-                                    <option value="LT">미만</option>
-                                    <option value="EQ">동일</option>
-                                    <option value="BETWEEN">구간</option>
-                                </select>
-                                <input name="businessValueNumber" type="number" min="0" step="1" placeholder="값">
-                                <input name="businessMinNumber" type="number" min="0" step="1" placeholder="최소">
-                                <input name="businessMaxNumber" type="number" min="0" step="1" placeholder="최대">
-                                <select name="businessUnitCode" aria-label="수치 단위">
-                                    <option value="">단위 없음</option>
-                                    <option value="KRW">원</option>
-                                    <option value="COUNT">명/건</option>
-                                    <option value="YEAR">년</option>
-                                    <option value="POINT">점</option>
-                                </select>
-                            </div>
+                    <section class="condition-editor-group">
+                        <div class="condition-group-heading">
+                            <h3>업종 조건</h3>
+                            <button class="secondary-action" type="button" data-industry-condition-add>업종 조건 추가</button>
+                        </div>
+                        <div class="condition-list" data-industry-condition-list>
+                            <article class="condition-row industry-condition-row" data-industry-condition-row>
+                                <div class="field-block">
+                                    <label>조건 유형</label>
+                                    <select name="conditionTypeCode">
+                                        <option value="INCLUDE">대상 업종</option>
+                                        <option value="EXCLUDE">제외 업종</option>
+                                    </select>
+                                </div>
+                                <div class="field-block">
+                                    <label>업종 코드</label>
+                                    <input name="ksicCode" type="text" maxlength="30" placeholder="예: 47911">
+                                </div>
+                                <div class="condition-row-actions">
+                                    <button class="secondary-action" type="button" data-industry-condition-remove>삭제</button>
+                                </div>
+                            </article>
                         </div>
                     </section>
 
-                    <section class="target-condition-panel" data-non-business-panel>
-                        <h3 data-target-specific-title>개인/가족 조건</h3>
-                        <div class="form-grid">
-                            <div class="field-block">
-                                <label for="targetNumericKey">수치 조건</label>
-                                <select id="targetNumericKey" name="targetNumericKey">
-                                    <option value="">선택 안 함</option>
-                                    <option value="AGE">연령</option>
-                                    <option value="INCOME">소득</option>
-                                    <option value="HEALTH_INSURANCE_AMOUNT">건강보험료</option>
-                                </select>
-                            </div>
-                            <div class="field-block condition-number-row">
-                                <label for="targetComparator">비교 방식</label>
-                                <select id="targetComparator" name="targetComparator">
-                                    <option value="LTE">이하</option>
-                                    <option value="GTE">이상</option>
-                                    <option value="GT">초과</option>
-                                    <option value="LT">미만</option>
-                                    <option value="EQ">동일</option>
-                                    <option value="BETWEEN">구간</option>
-                                </select>
-                                <input name="targetValueNumber" type="number" min="0" step="1" placeholder="값">
-                                <input name="targetMinNumber" type="number" min="0" step="1" placeholder="최소">
-                                <input name="targetMaxNumber" type="number" min="0" step="1" placeholder="최대">
-                                <select name="targetUnitCode" aria-label="수치 단위">
-                                    <option value="">단위 없음</option>
-                                    <option value="KRW">원</option>
-                                    <option value="YEAR">세</option>
-                                    <option value="COUNT">명/건</option>
-                                </select>
-                            </div>
-                            <div class="field-block">
-                                <label for="targetOptionKey">상태 조건</label>
-                                <select id="targetOptionKey" name="targetOptionKey">
-                                    <option value="">선택 안 함</option>
-                                    <option value="RESIDENCE">거주지</option>
-                                    <option value="HOUSEHOLD_TYPE">가구 형태</option>
-                                    <option value="EMPLOYMENT_STATUS">고용 상태</option>
-                                    <option value="FAMILY_RELATION">가족 관계</option>
-                                </select>
-                            </div>
-                            <div class="field-block">
-                                <label for="targetOptionCode">상태 코드/값</label>
-                                <input id="targetOptionCode" name="targetOptionCode" type="text" maxlength="80" placeholder="예: SEOUL 또는 HOUSEHOLD_HEAD">
-                            </div>
+                    <section class="condition-editor-group">
+                        <div class="condition-group-heading">
+                            <h3>수치 조건</h3>
+                            <button class="secondary-action" type="button" data-numeric-condition-add>수치 조건 추가</button>
+                        </div>
+                        <div class="condition-list" data-numeric-condition-list>
+                            <article class="condition-row numeric-condition-row" data-numeric-condition-row>
+                                <div class="field-block">
+                                    <label>범위</label>
+                                    <select name="conditionScopeCode">
+                                        <option value="BUSINESS">BUSINESS</option>
+                                        <option value="PERSONAL">PERSONAL</option>
+                                        <option value="SPOUSE">SPOUSE</option>
+                                        <option value="CHILD">CHILD</option>
+                                        <option value="PARENT">PARENT</option>
+                                        <option value="APPLICATION">APPLICATION</option>
+                                        <option value="SUPPORT">SUPPORT</option>
+                                    </select>
+                                </div>
+                                <div class="field-block">
+                                    <label>조건 키</label>
+                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: ANNUAL_REVENUE">
+                                </div>
+                                <div class="field-block">
+                                    <label>비교 방식</label>
+                                    <select name="comparatorCode">
+                                        <option value="LTE">이하</option>
+                                        <option value="GTE">이상</option>
+                                        <option value="GT">초과</option>
+                                        <option value="LT">미만</option>
+                                        <option value="EQ">동일</option>
+                                        <option value="BETWEEN">구간</option>
+                                    </select>
+                                </div>
+                                <div class="field-block condition-number-row span-2">
+                                    <label>수치</label>
+                                    <input name="valueNumber" type="number" min="0" step="1" placeholder="값">
+                                    <input name="minNumber" type="number" min="0" step="1" placeholder="최소">
+                                    <input name="maxNumber" type="number" min="0" step="1" placeholder="최대">
+                                    <input name="unitCode" type="text" maxlength="30" placeholder="단위 코드 예: KRW">
+                                </div>
+                                <div class="condition-row-actions">
+                                    <button class="secondary-action" type="button" data-numeric-condition-remove>삭제</button>
+                                </div>
+                            </article>
                         </div>
                     </section>
 
-                    <section class="document-panel">
-                        <h3>필요 서류</h3>
-                        <div class="document-grid">
-                            <label><input type="checkbox" data-document-code="BUSINESS_REGISTRATION" checked> 사업자등록증</label>
-                            <label><input type="checkbox" data-document-code="INCOME_CERTIFICATE"> 소득증명</label>
-                            <label><input type="checkbox" data-document-code="HEALTH_INSURANCE"> 건강보험료 납부확인</label>
-                            <label><input type="checkbox" data-document-code="VAT_TAX_BASE"> 부가세 과세표준</label>
-                            <label><input type="checkbox" data-document-code="FAMILY_RELATION"> 가족관계증명</label>
-                            <label><input type="checkbox" data-document-code="EMPLOYMENT_CERTIFICATE"> 고용 확인 서류</label>
+                    <section class="condition-editor-group">
+                        <div class="condition-group-heading">
+                            <h3>선택/상태 조건</h3>
+                            <button class="secondary-action" type="button" data-option-condition-add>선택 조건 추가</button>
+                        </div>
+                        <div class="condition-list" data-option-condition-list>
+                            <article class="condition-row option-condition-row" data-option-condition-row>
+                                <div class="field-block">
+                                    <label>범위</label>
+                                    <select name="conditionScopeCode">
+                                        <option value="BUSINESS">BUSINESS</option>
+                                        <option value="PERSONAL">PERSONAL</option>
+                                        <option value="SPOUSE">SPOUSE</option>
+                                        <option value="CHILD">CHILD</option>
+                                        <option value="PARENT">PARENT</option>
+                                        <option value="APPLICATION">APPLICATION</option>
+                                        <option value="SUPPORT">SUPPORT</option>
+                                    </select>
+                                </div>
+                                <div class="field-block">
+                                    <label>조건 키</label>
+                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: BUSINESS_TYPE">
+                                </div>
+                                <div class="field-block">
+                                    <label>옵션 코드</label>
+                                    <input name="optionCode" type="text" maxlength="80" placeholder="예: SOLE_PROPRIETOR">
+                                </div>
+                                <div class="field-block">
+                                    <label>옵션 메모</label>
+                                    <input name="optionText" type="text" maxlength="500" placeholder="선택 입력">
+                                </div>
+                                <div class="condition-row-actions">
+                                    <button class="secondary-action" type="button" data-option-condition-remove>삭제</button>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="condition-editor-group">
+                        <div class="condition-group-heading">
+                            <h3>필요 서류</h3>
+                            <button class="secondary-action" type="button" data-document-requirement-add>서류 추가</button>
+                        </div>
+                        <div class="condition-list" data-document-requirement-list>
+                            <article class="condition-row document-requirement-row" data-document-requirement-row>
+                                <div class="field-block span-2">
+                                    <label>서류 코드</label>
+                                    <input name="documentTypeCode" type="text" maxlength="80" value="BUSINESS_REGISTRATION" placeholder="예: BUSINESS_REGISTRATION">
+                                </div>
+                                <label class="inline-check">
+                                    <input name="required" type="checkbox" checked> 필수
+                                </label>
+                                <div class="condition-row-actions">
+                                    <button class="secondary-action" type="button" data-document-requirement-remove>삭제</button>
+                                </div>
+                            </article>
                         </div>
                     </section>
 
@@ -330,7 +330,11 @@
                         <span class="soft-status">저장 시 전체 단계 교체</span>
                     </div>
 
-                    <div class="steps-editor">
+                    <div class="steps-toolbar">
+                        <button class="secondary-action" type="button" data-step-add>단계 추가</button>
+                    </div>
+
+                    <div class="steps-editor" data-step-list>
                         <article class="step-editor" data-step-row>
                             <div class="step-order">1</div>
                             <div class="form-grid">

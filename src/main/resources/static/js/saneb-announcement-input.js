@@ -47,7 +47,12 @@
     const currentIdLabel = app.querySelector("[data-current-announcement-id]");
     const basicForm = app.querySelector("[data-announcement-basic-form]");
     const conditionsForm = app.querySelector("[data-announcement-conditions-form]");
+    const industryConditionList = conditionsForm ? conditionsForm.querySelector("[data-industry-condition-list]") : null;
+    const numericConditionList = conditionsForm ? conditionsForm.querySelector("[data-numeric-condition-list]") : null;
+    const optionConditionList = conditionsForm ? conditionsForm.querySelector("[data-option-condition-list]") : null;
+    const documentRequirementList = conditionsForm ? conditionsForm.querySelector("[data-document-requirement-list]") : null;
     const stepsForm = app.querySelector("[data-announcement-steps-form]");
+    const stepsList = stepsForm ? stepsForm.querySelector("[data-step-list]") : null;
     const statusForm = app.querySelector("[data-announcement-status-form]");
     const searchForm = app.querySelector("[data-announcement-search-form]");
     const businessPanel = app.querySelector("[data-business-panel]");
@@ -58,6 +63,13 @@
     const dynamicRequirementsList = app.querySelector("[data-dynamic-requirements-list]");
     const dynamicRequirementsSummary = app.querySelector("[data-dynamic-requirements-summary]");
     let currentAnnouncementId = "";
+    const conditionTemplates = {
+        industry: industryConditionList?.querySelector("[data-industry-condition-row]")?.cloneNode(true),
+        numeric: numericConditionList?.querySelector("[data-numeric-condition-row]")?.cloneNode(true),
+        option: optionConditionList?.querySelector("[data-option-condition-row]")?.cloneNode(true),
+        document: documentRequirementList?.querySelector("[data-document-requirement-row]")?.cloneNode(true)
+    };
+    let defaultStepRequests = [];
 
     const selectErrorMessage = (payload, fallback) => {
         if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
@@ -233,85 +245,147 @@
         };
     };
 
-    const buildConditionsRequest = () => {
-        const targetCode = selectedTargetCode();
-        const industryConditions = [];
-        const numericConditions = [];
-        const optionConditions = [];
+    const conditionRows = (list, selector) => list ? Array.from(list.querySelectorAll(selector)) : [];
+    const industryRows = () => conditionRows(industryConditionList, "[data-industry-condition-row]");
+    const numericRows = () => conditionRows(numericConditionList, "[data-numeric-condition-row]");
+    const optionRows = () => conditionRows(optionConditionList, "[data-option-condition-row]");
+    const documentRows = () => conditionRows(documentRequirementList, "[data-document-requirement-row]");
 
-        if (targetCode === "BUSINESS") {
-            const includeCode = valueOf(conditionsForm, "[name='industryInclude']");
-            const excludeCode = valueOf(conditionsForm, "[name='industryExclude']");
-            if (includeCode) {
-                industryConditions.push({ conditionTypeCode: "INCLUDE", ksicCode: includeCode });
+    const clearConditionRow = (row) => {
+        row.querySelectorAll("input, textarea").forEach((field) => {
+            if (field.type === "checkbox") {
+                field.checked = false;
+            } else {
+                field.value = "";
             }
-            if (excludeCode) {
-                industryConditions.push({ conditionTypeCode: "EXCLUDE", ksicCode: excludeCode });
-            }
+        });
+        row.querySelectorAll("select").forEach((field) => {
+            field.selectedIndex = 0;
+        });
+    };
 
-            const businessType = valueOf(conditionsForm, "[name='businessType']");
-            if (businessType) {
-                optionConditions.push({
-                    conditionScopeCode: "BUSINESS",
-                    conditionKey: "BUSINESS_TYPE",
-                    optionCode: businessType,
-                    optionText: null
-                });
+    const normalizeConditionRows = (list, selector, removeSelector) => {
+        conditionRows(list, selector).forEach((row, index, rows) => {
+            const removeButton = row.querySelector(removeSelector);
+            if (removeButton) {
+                removeButton.disabled = rows.length <= 1;
             }
-            const businessStage = valueOf(conditionsForm, "[name='businessStage']");
-            if (businessStage) {
-                optionConditions.push({
-                    conditionScopeCode: "BUSINESS",
-                    conditionKey: "BUSINESS_STAGE",
-                    optionCode: businessStage,
-                    optionText: null
-                });
+            const sortOrder = row.querySelector("[name='sortOrder']");
+            if (sortOrder) {
+                sortOrder.value = String(index + 1);
             }
+        });
+    };
 
-            const numeric = buildNumericCondition(
-                    "BUSINESS",
-                    valueOf(conditionsForm, "[name='businessNumericKey']"),
-                    valueOf(conditionsForm, "[name='businessComparator']") || "LTE",
-                    numberOf(conditionsForm, "[name='businessValueNumber']"),
-                    numberOf(conditionsForm, "[name='businessMinNumber']"),
-                    numberOf(conditionsForm, "[name='businessMaxNumber']"),
-                    valueOf(conditionsForm, "[name='businessUnitCode']")
-            );
-            if (numeric) {
-                numericConditions.push(numeric);
-            }
-        } else {
-            const numeric = buildNumericCondition(
-                    targetCode,
-                    valueOf(conditionsForm, "[name='targetNumericKey']"),
-                    valueOf(conditionsForm, "[name='targetComparator']") || "LTE",
-                    numberOf(conditionsForm, "[name='targetValueNumber']"),
-                    numberOf(conditionsForm, "[name='targetMinNumber']"),
-                    numberOf(conditionsForm, "[name='targetMaxNumber']"),
-                    valueOf(conditionsForm, "[name='targetUnitCode']")
-            );
-            if (numeric) {
-                numericConditions.push(numeric);
-            }
-
-            const optionKey = valueOf(conditionsForm, "[name='targetOptionKey']");
-            const optionCode = valueOf(conditionsForm, "[name='targetOptionCode']");
-            if (optionKey && optionCode) {
-                optionConditions.push({
-                    conditionScopeCode: targetCode,
-                    conditionKey: optionKey,
-                    optionCode,
-                    optionText: null
-                });
-            }
+    const appendConditionRow = (list, template, selector, removeSelector, defaults = {}) => {
+        if (!list || !template) {
+            return null;
         }
+        const row = template.cloneNode(true);
+        clearConditionRow(row);
+        Object.entries(defaults).forEach(([name, value]) => {
+            const field = row.querySelector(`[name='${name}']`);
+            if (field) {
+                if (field.type === "checkbox") {
+                    field.checked = Boolean(value);
+                } else {
+                    field.value = value ?? "";
+                }
+            }
+        });
+        list.append(row);
+        normalizeConditionRows(list, selector, removeSelector);
+        return row;
+    };
+
+    const removeConditionRow = (button, list, selector, removeSelector) => {
+        const row = button.closest(selector);
+        if (conditionRows(list, selector).length <= 1) {
+            clearConditionRow(row);
+        } else {
+            row?.remove();
+        }
+        normalizeConditionRows(list, selector, removeSelector);
+    };
+
+    const renderConditionRows = (list, template, selector, removeSelector, values, applyValue) => {
+        if (!list || !template) {
+            return;
+        }
+        list.replaceChildren();
+        const rows = values && values.length > 0 ? values : [null];
+        rows.forEach((value) => {
+            const row = template.cloneNode(true);
+            clearConditionRow(row);
+            if (value) {
+                applyValue(row, value);
+            }
+            list.append(row);
+        });
+        normalizeConditionRows(list, selector, removeSelector);
+    };
+
+    const buildConditionsRequest = () => {
+        const industryConditions = [];
+        industryRows().forEach((row) => {
+            const ksicCode = valueOf(row, "[name='ksicCode']");
+            if (!ksicCode) {
+                return;
+            }
+            industryConditions.push({
+                conditionTypeCode: valueOf(row, "[name='conditionTypeCode']") || "INCLUDE",
+                ksicCode
+            });
+        });
+
+        const numericConditions = [];
+        numericRows().forEach((row) => {
+            const conditionKey = valueOf(row, "[name='conditionKey']");
+            if (!conditionKey) {
+                return;
+            }
+            const numeric = buildNumericCondition(
+                    valueOf(row, "[name='conditionScopeCode']") || selectedTargetCode(),
+                    conditionKey,
+                    valueOf(row, "[name='comparatorCode']") || "LTE",
+                    numberOf(row, "[name='valueNumber']"),
+                    numberOf(row, "[name='minNumber']"),
+                    numberOf(row, "[name='maxNumber']"),
+                    valueOf(row, "[name='unitCode']")
+            );
+            if (numeric) {
+                numericConditions.push(numeric);
+            }
+        });
+
+        const optionConditions = [];
+        optionRows().forEach((row) => {
+            const conditionKey = valueOf(row, "[name='conditionKey']");
+            const optionCode = valueOf(row, "[name='optionCode']");
+            if (!conditionKey && !optionCode) {
+                return;
+            }
+            if (!conditionKey || !optionCode) {
+                throw new Error("선택/상태 조건은 조건 키와 옵션 코드를 모두 입력해 주세요.");
+            }
+            optionConditions.push({
+                conditionScopeCode: valueOf(row, "[name='conditionScopeCode']") || selectedTargetCode(),
+                conditionKey,
+                optionCode,
+                optionText: nullIfBlank(valueOf(row, "[name='optionText']"))
+            });
+        });
 
         const documentRequirements = [];
-        app.querySelectorAll("[data-document-code]:checked").forEach((field, index) => {
+        documentRows().forEach((row) => {
+            const documentTypeCode = valueOf(row, "[name='documentTypeCode']");
+            if (!documentTypeCode) {
+                return;
+            }
             documentRequirements.push({
-                documentTypeCode: field.dataset.documentCode,
-                required: true,
-                sortOrder: index + 1
+                documentTypeCode,
+                required: Boolean(row.querySelector("[name='required']")?.checked),
+                sortOrder: documentRequirements.length + 1
             });
         });
 
@@ -323,41 +397,146 @@
         };
     };
 
+    const stepRows = () => stepsList ? Array.from(stepsList.querySelectorAll("[data-step-row]")) : [];
+
+    const buildStepRequestFromRow = (row, stepOrder) => {
+        const stepName = valueOf(row, "[name='stepName']");
+        if (!stepName) {
+            return null;
+        }
+
+        const buttonLabel = valueOf(row, "[name='buttonLabel']");
+        const buttonCode = valueOf(row, "[name='buttonCode']") || `STEP_${stepOrder}_BUTTON`;
+        const documentTypeCode = valueOf(row, "[name='stepDocumentTypeCode']");
+        const buttons = buttonLabel ? [{
+            buttonCode,
+            buttonLabel,
+            buttonActionCode: "MOVE_NEXT",
+            nextStepId: null,
+            sortOrder: 1
+        }] : [];
+        const documents = documentTypeCode ? [{
+            documentTypeCode,
+            required: true,
+            sortOrder: 1
+        }] : [];
+
+        return {
+            stepOrder,
+            stepName,
+            guideMessage: nullIfBlank(valueOf(row, "[name='guideMessage']")),
+            actionGuide: nullIfBlank(valueOf(row, "[name='actionGuide']")),
+            completionConditionCode: valueOf(row, "[name='completionConditionCode']") || "BUTTON_CLICK",
+            nextConditionCode: nullIfBlank(valueOf(row, "[name='nextConditionCode']")),
+            active: Boolean(row.querySelector("[name='stepActive']")?.checked),
+            buttons,
+            documents
+        };
+    };
+
+    const setFieldValue = (row, selector, value) => {
+        const field = row.querySelector(selector);
+        if (field) {
+            field.value = value ?? "";
+        }
+    };
+
+    const clearStepRow = (row) => {
+        setFieldValue(row, "[name='stepName']", "");
+        setFieldValue(row, "[name='completionConditionCode']", "BUTTON_CLICK");
+        setFieldValue(row, "[name='guideMessage']", "");
+        setFieldValue(row, "[name='actionGuide']", "");
+        setFieldValue(row, "[name='nextConditionCode']", "");
+        setFieldValue(row, "[name='buttonLabel']", "");
+        setFieldValue(row, "[name='buttonCode']", "");
+        setFieldValue(row, "[name='stepDocumentTypeCode']", "");
+        const activeField = row.querySelector("[name='stepActive']");
+        if (activeField) {
+            activeField.checked = true;
+        }
+    };
+
+    const applyStepToRow = (row, step) => {
+        setFieldValue(row, "[name='stepName']", step.stepName || "");
+        setFieldValue(row, "[name='completionConditionCode']", step.completionConditionCode || "BUTTON_CLICK");
+        setFieldValue(row, "[name='guideMessage']", step.guideMessage || "");
+        setFieldValue(row, "[name='actionGuide']", step.actionGuide || "");
+        setFieldValue(row, "[name='nextConditionCode']", step.nextConditionCode || "");
+        const activeField = row.querySelector("[name='stepActive']");
+        if (activeField) {
+            activeField.checked = step.active !== false;
+        }
+
+        const firstButton = (step.buttons || [])[0];
+        setFieldValue(row, "[name='buttonLabel']", firstButton ? firstButton.buttonLabel || "" : "");
+        setFieldValue(row, "[name='buttonCode']", firstButton ? firstButton.buttonCode || "" : "");
+
+        const firstDocument = (step.documents || [])[0];
+        setFieldValue(row, "[name='stepDocumentTypeCode']", firstDocument ? firstDocument.documentTypeCode || "" : "");
+    };
+
+    const normalizeStepRows = () => {
+        stepRows().forEach((row, index, rows) => {
+            const order = row.querySelector(".step-order");
+            if (order) {
+                order.textContent = String(index + 1);
+            }
+            let removeButton = row.querySelector("[data-step-remove]");
+            if (!removeButton) {
+                const actionBlock = document.createElement("div");
+                actionBlock.className = "step-row-actions span-2";
+                removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "secondary-action";
+                removeButton.dataset.stepRemove = "true";
+                removeButton.textContent = "단계 삭제";
+                actionBlock.append(removeButton);
+                row.querySelector(".form-grid")?.append(actionBlock);
+            }
+            removeButton.disabled = rows.length <= 1;
+        });
+    };
+
+    const renderStepRows = (steps = []) => {
+        if (!stepsList) {
+            return;
+        }
+        const source = stepRows()[0];
+        if (!source) {
+            return;
+        }
+        stepsList.replaceChildren();
+        const nextSteps = steps.length > 0 ? steps : defaultStepRequests;
+        nextSteps.forEach((step) => {
+            const row = source.cloneNode(true);
+            clearStepRow(row);
+            applyStepToRow(row, step);
+            stepsList.append(row);
+        });
+        normalizeStepRows();
+    };
+
+    const appendBlankStepRow = () => {
+        const source = stepRows()[0];
+        if (!source || !stepsList) {
+            return;
+        }
+        const row = source.cloneNode(true);
+        clearStepRow(row);
+        stepsList.append(row);
+        normalizeStepRows();
+        row.querySelector("[name='stepName']")?.focus();
+    };
+
     const buildStepsRequest = () => {
         const steps = [];
-        app.querySelectorAll("[data-step-row]").forEach((row) => {
+        stepRows().forEach((row) => {
             const stepName = valueOf(row, "[name='stepName']");
             if (!stepName) {
                 return;
             }
 
-            const buttonLabel = valueOf(row, "[name='buttonLabel']");
-            const buttonCode = valueOf(row, "[name='buttonCode']") || `STEP_${steps.length + 1}_BUTTON`;
-            const documentTypeCode = valueOf(row, "[name='stepDocumentTypeCode']");
-            const buttons = buttonLabel ? [{
-                buttonCode,
-                buttonLabel,
-                buttonActionCode: "MOVE_NEXT",
-                nextStepId: null,
-                sortOrder: 1
-            }] : [];
-            const documents = documentTypeCode ? [{
-                documentTypeCode,
-                required: true,
-                sortOrder: 1
-            }] : [];
-
-            steps.push({
-                stepOrder: steps.length + 1,
-                stepName,
-                guideMessage: nullIfBlank(valueOf(row, "[name='guideMessage']")),
-                actionGuide: nullIfBlank(valueOf(row, "[name='actionGuide']")),
-                completionConditionCode: valueOf(row, "[name='completionConditionCode']") || "BUTTON_CLICK",
-                nextConditionCode: nullIfBlank(valueOf(row, "[name='nextConditionCode']")),
-                active: Boolean(row.querySelector("[name='stepActive']")?.checked),
-                buttons,
-                documents
-            });
+            steps.push(buildStepRequestFromRow(row, steps.length + 1));
         });
 
         if (steps.length === 0) {
@@ -657,71 +836,65 @@
     };
 
     const applyConditions = (conditions, targetCode) => {
-        conditionsForm.reset();
-        app.querySelectorAll("[data-document-code]").forEach((field) => {
-            field.checked = false;
-        });
-
-        (conditions?.industryConditions || []).forEach((condition) => {
-            if (condition.conditionTypeCode === "INCLUDE") {
-                conditionsForm.querySelector("[name='industryInclude']").value = condition.ksicCode || "";
-            }
-            if (condition.conditionTypeCode === "EXCLUDE") {
-                conditionsForm.querySelector("[name='industryExclude']").value = condition.ksicCode || "";
-            }
-        });
-
-        (conditions?.optionConditions || []).forEach((condition) => {
-            if (condition.conditionScopeCode === "BUSINESS" && condition.conditionKey === "BUSINESS_TYPE") {
-                conditionsForm.querySelector("[name='businessType']").value = condition.optionCode || "";
-            } else if (condition.conditionScopeCode === "BUSINESS" && condition.conditionKey === "BUSINESS_STAGE") {
-                conditionsForm.querySelector("[name='businessStage']").value = condition.optionCode || "";
-            } else if (condition.conditionScopeCode === targetCode) {
-                conditionsForm.querySelector("[name='targetOptionKey']").value = condition.conditionKey || "";
-                conditionsForm.querySelector("[name='targetOptionCode']").value = condition.optionCode || "";
-            }
-        });
-
-        const numeric = (conditions?.numericConditions || []).find((condition) => condition.conditionScopeCode === targetCode)
-                || (conditions?.numericConditions || [])[0];
-        if (numeric) {
-            const prefix = numeric.conditionScopeCode === "BUSINESS" ? "business" : "target";
-            conditionsForm.querySelector(`[name='${prefix}NumericKey']`).value = numeric.conditionKey || "";
-            conditionsForm.querySelector(`[name='${prefix}Comparator']`).value = numeric.comparatorCode || "LTE";
-            conditionsForm.querySelector(`[name='${prefix}ValueNumber']`).value = numeric.valueNumber ?? "";
-            conditionsForm.querySelector(`[name='${prefix}MinNumber']`).value = numeric.minNumber ?? "";
-            conditionsForm.querySelector(`[name='${prefix}MaxNumber']`).value = numeric.maxNumber ?? "";
-            conditionsForm.querySelector(`[name='${prefix}UnitCode']`).value = numeric.unitCode || "";
-        }
-
-        (conditions?.documentRequirements || []).forEach((document) => {
-            const field = app.querySelector(`[data-document-code='${document.documentTypeCode}']`);
-            if (field) {
-                field.checked = document.required !== false;
-            }
-        });
+        renderConditionRows(
+                industryConditionList,
+                conditionTemplates.industry,
+                "[data-industry-condition-row]",
+                "[data-industry-condition-remove]",
+                conditions?.industryConditions || [],
+                (row, condition) => {
+                    setFieldValue(row, "[name='conditionTypeCode']", condition.conditionTypeCode || "INCLUDE");
+                    setFieldValue(row, "[name='ksicCode']", condition.ksicCode || "");
+                }
+        );
+        renderConditionRows(
+                numericConditionList,
+                conditionTemplates.numeric,
+                "[data-numeric-condition-row]",
+                "[data-numeric-condition-remove]",
+                conditions?.numericConditions || [],
+                (row, condition) => {
+                    setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
+                    setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
+                    setFieldValue(row, "[name='comparatorCode']", condition.comparatorCode || "LTE");
+                    setFieldValue(row, "[name='valueNumber']", condition.valueNumber ?? "");
+                    setFieldValue(row, "[name='minNumber']", condition.minNumber ?? "");
+                    setFieldValue(row, "[name='maxNumber']", condition.maxNumber ?? "");
+                    setFieldValue(row, "[name='unitCode']", condition.unitCode || "");
+                }
+        );
+        renderConditionRows(
+                optionConditionList,
+                conditionTemplates.option,
+                "[data-option-condition-row]",
+                "[data-option-condition-remove]",
+                conditions?.optionConditions || [],
+                (row, condition) => {
+                    setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
+                    setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
+                    setFieldValue(row, "[name='optionCode']", condition.optionCode || "");
+                    setFieldValue(row, "[name='optionText']", condition.optionText || "");
+                }
+        );
+        renderConditionRows(
+                documentRequirementList,
+                conditionTemplates.document,
+                "[data-document-requirement-row]",
+                "[data-document-requirement-remove]",
+                conditions?.documentRequirements || [],
+                (row, document) => {
+                    setFieldValue(row, "[name='documentTypeCode']", document.documentTypeCode || "");
+                    const requiredField = row.querySelector("[name='required']");
+                    if (requiredField) {
+                        requiredField.checked = document.required !== false;
+                    }
+                }
+        );
         updateTargetUi();
     };
 
     const applySteps = (steps) => {
-        stepsForm.reset();
-        const rows = Array.from(app.querySelectorAll("[data-step-row]"));
-        (steps || []).slice(0, rows.length).forEach((step, index) => {
-            const row = rows[index];
-            row.querySelector("[name='stepName']").value = step.stepName || "";
-            row.querySelector("[name='completionConditionCode']").value = step.completionConditionCode || "BUTTON_CLICK";
-            row.querySelector("[name='guideMessage']").value = step.guideMessage || "";
-            row.querySelector("[name='actionGuide']").value = step.actionGuide || "";
-            row.querySelector("[name='nextConditionCode']").value = step.nextConditionCode || "";
-            row.querySelector("[name='stepActive']").checked = step.active !== false;
-
-            const firstButton = (step.buttons || [])[0];
-            row.querySelector("[name='buttonLabel']").value = firstButton ? firstButton.buttonLabel || "" : "";
-            row.querySelector("[name='buttonCode']").value = firstButton ? firstButton.buttonCode || "" : "";
-
-            const firstDocument = (step.documents || [])[0];
-            row.querySelector("[name='stepDocumentTypeCode']").value = firstDocument ? firstDocument.documentTypeCode || "" : "";
-        });
+        renderStepRows(steps || []);
     };
 
     const populateDetails = (details) => {
@@ -760,16 +933,21 @@
     const resetForNewInput = () => {
         updateCurrentAnnouncement("");
         basicForm.reset();
-        conditionsForm.reset();
-        stepsForm.reset();
+        applyConditions({
+            industryConditions: [],
+            numericConditions: [],
+            optionConditions: [],
+            documentRequirements: [{
+                documentTypeCode: "BUSINESS_REGISTRATION",
+                required: true,
+                sortOrder: 1
+            }]
+        }, selectedTargetCode());
+        renderStepRows(defaultStepRequests);
         statusForm.reset();
         const businessTarget = app.querySelector("input[name='targetTypeCode'][value='BUSINESS']");
         if (businessTarget) {
             businessTarget.checked = true;
-        }
-        const businessDocument = app.querySelector("[data-document-code='BUSINESS_REGISTRATION']");
-        if (businessDocument) {
-            businessDocument.checked = true;
         }
         renderDynamicRequirements([]);
         setDynamicRequirementSummary("공고 저장 후 설정");
@@ -796,6 +974,116 @@
 
         if (event.target.matches("[data-reset-form]")) {
             resetForNewInput();
+            return;
+        }
+
+        if (event.target.matches("[data-step-add]")) {
+            event.preventDefault();
+            appendBlankStepRow();
+            return;
+        }
+
+        if (event.target.matches("[data-step-remove]")) {
+            event.preventDefault();
+            const rows = stepRows();
+            const row = event.target.closest("[data-step-row]");
+            if (rows.length <= 1) {
+                clearStepRow(row);
+            } else {
+                row?.remove();
+            }
+            normalizeStepRows();
+            return;
+        }
+
+        if (event.target.matches("[data-industry-condition-add]")) {
+            event.preventDefault();
+            appendConditionRow(
+                    industryConditionList,
+                    conditionTemplates.industry,
+                    "[data-industry-condition-row]",
+                    "[data-industry-condition-remove]"
+            )?.querySelector("[name='ksicCode']")?.focus();
+            return;
+        }
+
+        if (event.target.matches("[data-numeric-condition-add]")) {
+            event.preventDefault();
+            appendConditionRow(
+                    numericConditionList,
+                    conditionTemplates.numeric,
+                    "[data-numeric-condition-row]",
+                    "[data-numeric-condition-remove]",
+                    { conditionScopeCode: selectedTargetCode() }
+            )?.querySelector("[name='conditionKey']")?.focus();
+            return;
+        }
+
+        if (event.target.matches("[data-option-condition-add]")) {
+            event.preventDefault();
+            appendConditionRow(
+                    optionConditionList,
+                    conditionTemplates.option,
+                    "[data-option-condition-row]",
+                    "[data-option-condition-remove]",
+                    { conditionScopeCode: selectedTargetCode() }
+            )?.querySelector("[name='conditionKey']")?.focus();
+            return;
+        }
+
+        if (event.target.matches("[data-document-requirement-add]")) {
+            event.preventDefault();
+            appendConditionRow(
+                    documentRequirementList,
+                    conditionTemplates.document,
+                    "[data-document-requirement-row]",
+                    "[data-document-requirement-remove]",
+                    { required: true }
+            )?.querySelector("[name='documentTypeCode']")?.focus();
+            return;
+        }
+
+        if (event.target.matches("[data-industry-condition-remove]")) {
+            event.preventDefault();
+            removeConditionRow(
+                    event.target,
+                    industryConditionList,
+                    "[data-industry-condition-row]",
+                    "[data-industry-condition-remove]"
+            );
+            return;
+        }
+
+        if (event.target.matches("[data-numeric-condition-remove]")) {
+            event.preventDefault();
+            removeConditionRow(
+                    event.target,
+                    numericConditionList,
+                    "[data-numeric-condition-row]",
+                    "[data-numeric-condition-remove]"
+            );
+            return;
+        }
+
+        if (event.target.matches("[data-option-condition-remove]")) {
+            event.preventDefault();
+            removeConditionRow(
+                    event.target,
+                    optionConditionList,
+                    "[data-option-condition-row]",
+                    "[data-option-condition-remove]"
+            );
+            return;
+        }
+
+        if (event.target.matches("[data-document-requirement-remove]")) {
+            event.preventDefault();
+            removeConditionRow(
+                    event.target,
+                    documentRequirementList,
+                    "[data-document-requirement-row]",
+                    "[data-document-requirement-remove]"
+            );
             return;
         }
 
@@ -962,6 +1250,14 @@
         });
     }
 
+    normalizeConditionRows(industryConditionList, "[data-industry-condition-row]", "[data-industry-condition-remove]");
+    normalizeConditionRows(numericConditionList, "[data-numeric-condition-row]", "[data-numeric-condition-remove]");
+    normalizeConditionRows(optionConditionList, "[data-option-condition-row]", "[data-option-condition-remove]");
+    normalizeConditionRows(documentRequirementList, "[data-document-requirement-row]", "[data-document-requirement-remove]");
+    defaultStepRequests = stepRows()
+            .map((row, index) => buildStepRequestFromRow(row, index + 1))
+            .filter(Boolean);
+    normalizeStepRows();
     updateTargetUi();
     renderDynamicRequirements([]);
     loadAnnouncementList();

@@ -1350,6 +1350,56 @@ svg {
     gap: 9px;
 }
 
+.condition-editor-group {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.condition-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.condition-group-heading h3 {
+    margin: 0;
+}
+
+.condition-list {
+    display: grid;
+    gap: 10px;
+}
+
+.condition-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 13px;
+}
+
+.numeric-condition-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+.option-condition-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+}
+
+.document-requirement-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.condition-row-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .form-actions {
     display: flex;
     justify-content: flex-end;
@@ -1381,6 +1431,12 @@ svg {
     opacity: 0.68;
 }
 
+.steps-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
 .steps-editor {
     display: grid;
     gap: 14px;
@@ -1407,6 +1463,11 @@ svg {
     color: #fff;
     font-size: 13px;
     font-weight: 850;
+}
+
+.step-row-actions {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .announcement-search {
@@ -2287,7 +2348,11 @@ svg {
     .target-grid,
     .form-grid,
     .option-grid,
-    .document-grid {
+    .document-grid,
+    .condition-row,
+    .numeric-condition-row,
+    .option-condition-row,
+    .document-requirement-row {
         grid-template-columns: 1fr;
     }
 
@@ -2301,6 +2366,17 @@ svg {
 
     .condition-number-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .condition-group-heading,
+    .condition-row-actions {
+        display: grid;
+        justify-content: stretch;
+    }
+
+    .condition-group-heading .secondary-action,
+    .condition-row-actions .secondary-action {
+        width: 100%;
     }
 
     .condition-number-row label {
@@ -2338,6 +2414,7 @@ svg {
         padding: 13px;
     }
 
+    .steps-toolbar,
     .dynamic-requirements-toolbar,
     .dynamic-requirement-actions,
     .dynamic-field-header,
@@ -2346,6 +2423,7 @@ svg {
         justify-content: stretch;
     }
 
+    .steps-toolbar .secondary-action,
     .dynamic-requirements-toolbar .secondary-action,
     .dynamic-requirement-actions .secondary-action {
         width: 100%;
