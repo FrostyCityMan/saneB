@@ -25,6 +25,20 @@ public class AuthViewController {
         return "auth/login";
     }
 
+    @GetMapping("/signup")
+    public String selectSignupPage(Authentication authentication) {
+        if (isAuthenticated(authentication)) {
+            AuthMeResponse authMe = authService.selectAuthMe(authentication);
+            return "redirect:" + authMe.defaultRoute();
+        }
+        return "auth/signup";
+    }
+
+    @GetMapping("/password")
+    public String selectPasswordPage() {
+        return "auth/password";
+    }
+
     private boolean isAuthenticated(Authentication authentication) {
         return authentication != null
                 && authentication.isAuthenticated()

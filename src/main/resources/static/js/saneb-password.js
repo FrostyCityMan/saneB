@@ -1,0 +1,80 @@
+(() => {
+    const form = document.querySelector("[data-password-form]");
+    if (!form) {
+        return;
+    }
+
+    const message = document.querySelector("[data-password-message]");
+    const submitButton = document.querySelector("[data-password-submit]");
+
+    const setMessage = (text, status) => {
+        if (!message) {
+            return;
+        }
+        message.textContent = text || "";
+        message.hidden = !text;
+        message.classList.toggle("is-success", status === "success");
+    };
+
+    const selectErrorMessage = (payload, fallback) => {
+        if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
+            return payload.message;
+        }
+        const fieldErrors = payload && payload.data && Array.isArray(payload.data.fieldErrors)
+                ? payload.data.fieldErrors
+                : [];
+        if (fieldErrors.length > 0 && fieldErrors[0].message) {
+            return fieldErrors[0].message;
+        }
+        return fallback;
+    };
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setMessage("", "error");
+
+        const formData = new FormData(form);
+        const currentPassword = String(formData.get("currentPassword") || "");
+        const newPassword = String(formData.get("newPassword") || "");
+        const newPasswordConfirm = String(formData.get("newPasswordConfirm") || "");
+
+        if (newPassword !== newPasswordConfirm) {
+            setMessage("새 비밀번호 확인이 일치하지 않습니다.", "error");
+            return;
+        }
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = "변경 처리 중";
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            const payload = await response.json().catch(() => null);
+
+            if (response.ok && payload && payload.success === true) {
+                setMessage("비밀번호가 변경되었습니다. 대시보드로 이동합니다.", "success");
+                window.setTimeout(() => {
+                    window.location.assign("/app/dashboard");
+                }, 500);
+                return;
+            }
+
+            setMessage(selectErrorMessage(payload, "비밀번호 변경에 실패했습니다."), "error");
+        } catch (error) {
+            setMessage("비밀번호 변경 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", "error");
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = "비밀번호 변경";
+            }
+        }
+    });
+})();

@@ -78,6 +78,13 @@
                     <strong th:text="${page.auth.name}">사용자</strong>
                     <span th:text="${page.auth.loginId}">user01</span>
                 </div>
+                <a class="logout-button account-button" th:href="@{/password}" aria-label="비밀번호 변경">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M7.5 10V7.8a4.5 4.5 0 0 1 9 0V10"/>
+                        <path d="M6.2 10h11.6v9.2H6.2z"/>
+                    </svg>
+                    <span>비밀번호 변경</span>
+                </a>
                 <form class="logout-form" th:action="@{/logout}" method="post">
                     <button class="logout-button" type="submit" aria-label="로그아웃">
                         <svg viewBox="0 0 24 24" aria-hidden="true">

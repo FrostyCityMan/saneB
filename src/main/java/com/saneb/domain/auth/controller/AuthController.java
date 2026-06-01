@@ -5,6 +5,7 @@ import com.saneb.domain.auth.dto.AuthMeResponse;
 import com.saneb.domain.auth.dto.LoginRequest;
 import com.saneb.domain.auth.dto.LoginResponse;
 import com.saneb.domain.auth.dto.PasswordChangeRequest;
+import com.saneb.domain.auth.dto.SignupRequest;
 import com.saneb.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +37,15 @@ public class AuthController {
         return ApiResponse.success(authService.login(request, httpRequest, httpResponse));
     }
 
+    @PostMapping("/signup")
+    public ApiResponse<LoginResponse> signup(
+            @Valid @RequestBody SignupRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    ) {
+        return ApiResponse.success(authService.signup(request, httpRequest, httpResponse));
+    }
+
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         authService.logout(httpRequest, httpResponse);
@@ -50,9 +60,11 @@ public class AuthController {
     @PatchMapping("/password")
     public ApiResponse<Void> updatePassword(
             Authentication authentication,
-            @Valid @RequestBody PasswordChangeRequest request
+            @Valid @RequestBody PasswordChangeRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
     ) {
-        authService.updatePassword(authentication, request);
+        authService.updatePassword(authentication, request, httpRequest, httpResponse);
         return ApiResponse.success(null);
     }
 }

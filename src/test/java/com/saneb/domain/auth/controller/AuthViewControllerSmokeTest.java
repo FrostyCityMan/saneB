@@ -31,6 +31,17 @@ class AuthViewControllerSmokeTest {
                 .andExpect(view().name("auth/login"))
                 .andExpect(content().string(containsString("data-login-form")))
                 .andExpect(content().string(containsString("/api/v1/auth/login")))
+                .andExpect(content().string(containsString("/signup")))
+                .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    @Test
+    void selectSignupPageReturnsThymeleafView() throws Exception {
+        mockMvc.perform(get("/signup"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/signup"))
+                .andExpect(content().string(containsString("data-signup-form")))
+                .andExpect(content().string(containsString("/api/v1/auth/signup")))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 
@@ -41,6 +52,26 @@ class AuthViewControllerSmokeTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/app/dashboard"))
                 .andExpect(header().string("Location", "/app/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void selectSignupPageRedirectsAuthenticatedUserToDefaultRoute() throws Exception {
+        mockMvc.perform(get("/signup"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/app/dashboard"))
+                .andExpect(header().string("Location", "/app/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void selectPasswordPageReturnsThymeleafView() throws Exception {
+        mockMvc.perform(get("/password"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/password"))
+                .andExpect(content().string(containsString("data-password-form")))
+                .andExpect(content().string(containsString("/api/v1/auth/password")))
+                .andExpect(content().string(not(containsString("th:utext"))));
     }
 
     @Test

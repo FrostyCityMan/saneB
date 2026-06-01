@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.saneb.domain.auth.dao.AuthDao;
 import com.saneb.domain.auth.vo.AuthLoginHistoryCommand;
 import com.saneb.domain.auth.vo.AuthPasswordUpdateCommand;
+import com.saneb.domain.auth.vo.AuthSignupCommand;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +108,110 @@ class AuthControllerSmokeTest {
     }
 
     @Test
+    void signupCreatesUserRoleAndSession() throws Exception {
+        when(authDao.selectAuthUserDetailsByLoginId("newuser")).thenReturn(null);
+        when(authDao.selectUserIdByPhone("010-1000-2000")).thenReturn(null);
+        when(authDao.insertUser(any())).thenReturn(USER_ID);
+
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "newuser",
+                                  "password": "new-password",
+                                  "passwordConfirm": "new-password",
+                                  "name": "신규 사용자",
+                                  "phone": "010-1000-2000",
+                                  "email": "newuser@example.com",
+                                  "termsAgreed": true,
+                                  "privacyAgreed": true
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.userId").value(USER_ID.toString()))
+                .andExpect(jsonPath("$.data.loginId").value("newuser"))
+                .andExpect(jsonPath("$.data.primaryRole").value("USER"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/dashboard"));
+
+        ArgumentCaptor<AuthSignupCommand> signupCaptor = ArgumentCaptor.forClass(AuthSignupCommand.class);
+        verify(authDao).insertUser(signupCaptor.capture());
+        verify(authDao).insertUserRole(USER_ID, "USER");
+        verify(authDao).updateUserLastLoginAt(USER_ID);
+        assertThat(signupCaptor.getValue().loginId()).isEqualTo("newuser");
+        assertThat(signupCaptor.getValue().name()).isEqualTo("신규 사용자");
+        assertThat(signupCaptor.getValue().phone()).isEqualTo("010-1000-2000");
+        assertThat(signupCaptor.getValue().email()).isEqualTo("newuser@example.com");
+        assertThat(passwordEncoder.matches("new-password", signupCaptor.getValue().passwordHash())).isTrue();
+    }
+
+    @Test
+    void signupRejectsDuplicateLoginId() throws Exception {
+        when(authDao.selectAuthUserDetailsByLoginId("user01"))
+                .thenReturn(activeUser(passwordEncoder.encode("password")));
+
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "user01",
+                                  "password": "new-password",
+                                  "passwordConfirm": "new-password",
+                                  "name": "중복 사용자",
+                                  "termsAgreed": true,
+                                  "privacyAgreed": true
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.data.errorCode").value("DUPLICATE_LOGIN_ID"));
+
+        verify(authDao, never()).insertUser(any());
+        verify(authDao, never()).insertUserRole(any(), any());
+    }
+
+    @Test
+    void signupRejectsPasswordConfirmMismatch() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "newuser",
+                                  "password": "new-password",
+                                  "passwordConfirm": "another-password",
+                                  "name": "신규 사용자",
+                                  "termsAgreed": true,
+                                  "privacyAgreed": true
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.data.errorCode").value("VALIDATION_FAILED"));
+
+        verify(authDao, never()).insertUser(any());
+    }
+
+    @Test
+    void loginReturnsPasswordRouteWhenResetIsRequired() throws Exception {
+        when(authDao.selectAuthUserDetailsByLoginId("user01"))
+                .thenReturn(activeUser(passwordEncoder.encode("password"), true));
+        when(authDao.selectRoleCodeListByUserId(USER_ID)).thenReturn(List.of("USER"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "user01",
+                                  "password": "password"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.passwordResetRequired").value(true))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/password"));
+    }
+
+    @Test
     void loginFailureReturnsErrorCodeAndWritesFailHistory() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("missing")).thenReturn(null);
 
@@ -194,13 +299,17 @@ class AuthControllerSmokeTest {
     }
 
     private AuthUserDetailsRow activeUser(String passwordHash) {
+        return activeUser(passwordHash, false);
+    }
+
+    private AuthUserDetailsRow activeUser(String passwordHash, boolean passwordResetRequired) {
         return new AuthUserDetailsRow(
                 USER_ID,
                 "user01",
                 passwordHash,
                 "사용자",
                 "ACTIVE",
-                false,
+                passwordResetRequired,
                 null,
                 null,
                 null

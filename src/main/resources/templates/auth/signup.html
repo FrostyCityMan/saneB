@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>회원가입 | saneB</title>
+    <link rel="icon" href="data:,">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/saneb-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/saneb-login.css}">
+    <script th:src="@{/js/saneb-signup.js}" defer></script>
+</head>
+<body class="saneb-body saneb-login-body">
+<main class="login-shell auth-single-shell" aria-label="saneB 회원가입">
+    <section class="login-workspace auth-center-workspace" aria-labelledby="signup-title">
+        <a class="login-brand auth-brand" th:href="@{/login}" aria-label="saneB 로그인">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 2.4 20 5.7v5.8c0 5.1-3.3 8.4-8 10.1-4.7-1.7-8-5-8-10.1V5.7l8-3.3Z"/>
+                    <path d="m8.3 12.1 2.3 2.2 5.1-5.4"/>
+                </svg>
+            </span>
+            <span>saneB</span>
+        </a>
+
+        <div class="login-card auth-form-card">
+            <div class="login-lock" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 12.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                    <path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/>
+                </svg>
+            </div>
+            <h2 id="signup-title">회원가입</h2>
+            <p class="login-intro">아이디와 비밀번호를 등록하면 바로 대시보드로 이동합니다.</p>
+
+            <form class="login-form" data-signup-form th:action="@{/api/v1/auth/signup}" method="post" novalidate>
+                <div class="login-field">
+                    <label for="signupLoginId">아이디</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 12.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/></svg>
+                        </span>
+                        <input id="signupLoginId" name="loginId" type="text" autocomplete="username" minlength="4" maxlength="100" placeholder="아이디를 입력하세요" required>
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="signupName">이름</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 12.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/></svg>
+                        </span>
+                        <input id="signupName" name="name" type="text" autocomplete="name" maxlength="100" placeholder="이름을 입력하세요" required>
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="signupPassword">비밀번호</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M7.5 10V7.8a4.5 4.5 0 0 1 9 0V10"/><path d="M6.2 10h11.6v9.2H6.2z"/></svg>
+                        </span>
+                        <input id="signupPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="100" placeholder="8자 이상" required>
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="signupPasswordConfirm">비밀번호 확인</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M7.5 10V7.8a4.5 4.5 0 0 1 9 0V10"/><path d="M6.2 10h11.6v9.2H6.2z"/></svg>
+                        </span>
+                        <input id="signupPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="100" placeholder="비밀번호를 다시 입력하세요" required>
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="signupPhone">휴대폰</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M8 4.2h8v15.6H8z"/><path d="M11 17.1h2"/></svg>
+                        </span>
+                        <input id="signupPhone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="선택 입력">
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="signupEmail">이메일</label>
+                    <div class="input-shell">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M4.6 6.5h14.8v11H4.6z"/><path d="m5 7 7 5 7-5"/></svg>
+                        </span>
+                        <input id="signupEmail" name="email" type="email" autocomplete="email" maxlength="255" placeholder="선택 입력">
+                    </div>
+                </div>
+
+                <div class="agreement-stack">
+                    <label><input name="termsAgreed" type="checkbox" required> 이용약관 동의</label>
+                    <label><input name="privacyAgreed" type="checkbox" required> 개인정보 처리방침 동의</label>
+                </div>
+
+                <p class="login-message" data-signup-message role="alert" hidden></p>
+
+                <button class="login-submit" type="submit" data-signup-submit>회원가입</button>
+            </form>
+
+            <div class="auth-link-row">
+                <span>이미 계정이 있습니까?</span>
+                <a th:href="@{/login}">로그인</a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

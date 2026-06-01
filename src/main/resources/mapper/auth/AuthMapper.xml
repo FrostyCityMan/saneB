@@ -52,6 +52,14 @@
         WHERE u.login_id = #{loginId}
     </select>
 
+    <select id="selectUserIdByPhone" resultType="java.util.UUID">
+        -- 회원가입 휴대폰 중복 검증을 위해 사용자 식별자를 조회한다.
+        SELECT
+            u.id
+        FROM users u
+        WHERE u.phone = #{phone}
+    </select>
+
     <select id="selectRoleCodeListByUserId" resultType="java.lang.String">
         -- 사용자 역할 코드를 표시 우선순위 순서로 조회한다.
         SELECT
@@ -61,6 +69,41 @@
         WHERE ur.user_id = #{userId}
         ORDER BY r.sort_order ASC, ur.role_code ASC
     </select>
+
+    <select id="insertUser" resultType="java.util.UUID">
+        -- 회원가입 사용자를 생성하고 생성된 사용자 식별자를 반환한다.
+        INSERT INTO users (
+            login_id,
+            password_hash,
+            name,
+            phone,
+            email,
+            status_code,
+            password_reset_required
+        ) VALUES (
+            #{loginId},
+            #{passwordHash},
+            #{name},
+            #{phone},
+            #{email},
+            'ACTIVE',
+            false
+        )
+        RETURNING id
+    </select>
+
+    <insert id="insertUserRole">
+        -- 회원가입 사용자에게 기본 역할을 부여한다.
+        INSERT INTO user_roles (
+            user_id,
+            role_code,
+            created_by
+        ) VALUES (
+            #{userId},
+            #{roleCode},
+            #{userId}
+        )
+    </insert>
 
     <insert id="insertAuthLoginHistory">
         -- 로그인 성공과 실패 이력을 저장한다.

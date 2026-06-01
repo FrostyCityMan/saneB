@@ -234,6 +234,10 @@ svg {
     font-weight: 800;
 }
 
+.account-button {
+    text-decoration: none;
+}
+
 .logout-button:hover,
 .logout-button:focus-visible {
     border-color: var(--saneb-border-strong);

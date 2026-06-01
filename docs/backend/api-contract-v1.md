@@ -93,15 +93,16 @@
 
 `primaryRole`은 권한 판단과 메뉴 노출 우선순위에만 사용한다.
 
-MVP v1에서 `defaultRoute`는 역할과 무관하게 `/app/dashboard`로 고정한다. Frontend는 로그인 직후 이 route로 이동하고, 역할별 메뉴와 접근 제어는 `roles`, `primaryRole`, 서버 권한 응답을 기준으로 처리한다.
+MVP v1에서 `defaultRoute`는 기본적으로 `/app/dashboard`를 반환한다. Frontend는 로그인 또는 회원가입 직후 이 route로 이동하고, 역할별 메뉴와 접근 제어는 `roles`, `primaryRole`, 서버 권한 응답을 기준으로 처리한다.
 
-`passwordResetRequired = true`이면 역할과 무관하게 비밀번호 변경 route를 우선한다. 이 경우 Backend는 이후 password API 확정 시 별도 route를 계약한다.
+`passwordResetRequired = true`이면 역할과 무관하게 `defaultRoute = /password`를 반환한다.
 
 ### 4.2 Auth Endpoints
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/login` | anonymous | 로그인 |
+| `POST` | `/api/v1/auth/signup` | anonymous | 회원가입 후 세션 생성 |
 | `POST` | `/api/v1/auth/logout` | authenticated | 로그아웃 |
 | `GET` | `/api/v1/auth/me` | authenticated | 현재 사용자/권한/defaultRoute 조회 |
 | `PATCH` | `/api/v1/auth/password` | authenticated | 비밀번호 변경 |
@@ -128,6 +129,23 @@ MVP v1에서 `defaultRoute`는 역할과 무관하게 `/app/dashboard`로 고정
   "passwordResetRequired": false
 }
 ```
+
+#### SignupRequest
+
+```json
+{
+  "loginId": "user01",
+  "password": "new-password",
+  "passwordConfirm": "new-password",
+  "name": "사용자",
+  "phone": "010-0000-0000",
+  "email": "user01@example.com",
+  "termsAgreed": true,
+  "privacyAgreed": true
+}
+```
+
+회원가입은 `users`에 `ACTIVE`, `password_reset_required=false`로 저장하고 `user_roles`에 `USER` 역할을 부여한다. 가입 성공 시 Backend는 세션을 생성하고 `LoginResponse`와 동일한 응답을 반환한다. 약관 동의값은 MVP에서 가입 요청 검증 용도로만 사용하며 별도 동의 이력 저장은 보류한다.
 
 #### AuthMeResponse
 
@@ -157,7 +175,7 @@ AuthMeResponse 필드 계약:
 | `name` | `string` | false | 사용자명 표시 |
 | `roles` | `string[]` | false | 메뉴/권한 표시 기준, 값은 `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` |
 | `primaryRole` | `string` | false | 다중 역할 사용자 대표 역할 |
-| `defaultRoute` | `string` | false | MVP v1 고정값 `/app/dashboard` |
+| `defaultRoute` | `string` | false | 기본 `/app/dashboard`, 비밀번호 변경 필요 시 `/password` |
 | `passwordResetRequired` | `boolean` | false | `true`이면 비밀번호 변경 흐름 우선 |
 | `profile.memberProfileId` | `uuid` | true | 회원 기본 프로필 존재 여부 |
 | `profile.businessProfileId` | `uuid` | true | 사업자 프로필 존재 여부 |
@@ -787,6 +805,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 | `INVALID_STATUS_TRANSITION` | 400 | 허용되지 않는 상태 변경 |
 | `RESOURCE_NOT_FOUND` | 404 | 리소스 없음 |
 | `DUPLICATE_LOGIN_ID` | 409 | loginId 중복 |
+| `DUPLICATE_PHONE` | 409 | 휴대폰 번호 중복 |
 | `DUPLICATE_BUSINESS_REGISTRATION_NO` | 409 | 사업자번호 중복 |
 | `ANNOUNCEMENT_NOT_APPROVED` | 409 | 승인되지 않은 공고 |
 | `VERIFICATION_NOT_VERIFIED` | 409 | 검증 완료 전 매칭 시도 |

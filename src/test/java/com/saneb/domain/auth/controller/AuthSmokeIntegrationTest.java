@@ -34,6 +34,8 @@ class AuthSmokeIntegrationTest {
 
     @Test
     void localSeedAccountCompletesSessionAuthFlow() throws Exception {
+        String signupLoginId = "signup_" + Long.toString(System.nanoTime(), 36);
+        String signupPhone = "010-" + Long.toString(System.nanoTime()).substring(0, 4) + "-7788";
         long beforeSuccessCount = selectLoginHistoryCount("SUCCESS");
         long beforeFailCount = selectLoginHistoryCount("FAIL");
 
@@ -108,6 +110,35 @@ class AuthSmokeIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/dashboard"));
 
+        MvcResult signupResult = mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "%s",
+                                  "password": "signup-password",
+                                  "passwordConfirm": "signup-password",
+                                  "name": "가입 테스트",
+                                  "phone": "%s",
+                                  "email": "%s@example.com",
+                                  "termsAgreed": true,
+                                  "privacyAgreed": true
+                                }
+                                """.formatted(signupLoginId, signupPhone, signupLoginId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.loginId").value(signupLoginId))
+                .andExpect(jsonPath("$.data.primaryRole").value("USER"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/dashboard"))
+                .andReturn();
+
+        HttpSession signupSession = signupResult.getRequest().getSession(false);
+        assertThat(signupSession).isInstanceOf(MockHttpSession.class);
+        mockMvc.perform(get("/api/v1/auth/me").session((MockHttpSession) signupSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.loginId").value(signupLoginId));
+        assertThat(selectUserRoleCount(signupLoginId, "USER")).isEqualTo(1);
+
         assertThat(selectLoginHistoryCount("SUCCESS")).isEqualTo(beforeSuccessCount + 2);
         assertThat(selectLoginHistoryCount("FAIL")).isEqualTo(beforeFailCount + 1);
     }
@@ -123,6 +154,22 @@ class AuthSmokeIntegrationTest {
                 Long.class,
                 "local_user",
                 resultCode
+        );
+        return count == null ? 0 : count;
+    }
+
+    private long selectUserRoleCount(String loginId, String roleCode) {
+        Long count = jdbcTemplate.queryForObject(
+                """
+                        SELECT count(1)
+                        FROM users u
+                        INNER JOIN user_roles ur ON ur.user_id = u.id
+                        WHERE u.login_id = ?
+                          AND ur.role_code = ?
+                        """,
+                Long.class,
+                loginId,
+                roleCode
         );
         return count == null ? 0 : count;
     }
