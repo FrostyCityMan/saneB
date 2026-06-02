@@ -40,6 +40,11 @@ public class DashboardViewController {
     @GetMapping("/app/dashboard")
     public String selectDashboardPage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        if (!isUserDashboard(authMe)) {
+            model.addAttribute("page", DashboardPageModel.operating(authMe));
+            return "app/dashboard";
+        }
+
         DashboardSummaryResponse summary = dashboardService.selectMySummary(authentication);
         DashboardCurrentActionResponse currentAction = dashboardService.selectMyCurrentAction(authentication);
         DashboardProgressSummaryResponse progressSummary = dashboardService.selectMyProgressSummary(authentication);
@@ -59,6 +64,7 @@ public class DashboardViewController {
             AuthMeResponse auth,
             String roleLabel,
             String activeNav,
+            boolean userDashboard,
             String serviceStatusLabel,
             String verificationStatusLabel,
             String noticeMessage,
@@ -82,6 +88,7 @@ public class DashboardViewController {
                     auth,
                     DashboardViewController.roleLabel(auth.primaryRole()),
                     "DASHBOARD",
+                    true,
                     DashboardViewController.serviceStatusLabel(summary.serviceStatusCode()),
                     DashboardViewController.verificationStatusLabel(summary.verificationStatusCode()),
                     summary.noticeMessage(),
@@ -102,6 +109,35 @@ public class DashboardViewController {
                     ),
                     wonText(progressSummary.totalReceivedAmount()),
                     ReverificationModel.from(reverificationStatus)
+            );
+        }
+
+        private static DashboardPageModel operating(AuthMeResponse auth) {
+            return new DashboardPageModel(
+                    auth,
+                    DashboardViewController.roleLabel(auth.primaryRole()),
+                    "DASHBOARD",
+                    false,
+                    "운영 계정",
+                    "해당 없음",
+                    "운영 계정은 사용자 검증 흐름과 분리되어 있습니다.",
+                    List.of(
+                            new MetricModel("정책자금 후보", 0, "building"),
+                            new MetricModel("지원금 후보", 0, "gift"),
+                            new MetricModel("보조금 후보", 0, "hand")
+                    ),
+                    "확인 대기",
+                    0,
+                    ActionModel.none(),
+                    List.of(
+                            new MetricModel("진행 중", 0, "progress"),
+                            new MetricModel("결과 대기", 0, "clock"),
+                            new MetricModel("승인", 0, "check"),
+                            new MetricModel("보완 요청", 0, "alert"),
+                            new MetricModel("중단", 0, "stop")
+                    ),
+                    "0원",
+                    ReverificationModel.none()
             );
         }
     }
@@ -126,6 +162,17 @@ public class DashboardViewController {
                     action.primaryButtonLabel(),
                     action.route(),
                     action.dueDate() == null ? "권장 완료일 미지정" : action.dueDate().toString()
+            );
+        }
+
+        private static ActionModel none() {
+            return new ActionModel(
+                    "NONE",
+                    "처리할 사용자 행동 없음",
+                    "운영 계정에는 사용자 행동 카드가 표시되지 않습니다.",
+                    null,
+                    null,
+                    "권장 완료일 미지정"
             );
         }
     }
@@ -159,6 +206,20 @@ public class DashboardViewController {
                             .toList()
             );
         }
+
+        private static ReverificationModel none() {
+            return new ReverificationModel(
+                    false,
+                    "재검증 대상 아님",
+                    "운영 계정에는 사용자 재검증 상태가 표시되지 않습니다.",
+                    "해당 없음",
+                    List.of()
+            );
+        }
+    }
+
+    private static boolean isUserDashboard(AuthMeResponse authMe) {
+        return "USER".equals(authMe.primaryRole());
     }
 
     private static String amountRangeText(DashboardSummaryResponse.SupportAmountRangeResponse range) {

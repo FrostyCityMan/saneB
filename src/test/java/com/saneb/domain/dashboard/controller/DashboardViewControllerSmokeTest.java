@@ -70,4 +70,19 @@ class DashboardViewControllerSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("후보 결과")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("최종 매칭 결과")));
     }
+
+    @Test
+    @WithMockUser(username = "admin01", roles = "ADMIN")
+    void selectDashboardPageHidesUserActionCardForAdmin() throws Exception {
+        mockMvc.perform(get("/app/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/dashboard"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("운영 계정")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("현재 해야 할 행동")
+                )))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("전자증명 검증이 필요합니다.")
+                )));
+    }
 }

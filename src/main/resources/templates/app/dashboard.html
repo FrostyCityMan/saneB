@@ -55,7 +55,7 @@
                 </div>
             </section>
 
-            <section class="action-panel">
+            <section class="action-panel" th:if="${page.userDashboard}">
                 <div class="section-label">현재 해야 할 행동</div>
                 <div class="action-content">
                     <div class="action-icon" aria-hidden="true">
@@ -114,7 +114,7 @@
                     </div>
                 </article>
 
-                <article class="plain-panel check-panel">
+                <article class="plain-panel check-panel" th:if="${page.userDashboard}">
                     <div class="panel-heading">
                         <h2>검증 및 진입 정보</h2>
                     </div>
@@ -140,7 +140,7 @@
         </div>
 
         <aside class="secondary-column">
-            <section class="verification-panel">
+            <section class="verification-panel" th:if="${page.userDashboard}">
                 <div class="panel-heading">
                     <h2>파트너 검증</h2>
                 </div>
@@ -168,7 +168,8 @@
                 </dl>
             </section>
 
-            <section class="reverification-panel" th:classappend="${page.reverification.required} ? ' needs-review' : ''">
+            <section class="reverification-panel" th:if="${page.userDashboard}"
+                     th:classappend="${page.reverification.required} ? ' needs-review' : ''">
                 <div class="info-icon" aria-hidden="true">i</div>
                 <div>
                     <h2 th:text="${page.reverification.title}">재검증 필요 상태가 없습니다.</h2>
@@ -185,7 +186,7 @@
                     <h2>최근 상태 및 알림</h2>
                 </div>
                 <div class="recent-list">
-                    <div class="recent-item">
+                    <div class="recent-item" th:if="${page.userDashboard}">
                         <span class="recent-icon warn" aria-hidden="true">!</span>
                         <div>
                             <strong th:text="${page.currentAction.title}">전자증명 확인이 필요합니다.</strong>
