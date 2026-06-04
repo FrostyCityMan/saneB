@@ -1486,6 +1486,26 @@ svg {
     margin-top: 14px;
 }
 
+@media (min-width: 1181px) {
+    .announcement-side {
+        position: sticky;
+        top: 98px;
+        max-height: calc(100vh - 116px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 4px;
+        scrollbar-width: thin;
+    }
+
+    .announcement-list {
+        max-height: min(42vh, 420px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 4px;
+        scrollbar-width: thin;
+    }
+}
+
 .announcement-list-item {
     display: grid;
     gap: 5px;
