@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('회원관리', ~{::main})}">
+<main class="admin-users-page"
+      data-admin-users-app
+      th:data-base-url="@{/api/v1/admin/users}"
+      th:data-current-user-id="${page.auth.userId}">
+    <section class="admin-users-shell" aria-label="회원관리">
+        <section class="summary-panel admin-users-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">회원관리</div>
+                    <p>회원 계정 상태와 권한을 확인하고 필요한 변경을 저장합니다.</p>
+                </div>
+                <span class="soft-status">관리자 전용</span>
+            </div>
+            <div class="top-summary-grid admin-users-summary-grid">
+                <article class="top-summary-card">
+                    <span>검색 결과</span>
+                    <strong>
+                        <span th:text="${page.users.totalCount}">0</span>
+                        명
+                    </strong>
+                    <small>현재 조건 기준</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>현재 페이지</span>
+                    <strong>
+                        <span th:text="${page.users.page}">1</span>
+                        /
+                        <span th:text="${page.users.totalPages == 0 ? 1 : page.users.totalPages}">1</span>
+                    </strong>
+                    <small>한 페이지 <span th:text="${page.users.size}">20</span>명</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>권한 종류</span>
+                    <strong>
+                        <span th:text="${#lists.size(page.roles)}">5</span>
+                        개
+                    </strong>
+                    <small>역할별 접근 범위 관리</small>
+                </article>
+            </div>
+        </section>
+
+        <section class="plain-panel admin-users-filter-panel">
+            <form class="admin-users-filter" method="get" th:action="@{/app/admin/users}" aria-label="회원 검색">
+                <div class="field-block">
+                    <label for="userKeyword">검색어</label>
+                    <input id="userKeyword" name="keyword" type="search"
+                           placeholder="아이디, 이름, 휴대폰, 이메일"
+                           th:value="${page.keyword}">
+                </div>
+                <div class="field-block">
+                    <label for="userStatusCode">계정 상태</label>
+                    <select id="userStatusCode" name="statusCode">
+                        <option value="" th:selected="${page.statusCode == ''}">전체 상태</option>
+                        <option th:each="status : ${page.statusOptions}"
+                                th:value="${status.statusCode}"
+                                th:text="${status.label}"
+                                th:selected="${page.statusCode == status.statusCode}">
+                            사용 가능
+                        </option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="userRoleCode">권한</label>
+                    <select id="userRoleCode" name="roleCode">
+                        <option value="" th:selected="${page.roleCode == ''}">전체 권한</option>
+                        <option th:each="role : ${page.roles}"
+                                th:value="${role.roleCode}"
+                                th:text="${role.roleName}"
+                                th:selected="${page.roleCode == role.roleCode}">
+                            사용자
+                        </option>
+                    </select>
+                </div>
+                <input type="hidden" name="page" value="1">
+                <input type="hidden" name="size" th:value="${page.size}">
+                <div class="admin-users-filter-actions">
+                    <button class="primary-action button-action" type="submit">조회</button>
+                    <a class="secondary-action" th:href="@{/app/admin/users}">초기화</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-users-list" aria-label="회원 목록">
+            <p class="admin-users-message" data-admin-users-message role="status"></p>
+
+            <article class="admin-user-card"
+                     th:each="user : ${page.users.items}"
+                     th:data-user-id="${user.userId}">
+                <div class="admin-user-main">
+                    <div class="admin-user-identity">
+                        <strong th:text="${user.name}">홍길동</strong>
+                        <span th:text="${user.loginId}">user01</span>
+                    </div>
+                    <dl class="admin-user-meta">
+                        <div>
+                            <dt>휴대폰</dt>
+                            <dd th:text="${user.phone != null ? user.phone : '미입력'}">미입력</dd>
+                        </div>
+                        <div>
+                            <dt>이메일</dt>
+                            <dd th:text="${user.email != null ? user.email : '미입력'}">미입력</dd>
+                        </div>
+                        <div>
+                            <dt>마지막 로그인</dt>
+                            <dd th:text="${user.lastLoginAt != null ? #temporals.format(user.lastLoginAt, 'yyyy-MM-dd HH:mm') : '기록 없음'}">
+                                기록 없음
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <form class="admin-user-controls" data-user-update-form>
+                    <div class="field-block">
+                        <label th:for="${'status-' + user.userId}">계정 상태</label>
+                        <select th:id="${'status-' + user.userId}" name="statusCode">
+                            <option th:each="status : ${page.statusOptions}"
+                                    th:value="${status.statusCode}"
+                                    th:text="${status.label}"
+                                    th:selected="${user.statusCode == status.statusCode}">
+                                사용 가능
+                            </option>
+                        </select>
+                        <small th:if="${user.passwordResetRequired}">다음 로그인 시 비밀번호 변경이 필요합니다.</small>
+                    </div>
+
+                    <fieldset class="admin-role-checks">
+                        <legend>권한</legend>
+                        <label th:each="role : ${page.roles}">
+                            <input type="checkbox"
+                                   name="roleCodes"
+                                   th:value="${role.roleCode}"
+                                   th:checked="${#lists.contains(user.roles, role.roleCode)}">
+                            <span th:text="${role.roleName}">사용자</span>
+                        </label>
+                    </fieldset>
+
+                    <div class="admin-user-actions">
+                        <button class="primary-action button-action" type="submit">저장</button>
+                    </div>
+                </form>
+            </article>
+
+            <div class="plain-panel admin-users-empty"
+                 th:if="${#lists.isEmpty(page.users.items)}">
+                <strong>조회된 회원이 없습니다.</strong>
+                <p>검색어나 필터 조건을 조정해 다시 조회하세요.</p>
+            </div>
+        </section>
+
+        <nav class="admin-users-pagination" aria-label="회원 목록 페이지 이동"
+             th:if="${page.users.totalPages > 1}">
+            <a class="secondary-action"
+               th:classappend="${page.users.page <= 1} ? ' disabled' : ''"
+               th:href="@{/app/admin/users(keyword=${page.keyword},statusCode=${page.statusCode},roleCode=${page.roleCode},page=${page.previousPage},size=${page.size})}">
+                이전
+            </a>
+            <span>
+                <span th:text="${page.users.page}">1</span>
+                /
+                <span th:text="${page.users.totalPages}">1</span>
+            </span>
+            <a class="secondary-action"
+               th:classappend="${page.users.page >= page.users.totalPages} ? ' disabled' : ''"
+               th:href="@{/app/admin/users(keyword=${page.keyword},statusCode=${page.statusCode},roleCode=${page.roleCode},page=${page.nextPage},size=${page.size})}">
+                다음
+            </a>
+        </nav>
+    </section>
+    <script th:src="@{/js/saneb-admin-users.js}"></script>
+</main>
+</html>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.adminuser.dao.AdminUserManagementDao">
+
+    <resultMap id="AdminUserSummaryRowMap" type="com.saneb.domain.adminuser.vo.AdminUserSummaryRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="phone" javaType="java.lang.String"/>
+            <arg column="email" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="password_reset_required" javaType="java.lang.Boolean"/>
+            <arg column="last_login_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="role_codes_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AdminRoleRowMap" type="com.saneb.domain.adminuser.vo.AdminRoleRow">
+        <constructor>
+            <arg column="role_code" javaType="java.lang.String"/>
+            <arg column="role_name" javaType="java.lang.String"/>
+            <arg column="sort_order" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="AdminUserFilter">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    u.login_id ILIKE CONCAT('%', #{keyword}, '%')
+                    OR u.name ILIKE CONCAT('%', #{keyword}, '%')
+                    OR u.phone ILIKE CONCAT('%', #{keyword}, '%')
+                    OR u.email ILIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND u.status_code = #{statusCode}
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM user_roles role_filter
+                    WHERE role_filter.user_id = u.id
+                      AND role_filter.role_code = #{roleCode}
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectUserList" resultMap="AdminUserSummaryRowMap">
+        -- 관리자 회원관리 목록을 조회한다.
+        SELECT
+            u.id AS user_id,
+            u.login_id,
+            u.name,
+            u.phone,
+            u.email,
+            u.status_code,
+            u.password_reset_required,
+            u.last_login_at,
+            u.created_at,
+            u.updated_at,
+            COALESCE(
+                string_agg(ur.role_code, ',' ORDER BY r.sort_order ASC, ur.role_code ASC),
+                ''
+            ) AS role_codes_text
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+        LEFT JOIN roles r ON r.role_code = ur.role_code
+        <include refid="AdminUserFilter"/>
+        GROUP BY
+            u.id,
+            u.login_id,
+            u.name,
+            u.phone,
+            u.email,
+            u.status_code,
+            u.password_reset_required,
+            u.last_login_at,
+            u.created_at,
+            u.updated_at
+        ORDER BY u.created_at DESC, u.login_id ASC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectUserCount" resultType="long">
+        -- 관리자 회원관리 목록 총 건수를 조회한다.
+        SELECT
+            count(1)
+        FROM users u
+        <include refid="AdminUserFilter"/>
+    </select>
+
+    <select id="selectUserDetails" resultMap="AdminUserSummaryRowMap">
+        -- 관리자 회원관리 단건 상세를 조회한다.
+        SELECT
+            u.id AS user_id,
+            u.login_id,
+            u.name,
+            u.phone,
+            u.email,
+            u.status_code,
+            u.password_reset_required,
+            u.last_login_at,
+            u.created_at,
+            u.updated_at,
+            COALESCE(
+                string_agg(ur.role_code, ',' ORDER BY r.sort_order ASC, ur.role_code ASC),
+                ''
+            ) AS role_codes_text
+        FROM users u
+        LEFT JOIN user_roles ur ON ur.user_id = u.id
+        LEFT JOIN roles r ON r.role_code = ur.role_code
+        WHERE u.id = #{userId}
+        GROUP BY
+            u.id,
+            u.login_id,
+            u.name,
+            u.phone,
+            u.email,
+            u.status_code,
+            u.password_reset_required,
+            u.last_login_at,
+            u.created_at,
+            u.updated_at
+    </select>
+
+    <select id="selectRoleList" resultMap="AdminRoleRowMap">
+        -- 권한 선택 목록을 조회한다.
+        SELECT
+            r.role_code,
+            r.role_name,
+            r.sort_order
+        FROM roles r
+        ORDER BY r.sort_order ASC, r.role_code ASC
+    </select>
+
+    <update id="updateUserStatus">
+        -- 관리자 회원관리에서 계정 상태를 변경한다.
+        UPDATE users
+        SET
+            status_code = #{statusCode},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{userId}
+    </update>
+
+    <delete id="deleteUserRoles">
+        -- 관리자 회원관리에서 기존 권한을 교체하기 위해 삭제한다.
+        DELETE FROM user_roles
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserRole">
+        -- 관리자 회원관리에서 권한을 부여한다.
+        INSERT INTO user_roles (
+            user_id,
+            role_code,
+            created_by
+        ) VALUES (
+            #{userId},
+            #{roleCode},
+            #{actorUserId}
+        )
+        ON CONFLICT (user_id, role_code) DO NOTHING
+    </insert>
+
+    <insert id="insertAuditLog">
+        -- 관리자 회원관리 변경 이력을 감사 로그에 기록한다.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

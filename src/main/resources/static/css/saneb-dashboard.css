@@ -2156,6 +2156,212 @@ svg {
     gap: 18px;
 }
 
+.admin-users-page {
+    padding: 30px clamp(18px, 3vw, 34px);
+}
+
+.admin-users-shell {
+    display: grid;
+    gap: 18px;
+    max-width: 1320px;
+    margin: 0 auto;
+}
+
+.admin-users-hero .summary-header p {
+    margin: 7px 0 0;
+    color: var(--saneb-muted);
+    font-size: 14px;
+}
+
+.admin-users-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-users-filter {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.4fr) minmax(160px, .8fr) minmax(160px, .8fr) auto;
+    gap: 14px;
+    align-items: end;
+}
+
+.admin-users-filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-users-filter-actions .primary-action,
+.admin-users-filter-actions .secondary-action {
+    min-height: 44px;
+    white-space: nowrap;
+}
+
+.admin-users-list {
+    display: grid;
+    gap: 13px;
+}
+
+.admin-users-message {
+    margin: 0;
+    min-height: 20px;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.admin-users-message.is-success {
+    color: #226245;
+}
+
+.admin-users-message.is-error {
+    color: #9f3e22;
+}
+
+.admin-user-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, .92fr);
+    gap: 18px;
+    align-items: stretch;
+    border: 1px solid var(--saneb-border);
+    border-radius: 8px;
+    background: #fffdf8;
+    padding: 18px;
+    box-shadow: 0 12px 30px rgba(86, 72, 45, .06);
+}
+
+.admin-user-main {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.admin-user-identity {
+    display: grid;
+    gap: 4px;
+}
+
+.admin-user-identity strong {
+    color: var(--saneb-text);
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.admin-user-identity span {
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.admin-user-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.admin-user-meta div {
+    display: grid;
+    gap: 4px;
+    border: 1px solid rgba(212, 196, 162, .68);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 10px;
+    min-width: 0;
+}
+
+.admin-user-meta dt {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.admin-user-meta dd {
+    margin: 0;
+    color: var(--saneb-text);
+    font-size: 13px;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.admin-user-controls {
+    display: grid;
+    grid-template-columns: minmax(150px, .8fr) minmax(0, 1.4fr) auto;
+    gap: 14px;
+    align-items: end;
+    min-width: 0;
+}
+
+.admin-role-checks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.admin-role-checks legend {
+    grid-column: 1 / -1;
+    margin: 0 0 2px;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.admin-role-checks label {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    min-height: 36px;
+    border: 1px solid rgba(212, 196, 162, .76);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 8px 10px;
+    color: var(--saneb-text);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.admin-role-checks input {
+    flex: 0 0 auto;
+}
+
+.admin-user-actions {
+    display: grid;
+    align-items: end;
+}
+
+.admin-users-empty {
+    display: grid;
+    gap: 6px;
+    color: var(--saneb-muted);
+}
+
+.admin-users-empty strong {
+    color: var(--saneb-text);
+}
+
+.admin-users-empty p {
+    margin: 0;
+}
+
+.admin-users-pagination {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.admin-users-pagination .disabled {
+    pointer-events: none;
+    opacity: .48;
+}
+
 @media (max-width: 1180px) {
     .saneb-shell {
         grid-template-columns: 92px minmax(0, 1fr);
@@ -2205,6 +2411,17 @@ svg {
 
     .admin-dashboard-page .admin-status-grid {
         grid-template-columns: 1fr;
+    }
+
+    .admin-users-summary-grid,
+    .admin-users-filter,
+    .admin-user-card,
+    .admin-user-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-user-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .announcement-side {
@@ -2347,6 +2564,13 @@ svg {
         min-width: 0;
     }
 
+    .admin-users-page {
+        padding: 16px;
+        width: 100%;
+        max-width: 100vw;
+        min-width: 0;
+    }
+
     .dashboard-grid,
     .primary-column,
     .secondary-column,
@@ -2362,7 +2586,8 @@ svg {
     .announcement-side,
     .flow-shell,
     .flow-workspace,
-    .flow-side {
+    .flow-side,
+    .admin-users-shell {
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
@@ -2378,7 +2603,11 @@ svg {
     .flow-hero,
     .flow-panel,
     .flow-action-card,
-    .flow-empty-panel {
+    .flow-empty-panel,
+    .admin-users-hero,
+    .admin-users-filter-panel,
+    .admin-user-card,
+    .admin-users-empty {
         padding: 17px;
         width: 100%;
         max-width: 100%;
@@ -2390,7 +2619,12 @@ svg {
     .flow-action-card,
     .flow-grid-2,
     .action-submit-form,
-    .verification-document-row {
+    .verification-document-row,
+    .admin-users-summary-grid,
+    .admin-users-filter,
+    .admin-user-meta,
+    .admin-user-controls,
+    .admin-role-checks {
         grid-template-columns: 1fr;
     }
 

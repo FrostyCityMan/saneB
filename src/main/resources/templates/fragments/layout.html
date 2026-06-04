@@ -33,6 +33,15 @@
                 <span>대시보드</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/users}"
+               th:classappend="${page.activeNav == 'ADMIN_USERS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8.8 11.6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3.8 20a5 5 0 0 1 10 0"/><path d="M16.2 8.2h4M18.2 6.2v4M16.2 14.8h4M16.2 18.2h4"/></svg>
+                </span>
+                <span>회원관리</span>
+            </a>
+            <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/announcements/input}"
                th:classappend="${page.activeNav == 'ANNOUNCEMENT_INPUT'} ? ' active' : ''">

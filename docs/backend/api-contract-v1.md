@@ -197,6 +197,51 @@ AuthMeResponse 필드 계약:
 
 `newPassword`는 8~16자로 입력해야 한다. 검증 실패 시 `fieldErrors[].message`에 사용자가 바로 이해할 수 있는 한국어 안내 문구를 내려준다.
 
+## 4.1 Admin User Management API
+
+관리자 전용 회원관리 계약이다. DB는 기존 `users`, `roles`, `user_roles`를 사용하며 신규 테이블은 추가하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/users` | `ADMIN` | 회원 목록 조회 |
+| `GET` | `/api/v1/admin/users/roles` | `ADMIN` | 권한 선택 목록 조회 |
+| `PATCH` | `/api/v1/admin/users/{userId}/status` | `ADMIN` | 계정 상태 변경 |
+| `PUT` | `/api/v1/admin/users/{userId}/roles` | `ADMIN` | 회원 권한 전체 저장 |
+
+목록 query:
+
+| 필드 | 설명 |
+|---|---|
+| `keyword` | 아이디, 이름, 휴대폰, 이메일 검색 |
+| `statusCode` | `ACTIVE`, `LOCKED`, `DISABLED`, `DELETED` |
+| `roleCode` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` |
+| `page`, `size` | 기본 pagination |
+
+#### AdminUserStatusUpdateRequest
+
+```json
+{
+  "statusCode": "ACTIVE"
+}
+```
+
+#### AdminUserRolesUpdateRequest
+
+```json
+{
+  "roleCodes": ["USER", "OPERATOR"]
+}
+```
+
+정책:
+
+- `ADMIN`만 접근할 수 있다.
+- 물리적 회원 삭제와 비밀번호 강제 초기화는 이 계약에 포함하지 않는다.
+- `DELETED`는 DB 행 삭제가 아니라 로그인 차단용 상태 코드다.
+- 현재 로그인한 관리자는 자기 계정을 `LOCKED`, `DISABLED`, `DELETED`로 바꿀 수 없다.
+- 현재 로그인한 관리자는 자기 계정의 `ADMIN` 권한을 제거할 수 없다.
+- 변경 이력은 `audit_logs`에 비식별 metadata로 기록한다.
+
 ## 5. Member / Business / Family API
 
 | Method | Path | 권한 | 설명 |

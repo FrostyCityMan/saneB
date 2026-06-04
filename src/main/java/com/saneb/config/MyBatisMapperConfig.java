@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.matching.dao",
         "com.saneb.domain.applicationprogress.dao",
         "com.saneb.domain.dynamicinput.dao",
-        "com.saneb.domain.admindashboard.dao"
+        "com.saneb.domain.admindashboard.dao",
+        "com.saneb.domain.adminuser.dao"
 })
 public class MyBatisMapperConfig {
 }
