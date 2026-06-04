@@ -122,7 +122,7 @@
                         <div class="check-row">
                             <span>파트너 검증</span>
                             <strong th:text="${page.verificationStatusLabel}">검증 필요</strong>
-                            <small>Backend 상태값 기준</small>
+                            <small>현재 검증 상태</small>
                         </div>
                         <div class="check-row">
                             <span>현재 행동</span>
@@ -151,7 +151,7 @@
                     </svg>
                 </div>
                 <strong th:text="${page.verificationStatusLabel}">검증 필요</strong>
-                <p>검증 상태는 Backend 응답 기준으로 표시합니다.</p>
+                <p>저장된 검증 상태를 표시합니다.</p>
                 <dl class="verification-meta">
                     <div>
                         <dt>계정</dt>

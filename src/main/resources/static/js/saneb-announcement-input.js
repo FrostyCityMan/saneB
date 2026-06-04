@@ -19,24 +19,24 @@
     };
 
     const fieldTypeLabels = {
-        TEXT: "TEXT",
-        TEXTAREA: "TEXTAREA",
-        NUMBER: "NUMBER",
-        AMOUNT: "AMOUNT",
-        DATE: "DATE",
-        BOOLEAN: "BOOLEAN",
-        SELECT: "SELECT",
-        RADIO: "RADIO",
-        MULTI_SELECT: "MULTI_SELECT"
+        TEXT: "짧은 글",
+        TEXTAREA: "긴 글",
+        NUMBER: "숫자",
+        AMOUNT: "금액",
+        DATE: "날짜",
+        BOOLEAN: "예/아니오",
+        SELECT: "목록에서 선택",
+        RADIO: "하나만 선택",
+        MULTI_SELECT: "여러 개 선택"
     };
     const scopeLabels = {
-        BUSINESS: "BUSINESS",
-        PERSONAL: "PERSONAL",
-        SPOUSE: "SPOUSE",
-        CHILD: "CHILD",
-        PARENT: "PARENT",
-        APPLICATION: "APPLICATION",
-        SUPPORT: "SUPPORT"
+        BUSINESS: "사업자 조건",
+        PERSONAL: "개인 조건",
+        SPOUSE: "배우자 조건",
+        CHILD: "자녀 조건",
+        PARENT: "부모 조건",
+        APPLICATION: "신청 조건",
+        SUPPORT: "지원 내용"
     };
     const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
 
@@ -507,6 +507,13 @@
         }
         stepsList.replaceChildren();
         const nextSteps = steps.length > 0 ? steps : defaultStepRequests;
+        if (nextSteps.length === 0) {
+            const row = source.cloneNode(true);
+            clearStepRow(row);
+            stepsList.append(row);
+            normalizeStepRows();
+            return;
+        }
         nextSteps.forEach((step) => {
             const row = source.cloneNode(true);
             clearStepRow(row);
@@ -617,69 +624,72 @@
         const fieldKeyBlock = document.createElement("div");
         fieldKeyBlock.className = "field-block";
         const fieldKeyLabel = document.createElement("label");
-        fieldKeyLabel.textContent = "fieldKey";
+        fieldKeyLabel.textContent = "항목 코드";
         const fieldKeyInput = document.createElement("input");
         fieldKeyInput.name = "fieldKey";
         fieldKeyInput.type = "text";
         fieldKeyInput.maxLength = 80;
         fieldKeyInput.required = true;
+        fieldKeyInput.placeholder = "예: ANNUAL_REVENUE";
         fieldKeyInput.value = requirement.fieldKey || "";
         fieldKeyBlock.append(fieldKeyLabel, fieldKeyInput);
 
         const labelBlock = document.createElement("div");
         labelBlock.className = "field-block";
         const labelLabel = document.createElement("label");
-        labelLabel.textContent = "fieldLabel";
+        labelLabel.textContent = "화면 표시 이름";
         const labelInput = document.createElement("input");
         labelInput.name = "fieldLabel";
         labelInput.type = "text";
         labelInput.maxLength = 200;
         labelInput.required = true;
+        labelInput.placeholder = "예: 연 매출";
         labelInput.value = requirement.fieldLabel || "";
         labelBlock.append(labelLabel, labelInput);
 
         const fieldTypeBlock = document.createElement("div");
         fieldTypeBlock.className = "field-block";
         const fieldTypeLabel = document.createElement("label");
-        fieldTypeLabel.textContent = "fieldTypeCode";
+        fieldTypeLabel.textContent = "입력 유형";
         const fieldTypeSelect = createSelect("fieldTypeCode", fieldTypeLabels, requirement.fieldTypeCode || "TEXT");
         fieldTypeBlock.append(fieldTypeLabel, fieldTypeSelect);
 
         const scopeBlock = document.createElement("div");
         scopeBlock.className = "field-block";
         const scopeLabel = document.createElement("label");
-        scopeLabel.textContent = "scopeCode";
+        scopeLabel.textContent = "적용 범위";
         const scopeSelect = createSelect("scopeCode", scopeLabels, requirement.scopeCode || "APPLICATION");
         scopeBlock.append(scopeLabel, scopeSelect);
 
         const optionBlock = document.createElement("div");
         optionBlock.className = "field-block span-2 dynamic-options-block";
         const optionLabel = document.createElement("label");
-        optionLabel.textContent = "options";
+        optionLabel.textContent = "선택 항목";
         const optionTextarea = document.createElement("textarea");
         optionTextarea.name = "options";
         optionTextarea.rows = 3;
-        optionTextarea.placeholder = "OPTION_CODE=Option label";
+        optionTextarea.placeholder = "OPTION_CODE=화면에 보일 이름";
         optionTextarea.value = optionListText(requirement.options);
         const optionHelp = document.createElement("small");
-        optionHelp.textContent = "SELECT, RADIO, MULTI_SELECT only. One option per line.";
+        optionHelp.textContent = "목록 선택, 하나만 선택, 여러 개 선택 유형에서만 사용합니다. 한 줄에 하나씩 입력합니다.";
         optionBlock.append(optionLabel, optionTextarea, optionHelp);
 
         const helpBlock = document.createElement("div");
         helpBlock.className = "field-block span-2";
         const helpLabel = document.createElement("label");
-        helpLabel.textContent = "helpText";
+        helpLabel.textContent = "도움말";
         const helpInput = document.createElement("textarea");
         helpInput.name = "helpText";
         helpInput.rows = 2;
+        helpInput.placeholder = "사용자가 입력할 때 볼 안내 문구";
         helpInput.value = requirement.helpText || "";
         helpBlock.append(helpLabel, helpInput);
 
         const flags = document.createElement("div");
         flags.className = "dynamic-requirement-flags";
         flags.innerHTML = `
-            <label><input type="checkbox" name="required"> required</label>
-            <label><input type="checkbox" name="sensitive"> sensitive</label>
+            <label><input type="checkbox" name="required"> 필수 입력</label>
+            <label><input type="checkbox" name="sensitive"> 민감정보</label>
         `;
         flags.querySelector("[name='required']").checked = Boolean(requirement.required);
         flags.querySelector("[name='sensitive']").checked = Boolean(requirement.sensitive);
@@ -687,7 +697,7 @@
         const sortBlock = document.createElement("div");
         sortBlock.className = "field-block";
         const sortLabel = document.createElement("label");
-        sortLabel.textContent = "sortOrder";
+        sortLabel.textContent = "표시 순서";
         const sortInput = document.createElement("input");
         sortInput.name = "sortOrder";
         sortInput.type = "number";

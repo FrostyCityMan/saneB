@@ -11,12 +11,12 @@
                 <div>
                     <span class="eyebrow">Application Progress</span>
                     <h2>현재 단계와 필요한 행동을 한 화면에서 처리합니다.</h2>
-                    <p>단계 이동, 체크리스트, 접수 정보, 최종 결과는 Backend 계약에 맞춰 서버 검증 후 저장합니다.</p>
+                    <p>단계 이동, 체크리스트, 접수 정보, 최종 결과는 서버 검증 후 저장합니다.</p>
                 </div>
                 <div class="flow-hero-status">
                     <span>전체 진행 건수</span>
                     <strong th:text="${page.totalCount}">0</strong>
-                    <small>목록은 권한과 Backend 필터 기준으로 표시합니다.</small>
+                    <small>목록은 사용자 권한에 맞춰 표시합니다.</small>
                 </div>
             </section>
 
@@ -63,7 +63,7 @@
                     <span class="soft-status" data-progress-dynamic-summary>불러오는 중</span>
                 </div>
                 <p class="dynamic-input-help">
-                    공고별로 필요한 입력값을 저장합니다. 필수 입력이 남아 있으면 Backend가 단계 행동을 차단합니다.
+                    공고별로 필요한 입력값을 저장합니다. 필수 입력이 남아 있으면 다음 단계로 넘어갈 수 없습니다.
                 </p>
                 <p class="flow-message" data-progress-dynamic-message role="status" hidden></p>
                 <form class="flow-form dynamic-progress-form" data-progress-dynamic-form novalidate>
@@ -147,14 +147,14 @@
                         <span class="eyebrow">Action</span>
                         <h2>단계 행동 처리</h2>
                     </div>
-                    <span class="soft-status">buttonCode 필요</span>
+                    <span class="soft-status">버튼 코드 필요</span>
                 </div>
                 <form class="flow-form action-submit-form"
                       data-progress-action-form
                       th:action="@{/app/application-progresses/{progressId}/steps/{stepId}/action(progressId=${page.details.progressId}, stepId=${page.currentStep.stepId})}"
                       method="post">
                     <div class="field-block">
-                        <label for="buttonCode">Backend buttonCode</label>
+                        <label for="buttonCode">버튼 코드</label>
                         <input id="buttonCode" name="buttonCode" type="text" maxlength="80" required
                                placeholder="공고 단계 버튼 코드">
                         <small>상세 응답에 버튼 목록이 포함되지 않으므로 서버에 등록된 코드만 입력합니다.</small>
@@ -219,7 +219,7 @@
                         <div class="field-block">
                             <label for="receivedAmount">실제 수령 금액</label>
                             <input id="receivedAmount" name="receivedAmount" type="number" min="0" step="10000">
-                            <small>승인 결과인 경우에만 Backend가 저장합니다.</small>
+                            <small>승인 결과인 경우에만 저장됩니다.</small>
                         </div>
                         <div class="field-block">
                             <label for="resultNote">결과 메모</label>

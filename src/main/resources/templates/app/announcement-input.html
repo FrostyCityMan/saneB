@@ -9,7 +9,7 @@
         <div class="announcement-workspace">
             <section class="announcement-hero">
                 <div>
-                    <span class="eyebrow">Announcement Gate 1</span>
+                    <span class="eyebrow">공고 입력</span>
                     <h2>현재 진행중/예정 공고를 빠르게 입력합니다.</h2>
                     <p>공고 대표 대상을 먼저 선택하고, 기본 정보와 필수조건, 필요 서류, 진행 단계를 순서대로 저장합니다.</p>
                 </div>
@@ -23,7 +23,7 @@
             <form class="target-panel" data-target-form aria-labelledby="target-title">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Step 1</span>
+                        <span class="eyebrow">1단계</span>
                         <h2 id="target-title">공고 대표 대상</h2>
                     </div>
                     <span class="soft-status">선택 대상만 조건 입력</span>
@@ -61,7 +61,7 @@
                 <section class="form-panel">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Step 2</span>
+                            <span class="eyebrow">2단계</span>
                             <h2>기본 정보</h2>
                         </div>
                         <button class="secondary-action" type="button" data-reset-form>신규 입력</button>
@@ -176,7 +176,7 @@
                 <section class="form-panel">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Step 3</span>
+                            <span class="eyebrow">3단계</span>
                             <h2>조건 및 필요 서류</h2>
                         </div>
                         <span class="soft-status" data-active-target-label>사업자 지원</span>
@@ -217,13 +217,13 @@
                                 <div class="field-block">
                                     <label>범위</label>
                                     <select name="conditionScopeCode">
-                                        <option value="BUSINESS">BUSINESS</option>
-                                        <option value="PERSONAL">PERSONAL</option>
-                                        <option value="SPOUSE">SPOUSE</option>
-                                        <option value="CHILD">CHILD</option>
-                                        <option value="PARENT">PARENT</option>
-                                        <option value="APPLICATION">APPLICATION</option>
-                                        <option value="SUPPORT">SUPPORT</option>
+                                        <option value="BUSINESS">사업자 조건</option>
+                                        <option value="PERSONAL">개인 조건</option>
+                                        <option value="SPOUSE">배우자 조건</option>
+                                        <option value="CHILD">자녀 조건</option>
+                                        <option value="PARENT">부모 조건</option>
+                                        <option value="APPLICATION">신청 조건</option>
+                                        <option value="SUPPORT">지원 내용</option>
                                     </select>
                                 </div>
                                 <div class="field-block">
@@ -265,13 +265,13 @@
                                 <div class="field-block">
                                     <label>범위</label>
                                     <select name="conditionScopeCode">
-                                        <option value="BUSINESS">BUSINESS</option>
-                                        <option value="PERSONAL">PERSONAL</option>
-                                        <option value="SPOUSE">SPOUSE</option>
-                                        <option value="CHILD">CHILD</option>
-                                        <option value="PARENT">PARENT</option>
-                                        <option value="APPLICATION">APPLICATION</option>
-                                        <option value="SUPPORT">SUPPORT</option>
+                                        <option value="BUSINESS">사업자 조건</option>
+                                        <option value="PERSONAL">개인 조건</option>
+                                        <option value="SPOUSE">배우자 조건</option>
+                                        <option value="CHILD">자녀 조건</option>
+                                        <option value="PARENT">부모 조건</option>
+                                        <option value="APPLICATION">신청 조건</option>
+                                        <option value="SUPPORT">지원 내용</option>
                                     </select>
                                 </div>
                                 <div class="field-block">
@@ -324,7 +324,7 @@
                 <section class="form-panel">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Step 4</span>
+                            <span class="eyebrow">4단계</span>
                             <h2>진행 단계</h2>
                         </div>
                         <span class="soft-status">저장 시 전체 단계 교체</span>
@@ -340,7 +340,7 @@
                             <div class="form-grid">
                                 <div class="field-block">
                                     <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" value="안내 발송">
+                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 안내 발송">
                                 </div>
                                 <div class="field-block">
                                     <label>완료 조건</label>
@@ -352,23 +352,23 @@
                                 </div>
                                 <div class="field-block span-2">
                                     <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2">현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.</textarea>
+                                    <textarea name="guideMessage" rows="2" placeholder="예: 현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다."></textarea>
                                 </div>
                                 <div class="field-block span-2">
                                     <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2">진행 의사를 선택하세요.</textarea>
+                                    <textarea name="actionGuide" rows="2" placeholder="예: 진행 의사를 선택하세요."></textarea>
                                 </div>
                                 <div class="field-block">
                                     <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" value="WANTS_TO_PROGRESS">
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: WANTS_TO_PROGRESS">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 라벨</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" value="진행 원함">
+                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 진행 원함">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" value="WANTS_TO_PROGRESS">
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: WANTS_TO_PROGRESS">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>
@@ -390,7 +390,7 @@
                             <div class="form-grid">
                                 <div class="field-block">
                                     <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" value="신청 접수">
+                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 신청 접수">
                                 </div>
                                 <div class="field-block">
                                     <label>완료 조건</label>
@@ -402,23 +402,23 @@
                                 </div>
                                 <div class="field-block span-2">
                                     <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2">필수 서류와 신청 정보를 확인합니다.</textarea>
+                                    <textarea name="guideMessage" rows="2" placeholder="예: 필수 서류와 신청 정보를 확인합니다."></textarea>
                                 </div>
                                 <div class="field-block span-2">
                                     <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2">신청 완료 여부를 확인하세요.</textarea>
+                                    <textarea name="actionGuide" rows="2" placeholder="예: 신청 완료 여부를 확인하세요."></textarea>
                                 </div>
                                 <div class="field-block">
                                     <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" value="APPLICATION_SUBMITTED">
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: APPLICATION_SUBMITTED">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 라벨</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" value="신청 완료">
+                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 신청 완료">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" value="APPLICATION_SUBMITTED">
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: APPLICATION_SUBMITTED">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>
@@ -440,7 +440,7 @@
                             <div class="form-grid">
                                 <div class="field-block">
                                     <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" value="결과 확인">
+                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 결과 확인">
                                 </div>
                                 <div class="field-block">
                                     <label>완료 조건</label>
@@ -452,23 +452,23 @@
                                 </div>
                                 <div class="field-block span-2">
                                     <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2">기관 결과를 확인하고 사용자 진행 상태에 반영합니다.</textarea>
+                                    <textarea name="guideMessage" rows="2" placeholder="예: 기관 결과를 확인하고 사용자 진행 상태에 반영합니다."></textarea>
                                 </div>
                                 <div class="field-block span-2">
                                     <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2">확인된 결과만 최종 매칭으로 표시합니다.</textarea>
+                                    <textarea name="actionGuide" rows="2" placeholder="예: 확인된 결과만 최종 매칭으로 표시합니다."></textarea>
                                 </div>
                                 <div class="field-block">
                                     <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" value="RESULT_CONFIRMED">
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: RESULT_CONFIRMED">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 라벨</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" value="결과 확인">
+                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 결과 확인">
                                 </div>
                                 <div class="field-block">
                                     <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" value="RESULT_CONFIRMED">
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: RESULT_CONFIRMED">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>
@@ -496,14 +496,14 @@
                 <section class="form-panel dynamic-input-config-panel">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Step 5</span>
+                            <span class="eyebrow">5단계</span>
                             <h2>동적 입력 항목</h2>
                         </div>
                         <span class="soft-status" data-dynamic-requirements-summary>공고 저장 후 설정</span>
                     </div>
 
                     <p class="dynamic-input-help">
-                        신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. fieldTypeCode와 scopeCode는 Backend 계약 값만 사용합니다.
+                        신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. 입력 유형과 적용 범위는 저장 가능한 값만 선택합니다.
                     </p>
 
                     <div class="dynamic-requirements-toolbar">
@@ -528,7 +528,7 @@
             <section class="side-panel">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">List</span>
+                        <span class="eyebrow">목록</span>
                         <h2>공고 목록</h2>
                     </div>
                 </div>
@@ -552,7 +552,7 @@
             <form class="side-panel" data-announcement-status-form novalidate>
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Status</span>
+                        <span class="eyebrow">상태</span>
                         <h2>수동 상태</h2>
                     </div>
                 </div>
@@ -578,7 +578,7 @@
             <section class="side-panel response-panel" aria-label="처리 결과">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Response</span>
+                        <span class="eyebrow">처리 결과</span>
                         <h2>처리 결과</h2>
                     </div>
                 </div>
