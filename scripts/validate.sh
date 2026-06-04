@@ -5,6 +5,8 @@ APP_NAME="saneb"
 APP_DIR="/home/ubuntu/app"
 ENV_FILE="${APP_DIR}/app.env"
 LOG_FILE="${APP_DIR}/app.log"
+MAX_WAIT_SECONDS="${MAX_WAIT_SECONDS:-90}"
+SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
 
 read_env_value() {
   local key="$1"
@@ -48,11 +50,22 @@ if ! systemctl is-active --quiet "${APP_NAME}.service"; then
   exit 1
 fi
 
-if ! curl --fail --silent --show-error --max-time 5 --retry 12 --retry-delay 5 "http://127.0.0.1:${port}${health_path}"; then
-  echo "Health check failed: http://127.0.0.1:${port}${health_path}" >&2
-  print_diagnostics
-  exit 1
-fi
+health_url="http://127.0.0.1:${port}${health_path}"
+deadline=$((SECONDS + MAX_WAIT_SECONDS))
 
-echo
-echo "Health check passed: http://127.0.0.1:${port}${health_path}"
+while [ "${SECONDS}" -le "${deadline}" ]; do
+  if response="$(curl --fail --silent --show-error --max-time 5 "${health_url}" 2>&1)"; then
+    echo "${response}"
+    echo
+    echo "Health check passed: ${health_url}"
+    exit 0
+  fi
+
+  echo "Health check not ready yet: ${health_url}"
+  echo "${response}"
+  sleep "${SLEEP_SECONDS}"
+done
+
+echo "Health check failed after ${MAX_WAIT_SECONDS}s: ${health_url}" >&2
+print_diagnostics
+exit 1
