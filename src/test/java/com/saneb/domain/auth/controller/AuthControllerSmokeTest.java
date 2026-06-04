@@ -265,12 +265,12 @@ class AuthControllerSmokeTest {
 
     @Test
     @WithMockUser(username = "admin01", roles = "ADMIN")
-    void selectAuthMeReturnsDashboardDefaultRouteForAdmin() throws Exception {
+    void selectAuthMeReturnsAdminDashboardDefaultRouteForAdmin() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.primaryRole").value("ADMIN"))
-                .andExpect(jsonPath("$.data.defaultRoute").value("/app/dashboard"));
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/admin/dashboard"));
     }
 
     @Test

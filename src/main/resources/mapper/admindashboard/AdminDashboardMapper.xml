@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.admindashboard.dao.AdminDashboardDao">
+
+    <resultMap id="AdminUserSummaryRowMap" type="com.saneb.domain.admindashboard.vo.AdminUserSummaryRow">
+        <constructor>
+            <arg column="total_user_count" javaType="_int"/>
+            <arg column="active_user_count" javaType="_int"/>
+            <arg column="user_role_count" javaType="_int"/>
+            <arg column="partner_role_count" javaType="_int"/>
+            <arg column="operator_role_count" javaType="_int"/>
+            <arg column="approver_role_count" javaType="_int"/>
+            <arg column="admin_role_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AdminAnnouncementSummaryRowMap" type="com.saneb.domain.admindashboard.vo.AdminAnnouncementSummaryRow">
+        <constructor>
+            <arg column="total_announcement_count" javaType="_int"/>
+            <arg column="draft_count" javaType="_int"/>
+            <arg column="requested_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+            <arg column="rejected_count" javaType="_int"/>
+            <arg column="open_announcement_count" javaType="_int"/>
+            <arg column="paused_announcement_count" javaType="_int"/>
+            <arg column="closed_announcement_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AdminStatusCountRowMap" type="com.saneb.domain.admindashboard.vo.AdminStatusCountRow">
+        <constructor>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AdminApplicationProgressSummaryRowMap" type="com.saneb.domain.admindashboard.vo.AdminApplicationProgressSummaryRow">
+        <constructor>
+            <arg column="total_progress_count" javaType="_int"/>
+            <arg column="ready_count" javaType="_int"/>
+            <arg column="in_progress_count" javaType="_int"/>
+            <arg column="waiting_result_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+            <arg column="rejected_count" javaType="_int"/>
+            <arg column="supplement_requested_count" javaType="_int"/>
+            <arg column="stopped_count" javaType="_int"/>
+            <arg column="completed_count" javaType="_int"/>
+            <arg column="total_received_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AdminAuditSummaryRowMap" type="com.saneb.domain.admindashboard.vo.AdminAuditSummaryRow">
+        <constructor>
+            <arg column="total_audit_count" javaType="_int"/>
+            <arg column="fail_audit_count" javaType="_int"/>
+            <arg column="recent_fail_audit_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectUserSummary" resultMap="AdminUserSummaryRowMap">
+        -- 관리자 대시보드용 사용자와 역할 수를 집계한다.
+        SELECT
+            CAST(count(1) AS integer) AS total_user_count,
+            CAST(count(1) FILTER (
+                WHERE u.status_code = 'ACTIVE'
+            ) AS integer) AS active_user_count,
+            CAST(count(DISTINCT ur_user.user_id) AS integer) AS user_role_count,
+            CAST(count(DISTINCT ur_partner.user_id) AS integer) AS partner_role_count,
+            CAST(count(DISTINCT ur_operator.user_id) AS integer) AS operator_role_count,
+            CAST(count(DISTINCT ur_approver.user_id) AS integer) AS approver_role_count,
+            CAST(count(DISTINCT ur_admin.user_id) AS integer) AS admin_role_count
+        FROM users u
+        LEFT JOIN user_roles ur_user
+               ON ur_user.user_id = u.id
+              AND ur_user.role_code = 'USER'
+        LEFT JOIN user_roles ur_partner
+               ON ur_partner.user_id = u.id
+              AND ur_partner.role_code = 'PARTNER'
+        LEFT JOIN user_roles ur_operator
+               ON ur_operator.user_id = u.id
+              AND ur_operator.role_code = 'OPERATOR'
+        LEFT JOIN user_roles ur_approver
+               ON ur_approver.user_id = u.id
+              AND ur_approver.role_code = 'APPROVER'
+        LEFT JOIN user_roles ur_admin
+               ON ur_admin.user_id = u.id
+              AND ur_admin.role_code = 'ADMIN'
+    </select>
+
+    <select id="selectAnnouncementSummary" resultMap="AdminAnnouncementSummaryRowMap">
+        -- 관리자 대시보드용 공고 승인과 운영 상태를 집계한다.
+        SELECT
+            CAST(count(1) AS integer) AS total_announcement_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'DRAFT'
+            ) AS integer) AS draft_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'REQUESTED'
+            ) AS integer) AS requested_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'APPROVED'
+            ) AS integer) AS approved_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'REJECTED'
+            ) AS integer) AS rejected_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'APPROVED'
+                  AND a.manual_status_code = 'NORMAL'
+                  AND (
+                      a.application_end_date IS NULL
+                      OR a.application_end_date >= CURRENT_DATE
+                  )
+            ) AS integer) AS open_announcement_count,
+            CAST(count(1) FILTER (
+                WHERE a.manual_status_code IN ('PAUSED', 'SUSPENDED', 'HIDDEN')
+            ) AS integer) AS paused_announcement_count,
+            CAST(count(1) FILTER (
+                WHERE a.manual_status_code IN ('EARLY_CLOSED', 'BUDGET_EXHAUSTED', 'CLOSED')
+                   OR a.application_end_date &lt; CURRENT_DATE
+            ) AS integer) AS closed_announcement_count
+        FROM announcements a
+    </select>
+
+    <select id="selectPartnerVerificationStatusCountList" resultMap="AdminStatusCountRowMap">
+        -- 관리자 대시보드용 파트너 검증 상태별 건수를 집계한다.
+        SELECT
+            pv.status_code,
+            CAST(count(1) AS integer) AS count
+        FROM partner_verifications pv
+        GROUP BY pv.status_code
+        ORDER BY pv.status_code ASC
+    </select>
+
+    <select id="selectMatchingCaseStatusCountList" resultMap="AdminStatusCountRowMap">
+        -- 관리자 대시보드용 매칭 케이스 상태별 건수를 집계한다.
+        SELECT
+            mc.status_code,
+            CAST(count(1) AS integer) AS count
+        FROM matching_cases mc
+        GROUP BY mc.status_code
+        ORDER BY mc.status_code ASC
+    </select>
+
+    <select id="selectApplicationProgressSummary" resultMap="AdminApplicationProgressSummaryRowMap">
+        -- 관리자 대시보드용 신청 진행 상태와 수령 금액 합계를 집계한다.
+        SELECT
+            CAST(count(1) AS integer) AS total_progress_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'READY'
+            ) AS integer) AS ready_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'IN_PROGRESS'
+            ) AS integer) AS in_progress_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'WAITING_RESULT'
+            ) AS integer) AS waiting_result_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'APPROVED'
+            ) AS integer) AS approved_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'REJECTED'
+            ) AS integer) AS rejected_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'SUPPLEMENT_REQUESTED'
+            ) AS integer) AS supplement_requested_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'STOPPED'
+            ) AS integer) AS stopped_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'COMPLETED'
+            ) AS integer) AS completed_count,
+            COALESCE(
+                sum(
+                    CASE
+                        WHEN ap.received_amount IS NOT NULL
+                             AND (
+                                 ap.status_code IN ('APPROVED', 'COMPLETED')
+                                 OR ap.result_code = 'APPROVED'
+                             )
+                        THEN ap.received_amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS total_received_amount
+        FROM application_progresses ap
+    </select>
+
+    <select id="selectAuditSummary" resultMap="AdminAuditSummaryRowMap">
+        -- 관리자 대시보드용 감사 로그 성공/실패 현황을 집계한다.
+        SELECT
+            CAST(count(1) AS integer) AS total_audit_count,
+            CAST(count(1) FILTER (
+                WHERE al.result_code = 'FAIL'
+            ) AS integer) AS fail_audit_count,
+            CAST(count(1) FILTER (
+                WHERE al.result_code = 'FAIL'
+                  AND al.created_at >= now() - INTERVAL '7 days'
+            ) AS integer) AS recent_fail_audit_count
+        FROM audit_logs al
+    </select>
+</mapper>

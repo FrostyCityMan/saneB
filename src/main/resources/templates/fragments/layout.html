@@ -42,6 +42,7 @@
                 <span>공고 입력</span>
             </a>
             <a class="side-link"
+               th:if="${page.auth.primaryRole != 'ADMIN'}"
                th:href="@{/app/member/verifications/current}"
                th:classappend="${page.activeNav == 'VERIFICATION_PROGRESS' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
@@ -50,6 +51,7 @@
                 <span>파트너 검증</span>
             </a>
             <a class="side-link"
+               th:if="${page.auth.primaryRole != 'ADMIN'}"
                th:href="@{/app/application-progresses}"
                th:classappend="${page.activeNav == 'APPLICATION_PROGRESS'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">

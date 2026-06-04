@@ -64,6 +64,15 @@ class AuthViewControllerSmokeTest {
     }
 
     @Test
+    @WithMockUser(username = "admin01", roles = "ADMIN")
+    void selectLoginPageRedirectsAdminUserToAdminDashboardRoute() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/app/admin/dashboard"))
+                .andExpect(header().string("Location", "/app/admin/dashboard"));
+    }
+
+    @Test
     @WithMockUser(username = "user01", roles = "USER")
     void selectPasswordPageReturnsThymeleafView() throws Exception {
         mockMvc.perform(get("/password"))

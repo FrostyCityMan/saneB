@@ -29,6 +29,18 @@
         return fallback;
     };
 
+    const selectDefaultRoute = async () => {
+        const response = await fetch("/api/v1/auth/me", {
+            method: "GET",
+            credentials: "same-origin"
+        });
+        const payload = await response.json().catch(() => null);
+        if (response.ok && payload && payload.success === true && payload.data && payload.data.defaultRoute) {
+            return payload.data.defaultRoute;
+        }
+        return "/app";
+    };
+
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         setMessage("", "error");
@@ -61,8 +73,9 @@
 
             if (response.ok && payload && payload.success === true) {
                 setMessage("비밀번호가 변경되었습니다. 대시보드로 이동합니다.", "success");
+                const defaultRoute = await selectDefaultRoute().catch(() => "/app");
                 window.setTimeout(() => {
-                    window.location.assign("/app/dashboard");
+                    window.location.assign(defaultRoute);
                 }, 500);
                 return;
             }

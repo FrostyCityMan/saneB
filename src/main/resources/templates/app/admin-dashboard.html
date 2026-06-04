@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('관리자 대시보드', ~{::main})}">
+<main class="dashboard-page admin-dashboard-page">
+    <section class="dashboard-grid admin-dashboard-grid" aria-label="관리자 대시보드">
+        <div class="primary-column">
+            <section class="summary-panel dashboard-top-panel admin-overview-panel">
+                <div class="summary-header">
+                    <div>
+                        <div class="section-label">운영 현황</div>
+                        <p>사용자 행동 카드가 아닌 서비스 전체 운영 지표를 표시합니다.</p>
+                    </div>
+                    <span class="soft-status">관리자</span>
+                </div>
+
+                <div class="top-summary-grid">
+                    <article class="top-summary-card">
+                        <span>전체 사용자</span>
+                        <strong>
+                            <span th:text="${page.summary.userSummary.totalUserCount}">0</span>
+                            명
+                        </strong>
+                        <small>
+                            활성 계정
+                            <span th:text="${page.summary.userSummary.activeUserCount}">0</span>
+                            명
+                        </small>
+                    </article>
+                    <article class="top-summary-card">
+                        <span>진행 중 공고</span>
+                        <strong>
+                            <span th:text="${page.summary.announcementSummary.openAnnouncementCount}">0</span>
+                            건
+                        </strong>
+                        <small>
+                            승인 완료
+                            <span th:text="${page.summary.announcementSummary.approvedCount}">0</span>
+                            건
+                        </small>
+                    </article>
+                    <article class="top-summary-card">
+                        <span>검토 대기</span>
+                        <strong>
+                            <span th:text="${page.summary.verificationSummary.reviewQueueCount}">0</span>
+                            건
+                        </strong>
+                        <small>제출 완료와 검토 중 검증</small>
+                    </article>
+                </div>
+            </section>
+
+            <section class="split-panels admin-status-grid">
+                <article class="plain-panel">
+                    <div class="panel-heading">
+                        <h2>공고 운영</h2>
+                    </div>
+                    <div class="bottom-total-grid admin-total-grid">
+                        <div>
+                            <span>전체 공고</span>
+                            <strong><span th:text="${page.summary.announcementSummary.totalAnnouncementCount}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>승인 요청</span>
+                            <strong><span th:text="${page.summary.announcementSummary.requestedCount}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>일시 중지</span>
+                            <strong><span th:text="${page.summary.announcementSummary.pausedAnnouncementCount}">0</span> 건</strong>
+                        </div>
+                    </div>
+                    <div class="check-table admin-check-table" aria-label="공고 운영 세부 현황">
+                        <div class="check-row">
+                            <span>작성 중</span>
+                            <strong><span th:text="${page.summary.announcementSummary.draftCount}">0</span> 건</strong>
+                            <small>DRAFT</small>
+                        </div>
+                        <div class="check-row">
+                            <span>반려</span>
+                            <strong><span th:text="${page.summary.announcementSummary.rejectedCount}">0</span> 건</strong>
+                            <small>REJECTED</small>
+                        </div>
+                        <div class="check-row">
+                            <span>마감</span>
+                            <strong><span th:text="${page.summary.announcementSummary.closedAnnouncementCount}">0</span> 건</strong>
+                            <small>종료 기준</small>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="plain-panel">
+                    <div class="panel-heading">
+                        <h2>검증 상태</h2>
+                    </div>
+                    <div class="check-table admin-check-table" aria-label="검증 상태별 건수">
+                        <div class="check-row" th:each="metric : ${page.verificationStatusMetrics}">
+                            <span th:text="${metric.label}">작성 중</span>
+                            <strong><span th:text="${metric.count}">0</span> 건</strong>
+                            <small th:text="${metric.statusCode}">DRAFT</small>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="plain-panel">
+                    <div class="panel-heading">
+                        <h2>매칭 상태</h2>
+                    </div>
+                    <div class="check-table admin-check-table" aria-label="매칭 상태별 건수">
+                        <div class="check-row" th:each="metric : ${page.matchingStatusMetrics}">
+                            <span th:text="${metric.label}">매칭</span>
+                            <strong><span th:text="${metric.count}">0</span> 건</strong>
+                            <small th:text="${metric.statusCode}">MATCHED</small>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="plain-panel">
+                    <div class="panel-heading">
+                        <h2>신청 진행</h2>
+                    </div>
+                    <div class="bottom-total-grid admin-total-grid">
+                        <div>
+                            <span>전체 진행</span>
+                            <strong><span th:text="${page.summary.applicationProgressSummary.totalProgressCount}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>진행 중</span>
+                            <strong><span th:text="${page.summary.applicationProgressSummary.activeProgressCount}">0</span> 건</strong>
+                        </div>
+                        <div>
+                            <span>수령 금액</span>
+                            <strong th:text="${page.totalReceivedAmountText}">0원</strong>
+                        </div>
+                    </div>
+                    <div class="check-table admin-check-table" aria-label="신청 진행 상태별 건수">
+                        <div class="check-row" th:each="metric : ${page.progressStatusMetrics}">
+                            <span th:text="${metric.label}">준비</span>
+                            <strong><span th:text="${metric.count}">0</span> 건</strong>
+                            <small th:text="${metric.statusCode}">READY</small>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </div>
+
+        <aside class="secondary-column admin-side-stack">
+            <section class="verification-panel admin-role-panel">
+                <div class="panel-heading">
+                    <h2>계정 권한</h2>
+                </div>
+                <dl class="verification-meta">
+                    <div>
+                        <dt>계정</dt>
+                        <dd th:text="${page.auth.loginId}">admin01</dd>
+                    </div>
+                    <div>
+                        <dt>권한</dt>
+                        <dd th:text="${page.roleLabel}">관리자</dd>
+                    </div>
+                    <div>
+                        <dt>기본 진입</dt>
+                        <dd th:text="${page.auth.defaultRoute}">/app/admin/dashboard</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="recent-panel">
+                <div class="panel-heading">
+                    <h2>감사 로그</h2>
+                </div>
+                <div class="recent-list">
+                    <div class="recent-item">
+                        <span class="recent-icon info" aria-hidden="true">i</span>
+                        <div>
+                            <strong>전체 기록</strong>
+                            <p><span th:text="${page.summary.auditSummary.totalAuditCount}">0</span>건이 기록되어 있습니다.</p>
+                        </div>
+                    </div>
+                    <div class="recent-item">
+                        <span class="recent-icon warn" aria-hidden="true">!</span>
+                        <div>
+                            <strong>실패 기록</strong>
+                            <p><span th:text="${page.summary.auditSummary.failAuditCount}">0</span>건이 실패 상태입니다.</p>
+                        </div>
+                    </div>
+                    <div class="recent-item">
+                        <span class="recent-icon warn" aria-hidden="true">!</span>
+                        <div>
+                            <strong>최근 7일 실패</strong>
+                            <p><span th:text="${page.summary.auditSummary.recentFailAuditCount}">0</span>건을 확인해야 합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="recent-panel">
+                <div class="panel-heading">
+                    <h2>역할별 계정</h2>
+                </div>
+                <div class="check-table admin-check-table" aria-label="역할별 계정 수">
+                    <div class="check-row">
+                        <span>사용자</span>
+                        <strong><span th:text="${page.summary.userSummary.userRoleCount}">0</span> 명</strong>
+                        <small>USER</small>
+                    </div>
+                    <div class="check-row">
+                        <span>파트너</span>
+                        <strong><span th:text="${page.summary.userSummary.partnerRoleCount}">0</span> 명</strong>
+                        <small>PARTNER</small>
+                    </div>
+                    <div class="check-row">
+                        <span>운영자</span>
+                        <strong><span th:text="${page.summary.userSummary.operatorRoleCount}">0</span> 명</strong>
+                        <small>OPERATOR</small>
+                    </div>
+                    <div class="check-row">
+                        <span>승인자</span>
+                        <strong><span th:text="${page.summary.userSummary.approverRoleCount}">0</span> 명</strong>
+                        <small>APPROVER</small>
+                    </div>
+                    <div class="check-row">
+                        <span>관리자</span>
+                        <strong><span th:text="${page.summary.userSummary.adminRoleCount}">0</span> 명</strong>
+                        <small>ADMIN</small>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </section>
+</main>
+</html>

@@ -93,7 +93,12 @@
 
 `primaryRole`은 권한 판단과 메뉴 노출 우선순위에만 사용한다.
 
-MVP v1에서 `defaultRoute`는 기본적으로 `/app/dashboard`를 반환한다. Frontend는 로그인 또는 회원가입 직후 이 route로 이동하고, 역할별 메뉴와 접근 제어는 `roles`, `primaryRole`, 서버 권한 응답을 기준으로 처리한다.
+MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Frontend는 로그인 또는 회원가입 직후 이 route로 이동하고, 역할별 메뉴와 접근 제어는 `roles`, `primaryRole`, 서버 권한 응답을 기준으로 처리한다.
+
+| `primaryRole` | `defaultRoute` |
+|---|---|
+| `ADMIN` | `/app/admin/dashboard` |
+| 그 외 | `/app/dashboard` |
 
 `passwordResetRequired = true`이면 역할과 무관하게 `defaultRoute = /password`를 반환한다.
 
@@ -125,7 +130,7 @@ MVP v1에서 `defaultRoute`는 기본적으로 `/app/dashboard`를 반환한다.
   "name": "관리자",
   "roles": ["ADMIN"],
   "primaryRole": "ADMIN",
-  "defaultRoute": "/app/dashboard",
+  "defaultRoute": "/app/admin/dashboard",
   "passwordResetRequired": false
 }
 ```
@@ -156,7 +161,7 @@ MVP v1에서 `defaultRoute`는 기본적으로 `/app/dashboard`를 반환한다.
   "name": "관리자",
   "roles": ["ADMIN"],
   "primaryRole": "ADMIN",
-  "defaultRoute": "/app/dashboard",
+  "defaultRoute": "/app/admin/dashboard",
   "passwordResetRequired": false,
   "profile": {
     "memberProfileId": "uuid",
@@ -175,7 +180,7 @@ AuthMeResponse 필드 계약:
 | `name` | `string` | false | 사용자명 표시 |
 | `roles` | `string[]` | false | 메뉴/권한 표시 기준, 값은 `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` |
 | `primaryRole` | `string` | false | 다중 역할 사용자 대표 역할 |
-| `defaultRoute` | `string` | false | 기본 `/app/dashboard`, 비밀번호 변경 필요 시 `/password` |
+| `defaultRoute` | `string` | false | 역할별 기본 진입 route, 비밀번호 변경 필요 시 `/password` |
 | `passwordResetRequired` | `boolean` | false | `true`이면 비밀번호 변경 흐름 우선 |
 | `profile.memberProfileId` | `uuid` | true | 회원 기본 프로필 존재 여부 |
 | `profile.businessProfileId` | `uuid` | true | 사업자 프로필 존재 여부 |
@@ -597,6 +602,7 @@ MVP v1 DB 집계 기준:
 | `GET` | `/api/v1/dashboard/me/current-action` | `USER` | 현재 해야 할 행동 1개 |
 | `GET` | `/api/v1/dashboard/me/progress-summary` | `USER` | 진행/결과 누적 요약 |
 | `GET` | `/api/v1/dashboard/me/reverification-status` | `USER` | 재검증 필요 여부 |
+| `GET` | `/api/v1/admin/dashboard/summary` | `ADMIN` | 관리자 대시보드 운영 집계 |
 
 #### DashboardSummaryResponse
 
@@ -715,6 +721,80 @@ DashboardReverificationStatusResponse 필드 계약:
 | `lastVerifiedAt` | `datetime` | true | 마지막 검증 일시, offset 포함 |
 | `reasonCode` | `string` | true | 재검증 사유 코드 |
 | `requiredItems` | `string[]` | false | 재검증 필요 항목 코드 목록 |
+
+#### AdminDashboardSummaryResponse
+
+```json
+{
+  "userSummary": {
+    "totalUserCount": 12,
+    "activeUserCount": 10,
+    "userRoleCount": 8,
+    "partnerRoleCount": 2,
+    "operatorRoleCount": 1,
+    "approverRoleCount": 1,
+    "adminRoleCount": 1
+  },
+  "announcementSummary": {
+    "totalAnnouncementCount": 20,
+    "draftCount": 3,
+    "requestedCount": 2,
+    "approvedCount": 12,
+    "rejectedCount": 1,
+    "openAnnouncementCount": 8,
+    "pausedAnnouncementCount": 1,
+    "closedAnnouncementCount": 6
+  },
+  "verificationSummary": {
+    "totalVerificationCount": 15,
+    "reviewQueueCount": 4,
+    "verifiedCount": 9,
+    "rejectedCount": 1,
+    "statusCounts": [
+      {
+        "statusCode": "SUBMITTED",
+        "count": 2
+      }
+    ]
+  },
+  "matchingSummary": {
+    "totalMatchingCaseCount": 30,
+    "matchedCount": 12,
+    "reviewRequiredCount": 3,
+    "blockedCount": 1,
+    "progressedCount": 8,
+    "statusCounts": [
+      {
+        "statusCode": "MATCHED",
+        "count": 12
+      }
+    ]
+  },
+  "applicationProgressSummary": {
+    "totalProgressCount": 8,
+    "activeProgressCount": 3,
+    "waitingResultCount": 1,
+    "approvedCount": 2,
+    "supplementRequestedCount": 0,
+    "stoppedCount": 0,
+    "completedCount": 1,
+    "totalReceivedAmount": 5000000,
+    "statusCounts": [
+      {
+        "statusCode": "IN_PROGRESS",
+        "count": 2
+      }
+    ]
+  },
+  "auditSummary": {
+    "totalAuditCount": 100,
+    "failAuditCount": 4,
+    "recentFailAuditCount": 1
+  }
+}
+```
+
+관리자 대시보드는 별도 저장 테이블을 만들지 않고 현재 V1 테이블을 읽기 전용으로 집계한다. 개인정보 원문, secret, 추천도, 우선순위, 선정확률, 가점 계산은 응답에 포함하지 않는다.
 
 ## 11. Frontend Enum / Status 표시값
 

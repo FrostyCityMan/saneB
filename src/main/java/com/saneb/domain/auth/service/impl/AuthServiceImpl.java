@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
     private static final String DEFAULT_ROUTE = "/app/dashboard";
+    private static final String ADMIN_ROUTE = "/app/admin/dashboard";
     private static final String PASSWORD_ROUTE = "/password";
     private static final String DEFAULT_SIGNUP_ROLE = "USER";
     private static final int MAX_USER_AGENT_LENGTH = 500;
@@ -164,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
                 authentication.getName(),
                 roles,
                 primaryRole,
-                DEFAULT_ROUTE,
+                selectDefaultRoute(primaryRole),
                 false,
                 new AuthMeResponse.ProfileResponse(null, null, null)
         );
@@ -226,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
                 principal.name(),
                 roles,
                 primaryRole,
-                principal.passwordResetRequired() ? PASSWORD_ROUTE : DEFAULT_ROUTE,
+                principal.passwordResetRequired() ? PASSWORD_ROUTE : selectDefaultRoute(primaryRole),
                 principal.passwordResetRequired(),
                 new AuthMeResponse.ProfileResponse(
                         principal.memberProfileId(),
@@ -327,6 +328,13 @@ public class AuthServiceImpl implements AuthService {
                 HttpStatus.UNAUTHORIZED,
                 "로그인 정보가 올바르지 않습니다."
         );
+    }
+
+    private String selectDefaultRoute(String primaryRole) {
+        return switch (primaryRole) {
+            case "ADMIN" -> ADMIN_ROUTE;
+            default -> DEFAULT_ROUTE;
+        };
     }
 
     private int selectRolePriority(String role) {

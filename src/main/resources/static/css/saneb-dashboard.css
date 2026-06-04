@@ -2104,6 +2104,38 @@ svg {
     font-weight: 750;
 }
 
+.admin-dashboard-page .admin-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-dashboard-page .admin-total-grid {
+    margin-bottom: 14px;
+}
+
+.admin-dashboard-page .admin-check-table {
+    margin-top: 14px;
+}
+
+.admin-dashboard-page .admin-check-table .check-row {
+    grid-template-columns: 126px minmax(0, 1fr) 118px;
+}
+
+.admin-dashboard-page .admin-role-panel {
+    text-align: left;
+}
+
+.admin-dashboard-page .admin-role-panel .panel-heading {
+    margin-bottom: 10px;
+}
+
+.admin-dashboard-page .admin-role-panel .verification-meta {
+    margin-top: 6px;
+}
+
+.admin-dashboard-page .admin-side-stack {
+    gap: 18px;
+}
+
 @media (max-width: 1180px) {
     .saneb-shell {
         grid-template-columns: 92px minmax(0, 1fr);
@@ -2149,6 +2181,10 @@ svg {
 
     .flow-side {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-dashboard-page .admin-status-grid {
+        grid-template-columns: 1fr;
     }
 
     .announcement-side {
@@ -2543,6 +2579,10 @@ svg {
         grid-template-columns: 1fr;
         gap: 5px;
         padding: 12px 0;
+    }
+
+    .admin-dashboard-page .admin-check-table .check-row {
+        grid-template-columns: 1fr;
     }
 
     .check-row strong {
