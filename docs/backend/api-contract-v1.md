@@ -195,6 +195,8 @@ AuthMeResponse 필드 계약:
 }
 ```
 
+`newPassword`는 8~16자로 입력해야 한다. 검증 실패 시 `fieldErrors[].message`에 사용자가 바로 이해할 수 있는 한국어 안내 문구를 내려준다.
+
 ## 5. Member / Business / Family API
 
 | Method | Path | 권한 | 설명 |

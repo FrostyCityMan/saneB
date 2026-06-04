@@ -298,6 +298,24 @@ class AuthControllerSmokeTest {
         assertThat(passwordEncoder.matches("new-password", passwordCaptor.getValue().passwordHash())).isTrue();
     }
 
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void updatePasswordReturnsKoreanFieldErrorWhenNewPasswordIsTooShort() throws Exception {
+        mockMvc.perform(patch("/api/v1/auth/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "currentPassword": "old-password",
+                                  "newPassword": "short"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.data.errorCode").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.data.fieldErrors[0].field").value("newPassword"))
+                .andExpect(jsonPath("$.data.fieldErrors[0].message").value("새 비밀번호는 8~16자로 입력해 주세요."));
+    }
+
     private AuthUserDetailsRow activeUser(String passwordHash) {
         return activeUser(passwordHash, false);
     }

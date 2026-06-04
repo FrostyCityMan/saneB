@@ -17,14 +17,14 @@
     };
 
     const selectErrorMessage = (payload, fallback) => {
-        if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
-            return payload.message;
-        }
         const fieldErrors = payload && payload.data && Array.isArray(payload.data.fieldErrors)
                 ? payload.data.fieldErrors
                 : [];
         if (fieldErrors.length > 0 && fieldErrors[0].message) {
             return fieldErrors[0].message;
+        }
+        if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
+            return payload.message;
         }
         return fallback;
     };
@@ -49,6 +49,16 @@
         const currentPassword = String(formData.get("currentPassword") || "");
         const newPassword = String(formData.get("newPassword") || "");
         const newPasswordConfirm = String(formData.get("newPasswordConfirm") || "");
+
+        if (!currentPassword) {
+            setMessage("현재 비밀번호를 입력해 주세요.", "error");
+            return;
+        }
+
+        if (newPassword.length < 8 || newPassword.length > 16) {
+            setMessage("새 비밀번호는 8~16자로 입력해 주세요.", "error");
+            return;
+        }
 
         if (newPassword !== newPasswordConfirm) {
             setMessage("새 비밀번호 확인이 일치하지 않습니다.", "error");

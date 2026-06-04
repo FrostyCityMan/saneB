@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record PasswordChangeRequest(
-        @NotBlank(message = "currentPassword is required")
+        @NotBlank(message = "현재 비밀번호를 입력해 주세요.")
         String currentPassword,
-        @NotBlank(message = "newPassword is required")
-        @Size(min = 8, max = 100, message = "newPassword must be between 8 and 100 characters")
+        @NotBlank(message = "새 비밀번호를 입력해 주세요.")
+        @Size(min = 8, max = 16, message = "새 비밀번호는 8~16자로 입력해 주세요.")
         String newPassword
 ) {
 }
