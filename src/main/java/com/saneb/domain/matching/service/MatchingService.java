@@ -5,6 +5,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,12 @@ public interface MatchingService {
             UUID memberUserId,
             UUID verificationId,
             String statusCode,
+            int page,
+            int size
+    );
+
+    PageResponse<MatchingMemberLookupResponse> selectMatchingMemberLookupList(
+            String keyword,
             int page,
             int size
     );

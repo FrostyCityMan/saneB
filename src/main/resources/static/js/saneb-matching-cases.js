@@ -5,6 +5,8 @@
     }
 
     const baseUrl = app.dataset.baseUrl;
+    const announcementLookupUrl = app.dataset.announcementLookupUrl;
+    const memberLookupUrl = app.dataset.memberLookupUrl;
     const createForm = app.querySelector("[data-matching-create-form]");
     const searchForm = app.querySelector("[data-matching-search-form]");
     const list = app.querySelector("[data-matching-list]");
@@ -112,7 +114,7 @@
         [
             ["공고 ID", item.announcementId],
             ["회원 ID", item.memberUserId],
-            ["검증 ID", item.verificationId],
+            ["검증 ID", item.verificationId || "없음"],
             ["차단 사유", item.blockedReasonCode || "없음"]
         ].forEach(([label, value]) => {
             const group = document.createElement("div");
@@ -177,7 +179,7 @@
 
     const buildSearchParams = () => {
         const params = new URLSearchParams({ page: "1", size: "20" });
-        ["announcementId", "memberUserId", "verificationId", "statusCode"].forEach((name) => {
+        ["announcementId", "memberUserId", "statusCode"].forEach((name) => {
             const value = nullIfBlank(valueOf(searchForm, name));
             if (value) {
                 params.set(name, value);
@@ -192,6 +194,122 @@
         setMessage("매칭 목록을 조회했습니다.", "success");
     };
 
+    const lookupModal = (type) => app.querySelector(`[data-lookup-modal='${type}']`);
+    const lookupResults = (type) => app.querySelector(`[data-lookup-results='${type}']`);
+
+    const openLookupModal = async (type) => {
+        const modal = lookupModal(type);
+        if (!modal) {
+            return;
+        }
+        modal.hidden = false;
+        modal.querySelector("input[name='keyword']")?.focus();
+        await loadLookupResults(type);
+    };
+
+    const closeLookupModal = (modal) => {
+        if (modal) {
+            modal.hidden = true;
+        }
+    };
+
+    const renderLookupEmpty = (type, text) => {
+        const results = lookupResults(type);
+        if (!results) {
+            return;
+        }
+        results.replaceChildren();
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = text;
+        results.append(empty);
+    };
+
+    const renderLookupButton = (type, title, meta, value) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "lookup-result-item";
+        button.dataset.lookupSelect = type;
+        button.dataset.lookupValue = value;
+        const strong = document.createElement("strong");
+        strong.textContent = title;
+        const small = document.createElement("small");
+        small.textContent = meta;
+        button.append(strong, small);
+        return button;
+    };
+
+    const loadAnnouncementLookupResults = async () => {
+        const modal = lookupModal("announcement");
+        const params = new URLSearchParams({
+            page: "1",
+            size: "10",
+            approvalStatusCode: "APPROVED",
+            manualStatusCode: "NORMAL"
+        });
+        const keyword = nullIfBlank(valueOf(modal, "keyword"));
+        if (keyword) {
+            params.set("keyword", keyword);
+        }
+        const data = await requestJson(`${announcementLookupUrl}?${params.toString()}`, { method: "GET" });
+        const items = data ? data.items : [];
+        if (items.length === 0) {
+            renderLookupEmpty("announcement", "조회된 승인 공고가 없습니다.");
+            return;
+        }
+        const results = lookupResults("announcement");
+        results.replaceChildren();
+        items.forEach((item) => {
+            const dateText = item.applicationStartDate && item.applicationEndDate
+                    ? `${item.applicationStartDate} ~ ${item.applicationEndDate}`
+                    : "신청 기간 미입력";
+            results.append(renderLookupButton(
+                    "announcement",
+                    item.title || "제목 없음",
+                    `${item.agencyName || "기관 미입력"} · ${dateText} · ${item.announcementId}`,
+                    item.announcementId
+            ));
+        });
+    };
+
+    const loadMemberLookupResults = async () => {
+        const modal = lookupModal("member");
+        const params = new URLSearchParams({ page: "1", size: "10" });
+        const keyword = nullIfBlank(valueOf(modal, "keyword"));
+        if (keyword) {
+            params.set("keyword", keyword);
+        }
+        const data = await requestJson(`${memberLookupUrl}?${params.toString()}`, { method: "GET" });
+        const items = data ? data.items : [];
+        if (items.length === 0) {
+            renderLookupEmpty("member", "조회된 회원이 없습니다.");
+            return;
+        }
+        const results = lookupResults("member");
+        results.replaceChildren();
+        items.forEach((item) => {
+            results.append(renderLookupButton(
+                    "member",
+                    item.name || item.loginId || "이름 없음",
+                    `${item.loginId || "아이디 없음"} · ${item.statusCode || "상태 없음"} · ${item.userId}`,
+                    item.userId
+            ));
+        });
+    };
+
+    const loadLookupResults = async (type) => {
+        try {
+            if (type === "announcement") {
+                await loadAnnouncementLookupResults();
+                return;
+            }
+            await loadMemberLookupResults();
+        } catch (error) {
+            renderLookupEmpty(type, "조회에 실패했습니다.");
+            setMessage(error.message, "error");
+        }
+    };
+
     createForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const button = app.querySelector("[data-matching-create-submit]");
@@ -199,8 +317,7 @@
             setBusy(button, true, "생성 중");
             const body = {
                 announcementId: validateUuidText(valueOf(createForm, "announcementId"), "공고 ID"),
-                memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 ID"),
-                verificationId: validateUuidText(valueOf(createForm, "verificationId"), "검증 ID")
+                memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 ID")
             };
             await requestJson(baseUrl, {
                 method: "POST",
@@ -224,6 +341,13 @@
             renderEmpty("매칭 목록을 불러오지 못했습니다.");
             setMessage(error.message, "error");
         }
+    });
+
+    app.querySelectorAll("[data-lookup-search-form]").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await loadLookupResults(form.dataset.lookupSearchForm);
+        });
     });
 
     app.addEventListener("submit", async (event) => {
@@ -258,6 +382,32 @@
     });
 
     app.addEventListener("click", async (event) => {
+        const openButton = event.target.closest("[data-lookup-open]");
+        if (openButton) {
+            await openLookupModal(openButton.dataset.lookupOpen);
+            return;
+        }
+
+        const closeButton = event.target.closest("[data-lookup-close]");
+        if (closeButton) {
+            closeLookupModal(closeButton.closest("[data-lookup-modal]"));
+            return;
+        }
+
+        const lookupSelect = event.target.closest("[data-lookup-select]");
+        if (lookupSelect) {
+            const type = lookupSelect.dataset.lookupSelect;
+            const value = lookupSelect.dataset.lookupValue || "";
+            const fieldName = type === "announcement" ? "announcementId" : "memberUserId";
+            const field = createForm.querySelector(`[name='${fieldName}']`);
+            if (field) {
+                field.value = value;
+            }
+            closeLookupModal(lookupSelect.closest("[data-lookup-modal]"));
+            setMessage(type === "announcement" ? "공고 ID를 선택했습니다." : "회원 ID를 선택했습니다.", "success");
+            return;
+        }
+
         const button = event.target.closest("[data-matching-results-button]");
         if (!button) {
             return;

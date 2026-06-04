@@ -52,10 +52,12 @@ class MatchingSmokeIntegrationTest {
         MatchingFixture reviewFixture = insertFixture(fixtureKey, "review", "NEEDS_REVIEW");
         MatchingFixture blockedFixture = insertFixture(fixtureKey, "blocked", "POLICY_FUND_RESTRICTED");
         MatchingFixture draftFixture = insertFixture(fixtureKey, "draft", null, "DRAFT");
+        MatchingFixture noVerificationFixture = insertFixtureWithoutVerification(fixtureKey, "no_verification");
 
         UUID matchedCaseId = createMatchingCase(session, matchedFixture, "MATCHED", "PASS");
         UUID reviewCaseId = createMatchingCase(session, reviewFixture, "REVIEW_REQUIRED", "REVIEW_REQUIRED");
         UUID blockedCaseId = createMatchingCase(session, blockedFixture, "BLOCKED", "FAIL");
+        UUID noVerificationCaseId = createMatchingCaseWithoutVerification(session, noVerificationFixture);
 
         mockMvc.perform(post("/api/v1/matching/cases")
                         .session(session)
@@ -115,12 +117,15 @@ class MatchingSmokeIntegrationTest {
                 .andExpect(jsonPath("$.data.errorCode").value("ANNOUNCEMENT_NOT_APPROVED"));
 
         assertThat(selectMatchingCaseCount(matchedFixture)).isEqualTo(1);
+        assertThat(selectMatchingCaseCount(noVerificationFixture)).isEqualTo(1);
         assertThat(selectMatchingCaseCount(draftFixture)).isEqualTo(0);
         assertThat(selectResultCode(matchedCaseId)).isEqualTo("PASS");
         assertThat(selectResultCode(reviewCaseId)).isEqualTo("REVIEW_REQUIRED");
         assertThat(selectResultCode(blockedCaseId)).isEqualTo("FAIL");
+        assertThat(selectRequiredValue(noVerificationCaseId)).isEqualTo("VERIFICATION_NOT_REQUIRED");
         assertThat(selectApplicationProgressCount(List.of(matchedCaseId, reviewCaseId, blockedCaseId))).isEqualTo(0);
         assertThat(selectMatchingCreateAuditCount(List.of(matchedCaseId, reviewCaseId, blockedCaseId), "1", "0")).isEqualTo(3);
+        assertThat(selectMatchingCreateAuditCount(List.of(noVerificationCaseId), "1", "0")).isEqualTo(1);
         assertThat(selectMatchingCreateAuditCount(List.of(matchedCaseId), "0", "1")).isEqualTo(1);
         assertThat(selectFailureAuditCount("ANNOUNCEMENT_NOT_APPROVED")).isGreaterThanOrEqualTo(1);
         assertThat(selectStatusUpdateAuditCount(reviewCaseId)).isEqualTo(1);
@@ -151,6 +156,32 @@ class MatchingSmokeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].resultCode").value(resultCode));
+        return matchingCaseId;
+    }
+
+    private UUID createMatchingCaseWithoutVerification(
+            MockHttpSession session,
+            MatchingFixture fixture
+    ) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/matching/cases")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createRequestWithoutVerification(fixture)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.announcementId").value(fixture.announcementId().toString()))
+                .andExpect(jsonPath("$.data.memberUserId").value(fixture.memberUserId().toString()))
+                .andExpect(jsonPath("$.data.statusCode").value("MATCHED"))
+                .andReturn();
+
+        UUID matchingCaseId = selectMatchingCaseId(result);
+        mockMvc.perform(post("/api/v1/matching/cases")
+                        .session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createRequestWithoutVerification(fixture)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.matchingCaseId").value(matchingCaseId.toString()));
         return matchingCaseId;
     }
 
@@ -187,6 +218,14 @@ class MatchingSmokeIntegrationTest {
             insertRestrictionFlag(verificationId, restrictionCode);
         }
         return new MatchingFixture(announcementId, memberUserId, verificationId);
+    }
+
+    private MatchingFixture insertFixtureWithoutVerification(String fixtureKey, String suffix) {
+        UUID memberUserId = UUID.randomUUID();
+        UUID announcementId = UUID.randomUUID();
+        insertMemberUser(memberUserId, "matching_" + suffix + "_" + fixtureKey.replace("-", ""));
+        insertAnnouncement(announcementId, "Gate Matching " + suffix + " " + fixtureKey, "APPROVED");
+        return new MatchingFixture(announcementId, memberUserId, null);
     }
 
     private void insertMemberUser(UUID memberUserId, String loginId) {
@@ -308,12 +347,36 @@ class MatchingSmokeIntegrationTest {
                 """.formatted(fixture.announcementId(), fixture.memberUserId(), fixture.verificationId());
     }
 
+    private String createRequestWithoutVerification(MatchingFixture fixture) {
+        return """
+                {
+                  "announcementId": "%s",
+                  "memberUserId": "%s"
+                }
+                """.formatted(fixture.announcementId(), fixture.memberUserId());
+    }
+
     private UUID selectMatchingCaseId(MvcResult result) throws Exception {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
         return UUID.fromString(root.path("data").path("matchingCaseId").asText());
     }
 
     private long selectMatchingCaseCount(MatchingFixture fixture) {
+        if (fixture.verificationId() == null) {
+            Long count = jdbcTemplate.queryForObject(
+                    """
+                            SELECT count(1)
+                            FROM matching_cases
+                            WHERE announcement_id = ?
+                              AND member_user_id = ?
+                              AND verification_id IS NULL
+                            """,
+                    Long.class,
+                    fixture.announcementId(),
+                    fixture.memberUserId()
+            );
+            return count == null ? 0 : count;
+        }
         Long count = jdbcTemplate.queryForObject(
                 """
                         SELECT count(1)
@@ -328,6 +391,20 @@ class MatchingSmokeIntegrationTest {
                 fixture.verificationId()
         );
         return count == null ? 0 : count;
+    }
+
+    private String selectRequiredValue(UUID matchingCaseId) {
+        return jdbcTemplate.queryForObject(
+                """
+                        SELECT required_value
+                        FROM matching_result_details
+                        WHERE matching_case_id = ?
+                          AND condition_scope_code = 'APPLICATION'
+                          AND condition_key = 'RESTRICTION_FLAGS'
+                        """,
+                String.class,
+                matchingCaseId
+        );
     }
 
     private String selectResultCode(UUID matchingCaseId) {

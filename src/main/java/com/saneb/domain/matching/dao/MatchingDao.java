@@ -6,6 +6,8 @@ import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
 import com.saneb.domain.matching.vo.MatchingCaseStatusCommand;
+import com.saneb.domain.matching.vo.MatchingMemberLookupRow;
+import com.saneb.domain.matching.vo.MatchingMemberLookupSearchCondition;
 import com.saneb.domain.matching.vo.MatchingResultDetailCommand;
 import com.saneb.domain.matching.vo.MatchingResultDetailRow;
 import com.saneb.domain.matching.vo.VerificationMatchingRow;
@@ -20,6 +22,10 @@ public interface MatchingDao {
     List<MatchingCaseRow> selectMatchingCaseList(MatchingCaseSearchCondition condition);
 
     long selectMatchingCaseCount(MatchingCaseSearchCondition condition);
+
+    List<MatchingMemberLookupRow> selectMatchingMemberLookupList(MatchingMemberLookupSearchCondition condition);
+
+    long selectMatchingMemberLookupCount(MatchingMemberLookupSearchCondition condition);
 
     MatchingCaseRow selectMatchingCaseDetails(@Param("matchingCaseId") UUID matchingCaseId);
 

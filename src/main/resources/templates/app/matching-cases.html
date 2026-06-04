@@ -3,13 +3,15 @@
       th:replace="~{fragments/layout :: page('매칭 관리', ~{::main})}">
 <main class="matching-page"
       data-matching-app
-      th:data-base-url="@{/api/v1/matching/cases}">
+      th:data-base-url="@{/api/v1/matching/cases}"
+      th:data-announcement-lookup-url="@{/api/v1/announcements}"
+      th:data-member-lookup-url="@{/api/v1/matching/cases/member-lookups}">
     <section class="matching-shell" aria-label="매칭 관리">
         <section class="summary-panel matching-hero">
             <div class="summary-header">
                 <div>
                     <div class="section-label">매칭 관리</div>
-                    <p>승인된 공고와 검증 완료된 사용자 정보를 연결해 매칭 케이스를 생성하고 상태를 관리합니다.</p>
+                    <p>승인된 공고와 사용자를 연결해 매칭 케이스를 생성하고 상태를 관리합니다.</p>
                 </div>
                 <span class="soft-status">서버 검증 기준</span>
             </div>
@@ -20,9 +22,9 @@
                     <small>공고 승인 상태가 승인일 때만 생성됩니다.</small>
                 </article>
                 <article class="top-summary-card">
-                    <span>검증 조건</span>
-                    <strong>검증 완료</strong>
-                    <small>현재 사용 가능한 검증 정보만 연결합니다.</small>
+                    <span>현재 기준</span>
+                    <strong>검증 생략 가능</strong>
+                    <small>검증 ID 없이 수동 매칭을 생성할 수 있습니다.</small>
                 </article>
                 <article class="top-summary-card">
                     <span>금지 정책</span>
@@ -42,15 +44,27 @@
                 </div>
                 <div class="field-block">
                     <label for="matchingAnnouncementId">공고 ID</label>
-                    <input id="matchingAnnouncementId" name="announcementId" type="text" placeholder="승인된 공고 UUID" required>
+                    <div class="lookup-input-row">
+                        <input id="matchingAnnouncementId" name="announcementId" type="text" placeholder="승인된 공고 UUID" required>
+                        <button class="icon-lookup-button" type="button" data-lookup-open="announcement" aria-label="공고 조회">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
+                                <path d="m16 16 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="field-block">
                     <label for="matchingMemberUserId">회원 ID</label>
-                    <input id="matchingMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
-                </div>
-                <div class="field-block">
-                    <label for="matchingVerificationId">검증 ID</label>
-                    <input id="matchingVerificationId" name="verificationId" type="text" placeholder="검증 완료 UUID" required>
+                    <div class="lookup-input-row">
+                        <input id="matchingMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
+                        <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
+                                <path d="m16 16 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <button class="primary-action button-action" type="submit" data-matching-create-submit>매칭 생성</button>
             </form>
@@ -81,10 +95,6 @@
                     <label for="matchingSearchMemberUserId">회원 ID</label>
                     <input id="matchingSearchMemberUserId" name="memberUserId" type="text" placeholder="선택 입력">
                 </div>
-                <div class="field-block">
-                    <label for="matchingSearchVerificationId">검증 ID</label>
-                    <input id="matchingSearchVerificationId" name="verificationId" type="text" placeholder="선택 입력">
-                </div>
                 <button class="secondary-action" type="submit">조회</button>
             </form>
         </section>
@@ -98,6 +108,48 @@
             </div>
             <p class="matching-message" data-matching-message role="status">매칭 목록을 불러오는 중입니다.</p>
             <div class="matching-list" data-matching-list aria-live="polite"></div>
+        </section>
+
+        <section class="lookup-modal" data-lookup-modal="announcement" hidden role="dialog" aria-modal="true" aria-label="공고 조회">
+            <div class="lookup-modal-card">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">공고 조회</span>
+                        <h2>승인된 공고 선택</h2>
+                    </div>
+                    <button class="icon-lookup-button" type="button" data-lookup-close aria-label="닫기">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form class="lookup-search-form" data-lookup-search-form="announcement">
+                    <input name="keyword" type="search" placeholder="공고명 또는 기관명">
+                    <button class="secondary-action" type="submit">조회</button>
+                </form>
+                <div class="lookup-result-list" data-lookup-results="announcement"></div>
+            </div>
+        </section>
+
+        <section class="lookup-modal" data-lookup-modal="member" hidden role="dialog" aria-modal="true" aria-label="회원 조회">
+            <div class="lookup-modal-card">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">회원 조회</span>
+                        <h2>회원 선택</h2>
+                    </div>
+                    <button class="icon-lookup-button" type="button" data-lookup-close aria-label="닫기">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="m6 6 12 12M18 6 6 18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form class="lookup-search-form" data-lookup-search-form="member">
+                    <input name="keyword" type="search" placeholder="아이디 또는 이름">
+                    <button class="secondary-action" type="submit">조회</button>
+                </form>
+                <div class="lookup-result-list" data-lookup-results="member"></div>
+            </div>
         </section>
     </section>
     <script th:src="@{/js/saneb-matching-cases.js}"></script>

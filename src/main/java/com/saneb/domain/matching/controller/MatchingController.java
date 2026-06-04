@@ -6,6 +6,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
 import jakarta.validation.Valid;
@@ -63,6 +64,16 @@ public class MatchingController {
                 page,
                 size
         ));
+    }
+
+    @GetMapping("/member-lookups")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public ApiResponse<PageResponse<MatchingMemberLookupResponse>> selectMatchingMemberLookupList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+    ) {
+        return ApiResponse.success(matchingService.selectMatchingMemberLookupList(keyword, page, size));
     }
 
     @GetMapping("/{matchingCaseId}")

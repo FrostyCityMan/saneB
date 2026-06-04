@@ -63,6 +63,16 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v6MigrationAllowsMatchingWithoutVerification() throws IOException {
+        String sql = selectV6Migration();
+
+        assertThat(sql).contains(
+                "ALTER COLUMN verification_id DROP NOT NULL",
+                "CREATE UNIQUE INDEX uq_matching_cases_without_verification"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -70,6 +80,11 @@ class MigrationContractTest {
 
     private String selectV4Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V4__create_dynamic_announcement_inputs.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV6Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V6__allow_matching_without_verification.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

@@ -15,6 +15,7 @@ import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
 import java.time.OffsetDateTime;
@@ -73,6 +74,28 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.items[0].statusCode").value("REVIEW_REQUIRED"))
                 .andExpect(jsonPath("$.data.totalCount").value(1));
+    }
+
+    @Test
+    void selectMatchingMemberLookupListReturnsPagedApiResponse() throws Exception {
+        when(matchingService.selectMatchingMemberLookupList(any(), eq(1), eq(10)))
+                .thenReturn(PageResponse.of(List.of(new MatchingMemberLookupResponse(
+                        MEMBER_USER_ID,
+                        "user01",
+                        "사용자",
+                        "ACTIVE",
+                        OffsetDateTime.now()
+                )), 1, 10, 1));
+
+        mockMvc.perform(get("/api/v1/matching/cases/member-lookups")
+                        .with(user(operatorPrincipal()))
+                        .param("keyword", "user")
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.items[0].userId").value(MEMBER_USER_ID.toString()))
+                .andExpect(jsonPath("$.data.items[0].loginId").value("user01"));
     }
 
     @Test
@@ -182,9 +205,8 @@ class MatchingControllerSmokeTest {
         return """
                 {
                   "announcementId": "%s",
-                  "memberUserId": "%s",
-                  "verificationId": "%s"
+                  "memberUserId": "%s"
                 }
-                """.formatted(ANNOUNCEMENT_ID, MEMBER_USER_ID, VERIFICATION_ID);
+                """.formatted(ANNOUNCEMENT_ID, MEMBER_USER_ID);
     }
 }

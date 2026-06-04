@@ -52,6 +52,16 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="MatchingMemberLookupRowMap" type="com.saneb.domain.matching.vo.MatchingMemberLookupRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
     <sql id="MatchingCaseSearchWhere">
         <where>
             <if test="announcementId != null">
@@ -65,6 +75,24 @@
             </if>
             <if test="statusCode != null and statusCode != ''">
                 AND mc.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="MatchingMemberLookupWhere">
+        <where>
+            u.status_code = 'ACTIVE'
+            AND EXISTS (
+                SELECT 1
+                FROM user_roles ur
+                WHERE ur.user_id = u.id
+                  AND ur.role_code = 'USER'
+            )
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    u.login_id ILIKE concat('%', #{keyword}, '%')
+                    OR u.name ILIKE concat('%', #{keyword}, '%')
+                )
             </if>
         </where>
     </sql>
@@ -96,6 +124,29 @@
             count(1)
         FROM matching_cases mc
         <include refid="MatchingCaseSearchWhere"/>
+    </select>
+
+    <select id="selectMatchingMemberLookupList" resultMap="MatchingMemberLookupRowMap">
+        -- Select active member users for matching operation lookup modal.
+        SELECT
+            u.id AS user_id,
+            u.login_id,
+            u.name,
+            u.status_code,
+            u.created_at
+        FROM users u
+        <include refid="MatchingMemberLookupWhere"/>
+        ORDER BY u.created_at DESC, u.login_id ASC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectMatchingMemberLookupCount" resultType="long">
+        -- Count active member users for matching operation lookup modal.
+        SELECT
+            count(1)
+        FROM users u
+        <include refid="MatchingMemberLookupWhere"/>
     </select>
 
     <select id="selectMatchingCaseDetails" resultMap="MatchingCaseRowMap">
@@ -133,7 +184,14 @@
         FROM matching_cases mc
         WHERE mc.announcement_id = #{announcementId}
           AND mc.member_user_id = #{memberUserId}
+        <choose>
+            <when test="verificationId != null">
           AND mc.verification_id = #{verificationId}
+            </when>
+            <otherwise>
+          AND mc.verification_id IS NULL
+            </otherwise>
+        </choose>
     </select>
 
     <select id="selectMatchingResultDetailList" resultMap="MatchingResultDetailRowMap">
@@ -201,7 +259,7 @@
             #{matchingCaseId},
             #{announcementId},
             #{memberUserId},
-            #{verificationId},
+            #{verificationId,jdbcType=OTHER},
             #{statusCode},
             #{blockedReasonCode},
             now(),

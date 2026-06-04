@@ -9,6 +9,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
 import com.saneb.domain.matching.vo.AnnouncementMatchingRow;
@@ -17,6 +18,8 @@ import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
 import com.saneb.domain.matching.vo.MatchingCaseStatusCommand;
+import com.saneb.domain.matching.vo.MatchingMemberLookupRow;
+import com.saneb.domain.matching.vo.MatchingMemberLookupSearchCondition;
 import com.saneb.domain.matching.vo.MatchingResultDetailCommand;
 import com.saneb.domain.matching.vo.MatchingResultDetailRow;
 import com.saneb.domain.matching.vo.VerificationMatchingRow;
@@ -77,7 +80,9 @@ public class MatchingServiceImpl implements MatchingService {
     ) {
         UUID actorUserId = selectRequiredActorUserId(authentication);
         validateAnnouncement(actorUserId, request.announcementId());
-        validateVerification(actorUserId, request.verificationId(), request.memberUserId());
+        if (request.verificationId() != null) {
+            validateVerification(actorUserId, request.verificationId(), request.memberUserId());
+        }
 
         MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByBusinessKey(
                 request.announcementId(),
@@ -111,7 +116,7 @@ public class MatchingServiceImpl implements MatchingService {
                 RESULT_CONDITION_KEY,
                 decision.resultCode(),
                 decision.basisValue(),
-                "NO_BLOCKING_RESTRICTION",
+                decision.requiredValue(),
                 decision.reason(),
                 actorUserId
         ));
@@ -149,6 +154,26 @@ public class MatchingServiceImpl implements MatchingService {
         List<MatchingCaseSummaryResponse> items = matchingDao.selectMatchingCaseList(condition)
                 .stream()
                 .map(this::toSummaryResponse)
+                .toList();
+        return PageResponse.of(items, page, size, totalCount);
+    }
+
+    @Override
+    public PageResponse<MatchingMemberLookupResponse> selectMatchingMemberLookupList(
+            String keyword,
+            int page,
+            int size
+    ) {
+        validateLookupPageRequest(page, size);
+        MatchingMemberLookupSearchCondition condition = new MatchingMemberLookupSearchCondition(
+                trimToNull(keyword),
+                page,
+                size,
+                (page - 1) * size
+        );
+        long totalCount = matchingDao.selectMatchingMemberLookupCount(condition);
+        List<MatchingMemberLookupResponse> items = matchingDao.selectMatchingMemberLookupList(condition).stream()
+                .map(this::toMemberLookupResponse)
                 .toList();
         return PageResponse.of(items, page, size, totalCount);
     }
@@ -253,6 +278,16 @@ public class MatchingServiceImpl implements MatchingService {
     }
 
     private MatchingDecision decideMatching(UUID verificationId) {
+        if (verificationId == null) {
+            return new MatchingDecision(
+                    "MATCHED",
+                    "PASS",
+                    null,
+                    "VERIFICATION_NOT_PROVIDED",
+                    "VERIFICATION_NOT_REQUIRED",
+                    "Manual matching without verification."
+            );
+        }
         List<String> checkedRestrictionCodes = matchingDao.selectCheckedRestrictionFlagCodeList(verificationId);
         String hardBlockCode = firstContained(HARD_BLOCK_RESTRICTION_CODES, checkedRestrictionCodes);
         if (hardBlockCode != null) {
@@ -261,6 +296,7 @@ public class MatchingServiceImpl implements MatchingService {
                     "FAIL",
                     hardBlockCode,
                     hardBlockCode,
+                    "NO_BLOCKING_RESTRICTION",
                     "Hard restriction flag exists."
             );
         }
@@ -271,6 +307,7 @@ public class MatchingServiceImpl implements MatchingService {
                     "REVIEW_REQUIRED",
                     reviewCode,
                     reviewCode,
+                    "NO_REVIEW_RESTRICTION",
                     "Review restriction flag exists."
             );
         }
@@ -279,6 +316,7 @@ public class MatchingServiceImpl implements MatchingService {
                 "PASS",
                 null,
                 "NONE",
+                "NO_BLOCKING_RESTRICTION",
                 "No checked restriction flag."
         );
     }
@@ -311,6 +349,16 @@ public class MatchingServiceImpl implements MatchingService {
                 row.matchedAt(),
                 row.createdAt(),
                 row.updatedAt()
+        );
+    }
+
+    private MatchingMemberLookupResponse toMemberLookupResponse(MatchingMemberLookupRow row) {
+        return new MatchingMemberLookupResponse(
+                row.userId(),
+                row.loginId(),
+                row.name(),
+                row.statusCode(),
+                row.createdAt()
         );
     }
 
@@ -347,6 +395,12 @@ public class MatchingServiceImpl implements MatchingService {
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "Invalid page request.");
+        }
+    }
+
+    private void validateLookupPageRequest(int page, int size) {
+        if (page < 1 || size < 1 || size > 50) {
+            throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "Invalid lookup page request.");
         }
     }
 
@@ -443,6 +497,7 @@ public class MatchingServiceImpl implements MatchingService {
             String resultCode,
             String reasonCode,
             String basisValue,
+            String requiredValue,
             String reason
     ) {
     }

@@ -30,6 +30,9 @@ class MatchingViewControllerSmokeTest {
                 .andExpect(content().string(containsString("매칭 관리")))
                 .andExpect(content().string(containsString("data-matching-app")))
                 .andExpect(content().string(containsString("/api/v1/matching/cases")))
+                .andExpect(content().string(containsString("data-lookup-open=\"announcement\"")))
+                .andExpect(content().string(containsString("data-lookup-open=\"member\"")))
+                .andExpect(content().string(containsString("/api/v1/matching/cases/member-lookups")))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 

@@ -535,6 +535,7 @@ Member / Business / Family API skeleton 착수 기준:
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `POST` | `/api/v1/matching/cases` | `OPERATOR`, `ADMIN` | 매칭 케이스 생성/재계산 |
+| `GET` | `/api/v1/matching/cases/member-lookups` | `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 생성용 회원 조회 |
 | `GET` | `/api/v1/matching/cases` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 목록 |
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 상세 |
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}/results` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 조건별 매칭 결과 |
@@ -546,9 +547,11 @@ Member / Business / Family API skeleton 착수 기준:
 {
   "announcementId": "uuid",
   "memberUserId": "uuid",
-  "verificationId": "uuid"
+  "verificationId": null
 }
 ```
+
+`verificationId`는 선택값이다. 현재 운영 기준에서는 검증 없이 수동 매칭을 생성할 수 있으며, 이 경우 `matching_cases.verification_id`는 `null`로 저장한다. 검증 ID를 전달한 경우에는 기존처럼 검증 완료, current, matching block 여부를 서버에서 확인한다.
 
 #### MatchingCaseResponse
 
