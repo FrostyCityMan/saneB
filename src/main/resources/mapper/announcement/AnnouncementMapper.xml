@@ -365,6 +365,64 @@
         )
     </insert>
 
+    <select id="selectRequestedApprovalRequestCount" resultType="long">
+        -- Count open approval requests for an announcement.
+        SELECT
+            count(1)
+        FROM announcement_approval_requests aar
+        WHERE aar.announcement_id = #{announcementId}
+          AND aar.approval_status_code = 'REQUESTED'
+    </select>
+
+    <insert id="insertAnnouncementApprovalRequest">
+        -- Insert approval request before an announcement can be approved.
+        INSERT INTO announcement_approval_requests (
+            announcement_id,
+            requested_by,
+            approval_status_code,
+            request_note,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{announcementId},
+            #{actorUserId},
+            'REQUESTED',
+            #{requestNote},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateAnnouncementApprovalDecision">
+        -- Apply approval decision to the latest open approval request.
+        UPDATE announcement_approval_requests
+        SET
+            approval_status_code = #{approvalStatusCode},
+            decision_note = #{decisionNote},
+            decided_by = #{actorUserId},
+            decided_at = now(),
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = (
+            SELECT aar.id
+            FROM announcement_approval_requests aar
+            WHERE aar.announcement_id = #{announcementId}
+              AND aar.approval_status_code = 'REQUESTED'
+            ORDER BY aar.requested_at DESC, aar.id DESC
+            LIMIT 1
+        )
+    </update>
+
+    <update id="updateAnnouncementApprovalStatus">
+        -- Update announcement approval status after request or decision.
+        UPDATE announcements
+        SET
+            approval_status_code = #{approvalStatusCode},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{announcementId}
+    </update>
+
     <delete id="deleteAnnouncementOptions">
         -- Replace option codes for an announcement.
         DELETE FROM announcement_options

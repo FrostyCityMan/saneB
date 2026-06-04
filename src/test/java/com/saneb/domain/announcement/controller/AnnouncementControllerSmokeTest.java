@@ -14,6 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.saneb.domain.announcement.dao.AnnouncementDao;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalDecisionCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalRequestCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalStatusCommand;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementManualStatusCommand;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
@@ -22,6 +25,7 @@ import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -270,8 +274,68 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).insertAnnouncementStatusHistory(any());
     }
 
+    @Test
+    void insertAnnouncementApprovalRequestReturnsApiResponse() throws Exception {
+        stubDetails();
+        when(announcementDao.updateAnnouncementApprovalStatus(any())).thenReturn(1);
+
+        mockMvc.perform(post("/api/v1/announcements/{announcementId}/approval-requests", ANNOUNCEMENT_ID)
+                        .with(user(operatorPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "requestNote": "승인 요청"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        verify(announcementDao).insertAnnouncementApprovalRequest(any(AnnouncementApprovalRequestCommand.class));
+        verify(announcementDao).updateAnnouncementApprovalStatus(any(AnnouncementApprovalStatusCommand.class));
+    }
+
+    @Test
+    void updateAnnouncementApprovalReturnsApiResponse() throws Exception {
+        stubDetailsWithApprovalStatuses("REQUESTED", "APPROVED");
+        when(announcementDao.selectRequestedApprovalRequestCount(ANNOUNCEMENT_ID)).thenReturn(1L);
+        when(announcementDao.updateAnnouncementApprovalDecision(any())).thenReturn(1);
+        when(announcementDao.updateAnnouncementApprovalStatus(any())).thenReturn(1);
+
+        mockMvc.perform(patch("/api/v1/announcements/{announcementId}/approval", ANNOUNCEMENT_ID)
+                        .with(user(approverPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "approvalStatusCode": "APPROVED",
+                                  "decisionNote": "승인"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.approvalStatusCode").value("APPROVED"));
+
+        verify(announcementDao).updateAnnouncementApprovalDecision(any(AnnouncementApprovalDecisionCommand.class));
+        verify(announcementDao).updateAnnouncementApprovalStatus(any(AnnouncementApprovalStatusCommand.class));
+    }
+
     private void stubDetails() {
-        when(announcementDao.selectAnnouncementDetails(any())).thenReturn(detailsRow());
+        stubDetailsWithApprovalStatuses("DRAFT");
+    }
+
+    private void stubDetailsWithApprovalStatuses(String firstStatus, String... followingStatuses) {
+        AnnouncementDetailsRow[] rows = new AnnouncementDetailsRow[followingStatuses.length + 1];
+        rows[0] = detailsRow(firstStatus);
+        for (int index = 0; index < followingStatuses.length; index++) {
+            rows[index + 1] = detailsRow(followingStatuses[index]);
+        }
+        if (rows.length == 1) {
+            when(announcementDao.selectAnnouncementDetails(any())).thenReturn(rows[0]);
+        } else {
+            when(announcementDao.selectAnnouncementDetails(any())).thenReturn(
+                    rows[0],
+                    Arrays.copyOfRange(rows, 1, rows.length)
+            );
+        }
         when(announcementDao.selectAnnouncementOptionList(any())).thenReturn(List.of(
                 new com.saneb.domain.announcement.vo.AnnouncementOptionRow("APPLICATION_METHOD", "ONLINE")
         ));
@@ -301,7 +365,7 @@ class AnnouncementControllerSmokeTest {
         );
     }
 
-    private AnnouncementDetailsRow detailsRow() {
+    private AnnouncementDetailsRow detailsRow(String approvalStatusCode) {
         return new AnnouncementDetailsRow(
                 ANNOUNCEMENT_ID,
                 "BUSINESS",
@@ -311,7 +375,7 @@ class AnnouncementControllerSmokeTest {
                 LocalDate.of(2026, 6, 1),
                 LocalDate.of(2026, 6, 30),
                 "NORMAL",
-                "DRAFT",
+                approvalStatusCode,
                 "VAT_TAX_BASE_ONLY",
                 new BigDecimal("1000000"),
                 new BigDecimal("5000000"),
@@ -334,6 +398,23 @@ class AnnouncementControllerSmokeTest {
                         null
                 ),
                 List.of("OPERATOR")
+        );
+    }
+
+    private AuthenticatedUserDetails approverPrincipal() {
+        return new AuthenticatedUserDetails(
+                new AuthUserDetailsRow(
+                        USER_ID,
+                        "local_approver",
+                        "password-hash",
+                        "Local Approver",
+                        "ACTIVE",
+                        false,
+                        null,
+                        null,
+                        null
+                ),
+                List.of("APPROVER")
         );
     }
 

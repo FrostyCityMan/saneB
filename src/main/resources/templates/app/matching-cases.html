@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('매칭 관리', ~{::main})}">
+<main class="matching-page"
+      data-matching-app
+      th:data-base-url="@{/api/v1/matching/cases}">
+    <section class="matching-shell" aria-label="매칭 관리">
+        <section class="summary-panel matching-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">매칭 관리</div>
+                    <p>승인된 공고와 검증 완료된 사용자 정보를 연결해 매칭 케이스를 생성하고 상태를 관리합니다.</p>
+                </div>
+                <span class="soft-status">서버 검증 기준</span>
+            </div>
+            <div class="top-summary-grid matching-summary-grid">
+                <article class="top-summary-card">
+                    <span>생성 조건</span>
+                    <strong>승인 공고</strong>
+                    <small>공고 승인 상태가 승인일 때만 생성됩니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>검증 조건</span>
+                    <strong>검증 완료</strong>
+                    <small>현재 사용 가능한 검증 정보만 연결합니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>금지 정책</span>
+                    <strong>점수 계산 없음</strong>
+                    <small>추천도, 우선순위, 선정확률을 만들지 않습니다.</small>
+                </article>
+            </div>
+        </section>
+
+        <section class="matching-grid">
+            <form class="plain-panel matching-form" data-matching-create-form novalidate>
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">생성</span>
+                        <h2>매칭 케이스 생성</h2>
+                    </div>
+                </div>
+                <div class="field-block">
+                    <label for="matchingAnnouncementId">공고 ID</label>
+                    <input id="matchingAnnouncementId" name="announcementId" type="text" placeholder="승인된 공고 UUID" required>
+                </div>
+                <div class="field-block">
+                    <label for="matchingMemberUserId">회원 ID</label>
+                    <input id="matchingMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
+                </div>
+                <div class="field-block">
+                    <label for="matchingVerificationId">검증 ID</label>
+                    <input id="matchingVerificationId" name="verificationId" type="text" placeholder="검증 완료 UUID" required>
+                </div>
+                <button class="primary-action button-action" type="submit" data-matching-create-submit>매칭 생성</button>
+            </form>
+
+            <form class="plain-panel matching-form" data-matching-search-form novalidate>
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">조회</span>
+                        <h2>매칭 목록 조회</h2>
+                    </div>
+                </div>
+                <div class="field-block">
+                    <label for="matchingStatusCode">상태</label>
+                    <select id="matchingStatusCode" name="statusCode">
+                        <option value="">전체 상태</option>
+                        <option value="MATCHED">매칭</option>
+                        <option value="REVIEW_REQUIRED">검토 필요</option>
+                        <option value="BLOCKED">차단</option>
+                        <option value="NOT_MATCHED">미매칭</option>
+                        <option value="PROGRESSED">진행 전환</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="matchingSearchAnnouncementId">공고 ID</label>
+                    <input id="matchingSearchAnnouncementId" name="announcementId" type="text" placeholder="선택 입력">
+                </div>
+                <div class="field-block">
+                    <label for="matchingSearchMemberUserId">회원 ID</label>
+                    <input id="matchingSearchMemberUserId" name="memberUserId" type="text" placeholder="선택 입력">
+                </div>
+                <div class="field-block">
+                    <label for="matchingSearchVerificationId">검증 ID</label>
+                    <input id="matchingSearchVerificationId" name="verificationId" type="text" placeholder="선택 입력">
+                </div>
+                <button class="secondary-action" type="submit">조회</button>
+            </form>
+        </section>
+
+        <section class="plain-panel matching-list-panel">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">목록</span>
+                    <h2>매칭 케이스</h2>
+                </div>
+            </div>
+            <p class="matching-message" data-matching-message role="status">매칭 목록을 불러오는 중입니다.</p>
+            <div class="matching-list" data-matching-list aria-live="polite"></div>
+        </section>
+    </section>
+    <script th:src="@{/js/saneb-matching-cases.js}"></script>
+</main>
+</html>

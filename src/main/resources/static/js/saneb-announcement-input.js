@@ -38,6 +38,13 @@
         APPLICATION: "신청 조건",
         SUPPORT: "지원 내용"
     };
+    const approvalStatusLabels = {
+        DRAFT: "초안",
+        REQUESTED: "승인 요청",
+        APPROVED: "승인",
+        REJECTED: "반려",
+        CANCELED: "취소"
+    };
     const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
 
     const baseUrl = app.dataset.baseUrl;
@@ -54,6 +61,8 @@
     const stepsForm = app.querySelector("[data-announcement-steps-form]");
     const stepsList = stepsForm ? stepsForm.querySelector("[data-step-list]") : null;
     const statusForm = app.querySelector("[data-announcement-status-form]");
+    const approvalForm = app.querySelector("[data-announcement-approval-form]");
+    const approvalStatusLabel = app.querySelector("[data-approval-status-label]");
     const searchForm = app.querySelector("[data-announcement-search-form]");
     const businessPanel = app.querySelector("[data-business-panel]");
     const nonBusinessPanel = app.querySelector("[data-non-business-panel]");
@@ -177,6 +186,18 @@
         currentAnnouncementId = announcementId || "";
         if (currentIdLabel) {
             currentIdLabel.textContent = currentAnnouncementId || "신규 입력";
+        }
+    };
+
+    const updateApprovalUi = (approvalStatusCode) => {
+        const statusCode = approvalStatusCode || "DRAFT";
+        if (approvalStatusLabel) {
+            approvalStatusLabel.textContent = currentAnnouncementId
+                    ? (approvalStatusLabels[statusCode] || statusCode)
+                    : "신규 입력";
+        }
+        if (approvalForm) {
+            approvalForm.dataset.approvalStatusCode = currentAnnouncementId ? statusCode : "";
         }
     };
 
@@ -561,7 +582,8 @@
 
         const meta = document.createElement("span");
         meta.className = "list-meta";
-        meta.textContent = `${targetLabels[item.targetTypeCode] || item.targetTypeCode} · ${item.manualStatusCode || "NORMAL"}`;
+        const approvalLabel = approvalStatusLabels[item.approvalStatusCode] || item.approvalStatusCode || "초안";
+        meta.textContent = `${targetLabels[item.targetTypeCode] || item.targetTypeCode} · ${item.manualStatusCode || "NORMAL"} · ${approvalLabel}`;
 
         const title = document.createElement("strong");
         title.textContent = item.title || "제목 없음";
@@ -928,6 +950,12 @@
         applySteps(details.steps);
         statusForm.querySelector("[name='manualStatusCode']").value = details.manualStatusCode || "NORMAL";
         statusForm.querySelector("[name='reason']").value = "";
+        updateApprovalUi(details.approvalStatusCode || "DRAFT");
+        if (approvalForm) {
+            approvalForm.querySelector("[name='requestNote']").value = "";
+            approvalForm.querySelector("[name='approvalStatusCode']").value = "APPROVED";
+            approvalForm.querySelector("[name='decisionNote']").value = "";
+        }
         loadDynamicRequirements(details.announcementId).catch((error) => {
             setMessage(error.message, "error");
         });
@@ -955,6 +983,8 @@
         }, selectedTargetCode());
         renderStepRows(defaultStepRequests);
         statusForm.reset();
+        approvalForm?.reset();
+        updateApprovalUi("");
         const businessTarget = app.querySelector("input[name='targetTypeCode'][value='BUSINESS']");
         if (businessTarget) {
             businessTarget.checked = true;
@@ -1229,6 +1259,53 @@
         }
     });
 
+    if (approvalForm) {
+        approvalForm.addEventListener("click", async (event) => {
+            const requestButton = event.target.closest("[data-approval-request-submit]");
+            const decisionButton = event.target.closest("[data-approval-decision-submit]");
+            if (!requestButton && !decisionButton) {
+                return;
+            }
+            event.preventDefault();
+            if (!currentAnnouncementId) {
+                setMessage("승인 처리할 공고를 먼저 저장하거나 선택해 주세요.", "error");
+                return;
+            }
+
+            try {
+                if (requestButton) {
+                    setBusy(requestButton, true, "요청 중");
+                    const details = await requestJson(`${baseUrl}/${encodeURIComponent(currentAnnouncementId)}/approval-requests`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            requestNote: nullIfBlank(valueOf(approvalForm, "[name='requestNote']"))
+                        })
+                    });
+                    populateDetails(details);
+                    await loadAnnouncementList();
+                    setMessage("승인 요청 상태로 변경되었습니다.", "success");
+                    return;
+                }
+
+                setBusy(decisionButton, true, "처리 중");
+                const details = await requestJson(`${baseUrl}/${encodeURIComponent(currentAnnouncementId)}/approval`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        approvalStatusCode: valueOf(approvalForm, "[name='approvalStatusCode']") || "APPROVED",
+                        decisionNote: nullIfBlank(valueOf(approvalForm, "[name='decisionNote']"))
+                    })
+                });
+                populateDetails(details);
+                await loadAnnouncementList();
+                setMessage("승인 상태가 저장되었습니다.", "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            } finally {
+                setBusy(requestButton || decisionButton, false);
+            }
+        });
+    }
+
     if (dynamicRequirementsForm) {
         dynamicRequirementsForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -1269,6 +1346,7 @@
             .filter(Boolean);
     normalizeStepRows();
     updateTargetUi();
+    updateApprovalUi("");
     renderDynamicRequirements([]);
     loadAnnouncementList();
 })();

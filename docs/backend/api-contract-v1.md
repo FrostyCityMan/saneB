@@ -439,8 +439,8 @@ Member / Business / Family API skeleton 착수 기준:
 | `PUT` | `/api/v1/announcements/{announcementId}` | `OPERATOR` | 공고 기본 정보 수정 |
 | `PUT` | `/api/v1/announcements/{announcementId}/conditions` | `OPERATOR` | 공고 조건 저장 |
 | `PUT` | `/api/v1/announcements/{announcementId}/steps` | `OPERATOR` | 진행 단계 저장 |
-| `POST` | `/api/v1/announcements/{announcementId}/approval-requests` | `OPERATOR` | 승인 요청 |
-| `PATCH` | `/api/v1/announcements/{announcementId}/approval` | `APPROVER` | 승인/반려 |
+| `POST` | `/api/v1/announcements/{announcementId}/approval-requests` | `OPERATOR`, `ADMIN` | 승인 요청 |
+| `PATCH` | `/api/v1/announcements/{announcementId}/approval` | `APPROVER`, `ADMIN` | 승인/반려/취소 |
 | `PATCH` | `/api/v1/announcements/{announcementId}/manual-status` | `OPERATOR`, `APPROVER` | 수동 상태 변경 |
 
 #### AnnouncementSaveRequest
@@ -534,11 +534,11 @@ Member / Business / Family API skeleton 착수 기준:
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `POST` | `/api/v1/matching/cases` | `OPERATOR` | 매칭 케이스 생성/재계산 |
-| `GET` | `/api/v1/matching/cases` | `USER`, `PARTNER`, `OPERATOR` | 매칭 케이스 목록 |
-| `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR` | 매칭 케이스 상세 |
-| `GET` | `/api/v1/matching/cases/{matchingCaseId}/results` | `USER`, `PARTNER`, `OPERATOR` | 조건별 매칭 결과 |
-| `PATCH` | `/api/v1/matching/cases/{matchingCaseId}/status` | `OPERATOR`, `APPROVER` | 매칭 상태 수동 변경 |
+| `POST` | `/api/v1/matching/cases` | `OPERATOR`, `ADMIN` | 매칭 케이스 생성/재계산 |
+| `GET` | `/api/v1/matching/cases` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 목록 |
+| `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 상세 |
+| `GET` | `/api/v1/matching/cases/{matchingCaseId}/results` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 조건별 매칭 결과 |
+| `PATCH` | `/api/v1/matching/cases/{matchingCaseId}/status` | `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 상태 수동 변경 |
 
 #### MatchingCaseCreateRequest
 

@@ -1,6 +1,8 @@
 package com.saneb.domain.announcement.service;
 
 import com.saneb.common.response.PageResponse;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalDecisionRequest;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalRequestCreateRequest;
 import com.saneb.domain.announcement.dto.AnnouncementConditionsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementDetailsResponse;
 import com.saneb.domain.announcement.dto.AnnouncementManualStatusUpdateRequest;
@@ -47,5 +49,17 @@ public interface AnnouncementService {
             Authentication authentication,
             UUID announcementId,
             AnnouncementManualStatusUpdateRequest request
+    );
+
+    AnnouncementDetailsResponse insertAnnouncementApprovalRequest(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementApprovalRequestCreateRequest request
+    );
+
+    AnnouncementDetailsResponse updateAnnouncementApproval(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementApprovalDecisionRequest request
     );
 }

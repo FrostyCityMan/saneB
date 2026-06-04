@@ -3,6 +3,9 @@ package com.saneb.domain.announcement.dao;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementDocumentRequirementCommand;
 import com.saneb.domain.announcement.vo.AnnouncementDocumentRequirementRow;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalDecisionCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalRequestCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalStatusCommand;
 import com.saneb.domain.announcement.vo.AnnouncementIndustryConditionCommand;
 import com.saneb.domain.announcement.vo.AnnouncementIndustryConditionRow;
 import com.saneb.domain.announcement.vo.AnnouncementManualStatusCommand;
@@ -73,6 +76,14 @@ public interface AnnouncementDao {
     int updateAnnouncementManualStatus(AnnouncementManualStatusCommand command);
 
     void insertAnnouncementStatusHistory(AnnouncementStatusHistoryCommand command);
+
+    long selectRequestedApprovalRequestCount(@Param("announcementId") UUID announcementId);
+
+    void insertAnnouncementApprovalRequest(AnnouncementApprovalRequestCommand command);
+
+    int updateAnnouncementApprovalDecision(AnnouncementApprovalDecisionCommand command);
+
+    int updateAnnouncementApprovalStatus(AnnouncementApprovalStatusCommand command);
 
     void deleteAnnouncementOptions(@Param("announcementId") UUID announcementId);
 

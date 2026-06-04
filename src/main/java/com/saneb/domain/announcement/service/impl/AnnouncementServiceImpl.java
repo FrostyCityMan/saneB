@@ -4,6 +4,8 @@ import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalDecisionRequest;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalRequestCreateRequest;
 import com.saneb.domain.announcement.dto.AnnouncementConditionsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementDetailsResponse;
 import com.saneb.domain.announcement.dto.AnnouncementManualStatusUpdateRequest;
@@ -11,6 +13,9 @@ import com.saneb.domain.announcement.dto.AnnouncementSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementStepsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementSummaryResponse;
 import com.saneb.domain.announcement.service.AnnouncementService;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalDecisionCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalRequestCommand;
+import com.saneb.domain.announcement.vo.AnnouncementApprovalStatusCommand;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementDocumentRequirementCommand;
 import com.saneb.domain.announcement.vo.AnnouncementDocumentRequirementRow;
@@ -60,6 +65,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     );
     private static final Set<String> APPROVAL_STATUS_CODES = Set.of(
             "DRAFT", "REQUESTED", "APPROVED", "REJECTED", "CANCELED"
+    );
+    private static final Set<String> APPROVAL_DECISION_STATUS_CODES = Set.of(
+            "APPROVED", "REJECTED", "CANCELED"
     );
     private static final Set<String> INCOME_JUDGEMENT_CODES = Set.of(
             "INCOME_CERT_ONLY",
@@ -311,6 +319,62 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 trimToNull(request.reason()),
                 actorUserId
         ));
+    }
+
+    @Override
+    @Transactional
+    public AnnouncementDetailsResponse insertAnnouncementApprovalRequest(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementApprovalRequestCreateRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        AnnouncementDetailsRow row = selectAnnouncementDetailsRow(announcementId);
+        if ("APPROVED".equals(row.approvalStatusCode()) || "REQUESTED".equals(row.approvalStatusCode())) {
+            throw invalidStatusTransition("이미 승인되었거나 승인 요청 중인 공고입니다.");
+        }
+
+        announcementDao.insertAnnouncementApprovalRequest(new AnnouncementApprovalRequestCommand(
+                announcementId,
+                actorUserId,
+                trimToNull(request.requestNote())
+        ));
+        updateApprovalStatus(announcementId, "REQUESTED", actorUserId);
+        return selectAnnouncementDetails(announcementId);
+    }
+
+    @Override
+    @Transactional
+    public AnnouncementDetailsResponse updateAnnouncementApproval(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementApprovalDecisionRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        AnnouncementDetailsRow row = selectAnnouncementDetailsRow(announcementId);
+        String approvalStatusCode = normalizeRequiredCode(
+                "approvalStatusCode",
+                request.approvalStatusCode(),
+                APPROVAL_DECISION_STATUS_CODES
+        );
+        if (!"REQUESTED".equals(row.approvalStatusCode())) {
+            throw invalidStatusTransition("승인 요청 상태인 공고만 승인 처리할 수 있습니다.");
+        }
+        if (announcementDao.selectRequestedApprovalRequestCount(announcementId) <= 0) {
+            throw invalidStatusTransition("처리할 승인 요청이 없습니다.");
+        }
+
+        int decidedCount = announcementDao.updateAnnouncementApprovalDecision(new AnnouncementApprovalDecisionCommand(
+                announcementId,
+                approvalStatusCode,
+                trimToNull(request.decisionNote()),
+                actorUserId
+        ));
+        if (decidedCount == 0) {
+            throw invalidStatusTransition("처리할 승인 요청이 없습니다.");
+        }
+        updateApprovalStatus(announcementId, approvalStatusCode, actorUserId);
+        return selectAnnouncementDetails(announcementId);
     }
 
     private void replaceAnnouncementOptions(
@@ -633,6 +697,21 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private ApiException validation(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
+    }
+
+    private void updateApprovalStatus(UUID announcementId, String approvalStatusCode, UUID actorUserId) {
+        int updatedCount = announcementDao.updateAnnouncementApprovalStatus(new AnnouncementApprovalStatusCommand(
+                announcementId,
+                approvalStatusCode,
+                actorUserId
+        ));
+        if (updatedCount == 0) {
+            throw notFound();
+        }
+    }
+
+    private ApiException invalidStatusTransition(String message) {
+        return new ApiException(ErrorCode.INVALID_STATUS_TRANSITION, HttpStatus.CONFLICT, message);
     }
 
     private ApiException notFound() {

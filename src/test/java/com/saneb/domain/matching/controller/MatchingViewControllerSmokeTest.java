@@ -1,4 +1,4 @@
-package com.saneb.domain.announcement.controller;
+package com.saneb.domain.matching.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -16,23 +16,35 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = "spring.flyway.enabled=false")
 @AutoConfigureMockMvc
-class AnnouncementViewControllerSmokeTest {
+class MatchingViewControllerSmokeTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     @WithMockUser(username = "operator01", roles = "OPERATOR")
-    void selectAnnouncementInputPageReturnsThymeleafView() throws Exception {
-        mockMvc.perform(get("/app/announcements/input"))
+    void selectMatchingCasePageReturnsThymeleafView() throws Exception {
+        mockMvc.perform(get("/app/matching/cases"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("app/announcement-input"))
-                .andExpect(content().string(containsString("공고 대표 대상")))
-                .andExpect(content().string(containsString("공고 기준 지원금액 범위")))
-                .andExpect(content().string(containsString("승인 상태")))
-                .andExpect(content().string(containsString("data-announcement-approval-form")))
-                .andExpect(content().string(containsString("/api/v1/announcements")))
-                .andExpect(content().string(containsString("data-announcement-basic-form")))
+                .andExpect(view().name("app/matching-cases"))
+                .andExpect(content().string(containsString("매칭 관리")))
+                .andExpect(content().string(containsString("data-matching-app")))
+                .andExpect(content().string(containsString("/api/v1/matching/cases")))
                 .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    @Test
+    @WithMockUser(username = "approver01", roles = "APPROVER")
+    void selectMatchingCasePageAllowsApprover() throws Exception {
+        mockMvc.perform(get("/app/matching/cases"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/matching-cases"));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void selectMatchingCasePageRejectsUser() throws Exception {
+        mockMvc.perform(get("/app/matching/cases"))
+                .andExpect(status().isForbidden());
     }
 }

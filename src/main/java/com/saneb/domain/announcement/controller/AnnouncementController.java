@@ -2,6 +2,8 @@ package com.saneb.domain.announcement.controller;
 
 import com.saneb.common.response.ApiResponse;
 import com.saneb.common.response.PageResponse;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalDecisionRequest;
+import com.saneb.domain.announcement.dto.AnnouncementApprovalRequestCreateRequest;
 import com.saneb.domain.announcement.dto.AnnouncementConditionsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementDetailsResponse;
 import com.saneb.domain.announcement.dto.AnnouncementManualStatusUpdateRequest;
@@ -115,5 +117,33 @@ public class AnnouncementController {
 	) {
 		announcementService.updateAnnouncementManualStatus(authentication, announcementId, request);
 		return ApiResponse.success(null);
+	}
+
+	@PostMapping("/{announcementId}/approval-requests")
+	@PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+	public ApiResponse<AnnouncementDetailsResponse> insertAnnouncementApprovalRequest(
+			Authentication authentication,
+			@PathVariable UUID announcementId,
+			@Valid @RequestBody AnnouncementApprovalRequestCreateRequest request
+	) {
+		return ApiResponse.success(announcementService.insertAnnouncementApprovalRequest(
+				authentication,
+				announcementId,
+				request
+		));
+	}
+
+	@PatchMapping("/{announcementId}/approval")
+	@PreAuthorize("hasAnyRole('APPROVER', 'ADMIN')")
+	public ApiResponse<AnnouncementDetailsResponse> updateAnnouncementApproval(
+			Authentication authentication,
+			@PathVariable UUID announcementId,
+			@Valid @RequestBody AnnouncementApprovalDecisionRequest request
+	) {
+		return ApiResponse.success(announcementService.updateAnnouncementApproval(
+				authentication,
+				announcementId,
+				request
+		));
 	}
 }
