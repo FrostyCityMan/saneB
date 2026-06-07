@@ -8,7 +8,7 @@
     const form = app.querySelector("[data-progress-dynamic-form]");
     const message = app.querySelector("[data-progress-dynamic-message]");
     const summary = app.querySelector("[data-progress-dynamic-summary]");
-    const actionForm = app.querySelector("[data-progress-action-form]");
+    const actionForms = Array.from(app.querySelectorAll("[data-progress-action-form]"));
     const submitButton = app.querySelector("[data-progress-dynamic-submit]");
     let currentValues = [];
     let currentRequirements = new Map();
@@ -276,11 +276,14 @@
                 messageNode.hidden = !missing;
             }
         });
-        const actionButton = actionForm?.querySelector("button[type='submit']");
-        if (actionButton) {
+        actionForms.forEach((actionForm) => {
+            const actionButton = actionForm.querySelector("button[type='submit']");
+            if (!actionButton) {
+                return;
+            }
             actionButton.disabled = missingRequired.length > 0;
             actionButton.title = missingRequired.length > 0 ? "필수 입력값 저장 후 진행할 수 있습니다." : "";
-        }
+        });
     };
 
     const renderFields = () => {

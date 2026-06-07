@@ -197,8 +197,8 @@
                                     </select>
                                 </div>
                                 <div class="field-block">
-                                    <label>업종 코드</label>
-                                    <input name="ksicCode" type="text" maxlength="30" placeholder="예: 47911">
+                                    <label>업종 번호</label>
+                                    <input name="ksicCode" type="text" maxlength="30" placeholder="예: 47911 또는 음식점업">
                                 </div>
                                 <div class="condition-row-actions">
                                     <button class="secondary-action" type="button" data-industry-condition-remove>삭제</button>
@@ -227,8 +227,8 @@
                                     </select>
                                 </div>
                                 <div class="field-block">
-                                    <label>조건 키</label>
-                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: ANNUAL_REVENUE">
+                                    <label>조건 항목</label>
+                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: 연 매출">
                                 </div>
                                 <div class="field-block">
                                     <label>비교 방식</label>
@@ -246,7 +246,7 @@
                                     <input name="valueNumber" type="number" min="0" step="1" placeholder="값">
                                     <input name="minNumber" type="number" min="0" step="1" placeholder="최소">
                                     <input name="maxNumber" type="number" min="0" step="1" placeholder="최대">
-                                    <input name="unitCode" type="text" maxlength="30" placeholder="단위 코드 예: KRW">
+                                    <input name="unitCode" type="text" maxlength="30" placeholder="단위 예: 원, 명, 개월">
                                 </div>
                                 <div class="condition-row-actions">
                                     <button class="secondary-action" type="button" data-numeric-condition-remove>삭제</button>
@@ -275,12 +275,12 @@
                                     </select>
                                 </div>
                                 <div class="field-block">
-                                    <label>조건 키</label>
-                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: BUSINESS_TYPE">
+                                    <label>조건 항목</label>
+                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: 사업자 유형">
                                 </div>
                                 <div class="field-block">
-                                    <label>옵션 코드</label>
-                                    <input name="optionCode" type="text" maxlength="80" placeholder="예: SOLE_PROPRIETOR">
+                                    <label>선택값</label>
+                                    <input name="optionCode" type="text" maxlength="80" placeholder="예: 개인사업자">
                                 </div>
                                 <div class="field-block">
                                     <label>옵션 메모</label>
@@ -301,8 +301,8 @@
                         <div class="condition-list" data-document-requirement-list>
                             <article class="condition-row document-requirement-row" data-document-requirement-row>
                                 <div class="field-block span-2">
-                                    <label>서류 코드</label>
-                                    <input name="documentTypeCode" type="text" maxlength="80" value="BUSINESS_REGISTRATION" placeholder="예: BUSINESS_REGISTRATION">
+                                    <label>서류 종류</label>
+                                    <input name="documentTypeCode" type="text" maxlength="80" value="BUSINESS_REGISTRATION" placeholder="예: 사업자등록증">
                                 </div>
                                 <label class="inline-check">
                                     <input name="required" type="checkbox" checked> 필수
@@ -359,16 +359,16 @@
                                     <textarea name="actionGuide" rows="2" placeholder="예: 진행 의사를 선택하세요."></textarea>
                                 </div>
                                 <div class="field-block">
-                                    <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: WANTS_TO_PROGRESS">
+                                    <label>다음 단계 기준</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 진행 의사 확인">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 라벨</label>
+                                    <label>버튼 이름</label>
                                     <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 진행 원함">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: WANTS_TO_PROGRESS">
+                                    <label>버튼 식별값</label>
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 진행원함">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>
@@ -409,16 +409,16 @@
                                     <textarea name="actionGuide" rows="2" placeholder="예: 신청 완료 여부를 확인하세요."></textarea>
                                 </div>
                                 <div class="field-block">
-                                    <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: APPLICATION_SUBMITTED">
+                                    <label>다음 단계 기준</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 신청 접수 완료">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 라벨</label>
+                                    <label>버튼 이름</label>
                                     <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 신청 완료">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: APPLICATION_SUBMITTED">
+                                    <label>버튼 식별값</label>
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 신청완료">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>
@@ -459,16 +459,16 @@
                                     <textarea name="actionGuide" rows="2" placeholder="예: 확인된 결과만 최종 매칭으로 표시합니다."></textarea>
                                 </div>
                                 <div class="field-block">
-                                    <label>다음 조건 코드</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: RESULT_CONFIRMED">
+                                    <label>다음 단계 기준</label>
+                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 결과 확인 완료">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 라벨</label>
+                                    <label>버튼 이름</label>
                                     <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 결과 확인">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 코드</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: RESULT_CONFIRMED">
+                                    <label>버튼 식별값</label>
+                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 결과확인">
                                 </div>
                                 <div class="field-block">
                                     <label>요구 서류</label>

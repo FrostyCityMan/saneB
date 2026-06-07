@@ -95,7 +95,8 @@ class ApplicationProgressControllerSmokeTest {
                         .with(user(operatorPrincipal())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.stepStates[0].stepId").value(STEP_ID.toString()));
+                .andExpect(jsonPath("$.data.stepStates[0].stepId").value(STEP_ID.toString()))
+                .andExpect(jsonPath("$.data.stepButtons[0].buttonLabel").value("진행 원함"));
     }
 
     @Test
@@ -232,6 +233,14 @@ class ApplicationProgressControllerSmokeTest {
                         true,
                         now,
                         USER_ID
+                )),
+                List.of(new ApplicationProgressDetailsResponse.StepButtonResponse(
+                        STEP_ID,
+                        "WANTS_TO_PROGRESS",
+                        "진행 원함",
+                        "MOVE_NEXT",
+                        null,
+                        1
                 ))
         );
     }

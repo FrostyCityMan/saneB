@@ -387,7 +387,7 @@
                 return;
             }
             if (!conditionKey || !optionCode) {
-                throw new Error("선택/상태 조건은 조건 키와 옵션 코드를 모두 입력해 주세요.");
+                throw new Error("선택/상태 조건은 조건 항목과 선택값을 모두 입력해 주세요.");
             }
             optionConditions.push({
                 conditionScopeCode: valueOf(row, "[name='conditionScopeCode']") || selectedTargetCode(),
@@ -646,13 +646,13 @@
         const fieldKeyBlock = document.createElement("div");
         fieldKeyBlock.className = "field-block";
         const fieldKeyLabel = document.createElement("label");
-        fieldKeyLabel.textContent = "항목 코드";
+        fieldKeyLabel.textContent = "항목 식별값";
         const fieldKeyInput = document.createElement("input");
         fieldKeyInput.name = "fieldKey";
         fieldKeyInput.type = "text";
         fieldKeyInput.maxLength = 80;
         fieldKeyInput.required = true;
-        fieldKeyInput.placeholder = "예: ANNUAL_REVENUE";
+        fieldKeyInput.placeholder = "예: 연매출";
         fieldKeyInput.value = requirement.fieldKey || "";
         fieldKeyBlock.append(fieldKeyLabel, fieldKeyInput);
 
@@ -690,7 +690,7 @@
         const optionTextarea = document.createElement("textarea");
         optionTextarea.name = "options";
         optionTextarea.rows = 3;
-        optionTextarea.placeholder = "OPTION_CODE=화면에 보일 이름";
+        optionTextarea.placeholder = "선택값=화면에 보일 이름";
         optionTextarea.value = optionListText(requirement.options);
         const optionHelp = document.createElement("small");
         optionHelp.textContent = "목록 선택, 하나만 선택, 여러 개 선택 유형에서만 사용합니다. 한 줄에 하나씩 입력합니다.";

@@ -273,7 +273,8 @@ Backend 필요:
 
 2. `GET /api/v1/dashboard/me/current-action`
    - 현재 해야 할 행동 1개
-   - 버튼 코드
+   - 사용자 표시 버튼 이름
+   - 서버 전송용 내부 buttonCode
    - 이동 route
    - 마감/권장 완료일
 

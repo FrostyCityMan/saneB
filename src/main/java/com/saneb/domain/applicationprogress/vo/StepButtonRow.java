@@ -5,7 +5,9 @@ import java.util.UUID;
 public record StepButtonRow(
         UUID stepId,
         String buttonCode,
+        String buttonLabel,
         String buttonActionCode,
-        UUID nextStepId
+        UUID nextStepId,
+        int sortOrder
 ) {
 }

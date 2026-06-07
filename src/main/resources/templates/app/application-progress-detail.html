@@ -9,7 +9,7 @@
         <div class="flow-workspace">
             <section class="flow-hero">
                 <div>
-                    <span class="eyebrow">Application Progress</span>
+                    <span class="eyebrow">신청 진행</span>
                     <h2>현재 단계와 필요한 행동을 한 화면에서 처리합니다.</h2>
                     <p>단계 이동, 체크리스트, 접수 정보, 최종 결과는 서버 검증 후 저장합니다.</p>
                 </div>
@@ -85,7 +85,7 @@
             <section class="flow-panel dynamic-progress-panel" th:if="${page.details != null}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Dynamic Input</span>
+                        <span class="eyebrow">추가 정보</span>
                         <h2>추가 입력 정보</h2>
                     </div>
                     <span class="soft-status" data-progress-dynamic-summary>불러오는 중</span>
@@ -107,10 +107,10 @@
             <section class="flow-panel" th:if="${page.details != null}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Steps</span>
+                        <span class="eyebrow">진행 단계</span>
                         <h2>단계별 진행 상태</h2>
                     </div>
-                    <span class="soft-status" th:text="${page.details.statusCode}">IN_PROGRESS</span>
+                    <span class="soft-status" th:text="${page.details.statusLabel}">진행 중</span>
                 </div>
                 <div class="flow-step-list">
                     <article class="flow-step"
@@ -136,7 +136,7 @@
             <section class="flow-panel" th:if="${page.details != null}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Checklist</span>
+                        <span class="eyebrow">준비 서류</span>
                         <h2>현재 단계 체크리스트</h2>
                     </div>
                     <span class="soft-status">서버 검증 기준</span>
@@ -172,25 +172,27 @@
             <section class="flow-panel" th:if="${page.details != null and page.currentStep != null}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Action</span>
+                        <span class="eyebrow">다음 행동</span>
                         <h2>단계 행동 처리</h2>
                     </div>
-                    <span class="soft-status">버튼 코드 필요</span>
+                    <span class="soft-status">버튼 선택</span>
                 </div>
-                <form class="flow-form action-submit-form"
-                      data-progress-action-form
-                      th:action="@{/app/application-progresses/{progressId}/steps/{stepId}/action(progressId=${page.details.progressId}, stepId=${page.currentStep.stepId})}"
-                      method="post">
-                    <div class="field-block">
-                        <label for="buttonCode">버튼 코드</label>
-                        <input id="buttonCode" name="buttonCode" type="text" maxlength="80" required
-                               placeholder="공고 단계 버튼 코드">
-                        <small>상세 응답에 버튼 목록이 포함되지 않으므로 서버에 등록된 코드만 입력합니다.</small>
-                    </div>
-                    <div class="form-actions">
-                        <button class="primary-action button-action" type="submit">단계 행동 처리</button>
-                    </div>
-                </form>
+                <div class="progress-action-buttons" th:if="${!#lists.isEmpty(page.currentStepButtons)}">
+                    <form class="flow-form action-submit-form"
+                          data-progress-action-form
+                          th:each="button : ${page.currentStepButtons}"
+                          th:action="@{/app/application-progresses/{progressId}/steps/{stepId}/action(progressId=${page.details.progressId}, stepId=${page.currentStep.stepId})}"
+                          method="post">
+                        <input type="hidden" name="buttonCode" th:value="${button.buttonCode}">
+                        <button class="primary-action button-action" type="submit" th:text="${button.buttonLabel}">
+                            다음 단계로 진행
+                        </button>
+                        <small th:text="${button.actionLabel}">다음 단계 이동</small>
+                    </form>
+                </div>
+                <p class="empty-state" th:if="${#lists.isEmpty(page.currentStepButtons)}">
+                    현재 단계에 등록된 행동 버튼이 없습니다. 공고 입력 화면에서 단계 버튼을 확인해 주세요.
+                </p>
             </section>
 
             <section class="flow-grid-2" th:if="${page.details != null and page.canOperate}">
@@ -199,7 +201,7 @@
                       method="post">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Receipt</span>
+                            <span class="eyebrow">접수</span>
                             <h2>접수 정보</h2>
                         </div>
                     </div>
@@ -225,13 +227,13 @@
                       method="post">
                     <div class="panel-heading compact-heading">
                         <div>
-                            <span class="eyebrow">Result</span>
+                            <span class="eyebrow">결과</span>
                             <h2>최종 결과</h2>
                         </div>
                     </div>
                     <div class="form-grid single-grid">
                         <div class="field-block">
-                            <label for="resultCode">결과 코드</label>
+                            <label for="resultCode">처리 결과</label>
                             <select id="resultCode" name="resultCode" required>
                                 <option value="APPROVED">승인</option>
                                 <option value="REJECTED">탈락</option>
@@ -266,7 +268,7 @@
             <section class="flow-panel">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">List</span>
+                        <span class="eyebrow">목록</span>
                         <h2>진행 목록</h2>
                     </div>
                     <a th:href="@{/app/application-progresses}">전체</a>
@@ -289,7 +291,7 @@
             <section class="flow-panel" th:if="${page.details != null}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Summary</span>
+                        <span class="eyebrow">요약</span>
                         <h2>처리 결과 요약</h2>
                     </div>
                 </div>

@@ -22,7 +22,8 @@ public record ApplicationProgressDetailsResponse(
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt,
         List<StepStateResponse> stepStates,
-        List<ChecklistResponse> checklists
+        List<ChecklistResponse> checklists,
+        List<StepButtonResponse> stepButtons
 ) {
 
     public record StepStateResponse(
@@ -45,6 +46,16 @@ public record ApplicationProgressDetailsResponse(
             boolean checked,
             OffsetDateTime checkedAt,
             UUID checkedBy
+    ) {
+    }
+
+    public record StepButtonResponse(
+            UUID stepId,
+            String buttonCode,
+            String buttonLabel,
+            String buttonActionCode,
+            UUID nextStepId,
+            int sortOrder
     ) {
     }
 }

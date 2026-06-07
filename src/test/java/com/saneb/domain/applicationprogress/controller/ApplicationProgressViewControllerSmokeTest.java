@@ -38,6 +38,8 @@ class ApplicationProgressViewControllerSmokeTest {
     private static final UUID PROGRESS_ID = UUID.fromString("61000000-0000-0000-0000-000000000001");
     private static final UUID MATCHING_CASE_ID = UUID.fromString("61000000-0000-0000-0000-000000000002");
     private static final UUID ANNOUNCEMENT_ID = UUID.fromString("61000000-0000-0000-0000-000000000003");
+    private static final UUID STEP_ID = UUID.fromString("61000000-0000-0000-0000-000000000004");
+    private static final UUID STEP_STATE_ID = UUID.fromString("61000000-0000-0000-0000-000000000005");
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,6 +63,8 @@ class ApplicationProgressViewControllerSmokeTest {
                 .thenReturn(PageResponse.of(List.of(matchingSummary()), 1, 20, 1));
         when(applicationProgressService.insertApplicationProgress(any(), any()))
                 .thenReturn(progressDetails());
+        when(applicationProgressService.selectApplicationProgressDetails(PROGRESS_ID))
+                .thenReturn(progressDetails());
     }
 
     @Test
@@ -72,6 +76,17 @@ class ApplicationProgressViewControllerSmokeTest {
                 .andExpect(content().string(containsString("신청 가능한 공고")))
                 .andExpect(content().string(containsString("검증 없이 진행 가능")))
                 .andExpect(content().string(containsString("신청 시작")));
+    }
+
+    @Test
+    void selectApplicationProgressDetailsPageShowsConfiguredStepButtons() throws Exception {
+        mockMvc.perform(get("/app/application-progresses/{progressId}", PROGRESS_ID)
+                        .with(user("local_user").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/application-progress-detail"))
+                .andExpect(content().string(containsString("다음 행동")))
+                .andExpect(content().string(containsString("진행 원함")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("버튼 코드"))));
     }
 
     @Test
@@ -119,7 +134,7 @@ class ApplicationProgressViewControllerSmokeTest {
                 MATCHING_CASE_ID,
                 ANNOUNCEMENT_ID,
                 USER_ID,
-                null,
+                STEP_ID,
                 "READY",
                 null,
                 null,
@@ -129,8 +144,24 @@ class ApplicationProgressViewControllerSmokeTest {
                 null,
                 now,
                 now,
+                List.of(new ApplicationProgressDetailsResponse.StepStateResponse(
+                        STEP_STATE_ID,
+                        STEP_ID,
+                        1,
+                        "진행 의사 확인",
+                        "READY",
+                        now,
+                        null
+                )),
                 List.of(),
-                List.of()
+                List.of(new ApplicationProgressDetailsResponse.StepButtonResponse(
+                        STEP_ID,
+                        "WANTS_TO_PROGRESS",
+                        "진행 원함",
+                        "MOVE_NEXT",
+                        null,
+                        1
+                ))
         );
     }
 }

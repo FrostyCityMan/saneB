@@ -114,7 +114,6 @@
         [
             ["공고 ID", item.announcementId],
             ["회원 ID", item.memberUserId],
-            ["검증 ID", item.verificationId || "없음"],
             ["차단 사유", item.blockedReasonCode || "없음"]
         ].forEach(([label, value]) => {
             const group = document.createElement("div");
@@ -142,7 +141,7 @@
         reason.name = "blockedReasonCode";
         reason.type = "text";
         reason.maxLength = 80;
-        reason.placeholder = "차단 사유 코드";
+        reason.placeholder = "차단 사유(선택)";
         reason.value = item.blockedReasonCode || "";
         const button = document.createElement("button");
         button.className = "secondary-action";

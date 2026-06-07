@@ -346,6 +346,25 @@ public class ApplicationProgressViewController {
         };
     }
 
+    private static String stepButtonLabel(ApplicationProgressDetailsResponse.StepButtonResponse response) {
+        if (response.buttonLabel() != null && !response.buttonLabel().isBlank()) {
+            return response.buttonLabel();
+        }
+        return switch (response.buttonActionCode()) {
+            case "MOVE_NEXT" -> "다음 단계로 진행";
+            case "COMPLETE_STEP" -> "현재 단계 완료";
+            default -> "진행 처리";
+        };
+    }
+
+    private static String stepButtonActionLabel(String code) {
+        return switch (code) {
+            case "MOVE_NEXT" -> "다음 단계 이동";
+            case "COMPLETE_STEP" -> "단계 완료";
+            default -> "진행 처리";
+        };
+    }
+
     private static String documentTypeLabel(String code) {
         return switch (code) {
             case "BUSINESS_REGISTRATION" -> "사업자등록증";
@@ -373,6 +392,19 @@ public class ApplicationProgressViewController {
         return value == null ? "기록 없음" : value.format(DATE_TIME_FORMAT);
     }
 
+    private static List<StepButtonModel> selectCurrentStepButtons(
+            ApplicationProgressDetailsResponse details,
+            StepStateModel currentStep
+    ) {
+        if (details == null || currentStep == null || details.stepButtons() == null) {
+            return List.of();
+        }
+        return details.stepButtons().stream()
+                .filter(button -> currentStep.stepId().equals(button.stepId()))
+                .map(StepButtonModel::from)
+                .toList();
+    }
+
     public record ApplicationProgressPageModel(
             AuthMeResponse auth,
             String roleLabel,
@@ -383,7 +415,8 @@ public class ApplicationProgressViewController {
             List<SummaryModel> progressItems,
             long totalCount,
             DetailsModel details,
-            StepStateModel currentStep
+            StepStateModel currentStep,
+            List<StepButtonModel> currentStepButtons
     ) {
 
         private static ApplicationProgressPageModel from(
@@ -394,6 +427,7 @@ public class ApplicationProgressViewController {
                 StepStateModel currentStep,
                 List<StartableMatchingModel> startableMatchings
         ) {
+            DetailsModel detailsModel = details == null ? null : DetailsModel.from(details);
             return new ApplicationProgressPageModel(
                     auth,
                     ApplicationProgressViewController.roleLabel(auth.primaryRole()),
@@ -403,8 +437,9 @@ public class ApplicationProgressViewController {
                     startableMatchings,
                     progressPage.items().stream().map(SummaryModel::from).toList(),
                     progressPage.totalCount(),
-                    details == null ? null : DetailsModel.from(details),
-                    currentStep
+                    detailsModel,
+                    currentStep,
+                    selectCurrentStepButtons(details, currentStep)
             );
         }
     }
@@ -469,7 +504,8 @@ public class ApplicationProgressViewController {
             String resultDateText,
             String receivedAmountText,
             List<StepStateModel> stepStates,
-            List<ChecklistModel> checklists
+            List<ChecklistModel> checklists,
+            List<StepButtonModel> stepButtons
     ) {
 
         private static DetailsModel from(ApplicationProgressDetailsResponse response) {
@@ -489,7 +525,25 @@ public class ApplicationProgressViewController {
                     response.resultDate() == null ? "결과일 미입력" : response.resultDate().toString(),
                     amountText(response.receivedAmount()),
                     response.stepStates().stream().map(StepStateModel::from).toList(),
-                    response.checklists().stream().map(ChecklistModel::from).toList()
+                    response.checklists().stream().map(ChecklistModel::from).toList(),
+                    response.stepButtons().stream().map(StepButtonModel::from).toList()
+            );
+        }
+    }
+
+    public record StepButtonModel(
+            UUID stepId,
+            String buttonCode,
+            String buttonLabel,
+            String actionLabel
+    ) {
+
+        private static StepButtonModel from(ApplicationProgressDetailsResponse.StepButtonResponse response) {
+            return new StepButtonModel(
+                    response.stepId(),
+                    response.buttonCode(),
+                    stepButtonLabel(response),
+                    stepButtonActionLabel(response.buttonActionCode())
             );
         }
     }

@@ -193,7 +193,8 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         return toDetailsResponse(
                 row,
                 applicationProgressDao.selectApplicationStepStateList(progressId),
-                applicationProgressDao.selectApplicationChecklistList(progressId)
+                applicationProgressDao.selectApplicationChecklistList(progressId),
+                applicationProgressDao.selectStepButtonList(progressId)
         );
     }
 
@@ -403,7 +404,8 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
     private ApplicationProgressDetailsResponse toDetailsResponse(
             ApplicationProgressRow row,
             List<ApplicationStepStateRow> stepStates,
-            List<ApplicationChecklistRow> checklists
+            List<ApplicationChecklistRow> checklists,
+            List<StepButtonRow> stepButtons
     ) {
         return new ApplicationProgressDetailsResponse(
                 row.progressId(),
@@ -421,7 +423,8 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                 row.createdAt(),
                 row.updatedAt(),
                 nullToEmpty(stepStates).stream().map(this::toStepStateResponse).toList(),
-                nullToEmpty(checklists).stream().map(this::toChecklistResponse).toList()
+                nullToEmpty(checklists).stream().map(this::toChecklistResponse).toList(),
+                nullToEmpty(stepButtons).stream().map(this::toStepButtonResponse).toList()
         );
     }
 
@@ -447,6 +450,17 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                 Boolean.TRUE.equals(row.checked()),
                 row.checkedAt(),
                 row.checkedBy()
+        );
+    }
+
+    private ApplicationProgressDetailsResponse.StepButtonResponse toStepButtonResponse(StepButtonRow row) {
+        return new ApplicationProgressDetailsResponse.StepButtonResponse(
+                row.stepId(),
+                row.buttonCode(),
+                row.buttonLabel(),
+                row.buttonActionCode(),
+                row.nextStepId(),
+                row.sortOrder()
         );
     }
 

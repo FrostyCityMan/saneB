@@ -43,6 +43,8 @@ public interface ApplicationProgressDao {
 
     List<ApplicationChecklistRow> selectApplicationChecklistList(@Param("progressId") UUID progressId);
 
+    List<StepButtonRow> selectStepButtonList(@Param("progressId") UUID progressId);
+
     StepButtonRow selectStepButton(
             @Param("stepId") UUID stepId,
             @Param("buttonCode") String buttonCode

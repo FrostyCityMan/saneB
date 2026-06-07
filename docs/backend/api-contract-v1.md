@@ -573,8 +573,8 @@ Member / Business / Family API skeleton 착수 기준:
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `POST` | `/api/v1/application-progresses` | `USER`, `OPERATOR`, `ADMIN` | 매칭 케이스에서 진행 시작 |
-| `GET` | `/api/v1/application-progresses` | `USER`, `PARTNER`, `OPERATOR` | 진행 목록 |
-| `GET` | `/api/v1/application-progresses/{progressId}` | `USER`, `PARTNER`, `OPERATOR` | 진행 상세 |
+| `GET` | `/api/v1/application-progresses` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 진행 목록 |
+| `GET` | `/api/v1/application-progresses/{progressId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 진행 상세 |
 | `PATCH` | `/api/v1/application-progresses/{progressId}/steps/{stepId}/action` | `USER`, `PARTNER`, `OPERATOR` | 단계 행동 처리 |
 | `PUT` | `/api/v1/application-progresses/{progressId}/steps/{stepId}/documents` | `USER`, `PARTNER`, `OPERATOR` | 단계 체크리스트 저장 |
 | `PATCH` | `/api/v1/application-progresses/{progressId}/receipt` | `PARTNER`, `OPERATOR` | 접수번호/접수일 저장 |
@@ -589,6 +589,50 @@ Member / Business / Family API skeleton 착수 기준:
 ```
 
 일반 사용자는 본인 `matchingCaseId`만 진행 시작할 수 있다. 운영자와 관리자는 기존처럼 다른 회원의 매칭 케이스를 진행 시작할 수 있다. `matching_cases.verification_id`가 `null`인 매칭 케이스도 `statusCode = MATCHED`이고 공고 진행 단계가 있으면 신청 진행을 시작할 수 있다.
+
+#### ApplicationProgressDetailsResponse
+
+`GET /api/v1/application-progresses/{progressId}`와 진행 처리 API 응답은 진행 상태, 체크리스트, 현재 공고 단계에 등록된 행동 버튼 목록을 함께 반환한다.
+
+```json
+{
+  "progressId": "uuid",
+  "matchingCaseId": "uuid",
+  "announcementId": "uuid",
+  "memberUserId": "uuid",
+  "currentStepId": "uuid",
+  "statusCode": "IN_PROGRESS",
+  "stepStates": [
+    {
+      "stepId": "uuid",
+      "stepOrder": 1,
+      "stepName": "진행 의사 확인",
+      "statusCode": "READY"
+    }
+  ],
+  "checklists": [
+    {
+      "stepDocumentId": "uuid",
+      "stepId": "uuid",
+      "documentTypeCode": "BUSINESS_REGISTRATION",
+      "required": true,
+      "checked": false
+    }
+  ],
+  "stepButtons": [
+    {
+      "stepId": "uuid",
+      "buttonCode": "WANTS_TO_PROGRESS",
+      "buttonLabel": "진행 원함",
+      "buttonActionCode": "MOVE_NEXT",
+      "nextStepId": "uuid",
+      "sortOrder": 1
+    }
+  ]
+}
+```
+
+화면은 `stepButtons` 중 현재 `currentStepId`와 같은 `stepId`의 버튼만 사용자에게 노출한다. 사용자는 `buttonCode`를 직접 입력하지 않고, 화면은 `buttonLabel`을 버튼 문구로 표시한 뒤 숨은 값으로 `buttonCode`를 서버에 전송한다.
 
 #### ProgressActionRequest
 
@@ -940,7 +984,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 | `DUPLICATE_PHONE` | 409 | 휴대폰 번호 중복 |
 | `DUPLICATE_BUSINESS_REGISTRATION_NO` | 409 | 사업자번호 중복 |
 | `ANNOUNCEMENT_NOT_APPROVED` | 409 | 승인되지 않은 공고 |
-| `VERIFICATION_NOT_VERIFIED` | 409 | 검증 완료 전 매칭 시도 |
+| `VERIFICATION_NOT_VERIFIED` | 409 | 검증 ID가 포함된 매칭 요청에서 검증 미완료 |
 | `MATCHING_BLOCKED` | 409 | 제한 플래그로 매칭 차단 |
 | `PROGRESS_STEP_LOCKED` | 409 | 잠긴 단계 접근 |
 | `PROGRESS_CONDITION_NOT_MET` | 409 | 단계 완료 조건 미충족 |
@@ -959,5 +1003,5 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 - Mapper XML에는 `${}`를 사용하지 않는다.
 - 권한은 서버에서 검증한다.
 - 공고 승인 전 매칭 생성은 차단한다.
-- 검증 완료 전 매칭 생성은 차단한다.
+- 검증 ID가 포함된 매칭 요청은 검증 완료 전 생성이 차단된다.
 - 매칭 응답에 추천도, 우선순위, 선정확률, 가점 값을 포함하지 않는다.

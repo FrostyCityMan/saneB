@@ -72,8 +72,10 @@
         <constructor>
             <arg column="step_id" javaType="java.util.UUID"/>
             <arg column="button_code" javaType="java.lang.String"/>
+            <arg column="button_label" javaType="java.lang.String"/>
             <arg column="button_action_code" javaType="java.lang.String"/>
             <arg column="next_step_id" javaType="java.util.UUID"/>
+            <arg column="sort_order" javaType="_int"/>
         </constructor>
     </resultMap>
 
@@ -253,11 +255,30 @@
         SELECT
             asb.step_id,
             asb.button_code,
+            asb.button_label,
             asb.button_action_code,
-            asb.next_step_id
+            asb.next_step_id,
+            asb.sort_order
         FROM announcement_step_buttons asb
         WHERE asb.step_id = #{stepId}
           AND asb.button_code = #{buttonCode}
+    </select>
+
+    <select id="selectStepButtonList" resultMap="StepButtonRowMap">
+        -- Select configured progress step buttons for display.
+        SELECT
+            asb.step_id,
+            asb.button_code,
+            asb.button_label,
+            asb.button_action_code,
+            asb.next_step_id,
+            asb.sort_order
+        FROM application_progresses ap
+        INNER JOIN announcement_progress_steps aps ON aps.announcement_id = ap.announcement_id
+        INNER JOIN announcement_step_buttons asb ON asb.step_id = aps.id
+        WHERE ap.id = #{progressId}
+          AND aps.is_active = true
+        ORDER BY aps.step_order ASC, asb.sort_order ASC, asb.id ASC
     </select>
 
     <select id="selectNextActiveStepId" resultType="java.util.UUID">

@@ -1890,9 +1890,25 @@ svg {
     gap: 14px;
 }
 
+.progress-action-buttons {
+    display: grid;
+    gap: 10px;
+}
+
 .action-submit-form {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+    align-items: center;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 13px;
+}
+
+.action-submit-form small {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
 }
 
 .single-grid {
