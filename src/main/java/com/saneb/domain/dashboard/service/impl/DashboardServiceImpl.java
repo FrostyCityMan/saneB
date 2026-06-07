@@ -79,6 +79,18 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         DashboardVerificationStatusRow verification = selectVerificationStatus(userId);
+        DashboardCandidateSummaryRow candidateSummary = selectCandidateSummary(userId);
+        if (hasStartableMatching(candidateSummary)) {
+            return new DashboardCurrentActionResponse(
+                    "APPLICATION_START_AVAILABLE",
+                    "신청 가능한 공고가 있습니다.",
+                    "검증이 완료되지 않아도 신청 가능한 공고는 바로 진행을 시작할 수 있습니다.",
+                    "신청 진행하기",
+                    "/app/application-progresses",
+                    null,
+                    15
+            );
+        }
         if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
             return new DashboardCurrentActionResponse(
                     VERIFICATION_DOCUMENT_REQUIRED,
@@ -167,7 +179,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private DashboardCandidateSummaryRow emptyCandidateSummary() {
-        return new DashboardCandidateSummaryRow(0, 0, 0, 0, null, null);
+        return new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null);
     }
 
     private DashboardProgressSummaryRow emptyProgressSummary() {
@@ -183,9 +195,6 @@ public class DashboardServiceImpl implements DashboardService {
             DashboardProgressSummaryRow progressSummary,
             DashboardCandidateSummaryRow candidateSummary
     ) {
-        if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
-            return VERIFICATION_REQUIRED;
-        }
         if (progressSummary.inProgressCount() > 0) {
             return "IN_PROGRESS";
         }
@@ -195,10 +204,20 @@ public class DashboardServiceImpl implements DashboardService {
         if (progressSummary.approvedCount() > 0 || progressSummary.stoppedCount() > 0) {
             return "COMPLETED";
         }
+        if (hasStartableMatching(candidateSummary)) {
+            return "MATCHING_READY";
+        }
+        if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
+            return VERIFICATION_REQUIRED;
+        }
         if (hasCandidate(candidateSummary)) {
             return "MATCHING_READY";
         }
         return "MATCHING_READY";
+    }
+
+    private boolean hasStartableMatching(DashboardCandidateSummaryRow candidateSummary) {
+        return candidateSummary.startableMatchedCount() > 0;
     }
 
     private boolean hasCandidate(DashboardCandidateSummaryRow candidateSummary) {

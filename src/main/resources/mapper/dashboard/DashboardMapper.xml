@@ -16,6 +16,7 @@
             <arg column="policy_fund_count" javaType="_int"/>
             <arg column="support_fund_count" javaType="_int"/>
             <arg column="subsidy_count" javaType="_int"/>
+            <arg column="startable_matched_count" javaType="_int"/>
             <arg column="final_matched_count" javaType="_int"/>
             <arg column="min_amount" javaType="java.math.BigDecimal"/>
             <arg column="max_amount" javaType="java.math.BigDecimal"/>
@@ -107,6 +108,9 @@
                       AND ao.option_code IN ('CASH', 'REFUND')
                 )
             ) AS integer) AS subsidy_count,
+            CAST(count(1) FILTER (
+                WHERE cc.status_code = 'MATCHED'
+            ) AS integer) AS startable_matched_count,
             CAST(count(1) FILTER (
                 WHERE cc.status_code IN ('MATCHED', 'PROGRESSED')
             ) AS integer) AS final_matched_count,

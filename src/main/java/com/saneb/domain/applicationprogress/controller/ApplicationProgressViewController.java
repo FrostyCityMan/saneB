@@ -3,6 +3,7 @@ package com.saneb.domain.applicationprogress.controller;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.applicationprogress.dto.ApplicationProgressDetailsResponse;
+import com.saneb.domain.applicationprogress.dto.ApplicationProgressStartRequest;
 import com.saneb.domain.applicationprogress.dto.ApplicationProgressSummaryResponse;
 import com.saneb.domain.applicationprogress.dto.ProgressActionRequest;
 import com.saneb.domain.applicationprogress.dto.ProgressChecklistSaveRequest;
@@ -11,6 +12,8 @@ import com.saneb.domain.applicationprogress.dto.ProgressResultSaveRequest;
 import com.saneb.domain.applicationprogress.service.ApplicationProgressService;
 import com.saneb.domain.auth.dto.AuthMeResponse;
 import com.saneb.domain.auth.service.AuthService;
+import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.service.MatchingService;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -43,13 +46,16 @@ public class ApplicationProgressViewController {
 
     private final AuthService authService;
     private final ApplicationProgressService applicationProgressService;
+    private final MatchingService matchingService;
 
     public ApplicationProgressViewController(
             AuthService authService,
-            ApplicationProgressService applicationProgressService
+            ApplicationProgressService applicationProgressService,
+            MatchingService matchingService
     ) {
         this.authService = authService;
         this.applicationProgressService = applicationProgressService;
+        this.matchingService = matchingService;
     }
 
     @GetMapping("/app/application-progresses")
@@ -77,7 +83,8 @@ public class ApplicationProgressViewController {
                 progressPage,
                 null,
                 blankToNull(statusCode),
-                null
+                null,
+                selectStartableMatchings(authMe)
         ));
         return "app/application-progress-detail";
     }
@@ -102,9 +109,30 @@ public class ApplicationProgressViewController {
                 progressPage,
                 details,
                 null,
-                selectCurrentStep(details)
+                selectCurrentStep(details),
+                selectStartableMatchings(authMe)
         ));
         return "app/application-progress-detail";
+    }
+
+    @PostMapping("/app/application-progresses/start")
+    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    public String insertApplicationProgress(
+            Authentication authentication,
+            @RequestParam UUID matchingCaseId,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            ApplicationProgressDetailsResponse details = applicationProgressService.insertApplicationProgress(
+                    authentication,
+                    new ApplicationProgressStartRequest(matchingCaseId)
+            );
+            addSuccess(redirectAttributes, "공고 신청 진행을 시작했습니다.");
+            return "redirect:/app/application-progresses/" + details.progressId();
+        } catch (RuntimeException exception) {
+            addError(redirectAttributes, exception);
+            return "redirect:/app/application-progresses";
+        }
     }
 
     @PostMapping("/app/application-progresses/{progressId}/steps/{stepId}/documents")
@@ -232,6 +260,24 @@ public class ApplicationProgressViewController {
         return auth.roles().stream().anyMatch(role -> Set.of(roles).contains(role));
     }
 
+    private List<StartableMatchingModel> selectStartableMatchings(AuthMeResponse authMe) {
+        if (!hasAnyRole(authMe, "USER")) {
+            return List.of();
+        }
+        return matchingService.selectMatchingCaseList(
+                        null,
+                        authMe.userId(),
+                        null,
+                        "MATCHED",
+                        1,
+                        20
+                )
+                .items()
+                .stream()
+                .map(StartableMatchingModel::from)
+                .toList();
+    }
+
     private static void addSuccess(RedirectAttributes redirectAttributes, String message) {
         redirectAttributes.addFlashAttribute("messageType", "success");
         redirectAttributes.addFlashAttribute("message", message);
@@ -273,6 +319,17 @@ public class ApplicationProgressViewController {
             case "SUPPLEMENT_REQUESTED" -> "보완 요청";
             case "STOPPED" -> "중단";
             case "COMPLETED" -> "완료";
+            default -> code;
+        };
+    }
+
+    private static String matchingStatusLabel(String code) {
+        return switch (code) {
+            case "MATCHED" -> "신청 가능";
+            case "REVIEW_REQUIRED" -> "확인 필요";
+            case "PROGRESSED" -> "진행 중";
+            case "BLOCKED" -> "진행 불가";
+            case "NOT_MATCHED" -> "대상 아님";
             default -> code;
         };
     }
@@ -322,6 +379,7 @@ public class ApplicationProgressViewController {
             String activeNav,
             String selectedStatusCode,
             boolean canOperate,
+            List<StartableMatchingModel> startableMatchings,
             List<SummaryModel> progressItems,
             long totalCount,
             DetailsModel details,
@@ -333,7 +391,8 @@ public class ApplicationProgressViewController {
                 PageResponse<ApplicationProgressSummaryResponse> progressPage,
                 ApplicationProgressDetailsResponse details,
                 String selectedStatusCode,
-                StepStateModel currentStep
+                StepStateModel currentStep,
+                List<StartableMatchingModel> startableMatchings
         ) {
             return new ApplicationProgressPageModel(
                     auth,
@@ -341,10 +400,28 @@ public class ApplicationProgressViewController {
                     "APPLICATION_PROGRESS",
                     selectedStatusCode,
                     hasAnyRole(auth, "PARTNER", "OPERATOR", "ADMIN"),
+                    startableMatchings,
                     progressPage.items().stream().map(SummaryModel::from).toList(),
                     progressPage.totalCount(),
                     details == null ? null : DetailsModel.from(details),
                     currentStep
+            );
+        }
+    }
+
+    public record StartableMatchingModel(
+            UUID matchingCaseId,
+            UUID announcementId,
+            String statusLabel,
+            String matchedAtText
+    ) {
+
+        private static StartableMatchingModel from(MatchingCaseSummaryResponse response) {
+            return new StartableMatchingModel(
+                    response.matchingCaseId(),
+                    response.announcementId(),
+                    matchingStatusLabel(response.statusCode()),
+                    dateTimeText(response.matchedAt())
             );
         }
     }

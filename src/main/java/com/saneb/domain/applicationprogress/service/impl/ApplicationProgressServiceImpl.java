@@ -87,6 +87,13 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         if (matchingCase == null) {
             throw notFound();
         }
+        if (!hasProgressStartOperatingRole(actor) && !matchingCase.memberUserId().equals(actor.userId())) {
+            throw new ApiException(
+                    ErrorCode.AUTH_FORBIDDEN,
+                    HttpStatus.FORBIDDEN,
+                    "본인의 공고만 진행할 수 있습니다."
+            );
+        }
         if (!"MATCHED".equals(matchingCase.statusCode())) {
             throw new ApiException(
                     ErrorCode.PROGRESS_CONDITION_NOT_MET,
@@ -465,6 +472,10 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
 
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
+    }
+
+    private boolean hasProgressStartOperatingRole(AuthenticatedUserDetails actor) {
+        return actor.roles().stream().anyMatch(role -> Set.of("OPERATOR", "ADMIN").contains(role));
     }
 
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {

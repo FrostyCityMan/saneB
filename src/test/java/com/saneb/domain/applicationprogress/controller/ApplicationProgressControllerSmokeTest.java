@@ -55,7 +55,7 @@ class ApplicationProgressControllerSmokeTest {
                 .thenReturn(details("READY"));
 
         mockMvc.perform(post("/api/v1/application-progresses")
-                        .with(user(operatorPrincipal()))
+                        .with(user(userPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -250,6 +250,23 @@ class ApplicationProgressControllerSmokeTest {
                         null
                 ),
                 List.of("OPERATOR")
+        );
+    }
+
+    private AuthenticatedUserDetails userPrincipal() {
+        return new AuthenticatedUserDetails(
+                new AuthUserDetailsRow(
+                        MEMBER_USER_ID,
+                        "local_user",
+                        "password-hash",
+                        "Local User",
+                        "ACTIVE",
+                        false,
+                        null,
+                        null,
+                        null
+                ),
+                List.of("USER")
         );
     }
 }

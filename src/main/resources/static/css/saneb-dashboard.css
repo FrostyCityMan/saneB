@@ -1689,6 +1689,50 @@ svg {
     padding: 20px;
 }
 
+.startable-matching-list {
+    display: grid;
+    gap: 12px;
+}
+
+.startable-matching-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    border: 1px solid var(--saneb-border);
+    border-radius: 8px;
+    background: #fffdf8;
+    padding: 14px;
+}
+
+.startable-matching-item span,
+.startable-matching-item small {
+    display: block;
+}
+
+.startable-matching-item > div > span {
+    color: var(--saneb-gold);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.startable-matching-item strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--saneb-text);
+    font-size: 14px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.startable-matching-item small {
+    margin-top: 5px;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
 .flow-action-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.84fr);
@@ -2869,7 +2913,8 @@ svg {
     .admin-role-checks,
     .matching-summary-grid,
     .matching-case-meta,
-    .matching-status-form {
+    .matching-status-form,
+    .startable-matching-item {
         grid-template-columns: 1fr;
     }
 

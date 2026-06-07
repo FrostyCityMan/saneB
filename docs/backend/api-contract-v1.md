@@ -572,7 +572,7 @@ Member / Business / Family API skeleton 착수 기준:
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `POST` | `/api/v1/application-progresses` | `OPERATOR` | 매칭 케이스에서 진행 시작 |
+| `POST` | `/api/v1/application-progresses` | `USER`, `OPERATOR`, `ADMIN` | 매칭 케이스에서 진행 시작 |
 | `GET` | `/api/v1/application-progresses` | `USER`, `PARTNER`, `OPERATOR` | 진행 목록 |
 | `GET` | `/api/v1/application-progresses/{progressId}` | `USER`, `PARTNER`, `OPERATOR` | 진행 상세 |
 | `PATCH` | `/api/v1/application-progresses/{progressId}/steps/{stepId}/action` | `USER`, `PARTNER`, `OPERATOR` | 단계 행동 처리 |
@@ -587,6 +587,8 @@ Member / Business / Family API skeleton 착수 기준:
   "matchingCaseId": "uuid"
 }
 ```
+
+일반 사용자는 본인 `matchingCaseId`만 진행 시작할 수 있다. 운영자와 관리자는 기존처럼 다른 회원의 매칭 케이스를 진행 시작할 수 있다. `matching_cases.verification_id`가 `null`인 매칭 케이스도 `statusCode = MATCHED`이고 공고 진행 단계가 있으면 신청 진행을 시작할 수 있다.
 
 #### ProgressActionRequest
 

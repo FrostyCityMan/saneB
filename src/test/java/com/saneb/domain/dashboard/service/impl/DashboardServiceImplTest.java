@@ -73,6 +73,7 @@ class DashboardServiceImplTest {
                         2,
                         1,
                         1,
+                        1,
                         3,
                         new BigDecimal("1000000.00"),
                         new BigDecimal("5000000.00")
@@ -101,7 +102,7 @@ class DashboardServiceImplTest {
                 new DashboardVerificationStatusRow("VERIFIED", OffsetDateTime.parse("2026-05-01T10:00:00+09:00"))
         );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
-                new DashboardCandidateSummaryRow(0, 0, 0, 0, null, null)
+                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null)
         );
         when(dashboardDao.selectProgressSummary(USER_ID)).thenReturn(
                 new DashboardProgressSummaryRow(0, 0, 0, 0, 0, BigDecimal.ZERO)
@@ -148,11 +149,31 @@ class DashboardServiceImplTest {
         when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
                 new DashboardVerificationStatusRow("DRAFT", null)
         );
+        when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
+                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null)
+        );
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
 
         assertThat(response.actionCode()).isEqualTo("VERIFICATION_DOCUMENT_REQUIRED");
         assertThat(response.primaryButtonLabel()).isEqualTo("검증 진행하기");
+    }
+
+    @Test
+    void selectMyCurrentActionAllowsApplicationStartBeforeVerificationWhenMatchedCaseExists() {
+        when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
+        when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
+                new DashboardVerificationStatusRow("DRAFT", null)
+        );
+        when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
+                new DashboardCandidateSummaryRow(0, 0, 0, 1, 1, null, null)
+        );
+
+        DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
+
+        assertThat(response.actionCode()).isEqualTo("APPLICATION_START_AVAILABLE");
+        assertThat(response.primaryButtonLabel()).isEqualTo("신청 진행하기");
+        assertThat(response.route()).isEqualTo("/app/application-progresses");
     }
 
     @Test

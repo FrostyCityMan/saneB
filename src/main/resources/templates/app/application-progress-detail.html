@@ -27,7 +27,35 @@
 
             <section class="flow-empty-panel" th:if="${page.details == null}">
                 <h2>선택된 신청 진행 건이 없습니다.</h2>
-                <p>오른쪽 목록에서 진행 건을 선택하거나 대시보드의 현재 행동 버튼으로 진입하세요.</p>
+                <p>오른쪽 목록에서 진행 건을 선택하거나 아래 신청 가능한 공고에서 진행을 시작하세요.</p>
+            </section>
+
+            <section class="flow-panel startable-matching-panel" th:if="${!#lists.isEmpty(page.startableMatchings)}">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">신청 시작</span>
+                        <h2>신청 가능한 공고</h2>
+                    </div>
+                    <span class="soft-status">검증 없이 진행 가능</span>
+                </div>
+                <div class="startable-matching-list">
+                    <article class="startable-matching-item" th:each="item : ${page.startableMatchings}">
+                        <div>
+                            <span th:text="${item.statusLabel}">신청 가능</span>
+                            <strong th:text="${item.announcementId}">공고 ID</strong>
+                            <small>
+                                매칭:
+                                <span th:text="${item.matchingCaseId}">매칭 ID</span>
+                                ·
+                                <span th:text="${item.matchedAtText}">기록 없음</span>
+                            </small>
+                        </div>
+                        <form th:action="@{/app/application-progresses/start}" method="post">
+                            <input type="hidden" name="matchingCaseId" th:value="${item.matchingCaseId}">
+                            <button class="primary-action button-action" type="submit">신청 시작</button>
+                        </form>
+                    </article>
+                </div>
             </section>
 
             <section class="flow-action-card" th:if="${page.details != null}">
