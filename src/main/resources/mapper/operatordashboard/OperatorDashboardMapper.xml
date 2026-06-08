@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.operatordashboard.dao.OperatorDashboardDao">
+
+    <resultMap id="OperatorAnnouncementWorkRowMap" type="com.saneb.domain.operatordashboard.vo.OperatorAnnouncementWorkRow">
+        <constructor>
+            <arg column="draft_count" javaType="_int"/>
+            <arg column="requested_count" javaType="_int"/>
+            <arg column="open_announcement_count" javaType="_int"/>
+            <arg column="paused_announcement_count" javaType="_int"/>
+            <arg column="closed_announcement_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="OperatorMatchingWorkRowMap" type="com.saneb.domain.operatordashboard.vo.OperatorMatchingWorkRow">
+        <constructor>
+            <arg column="matched_count" javaType="_int"/>
+            <arg column="review_required_count" javaType="_int"/>
+            <arg column="blocked_count" javaType="_int"/>
+            <arg column="progressed_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="OperatorApplicationProgressWorkRowMap" type="com.saneb.domain.operatordashboard.vo.OperatorApplicationProgressWorkRow">
+        <constructor>
+            <arg column="ready_count" javaType="_int"/>
+            <arg column="in_progress_count" javaType="_int"/>
+            <arg column="waiting_result_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+            <arg column="supplement_requested_count" javaType="_int"/>
+            <arg column="stopped_count" javaType="_int"/>
+            <arg column="total_received_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAnnouncementWork" resultMap="OperatorAnnouncementWorkRowMap">
+        -- 운영자 대시보드용 공고 입력과 승인 요청 현황을 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'DRAFT'
+            ) AS integer) AS draft_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'REQUESTED'
+            ) AS integer) AS requested_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'APPROVED'
+                  AND a.manual_status_code = 'NORMAL'
+                  AND (
+                      a.application_end_date IS NULL
+                      OR a.application_end_date >= CURRENT_DATE
+                  )
+            ) AS integer) AS open_announcement_count,
+            CAST(count(1) FILTER (
+                WHERE a.manual_status_code IN ('PAUSED', 'SUSPENDED', 'HIDDEN')
+            ) AS integer) AS paused_announcement_count,
+            CAST(count(1) FILTER (
+                WHERE a.manual_status_code IN ('EARLY_CLOSED', 'BUDGET_EXHAUSTED', 'CLOSED')
+                   OR a.application_end_date &lt; CURRENT_DATE
+            ) AS integer) AS closed_announcement_count
+        FROM announcements a
+    </select>
+
+    <select id="selectMatchingWork" resultMap="OperatorMatchingWorkRowMap">
+        -- 운영자 대시보드용 매칭 업무 상태를 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'MATCHED'
+            ) AS integer) AS matched_count,
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'REVIEW_REQUIRED'
+            ) AS integer) AS review_required_count,
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'BLOCKED'
+            ) AS integer) AS blocked_count,
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'PROGRESSED'
+            ) AS integer) AS progressed_count
+        FROM matching_cases mc
+    </select>
+
+    <select id="selectApplicationProgressWork" resultMap="OperatorApplicationProgressWorkRowMap">
+        -- 운영자 대시보드용 신청 진행 처리 현황과 수령 금액을 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'READY'
+            ) AS integer) AS ready_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'IN_PROGRESS'
+            ) AS integer) AS in_progress_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'WAITING_RESULT'
+            ) AS integer) AS waiting_result_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'APPROVED'
+            ) AS integer) AS approved_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'SUPPLEMENT_REQUESTED'
+            ) AS integer) AS supplement_requested_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'STOPPED'
+            ) AS integer) AS stopped_count,
+            COALESCE(
+                sum(
+                    CASE
+                        WHEN ap.received_amount IS NOT NULL
+                             AND (
+                                 ap.status_code IN ('APPROVED', 'COMPLETED')
+                                 OR ap.result_code = 'APPROVED'
+                             )
+                        THEN ap.received_amount
+                        ELSE 0
+                    END
+                ),
+                0
+            ) AS total_received_amount
+        FROM application_progresses ap
+    </select>
+</mapper>

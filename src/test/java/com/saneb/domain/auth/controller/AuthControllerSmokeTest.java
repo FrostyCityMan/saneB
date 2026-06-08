@@ -108,7 +108,7 @@ class AuthControllerSmokeTest {
     }
 
     @Test
-    void loginReturnsOperatorAnnouncementInputDefaultRoute() throws Exception {
+    void loginReturnsOperatorDashboardDefaultRoute() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("operator01"))
                 .thenReturn(activeUser(passwordEncoder.encode("password")));
         when(authDao.selectRoleCodeListByUserId(USER_ID)).thenReturn(List.of("OPERATOR"));
@@ -124,7 +124,7 @@ class AuthControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.primaryRole").value("OPERATOR"))
-                .andExpect(jsonPath("$.data.defaultRoute").value("/app/announcements/input"));
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/operator/dashboard"));
     }
 
     @Test
@@ -305,12 +305,12 @@ class AuthControllerSmokeTest {
 
     @Test
     @WithMockUser(username = "operator01", roles = "OPERATOR")
-    void selectAuthMeReturnsAnnouncementInputDefaultRouteForOperator() throws Exception {
+    void selectAuthMeReturnsOperatorDashboardDefaultRouteForOperator() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.primaryRole").value("OPERATOR"))
-                .andExpect(jsonPath("$.data.defaultRoute").value("/app/announcements/input"));
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/operator/dashboard"));
     }
 
     @Test

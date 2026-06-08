@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String DEFAULT_ROUTE = "/app/dashboard";
     private static final String ADMIN_ROUTE = "/app/admin/dashboard";
     private static final String APPROVER_ROUTE = "/app/matching/cases";
-    private static final String OPERATOR_ROUTE = "/app/announcements/input";
+    private static final String OPERATOR_ROUTE = "/app/operator/dashboard";
     private static final String PARTNER_ROUTE = "/app/application-progresses";
     private static final String PASSWORD_ROUTE = "/password";
     private static final String DEFAULT_SIGNUP_ROLE = "USER";

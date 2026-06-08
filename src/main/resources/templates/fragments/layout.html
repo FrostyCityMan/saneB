@@ -25,7 +25,7 @@
 
         <nav class="side-nav">
             <a class="side-link"
-               th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'ADMIN'}"
+               th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN'}"
                th:href="${page.auth.defaultRoute}"
                th:classappend="${page.activeNav == 'DASHBOARD'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">

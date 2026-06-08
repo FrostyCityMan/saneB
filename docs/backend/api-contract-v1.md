@@ -99,7 +99,7 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 |---|---|
 | `ADMIN` | `/app/admin/dashboard` |
 | `APPROVER` | `/app/matching/cases` |
-| `OPERATOR` | `/app/announcements/input` |
+| `OPERATOR` | `/app/operator/dashboard` |
 | `PARTNER` | `/app/application-progresses` |
 | `USER` | `/app/dashboard` |
 
@@ -702,6 +702,7 @@ MVP v1 DB 집계 기준:
 | `GET` | `/api/v1/dashboard/me/progress-summary` | `USER` | 진행/결과 누적 요약 |
 | `GET` | `/api/v1/dashboard/me/reverification-status` | `USER` | 재검증 필요 여부 |
 | `GET` | `/api/v1/admin/dashboard/summary` | `ADMIN` | 관리자 대시보드 운영 집계 |
+| `GET` | `/api/v1/operator/dashboard/summary` | `OPERATOR`, `ADMIN` | 운영자 업무 홈 집계 |
 
 #### DashboardSummaryResponse
 
@@ -794,6 +795,37 @@ DashboardProgressSummaryResponse 필드 계약:
 | `supplementRequestedCount` | `number` | false | 보완 요청 건수 |
 | `stoppedCount` | `number` | false | 중단 건수 |
 | `totalReceivedAmount` | `number` | false | 확정 수령 금액 합계 |
+
+#### OperatorDashboardSummaryResponse
+
+```json
+{
+  "announcementWork": {
+    "draftCount": 3,
+    "requestedCount": 2,
+    "openAnnouncementCount": 8,
+    "pausedAnnouncementCount": 1,
+    "closedAnnouncementCount": 6
+  },
+  "matchingWork": {
+    "matchedCount": 12,
+    "reviewRequiredCount": 2,
+    "blockedCount": 0,
+    "progressedCount": 7
+  },
+  "applicationProgressWork": {
+    "readyCount": 1,
+    "inProgressCount": 2,
+    "waitingResultCount": 1,
+    "approvedCount": 2,
+    "supplementRequestedCount": 0,
+    "stoppedCount": 0,
+    "totalReceivedAmount": 5000000
+  }
+}
+```
+
+OperatorDashboardSummaryResponse는 운영자 업무 현황을 표시하기 위한 읽기 전용 집계다. 공고 입력, 매칭 관리, 신청 진행 업무의 처리 대기 건수를 보여주며, 매칭 추천도, 선정확률, 우선순위, 가점 계산을 포함하지 않는다.
 
 #### DashboardReverificationStatusResponse
 
