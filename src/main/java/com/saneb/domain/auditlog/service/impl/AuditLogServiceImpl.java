@@ -1,0 +1,199 @@
+package com.saneb.domain.auditlog.service.impl;
+
+import com.saneb.common.error.ApiException;
+import com.saneb.common.error.ErrorCode;
+import com.saneb.common.response.PageResponse;
+import com.saneb.domain.auditlog.dao.AuditLogDao;
+import com.saneb.domain.auditlog.dto.AuditLogDetailsResponse;
+import com.saneb.domain.auditlog.dto.AuditLogSummaryResponse;
+import com.saneb.domain.auditlog.service.AuditLogService;
+import com.saneb.domain.auditlog.vo.AuditLogDetailsRow;
+import com.saneb.domain.auditlog.vo.AuditLogSearchCondition;
+import com.saneb.domain.auditlog.vo.AuditLogSummaryRow;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AuditLogServiceImpl implements AuditLogService {
+
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final Set<String> RESULT_CODES = Set.of("SUCCESS", "FAIL");
+    private static final Set<String> RESOURCE_TYPES = Set.of(
+            "USER",
+            "PARTNER_VERIFICATION",
+            "MATCHING_CASE",
+            "APPLICATION_PROGRESS"
+    );
+
+    private final AuditLogDao auditLogDao;
+
+    public AuditLogServiceImpl(AuditLogDao auditLogDao) {
+        this.auditLogDao = auditLogDao;
+    }
+
+    @Override
+    public PageResponse<AuditLogSummaryResponse> selectAuditLogList(
+            String keyword,
+            String actionCode,
+            String resourceType,
+            String resultCode,
+            int page,
+            int size
+    ) {
+        validatePageRequest(page, size);
+        String normalizedResourceType = normalizeOptionalCode(resourceType);
+        String normalizedResultCode = normalizeOptionalCode(resultCode);
+        validateOptionalCode("resourceType", normalizedResourceType, RESOURCE_TYPES);
+        validateOptionalCode("resultCode", normalizedResultCode, RESULT_CODES);
+
+        AuditLogSearchCondition condition = new AuditLogSearchCondition(
+                trimToNull(keyword),
+                trimToNull(actionCode),
+                normalizedResourceType,
+                normalizedResultCode,
+                page,
+                size,
+                (page - 1) * size
+        );
+        long totalCount = auditLogDao.selectAuditLogCount(condition);
+        List<AuditLogSummaryResponse> items = auditLogDao.selectAuditLogList(condition).stream()
+                .map(this::toSummaryResponse)
+                .toList();
+        return PageResponse.of(items, page, size, totalCount);
+    }
+
+    @Override
+    public AuditLogDetailsResponse selectAuditLogDetails(UUID auditLogId) {
+        AuditLogDetailsRow row = auditLogDao.selectAuditLogDetails(auditLogId);
+        if (row == null) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "감사 로그를 찾을 수 없습니다.");
+        }
+        return toDetailsResponse(row);
+    }
+
+    private AuditLogSummaryResponse toSummaryResponse(AuditLogSummaryRow row) {
+        return new AuditLogSummaryResponse(
+                row.auditLogId(),
+                row.actorUserId(),
+                actorDisplayName(row.actorName(), row.actorLoginId()),
+                row.actionCode(),
+                actionLabel(row.actionCode()),
+                row.resourceType(),
+                resourceLabel(row.resourceType()),
+                row.resourceId(),
+                row.resultCode(),
+                resultLabel(row.resultCode()),
+                row.createdAt()
+        );
+    }
+
+    private AuditLogDetailsResponse toDetailsResponse(AuditLogDetailsRow row) {
+        return new AuditLogDetailsResponse(
+                row.auditLogId(),
+                row.actorUserId(),
+                actorDisplayName(row.actorName(), row.actorLoginId()),
+                row.actionCode(),
+                actionLabel(row.actionCode()),
+                row.resourceType(),
+                resourceLabel(row.resourceType()),
+                row.resourceId(),
+                row.resultCode(),
+                resultLabel(row.resultCode()),
+                row.ipAddress(),
+                row.userAgent(),
+                row.metadataJson(),
+                row.createdAt()
+        );
+    }
+
+    private String actorDisplayName(String actorName, String actorLoginId) {
+        if (actorName != null && !actorName.isBlank() && actorLoginId != null && !actorLoginId.isBlank()) {
+            return actorName + " (" + actorLoginId + ")";
+        }
+        if (actorName != null && !actorName.isBlank()) {
+            return actorName;
+        }
+        if (actorLoginId != null && !actorLoginId.isBlank()) {
+            return actorLoginId;
+        }
+        return "시스템";
+    }
+
+    private String actionLabel(String actionCode) {
+        return switch (actionCode) {
+            case "USER_STATUS_UPDATE" -> "계정 상태 변경";
+            case "USER_ROLES_UPDATE" -> "권한 변경";
+            case "PARTNER_VERIFICATION_CREATE" -> "검증 생성";
+            case "PARTNER_VERIFICATION_MEMBER_VALUES_SAVE" -> "회원 검증값 저장";
+            case "PARTNER_VERIFICATION_BUSINESS_VALUES_SAVE" -> "사업 검증값 저장";
+            case "PARTNER_VERIFICATION_FAMILY_VALUES_SAVE" -> "가족 검증값 저장";
+            case "PARTNER_VERIFICATION_DOCUMENTS_SAVE" -> "검증 서류 저장";
+            case "PARTNER_VERIFICATION_RESTRICTION_FLAGS_SAVE" -> "제한 항목 저장";
+            case "PARTNER_VERIFICATION_SUBMIT" -> "검증 제출";
+            case "PARTNER_VERIFICATION_VERIFY" -> "검증 완료";
+            case "PARTNER_VERIFICATION_REJECT" -> "검증 반려";
+            case "MATCHING_CASE_CREATE" -> "매칭 생성";
+            case "MATCHING_CASE_STATUS_UPDATE" -> "매칭 상태 변경";
+            case "APPLICATION_PROGRESS_CREATE" -> "신청 진행 생성";
+            case "APPLICATION_PROGRESS_STEP_ACTION" -> "진행 단계 처리";
+            case "APPLICATION_PROGRESS_DOCUMENTS_SAVE" -> "진행 서류 저장";
+            case "APPLICATION_PROGRESS_RECEIPT_SAVE" -> "접수 정보 저장";
+            case "APPLICATION_PROGRESS_RESULT_SAVE" -> "최종 결과 저장";
+            case "APPLICATION_INPUT_VALUES_SAVE" -> "추가 입력값 저장";
+            default -> actionCode;
+        };
+    }
+
+    private String resourceLabel(String resourceType) {
+        return switch (resourceType) {
+            case "USER" -> "회원";
+            case "PARTNER_VERIFICATION" -> "검증";
+            case "MATCHING_CASE" -> "매칭";
+            case "APPLICATION_PROGRESS" -> "신청 진행";
+            default -> resourceType;
+        };
+    }
+
+    private String resultLabel(String resultCode) {
+        return switch (resultCode) {
+            case "SUCCESS" -> "성공";
+            case "FAIL" -> "실패";
+            default -> resultCode;
+        };
+    }
+
+    private void validatePageRequest(int page, int size) {
+        if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
+            throw new ApiException(
+                    ErrorCode.INVALID_PAGE_REQUEST,
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 요청 값이 올바르지 않습니다."
+            );
+        }
+    }
+
+    private void validateOptionalCode(String fieldName, String code, Set<String> allowedCodes) {
+        if (code != null && !allowedCodes.contains(code)) {
+            throw new ApiException(
+                    ErrorCode.VALIDATION_FAILED,
+                    HttpStatus.BAD_REQUEST,
+                    fieldName + " 값이 올바르지 않습니다."
+            );
+        }
+    }
+
+    private String normalizeOptionalCode(String value) {
+        String trimmed = trimToNull(value);
+        return trimmed == null ? null : trimmed.toUpperCase();
+    }
+
+    private String trimToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+}

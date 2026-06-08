@@ -2498,6 +2498,34 @@ svg {
     opacity: .48;
 }
 
+.audit-log-card .admin-user-actions {
+    align-self: center;
+}
+
+.audit-log-detail-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.audit-log-detail-grid dd {
+    overflow-wrap: anywhere;
+}
+
+.audit-log-metadata {
+    overflow-x: auto;
+    max-width: 100%;
+    margin: 0;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffdf8;
+    padding: 14px;
+    color: #2a302d;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .matching-page {
     padding: 30px clamp(18px, 3vw, 34px);
 }

@@ -1035,6 +1035,56 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 감사 로그 응답은 개인정보 원문과 secret을 포함하지 않는다.
 
+목록 query:
+
+| 필드 | 설명 |
+|---|---|
+| `keyword` | 작업, 대상, 대상 번호, 작업자 검색 |
+| `actionCode` | 작업 종류 정확히 일치 검색 |
+| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS` |
+| `resultCode` | `SUCCESS`, `FAIL` |
+| `page` | 1부터 시작 |
+| `size` | 1~100 |
+
+#### AuditLogSummaryResponse
+
+```json
+{
+  "auditLogId": "uuid",
+  "actorUserId": "uuid",
+  "actorDisplayName": "관리자 (admin01)",
+  "actionCode": "USER_ROLES_UPDATE",
+  "actionLabel": "권한 변경",
+  "resourceType": "USER",
+  "resourceLabel": "회원",
+  "resourceId": "uuid",
+  "resultCode": "SUCCESS",
+  "resultLabel": "성공",
+  "createdAt": "2026-06-08T10:00:00+09:00"
+}
+```
+
+#### AuditLogDetailsResponse
+
+```json
+{
+  "auditLogId": "uuid",
+  "actorUserId": "uuid",
+  "actorDisplayName": "관리자 (admin01)",
+  "actionCode": "USER_ROLES_UPDATE",
+  "actionLabel": "권한 변경",
+  "resourceType": "USER",
+  "resourceLabel": "회원",
+  "resourceId": "uuid",
+  "resultCode": "SUCCESS",
+  "resultLabel": "성공",
+  "ipAddress": "127.0.0.1",
+  "userAgent": "browser",
+  "metadataJson": "{\"changedCount\":\"1\"}",
+  "createdAt": "2026-06-08T10:00:00+09:00"
+}
+```
+
 ## 13. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |

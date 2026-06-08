@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.auditlog.dao.AuditLogDao">
+
+    <resultMap id="AuditLogSummaryRowMap" type="com.saneb.domain.auditlog.vo.AuditLogSummaryRow">
+        <constructor>
+            <arg column="audit_log_id" javaType="java.util.UUID"/>
+            <arg column="actor_user_id" javaType="java.util.UUID"/>
+            <arg column="actor_login_id" javaType="java.lang.String"/>
+            <arg column="actor_name" javaType="java.lang.String"/>
+            <arg column="action_code" javaType="java.lang.String"/>
+            <arg column="resource_type" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="result_code" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AuditLogDetailsRowMap" type="com.saneb.domain.auditlog.vo.AuditLogDetailsRow">
+        <constructor>
+            <arg column="audit_log_id" javaType="java.util.UUID"/>
+            <arg column="actor_user_id" javaType="java.util.UUID"/>
+            <arg column="actor_login_id" javaType="java.lang.String"/>
+            <arg column="actor_name" javaType="java.lang.String"/>
+            <arg column="action_code" javaType="java.lang.String"/>
+            <arg column="resource_type" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="result_code" javaType="java.lang.String"/>
+            <arg column="ip_address" javaType="java.lang.String"/>
+            <arg column="user_agent" javaType="java.lang.String"/>
+            <arg column="metadata_json" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="AuditLogFilter">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    al.action_code ILIKE CONCAT('%', #{keyword}, '%')
+                    OR al.resource_type ILIKE CONCAT('%', #{keyword}, '%')
+                    OR CAST(al.resource_id AS text) ILIKE CONCAT('%', #{keyword}, '%')
+                    OR u.login_id ILIKE CONCAT('%', #{keyword}, '%')
+                    OR u.name ILIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="actionCode != null and actionCode != ''">
+                AND al.action_code = #{actionCode}
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                AND al.resource_type = #{resourceType}
+            </if>
+            <if test="resultCode != null and resultCode != ''">
+                AND al.result_code = #{resultCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectAuditLogList" resultMap="AuditLogSummaryRowMap">
+        -- 감사 로그 목록을 최신 순으로 조회한다.
+        SELECT
+            al.id AS audit_log_id,
+            al.actor_user_id,
+            u.login_id AS actor_login_id,
+            u.name AS actor_name,
+            al.action_code,
+            al.resource_type,
+            al.resource_id,
+            al.result_code,
+            al.created_at
+        FROM audit_logs al
+        LEFT JOIN users u ON u.id = al.actor_user_id
+        <include refid="AuditLogFilter"/>
+        ORDER BY al.created_at DESC, al.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectAuditLogCount" resultType="long">
+        -- 감사 로그 목록 총 건수를 조회한다.
+        SELECT
+            count(1)
+        FROM audit_logs al
+        LEFT JOIN users u ON u.id = al.actor_user_id
+        <include refid="AuditLogFilter"/>
+    </select>
+
+    <select id="selectAuditLogDetails" resultMap="AuditLogDetailsRowMap">
+        -- 감사 로그 단건 상세를 조회한다.
+        SELECT
+            al.id AS audit_log_id,
+            al.actor_user_id,
+            u.login_id AS actor_login_id,
+            u.name AS actor_name,
+            al.action_code,
+            al.resource_type,
+            al.resource_id,
+            al.result_code,
+            CAST(al.ip_address AS text) AS ip_address,
+            al.user_agent,
+            CAST(al.metadata_json AS text) AS metadata_json,
+            al.created_at
+        FROM audit_logs al
+        LEFT JOIN users u ON u.id = al.actor_user_id
+        WHERE al.id = #{auditLogId}
+    </select>
+</mapper>

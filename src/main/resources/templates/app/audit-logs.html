@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('감사 로그', ~{::main})}">
+<main class="admin-users-page audit-logs-page">
+    <section class="admin-users-shell" aria-label="감사 로그">
+        <section class="summary-panel admin-users-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">감사 로그</div>
+                    <p>계정, 검증, 매칭, 신청 진행에서 발생한 주요 변경 이력을 확인합니다.</p>
+                </div>
+                <span class="soft-status">내부 조회</span>
+            </div>
+            <div class="top-summary-grid admin-users-summary-grid">
+                <article class="top-summary-card">
+                    <span>검색 결과</span>
+                    <strong>
+                        <span th:text="${page.auditLogs.totalCount}">0</span>
+                        건
+                    </strong>
+                    <small>현재 조건 기준</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>현재 페이지</span>
+                    <strong>
+                        <span th:text="${page.auditLogs.page}">1</span>
+                        /
+                        <span th:text="${page.auditLogs.totalPages == 0 ? 1 : page.auditLogs.totalPages}">1</span>
+                    </strong>
+                    <small>한 페이지 <span th:text="${page.auditLogs.size}">20</span>건</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>조회 권한</span>
+                    <strong th:text="${page.roleLabel}">관리자</strong>
+                    <small>관리자와 승인자만 접근</small>
+                </article>
+            </div>
+        </section>
+
+        <section class="plain-panel admin-users-filter-panel">
+            <form class="admin-users-filter" method="get" th:action="@{/app/audit-logs}" aria-label="감사 로그 검색">
+                <div class="field-block">
+                    <label for="auditKeyword">검색어</label>
+                    <input id="auditKeyword" name="keyword" type="search"
+                           placeholder="작업, 대상, 작업자"
+                           th:value="${page.keyword}">
+                </div>
+                <div class="field-block">
+                    <label for="auditResourceType">대상</label>
+                    <select id="auditResourceType" name="resourceType">
+                        <option value="" th:selected="${page.resourceType == ''}">전체 대상</option>
+                        <option th:each="resource : ${page.resourceOptions}"
+                                th:value="${resource.value}"
+                                th:text="${resource.label}"
+                                th:selected="${page.resourceType == resource.value}">
+                            회원
+                        </option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="auditResultCode">결과</label>
+                    <select id="auditResultCode" name="resultCode">
+                        <option value="" th:selected="${page.resultCode == ''}">전체 결과</option>
+                        <option th:each="result : ${page.resultOptions}"
+                                th:value="${result.value}"
+                                th:text="${result.label}"
+                                th:selected="${page.resultCode == result.value}">
+                            성공
+                        </option>
+                    </select>
+                </div>
+                <input type="hidden" name="actionCode" th:value="${page.actionCode}">
+                <input type="hidden" name="page" value="1">
+                <input type="hidden" name="size" th:value="${page.size}">
+                <div class="admin-users-filter-actions">
+                    <button class="primary-action button-action" type="submit">조회</button>
+                    <a class="secondary-action" th:href="@{/app/audit-logs}">초기화</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-users-list" aria-label="감사 로그 목록">
+            <article class="admin-user-card audit-log-card"
+                     th:each="auditLog : ${page.auditLogs.items}">
+                <div class="admin-user-main">
+                    <div class="admin-user-identity">
+                        <strong th:text="${auditLog.actionLabel}">작업</strong>
+                        <span th:text="${auditLog.actorDisplayName}">관리자</span>
+                    </div>
+                    <dl class="admin-user-meta">
+                        <div>
+                            <dt>대상</dt>
+                            <dd th:text="${auditLog.resourceLabel}">회원</dd>
+                        </div>
+                        <div>
+                            <dt>결과</dt>
+                            <dd th:text="${auditLog.resultLabel}">성공</dd>
+                        </div>
+                        <div>
+                            <dt>처리 시각</dt>
+                            <dd th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm')}">2026-06-08 10:00</dd>
+                        </div>
+                    </dl>
+                </div>
+                <div class="admin-user-actions">
+                    <a class="secondary-action"
+                       th:href="@{/app/audit-logs/{auditLogId}(auditLogId=${auditLog.auditLogId})}">
+                        상세 보기
+                    </a>
+                </div>
+            </article>
+
+            <div class="plain-panel admin-users-empty"
+                 th:if="${#lists.isEmpty(page.auditLogs.items)}">
+                <strong>조회된 감사 로그가 없습니다.</strong>
+                <p>검색어나 필터 조건을 조정해 다시 조회하세요.</p>
+            </div>
+        </section>
+
+        <nav class="admin-users-pagination" aria-label="감사 로그 페이지 이동"
+             th:if="${page.auditLogs.totalPages > 1}">
+            <a class="secondary-action"
+               th:classappend="${page.auditLogs.page <= 1} ? ' disabled' : ''"
+               th:href="@{/app/audit-logs(keyword=${page.keyword},actionCode=${page.actionCode},resourceType=${page.resourceType},resultCode=${page.resultCode},page=${page.previousPage},size=${page.size})}">
+                이전
+            </a>
+            <span>
+                <span th:text="${page.auditLogs.page}">1</span>
+                /
+                <span th:text="${page.auditLogs.totalPages}">1</span>
+            </span>
+            <a class="secondary-action"
+               th:classappend="${page.auditLogs.page >= page.auditLogs.totalPages} ? ' disabled' : ''"
+               th:href="@{/app/audit-logs(keyword=${page.keyword},actionCode=${page.actionCode},resourceType=${page.resourceType},resultCode=${page.resultCode},page=${page.nextPage},size=${page.size})}">
+                다음
+            </a>
+        </nav>
+    </section>
+</main>
+</html>

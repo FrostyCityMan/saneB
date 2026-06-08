@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('감사 로그 상세', ~{::main})}">
+<main class="admin-users-page audit-logs-page">
+    <section class="admin-users-shell" aria-label="감사 로그 상세">
+        <section class="summary-panel admin-users-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">감사 로그 상세</div>
+                    <p>선택한 작업 이력의 처리자, 대상, 결과, 비식별 상세 정보를 확인합니다.</p>
+                </div>
+                <span class="soft-status" th:text="${page.auditLog.resultLabel}">성공</span>
+            </div>
+        </section>
+
+        <section class="plain-panel audit-log-detail-panel">
+            <div class="panel-heading">
+                <h2 th:text="${page.auditLog.actionLabel}">작업</h2>
+                <a class="secondary-action" th:href="@{/app/audit-logs}">목록으로</a>
+            </div>
+            <dl class="verification-meta audit-log-detail-grid">
+                <div>
+                    <dt>작업자</dt>
+                    <dd th:text="${page.auditLog.actorDisplayName}">관리자</dd>
+                </div>
+                <div>
+                    <dt>대상</dt>
+                    <dd th:text="${page.auditLog.resourceLabel}">회원</dd>
+                </div>
+                <div>
+                    <dt>대상 번호</dt>
+                    <dd th:text="${page.auditLog.resourceId != null ? page.auditLog.resourceId : '없음'}">uuid</dd>
+                </div>
+                <div>
+                    <dt>결과</dt>
+                    <dd th:text="${page.auditLog.resultLabel}">성공</dd>
+                </div>
+                <div>
+                    <dt>처리 시각</dt>
+                    <dd th:text="${#temporals.format(page.auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-08 10:00:00</dd>
+                </div>
+                <div>
+                    <dt>접속 IP</dt>
+                    <dd th:text="${page.auditLog.ipAddress != null ? page.auditLog.ipAddress : '기록 없음'}">기록 없음</dd>
+                </div>
+                <div>
+                    <dt>접속 환경</dt>
+                    <dd th:text="${page.auditLog.userAgent != null ? page.auditLog.userAgent : '기록 없음'}">기록 없음</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="plain-panel audit-log-detail-panel">
+            <div class="panel-heading">
+                <h2>상세 정보</h2>
+            </div>
+            <pre class="audit-log-metadata" th:text="${page.auditLog.metadataJson != null ? page.auditLog.metadataJson : '기록 없음'}">기록 없음</pre>
+        </section>
+    </section>
+</main>
+</html>

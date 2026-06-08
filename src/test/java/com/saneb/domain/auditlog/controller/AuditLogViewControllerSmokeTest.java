@@ -1,0 +1,74 @@
+package com.saneb.domain.auditlog.controller;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import com.saneb.common.response.PageResponse;
+import com.saneb.domain.auditlog.service.AuditLogService;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest(properties = "spring.flyway.enabled=false")
+@AutoConfigureMockMvc
+class AuditLogViewControllerSmokeTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private AuditLogService auditLogService;
+
+    @BeforeEach
+    void setUp() {
+        when(auditLogService.selectAuditLogList(any(), any(), any(), any(), eq(1), eq(20)))
+                .thenReturn(PageResponse.of(List.of(AuditLogControllerSmokeTest.sampleSummary()), 1, 20, 1));
+        when(auditLogService.selectAuditLogDetails(AuditLogControllerSmokeTest.AUDIT_LOG_ID))
+                .thenReturn(AuditLogControllerSmokeTest.sampleDetails());
+    }
+
+    @Test
+    @WithMockUser(username = "admin01", roles = "ADMIN")
+    void selectAuditLogListPageReturnsThymeleafView() throws Exception {
+        mockMvc.perform(get("/app/audit-logs"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/audit-logs"))
+                .andExpect(content().string(containsString("감사 로그")))
+                .andExpect(content().string(containsString("권한 변경")))
+                .andExpect(content().string(containsString("상세 보기")))
+                .andExpect(content().string(not(containsString("Backend"))))
+                .andExpect(content().string(not(containsString("API"))))
+                .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    @Test
+    @WithMockUser(username = "approver01", roles = "APPROVER")
+    void selectAuditLogDetailsPageAllowsApproverUser() throws Exception {
+        mockMvc.perform(get("/app/audit-logs/{auditLogId}", AuditLogControllerSmokeTest.AUDIT_LOG_ID))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/audit-log-details"))
+                .andExpect(content().string(containsString("감사 로그 상세")))
+                .andExpect(content().string(containsString("권한 변경")))
+                .andExpect(content().string(containsString("changedCount")));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void selectAuditLogListPageRejectsUser() throws Exception {
+        mockMvc.perform(get("/app/audit-logs"))
+                .andExpect(status().isForbidden());
+    }
+}
