@@ -72,12 +72,12 @@
                         <div class="check-row">
                             <span>작성 중</span>
                             <strong><span th:text="${page.summary.announcementSummary.draftCount}">0</span> 건</strong>
-                            <small>DRAFT</small>
+                            <small>작성 상태</small>
                         </div>
                         <div class="check-row">
                             <span>반려</span>
                             <strong><span th:text="${page.summary.announcementSummary.rejectedCount}">0</span> 건</strong>
-                            <small>REJECTED</small>
+                            <small>반려 상태</small>
                         </div>
                         <div class="check-row">
                             <span>마감</span>
@@ -95,7 +95,7 @@
                         <div class="check-row" th:each="metric : ${page.verificationStatusMetrics}">
                             <span th:text="${metric.label}">작성 중</span>
                             <strong><span th:text="${metric.count}">0</span> 건</strong>
-                            <small th:text="${metric.statusCode}">DRAFT</small>
+                            <small>상태별 집계</small>
                         </div>
                     </div>
                 </article>
@@ -108,7 +108,7 @@
                         <div class="check-row" th:each="metric : ${page.matchingStatusMetrics}">
                             <span th:text="${metric.label}">매칭</span>
                             <strong><span th:text="${metric.count}">0</span> 건</strong>
-                            <small th:text="${metric.statusCode}">MATCHED</small>
+                            <small>상태별 집계</small>
                         </div>
                     </div>
                 </article>
@@ -135,7 +135,7 @@
                         <div class="check-row" th:each="metric : ${page.progressStatusMetrics}">
                             <span th:text="${metric.label}">준비</span>
                             <strong><span th:text="${metric.count}">0</span> 건</strong>
-                            <small th:text="${metric.statusCode}">READY</small>
+                            <small>상태별 집계</small>
                         </div>
                     </div>
                 </article>
@@ -200,27 +200,27 @@
                     <div class="check-row">
                         <span>사용자</span>
                         <strong><span th:text="${page.summary.userSummary.userRoleCount}">0</span> 명</strong>
-                        <small>USER</small>
+                        <small>일반 사용자 권한</small>
                     </div>
                     <div class="check-row">
                         <span>파트너</span>
                         <strong><span th:text="${page.summary.userSummary.partnerRoleCount}">0</span> 명</strong>
-                        <small>PARTNER</small>
+                        <small>파트너 권한</small>
                     </div>
                     <div class="check-row">
                         <span>운영자</span>
                         <strong><span th:text="${page.summary.userSummary.operatorRoleCount}">0</span> 명</strong>
-                        <small>OPERATOR</small>
+                        <small>운영자 권한</small>
                     </div>
                     <div class="check-row">
                         <span>승인자</span>
                         <strong><span th:text="${page.summary.userSummary.approverRoleCount}">0</span> 명</strong>
-                        <small>APPROVER</small>
+                        <small>승인자 권한</small>
                     </div>
                     <div class="check-row">
                         <span>관리자</span>
                         <strong><span th:text="${page.summary.userSummary.adminRoleCount}">0</span> 명</strong>
-                        <small>ADMIN</small>
+                        <small>관리자 권한</small>
                     </div>
                 </div>
             </section>

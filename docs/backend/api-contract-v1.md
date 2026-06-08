@@ -98,7 +98,10 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 | `primaryRole` | `defaultRoute` |
 |---|---|
 | `ADMIN` | `/app/admin/dashboard` |
-| 그 외 | `/app/dashboard` |
+| `APPROVER` | `/app/matching/cases` |
+| `OPERATOR` | `/app/announcements/input` |
+| `PARTNER` | `/app/application-progresses` |
+| `USER` | `/app/dashboard` |
 
 `passwordResetRequired = true`이면 역할과 무관하게 `defaultRoute = /password`를 반환한다.
 

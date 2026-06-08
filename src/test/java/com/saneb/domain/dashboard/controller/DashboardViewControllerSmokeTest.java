@@ -68,7 +68,10 @@ class DashboardViewControllerSmokeTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("현재 해야 할 행동")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("로그아웃")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("후보 결과")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("최종 매칭 결과")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("최종 매칭 결과")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("ACTION_REQUIRED")
+                )));
     }
 
     @Test

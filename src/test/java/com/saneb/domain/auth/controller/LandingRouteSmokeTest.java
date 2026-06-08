@@ -41,6 +41,15 @@ class LandingRouteSmokeTest {
     }
 
     @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void authenticatedRootRedirectsOperatorToAnnouncementInputDefaultRoute() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/app/announcements/input"))
+                .andExpect(header().string("Location", "/app/announcements/input"));
+    }
+
+    @Test
     void anonymousLoginReturnsLoginView() throws Exception {
         mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())

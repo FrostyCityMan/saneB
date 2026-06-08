@@ -6,7 +6,7 @@
         <div class="flow-workspace">
             <section class="flow-hero">
                 <div>
-                    <span class="eyebrow">Partner Input</span>
+                    <span class="eyebrow">검증 입력</span>
                     <h2>파트너와 운영자가 검증 서류 확인 값을 입력합니다.</h2>
                     <p>이번 화면에서는 확정된 서류 확인 항목만 저장합니다. 회원값, 사업자값, 제한 플래그 입력은 별도 화면에서 다룹니다.</p>
                 </div>
@@ -25,7 +25,7 @@
             <section class="flow-panel">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Documents</span>
+                        <span class="eyebrow">서류</span>
                         <h2>검증 서류 입력</h2>
                     </div>
                     <a th:href="@{/app/member/verifications/{verificationId}(verificationId=${page.details.verificationId})}">
@@ -71,21 +71,21 @@
             <section class="flow-panel">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Target</span>
+                        <span class="eyebrow">대상</span>
                         <h2>검증 대상</h2>
                     </div>
                 </div>
                 <dl class="flow-summary-list">
                     <div>
-                        <dt>검증 ID</dt>
+                        <dt>검증 번호</dt>
                         <dd th:text="${page.details.verificationId}">uuid</dd>
                     </div>
                     <div>
-                        <dt>회원</dt>
+                        <dt>회원 번호</dt>
                         <dd th:text="${page.details.memberUserId}">uuid</dd>
                     </div>
                     <div>
-                        <dt>사업자 프로필</dt>
+                        <dt>사업자 정보 번호</dt>
                         <dd th:text="${page.details.businessProfileId == null ? '미지정' : page.details.businessProfileId}">uuid</dd>
                     </div>
                     <div>
@@ -98,7 +98,7 @@
             <section class="flow-panel">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">Policy</span>
+                        <span class="eyebrow">기준</span>
                         <h2>입력 기준</h2>
                     </div>
                 </div>

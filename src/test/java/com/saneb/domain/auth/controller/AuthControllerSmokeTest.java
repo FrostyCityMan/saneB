@@ -108,6 +108,26 @@ class AuthControllerSmokeTest {
     }
 
     @Test
+    void loginReturnsOperatorAnnouncementInputDefaultRoute() throws Exception {
+        when(authDao.selectAuthUserDetailsByLoginId("operator01"))
+                .thenReturn(activeUser(passwordEncoder.encode("password")));
+        when(authDao.selectRoleCodeListByUserId(USER_ID)).thenReturn(List.of("OPERATOR"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "loginId": "operator01",
+                                  "password": "password"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.primaryRole").value("OPERATOR"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/announcements/input"));
+    }
+
+    @Test
     void signupCreatesUserRoleAndSession() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("newuser")).thenReturn(null);
         when(authDao.selectUserIdByPhone("010-1000-2000")).thenReturn(null);
@@ -271,6 +291,36 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.primaryRole").value("ADMIN"))
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/admin/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "approver01", roles = "APPROVER")
+    void selectAuthMeReturnsMatchingDefaultRouteForApprover() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.primaryRole").value("APPROVER"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/matching/cases"));
+    }
+
+    @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void selectAuthMeReturnsAnnouncementInputDefaultRouteForOperator() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.primaryRole").value("OPERATOR"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/announcements/input"));
+    }
+
+    @Test
+    @WithMockUser(username = "partner01", roles = "PARTNER")
+    void selectAuthMeReturnsApplicationProgressDefaultRouteForPartner() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.primaryRole").value("PARTNER"))
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/application-progresses"));
     }
 
     @Test

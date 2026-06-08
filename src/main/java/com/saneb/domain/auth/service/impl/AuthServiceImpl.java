@@ -36,6 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String DEFAULT_ROUTE = "/app/dashboard";
     private static final String ADMIN_ROUTE = "/app/admin/dashboard";
+    private static final String APPROVER_ROUTE = "/app/matching/cases";
+    private static final String OPERATOR_ROUTE = "/app/announcements/input";
+    private static final String PARTNER_ROUTE = "/app/application-progresses";
     private static final String PASSWORD_ROUTE = "/password";
     private static final String DEFAULT_SIGNUP_ROLE = "USER";
     private static final int MAX_USER_AGENT_LENGTH = 500;
@@ -333,6 +336,9 @@ public class AuthServiceImpl implements AuthService {
     private String selectDefaultRoute(String primaryRole) {
         return switch (primaryRole) {
             case "ADMIN" -> ADMIN_ROUTE;
+            case "APPROVER" -> APPROVER_ROUTE;
+            case "OPERATOR" -> OPERATOR_ROUTE;
+            case "PARTNER" -> PARTNER_ROUTE;
             default -> DEFAULT_ROUTE;
         };
     }

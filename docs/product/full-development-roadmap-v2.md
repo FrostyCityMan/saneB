@@ -47,14 +47,14 @@ saneB의 완전 개발 목표는 정부지원사업 공고 입력, 대상자 검
 | `APPROVER` | 검증/매칭/결과의 승인 또는 반려 | 승인 큐, 감사 로그, 결과 검토 |
 | `ADMIN` | 전체 운영 설정, 사용자/권한/리포트/배포 운영 관리 | 관리자 대시보드, 사용자 관리, 감사 로그, 운영 리포트 |
 
-역할별 defaultRoute는 완전 개발 범위에서 재정의한다.
+역할별 defaultRoute 1차 분리는 현재 구현된 화면 기준으로 완료한다. 전용 파트너 검증 목록과 승인자 큐는 별도 화면이 구현될 때 route를 다시 조정한다.
 
-| 역할 | 목표 defaultRoute |
+| 역할 | 현재 defaultRoute |
 |---|---|
 | `USER` | `/app/dashboard` |
-| `PARTNER` | `/app/partner/verifications` |
-| `OPERATOR` | `/app/announcements/input` 또는 `/app/operator/dashboard` |
-| `APPROVER` | `/app/approver/reviews` |
+| `PARTNER` | `/app/application-progresses` |
+| `OPERATOR` | `/app/announcements/input` |
+| `APPROVER` | `/app/matching/cases` |
 | `ADMIN` | `/app/admin/dashboard` |
 
 ## 5. 전체 제품 범위
@@ -175,8 +175,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 목표: 사용자 대시보드와 운영 계정 화면을 완전히 분리한다.
 
 작업:
-- `ADMIN`, `OPERATOR`, `PARTNER`, `APPROVER` defaultRoute 분리
-- 관리자 대시보드 API/화면
+- `ADMIN`, `OPERATOR`, `PARTNER`, `APPROVER` defaultRoute 1차 분리 완료
+- 관리자 대시보드 API/화면 완료
 - 운영자 대시보드 API/화면
 - 파트너 검증 목록 화면 개선
 - 승인자 큐 화면
@@ -290,8 +290,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 항목 | 상태 | 다음 조치 |
 |---|---|---|
 | 완전 개발 범위 문서 | 완료 | 본 문서 기준으로 세부 계약 작성 |
-| role별 defaultRoute | 예정 | Phase 1에서 DB/API 또는 service 정책 확정 |
-| 관리자 대시보드 | 예정 | Phase 1 첫 구현 대상 |
+| role별 defaultRoute | 완료 | 구현된 화면 기준으로 USER/PARTNER/OPERATOR/APPROVER/ADMIN 기본 진입점 분리 |
+| 관리자 대시보드 | 완료 | 관리자 전용 운영 집계 화면과 `/api/v1/admin/dashboard/summary` 유지 |
 | 운영자 대시보드 | 예정 | 관리자 대시보드 이후 구현 |
 | 파트너 대시보드 | 예정 | 검증 목록/예약과 함께 구현 |
 | 승인자 큐 | 예정 | 검증/결과 승인 정책 확정 후 구현 |
@@ -339,9 +339,9 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 관리자 대시보드 v1
-2. role별 defaultRoute 분리
-3. 운영자 업무 홈
+1. 운영자 업무 홈
+2. 파트너 검증 목록
+3. 승인자 큐
 4. 감사 로그 조회 화면
 5. 동의 이력 DB/API
 6. 파일형 서류 제출/검토

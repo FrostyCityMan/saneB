@@ -33,6 +33,7 @@ class AnnouncementViewControllerSmokeTest {
                 .andExpect(content().string(containsString("data-announcement-approval-form")))
                 .andExpect(content().string(containsString("/api/v1/announcements")))
                 .andExpect(content().string(containsString("data-announcement-basic-form")))
+                .andExpect(content().string(not(containsString("파트너 검증"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 }
