@@ -1,14 +1,13 @@
 package com.saneb.domain.consultation.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record ConsultationReservationCreateRequest(
-        @NotNull(message = "slotId is required")
         UUID slotId,
 
         UUID memberUserId,
+        UUID partnerUserId,
         UUID progressId,
         UUID verificationId,
 

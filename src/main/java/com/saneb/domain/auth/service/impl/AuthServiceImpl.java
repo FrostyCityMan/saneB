@@ -39,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String ADMIN_ROUTE = "/app/admin/dashboard";
     private static final String APPROVER_ROUTE = "/app/approver/reviews";
     private static final String OPERATOR_ROUTE = "/app/operator/dashboard";
+    private static final String REVIEWER_ROUTE = "/app/reviewer/dashboard";
     private static final String PARTNER_ROUTE = "/app/partner/verifications";
     private static final String PASSWORD_ROUTE = "/password";
     private static final String DEFAULT_SIGNUP_ROLE = "USER";
@@ -343,6 +344,7 @@ public class AuthServiceImpl implements AuthService {
             case "ADMIN" -> ADMIN_ROUTE;
             case "APPROVER" -> APPROVER_ROUTE;
             case "OPERATOR" -> OPERATOR_ROUTE;
+            case "REVIEWER" -> REVIEWER_ROUTE;
             case "PARTNER" -> PARTNER_ROUTE;
             default -> DEFAULT_ROUTE;
         };
@@ -353,8 +355,9 @@ public class AuthServiceImpl implements AuthService {
             case "ADMIN" -> 1;
             case "APPROVER" -> 2;
             case "OPERATOR" -> 3;
-            case "PARTNER" -> 4;
-            default -> 5;
+            case "REVIEWER" -> 4;
+            case "PARTNER" -> 5;
+            default -> 6;
         };
     }
 }

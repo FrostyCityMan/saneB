@@ -40,13 +40,13 @@ public class ConsultationServiceImpl implements ConsultationService {
     private static final int MAX_PAGE_SIZE = 100;
     private static final String RESOURCE_TYPE = "CONSULTATION_RESERVATION";
     private static final Set<String> OPERATING_ROLES = Set.of("OPERATOR", "ADMIN");
-    private static final Set<String> PARTNER_OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "ADMIN");
+    private static final Set<String> PARTNER_OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "REVIEWER", "ADMIN");
     private static final Set<String> SLOT_STATUS_CODES = Set.of("OPEN", "HELD", "CLOSED", "CANCELED");
     private static final Set<String> RESERVATION_STATUS_CODES = Set.of(
-            "REQUESTED", "CONFIRMED", "CANCELED", "COMPLETED", "NO_SHOW"
+            "REQUESTED", "ASSIGNED", "CONFIRMED", "CANCELED", "COMPLETED", "NO_SHOW"
     );
     private static final Set<String> RESERVATION_UPDATE_STATUS_CODES = Set.of(
-            "CONFIRMED", "CANCELED", "COMPLETED", "NO_SHOW"
+            "ASSIGNED", "CONFIRMED", "CANCELED", "COMPLETED", "NO_SHOW"
     );
 
     private final ConsultationDao consultationDao;
@@ -183,35 +183,30 @@ public class ConsultationServiceImpl implements ConsultationService {
             ConsultationReservationCreateRequest request
     ) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
-        ConsultationSlotRow slot = selectSlotRow(request.slotId());
-        if (!"OPEN".equals(slot.statusCode())) {
-            throw new ApiException(
-                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
-                    HttpStatus.CONFLICT,
-                    "예약 가능한 시간이 아닙니다."
-            );
-        }
-
         UUID memberUserId = selectReservationMemberUserId(actor, request.memberUserId());
+        ConsultationSlotRow slot = request.slotId() == null ? null : selectReservableSlot(request.slotId());
+        UUID partnerUserId = selectReservationPartnerUserId(actor, request.partnerUserId(), slot);
         validateReservationReference(actor, memberUserId, request.progressId(), request.verificationId());
 
         UUID reservationId = UUID.randomUUID();
         consultationDao.insertConsultationReservation(new ConsultationReservationInsertCommand(
                 reservationId,
-                slot.slotId(),
+                slot == null ? null : slot.slotId(),
                 memberUserId,
-                slot.partnerUserId(),
+                partnerUserId,
                 request.progressId(),
                 request.verificationId(),
                 trimToNull(request.requestNote()),
                 actor.userId()
         ));
-        consultationDao.updateConsultationSlotStatus(new ConsultationSlotStatusCommand(
-                slot.slotId(),
-                "HELD",
-                null,
-                actor.userId()
-        ));
+        if (slot != null) {
+            consultationDao.updateConsultationSlotStatus(new ConsultationSlotStatusCommand(
+                    slot.slotId(),
+                    "HELD",
+                    null,
+                    actor.userId()
+            ));
+        }
         consultationDao.insertConsultationHistory(new ConsultationHistoryCommand(
                 UUID.randomUUID(),
                 reservationId,
@@ -221,9 +216,9 @@ public class ConsultationServiceImpl implements ConsultationService {
                 null
         ));
         insertAudit(actor.userId(), "CONSULTATION_RESERVATION_CREATE", reservationId, metadata(
-                "slotId", slot.slotId().toString(),
+                "slotId", slot == null ? "" : slot.slotId().toString(),
                 "memberUserId", memberUserId.toString(),
-                "partnerUserId", slot.partnerUserId().toString()
+                "partnerUserId", partnerUserId == null ? "" : partnerUserId.toString()
         ));
         return toReservationResponse(selectReservationRow(reservationId));
     }
@@ -242,24 +237,24 @@ public class ConsultationServiceImpl implements ConsultationService {
                 RESERVATION_UPDATE_STATUS_CODES
         );
         ConsultationReservationRow reservation = selectReservationRow(reservationId);
+        ConsultationSlotRow assignedSlot = request.slotId() == null ? null : selectReservableSlot(request.slotId());
+        UUID assignedPartnerUserId = selectAssignedPartnerUserId(request.partnerUserId(), assignedSlot, reservation);
+        validateAssignmentRequirement(afterStatusCode, assignedPartnerUserId);
         validateReservationAccess(actor, reservation, afterStatusCode);
         validateReservationTransition(reservation.statusCode(), afterStatusCode);
 
         int updatedCount = consultationDao.updateConsultationReservationStatus(new ConsultationReservationStatusCommand(
                 reservationId,
                 afterStatusCode,
+                assignedPartnerUserId,
+                assignedSlot == null ? null : assignedSlot.slotId(),
                 trimToNull(request.note()),
                 actor.userId()
         ));
         if (updatedCount == 0) {
             throw notFound("상담 예약을 찾을 수 없습니다.");
         }
-        consultationDao.updateConsultationSlotStatus(new ConsultationSlotStatusCommand(
-                reservation.slotId(),
-                selectSlotStatusForReservation(afterStatusCode),
-                null,
-                actor.userId()
-        ));
+        updateReservationSlotStatus(reservation, assignedSlot, afterStatusCode, actor.userId());
         consultationDao.insertConsultationHistory(new ConsultationHistoryCommand(
                 UUID.randomUUID(),
                 reservationId,
@@ -271,7 +266,7 @@ public class ConsultationServiceImpl implements ConsultationService {
         insertAudit(actor.userId(), "CONSULTATION_RESERVATION_STATUS_UPDATE", reservationId, metadata(
                 "beforeStatusCode", reservation.statusCode(),
                 "afterStatusCode", afterStatusCode,
-                "noteProvided", String.valueOf(trimToNull(request.note()) != null)
+                "partnerAssigned", String.valueOf(assignedPartnerUserId != null)
         ));
         return toReservationResponse(selectReservationRow(reservationId));
     }
@@ -297,6 +292,26 @@ public class ConsultationServiceImpl implements ConsultationService {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "본인 상담만 예약할 수 있습니다.");
         }
         return actor.userId();
+    }
+
+    private UUID selectReservationPartnerUserId(
+            AuthenticatedUserDetails actor,
+            UUID requestedPartnerUserId,
+            ConsultationSlotRow slot
+    ) {
+        UUID slotPartnerUserId = slot == null ? null : slot.partnerUserId();
+        if (slotPartnerUserId != null && requestedPartnerUserId != null && !slotPartnerUserId.equals(requestedPartnerUserId)) {
+            throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "상담 시간의 담당자와 배정 담당자가 다릅니다.");
+        }
+        UUID partnerUserId = slotPartnerUserId == null ? requestedPartnerUserId : slotPartnerUserId;
+        if (partnerUserId == null) {
+            return null;
+        }
+        if (!hasOperatingRole(actor)) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "상담 담당자는 운영자가 배정합니다.");
+        }
+        validateUserExists(partnerUserId, "상담 담당자를 찾을 수 없습니다.");
+        return partnerUserId;
     }
 
     private void validateSlotTime(OffsetDateTime startAt, OffsetDateTime endAt) {
@@ -345,7 +360,10 @@ public class ConsultationServiceImpl implements ConsultationService {
         if (hasOperatingRole(actor)) {
             return;
         }
-        if (actor.roles().contains("PARTNER") && reservation.partnerUserId().equals(actor.userId())) {
+        if (actor.roles().contains("PARTNER")
+                && reservation.partnerUserId() != null
+                && reservation.partnerUserId().equals(actor.userId())
+                && Set.of("CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELED").contains(afterStatusCode)) {
             return;
         }
         if (reservation.memberUserId().equals(actor.userId()) && "CANCELED".equals(afterStatusCode)) {
@@ -356,7 +374,8 @@ public class ConsultationServiceImpl implements ConsultationService {
 
     private void validateReservationTransition(String beforeStatusCode, String afterStatusCode) {
         boolean allowed = switch (beforeStatusCode) {
-            case "REQUESTED" -> Set.of("CONFIRMED", "CANCELED").contains(afterStatusCode);
+            case "REQUESTED" -> Set.of("ASSIGNED", "CONFIRMED", "CANCELED").contains(afterStatusCode);
+            case "ASSIGNED" -> Set.of("CONFIRMED", "CANCELED").contains(afterStatusCode);
             case "CONFIRMED" -> Set.of("COMPLETED", "NO_SHOW", "CANCELED").contains(afterStatusCode);
             default -> false;
         };
@@ -373,6 +392,66 @@ public class ConsultationServiceImpl implements ConsultationService {
         };
     }
 
+    private ConsultationSlotRow selectReservableSlot(UUID slotId) {
+        ConsultationSlotRow slot = selectSlotRow(slotId);
+        if (!"OPEN".equals(slot.statusCode())) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "예약 가능한 시간이 아닙니다."
+            );
+        }
+        return slot;
+    }
+
+    private UUID selectAssignedPartnerUserId(
+            UUID requestedPartnerUserId,
+            ConsultationSlotRow assignedSlot,
+            ConsultationReservationRow reservation
+    ) {
+        UUID slotPartnerUserId = assignedSlot == null ? null : assignedSlot.partnerUserId();
+        if (slotPartnerUserId != null && requestedPartnerUserId != null && !slotPartnerUserId.equals(requestedPartnerUserId)) {
+            throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "상담 시간의 담당자와 배정 담당자가 다릅니다.");
+        }
+        UUID partnerUserId = slotPartnerUserId == null ? requestedPartnerUserId : slotPartnerUserId;
+        if (partnerUserId != null) {
+            validateUserExists(partnerUserId, "상담 담당자를 찾을 수 없습니다.");
+            return partnerUserId;
+        }
+        return reservation.partnerUserId();
+    }
+
+    private void validateAssignmentRequirement(String statusCode, UUID partnerUserId) {
+        if (Set.of("ASSIGNED", "CONFIRMED").contains(statusCode) && partnerUserId == null) {
+            throw validationFailed("상담 담당자를 선택하세요.");
+        }
+    }
+
+    private void updateReservationSlotStatus(
+            ConsultationReservationRow reservation,
+            ConsultationSlotRow assignedSlot,
+            String afterStatusCode,
+            UUID actorUserId
+    ) {
+        UUID newSlotId = assignedSlot == null ? reservation.slotId() : assignedSlot.slotId();
+        if (reservation.slotId() != null && !reservation.slotId().equals(newSlotId)) {
+            consultationDao.updateConsultationSlotStatus(new ConsultationSlotStatusCommand(
+                    reservation.slotId(),
+                    "OPEN",
+                    null,
+                    actorUserId
+            ));
+        }
+        if (newSlotId != null) {
+            consultationDao.updateConsultationSlotStatus(new ConsultationSlotStatusCommand(
+                    newSlotId,
+                    selectSlotStatusForReservation(afterStatusCode),
+                    null,
+                    actorUserId
+            ));
+        }
+    }
+
     private ConsultationSlotRow selectSlotRow(UUID slotId) {
         ConsultationSlotRow row = consultationDao.selectConsultationSlotDetails(slotId);
         if (row == null) {
@@ -387,6 +466,12 @@ public class ConsultationServiceImpl implements ConsultationService {
             throw notFound("상담 예약을 찾을 수 없습니다.");
         }
         return row;
+    }
+
+    private void validateUserExists(UUID userId, String message) {
+        if (userId == null || consultationDao.selectUserCount(userId) == 0) {
+            throw notFound(message);
+        }
     }
 
     private ConsultationSlotResponse toSlotResponse(ConsultationSlotRow row) {

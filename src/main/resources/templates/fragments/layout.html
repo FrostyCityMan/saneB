@@ -37,6 +37,15 @@
                 <span>대시보드</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'REVIEWER')}"
+               th:href="@{/app/reviewer/dashboard}"
+               th:classappend="${page.activeNav == 'REVIEWER_DASHBOARD'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h3.2"/><path d="m15 16 1.6 1.6 3-3"/></svg>
+                </span>
+                <span>검수 대시보드</span>
+            </a>
+            <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/admin/users}"
                th:classappend="${page.activeNav == 'ADMIN_USERS'} ? ' active' : ''">
@@ -55,7 +64,7 @@
                 <span>공고 입력</span>
             </a>
             <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/matching/cases}"
                th:classappend="${page.activeNav == 'MATCHING_CASES'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
@@ -100,7 +109,7 @@
                 <span>내 검증</span>
             </a>
             <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'PARTNER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:if="${#lists.contains(page.auth.roles, 'PARTNER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/partner/verifications}"
                th:classappend="${page.activeNav == 'PARTNER_VERIFICATION_LIST' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">

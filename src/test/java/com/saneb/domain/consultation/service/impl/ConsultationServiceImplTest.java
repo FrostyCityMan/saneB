@@ -3,6 +3,7 @@ package com.saneb.domain.consultation.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,23 +80,44 @@ class ConsultationServiceImplTest {
     }
 
     @Test
-    void insertConsultationReservationHoldsOpenSlotAndWritesHistory() {
-        when(consultationDao.selectConsultationSlotDetails(SLOT_ID)).thenReturn(slot("OPEN"));
-        when(consultationDao.selectConsultationReservationDetails(any())).thenReturn(reservation("REQUESTED"));
+    void insertConsultationReservationCreatesSlotlessUserRequest() {
+        when(consultationDao.selectConsultationReservationDetails(any())).thenReturn(slotlessReservation("REQUESTED"));
 
         var response = consultationService.insertConsultationReservation(
                 authentication(USER_ID, List.of("USER")),
-                new ConsultationReservationCreateRequest(SLOT_ID, null, null, null, "전화 상담 희망")
+                new ConsultationReservationCreateRequest(null, null, null, null, null, "전화 상담 희망")
         );
 
         ArgumentCaptor<ConsultationReservationInsertCommand> reservationCaptor =
                 ArgumentCaptor.forClass(ConsultationReservationInsertCommand.class);
         verify(consultationDao).insertConsultationReservation(reservationCaptor.capture());
         assertThat(reservationCaptor.getValue().memberUserId()).isEqualTo(USER_ID);
-        assertThat(reservationCaptor.getValue().partnerUserId()).isEqualTo(PARTNER_USER_ID);
-        verify(consultationDao).updateConsultationSlotStatus(any());
+        assertThat(reservationCaptor.getValue().slotId()).isNull();
+        assertThat(reservationCaptor.getValue().partnerUserId()).isNull();
+        verify(consultationDao, never()).updateConsultationSlotStatus(any());
         verify(consultationDao).insertConsultationHistory(any());
         verify(consultationDao).insertAuditLog(any());
+        assertThat(response.statusCode()).isEqualTo("REQUESTED");
+    }
+
+    @Test
+    void insertConsultationReservationAllowsOperatorToAssignSlot() {
+        when(consultationDao.selectConsultationSlotDetails(SLOT_ID)).thenReturn(slot("OPEN"));
+        when(consultationDao.selectUserCount(PARTNER_USER_ID)).thenReturn(1L);
+        when(consultationDao.selectConsultationReservationDetails(any())).thenReturn(reservation("REQUESTED"));
+
+        var response = consultationService.insertConsultationReservation(
+                authentication(USER_ID, List.of("OPERATOR")),
+                new ConsultationReservationCreateRequest(SLOT_ID, USER_ID, null, null, null, "전화 상담 희망")
+        );
+
+        ArgumentCaptor<ConsultationReservationInsertCommand> reservationCaptor =
+                ArgumentCaptor.forClass(ConsultationReservationInsertCommand.class);
+        verify(consultationDao).insertConsultationReservation(reservationCaptor.capture());
+        assertThat(reservationCaptor.getValue().memberUserId()).isEqualTo(USER_ID);
+        assertThat(reservationCaptor.getValue().slotId()).isEqualTo(SLOT_ID);
+        assertThat(reservationCaptor.getValue().partnerUserId()).isEqualTo(PARTNER_USER_ID);
+        verify(consultationDao).updateConsultationSlotStatus(any());
         assertThat(response.statusCode()).isEqualTo("REQUESTED");
     }
 
@@ -108,7 +130,7 @@ class ConsultationServiceImplTest {
         var response = consultationService.updateConsultationReservationStatus(
                 authentication(PARTNER_USER_ID, List.of("PARTNER")),
                 RESERVATION_ID,
-                new ConsultationReservationStatusUpdateRequest("confirmed", "확정")
+                new ConsultationReservationStatusUpdateRequest("confirmed", null, null, "확정")
         );
 
         ArgumentCaptor<ConsultationReservationStatusCommand> statusCaptor =
@@ -129,7 +151,7 @@ class ConsultationServiceImplTest {
         assertThatThrownBy(() -> consultationService.updateConsultationReservationStatus(
                 authentication(USER_ID, List.of("USER")),
                 RESERVATION_ID,
-                new ConsultationReservationStatusUpdateRequest("CONFIRMED", null)
+                new ConsultationReservationStatusUpdateRequest("CONFIRMED", null, null, null)
         ))
                 .isInstanceOf(ApiException.class)
                 .extracting(error -> ((ApiException) error).errorCode())
@@ -163,6 +185,27 @@ class ConsultationServiceImplTest {
                 "전화 상담 희망",
                 "CONFIRMED".equals(statusCode) ? "확정" : null,
                 "CONFIRMED".equals(statusCode) ? START_AT.minusDays(1) : null,
+                null,
+                null,
+                START_AT.minusDays(1),
+                START_AT.minusDays(1)
+        );
+    }
+
+    private ConsultationReservationRow slotlessReservation(String statusCode) {
+        return new ConsultationReservationRow(
+                RESERVATION_ID,
+                null,
+                USER_ID,
+                null,
+                null,
+                null,
+                null,
+                null,
+                statusCode,
+                "전화 상담 희망",
+                null,
+                null,
                 null,
                 null,
                 START_AT.minusDays(1),

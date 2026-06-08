@@ -18,7 +18,7 @@ public class MatchingViewController {
     }
 
     @GetMapping("/app/matching/cases")
-    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectMatchingCasePage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
         model.addAttribute("page", MatchingCasePageModel.from(authMe));
@@ -28,14 +28,16 @@ public class MatchingViewController {
     public record MatchingCasePageModel(
             AuthMeResponse auth,
             String roleLabel,
-            String activeNav
+            String activeNav,
+            boolean canOperate
     ) {
 
         private static MatchingCasePageModel from(AuthMeResponse auth) {
             return new MatchingCasePageModel(
                     auth,
                     MatchingViewController.roleLabel(auth.primaryRole()),
-                    "MATCHING_CASES"
+                    "MATCHING_CASES",
+                    auth.roles().stream().anyMatch(role -> java.util.Set.of("OPERATOR", "ADMIN").contains(role))
             );
         }
     }
@@ -45,6 +47,7 @@ public class MatchingViewController {
             case "ADMIN" -> "관리자";
             case "APPROVER" -> "승인자";
             case "OPERATOR" -> "운영자";
+            case "REVIEWER" -> "검수자";
             case "PARTNER" -> "파트너";
             default -> "일반 사용자";
         };

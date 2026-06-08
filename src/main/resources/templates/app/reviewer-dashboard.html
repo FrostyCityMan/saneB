@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('검수 대시보드', ~{::main})}">
+<main class="dashboard-page">
+    <section class="summary-panel reviewer-hero" aria-label="검수 대시보드">
+        <div class="summary-header">
+            <div>
+                <div class="section-label">검수 대시보드</div>
+                <h2>테스트 데이터 흐름 조회</h2>
+                <p>검수 계정은 공고 신청 흐름을 확인하기 위한 조회 전용 계정입니다. 생성, 수정, 승인, 상태 변경은 할 수 없습니다.</p>
+            </div>
+            <span class="soft-status">조회 전용</span>
+        </div>
+        <div class="top-summary-grid">
+            <article class="top-summary-card">
+                <span>권한 기준</span>
+                <strong>읽기 전용</strong>
+                <small>운영자와 관리자 작업 버튼은 노출하지 않습니다.</small>
+            </article>
+            <article class="top-summary-card">
+                <span>확인 범위</span>
+                <strong>검증 · 매칭 · 진행</strong>
+                <small>테스트 데이터 기준으로 흐름을 추적합니다.</small>
+            </article>
+            <article class="top-summary-card">
+                <span>제외 범위</span>
+                <strong>관리 작업 없음</strong>
+                <small>회원 권한, 공고 입력, 로그 원문 접근은 제외합니다.</small>
+            </article>
+        </div>
+    </section>
+
+    <section class="plain-panel">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">바로가기</span>
+                <h2>검수 항목</h2>
+            </div>
+        </div>
+        <div class="action-card-grid">
+            <a class="action-card reviewer-link"
+               th:each="link : ${page.links}"
+               th:href="@{${link.href}}">
+                <strong th:text="${link.label}">검증 목록</strong>
+                <span th:text="${link.description}">검증 상태를 조회합니다.</span>
+            </a>
+        </div>
+    </section>
+</main>
+</html>

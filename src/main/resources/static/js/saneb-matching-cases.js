@@ -7,6 +7,7 @@
     const baseUrl = app.dataset.baseUrl;
     const announcementLookupUrl = app.dataset.announcementLookupUrl;
     const memberLookupUrl = app.dataset.memberLookupUrl;
+    const canOperate = app.dataset.canOperate === "true";
     const createForm = app.querySelector("[data-matching-create-form]");
     const searchForm = app.querySelector("[data-matching-search-form]");
     const list = app.querySelector("[data-matching-list]");
@@ -125,30 +126,6 @@
             meta.append(group);
         });
 
-        const form = document.createElement("form");
-        form.className = "matching-status-form";
-        form.dataset.matchingStatusForm = "true";
-        const select = document.createElement("select");
-        select.name = "statusCode";
-        Object.entries(statusLabels).forEach(([code, label]) => {
-            const option = document.createElement("option");
-            option.value = code;
-            option.textContent = label;
-            option.selected = code === item.statusCode;
-            select.append(option);
-        });
-        const reason = document.createElement("input");
-        reason.name = "blockedReasonCode";
-        reason.type = "text";
-        reason.maxLength = 80;
-        reason.placeholder = "차단 사유(선택)";
-        reason.value = item.blockedReasonCode || "";
-        const button = document.createElement("button");
-        button.className = "secondary-action";
-        button.type = "submit";
-        button.textContent = "상태 저장";
-        form.append(select, reason, button);
-
         const resultButton = document.createElement("button");
         resultButton.className = "secondary-action";
         resultButton.type = "button";
@@ -160,7 +137,34 @@
         results.hidden = true;
         results.dataset.matchingResults = "true";
 
-        card.append(head, meta, form, resultButton, results);
+        card.append(head, meta);
+        if (canOperate) {
+            const form = document.createElement("form");
+            form.className = "matching-status-form";
+            form.dataset.matchingStatusForm = "true";
+            const select = document.createElement("select");
+            select.name = "statusCode";
+            Object.entries(statusLabels).forEach(([code, label]) => {
+                const option = document.createElement("option");
+                option.value = code;
+                option.textContent = label;
+                option.selected = code === item.statusCode;
+                select.append(option);
+            });
+            const reason = document.createElement("input");
+            reason.name = "blockedReasonCode";
+            reason.type = "text";
+            reason.maxLength = 80;
+            reason.placeholder = "차단 사유(선택)";
+            reason.value = item.blockedReasonCode || "";
+            const button = document.createElement("button");
+            button.className = "secondary-action";
+            button.type = "submit";
+            button.textContent = "상태 저장";
+            form.append(select, reason, button);
+            card.append(form);
+        }
+        card.append(resultButton, results);
         return card;
     };
 
@@ -309,28 +313,30 @@
         }
     };
 
-    createForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const button = app.querySelector("[data-matching-create-submit]");
-        try {
-            setBusy(button, true, "생성 중");
-            const body = {
-                announcementId: validateUuidText(valueOf(createForm, "announcementId"), "공고 ID"),
-                memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 ID")
-            };
-            await requestJson(baseUrl, {
-                method: "POST",
-                body: JSON.stringify(body)
-            });
-            createForm.reset();
-            await loadMatchingList();
-            setMessage("매칭 케이스가 생성되었습니다.", "success");
-        } catch (error) {
-            setMessage(error.message, "error");
-        } finally {
-            setBusy(button, false);
-        }
-    });
+    if (createForm) {
+        createForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = app.querySelector("[data-matching-create-submit]");
+            try {
+                setBusy(button, true, "생성 중");
+                const body = {
+                    announcementId: validateUuidText(valueOf(createForm, "announcementId"), "공고 ID"),
+                    memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 ID")
+                };
+                await requestJson(baseUrl, {
+                    method: "POST",
+                    body: JSON.stringify(body)
+                });
+                createForm.reset();
+                await loadMatchingList();
+                setMessage("매칭 케이스가 생성되었습니다.", "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            } finally {
+                setBusy(button, false);
+            }
+        });
+    }
 
     searchForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -398,7 +404,7 @@
             const type = lookupSelect.dataset.lookupSelect;
             const value = lookupSelect.dataset.lookupValue || "";
             const fieldName = type === "announcement" ? "announcementId" : "memberUserId";
-            const field = createForm.querySelector(`[name='${fieldName}']`);
+            const field = createForm ? createForm.querySelector(`[name='${fieldName}']`) : null;
             if (field) {
                 field.value = value;
             }

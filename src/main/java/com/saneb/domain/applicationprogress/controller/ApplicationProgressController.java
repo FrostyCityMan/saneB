@@ -48,7 +48,7 @@ public class ApplicationProgressController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<ApplicationProgressSummaryResponse>> selectApplicationProgressList(
             Authentication authentication,
             @RequestParam(required = false) UUID announcementId,
@@ -70,7 +70,7 @@ public class ApplicationProgressController {
     }
 
     @GetMapping("/{progressId}")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<ApplicationProgressDetailsResponse> selectApplicationProgressDetails(
             @PathVariable UUID progressId
     ) {

@@ -43,7 +43,7 @@ public class PartnerVerificationViewController {
     }
 
     @GetMapping("/app/partner/verifications")
-    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectPartnerVerificationListPage(
             Authentication authentication,
             @RequestParam(required = false) String statusCode,
@@ -73,7 +73,7 @@ public class PartnerVerificationViewController {
     }
 
     @GetMapping("/app/member/verifications/current")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectCurrentVerificationProgressPage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
         PartnerVerificationDetailsResponse details = selectCurrentVerification(authMe);
@@ -89,7 +89,7 @@ public class PartnerVerificationViewController {
     }
 
     @GetMapping("/app/member/verifications/{verificationId}")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectVerificationProgressPage(
             Authentication authentication,
             @PathVariable UUID verificationId,
@@ -224,7 +224,7 @@ public class PartnerVerificationViewController {
         if (details == null) {
             return;
         }
-        if (hasAnyRole(auth, "PARTNER", "OPERATOR", "APPROVER", "ADMIN")) {
+        if (hasAnyRole(auth, "PARTNER", "OPERATOR", "APPROVER", "REVIEWER", "ADMIN")) {
             return;
         }
         if (!auth.userId().equals(details.memberUserId())) {
@@ -238,7 +238,7 @@ public class PartnerVerificationViewController {
 
     private static boolean isPartnerOnly(AuthMeResponse auth) {
         return "PARTNER".equals(auth.primaryRole())
-                && !hasAnyRole(auth, "OPERATOR", "APPROVER", "ADMIN");
+                && !hasAnyRole(auth, "OPERATOR", "APPROVER", "REVIEWER", "ADMIN");
     }
 
     private static void addSuccess(RedirectAttributes redirectAttributes, String message) {
@@ -263,6 +263,7 @@ public class PartnerVerificationViewController {
             case "ADMIN" -> "관리자";
             case "APPROVER" -> "승인자";
             case "OPERATOR" -> "운영자";
+            case "REVIEWER" -> "검수자";
             case "PARTNER" -> "파트너";
             default -> "일반 사용자";
         };

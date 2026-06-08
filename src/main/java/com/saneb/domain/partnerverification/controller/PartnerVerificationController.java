@@ -41,7 +41,7 @@ public class PartnerVerificationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<PartnerVerificationSummaryResponse>> selectPartnerVerificationList(
             @RequestParam(required = false) UUID memberUserId,
             @RequestParam(required = false) UUID partnerUserId,
@@ -70,7 +70,7 @@ public class PartnerVerificationController {
     }
 
     @GetMapping("/{verificationId}")
-    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PartnerVerificationDetailsResponse> selectPartnerVerificationDetails(
             @PathVariable UUID verificationId
     ) {

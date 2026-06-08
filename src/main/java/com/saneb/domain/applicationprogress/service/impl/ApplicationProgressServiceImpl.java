@@ -51,7 +51,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
     private static final Set<String> RESULT_CODES = Set.of(
             "APPROVED", "REJECTED", "SUPPLEMENT_REQUESTED", "STOPPED"
     );
-    private static final Set<String> OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "APPROVER", "ADMIN");
+    private static final Set<String> OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "APPROVER", "REVIEWER", "ADMIN");
 
     private final ApplicationProgressDao applicationProgressDao;
     private final DynamicAnnouncementInputDao dynamicAnnouncementInputDao;
@@ -295,6 +295,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                     actorUserId
             ));
         }
+        applicationProgressDao.touchApplicationProgress(progressId, actorUserId);
 
         insertAudit(actorUserId, "APPLICATION_PROGRESS_DOCUMENTS_SAVE", progressId, metadata(
                 "stepId", stepId.toString(),

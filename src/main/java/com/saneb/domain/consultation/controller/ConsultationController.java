@@ -38,7 +38,7 @@ public class ConsultationController {
     }
 
     @GetMapping("/consultation-slots")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<ConsultationSlotResponse>> selectConsultationSlotList(
             Authentication authentication,
             @RequestParam(required = false) UUID partnerUserId,
@@ -79,7 +79,7 @@ public class ConsultationController {
     }
 
     @GetMapping("/consultation-reservations")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<ConsultationReservationResponse>> selectConsultationReservationList(
             Authentication authentication,
             @RequestParam(required = false) UUID memberUserId,

@@ -88,6 +88,11 @@ public interface ApplicationProgressDao {
             @Param("actorUserId") UUID actorUserId
     );
 
+    int touchApplicationProgress(
+            @Param("progressId") UUID progressId,
+            @Param("actorUserId") UUID actorUserId
+    );
+
     void insertApplicationActionLog(ApplicationActionLogCommand command);
 
     void saveApplicationChecklist(ApplicationChecklistSaveCommand command);

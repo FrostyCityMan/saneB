@@ -168,6 +168,21 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v14MigrationContainsReviewerAndManualConsultationChanges() throws IOException {
+        String sql = selectV14Migration();
+
+        assertThat(sql).contains(
+                "'REVIEWER'",
+                "'검수자'",
+                "ALTER COLUMN slot_id DROP NOT NULL",
+                "ALTER COLUMN partner_user_id DROP NOT NULL",
+                "'ASSIGNED'",
+                "CREATE UNIQUE INDEX uq_progress_reminder_logs_progress_type",
+                "CREATE INDEX ix_operation_tasks_open_resource_type"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -210,6 +225,11 @@ class MigrationContractTest {
 
     private String selectV12Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V12__create_admin_report_exports.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV14Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V14__add_reviewer_and_manual_consultation.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

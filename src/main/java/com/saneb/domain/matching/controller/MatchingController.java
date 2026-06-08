@@ -47,7 +47,7 @@ public class MatchingController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<MatchingCaseSummaryResponse>> selectMatchingCaseList(
             @RequestParam(required = false) UUID announcementId,
             @RequestParam(required = false) UUID memberUserId,
@@ -67,7 +67,7 @@ public class MatchingController {
     }
 
     @GetMapping("/member-lookups")
-    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<MatchingMemberLookupResponse>> selectMatchingMemberLookupList(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") @Min(1) int page,
@@ -77,7 +77,7 @@ public class MatchingController {
     }
 
     @GetMapping("/{matchingCaseId}")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<MatchingCaseDetailsResponse> selectMatchingCaseDetails(
             @PathVariable UUID matchingCaseId
     ) {
@@ -85,7 +85,7 @@ public class MatchingController {
     }
 
     @GetMapping("/{matchingCaseId}/results")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<List<MatchingResultDetailResponse>> selectMatchingResultDetailList(
             @PathVariable UUID matchingCaseId
     ) {

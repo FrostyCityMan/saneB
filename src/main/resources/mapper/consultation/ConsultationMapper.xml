@@ -83,6 +83,15 @@
         </where>
     </sql>
 
+    <select id="selectUserCount" resultType="long">
+        -- Count active user for manual consultation assignment validation.
+        SELECT
+            count(1)
+        FROM users u
+        WHERE u.id = #{userId}
+          AND u.status_code = 'ACTIVE'
+    </select>
+
     <select id="selectConsultationSlotList" resultMap="ConsultationSlotRowMap">
         -- Select consultation availability slots.
         SELECT
@@ -178,9 +187,9 @@
             cr.created_at,
             cr.updated_at
         FROM consultation_reservations cr
-        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        LEFT JOIN partner_availability_slots pas ON pas.id = cr.slot_id
         <include refid="ConsultationReservationSearchWhere"/>
-        ORDER BY pas.start_at DESC, cr.id DESC
+        ORDER BY COALESCE(pas.start_at, cr.created_at) DESC, cr.id DESC
         LIMIT #{size}
         OFFSET #{offset}
     </select>
@@ -190,7 +199,7 @@
         SELECT
             count(1)
         FROM consultation_reservations cr
-        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        LEFT JOIN partner_availability_slots pas ON pas.id = cr.slot_id
         <include refid="ConsultationReservationSearchWhere"/>
     </select>
 
@@ -214,7 +223,7 @@
             cr.created_at,
             cr.updated_at
         FROM consultation_reservations cr
-        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        LEFT JOIN partner_availability_slots pas ON pas.id = cr.slot_id
         WHERE cr.id = #{reservationId}
     </select>
 
@@ -233,9 +242,9 @@
             updated_by
         ) VALUES (
             #{reservationId},
-            #{slotId},
+            #{slotId,jdbcType=OTHER},
             #{memberUserId},
-            #{partnerUserId},
+            #{partnerUserId,jdbcType=OTHER},
             #{progressId,jdbcType=OTHER},
             #{verificationId,jdbcType=OTHER},
             'REQUESTED',
@@ -250,6 +259,8 @@
         UPDATE consultation_reservations
         SET
             status_code = #{statusCode},
+            slot_id = COALESCE(#{slotId,jdbcType=OTHER}, slot_id),
+            partner_user_id = COALESCE(#{partnerUserId,jdbcType=OTHER}, partner_user_id),
             status_note = #{note},
             confirmed_at = CASE WHEN #{statusCode} = 'CONFIRMED' THEN now() ELSE confirmed_at END,
             canceled_at = CASE WHEN #{statusCode} = 'CANCELED' THEN now() ELSE canceled_at END,

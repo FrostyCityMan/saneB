@@ -20,6 +20,8 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ConsultationDao {
 
+    long selectUserCount(@Param("userId") UUID userId);
+
     List<ConsultationSlotRow> selectConsultationSlotList(ConsultationSlotSearchCondition condition);
 
     long selectConsultationSlotCount(ConsultationSlotSearchCondition condition);

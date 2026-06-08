@@ -78,6 +78,18 @@ class FlywayMigrationIntegrationTest {
                     where version = '12'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '13'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '14'
+                      and success = true
+                    """)).isEqualTo(1);
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -85,7 +97,9 @@ class FlywayMigrationIntegrationTest {
                         .isEqualTo(tableName);
             }
 
-            assertThat(selectLong(statement, "select count(1) from roles")).isEqualTo(5);
+            assertThat(selectLong(statement, "select count(1) from roles")).isEqualTo(6);
+            assertThat(selectLong(statement, "select count(1) from roles where role_code = 'REVIEWER'"))
+                    .isEqualTo(1);
             assertThat(selectLong(statement, "select count(1) from consent_versions")).isEqualTo(4);
         }
     }
@@ -133,7 +147,9 @@ class FlywayMigrationIntegrationTest {
                 "operation_task_comments",
                 "operation_task_assignments",
                 "report_exports",
-                "admin_report_snapshots"
+                "admin_report_snapshots",
+                "ai_assist_requests",
+                "ai_assist_results"
         );
     }
 

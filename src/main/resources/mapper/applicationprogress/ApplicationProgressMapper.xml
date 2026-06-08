@@ -400,6 +400,15 @@
         WHERE id = #{progressId}
     </update>
 
+    <update id="touchApplicationProgress">
+        -- Refresh progress activity timestamp after user-visible action.
+        UPDATE application_progresses
+        SET
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{progressId}
+    </update>
+
     <insert id="insertApplicationActionLog">
         -- Insert sanitized progress action log without raw personal input.
         INSERT INTO application_action_logs (

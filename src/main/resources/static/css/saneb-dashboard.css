@@ -1301,6 +1301,40 @@ svg {
     line-height: 1.45;
 }
 
+.action-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.action-card {
+    border: 1px solid #d6d0c3;
+    border-radius: 8px;
+    background: #fffdf8;
+    color: var(--saneb-text);
+    display: grid;
+    gap: 8px;
+    min-height: 126px;
+    padding: 18px;
+    text-decoration: none;
+}
+
+.action-card:hover {
+    border-color: var(--saneb-teal-light);
+    color: var(--saneb-text);
+}
+
+.action-card strong {
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.action-card span {
+    color: var(--saneb-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .span-2 {
     grid-column: 1 / -1;
 }
@@ -3354,6 +3388,10 @@ svg {
 
     .progress-metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .action-card-grid {
+        grid-template-columns: 1fr;
     }
 
     .received-amount {

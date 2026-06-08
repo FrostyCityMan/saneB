@@ -59,7 +59,7 @@ public class ApplicationProgressViewController {
     }
 
     @GetMapping("/app/application-progresses")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectApplicationProgressListPage(
             Authentication authentication,
             @RequestParam(required = false) String statusCode,
@@ -90,7 +90,7 @@ public class ApplicationProgressViewController {
     }
 
     @GetMapping("/app/application-progresses/{progressId}")
-    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public String selectApplicationProgressDetailsPage(
             Authentication authentication,
             @PathVariable UUID progressId,
@@ -237,7 +237,7 @@ public class ApplicationProgressViewController {
     }
 
     private static void ensureProgressAccessible(AuthMeResponse auth, ApplicationProgressDetailsResponse details) {
-        if (hasAnyRole(auth, "PARTNER", "OPERATOR", "APPROVER", "ADMIN")) {
+        if (hasAnyRole(auth, "PARTNER", "OPERATOR", "APPROVER", "REVIEWER", "ADMIN")) {
             return;
         }
         if (!auth.userId().equals(details.memberUserId())) {
@@ -304,6 +304,7 @@ public class ApplicationProgressViewController {
             case "ADMIN" -> "관리자";
             case "APPROVER" -> "승인자";
             case "OPERATOR" -> "운영자";
+            case "REVIEWER" -> "검수자";
             case "PARTNER" -> "파트너";
             default -> "일반 사용자";
         };

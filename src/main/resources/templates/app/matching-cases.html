@@ -5,7 +5,8 @@
       data-matching-app
       th:data-base-url="@{/api/v1/matching/cases}"
       th:data-announcement-lookup-url="@{/api/v1/announcements}"
-      th:data-member-lookup-url="@{/api/v1/matching/cases/member-lookups}">
+      th:data-member-lookup-url="@{/api/v1/matching/cases/member-lookups}"
+      th:data-can-operate="${page.canOperate}">
     <section class="matching-shell" aria-label="매칭 관리">
         <section class="summary-panel matching-hero">
             <div class="summary-header">
@@ -35,7 +36,8 @@
         </section>
 
         <section class="matching-grid">
-            <form class="plain-panel matching-form" data-matching-create-form novalidate>
+            <form class="plain-panel matching-form" data-matching-create-form novalidate
+                  th:if="${page.canOperate}">
                 <div class="panel-heading compact-heading">
                     <div>
                         <span class="eyebrow">생성</span>

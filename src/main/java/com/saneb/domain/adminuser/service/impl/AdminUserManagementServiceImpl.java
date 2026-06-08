@@ -33,7 +33,7 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
     private static final int MAX_PAGE_SIZE = 100;
     private static final String RESOURCE_TYPE = "USER";
     private static final Set<String> STATUS_CODES = Set.of("ACTIVE", "LOCKED", "DISABLED", "DELETED");
-    private static final Set<String> ROLE_CODES = Set.of("USER", "PARTNER", "OPERATOR", "APPROVER", "ADMIN");
+    private static final Set<String> ROLE_CODES = Set.of("USER", "PARTNER", "OPERATOR", "APPROVER", "REVIEWER", "ADMIN");
 
     private final AdminUserManagementDao adminUserManagementDao;
 
@@ -289,8 +289,9 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
             case "ADMIN" -> 1;
             case "APPROVER" -> 2;
             case "OPERATOR" -> 3;
-            case "PARTNER" -> 4;
-            default -> 5;
+            case "REVIEWER" -> 4;
+            case "PARTNER" -> 5;
+            default -> 6;
         };
     }
 }

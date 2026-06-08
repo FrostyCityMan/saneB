@@ -37,8 +37,9 @@ public class DbBackedUserDetailsService implements UserDetailsService {
             case "ADMIN" -> 1;
             case "APPROVER" -> 2;
             case "OPERATOR" -> 3;
-            case "PARTNER" -> 4;
-            default -> 5;
+            case "REVIEWER" -> 4;
+            case "PARTNER" -> 5;
+            default -> 6;
         };
     }
 }
