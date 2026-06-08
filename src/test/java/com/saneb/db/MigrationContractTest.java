@@ -73,6 +73,22 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v7MigrationContainsUserConsentTables() throws IOException {
+        String sql = selectV7Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE consent_versions",
+                "CREATE TABLE user_consents",
+                "CREATE UNIQUE INDEX uq_consent_versions_current",
+                "CREATE INDEX ix_user_consents_user_code_consented_at",
+                "'TERMS_OF_SERVICE'",
+                "'PRIVACY_POLICY'",
+                "'E_CERT'",
+                "'CREDIT_CHECK'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -85,6 +101,11 @@ class MigrationContractTest {
 
     private String selectV6Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V6__allow_matching_without_verification.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV7Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V7__create_user_consents.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

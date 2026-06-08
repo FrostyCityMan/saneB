@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.consent.dao.ConsentDao">
+
+    <resultMap id="ConsentVersionRowMap" type="com.saneb.domain.consent.vo.ConsentVersionRow">
+        <constructor>
+            <arg column="consent_version_id" javaType="java.util.UUID"/>
+            <arg column="consent_code" javaType="java.lang.String"/>
+            <arg column="consent_name" javaType="java.lang.String"/>
+            <arg column="version_no" javaType="_int"/>
+            <arg column="is_required" javaType="boolean"/>
+            <arg column="effective_from" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="UserConsentRowMap" type="com.saneb.domain.consent.vo.UserConsentRow">
+        <constructor>
+            <arg column="user_consent_id" javaType="java.util.UUID"/>
+            <arg column="consent_version_id" javaType="java.util.UUID"/>
+            <arg column="consent_code" javaType="java.lang.String"/>
+            <arg column="consent_name" javaType="java.lang.String"/>
+            <arg column="version_no" javaType="_int"/>
+            <arg column="is_consented" javaType="boolean"/>
+            <arg column="consented_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectCurrentConsentVersionList" resultMap="ConsentVersionRowMap">
+        -- 현재 유효한 동의 버전 목록을 조회한다.
+        SELECT
+            cv.id AS consent_version_id,
+            cv.consent_code,
+            cv.consent_name,
+            cv.version_no,
+            cv.is_required,
+            cv.effective_from
+        FROM consent_versions cv
+        WHERE cv.effective_to IS NULL
+          AND cv.effective_from &lt;= now()
+        ORDER BY cv.is_required DESC, cv.consent_code ASC
+    </select>
+
+    <select id="selectCurrentConsentVersionDetailsByCode" resultMap="ConsentVersionRowMap">
+        -- 특정 동의 항목의 현재 유효한 버전을 조회한다.
+        SELECT
+            cv.id AS consent_version_id,
+            cv.consent_code,
+            cv.consent_name,
+            cv.version_no,
+            cv.is_required,
+            cv.effective_from
+        FROM consent_versions cv
+        WHERE cv.consent_code = #{consentCode}
+          AND cv.effective_to IS NULL
+          AND cv.effective_from &lt;= now()
+    </select>
+
+    <select id="selectUserConsentList" resultMap="UserConsentRowMap">
+        -- 사용자 동의 이력을 최신 순으로 조회한다.
+        SELECT
+            uc.id AS user_consent_id,
+            uc.consent_version_id,
+            uc.consent_code,
+            cv.consent_name,
+            cv.version_no,
+            uc.is_consented,
+            uc.consented_at
+        FROM user_consents uc
+        INNER JOIN consent_versions cv ON cv.id = uc.consent_version_id
+        WHERE uc.user_id = #{userId}
+        ORDER BY uc.consented_at DESC, uc.id DESC
+    </select>
+
+    <select id="insertUserConsent" resultType="java.util.UUID">
+        -- 사용자 동의 이력을 저장하고 생성 식별자를 반환한다.
+        INSERT INTO user_consents (
+            user_id,
+            consent_version_id,
+            consent_code,
+            is_consented,
+            ip_address,
+            user_agent,
+            created_by
+        ) VALUES (
+            #{userId},
+            #{consentVersionId},
+            #{consentCode},
+            #{consented},
+            CAST(#{ipAddress,jdbcType=VARCHAR} AS inet),
+            #{userAgent},
+            #{userId}
+        )
+        RETURNING id
+    </select>
+
+    <select id="selectUserConsentDetails" resultMap="UserConsentRowMap">
+        -- 사용자 동의 이력 단건을 조회한다.
+        SELECT
+            uc.id AS user_consent_id,
+            uc.consent_version_id,
+            uc.consent_code,
+            cv.consent_name,
+            cv.version_no,
+            uc.is_consented,
+            uc.consented_at
+        FROM user_consents uc
+        INNER JOIN consent_versions cv ON cv.id = uc.consent_version_id
+        WHERE uc.id = #{userConsentId}
+    </select>
+</mapper>

@@ -2,6 +2,7 @@ package com.saneb.domain.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import com.saneb.domain.auth.vo.AuthLoginHistoryCommand;
 import com.saneb.domain.auth.vo.AuthPasswordUpdateCommand;
 import com.saneb.domain.auth.vo.AuthSignupCommand;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
+import com.saneb.domain.consent.service.ConsentService;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,9 @@ class AuthControllerSmokeTest {
 
     @MockBean
     private AuthDao authDao;
+
+    @MockBean
+    private ConsentService consentService;
 
     @TestConfiguration
     static class AuthControllerSmokeTestConfig {
@@ -157,6 +162,7 @@ class AuthControllerSmokeTest {
         ArgumentCaptor<AuthSignupCommand> signupCaptor = ArgumentCaptor.forClass(AuthSignupCommand.class);
         verify(authDao).insertUser(signupCaptor.capture());
         verify(authDao).insertUserRole(USER_ID, "USER");
+        verify(consentService).insertSignupRequiredConsents(eq(USER_ID), any());
         verify(authDao).updateUserLastLoginAt(USER_ID);
         assertThat(signupCaptor.getValue().loginId()).isEqualTo("newuser");
         assertThat(signupCaptor.getValue().name()).isEqualTo("신규 사용자");

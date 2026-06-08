@@ -196,12 +196,22 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 개인정보 원문과 secret은 `audit_logs.metadata_json`에 저장하지 않는다. metadata는 비식별 값, 코드, 해시, 처리 결과 중심으로 제한한다.
 
+### 5.10 Consents
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `consent_versions` | `consent_code`, `consent_name`, `version_no`, `is_required`, `effective_from`, `effective_to`, `content_hash` | PK `id` | UQ `(consent_code, version_no)`, partial UQ current `(consent_code) WHERE effective_to IS NULL`, IDX `(consent_code, effective_from)` |
+| `user_consents` | `user_id`, `consent_version_id`, `consent_code`, `is_consented`, `consented_at`, `ip_address`, `user_agent` | PK `id`, FK `users.id`, FK `consent_versions.id` | IDX `(user_id, consent_code, consented_at)`, IDX `consent_version_id` |
+
+동의 이력은 운영 감사 로그와 분리한다. `ip_address`, `user_agent`는 동의 증적용으로만 저장하며, 외부 API 응답 원문이나 개인정보 원문은 저장하지 않는다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
 |---|---|
 | `role_code` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` |
 | `user_status_code` | `ACTIVE`, `LOCKED`, `DISABLED`, `DELETED` |
+| `consent_code` | `TERMS_OF_SERVICE`, `PRIVACY_POLICY`, `E_CERT`, `CREDIT_CHECK` |
 | `partner_status_code` | `PENDING`, `ACTIVE`, `SUSPENDED`, `TERMINATED` |
 | `relation_type_code` | `SPOUSE`, `CHILD`, `PARENT` |
 | `business_type_code` | `SOLE_PROPRIETOR`, `CORPORATION`, `SIMPLIFIED_TAXPAYER`, `GENERAL_TAXPAYER`, `TAX_EXEMPT` |

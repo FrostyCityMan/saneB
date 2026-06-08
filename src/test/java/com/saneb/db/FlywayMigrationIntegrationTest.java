@@ -42,6 +42,12 @@ class FlywayMigrationIntegrationTest {
                     where version = '6'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '7'
+                      and success = true
+                    """)).isEqualTo(1);
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -50,6 +56,7 @@ class FlywayMigrationIntegrationTest {
             }
 
             assertThat(selectLong(statement, "select count(1) from roles")).isEqualTo(5);
+            assertThat(selectLong(statement, "select count(1) from consent_versions")).isEqualTo(4);
         }
     }
 
@@ -75,7 +82,9 @@ class FlywayMigrationIntegrationTest {
                 "audit_logs",
                 "announcement_input_requirements",
                 "announcement_input_options",
-                "application_input_values"
+                "application_input_values",
+                "consent_versions",
+                "user_consents"
         );
     }
 

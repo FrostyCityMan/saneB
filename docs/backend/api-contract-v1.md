@@ -153,7 +153,7 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 }
 ```
 
-회원가입은 `users`에 `ACTIVE`, `password_reset_required=false`로 저장하고 `user_roles`에 `USER` 역할을 부여한다. 가입 성공 시 Backend는 세션을 생성하고 `LoginResponse`와 동일한 응답을 반환한다. 약관 동의값은 MVP에서 가입 요청 검증 용도로만 사용하며 별도 동의 이력 저장은 보류한다.
+회원가입은 `users`에 `ACTIVE`, `password_reset_required=false`로 저장하고 `user_roles`에 `USER` 역할을 부여한다. 가입 성공 시 세션을 생성하고 `LoginResponse`와 동일한 응답을 반환한다. 이용약관과 개인정보 처리방침 동의는 현재 유효한 `consent_versions` 기준으로 `user_consents`에 저장한다.
 
 #### AuthMeResponse
 
@@ -1024,7 +1024,57 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 | `reverification_reason_code` | `TAX_STATUS_REQUIRED` | 세금 상태 확인 필요 |
 | `reverification_reason_code` | `FINANCIAL_STATUS_REQUIRED` | 금융 상태 확인 필요 |
 
-## 12. Audit API
+## 12. Consent API
+
+동의 이력은 운영 감사 로그와 분리해 `user_consents`에 저장한다. 개인정보 원문이나 외부 API 응답 원문은 동의 이력에 저장하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/consents/current` | anonymous | 현재 유효한 동의 항목 목록 |
+| `GET` | `/api/v1/users/me/consents` | authenticated | 내 동의 이력 목록 |
+| `POST` | `/api/v1/users/me/consents` | authenticated | 내 동의 이력 저장 |
+
+#### CurrentConsentResponse
+
+```json
+{
+  "consentVersionId": "uuid",
+  "consentCode": "PRIVACY_POLICY",
+  "consentName": "개인정보 처리방침",
+  "versionNo": 1,
+  "required": true,
+  "effectiveFrom": "2026-06-08T10:00:00+09:00"
+}
+```
+
+#### ConsentSaveRequest
+
+```json
+{
+  "consentCode": "E_CERT",
+  "consented": true
+}
+```
+
+`consentCode`는 `TERMS_OF_SERVICE`, `PRIVACY_POLICY`, `E_CERT`, `CREDIT_CHECK`만 허용한다. MVP에서는 `consented=true` 저장만 허용한다.
+
+#### UserConsentResponse
+
+```json
+{
+  "userConsentId": "uuid",
+  "consentVersionId": "uuid",
+  "consentCode": "E_CERT",
+  "consentName": "전자증명 이용 동의",
+  "versionNo": 1,
+  "consented": true,
+  "consentedAt": "2026-06-08T10:00:00+09:00"
+}
+```
+
+회원가입 성공 시 `TERMS_OF_SERVICE`, `PRIVACY_POLICY` 2건은 자동 저장한다. 전자증명과 신용조회 동의는 사용자가 해당 기능을 실제로 진행할 때 별도 저장한다.
+
+## 13. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1085,7 +1135,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 }
 ```
 
-## 13. ErrorCode 초안
+## 14. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|

@@ -138,6 +138,7 @@ class AuthSmokeIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.loginId").value(signupLoginId));
         assertThat(selectUserRoleCount(signupLoginId, "USER")).isEqualTo(1);
+        assertThat(selectUserConsentCount(signupLoginId)).isEqualTo(2);
 
         assertThat(selectLoginHistoryCount("SUCCESS")).isEqualTo(beforeSuccessCount + 2);
         assertThat(selectLoginHistoryCount("FAIL")).isEqualTo(beforeFailCount + 1);
@@ -170,6 +171,21 @@ class AuthSmokeIntegrationTest {
                 Long.class,
                 loginId,
                 roleCode
+        );
+        return count == null ? 0 : count;
+    }
+
+    private long selectUserConsentCount(String loginId) {
+        Long count = jdbcTemplate.queryForObject(
+                """
+                        SELECT count(1)
+                        FROM users u
+                        INNER JOIN user_consents uc ON uc.user_id = u.id
+                        WHERE u.login_id = ?
+                          AND uc.consent_code IN ('TERMS_OF_SERVICE', 'PRIVACY_POLICY')
+                        """,
+                Long.class,
+                loginId
         );
         return count == null ? 0 : count;
     }

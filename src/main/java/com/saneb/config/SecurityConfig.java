@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/auth/signup").permitAll()
+                        .requestMatchers("/api/v1/consents/current").permitAll()
                         .requestMatchers("/css/**").permitAll()
                         .requestMatchers("/js/**").permitAll()
                         .anyRequest().authenticated()

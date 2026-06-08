@@ -14,6 +14,7 @@ import com.saneb.domain.auth.vo.AuthPasswordUpdateCommand;
 import com.saneb.domain.auth.vo.AuthSignupCommand;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
+import com.saneb.domain.consent.service.ConsentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -44,15 +45,18 @@ public class AuthServiceImpl implements AuthService {
     private static final int MAX_USER_AGENT_LENGTH = 500;
 
     private final AuthDao authDao;
+    private final ConsentService consentService;
     private final PasswordEncoder passwordEncoder;
     private final SecurityContextRepository securityContextRepository;
 
     public AuthServiceImpl(
             AuthDao authDao,
+            ConsentService consentService,
             PasswordEncoder passwordEncoder,
             SecurityContextRepository securityContextRepository
     ) {
         this.authDao = authDao;
+        this.consentService = consentService;
         this.passwordEncoder = passwordEncoder;
         this.securityContextRepository = securityContextRepository;
     }
@@ -114,6 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 email
         ));
         authDao.insertUserRole(userId, DEFAULT_SIGNUP_ROLE);
+        consentService.insertSignupRequiredConsents(userId, httpRequest);
 
         AuthUserDetailsRow user = new AuthUserDetailsRow(
                 userId,
