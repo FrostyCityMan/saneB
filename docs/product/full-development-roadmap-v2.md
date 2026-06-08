@@ -306,6 +306,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 감사 로그 화면 | 완료 | 관리자/승인자 조회 화면과 `/api/v1/audit-logs` 목록/상세 유지 |
 | 관리자 리포트 | 완료 | `report_exports`, `admin_report_snapshots`, `/api/v1/admin/reports/summary`, `/api/v1/admin/reports/exports` 적용 |
 | 운영 readiness | 완료 | Actuator liveness/readiness probe 설정 적용 |
+| 서버 화면 CSRF | 완료 | 서버 form과 `/logout` CSRF 적용, `/api/v1/**` CSRF header 계약은 별도 Gate로 유지 |
+| API rate limit | 완료 | `/api/v1/**` 기본 요청 제한 적용, 환경변수로 제한값과 사용 여부 조정 |
 | AI 보조 | 보류 | Phase 7 위험 Gate 이후 |
 
 ## 11. Gate 정책
@@ -336,13 +338,12 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 - 운영 secret은 환경변수 또는 systemd EnvironmentFile로만 관리한다.
 - 파일 저장 경로는 환경변수로 외부화한다.
-- CSRF hardening을 외부 배포 전 별도 Gate로 통과시킨다.
+- 서버 화면 CSRF hardening은 적용했다. `/api/v1/**` CSRF header 계약은 별도 Gate에서 확정한다.
 - 결제/파일/AI provider 호출은 service 계층으로 분리한다.
 
 ## 12. 다음 구현 우선순위
 
-1. CSRF hardening
-2. rate limit
-3. AI 보조 기능
+1. `/api/v1/**` CSRF header 계약
+2. AI 보조 기능
 
-파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐, 관리자 리포트는 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 CSRF hardening과 rate limit이다. 두 항목은 로그인/폼/API 사용성에 직접 영향을 주므로 보안 Gate로 분리해 적용해야 한다.
+파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐, 관리자 리포트, 서버 화면 CSRF, API rate limit은 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 `/api/v1/**` CSRF header 계약과 AI 보조 기능이다.

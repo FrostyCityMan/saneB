@@ -8,6 +8,8 @@
 - 응답은 `ApiResponse<T>` wrapper를 사용한다.
 - 목록 API는 `PageResponse<T>`를 사용한다.
 - 인증과 권한 검증은 서버에서 수행한다.
+- `/api/v1/**` 요청은 서버 rate limit 적용 대상이다.
+- 서버 화면 form과 `/logout`은 CSRF 검증 대상이다. `/api/v1/**` CSRF header 계약은 별도 Gate에서 확정한다.
 - Controller는 URL 매핑, 요청/응답, DTO 변환만 담당한다.
 - 비즈니스 로직은 ServiceImpl에 둔다.
 - SQL은 DAO와 Mapper XML을 통해서만 실행한다.
@@ -1452,6 +1454,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `MATCHING_BLOCKED` | 409 | 제한 플래그로 매칭 차단 |
 | `PROGRESS_STEP_LOCKED` | 409 | 잠긴 단계 접근 |
 | `PROGRESS_CONDITION_NOT_MET` | 409 | 단계 완료 조건 미충족 |
+| `RATE_LIMIT_EXCEEDED` | 429 | 짧은 시간 내 과도한 API 요청 |
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 

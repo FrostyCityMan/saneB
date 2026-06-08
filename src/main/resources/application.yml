@@ -44,6 +44,11 @@ management:
       enabled: true
 
 saneb:
+  security:
+    rate-limit:
+      enabled: ${SANEB_RATE_LIMIT_ENABLED:true}
+      max-requests: ${SANEB_RATE_LIMIT_MAX_REQUESTS:600}
+      window-seconds: ${SANEB_RATE_LIMIT_WINDOW_SECONDS:60}
   storage:
     root: ${STORAGE_ROOT:build/saneb-storage}
     max-upload-bytes: ${SANEB_MAX_UPLOAD_BYTES:10485760}

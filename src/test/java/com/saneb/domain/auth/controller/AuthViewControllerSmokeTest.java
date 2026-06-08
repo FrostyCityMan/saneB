@@ -2,6 +2,7 @@ package com.saneb.domain.auth.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -104,9 +105,17 @@ class AuthViewControllerSmokeTest {
     @Test
     @WithMockUser(username = "user01", roles = "USER")
     void logoutRedirectsAuthenticatedUserToLoginPage() throws Exception {
-        mockMvc.perform(post("/logout"))
+        mockMvc.perform(post("/logout")
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"))
                 .andExpect(header().string("Location", "/login"));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void logoutWithoutCsrfIsForbidden() throws Exception {
+        mockMvc.perform(post("/logout"))
+                .andExpect(status().isForbidden());
     }
 }

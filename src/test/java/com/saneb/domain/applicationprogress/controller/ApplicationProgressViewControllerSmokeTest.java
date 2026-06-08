@@ -3,6 +3,7 @@ package com.saneb.domain.applicationprogress.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -93,6 +94,7 @@ class ApplicationProgressViewControllerSmokeTest {
     void insertApplicationProgressFromViewRedirectsToCreatedProgress() throws Exception {
         mockMvc.perform(post("/app/application-progresses/start")
                         .with(user("local_user").roles("USER"))
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("matchingCaseId", MATCHING_CASE_ID.toString()))
                 .andExpect(status().is3xxRedirection())
