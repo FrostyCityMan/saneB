@@ -32,6 +32,17 @@ logging:
     root: INFO
     com.saneb: INFO
 
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+
 saneb:
   storage:
     root: ${STORAGE_ROOT:build/saneb-storage}

@@ -250,6 +250,15 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 외부 알림 provider payload 원문은 저장하지 않는다. `notification_delivery_logs.metadata_json`과 `audit_logs.metadata_json`에는 channel, resource type, provider 설정 여부 같은 비식별 metadata만 저장한다.
 
+### 5.15 Admin Reports
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `report_exports` | `report_type_code`, `format_code`, `status_code`, `requested_by`, `row_count`, `file_name`, `content_text`, `completed_at` | PK `id`, FK `users.id` | IDX `requested_at`, IDX `(requested_by, status_code)` |
+| `admin_report_snapshots` | `snapshot_type_code`, `snapshot_json`, `created_by` | PK `id`, FK `users.id` | IDX `(snapshot_type_code, created_at)` |
+
+관리자 리포트 snapshot은 집계 수치만 저장한다. 사용자명, 연락처, 결제사 원문 payload, 파일 원문은 snapshot과 export content에 포함하지 않는다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -298,6 +307,9 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `operation_task_status_code` | `OPEN`, `IN_PROGRESS`, `WAITING`, `DONE`, `CANCELED` |
 | `operation_task_priority_code` | `LOW`, `NORMAL`, `HIGH`, `URGENT` |
 | `operation_task_assignment_status_code` | `ASSIGNED`, `DONE`, `CANCELED` |
+| `report_type_code` | `OPERATION_SUMMARY` |
+| `report_format_code` | `CSV`, `EXCEL` |
+| `report_export_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

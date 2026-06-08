@@ -1349,7 +1349,29 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 
 운영 업무 상태는 `OPEN -> IN_PROGRESS|WAITING|DONE|CANCELED`, `IN_PROGRESS|WAITING -> IN_PROGRESS|WAITING|DONE|CANCELED`만 허용한다. `DONE`, `CANCELED` 이후 상태 변경은 차단한다.
 
-## 17. Audit API
+## 17. Admin Report API
+
+관리자 리포트는 운영 상태 요약과 요약 내보내기만 제공한다. 내보내기 결과는 `ApiResponse` wrapper 안에 텍스트 content로 반환하며, 개인정보 원문은 포함하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/reports/summary` | `ADMIN` | 운영 요약 리포트 |
+| `POST` | `/api/v1/admin/reports/exports` | `ADMIN` | 리포트 내보내기 생성 |
+| `GET` | `/api/v1/admin/reports/exports/{exportId}` | `ADMIN` | 리포트 내보내기 상세 |
+| `GET` | `/api/v1/admin/reports/exports/{exportId}/download` | `ADMIN` | 리포트 내보내기 content 조회 |
+
+#### ReportExportCreateRequest
+
+```json
+{
+  "reportTypeCode": "OPERATION_SUMMARY",
+  "formatCode": "CSV"
+}
+```
+
+`formatCode`는 `CSV`, `EXCEL`을 허용한다. 현재 `EXCEL`은 브라우저에서 열 수 있는 tab-separated content로 반환한다.
+
+## 18. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1366,7 +1388,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 |---|---|
 | `keyword` | 작업, 대상, 대상 번호, 작업자 검색 |
 | `actionCode` | 작업 종류 정확히 일치 검색 |
-| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS`, `DOCUMENT_SUBMISSION`, `CONSULTATION_RESERVATION`, `SUBSCRIPTION`, `PAYMENT_TRANSACTION`, `REFUND_TRANSACTION`, `NOTIFICATION_MESSAGE`, `OPERATION_TASK` |
+| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS`, `DOCUMENT_SUBMISSION`, `CONSULTATION_RESERVATION`, `SUBSCRIPTION`, `PAYMENT_TRANSACTION`, `REFUND_TRANSACTION`, `NOTIFICATION_MESSAGE`, `OPERATION_TASK`, `REPORT_EXPORT` |
 | `resultCode` | `SUCCESS`, `FAIL` |
 | `page` | 1부터 시작 |
 | `size` | 1~100 |
@@ -1410,7 +1432,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 }
 ```
 
-## 18. ErrorCode 초안
+## 19. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|
@@ -1433,7 +1455,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 
-## 19. Backend Gate
+## 20. Backend Gate
 
 - 모든 endpoint가 `/api/v1/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.

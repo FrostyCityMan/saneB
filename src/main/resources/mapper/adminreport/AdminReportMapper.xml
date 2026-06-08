@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.adminreport.dao.AdminReportDao">
+
+    <resultMap id="AdminReportSummaryRowMap" type="com.saneb.domain.adminreport.vo.AdminReportSummaryRow">
+        <constructor>
+            <arg column="total_user_count" javaType="long"/>
+            <arg column="active_user_count" javaType="long"/>
+            <arg column="approved_announcement_count" javaType="long"/>
+            <arg column="open_announcement_count" javaType="long"/>
+            <arg column="matched_case_count" javaType="long"/>
+            <arg column="progressed_case_count" javaType="long"/>
+            <arg column="active_progress_count" javaType="long"/>
+            <arg column="completed_progress_count" javaType="long"/>
+            <arg column="active_subscription_count" javaType="long"/>
+            <arg column="approved_payment_count" javaType="long"/>
+            <arg column="approved_payment_amount" javaType="java.math.BigDecimal"/>
+            <arg column="open_operation_task_count" javaType="long"/>
+            <arg column="unread_notification_count" javaType="long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ReportExportRowMap" type="com.saneb.domain.adminreport.vo.ReportExportRow">
+        <constructor>
+            <arg column="export_id" javaType="java.util.UUID"/>
+            <arg column="report_type_code" javaType="java.lang.String"/>
+            <arg column="format_code" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="row_count" javaType="int"/>
+            <arg column="file_name" javaType="java.lang.String"/>
+            <arg column="content_text" javaType="java.lang.String"/>
+            <arg column="requested_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="failure_code" javaType="java.lang.String"/>
+            <arg column="failure_message" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAdminReportSummary" resultMap="AdminReportSummaryRowMap">
+        -- Select operation summary report counts.
+        SELECT
+            (SELECT count(1) FROM users u) AS total_user_count,
+            (SELECT count(1) FROM users u WHERE u.status_code = 'ACTIVE') AS active_user_count,
+            (
+                SELECT count(1)
+                FROM announcements a
+                WHERE a.approval_status_code = 'APPROVED'
+            ) AS approved_announcement_count,
+            (
+                SELECT count(1)
+                FROM announcements a
+                WHERE a.auto_status_code IN ('OPEN', 'CLOSING_SOON')
+                  AND a.manual_status_code = 'NORMAL'
+            ) AS open_announcement_count,
+            (
+                SELECT count(1)
+                FROM matching_cases mc
+                WHERE mc.status_code = 'MATCHED'
+            ) AS matched_case_count,
+            (
+                SELECT count(1)
+                FROM matching_cases mc
+                WHERE mc.status_code = 'PROGRESSED'
+            ) AS progressed_case_count,
+            (
+                SELECT count(1)
+                FROM application_progresses ap
+                WHERE ap.status_code IN ('READY', 'IN_PROGRESS', 'WAITING_RESULT', 'SUPPLEMENT_REQUESTED')
+            ) AS active_progress_count,
+            (
+                SELECT count(1)
+                FROM application_progresses ap
+                WHERE ap.status_code IN ('APPROVED', 'REJECTED', 'STOPPED', 'COMPLETED')
+            ) AS completed_progress_count,
+            (
+                SELECT count(1)
+                FROM user_subscriptions us
+                WHERE us.status_code = 'ACTIVE'
+            ) AS active_subscription_count,
+            (
+                SELECT count(1)
+                FROM payment_transactions pt
+                WHERE pt.status_code = 'APPROVED'
+            ) AS approved_payment_count,
+            (
+                SELECT COALESCE(sum(pt.amount), 0)
+                FROM payment_transactions pt
+                WHERE pt.status_code = 'APPROVED'
+            ) AS approved_payment_amount,
+            (
+                SELECT count(1)
+                FROM operation_tasks ot
+                WHERE ot.status_code IN ('OPEN', 'IN_PROGRESS', 'WAITING')
+            ) AS open_operation_task_count,
+            (
+                SELECT count(1)
+                FROM notification_messages nm
+                WHERE nm.read_at IS NULL
+            ) AS unread_notification_count
+    </select>
+
+    <insert id="insertReportExport">
+        -- Insert completed admin report export.
+        INSERT INTO report_exports (
+            id,
+            report_type_code,
+            format_code,
+            status_code,
+            requested_by,
+            row_count,
+            file_name,
+            content_text,
+            completed_at
+        ) VALUES (
+            #{exportId},
+            #{reportTypeCode},
+            #{formatCode},
+            #{statusCode},
+            #{requestedBy},
+            #{rowCount},
+            #{fileName},
+            #{contentText},
+            CASE WHEN #{statusCode} = 'COMPLETED' THEN now() ELSE NULL END
+        )
+    </insert>
+
+    <select id="selectReportExportDetails" resultMap="ReportExportRowMap">
+        -- Select one report export.
+        SELECT
+            re.id AS export_id,
+            re.report_type_code,
+            re.format_code,
+            re.status_code,
+            re.requested_by,
+            re.row_count,
+            re.file_name,
+            re.content_text,
+            re.requested_at,
+            re.completed_at,
+            re.failure_code,
+            re.failure_message
+        FROM report_exports re
+        WHERE re.id = #{exportId}
+    </select>
+
+    <insert id="insertAdminReportSnapshot">
+        -- Insert non-PII admin report snapshot.
+        INSERT INTO admin_report_snapshots (
+            id,
+            snapshot_type_code,
+            snapshot_json,
+            created_by
+        ) VALUES (
+            #{snapshotId},
+            #{snapshotTypeCode},
+            CAST(#{snapshotJson,jdbcType=VARCHAR} AS jsonb),
+            #{actorUserId}
+        )
+    </insert>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII report audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

@@ -154,6 +154,20 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v12MigrationContainsAdminReportExportTables() throws IOException {
+        String sql = selectV12Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE report_exports",
+                "CREATE TABLE admin_report_snapshots",
+                "'OPERATION_SUMMARY'",
+                "'CSV'",
+                "'EXCEL'",
+                "'COMPLETED'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -191,6 +205,11 @@ class MigrationContractTest {
 
     private String selectV11Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V11__create_notifications_operation_tasks.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV12Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V12__create_admin_report_exports.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }
