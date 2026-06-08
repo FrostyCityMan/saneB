@@ -82,6 +82,15 @@
                 <span>감사 로그</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/app-logs}"
+               th:classappend="${page.activeNav == 'APP_LOGS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M8.8 8h6.4M8.8 11.5h6.4M8.8 15h4.2"/><path d="M15.5 16.8h3.4"/></svg>
+                </span>
+                <span>앱 로그</span>
+            </a>
+            <a class="side-link"
                th:if="${page.auth.primaryRole == 'USER'}"
                th:href="@{/app/member/verifications/current}"
                th:classappend="${page.activeNav == 'VERIFICATION_PROGRESS' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">

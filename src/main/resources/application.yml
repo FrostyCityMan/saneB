@@ -44,6 +44,9 @@ management:
       enabled: true
 
 saneb:
+  logging:
+    app-log-path: ${SANEB_APP_LOG_PATH:/home/ubuntu/app/app.log}
+    app-log-scan-lines: ${SANEB_APP_LOG_SCAN_LINES:3000}
   security:
     rate-limit:
       enabled: ${SANEB_RATE_LIMIT_ENABLED:true}

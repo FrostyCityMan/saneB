@@ -1374,7 +1374,47 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 
 `formatCode`는 `CSV`, `EXCEL`을 허용한다. 현재 `EXCEL`은 브라우저에서 열 수 있는 tab-separated content로 반환한다.
 
-## 18. AI Assist API
+## 18. Admin App Log API
+
+앱 로그 관리는 관리자 전용 읽기 기능이다. 로그 파일 경로는 `SANEB_APP_LOG_PATH` 환경변수로 지정하며, 기본값은 배포 스크립트의 `/home/ubuntu/app/app.log`와 맞춘다. 로그 삭제, 원문 다운로드, 임의 경로 조회는 제공하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/app-logs` | `ADMIN` | 최근 앱 로그 조회 |
+
+목록 query:
+
+| 필드 | 설명 |
+|---|---|
+| `levelCode` | 선택. `INFO`, `WARN`, `ERROR`, `DEBUG` 중 하나 |
+| `keyword` | 선택. 최근 로그 안에서 대소문자 구분 없이 검색 |
+| `lines` | 선택. 기본 120, 최대 500 |
+
+응답:
+
+```json
+{
+  "logPath": "/home/ubuntu/app/app.log",
+  "available": true,
+  "fileSizeBytes": 1024,
+  "lastModifiedAt": "2026-06-08T10:00:00+09:00",
+  "requestedLines": 120,
+  "returnedLines": 1,
+  "levelCode": "ERROR",
+  "keyword": "payment",
+  "message": "최근 로그를 조회했습니다.",
+  "lines": [
+    {
+      "sequenceNo": 1,
+      "content": "2026-06-08 ERROR sample"
+    }
+  ]
+}
+```
+
+`password`, `token`, `secret`, `apiKey`, `authorization` 형태의 값은 화면과 API 응답에서 마스킹한다. 그래도 로그는 운영 민감정보가 포함될 수 있으므로 `ADMIN` 외에는 접근할 수 없다.
+
+## 19. AI Assist API
 
 AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은 DB와 감사 로그에 저장하지 않고 `input_hash_sha256`, `input_length`, provider/model/status metadata만 저장한다. 기본 provider는 외부 호출이 없는 `LOCAL_SAFE`이며, 외부 provider를 붙이는 경우에도 운영 secret은 환경변수로만 주입한다.
 
@@ -1445,7 +1485,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 | `ai_assist_request_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
 | `ai_assist_review_status_code` | `PENDING_REVIEW`, `ACCEPTED`, `DISCARDED` |
 
-## 19. Audit API
+## 20. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1506,7 +1546,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 }
 ```
 
-## 20. ErrorCode 초안
+## 21. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|
@@ -1531,7 +1571,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 
-## 21. Backend Gate
+## 22. Backend Gate
 
 - 모든 endpoint가 `/api/v1/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.

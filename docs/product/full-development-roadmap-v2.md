@@ -305,6 +305,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 운영 큐 | 완료 | `operation_tasks`, `operation_task_comments`, `operation_task_assignments`, `/api/v1/operation-tasks` 적용 |
 | 감사 로그 화면 | 완료 | 관리자/승인자 조회 화면과 `/api/v1/audit-logs` 목록/상세 유지 |
 | 관리자 리포트 | 완료 | `report_exports`, `admin_report_snapshots`, `/api/v1/admin/reports/summary`, `/api/v1/admin/reports/exports` 적용 |
+| 앱 로그 관리 | 완료 | 관리자 전용 `/app/admin/app-logs`, `/api/v1/admin/app-logs` 읽기 전용 조회 적용 |
 | 운영 readiness | 완료 | Actuator liveness/readiness probe 설정 적용 |
 | 서버 화면 CSRF | 완료 | 서버 form과 `/logout` CSRF 적용 |
 | API CSRF header | 완료 | 브라우저 세션 `/api/v1/**` 변경 요청의 `X-XSRF-TOKEN` 검증 적용 |

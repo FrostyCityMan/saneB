@@ -2526,6 +2526,61 @@ svg {
     overflow-wrap: anywhere;
 }
 
+.app-log-status-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.app-log-status-grid .metric-card strong {
+    overflow-wrap: anywhere;
+}
+
+.app-log-panel .panel-heading p {
+    margin: 4px 0 0;
+    color: var(--saneb-muted);
+    font-size: 13px;
+}
+
+.app-log-lines {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--saneb-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #e7decd;
+}
+
+.app-log-lines li {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: start;
+    background: #fffdf8;
+}
+
+.app-log-lines span {
+    padding: 7px 10px;
+    color: #8a8170;
+    font-size: 12px;
+    text-align: right;
+    background: #f5efe3;
+    border-right: 1px solid rgba(179, 163, 134, 0.24);
+}
+
+.app-log-lines code {
+    display: block;
+    min-width: 0;
+    padding: 7px 10px;
+    color: #2f312c;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: transparent;
+}
+
 .matching-page {
     padding: 30px clamp(18px, 3vw, 34px);
 }

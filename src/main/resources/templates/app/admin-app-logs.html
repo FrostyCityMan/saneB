@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('앱 로그 관리', ~{::content})}">
+<main class="admin-users-page app-logs-page" th:fragment="content">
+    <div class="admin-users-shell">
+        <section class="summary-header admin-users-hero">
+            <div>
+                <span class="section-kicker">운영 로그</span>
+                <h2>앱 로그 관리</h2>
+                <p>서버가 기록한 최근 앱 로그를 조회합니다. 비밀번호, 토큰, secret 형식의 값은 화면 표시 전에 가립니다.</p>
+            </div>
+            <div class="summary-actions">
+                <a class="secondary-action" th:href="@{/app/admin/app-logs(lines=${page.log.requestedLines})}">새로고침</a>
+            </div>
+        </section>
+
+        <section class="plain-panel">
+            <form class="admin-users-filter" method="get" th:action="@{/app/admin/app-logs}" aria-label="앱 로그 검색">
+                <label>
+                    로그 수준
+                    <select name="levelCode">
+                        <option th:each="option : ${page.levelOptions}"
+                                th:value="${option.levelCode}"
+                                th:selected="${option.levelCode == page.log.levelCode}"
+                                th:text="${option.label}">전체</option>
+                    </select>
+                </label>
+                <label>
+                    검색어
+                    <input name="keyword" type="search" maxlength="100"
+                           placeholder="오류 문구 또는 처리명"
+                           th:value="${page.keyword}">
+                </label>
+                <label>
+                    표시 줄 수
+                    <select name="lines">
+                        <option th:each="lineOption : ${page.lineOptions}"
+                                th:value="${lineOption}"
+                                th:selected="${lineOption == page.log.requestedLines}"
+                                th:text="|${lineOption}줄|">120줄</option>
+                    </select>
+                </label>
+                <div class="admin-users-filter-actions">
+                    <button class="primary-action" type="submit">조회</button>
+                    <a class="secondary-action" th:href="@{/app/admin/app-logs}">초기화</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-users-summary-grid app-log-status-grid" aria-label="로그 상태">
+            <article class="metric-card">
+                <span>상태</span>
+                <strong th:text="${page.log.available ? '읽기 가능' : '확인 필요'}">읽기 가능</strong>
+                <p th:text="${page.log.message}">최근 로그를 조회했습니다.</p>
+            </article>
+            <article class="metric-card">
+                <span>로그 파일</span>
+                <strong th:text="${page.log.logPath}">/home/ubuntu/app/app.log</strong>
+                <p th:text="|${page.log.fileSizeBytes} bytes|">0 bytes</p>
+            </article>
+            <article class="metric-card">
+                <span>마지막 변경</span>
+                <strong th:text="${page.log.lastModifiedAt != null ? #temporals.format(page.log.lastModifiedAt, 'yyyy-MM-dd HH:mm:ss') : '기록 없음'}">기록 없음</strong>
+                <p th:text="|${page.log.returnedLines}줄 표시|">0줄 표시</p>
+            </article>
+        </section>
+
+        <section class="plain-panel app-log-panel">
+            <div class="panel-heading">
+                <div>
+                    <h3>최근 로그</h3>
+                    <p>운영 장애 확인용 읽기 전용 화면입니다. 로그 삭제와 원문 다운로드는 제공하지 않습니다.</p>
+                </div>
+            </div>
+
+            <div class="admin-users-empty" th:if="${!page.log.available or #lists.isEmpty(page.log.lines)}">
+                <strong th:text="${page.log.message}">조건에 맞는 로그가 없습니다.</strong>
+                <p>로그 파일 경로와 서버 실행 상태를 확인하세요.</p>
+            </div>
+
+            <ol class="app-log-lines" th:if="${page.log.available and !#lists.isEmpty(page.log.lines)}">
+                <li th:each="line : ${page.log.lines}">
+                    <span th:text="${line.sequenceNo}">1</span>
+                    <code th:text="${line.content}">2026-06-08 10:00:00 INFO saneB started</code>
+                </li>
+            </ol>
+        </section>
+    </div>
+</main>
+</html>
