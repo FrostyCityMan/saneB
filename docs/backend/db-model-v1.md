@@ -225,6 +225,18 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 상담 예약 취소/확정/완료 상태 변경은 `consultation_histories`에 남긴다. 상담 메모에는 상담에 필요한 최소 내용만 저장하며, 감사 로그 metadata에는 개인정보 원문을 저장하지 않는다.
 
+### 5.13 Subscription / Payment
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `subscription_plans` | `plan_code`, `plan_name`, `billing_cycle_code`, `price_amount`, `currency_code`, `is_active`, `sort_order` | PK `id`, FK `users.id` 감사 컬럼 | UQ `plan_code`, IDX `(is_active, sort_order, plan_code)` |
+| `user_subscriptions` | `user_id`, `plan_id`, `status_code`, `current_period_start`, `current_period_end`, `canceled_at`, `cancel_reason` | PK `id`, FK `users.id`, FK `subscription_plans.id` | partial UQ current `(user_id)`, IDX `(user_id, status_code)`, IDX `(plan_id, status_code)` |
+| `payment_transactions` | `subscription_id`, `user_id`, `plan_id`, `provider_code`, `merchant_uid`, `provider_payment_key`, `status_code`, `amount`, `currency_code` | PK `id`, FK `user_subscriptions.id`, FK `users.id`, FK `subscription_plans.id` | UQ `merchant_uid`, partial UQ `(provider_code, provider_payment_key)`, IDX `(user_id, status_code)` |
+| `refund_transactions` | `payment_id`, `user_id`, `provider_code`, `provider_refund_key`, `status_code`, `refund_amount`, `reason`, `requested_by` | PK `id`, FK `payment_transactions.id`, FK `users.id` | partial UQ `(provider_code, provider_refund_key)`, IDX `(payment_id, status_code)`, IDX `(user_id, status_code)` |
+| `payment_provider_events` | `provider_code`, `provider_event_id`, `event_type_code`, `payment_id`, `refund_id`, `result_code`, `metadata_json` | PK `id`, FK `payment_transactions.id`, FK `refund_transactions.id` | UQ `(provider_code, provider_event_id)`, IDX `(payment_id, received_at)`, IDX `(refund_id, received_at)` |
+
+결제사 webhook 원문 payload와 secret은 DB에 저장하지 않는다. `payment_provider_events.metadata_json`에는 event type, 실패 코드 존재 여부, 금액 제공 여부 같은 비식별 metadata만 저장한다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -259,6 +271,12 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `document_submission_status_code` | `SUBMITTED`, `APPROVED`, `REJECTED` |
 | `consultation_slot_status_code` | `OPEN`, `HELD`, `CLOSED`, `CANCELED` |
 | `consultation_reservation_status_code` | `REQUESTED`, `CONFIRMED`, `CANCELED`, `COMPLETED`, `NO_SHOW` |
+| `billing_cycle_code` | `ONE_TIME`, `MONTHLY`, `YEARLY` |
+| `subscription_status_code` | `PENDING`, `ACTIVE`, `PAST_DUE`, `CANCELED`, `EXPIRED` |
+| `billing_provider_code` | `MANUAL`, `TOSS`, `NICEPAY`, `KCP`, `STRIPE` |
+| `payment_transaction_status_code` | `REQUESTED`, `APPROVED`, `FAILED`, `CANCELED`, `REFUNDED` |
+| `refund_transaction_status_code` | `REQUESTED`, `APPROVED`, `FAILED` |
+| `payment_provider_event_type_code` | `PAYMENT_APPROVED`, `PAYMENT_FAILED`, `PAYMENT_CANCELED`, `REFUND_APPROVED`, `REFUND_FAILED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

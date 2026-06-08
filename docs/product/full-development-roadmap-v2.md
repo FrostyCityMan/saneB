@@ -300,7 +300,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 동의 이력 | 완료 | `consent_versions`, `user_consents`, `/api/v1/consents/current`, `/api/v1/users/me/consents` 유지 |
 | 파일 업로드 | 완료 | `stored_files`, `document_submissions`, `document_submission_reviews`, `/api/v1/files`, `/api/v1/document-submissions` 적용 |
 | 상담 예약 | 완료 | `partner_availability_slots`, `consultation_reservations`, `consultation_histories`, `/api/v1/consultation-*` 적용 |
-| 구독/결제 | 예정 | Phase 4 provider와 webhook 정책 확정 |
+| 구독/결제 | 완료 | `subscription_plans`, `user_subscriptions`, `payment_transactions`, `refund_transactions`, `payment_provider_events`, `/api/v1/subscription-*`, `/api/v1/payments`, `/api/v1/refunds` 적용 |
 | 알림 | 예정 | Phase 5 provider 추상화 |
 | 운영 큐 | 예정 | Phase 5 업무 상태 enum 확정 |
 | 감사 로그 화면 | 완료 | 관리자/승인자 조회 화면과 `/api/v1/audit-logs` 목록/상세 유지 |
@@ -339,10 +339,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 파일형 서류 제출/검토
-2. 상담 예약
-3. 구독/결제
-4. 알림과 운영 큐
-5. AI 보조 기능
+1. 알림과 운영 큐
+2. 리포트/감사/운영 hardening
+3. AI 보조 기능
 
-즉시 다음 개발 대상은 파일형 서류 제출/검토다. 이유는 검증과 신청 진행에서 실제 서류 증빙이 필요해지며, 파일 저장소와 접근 권한 정책을 먼저 고정해야 하기 때문이다.
+파일형 서류 제출/검토, 상담 예약, 구독/결제는 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 알림과 운영 큐다. 이유는 신청 진행 지연, 보완 요청, 결제 실패, 상담 미확정 같은 운영 업무를 사용자와 운영자에게 동시에 드러내야 하기 때문이다.

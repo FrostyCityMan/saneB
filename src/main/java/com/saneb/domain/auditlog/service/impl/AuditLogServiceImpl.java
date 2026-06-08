@@ -27,7 +27,10 @@ public class AuditLogServiceImpl implements AuditLogService {
             "MATCHING_CASE",
             "APPLICATION_PROGRESS",
             "DOCUMENT_SUBMISSION",
-            "CONSULTATION_RESERVATION"
+            "CONSULTATION_RESERVATION",
+            "SUBSCRIPTION",
+            "PAYMENT_TRANSACTION",
+            "REFUND_TRANSACTION"
     );
 
     private final AuditLogDao auditLogDao;
@@ -145,6 +148,13 @@ public class AuditLogServiceImpl implements AuditLogService {
             case "APPLICATION_PROGRESS_RECEIPT_SAVE" -> "접수 정보 저장";
             case "APPLICATION_PROGRESS_RESULT_SAVE" -> "최종 결과 저장";
             case "APPLICATION_INPUT_VALUES_SAVE" -> "추가 입력값 저장";
+            case "SUBSCRIPTION_CREATE" -> "구독 생성";
+            case "SUBSCRIPTION_CANCEL" -> "구독 취소";
+            case "PAYMENT_TRANSACTION_CREATE" -> "결제 요청 생성";
+            case "PAYMENT_TRANSACTION_STATUS_UPDATE" -> "결제 상태 변경";
+            case "PAYMENT_PROVIDER_EVENT_RECEIVE" -> "결제사 이벤트 수신";
+            case "REFUND_TRANSACTION_CREATE" -> "환불 요청 생성";
+            case "REFUND_TRANSACTION_STATUS_UPDATE" -> "환불 상태 변경";
             default -> actionCode;
         };
     }
@@ -155,6 +165,11 @@ public class AuditLogServiceImpl implements AuditLogService {
             case "PARTNER_VERIFICATION" -> "검증";
             case "MATCHING_CASE" -> "매칭";
             case "APPLICATION_PROGRESS" -> "신청 진행";
+            case "DOCUMENT_SUBMISSION" -> "서류 제출";
+            case "CONSULTATION_RESERVATION" -> "상담 예약";
+            case "SUBSCRIPTION" -> "구독";
+            case "PAYMENT_TRANSACTION" -> "결제";
+            case "REFUND_TRANSACTION" -> "환불";
             default -> resourceType;
         };
     }

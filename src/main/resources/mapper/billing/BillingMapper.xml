@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.billing.dao.BillingDao">
+
+    <resultMap id="SubscriptionPlanRowMap" type="com.saneb.domain.billing.vo.SubscriptionPlanRow">
+        <constructor>
+            <arg column="plan_id" javaType="java.util.UUID"/>
+            <arg column="plan_code" javaType="java.lang.String"/>
+            <arg column="plan_name" javaType="java.lang.String"/>
+            <arg column="billing_cycle_code" javaType="java.lang.String"/>
+            <arg column="price_amount" javaType="java.math.BigDecimal"/>
+            <arg column="currency_code" javaType="java.lang.String"/>
+            <arg column="active" javaType="boolean"/>
+            <arg column="sort_order" javaType="int"/>
+            <arg column="description" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="UserSubscriptionRowMap" type="com.saneb.domain.billing.vo.UserSubscriptionRow">
+        <constructor>
+            <arg column="subscription_id" javaType="java.util.UUID"/>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="plan_id" javaType="java.util.UUID"/>
+            <arg column="plan_code" javaType="java.lang.String"/>
+            <arg column="plan_name" javaType="java.lang.String"/>
+            <arg column="billing_cycle_code" javaType="java.lang.String"/>
+            <arg column="price_amount" javaType="java.math.BigDecimal"/>
+            <arg column="currency_code" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="current_period_start" javaType="java.time.OffsetDateTime"/>
+            <arg column="current_period_end" javaType="java.time.OffsetDateTime"/>
+            <arg column="canceled_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="cancel_reason" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="PaymentTransactionRowMap" type="com.saneb.domain.billing.vo.PaymentTransactionRow">
+        <constructor>
+            <arg column="payment_id" javaType="java.util.UUID"/>
+            <arg column="subscription_id" javaType="java.util.UUID"/>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="plan_id" javaType="java.util.UUID"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="merchant_uid" javaType="java.lang.String"/>
+            <arg column="provider_payment_key" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="amount" javaType="java.math.BigDecimal"/>
+            <arg column="currency_code" javaType="java.lang.String"/>
+            <arg column="requested_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="approved_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="failed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="failure_code" javaType="java.lang.String"/>
+            <arg column="failure_message" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="RefundTransactionRowMap" type="com.saneb.domain.billing.vo.RefundTransactionRow">
+        <constructor>
+            <arg column="refund_id" javaType="java.util.UUID"/>
+            <arg column="payment_id" javaType="java.util.UUID"/>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="provider_refund_key" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="refund_amount" javaType="java.math.BigDecimal"/>
+            <arg column="reason" javaType="java.lang.String"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="requested_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="failure_code" javaType="java.lang.String"/>
+            <arg column="failure_message" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="PaymentProviderEventRowMap" type="com.saneb.domain.billing.vo.PaymentProviderEventRow">
+        <constructor>
+            <arg column="event_id" javaType="java.util.UUID"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="provider_event_id" javaType="java.lang.String"/>
+            <arg column="event_type_code" javaType="java.lang.String"/>
+            <arg column="payment_id" javaType="java.util.UUID"/>
+            <arg column="refund_id" javaType="java.util.UUID"/>
+            <arg column="result_code" javaType="java.lang.String"/>
+            <arg column="received_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="SubscriptionPlanColumns">
+        sp.id AS plan_id,
+        sp.plan_code,
+        sp.plan_name,
+        sp.billing_cycle_code,
+        sp.price_amount,
+        sp.currency_code,
+        sp.is_active AS active,
+        sp.sort_order,
+        sp.description,
+        sp.created_at,
+        sp.updated_at
+    </sql>
+
+    <sql id="UserSubscriptionColumns">
+        us.id AS subscription_id,
+        us.user_id,
+        us.plan_id,
+        sp.plan_code,
+        sp.plan_name,
+        sp.billing_cycle_code,
+        sp.price_amount,
+        sp.currency_code,
+        us.status_code,
+        us.current_period_start,
+        us.current_period_end,
+        us.canceled_at,
+        us.cancel_reason,
+        us.created_at,
+        us.updated_at
+    </sql>
+
+    <sql id="PaymentTransactionColumns">
+        pt.id AS payment_id,
+        pt.subscription_id,
+        pt.user_id,
+        pt.plan_id,
+        pt.provider_code,
+        pt.merchant_uid,
+        pt.provider_payment_key,
+        pt.status_code,
+        pt.amount,
+        pt.currency_code,
+        pt.requested_at,
+        pt.approved_at,
+        pt.failed_at,
+        pt.failure_code,
+        pt.failure_message,
+        pt.created_at,
+        pt.updated_at
+    </sql>
+
+    <sql id="RefundTransactionColumns">
+        rt.id AS refund_id,
+        rt.payment_id,
+        rt.user_id,
+        rt.provider_code,
+        rt.provider_refund_key,
+        rt.status_code,
+        rt.refund_amount,
+        rt.reason,
+        rt.requested_by,
+        rt.requested_at,
+        rt.completed_at,
+        rt.failure_code,
+        rt.failure_message,
+        rt.created_at,
+        rt.updated_at
+    </sql>
+
+    <sql id="SubscriptionPlanSearchWhere">
+        <where>
+            <if test="active != null">
+                AND sp.is_active = #{active}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="UserSubscriptionSearchWhere">
+        <where>
+            <if test="userId != null">
+                AND us.user_id = #{userId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND us.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="PaymentTransactionSearchWhere">
+        <where>
+            <if test="userId != null">
+                AND pt.user_id = #{userId}
+            </if>
+            <if test="subscriptionId != null">
+                AND pt.subscription_id = #{subscriptionId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND pt.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="RefundTransactionSearchWhere">
+        <where>
+            <if test="userId != null">
+                AND rt.user_id = #{userId}
+            </if>
+            <if test="paymentId != null">
+                AND rt.payment_id = #{paymentId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND rt.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectSubscriptionPlanList" resultMap="SubscriptionPlanRowMap">
+        -- Select subscription plan list.
+        SELECT
+            <include refid="SubscriptionPlanColumns"/>
+        FROM subscription_plans sp
+        <include refid="SubscriptionPlanSearchWhere"/>
+        ORDER BY sp.sort_order ASC, sp.plan_code ASC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectSubscriptionPlanCount" resultType="long">
+        -- Count subscription plans.
+        SELECT
+            count(1)
+        FROM subscription_plans sp
+        <include refid="SubscriptionPlanSearchWhere"/>
+    </select>
+
+    <select id="selectSubscriptionPlanDetails" resultMap="SubscriptionPlanRowMap">
+        -- Select one subscription plan.
+        SELECT
+            <include refid="SubscriptionPlanColumns"/>
+        FROM subscription_plans sp
+        WHERE sp.id = #{planId}
+    </select>
+
+    <insert id="insertSubscriptionPlan">
+        -- Insert subscription plan.
+        INSERT INTO subscription_plans (
+            id,
+            plan_code,
+            plan_name,
+            billing_cycle_code,
+            price_amount,
+            currency_code,
+            is_active,
+            sort_order,
+            description,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{planId},
+            #{planCode},
+            #{planName},
+            #{billingCycleCode},
+            #{priceAmount},
+            #{currencyCode},
+            #{active},
+            #{sortOrder},
+            #{description},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateSubscriptionPlanStatus">
+        -- Update subscription plan active status.
+        UPDATE subscription_plans
+        SET
+            is_active = #{active},
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{planId}
+    </update>
+
+    <select id="selectUserSubscriptionList" resultMap="UserSubscriptionRowMap">
+        -- Select user subscriptions.
+        SELECT
+            <include refid="UserSubscriptionColumns"/>
+        FROM user_subscriptions us
+        INNER JOIN subscription_plans sp ON sp.id = us.plan_id
+        <include refid="UserSubscriptionSearchWhere"/>
+        ORDER BY us.created_at DESC, us.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectUserSubscriptionCount" resultType="long">
+        -- Count user subscriptions.
+        SELECT
+            count(1)
+        FROM user_subscriptions us
+        INNER JOIN subscription_plans sp ON sp.id = us.plan_id
+        <include refid="UserSubscriptionSearchWhere"/>
+    </select>
+
+    <select id="selectUserSubscriptionDetails" resultMap="UserSubscriptionRowMap">
+        -- Select one user subscription with plan.
+        SELECT
+            <include refid="UserSubscriptionColumns"/>
+        FROM user_subscriptions us
+        INNER JOIN subscription_plans sp ON sp.id = us.plan_id
+        WHERE us.id = #{subscriptionId}
+    </select>
+
+    <insert id="insertUserSubscription">
+        -- Insert user subscription.
+        INSERT INTO user_subscriptions (
+            id,
+            user_id,
+            plan_id,
+            status_code,
+            current_period_start,
+            current_period_end,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{subscriptionId},
+            #{userId},
+            #{planId},
+            #{statusCode},
+            #{currentPeriodStart},
+            #{currentPeriodEnd},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateUserSubscriptionStatus">
+        -- Update user subscription status.
+        UPDATE user_subscriptions
+        SET
+            status_code = #{statusCode},
+            current_period_start = #{currentPeriodStart},
+            current_period_end = #{currentPeriodEnd},
+            canceled_at = CASE WHEN #{statusCode} = 'CANCELED' THEN now() ELSE canceled_at END,
+            cancel_reason = CASE WHEN #{statusCode} = 'CANCELED' THEN #{cancelReason} ELSE cancel_reason END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{subscriptionId}
+    </update>
+
+    <select id="selectPaymentTransactionList" resultMap="PaymentTransactionRowMap">
+        -- Select payment transactions.
+        SELECT
+            <include refid="PaymentTransactionColumns"/>
+        FROM payment_transactions pt
+        <include refid="PaymentTransactionSearchWhere"/>
+        ORDER BY pt.created_at DESC, pt.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectPaymentTransactionCount" resultType="long">
+        -- Count payment transactions.
+        SELECT
+            count(1)
+        FROM payment_transactions pt
+        <include refid="PaymentTransactionSearchWhere"/>
+    </select>
+
+    <select id="selectPaymentTransactionDetails" resultMap="PaymentTransactionRowMap">
+        -- Select one payment transaction.
+        SELECT
+            <include refid="PaymentTransactionColumns"/>
+        FROM payment_transactions pt
+        WHERE pt.id = #{paymentId}
+    </select>
+
+    <select id="selectPaymentTransactionByMerchantUid" resultMap="PaymentTransactionRowMap">
+        -- Select payment transaction by merchant uid.
+        SELECT
+            <include refid="PaymentTransactionColumns"/>
+        FROM payment_transactions pt
+        WHERE pt.merchant_uid = #{merchantUid}
+    </select>
+
+    <insert id="insertPaymentTransaction">
+        -- Insert payment transaction request.
+        INSERT INTO payment_transactions (
+            id,
+            subscription_id,
+            user_id,
+            plan_id,
+            provider_code,
+            merchant_uid,
+            status_code,
+            amount,
+            currency_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{paymentId},
+            #{subscriptionId},
+            #{userId},
+            #{planId},
+            #{providerCode},
+            #{merchantUid},
+            'REQUESTED',
+            #{amount},
+            #{currencyCode},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updatePaymentTransactionStatus">
+        -- Update payment transaction status.
+        UPDATE payment_transactions
+        SET
+            status_code = #{statusCode},
+            provider_payment_key = COALESCE(#{providerPaymentKey}, provider_payment_key),
+            approved_at = CASE WHEN #{statusCode} = 'APPROVED' THEN now() ELSE approved_at END,
+            failed_at = CASE WHEN #{statusCode} IN ('FAILED', 'CANCELED') THEN now() ELSE failed_at END,
+            failure_code = CASE WHEN #{statusCode} IN ('FAILED', 'CANCELED') THEN #{failureCode} ELSE failure_code END,
+            failure_message = CASE
+                WHEN #{statusCode} IN ('FAILED', 'CANCELED') THEN #{failureMessage}
+                ELSE failure_message
+            END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{paymentId}
+    </update>
+
+    <select id="selectRefundTransactionList" resultMap="RefundTransactionRowMap">
+        -- Select refund transactions.
+        SELECT
+            <include refid="RefundTransactionColumns"/>
+        FROM refund_transactions rt
+        <include refid="RefundTransactionSearchWhere"/>
+        ORDER BY rt.created_at DESC, rt.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectRefundTransactionCount" resultType="long">
+        -- Count refund transactions.
+        SELECT
+            count(1)
+        FROM refund_transactions rt
+        <include refid="RefundTransactionSearchWhere"/>
+    </select>
+
+    <select id="selectRefundTransactionDetails" resultMap="RefundTransactionRowMap">
+        -- Select one refund transaction.
+        SELECT
+            <include refid="RefundTransactionColumns"/>
+        FROM refund_transactions rt
+        WHERE rt.id = #{refundId}
+    </select>
+
+    <select id="selectApprovedRefundAmount" resultType="java.math.BigDecimal">
+        -- Sum approved refund amount for a payment.
+        SELECT
+            COALESCE(sum(rt.refund_amount), 0)
+        FROM refund_transactions rt
+        WHERE rt.payment_id = #{paymentId}
+          AND rt.status_code = 'APPROVED'
+    </select>
+
+    <insert id="insertRefundTransaction">
+        -- Insert refund transaction request.
+        INSERT INTO refund_transactions (
+            id,
+            payment_id,
+            user_id,
+            provider_code,
+            status_code,
+            refund_amount,
+            reason,
+            requested_by,
+            updated_by
+        ) VALUES (
+            #{refundId},
+            #{paymentId},
+            #{userId},
+            #{providerCode},
+            'REQUESTED',
+            #{refundAmount},
+            #{reason},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateRefundTransactionStatus">
+        -- Update refund transaction status.
+        UPDATE refund_transactions
+        SET
+            status_code = #{statusCode},
+            provider_refund_key = COALESCE(#{providerRefundKey}, provider_refund_key),
+            completed_at = CASE WHEN #{statusCode} IN ('APPROVED', 'FAILED') THEN now() ELSE completed_at END,
+            failure_code = CASE WHEN #{statusCode} = 'FAILED' THEN #{failureCode} ELSE failure_code END,
+            failure_message = CASE WHEN #{statusCode} = 'FAILED' THEN #{failureMessage} ELSE failure_message END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{refundId}
+    </update>
+
+    <select id="selectPaymentProviderEventByKey" resultMap="PaymentProviderEventRowMap">
+        -- Select payment provider event by provider key.
+        SELECT
+            ppe.id AS event_id,
+            ppe.provider_code,
+            ppe.provider_event_id,
+            ppe.event_type_code,
+            ppe.payment_id,
+            ppe.refund_id,
+            ppe.result_code,
+            ppe.received_at
+        FROM payment_provider_events ppe
+        WHERE ppe.provider_code = #{providerCode}
+          AND ppe.provider_event_id = #{providerEventId}
+    </select>
+
+    <insert id="insertPaymentProviderEvent">
+        -- Insert non-sensitive payment provider event metadata.
+        INSERT INTO payment_provider_events (
+            id,
+            provider_code,
+            provider_event_id,
+            event_type_code,
+            payment_id,
+            refund_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{eventId},
+            #{providerCode},
+            #{providerEventId},
+            #{eventTypeCode},
+            #{paymentId,jdbcType=OTHER},
+            #{refundId,jdbcType=OTHER},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII billing audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

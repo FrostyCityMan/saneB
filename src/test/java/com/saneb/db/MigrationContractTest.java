@@ -119,6 +119,23 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v10MigrationContainsSubscriptionPaymentTables() throws IOException {
+        String sql = selectV10Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE subscription_plans",
+                "CREATE TABLE user_subscriptions",
+                "CREATE TABLE payment_transactions",
+                "CREATE TABLE refund_transactions",
+                "CREATE TABLE payment_provider_events",
+                "CREATE UNIQUE INDEX uq_user_subscriptions_current",
+                "CREATE UNIQUE INDEX uq_payment_transactions_provider_key",
+                "'PAYMENT_APPROVED'",
+                "'REFUND_APPROVED'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -146,6 +163,11 @@ class MigrationContractTest {
 
     private String selectV9Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V9__create_consultation_reservations.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV10Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V10__create_subscription_payments.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

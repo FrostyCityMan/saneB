@@ -1197,7 +1197,111 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 예약 상태 흐름은 `REQUESTED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. 일반 사용자는 본인 예약 취소만 가능하다.
 
-## 15. Audit API
+## 15. Subscription / Payment API
+
+결제사는 아직 고정하지 않는다. API는 provider 중립 계약으로 유지하고, 운영 secret은 `PAYMENT_WEBHOOK_SECRET` 환경변수로만 주입한다. 결제사 webhook payload 원문은 저장하지 않고 비식별 이벤트 metadata만 저장한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/subscription-plans` | authenticated | 요금제 목록 |
+| `POST` | `/api/v1/subscription-plans` | `OPERATOR`, `ADMIN` | 요금제 등록 |
+| `PATCH` | `/api/v1/subscription-plans/{planId}/status` | `OPERATOR`, `ADMIN` | 요금제 활성/비활성 변경 |
+| `GET` | `/api/v1/subscriptions` | `USER`, `OPERATOR`, `ADMIN` | 구독 목록 |
+| `POST` | `/api/v1/subscriptions` | `USER`, `OPERATOR`, `ADMIN` | 구독 생성 |
+| `PATCH` | `/api/v1/subscriptions/{subscriptionId}/cancel` | `USER`, `OPERATOR`, `ADMIN` | 구독 취소 |
+| `GET` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 거래 목록 |
+| `POST` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 요청 거래 생성 |
+| `PATCH` | `/api/v1/payments/{paymentId}/status` | `OPERATOR`, `ADMIN` | 결제 승인/실패/취소 기록 |
+| `GET` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 거래 목록 |
+| `POST` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 요청 생성 |
+| `PATCH` | `/api/v1/refunds/{refundId}/status` | `OPERATOR`, `ADMIN` | 환불 승인/실패 기록 |
+| `POST` | `/api/v1/payment-webhooks/{providerCode}` | webhook secret | 결제사 이벤트 수신 |
+
+#### SubscriptionPlanCreateRequest
+
+```json
+{
+  "planCode": "BASIC",
+  "planName": "기본 요금제",
+  "billingCycleCode": "MONTHLY",
+  "priceAmount": 99000,
+  "currencyCode": "KRW",
+  "active": true,
+  "sortOrder": 10,
+  "description": "기본 이용권"
+}
+```
+
+#### UserSubscriptionCreateRequest
+
+```json
+{
+  "userId": null,
+  "planId": "uuid"
+}
+```
+
+일반 사용자는 본인 구독만 생성할 수 있다. 운영자와 관리자는 `userId`를 지정할 수 있다. 무료 요금제는 즉시 `ACTIVE`, 유료 요금제는 결제 전 `PENDING`으로 생성한다.
+
+#### PaymentCreateRequest
+
+```json
+{
+  "subscriptionId": "uuid",
+  "providerCode": "MANUAL",
+  "amount": 99000,
+  "currencyCode": "KRW"
+}
+```
+
+`amount`와 `currencyCode`는 요금제 금액/통화와 일치해야 한다. `providerCode`는 `MANUAL`, `TOSS`, `NICEPAY`, `KCP`, `STRIPE`만 허용한다.
+
+#### PaymentStatusUpdateRequest
+
+```json
+{
+  "statusCode": "APPROVED",
+  "providerPaymentKey": "provider-key",
+  "failureCode": null,
+  "failureMessage": null
+}
+```
+
+결제 상태 흐름은 `REQUESTED -> APPROVED|FAILED|CANCELED`만 허용한다. `APPROVED`가 되면 해당 구독은 `ACTIVE`가 된다.
+
+#### RefundCreateRequest
+
+```json
+{
+  "paymentId": "uuid",
+  "refundAmount": 99000,
+  "reason": "취소 요청"
+}
+```
+
+승인된 결제만 환불 요청이 가능하다. 이미 승인된 환불 금액과 신규 환불 금액의 합계는 결제 금액을 초과할 수 없다.
+
+#### PaymentProviderEventRequest
+
+```json
+{
+  "eventId": "provider-event-id",
+  "paymentId": "uuid",
+  "refundId": null,
+  "merchantUid": "SANEB-20260608101010-12345678",
+  "providerPaymentKey": "provider-payment-key",
+  "providerRefundKey": null,
+  "eventTypeCode": "PAYMENT_APPROVED",
+  "amount": 99000,
+  "currencyCode": "KRW",
+  "failureCode": null,
+  "failureMessage": null
+}
+```
+
+webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` 환경변수와 일치할 때만 처리한다. `PAYMENT_WEBHOOK_SECRET`이 비어 있으면 webhook 처리는 거부된다.
+
+## 16. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1214,7 +1318,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 |---|---|
 | `keyword` | 작업, 대상, 대상 번호, 작업자 검색 |
 | `actionCode` | 작업 종류 정확히 일치 검색 |
-| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS` |
+| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS`, `DOCUMENT_SUBMISSION`, `CONSULTATION_RESERVATION`, `SUBSCRIPTION`, `PAYMENT_TRANSACTION`, `REFUND_TRANSACTION` |
 | `resultCode` | `SUCCESS`, `FAIL` |
 | `page` | 1부터 시작 |
 | `size` | 1~100 |
@@ -1258,7 +1362,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 }
 ```
 
-## 14. ErrorCode 초안
+## 17. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|
@@ -1281,7 +1385,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 
-## 14. Backend Gate
+## 18. Backend Gate
 
 - 모든 endpoint가 `/api/v1/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.
