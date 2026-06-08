@@ -1074,7 +1074,79 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 회원가입 성공 시 `TERMS_OF_SERVICE`, `PRIVACY_POLICY` 2건은 자동 저장한다. 전자증명과 신용조회 동의는 사용자가 해당 기능을 실제로 진행할 때 별도 저장한다.
 
-## 13. Audit API
+## 13. File / Document Submission API
+
+파일 원문은 `STORAGE_ROOT` 하위의 비공개 저장소에 저장하고, DB에는 파일 메타데이터와 서류 제출 이력만 저장한다. 감사 로그 metadata에는 원본 파일명, 파일 내용, 개인정보 원문을 저장하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `POST` | `/api/v1/files` | authenticated | multipart 파일 업로드 |
+| `GET` | `/api/v1/files/{fileId}` | authenticated | 파일 메타데이터 조회 |
+| `POST` | `/api/v1/document-submissions` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 검증 건 또는 신청 진행 건에 파일 제출 |
+| `GET` | `/api/v1/document-submissions` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 서류 제출 이력 조회 |
+| `PATCH` | `/api/v1/document-submissions/{submissionId}/review` | `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 서류 승인/반려 검토 |
+
+#### StoredFileResponse
+
+```json
+{
+  "fileId": "uuid",
+  "ownerUserId": "uuid",
+  "originalFilename": "business.pdf",
+  "contentType": "application/pdf",
+  "fileSize": 1024,
+  "checksumSha256": "sha256-hex",
+  "statusCode": "STORED",
+  "createdAt": "2026-06-08T10:00:00+09:00"
+}
+```
+
+#### DocumentSubmissionCreateRequest
+
+```json
+{
+  "fileId": "uuid",
+  "resourceTypeCode": "APPLICATION_PROGRESS",
+  "resourceId": "uuid",
+  "documentTypeCode": "BUSINESS_REGISTRATION"
+}
+```
+
+`resourceTypeCode`는 `PARTNER_VERIFICATION`, `APPLICATION_PROGRESS`만 허용한다. 일반 사용자는 본인 검증 건 또는 본인 신청 진행 건에만 제출할 수 있다.
+
+#### DocumentSubmissionReviewRequest
+
+```json
+{
+  "statusCode": "APPROVED",
+  "reviewNote": "확인 완료"
+}
+```
+
+검토 `statusCode`는 `APPROVED`, `REJECTED`만 허용한다.
+
+#### DocumentSubmissionResponse
+
+```json
+{
+  "submissionId": "uuid",
+  "fileId": "uuid",
+  "originalFilename": "business.pdf",
+  "contentType": "application/pdf",
+  "fileSize": 1024,
+  "resourceTypeCode": "APPLICATION_PROGRESS",
+  "resourceId": "uuid",
+  "documentTypeCode": "BUSINESS_REGISTRATION",
+  "statusCode": "SUBMITTED",
+  "submittedBy": "uuid",
+  "submittedAt": "2026-06-08T10:00:00+09:00",
+  "reviewedBy": null,
+  "reviewedAt": null,
+  "reviewNote": null
+}
+```
+
+## 14. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 

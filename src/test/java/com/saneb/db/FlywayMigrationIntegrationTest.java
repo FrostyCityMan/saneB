@@ -48,6 +48,12 @@ class FlywayMigrationIntegrationTest {
                     where version = '7'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '8'
+                      and success = true
+                    """)).isEqualTo(1);
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -84,7 +90,10 @@ class FlywayMigrationIntegrationTest {
                 "announcement_input_options",
                 "application_input_values",
                 "consent_versions",
-                "user_consents"
+                "user_consents",
+                "stored_files",
+                "document_submissions",
+                "document_submission_reviews"
         );
     }
 

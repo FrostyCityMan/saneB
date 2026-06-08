@@ -17,7 +17,8 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.approverreview.dao",
         "com.saneb.domain.adminuser.dao",
         "com.saneb.domain.auditlog.dao",
-        "com.saneb.domain.consent.dao"
+        "com.saneb.domain.consent.dao",
+        "com.saneb.domain.documentfile.dao"
 })
 public class MyBatisMapperConfig {
 }

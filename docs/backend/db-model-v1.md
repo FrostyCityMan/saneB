@@ -205,6 +205,16 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 동의 이력은 운영 감사 로그와 분리한다. `ip_address`, `user_agent`는 동의 증적용으로만 저장하며, 외부 API 응답 원문이나 개인정보 원문은 저장하지 않는다.
 
+### 5.11 Stored Files / Document Submissions
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `stored_files` | `owner_user_id`, `original_filename`, `stored_filename`, `storage_key`, `content_type`, `file_size`, `checksum_sha256`, `status_code` | PK `id`, FK `users.id` | UQ `storage_key`, IDX `(owner_user_id, created_at)`, IDX `(status_code, created_at)` |
+| `document_submissions` | `file_id`, `submitted_by`, `resource_type_code`, `resource_id`, `document_type_code`, `status_code`, `review_note`, `reviewed_by`, `reviewed_at` | PK `id`, FK `stored_files.id`, FK `users.id` | IDX `(resource_type_code, resource_id, created_at)`, IDX `(submitted_by, status_code, created_at)`, IDX `file_id` |
+| `document_submission_reviews` | `submission_id`, `reviewer_user_id`, `before_status_code`, `after_status_code`, `review_note` | PK `id`, FK `document_submissions.id`, FK `users.id` | IDX `(submission_id, created_at)`, IDX `(reviewer_user_id, created_at)` |
+
+파일 원문은 DB에 저장하지 않는다. `stored_files.storage_key`는 `STORAGE_ROOT` 하위 상대 경로이며 공개 URL이 아니다. `document_submissions.resource_id`는 검증 건 또는 신청 진행 건을 가리키는 업무 ID이고, 서비스 계층에서 접근 권한과 존재 여부를 검증한다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -235,6 +245,8 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `step_status_code` | `LOCKED`, `READY`, `IN_PROGRESS`, `COMPLETED`, `SKIPPED`, `BLOCKED` |
 | `result_code` | `APPROVED`, `REJECTED`, `SUPPLEMENT_REQUESTED`, `STOPPED` |
 | `audit_result_code` | `SUCCESS`, `FAIL` |
+| `stored_file_status_code` | `STORED`, `DELETED` |
+| `document_submission_status_code` | `SUBMITTED`, `APPROVED`, `REJECTED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

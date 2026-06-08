@@ -89,6 +89,21 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v8MigrationContainsDocumentFileSubmissionTables() throws IOException {
+        String sql = selectV8Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE stored_files",
+                "CREATE TABLE document_submissions",
+                "CREATE TABLE document_submission_reviews",
+                "CONSTRAINT uq_stored_files_storage_key",
+                "CREATE INDEX ix_document_submissions_resource",
+                "PARTNER_VERIFICATION",
+                "APPLICATION_PROGRESS"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -106,6 +121,11 @@ class MigrationContractTest {
 
     private String selectV7Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V7__create_user_consents.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV8Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V8__create_document_file_submissions.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

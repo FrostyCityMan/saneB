@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.documentfile.dao.DocumentFileDao">
+
+    <resultMap id="StoredFileRowMap" type="com.saneb.domain.documentfile.vo.StoredFileRow">
+        <constructor>
+            <arg column="file_id" javaType="java.util.UUID"/>
+            <arg column="owner_user_id" javaType="java.util.UUID"/>
+            <arg column="original_filename" javaType="java.lang.String"/>
+            <arg column="stored_filename" javaType="java.lang.String"/>
+            <arg column="storage_key" javaType="java.lang.String"/>
+            <arg column="content_type" javaType="java.lang.String"/>
+            <arg column="file_size" javaType="java.lang.Long"/>
+            <arg column="checksum_sha256" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="DocumentSubmissionRowMap" type="com.saneb.domain.documentfile.vo.DocumentSubmissionRow">
+        <constructor>
+            <arg column="submission_id" javaType="java.util.UUID"/>
+            <arg column="file_id" javaType="java.util.UUID"/>
+            <arg column="original_filename" javaType="java.lang.String"/>
+            <arg column="content_type" javaType="java.lang.String"/>
+            <arg column="file_size" javaType="java.lang.Long"/>
+            <arg column="resource_type_code" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="submitted_by" javaType="java.util.UUID"/>
+            <arg column="submitted_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="reviewed_by" javaType="java.util.UUID"/>
+            <arg column="reviewed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="review_note" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="PartnerVerificationAccessRowMap" type="com.saneb.domain.documentfile.vo.PartnerVerificationAccessRow">
+        <constructor>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="partner_user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationProgressAccessRowMap" type="com.saneb.domain.documentfile.vo.ApplicationProgressAccessRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="DocumentSubmissionSearchWhere">
+        <where>
+            <if test="submittedBy != null">
+                AND ds.submitted_by = #{submittedBy}
+            </if>
+            <if test="resourceTypeCode != null and resourceTypeCode != ''">
+                AND ds.resource_type_code = #{resourceTypeCode}
+            </if>
+            <if test="resourceId != null">
+                AND ds.resource_id = #{resourceId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND ds.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <insert id="insertStoredFile">
+        -- Insert stored file metadata without binary content.
+        INSERT INTO stored_files (
+            id,
+            owner_user_id,
+            original_filename,
+            stored_filename,
+            storage_key,
+            content_type,
+            file_size,
+            checksum_sha256,
+            status_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{fileId},
+            #{ownerUserId},
+            #{originalFilename},
+            #{storedFilename},
+            #{storageKey},
+            #{contentType},
+            #{fileSize},
+            #{checksumSha256},
+            'STORED',
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <select id="selectStoredFileDetails" resultMap="StoredFileRowMap">
+        -- Select stored file metadata by primary key.
+        SELECT
+            sf.id AS file_id,
+            sf.owner_user_id,
+            sf.original_filename,
+            sf.stored_filename,
+            sf.storage_key,
+            sf.content_type,
+            sf.file_size,
+            sf.checksum_sha256,
+            sf.status_code,
+            sf.created_at
+        FROM stored_files sf
+        WHERE sf.id = #{fileId}
+          AND sf.status_code = 'STORED'
+    </select>
+
+    <insert id="insertDocumentSubmission">
+        -- Insert one document submission linked to a stored file.
+        INSERT INTO document_submissions (
+            id,
+            file_id,
+            submitted_by,
+            resource_type_code,
+            resource_id,
+            document_type_code,
+            status_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{submissionId},
+            #{fileId},
+            #{submittedBy},
+            #{resourceTypeCode},
+            #{resourceId},
+            #{documentTypeCode},
+            'SUBMITTED',
+            #{submittedBy},
+            #{submittedBy}
+        )
+    </insert>
+
+    <select id="selectDocumentSubmissionList" resultMap="DocumentSubmissionRowMap">
+        -- Select document submissions for review and user history screens.
+        SELECT
+            ds.id AS submission_id,
+            ds.file_id,
+            sf.original_filename,
+            sf.content_type,
+            sf.file_size,
+            ds.resource_type_code,
+            ds.resource_id,
+            ds.document_type_code,
+            ds.status_code,
+            ds.submitted_by,
+            ds.created_at AS submitted_at,
+            ds.reviewed_by,
+            ds.reviewed_at,
+            ds.review_note
+        FROM document_submissions ds
+        INNER JOIN stored_files sf ON sf.id = ds.file_id
+        <include refid="DocumentSubmissionSearchWhere"/>
+        ORDER BY ds.created_at DESC, ds.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectDocumentSubmissionCount" resultType="long">
+        -- Count document submissions for paginated list.
+        SELECT
+            count(1)
+        FROM document_submissions ds
+        INNER JOIN stored_files sf ON sf.id = ds.file_id
+        <include refid="DocumentSubmissionSearchWhere"/>
+    </select>
+
+    <select id="selectDocumentSubmissionDetails" resultMap="DocumentSubmissionRowMap">
+        -- Select one document submission with stored file metadata.
+        SELECT
+            ds.id AS submission_id,
+            ds.file_id,
+            sf.original_filename,
+            sf.content_type,
+            sf.file_size,
+            ds.resource_type_code,
+            ds.resource_id,
+            ds.document_type_code,
+            ds.status_code,
+            ds.submitted_by,
+            ds.created_at AS submitted_at,
+            ds.reviewed_by,
+            ds.reviewed_at,
+            ds.review_note
+        FROM document_submissions ds
+        INNER JOIN stored_files sf ON sf.id = ds.file_id
+        WHERE ds.id = #{submissionId}
+    </select>
+
+    <update id="updateDocumentSubmissionReview">
+        -- Save latest document submission review decision.
+        UPDATE document_submissions
+        SET
+            status_code = #{afterStatusCode},
+            review_note = #{reviewNote},
+            reviewed_by = #{reviewerUserId},
+            reviewed_at = now(),
+            updated_by = #{reviewerUserId},
+            updated_at = now()
+        WHERE id = #{submissionId}
+    </update>
+
+    <insert id="insertDocumentSubmissionReview">
+        -- Insert review history for a document submission.
+        INSERT INTO document_submission_reviews (
+            id,
+            submission_id,
+            reviewer_user_id,
+            before_status_code,
+            after_status_code,
+            review_note
+        ) VALUES (
+            #{reviewId},
+            #{submissionId},
+            #{reviewerUserId},
+            #{beforeStatusCode},
+            #{afterStatusCode},
+            #{reviewNote}
+        )
+    </insert>
+
+    <select id="selectPartnerVerificationAccess" resultMap="PartnerVerificationAccessRowMap">
+        -- Select partner verification access fields.
+        SELECT
+            pv.id AS verification_id,
+            pv.member_user_id,
+            pv.partner_user_id
+        FROM partner_verifications pv
+        WHERE pv.id = #{verificationId}
+    </select>
+
+    <select id="selectApplicationProgressAccess" resultMap="ApplicationProgressAccessRowMap">
+        -- Select application progress access fields.
+        SELECT
+            ap.id AS progress_id,
+            ap.member_user_id
+        FROM application_progresses ap
+        WHERE ap.id = #{progressId}
+    </select>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII document submission audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>
