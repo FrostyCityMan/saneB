@@ -1301,7 +1301,55 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` 환경변수와 일치할 때만 처리한다. `PAYMENT_WEBHOOK_SECRET`이 비어 있으면 webhook 처리는 거부된다.
 
-## 16. Audit API
+## 16. Notification / Operation Task API
+
+외부 이메일/SMS/카카오 실제 발송 provider는 아직 고정하지 않는다. MVP 이후 확장 구간에서도 알림 메시지와 발송 이력은 먼저 DB에 남기고, provider payload 원문과 secret은 저장하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/notifications/me` | authenticated | 내 알림 목록 |
+| `PATCH` | `/api/v1/notifications/{notificationId}/read` | authenticated | 내 알림 읽음 처리 |
+| `POST` | `/api/v1/admin/notifications/send` | `OPERATOR`, `ADMIN` | 운영 알림 생성/발송 기록 |
+| `GET` | `/api/v1/operation-tasks` | `OPERATOR`, `ADMIN` | 운영 업무 큐 목록 |
+| `POST` | `/api/v1/operation-tasks` | `OPERATOR`, `ADMIN` | 운영 업무 생성 |
+| `PATCH` | `/api/v1/operation-tasks/{taskId}/status` | `OPERATOR`, `ADMIN` | 운영 업무 상태 변경 |
+| `POST` | `/api/v1/operation-tasks/{taskId}/comments` | `OPERATOR`, `ADMIN` | 운영 업무 댓글 등록 |
+| `POST` | `/api/v1/operation-tasks/{taskId}/assignments` | `OPERATOR`, `ADMIN` | 운영 업무 담당자 배정 |
+
+#### NotificationSendRequest
+
+```json
+{
+  "recipientUserId": "uuid",
+  "templateCode": null,
+  "channelCode": "IN_APP",
+  "title": "보완 요청",
+  "body": "서류 보완이 필요합니다.",
+  "resourceType": "APPLICATION_PROGRESS",
+  "resourceId": "uuid"
+}
+```
+
+`IN_APP`은 즉시 `SENT`로 저장하고 delivery log는 `SUCCESS`로 남긴다. `EMAIL`, `SMS`, `KAKAO`는 provider가 설정되기 전까지 message는 `CREATED`, delivery log는 `SKIPPED`로 남긴다.
+
+#### OperationTaskCreateRequest
+
+```json
+{
+  "taskTypeCode": "SUPPLEMENT_REQUEST",
+  "priorityCode": "HIGH",
+  "title": "보완 요청 확인",
+  "description": "사용자 보완 요청 확인",
+  "resourceType": "APPLICATION_PROGRESS",
+  "resourceId": "uuid",
+  "dueAt": "2026-06-20T10:00:00+09:00",
+  "assigneeUserIds": ["uuid"]
+}
+```
+
+운영 업무 상태는 `OPEN -> IN_PROGRESS|WAITING|DONE|CANCELED`, `IN_PROGRESS|WAITING -> IN_PROGRESS|WAITING|DONE|CANCELED`만 허용한다. `DONE`, `CANCELED` 이후 상태 변경은 차단한다.
+
+## 17. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1318,7 +1366,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 |---|---|
 | `keyword` | 작업, 대상, 대상 번호, 작업자 검색 |
 | `actionCode` | 작업 종류 정확히 일치 검색 |
-| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS`, `DOCUMENT_SUBMISSION`, `CONSULTATION_RESERVATION`, `SUBSCRIPTION`, `PAYMENT_TRANSACTION`, `REFUND_TRANSACTION` |
+| `resourceType` | `USER`, `PARTNER_VERIFICATION`, `MATCHING_CASE`, `APPLICATION_PROGRESS`, `DOCUMENT_SUBMISSION`, `CONSULTATION_RESERVATION`, `SUBSCRIPTION`, `PAYMENT_TRANSACTION`, `REFUND_TRANSACTION`, `NOTIFICATION_MESSAGE`, `OPERATION_TASK` |
 | `resultCode` | `SUCCESS`, `FAIL` |
 | `page` | 1부터 시작 |
 | `size` | 1~100 |
@@ -1362,7 +1410,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 }
 ```
 
-## 17. ErrorCode 초안
+## 18. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|
@@ -1385,7 +1433,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 
-## 18. Backend Gate
+## 19. Backend Gate
 
 - 모든 endpoint가 `/api/v1/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.

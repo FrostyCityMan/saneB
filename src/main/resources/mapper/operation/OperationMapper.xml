@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.operation.dao.OperationDao">
+
+    <resultMap id="NotificationTemplateRowMap" type="com.saneb.domain.operation.vo.NotificationTemplateRow">
+        <constructor>
+            <arg column="template_id" javaType="java.util.UUID"/>
+            <arg column="template_code" javaType="java.lang.String"/>
+            <arg column="channel_code" javaType="java.lang.String"/>
+            <arg column="title_template" javaType="java.lang.String"/>
+            <arg column="body_template" javaType="java.lang.String"/>
+            <arg column="active" javaType="boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="NotificationMessageRowMap" type="com.saneb.domain.operation.vo.NotificationMessageRow">
+        <constructor>
+            <arg column="notification_id" javaType="java.util.UUID"/>
+            <arg column="recipient_user_id" javaType="java.util.UUID"/>
+            <arg column="channel_code" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="body" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="resource_type" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="read_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="sent_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="OperationTaskRowMap" type="com.saneb.domain.operation.vo.OperationTaskRow">
+        <constructor>
+            <arg column="task_id" javaType="java.util.UUID"/>
+            <arg column="task_type_code" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="priority_code" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="description" javaType="java.lang.String"/>
+            <arg column="resource_type" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="due_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="OperationTaskCommentRowMap" type="com.saneb.domain.operation.vo.OperationTaskCommentRow">
+        <constructor>
+            <arg column="comment_id" javaType="java.util.UUID"/>
+            <arg column="task_id" javaType="java.util.UUID"/>
+            <arg column="author_user_id" javaType="java.util.UUID"/>
+            <arg column="comment_text" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="OperationTaskAssignmentRowMap" type="com.saneb.domain.operation.vo.OperationTaskAssignmentRow">
+        <constructor>
+            <arg column="assignment_id" javaType="java.util.UUID"/>
+            <arg column="task_id" javaType="java.util.UUID"/>
+            <arg column="assignee_user_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="assigned_by" javaType="java.util.UUID"/>
+            <arg column="assigned_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="NotificationMessageColumns">
+        nm.id AS notification_id,
+        nm.recipient_user_id,
+        nm.channel_code,
+        nm.title,
+        nm.body,
+        nm.status_code,
+        nm.resource_type,
+        nm.resource_id,
+        nm.read_at,
+        nm.sent_at,
+        nm.created_at
+    </sql>
+
+    <sql id="OperationTaskColumns">
+        ot.id AS task_id,
+        ot.task_type_code,
+        ot.status_code,
+        ot.priority_code,
+        ot.title,
+        ot.description,
+        ot.resource_type,
+        ot.resource_id,
+        ot.due_at,
+        ot.completed_at,
+        ot.created_at,
+        ot.updated_at
+    </sql>
+
+    <sql id="NotificationMessageSearchWhere">
+        <where>
+            <if test="recipientUserId != null">
+                AND nm.recipient_user_id = #{recipientUserId}
+            </if>
+            <if test="unreadOnly != null and unreadOnly">
+                AND nm.read_at IS NULL
+            </if>
+        </where>
+    </sql>
+
+    <sql id="OperationTaskSearchWhere">
+        <where>
+            <if test="taskTypeCode != null and taskTypeCode != ''">
+                AND ot.task_type_code = #{taskTypeCode}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND ot.status_code = #{statusCode}
+            </if>
+            <if test="priorityCode != null and priorityCode != ''">
+                AND ot.priority_code = #{priorityCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectUserCount" resultType="long">
+        -- Count active user by id.
+        SELECT
+            count(1)
+        FROM users u
+        WHERE u.id = #{userId}
+          AND u.status_code = 'ACTIVE'
+    </select>
+
+    <select id="selectNotificationTemplateByCode" resultMap="NotificationTemplateRowMap">
+        -- Select active notification template by code and channel.
+        SELECT
+            nt.id AS template_id,
+            nt.template_code,
+            nt.channel_code,
+            nt.title_template,
+            nt.body_template,
+            nt.is_active AS active
+        FROM notification_templates nt
+        WHERE nt.template_code = #{templateCode}
+          AND nt.channel_code = #{channelCode}
+    </select>
+
+    <select id="selectNotificationMessageList" resultMap="NotificationMessageRowMap">
+        -- Select notification messages for recipient.
+        SELECT
+            <include refid="NotificationMessageColumns"/>
+        FROM notification_messages nm
+        <include refid="NotificationMessageSearchWhere"/>
+        ORDER BY nm.created_at DESC, nm.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectNotificationMessageCount" resultType="long">
+        -- Count notification messages for recipient.
+        SELECT
+            count(1)
+        FROM notification_messages nm
+        <include refid="NotificationMessageSearchWhere"/>
+    </select>
+
+    <select id="selectNotificationMessageDetails" resultMap="NotificationMessageRowMap">
+        -- Select one notification message.
+        SELECT
+            <include refid="NotificationMessageColumns"/>
+        FROM notification_messages nm
+        WHERE nm.id = #{notificationId}
+    </select>
+
+    <insert id="insertNotificationMessage">
+        -- Insert notification message.
+        INSERT INTO notification_messages (
+            id,
+            recipient_user_id,
+            template_id,
+            channel_code,
+            title,
+            body,
+            status_code,
+            resource_type,
+            resource_id,
+            sent_at,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{notificationId},
+            #{recipientUserId},
+            #{templateId,jdbcType=OTHER},
+            #{channelCode},
+            #{title},
+            #{body},
+            #{statusCode},
+            #{resourceType},
+            #{resourceId,jdbcType=OTHER},
+            CASE WHEN #{statusCode} = 'SENT' THEN now() ELSE NULL END,
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateNotificationMessageRead">
+        -- Mark notification message as read.
+        UPDATE notification_messages
+        SET
+            read_at = COALESCE(read_at, now()),
+            updated_at = now()
+        WHERE id = #{notificationId}
+    </update>
+
+    <insert id="insertNotificationDeliveryLog">
+        -- Insert notification delivery log without provider payload.
+        INSERT INTO notification_delivery_logs (
+            id,
+            message_id,
+            channel_code,
+            provider_code,
+            delivery_status_code,
+            attempt_no,
+            provider_message_key,
+            failure_code,
+            failure_message,
+            metadata_json
+        ) VALUES (
+            #{logId},
+            #{messageId},
+            #{channelCode},
+            #{providerCode},
+            #{deliveryStatusCode},
+            #{attemptNo},
+            #{providerMessageKey},
+            #{failureCode},
+            #{failureMessage},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+
+    <select id="selectOperationTaskList" resultMap="OperationTaskRowMap">
+        -- Select operation tasks.
+        SELECT
+            <include refid="OperationTaskColumns"/>
+        FROM operation_tasks ot
+        <include refid="OperationTaskSearchWhere"/>
+        ORDER BY ot.due_at ASC NULLS LAST, ot.created_at DESC, ot.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectOperationTaskCount" resultType="long">
+        -- Count operation tasks.
+        SELECT
+            count(1)
+        FROM operation_tasks ot
+        <include refid="OperationTaskSearchWhere"/>
+    </select>
+
+    <select id="selectOperationTaskDetails" resultMap="OperationTaskRowMap">
+        -- Select one operation task.
+        SELECT
+            <include refid="OperationTaskColumns"/>
+        FROM operation_tasks ot
+        WHERE ot.id = #{taskId}
+    </select>
+
+    <insert id="insertOperationTask">
+        -- Insert operation task.
+        INSERT INTO operation_tasks (
+            id,
+            task_type_code,
+            status_code,
+            priority_code,
+            title,
+            description,
+            resource_type,
+            resource_id,
+            due_at,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{taskId},
+            #{taskTypeCode},
+            'OPEN',
+            #{priorityCode},
+            #{title},
+            #{description},
+            #{resourceType},
+            #{resourceId,jdbcType=OTHER},
+            #{dueAt},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateOperationTaskStatus">
+        -- Update operation task status.
+        UPDATE operation_tasks
+        SET
+            status_code = #{statusCode},
+            completed_at = CASE WHEN #{statusCode} = 'DONE' THEN now() ELSE completed_at END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{taskId}
+    </update>
+
+    <select id="selectOperationTaskCommentDetails" resultMap="OperationTaskCommentRowMap">
+        -- Select one operation task comment.
+        SELECT
+            otc.id AS comment_id,
+            otc.task_id,
+            otc.author_user_id,
+            otc.comment_text,
+            otc.created_at
+        FROM operation_task_comments otc
+        WHERE otc.id = #{commentId}
+    </select>
+
+    <insert id="insertOperationTaskComment">
+        -- Insert operation task comment.
+        INSERT INTO operation_task_comments (
+            id,
+            task_id,
+            author_user_id,
+            comment_text
+        ) VALUES (
+            #{commentId},
+            #{taskId},
+            #{authorUserId},
+            #{commentText}
+        )
+    </insert>
+
+    <select id="selectOperationTaskAssignmentDetails" resultMap="OperationTaskAssignmentRowMap">
+        -- Select one operation task assignment.
+        SELECT
+            ota.id AS assignment_id,
+            ota.task_id,
+            ota.assignee_user_id,
+            ota.status_code,
+            ota.assigned_by,
+            ota.assigned_at,
+            ota.completed_at
+        FROM operation_task_assignments ota
+        WHERE ota.id = #{assignmentId}
+    </select>
+
+    <insert id="insertOperationTaskAssignment">
+        -- Insert operation task assignment.
+        INSERT INTO operation_task_assignments (
+            id,
+            task_id,
+            assignee_user_id,
+            status_code,
+            assigned_by
+        ) VALUES (
+            #{assignmentId},
+            #{taskId},
+            #{assigneeUserId},
+            'ASSIGNED',
+            #{assignedBy}
+        )
+    </insert>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII operation audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

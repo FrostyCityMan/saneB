@@ -237,6 +237,19 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 결제사 webhook 원문 payload와 secret은 DB에 저장하지 않는다. `payment_provider_events.metadata_json`에는 event type, 실패 코드 존재 여부, 금액 제공 여부 같은 비식별 metadata만 저장한다.
 
+### 5.14 Notifications / Operation Tasks
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `notification_templates` | `template_code`, `channel_code`, `title_template`, `body_template`, `is_active` | PK `id`, FK `users.id` 감사 컬럼 | UQ `(template_code, channel_code)`, IDX `(is_active, template_code)` |
+| `notification_messages` | `recipient_user_id`, `template_id`, `channel_code`, `title`, `body`, `status_code`, `resource_type`, `resource_id`, `read_at`, `sent_at` | PK `id`, FK `users.id`, FK `notification_templates.id` | IDX `(recipient_user_id, created_at)`, IDX `(recipient_user_id, read_at)`, IDX `(resource_type, resource_id)` |
+| `notification_delivery_logs` | `message_id`, `channel_code`, `provider_code`, `delivery_status_code`, `attempt_no`, `provider_message_key`, `failure_code`, `failure_message` | PK `id`, FK `notification_messages.id` | IDX `(message_id, created_at)`, IDX `(delivery_status_code, created_at)` |
+| `operation_tasks` | `task_type_code`, `status_code`, `priority_code`, `title`, `description`, `resource_type`, `resource_id`, `due_at`, `completed_at` | PK `id`, FK `users.id` 감사 컬럼 | IDX `(status_code, due_at)`, IDX `(resource_type, resource_id)`, IDX `(task_type_code, status_code)` |
+| `operation_task_comments` | `task_id`, `author_user_id`, `comment_text` | PK `id`, FK `operation_tasks.id`, FK `users.id` | IDX `(task_id, created_at)` |
+| `operation_task_assignments` | `task_id`, `assignee_user_id`, `status_code`, `assigned_by`, `assigned_at`, `completed_at` | PK `id`, FK `operation_tasks.id`, FK `users.id` | UQ `(task_id, assignee_user_id)`, IDX `(assignee_user_id, status_code)` |
+
+외부 알림 provider payload 원문은 저장하지 않는다. `notification_delivery_logs.metadata_json`과 `audit_logs.metadata_json`에는 channel, resource type, provider 설정 여부 같은 비식별 metadata만 저장한다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -277,6 +290,14 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `payment_transaction_status_code` | `REQUESTED`, `APPROVED`, `FAILED`, `CANCELED`, `REFUNDED` |
 | `refund_transaction_status_code` | `REQUESTED`, `APPROVED`, `FAILED` |
 | `payment_provider_event_type_code` | `PAYMENT_APPROVED`, `PAYMENT_FAILED`, `PAYMENT_CANCELED`, `REFUND_APPROVED`, `REFUND_FAILED` |
+| `notification_channel_code` | `IN_APP`, `EMAIL`, `SMS`, `KAKAO` |
+| `notification_status_code` | `CREATED`, `SENT`, `FAILED`, `CANCELED` |
+| `notification_delivery_status_code` | `REQUESTED`, `SUCCESS`, `FAIL`, `SKIPPED` |
+| `notification_provider_code` | `INTERNAL`, `EMAIL`, `SMS`, `KAKAO`, `MANUAL` |
+| `operation_task_type_code` | `DELAYED_PROGRESS`, `SUPPLEMENT_REQUEST`, `RECONTACT`, `PAYMENT_FAILED`, `CONSULTATION_PENDING`, `GENERAL` |
+| `operation_task_status_code` | `OPEN`, `IN_PROGRESS`, `WAITING`, `DONE`, `CANCELED` |
+| `operation_task_priority_code` | `LOW`, `NORMAL`, `HIGH`, `URGENT` |
+| `operation_task_assignment_status_code` | `ASSIGNED`, `DONE`, `CANCELED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

@@ -301,8 +301,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 파일 업로드 | 완료 | `stored_files`, `document_submissions`, `document_submission_reviews`, `/api/v1/files`, `/api/v1/document-submissions` 적용 |
 | 상담 예약 | 완료 | `partner_availability_slots`, `consultation_reservations`, `consultation_histories`, `/api/v1/consultation-*` 적용 |
 | 구독/결제 | 완료 | `subscription_plans`, `user_subscriptions`, `payment_transactions`, `refund_transactions`, `payment_provider_events`, `/api/v1/subscription-*`, `/api/v1/payments`, `/api/v1/refunds` 적용 |
-| 알림 | 예정 | Phase 5 provider 추상화 |
-| 운영 큐 | 예정 | Phase 5 업무 상태 enum 확정 |
+| 알림 | 완료 | `notification_templates`, `notification_messages`, `notification_delivery_logs`, `/api/v1/notifications/me`, `/api/v1/admin/notifications/send` 적용 |
+| 운영 큐 | 완료 | `operation_tasks`, `operation_task_comments`, `operation_task_assignments`, `/api/v1/operation-tasks` 적용 |
 | 감사 로그 화면 | 완료 | 관리자/승인자 조회 화면과 `/api/v1/audit-logs` 목록/상세 유지 |
 | AI 보조 | 보류 | Phase 7 위험 Gate 이후 |
 
@@ -339,8 +339,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 알림과 운영 큐
-2. 리포트/감사/운영 hardening
-3. AI 보조 기능
+1. 리포트/감사/운영 hardening
+2. AI 보조 기능
 
-파일형 서류 제출/검토, 상담 예약, 구독/결제는 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 알림과 운영 큐다. 이유는 신청 진행 지연, 보완 요청, 결제 실패, 상담 미확정 같은 운영 업무를 사용자와 운영자에게 동시에 드러내야 하기 때문이다.
+파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐는 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 리포트/감사/운영 hardening이다. 이유는 운영자가 사용자별/공고별/단계별 상태를 추적하고, 외부 배포 전 보안 Gate를 닫아야 하기 때문이다.

@@ -30,7 +30,9 @@ public class AuditLogServiceImpl implements AuditLogService {
             "CONSULTATION_RESERVATION",
             "SUBSCRIPTION",
             "PAYMENT_TRANSACTION",
-            "REFUND_TRANSACTION"
+            "REFUND_TRANSACTION",
+            "NOTIFICATION_MESSAGE",
+            "OPERATION_TASK"
     );
 
     private final AuditLogDao auditLogDao;
@@ -155,6 +157,12 @@ public class AuditLogServiceImpl implements AuditLogService {
             case "PAYMENT_PROVIDER_EVENT_RECEIVE" -> "결제사 이벤트 수신";
             case "REFUND_TRANSACTION_CREATE" -> "환불 요청 생성";
             case "REFUND_TRANSACTION_STATUS_UPDATE" -> "환불 상태 변경";
+            case "NOTIFICATION_MESSAGE_SEND" -> "알림 발송";
+            case "NOTIFICATION_MESSAGE_READ" -> "알림 읽음";
+            case "OPERATION_TASK_CREATE" -> "운영 업무 생성";
+            case "OPERATION_TASK_STATUS_UPDATE" -> "운영 업무 상태 변경";
+            case "OPERATION_TASK_COMMENT_CREATE" -> "운영 업무 댓글 등록";
+            case "OPERATION_TASK_ASSIGNMENT_CREATE" -> "운영 업무 담당자 배정";
             default -> actionCode;
         };
     }
@@ -170,6 +178,8 @@ public class AuditLogServiceImpl implements AuditLogService {
             case "SUBSCRIPTION" -> "구독";
             case "PAYMENT_TRANSACTION" -> "결제";
             case "REFUND_TRANSACTION" -> "환불";
+            case "NOTIFICATION_MESSAGE" -> "알림";
+            case "OPERATION_TASK" -> "운영 업무";
             default -> resourceType;
         };
     }

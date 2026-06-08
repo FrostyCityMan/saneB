@@ -66,6 +66,12 @@ class FlywayMigrationIntegrationTest {
                     where version = '10'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '11'
+                      and success = true
+                    """)).isEqualTo(1);
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -113,7 +119,13 @@ class FlywayMigrationIntegrationTest {
                 "user_subscriptions",
                 "payment_transactions",
                 "refund_transactions",
-                "payment_provider_events"
+                "payment_provider_events",
+                "notification_templates",
+                "notification_messages",
+                "notification_delivery_logs",
+                "operation_tasks",
+                "operation_task_comments",
+                "operation_task_assignments"
         );
     }
 

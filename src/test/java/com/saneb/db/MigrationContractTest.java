@@ -136,6 +136,24 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v11MigrationContainsNotificationAndOperationTaskTables() throws IOException {
+        String sql = selectV11Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE notification_templates",
+                "CREATE TABLE notification_messages",
+                "CREATE TABLE notification_delivery_logs",
+                "CREATE TABLE operation_tasks",
+                "CREATE TABLE operation_task_comments",
+                "CREATE TABLE operation_task_assignments",
+                "'SUPPLEMENT_REQUEST'",
+                "'CONSULTATION_PENDING'",
+                "'IN_APP'",
+                "'KAKAO'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -168,6 +186,11 @@ class MigrationContractTest {
 
     private String selectV10Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V10__create_subscription_payments.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV11Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V11__create_notifications_operation_tasks.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }
