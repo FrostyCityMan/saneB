@@ -9,7 +9,8 @@
 - 목록 API는 `PageResponse<T>`를 사용한다.
 - 인증과 권한 검증은 서버에서 수행한다.
 - `/api/v1/**` 요청은 서버 rate limit 적용 대상이다.
-- 서버 화면 form과 `/logout`은 CSRF 검증 대상이다. `/api/v1/**` CSRF header 계약은 별도 Gate에서 확정한다.
+- 서버 화면 form과 `/logout`은 CSRF 검증 대상이다.
+- 브라우저 세션 쿠키가 포함된 `/api/v1/**` 변경 요청은 `XSRF-TOKEN` 쿠키와 같은 값을 `X-XSRF-TOKEN` header로 전송해야 한다. 단, `/api/v1/payment-webhooks/**`는 provider webhook 검증을 사용하므로 CSRF header 대상에서 제외한다.
 - Controller는 URL 매핑, 요청/응답, DTO 변환만 담당한다.
 - 비즈니스 로직은 ServiceImpl에 둔다.
 - SQL은 DAO와 Mapper XML을 통해서만 실행한다.
@@ -1442,6 +1443,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `AUTH_INVALID_CREDENTIALS` | 401 | 로그인 실패 |
 | `AUTH_FORBIDDEN` | 403 | 권한 없음 |
 | `AUTH_PASSWORD_RESET_REQUIRED` | 403 | 비밀번호 변경 필요 |
+| `CSRF_TOKEN_INVALID` | 403 | 브라우저 세션 API 요청의 CSRF header 불일치 |
 | `VALIDATION_FAILED` | 400 | 요청 검증 실패 |
 | `INVALID_PAGE_REQUEST` | 400 | paging 값 오류 |
 | `INVALID_STATUS_TRANSITION` | 400 | 허용되지 않는 상태 변경 |
