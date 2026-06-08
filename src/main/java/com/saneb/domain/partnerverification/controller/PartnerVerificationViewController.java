@@ -42,6 +42,36 @@ public class PartnerVerificationViewController {
         this.partnerVerificationService = partnerVerificationService;
     }
 
+    @GetMapping("/app/partner/verifications")
+    @PreAuthorize("hasAnyRole('PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectPartnerVerificationListPage(
+            Authentication authentication,
+            @RequestParam(required = false) String statusCode,
+            @RequestParam(required = false) Boolean current,
+            @RequestParam(defaultValue = "1") int page,
+            Model model
+    ) {
+        AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        UUID partnerUserId = isPartnerOnly(authMe) ? authMe.userId() : null;
+        PageResponse<PartnerVerificationSummaryResponse> verificationPage =
+                partnerVerificationService.selectPartnerVerificationList(
+                        null,
+                        partnerUserId,
+                        blankToNull(statusCode),
+                        current,
+                        Math.max(page, 1),
+                        20
+                );
+
+        model.addAttribute("page", VerificationListPageModel.from(
+                authMe,
+                verificationPage,
+                blankToNull(statusCode),
+                current
+        ));
+        return "app/partner-verification-list";
+    }
+
     @GetMapping("/app/member/verifications/current")
     @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'ADMIN')")
     public String selectCurrentVerificationProgressPage(Authentication authentication, Model model) {
@@ -206,6 +236,11 @@ public class PartnerVerificationViewController {
         return auth.roles().stream().anyMatch(role -> Set.of(roles).contains(role));
     }
 
+    private static boolean isPartnerOnly(AuthMeResponse auth) {
+        return "PARTNER".equals(auth.primaryRole())
+                && !hasAnyRole(auth, "OPERATOR", "APPROVER", "ADMIN");
+    }
+
     private static void addSuccess(RedirectAttributes redirectAttributes, String message) {
         redirectAttributes.addFlashAttribute("messageType", "success");
         redirectAttributes.addFlashAttribute("message", message);
@@ -273,6 +308,83 @@ public class PartnerVerificationViewController {
 
     private static String dateTimeText(OffsetDateTime value) {
         return value == null ? "기록 없음" : value.format(DATE_TIME_FORMAT);
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    public record VerificationListPageModel(
+            AuthMeResponse auth,
+            String roleLabel,
+            String activeNav,
+            String selectedStatusCode,
+            Boolean selectedCurrent,
+            List<SummaryModel> items,
+            long totalCount,
+            int page,
+            int size,
+            boolean hasPreviousPage,
+            boolean hasNextPage,
+            int previousPage,
+            int nextPage,
+            boolean canOpenInput
+    ) {
+
+        private static VerificationListPageModel from(
+                AuthMeResponse auth,
+                PageResponse<PartnerVerificationSummaryResponse> verificationPage,
+                String selectedStatusCode,
+                Boolean selectedCurrent
+        ) {
+            return new VerificationListPageModel(
+                    auth,
+                    PartnerVerificationViewController.roleLabel(auth.primaryRole()),
+                    "PARTNER_VERIFICATION_LIST",
+                    selectedStatusCode,
+                    selectedCurrent,
+                    verificationPage.items().stream().map(SummaryModel::from).toList(),
+                    verificationPage.totalCount(),
+                    verificationPage.page(),
+                    verificationPage.size(),
+                    verificationPage.page() > 1,
+                    verificationPage.page() * verificationPage.size() < verificationPage.totalCount(),
+                    Math.max(verificationPage.page() - 1, 1),
+                    verificationPage.page() + 1,
+                    hasAnyRole(auth, "PARTNER", "OPERATOR", "ADMIN")
+            );
+        }
+    }
+
+    public record SummaryModel(
+            UUID verificationId,
+            UUID memberUserId,
+            UUID partnerUserId,
+            UUID businessProfileId,
+            String statusCode,
+            String statusLabel,
+            boolean current,
+            boolean matchingBlocked,
+            String submittedAtText,
+            String verifiedAtText,
+            String updatedAtText
+    ) {
+
+        private static SummaryModel from(PartnerVerificationSummaryResponse response) {
+            return new SummaryModel(
+                    response.verificationId(),
+                    response.memberUserId(),
+                    response.partnerUserId(),
+                    response.businessProfileId(),
+                    response.statusCode(),
+                    verificationStatusLabel(response.statusCode()),
+                    response.current(),
+                    response.matchingBlocked(),
+                    dateTimeText(response.submittedAt()),
+                    dateTimeText(response.verifiedAt()),
+                    dateTimeText(response.updatedAt())
+            );
+        }
     }
 
     public record VerificationPageModel(

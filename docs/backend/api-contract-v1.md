@@ -100,7 +100,7 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 | `ADMIN` | `/app/admin/dashboard` |
 | `APPROVER` | `/app/matching/cases` |
 | `OPERATOR` | `/app/operator/dashboard` |
-| `PARTNER` | `/app/application-progresses` |
+| `PARTNER` | `/app/partner/verifications` |
 | `USER` | `/app/dashboard` |
 
 `passwordResetRequired = true`이면 역할과 무관하게 `defaultRoute = /password`를 반환한다.
@@ -372,15 +372,15 @@ Member / Business / Family API skeleton 착수 기준:
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `GET` | `/api/v1/partner-verifications` | `PARTNER`, `OPERATOR` | 검증 목록 |
+| `GET` | `/api/v1/partner-verifications` | `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 검증 목록 |
 | `POST` | `/api/v1/partner-verifications` | `PARTNER`, `OPERATOR` | 검증 생성 |
-| `GET` | `/api/v1/partner-verifications/{verificationId}` | `PARTNER`, `OPERATOR` | 검증 상세 |
+| `GET` | `/api/v1/partner-verifications/{verificationId}` | `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 검증 상세 |
 | `PUT` | `/api/v1/partner-verifications/{verificationId}/member-values` | `PARTNER`, `OPERATOR` | 회원 검증값 저장 |
 | `PUT` | `/api/v1/partner-verifications/{verificationId}/business-values` | `PARTNER`, `OPERATOR` | 사업/금융 검증값 저장 |
 | `PUT` | `/api/v1/partner-verifications/{verificationId}/family-values` | `PARTNER`, `OPERATOR` | 가족 검증값 저장 |
 | `PUT` | `/api/v1/partner-verifications/{verificationId}/documents` | `PARTNER`, `OPERATOR` | 검증 서류 체크 저장 |
 | `PUT` | `/api/v1/partner-verifications/{verificationId}/restriction-flags` | `PARTNER`, `OPERATOR` | 제한 플래그 저장 |
-| `PATCH` | `/api/v1/partner-verifications/{verificationId}/status` | `PARTNER`, `OPERATOR`, `APPROVER` | 검증 상태 변경 |
+| `PATCH` | `/api/v1/partner-verifications/{verificationId}/status` | `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 검증 상태 변경 |
 
 #### VerificationCreateRequest
 

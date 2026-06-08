@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('검증 목록', ~{::main})}">
+<main class="flow-page">
+    <section class="flow-shell verification-flow-shell" aria-label="검증 목록">
+        <div class="flow-workspace">
+            <section class="flow-hero">
+                <div>
+                    <span class="eyebrow">검증 목록</span>
+                    <h2>사용자 검증 건을 확인하고 입력 화면으로 이동합니다.</h2>
+                    <p>파트너는 본인이 담당한 검증을 보고, 운영 계정은 전체 검증 진행 상태를 확인합니다.</p>
+                </div>
+                <div class="flow-hero-status">
+                    <span>전체 검증</span>
+                    <strong>
+                        <span th:text="${page.totalCount}">0</span>
+                        건
+                    </strong>
+                    <small>현재 검색 조건 기준</small>
+                </div>
+            </section>
+
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">조회</span>
+                        <h2>검증 검색</h2>
+                    </div>
+                </div>
+                <form class="flow-form compact-filter-form" method="get" th:action="@{/app/partner/verifications}">
+                    <div class="form-grid">
+                        <label>
+                            상태
+                            <select name="statusCode">
+                                <option value="" th:selected="${page.selectedStatusCode == null}">전체</option>
+                                <option value="DRAFT" th:selected="${page.selectedStatusCode == 'DRAFT'}">작성 중</option>
+                                <option value="SUBMITTED" th:selected="${page.selectedStatusCode == 'SUBMITTED'}">제출 완료</option>
+                                <option value="REVIEWING" th:selected="${page.selectedStatusCode == 'REVIEWING'}">검토 중</option>
+                                <option value="VERIFIED" th:selected="${page.selectedStatusCode == 'VERIFIED'}">검증 완료</option>
+                                <option value="REJECTED" th:selected="${page.selectedStatusCode == 'REJECTED'}">반려</option>
+                                <option value="EXPIRED" th:selected="${page.selectedStatusCode == 'EXPIRED'}">만료</option>
+                            </select>
+                        </label>
+                        <label>
+                            현재 검증
+                            <select name="current">
+                                <option value="" th:selected="${page.selectedCurrent == null}">전체</option>
+                                <option value="true" th:selected="${page.selectedCurrent == true}">현재 건만</option>
+                                <option value="false" th:selected="${page.selectedCurrent == false}">과거 건만</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit">조회</button>
+                        <a class="secondary-action" th:href="@{/app/partner/verifications}">초기화</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">목록</span>
+                        <h2>검증 진행 건</h2>
+                    </div>
+                    <span class="soft-status">
+                        <span th:text="${page.totalCount}">0</span>
+                        건
+                    </span>
+                </div>
+
+                <p class="empty-state" th:if="${#lists.isEmpty(page.items)}">조회된 검증 건이 없습니다.</p>
+
+                <div class="verification-list" th:if="${!#lists.isEmpty(page.items)}">
+                    <article class="verification-list-row" th:each="item : ${page.items}">
+                        <div class="verification-list-main">
+                            <span class="status-chip" th:text="${item.statusLabel}">작성 중</span>
+                            <h3>
+                                검증 번호
+                                <span th:text="${item.verificationId}">uuid</span>
+                            </h3>
+                            <p>
+                                회원 번호
+                                <span th:text="${item.memberUserId}">uuid</span>
+                            </p>
+                        </div>
+                        <dl class="flow-summary-list compact-summary-list">
+                            <div>
+                                <dt>담당 파트너</dt>
+                                <dd th:text="${item.partnerUserId == null ? '미지정' : item.partnerUserId}">uuid</dd>
+                            </div>
+                            <div>
+                                <dt>현재 검증</dt>
+                                <dd th:text="${item.current ? '현재 건' : '과거 건'}">현재 건</dd>
+                            </div>
+                            <div>
+                                <dt>매칭 제한</dt>
+                                <dd th:text="${item.matchingBlocked ? '제한 있음' : '제한 없음'}">제한 없음</dd>
+                            </div>
+                            <div>
+                                <dt>최근 수정</dt>
+                                <dd th:text="${item.updatedAtText}">기록 없음</dd>
+                            </div>
+                        </dl>
+                        <div class="form-actions row-actions">
+                            <a class="secondary-action"
+                               th:href="@{/app/member/verifications/{verificationId}(verificationId=${item.verificationId})}">
+                                진행 보기
+                            </a>
+                            <a class="primary-action"
+                               th:if="${page.canOpenInput}"
+                               th:href="@{/app/partner-verifications/{verificationId}/input(verificationId=${item.verificationId})}">
+                                입력 화면
+                            </a>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="pagination-row" th:if="${page.totalCount > page.size}">
+                    <a class="secondary-action"
+                       th:if="${page.hasPreviousPage}"
+                       th:href="@{/app/partner/verifications(statusCode=${page.selectedStatusCode},current=${page.selectedCurrent},page=${page.previousPage})}">
+                        이전
+                    </a>
+                    <span>
+                        <span th:text="${page.page}">1</span>
+                        /
+                        <span th:text="${page.totalCount == 0 ? 1 : ((page.totalCount + page.size - 1) / page.size)}">1</span>
+                    </span>
+                    <a class="secondary-action"
+                       th:if="${page.hasNextPage}"
+                       th:href="@{/app/partner/verifications(statusCode=${page.selectedStatusCode},current=${page.selectedCurrent},page=${page.nextPage})}">
+                        다음
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <aside class="flow-side">
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">기준</span>
+                        <h2>목록 사용 기준</h2>
+                    </div>
+                </div>
+                <p class="flow-note">검증 목록은 담당자 입력과 서류 확인 상태를 빠르게 찾기 위한 화면입니다. 개인정보 원문은 목록에 표시하지 않습니다.</p>
+            </section>
+            <section class="flow-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">이동</span>
+                        <h2>다음 작업</h2>
+                    </div>
+                </div>
+                <div class="recent-list">
+                    <div class="recent-item">
+                        <span class="recent-icon info" aria-hidden="true">1</span>
+                        <div>
+                            <strong>진행 보기</strong>
+                            <p>사용자에게 보이는 검증 진행 상태와 서류 확인 현황을 봅니다.</p>
+                        </div>
+                    </div>
+                    <div class="recent-item">
+                        <span class="recent-icon info" aria-hidden="true">2</span>
+                        <div>
+                            <strong>입력 화면</strong>
+                            <p>파트너 또는 운영자가 서류 확인 값과 메모를 저장합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </section>
+</main>
+</html>

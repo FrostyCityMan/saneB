@@ -1954,6 +1954,76 @@ svg {
     font-size: 12px;
 }
 
+.verification-list {
+    display: grid;
+    gap: 12px;
+}
+
+.verification-list-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr) auto;
+    align-items: start;
+    gap: 16px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffdf8;
+    padding: 14px;
+}
+
+.verification-list-main {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.verification-list-main .status-chip {
+    justify-self: start;
+}
+
+.verification-list-main h3,
+.verification-list-main p {
+    margin: 0;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.verification-list-main h3 {
+    color: var(--saneb-text);
+    font-size: 15px;
+    font-weight: 850;
+}
+
+.verification-list-main p {
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.compact-summary-list div {
+    grid-template-columns: 94px minmax(0, 1fr);
+    padding: 8px 0;
+}
+
+.row-actions,
+.pagination-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0;
+}
+
+.pagination-row {
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.pagination-row span {
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
 .flow-message {
     margin: 0;
     border: 1px solid var(--saneb-border);
@@ -2922,6 +2992,7 @@ svg {
     .flow-grid-2,
     .action-submit-form,
     .verification-document-row,
+    .verification-list-row,
     .admin-users-summary-grid,
     .admin-users-filter,
     .admin-user-meta,
@@ -2932,6 +3003,12 @@ svg {
     .matching-status-form,
     .startable-matching-item {
         grid-template-columns: 1fr;
+    }
+
+    .row-actions,
+    .pagination-row {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .announcement-hero h2,

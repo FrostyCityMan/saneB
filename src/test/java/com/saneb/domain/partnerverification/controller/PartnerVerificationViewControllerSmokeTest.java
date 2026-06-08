@@ -53,7 +53,24 @@ class PartnerVerificationViewControllerSmokeTest {
         when(authService.selectAuthMe(any())).thenReturn(userAuth());
         when(partnerVerificationService.selectPartnerVerificationList(eq(USER_ID), any(), any(), eq(true), eq(1), eq(1)))
                 .thenReturn(PageResponse.of(List.of(summary), 1, 1, 1));
+        when(partnerVerificationService.selectPartnerVerificationList(any(), eq(PARTNER_ID), any(), any(), eq(1), eq(20)))
+                .thenReturn(PageResponse.of(List.of(summary), 1, 20, 1));
         when(partnerVerificationService.selectPartnerVerificationDetails(VERIFICATION_ID)).thenReturn(details);
+    }
+
+    @Test
+    void selectPartnerVerificationListPageUsesKoreanLabels() throws Exception {
+        when(authService.selectAuthMe(any())).thenReturn(partnerAuth());
+
+        mockMvc.perform(get("/app/partner/verifications")
+                        .with(user("partner01").roles("PARTNER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/partner-verification-list"))
+                .andExpect(content().string(containsString("검증 목록")))
+                .andExpect(content().string(containsString("검증 번호")))
+                .andExpect(content().string(containsString("입력 화면")))
+                .andExpect(content().string(not(containsString("Partner Verification"))))
+                .andExpect(content().string(not(containsString("검증 ID"))));
     }
 
     @Test
@@ -106,7 +123,7 @@ class PartnerVerificationViewControllerSmokeTest {
                 "Partner User",
                 List.of("PARTNER"),
                 "PARTNER",
-                "/app/application-progresses",
+                "/app/partner/verifications",
                 false,
                 new AuthMeResponse.ProfileResponse(null, null, null)
         );

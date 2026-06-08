@@ -315,12 +315,12 @@ class AuthControllerSmokeTest {
 
     @Test
     @WithMockUser(username = "partner01", roles = "PARTNER")
-    void selectAuthMeReturnsApplicationProgressDefaultRouteForPartner() throws Exception {
+    void selectAuthMeReturnsPartnerVerificationListDefaultRouteForPartner() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.primaryRole").value("PARTNER"))
-                .andExpect(jsonPath("$.data.defaultRoute").value("/app/application-progresses"));
+                .andExpect(jsonPath("$.data.defaultRoute").value("/app/partner/verifications"));
     }
 
     @Test

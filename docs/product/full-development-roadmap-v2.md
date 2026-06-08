@@ -52,7 +52,7 @@ saneB의 완전 개발 목표는 정부지원사업 공고 입력, 대상자 검
 | 역할 | 현재 defaultRoute |
 |---|---|
 | `USER` | `/app/dashboard` |
-| `PARTNER` | `/app/application-progresses` |
+| `PARTNER` | `/app/partner/verifications` |
 | `OPERATOR` | `/app/operator/dashboard` |
 | `APPROVER` | `/app/matching/cases` |
 | `ADMIN` | `/app/admin/dashboard` |
@@ -178,7 +178,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 - `ADMIN`, `OPERATOR`, `PARTNER`, `APPROVER` defaultRoute 1차 분리 완료
 - 관리자 대시보드 API/화면 완료
 - 운영자 대시보드 API/화면 완료
-- 파트너 검증 목록 화면 개선
+- 파트너 검증 목록 화면 개선 완료
 - 승인자 큐 화면
 
 완료 조건:
@@ -293,7 +293,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | role별 defaultRoute | 완료 | 구현된 화면 기준으로 USER/PARTNER/OPERATOR/APPROVER/ADMIN 기본 진입점 분리 |
 | 관리자 대시보드 | 완료 | 관리자 전용 운영 집계 화면과 `/api/v1/admin/dashboard/summary` 유지 |
 | 운영자 대시보드 | 완료 | 공고/매칭/신청 진행 업무 홈과 `/api/v1/operator/dashboard/summary` 유지 |
-| 파트너 대시보드 | 예정 | 검증 목록/예약과 함께 구현 |
+| 파트너 대시보드 | 진행 중 | 검증 목록 화면 완료, 상담/예약은 이후 구현 |
 | 승인자 큐 | 예정 | 검증/결과 승인 정책 확정 후 구현 |
 | 검증 없는 수동 매칭 | 완료 | 승인 공고/회원 선택으로 매칭 생성, 검증 ID 선택값 유지 |
 | 신청 진행 버튼 UX | 완료 | 버튼 코드 직접 입력 제거, 공고 단계 버튼 표시 및 테스트 검증 완료 |
@@ -339,14 +339,13 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 파트너 검증 목록
-2. 승인자 큐
-3. 감사 로그 조회 화면
-4. 동의 이력 DB/API
-5. 파일형 서류 제출/검토
-6. 상담 예약
-7. 구독/결제
-8. 알림과 운영 큐
-9. AI 보조 기능
+1. 승인자 큐
+2. 감사 로그 조회 화면
+3. 동의 이력 DB/API
+4. 파일형 서류 제출/검토
+5. 상담 예약
+6. 구독/결제
+7. 알림과 운영 큐
+8. AI 보조 기능
 
 즉시 다음 개발 대상은 관리자 대시보드 v1이다. 이유는 현재 공고 입력과 운영 테스트가 진행 중이며, 관리자 계정이 사용자 대시보드에 머무르는 문제를 구조적으로 끝내야 하기 때문이다.
