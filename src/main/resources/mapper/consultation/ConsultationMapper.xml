@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.consultation.dao.ConsultationDao">
+
+    <resultMap id="ConsultationSlotRowMap" type="com.saneb.domain.consultation.vo.ConsultationSlotRow">
+        <constructor>
+            <arg column="slot_id" javaType="java.util.UUID"/>
+            <arg column="partner_user_id" javaType="java.util.UUID"/>
+            <arg column="start_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="end_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="note" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ConsultationReservationRowMap" type="com.saneb.domain.consultation.vo.ConsultationReservationRow">
+        <constructor>
+            <arg column="reservation_id" javaType="java.util.UUID"/>
+            <arg column="slot_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="partner_user_id" javaType="java.util.UUID"/>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="start_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="end_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="request_note" javaType="java.lang.String"/>
+            <arg column="status_note" javaType="java.lang.String"/>
+            <arg column="confirmed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="canceled_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApplicationProgressOwnerRowMap" type="com.saneb.domain.consultation.vo.ApplicationProgressOwnerRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="PartnerVerificationOwnerRowMap" type="com.saneb.domain.consultation.vo.PartnerVerificationOwnerRow">
+        <constructor>
+            <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="ConsultationSlotSearchWhere">
+        <where>
+            <if test="partnerUserId != null">
+                AND pas.partner_user_id = #{partnerUserId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND pas.status_code = #{statusCode}
+            </if>
+            <if test="startFrom != null">
+                AND pas.start_at &gt;= #{startFrom}
+            </if>
+            <if test="startTo != null">
+                AND pas.start_at &lt;= #{startTo}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="ConsultationReservationSearchWhere">
+        <where>
+            <if test="memberUserId != null">
+                AND cr.member_user_id = #{memberUserId}
+            </if>
+            <if test="partnerUserId != null">
+                AND cr.partner_user_id = #{partnerUserId}
+            </if>
+            <if test="statusCode != null and statusCode != ''">
+                AND cr.status_code = #{statusCode}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectConsultationSlotList" resultMap="ConsultationSlotRowMap">
+        -- Select consultation availability slots.
+        SELECT
+            pas.id AS slot_id,
+            pas.partner_user_id,
+            pas.start_at,
+            pas.end_at,
+            pas.status_code,
+            pas.note,
+            pas.created_at,
+            pas.updated_at
+        FROM partner_availability_slots pas
+        <include refid="ConsultationSlotSearchWhere"/>
+        ORDER BY pas.start_at ASC, pas.id ASC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectConsultationSlotCount" resultType="long">
+        -- Count consultation availability slots.
+        SELECT
+            count(1)
+        FROM partner_availability_slots pas
+        <include refid="ConsultationSlotSearchWhere"/>
+    </select>
+
+    <select id="selectConsultationSlotDetails" resultMap="ConsultationSlotRowMap">
+        -- Select one consultation availability slot.
+        SELECT
+            pas.id AS slot_id,
+            pas.partner_user_id,
+            pas.start_at,
+            pas.end_at,
+            pas.status_code,
+            pas.note,
+            pas.created_at,
+            pas.updated_at
+        FROM partner_availability_slots pas
+        WHERE pas.id = #{slotId}
+    </select>
+
+    <insert id="insertConsultationSlot">
+        -- Insert partner consultation availability slot.
+        INSERT INTO partner_availability_slots (
+            id,
+            partner_user_id,
+            start_at,
+            end_at,
+            status_code,
+            note,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{slotId},
+            #{partnerUserId},
+            #{startAt},
+            #{endAt},
+            'OPEN',
+            #{note},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateConsultationSlotStatus">
+        -- Update consultation availability slot status.
+        UPDATE partner_availability_slots
+        SET
+            status_code = #{statusCode},
+            note = COALESCE(#{note}, note),
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{slotId}
+    </update>
+
+    <select id="selectConsultationReservationList" resultMap="ConsultationReservationRowMap">
+        -- Select consultation reservations with slot time.
+        SELECT
+            cr.id AS reservation_id,
+            cr.slot_id,
+            cr.member_user_id,
+            cr.partner_user_id,
+            cr.progress_id,
+            cr.verification_id,
+            pas.start_at,
+            pas.end_at,
+            cr.status_code,
+            cr.request_note,
+            cr.status_note,
+            cr.confirmed_at,
+            cr.canceled_at,
+            cr.completed_at,
+            cr.created_at,
+            cr.updated_at
+        FROM consultation_reservations cr
+        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        <include refid="ConsultationReservationSearchWhere"/>
+        ORDER BY pas.start_at DESC, cr.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectConsultationReservationCount" resultType="long">
+        -- Count consultation reservations.
+        SELECT
+            count(1)
+        FROM consultation_reservations cr
+        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        <include refid="ConsultationReservationSearchWhere"/>
+    </select>
+
+    <select id="selectConsultationReservationDetails" resultMap="ConsultationReservationRowMap">
+        -- Select one consultation reservation with slot time.
+        SELECT
+            cr.id AS reservation_id,
+            cr.slot_id,
+            cr.member_user_id,
+            cr.partner_user_id,
+            cr.progress_id,
+            cr.verification_id,
+            pas.start_at,
+            pas.end_at,
+            cr.status_code,
+            cr.request_note,
+            cr.status_note,
+            cr.confirmed_at,
+            cr.canceled_at,
+            cr.completed_at,
+            cr.created_at,
+            cr.updated_at
+        FROM consultation_reservations cr
+        INNER JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        WHERE cr.id = #{reservationId}
+    </select>
+
+    <insert id="insertConsultationReservation">
+        -- Insert consultation reservation request.
+        INSERT INTO consultation_reservations (
+            id,
+            slot_id,
+            member_user_id,
+            partner_user_id,
+            progress_id,
+            verification_id,
+            status_code,
+            request_note,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{reservationId},
+            #{slotId},
+            #{memberUserId},
+            #{partnerUserId},
+            #{progressId,jdbcType=OTHER},
+            #{verificationId,jdbcType=OTHER},
+            'REQUESTED',
+            #{requestNote},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateConsultationReservationStatus">
+        -- Update consultation reservation status.
+        UPDATE consultation_reservations
+        SET
+            status_code = #{statusCode},
+            status_note = #{note},
+            confirmed_at = CASE WHEN #{statusCode} = 'CONFIRMED' THEN now() ELSE confirmed_at END,
+            canceled_at = CASE WHEN #{statusCode} = 'CANCELED' THEN now() ELSE canceled_at END,
+            completed_at = CASE
+                WHEN #{statusCode} IN ('COMPLETED', 'NO_SHOW') THEN now()
+                ELSE completed_at
+            END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{reservationId}
+    </update>
+
+    <insert id="insertConsultationHistory">
+        -- Insert consultation status history.
+        INSERT INTO consultation_histories (
+            id,
+            reservation_id,
+            actor_user_id,
+            before_status_code,
+            after_status_code,
+            note
+        ) VALUES (
+            #{historyId},
+            #{reservationId},
+            #{actorUserId},
+            #{beforeStatusCode},
+            #{afterStatusCode},
+            #{note}
+        )
+    </insert>
+
+    <select id="selectApplicationProgressOwner" resultMap="ApplicationProgressOwnerRowMap">
+        -- Select application progress owner for reservation validation.
+        SELECT
+            ap.id AS progress_id,
+            ap.member_user_id
+        FROM application_progresses ap
+        WHERE ap.id = #{progressId}
+    </select>
+
+    <select id="selectPartnerVerificationOwner" resultMap="PartnerVerificationOwnerRowMap">
+        -- Select partner verification owner for reservation validation.
+        SELECT
+            pv.id AS verification_id,
+            pv.member_user_id
+        FROM partner_verifications pv
+        WHERE pv.id = #{verificationId}
+    </select>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII consultation audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

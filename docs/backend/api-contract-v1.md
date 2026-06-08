@@ -1146,7 +1146,58 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 }
 ```
 
-## 14. Audit API
+## 14. Consultation API
+
+상담 예약은 파트너가 등록한 가능 시간과 사용자의 예약 요청을 분리해 저장한다. 중복 예약은 같은 slot에 대한 active 예약 partial unique index로 차단한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/consultation-slots` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 조회 |
+| `POST` | `/api/v1/consultation-slots` | `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 등록 |
+| `PATCH` | `/api/v1/consultation-slots/{slotId}/status` | `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 상태 변경 |
+| `GET` | `/api/v1/consultation-reservations` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 예약 목록 조회 |
+| `POST` | `/api/v1/consultation-reservations` | `USER`, `OPERATOR`, `ADMIN` | 상담 예약 요청 |
+| `PATCH` | `/api/v1/consultation-reservations/{reservationId}/status` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 예약 확정/취소/완료 처리 |
+
+#### ConsultationSlotCreateRequest
+
+```json
+{
+  "partnerUserId": "uuid",
+  "startAt": "2026-06-20T10:00:00+09:00",
+  "endAt": "2026-06-20T10:30:00+09:00",
+  "note": "오전 상담"
+}
+```
+
+파트너는 본인 slot만 등록할 수 있다. 운영자와 관리자는 `partnerUserId`를 지정할 수 있다.
+
+#### ConsultationReservationCreateRequest
+
+```json
+{
+  "slotId": "uuid",
+  "memberUserId": null,
+  "progressId": null,
+  "verificationId": null,
+  "requestNote": "전화 상담 희망"
+}
+```
+
+일반 사용자는 본인 예약만 생성할 수 있다. 운영자와 관리자는 `memberUserId`를 지정할 수 있다.
+
+#### ConsultationReservationStatusUpdateRequest
+
+```json
+{
+  "statusCode": "CONFIRMED",
+  "note": "확정"
+}
+```
+
+예약 상태 흐름은 `REQUESTED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. 일반 사용자는 본인 예약 취소만 가능하다.
+
+## 15. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 

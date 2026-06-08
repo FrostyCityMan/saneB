@@ -26,7 +26,8 @@ public class AuditLogServiceImpl implements AuditLogService {
             "PARTNER_VERIFICATION",
             "MATCHING_CASE",
             "APPLICATION_PROGRESS",
-            "DOCUMENT_SUBMISSION"
+            "DOCUMENT_SUBMISSION",
+            "CONSULTATION_RESERVATION"
     );
 
     private final AuditLogDao auditLogDao;

@@ -104,6 +104,21 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v9MigrationContainsConsultationReservationTables() throws IOException {
+        String sql = selectV9Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE partner_availability_slots",
+                "CREATE TABLE consultation_reservations",
+                "CREATE TABLE consultation_histories",
+                "CREATE UNIQUE INDEX uq_consultation_reservations_active_slot",
+                "'REQUESTED'",
+                "'CONFIRMED'",
+                "'CANCELED'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -126,6 +141,11 @@ class MigrationContractTest {
 
     private String selectV8Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V8__create_document_file_submissions.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV9Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V9__create_consultation_reservations.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

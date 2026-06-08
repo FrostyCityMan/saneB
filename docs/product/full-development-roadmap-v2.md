@@ -299,7 +299,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 신청 진행 버튼 UX | 완료 | 버튼 코드 직접 입력 제거, 공고 단계 버튼 표시 및 테스트 검증 완료 |
 | 동의 이력 | 완료 | `consent_versions`, `user_consents`, `/api/v1/consents/current`, `/api/v1/users/me/consents` 유지 |
 | 파일 업로드 | 완료 | `stored_files`, `document_submissions`, `document_submission_reviews`, `/api/v1/files`, `/api/v1/document-submissions` 적용 |
-| 상담 예약 | 예정 | Phase 3 DB/API 계약 |
+| 상담 예약 | 완료 | `partner_availability_slots`, `consultation_reservations`, `consultation_histories`, `/api/v1/consultation-*` 적용 |
 | 구독/결제 | 예정 | Phase 4 provider와 webhook 정책 확정 |
 | 알림 | 예정 | Phase 5 provider 추상화 |
 | 운영 큐 | 예정 | Phase 5 업무 상태 enum 확정 |
