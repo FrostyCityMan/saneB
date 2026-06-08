@@ -186,6 +186,7 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 }
             }
         }
+        dynamicAnnouncementInputDao.touchApplicationProgress(progressId, actor.userId());
 
         insertAudit(actor.userId(), progressId, metadata(
                 "requirementCount", String.valueOf(values.size()),

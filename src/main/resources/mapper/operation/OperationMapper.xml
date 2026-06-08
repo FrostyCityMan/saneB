@@ -70,6 +70,16 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="StalledApplicationProgressRowMap" type="com.saneb.domain.operation.vo.StalledApplicationProgressRow">
+        <constructor>
+            <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="current_step_id" javaType="java.util.UUID"/>
+            <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
     <sql id="NotificationMessageColumns">
         nm.id AS notification_id,
         nm.recipient_user_id,
@@ -241,6 +251,53 @@
         )
     </insert>
 
+    <select id="selectStalledApplicationProgressList" resultMap="StalledApplicationProgressRowMap">
+        -- Select application progresses that have not advanced before a reminder threshold.
+        SELECT
+            ap.id AS progress_id,
+            ap.member_user_id,
+            ap.current_step_id,
+            ap.status_code,
+            ap.updated_at
+        FROM application_progresses ap
+        WHERE ap.status_code IN ('READY', 'IN_PROGRESS', 'SUPPLEMENT_REQUESTED')
+          AND ap.current_step_id IS NOT NULL
+          AND ap.updated_at &lt;= #{thresholdAt}
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM progress_reminder_logs prl
+              WHERE prl.progress_id = ap.id
+                AND prl.reminder_type_code = #{reminderTypeCode}
+          )
+        ORDER BY ap.updated_at ASC, ap.id ASC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insertProgressReminderLog">
+        -- Insert progress reminder result for duplicate prevention.
+        INSERT INTO progress_reminder_logs (
+            id,
+            progress_id,
+            step_id,
+            reminder_type_code,
+            attempt_no,
+            scheduled_at,
+            sent_at,
+            result_code
+        ) VALUES (
+            #{reminderLogId},
+            #{progressId},
+            #{stepId},
+            #{reminderTypeCode},
+            #{attemptNo},
+            #{scheduledAt},
+            #{sentAt},
+            #{resultCode}
+        )
+        ON CONFLICT (progress_id, reminder_type_code) DO NOTHING
+    </insert>
+
     <select id="selectOperationTaskList" resultMap="OperationTaskRowMap">
         -- Select operation tasks.
         SELECT
@@ -296,6 +353,17 @@
             #{actorUserId}
         )
     </insert>
+
+    <select id="selectOpenOperationTaskCount" resultType="long">
+        -- Count active operation task for one resource.
+        SELECT
+            count(1)
+        FROM operation_tasks ot
+        WHERE ot.task_type_code = #{taskTypeCode}
+          AND ot.resource_type = #{resourceType}
+          AND ot.resource_id = #{resourceId}
+          AND ot.status_code IN ('OPEN', 'IN_PROGRESS', 'WAITING')
+    </select>
 
     <update id="updateOperationTaskStatus">
         -- Update operation task status.

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.candidatepreview.dao.CandidatePreviewDao">
+
+    <resultMap id="CandidatePreviewRowMap" type="com.saneb.domain.candidatepreview.vo.CandidatePreviewRow">
+        <constructor>
+            <arg column="possible_candidate_count" javaType="long"/>
+            <arg column="min_support_amount" javaType="java.math.BigDecimal"/>
+            <arg column="max_support_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectCandidatePreview" resultMap="CandidatePreviewRowMap">
+        -- Select pre-signup candidate count and support amount range without storing personal input.
+        SELECT
+            count(1) AS possible_candidate_count,
+            min(a.min_amount) AS min_support_amount,
+            max(a.max_amount) AS max_support_amount
+        FROM announcements a
+        WHERE a.approval_status_code = 'APPROVED'
+          AND a.manual_status_code = 'NORMAL'
+          AND (a.application_start_date IS NULL OR a.application_start_date &lt;= CURRENT_DATE)
+          AND (a.application_end_date IS NULL OR a.application_end_date &gt;= CURRENT_DATE)
+          AND (
+              #{regionCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_region_required
+                  WHERE aoc_region_required.announcement_id = a.id
+                    AND aoc_region_required.condition_key IN ('REGION_CODE', 'WORKPLACE_REGION_CODE')
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_region
+                  WHERE aoc_region.announcement_id = a.id
+                    AND aoc_region.condition_key IN ('REGION_CODE', 'WORKPLACE_REGION_CODE')
+                    AND aoc_region.option_code = #{regionCode,jdbcType=VARCHAR}
+              )
+          )
+          AND (
+              #{annualRevenue,jdbcType=NUMERIC} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_revenue_required
+                  WHERE anc_revenue_required.announcement_id = a.id
+                    AND anc_revenue_required.condition_key = 'ANNUAL_REVENUE'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_revenue
+                  WHERE anc_revenue.announcement_id = a.id
+                    AND anc_revenue.condition_key = 'ANNUAL_REVENUE'
+                    AND (
+                        (anc_revenue.comparator_code = 'GTE' AND #{annualRevenue,jdbcType=NUMERIC} &gt;= anc_revenue.value_number)
+                        OR (anc_revenue.comparator_code = 'LTE' AND #{annualRevenue,jdbcType=NUMERIC} &lt;= anc_revenue.value_number)
+                        OR (anc_revenue.comparator_code = 'GT' AND #{annualRevenue,jdbcType=NUMERIC} &gt; anc_revenue.value_number)
+                        OR (anc_revenue.comparator_code = 'LT' AND #{annualRevenue,jdbcType=NUMERIC} &lt; anc_revenue.value_number)
+                        OR (anc_revenue.comparator_code = 'EQ' AND #{annualRevenue,jdbcType=NUMERIC} = anc_revenue.value_number)
+                        OR (
+                            anc_revenue.comparator_code = 'BETWEEN'
+                            AND #{annualRevenue,jdbcType=NUMERIC} BETWEEN anc_revenue.min_number AND anc_revenue.max_number
+                        )
+                    )
+              )
+          )
+          AND (
+              #{businessYears,jdbcType=NUMERIC} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_years_required
+                  WHERE anc_years_required.announcement_id = a.id
+                    AND anc_years_required.condition_key = 'BUSINESS_YEARS'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_years
+                  WHERE anc_years.announcement_id = a.id
+                    AND anc_years.condition_key = 'BUSINESS_YEARS'
+                    AND (
+                        (anc_years.comparator_code = 'GTE' AND #{businessYears,jdbcType=NUMERIC} &gt;= anc_years.value_number)
+                        OR (anc_years.comparator_code = 'LTE' AND #{businessYears,jdbcType=NUMERIC} &lt;= anc_years.value_number)
+                        OR (anc_years.comparator_code = 'GT' AND #{businessYears,jdbcType=NUMERIC} &gt; anc_years.value_number)
+                        OR (anc_years.comparator_code = 'LT' AND #{businessYears,jdbcType=NUMERIC} &lt; anc_years.value_number)
+                        OR (anc_years.comparator_code = 'EQ' AND #{businessYears,jdbcType=NUMERIC} = anc_years.value_number)
+                        OR (
+                            anc_years.comparator_code = 'BETWEEN'
+                            AND #{businessYears,jdbcType=NUMERIC} BETWEEN anc_years.min_number AND anc_years.max_number
+                        )
+                    )
+              )
+          )
+          AND (
+              #{hasSpouseCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_spouse_required
+                  WHERE aoc_spouse_required.announcement_id = a.id
+                    AND aoc_spouse_required.condition_key = 'HAS_SPOUSE'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_spouse
+                  WHERE aoc_spouse.announcement_id = a.id
+                    AND aoc_spouse.condition_key = 'HAS_SPOUSE'
+                    AND aoc_spouse.option_code = #{hasSpouseCode,jdbcType=VARCHAR}
+              )
+          )
+          AND (
+              #{hasChildCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_child_required
+                  WHERE aoc_child_required.announcement_id = a.id
+                    AND aoc_child_required.condition_key = 'HAS_CHILD'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_child
+                  WHERE aoc_child.announcement_id = a.id
+                    AND aoc_child.condition_key = 'HAS_CHILD'
+                    AND aoc_child.option_code = #{hasChildCode,jdbcType=VARCHAR}
+              )
+          )
+    </select>
+</mapper>

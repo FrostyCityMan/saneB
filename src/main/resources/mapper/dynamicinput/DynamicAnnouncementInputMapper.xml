@@ -291,6 +291,15 @@
         )
     </insert>
 
+    <update id="touchApplicationProgress">
+        -- Refresh progress activity timestamp after dynamic input save.
+        UPDATE application_progresses
+        SET
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{progressId}
+    </update>
+
     <select id="selectMissingRequiredApplicationInputCount" resultType="long">
         -- Count missing required dynamic input values before progress action.
         SELECT

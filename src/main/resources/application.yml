@@ -57,6 +57,12 @@ saneb:
     max-upload-bytes: ${SANEB_MAX_UPLOAD_BYTES:10485760}
   payment:
     webhook-secret: ${PAYMENT_WEBHOOK_SECRET:}
+  operation:
+    inactivity:
+      enabled: ${SANEB_INACTIVITY_REMINDER_ENABLED:true}
+      fixed-delay-ms: ${SANEB_INACTIVITY_REMINDER_FIXED_DELAY_MS:3600000}
+      initial-delay-ms: ${SANEB_INACTIVITY_REMINDER_INITIAL_DELAY_MS:60000}
+      batch-size: ${SANEB_INACTIVITY_REMINDER_BATCH_SIZE:50}
   ai:
     provider-code: ${SANEB_AI_PROVIDER_CODE:LOCAL_SAFE}
     model-code: ${SANEB_AI_MODEL_CODE:RULE_TEMPLATE_V1}

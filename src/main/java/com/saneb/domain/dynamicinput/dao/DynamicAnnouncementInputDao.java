@@ -64,6 +64,11 @@ public interface DynamicAnnouncementInputDao {
 
     void insertApplicationInputValue(ApplicationInputValueCommand command);
 
+    int touchApplicationProgress(
+            @Param("progressId") UUID progressId,
+            @Param("actorUserId") UUID actorUserId
+    );
+
     long selectMissingRequiredApplicationInputCount(@Param("progressId") UUID progressId);
 
     void insertAuditLog(AuditLogCommand command);
