@@ -34,7 +34,7 @@
             return originalFetch(input, init);
         }
 
-        const token = readMeta("_csrf") || readCookie(CSRF_COOKIE_NAME);
+        const token = readCookie(CSRF_COOKIE_NAME) || readMeta("_csrf");
         if (!token) {
             return originalFetch(input, init);
         }
