@@ -1233,11 +1233,44 @@ svg {
     font-weight: 850;
 }
 
+.saneb-main select {
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+    border: 1px solid #d6d0c3;
+    border-radius: 7px;
+    background-color: #fffdf8;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #6c746d 50%),
+        linear-gradient(135deg, #6c746d 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 12px) 50%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    color: var(--saneb-text);
+    padding: 10px 34px 10px 12px;
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.35;
+    appearance: none;
+}
+
+.saneb-main select:focus {
+    border-color: var(--saneb-teal-light);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(11, 91, 90, 0.12);
+}
+
+.saneb-main select:disabled {
+    cursor: not-allowed;
+    background-color: #f2ede3;
+    color: #8c8578;
+}
+
 .field-block input,
-.field-block select,
 .field-block textarea,
-.announcement-search input,
-.announcement-search select {
+.announcement-search input {
     width: 100%;
     min-width: 0;
     border: 1px solid #d6d0c3;
@@ -1255,10 +1288,8 @@ svg {
 }
 
 .field-block input:focus,
-.field-block select:focus,
 .field-block textarea:focus,
-.announcement-search input:focus,
-.announcement-search select:focus {
+.announcement-search input:focus {
     border-color: var(--saneb-teal-light);
     outline: 0;
     box-shadow: 0 0 0 3px rgba(11, 91, 90, 0.12);
@@ -2125,10 +2156,8 @@ svg {
 }
 
 .dynamic-requirement-row input,
-.dynamic-requirement-row select,
 .dynamic-requirement-row textarea,
 .dynamic-progress-field input,
-.dynamic-progress-field select,
 .dynamic-progress-field textarea {
     width: 100%;
     min-width: 0;
