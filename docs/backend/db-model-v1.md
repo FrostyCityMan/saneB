@@ -259,6 +259,15 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 관리자 리포트 snapshot은 집계 수치만 저장한다. 사용자명, 연락처, 결제사 원문 payload, 파일 원문은 snapshot과 export content에 포함하지 않는다.
 
+### 5.16 AI Assist
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `ai_assist_requests` | `assist_type_code`, `resource_type`, `resource_id`, `input_hash_sha256`, `input_length`, `requested_by`, `status_code`, `provider_code`, `model_code`, `completed_at` | PK `id`, FK `users.id` | IDX `(requested_by, status_code, created_at)`, IDX `(resource_type, resource_id)`, IDX `(assist_type_code, created_at)` |
+| `ai_assist_results` | `request_id`, `result_text`, `review_status_code`, `prompt_token_count`, `completion_token_count`, `latency_ms`, `metadata_json`, `reviewed_by`, `reviewed_at` | PK `id`, FK `ai_assist_requests.id`, FK `users.id` | UQ `request_id`, IDX `(review_status_code, created_at)` |
+
+AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.input_hash_sha256`과 `input_length`만 저장하며, `ai_assist_results.result_text`는 운영자 검토용 초안이다. 외부 provider payload 원문과 secret은 저장하지 않는다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -310,6 +319,10 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `report_type_code` | `OPERATION_SUMMARY` |
 | `report_format_code` | `CSV`, `EXCEL` |
 | `report_export_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
+| `ai_assist_type_code` | `ANNOUNCEMENT_SUMMARY`, `DOCUMENT_DRAFT`, `OPERATION_MEMO_SUMMARY`, `USER_REPLY_DRAFT` |
+| `ai_assist_resource_type` | `GENERAL`, `ANNOUNCEMENT`, `APPLICATION_PROGRESS`, `MATCHING_CASE`, `OPERATION_TASK`, `USER` |
+| `ai_assist_request_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
+| `ai_assist_review_status_code` | `PENDING_REVIEW`, `ACCEPTED`, `DISCARDED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

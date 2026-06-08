@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.aiassist.dao.AiAssistDao">
+
+    <resultMap id="AiAssistRowMap" type="com.saneb.domain.aiassist.vo.AiAssistRow">
+        <constructor>
+            <arg column="request_id" javaType="java.util.UUID"/>
+            <arg column="result_id" javaType="java.util.UUID"/>
+            <arg column="assist_type_code" javaType="java.lang.String"/>
+            <arg column="resource_type" javaType="java.lang.String"/>
+            <arg column="resource_id" javaType="java.util.UUID"/>
+            <arg column="request_status_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="model_code" javaType="java.lang.String"/>
+            <arg column="review_status_code" javaType="java.lang.String"/>
+            <arg column="result_text" javaType="java.lang.String"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="AiAssistFilter">
+        <where>
+            <if test="assistTypeCode != null">
+                AND ar.assist_type_code = #{assistTypeCode}
+            </if>
+            <if test="resourceType != null">
+                AND ar.resource_type = #{resourceType}
+            </if>
+            <if test="reviewStatusCode != null">
+                AND air.review_status_code = #{reviewStatusCode}
+            </if>
+        </where>
+    </sql>
+
+    <insert id="insertAiAssistRequest">
+        -- Insert non-PII AI assist request metadata.
+        INSERT INTO ai_assist_requests (
+            id,
+            assist_type_code,
+            resource_type,
+            resource_id,
+            input_hash_sha256,
+            input_length,
+            requested_by,
+            status_code,
+            provider_code,
+            model_code,
+            completed_at
+        ) VALUES (
+            #{requestId},
+            #{assistTypeCode},
+            #{resourceType},
+            #{resourceId},
+            #{inputHashSha256},
+            #{inputLength},
+            #{requestedBy},
+            #{statusCode},
+            #{providerCode},
+            #{modelCode},
+            CASE WHEN #{statusCode} = 'COMPLETED' THEN now() ELSE NULL END
+        )
+    </insert>
+
+    <insert id="insertAiAssistResult">
+        -- Insert AI assist draft result for operator review.
+        INSERT INTO ai_assist_results (
+            id,
+            request_id,
+            result_text,
+            review_status_code,
+            prompt_token_count,
+            completion_token_count,
+            latency_ms,
+            metadata_json
+        ) VALUES (
+            #{resultId},
+            #{requestId},
+            #{resultText},
+            #{reviewStatusCode},
+            #{promptTokenCount},
+            #{completionTokenCount},
+            #{latencyMs},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+
+    <select id="selectAiAssistList" resultMap="AiAssistRowMap">
+        -- Select AI assist request list.
+        SELECT
+            ar.id AS request_id,
+            air.id AS result_id,
+            ar.assist_type_code,
+            ar.resource_type,
+            ar.resource_id,
+            ar.status_code AS request_status_code,
+            ar.provider_code,
+            ar.model_code,
+            air.review_status_code,
+            air.result_text,
+            ar.requested_by,
+            ar.created_at,
+            ar.completed_at
+        FROM ai_assist_requests ar
+        JOIN ai_assist_results air ON air.request_id = ar.id
+        <include refid="AiAssistFilter"/>
+        ORDER BY ar.created_at DESC, ar.id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectAiAssistCount" resultType="long">
+        -- Count AI assist requests.
+        SELECT count(1)
+        FROM ai_assist_requests ar
+        JOIN ai_assist_results air ON air.request_id = ar.id
+        <include refid="AiAssistFilter"/>
+    </select>
+
+    <select id="selectAiAssistDetails" resultMap="AiAssistRowMap">
+        -- Select one AI assist request.
+        SELECT
+            ar.id AS request_id,
+            air.id AS result_id,
+            ar.assist_type_code,
+            ar.resource_type,
+            ar.resource_id,
+            ar.status_code AS request_status_code,
+            ar.provider_code,
+            ar.model_code,
+            air.review_status_code,
+            air.result_text,
+            ar.requested_by,
+            ar.created_at,
+            ar.completed_at
+        FROM ai_assist_requests ar
+        JOIN ai_assist_results air ON air.request_id = ar.id
+        WHERE ar.id = #{requestId}
+    </select>
+
+    <select id="selectAiAssistDetailsByResultId" resultMap="AiAssistRowMap">
+        -- Select one AI assist request by result id.
+        SELECT
+            ar.id AS request_id,
+            air.id AS result_id,
+            ar.assist_type_code,
+            ar.resource_type,
+            ar.resource_id,
+            ar.status_code AS request_status_code,
+            ar.provider_code,
+            ar.model_code,
+            air.review_status_code,
+            air.result_text,
+            ar.requested_by,
+            ar.created_at,
+            ar.completed_at
+        FROM ai_assist_requests ar
+        JOIN ai_assist_results air ON air.request_id = ar.id
+        WHERE air.id = #{resultId}
+    </select>
+
+    <update id="updateAiAssistResultReviewStatus">
+        -- Update operator review status for AI assist result.
+        UPDATE ai_assist_results
+        SET review_status_code = #{reviewStatusCode},
+            reviewed_by = #{actorUserId},
+            reviewed_at = now()
+        WHERE id = #{resultId}
+    </update>
+
+    <insert id="insertAuditLog">
+        -- Insert non-PII AI assist audit log.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
+        )
+    </insert>
+</mapper>

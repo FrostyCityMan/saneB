@@ -309,7 +309,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 서버 화면 CSRF | 완료 | 서버 form과 `/logout` CSRF 적용 |
 | API CSRF header | 완료 | 브라우저 세션 `/api/v1/**` 변경 요청의 `X-XSRF-TOKEN` 검증 적용 |
 | API rate limit | 완료 | `/api/v1/**` 기본 요청 제한 적용, 환경변수로 제한값과 사용 여부 조정 |
-| AI 보조 | 보류 | Phase 7 위험 Gate 이후 |
+| AI 보조 | 완료 | `ai_assist_requests`, `ai_assist_results`, `/api/v1/ai-assist/...` 적용. 기본 provider는 외부 호출 없는 `LOCAL_SAFE` |
 
 ## 11. Gate 정책
 
@@ -344,6 +344,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. AI 보조 기능
+1. 운영 실사용 QA
+2. 외부 AI provider 연동 여부 결정
 
-파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit은 DB/API 기준으로 완료했다. 즉시 다음 개발 대상은 AI 보조 기능이다.
+파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit, AI 보조 DB/API는 완료했다. 즉시 다음 개발 대상은 실제 운영 계정과 운영 데이터 기준 실사용 QA다. 외부 AI provider 연동은 개인정보 원문 전송 금지 정책과 provider/secret 계약을 별도 승인한 뒤 진행한다.

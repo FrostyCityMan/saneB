@@ -1374,7 +1374,78 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 
 `formatCode`는 `CSV`, `EXCEL`을 허용한다. 현재 `EXCEL`은 브라우저에서 열 수 있는 tab-separated content로 반환한다.
 
-## 18. Audit API
+## 18. AI Assist API
+
+AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은 DB와 감사 로그에 저장하지 않고 `input_hash_sha256`, `input_length`, provider/model/status metadata만 저장한다. 기본 provider는 외부 호출이 없는 `LOCAL_SAFE`이며, 외부 provider를 붙이는 경우에도 운영 secret은 환경변수로만 주입한다.
+
+금지:
+
+- AI 자동 승인
+- AI 자동 탈락
+- 개인정보 원문 외부 전송
+- 선정확률, 우선순위, 추천도, 가점 자동 계산
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `POST` | `/api/v1/ai-assist/requests` | `OPERATOR`, `ADMIN` | AI 보조 초안 생성 요청 |
+| `GET` | `/api/v1/ai-assist/requests` | `OPERATOR`, `ADMIN` | AI 보조 요청 목록 |
+| `GET` | `/api/v1/ai-assist/requests/{requestId}` | `OPERATOR`, `ADMIN` | AI 보조 요청 상세 |
+| `PATCH` | `/api/v1/ai-assist/results/{resultId}/review` | `OPERATOR`, `ADMIN` | AI 보조 결과 검토 상태 변경 |
+
+#### AiAssistCreateRequest
+
+```json
+{
+  "assistTypeCode": "ANNOUNCEMENT_SUMMARY",
+  "resourceType": "ANNOUNCEMENT",
+  "resourceId": "uuid",
+  "inputText": "공고 원문 또는 운영 메모",
+  "operatorNote": "초안 작성 참고 메모"
+}
+```
+
+`inputText`는 provider 호출 또는 local 초안 생성에만 사용하고 DB에는 저장하지 않는다. 저장값은 SHA-256 hash와 글자 수뿐이다.
+
+#### AiAssistResponse
+
+```json
+{
+  "requestId": "uuid",
+  "resultId": "uuid",
+  "assistTypeCode": "ANNOUNCEMENT_SUMMARY",
+  "resourceType": "ANNOUNCEMENT",
+  "resourceId": "uuid",
+  "requestStatusCode": "COMPLETED",
+  "providerCode": "LOCAL_SAFE",
+  "modelCode": "RULE_TEMPLATE_V1",
+  "reviewStatusCode": "PENDING_REVIEW",
+  "resultText": "운영자 검토용 초안",
+  "requestedBy": "uuid",
+  "createdAt": "2026-06-08T10:00:00+09:00",
+  "completedAt": "2026-06-08T10:00:01+09:00"
+}
+```
+
+`resultText`는 운영자 검토 전 사용자에게 확정 안내로 표시하지 않는다.
+
+#### AiAssistReviewRequest
+
+```json
+{
+  "reviewStatusCode": "ACCEPTED"
+}
+```
+
+허용값:
+
+| 코드 그룹 | 값 |
+|---|---|
+| `ai_assist_type_code` | `ANNOUNCEMENT_SUMMARY`, `DOCUMENT_DRAFT`, `OPERATION_MEMO_SUMMARY`, `USER_REPLY_DRAFT` |
+| `ai_assist_resource_type` | `GENERAL`, `ANNOUNCEMENT`, `APPLICATION_PROGRESS`, `MATCHING_CASE`, `OPERATION_TASK`, `USER` |
+| `ai_assist_request_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
+| `ai_assist_review_status_code` | `PENDING_REVIEW`, `ACCEPTED`, `DISCARDED` |
+
+## 19. Audit API
 
 운영 감사 로그는 기본적으로 내부 조회용이다.
 
@@ -1435,7 +1506,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 }
 ```
 
-## 19. ErrorCode 초안
+## 20. ErrorCode 초안
 
 | errorCode | HTTP | 설명 |
 |---|---:|---|
@@ -1460,7 +1531,7 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `DB_CONSTRAINT_VIOLATION` | 409 | DB 제약 위반 |
 | `INTERNAL_ERROR` | 500 | 서버 오류 |
 
-## 20. Backend Gate
+## 21. Backend Gate
 
 - 모든 endpoint가 `/api/v1/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.
@@ -1474,3 +1545,4 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 - 공고 승인 전 매칭 생성은 차단한다.
 - 검증 ID가 포함된 매칭 요청은 검증 완료 전 생성이 차단된다.
 - 매칭 응답에 추천도, 우선순위, 선정확률, 가점 값을 포함하지 않는다.
+- AI 보조 응답은 운영자 검토용 초안이며 자동 승인, 자동 탈락, 추천 계산으로 사용하지 않는다.
