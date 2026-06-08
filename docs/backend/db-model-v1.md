@@ -88,6 +88,7 @@ Scaffold 상태:
 - `PARTNER`
 - `OPERATOR`
 - `APPROVER`
+- `REVIEWER`
 - `ADMIN`
 
 ### 5.2 Member / Business / Family Profile
@@ -184,9 +185,10 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `application_step_states` | `progress_id`, `step_id`, `status_code`, `started_at`, `completed_at` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | UQ `(progress_id, step_id)` |
 | `application_action_logs` | `progress_id`, `step_id`, `actor_user_id`, `action_code`, `button_code`, `input_json` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id`, FK `users.id` | IDX `(progress_id, created_at)`, IDX `(actor_user_id, created_at)` |
 | `application_step_checklists` | `progress_id`, `step_document_id`, `is_checked`, `checked_at`, `checked_by` | PK `id`, FK `application_progresses.id`, FK `announcement_step_documents.id`, FK `users.id` | UQ `(progress_id, step_document_id)` |
-| `progress_reminder_logs` | `progress_id`, `step_id`, `reminder_type_code`, `attempt_no`, `scheduled_at`, `sent_at`, `result_code` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | IDX `(progress_id, scheduled_at)`, IDX `(result_code)` |
+| `progress_reminder_logs` | `progress_id`, `step_id`, `reminder_type_code`, `attempt_no`, `scheduled_at`, `sent_at`, `result_code` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | UQ `(progress_id, reminder_type_code)`, IDX `(progress_id, scheduled_at)`, IDX `(result_code)` |
 
 진행 단계는 사용자의 단일 행동 완료를 중심으로 설계한다. 완료 조건 충족 전 다음 단계 이동은 서버에서 차단한다.
+24시간/72시간/7일/14일 미진행 분류는 `progress_reminder_logs`로 중복 발송을 차단한다. 사용자가 단계 문서 또는 공고별 입력값을 저장하면 `application_progresses.updated_at`을 갱신해 이후 미진행 기준 시간이 다시 계산된다.
 
 ### 5.9 Audit / Status Histories
 
@@ -220,10 +222,10 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
 | `partner_availability_slots` | `partner_user_id`, `start_at`, `end_at`, `status_code`, `note` | PK `id`, FK `users.id` | UQ `(partner_user_id, start_at, end_at)`, IDX `(partner_user_id, start_at)`, IDX `(status_code, start_at)` |
-| `consultation_reservations` | `slot_id`, `member_user_id`, `partner_user_id`, `progress_id`, `verification_id`, `status_code`, `request_note`, `status_note` | PK `id`, FK `partner_availability_slots.id`, FK `users.id`, FK `application_progresses.id`, FK `partner_verifications.id` | partial UQ active `slot_id`, IDX `(member_user_id, status_code, created_at)`, IDX `(partner_user_id, status_code, created_at)` |
+| `consultation_reservations` | nullable `slot_id`, `member_user_id`, nullable `partner_user_id`, `progress_id`, `verification_id`, `status_code`, `request_note`, `status_note` | PK `id`, FK `partner_availability_slots.id`, FK `users.id`, FK `application_progresses.id`, FK `partner_verifications.id` | partial UQ active `slot_id`, IDX `(member_user_id, status_code, created_at)`, IDX `(partner_user_id, status_code, created_at)` |
 | `consultation_histories` | `reservation_id`, `actor_user_id`, `before_status_code`, `after_status_code`, `note` | PK `id`, FK `consultation_reservations.id`, FK `users.id` | IDX `(reservation_id, created_at)`, IDX `(actor_user_id, created_at)` |
 
-상담 예약 취소/확정/완료 상태 변경은 `consultation_histories`에 남긴다. 상담 메모에는 상담에 필요한 최소 내용만 저장하며, 감사 로그 metadata에는 개인정보 원문을 저장하지 않는다.
+MVP 상담은 자동 예약이 아니라 수기 배정 방식이다. 일반 사용자는 `slot_id`와 `partner_user_id` 없이 `REQUESTED` 상태로 상담 요청을 접수할 수 있고, 운영자 또는 관리자가 담당자와 시간을 배정하면 `ASSIGNED` 상태로 전환한다. 상담 예약 취소/배정/확정/완료 상태 변경은 `consultation_histories`에 남긴다. 상담 메모에는 상담에 필요한 최소 내용만 저장하며, 감사 로그 metadata에는 개인정보 원문을 저장하지 않는다.
 
 ### 5.13 Subscription / Payment
 
@@ -235,7 +237,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `refund_transactions` | `payment_id`, `user_id`, `provider_code`, `provider_refund_key`, `status_code`, `refund_amount`, `reason`, `requested_by` | PK `id`, FK `payment_transactions.id`, FK `users.id` | partial UQ `(provider_code, provider_refund_key)`, IDX `(payment_id, status_code)`, IDX `(user_id, status_code)` |
 | `payment_provider_events` | `provider_code`, `provider_event_id`, `event_type_code`, `payment_id`, `refund_id`, `result_code`, `metadata_json` | PK `id`, FK `payment_transactions.id`, FK `refund_transactions.id` | UQ `(provider_code, provider_event_id)`, IDX `(payment_id, received_at)`, IDX `(refund_id, received_at)` |
 
-결제사 webhook 원문 payload와 secret은 DB에 저장하지 않는다. `payment_provider_events.metadata_json`에는 event type, 실패 코드 존재 여부, 금액 제공 여부 같은 비식별 metadata만 저장한다.
+PG사는 TossPayments를 우선 기준으로 둔다. DB 계약은 `provider_code='TOSS'`를 허용하되 TossPayments 운영 key, webhook secret, redirect URL은 환경변수와 운영 설정으로만 관리한다. 결제사 webhook 원문 payload와 secret은 DB에 저장하지 않는다. `payment_provider_events.metadata_json`에는 event type, 실패 코드 존재 여부, 금액 제공 여부 같은 비식별 metadata만 저장한다.
 
 ### 5.14 Notifications / Operation Tasks
 
@@ -272,7 +274,7 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 
 | 코드 그룹 | 값 |
 |---|---|
-| `role_code` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` |
+| `role_code` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `REVIEWER`, `ADMIN` |
 | `user_status_code` | `ACTIVE`, `LOCKED`, `DISABLED`, `DELETED` |
 | `consent_code` | `TERMS_OF_SERVICE`, `PRIVACY_POLICY`, `E_CERT`, `CREDIT_CHECK` |
 | `partner_status_code` | `PENDING`, `ACTIVE`, `SUSPENDED`, `TERMINATED` |
@@ -301,7 +303,7 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 | `stored_file_status_code` | `STORED`, `DELETED` |
 | `document_submission_status_code` | `SUBMITTED`, `APPROVED`, `REJECTED` |
 | `consultation_slot_status_code` | `OPEN`, `HELD`, `CLOSED`, `CANCELED` |
-| `consultation_reservation_status_code` | `REQUESTED`, `CONFIRMED`, `CANCELED`, `COMPLETED`, `NO_SHOW` |
+| `consultation_reservation_status_code` | `REQUESTED`, `ASSIGNED`, `CONFIRMED`, `CANCELED`, `COMPLETED`, `NO_SHOW` |
 | `billing_cycle_code` | `ONE_TIME`, `MONTHLY`, `YEARLY` |
 | `subscription_status_code` | `PENDING`, `ACTIVE`, `PAST_DUE`, `CANCELED`, `EXPIRED` |
 | `billing_provider_code` | `MANUAL`, `TOSS`, `NICEPAY`, `KCP`, `STRIPE` |
@@ -338,7 +340,7 @@ local seed:
 
 - 경로: `src/main/resources/db/seed/local`
 - profile: `local`
-- 포함 가능: 로컬 관리자, 로컬 사용자, 로컬 파트너, 샘플 공고, 샘플 검증값
+- 포함 가능: 로컬 관리자, 로컬 사용자, 로컬 파트너, 로컬 검수자, 샘플 공고, 샘플 검증값
 - 비밀번호는 로컬 전용 더미 해시만 허용한다.
 
 dev seed:

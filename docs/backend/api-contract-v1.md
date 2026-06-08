@@ -158,6 +158,37 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 
 회원가입은 `users`에 `ACTIVE`, `password_reset_required=false`로 저장하고 `user_roles`에 `USER` 역할을 부여한다. 가입 성공 시 세션을 생성하고 `LoginResponse`와 동일한 응답을 반환한다. 이용약관과 개인정보 처리방침 동의는 현재 유효한 `consent_versions` 기준으로 `user_consents`에 저장한다.
 
+### Pre-signup Candidate Preview
+
+회원가입 전 임시 후보 확인은 개인정보를 저장하지 않고 승인·진행 중 공고를 기준으로 후보 수와 예상 지원금 범위만 반환한다. 추천도, 선정확률, 우선순위, 가점은 계산하지 않는다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `POST` | `/api/v1/pre-signup/candidate-preview` | public | 회원가입 전 임시 후보 수와 지원금 범위 확인 |
+
+#### CandidatePreviewRequest
+
+```json
+{
+  "regionCode": "SEOUL",
+  "annualRevenue": 120000000,
+  "openingDate": "2023-01-10",
+  "hasSpouse": true,
+  "hasChild": false
+}
+```
+
+#### CandidatePreviewResponse
+
+```json
+{
+  "possibleCandidateCount": 3,
+  "minSupportAmount": 1000000,
+  "maxSupportAmount": 10000000,
+  "criteriaNotice": "회원가입 전 임시 확인 결과입니다. 실제 신청 가능 여부는 가입 후 공고별 입력값과 서버 검증 기준으로 확정됩니다."
+}
+```
+
 #### AuthMeResponse
 
 ```json
@@ -972,6 +1003,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 | `role_code` | `PARTNER` | 파트너 |
 | `role_code` | `OPERATOR` | 운영자 |
 | `role_code` | `APPROVER` | 승인자 |
+| `role_code` | `REVIEWER` | 검수자 |
 | `role_code` | `ADMIN` | 관리자 |
 | `user_status_code` | `ACTIVE` | 정상 |
 | `user_status_code` | `LOCKED` | 잠김 |
@@ -1155,10 +1187,10 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `GET` | `/api/v1/consultation-slots` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 조회 |
+| `GET` | `/api/v1/consultation-slots` | `USER`, `PARTNER`, `OPERATOR`, `REVIEWER`, `ADMIN` | 상담 가능 시간 조회 |
 | `POST` | `/api/v1/consultation-slots` | `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 등록 |
 | `PATCH` | `/api/v1/consultation-slots/{slotId}/status` | `PARTNER`, `OPERATOR`, `ADMIN` | 상담 가능 시간 상태 변경 |
-| `GET` | `/api/v1/consultation-reservations` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 예약 목록 조회 |
+| `GET` | `/api/v1/consultation-reservations` | `USER`, `PARTNER`, `OPERATOR`, `REVIEWER`, `ADMIN` | 상담 예약 목록 조회 |
 | `POST` | `/api/v1/consultation-reservations` | `USER`, `OPERATOR`, `ADMIN` | 상담 예약 요청 |
 | `PATCH` | `/api/v1/consultation-reservations/{reservationId}/status` | `USER`, `PARTNER`, `OPERATOR`, `ADMIN` | 상담 예약 확정/취소/완료 처리 |
 
@@ -1179,30 +1211,35 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 
 ```json
 {
-  "slotId": "uuid",
+  "slotId": null,
   "memberUserId": null,
+  "partnerUserId": null,
   "progressId": null,
   "verificationId": null,
   "requestNote": "전화 상담 희망"
 }
 ```
 
-일반 사용자는 본인 예약만 생성할 수 있다. 운영자와 관리자는 `memberUserId`를 지정할 수 있다.
+일반 사용자는 본인 상담 요청만 생성할 수 있다. `slotId` 없이 접수할 수 있으며, 운영자와 관리자는 `memberUserId`, `partnerUserId`, `slotId`를 지정해 수기 접수할 수 있다. 사용자가 생성한 요청의 담당자 배정은 운영자 또는 관리자가 수행한다.
 
 #### ConsultationReservationStatusUpdateRequest
 
 ```json
 {
-  "statusCode": "CONFIRMED",
+  "statusCode": "ASSIGNED",
+  "partnerUserId": "uuid",
+  "slotId": null,
   "note": "확정"
 }
 ```
 
-예약 상태 흐름은 `REQUESTED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. 일반 사용자는 본인 예약 취소만 가능하다.
+예약 상태 흐름은 `REQUESTED -> ASSIGNED|CONFIRMED|CANCELED`, `ASSIGNED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. `ASSIGNED`, `CONFIRMED` 처리에는 담당자 `partnerUserId`가 필요하다. 일반 사용자는 본인 예약 취소만 가능하다.
 
 ## 15. Subscription / Payment API
 
-결제사는 아직 고정하지 않는다. API는 provider 중립 계약으로 유지하고, 운영 secret은 `PAYMENT_WEBHOOK_SECRET` 환경변수로만 주입한다. 결제사 webhook payload 원문은 저장하지 않고 비식별 이벤트 metadata만 저장한다.
+PG사는 TossPayments로 결정한다. API와 DB는 `providerCode='TOSS'`를 허용하는 provider 중립 계약을 유지하고, 운영 secret은 `PAYMENT_WEBHOOK_SECRET` 및 TossPayments 운영 key 환경변수로만 주입한다. 결제사 webhook payload 원문은 저장하지 않고 비식별 이벤트 metadata만 저장한다.
+
+MVP 1차는 월 단순 구독 구조다. 복잡한 할인, 사용량 과금, 자동 청구 retry, billing key 저장, TossPayments 승인 API 실연동은 Toss 상점 계약, client key/secret key, webhook URL, 결제 성공/실패 redirect URL, 자동결제 여부가 확정된 뒤 별도 Payment Hardening Gate에서 연결한다.
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
@@ -1351,6 +1388,19 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 ```
 
 운영 업무 상태는 `OPEN -> IN_PROGRESS|WAITING|DONE|CANCELED`, `IN_PROGRESS|WAITING -> IN_PROGRESS|WAITING|DONE|CANCELED`만 허용한다. `DONE`, `CANCELED` 이후 상태 변경은 차단한다.
+
+### Progress Inactivity Monitor
+
+장기 미진행 분류는 별도 수동 API가 아니라 서버 스케줄러가 기존 `notification_messages`, `progress_reminder_logs`, `operation_tasks`에 기록한다.
+
+| 기준 | 처리 |
+|---|---|
+| 24시간 미진행 | `FIRST_REMINDER` 인앱 알림 |
+| 72시간 미진행 | `RE_GUIDE` 인앱 알림 |
+| 7일 이상 미진행 | `LONG_STALLED` 인앱 알림 및 `DELAYED_PROGRESS` 운영 업무 |
+| 14일 이상 미진행 | `TM_RECONTACT` 인앱 알림 및 `RECONTACT` 운영 업무 |
+
+사용자가 단계 이동, 체크리스트 저장, 동적 입력 저장 등 행동을 완료하면 `application_progresses.updated_at`이 갱신되며 이후 리마인드 판단에서 제외된다. 스케줄러는 `SANEB_INACTIVITY_REMINDER_ENABLED`, `SANEB_INACTIVITY_REMINDER_FIXED_DELAY_MS`, `SANEB_INACTIVITY_REMINDER_INITIAL_DELAY_MS`, `SANEB_INACTIVITY_REMINDER_BATCH_SIZE` 환경변수로 조정한다.
 
 ## 17. Admin Report API
 

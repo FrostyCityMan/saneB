@@ -16,13 +16,15 @@ saneB는 2026-06-02부터 MVP 범위 유지 단계에서 완전 개발 목표 �
 |---|---|---|
 | 인증 | 구현됨 | 로그인, 회원가입, 로그아웃, 비밀번호 변경, `auth/me`, 관리자 bootstrap |
 | 사용자 대시보드 | 1차 구현됨 | `/api/v1/dashboard/me/...`, 사용자 행동 중심 화면 |
-| 관리자/운영 화면 | 부분 구현됨 | 공고 입력 화면 중심, 관리자 전용 대시보드는 미완 |
+| 관리자/운영 화면 | 구현됨 | 관리자/운영자/승인자/검수자 진입 화면 분리, 사용자·권한·로그·운영 큐 조회 |
 | 공고 등록 | 구현됨 | 공고 기본정보, 조건, 필요서류, 진행 단계, 버튼, 수동 상태 |
 | 공고별 동적 입력 | 구현됨 | 공고별 입력 요구사항, option, 진행건별 입력값 |
 | 파트너 검증 | 구현됨 | 검증 생성, 회원/사업/가족/제한/서류 값 저장, 상태 변경 |
 | 매칭 케이스 | 구현됨 | 승인 공고와 회원 기반 수동 매칭, 검증 ID 선택 입력, 조회/상태 변경 |
 | 신청 진행 | 구현됨 | progress 생성, 단계 상태, 체크리스트, 공고 단계 버튼 기반 행동 처리, 접수, 결과 저장 |
-| 감사 로그 | DB/API 일부 구현됨 | 주요 업무 action metadata 기록, 조회 화면은 미완 |
+| 감사 로그 | 구현됨 | 주요 업무 action metadata 기록, 관리자/승인자 조회 화면 |
+| 가입 전 후보 확인 | 구현됨 | `/api/v1/pre-signup/candidate-preview`, 개인정보 미저장 임시 후보 수/금액 범위 |
+| 장기 미진행/TM 재접촉 | 구현됨 | 24h/72h/7d/14d 스케줄러, 인앱 알림과 운영 큐 |
 | 배포 | 부분 구현됨 | Aurora RDS/CI-CD/CodeDeploy 문서와 스크립트 기반 운영 준비 |
 
 현재 구현은 MVP 운영 테스트가 가능한 수준이다. 완전 개발에서는 사용자, 파트너, 운영자, 관리자 각각의 실제 업무 흐름을 끝까지 닫는 것을 목표로 한다.
@@ -45,9 +47,10 @@ saneB의 완전 개발 목표는 정부지원사업 공고 입력, 대상자 검
 | `PARTNER` | 사용자 검증값 입력, 전자증명/서류 확인, 상담 수행 | 파트너 검증 입력, 상담 일정, 보완 요청, 진행 상세 |
 | `OPERATOR` | 공고 입력, 조건 관리, 매칭 실행, 신청 진행 운영 | 공고 입력, 매칭 관리, 신청 진행 관리, 운영 큐 |
 | `APPROVER` | 검증/매칭/결과의 승인 또는 반려 | 승인 큐, 감사 로그, 결과 검토 |
+| `REVIEWER` | 테스트 데이터 기준 조회와 흐름 검수, 상태 확인 | 검수 대시보드, 매칭/검증/신청 진행 조회 |
 | `ADMIN` | 전체 운영 설정, 사용자/권한/리포트/배포 운영 관리 | 관리자 대시보드, 사용자 관리, 감사 로그, 운영 리포트 |
 
-역할별 defaultRoute 1차 분리는 현재 구현된 화면 기준으로 완료한다. 사용자는 사용자 대시보드, 파트너는 검증 목록, 운영자는 운영자 대시보드, 승인자는 승인자 큐, 관리자는 관리자 대시보드로 진입한다.
+역할별 defaultRoute 1차 분리는 현재 구현된 화면 기준으로 완료한다. 사용자는 사용자 대시보드, 파트너는 검증 목록, 운영자는 운영자 대시보드, 승인자는 승인자 큐, 검수자는 검수 대시보드, 관리자는 관리자 대시보드로 진입한다.
 
 | 역할 | 현재 defaultRoute |
 |---|---|
@@ -55,6 +58,7 @@ saneB의 완전 개발 목표는 정부지원사업 공고 입력, 대상자 검
 | `PARTNER` | `/app/partner/verifications` |
 | `OPERATOR` | `/app/operator/dashboard` |
 | `APPROVER` | `/app/approver/reviews` |
+| `REVIEWER` | `/app/reviewer/dashboard` |
 | `ADMIN` | `/app/admin/dashboard` |
 
 ## 5. 전체 제품 범위
@@ -97,11 +101,12 @@ saneB의 완전 개발 목표는 정부지원사업 공고 입력, 대상자 검
 - 재접촉/TM 큐
 - 보완 요청 큐
 - 운영 알림 발송
+- 조건 유형별 샘플 공고 seed 관리
 
 ### 5.4 관리자 제품
 
 - 관리자 대시보드
-- 사용자/파트너/운영자/승인자 계정 관리
+- 사용자/파트너/운영자/승인자/검수자 계정 관리
 - 역할 부여 및 회수
 - 감사 로그 조회
 - 운영 리포트
@@ -135,6 +140,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 |---|---|---|
 | P0 | 관리자 대시보드 | `GET /api/v1/admin/dashboard/summary`, `GET /api/v1/admin/dashboard/queues` |
 | P0 | 역할 라우팅 | `GET /api/v1/auth/me`, role별 `defaultRoute` 확장 |
+| P0 | 가입 전 후보 확인 | `POST /api/v1/pre-signup/candidate-preview` |
 | P1 | 동의 | `GET /api/v1/consents/current`, `POST /api/v1/users/me/consents` |
 | P1 | 파일/서류 | `POST /api/v1/files`, `POST /api/v1/document-submissions`, `PATCH /api/v1/document-submissions/{id}/review` |
 | P1 | 상담 예약 | `GET /api/v1/consultation-slots`, `POST /api/v1/consultation-reservations`, `PATCH /api/v1/consultation-reservations/{id}/status` |
@@ -148,10 +154,11 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 영역 | 화면 |
 |---|---|
 | 인증 | 로그인, 회원가입, 비밀번호 변경, 비밀번호 초기화 |
-| 사용자 | 사용자 대시보드, 프로필 입력, 동의 관리, 후보 확인, 검증 진행, 상담 예약, 결제/구독, 신청 진행 상세, 알림 목록 |
+| 사용자 | 사용자 대시보드, 프로필 입력, 동의 관리, 가입 전 후보 확인, 검증 진행, 상담 요청, 결제/구독, 신청 진행 상세, 알림 목록 |
 | 파트너 | 파트너 대시보드, 검증 목록, 검증 입력, 상담 일정, 보완 요청 |
-| 운영자 | 운영자 대시보드, 공고 입력, 공고 목록/상세, 매칭 케이스 목록/상세, 신청 진행 목록/상세, 운영 큐 |
+| 운영자 | 운영자 대시보드, 공고 입력, 공고 목록/상세, 매칭 케이스 목록/상세, 신청 진행 목록/상세, 상담 수기 배정, 운영 큐 |
 | 승인자 | 승인 큐, 검증 승인, 매칭 승인, 결과 승인, 감사 로그 |
+| 검수자 | 검수 대시보드, 매칭/검증/신청 진행 조회 |
 | 관리자 | 관리자 대시보드, 사용자 관리, 권한 관리, 시스템 설정, 감사 로그, 리포트 |
 
 ## 9. 단계별 개발 로드맵
@@ -175,7 +182,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 목표: 사용자 대시보드와 운영 계정 화면을 완전히 분리한다.
 
 작업:
-- `ADMIN`, `OPERATOR`, `PARTNER`, `APPROVER` defaultRoute 1차 분리 완료
+- `ADMIN`, `OPERATOR`, `PARTNER`, `APPROVER`, `REVIEWER` defaultRoute 1차 분리 완료
 - 관리자 대시보드 API/화면 완료
 - 운영자 대시보드 API/화면 완료
 - 파트너 검증 목록 화면 개선 완료
@@ -207,8 +214,9 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 작업:
 - 파트너 가능 시간 관리
-- 사용자 예약 생성/변경/취소
-- 파트너/운영자 예약 승인
+- 사용자 상담 요청 생성/취소
+- 운영자/관리자 담당자와 시간 수기 배정
+- 파트너/운영자 예약 확정
 - 상담 이력 기록
 - 예약 상태 기반 대시보드 current action 연동
 
@@ -222,8 +230,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 작업:
 - 요금제, 구독, 결제, 환불 테이블
-- 결제 provider abstraction
-- 결제 성공/실패/환불 webhook 처리
+- TossPayments 기준 provider abstraction
+- 결제 성공/실패/환불 webhook 처리. 단, TossPayments 실연동은 상점 key, webhook, redirect URL 확정 뒤 연결
 - 구독 상태 기반 진행 제한 정책
 - 결제 화면과 관리자 결제 조회
 
@@ -246,6 +254,8 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 완료 조건:
 - 개인정보 원문은 provider payload에 필요한 최소값만 포함한다.
+- 24시간/72시간/7일/14일 기준 미진행 분류가 중복 없이 기록된다.
+- 사용자가 행동을 완료하면 이후 리마인드 기준 시간이 다시 계산된다.
 - 발송 실패와 재시도 상태가 기록된다.
 
 ### Phase 6. 리포트/감사/운영 hardening
@@ -290,19 +300,22 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | 항목 | 상태 | 다음 조치 |
 |---|---|---|
 | 완전 개발 범위 문서 | 완료 | 본 문서 기준으로 세부 계약 작성 |
-| role별 defaultRoute | 완료 | USER/PARTNER/OPERATOR/APPROVER/ADMIN 기본 진입점 분리 |
+| role별 defaultRoute | 완료 | USER/PARTNER/OPERATOR/APPROVER/REVIEWER/ADMIN 기본 진입점 분리 |
 | 관리자 대시보드 | 완료 | 관리자 전용 운영 집계 화면과 `/api/v1/admin/dashboard/summary` 유지 |
 | 운영자 대시보드 | 완료 | 공고/매칭/신청 진행 업무 홈과 `/api/v1/operator/dashboard/summary` 유지 |
 | 파트너 대시보드 | 진행 중 | 검증 목록 화면 완료, 상담/예약은 이후 구현 |
+| 검수자 계정/화면 | 완료 | `REVIEWER` 역할, `/app/reviewer/dashboard`, 조회 전용 흐름 적용 |
 | 승인자 큐 | 완료 | 공고 승인, 검증 검토, 매칭 확인, 결과 대기 집계와 `/api/v1/approver/reviews/summary` 유지 |
 | 검증 없는 수동 매칭 | 완료 | 승인 공고/회원 선택으로 매칭 생성, 검증 ID 선택값 유지 |
 | 신청 진행 버튼 UX | 완료 | 버튼 코드 직접 입력 제거, 공고 단계 버튼 표시 및 테스트 검증 완료 |
 | 동의 이력 | 완료 | `consent_versions`, `user_consents`, `/api/v1/consents/current`, `/api/v1/users/me/consents` 유지 |
 | 파일 업로드 | 완료 | `stored_files`, `document_submissions`, `document_submission_reviews`, `/api/v1/files`, `/api/v1/document-submissions` 적용 |
-| 상담 예약 | 완료 | `partner_availability_slots`, `consultation_reservations`, `consultation_histories`, `/api/v1/consultation-*` 적용 |
-| 구독/결제 | 완료 | `subscription_plans`, `user_subscriptions`, `payment_transactions`, `refund_transactions`, `payment_provider_events`, `/api/v1/subscription-*`, `/api/v1/payments`, `/api/v1/refunds` 적용 |
+| 조건 유형별 샘플 공고 | 완료 | local/dev seed에 업력·매출, 지역 제한, 가족 조건, 중복 제한, 예산 소진형 샘플 공고 적용 |
+| 가입 전 후보 확인 | 완료 | `/api/v1/pre-signup/candidate-preview`, 개인정보 미저장 후보 수/예상 지원금 범위 적용 |
+| 상담 예약 | 완료 | 사용자 요청 접수 후 운영자/관리자 수기 배정 방식으로 `ASSIGNED` 상태 적용 |
+| 구독/결제 | 부분 완료 | 월 단순 구독 DB/API와 Toss provider 코드 적용. TossPayments 실결제는 Payment Hardening Gate 보류 |
 | 알림 | 완료 | `notification_templates`, `notification_messages`, `notification_delivery_logs`, `/api/v1/notifications/me`, `/api/v1/admin/notifications/send` 적용 |
-| 운영 큐 | 완료 | `operation_tasks`, `operation_task_comments`, `operation_task_assignments`, `/api/v1/operation-tasks` 적용 |
+| 운영 큐 | 완료 | `operation_tasks`, `operation_task_comments`, `operation_task_assignments`, `/api/v1/operation-tasks`, 장기 미진행/TM 재접촉 자동 분류 적용 |
 | 감사 로그 화면 | 완료 | 관리자/승인자 조회 화면과 `/api/v1/audit-logs` 목록/상세 유지 |
 | 관리자 리포트 | 완료 | `report_exports`, `admin_report_snapshots`, `/api/v1/admin/reports/summary`, `/api/v1/admin/reports/exports` 적용 |
 | 앱 로그 관리 | 완료 | 관리자 전용 `/app/admin/app-logs`, `/api/v1/admin/app-logs` 읽기 전용 조회 적용 |
@@ -346,6 +359,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 ## 12. 다음 구현 우선순위
 
 1. 운영 실사용 QA
-2. 외부 AI provider 연동 여부 결정
+2. TossPayments 실결제 계약 확인 후 Payment Hardening Gate
+3. 외부 AI provider 연동 여부 결정
 
-파일형 서류 제출/검토, 상담 예약, 구독/결제, 알림과 운영 큐, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit, AI 보조 DB/API는 완료했다. 즉시 다음 개발 대상은 실제 운영 계정과 운영 데이터 기준 실사용 QA다. 외부 AI provider 연동은 개인정보 원문 전송 금지 정책과 provider/secret 계약을 별도 승인한 뒤 진행한다.
+파일형 서류 제출/검토, 상담 수기 배정, 월 단순 구독 DB/API, 알림과 운영 큐, 장기 미진행/TM 재접촉, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit, AI 보조 DB/API는 완료했다. TossPayments 실결제 연결은 상점 key, webhook URL, 성공/실패 redirect URL, 자동결제 정책이 확정된 뒤 진행한다. 즉시 다음 개발 대상은 실제 운영 계정과 운영 데이터 기준 실사용 QA다. 외부 AI provider 연동은 개인정보 원문 전송 금지 정책과 provider/secret 계약을 별도 승인한 뒤 진행한다.
