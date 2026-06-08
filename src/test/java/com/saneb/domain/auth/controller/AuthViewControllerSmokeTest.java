@@ -82,6 +82,15 @@ class AuthViewControllerSmokeTest {
     }
 
     @Test
+    @WithMockUser(username = "approver01", roles = "APPROVER")
+    void selectLoginPageRedirectsApproverUserToApproverReviewRoute() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/app/approver/reviews"))
+                .andExpect(header().string("Location", "/app/approver/reviews"));
+    }
+
+    @Test
     @WithMockUser(username = "user01", roles = "USER")
     void selectPasswordPageReturnsThymeleafView() throws Exception {
         mockMvc.perform(get("/password"))

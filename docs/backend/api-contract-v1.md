@@ -98,7 +98,7 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 | `primaryRole` | `defaultRoute` |
 |---|---|
 | `ADMIN` | `/app/admin/dashboard` |
-| `APPROVER` | `/app/matching/cases` |
+| `APPROVER` | `/app/approver/reviews` |
 | `OPERATOR` | `/app/operator/dashboard` |
 | `PARTNER` | `/app/partner/verifications` |
 | `USER` | `/app/dashboard` |
@@ -703,6 +703,7 @@ MVP v1 DB 집계 기준:
 | `GET` | `/api/v1/dashboard/me/reverification-status` | `USER` | 재검증 필요 여부 |
 | `GET` | `/api/v1/admin/dashboard/summary` | `ADMIN` | 관리자 대시보드 운영 집계 |
 | `GET` | `/api/v1/operator/dashboard/summary` | `OPERATOR`, `ADMIN` | 운영자 업무 홈 집계 |
+| `GET` | `/api/v1/approver/reviews/summary` | `APPROVER`, `ADMIN` | 승인자 큐 집계 |
 
 #### DashboardSummaryResponse
 
@@ -826,6 +827,37 @@ DashboardProgressSummaryResponse 필드 계약:
 ```
 
 OperatorDashboardSummaryResponse는 운영자 업무 현황을 표시하기 위한 읽기 전용 집계다. 공고 입력, 매칭 관리, 신청 진행 업무의 처리 대기 건수를 보여주며, 매칭 추천도, 선정확률, 우선순위, 가점 계산을 포함하지 않는다.
+
+#### ApproverReviewSummaryResponse
+
+```json
+{
+  "announcementReview": {
+    "requestedCount": 4,
+    "rejectedCount": 1,
+    "approvedCount": 9
+  },
+  "verificationReview": {
+    "submittedCount": 5,
+    "reviewingCount": 2,
+    "verifiedCount": 8,
+    "rejectedCount": 1
+  },
+  "matchingReview": {
+    "reviewRequiredCount": 3,
+    "blockedCount": 1,
+    "progressedCount": 7
+  },
+  "progressReview": {
+    "waitingResultCount": 6,
+    "approvedCount": 4,
+    "supplementRequestedCount": 2,
+    "stoppedCount": 1
+  }
+}
+```
+
+ApproverReviewSummaryResponse는 승인자 업무 현황을 표시하기 위한 읽기 전용 집계다. 공고 승인 요청, 검증 검토, 매칭 확인, 최종 결과 대기 건수를 보여주며, 개인정보 원문과 추천도, 선정확률, 우선순위, 가점 계산을 포함하지 않는다.
 
 #### DashboardReverificationStatusResponse
 

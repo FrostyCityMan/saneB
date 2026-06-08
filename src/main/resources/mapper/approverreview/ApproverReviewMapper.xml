@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.approverreview.dao.ApproverReviewDao">
+
+    <resultMap id="ApproverAnnouncementReviewRowMap" type="com.saneb.domain.approverreview.vo.ApproverAnnouncementReviewRow">
+        <constructor>
+            <arg column="requested_count" javaType="_int"/>
+            <arg column="rejected_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApproverVerificationReviewRowMap" type="com.saneb.domain.approverreview.vo.ApproverVerificationReviewRow">
+        <constructor>
+            <arg column="submitted_count" javaType="_int"/>
+            <arg column="reviewing_count" javaType="_int"/>
+            <arg column="verified_count" javaType="_int"/>
+            <arg column="rejected_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApproverMatchingReviewRowMap" type="com.saneb.domain.approverreview.vo.ApproverMatchingReviewRow">
+        <constructor>
+            <arg column="review_required_count" javaType="_int"/>
+            <arg column="blocked_count" javaType="_int"/>
+            <arg column="progressed_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ApproverProgressReviewRowMap" type="com.saneb.domain.approverreview.vo.ApproverProgressReviewRow">
+        <constructor>
+            <arg column="waiting_result_count" javaType="_int"/>
+            <arg column="approved_count" javaType="_int"/>
+            <arg column="supplement_requested_count" javaType="_int"/>
+            <arg column="stopped_count" javaType="_int"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectAnnouncementReview" resultMap="ApproverAnnouncementReviewRowMap">
+        -- 승인자 큐용 공고 승인 상태를 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'REQUESTED'
+            ) AS integer) AS requested_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'REJECTED'
+            ) AS integer) AS rejected_count,
+            CAST(count(1) FILTER (
+                WHERE a.approval_status_code = 'APPROVED'
+            ) AS integer) AS approved_count
+        FROM announcements a
+    </select>
+
+    <select id="selectVerificationReview" resultMap="ApproverVerificationReviewRowMap">
+        -- 승인자 큐용 파트너 검증 검토 상태를 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE pv.status_code = 'SUBMITTED'
+            ) AS integer) AS submitted_count,
+            CAST(count(1) FILTER (
+                WHERE pv.status_code = 'REVIEWING'
+            ) AS integer) AS reviewing_count,
+            CAST(count(1) FILTER (
+                WHERE pv.status_code = 'VERIFIED'
+            ) AS integer) AS verified_count,
+            CAST(count(1) FILTER (
+                WHERE pv.status_code = 'REJECTED'
+            ) AS integer) AS rejected_count
+        FROM partner_verifications pv
+    </select>
+
+    <select id="selectMatchingReview" resultMap="ApproverMatchingReviewRowMap">
+        -- 승인자 큐용 매칭 검토 상태를 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'REVIEW_REQUIRED'
+            ) AS integer) AS review_required_count,
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'BLOCKED'
+            ) AS integer) AS blocked_count,
+            CAST(count(1) FILTER (
+                WHERE mc.status_code = 'PROGRESSED'
+            ) AS integer) AS progressed_count
+        FROM matching_cases mc
+    </select>
+
+    <select id="selectProgressReview" resultMap="ApproverProgressReviewRowMap">
+        -- 승인자 큐용 신청 진행 결과 상태를 집계한다.
+        SELECT
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'WAITING_RESULT'
+            ) AS integer) AS waiting_result_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'APPROVED'
+            ) AS integer) AS approved_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'SUPPLEMENT_REQUESTED'
+            ) AS integer) AS supplement_requested_count,
+            CAST(count(1) FILTER (
+                WHERE ap.status_code = 'STOPPED'
+            ) AS integer) AS stopped_count
+        FROM application_progresses ap
+    </select>
+</mapper>

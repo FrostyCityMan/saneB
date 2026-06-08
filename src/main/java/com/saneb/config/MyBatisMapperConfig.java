@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.dynamicinput.dao",
         "com.saneb.domain.admindashboard.dao",
         "com.saneb.domain.operatordashboard.dao",
+        "com.saneb.domain.approverreview.dao",
         "com.saneb.domain.adminuser.dao"
 })
 public class MyBatisMapperConfig {

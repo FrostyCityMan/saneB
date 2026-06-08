@@ -61,6 +61,15 @@
                 <span>매칭 관리</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/approver/reviews}"
+               th:classappend="${page.activeNav == 'APPROVER_REVIEWS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.6-4.7"/></svg>
+                </span>
+                <span>승인 큐</span>
+            </a>
+            <a class="side-link"
                th:if="${page.auth.primaryRole == 'USER'}"
                th:href="@{/app/member/verifications/current}"
                th:classappend="${page.activeNav == 'VERIFICATION_PROGRESS' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
