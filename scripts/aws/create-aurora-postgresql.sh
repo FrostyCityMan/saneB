@@ -212,10 +212,11 @@ MASTER_SECRET_ARN=$SECRET_ARN
 
 Application environment values:
 SPRING_PROFILES_ACTIVE=prod
+AWS_REGION=$REGION
 DB_URL=jdbc:postgresql://$DB_ENDPOINT:5432/$DB_NAME?sslmode=require
 DB_USERNAME=$DB_MASTER_USERNAME
-DB_PASSWORD=<fetch from Secrets Manager; do not commit>
+DB_SECRET_ARN=$SECRET_ARN
 
-Fetch password in CloudShell:
-aws secretsmanager get-secret-value --region $REGION --secret-id "$SECRET_ARN" --query SecretString --output text
+Required EC2 instance role permission:
+secretsmanager:GetSecretValue on $SECRET_ARN
 EOF
