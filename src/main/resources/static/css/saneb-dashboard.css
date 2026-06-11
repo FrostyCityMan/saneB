@@ -355,11 +355,15 @@ svg {
 }
 
 .action-panel-primary {
-    padding: 28px;
+    display: grid;
+    align-content: center;
+    min-height: clamp(380px, 48vh, 560px);
+    padding: 44px 48px;
 }
 
 .action-panel-primary .action-copy h2 {
-    font-size: 34px;
+    font-size: 40px;
+    line-height: 1.24;
 }
 
 .section-label {
@@ -371,34 +375,34 @@ svg {
 
 .action-content {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) minmax(180px, auto);
     align-items: center;
-    gap: 24px;
+    gap: 34px;
 }
 
 .action-icon {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 128px;
+    height: 128px;
     border-radius: 50%;
     border: 1px solid var(--saneb-border);
     background: rgba(255, 252, 245, 0.95);
     color: #4e5b35;
-    padding: 30px;
+    padding: 38px;
 }
 
 .action-icon span {
     position: absolute;
-    right: 23px;
-    bottom: 23px;
-    width: 27px;
-    height: 27px;
+    right: 30px;
+    bottom: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--saneb-gold);
     color: #fff;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 900;
-    line-height: 27px;
+    line-height: 32px;
     text-align: center;
 }
 
@@ -3347,6 +3351,11 @@ svg {
     .verification-panel,
     .reverification-panel {
         padding: 17px;
+    }
+
+    .action-panel-primary {
+        align-content: start;
+        min-height: auto;
     }
 
     .section-label {
