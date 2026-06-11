@@ -73,6 +73,9 @@ class DashboardServiceImplTest {
                         2,
                         1,
                         1,
+                        2,
+                        1,
+                        1,
                         1,
                         3,
                         new BigDecimal("1000000.00"),
@@ -89,6 +92,9 @@ class DashboardServiceImplTest {
         assertThat(response.candidateCounts().policyFund()).isEqualTo(2);
         assertThat(response.candidateCounts().supportFund()).isEqualTo(1);
         assertThat(response.candidateCounts().subsidy()).isEqualTo(1);
+        assertThat(response.targetCandidateCounts().business()).isEqualTo(2);
+        assertThat(response.targetCandidateCounts().personal()).isEqualTo(1);
+        assertThat(response.targetCandidateCounts().family()).isEqualTo(1);
         assertThat(response.finalMatchedCount()).isEqualTo(3);
         assertThat(response.supportAmountRange().minAmount()).isEqualByComparingTo("1000000.00");
         assertThat(response.supportAmountRange().maxAmount()).isEqualByComparingTo("5000000.00");
@@ -102,7 +108,7 @@ class DashboardServiceImplTest {
                 new DashboardVerificationStatusRow("VERIFIED", OffsetDateTime.parse("2026-05-01T10:00:00+09:00"))
         );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
-                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null)
+                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 0, 0, null, null)
         );
         when(dashboardDao.selectProgressSummary(USER_ID)).thenReturn(
                 new DashboardProgressSummaryRow(0, 0, 0, 0, 0, BigDecimal.ZERO)
@@ -116,7 +122,7 @@ class DashboardServiceImplTest {
         assertThat(response.finalMatchedCount()).isZero();
         assertThat(response.supportAmountRange().minAmount()).isNull();
         assertThat(response.supportAmountRange().maxAmount()).isNull();
-        assertThat(response.noticeMessage()).isEqualTo("matching_cases 기준 진행 가능한 공고가 없습니다.");
+        assertThat(response.noticeMessage()).isEqualTo("저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다.");
     }
 
     @Test
@@ -144,19 +150,20 @@ class DashboardServiceImplTest {
     }
 
     @Test
-    void selectMyCurrentActionReturnsVerificationRequiredWhenNoStepExists() {
+    void selectMyCurrentActionReturnsBasicInfoRequiredWhenNoStepExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
         when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
                 new DashboardVerificationStatusRow("DRAFT", null)
         );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
-                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null)
+                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 0, 0, null, null)
         );
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
 
-        assertThat(response.actionCode()).isEqualTo("VERIFICATION_DOCUMENT_REQUIRED");
-        assertThat(response.primaryButtonLabel()).isEqualTo("검증 진행하기");
+        assertThat(response.actionCode()).isEqualTo("BASIC_INFO_REQUIRED");
+        assertThat(response.primaryButtonLabel()).isEqualTo("기본 정보 입력");
+        assertThat(response.route()).isEqualTo("/app/member/basic-info");
     }
 
     @Test
@@ -166,7 +173,7 @@ class DashboardServiceImplTest {
                 new DashboardVerificationStatusRow("DRAFT", null)
         );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
-                new DashboardCandidateSummaryRow(0, 0, 0, 1, 1, null, null)
+                new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 1, 1, null, null)
         );
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);

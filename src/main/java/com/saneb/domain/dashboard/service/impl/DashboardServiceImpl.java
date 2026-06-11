@@ -24,8 +24,7 @@ import org.springframework.stereotype.Service;
 public class DashboardServiceImpl implements DashboardService {
 
     private static final String BASIS_ANNOUNCEMENT_AMOUNT_RANGE = "ANNOUNCEMENT_AMOUNT_RANGE";
-    private static final String VERIFICATION_REQUIRED = "VERIFICATION_REQUIRED";
-    private static final String VERIFICATION_DOCUMENT_REQUIRED = "VERIFICATION_DOCUMENT_REQUIRED";
+    private static final String BASIC_INFO_REQUIRED = "BASIC_INFO_REQUIRED";
     private static final String PROGRESS_ACTION_REQUIRED = "PROGRESS_ACTION_REQUIRED";
     private static final String NO_ACTION = "NONE";
 
@@ -48,6 +47,11 @@ public class DashboardServiceImpl implements DashboardService {
                         candidateSummary.policyFundCount(),
                         candidateSummary.supportFundCount(),
                         candidateSummary.subsidyCount()
+                ),
+                new DashboardSummaryResponse.TargetCandidateCountsResponse(
+                        candidateSummary.businessTargetCount(),
+                        candidateSummary.personalTargetCount(),
+                        candidateSummary.familyTargetCount()
                 ),
                 candidateSummary.finalMatchedCount(),
                 new DashboardSummaryResponse.SupportAmountRangeResponse(
@@ -84,33 +88,36 @@ public class DashboardServiceImpl implements DashboardService {
             return new DashboardCurrentActionResponse(
                     "APPLICATION_START_AVAILABLE",
                     "신청 가능한 공고가 있습니다.",
-                    "검증이 완료되지 않아도 신청 가능한 공고는 바로 진행을 시작할 수 있습니다.",
+                    "관리자가 선택한 공고를 기준으로 다음 진행 단계를 확인하세요.",
                     "신청 진행하기",
                     "/app/application-progresses",
                     null,
                     15
             );
         }
-        if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
+        DashboardProgressSummaryRow progressSummary = selectProgressSummary(userId);
+        if (progressSummary.waitingResultCount() > 0
+                || progressSummary.approvedCount() > 0
+                || progressSummary.stoppedCount() > 0) {
             return new DashboardCurrentActionResponse(
-                    VERIFICATION_DOCUMENT_REQUIRED,
-                    "전자증명 검증이 필요합니다.",
-                    "최종 매칭 전 파트너 검증과 필수 서류 확인이 필요합니다.",
-                    "검증 진행하기",
-                    "/app/member/verifications/current",
+                    NO_ACTION,
+                    "현재 처리할 진행 행동이 없습니다.",
+                    "진행 중인 신청 행동이 없거나 결과 확인 상태입니다.",
                     null,
-                    5
+                    null,
+                    null,
+                    99
             );
         }
 
         return new DashboardCurrentActionResponse(
-                NO_ACTION,
-                "현재 처리할 진행 행동이 없습니다.",
-                "READY 또는 IN_PROGRESS 상태의 진행 단계가 없습니다.",
+                BASIC_INFO_REQUIRED,
+                "기본 정보를 입력해 주세요.",
+                "사업자·개인·가족 기본정보를 저장하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
+                "기본 정보 입력",
+                "/app/member/basic-info",
                 null,
-                null,
-                null,
-                99
+                5
         );
     }
 
@@ -179,7 +186,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private DashboardCandidateSummaryRow emptyCandidateSummary() {
-        return new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, null, null);
+        return new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 0, 0, null, null);
     }
 
     private DashboardProgressSummaryRow emptyProgressSummary() {
@@ -207,13 +214,10 @@ public class DashboardServiceImpl implements DashboardService {
         if (hasStartableMatching(candidateSummary)) {
             return "MATCHING_READY";
         }
-        if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
-            return VERIFICATION_REQUIRED;
-        }
         if (hasCandidate(candidateSummary)) {
             return "MATCHING_READY";
         }
-        return "MATCHING_READY";
+        return BASIC_INFO_REQUIRED;
     }
 
     private boolean hasStartableMatching(DashboardCandidateSummaryRow candidateSummary) {
@@ -224,6 +228,9 @@ public class DashboardServiceImpl implements DashboardService {
         return candidateSummary.policyFundCount() > 0
                 || candidateSummary.supportFundCount() > 0
                 || candidateSummary.subsidyCount() > 0
+                || candidateSummary.businessTargetCount() > 0
+                || candidateSummary.personalTargetCount() > 0
+                || candidateSummary.familyTargetCount() > 0
                 || candidateSummary.finalMatchedCount() > 0
                 || candidateSummary.minAmount() != null
                 || candidateSummary.maxAmount() != null;
@@ -233,13 +240,10 @@ public class DashboardServiceImpl implements DashboardService {
             DashboardVerificationStatusRow verification,
             DashboardCandidateSummaryRow candidateSummary
     ) {
-        if (!"VERIFIED".equals(selectVerificationStatusCode(verification))) {
-            return "전자증명 검증 전 참고 결과입니다.";
-        }
         if (!hasCandidate(candidateSummary)) {
-            return "matching_cases 기준 진행 가능한 공고가 없습니다.";
+            return "저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다.";
         }
-        return "matching_cases 기준 진행 가능한 공고를 표시합니다.";
+        return "관리자가 선택할 수 있는 진행 가능 공고를 표시합니다.";
     }
 
     private String selectCurrentStepDescription(DashboardCurrentStepRow currentStep) {

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('기본 정보 입력', ~{::main})}">
+<main class="dashboard-page"
+      data-member-basic-info-app
+      th:data-basic-info-url="@{/api/v1/member/basic-info}">
+    <section class="dashboard-simple-grid" aria-label="기본 정보 입력">
+        <section class="summary-panel dashboard-top-panel">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">기본 정보 입력</div>
+                    <p>사업자·개인·가족 기본정보를 저장하면 사내비가 공고 조건과 비교할 수 있습니다.</p>
+                </div>
+                <span class="soft-status">사용자 첫 행동</span>
+            </div>
+            <div class="top-summary-grid">
+                <article class="top-summary-card">
+                    <span>필수 흐름</span>
+                    <strong>기본정보 저장</strong>
+                    <small>확실한 값부터 입력해도 됩니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>선택 입력</span>
+                    <strong>서류 기반 값</strong>
+                    <small>누락 시 일부 매칭 또는 입증에서 불리할 수 있습니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>다음 단계</span>
+                    <strong>관리자 선택</strong>
+                    <small>조건이 맞는 후보 중 관리자가 진행 공고를 선택합니다.</small>
+                </article>
+            </div>
+        </section>
+
+        <form class="plain-panel basic-info-form" data-basic-info-form novalidate>
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">개인</span>
+                    <h2>개인 기본정보</h2>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field-block">
+                    <label for="basicBirthYear">출생연도</label>
+                    <input id="basicBirthYear" name="birthYear" type="number" min="1900" max="2200" placeholder="예: 1988">
+                </div>
+                <div class="field-block">
+                    <label for="basicRegionCode">거주 지역</label>
+                    <select id="basicRegionCode" name="regionCode">
+                        <option value="">선택 안 함</option>
+                        <option value="SEOUL">서울</option>
+                        <option value="BUSAN">부산</option>
+                        <option value="DAEGU">대구</option>
+                        <option value="INCHEON">인천</option>
+                        <option value="GWANGJU">광주</option>
+                        <option value="DAEJEON">대전</option>
+                        <option value="ULSAN">울산</option>
+                        <option value="SEJONG">세종</option>
+                        <option value="GYEONGGI">경기</option>
+                        <option value="GANGWON">강원</option>
+                        <option value="CHUNGBUK">충북</option>
+                        <option value="CHUNGNAM">충남</option>
+                        <option value="JEONBUK">전북</option>
+                        <option value="JEONNAM">전남</option>
+                        <option value="GYEONGBUK">경북</option>
+                        <option value="GYEONGNAM">경남</option>
+                        <option value="JEJU">제주</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="basicIncomePresenceCode">소득 여부</label>
+                    <select id="basicIncomePresenceCode" name="incomePresenceCode">
+                        <option value="">선택 안 함</option>
+                        <option value="UNKNOWN">잘 모름</option>
+                        <option value="NONE">소득 없음</option>
+                        <option value="HAS_INCOME">소득 있음</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="basicIncomeAmount">연 소득 금액</label>
+                    <input id="basicIncomeAmount" name="incomeAmount" type="number" min="0" step="10000" placeholder="예: 30000000">
+                    <small>확실하지 않으면 비워 둘 수 있습니다.</small>
+                </div>
+                <div class="field-block span-2">
+                    <label for="basicHealthInsuranceBasisCode">건강보험 자격</label>
+                    <select id="basicHealthInsuranceBasisCode" name="healthInsuranceBasisCode">
+                        <option value="">선택 안 함</option>
+                        <option value="WORKPLACE">직장가입자</option>
+                        <option value="LOCAL">지역가입자</option>
+                        <option value="DEPENDENT">피부양자</option>
+                        <option value="UNKNOWN">잘 모름</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">사업자</span>
+                        <h2>사업자 기본정보</h2>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="field-block">
+                        <label for="basicBusinessRegistrationNo">사업자등록번호</label>
+                        <input id="basicBusinessRegistrationNo" name="businessRegistrationNo" type="text" maxlength="30" placeholder="예: 123-45-67890">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicBusinessName">상호명</label>
+                        <input id="basicBusinessName" name="businessName" type="text" maxlength="200" placeholder="예: 사내비상점">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicWorkplaceRegionCode">사업장 지역</label>
+                        <select id="basicWorkplaceRegionCode" name="workplaceRegionCode">
+                            <option value="">선택 안 함</option>
+                            <option value="SEOUL">서울</option>
+                            <option value="BUSAN">부산</option>
+                            <option value="DAEGU">대구</option>
+                            <option value="INCHEON">인천</option>
+                            <option value="GWANGJU">광주</option>
+                            <option value="DAEJEON">대전</option>
+                            <option value="ULSAN">울산</option>
+                            <option value="SEJONG">세종</option>
+                            <option value="GYEONGGI">경기</option>
+                            <option value="GANGWON">강원</option>
+                            <option value="CHUNGBUK">충북</option>
+                            <option value="CHUNGNAM">충남</option>
+                            <option value="JEONBUK">전북</option>
+                            <option value="JEONNAM">전남</option>
+                            <option value="GYEONGBUK">경북</option>
+                            <option value="GYEONGNAM">경남</option>
+                            <option value="JEJU">제주</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="basicOpeningDate">개업일</label>
+                        <input id="basicOpeningDate" name="openingDate" type="date">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicAnnualRevenue">연매출</label>
+                        <input id="basicAnnualRevenue" name="annualRevenue" type="number" min="0" step="10000" placeholder="예: 120000000">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicAnnualRevenueYear">연매출 기준연도</label>
+                        <input id="basicAnnualRevenueYear" name="annualRevenueYear" type="number" min="1900" max="2200" placeholder="예: 2025">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicBusinessTypeCode">사업자 유형</label>
+                        <select id="basicBusinessTypeCode" name="businessTypeCode">
+                            <option value="">선택 안 함</option>
+                            <option value="SOLE_PROPRIETOR">개인사업자</option>
+                            <option value="CORPORATION">법인사업자</option>
+                            <option value="SIMPLIFIED_TAXPAYER">간이과세자</option>
+                            <option value="GENERAL_TAXPAYER">일반과세자</option>
+                            <option value="TAX_EXEMPT">면세사업자</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="basicCompanyStageCode">사업 상태</label>
+                        <select id="basicCompanyStageCode" name="companyStageCode">
+                            <option value="">선택 안 함</option>
+                            <option value="PRE_STARTUP">창업 전</option>
+                            <option value="EARLY_STARTUP">초기 창업</option>
+                            <option value="OPERATING">운영 중</option>
+                            <option value="SUSPENDED">휴업</option>
+                            <option value="CLOSURE_PLANNED">폐업 예정</option>
+                            <option value="CLOSED">폐업</option>
+                            <option value="RESTART_PREPARING">재창업 준비</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="basicKsicCode">업종 코드</label>
+                        <input id="basicKsicCode" name="ksicCode" type="text" maxlength="30" placeholder="알고 있는 경우만 입력">
+                    </div>
+                    <div class="field-block">
+                        <label for="basicPolicyFundUsage">정책자금 이용 여부</label>
+                        <select id="basicPolicyFundUsage" name="hasPolicyFundUsage">
+                            <option value="">선택 안 함</option>
+                            <option value="false">이용 이력 없음</option>
+                            <option value="true">이용 이력 있음</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="basicGuaranteeUsage">보증 이용 여부</label>
+                        <select id="basicGuaranteeUsage" name="hasGuaranteeUsage">
+                            <option value="">선택 안 함</option>
+                            <option value="false">이용 이력 없음</option>
+                            <option value="true">이용 이력 있음</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">가족</span>
+                        <h2>가족 기본정보</h2>
+                    </div>
+                    <button class="secondary-action" type="button" data-family-add>가족 추가</button>
+                </div>
+                <p class="field-help">배우자, 자녀, 부모 1단계 범위만 입력합니다. 소득 값은 모르면 비워 둘 수 있습니다.</p>
+                <div class="family-list" data-family-list></div>
+            </div>
+
+            <div class="basic-info-message" data-basic-info-message role="status"></div>
+            <div class="form-actions">
+                <button class="primary-action button-action" type="submit" data-basic-info-submit>기본 정보 저장</button>
+            </div>
+        </form>
+    </section>
+    <script th:src="@{/js/saneb-member-basic-info.js}"></script>
+</main>
+</html>

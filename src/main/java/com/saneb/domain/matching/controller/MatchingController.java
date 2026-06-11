@@ -2,6 +2,8 @@ package com.saneb.domain.matching.controller;
 
 import com.saneb.common.response.ApiResponse;
 import com.saneb.common.response.PageResponse;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateRequest;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateResponse;
 import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
@@ -44,6 +46,15 @@ public class MatchingController {
             @Valid @RequestBody MatchingCaseCreateRequest request
     ) {
         return ApiResponse.success(matchingService.insertMatchingCase(authentication, request));
+    }
+
+    @PostMapping("/candidates")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    public ApiResponse<MatchingCandidateGenerateResponse> insertMatchingCandidates(
+            Authentication authentication,
+            @Valid @RequestBody MatchingCandidateGenerateRequest request
+    ) {
+        return ApiResponse.success(matchingService.insertMatchingCandidates(authentication, request));
     }
 
     @GetMapping

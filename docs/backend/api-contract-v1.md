@@ -291,6 +291,10 @@ AuthMeResponse 필드 계약:
 | `POST` | `/api/v1/members/me/family-members` | `USER` | 가족 구성원 추가 |
 | `PUT` | `/api/v1/members/me/family-members/{familyMemberId}` | `USER` | 가족 구성원 수정 |
 | `DELETE` | `/api/v1/members/me/family-members/{familyMemberId}` | `USER` | 가족 구성원 삭제 |
+| `GET` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 조회 |
+| `PUT` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 저장 |
+
+`/api/v1/member/basic-info`는 사용자 첫 행동 화면에서 사용하는 통합 계약이다. 기존 `/api/v1/members/me/...` 세분화 계약은 v1 문서상 유지하지만, 현재 화면 구현은 통합 계약을 사용한다. 서류 기반 세부 값은 선택 입력이며, 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공한다.
 
 #### MemberProfileSaveRequest
 
@@ -339,6 +343,49 @@ AuthMeResponse 필드 계약:
   "hasIncome": false
 }
 ```
+
+#### MemberBasicInfoSaveRequest
+
+```json
+{
+  "birthYear": 1988,
+  "regionCode": "SEOUL",
+  "hasIncome": true,
+  "incomePresenceCode": "HAS_INCOME",
+  "incomeAmount": 30000000,
+  "healthInsuranceBasisCode": "WORKPLACE",
+  "business": {
+    "businessRegistrationNo": "123-45-67890",
+    "businessName": "사내비상점",
+    "workplaceRegionCode": "SEOUL",
+    "openingDate": "2022-01-01",
+    "ksicCode": "47911",
+    "businessTypeCode": "SOLE_PROPRIETOR",
+    "companyStageCode": "OPERATING",
+    "annualRevenue": 120000000,
+    "annualRevenueYear": 2025,
+    "hasPolicyFundUsage": false,
+    "hasGuaranteeUsage": false
+  },
+  "families": [
+    {
+      "relationTypeCode": "CHILD",
+      "birthYear": 2018,
+      "hasIncome": false,
+      "incomePresenceCode": "NONE",
+      "incomeAmount": null
+    }
+  ]
+}
+```
+
+통합 기본정보 저장 정책:
+
+- `business`는 선택 객체다. 사업자 정보를 하나라도 입력하면 `businessRegistrationNo`, `businessName`을 함께 저장해야 한다.
+- `families`는 배우자, 자녀, 부모 1단계만 허용한다.
+- `incomePresenceCode`는 `UNKNOWN`, `NONE`, `HAS_INCOME`만 허용한다.
+- 저장된 개인, 사업자, 가족 기본정보는 관리자 조건 매칭 후보 생성의 비교 기준으로 사용한다.
+- 개인정보 원문을 감사 로그 metadata에 저장하지 않는다.
 
 #### MemberProfileResponse
 
@@ -571,7 +618,9 @@ Member / Business / Family API skeleton 착수 기준:
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
+| `GET` | `/api/v1/standard-document-fields` | authenticated | 공고 조건/입력항목용 표준 서류 필드 목록 |
 | `POST` | `/api/v1/matching/cases` | `OPERATOR`, `ADMIN` | 매칭 케이스 생성/재계산 |
+| `POST` | `/api/v1/matching/cases/candidates` | `OPERATOR`, `ADMIN` | 회원 기본정보 기준 조건 매칭 후보 생성 |
 | `GET` | `/api/v1/matching/cases/member-lookups` | `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 생성용 회원 조회 |
 | `GET` | `/api/v1/matching/cases` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 목록 |
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 상세 |
@@ -590,6 +639,27 @@ Member / Business / Family API skeleton 착수 기준:
 
 `verificationId`는 선택값이다. 현재 운영 기준에서는 검증 없이 수동 매칭을 생성할 수 있으며, 이 경우 `matching_cases.verification_id`는 `null`로 저장한다. 검증 ID를 전달한 경우에는 기존처럼 검증 완료, current, matching block 여부를 서버에서 확인한다.
 
+#### MatchingCandidateGenerateRequest
+
+```json
+{
+  "memberUserId": "uuid"
+}
+```
+
+승인되고 수동 상태가 정상인 공고를 대상으로 사용자의 저장된 기본정보와 공고 조건을 비교한다. 조건이 맞으면 `matching_cases` 후보를 생성하고, 이미 같은 공고/회원의 검증 없는 후보가 있으면 중복 생성하지 않는다. 생성된 후보는 관리자 화면에서 `application_end_date ASC NULLS LAST`, `application_start_date ASC`, `created_at ASC` 순서로 확인한다.
+
+#### MatchingCandidateGenerateResponse
+
+```json
+{
+  "memberUserId": "uuid",
+  "createdCount": 1,
+  "skippedCount": 0,
+  "candidates": []
+}
+```
+
 #### MatchingCaseResponse
 
 ```json
@@ -599,6 +669,16 @@ Member / Business / Family API skeleton 착수 기준:
   "memberUserId": "uuid",
   "verificationId": "uuid",
   "statusCode": "MATCHED",
+  "announcementTitle": "공고명",
+  "agencyName": "기관명",
+  "targetTypeCode": "BUSINESS",
+  "minAmount": 1000000,
+  "maxAmount": 5000000,
+  "applicationStartDate": "2026-06-01",
+  "applicationEndDate": "2026-06-30",
+  "memberLoginId": "user01",
+  "memberName": "사용자",
+  "progressCreated": false,
   "matchedAt": "2026-05-14T10:00:00+09:00"
 }
 ```
@@ -725,7 +805,7 @@ MVP v1 DB 집계 기준:
 - 진행 가능한 후보는 `matching_cases` 기준으로 집계한다. `MATCHED`, `REVIEW_REQUIRED`, `PROGRESSED`만 후보로 포함하며, 해당 데이터가 없으면 empty state를 반환한다.
 - 후보 유형은 V1의 별도 유형 컬럼을 추가하지 않고 `announcement_options.option_group_code = PAYMENT_METHOD` 기준으로 분류한다. `LOAN`, `GUARANTEE`, `INTEREST_SUPPORT`는 `policyFund`, `VOUCHER`, `POINT`, `GOODS`, `TAX_DEDUCTION`은 `supportFund`, `CASH`, `REFUND`는 `subsidy`로 집계한다.
 - 금액 범위는 후보 `matching_cases`에 연결된 `announcements.min_amount`, `announcements.max_amount`의 최소/최대값만 사용한다. `application_progresses.received_amount`와 혼합하지 않는다.
-- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 없으면 파트너 검증 상태를 기준으로 `VERIFICATION_DOCUMENT_REQUIRED` 또는 `NONE`을 반환한다.
+- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 없고 진행 가능한 매칭이 있으면 신청 진행 진입을 반환한다. 진행/결과 상태가 없고 사용자가 아직 시작하지 않은 경우에는 `BASIC_INFO_REQUIRED`를 반환한다.
 - 진행/승인/수령 금액은 `application_progresses` 기준으로 집계한다. 누적 수령 금액은 `received_amount`가 있고 `status_code IN (APPROVED, COMPLETED)` 또는 `result_code = APPROVED`인 행만 합산한다.
 - 개인정보 원문은 대시보드 집계에 포함하지 않고, 사용자 식별자와 진행/공고 운영 데이터만 조인한다.
 
@@ -743,11 +823,16 @@ MVP v1 DB 집계 기준:
 
 ```json
 {
-  "serviceStatusCode": "VERIFICATION_REQUIRED",
+  "serviceStatusCode": "BASIC_INFO_REQUIRED",
   "candidateCounts": {
     "policyFund": 3,
     "supportFund": 2,
     "subsidy": 0
+  },
+  "targetCandidateCounts": {
+    "business": 3,
+    "personal": 1,
+    "family": 1
   },
   "finalMatchedCount": 0,
   "supportAmountRange": {
@@ -756,7 +841,7 @@ MVP v1 DB 집계 기준:
     "basisCode": "ANNOUNCEMENT_AMOUNT_RANGE"
   },
   "verificationStatusCode": "DRAFT",
-  "noticeMessage": "전자증명 검증 전 참고 결과입니다."
+  "noticeMessage": "저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다."
 }
 ```
 
@@ -770,6 +855,9 @@ DashboardSummaryResponse 필드 계약:
 | `candidateCounts.policyFund` | `number` | false | 정책자금 후보 건수 |
 | `candidateCounts.supportFund` | `number` | false | 지원금 후보 건수 |
 | `candidateCounts.subsidy` | `number` | false | 보조금 후보 건수 |
+| `targetCandidateCounts.business` | `number` | false | 사업자 기준 후보 건수 |
+| `targetCandidateCounts.personal` | `number` | false | 개인 기준 후보 건수 |
+| `targetCandidateCounts.family` | `number` | false | 가족 기준 후보 건수 |
 | `finalMatchedCount` | `number` | false | 최종 매칭 확정 건수 |
 | `supportAmountRange.minAmount` | `number` | true | 공고 기준 최소 지원금액 |
 | `supportAmountRange.maxAmount` | `number` | true | 공고 기준 최대 지원금액 |
@@ -781,11 +869,11 @@ DashboardSummaryResponse 필드 계약:
 
 ```json
 {
-  "actionCode": "VERIFICATION_DOCUMENT_REQUIRED",
-  "title": "사업자등록증 확인이 필요합니다.",
-  "description": "파트너 검증을 위해 필수 서류 확인을 완료해 주세요.",
-  "primaryButtonLabel": "서류 확인하기",
-  "route": "/app/member/verifications/current",
+  "actionCode": "BASIC_INFO_REQUIRED",
+  "title": "기본 정보를 입력해 주세요.",
+  "description": "사업자·개인·가족 기본정보를 저장하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
+  "primaryButtonLabel": "기본 정보 입력",
+  "route": "/app/member/basic-info",
   "dueDate": null,
   "displayOrder": 5
 }

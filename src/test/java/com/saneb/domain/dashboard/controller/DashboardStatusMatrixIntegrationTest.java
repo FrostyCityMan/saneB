@@ -39,7 +39,7 @@ class DashboardStatusMatrixIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void noVerificationOrDraftStateReturnsVerificationRequiredDashboard() throws Exception {
+    void noVerificationOrDraftStateReturnsBasicInfoDashboard() throws Exception {
         String noVerificationPrivacyMarker = "matrix-private-no-verification-" + UUID.randomUUID();
         String draftPrivacyMarker = "matrix-private-draft-" + UUID.randomUUID();
         DashboardUser noVerificationUser = insertDashboardUser("matrix-no-verification", "USER", noVerificationPrivacyMarker);
@@ -47,8 +47,8 @@ class DashboardStatusMatrixIntegrationTest {
         DashboardUser operator = insertDashboardUser("matrix-draft-operator", "OPERATOR");
         insertVerification(UUID.randomUUID(), draftUser.userId(), operator.userId(), "DRAFT");
 
-        assertVerificationRequiredDashboard(noVerificationUser.loginId(), noVerificationPrivacyMarker);
-        assertVerificationRequiredDashboard(draftUser.loginId(), draftPrivacyMarker);
+        assertBasicInfoDashboard(noVerificationUser.loginId(), noVerificationPrivacyMarker);
+        assertBasicInfoDashboard(draftUser.loginId(), draftPrivacyMarker);
     }
 
     @Test
@@ -162,11 +162,11 @@ class DashboardStatusMatrixIntegrationTest {
         assertNoAuditMetadataLeak(privacyMarker);
     }
 
-    private void assertVerificationRequiredDashboard(String loginId, String privacyMarker) throws Exception {
+    private void assertBasicInfoDashboard(String loginId, String privacyMarker) throws Exception {
         mockMvc.perform(get("/api/v1/dashboard/me/summary").with(user(loginId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.serviceStatusCode").value("VERIFICATION_REQUIRED"))
+                .andExpect(jsonPath("$.data.serviceStatusCode").value("BASIC_INFO_REQUIRED"))
                 .andExpect(jsonPath("$.data.verificationStatusCode").value("DRAFT"))
                 .andExpect(jsonPath("$.data.candidateCounts.policyFund").value(0))
                 .andExpect(jsonPath("$.data.candidateCounts.supportFund").value(0))
@@ -179,8 +179,8 @@ class DashboardStatusMatrixIntegrationTest {
         mockMvc.perform(get("/api/v1/dashboard/me/current-action").with(user(loginId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.actionCode").value("VERIFICATION_DOCUMENT_REQUIRED"))
-                .andExpect(jsonPath("$.data.route").value("/app/member/verifications/current"));
+                .andExpect(jsonPath("$.data.actionCode").value("BASIC_INFO_REQUIRED"))
+                .andExpect(jsonPath("$.data.route").value("/app/member/basic-info"));
 
         mockMvc.perform(get("/api/v1/dashboard/me/progress-summary").with(user(loginId)))
                 .andExpect(status().isOk())

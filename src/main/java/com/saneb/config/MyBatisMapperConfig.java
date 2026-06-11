@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.auth.dao",
         "com.saneb.domain.dashboard.dao",
         "com.saneb.domain.announcement.dao",
+        "com.saneb.domain.member.dao",
         "com.saneb.domain.partnerverification.dao",
         "com.saneb.domain.matching.dao",
         "com.saneb.domain.applicationprogress.dao",

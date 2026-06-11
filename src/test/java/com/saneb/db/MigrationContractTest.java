@@ -183,6 +183,22 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v15MigrationContainsStandardDocumentFieldsAndBasicIncomeAdditions() throws IOException {
+        String sql = selectV15Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE standard_document_fields",
+                "CONSTRAINT uq_standard_document_fields_key",
+                "ADD COLUMN standard_field_id uuid",
+                "ADD COLUMN income_presence_code varchar(30)",
+                "ADD COLUMN annual_revenue numeric(18, 2)",
+                "CREATE UNIQUE INDEX uq_matching_cases_no_verification",
+                "'BUSINESS_REGISTRATION'",
+                "'HEALTH_INSURANCE_QUALIFICATION'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -230,6 +246,11 @@ class MigrationContractTest {
 
     private String selectV14Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V14__add_reviewer_and_manual_consultation.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV15Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V15__create_standard_document_fields.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

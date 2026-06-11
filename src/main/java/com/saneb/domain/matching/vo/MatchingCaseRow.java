@@ -1,7 +1,9 @@
 package com.saneb.domain.matching.vo;
 
 import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 public record MatchingCaseRow(
         UUID matchingCaseId,
@@ -14,6 +16,16 @@ public record MatchingCaseRow(
         UUID reviewedBy,
         OffsetDateTime reviewedAt,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        String announcementTitle,
+        String agencyName,
+        String targetTypeCode,
+        BigDecimal minAmount,
+        BigDecimal maxAmount,
+        LocalDate applicationStartDate,
+        LocalDate applicationEndDate,
+        String memberLoginId,
+        String memberName,
+        Boolean progressCreated
 ) {
 }

@@ -438,7 +438,7 @@
         }] : [];
         const documents = documentTypeCode ? [{
             documentTypeCode,
-            required: true,
+            required: false,
             sortOrder: 1
         }] : [];
 
@@ -458,6 +458,12 @@
     const setFieldValue = (row, selector, value) => {
         const field = row.querySelector(selector);
         if (field) {
+            if (field.tagName === "SELECT" && value && !Array.from(field.options).some((option) => option.value === value)) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = value;
+                field.append(option);
+            }
             field.value = value ?? "";
         }
     };
@@ -710,7 +716,7 @@
         const flags = document.createElement("div");
         flags.className = "dynamic-requirement-flags";
         flags.innerHTML = `
-            <label><input type="checkbox" name="required"> 필수 입력</label>
+            <label><input type="checkbox" name="required"> 필수 입력으로 요청</label>
             <label><input type="checkbox" name="sensitive"> 민감정보</label>
         `;
         flags.querySelector("[name='required']").checked = Boolean(requirement.required);
@@ -796,7 +802,7 @@
                         ? parseDynamicOptions(row.querySelector("[name='options']"))
                         : [];
                 if (optionFieldTypes.has(fieldTypeCode) && options.length === 0) {
-                    throw new Error("Option field type requires at least one option.");
+                    throw new Error("선택형 입력에는 선택 항목을 하나 이상 입력해 주세요.");
                 }
                 return {
                     fieldKey: valueOf(row, "[name='fieldKey']"),
@@ -918,7 +924,7 @@
                     setFieldValue(row, "[name='documentTypeCode']", document.documentTypeCode || "");
                     const requiredField = row.querySelector("[name='required']");
                     if (requiredField) {
-                        requiredField.checked = document.required !== false;
+                        requiredField.checked = document.required === true;
                     }
                 }
         );
@@ -977,7 +983,7 @@
             optionConditions: [],
             documentRequirements: [{
                 documentTypeCode: "BUSINESS_REGISTRATION",
-                required: true,
+                required: false,
                 sortOrder: 1
             }]
         }, selectedTargetCode());
@@ -1078,7 +1084,7 @@
                     conditionTemplates.document,
                     "[data-document-requirement-row]",
                     "[data-document-requirement-remove]",
-                    { required: true }
+                    { required: false }
             )?.querySelector("[name='documentTypeCode']")?.focus();
             return;
         }
@@ -1139,7 +1145,7 @@
             dynamicRequirementsList?.append(createDynamicRequirementRow({
                 fieldTypeCode: "TEXT",
                 scopeCode: selectedTargetCode(),
-                required: true,
+                required: false,
                 sensitive: false,
                 sortOrder: app.querySelectorAll("[data-dynamic-requirement-row]").length + 1,
                 options: []

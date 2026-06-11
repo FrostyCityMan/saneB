@@ -321,6 +321,13 @@ svg {
     margin: 0 auto;
 }
 
+.dashboard-simple-grid {
+    display: grid;
+    gap: 22px;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
 .primary-column,
 .secondary-column {
     display: grid;
@@ -345,6 +352,14 @@ svg {
     background:
             radial-gradient(circle at 10% 0%, rgba(243, 229, 197, 0.7), rgba(243, 229, 197, 0) 18rem),
             rgba(255, 253, 248, 0.88);
+}
+
+.action-panel-primary {
+    padding: 28px;
+}
+
+.action-panel-primary .action-copy h2 {
+    font-size: 34px;
 }
 
 .section-label {
@@ -1473,6 +1488,54 @@ svg {
     display: flex;
     justify-content: flex-end;
     margin-top: 18px;
+}
+
+.basic-info-form {
+    display: grid;
+    gap: 18px;
+}
+
+.field-help {
+    margin: 0;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.family-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.family-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 13px;
+}
+
+.family-remove-button {
+    min-width: 68px;
+}
+
+.basic-info-message {
+    min-height: 22px;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.basic-info-message.is-success {
+    color: #0b6f49;
+}
+
+.basic-info-message.is-error {
+    color: #a13d2d;
 }
 
 .button-action {
@@ -2867,6 +2930,21 @@ svg {
     overflow-wrap: anywhere;
 }
 
+.matching-id-line {
+    margin: 0;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.matching-operate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
 @media (max-width: 1180px) {
     .saneb-shell {
         grid-template-columns: 92px minmax(0, 1fr);
@@ -3084,6 +3162,7 @@ svg {
     }
 
     .dashboard-grid,
+    .dashboard-simple-grid,
     .primary-column,
     .secondary-column,
     .split-panels {
@@ -3231,7 +3310,8 @@ svg {
     }
 
     .dynamic-requirement-row,
-    .dynamic-progress-field {
+    .dynamic-progress-field,
+    .family-row {
         grid-template-columns: 1fr;
         gap: 12px;
         padding: 13px;
@@ -3241,7 +3321,8 @@ svg {
     .dynamic-requirements-toolbar,
     .dynamic-requirement-actions,
     .dynamic-field-header,
-    .dynamic-field-badges {
+    .dynamic-field-badges,
+    .family-row .secondary-action {
         display: grid;
         justify-content: stretch;
     }

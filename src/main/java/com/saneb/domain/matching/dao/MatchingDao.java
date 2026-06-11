@@ -3,6 +3,7 @@ package com.saneb.domain.matching.dao;
 import com.saneb.domain.matching.vo.AnnouncementMatchingRow;
 import com.saneb.domain.matching.vo.AuditLogCommand;
 import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
+import com.saneb.domain.matching.vo.MatchingCandidateAnnouncementRow;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
 import com.saneb.domain.matching.vo.MatchingCaseStatusCommand;
@@ -22,6 +23,12 @@ public interface MatchingDao {
     List<MatchingCaseRow> selectMatchingCaseList(MatchingCaseSearchCondition condition);
 
     long selectMatchingCaseCount(MatchingCaseSearchCondition condition);
+
+    long selectMatchingMemberUserCount(@Param("memberUserId") UUID memberUserId);
+
+    List<MatchingCandidateAnnouncementRow> selectEligibleAnnouncementCandidateList(
+            @Param("memberUserId") UUID memberUserId
+    );
 
     List<MatchingMemberLookupRow> selectMatchingMemberLookupList(MatchingMemberLookupSearchCondition condition);
 

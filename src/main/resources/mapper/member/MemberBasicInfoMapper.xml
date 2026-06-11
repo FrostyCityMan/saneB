@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.member.dao.MemberBasicInfoDao">
+
+    <resultMap id="MemberProfileRowMap" type="com.saneb.domain.member.vo.MemberProfileRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="birth_year" javaType="java.lang.Integer"/>
+            <arg column="region_code" javaType="java.lang.String"/>
+            <arg column="has_income" javaType="java.lang.Boolean"/>
+            <arg column="income_presence_code" javaType="java.lang.String"/>
+            <arg column="income_amount" javaType="java.math.BigDecimal"/>
+            <arg column="health_insurance_basis_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="BusinessProfileRowMap" type="com.saneb.domain.member.vo.BusinessProfileRow">
+        <constructor>
+            <arg column="business_profile_id" javaType="java.util.UUID"/>
+            <arg column="business_registration_no" javaType="java.lang.String"/>
+            <arg column="business_name" javaType="java.lang.String"/>
+            <arg column="workplace_region_code" javaType="java.lang.String"/>
+            <arg column="opening_date" javaType="java.time.LocalDate"/>
+            <arg column="ksic_code" javaType="java.lang.String"/>
+            <arg column="business_type_code" javaType="java.lang.String"/>
+            <arg column="company_stage_code" javaType="java.lang.String"/>
+            <arg column="annual_revenue" javaType="java.math.BigDecimal"/>
+            <arg column="annual_revenue_year" javaType="java.lang.Integer"/>
+            <arg column="has_policy_fund_usage" javaType="java.lang.Boolean"/>
+            <arg column="has_guarantee_usage" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="FamilyMemberRowMap" type="com.saneb.domain.member.vo.FamilyMemberRow">
+        <constructor>
+            <arg column="family_member_id" javaType="java.util.UUID"/>
+            <arg column="relation_type_code" javaType="java.lang.String"/>
+            <arg column="birth_year" javaType="java.lang.Integer"/>
+            <arg column="has_income" javaType="java.lang.Boolean"/>
+            <arg column="income_presence_code" javaType="java.lang.String"/>
+            <arg column="income_amount" javaType="java.math.BigDecimal"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectUserIdByLoginId" resultType="java.util.UUID">
+        -- 로그인 아이디로 사용자 식별자를 조회한다.
+        SELECT
+            u.id
+        FROM users u
+        WHERE u.login_id = #{loginId}
+          AND u.status_code = 'ACTIVE'
+    </select>
+
+    <select id="selectMemberProfileDetails" resultMap="MemberProfileRowMap">
+        -- 사용자 기본정보를 조회한다.
+        SELECT
+            mp.user_id,
+            mp.birth_year,
+            mp.region_code,
+            mp.has_income,
+            mp.income_presence_code,
+            mp.income_amount,
+            mp.health_insurance_basis_code
+        FROM member_profiles mp
+        WHERE mp.user_id = #{userId}
+    </select>
+
+    <select id="selectBusinessProfileDetails" resultMap="BusinessProfileRowMap">
+        -- 사용자 사업자 기본정보를 조회한다.
+        SELECT
+            bp.id AS business_profile_id,
+            bp.business_registration_no,
+            bp.business_name,
+            bp.workplace_region_code,
+            bp.opening_date,
+            bp.ksic_code,
+            bp.business_type_code,
+            bp.company_stage_code,
+            bp.annual_revenue,
+            bp.annual_revenue_year,
+            bp.has_policy_fund_usage,
+            bp.has_guarantee_usage
+        FROM business_profiles bp
+        WHERE bp.user_id = #{userId}
+        ORDER BY bp.updated_at DESC, bp.created_at DESC, bp.id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectFamilyMemberList" resultMap="FamilyMemberRowMap">
+        -- 사용자 가족 기본정보 목록을 조회한다.
+        SELECT
+            fm.id AS family_member_id,
+            fm.relation_type_code,
+            fm.birth_year,
+            fm.has_income,
+            fm.income_presence_code,
+            fm.income_amount
+        FROM family_members fm
+        WHERE fm.user_id = #{userId}
+        ORDER BY
+            CASE fm.relation_type_code
+                WHEN 'SPOUSE' THEN 1
+                WHEN 'CHILD' THEN 2
+                WHEN 'PARENT' THEN 3
+                ELSE 9
+            END ASC,
+            fm.birth_year ASC NULLS LAST,
+            fm.created_at ASC,
+            fm.id ASC
+    </select>
+
+    <insert id="saveMemberProfile">
+        -- 사용자 기본정보를 저장한다.
+        INSERT INTO member_profiles (
+            user_id,
+            birth_year,
+            region_code,
+            has_income,
+            income_presence_code,
+            income_amount,
+            health_insurance_basis_code,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{userId},
+            #{birthYear},
+            #{regionCode},
+            #{hasIncome},
+            #{incomePresenceCode},
+            #{incomeAmount},
+            #{healthInsuranceBasisCode},
+            #{actorUserId},
+            #{actorUserId}
+        )
+        ON CONFLICT (user_id) DO UPDATE SET
+            birth_year = EXCLUDED.birth_year,
+            region_code = EXCLUDED.region_code,
+            has_income = EXCLUDED.has_income,
+            income_presence_code = EXCLUDED.income_presence_code,
+            income_amount = EXCLUDED.income_amount,
+            health_insurance_basis_code = EXCLUDED.health_insurance_basis_code,
+            updated_at = now(),
+            updated_by = EXCLUDED.updated_by
+    </insert>
+
+    <select id="selectBusinessProfileIdByUserId" resultType="java.util.UUID">
+        -- 사용자 사업자 기본정보 식별자를 조회한다.
+        SELECT
+            bp.id
+        FROM business_profiles bp
+        WHERE bp.user_id = #{userId}
+        ORDER BY bp.updated_at DESC, bp.created_at DESC, bp.id ASC
+        LIMIT 1
+    </select>
+
+    <insert id="insertBusinessProfile">
+        -- 사용자 사업자 기본정보를 등록한다.
+        INSERT INTO business_profiles (
+            user_id,
+            business_registration_no,
+            business_name,
+            workplace_region_code,
+            opening_date,
+            ksic_code,
+            business_type_code,
+            company_stage_code,
+            annual_revenue,
+            annual_revenue_year,
+            has_policy_fund_usage,
+            has_guarantee_usage,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{userId},
+            #{businessRegistrationNo},
+            #{businessName},
+            #{workplaceRegionCode},
+            #{openingDate},
+            #{ksicCode},
+            #{businessTypeCode},
+            #{companyStageCode},
+            #{annualRevenue},
+            #{annualRevenueYear},
+            #{hasPolicyFundUsage},
+            #{hasGuaranteeUsage},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateBusinessProfile">
+        -- 사용자 사업자 기본정보를 수정한다.
+        UPDATE business_profiles
+        SET
+            business_registration_no = #{businessRegistrationNo},
+            business_name = #{businessName},
+            workplace_region_code = #{workplaceRegionCode},
+            opening_date = #{openingDate},
+            ksic_code = #{ksicCode},
+            business_type_code = #{businessTypeCode},
+            company_stage_code = #{companyStageCode},
+            annual_revenue = #{annualRevenue},
+            annual_revenue_year = #{annualRevenueYear},
+            has_policy_fund_usage = #{hasPolicyFundUsage},
+            has_guarantee_usage = #{hasGuaranteeUsage},
+            updated_at = now(),
+            updated_by = #{actorUserId}
+        WHERE id = #{businessProfileId}
+          AND user_id = #{userId}
+    </update>
+
+    <delete id="deleteFamilyMemberList">
+        -- 사용자 가족 기본정보 목록을 교체 저장하기 위해 기존 목록을 삭제한다.
+        DELETE FROM family_members
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertFamilyMember">
+        -- 사용자 가족 기본정보를 등록한다.
+        INSERT INTO family_members (
+            id,
+            user_id,
+            relation_type_code,
+            birth_year,
+            has_income,
+            income_presence_code,
+            income_amount,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{familyMemberId},
+            #{userId},
+            #{relationTypeCode},
+            #{birthYear},
+            #{hasIncome},
+            #{incomePresenceCode},
+            #{incomeAmount},
+            #{actorUserId},
+            #{actorUserId}
+        )
+    </insert>
+</mapper>

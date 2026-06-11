@@ -5,10 +5,12 @@
     }
 
     const baseUrl = app.dataset.baseUrl;
+    const progressUrl = app.dataset.progressUrl;
     const announcementLookupUrl = app.dataset.announcementLookupUrl;
     const memberLookupUrl = app.dataset.memberLookupUrl;
     const canOperate = app.dataset.canOperate === "true";
     const createForm = app.querySelector("[data-matching-create-form]");
+    const candidateForm = app.querySelector("[data-matching-candidate-form]");
     const searchForm = app.querySelector("[data-matching-search-form]");
     const list = app.querySelector("[data-matching-list]");
     const message = app.querySelector("[data-matching-message]");
@@ -19,6 +21,15 @@
         REVIEW_REQUIRED: "검토 필요",
         BLOCKED: "차단",
         PROGRESSED: "진행 전환"
+    };
+
+    const targetLabels = {
+        BUSINESS: "사업자",
+        PERSONAL: "개인",
+        SPOUSE: "가족",
+        CHILD: "가족",
+        PARENT: "가족",
+        FAMILY: "가족"
     };
 
     const selectErrorMessage = (payload, fallback) => {
@@ -104,7 +115,7 @@
         const head = document.createElement("div");
         head.className = "matching-case-head";
         const title = document.createElement("strong");
-        title.textContent = item.matchingCaseId || "매칭 ID 없음";
+        title.textContent = item.announcementTitle || item.matchingCaseId || "매칭 ID 없음";
         const status = document.createElement("span");
         status.className = "soft-status";
         status.textContent = statusLabels[item.statusCode] || item.statusCode || "상태 없음";
@@ -113,8 +124,11 @@
         const meta = document.createElement("dl");
         meta.className = "matching-case-meta";
         [
-            ["공고 ID", item.announcementId],
-            ["회원 ID", item.memberUserId],
+            ["기관명", item.agencyName || "기관 미입력"],
+            ["지원 주체", targetLabels[item.targetTypeCode] || item.targetTypeCode || "-"],
+            ["예상 금액", amountRangeText(item.minAmount, item.maxAmount)],
+            ["접수 기간", periodText(item.applicationStartDate, item.applicationEndDate)],
+            ["회원", item.memberName || item.memberLoginId || item.memberUserId],
             ["차단 사유", item.blockedReasonCode || "없음"]
         ].forEach(([label, value]) => {
             const group = document.createElement("div");
@@ -125,6 +139,10 @@
             group.append(dt, dd);
             meta.append(group);
         });
+
+        const ids = document.createElement("p");
+        ids.className = "matching-id-line";
+        ids.textContent = `공고 ID: ${item.announcementId || "-"} · 회원 ID: ${item.memberUserId || "-"} · 매칭 ID: ${item.matchingCaseId || "-"}`;
 
         const resultButton = document.createElement("button");
         resultButton.className = "secondary-action";
@@ -137,8 +155,27 @@
         results.hidden = true;
         results.dataset.matchingResults = "true";
 
-        card.append(head, meta);
+        card.append(head, meta, ids);
         if (canOperate) {
+            const operateActions = document.createElement("div");
+            operateActions.className = "matching-operate-actions";
+            if (item.progressCreated || item.statusCode === "PROGRESSED") {
+                const progressed = document.createElement("span");
+                progressed.className = "passive-action";
+                progressed.textContent = "진행 생성됨";
+                operateActions.append(progressed);
+            } else if (item.statusCode === "MATCHED") {
+                const startButton = document.createElement("button");
+                startButton.className = "primary-action button-action";
+                startButton.type = "button";
+                startButton.dataset.progressStartButton = "true";
+                startButton.textContent = "이 공고로 진행 시작";
+                operateActions.append(startButton);
+            }
+            if (operateActions.childElementCount > 0) {
+                card.append(operateActions);
+            }
+
             const form = document.createElement("form");
             form.className = "matching-status-form";
             form.dataset.matchingStatusForm = "true";
@@ -166,6 +203,23 @@
         }
         card.append(resultButton, results);
         return card;
+    };
+
+    const amountRangeText = (minAmount, maxAmount) => {
+        if (minAmount == null && maxAmount == null) {
+            return "금액 미입력";
+        }
+        const formatter = new Intl.NumberFormat("ko-KR");
+        const minText = minAmount == null ? "하한 없음" : `${formatter.format(Number(minAmount))}원`;
+        const maxText = maxAmount == null ? "상한 없음" : `${formatter.format(Number(maxAmount))}원`;
+        return `${minText} ~ ${maxText}`;
+    };
+
+    const periodText = (startDate, endDate) => {
+        if (!startDate && !endDate) {
+            return "기간 미입력";
+        }
+        return `${startDate || "시작일 미입력"} ~ ${endDate || "마감일 미입력"}`;
     };
 
     const renderList = (items) => {
@@ -338,6 +392,31 @@
         });
     }
 
+    if (candidateForm) {
+        candidateForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = app.querySelector("[data-matching-candidate-submit]");
+            try {
+                setBusy(button, true, "생성 중");
+                const memberUserId = validateUuidText(valueOf(candidateForm, "memberUserId"), "회원 ID");
+                const data = await requestJson(`${baseUrl}/candidates`, {
+                    method: "POST",
+                    body: JSON.stringify({ memberUserId })
+                });
+                const searchMemberField = searchForm.querySelector("[name='memberUserId']");
+                if (searchMemberField) {
+                    searchMemberField.value = memberUserId;
+                }
+                renderList(data ? data.candidates : []);
+                setMessage(`조건 매칭 후보 ${data.createdCount || 0}건을 생성했습니다.`, "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            } finally {
+                setBusy(button, false);
+            }
+        });
+    }
+
     searchForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         try {
@@ -408,8 +487,42 @@
             if (field) {
                 field.value = value;
             }
+            if (type === "member") {
+                const candidateField = candidateForm ? candidateForm.querySelector("[name='memberUserId']") : null;
+                const searchField = searchForm.querySelector("[name='memberUserId']");
+                if (candidateField) {
+                    candidateField.value = value;
+                }
+                if (searchField) {
+                    searchField.value = value;
+                }
+            }
             closeLookupModal(lookupSelect.closest("[data-lookup-modal]"));
             setMessage(type === "announcement" ? "공고 ID를 선택했습니다." : "회원 ID를 선택했습니다.", "success");
+            return;
+        }
+
+        const startButton = event.target.closest("[data-progress-start-button]");
+        if (startButton) {
+            const card = startButton.closest("[data-matching-case-id]");
+            const matchingCaseId = card ? card.dataset.matchingCaseId : "";
+            if (!matchingCaseId) {
+                setMessage("매칭 케이스 ID를 확인할 수 없습니다.", "error");
+                return;
+            }
+            try {
+                setBusy(startButton, true, "생성 중");
+                await requestJson(progressUrl, {
+                    method: "POST",
+                    body: JSON.stringify({ matchingCaseId })
+                });
+                await loadMatchingList();
+                setMessage("신청 진행건이 생성되었습니다.", "success");
+            } catch (error) {
+                setMessage(error.message, "error");
+            } finally {
+                setBusy(startButton, false);
+            }
             return;
         }
 
