@@ -77,6 +77,14 @@
           AND u.status_code = 'ACTIVE'
     </select>
 
+    <select id="selectUserCountByUserId" resultType="int">
+        -- 관리자 기본정보 입력 대상 회원 존재 여부를 조회한다.
+        SELECT
+            count(1)
+        FROM users u
+        WHERE u.id = #{userId}
+    </select>
+
     <select id="selectMemberProfileDetails" resultMap="MemberProfileRowMap">
         -- 사용자 기본정보를 조회한다.
         SELECT

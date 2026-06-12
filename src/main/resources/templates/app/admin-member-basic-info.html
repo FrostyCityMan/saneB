@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('고객 정보 입력', ~{::main})}">
+<main class="admin-member-basic-page"
+      data-admin-member-basic-info-app
+      th:data-base-url="@{/api/v1/admin/member-basic-info}">
+    <section class="admin-member-basic-shell" aria-label="고객 정보 입력">
+        <section class="summary-panel admin-member-basic-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">고객 정보 입력</div>
+                    <p>회원이 전달한 기본정보와 서류별 선택 값을 관리자가 대신 입력합니다.</p>
+                </div>
+                <span class="soft-status">관리자 전용</span>
+            </div>
+            <div class="top-summary-grid admin-member-basic-summary-grid">
+                <article class="top-summary-card">
+                    <span>조회 결과</span>
+                    <strong>
+                        <span th:text="${page.users.totalCount}">0</span>
+                        명
+                    </strong>
+                    <small>현재 조건 기준</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>입력 방식</span>
+                    <strong>회원 선택 후 저장</strong>
+                    <small>대상 회원의 데이터로 저장됩니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>서류 값</span>
+                    <strong>선택 입력</strong>
+                    <small>필요한 서류만 추가합니다.</small>
+                </article>
+            </div>
+        </section>
+
+        <section class="plain-panel admin-member-basic-filter-panel">
+            <form class="admin-users-filter" method="get" th:action="@{/app/admin/member-basic-info}" aria-label="회원 검색">
+                <div class="field-block">
+                    <label for="memberBasicKeyword">검색어</label>
+                    <input id="memberBasicKeyword" name="keyword" type="search"
+                           placeholder="아이디, 이름, 휴대폰, 이메일"
+                           th:value="${page.keyword}">
+                </div>
+                <div class="field-block">
+                    <label for="memberBasicStatusCode">계정 상태</label>
+                    <select id="memberBasicStatusCode" name="statusCode">
+                        <option value="" th:selected="${page.statusCode == ''}">전체 상태</option>
+                        <option th:each="status : ${page.statusOptions}"
+                                th:value="${status.statusCode}"
+                                th:text="${status.label}"
+                                th:selected="${page.statusCode == status.statusCode}">
+                            사용 가능
+                        </option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="memberBasicRoleCode">권한</label>
+                    <select id="memberBasicRoleCode" name="roleCode">
+                        <option value="" th:selected="${page.roleCode == ''}">전체 권한</option>
+                        <option th:each="role : ${page.roles}"
+                                th:value="${role.roleCode}"
+                                th:text="${role.roleName}"
+                                th:selected="${page.roleCode == role.roleCode}">
+                            사용자
+                        </option>
+                    </select>
+                </div>
+                <input type="hidden" name="page" value="1">
+                <input type="hidden" name="size" th:value="${page.size}">
+                <div class="admin-users-filter-actions">
+                    <button class="primary-action button-action" type="submit">조회</button>
+                    <a class="secondary-action" th:href="@{/app/admin/member-basic-info}">초기화</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-member-basic-workspace" aria-label="회원별 기본정보 입력">
+            <aside class="plain-panel admin-member-basic-list-panel">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">회원 선택</span>
+                        <h2>입력 대상 회원</h2>
+                    </div>
+                </div>
+                <div class="admin-member-basic-list" th:if="${not #lists.isEmpty(page.users.items)}">
+                    <article class="admin-member-basic-user"
+                             th:each="user : ${page.users.items}"
+                             th:data-user-id="${user.userId}">
+                        <div class="admin-member-basic-user-main">
+                            <strong th:text="${user.name}">홍길동</strong>
+                            <span th:text="${user.loginId}">user01</span>
+                        </div>
+                        <dl class="admin-member-basic-user-meta">
+                            <div>
+                                <dt>휴대폰</dt>
+                                <dd th:text="${user.phone != null ? user.phone : '미입력'}">미입력</dd>
+                            </div>
+                            <div>
+                                <dt>상태</dt>
+                                <dd th:text="${user.statusCode}">ACTIVE</dd>
+                            </div>
+                        </dl>
+                        <button class="secondary-action"
+                                type="button"
+                                data-member-select
+                                th:data-user-id="${user.userId}"
+                                th:data-user-name="${user.name}"
+                                th:data-login-id="${user.loginId}">
+                            입력하기
+                        </button>
+                    </article>
+                </div>
+                <div class="admin-users-empty" th:if="${#lists.isEmpty(page.users.items)}">
+                    <strong>조회된 회원이 없습니다.</strong>
+                    <p>검색어나 필터 조건을 조정해 다시 조회하세요.</p>
+                </div>
+                <nav class="admin-users-pagination" aria-label="회원 목록 페이지 이동"
+                     th:if="${page.users.totalPages > 1}">
+                    <a class="secondary-action"
+                       th:classappend="${page.users.page <= 1} ? ' disabled' : ''"
+                       th:href="@{/app/admin/member-basic-info(keyword=${page.keyword},statusCode=${page.statusCode},roleCode=${page.roleCode},page=${page.previousPage},size=${page.size})}">
+                        이전
+                    </a>
+                    <span>
+                        <span th:text="${page.users.page}">1</span>
+                        /
+                        <span th:text="${page.users.totalPages}">1</span>
+                    </span>
+                    <a class="secondary-action"
+                       th:classappend="${page.users.page >= page.users.totalPages} ? ' disabled' : ''"
+                       th:href="@{/app/admin/member-basic-info(keyword=${page.keyword},statusCode=${page.statusCode},roleCode=${page.roleCode},page=${page.nextPage},size=${page.size})}">
+                        다음
+                    </a>
+                </nav>
+            </aside>
+
+            <section class="plain-panel admin-member-basic-placeholder" data-admin-member-placeholder>
+                <span class="eyebrow">대기 중</span>
+                <h2>회원을 선택하세요</h2>
+                <p>왼쪽 목록에서 회원을 선택하면 기본정보와 서류별 선택 입력란이 표시됩니다.</p>
+            </section>
+
+            <form class="plain-panel basic-info-form admin-member-basic-form" data-basic-info-form hidden novalidate>
+                <div class="admin-member-basic-selected">
+                    <div>
+                        <span class="eyebrow">선택 회원</span>
+                        <strong data-selected-member-name>회원명</strong>
+                        <small data-selected-member-login>아이디</small>
+                    </div>
+                    <span class="soft-status">대상 회원 데이터로 저장</span>
+                </div>
+
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">개인</span>
+                        <h2>개인 기본정보</h2>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="field-block">
+                        <label for="adminBasicBirthYear">출생연도</label>
+                        <input id="adminBasicBirthYear" name="birthYear" type="number" min="1900" max="2200" placeholder="예: 1988">
+                    </div>
+                    <div class="field-block">
+                        <label for="adminBasicRegionCode">거주 지역</label>
+                        <select id="adminBasicRegionCode" name="regionCode">
+                            <option value="">선택 안 함</option>
+                            <option value="SEOUL">서울</option>
+                            <option value="BUSAN">부산</option>
+                            <option value="DAEGU">대구</option>
+                            <option value="INCHEON">인천</option>
+                            <option value="GWANGJU">광주</option>
+                            <option value="DAEJEON">대전</option>
+                            <option value="ULSAN">울산</option>
+                            <option value="SEJONG">세종</option>
+                            <option value="GYEONGGI">경기</option>
+                            <option value="GANGWON">강원</option>
+                            <option value="CHUNGBUK">충북</option>
+                            <option value="CHUNGNAM">충남</option>
+                            <option value="JEONBUK">전북</option>
+                            <option value="JEONNAM">전남</option>
+                            <option value="GYEONGBUK">경북</option>
+                            <option value="GYEONGNAM">경남</option>
+                            <option value="JEJU">제주</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="adminBasicIncomePresenceCode">소득 여부</label>
+                        <select id="adminBasicIncomePresenceCode" name="incomePresenceCode">
+                            <option value="">선택 안 함</option>
+                            <option value="UNKNOWN">잘 모름</option>
+                            <option value="NONE">소득 없음</option>
+                            <option value="HAS_INCOME">소득 있음</option>
+                        </select>
+                    </div>
+                    <div class="field-block">
+                        <label for="adminBasicIncomeAmount">연 소득 금액</label>
+                        <input id="adminBasicIncomeAmount" name="incomeAmount" type="number" min="0" step="10000" placeholder="예: 30000000">
+                        <small>확실하지 않으면 비워 둘 수 있습니다.</small>
+                    </div>
+                    <div class="field-block span-2">
+                        <label for="adminBasicHealthInsuranceBasisCode">건강보험 자격</label>
+                        <select id="adminBasicHealthInsuranceBasisCode" name="healthInsuranceBasisCode">
+                            <option value="">선택 안 함</option>
+                            <option value="WORKPLACE">직장가입자</option>
+                            <option value="LOCAL">지역가입자</option>
+                            <option value="DEPENDENT">피부양자</option>
+                            <option value="UNKNOWN">잘 모름</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="option-section">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">사업자</span>
+                            <h2>사업자 기본정보</h2>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-block">
+                            <label for="adminBasicBusinessRegistrationNo">사업자등록번호</label>
+                            <input id="adminBasicBusinessRegistrationNo" name="businessRegistrationNo" type="text" maxlength="30" placeholder="예: 123-45-67890">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicBusinessName">상호명</label>
+                            <input id="adminBasicBusinessName" name="businessName" type="text" maxlength="200" placeholder="예: 사내비상점">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicWorkplaceRegionCode">사업장 지역</label>
+                            <select id="adminBasicWorkplaceRegionCode" name="workplaceRegionCode">
+                                <option value="">선택 안 함</option>
+                                <option value="SEOUL">서울</option>
+                                <option value="BUSAN">부산</option>
+                                <option value="DAEGU">대구</option>
+                                <option value="INCHEON">인천</option>
+                                <option value="GWANGJU">광주</option>
+                                <option value="DAEJEON">대전</option>
+                                <option value="ULSAN">울산</option>
+                                <option value="SEJONG">세종</option>
+                                <option value="GYEONGGI">경기</option>
+                                <option value="GANGWON">강원</option>
+                                <option value="CHUNGBUK">충북</option>
+                                <option value="CHUNGNAM">충남</option>
+                                <option value="JEONBUK">전북</option>
+                                <option value="JEONNAM">전남</option>
+                                <option value="GYEONGBUK">경북</option>
+                                <option value="GYEONGNAM">경남</option>
+                                <option value="JEJU">제주</option>
+                            </select>
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicOpeningDate">개업일</label>
+                            <input id="adminBasicOpeningDate" name="openingDate" type="date">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicAnnualRevenue">연매출</label>
+                            <input id="adminBasicAnnualRevenue" name="annualRevenue" type="number" min="0" step="10000" placeholder="예: 120000000">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicAnnualRevenueYear">연매출 기준연도</label>
+                            <input id="adminBasicAnnualRevenueYear" name="annualRevenueYear" type="number" min="1900" max="2200" placeholder="예: 2025">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicBusinessTypeCode">사업자 유형</label>
+                            <select id="adminBasicBusinessTypeCode" name="businessTypeCode">
+                                <option value="">선택 안 함</option>
+                                <option value="SOLE_PROPRIETOR">개인사업자</option>
+                                <option value="CORPORATION">법인사업자</option>
+                                <option value="SIMPLIFIED_TAXPAYER">간이과세자</option>
+                                <option value="GENERAL_TAXPAYER">일반과세자</option>
+                                <option value="TAX_EXEMPT">면세사업자</option>
+                            </select>
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicCompanyStageCode">사업 상태</label>
+                            <select id="adminBasicCompanyStageCode" name="companyStageCode">
+                                <option value="">선택 안 함</option>
+                                <option value="PRE_STARTUP">창업 전</option>
+                                <option value="EARLY_STARTUP">초기 창업</option>
+                                <option value="OPERATING">운영 중</option>
+                                <option value="SUSPENDED">휴업</option>
+                                <option value="CLOSURE_PLANNED">폐업 예정</option>
+                                <option value="CLOSED">폐업</option>
+                                <option value="RESTART_PREPARING">재창업 준비</option>
+                            </select>
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicKsicCode">업종 코드</label>
+                            <input id="adminBasicKsicCode" name="ksicCode" type="text" maxlength="30" placeholder="알고 있는 경우만 입력">
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicPolicyFundUsage">정책자금 이용 여부</label>
+                            <select id="adminBasicPolicyFundUsage" name="hasPolicyFundUsage">
+                                <option value="">선택 안 함</option>
+                                <option value="false">이용 이력 없음</option>
+                                <option value="true">이용 이력 있음</option>
+                            </select>
+                        </div>
+                        <div class="field-block">
+                            <label for="adminBasicGuaranteeUsage">보증 이용 여부</label>
+                            <select id="adminBasicGuaranteeUsage" name="hasGuaranteeUsage">
+                                <option value="">선택 안 함</option>
+                                <option value="false">이용 이력 없음</option>
+                                <option value="true">이용 이력 있음</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-section">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">가족</span>
+                            <h2>가족 기본정보</h2>
+                        </div>
+                        <button class="secondary-action" type="button" data-family-add>가족 추가</button>
+                    </div>
+                    <p class="field-help">배우자, 자녀, 부모 1단계 범위만 입력합니다. 소득 값은 모르면 비워 둘 수 있습니다.</p>
+                    <div class="family-list" data-family-list></div>
+                </div>
+
+                <div class="option-section">
+                    <div class="panel-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">서류</span>
+                            <h2>서류별 선택 입력</h2>
+                        </div>
+                    </div>
+                    <p class="field-help">사용자가 전달한 증빙자료를 보고 필요한 값만 입력합니다. 모든 서류 값은 선택 입력입니다.</p>
+                    <div class="document-input-toolbar">
+                        <select data-document-type-select aria-label="추가할 서류 선택">
+                            <option value="">서류 선택</option>
+                        </select>
+                        <button class="secondary-action" type="button" data-document-add>서류 추가</button>
+                    </div>
+                    <div class="member-document-list" data-document-list></div>
+                </div>
+
+                <div class="basic-info-message" data-basic-info-message role="status"></div>
+                <div class="form-actions">
+                    <button class="primary-action button-action" type="submit" data-basic-info-submit>고객 정보 저장</button>
+                </div>
+            </form>
+        </section>
+    </section>
+    <script th:src="@{/js/saneb-member-basic-info.js}"></script>
+</main>
+</html>

@@ -279,6 +279,25 @@ AuthMeResponse 필드 계약:
 - 현재 로그인한 관리자는 자기 계정의 `ADMIN` 권한을 제거할 수 없다.
 - 변경 이력은 `audit_logs`에 비식별 metadata로 기록한다.
 
+## 4.2 Admin Member Basic Info API
+
+관리자가 회원을 조회한 뒤 해당 회원의 기본정보와 서류별 선택 입력값을 대신 저장하는 계약이다. DB는 기존 `member_profiles`, `business_profiles`, `family_members`, `member_document_input_values`를 사용한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 회원 기본정보·서류별 입력값 통합 조회 |
+| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 회원 기본정보·서류별 입력값 통합 저장 |
+
+요청/응답 구조는 `/api/v1/member/basic-info`와 동일하다.
+
+정책:
+
+- `ADMIN`만 접근할 수 있다.
+- `userId`는 저장 대상 회원이다.
+- 저장 시 `member_document_input_values.user_id`에는 대상 회원 ID를 저장하고, `submitted_by`에는 저장한 관리자 ID를 기록한다.
+- 서류 기반 값은 모두 선택 입력이다. 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공하고 저장 자체를 막지 않는다.
+- 운영 secret, 외부 API key, 개인정보 원문을 감사 로그 metadata에 저장하지 않는다.
+
 ## 5. Member / Business / Family API
 
 | Method | Path | 권한 | 설명 |
@@ -293,6 +312,8 @@ AuthMeResponse 필드 계약:
 | `DELETE` | `/api/v1/members/me/family-members/{familyMemberId}` | `USER` | 가족 구성원 삭제 |
 | `GET` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 조회 |
 | `PUT` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 저장 |
+| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 관리자용 회원 기본정보 통합 조회 |
+| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 관리자용 회원 기본정보 통합 저장 |
 
 `/api/v1/member/basic-info`는 사용자 첫 행동 화면에서 사용하는 통합 계약이다. 기존 `/api/v1/members/me/...` 세분화 계약은 v1 문서상 유지하지만, 현재 화면 구현은 통합 계약을 사용한다. 서류 기반 세부 값은 선택 입력이며, 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공한다.
 

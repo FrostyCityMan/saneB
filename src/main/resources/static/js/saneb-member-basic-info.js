@@ -1,10 +1,12 @@
 (() => {
-    const app = document.querySelector("[data-member-basic-info-app]");
+    const app = document.querySelector("[data-member-basic-info-app], [data-admin-member-basic-info-app]");
     if (!app) {
         return;
     }
 
-    const apiUrl = app.dataset.basicInfoUrl;
+    const isAdminApp = app.hasAttribute("data-admin-member-basic-info-app");
+    const apiUrl = app.dataset.basicInfoUrl || "";
+    const adminBaseUrl = app.dataset.baseUrl || "";
     const form = app.querySelector("[data-basic-info-form]");
     const familyList = app.querySelector("[data-family-list]");
     const addFamilyButton = app.querySelector("[data-family-add]");
@@ -13,6 +15,9 @@
     const documentList = app.querySelector("[data-document-list]");
     const submitButton = app.querySelector("[data-basic-info-submit]");
     const message = app.querySelector("[data-basic-info-message]");
+    const placeholder = app.querySelector("[data-admin-member-placeholder]");
+    const selectedMemberName = app.querySelector("[data-selected-member-name]");
+    const selectedMemberLogin = app.querySelector("[data-selected-member-login]");
 
     const regionOptions = [
         ["SEOUL", "서울"],
@@ -62,6 +67,14 @@
 
     let documentCatalog = [];
     let selectedDocumentTypes = new Set();
+    let selectedUserId = null;
+
+    const selectApiUrl = () => {
+        if (!isAdminApp) {
+            return apiUrl;
+        }
+        return selectedUserId ? `${adminBaseUrl}/${encodeURIComponent(selectedUserId)}` : "";
+    };
 
     const selectErrorMessage = (payload, fallback) => {
         const fieldErrors = payload && payload.data && Array.isArray(payload.data.fieldErrors)
@@ -502,13 +515,42 @@
     };
 
     const load = async () => {
+        const currentApiUrl = selectApiUrl();
+        if (!currentApiUrl) {
+            return;
+        }
         try {
-            const data = await requestJson(apiUrl);
+            const data = await requestJson(currentApiUrl);
             renderResponse(data);
-            setMessage("저장된 기본정보를 불러왔습니다.", "success");
+            setMessage(isAdminApp ? "선택한 회원의 정보를 불러왔습니다." : "저장된 기본정보를 불러왔습니다.", "success");
         } catch (error) {
             setMessage(error.message || "기본정보를 불러오지 못했습니다.", "error");
         }
+    };
+
+    const selectMember = async (button) => {
+        selectedUserId = button.dataset.userId || null;
+        if (!selectedUserId) {
+            setMessage("입력할 회원을 다시 선택하세요.", "error");
+            return;
+        }
+        app.querySelectorAll("[data-member-select]").forEach((candidate) => {
+            candidate.classList.toggle("is-selected", candidate === button);
+        });
+        if (selectedMemberName) {
+            selectedMemberName.textContent = button.dataset.userName || "회원명 미입력";
+        }
+        if (selectedMemberLogin) {
+            selectedMemberLogin.textContent = button.dataset.loginId || "아이디 미입력";
+        }
+        if (form) {
+            form.hidden = false;
+        }
+        if (placeholder) {
+            placeholder.hidden = true;
+        }
+        setMessage("");
+        await load();
     };
 
     addFamilyButton?.addEventListener("click", () => {
@@ -550,15 +592,25 @@
 
     form?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const currentApiUrl = selectApiUrl();
+        if (!currentApiUrl) {
+            setMessage("먼저 입력할 회원을 선택하세요.", "error");
+            return;
+        }
         setBusy(true);
         setMessage("");
         try {
-            const data = await requestJson(apiUrl, {
+            const data = await requestJson(currentApiUrl, {
                 method: "PUT",
                 body: JSON.stringify(buildPayload())
             });
             renderResponse(data);
-            setMessage("기본정보를 저장했습니다. 대시보드에서 진행 가능 현황을 확인할 수 있습니다.", "success");
+            setMessage(
+                isAdminApp
+                    ? "고객 정보를 저장했습니다. 저장된 값은 매칭 후보 생성과 입증 확인에 사용됩니다."
+                    : "기본정보를 저장했습니다. 대시보드에서 진행 가능 현황을 확인할 수 있습니다.",
+                "success"
+            );
         } catch (error) {
             setMessage(error.message || "기본정보 저장에 실패했습니다.", "error");
         } finally {
@@ -566,5 +618,13 @@
         }
     });
 
-    load();
+    app.querySelectorAll("[data-member-select]").forEach((button) => {
+        button.addEventListener("click", () => {
+            selectMember(button);
+        });
+    });
+
+    if (!isAdminApp) {
+        load();
+    }
 })();

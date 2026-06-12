@@ -55,6 +55,15 @@
                 <span>회원관리</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/member-basic-info}"
+               th:classappend="${page.activeNav == 'ADMIN_MEMBER_BASIC_INFO'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8 4.6h8l3 3v11.8H5V4.6h3Z"/><path d="M15.6 4.8v3.4h3.2"/><path d="M8.2 12h7.6M8.2 15.4h4.4"/><path d="M8.2 9h3.8"/></svg>
+                </span>
+                <span>고객 정보 입력</span>
+            </a>
+            <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/announcements/input}"
                th:classappend="${page.activeNav == 'ANNOUNCEMENT_INPUT'} ? ' active' : ''">

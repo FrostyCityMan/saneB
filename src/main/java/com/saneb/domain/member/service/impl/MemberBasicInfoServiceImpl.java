@@ -87,6 +87,29 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
     @Transactional
     public MemberBasicInfoResponse saveMyBasicInfo(Authentication authentication, MemberBasicInfoSaveRequest request) {
         UUID userId = selectCurrentUserId(authentication);
+        return saveBasicInfo(userId, userId, request);
+    }
+
+    @Override
+    public MemberBasicInfoResponse selectMemberBasicInfo(Authentication authentication, UUID userId) {
+        selectCurrentUserId(authentication);
+        validateUserExists(userId);
+        return selectBasicInfoResponse(userId);
+    }
+
+    @Override
+    @Transactional
+    public MemberBasicInfoResponse saveMemberBasicInfo(
+            Authentication authentication,
+            UUID userId,
+            MemberBasicInfoSaveRequest request
+    ) {
+        UUID actorUserId = selectCurrentUserId(authentication);
+        validateUserExists(userId);
+        return saveBasicInfo(userId, actorUserId, request);
+    }
+
+    private MemberBasicInfoResponse saveBasicInfo(UUID userId, UUID actorUserId, MemberBasicInfoSaveRequest request) {
         validateBirthYear(request.birthYear(), "출생연도");
         String incomePresenceCode = normalizeCode(request.incomePresenceCode());
         validateOptionalCode(incomePresenceCode, INCOME_PRESENCE_CODES, "소득 여부");
@@ -99,10 +122,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 incomePresenceCode,
                 request.incomeAmount(),
                 normalizeCode(request.healthInsuranceBasisCode()),
-                userId
+                actorUserId
         ));
 
-        BusinessProfileCommand businessCommand = selectBusinessProfileCommand(userId, request.business());
+        BusinessProfileCommand businessCommand = selectBusinessProfileCommand(userId, actorUserId, request.business());
         if (businessCommand != null) {
             UUID businessProfileId = memberBasicInfoDao.selectBusinessProfileIdByUserId(userId);
             if (businessProfileId == null) {
@@ -129,12 +152,12 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
 
         memberBasicInfoDao.deleteFamilyMemberList(userId);
         for (MemberBasicInfoSaveRequest.FamilyInfoRequest family : safeFamilies(request.families())) {
-            FamilyMemberCommand command = selectFamilyMemberCommand(userId, family);
+            FamilyMemberCommand command = selectFamilyMemberCommand(userId, actorUserId, family);
             memberBasicInfoDao.insertFamilyMember(command);
         }
 
         if (request.documentInputs() != null) {
-            saveDocumentInputValues(userId, request.documentInputs());
+            saveDocumentInputValues(userId, actorUserId, request.documentInputs());
         }
 
         return selectBasicInfoResponse(userId);
@@ -242,7 +265,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 || field.valueBoolean() != null;
     }
 
-    private void saveDocumentInputValues(UUID userId, List<DocumentInputSaveRequest> documents) {
+    private void saveDocumentInputValues(UUID userId, UUID actorUserId, List<DocumentInputSaveRequest> documents) {
         List<MemberDocumentFieldRow> fields = memberBasicInfoDao.selectMemberDocumentFieldList();
         Map<UUID, MemberDocumentFieldRow> fieldById = new HashMap<>();
         Map<String, Set<UUID>> fieldIdsByDocument = new HashMap<>();
@@ -287,13 +310,14 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 if (!savedFieldIds.add(value.standardFieldId())) {
                     throw validationFailed("같은 서류 항목은 한 번만 입력하세요.");
                 }
-                memberBasicInfoDao.insertMemberDocumentInputValue(selectDocumentValueCommand(userId, field, value));
+                memberBasicInfoDao.insertMemberDocumentInputValue(selectDocumentValueCommand(userId, actorUserId, field, value));
             }
         }
     }
 
     private MemberDocumentInputValueCommand selectDocumentValueCommand(
             UUID userId,
+            UUID actorUserId,
             MemberDocumentFieldRow field,
             DocumentFieldValueRequest value
     ) {
@@ -304,25 +328,25 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             if (valueText == null) {
                 throw validationFailed(field.fieldLabel() + "은 문자 값으로 입력하세요.");
             }
-            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), valueText, null, null, null, userId);
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), valueText, null, null, null, actorUserId);
         }
         if ("NUMBER".equals(fieldTypeCode) || "AMOUNT".equals(fieldTypeCode)) {
             if (value.valueNumber() == null) {
                 throw validationFailed(field.fieldLabel() + "은 숫자 또는 금액으로 입력하세요.");
             }
-            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, value.valueNumber(), null, null, userId);
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, value.valueNumber(), null, null, actorUserId);
         }
         if ("DATE".equals(fieldTypeCode)) {
             if (value.valueDate() == null) {
                 throw validationFailed(field.fieldLabel() + "은 날짜로 입력하세요.");
             }
-            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, value.valueDate(), null, userId);
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, value.valueDate(), null, actorUserId);
         }
         if ("BOOLEAN".equals(fieldTypeCode)) {
             if (value.valueBoolean() == null) {
                 throw validationFailed(field.fieldLabel() + "은 예 또는 아니오로 선택하세요.");
             }
-            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, null, value.valueBoolean(), userId);
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, null, value.valueBoolean(), actorUserId);
         }
         throw validationFailed(field.fieldLabel() + "의 입력 유형을 확인하세요.");
     }
@@ -368,6 +392,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
 
     private BusinessProfileCommand selectBusinessProfileCommand(
             UUID userId,
+            UUID actorUserId,
             MemberBasicInfoSaveRequest.BusinessInfoRequest business
     ) {
         if (business == null || isEmptyBusiness(business)) {
@@ -399,12 +424,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 business.annualRevenueYear(),
                 business.hasPolicyFundUsage(),
                 business.hasGuaranteeUsage(),
-                userId
+                actorUserId
         );
     }
 
     private FamilyMemberCommand selectFamilyMemberCommand(
             UUID userId,
+            UUID actorUserId,
             MemberBasicInfoSaveRequest.FamilyInfoRequest family
     ) {
         String relationTypeCode = normalizeCode(family.relationTypeCode());
@@ -420,7 +446,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 normalizeIncomeFlag(family.hasIncome(), incomePresenceCode),
                 incomePresenceCode,
                 family.incomeAmount(),
-                userId
+                actorUserId
         );
     }
 
@@ -479,6 +505,12 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
     private void validateOptionalCode(String value, Set<String> allowedValues, String label) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(label + " 값이 올바르지 않습니다.");
+        }
+    }
+
+    private void validateUserExists(UUID userId) {
+        if (userId == null || memberBasicInfoDao.selectUserCountByUserId(userId) < 1) {
+            throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
         }
     }
 

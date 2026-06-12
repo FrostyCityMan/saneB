@@ -19,6 +19,8 @@ public interface MemberBasicInfoDao {
 
     UUID selectUserIdByLoginId(@Param("loginId") String loginId);
 
+    int selectUserCountByUserId(@Param("userId") UUID userId);
+
     MemberProfileRow selectMemberProfileDetails(@Param("userId") UUID userId);
 
     BusinessProfileRow selectBusinessProfileDetails(@Param("userId") UUID userId);
