@@ -14,7 +14,8 @@ public record MemberBasicInfoResponse(
         BigDecimal incomeAmount,
         String healthInsuranceBasisCode,
         BusinessInfoResponse business,
-        List<FamilyInfoResponse> families
+        List<FamilyInfoResponse> families,
+        List<DocumentInputResponse> documentInputs
 ) {
 
     public record BusinessInfoResponse(
@@ -39,6 +40,30 @@ public record MemberBasicInfoResponse(
             Boolean hasIncome,
             String incomePresenceCode,
             BigDecimal incomeAmount
+    ) {
+    }
+
+    public record DocumentInputResponse(
+            String documentTypeCode,
+            String documentTypeLabel,
+            boolean selected,
+            List<DocumentFieldInputResponse> fields
+    ) {
+    }
+
+    public record DocumentFieldInputResponse(
+            UUID standardFieldId,
+            String fieldKey,
+            String fieldLabel,
+            String fieldTypeCode,
+            String scopeCode,
+            boolean required,
+            int sortOrder,
+            String helpText,
+            String valueText,
+            BigDecimal valueNumber,
+            LocalDate valueDate,
+            Boolean valueBoolean
     ) {
     }
 }

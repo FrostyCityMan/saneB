@@ -52,7 +52,9 @@ class MemberBasicInfoControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.data.business.businessName").value("사내비상점"))
-                .andExpect(jsonPath("$.data.families[0].relationTypeCode").value("CHILD"));
+                .andExpect(jsonPath("$.data.families[0].relationTypeCode").value("CHILD"))
+                .andExpect(jsonPath("$.data.documentInputs[0].documentTypeLabel").value("사업자등록증"))
+                .andExpect(jsonPath("$.data.documentInputs[0].fields[0].fieldLabel").value("사업장 주소"));
     }
 
     @Test
@@ -85,12 +87,24 @@ class MemberBasicInfoControllerSmokeTest {
                                       "birthYear": 2018,
                                       "incomePresenceCode": "NONE"
                                     }
+                                  ],
+                                  "documentInputs": [
+                                    {
+                                      "documentTypeCode": "BUSINESS_REGISTRATION",
+                                      "fields": [
+                                        {
+                                          "standardFieldId": "10000000-0000-0000-0000-000000000010",
+                                          "valueText": "서울특별시 중구"
+                                        }
+                                      ]
+                                    }
                                   ]
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.incomePresenceCode").value("HAS_INCOME"));
+                .andExpect(jsonPath("$.data.incomePresenceCode").value("HAS_INCOME"))
+                .andExpect(jsonPath("$.data.documentInputs[0].selected").value(true));
     }
 
     @Test
@@ -129,6 +143,25 @@ class MemberBasicInfoControllerSmokeTest {
                         false,
                         "NONE",
                         null
+                )),
+                List.of(new MemberBasicInfoResponse.DocumentInputResponse(
+                        "BUSINESS_REGISTRATION",
+                        "사업자등록증",
+                        true,
+                        List.of(new MemberBasicInfoResponse.DocumentFieldInputResponse(
+                                UUID.fromString("10000000-0000-0000-0000-000000000010"),
+                                "WORKPLACE_ADDRESS",
+                                "사업장 주소",
+                                "TEXT",
+                                "BUSINESS",
+                                false,
+                                45,
+                                "사업자등록증에 표시된 사업장 주소입니다.",
+                                "서울특별시 중구",
+                                null,
+                                null,
+                                null
+                        ))
                 ))
         );
     }

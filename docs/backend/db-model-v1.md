@@ -98,8 +98,10 @@ Scaffold 상태:
 | `member_profiles` | `user_id`, `birth_year`, `address`, `region_code`, `is_householder`, `is_household_member`, `health_insurance_basis_code`, `has_income`, `income_presence_code`, `income_amount`, `income_period_code`, `income_note` | PK `id`, FK `users.id` | UQ `user_id`, IDX `region_code`, IDX `income_presence_code` |
 | `business_profiles` | `user_id`, `representative_name`, `business_registration_no`, `business_name`, `workplace_address`, `workplace_region_code`, `opening_date`, `industry_name`, `business_category`, `business_item`, `ksic_code`, `business_type_code`, `company_stage_code`, `annual_revenue`, `annual_revenue_year`, `has_policy_fund_usage`, `has_guarantee_usage` | PK `id`, FK `users.id` | UQ `business_registration_no`, IDX `user_id`, IDX `ksic_code`, IDX `workplace_region_code`, IDX `annual_revenue` |
 | `family_members` | `user_id`, `relation_type_code`, `birth_year`, `address`, `school_age_status_code`, `enrollment_status_code`, `is_cohabiting`, `is_supported`, `has_income`, `income_presence_code`, `income_amount`, `income_period_code`, `income_note` | PK `id`, FK `users.id` | IDX `(user_id, relation_type_code)`, IDX `(user_id, relation_type_code, income_presence_code)` |
+| `member_document_input_values` | `user_id`, `standard_field_id`, `value_text`, `value_number`, `value_date`, `value_boolean`, `submitted_by`, `submitted_at` | PK `id`, FK `users.id`, FK `standard_document_fields.id`, FK `users.id` | UQ `(user_id, standard_field_id)`, IDX `(user_id, updated_at DESC)`, IDX `standard_field_id` |
 
 MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분리한다. 현재 운영 테스트에서는 검증값 없이도 운영자 수동 매칭을 생성할 수 있으며, 검증 ID가 있는 경우에는 파트너 검증값을 회원 입력값보다 우선 사용한다.
+사용자 기본정보 입력 하단의 서류별 선택 입력값은 `member_document_input_values`에 저장한다. 한 표준 필드에는 문자, 숫자, 날짜, boolean 중 한 값만 저장하며 모든 서류 값은 선택 입력이다.
 
 ### 5.3 Partner Verification
 
@@ -385,6 +387,14 @@ dev seed:
 - 표준 서류 필드의 `required_default`는 기본 `false`다. 일반 사용자에게 서류 내용 입력을 기본 필수로 강제하지 않는다.
 - 자동 추천도, 선정확률, 점수, AI 자동판단 컬럼은 추가하지 않는다.
 - 네이버 전자증명 API 자동 수집을 전제로 하는 저장 컬럼은 추가하지 않는다.
+
+`V16__create_member_document_input_values.sql`은 사용자 기본정보 입력 화면의 서류별 선택 입력값 저장 구조를 추가한다.
+
+- `member_document_input_values`: 회원 사용자가 입력한 표준 서류 필드별 값을 저장한다.
+- `(user_id, standard_field_id)` unique로 한 사용자 기준 같은 서류 필드의 중복 입력을 차단한다.
+- `value_text`, `value_number`, `value_date`, `value_boolean` 중 하나만 저장할 수 있도록 check constraint를 둔다.
+- `standard_document_fields`에는 제공된 전자증명 항목 중 V15에 없던 사업장 주소, 업태, 종목, 사업자 정보, 종합소득금액, 완납 여부, 세대원 정보, 가족관계, 가입자 정보 등을 추가 seed한다.
+- 이 구조는 사용자가 네이버 전자지갑 등에서 발급한 증명서를 회사에 전달하고, 필요한 값을 수동 입력하는 운영 흐름을 전제로 한다.
 
 ## 9. Backend Gate 조건
 

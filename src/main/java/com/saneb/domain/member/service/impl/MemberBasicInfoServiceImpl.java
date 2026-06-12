@@ -5,18 +5,30 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.member.dao.MemberBasicInfoDao;
 import com.saneb.domain.member.dto.MemberBasicInfoResponse;
+import com.saneb.domain.member.dto.MemberBasicInfoResponse.DocumentFieldInputResponse;
+import com.saneb.domain.member.dto.MemberBasicInfoResponse.DocumentInputResponse;
 import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest;
+import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest.DocumentFieldValueRequest;
+import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest.DocumentInputSaveRequest;
 import com.saneb.domain.member.service.MemberBasicInfoService;
 import com.saneb.domain.member.vo.BusinessProfileCommand;
 import com.saneb.domain.member.vo.BusinessProfileRow;
 import com.saneb.domain.member.vo.FamilyMemberCommand;
 import com.saneb.domain.member.vo.FamilyMemberRow;
+import com.saneb.domain.member.vo.MemberDocumentFieldRow;
+import com.saneb.domain.member.vo.MemberDocumentInputValueCommand;
+import com.saneb.domain.member.vo.MemberDocumentInputValueRow;
 import com.saneb.domain.member.vo.MemberProfileCommand;
 import com.saneb.domain.member.vo.MemberProfileRow;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -44,6 +56,19 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             "CLOSURE_PLANNED",
             "CLOSED",
             "RESTART_PREPARING"
+    );
+    private static final Set<String> DOCUMENT_TEXT_FIELD_TYPES = Set.of("TEXT", "TEXTAREA", "SELECT", "RADIO", "MULTI_SELECT");
+    private static final Map<String, String> DOCUMENT_TYPE_LABELS = Map.ofEntries(
+            Map.entry("BUSINESS_REGISTRATION", "사업자등록증"),
+            Map.entry("VAT_TAX_BASE", "부가세과세표준증명원"),
+            Map.entry("TAX_EXEMPT_INCOME", "수입금액증명원(면세사업자)"),
+            Map.entry("INCOME_CERTIFICATE", "소득금액증명원"),
+            Map.entry("NATIONAL_TAX_PAID", "국세완납증명서"),
+            Map.entry("LOCAL_TAX_PAID", "지방세완납증명서"),
+            Map.entry("RESIDENT_REGISTRATION", "주민등록등본"),
+            Map.entry("FAMILY_RELATION", "가족관계증명서"),
+            Map.entry("HEALTH_INSURANCE_PAYMENT", "건강보험료 납부확인서"),
+            Map.entry("HEALTH_INSURANCE_QUALIFICATION", "건강보험 자격확인서")
     );
 
     private final MemberBasicInfoDao memberBasicInfoDao;
@@ -108,6 +133,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             memberBasicInfoDao.insertFamilyMember(command);
         }
 
+        if (request.documentInputs() != null) {
+            saveDocumentInputValues(userId, request.documentInputs());
+        }
+
         return selectBasicInfoResponse(userId);
     }
 
@@ -134,7 +163,8 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                                 row.incomePresenceCode(),
                                 row.incomeAmount()
                         ))
-                        .toList()
+                        .toList(),
+                selectDocumentInputResponses(userId)
         );
     }
 
@@ -155,6 +185,185 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 row.hasPolicyFundUsage(),
                 row.hasGuaranteeUsage()
         );
+    }
+
+    private List<DocumentInputResponse> selectDocumentInputResponses(UUID userId) {
+        List<MemberDocumentFieldRow> fields = memberBasicInfoDao.selectMemberDocumentFieldList();
+        Map<UUID, MemberDocumentInputValueRow> valueByFieldId = new HashMap<>();
+        for (MemberDocumentInputValueRow value : memberBasicInfoDao.selectMemberDocumentInputValueList(userId)) {
+            valueByFieldId.put(value.standardFieldId(), value);
+        }
+
+        Map<String, List<MemberDocumentFieldRow>> fieldsByDocument = new LinkedHashMap<>();
+        for (MemberDocumentFieldRow field : fields) {
+            fieldsByDocument.computeIfAbsent(field.documentTypeCode(), ignored -> new ArrayList<>()).add(field);
+        }
+
+        List<DocumentInputResponse> responses = new ArrayList<>();
+        for (Map.Entry<String, List<MemberDocumentFieldRow>> entry : fieldsByDocument.entrySet()) {
+            List<DocumentFieldInputResponse> fieldResponses = entry.getValue().stream()
+                    .map(field -> selectDocumentFieldResponse(field, valueByFieldId.get(field.standardFieldId())))
+                    .toList();
+            boolean selected = fieldResponses.stream().anyMatch(this::hasDocumentFieldResponseValue);
+            responses.add(new DocumentInputResponse(
+                    entry.getKey(),
+                    DOCUMENT_TYPE_LABELS.getOrDefault(entry.getKey(), entry.getKey()),
+                    selected,
+                    fieldResponses
+            ));
+        }
+        return responses;
+    }
+
+    private DocumentFieldInputResponse selectDocumentFieldResponse(
+            MemberDocumentFieldRow field,
+            MemberDocumentInputValueRow value
+    ) {
+        return new DocumentFieldInputResponse(
+                field.standardFieldId(),
+                field.fieldKey(),
+                field.fieldLabel(),
+                field.fieldTypeCode(),
+                field.scopeCode(),
+                Boolean.TRUE.equals(field.requiredDefault()),
+                field.sortOrder(),
+                field.helpText(),
+                value == null ? null : value.valueText(),
+                value == null ? null : value.valueNumber(),
+                value == null ? null : value.valueDate(),
+                value == null ? null : value.valueBoolean()
+        );
+    }
+
+    private boolean hasDocumentFieldResponseValue(DocumentFieldInputResponse field) {
+        return trimToNull(field.valueText()) != null
+                || field.valueNumber() != null
+                || field.valueDate() != null
+                || field.valueBoolean() != null;
+    }
+
+    private void saveDocumentInputValues(UUID userId, List<DocumentInputSaveRequest> documents) {
+        List<MemberDocumentFieldRow> fields = memberBasicInfoDao.selectMemberDocumentFieldList();
+        Map<UUID, MemberDocumentFieldRow> fieldById = new HashMap<>();
+        Map<String, Set<UUID>> fieldIdsByDocument = new HashMap<>();
+        for (MemberDocumentFieldRow field : fields) {
+            fieldById.put(field.standardFieldId(), field);
+            fieldIdsByDocument.computeIfAbsent(field.documentTypeCode(), ignored -> new HashSet<>()).add(field.standardFieldId());
+        }
+
+        memberBasicInfoDao.deleteMemberDocumentInputValueList(userId);
+        Set<UUID> savedFieldIds = new HashSet<>();
+        for (DocumentInputSaveRequest document : safeDocumentInputs(documents)) {
+            if (document == null) {
+                continue;
+            }
+            String documentTypeCode = normalizeCode(document.documentTypeCode());
+            if (documentTypeCode == null) {
+                if (document.fields() != null && document.fields().stream().anyMatch(this::hasDocumentFieldValue)) {
+                    throw validationFailed("서류 구분을 선택하세요.");
+                }
+                continue;
+            }
+            if (!fieldIdsByDocument.containsKey(documentTypeCode)) {
+                throw validationFailed("서류 구분 값이 올바르지 않습니다.");
+            }
+            for (DocumentFieldValueRequest value : safeDocumentFields(document.fields())) {
+                if (value == null) {
+                    continue;
+                }
+                if (value.standardFieldId() == null) {
+                    if (hasDocumentFieldValue(value)) {
+                        throw validationFailed("서류 입력 항목을 확인하세요.");
+                    }
+                    continue;
+                }
+                MemberDocumentFieldRow field = fieldById.get(value.standardFieldId());
+                if (field == null || !fieldIdsByDocument.get(documentTypeCode).contains(value.standardFieldId())) {
+                    throw validationFailed("서류 입력 항목이 선택한 서류와 일치하지 않습니다.");
+                }
+                if (!hasDocumentFieldValue(value)) {
+                    continue;
+                }
+                if (!savedFieldIds.add(value.standardFieldId())) {
+                    throw validationFailed("같은 서류 항목은 한 번만 입력하세요.");
+                }
+                memberBasicInfoDao.insertMemberDocumentInputValue(selectDocumentValueCommand(userId, field, value));
+            }
+        }
+    }
+
+    private MemberDocumentInputValueCommand selectDocumentValueCommand(
+            UUID userId,
+            MemberDocumentFieldRow field,
+            DocumentFieldValueRequest value
+    ) {
+        validateSingleDocumentValue(field, value);
+        String fieldTypeCode = normalizeCode(field.fieldTypeCode());
+        if (DOCUMENT_TEXT_FIELD_TYPES.contains(fieldTypeCode)) {
+            String valueText = normalizeDocumentTextValue(value.valueText());
+            if (valueText == null) {
+                throw validationFailed(field.fieldLabel() + "은 문자 값으로 입력하세요.");
+            }
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), valueText, null, null, null, userId);
+        }
+        if ("NUMBER".equals(fieldTypeCode) || "AMOUNT".equals(fieldTypeCode)) {
+            if (value.valueNumber() == null) {
+                throw validationFailed(field.fieldLabel() + "은 숫자 또는 금액으로 입력하세요.");
+            }
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, value.valueNumber(), null, null, userId);
+        }
+        if ("DATE".equals(fieldTypeCode)) {
+            if (value.valueDate() == null) {
+                throw validationFailed(field.fieldLabel() + "은 날짜로 입력하세요.");
+            }
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, value.valueDate(), null, userId);
+        }
+        if ("BOOLEAN".equals(fieldTypeCode)) {
+            if (value.valueBoolean() == null) {
+                throw validationFailed(field.fieldLabel() + "은 예 또는 아니오로 선택하세요.");
+            }
+            return new MemberDocumentInputValueCommand(userId, field.standardFieldId(), null, null, null, value.valueBoolean(), userId);
+        }
+        throw validationFailed(field.fieldLabel() + "의 입력 유형을 확인하세요.");
+    }
+
+    private void validateSingleDocumentValue(MemberDocumentFieldRow field, DocumentFieldValueRequest value) {
+        int valueCount = 0;
+        if (normalizeDocumentTextValue(value.valueText()) != null) {
+            valueCount++;
+        }
+        if (value.valueNumber() != null) {
+            valueCount++;
+        }
+        if (value.valueDate() != null) {
+            valueCount++;
+        }
+        if (value.valueBoolean() != null) {
+            valueCount++;
+        }
+        if (valueCount > 1) {
+            throw validationFailed(field.fieldLabel() + "은 한 가지 값만 입력하세요.");
+        }
+    }
+
+    private boolean hasDocumentFieldValue(DocumentFieldValueRequest value) {
+        return value != null
+                && (normalizeDocumentTextValue(value.valueText()) != null
+                || value.valueNumber() != null
+                || value.valueDate() != null
+                || value.valueBoolean() != null);
+    }
+
+    private String normalizeDocumentTextValue(String value) {
+        return trimToNull(value);
+    }
+
+    private List<DocumentInputSaveRequest> safeDocumentInputs(List<DocumentInputSaveRequest> documents) {
+        return documents == null ? List.of() : documents;
+    }
+
+    private List<DocumentFieldValueRequest> safeDocumentFields(List<DocumentFieldValueRequest> fields) {
+        return fields == null ? List.of() : fields;
     }
 
     private BusinessProfileCommand selectBusinessProfileCommand(

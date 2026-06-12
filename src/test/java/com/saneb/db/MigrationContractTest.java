@@ -199,6 +199,19 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v16MigrationContainsMemberDocumentInputValues() throws IOException {
+        String sql = selectV16Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE member_document_input_values",
+                "CONSTRAINT uq_member_document_input_values_field",
+                "CONSTRAINT ck_member_document_input_values_single_value",
+                "WORKPLACE_ADDRESS",
+                "INSURED_PERSON_INFO"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -251,6 +264,11 @@ class MigrationContractTest {
 
     private String selectV15Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V15__create_standard_document_fields.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV16Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V16__create_member_document_input_values.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

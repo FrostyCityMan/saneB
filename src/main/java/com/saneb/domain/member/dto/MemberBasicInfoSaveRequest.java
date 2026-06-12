@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public record MemberBasicInfoSaveRequest(
         Integer birthYear,
@@ -22,7 +23,9 @@ public record MemberBasicInfoSaveRequest(
         @Valid
         BusinessInfoRequest business,
         @Valid
-        List<FamilyInfoRequest> families
+        List<FamilyInfoRequest> families,
+        @Valid
+        List<DocumentInputSaveRequest> documentInputs
 ) {
 
     public record BusinessInfoRequest(
@@ -57,6 +60,25 @@ public record MemberBasicInfoSaveRequest(
             String incomePresenceCode,
             @DecimalMin(value = "0", message = "가족 소득 금액은 0 이상으로 입력하세요.")
             BigDecimal incomeAmount
+    ) {
+    }
+
+    public record DocumentInputSaveRequest(
+            @Size(max = 80, message = "서류 구분 코드는 80자 이하로 입력하세요.")
+            String documentTypeCode,
+            @Valid
+            List<DocumentFieldValueRequest> fields
+    ) {
+    }
+
+    public record DocumentFieldValueRequest(
+            UUID standardFieldId,
+            @Size(max = 2000, message = "서류 입력값은 2000자 이하로 입력하세요.")
+            String valueText,
+            @DecimalMin(value = "0", message = "서류 숫자값은 0 이상으로 입력하세요.")
+            BigDecimal valueNumber,
+            LocalDate valueDate,
+            Boolean valueBoolean
     ) {
     }
 }

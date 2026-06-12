@@ -44,6 +44,30 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="MemberDocumentFieldRowMap" type="com.saneb.domain.member.vo.MemberDocumentFieldRow">
+        <constructor>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="field_key" javaType="java.lang.String"/>
+            <arg column="field_label" javaType="java.lang.String"/>
+            <arg column="field_type_code" javaType="java.lang.String"/>
+            <arg column="scope_code" javaType="java.lang.String"/>
+            <arg column="required_default" javaType="java.lang.Boolean"/>
+            <arg column="sort_order" javaType="int"/>
+            <arg column="help_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="MemberDocumentInputValueRowMap" type="com.saneb.domain.member.vo.MemberDocumentInputValueRow">
+        <constructor>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
+            <arg column="value_text" javaType="java.lang.String"/>
+            <arg column="value_number" javaType="java.math.BigDecimal"/>
+            <arg column="value_date" javaType="java.time.LocalDate"/>
+            <arg column="value_boolean" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
     <select id="selectUserIdByLoginId" resultType="java.util.UUID">
         -- 로그인 아이디로 사용자 식별자를 조회한다.
         SELECT
@@ -109,6 +133,50 @@
             fm.birth_year ASC NULLS LAST,
             fm.created_at ASC,
             fm.id ASC
+    </select>
+
+    <select id="selectMemberDocumentFieldList" resultMap="MemberDocumentFieldRowMap">
+        -- 사용자 기본정보 서류 입력에 사용할 표준 필드 목록을 조회한다.
+        SELECT
+            sdf.id AS standard_field_id,
+            sdf.document_type_code,
+            sdf.field_key,
+            sdf.field_label,
+            sdf.field_type_code,
+            sdf.scope_code,
+            sdf.required_default,
+            sdf.sort_order,
+            sdf.help_text
+        FROM standard_document_fields sdf
+        WHERE sdf.is_selectable = true
+        ORDER BY
+            CASE sdf.document_type_code
+                WHEN 'BUSINESS_REGISTRATION' THEN 1
+                WHEN 'VAT_TAX_BASE' THEN 2
+                WHEN 'TAX_EXEMPT_INCOME' THEN 3
+                WHEN 'INCOME_CERTIFICATE' THEN 4
+                WHEN 'NATIONAL_TAX_PAID' THEN 5
+                WHEN 'LOCAL_TAX_PAID' THEN 6
+                WHEN 'RESIDENT_REGISTRATION' THEN 7
+                WHEN 'FAMILY_RELATION' THEN 8
+                WHEN 'HEALTH_INSURANCE_PAYMENT' THEN 9
+                WHEN 'HEALTH_INSURANCE_QUALIFICATION' THEN 10
+                ELSE 99
+            END ASC,
+            sdf.sort_order ASC,
+            sdf.field_label ASC
+    </select>
+
+    <select id="selectMemberDocumentInputValueList" resultMap="MemberDocumentInputValueRowMap">
+        -- 사용자 서류별 입력값 목록을 조회한다.
+        SELECT
+            mdiv.standard_field_id,
+            mdiv.value_text,
+            mdiv.value_number,
+            mdiv.value_date,
+            mdiv.value_boolean
+        FROM member_document_input_values mdiv
+        WHERE mdiv.user_id = #{userId}
     </select>
 
     <insert id="saveMemberProfile">
@@ -239,6 +307,37 @@
             #{incomeAmount},
             #{actorUserId},
             #{actorUserId}
+        )
+    </insert>
+
+    <delete id="deleteMemberDocumentInputValueList">
+        -- 사용자 서류별 입력값을 전체 교체 저장하기 위해 기존 값을 삭제한다.
+        DELETE FROM member_document_input_values
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertMemberDocumentInputValue">
+        -- 사용자 서류별 입력값을 등록한다.
+        INSERT INTO member_document_input_values (
+            user_id,
+            standard_field_id,
+            value_text,
+            value_number,
+            value_date,
+            value_boolean,
+            submitted_by,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{userId},
+            #{standardFieldId},
+            #{valueText},
+            #{valueNumber},
+            #{valueDate},
+            #{valueBoolean},
+            #{actorUserId},
+            now(),
+            now()
         )
     </insert>
 </mapper>

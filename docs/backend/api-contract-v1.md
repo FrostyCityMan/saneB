@@ -375,6 +375,20 @@ AuthMeResponse 필드 계약:
       "incomePresenceCode": "NONE",
       "incomeAmount": null
     }
+  ],
+  "documentInputs": [
+    {
+      "documentTypeCode": "BUSINESS_REGISTRATION",
+      "fields": [
+        {
+          "standardFieldId": "uuid",
+          "valueText": "서울특별시 중구",
+          "valueNumber": null,
+          "valueDate": null,
+          "valueBoolean": null
+        }
+      ]
+    }
   ]
 }
 ```
@@ -384,8 +398,39 @@ AuthMeResponse 필드 계약:
 - `business`는 선택 객체다. 사업자 정보를 하나라도 입력하면 `businessRegistrationNo`, `businessName`을 함께 저장해야 한다.
 - `families`는 배우자, 자녀, 부모 1단계만 허용한다.
 - `incomePresenceCode`는 `UNKNOWN`, `NONE`, `HAS_INCOME`만 허용한다.
-- 저장된 개인, 사업자, 가족 기본정보는 관리자 조건 매칭 후보 생성의 비교 기준으로 사용한다.
+- `documentInputs`는 사용자 기본정보 입력 하단의 서류별 선택 입력값이다. `standardFieldId`는 `standard_document_fields.id`를 참조한다.
+- `documentInputs`가 요청에 포함되면 기존 서류 입력값을 전체 교체 저장한다. 빈 배열은 서류 입력값 전체 삭제를 의미하며, 필드가 없으면 기존 값을 유지한다.
+- 서류 기반 값은 모두 선택 입력이다. 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공하고, 기본정보 저장 자체를 막지 않는다.
+- 저장된 개인, 사업자, 가족 기본정보와 서류별 선택 입력값은 관리자 조건 매칭 후보 생성과 입증 확인의 비교 자료로 사용할 수 있다.
 - 개인정보 원문을 감사 로그 metadata에 저장하지 않는다.
+
+#### MemberBasicInfoResponse.documentInputs
+
+```json
+[
+  {
+    "documentTypeCode": "BUSINESS_REGISTRATION",
+    "documentTypeLabel": "사업자등록증",
+    "selected": true,
+    "fields": [
+      {
+        "standardFieldId": "uuid",
+        "fieldKey": "WORKPLACE_ADDRESS",
+        "fieldLabel": "사업장 주소",
+        "fieldTypeCode": "TEXT",
+        "scopeCode": "BUSINESS",
+        "required": false,
+        "sortOrder": 45,
+        "helpText": "사업자등록증에 표시된 사업장 주소입니다.",
+        "valueText": "서울특별시 중구",
+        "valueNumber": null,
+        "valueDate": null,
+        "valueBoolean": null
+      }
+    ]
+  }
+]
+```
 
 #### MemberProfileResponse
 

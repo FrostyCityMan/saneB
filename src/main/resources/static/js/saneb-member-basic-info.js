@@ -8,8 +8,60 @@
     const form = app.querySelector("[data-basic-info-form]");
     const familyList = app.querySelector("[data-family-list]");
     const addFamilyButton = app.querySelector("[data-family-add]");
+    const documentTypeSelect = app.querySelector("[data-document-type-select]");
+    const addDocumentButton = app.querySelector("[data-document-add]");
+    const documentList = app.querySelector("[data-document-list]");
     const submitButton = app.querySelector("[data-basic-info-submit]");
     const message = app.querySelector("[data-basic-info-message]");
+
+    const regionOptions = [
+        ["SEOUL", "서울"],
+        ["BUSAN", "부산"],
+        ["DAEGU", "대구"],
+        ["INCHEON", "인천"],
+        ["GWANGJU", "광주"],
+        ["DAEJEON", "대전"],
+        ["ULSAN", "울산"],
+        ["SEJONG", "세종"],
+        ["GYEONGGI", "경기"],
+        ["GANGWON", "강원"],
+        ["CHUNGBUK", "충북"],
+        ["CHUNGNAM", "충남"],
+        ["JEONBUK", "전북"],
+        ["JEONNAM", "전남"],
+        ["GYEONGBUK", "경북"],
+        ["GYEONGNAM", "경남"],
+        ["JEJU", "제주"]
+    ];
+    const businessTypeOptions = [
+        ["SOLE_PROPRIETOR", "개인사업자"],
+        ["CORPORATION", "법인사업자"],
+        ["SIMPLIFIED_TAXPAYER", "간이과세자"],
+        ["GENERAL_TAXPAYER", "일반과세자"],
+        ["TAX_EXEMPT", "면세사업자"]
+    ];
+    const taxTypeOptions = [
+        ["GENERAL_TAXPAYER", "일반과세"],
+        ["SIMPLIFIED_TAXPAYER", "간이과세"],
+        ["TAX_EXEMPT", "면세"]
+    ];
+    const healthInsuranceOptions = [
+        ["WORKPLACE", "직장가입자"],
+        ["LOCAL", "지역가입자"],
+        ["DEPENDENT", "피부양자"],
+        ["UNKNOWN", "잘 모름"]
+    ];
+    const selectOptionsByFieldKey = {
+        REGION_CODE: regionOptions,
+        WORKPLACE_REGION_CODE: regionOptions,
+        BUSINESS_TYPE_CODE: businessTypeOptions,
+        TAX_TYPE_CODE: taxTypeOptions,
+        HEALTH_INSURANCE_BASIS_CODE: healthInsuranceOptions,
+        INSURANCE_SUBSCRIBER_TYPE: healthInsuranceOptions
+    };
+
+    let documentCatalog = [];
+    let selectedDocumentTypes = new Set();
 
     const selectErrorMessage = (payload, fallback) => {
         const fieldErrors = payload && payload.data && Array.isArray(payload.data.fieldErrors)
@@ -124,6 +176,33 @@
         field.value = nextValue;
     };
 
+    const appendOption = (select, value, label) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.append(option);
+    };
+
+    const selectOptionsForField = (field) => {
+        return selectOptionsByFieldKey[field.fieldKey] || [];
+    };
+
+    const currentDocumentValue = (field) => {
+        if (field.valueText != null && field.valueText !== "") {
+            return String(field.valueText);
+        }
+        if (field.valueNumber != null) {
+            return String(field.valueNumber);
+        }
+        if (field.valueDate != null) {
+            return String(field.valueDate);
+        }
+        if (field.valueBoolean != null) {
+            return String(field.valueBoolean);
+        }
+        return "";
+    };
+
     const renderFamilyRow = (family = {}) => {
         const row = document.createElement("div");
         row.className = "family-row";
@@ -163,6 +242,152 @@
         familyList.append(row);
     };
 
+    const renderDocumentSelector = () => {
+        if (!documentTypeSelect) {
+            return;
+        }
+        const previousValue = documentTypeSelect.value;
+        documentTypeSelect.replaceChildren();
+        appendOption(documentTypeSelect, "", "서류 선택");
+
+        documentCatalog
+            .filter((documentInput) => !selectedDocumentTypes.has(documentInput.documentTypeCode))
+            .forEach((documentInput) => {
+                appendOption(documentTypeSelect, documentInput.documentTypeCode, documentInput.documentTypeLabel);
+            });
+
+        if (previousValue && !selectedDocumentTypes.has(previousValue)) {
+            documentTypeSelect.value = previousValue;
+        }
+        if (addDocumentButton) {
+            addDocumentButton.disabled = documentTypeSelect.options.length <= 1;
+        }
+    };
+
+    const renderDocumentField = (field) => {
+        const block = document.createElement("div");
+        block.className = "field-block document-field-block";
+        block.dataset.standardFieldId = field.standardFieldId;
+        block.dataset.fieldTypeCode = field.fieldTypeCode;
+
+        const label = document.createElement("label");
+        label.textContent = `${field.fieldLabel} (선택)`;
+        block.append(label);
+
+        const fieldTypeCode = field.fieldTypeCode;
+        let input;
+        if (fieldTypeCode === "TEXTAREA") {
+            input = document.createElement("textarea");
+            input.rows = 3;
+            input.dataset.documentValueType = "text";
+            input.placeholder = "필요한 경우만 입력";
+            input.value = field.valueText || "";
+        } else if (fieldTypeCode === "BOOLEAN") {
+            input = document.createElement("select");
+            input.dataset.documentValueType = "boolean";
+            appendOption(input, "", "선택 안 함");
+            appendOption(input, "true", "예");
+            appendOption(input, "false", "아니오");
+            input.value = field.valueBoolean == null ? "" : String(field.valueBoolean);
+        } else if (fieldTypeCode === "DATE") {
+            input = document.createElement("input");
+            input.type = "date";
+            input.dataset.documentValueType = "date";
+            input.value = field.valueDate || "";
+        } else if (fieldTypeCode === "NUMBER" || fieldTypeCode === "AMOUNT") {
+            input = document.createElement("input");
+            input.type = "number";
+            input.min = "0";
+            input.step = fieldTypeCode === "AMOUNT" ? "10000" : "1";
+            input.dataset.documentValueType = "number";
+            input.placeholder = fieldTypeCode === "AMOUNT" ? "예: 30000000" : "숫자 입력";
+            input.value = field.valueNumber == null ? "" : String(field.valueNumber);
+        } else if (fieldTypeCode === "SELECT" || fieldTypeCode === "RADIO" || fieldTypeCode === "MULTI_SELECT") {
+            const options = selectOptionsForField(field);
+            if (options.length > 0) {
+                input = document.createElement("select");
+                input.dataset.documentValueType = "text";
+                appendOption(input, "", "선택 안 함");
+                options.forEach(([value, labelText]) => appendOption(input, value, labelText));
+                input.value = currentDocumentValue(field);
+            } else {
+                input = document.createElement("input");
+                input.type = "text";
+                input.dataset.documentValueType = "text";
+                input.placeholder = "값 입력";
+                input.value = currentDocumentValue(field);
+            }
+        } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.dataset.documentValueType = "text";
+            input.placeholder = "값 입력";
+            input.value = currentDocumentValue(field);
+        }
+        input.dataset.documentInput = "true";
+        block.append(input);
+
+        if (field.helpText) {
+            const help = document.createElement("small");
+            help.textContent = field.helpText;
+            block.append(help);
+        }
+        return block;
+    };
+
+    const renderDocumentCard = (documentInput) => {
+        const card = document.createElement("article");
+        card.className = "member-document-card";
+        card.dataset.documentTypeCode = documentInput.documentTypeCode;
+
+        const header = document.createElement("div");
+        header.className = "member-document-card-head";
+
+        const titleWrap = document.createElement("div");
+        const eyebrow = document.createElement("span");
+        eyebrow.className = "eyebrow";
+        eyebrow.textContent = "선택 서류";
+        const title = document.createElement("h3");
+        title.textContent = documentInput.documentTypeLabel;
+        titleWrap.append(eyebrow, title);
+
+        const removeButton = document.createElement("button");
+        removeButton.className = "secondary-action";
+        removeButton.type = "button";
+        removeButton.dataset.documentRemove = "true";
+        removeButton.textContent = "서류 삭제";
+
+        header.append(titleWrap, removeButton);
+        card.append(header);
+
+        const fieldGrid = document.createElement("div");
+        fieldGrid.className = "document-field-grid";
+        (documentInput.fields || []).forEach((field) => fieldGrid.append(renderDocumentField(field)));
+        card.append(fieldGrid);
+        return card;
+    };
+
+    const renderDocumentList = () => {
+        if (!documentList) {
+            return;
+        }
+        documentList.replaceChildren();
+        const selectedDocuments = documentCatalog.filter((documentInput) => selectedDocumentTypes.has(documentInput.documentTypeCode));
+        if (selectedDocuments.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "field-help empty-document-note";
+            empty.textContent = "서류를 선택해 추가하면 입력 항목이 표시됩니다.";
+            documentList.append(empty);
+            return;
+        }
+        selectedDocuments.forEach((documentInput) => documentList.append(renderDocumentCard(documentInput)));
+    };
+
+    const renderDocuments = () => {
+        renderDocumentSelector();
+        renderDocumentList();
+    };
+
     const renderResponse = (data) => {
         setFieldValue("birthYear", data.birthYear);
         setSelectValue("regionCode", data.regionCode);
@@ -185,6 +410,14 @@
 
         familyList.replaceChildren();
         (data.families || []).forEach(renderFamilyRow);
+
+        documentCatalog = Array.isArray(data.documentInputs) ? data.documentInputs : [];
+        selectedDocumentTypes = new Set(
+            documentCatalog
+                .filter((documentInput) => documentInput.selected === true)
+                .map((documentInput) => documentInput.documentTypeCode)
+        );
+        renderDocuments();
     };
 
     const buildBusinessPayload = () => {
@@ -219,6 +452,40 @@
             .filter((family) => Object.values(family).some((value) => value !== null));
     };
 
+    const buildDocumentFieldPayload = (fieldBlock) => {
+        const input = fieldBlock.querySelector("[data-document-input]");
+        const valueType = input?.dataset.documentValueType || "text";
+        const value = String(input?.value || "").trim();
+        const payload = {
+            standardFieldId: fieldBlock.dataset.standardFieldId,
+            valueText: null,
+            valueNumber: null,
+            valueDate: null,
+            valueBoolean: null
+        };
+        if (value === "") {
+            return payload;
+        }
+        if (valueType === "number") {
+            payload.valueNumber = Number(value);
+        } else if (valueType === "date") {
+            payload.valueDate = value;
+        } else if (valueType === "boolean") {
+            payload.valueBoolean = booleanOrNull(value);
+        } else {
+            payload.valueText = value;
+        }
+        return payload;
+    };
+
+    const buildDocumentPayload = () => {
+        return Array.from(documentList?.querySelectorAll(".member-document-card") || [])
+            .map((card) => ({
+                documentTypeCode: card.dataset.documentTypeCode,
+                fields: Array.from(card.querySelectorAll(".document-field-block")).map(buildDocumentFieldPayload)
+            }));
+    };
+
     const buildPayload = () => {
         const incomePresenceCode = textOrNull(valueOf("incomePresenceCode"));
         return {
@@ -229,7 +496,8 @@
             incomeAmount: numberOrNull(valueOf("incomeAmount")),
             healthInsuranceBasisCode: textOrNull(valueOf("healthInsuranceBasisCode")),
             business: buildBusinessPayload(),
-            families: buildFamilyPayload()
+            families: buildFamilyPayload(),
+            documentInputs: buildDocumentPayload()
         };
     };
 
@@ -253,6 +521,31 @@
             return;
         }
         removeButton.closest(".family-row")?.remove();
+    });
+
+    addDocumentButton?.addEventListener("click", () => {
+        const documentTypeCode = documentTypeSelect?.value || "";
+        if (!documentTypeCode) {
+            return;
+        }
+        selectedDocumentTypes.add(documentTypeCode);
+        if (documentTypeSelect) {
+            documentTypeSelect.value = "";
+        }
+        renderDocuments();
+    });
+
+    documentList?.addEventListener("click", (event) => {
+        const removeButton = event.target.closest("[data-document-remove]");
+        if (!removeButton) {
+            return;
+        }
+        const card = removeButton.closest(".member-document-card");
+        const documentTypeCode = card?.dataset.documentTypeCode;
+        if (documentTypeCode) {
+            selectedDocumentTypes.delete(documentTypeCode);
+        }
+        renderDocuments();
     });
 
     form?.addEventListener("submit", async (event) => {
