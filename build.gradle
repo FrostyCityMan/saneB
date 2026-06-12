@@ -154,6 +154,18 @@ tasks.register('dynamicInputSmokeIntegrationTest', Test) {
     shouldRunAfter flywayIntegrationTest
 }
 
+tasks.register('memberBasicInfoSmokeIntegrationTest', Test) {
+    description = 'Runs member basic info smoke tests against real PostgreSQL with local seed data.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/MemberBasicInfoSmokeIntegrationTest.class'
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/memberBasicInfoSmokeIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/memberBasicInfoSmokeIntegrationTest')
+    shouldRunAfter flywayIntegrationTest
+}
+
 tasks.register('backendRehearsalIntegrationTest', Test) {
     description = 'Runs the backend end-to-end rehearsal against real PostgreSQL with local seed data.'
     group = 'verification'

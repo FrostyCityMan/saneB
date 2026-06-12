@@ -16,6 +16,9 @@
             <arg column="policy_fund_count" javaType="_int"/>
             <arg column="support_fund_count" javaType="_int"/>
             <arg column="subsidy_count" javaType="_int"/>
+            <arg column="business_target_count" javaType="_int"/>
+            <arg column="personal_target_count" javaType="_int"/>
+            <arg column="family_target_count" javaType="_int"/>
             <arg column="startable_matched_count" javaType="_int"/>
             <arg column="final_matched_count" javaType="_int"/>
             <arg column="min_amount" javaType="java.math.BigDecimal"/>
@@ -108,6 +111,15 @@
                       AND ao.option_code IN ('CASH', 'REFUND')
                 )
             ) AS integer) AS subsidy_count,
+            CAST(count(1) FILTER (
+                WHERE a.target_type_code = 'BUSINESS'
+            ) AS integer) AS business_target_count,
+            CAST(count(1) FILTER (
+                WHERE a.target_type_code = 'PERSONAL'
+            ) AS integer) AS personal_target_count,
+            CAST(count(1) FILTER (
+                WHERE a.target_type_code IN ('SPOUSE', 'CHILD', 'PARENT', 'FAMILY')
+            ) AS integer) AS family_target_count,
             CAST(count(1) FILTER (
                 WHERE cc.status_code = 'MATCHED'
             ) AS integer) AS startable_matched_count,

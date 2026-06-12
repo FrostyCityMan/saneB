@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateResponse;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
 import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
@@ -73,7 +74,32 @@ class MatchingControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.items[0].statusCode").value("REVIEW_REQUIRED"))
+                .andExpect(jsonPath("$.data.items[0].announcementTitle").value("테스트 공고"))
                 .andExpect(jsonPath("$.data.totalCount").value(1));
+    }
+
+    @Test
+    void insertMatchingCandidatesReturnsApiResponse() throws Exception {
+        when(matchingService.insertMatchingCandidates(any(), any()))
+                .thenReturn(new MatchingCandidateGenerateResponse(
+                        MEMBER_USER_ID,
+                        1,
+                        0,
+                        List.of(summary("MATCHED", null))
+                ));
+
+        mockMvc.perform(post("/api/v1/matching/cases/candidates")
+                        .with(user(operatorPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memberUserId": "%s"
+                                }
+                                """.formatted(MEMBER_USER_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.createdCount").value(1))
+                .andExpect(jsonPath("$.data.candidates[0].statusCode").value("MATCHED"));
     }
 
     @Test
@@ -163,7 +189,17 @@ class MatchingControllerSmokeTest {
                 blockedReasonCode,
                 now,
                 now,
-                now
+                now,
+                "테스트 공고",
+                "테스트 기관",
+                "BUSINESS",
+                java.math.BigDecimal.valueOf(1000000),
+                java.math.BigDecimal.valueOf(3000000),
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 30),
+                "user01",
+                "사용자",
+                false
         );
     }
 

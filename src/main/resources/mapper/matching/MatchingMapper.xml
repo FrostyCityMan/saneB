@@ -17,6 +17,16 @@
             <arg column="reviewed_at" javaType="java.time.OffsetDateTime"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="announcement_title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="target_type_code" javaType="java.lang.String"/>
+            <arg column="min_amount" javaType="java.math.BigDecimal"/>
+            <arg column="max_amount" javaType="java.math.BigDecimal"/>
+            <arg column="application_start_date" javaType="java.time.LocalDate"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="member_login_id" javaType="java.lang.String"/>
+            <arg column="member_name" javaType="java.lang.String"/>
+            <arg column="progress_created" javaType="java.lang.Boolean"/>
         </constructor>
     </resultMap>
 
@@ -59,6 +69,14 @@
             <arg column="name" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="MatchingCandidateAnnouncementRowMap" type="com.saneb.domain.matching.vo.MatchingCandidateAnnouncementRow">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="checked_condition_count" javaType="java.lang.Long"/>
+            <arg column="matched_condition_count" javaType="java.lang.Long"/>
         </constructor>
     </resultMap>
 
@@ -110,10 +128,31 @@
             mc.reviewed_by,
             mc.reviewed_at,
             mc.created_at,
-            mc.updated_at
+            mc.updated_at,
+            a.title AS announcement_title,
+            a.agency_name,
+            a.target_type_code,
+            a.min_amount,
+            a.max_amount,
+            a.application_start_date,
+            a.application_end_date,
+            u.login_id AS member_login_id,
+            u.name AS member_name,
+            EXISTS (
+                SELECT
+                    1
+                FROM application_progresses ap
+                WHERE ap.matching_case_id = mc.id
+            ) AS progress_created
         FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
+        INNER JOIN users u ON u.id = mc.member_user_id
         <include refid="MatchingCaseSearchWhere"/>
-        ORDER BY mc.created_at DESC, mc.id DESC
+        ORDER BY
+            a.application_end_date ASC NULLS LAST,
+            a.application_start_date ASC NULLS LAST,
+            mc.created_at ASC,
+            mc.id ASC
         LIMIT #{size}
         OFFSET #{offset}
     </select>
@@ -141,6 +180,289 @@
         OFFSET #{offset}
     </select>
 
+    <select id="selectMatchingMemberUserCount" resultType="long">
+        -- Count active member users before condition-based candidate generation.
+        SELECT
+            count(1)
+        FROM users u
+        WHERE u.id = #{memberUserId}
+          AND u.status_code = 'ACTIVE'
+          AND EXISTS (
+              SELECT
+                  1
+              FROM user_roles ur
+              WHERE ur.user_id = u.id
+                AND ur.role_code = 'USER'
+          )
+    </select>
+
+    <select id="selectEligibleAnnouncementCandidateList" resultMap="MatchingCandidateAnnouncementRowMap">
+        -- Select approved announcements whose configured conditions match stored basic member data.
+        SELECT
+            a.id AS announcement_id,
+            (
+                SELECT
+                    count(1)
+                FROM announcement_numeric_conditions anc
+                WHERE anc.announcement_id = a.id
+            )
+            + (
+                SELECT
+                    count(1)
+                FROM (
+                    SELECT
+                        aoc.condition_scope_code,
+                        aoc.condition_key
+                    FROM announcement_option_conditions aoc
+                    WHERE aoc.announcement_id = a.id
+                    GROUP BY aoc.condition_scope_code, aoc.condition_key
+                ) option_groups
+            )
+            + (
+                SELECT
+                    count(1)
+                FROM announcement_industry_conditions aic
+                WHERE aic.announcement_id = a.id
+            ) AS checked_condition_count,
+            (
+                SELECT
+                    count(1)
+                FROM announcement_numeric_conditions anc
+                WHERE anc.announcement_id = a.id
+            )
+            + (
+                SELECT
+                    count(1)
+                FROM (
+                    SELECT
+                        aoc.condition_scope_code,
+                        aoc.condition_key
+                    FROM announcement_option_conditions aoc
+                    WHERE aoc.announcement_id = a.id
+                    GROUP BY aoc.condition_scope_code, aoc.condition_key
+                ) option_groups
+            )
+            + (
+                SELECT
+                    count(1)
+                FROM announcement_industry_conditions aic
+                WHERE aic.announcement_id = a.id
+            ) AS matched_condition_count
+        FROM announcements a
+        LEFT JOIN member_profiles mp ON mp.user_id = #{memberUserId}
+        LEFT JOIN LATERAL (
+            SELECT
+                bp.opening_date,
+                bp.ksic_code,
+                bp.workplace_region_code,
+                bp.business_type_code,
+                bp.company_stage_code,
+                bp.annual_revenue,
+                bp.has_policy_fund_usage,
+                bp.has_guarantee_usage
+            FROM business_profiles bp
+            WHERE bp.user_id = #{memberUserId}
+            ORDER BY bp.created_at DESC, bp.id DESC
+            LIMIT 1
+        ) bp ON true
+        WHERE a.approval_status_code = 'APPROVED'
+          AND a.manual_status_code = 'NORMAL'
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM matching_cases mc
+              WHERE mc.announcement_id = a.id
+                AND mc.member_user_id = #{memberUserId}
+                AND mc.verification_id IS NULL
+          )
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM announcement_industry_conditions aic
+              WHERE aic.announcement_id = a.id
+                AND (
+                    (
+                        aic.condition_type_code = 'INCLUDE'
+                        AND (bp.ksic_code IS NULL OR bp.ksic_code &lt;&gt; aic.ksic_code)
+                    )
+                    OR (
+                        aic.condition_type_code = 'EXCLUDE'
+                        AND bp.ksic_code = aic.ksic_code
+                    )
+                )
+          )
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM announcement_numeric_conditions anc
+              CROSS JOIN LATERAL (
+                  SELECT
+                      CASE
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key IN ('ANNUAL_REVENUE', 'SUPPLY_AMOUNT', 'TOTAL_INCOME_AMOUNT')
+                          THEN bp.annual_revenue
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key IN ('BUSINESS_YEARS', 'BUSINESS_AGE', 'BUSINESS_AGE_YEARS')
+                               AND bp.opening_date IS NOT NULL
+                          THEN floor(EXTRACT(YEAR FROM age(current_date, bp.opening_date)))::numeric
+                          WHEN anc.condition_scope_code = 'PERSONAL'
+                               AND anc.condition_key = 'AGE'
+                               AND mp.birth_year IS NOT NULL
+                          THEN (EXTRACT(YEAR FROM current_date)::integer - mp.birth_year)::numeric
+                          WHEN anc.condition_scope_code = 'PERSONAL'
+                               AND anc.condition_key IN ('INCOME_AMOUNT', 'TOTAL_INCOME_AMOUNT')
+                          THEN mp.income_amount
+                          WHEN anc.condition_scope_code = 'CHILD'
+                               AND anc.condition_key IN ('CHILD_COUNT', 'FAMILY_CHILD_COUNT')
+                          THEN (
+                              SELECT
+                                  count(1)::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'CHILD'
+                          )
+                          WHEN anc.condition_scope_code = 'PARENT'
+                               AND anc.condition_key IN ('PARENT_COUNT', 'FAMILY_PARENT_COUNT')
+                          THEN (
+                              SELECT
+                                  count(1)::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'PARENT'
+                          )
+                          WHEN anc.condition_scope_code = 'SPOUSE'
+                               AND anc.condition_key IN ('SPOUSE_COUNT', 'HAS_SPOUSE')
+                          THEN (
+                              SELECT
+                                  count(1)::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'SPOUSE'
+                          )
+                          WHEN anc.condition_scope_code = 'APPLICATION'
+                               AND anc.condition_key IN ('HOUSEHOLD_MEMBER_COUNT', 'FAMILY_MEMBER_COUNT')
+                          THEN (
+                              SELECT
+                                  count(1)::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                          )
+                          ELSE NULL::numeric
+                      END AS basis_number
+              ) basis
+              WHERE anc.announcement_id = a.id
+                AND (
+                    basis.basis_number IS NULL
+                    OR NOT (
+                        (anc.comparator_code = 'BETWEEN' AND basis.basis_number BETWEEN anc.min_number AND anc.max_number)
+                        OR (anc.comparator_code = 'GTE' AND basis.basis_number >= anc.value_number)
+                        OR (anc.comparator_code = 'LTE' AND basis.basis_number &lt;= anc.value_number)
+                        OR (anc.comparator_code = 'GT' AND basis.basis_number > anc.value_number)
+                        OR (anc.comparator_code = 'LT' AND basis.basis_number &lt; anc.value_number)
+                        OR (anc.comparator_code = 'EQ' AND basis.basis_number = anc.value_number)
+                    )
+                )
+          )
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM (
+                  SELECT
+                      aoc.condition_scope_code,
+                      aoc.condition_key,
+                      array_agg(aoc.option_code ORDER BY aoc.option_code) AS option_codes
+                  FROM announcement_option_conditions aoc
+                  WHERE aoc.announcement_id = a.id
+                  GROUP BY aoc.condition_scope_code, aoc.condition_key
+              ) option_groups
+              CROSS JOIN LATERAL (
+                  SELECT
+                      CASE
+                          WHEN option_groups.condition_scope_code = 'BUSINESS'
+                               AND option_groups.condition_key = 'WORKPLACE_REGION_CODE'
+                          THEN bp.workplace_region_code
+                          WHEN option_groups.condition_scope_code = 'BUSINESS'
+                               AND option_groups.condition_key = 'BUSINESS_TYPE_CODE'
+                          THEN bp.business_type_code
+                          WHEN option_groups.condition_scope_code = 'BUSINESS'
+                               AND option_groups.condition_key IN ('BUSINESS_STAGE', 'COMPANY_STAGE')
+                          THEN bp.company_stage_code
+                          WHEN option_groups.condition_scope_code = 'BUSINESS'
+                               AND option_groups.condition_key = 'HAS_POLICY_FUND_USAGE'
+                          THEN CASE
+                              WHEN bp.has_policy_fund_usage IS NULL THEN NULL
+                              WHEN bp.has_policy_fund_usage THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          WHEN option_groups.condition_scope_code = 'BUSINESS'
+                               AND option_groups.condition_key = 'HAS_GUARANTEE_USAGE'
+                          THEN CASE
+                              WHEN bp.has_guarantee_usage IS NULL THEN NULL
+                              WHEN bp.has_guarantee_usage THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          WHEN option_groups.condition_scope_code = 'PERSONAL'
+                               AND option_groups.condition_key = 'REGION_CODE'
+                          THEN mp.region_code
+                          WHEN option_groups.condition_scope_code = 'PERSONAL'
+                               AND option_groups.condition_key = 'HEALTH_INSURANCE_BASIS_CODE'
+                          THEN mp.health_insurance_basis_code
+                          WHEN option_groups.condition_scope_code = 'PERSONAL'
+                               AND option_groups.condition_key = 'HAS_INCOME'
+                          THEN CASE
+                              WHEN mp.has_income IS NULL THEN NULL
+                              WHEN mp.has_income THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          WHEN option_groups.condition_scope_code = 'CHILD'
+                               AND option_groups.condition_key IN ('HAS_CHILD', 'CHILD_COUNT')
+                          THEN CASE
+                              WHEN EXISTS (
+                                  SELECT
+                                      1
+                                  FROM family_members fm
+                                  WHERE fm.user_id = #{memberUserId}
+                                    AND fm.relation_type_code = 'CHILD'
+                              ) THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          WHEN option_groups.condition_scope_code = 'SPOUSE'
+                               AND option_groups.condition_key IN ('HAS_SPOUSE', 'SPOUSE_COUNT')
+                          THEN CASE
+                              WHEN EXISTS (
+                                  SELECT
+                                      1
+                                  FROM family_members fm
+                                  WHERE fm.user_id = #{memberUserId}
+                                    AND fm.relation_type_code = 'SPOUSE'
+                              ) THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          WHEN option_groups.condition_scope_code = 'PARENT'
+                               AND option_groups.condition_key IN ('HAS_PARENT', 'PARENT_COUNT')
+                          THEN CASE
+                              WHEN EXISTS (
+                                  SELECT
+                                      1
+                                  FROM family_members fm
+                                  WHERE fm.user_id = #{memberUserId}
+                                    AND fm.relation_type_code = 'PARENT'
+                              ) THEN 'TRUE'
+                              ELSE 'FALSE'
+                          END
+                          ELSE NULL
+                      END AS basis_option_code
+              ) basis
+              WHERE basis.basis_option_code IS NULL
+                 OR NOT (basis.basis_option_code = ANY(option_groups.option_codes))
+          )
+        ORDER BY
+            a.application_end_date ASC NULLS LAST,
+            a.application_start_date ASC NULLS LAST,
+            a.created_at ASC,
+            a.id ASC
+    </select>
+
     <select id="selectMatchingMemberLookupCount" resultType="long">
         -- Count active member users for matching operation lookup modal.
         SELECT
@@ -162,8 +484,25 @@
             mc.reviewed_by,
             mc.reviewed_at,
             mc.created_at,
-            mc.updated_at
+            mc.updated_at,
+            a.title AS announcement_title,
+            a.agency_name,
+            a.target_type_code,
+            a.min_amount,
+            a.max_amount,
+            a.application_start_date,
+            a.application_end_date,
+            u.login_id AS member_login_id,
+            u.name AS member_name,
+            EXISTS (
+                SELECT
+                    1
+                FROM application_progresses ap
+                WHERE ap.matching_case_id = mc.id
+            ) AS progress_created
         FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
+        INNER JOIN users u ON u.id = mc.member_user_id
         WHERE mc.id = #{matchingCaseId}
     </select>
 
@@ -180,8 +519,25 @@
             mc.reviewed_by,
             mc.reviewed_at,
             mc.created_at,
-            mc.updated_at
+            mc.updated_at,
+            a.title AS announcement_title,
+            a.agency_name,
+            a.target_type_code,
+            a.min_amount,
+            a.max_amount,
+            a.application_start_date,
+            a.application_end_date,
+            u.login_id AS member_login_id,
+            u.name AS member_name,
+            EXISTS (
+                SELECT
+                    1
+                FROM application_progresses ap
+                WHERE ap.matching_case_id = mc.id
+            ) AS progress_created
         FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
+        INNER JOIN users u ON u.id = mc.member_user_id
         WHERE mc.announcement_id = #{announcementId}
           AND mc.member_user_id = #{memberUserId}
         <choose>

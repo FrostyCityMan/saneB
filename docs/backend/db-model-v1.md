@@ -95,11 +95,14 @@ Scaffold 상태:
 
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
-| `member_profiles` | `user_id`, `birth_year`, `address`, `region_code`, `is_householder`, `is_household_member`, `health_insurance_basis_code`, `has_income` | PK `id`, FK `users.id` | UQ `user_id`, IDX `region_code` |
-| `business_profiles` | `user_id`, `representative_name`, `business_registration_no`, `business_name`, `workplace_address`, `workplace_region_code`, `opening_date`, `industry_name`, `business_category`, `business_item`, `ksic_code`, `business_type_code`, `company_stage_code` | PK `id`, FK `users.id` | UQ `business_registration_no`, IDX `user_id`, IDX `ksic_code`, IDX `workplace_region_code` |
-| `family_members` | `user_id`, `relation_type_code`, `birth_year`, `address`, `school_age_status_code`, `enrollment_status_code`, `is_cohabiting`, `is_supported`, `has_income` | PK `id`, FK `users.id` | IDX `(user_id, relation_type_code)` |
+| `member_profiles` | `user_id`, `birth_year`, `address`, `region_code`, `is_householder`, `is_household_member`, `health_insurance_basis_code`, `has_income`, `income_presence_code`, `income_amount`, `income_period_code`, `income_note` | PK `id`, FK `users.id` | UQ `user_id`, IDX `region_code`, IDX `income_presence_code` |
+| `business_profiles` | `user_id`, `representative_name`, `business_registration_no`, `business_name`, `workplace_address`, `workplace_region_code`, `opening_date`, `industry_name`, `business_category`, `business_item`, `ksic_code`, `business_type_code`, `company_stage_code`, `annual_revenue`, `annual_revenue_year`, `has_policy_fund_usage`, `has_guarantee_usage` | PK `id`, FK `users.id` | UQ `business_registration_no`, IDX `user_id`, IDX `ksic_code`, IDX `workplace_region_code`, IDX `annual_revenue` |
+| `family_members` | `user_id`, `relation_type_code`, `birth_year`, `address`, `school_age_status_code`, `enrollment_status_code`, `is_cohabiting`, `is_supported`, `has_income`, `income_presence_code`, `income_amount`, `income_period_code`, `income_note` | PK `id`, FK `users.id` | IDX `(user_id, relation_type_code)`, IDX `(user_id, relation_type_code, income_presence_code)` |
+| `member_document_input_values` | `user_id`, `standard_field_id`, `value_text`, `value_number`, `value_date`, `value_boolean`, `submitted_by`, `submitted_at` | PK `id`, FK `users.id`, FK `standard_document_fields.id`, FK `users.id` | UQ `(user_id, standard_field_id)`, IDX `(user_id, updated_at DESC)`, IDX `standard_field_id` |
 
 MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분리한다. 현재 운영 테스트에서는 검증값 없이도 운영자 수동 매칭을 생성할 수 있으며, 검증 ID가 있는 경우에는 파트너 검증값을 회원 입력값보다 우선 사용한다.
+사용자 기본정보 입력 하단의 서류별 선택 입력값은 `member_document_input_values`에 저장한다. 한 표준 필드에는 문자, 숫자, 날짜, boolean 중 한 값만 저장하며 모든 서류 값은 선택 입력이다.
+관리자가 회원을 대신해 서류별 선택 입력값을 저장하는 경우에도 `user_id`는 대상 회원 ID를 유지하고, `submitted_by`에 입력 관리자 ID를 기록한다.
 
 ### 5.3 Partner Verification
 
@@ -371,6 +374,29 @@ dev seed:
 
 대시보드 전용 테이블은 `V1` 범위에 포함하지 않는다. `/api/v1/dashboard/me/...` 응답은 `partner_verifications`, `matching_cases`, `matching_result_details`, `application_progresses`, `application_step_states`, `application_step_checklists`를 기준으로 집계한다.
 
+## 8.1 Additive Migration: 표준 서류 필드와 관리자 선택형 매칭
+
+`V15__create_standard_document_fields.sql`은 기존 V1 계약을 깨지 않고 다음 구조를 추가한다.
+
+- `standard_document_fields`: 공고 조건과 동적 입력에서 선택할 수 있는 표준 서류 필드 목록이다.
+- `announcement_numeric_conditions.standard_field_id`, `announcement_option_conditions.standard_field_id`, `announcement_document_requirements.standard_field_id`, `announcement_input_requirements.standard_field_id`: 기존 저장 방식은 유지하면서 표준 필드와 연결할 수 있는 선택 FK다.
+- `member_profiles`, `business_profiles`, `family_members`, `verification_family_values`에는 소득 여부, 소득 금액, 연매출 등 기본정보 비교에 필요한 선택 컬럼을 additive로 보강한다.
+- 표준 서류 필드는 사업자등록증, 부가세 과세표준증명원, 면세사업자 수입금액증명원, 소득금액증명원, 국세완납증명서, 지방세완납증명서, 주민등록등본, 가족관계증명서, 건강보험료 납부확인서, 건강보험 자격확인서 기준으로 seed한다.
+
+정책:
+
+- 표준 서류 필드의 `required_default`는 기본 `false`다. 일반 사용자에게 서류 내용 입력을 기본 필수로 강제하지 않는다.
+- 자동 추천도, 선정확률, 점수, AI 자동판단 컬럼은 추가하지 않는다.
+- 네이버 전자증명 API 자동 수집을 전제로 하는 저장 컬럼은 추가하지 않는다.
+
+`V16__create_member_document_input_values.sql`은 사용자 기본정보 입력 화면의 서류별 선택 입력값 저장 구조를 추가한다.
+
+- `member_document_input_values`: 회원 사용자가 입력한 표준 서류 필드별 값을 저장한다.
+- `(user_id, standard_field_id)` unique로 한 사용자 기준 같은 서류 필드의 중복 입력을 차단한다.
+- `value_text`, `value_number`, `value_date`, `value_boolean` 중 하나만 저장할 수 있도록 check constraint를 둔다.
+- `standard_document_fields`에는 제공된 전자증명 항목 중 V15에 없던 사업장 주소, 업태, 종목, 사업자 정보, 종합소득금액, 완납 여부, 세대원 정보, 가족관계, 가입자 정보 등을 추가 seed한다.
+- 이 구조는 사용자가 네이버 전자지갑 등에서 발급한 증명서를 회사에 전달하고, 필요한 값을 수동 입력하는 운영 흐름을 전제로 한다.
+
 ## 9. Backend Gate 조건
 
 - `V1__create_mvp_schema.sql`이 빈 PostgreSQL DB에 성공적으로 적용된다.
@@ -382,5 +408,5 @@ dev seed:
 - 개인정보와 운영 감사 로그가 분리되어 있다.
 - 공고 승인 상태가 `APPROVED`가 되기 전에는 매칭 기준으로 사용되지 않는다.
 - 검증 ID가 있는 매칭은 파트너 검증값이 회원 입력값보다 매칭 기준에서 우선한다.
-- 검증 ID가 없는 매칭은 운영자 수동 매칭으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
+- 검증 ID가 없는 매칭은 운영자 수동 생성 또는 관리자 조건 후보 생성으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
 - 진행 단계 완료 조건 충족 전 다음 단계 이동이 서버에서 차단된다.

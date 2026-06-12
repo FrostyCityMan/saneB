@@ -4,6 +4,8 @@ import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsResponse;
 import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsSaveRequest;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesResponse;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesSaveRequest;
+import com.saneb.domain.dynamicinput.dto.StandardDocumentFieldResponse;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
@@ -23,5 +25,10 @@ public interface DynamicAnnouncementInputService {
             Authentication authentication,
             UUID progressId,
             ApplicationInputValuesSaveRequest request
+    );
+
+    List<StandardDocumentFieldResponse> selectStandardDocumentFieldList(
+            String documentTypeCode,
+            String scopeCode
     );
 }

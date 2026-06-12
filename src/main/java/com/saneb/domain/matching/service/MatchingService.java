@@ -1,6 +1,8 @@
 package com.saneb.domain.matching.service;
 
 import com.saneb.common.response.PageResponse;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateRequest;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateResponse;
 import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
@@ -16,6 +18,11 @@ public interface MatchingService {
     MatchingCaseDetailsResponse insertMatchingCase(
             Authentication authentication,
             MatchingCaseCreateRequest request
+    );
+
+    MatchingCandidateGenerateResponse insertMatchingCandidates(
+            Authentication authentication,
+            MatchingCandidateGenerateRequest request
     );
 
     PageResponse<MatchingCaseSummaryResponse> selectMatchingCaseList(

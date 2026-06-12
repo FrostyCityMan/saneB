@@ -321,6 +321,13 @@ svg {
     margin: 0 auto;
 }
 
+.dashboard-simple-grid {
+    display: grid;
+    gap: 22px;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
 .primary-column,
 .secondary-column {
     display: grid;
@@ -347,6 +354,18 @@ svg {
             rgba(255, 253, 248, 0.88);
 }
 
+.action-panel-primary {
+    display: grid;
+    align-content: center;
+    min-height: clamp(380px, 48vh, 560px);
+    padding: 44px 48px;
+}
+
+.action-panel-primary .action-copy h2 {
+    font-size: 40px;
+    line-height: 1.24;
+}
+
 .section-label {
     margin-bottom: 17px;
     color: #111;
@@ -356,34 +375,34 @@ svg {
 
 .action-content {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) minmax(180px, auto);
     align-items: center;
-    gap: 24px;
+    gap: 34px;
 }
 
 .action-icon {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 128px;
+    height: 128px;
     border-radius: 50%;
     border: 1px solid var(--saneb-border);
     background: rgba(255, 252, 245, 0.95);
     color: #4e5b35;
-    padding: 30px;
+    padding: 38px;
 }
 
 .action-icon span {
     position: absolute;
-    right: 23px;
-    bottom: 23px;
-    width: 27px;
-    height: 27px;
+    right: 30px;
+    bottom: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--saneb-gold);
     color: #fff;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 900;
-    line-height: 27px;
+    line-height: 32px;
     text-align: center;
 }
 
@@ -1475,6 +1494,101 @@ svg {
     margin-top: 18px;
 }
 
+.basic-info-form {
+    display: grid;
+    gap: 18px;
+}
+
+.field-help {
+    margin: 0;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.family-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.family-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 13px;
+}
+
+.family-remove-button {
+    min-width: 68px;
+}
+
+.document-input-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.member-document-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.member-document-card {
+    display: grid;
+    gap: 13px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 15px;
+}
+
+.member-document-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.member-document-card-head h3 {
+    margin: 2px 0 0;
+    color: #202522;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.document-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.empty-document-note {
+    margin-top: 12px;
+}
+
+.basic-info-message {
+    min-height: 22px;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.basic-info-message.is-success {
+    color: #0b6f49;
+}
+
+.basic-info-message.is-error {
+    color: #a13d2d;
+}
+
 .button-action {
     border: 0;
     padding: 0 18px;
@@ -2561,6 +2675,179 @@ svg {
     opacity: .48;
 }
 
+.admin-member-basic-page {
+    padding: 30px clamp(18px, 3vw, 34px);
+}
+
+.admin-member-basic-shell {
+    display: grid;
+    gap: 18px;
+    max-width: 1420px;
+    margin: 0 auto;
+}
+
+.admin-member-basic-hero .summary-header p {
+    margin: 7px 0 0;
+    color: var(--saneb-muted);
+    font-size: 14px;
+}
+
+.admin-member-basic-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-member-basic-workspace {
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.admin-member-basic-list-panel {
+    position: sticky;
+    top: 18px;
+    display: grid;
+    gap: 14px;
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+}
+
+.admin-member-basic-list {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-member-basic-user {
+    display: grid;
+    gap: 12px;
+    border: 1px solid rgba(212, 196, 162, .78);
+    border-radius: 8px;
+    background: #fffaf0;
+    padding: 13px;
+}
+
+.admin-member-basic-user-main {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.admin-member-basic-user-main strong {
+    color: var(--saneb-text);
+    font-size: 15px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.admin-member-basic-user-main span {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.admin-member-basic-user-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.admin-member-basic-user-meta div {
+    display: grid;
+    gap: 3px;
+    border: 1px solid rgba(212, 196, 162, .7);
+    border-radius: 7px;
+    background: #fffdf8;
+    padding: 8px;
+    min-width: 0;
+}
+
+.admin-member-basic-user-meta dt {
+    color: var(--saneb-muted);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.admin-member-basic-user-meta dd {
+    margin: 0;
+    color: var(--saneb-text);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.admin-member-basic-user .secondary-action {
+    width: 100%;
+    min-height: 40px;
+}
+
+.admin-member-basic-user .secondary-action.is-selected {
+    border-color: #265d44;
+    background: #265d44;
+    color: #fffdf8;
+}
+
+.admin-member-basic-placeholder {
+    display: grid;
+    gap: 8px;
+    min-height: 280px;
+    align-content: center;
+    color: var(--saneb-muted);
+}
+
+.admin-member-basic-placeholder h2 {
+    margin: 0;
+    color: var(--saneb-text);
+    font-size: 24px;
+}
+
+.admin-member-basic-placeholder p {
+    margin: 0;
+    max-width: 520px;
+    line-height: 1.55;
+}
+
+.admin-member-basic-form {
+    min-width: 0;
+}
+
+.admin-member-basic-form[hidden],
+.admin-member-basic-placeholder[hidden] {
+    display: none;
+}
+
+.admin-member-basic-selected {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+    border: 1px solid rgba(212, 196, 162, .78);
+    border-radius: 8px;
+    background: #fffaf0;
+    padding: 14px 16px;
+}
+
+.admin-member-basic-selected div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.admin-member-basic-selected strong {
+    color: var(--saneb-text);
+    font-size: 18px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.admin-member-basic-selected small {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
 .audit-log-card .admin-user-actions {
     align-self: center;
 }
@@ -2867,6 +3154,21 @@ svg {
     overflow-wrap: anywhere;
 }
 
+.matching-id-line {
+    margin: 0;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.matching-operate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
 @media (max-width: 1180px) {
     .saneb-shell {
         grid-template-columns: 92px minmax(0, 1fr);
@@ -2921,8 +3223,15 @@ svg {
     .admin-users-summary-grid,
     .admin-users-filter,
     .admin-user-card,
-    .admin-user-controls {
+    .admin-user-controls,
+    .admin-member-basic-summary-grid,
+    .admin-member-basic-workspace {
         grid-template-columns: 1fr;
+    }
+
+    .admin-member-basic-list-panel {
+        position: static;
+        max-height: none;
     }
 
     .admin-user-meta {
@@ -3076,6 +3385,13 @@ svg {
         min-width: 0;
     }
 
+    .admin-member-basic-page {
+        padding: 16px;
+        width: 100%;
+        max-width: 100vw;
+        min-width: 0;
+    }
+
     .matching-page {
         padding: 16px;
         width: 100%;
@@ -3084,6 +3400,7 @@ svg {
     }
 
     .dashboard-grid,
+    .dashboard-simple-grid,
     .primary-column,
     .secondary-column,
     .split-panels {
@@ -3100,6 +3417,8 @@ svg {
     .flow-workspace,
     .flow-side,
     .admin-users-shell,
+    .admin-member-basic-shell,
+    .admin-member-basic-workspace,
     .matching-shell,
     .matching-grid {
         display: grid;
@@ -3122,6 +3441,11 @@ svg {
     .admin-users-filter-panel,
     .admin-user-card,
     .admin-users-empty,
+    .admin-member-basic-hero,
+    .admin-member-basic-filter-panel,
+    .admin-member-basic-list-panel,
+    .admin-member-basic-placeholder,
+    .admin-member-basic-form,
     .matching-hero,
     .matching-form,
     .matching-list-panel,
@@ -3144,6 +3468,9 @@ svg {
     .admin-user-meta,
     .admin-user-controls,
     .admin-role-checks,
+    .admin-member-basic-summary-grid,
+    .admin-member-basic-user-meta,
+    .admin-member-basic-selected,
     .matching-summary-grid,
     .matching-case-meta,
     .matching-status-form,
@@ -3231,24 +3558,35 @@ svg {
     }
 
     .dynamic-requirement-row,
-    .dynamic-progress-field {
+    .dynamic-progress-field,
+    .family-row {
         grid-template-columns: 1fr;
         gap: 12px;
         padding: 13px;
+    }
+
+    .document-input-toolbar,
+    .document-field-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .steps-toolbar,
     .dynamic-requirements-toolbar,
     .dynamic-requirement-actions,
     .dynamic-field-header,
-    .dynamic-field-badges {
+    .dynamic-field-badges,
+    .family-row .secondary-action,
+    .member-document-card-head {
         display: grid;
         justify-content: stretch;
     }
 
     .steps-toolbar .secondary-action,
     .dynamic-requirements-toolbar .secondary-action,
-    .dynamic-requirement-actions .secondary-action {
+    .dynamic-requirement-actions .secondary-action,
+    .document-input-toolbar .secondary-action,
+    .member-document-card-head .secondary-action {
         width: 100%;
     }
 
@@ -3266,6 +3604,11 @@ svg {
     .verification-panel,
     .reverification-panel {
         padding: 17px;
+    }
+
+    .action-panel-primary {
+        align-content: start;
+        min-height: auto;
     }
 
     .section-label {

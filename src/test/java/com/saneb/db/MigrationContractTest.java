@@ -183,6 +183,35 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v15MigrationContainsStandardDocumentFieldsAndBasicIncomeAdditions() throws IOException {
+        String sql = selectV15Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE standard_document_fields",
+                "CONSTRAINT uq_standard_document_fields_key",
+                "ADD COLUMN standard_field_id uuid",
+                "ADD COLUMN income_presence_code varchar(30)",
+                "ADD COLUMN annual_revenue numeric(18, 2)",
+                "CREATE UNIQUE INDEX uq_matching_cases_no_verification",
+                "'BUSINESS_REGISTRATION'",
+                "'HEALTH_INSURANCE_QUALIFICATION'"
+        );
+    }
+
+    @Test
+    void v16MigrationContainsMemberDocumentInputValues() throws IOException {
+        String sql = selectV16Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE member_document_input_values",
+                "CONSTRAINT uq_member_document_input_values_field",
+                "CONSTRAINT ck_member_document_input_values_single_value",
+                "WORKPLACE_ADDRESS",
+                "INSURED_PERSON_INFO"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -230,6 +259,16 @@ class MigrationContractTest {
 
     private String selectV14Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V14__add_reviewer_and_manual_consultation.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV15Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V15__create_standard_document_fields.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV16Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V16__create_member_document_input_values.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

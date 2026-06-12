@@ -125,7 +125,17 @@ class ApplicationProgressViewControllerSmokeTest {
                 null,
                 now,
                 now,
-                now
+                now,
+                "테스트 공고",
+                "테스트 기관",
+                "BUSINESS",
+                java.math.BigDecimal.valueOf(1000000),
+                java.math.BigDecimal.valueOf(3000000),
+                java.time.LocalDate.of(2026, 6, 1),
+                java.time.LocalDate.of(2026, 6, 30),
+                "local_user",
+                "Local User",
+                false
         );
     }
 

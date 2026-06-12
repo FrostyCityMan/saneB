@@ -35,19 +35,20 @@ class DashboardViewControllerSmokeTest {
     @BeforeEach
     void setUp() {
         when(dashboardService.selectMySummary(org.mockito.ArgumentMatchers.any())).thenReturn(new DashboardSummaryResponse(
-                "VERIFICATION_REQUIRED",
+                "BASIC_INFO_REQUIRED",
                 new DashboardSummaryResponse.CandidateCountsResponse(0, 0, 0),
+                new DashboardSummaryResponse.TargetCandidateCountsResponse(0, 0, 0),
                 0,
                 new DashboardSummaryResponse.SupportAmountRangeResponse(null, null, "ANNOUNCEMENT_AMOUNT_RANGE"),
                 "DRAFT",
-                "전자증명 검증 전 참고 결과입니다."
+                "저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다."
         ));
         when(dashboardService.selectMyCurrentAction(org.mockito.ArgumentMatchers.any())).thenReturn(new DashboardCurrentActionResponse(
-                "VERIFICATION_DOCUMENT_REQUIRED",
-                "전자증명 검증이 필요합니다.",
-                "최종 매칭 전 파트너 검증과 필수 서류 확인이 필요합니다.",
-                "검증 진행하기",
-                "/app/member/verifications/current",
+                "BASIC_INFO_REQUIRED",
+                "기본 정보를 입력해 주세요.",
+                "사업자·개인·가족 기본정보를 입력하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
+                "기본 정보 입력",
+                "/app/member/basic-info",
                 null,
                 5
         ));
@@ -67,8 +68,14 @@ class DashboardViewControllerSmokeTest {
                 .andExpect(view().name("app/dashboard"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("현재 해야 할 행동")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("로그아웃")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("후보 결과")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("최종 매칭 결과")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("진행 가능 현황")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("누적 현황")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("파트너 검증")
+                )))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("전자증명 검증")
+                )))
                 .andExpect(content().string(org.hamcrest.Matchers.not(
                         org.hamcrest.Matchers.containsString("ACTION_REQUIRED")
                 )));

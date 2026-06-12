@@ -10,7 +10,7 @@
 | 용량 모델 | Aurora Serverless v2 |
 | 기본 ACU | `MIN_ACU=0.5`, `MAX_ACU=2` |
 | 네트워크 | Public access 비활성, 애플리케이션 Security Group에서만 5432 허용 |
-| 인증정보 | RDS managed master password 사용. 비밀번호는 Secrets Manager에서 조회 후 서버 환경변수로만 주입 |
+| 인증정보 | RDS managed master password 사용. EC2 인스턴스 역할이 Secrets Manager에서 직접 조회 |
 | Spring profile | `SPRING_PROFILES_ACTIVE=prod` |
 | JDBC URL | `jdbc:postgresql://<cluster-endpoint>:5432/saneb?sslmode=require` |
 
@@ -63,37 +63,73 @@ aws rds describe-db-engine-versions \
 export ENGINE_VERSION=<확인한-engine-version>
 ```
 
+## EC2 Secrets Manager 권한
+
+애플리케이션 EC2 instance profile에 `MASTER_SECRET_ARN` 조회 권한을 부여한다. 비밀번호 값은 CloudShell, GitHub Secrets, 저장소 문서에 기록하지 않는다.
+
+```bash
+export REGION=ap-northeast-2
+export INSTANCE_PROFILE_NAME=saneb-ec2-instance-profile
+export POLICY_NAME=saneb-read-db-secret
+export MASTER_SECRET_ARN="<MASTER_SECRET_ARN>"
+
+ROLE_NAME="$(
+  aws iam get-instance-profile \
+    --instance-profile-name "$INSTANCE_PROFILE_NAME" \
+    --query 'InstanceProfile.Roles[0].RoleName' \
+    --output text
+)"
+
+cat > /tmp/saneb-read-db-secret-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "$MASTER_SECRET_ARN"
+    }
+  ]
+}
+EOF
+
+aws iam put-role-policy \
+  --role-name "$ROLE_NAME" \
+  --policy-name "$POLICY_NAME" \
+  --policy-document file:///tmp/saneb-read-db-secret-policy.json
+```
+
+EC2에는 AWS CLI와 Python 3이 필요하다. SSM 세션에서 확인한다.
+
+```bash
+command -v aws
+command -v python3
+```
+
+`aws` 명령이 없으면 Ubuntu에서 설치한다.
+
+```bash
+sudo apt-get update
+sudo apt-get install -y awscli python3
+```
+
 ## 서버 환경변수 반영
 
-생성 스크립트가 출력한 `MASTER_SECRET_ARN`으로 비밀번호를 조회한다. 출력값은 JSON 문자열이므로 `password` 값을 서버 환경변수에만 반영한다.
+EC2 서버의 `/home/ubuntu/app/app.env` 예시는 아래와 같다. `DB_PASSWORD`를 저장하지 않고 `DB_SECRET_ARN`만 둔다. `scripts/start.sh`가 systemd launch script를 만들고, 앱 시작 시 EC2 instance profile로 Secrets Manager를 조회해 `DB_PASSWORD`를 프로세스 환경변수에 주입한다.
 
 ```bash
-aws secretsmanager get-secret-value \
-  --region "$REGION" \
-  --secret-id "<MASTER_SECRET_ARN>" \
-  --query SecretString \
-  --output text
-```
-
-EC2 서버의 systemd EnvironmentFile 예시는 아래와 같다. 실제 비밀번호는 저장소에 기록하지 않는다.
-
-```bash
-sudo install -d -m 750 /etc/saneb
-sudo tee /etc/saneb/saneb.env >/dev/null <<'EOF'
+sudo install -d -o ubuntu -g ubuntu -m 755 /home/ubuntu/app
+sudo tee /home/ubuntu/app/app.env >/dev/null <<'EOF'
 SPRING_PROFILES_ACTIVE=prod
 SERVER_PORT=8080
+AWS_REGION=ap-northeast-2
 DB_URL=jdbc:postgresql://<DB_ENDPOINT>:5432/saneb?sslmode=require
 DB_USERNAME=saneb_admin
-DB_PASSWORD=<MASTER_PASSWORD>
+DB_SECRET_ARN=<MASTER_SECRET_ARN>
 SANEB_BOOTSTRAP_ADMIN_ENABLED=false
 EOF
-sudo chmod 600 /etc/saneb/saneb.env
-```
-
-systemd service에 EnvironmentFile이 없다면 아래 줄을 추가한다.
-
-```ini
-EnvironmentFile=/etc/saneb/saneb.env
+sudo chown ubuntu:ubuntu /home/ubuntu/app/app.env
+sudo chmod 600 /home/ubuntu/app/app.env
 ```
 
 적용 후 재기동한다.
@@ -129,7 +165,7 @@ curl -I http://127.0.0.1:8080/login
 ## 운영 주의
 
 - Aurora는 생성 즉시 비용이 발생한다. 테스트가 끝난 리소스는 명시적으로 정리한다.
-- `DB_PASSWORD`, bootstrap 관리자 비밀번호, Secrets Manager 출력값은 저장소와 문서에 기록하지 않는다.
+- `DB_PASSWORD`, bootstrap 관리자 비밀번호, Secrets Manager 출력값은 GitHub Secrets, 저장소, 문서, 채팅에 기록하지 않는다.
 - MVP에서는 RDS managed master user를 애플리케이션 접속 계정으로 사용할 수 있다. 운영 사용자가 늘어나면 별도 app role을 만들고 최소 권한으로 분리한다.
 - 배포 직후 초기 관리자 bootstrap을 사용할 경우 첫 로그인 후 `SANEB_BOOTSTRAP_ADMIN_ENABLED=false`로 되돌린다.
 

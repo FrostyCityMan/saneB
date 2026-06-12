@@ -8,6 +8,7 @@ import com.saneb.domain.dynamicinput.vo.ApplicationInputValueCommand;
 import com.saneb.domain.dynamicinput.vo.ApplicationInputValueRow;
 import com.saneb.domain.dynamicinput.vo.ApplicationProgressInputRow;
 import com.saneb.domain.dynamicinput.vo.AuditLogCommand;
+import com.saneb.domain.dynamicinput.vo.StandardDocumentFieldRow;
 import java.util.List;
 import java.util.UUID;
 import org.apache.ibatis.annotations.Mapper;
@@ -72,4 +73,9 @@ public interface DynamicAnnouncementInputDao {
     long selectMissingRequiredApplicationInputCount(@Param("progressId") UUID progressId);
 
     void insertAuditLog(AuditLogCommand command);
+
+    List<StandardDocumentFieldRow> selectStandardDocumentFieldList(
+            @Param("documentTypeCode") String documentTypeCode,
+            @Param("scopeCode") String scopeCode
+    );
 }

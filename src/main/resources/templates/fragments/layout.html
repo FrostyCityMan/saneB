@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${title} + ' | saneB'">saneB</title>
+    <title th:text="${title} + ' | 사내비'">사내비</title>
     <link rel="icon" href="data:,">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
@@ -21,7 +21,7 @@
                     <path d="m8.3 12.1 2.3 2.2 5.1-5.4"/>
                 </svg>
             </span>
-            <span>saneB</span>
+            <span>사내비</span>
         </a>
 
         <div class="role-pill" th:text="${page.roleLabel}">일반 사용자</div>
@@ -53,6 +53,15 @@
                     <svg viewBox="0 0 24 24"><path d="M8.8 11.6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3.8 20a5 5 0 0 1 10 0"/><path d="M16.2 8.2h4M18.2 6.2v4M16.2 14.8h4M16.2 18.2h4"/></svg>
                 </span>
                 <span>회원관리</span>
+            </a>
+            <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/member-basic-info}"
+               th:classappend="${page.activeNav == 'ADMIN_MEMBER_BASIC_INFO'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8 4.6h8l3 3v11.8H5V4.6h3Z"/><path d="M15.6 4.8v3.4h3.2"/><path d="M8.2 12h7.6M8.2 15.4h4.4"/><path d="M8.2 9h3.8"/></svg>
+                </span>
+                <span>고객 정보 입력</span>
             </a>
             <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
@@ -101,12 +110,12 @@
             </a>
             <a class="side-link"
                th:if="${page.auth.primaryRole == 'USER'}"
-               th:href="@{/app/member/verifications/current}"
-               th:classappend="${page.activeNav == 'VERIFICATION_PROGRESS' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
+               th:href="@{/app/member/basic-info}"
+               th:classappend="${page.activeNav == 'MEMBER_BASIC_INFO'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M12 3.6 19 6.4v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6.4l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.5-4.7"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg>
                 </span>
-                <span>내 검증</span>
+                <span>기본 정보</span>
             </a>
             <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'PARTNER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
@@ -176,7 +185,7 @@
             <a href="#">이용약관</a>
             <a href="#">개인정보처리방침</a>
             <a href="#">고객센터</a>
-            <span>© 2026 saneB. All rights reserved.</span>
+            <span>© 2026 사내비. All rights reserved.</span>
         </footer>
     </div>
 </div>

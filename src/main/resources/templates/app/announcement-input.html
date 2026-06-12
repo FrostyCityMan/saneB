@@ -228,7 +228,18 @@
                                 </div>
                                 <div class="field-block">
                                     <label>조건 항목</label>
-                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: 연 매출">
+                                    <select name="conditionKey">
+                                        <option value="ANNUAL_REVENUE">신고 매출액</option>
+                                        <option value="SUPPLY_AMOUNT">공급가액</option>
+                                        <option value="TOTAL_INCOME_AMOUNT">총 소득금액</option>
+                                        <option value="BUSINESS_YEARS">업력</option>
+                                        <option value="AGE">대표자 나이</option>
+                                        <option value="HOUSEHOLD_MEMBER_COUNT">세대원 수</option>
+                                        <option value="CHILD_COUNT">자녀 수</option>
+                                        <option value="PARENT_COUNT">부모 수</option>
+                                        <option value="SPOUSE_COUNT">배우자 수</option>
+                                        <option value="MONTHLY_HEALTH_INSURANCE_PREMIUM">월 건강보험료</option>
+                                    </select>
                                 </div>
                                 <div class="field-block">
                                     <label>비교 방식</label>
@@ -276,7 +287,20 @@
                                 </div>
                                 <div class="field-block">
                                     <label>조건 항목</label>
-                                    <input name="conditionKey" type="text" maxlength="80" placeholder="예: 사업자 유형">
+                                    <select name="conditionKey">
+                                        <option value="WORKPLACE_REGION_CODE">사업장 지역</option>
+                                        <option value="REGION_CODE">주소지 지역</option>
+                                        <option value="BUSINESS_TYPE_CODE">사업자 유형</option>
+                                        <option value="COMPANY_STAGE">사업 상태</option>
+                                        <option value="TAX_TYPE_CODE">과세 유형</option>
+                                        <option value="HAS_CHILD">자녀 여부</option>
+                                        <option value="HAS_SPOUSE">배우자 여부</option>
+                                        <option value="HAS_PARENT">부모 여부</option>
+                                        <option value="HAS_INCOME">소득 여부</option>
+                                        <option value="HAS_POLICY_FUND_USAGE">정책자금 이용 이력</option>
+                                        <option value="HAS_GUARANTEE_USAGE">보증 이용 이력</option>
+                                        <option value="HEALTH_INSURANCE_BASIS_CODE">건강보험 자격</option>
+                                    </select>
                                 </div>
                                 <div class="field-block">
                                     <label>선택값</label>
@@ -302,10 +326,21 @@
                             <article class="condition-row document-requirement-row" data-document-requirement-row>
                                 <div class="field-block span-2">
                                     <label>서류 종류</label>
-                                    <input name="documentTypeCode" type="text" maxlength="80" value="BUSINESS_REGISTRATION" placeholder="예: 사업자등록증">
+                                    <select name="documentTypeCode">
+                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
+                                        <option value="VAT_TAX_BASE">부가세 과세표준증명원</option>
+                                        <option value="TAX_EXEMPT_INCOME">면세사업자 수입금액증명원</option>
+                                        <option value="INCOME_CERTIFICATE">소득금액증명원</option>
+                                        <option value="NATIONAL_TAX_PAID">국세완납증명서</option>
+                                        <option value="LOCAL_TAX_PAID">지방세완납증명서</option>
+                                        <option value="RESIDENT_REGISTRATION">주민등록등본</option>
+                                        <option value="FAMILY_RELATION">가족관계증명서</option>
+                                        <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인서</option>
+                                        <option value="HEALTH_INSURANCE_QUALIFICATION">건강보험 자격확인서</option>
+                                    </select>
                                 </div>
                                 <label class="inline-check">
-                                    <input name="required" type="checkbox" checked> 필수
+                                    <input name="required" type="checkbox"> 필수 서류로 요청
                                 </label>
                                 <div class="condition-row-actions">
                                     <button class="secondary-action" type="button" data-document-requirement-remove>삭제</button>

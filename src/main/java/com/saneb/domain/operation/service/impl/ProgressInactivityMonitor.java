@@ -29,15 +29,15 @@ public class ProgressInactivityMonitor {
 
     public ProgressInactivityMonitor(
             OperationDao operationDao,
-            @Value("${saneb.operation.inactivity.batch-size:50}") int batchSize
+            @Value("$" + "{saneb.operation.inactivity.batch-size:50}") int batchSize
     ) {
         this.operationDao = operationDao;
         this.batchSize = Math.max(1, batchSize);
     }
 
     @Scheduled(
-            initialDelayString = "${saneb.operation.inactivity.initial-delay-ms:60000}",
-            fixedDelayString = "${saneb.operation.inactivity.fixed-delay-ms:3600000}"
+            initialDelayString = "$" + "{saneb.operation.inactivity.initial-delay-ms:60000}",
+            fixedDelayString = "$" + "{saneb.operation.inactivity.fixed-delay-ms:3600000}"
     )
     @Transactional
     public void classifyInactiveProgresses() {

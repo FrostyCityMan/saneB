@@ -8,6 +8,7 @@ import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsResponse;
 import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsSaveRequest;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesResponse;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesSaveRequest;
+import com.saneb.domain.dynamicinput.dto.StandardDocumentFieldResponse;
 import com.saneb.domain.dynamicinput.service.DynamicAnnouncementInputService;
 import com.saneb.domain.dynamicinput.vo.AnnouncementInputOptionCommand;
 import com.saneb.domain.dynamicinput.vo.AnnouncementInputOptionRow;
@@ -17,6 +18,7 @@ import com.saneb.domain.dynamicinput.vo.ApplicationInputValueCommand;
 import com.saneb.domain.dynamicinput.vo.ApplicationInputValueRow;
 import com.saneb.domain.dynamicinput.vo.ApplicationProgressInputRow;
 import com.saneb.domain.dynamicinput.vo.AuditLogCommand;
+import com.saneb.domain.dynamicinput.vo.StandardDocumentFieldRow;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -45,6 +47,18 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
             "BUSINESS", "PERSONAL", "SPOUSE", "CHILD", "PARENT", "APPLICATION", "SUPPORT"
     );
     private static final Set<String> OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "APPROVER", "ADMIN");
+    private static final Set<String> DOCUMENT_TYPE_CODES = Set.of(
+            "BUSINESS_REGISTRATION",
+            "VAT_TAX_BASE",
+            "TAX_EXEMPT_INCOME",
+            "INCOME_CERTIFICATE",
+            "NATIONAL_TAX_PAID",
+            "LOCAL_TAX_PAID",
+            "RESIDENT_REGISTRATION",
+            "FAMILY_RELATION",
+            "HEALTH_INSURANCE_PAYMENT",
+            "HEALTH_INSURANCE_QUALIFICATION"
+    );
 
     private final DynamicAnnouncementInputDao dynamicAnnouncementInputDao;
 
@@ -141,6 +155,24 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
         ApplicationProgressInputRow progress = selectAuthorizedProgress(actor, progressId);
         return selectApplicationInputValuesResponse(progress);
+    }
+
+    @Override
+    public List<StandardDocumentFieldResponse> selectStandardDocumentFieldList(
+            String documentTypeCode,
+            String scopeCode
+    ) {
+        String normalizedDocumentTypeCode = normalizeOptionalCode(documentTypeCode);
+        String normalizedScopeCode = normalizeOptionalCode(scopeCode);
+        validateOptionalCode("documentTypeCode", normalizedDocumentTypeCode, DOCUMENT_TYPE_CODES);
+        validateOptionalCode("scopeCode", normalizedScopeCode, SCOPE_CODES);
+        return dynamicAnnouncementInputDao.selectStandardDocumentFieldList(
+                        normalizedDocumentTypeCode,
+                        normalizedScopeCode
+                )
+                .stream()
+                .map(this::toStandardDocumentFieldResponse)
+                .toList();
     }
 
     @Override
@@ -510,6 +542,20 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    private StandardDocumentFieldResponse toStandardDocumentFieldResponse(StandardDocumentFieldRow row) {
+        return new StandardDocumentFieldResponse(
+                row.standardFieldId(),
+                row.documentTypeCode(),
+                row.fieldKey(),
+                row.fieldLabel(),
+                row.fieldTypeCode(),
+                row.scopeCode(),
+                Boolean.TRUE.equals(row.requiredDefault()),
+                row.sortOrder() == null ? 0 : row.sortOrder(),
+                row.helpText()
+        );
+    }
+
     private ApplicationProgressInputRow selectAuthorizedProgress(AuthenticatedUserDetails actor, UUID progressId) {
         ApplicationProgressInputRow progress = dynamicAnnouncementInputDao.selectApplicationProgressForInput(progressId);
         if (progress == null) {
@@ -578,6 +624,12 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
             throw validationFailed(fieldName + " is invalid.");
         }
         return normalized;
+    }
+
+    private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
+        if (value != null && !allowedValues.contains(value)) {
+            throw validationFailed(fieldName + " is invalid.");
+        }
     }
 
     private String normalizeOptionalCode(String value) {

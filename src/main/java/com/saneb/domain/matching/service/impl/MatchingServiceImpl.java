@@ -5,6 +5,8 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.matching.dao.MatchingDao;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateRequest;
+import com.saneb.domain.matching.dto.MatchingCandidateGenerateResponse;
 import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
@@ -14,6 +16,7 @@ import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
 import com.saneb.domain.matching.vo.AnnouncementMatchingRow;
 import com.saneb.domain.matching.vo.AuditLogCommand;
+import com.saneb.domain.matching.vo.MatchingCandidateAnnouncementRow;
 import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
@@ -42,6 +45,7 @@ public class MatchingServiceImpl implements MatchingService {
     private static final String RESOURCE_TYPE = "MATCHING_CASE";
     private static final String RESULT_SCOPE_CODE = "APPLICATION";
     private static final String RESULT_CONDITION_KEY = "RESTRICTION_FLAGS";
+    private static final String BASIC_PROFILE_CONDITION_KEY = "BASIC_PROFILE_CONDITIONS";
 
     private static final Set<String> MATCHING_STATUS_CODES = Set.of(
             "MATCHED", "NOT_MATCHED", "REVIEW_REQUIRED", "BLOCKED", "PROGRESSED"
@@ -70,6 +74,73 @@ public class MatchingServiceImpl implements MatchingService {
         this.matchingDao = matchingDao;
         this.auditTransactionTemplate = new TransactionTemplate(transactionManager);
         this.auditTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
+
+    @Override
+    @Transactional
+    public MatchingCandidateGenerateResponse insertMatchingCandidates(
+            Authentication authentication,
+            MatchingCandidateGenerateRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        UUID memberUserId = request.memberUserId();
+        if (matchingDao.selectMatchingMemberUserCount(memberUserId) == 0) {
+            insertFailureAudit(actorUserId, "MEMBER_USER_NOT_FOUND");
+            throw notFound();
+        }
+
+        List<MatchingCandidateAnnouncementRow> candidates =
+                matchingDao.selectEligibleAnnouncementCandidateList(memberUserId);
+        int createdCount = 0;
+        int skippedCount = 0;
+        for (MatchingCandidateAnnouncementRow candidate : candidates) {
+            MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByBusinessKey(
+                    candidate.announcementId(),
+                    memberUserId,
+                    null
+            );
+            if (existing != null) {
+                skippedCount++;
+                continue;
+            }
+            UUID matchingCaseId = UUID.randomUUID();
+            matchingDao.insertMatchingCase(new MatchingCaseCreateCommand(
+                    matchingCaseId,
+                    candidate.announcementId(),
+                    memberUserId,
+                    null,
+                    "MATCHED",
+                    null,
+                    actorUserId
+            ));
+            matchingDao.insertMatchingResultDetail(new MatchingResultDetailCommand(
+                    UUID.randomUUID(),
+                    matchingCaseId,
+                    RESULT_SCOPE_CODE,
+                    BASIC_PROFILE_CONDITION_KEY,
+                    "PASS",
+                    String.valueOf(candidate.matchedConditionCount() == null ? 0 : candidate.matchedConditionCount()),
+                    String.valueOf(candidate.checkedConditionCount() == null ? 0 : candidate.checkedConditionCount()),
+                    "저장된 기본정보가 공고 조건을 충족했습니다.",
+                    actorUserId
+            ));
+            createdCount++;
+        }
+
+        insertAudit(actorUserId, "MATCHING_CANDIDATE_GENERATE", memberUserId, "SUCCESS", metadata(
+                "createdCount", String.valueOf(createdCount),
+                "skippedCount", String.valueOf(skippedCount),
+                "candidateCount", String.valueOf(candidates.size())
+        ));
+        List<MatchingCaseSummaryResponse> candidateList = selectMatchingCaseList(
+                null,
+                memberUserId,
+                null,
+                null,
+                1,
+                MAX_PAGE_SIZE
+        ).items();
+        return new MatchingCandidateGenerateResponse(memberUserId, createdCount, skippedCount, candidateList);
     }
 
     @Override
@@ -348,7 +419,17 @@ public class MatchingServiceImpl implements MatchingService {
                 row.blockedReasonCode(),
                 row.matchedAt(),
                 row.createdAt(),
-                row.updatedAt()
+                row.updatedAt(),
+                row.announcementTitle(),
+                row.agencyName(),
+                row.targetTypeCode(),
+                row.minAmount(),
+                row.maxAmount(),
+                row.applicationStartDate(),
+                row.applicationEndDate(),
+                row.memberLoginId(),
+                row.memberName(),
+                Boolean.TRUE.equals(row.progressCreated())
         );
     }
 

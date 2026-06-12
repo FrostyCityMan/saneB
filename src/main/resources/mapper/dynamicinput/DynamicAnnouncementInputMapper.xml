@@ -52,6 +52,20 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="StandardDocumentFieldRowMap" type="com.saneb.domain.dynamicinput.vo.StandardDocumentFieldRow">
+        <constructor>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="field_key" javaType="java.lang.String"/>
+            <arg column="field_label" javaType="java.lang.String"/>
+            <arg column="field_type_code" javaType="java.lang.String"/>
+            <arg column="scope_code" javaType="java.lang.String"/>
+            <arg column="required_default" javaType="java.lang.Boolean"/>
+            <arg column="sort_order" javaType="java.lang.Integer"/>
+            <arg column="help_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
     <select id="selectAnnouncementCount" resultType="long">
         -- Count announcements for dynamic input ownership validation.
         SELECT
@@ -335,4 +349,27 @@
             CAST(#{metadataJson,jdbcType=VARCHAR} AS jsonb)
         )
     </insert>
+
+    <select id="selectStandardDocumentFieldList" resultMap="StandardDocumentFieldRowMap">
+        -- Select standard document fields used by announcement condition and input screens.
+        SELECT
+            sdf.id AS standard_field_id,
+            sdf.document_type_code,
+            sdf.field_key,
+            sdf.field_label,
+            sdf.field_type_code,
+            sdf.scope_code,
+            sdf.required_default,
+            sdf.sort_order,
+            sdf.help_text
+        FROM standard_document_fields sdf
+        WHERE sdf.is_selectable = true
+        <if test="documentTypeCode != null and documentTypeCode != ''">
+          AND sdf.document_type_code = #{documentTypeCode}
+        </if>
+        <if test="scopeCode != null and scopeCode != ''">
+          AND sdf.scope_code = #{scopeCode}
+        </if>
+        ORDER BY sdf.document_type_code ASC, sdf.sort_order ASC, sdf.field_key ASC
+    </select>
 </mapper>

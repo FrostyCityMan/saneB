@@ -5,8 +5,10 @@ import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsResponse;
 import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsSaveRequest;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesResponse;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesSaveRequest;
+import com.saneb.domain.dynamicinput.dto.StandardDocumentFieldResponse;
 import com.saneb.domain.dynamicinput.service.DynamicAnnouncementInputService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Validated
@@ -71,6 +74,18 @@ public class DynamicAnnouncementInputController {
                 authentication,
                 progressId,
                 request
+        ));
+    }
+
+    @GetMapping("/standard-document-fields")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<List<StandardDocumentFieldResponse>> selectStandardDocumentFieldList(
+            @RequestParam(required = false) String documentTypeCode,
+            @RequestParam(required = false) String scopeCode
+    ) {
+        return ApiResponse.success(dynamicAnnouncementInputService.selectStandardDocumentFieldList(
+                documentTypeCode,
+                scopeCode
         ));
     }
 }

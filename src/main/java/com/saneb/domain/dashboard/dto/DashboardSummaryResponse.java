@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public record DashboardSummaryResponse(
         String serviceStatusCode,
         CandidateCountsResponse candidateCounts,
+        TargetCandidateCountsResponse targetCandidateCounts,
         int finalMatchedCount,
         SupportAmountRangeResponse supportAmountRange,
         String verificationStatusCode,
@@ -15,6 +16,13 @@ public record DashboardSummaryResponse(
             int policyFund,
             int supportFund,
             int subsidy
+    ) {
+    }
+
+    public record TargetCandidateCountsResponse(
+            int business,
+            int personal,
+            int family
     ) {
     }
 

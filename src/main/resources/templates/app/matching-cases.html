@@ -4,6 +4,7 @@
 <main class="matching-page"
       data-matching-app
       th:data-base-url="@{/api/v1/matching/cases}"
+      th:data-progress-url="@{/api/v1/application-progresses}"
       th:data-announcement-lookup-url="@{/api/v1/announcements}"
       th:data-member-lookup-url="@{/api/v1/matching/cases/member-lookups}"
       th:data-can-operate="${page.canOperate}">
@@ -69,6 +70,30 @@
                     </div>
                 </div>
                 <button class="primary-action button-action" type="submit" data-matching-create-submit>매칭 생성</button>
+            </form>
+
+            <form class="plain-panel matching-form" data-matching-candidate-form novalidate
+                  th:if="${page.canOperate}">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">후보 생성</span>
+                        <h2>회원별 조건 매칭</h2>
+                    </div>
+                </div>
+                <div class="field-block">
+                    <label for="matchingCandidateMemberUserId">회원 ID</label>
+                    <div class="lookup-input-row">
+                        <input id="matchingCandidateMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
+                        <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
+                                <path d="m16 16 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="field-help">승인 공고와 저장된 기본정보가 맞으면 후보를 생성합니다.</small>
+                </div>
+                <button class="primary-action button-action" type="submit" data-matching-candidate-submit>조건 매칭 후보 생성</button>
             </form>
 
             <form class="plain-panel matching-form" data-matching-search-form novalidate>
