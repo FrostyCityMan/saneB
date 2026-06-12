@@ -130,6 +130,7 @@ function Invoke-FlywayDockerGate {
     $previousMatchingSmoke = $env:SANEB_MATCHING_SMOKE
     $previousApplicationProgressSmoke = $env:SANEB_APPLICATION_PROGRESS_SMOKE
     $previousDynamicInputSmoke = $env:SANEB_DYNAMIC_INPUT_SMOKE
+    $previousMemberBasicInfoSmoke = $env:SANEB_MEMBER_BASIC_INFO_SMOKE
     $previousBackendRehearsal = $env:SANEB_BACKEND_REHEARSAL
     $previousFlywayOutOfOrder = $env:SPRING_FLYWAY_OUT_OF_ORDER
 
@@ -208,6 +209,9 @@ function Invoke-FlywayDockerGate {
         $env:SANEB_DYNAMIC_INPUT_SMOKE = 'true'
         Invoke-GateCommand { .\gradlew.bat dynamicInputSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
 
+        $env:SANEB_MEMBER_BASIC_INFO_SMOKE = 'true'
+        Invoke-GateCommand { .\gradlew.bat memberBasicInfoSmokeIntegrationTest --rerun-tasks --console=plain --no-problems-report }
+
         $env:SANEB_BACKEND_REHEARSAL = 'true'
         Invoke-GateCommand { .\gradlew.bat backendRehearsalIntegrationTest --rerun-tasks --console=plain --no-problems-report }
     } finally {
@@ -224,6 +228,7 @@ function Invoke-FlywayDockerGate {
         $env:SANEB_MATCHING_SMOKE = $previousMatchingSmoke
         $env:SANEB_APPLICATION_PROGRESS_SMOKE = $previousApplicationProgressSmoke
         $env:SANEB_DYNAMIC_INPUT_SMOKE = $previousDynamicInputSmoke
+        $env:SANEB_MEMBER_BASIC_INFO_SMOKE = $previousMemberBasicInfoSmoke
         $env:SANEB_BACKEND_REHEARSAL = $previousBackendRehearsal
         $env:SPRING_FLYWAY_OUT_OF_ORDER = $previousFlywayOutOfOrder
 

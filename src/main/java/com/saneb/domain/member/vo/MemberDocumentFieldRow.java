@@ -10,7 +10,7 @@ public record MemberDocumentFieldRow(
         String fieldTypeCode,
         String scopeCode,
         Boolean requiredDefault,
-        int sortOrder,
+        Integer sortOrder,
         String helpText
 ) {
 }

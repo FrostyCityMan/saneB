@@ -226,7 +226,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 field.fieldTypeCode(),
                 field.scopeCode(),
                 Boolean.TRUE.equals(field.requiredDefault()),
-                field.sortOrder(),
+                field.sortOrder() == null ? 0 : field.sortOrder(),
                 field.helpText(),
                 value == null ? null : value.valueText(),
                 value == null ? null : value.valueNumber(),

@@ -53,7 +53,7 @@
             <arg column="field_type_code" javaType="java.lang.String"/>
             <arg column="scope_code" javaType="java.lang.String"/>
             <arg column="required_default" javaType="java.lang.Boolean"/>
-            <arg column="sort_order" javaType="int"/>
+            <arg column="sort_order" javaType="java.lang.Integer"/>
             <arg column="help_text" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
