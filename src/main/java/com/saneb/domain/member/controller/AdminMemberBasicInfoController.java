@@ -28,7 +28,7 @@ public class AdminMemberBasicInfoController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
     public ApiResponse<MemberBasicInfoResponse> selectMemberBasicInfo(
             Authentication authentication,
             @PathVariable UUID userId
@@ -37,7 +37,7 @@ public class AdminMemberBasicInfoController {
     }
 
     @PutMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
     public ApiResponse<MemberBasicInfoResponse> saveMemberBasicInfo(
             Authentication authentication,
             @PathVariable UUID userId,

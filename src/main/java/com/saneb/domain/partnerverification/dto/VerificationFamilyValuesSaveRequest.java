@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
@@ -31,13 +30,10 @@ public record VerificationFamilyValuesSaveRequest(
             @Size(max = 50, message = "enrollmentStatusCode must be 50 characters or less")
             String enrollmentStatusCode,
 
-            @NotNull(message = "cohabiting is required")
             Boolean cohabiting,
 
-            @NotNull(message = "supported is required")
             Boolean supported,
 
-            @NotNull(message = "hasIncome is required")
             Boolean hasIncome
     ) {
     }

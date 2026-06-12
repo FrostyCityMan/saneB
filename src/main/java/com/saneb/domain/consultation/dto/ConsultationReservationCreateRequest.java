@@ -11,7 +11,7 @@ public record ConsultationReservationCreateRequest(
         UUID progressId,
         UUID verificationId,
 
-        @Size(max = 1000, message = "requestNote must be 1000 characters or less")
+        @Size(max = 1000, message = "상담 요청 내용은 1000자 이내로 입력하세요.")
         String requestNote
 ) {
 }

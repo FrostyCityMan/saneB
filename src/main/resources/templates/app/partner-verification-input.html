@@ -7,8 +7,8 @@
             <section class="flow-hero">
                 <div>
                     <span class="eyebrow">검증 입력</span>
-                    <h2>파트너와 운영자가 검증 서류 확인 값을 입력합니다.</h2>
-                    <p>이번 화면에서는 확정된 서류 확인 항목만 저장합니다. 회원값, 사업자값, 제한 플래그 입력은 별도 화면에서 다룹니다.</p>
+                    <h2>파트너와 운영자가 수동 검증 값을 입력합니다.</h2>
+                    <p>사용자가 전달한 서류를 보고 필요한 값만 입력합니다. 네이버 전자증명 자동 수집은 사용하지 않습니다.</p>
                 </div>
                 <div class="flow-hero-status">
                     <span>검증 상태</span>
@@ -21,6 +21,177 @@
                th:if="${message != null}"
                th:classappend="${messageType == 'error'} ? ' is-error' : ' is-success'"
                th:text="${message}">저장 결과</p>
+
+            <section class="flow-panel"
+                     data-partner-verification-values-app
+                     th:data-verification-id="${page.details.verificationId}">
+                <div class="panel-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">수동 입력</span>
+                        <h2>검증 값 입력</h2>
+                    </div>
+                    <button class="secondary-action" type="button" data-verification-values-refresh>불러오기</button>
+                </div>
+
+                <p class="flow-note">모르는 값은 비워 둘 수 있습니다. 입력한 값은 매칭 확인과 입증 검토에 사용됩니다.</p>
+
+                <form class="flow-form verification-values-form" data-verification-values-form novalidate>
+                    <section class="option-section">
+                        <div class="panel-heading compact-heading">
+                            <div>
+                                <span class="eyebrow">개인</span>
+                                <h3>개인·건강보험 확인값</h3>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field-block">
+                                <label for="verificationBirthYear">출생연도</label>
+                                <input id="verificationBirthYear" name="birthYear" type="number" min="1900" max="2200" placeholder="예: 1988">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationRegionCode">주소 지역</label>
+                                <select id="verificationRegionCode" name="regionCode" data-region-select>
+                                    <option value="">선택 안 함</option>
+                                </select>
+                            </div>
+                            <div class="field-block span-2">
+                                <label for="verificationAddress">주소</label>
+                                <input id="verificationAddress" name="address" type="text" maxlength="500" placeholder="서류에 표시된 주소">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationHouseholder">세대주 여부</label>
+                                <select id="verificationHouseholder" name="householder">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">예</option>
+                                    <option value="false">아니오</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationHouseholdMember">세대원 여부</label>
+                                <select id="verificationHouseholdMember" name="householdMember">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">예</option>
+                                    <option value="false">아니오</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationHealthInsuranceBasisCode">건강보험 자격</label>
+                                <select id="verificationHealthInsuranceBasisCode" name="healthInsuranceBasisCode">
+                                    <option value="">선택 안 함</option>
+                                    <option value="WORKPLACE">직장가입자</option>
+                                    <option value="LOCAL">지역가입자</option>
+                                    <option value="DEPENDENT">피부양자</option>
+                                    <option value="UNKNOWN">잘 모름</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationHasIncome">소득 여부</label>
+                                <select id="verificationHasIncome" name="hasIncome">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">소득 있음</option>
+                                    <option value="false">소득 없음</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="option-section">
+                        <div class="panel-heading compact-heading">
+                            <div>
+                                <span class="eyebrow">사업·금융</span>
+                                <h3>사업자와 금융 확인값</h3>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="field-block">
+                                <label for="verificationAnnualRevenue">연매출</label>
+                                <input id="verificationAnnualRevenue" name="annualRevenue" type="number" min="0" step="10000" placeholder="예: 120000000">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationEmployeeCount">직원 수</label>
+                                <input id="verificationEmployeeCount" name="employeeCount" type="number" min="0" step="1" placeholder="예: 5">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationRegularEmployeeCount">상시근로자 수</label>
+                                <input id="verificationRegularEmployeeCount" name="regularEmployeeCount" type="number" min="0" step="1" placeholder="예: 3">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationTaxStatusCode">세금 상태</label>
+                                <select id="verificationTaxStatusCode" name="taxStatusCode">
+                                    <option value="">선택 안 함</option>
+                                    <option value="PAID">완납</option>
+                                    <option value="DELINQUENT">체납 있음</option>
+                                    <option value="UNKNOWN">확인 필요</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationNiceCreditScore">NICE 점수</label>
+                                <input id="verificationNiceCreditScore" name="niceCreditScore" type="number" min="0" max="1000" step="1" placeholder="예: 760">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationKcbCreditScore">KCB 점수</label>
+                                <input id="verificationKcbCreditScore" name="kcbCreditScore" type="number" min="0" max="1000" step="1" placeholder="예: 740">
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationExistingLoan">기존 대출</label>
+                                <select id="verificationExistingLoan" name="hasExistingLoan">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">있음</option>
+                                    <option value="false">없음</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationPolicyFundUsage">정책자금 이용</label>
+                                <select id="verificationPolicyFundUsage" name="hasPolicyFundUsage">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">이용 이력 있음</option>
+                                    <option value="false">이용 이력 없음</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationGuaranteeUsage">보증 이용</label>
+                                <select id="verificationGuaranteeUsage" name="hasGuaranteeUsage">
+                                    <option value="">선택 안 함</option>
+                                    <option value="true">이용 이력 있음</option>
+                                    <option value="false">이용 이력 없음</option>
+                                </select>
+                            </div>
+                            <div class="field-block">
+                                <label for="verificationFinancialCheckedOn">금융 확인일</label>
+                                <input id="verificationFinancialCheckedOn" name="financialCheckedOn" type="date">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="option-section">
+                        <div class="panel-heading compact-heading">
+                            <div>
+                                <span class="eyebrow">가족</span>
+                                <h3>가족·소득 확인값</h3>
+                            </div>
+                            <button class="secondary-action" type="button" data-verification-family-add>가족 추가</button>
+                        </div>
+                        <div class="family-list" data-verification-family-list></div>
+                    </section>
+
+                    <section class="option-section">
+                        <div class="panel-heading compact-heading">
+                            <div>
+                                <span class="eyebrow">제한 사항</span>
+                                <h3>운영 검토 플래그</h3>
+                            </div>
+                        </div>
+                        <div class="restriction-flag-grid" data-verification-restriction-list></div>
+                    </section>
+
+                    <p class="basic-info-message" data-verification-values-message role="status"></p>
+                    <div class="form-actions">
+                        <button class="primary-action button-action" type="submit" data-verification-values-submit>
+                            검증 값 저장
+                        </button>
+                    </div>
+                </form>
+            </section>
 
             <section class="flow-panel">
                 <div class="panel-heading compact-heading">
@@ -102,9 +273,10 @@
                         <h2>입력 기준</h2>
                     </div>
                 </div>
-                <p class="flow-note">서류 확인값과 메모만 저장합니다. 검증 상태 변경과 매칭 연결은 별도 절차에 따릅니다.</p>
+                <p class="flow-note">수동 입력값과 서류 확인값은 서버 검증 후 저장됩니다. 모르는 값은 비워 두고, 확인된 값만 입력하세요.</p>
             </section>
         </aside>
     </section>
+    <script th:src="@{/js/saneb-partner-verification-input.js}"></script>
 </main>
 </html>

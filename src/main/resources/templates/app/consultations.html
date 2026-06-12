@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('상담 관리', ~{::main})}">
+<main class="consultation-page"
+      data-consultation-app
+      th:data-operating="${page.operating}">
+    <section class="summary-panel">
+        <div class="summary-header">
+            <div>
+                <div class="section-label">상담 관리</div>
+                <p>사용자는 상담을 요청하고, 운영자는 요청 건을 확인해 담당자와 상태를 수동으로 배정합니다.</p>
+            </div>
+            <span class="soft-status">수기 배정</span>
+        </div>
+    </section>
+
+    <section class="consultation-grid">
+        <section class="plain-panel consultation-request-panel">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">상담 요청</span>
+                    <h2>상담 요청 접수</h2>
+                </div>
+            </div>
+            <form data-consultation-request-form novalidate>
+                <div class="field-block" th:if="${page.operating}">
+                    <label for="consultationMemberUserId">회원 ID</label>
+                    <input id="consultationMemberUserId" name="memberUserId" type="text" placeholder="운영자가 대신 접수할 때만 입력">
+                </div>
+                <div class="field-block">
+                    <label for="consultationRequestNote">상담 요청 내용</label>
+                    <textarea id="consultationRequestNote" name="requestNote" rows="5" maxlength="1000"
+                              placeholder="상담이 필요한 내용을 입력하세요."></textarea>
+                </div>
+                <p class="basic-info-message" data-consultation-message role="status"></p>
+                <div class="form-actions">
+                    <button class="primary-action button-action" type="submit" data-consultation-request-submit>
+                        상담 요청 접수
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="plain-panel consultation-list-panel">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">요청 목록</span>
+                    <h2>상담 요청 현황</h2>
+                </div>
+                <button class="secondary-action" type="button" data-consultation-refresh>새로고침</button>
+            </div>
+            <div class="consultation-list" data-consultation-list></div>
+        </section>
+    </section>
+
+    <section class="plain-panel consultation-operating-panel" th:if="${page.operating}">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">운영자 처리</span>
+                <h2>담당자 배정 및 상태 변경</h2>
+            </div>
+        </div>
+        <form data-consultation-status-form novalidate>
+            <div class="form-grid">
+                <div class="field-block">
+                    <label for="consultationReservationId">상담 요청 ID</label>
+                    <input id="consultationReservationId" name="reservationId" type="text" placeholder="목록에서 선택">
+                </div>
+                <div class="field-block">
+                    <label for="consultationStatusCode">상태</label>
+                    <select id="consultationStatusCode" name="statusCode">
+                        <option value="ASSIGNED">담당자 배정</option>
+                        <option value="CONFIRMED">상담 확정</option>
+                        <option value="COMPLETED">상담 완료</option>
+                        <option value="NO_SHOW">미참석</option>
+                        <option value="CANCELED">취소</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label for="consultationPartnerUserId">담당자 ID</label>
+                    <input id="consultationPartnerUserId" name="partnerUserId" type="text" placeholder="배정 또는 확정 시 입력">
+                </div>
+                <div class="field-block span-2">
+                    <label for="consultationStatusNote">상담 메모</label>
+                    <textarea id="consultationStatusNote" name="note" rows="3" maxlength="1000"
+                              placeholder="배정 사유, 상담 결과, 취소 사유 등을 입력하세요."></textarea>
+                </div>
+            </div>
+            <p class="basic-info-message" data-consultation-status-message role="status"></p>
+            <div class="form-actions">
+                <button class="primary-action button-action" type="submit" data-consultation-status-submit>
+                    상태 저장
+                </button>
+            </div>
+        </form>
+    </section>
+    <script th:src="@{/js/saneb-consultations.js}"></script>
+</main>
+</html>

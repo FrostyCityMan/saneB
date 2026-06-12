@@ -86,6 +86,15 @@ class AdminMemberBasicInfoControllerSmokeTest {
     }
 
     @Test
+    void selectMemberBasicInfoReturnsApiResponseForOperator() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/member-basic-info/{userId}", USER_ID)
+                        .with(user(operatorPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.userId").value(USER_ID.toString()));
+    }
+
+    @Test
     void adminMemberBasicInfoApiRejectsUserRole() throws Exception {
         mockMvc.perform(get("/api/v1/admin/member-basic-info/{userId}", USER_ID)
                         .with(user(userPrincipal())))
@@ -148,6 +157,13 @@ class AdminMemberBasicInfoControllerSmokeTest {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(USER_ID, "user01", "{noop}pw", "사용자", "ACTIVE", false, null, null, null),
                 List.of("USER")
+        );
+    }
+
+    private static AuthenticatedUserDetails operatorPrincipal() {
+        return new AuthenticatedUserDetails(
+                new AuthUserDetailsRow(ADMIN_ID, "operator", "{noop}pw", "운영자", "ACTIVE", false, null, null, null),
+                List.of("OPERATOR")
         );
     }
 }

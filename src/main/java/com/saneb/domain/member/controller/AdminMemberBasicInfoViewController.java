@@ -37,7 +37,7 @@ public class AdminMemberBasicInfoViewController {
     }
 
     @GetMapping("/app/admin/member-basic-info")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
     public String selectAdminMemberBasicInfoPage(
             Authentication authentication,
             Model model,

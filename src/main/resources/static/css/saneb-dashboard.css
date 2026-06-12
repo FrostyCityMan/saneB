@@ -321,6 +321,178 @@ svg {
     margin: 0 auto;
 }
 
+.public-preview-body {
+    min-height: 100vh;
+    background: #f7f3ea;
+}
+
+.public-preview-shell {
+    width: min(1120px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 32px 0;
+}
+
+.public-preview-hero,
+.public-preview-panel,
+.mock-billing-workspace,
+.mock-billing-result,
+.consultation-request-panel,
+.consultation-list-panel,
+.consultation-operating-panel {
+    border: 1px solid #dfd3c0;
+    background: #fffdf8;
+    border-radius: 8px;
+}
+
+.public-preview-hero {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 28px;
+    margin-bottom: 18px;
+}
+
+.public-preview-hero h1 {
+    margin: 8px 0;
+    font-size: 34px;
+    line-height: 1.2;
+    color: #1f2933;
+}
+
+.public-preview-hero p,
+.public-preview-result p {
+    margin: 0;
+    color: #6b6257;
+}
+
+.public-preview-actions,
+.public-preview-result {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.public-preview-panel {
+    padding: 28px;
+}
+
+.public-preview-result {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #eadfce;
+}
+
+.public-preview-result div {
+    min-width: 180px;
+}
+
+.public-preview-result span,
+.public-preview-result div > span {
+    display: block;
+    color: #74685a;
+    font-size: 13px;
+}
+
+.public-preview-result strong {
+    display: block;
+    color: #1f2933;
+    font-size: 24px;
+}
+
+.mock-plan-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.mock-plan-card {
+    display: grid;
+    gap: 6px;
+    text-align: left;
+    border: 1px solid #dfd3c0;
+    background: #fffaf1;
+    border-radius: 8px;
+    padding: 16px;
+    color: #2a2520;
+}
+
+.mock-plan-card.is-selected {
+    border-color: #8b5e34;
+    box-shadow: 0 0 0 3px rgba(139, 94, 52, .14);
+}
+
+.mock-plan-card strong {
+    font-size: 22px;
+}
+
+.consultation-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 420px) 1fr;
+    gap: 16px;
+}
+
+.consultation-list,
+.restriction-flag-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.consultation-card,
+.restriction-flag-card {
+    border: 1px solid #e5dacb;
+    background: #fffaf3;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.consultation-card h3 {
+    font-size: 18px;
+    margin: 4px 0 10px;
+}
+
+.restriction-flag-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.restriction-flag-card label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.restriction-flag-card textarea {
+    width: 100%;
+}
+
+@media (max-width: 760px) {
+    .public-preview-shell {
+        width: min(100% - 20px, 720px);
+        padding: 16px 0;
+    }
+
+    .public-preview-hero,
+    .consultation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .public-preview-hero {
+        padding: 20px;
+    }
+
+    .public-preview-hero h1 {
+        font-size: 26px;
+    }
+
+    .public-preview-actions {
+        width: 100%;
+    }
+}
+
 .dashboard-simple-grid {
     display: grid;
     gap: 22px;

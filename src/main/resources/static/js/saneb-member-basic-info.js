@@ -101,6 +101,15 @@
         });
         const payload = await response.json().catch(() => null);
         if (!response.ok || !payload || payload.success !== true) {
+            if (response.status === 401) {
+                throw new Error("로그인 상태가 만료되었습니다. 다시 로그인한 뒤 시도하세요.");
+            }
+            if (response.status === 403) {
+                throw new Error("고객 정보를 입력할 권한이 없습니다. 관리자 또는 운영자 권한을 확인하세요.");
+            }
+            if (!payload) {
+                throw new Error("서류 항목을 불러오지 못했습니다. 화면을 새로고침한 뒤 다시 시도하세요.");
+            }
             throw new Error(selectErrorMessage(payload, "요청 처리에 실패했습니다."));
         }
         return payload.data;
