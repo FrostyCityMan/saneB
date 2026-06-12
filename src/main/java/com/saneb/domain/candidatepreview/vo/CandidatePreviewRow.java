@@ -3,7 +3,7 @@ package com.saneb.domain.candidatepreview.vo;
 import java.math.BigDecimal;
 
 public record CandidatePreviewRow(
-        long possibleCandidateCount,
+        Long possibleCandidateCount,
         BigDecimal minSupportAmount,
         BigDecimal maxSupportAmount
 ) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>로그인 | saneB</title>
+    <title>로그인 | 사내비</title>
     <link rel="icon" href="data:,">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
@@ -14,16 +14,16 @@
     <script th:src="@{/js/saneb-login.js}" defer></script>
 </head>
 <body class="saneb-body saneb-login-body">
-<main class="login-shell" aria-label="saneB 로그인">
+<main class="login-shell" aria-label="사내비 로그인">
     <section class="login-showcase" aria-labelledby="login-product-title">
-        <a class="login-brand" th:href="@{/login}" aria-label="saneB 로그인">
+        <a class="login-brand" th:href="@{/login}" aria-label="사내비 로그인">
             <span class="brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false">
                     <path d="M12 2.4 20 5.7v5.8c0 5.1-3.3 8.4-8 10.1-4.7-1.7-8-5-8-10.1V5.7l8-3.3Z"/>
                     <path d="m8.3 12.1 2.3 2.2 5.1-5.4"/>
                 </svg>
             </span>
-            <span>saneB</span>
+            <span>사내비</span>
         </a>
 
         <div class="showcase-copy">
@@ -33,7 +33,7 @@
 
         <section class="dashboard-preview" aria-label="대시보드 미리보기">
             <aside class="preview-nav">
-                <strong>saneB</strong>
+                    <strong>사내비</strong>
                 <span class="preview-nav-item active">
                     <span class="mini-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8v8.7a.8.8 0 0 1-.8.8h-5v-5.7H9.8v5.7h-5a.8.8 0 0 1-.8-.8v-8.7Z"/></svg>
@@ -144,7 +144,7 @@
                 </svg>
             </div>
             <h2 id="login-title">로그인</h2>
-            <p class="login-intro">saneB 서비스에 오신 것을 환영합니다. 아이디와 비밀번호를 입력해 주세요.</p>
+            <p class="login-intro">사내비 서비스에 오신 것을 환영합니다. 아이디와 비밀번호를 입력해 주세요.</p>
 
             <form class="login-form" data-login-form th:action="@{/api/v1/auth/login}" method="post" novalidate>
                 <div class="login-field">
@@ -177,6 +177,7 @@
 
                 <div class="login-policy-row">
                     <span>로그인 후 계정에 맞는 화면으로 이동합니다.</span>
+                    <a th:href="@{/candidate-preview}">가입 전 후보 확인</a>
                     <a th:href="@{/signup}">회원가입</a>
                 </div>
 
@@ -217,7 +218,7 @@
 </main>
 
 <footer class="login-footer">
-    <span>© 2026 saneB. All rights reserved.</span>
+    <span>© 2026 사내비. All rights reserved.</span>
     <a href="#">이용약관</a>
     <a href="#">개인정보처리방침</a>
 </footer>

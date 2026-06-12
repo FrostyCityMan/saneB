@@ -3,6 +3,7 @@ package com.saneb.domain.candidatepreview.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,5 +59,11 @@ class CandidatePreviewControllerSmokeTest {
                 .andExpect(jsonPath("$.data.minSupportAmount").value(1000000))
                 .andExpect(jsonPath("$.data.maxSupportAmount").value(5000000))
                 .andExpect(jsonPath("$.data.criteriaNotice").value("회원가입 전 임시 확인 결과입니다."));
+    }
+
+    @Test
+    void anonymousUserCanOpenCandidatePreviewPage() throws Exception {
+        mockMvc.perform(get("/candidate-preview"))
+                .andExpect(status().isOk());
     }
 }
