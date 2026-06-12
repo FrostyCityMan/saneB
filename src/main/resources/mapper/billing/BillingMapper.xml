@@ -308,6 +308,26 @@
         WHERE us.id = #{subscriptionId}
     </select>
 
+    <select id="selectCurrentUserSubscriptionDetails" resultMap="UserSubscriptionRowMap">
+        -- Select current user subscription for duplicate mock payment prevention.
+        SELECT
+            <include refid="UserSubscriptionColumns"/>
+        FROM user_subscriptions us
+        INNER JOIN subscription_plans sp ON sp.id = us.plan_id
+        WHERE us.user_id = #{userId}
+          AND us.status_code IN ('PENDING', 'ACTIVE', 'PAST_DUE')
+        ORDER BY
+            CASE us.status_code
+                WHEN 'ACTIVE' THEN 1
+                WHEN 'PENDING' THEN 2
+                WHEN 'PAST_DUE' THEN 3
+                ELSE 9
+            END ASC,
+            us.created_at DESC,
+            us.id DESC
+        LIMIT 1
+    </select>
+
     <insert id="insertUserSubscription">
         -- Insert user subscription.
         INSERT INTO user_subscriptions (

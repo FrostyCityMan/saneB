@@ -44,6 +44,8 @@ public interface BillingDao {
 
     UserSubscriptionRow selectUserSubscriptionDetails(UUID subscriptionId);
 
+    UserSubscriptionRow selectCurrentUserSubscriptionDetails(UUID userId);
+
     void insertUserSubscription(UserSubscriptionInsertCommand command);
 
     int updateUserSubscriptionStatus(UserSubscriptionStatusCommand command);

@@ -2,6 +2,8 @@ package com.saneb.domain.billing.service;
 
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.billing.dto.PaymentCreateRequest;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentRequest;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentResponse;
 import com.saneb.domain.billing.dto.PaymentProviderEventRequest;
 import com.saneb.domain.billing.dto.PaymentProviderEventResponse;
 import com.saneb.domain.billing.dto.PaymentStatusUpdateRequest;
@@ -69,6 +71,11 @@ public interface BillingService {
     PaymentTransactionResponse insertPaymentTransaction(
             Authentication authentication,
             PaymentCreateRequest request
+    );
+
+    MockMonthlyPaymentResponse insertMockMonthlyPayment(
+            Authentication authentication,
+            MockMonthlyPaymentRequest request
     );
 
     PaymentTransactionResponse updatePaymentTransactionStatus(

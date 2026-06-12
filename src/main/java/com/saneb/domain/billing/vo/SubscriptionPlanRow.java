@@ -11,8 +11,8 @@ public record SubscriptionPlanRow(
         String billingCycleCode,
         BigDecimal priceAmount,
         String currencyCode,
-        boolean active,
-        int sortOrder,
+        Boolean active,
+        Integer sortOrder,
         String description,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

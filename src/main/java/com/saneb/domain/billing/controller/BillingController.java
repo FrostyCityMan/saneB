@@ -3,6 +3,8 @@ package com.saneb.domain.billing.controller;
 import com.saneb.common.response.ApiResponse;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.billing.dto.PaymentCreateRequest;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentRequest;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentResponse;
 import com.saneb.domain.billing.dto.PaymentProviderEventRequest;
 import com.saneb.domain.billing.dto.PaymentProviderEventResponse;
 import com.saneb.domain.billing.dto.PaymentStatusUpdateRequest;
@@ -139,6 +141,15 @@ public class BillingController {
             @Valid @RequestBody PaymentCreateRequest request
     ) {
         return ApiResponse.success(billingService.insertPaymentTransaction(authentication, request));
+    }
+
+    @PostMapping("/mock-payments/monthly-subscription")
+    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    public ApiResponse<MockMonthlyPaymentResponse> insertMockMonthlyPayment(
+            Authentication authentication,
+            @Valid @RequestBody MockMonthlyPaymentRequest request
+    ) {
+        return ApiResponse.success(billingService.insertMockMonthlyPayment(authentication, request));
     }
 
     @PatchMapping("/payments/{paymentId}/status")

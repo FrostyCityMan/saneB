@@ -34,6 +34,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.withType(Test).configureEach {
+    environment 'SANEB_INACTIVITY_REMINDER_ENABLED', 'false'
+}
+
 tasks.register('flywayIntegrationTest', Test) {
     description = 'Runs Flyway migration against a real PostgreSQL instance.'
     group = 'verification'

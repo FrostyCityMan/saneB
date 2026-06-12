@@ -281,18 +281,18 @@ AuthMeResponse 필드 계약:
 
 ## 4.2 Admin Member Basic Info API
 
-관리자가 회원을 조회한 뒤 해당 회원의 기본정보와 서류별 선택 입력값을 대신 저장하는 계약이다. DB는 기존 `member_profiles`, `business_profiles`, `family_members`, `member_document_input_values`를 사용한다.
+관리자 또는 운영자가 회원을 조회한 뒤 해당 회원의 기본정보와 서류별 선택 입력값을 대신 저장하는 계약이다. DB는 기존 `member_profiles`, `business_profiles`, `family_members`, `member_document_input_values`를 사용한다.
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 회원 기본정보·서류별 입력값 통합 조회 |
-| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 회원 기본정보·서류별 입력값 통합 저장 |
+| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `OPERATOR`, `ADMIN` | 회원 기본정보·서류별 입력값 통합 조회 |
+| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `OPERATOR`, `ADMIN` | 회원 기본정보·서류별 입력값 통합 저장 |
 
 요청/응답 구조는 `/api/v1/member/basic-info`와 동일하다.
 
 정책:
 
-- `ADMIN`만 접근할 수 있다.
+- `OPERATOR`, `ADMIN`만 접근할 수 있다.
 - `userId`는 저장 대상 회원이다.
 - 저장 시 `member_document_input_values.user_id`에는 대상 회원 ID를 저장하고, `submitted_by`에는 저장한 관리자 ID를 기록한다.
 - 서류 기반 값은 모두 선택 입력이다. 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공하고 저장 자체를 막지 않는다.
@@ -312,8 +312,8 @@ AuthMeResponse 필드 계약:
 | `DELETE` | `/api/v1/members/me/family-members/{familyMemberId}` | `USER` | 가족 구성원 삭제 |
 | `GET` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 조회 |
 | `PUT` | `/api/v1/member/basic-info` | `USER` | 내 기본정보 통합 저장 |
-| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 관리자용 회원 기본정보 통합 조회 |
-| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `ADMIN` | 관리자용 회원 기본정보 통합 저장 |
+| `GET` | `/api/v1/admin/member-basic-info/{userId}` | `OPERATOR`, `ADMIN` | 관리자/운영자용 회원 기본정보 통합 조회 |
+| `PUT` | `/api/v1/admin/member-basic-info/{userId}` | `OPERATOR`, `ADMIN` | 관리자/운영자용 회원 기본정보 통합 저장 |
 
 `/api/v1/member/basic-info`는 사용자 첫 행동 화면에서 사용하는 통합 계약이다. 기존 `/api/v1/members/me/...` 세분화 계약은 v1 문서상 유지하지만, 현재 화면 구현은 통합 계약을 사용한다. 서류 기반 세부 값은 선택 입력이며, 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공한다.
 
@@ -1406,6 +1406,7 @@ MVP 1차는 월 단순 구독 구조다. 복잡한 할인, 사용량 과금, 자
 | `GET` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 거래 목록 |
 | `POST` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 요청 거래 생성 |
 | `PATCH` | `/api/v1/payments/{paymentId}/status` | `OPERATOR`, `ADMIN` | 결제 승인/실패/취소 기록 |
+| `POST` | `/api/v1/mock-payments/monthly-subscription` | `USER`, `OPERATOR`, `ADMIN` | 월 구독 mock 결제 처리 |
 | `GET` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 거래 목록 |
 | `POST` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 요청 생성 |
 | `PATCH` | `/api/v1/refunds/{refundId}/status` | `OPERATOR`, `ADMIN` | 환불 승인/실패 기록 |
@@ -1449,6 +1450,17 @@ MVP 1차는 월 단순 구독 구조다. 복잡한 할인, 사용량 과금, 자
 ```
 
 `amount`와 `currencyCode`는 요금제 금액/통화와 일치해야 한다. `providerCode`는 `MANUAL`, `TOSS`, `NICEPAY`, `KCP`, `STRIPE`만 허용한다.
+
+#### MockMonthlyPaymentRequest
+
+```json
+{
+  "planId": "uuid",
+  "simulateFailure": false
+}
+```
+
+이번 MVP Goal의 월 구독 검증용 계약이다. TossPayments 실제 승인 API를 호출하지 않고 `payment_transactions.provider_code='MANUAL'`로 결제 거래를 기록한다. 성공 시 구독 상태는 `ACTIVE`, 실패 시 `PAST_DUE`로 저장한다. 이미 활성화된 구독이 있으면 중복 결제를 차단한다.
 
 #### PaymentStatusUpdateRequest
 

@@ -212,6 +212,20 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v17MigrationContainsMockMonthlySubscriptionPlan() throws IOException {
+        String sql = selectV17Migration();
+
+        assertThat(sql).contains(
+                "INSERT INTO subscription_plans",
+                "SANEB_MONTHLY_MOCK",
+                "사내비 월 구독",
+                "MONTHLY",
+                "12900.00",
+                "ON CONFLICT (plan_code) DO UPDATE"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -269,6 +283,11 @@ class MigrationContractTest {
 
     private String selectV16Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V16__create_member_document_input_values.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV17Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V17__seed_mock_subscription_plan.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

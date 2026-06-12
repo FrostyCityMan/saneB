@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentResponse;
 import com.saneb.domain.billing.dto.PaymentProviderEventResponse;
 import com.saneb.domain.billing.dto.PaymentTransactionResponse;
 import com.saneb.domain.billing.dto.RefundTransactionResponse;
@@ -64,6 +65,12 @@ class BillingControllerSmokeTest {
         when(billingService.selectPaymentTransactionList(any(), any(), any(), any(), eq(1), eq(20)))
                 .thenReturn(PageResponse.of(List.of(payment("REQUESTED")), 1, 20, 1));
         when(billingService.insertPaymentTransaction(any(), any())).thenReturn(payment("REQUESTED"));
+        when(billingService.insertMockMonthlyPayment(any(), any()))
+                .thenReturn(new MockMonthlyPaymentResponse(
+                        subscription("ACTIVE"),
+                        payment("APPROVED"),
+                        "모의 결제가 완료되어 월 구독이 활성화되었습니다."
+                ));
         when(billingService.updatePaymentTransactionStatus(any(), eq(PAYMENT_ID), any())).thenReturn(payment("APPROVED"));
         when(billingService.selectRefundTransactionList(any(), any(), any(), any(), eq(1), eq(20)))
                 .thenReturn(PageResponse.of(List.of(refund("REQUESTED")), 1, 20, 1));
@@ -134,6 +141,24 @@ class BillingControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.paymentId").value(PAYMENT_ID.toString()))
                 .andExpect(jsonPath("$.data.statusCode").value("REQUESTED"));
+    }
+
+    @Test
+    void insertMockMonthlyPaymentReturnsActiveSubscription() throws Exception {
+        mockMvc.perform(post("/api/v1/mock-payments/monthly-subscription")
+                        .with(user(userPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "planId": "%s",
+                                  "simulateFailure": false
+                                }
+                                """.formatted(PLAN_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.subscription.statusCode").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.payment.statusCode").value("APPROVED"))
+                .andExpect(jsonPath("$.data.resultMessage").value("모의 결제가 완료되어 월 구독이 활성화되었습니다."));
     }
 
     @Test

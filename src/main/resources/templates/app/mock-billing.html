@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('구독 결제', ~{::main})}">
+<main class="billing-page"
+      data-mock-billing-app>
+    <section class="summary-panel">
+        <div class="summary-header">
+            <div>
+                <div class="section-label">구독 결제</div>
+                <p>TossPayments 실연동 전까지 월 구독 흐름을 모의 결제로 확인합니다.</p>
+            </div>
+            <span class="soft-status">모의 결제</span>
+        </div>
+        <div class="top-summary-grid">
+            <article class="top-summary-card">
+                <span>결제 방식</span>
+                <strong>모의 결제</strong>
+                <small>실제 카드 승인 없음</small>
+            </article>
+            <article class="top-summary-card">
+                <span>구독 주기</span>
+                <strong>월 구독</strong>
+                <small>성공 시 1개월 활성화</small>
+            </article>
+            <article class="top-summary-card">
+                <span>실결제 연동</span>
+                <strong>보류</strong>
+                <small>TossPayments 키 사용 안 함</small>
+            </article>
+        </div>
+    </section>
+
+    <section class="plain-panel mock-billing-workspace">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">요금제</span>
+                <h2>월 구독 선택</h2>
+            </div>
+        </div>
+        <div class="mock-plan-list" data-mock-plan-list></div>
+        <p class="basic-info-message" data-mock-billing-message role="status"></p>
+        <div class="form-actions">
+            <button class="primary-action button-action" type="button" data-mock-payment-success disabled>
+                모의 결제 성공 처리
+            </button>
+            <button class="secondary-action" type="button" data-mock-payment-fail disabled>
+                실패 상황 확인
+            </button>
+        </div>
+    </section>
+
+    <section class="plain-panel mock-billing-result" data-mock-billing-result hidden>
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">결과</span>
+                <h2>구독 처리 결과</h2>
+            </div>
+        </div>
+        <dl class="flow-summary-list">
+            <div>
+                <dt>구독 상태</dt>
+                <dd data-mock-subscription-status>확인 전</dd>
+            </div>
+            <div>
+                <dt>결제 상태</dt>
+                <dd data-mock-payment-status>확인 전</dd>
+            </div>
+            <div>
+                <dt>결제 금액</dt>
+                <dd data-mock-payment-amount>0원</dd>
+            </div>
+            <div>
+                <dt>이용 기간</dt>
+                <dd data-mock-period>확인 전</dd>
+            </div>
+        </dl>
+    </section>
+    <script th:src="@{/js/saneb-mock-billing.js}"></script>
+</main>
+</html>

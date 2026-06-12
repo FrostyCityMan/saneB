@@ -5,6 +5,8 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.billing.dao.BillingDao;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentRequest;
+import com.saneb.domain.billing.dto.MockMonthlyPaymentResponse;
 import com.saneb.domain.billing.dto.PaymentCreateRequest;
 import com.saneb.domain.billing.dto.PaymentProviderEventRequest;
 import com.saneb.domain.billing.dto.PaymentProviderEventResponse;
@@ -309,6 +311,63 @@ public class BillingServiceImpl implements BillingService {
                 "amount", amount.toPlainString()
         ));
         return toPaymentResponse(selectPaymentRow(paymentId));
+    }
+
+    @Override
+    @Transactional
+    public MockMonthlyPaymentResponse insertMockMonthlyPayment(
+            Authentication authentication,
+            MockMonthlyPaymentRequest request
+    ) {
+        AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
+        SubscriptionPlanRow plan = selectPlanRow(request.planId());
+        if (!plan.active()) {
+            throw validationFailed("현재 선택할 수 없는 요금제입니다.");
+        }
+        if (!"MONTHLY".equals(plan.billingCycleCode())) {
+            throw validationFailed("월 구독 요금제만 모의 결제할 수 있습니다.");
+        }
+
+        UserSubscriptionRow currentSubscription = billingDao.selectCurrentUserSubscriptionDetails(actor.userId());
+        if (currentSubscription != null && "ACTIVE".equals(currentSubscription.statusCode())) {
+            throw validationFailed("이미 활성화된 구독이 있습니다.");
+        }
+        UserSubscriptionRow subscription = currentSubscription == null
+                ? insertPendingSubscription(actor, plan)
+                : currentSubscription;
+        if (!subscription.planId().equals(plan.planId())) {
+            throw validationFailed("이미 다른 요금제로 진행 중인 구독이 있습니다.");
+        }
+
+        UUID paymentId = UUID.randomUUID();
+        billingDao.insertPaymentTransaction(new PaymentTransactionInsertCommand(
+                paymentId,
+                subscription.subscriptionId(),
+                subscription.userId(),
+                subscription.planId(),
+                "MANUAL",
+                generateMerchantUid(paymentId),
+                plan.priceAmount(),
+                plan.currencyCode(),
+                actor.userId()
+        ));
+        PaymentTransactionRow payment = selectPaymentRow(paymentId);
+        boolean failed = Boolean.TRUE.equals(request.simulateFailure());
+        if (failed) {
+            updatePaymentStatus(payment, "FAILED", null, "MOCK_FAILED", "모의 결제 실패 처리", actor.userId());
+            return new MockMonthlyPaymentResponse(
+                    toSubscriptionResponse(selectSubscriptionRow(subscription.subscriptionId())),
+                    toPaymentResponse(selectPaymentRow(paymentId)),
+                    "모의 결제를 실패 처리했습니다."
+            );
+        }
+
+        updatePaymentStatus(payment, "APPROVED", "MOCK-" + paymentId, null, null, actor.userId());
+        return new MockMonthlyPaymentResponse(
+                toSubscriptionResponse(selectSubscriptionRow(subscription.subscriptionId())),
+                toPaymentResponse(selectPaymentRow(paymentId)),
+                "모의 결제가 완료되어 월 구독이 활성화되었습니다."
+        );
     }
 
     @Override
@@ -647,6 +706,25 @@ public class BillingServiceImpl implements BillingService {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "본인 구독만 생성할 수 있습니다.");
         }
         return actor.userId();
+    }
+
+    private UserSubscriptionRow insertPendingSubscription(AuthenticatedUserDetails actor, SubscriptionPlanRow plan) {
+        UUID subscriptionId = UUID.randomUUID();
+        billingDao.insertUserSubscription(new UserSubscriptionInsertCommand(
+                subscriptionId,
+                actor.userId(),
+                plan.planId(),
+                "PENDING",
+                null,
+                null,
+                actor.userId()
+        ));
+        insertAudit(actor.userId(), "MOCK_SUBSCRIPTION_CREATE", "SUBSCRIPTION", subscriptionId, metadata(
+                "userId", actor.userId().toString(),
+                "planCode", plan.planCode(),
+                "statusCode", "PENDING"
+        ));
+        return selectSubscriptionRow(subscriptionId);
     }
 
     private void validateUserAccess(AuthenticatedUserDetails actor, UUID ownerUserId, String message) {
