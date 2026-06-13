@@ -36,7 +36,7 @@
                 <dl class="flow-meta-grid">
                     <div>
                         <dt>검증 번호</dt>
-                        <dd th:text="${page.details.verificationId}">uuid</dd>
+                        <dd th:text="${page.details.verificationCode}">검증 코드</dd>
                     </div>
                     <div>
                         <dt>현재 검증</dt>
@@ -115,11 +115,11 @@
                     </div>
                     <div>
                         <dt>회원 번호</dt>
-                        <dd th:text="${page.details.memberUserId}">uuid</dd>
+                        <dd th:text="${page.details.memberUserCode}">회원 코드</dd>
                     </div>
                     <div>
                         <dt>파트너 번호</dt>
-                        <dd th:text="${page.details.partnerUserId == null ? '미지정' : page.details.partnerUserId}">uuid</dd>
+                        <dd th:text="${page.details.partnerUserCode == null ? '미지정' : page.details.partnerUserCode}">담당자 코드</dd>
                     </div>
                 </dl>
             </section>

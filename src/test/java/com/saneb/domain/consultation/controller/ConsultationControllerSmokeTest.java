@@ -160,9 +160,14 @@ class ConsultationControllerSmokeTest {
     private ConsultationReservationResponse reservation(String statusCode) {
         return new ConsultationReservationResponse(
                 RESERVATION_ID,
+                "CNS-000001",
                 SLOT_ID,
                 USER_ID,
+                "USR-000001",
                 PARTNER_USER_ID,
+                "USR-000002",
+                null,
+                null,
                 null,
                 null,
                 START_AT,

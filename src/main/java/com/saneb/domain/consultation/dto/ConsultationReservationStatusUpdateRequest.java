@@ -10,6 +10,8 @@ public record ConsultationReservationStatusUpdateRequest(
         String statusCode,
 
         UUID partnerUserId,
+        @Size(max = 32, message = "담당자 코드는 32자 이내로 입력하세요.")
+        String partnerUserCode,
         UUID slotId,
 
         @Size(max = 1000, message = "상담 메모는 1000자 이내로 입력하세요.")

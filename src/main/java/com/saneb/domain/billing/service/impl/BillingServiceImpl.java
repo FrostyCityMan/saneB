@@ -320,6 +320,7 @@ public class BillingServiceImpl implements BillingService {
             MockMonthlyPaymentRequest request
     ) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
+        validateMockPaymentUserRole(actor);
         SubscriptionPlanRow plan = selectPlanRow(request.planId());
         if (!plan.active()) {
             throw validationFailed("현재 선택할 수 없는 요금제입니다.");
@@ -736,6 +737,12 @@ public class BillingServiceImpl implements BillingService {
     private void validateOperatingRole(AuthenticatedUserDetails actor, String message) {
         if (!hasOperatingRole(actor)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, message);
+        }
+    }
+
+    private void validateMockPaymentUserRole(AuthenticatedUserDetails actor) {
+        if (!actor.roles().contains("USER") || hasOperatingRole(actor)) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "구독 결제는 일반 사용자만 진행할 수 있습니다.");
         }
     }
 

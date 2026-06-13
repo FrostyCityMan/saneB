@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('구독 금액 설정', ~{::main})}">
+<main class="billing-page"
+      data-subscription-plan-settings-app>
+    <section class="summary-panel">
+        <div class="summary-header">
+            <div>
+                <div class="section-label">구독 금액 설정</div>
+                <p>관리자 화면에서는 결제를 진행하지 않고, 사용자에게 받을 월 구독 금액만 관리합니다.</p>
+            </div>
+            <span class="soft-status">월 구독</span>
+        </div>
+        <div class="top-summary-grid">
+            <article class="top-summary-card">
+                <span>관리 항목</span>
+                <strong>월 구독 금액</strong>
+                <small>사용자 결제 화면에 노출</small>
+            </article>
+            <article class="top-summary-card">
+                <span>결제 실행</span>
+                <strong>사용자 전용</strong>
+                <small>관리자 화면에서는 실행하지 않음</small>
+            </article>
+            <article class="top-summary-card">
+                <span>금액 변경</span>
+                <strong>새 금액 저장</strong>
+                <small>이전 금액은 비활성화 가능</small>
+            </article>
+        </div>
+    </section>
+
+    <section class="plain-panel subscription-plan-settings">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">설정</span>
+                <h2>월 구독으로 받을 금액</h2>
+            </div>
+        </div>
+        <form class="subscription-plan-form" data-subscription-plan-form>
+            <label class="form-field">
+                <span>월 구독 금액</span>
+                <input type="number"
+                       min="0"
+                       step="1000"
+                       inputmode="numeric"
+                       placeholder="예: 99000"
+                       data-subscription-plan-price>
+            </label>
+            <p class="field-help">
+                금액을 바꾸려면 새 월 구독 금액을 저장한 뒤, 사용하지 않을 기존 금액을 비활성화하세요.
+            </p>
+            <div class="form-actions">
+                <button class="primary-action button-action" type="submit" data-subscription-plan-submit>
+                    월 구독 금액 저장
+                </button>
+            </div>
+        </form>
+        <p class="basic-info-message" data-subscription-plan-message role="status"></p>
+    </section>
+
+    <section class="plain-panel subscription-plan-list-panel">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">운영 금액</span>
+                <h2>등록된 월 구독 금액</h2>
+            </div>
+        </div>
+        <div class="mock-plan-list subscription-plan-list" data-subscription-plan-list></div>
+    </section>
+    <script th:src="@{/js/saneb-subscription-plan-settings.js}"></script>
+</main>
+</html>

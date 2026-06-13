@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record AnnouncementDetailsResponse(
         UUID announcementId,
+        String announcementCode,
         String targetTypeCode,
         String title,
         String agencyName,

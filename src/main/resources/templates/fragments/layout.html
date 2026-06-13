@@ -70,16 +70,25 @@
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M5 5.2h14v10.5H8.2L5 18.8V5.2Z"/><path d="M8.2 8.8h7.6M8.2 12h4.6"/></svg>
                 </span>
-                <span>상담 관리</span>
+                <span th:text="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'">상담 요청</span>
             </a>
             <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:if="${#lists.contains(page.auth.roles, 'USER')}"
                th:href="@{/app/billing/mock}"
                th:classappend="${page.activeNav == 'BILLING_MOCK'} ? ' active' : ''">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M4.8 6.4h14.4v11.2H4.8z"/><path d="M4.8 9.4h14.4"/><path d="M8 14.8h3.6"/></svg>
                 </span>
                 <span>구독 결제</span>
+            </a>
+            <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/billing/plans}"
+               th:classappend="${page.activeNav == 'BILLING_PLANS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9.1h8M8 12.2h4.8"/><path d="M15.2 14.8h2.1"/></svg>
+                </span>
+                <span>구독 금액 설정</span>
             </a>
             <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"

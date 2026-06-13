@@ -428,6 +428,52 @@ svg {
     font-size: 22px;
 }
 
+.subscription-plan-settings,
+.subscription-plan-list-panel {
+    padding: 22px;
+}
+
+.subscription-plan-form {
+    display: grid;
+    gap: 12px;
+}
+
+.subscription-plan-card {
+    align-content: start;
+}
+
+.subscription-plan-card.is-inactive {
+    opacity: .72;
+}
+
+.subscription-plan-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    border-radius: 999px;
+    padding: 0 9px;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.status-badge.is-active {
+    background: rgba(11, 111, 73, .12);
+    color: #0b6f49;
+}
+
+.status-badge.is-inactive {
+    background: #eee5d8;
+    color: #6b6257;
+}
+
 .consultation-grid {
     display: grid;
     grid-template-columns: minmax(280px, 420px) 1fr;

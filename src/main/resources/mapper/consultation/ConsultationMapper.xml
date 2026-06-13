@@ -20,11 +20,16 @@
     <resultMap id="ConsultationReservationRowMap" type="com.saneb.domain.consultation.vo.ConsultationReservationRow">
         <constructor>
             <arg column="reservation_id" javaType="java.util.UUID"/>
+            <arg column="reservation_code" javaType="java.lang.String"/>
             <arg column="slot_id" javaType="java.util.UUID"/>
             <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="member_user_code" javaType="java.lang.String"/>
             <arg column="partner_user_id" javaType="java.util.UUID"/>
+            <arg column="partner_user_code" javaType="java.lang.String"/>
             <arg column="progress_id" javaType="java.util.UUID"/>
+            <arg column="progress_code" javaType="java.lang.String"/>
             <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="verification_code" javaType="java.lang.String"/>
             <arg column="start_at" javaType="java.time.OffsetDateTime"/>
             <arg column="end_at" javaType="java.time.OffsetDateTime"/>
             <arg column="status_code" javaType="java.lang.String"/>
@@ -89,6 +94,15 @@
             count(1)
         FROM users u
         WHERE u.id = #{userId}
+          AND u.status_code = 'ACTIVE'
+    </select>
+
+    <select id="selectUserIdByPublicCode" resultType="java.util.UUID">
+        -- Select active user primary key by public code for operator-facing forms.
+        SELECT
+            u.id
+        FROM users u
+        WHERE u.public_code = #{publicCode}
           AND u.status_code = 'ACTIVE'
     </select>
 
@@ -171,11 +185,16 @@
         -- Select consultation reservations with slot time.
         SELECT
             cr.id AS reservation_id,
+            cr.public_code AS reservation_code,
             cr.slot_id,
             cr.member_user_id,
+            member_user.public_code AS member_user_code,
             cr.partner_user_id,
+            partner_user.public_code AS partner_user_code,
             cr.progress_id,
+            ap.public_code AS progress_code,
             cr.verification_id,
+            pv.public_code AS verification_code,
             pas.start_at,
             pas.end_at,
             cr.status_code,
@@ -188,6 +207,10 @@
             cr.updated_at
         FROM consultation_reservations cr
         LEFT JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        INNER JOIN users member_user ON member_user.id = cr.member_user_id
+        LEFT JOIN users partner_user ON partner_user.id = cr.partner_user_id
+        LEFT JOIN application_progresses ap ON ap.id = cr.progress_id
+        LEFT JOIN partner_verifications pv ON pv.id = cr.verification_id
         <include refid="ConsultationReservationSearchWhere"/>
         ORDER BY COALESCE(pas.start_at, cr.created_at) DESC, cr.id DESC
         LIMIT #{size}
@@ -207,11 +230,16 @@
         -- Select one consultation reservation with slot time.
         SELECT
             cr.id AS reservation_id,
+            cr.public_code AS reservation_code,
             cr.slot_id,
             cr.member_user_id,
+            member_user.public_code AS member_user_code,
             cr.partner_user_id,
+            partner_user.public_code AS partner_user_code,
             cr.progress_id,
+            ap.public_code AS progress_code,
             cr.verification_id,
+            pv.public_code AS verification_code,
             pas.start_at,
             pas.end_at,
             cr.status_code,
@@ -224,6 +252,10 @@
             cr.updated_at
         FROM consultation_reservations cr
         LEFT JOIN partner_availability_slots pas ON pas.id = cr.slot_id
+        INNER JOIN users member_user ON member_user.id = cr.member_user_id
+        LEFT JOIN users partner_user ON partner_user.id = cr.partner_user_id
+        LEFT JOIN application_progresses ap ON ap.id = cr.progress_id
+        LEFT JOIN partner_verifications pv ON pv.id = cr.verification_id
         WHERE cr.id = #{reservationId}
     </select>
 

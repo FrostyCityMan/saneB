@@ -22,6 +22,8 @@ public interface ConsultationDao {
 
     long selectUserCount(@Param("userId") UUID userId);
 
+    UUID selectUserIdByPublicCode(@Param("publicCode") String publicCode);
+
     List<ConsultationSlotRow> selectConsultationSlotList(ConsultationSlotSearchCondition condition);
 
     long selectConsultationSlotCount(ConsultationSlotSearchCondition condition);

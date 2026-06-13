@@ -10,6 +10,10 @@
             <arg column="matching_case_id" javaType="java.util.UUID"/>
             <arg column="announcement_id" javaType="java.util.UUID"/>
             <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="progress_code" javaType="java.lang.String"/>
+            <arg column="matching_case_code" javaType="java.lang.String"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
+            <arg column="member_user_code" javaType="java.lang.String"/>
             <arg column="current_step_id" javaType="java.util.UUID"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="receipt_no" javaType="java.lang.String"/>
@@ -103,6 +107,10 @@
             ap.matching_case_id,
             ap.announcement_id,
             ap.member_user_id,
+            ap.public_code AS progress_code,
+            mc.public_code AS matching_case_code,
+            a.public_code AS announcement_code,
+            member_user.public_code AS member_user_code,
             ap.current_step_id,
             ap.status_code,
             ap.receipt_no,
@@ -114,6 +122,9 @@
             ap.created_at,
             ap.updated_at
         FROM application_progresses ap
+        INNER JOIN matching_cases mc ON mc.id = ap.matching_case_id
+        INNER JOIN announcements a ON a.id = ap.announcement_id
+        INNER JOIN users member_user ON member_user.id = ap.member_user_id
         <include refid="ApplicationProgressSearchWhere"/>
         ORDER BY ap.created_at DESC, ap.id DESC
         LIMIT #{size}
@@ -135,6 +146,10 @@
             ap.matching_case_id,
             ap.announcement_id,
             ap.member_user_id,
+            ap.public_code AS progress_code,
+            mc.public_code AS matching_case_code,
+            a.public_code AS announcement_code,
+            member_user.public_code AS member_user_code,
             ap.current_step_id,
             ap.status_code,
             ap.receipt_no,
@@ -146,6 +161,9 @@
             ap.created_at,
             ap.updated_at
         FROM application_progresses ap
+        INNER JOIN matching_cases mc ON mc.id = ap.matching_case_id
+        INNER JOIN announcements a ON a.id = ap.announcement_id
+        INNER JOIN users member_user ON member_user.id = ap.member_user_id
         WHERE ap.id = #{progressId}
     </select>
 
@@ -156,6 +174,10 @@
             ap.matching_case_id,
             ap.announcement_id,
             ap.member_user_id,
+            ap.public_code AS progress_code,
+            mc.public_code AS matching_case_code,
+            a.public_code AS announcement_code,
+            member_user.public_code AS member_user_code,
             ap.current_step_id,
             ap.status_code,
             ap.receipt_no,
@@ -167,6 +189,9 @@
             ap.created_at,
             ap.updated_at
         FROM application_progresses ap
+        INNER JOIN matching_cases mc ON mc.id = ap.matching_case_id
+        INNER JOIN announcements a ON a.id = ap.announcement_id
+        INNER JOIN users member_user ON member_user.id = ap.member_user_id
         WHERE ap.matching_case_id = #{matchingCaseId}
     </select>
 

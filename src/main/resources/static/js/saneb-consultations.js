@@ -83,7 +83,11 @@
             return;
         }
         statusForm.querySelector("[name='reservationId']").value = reservation.reservationId || "";
-        statusForm.querySelector("[name='partnerUserId']").value = reservation.partnerUserId || "";
+        const reservationCodeField = statusForm.querySelector("[data-consultation-reservation-code]");
+        if (reservationCodeField) {
+            reservationCodeField.value = reservation.reservationCode || "";
+        }
+        statusForm.querySelector("[name='partnerUserCode']").value = reservation.partnerUserCode || "";
         statusForm.querySelector("[name='note']").value = reservation.statusNote || "";
         setMessage(statusMessage, "선택한 상담 요청을 처리할 수 있습니다.", "success");
     };
@@ -109,9 +113,9 @@
                     <h3>${reservation.requestNote || "상담 요청"}</h3>
                 </div>
                 <dl class="flow-summary-list">
-                    <div><dt>상담 요청 ID</dt><dd>${reservation.reservationId}</dd></div>
-                    <div><dt>회원 ID</dt><dd>${reservation.memberUserId}</dd></div>
-                    <div><dt>담당자 ID</dt><dd>${reservation.partnerUserId || "미배정"}</dd></div>
+                    <div><dt>상담 요청 코드</dt><dd>${reservation.reservationCode || "-"}</dd></div>
+                    <div><dt>회원 코드</dt><dd>${reservation.memberUserCode || "-"}</dd></div>
+                    <div><dt>담당자 코드</dt><dd>${reservation.partnerUserCode || "미배정"}</dd></div>
                     <div><dt>접수일</dt><dd>${formatDateTime(reservation.createdAt)}</dd></div>
                 </dl>
             `;
@@ -149,14 +153,14 @@
             setMessage(requestMessage, "상담 요청 내용을 입력하세요.", "error");
             return;
         }
-        const memberUserId = operating ? textOrNull(valueOf(requestForm, "memberUserId")) : null;
+        const memberUserCode = operating ? textOrNull(valueOf(requestForm, "memberUserCode")) : null;
         setBusy(requestButton, true, "접수 중");
         setMessage(requestMessage, "");
         try {
             await requestJson("/api/v1/consultation-reservations", {
                 method: "POST",
                 body: JSON.stringify({
-                    memberUserId,
+                    memberUserCode,
                     requestNote
                 })
             });
@@ -184,7 +188,7 @@
                 method: "PATCH",
                 body: JSON.stringify({
                     statusCode: valueOf(statusForm, "statusCode"),
-                    partnerUserId: textOrNull(valueOf(statusForm, "partnerUserId")),
+                    partnerUserCode: textOrNull(valueOf(statusForm, "partnerUserCode")),
                     note: textOrNull(valueOf(statusForm, "note"))
                 })
             });

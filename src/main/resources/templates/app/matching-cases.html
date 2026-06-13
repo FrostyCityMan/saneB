@@ -46,9 +46,10 @@
                     </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingAnnouncementId">공고 ID</label>
+                    <label for="matchingAnnouncementCode">공고 코드</label>
                     <div class="lookup-input-row">
-                        <input id="matchingAnnouncementId" name="announcementId" type="text" placeholder="승인된 공고 UUID" required>
+                        <input id="matchingAnnouncementCode" name="announcementCodeDisplay" type="text" placeholder="돋보기로 승인 공고 선택" readonly required>
+                        <input name="announcementId" type="hidden">
                         <button class="icon-lookup-button" type="button" data-lookup-open="announcement" aria-label="공고 조회">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
@@ -58,9 +59,10 @@
                     </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingMemberUserId">회원 ID</label>
+                    <label for="matchingMemberUserCode">회원 코드</label>
                     <div class="lookup-input-row">
-                        <input id="matchingMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
+                        <input id="matchingMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="돋보기로 회원 선택" readonly required>
+                        <input name="memberUserId" type="hidden">
                         <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
@@ -81,9 +83,10 @@
                     </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingCandidateMemberUserId">회원 ID</label>
+                    <label for="matchingCandidateMemberUserCode">회원 코드</label>
                     <div class="lookup-input-row">
-                        <input id="matchingCandidateMemberUserId" name="memberUserId" type="text" placeholder="사용자 UUID" required>
+                        <input id="matchingCandidateMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="돋보기로 회원 선택" readonly required>
+                        <input name="memberUserId" type="hidden">
                         <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
@@ -115,12 +118,30 @@
                     </select>
                 </div>
                 <div class="field-block">
-                    <label for="matchingSearchAnnouncementId">공고 ID</label>
-                    <input id="matchingSearchAnnouncementId" name="announcementId" type="text" placeholder="선택 입력">
+                    <label for="matchingSearchAnnouncementCode">공고 코드</label>
+                    <div class="lookup-input-row">
+                        <input id="matchingSearchAnnouncementCode" name="announcementCodeDisplay" type="text" placeholder="선택 입력" readonly>
+                        <input name="announcementId" type="hidden">
+                        <button class="icon-lookup-button" type="button" data-lookup-open="announcement" aria-label="공고 조회">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
+                                <path d="m16 16 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingSearchMemberUserId">회원 ID</label>
-                    <input id="matchingSearchMemberUserId" name="memberUserId" type="text" placeholder="선택 입력">
+                    <label for="matchingSearchMemberUserCode">회원 코드</label>
+                    <div class="lookup-input-row">
+                        <input id="matchingSearchMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="선택 입력" readonly>
+                        <input name="memberUserId" type="hidden">
+                        <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
+                                <path d="m16 16 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <button class="secondary-action" type="submit">조회</button>
             </form>

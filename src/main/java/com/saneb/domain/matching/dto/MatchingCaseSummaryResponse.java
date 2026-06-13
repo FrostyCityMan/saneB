@@ -7,9 +7,13 @@ import java.math.BigDecimal;
 
 public record MatchingCaseSummaryResponse(
         UUID matchingCaseId,
+        String matchingCaseCode,
         UUID announcementId,
+        String announcementCode,
         UUID memberUserId,
+        String memberUserCode,
         UUID verificationId,
+        String verificationCode,
         String statusCode,
         String blockedReasonCode,
         OffsetDateTime matchedAt,

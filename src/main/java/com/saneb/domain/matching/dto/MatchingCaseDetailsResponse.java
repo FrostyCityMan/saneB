@@ -5,9 +5,13 @@ import java.util.UUID;
 
 public record MatchingCaseDetailsResponse(
         UUID matchingCaseId,
+        String matchingCaseCode,
         UUID announcementId,
+        String announcementCode,
         UUID memberUserId,
+        String memberUserCode,
         UUID verificationId,
+        String verificationCode,
         String statusCode,
         String blockedReasonCode,
         OffsetDateTime matchedAt,

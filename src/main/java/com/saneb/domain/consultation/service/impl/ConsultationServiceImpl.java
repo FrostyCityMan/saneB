@@ -183,9 +183,9 @@ public class ConsultationServiceImpl implements ConsultationService {
             ConsultationReservationCreateRequest request
     ) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
-        UUID memberUserId = selectReservationMemberUserId(actor, request.memberUserId());
+        UUID memberUserId = selectReservationMemberUserId(actor, request.memberUserId(), request.memberUserCode());
         ConsultationSlotRow slot = request.slotId() == null ? null : selectReservableSlot(request.slotId());
-        UUID partnerUserId = selectReservationPartnerUserId(actor, request.partnerUserId(), slot);
+        UUID partnerUserId = selectReservationPartnerUserId(actor, request.partnerUserId(), request.partnerUserCode(), slot);
         validateReservationReference(actor, memberUserId, request.progressId(), request.verificationId());
 
         UUID reservationId = UUID.randomUUID();
@@ -238,7 +238,12 @@ public class ConsultationServiceImpl implements ConsultationService {
         );
         ConsultationReservationRow reservation = selectReservationRow(reservationId);
         ConsultationSlotRow assignedSlot = request.slotId() == null ? null : selectReservableSlot(request.slotId());
-        UUID assignedPartnerUserId = selectAssignedPartnerUserId(request.partnerUserId(), assignedSlot, reservation);
+        UUID assignedPartnerUserId = selectAssignedPartnerUserId(
+                request.partnerUserId(),
+                request.partnerUserCode(),
+                assignedSlot,
+                reservation
+        );
         validateAssignmentRequirement(afterStatusCode, assignedPartnerUserId);
         validateReservationAccess(actor, reservation, afterStatusCode);
         validateReservationTransition(reservation.statusCode(), afterStatusCode);
@@ -284,11 +289,18 @@ public class ConsultationServiceImpl implements ConsultationService {
         throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "상담 시간 등록 권한이 없습니다.");
     }
 
-    private UUID selectReservationMemberUserId(AuthenticatedUserDetails actor, UUID requestedMemberUserId) {
+    private UUID selectReservationMemberUserId(
+            AuthenticatedUserDetails actor,
+            UUID requestedMemberUserId,
+            String requestedMemberUserCode
+    ) {
+        UUID requestedUserId = requestedMemberUserId == null
+                ? selectUserIdByPublicCode(requestedMemberUserCode, "회원을 찾을 수 없습니다.")
+                : requestedMemberUserId;
         if (hasOperatingRole(actor)) {
-            return requestedMemberUserId == null ? actor.userId() : requestedMemberUserId;
+            return requestedUserId == null ? actor.userId() : requestedUserId;
         }
-        if (requestedMemberUserId != null && !requestedMemberUserId.equals(actor.userId())) {
+        if (requestedUserId != null && !requestedUserId.equals(actor.userId())) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "본인 상담만 예약할 수 있습니다.");
         }
         return actor.userId();
@@ -297,13 +309,17 @@ public class ConsultationServiceImpl implements ConsultationService {
     private UUID selectReservationPartnerUserId(
             AuthenticatedUserDetails actor,
             UUID requestedPartnerUserId,
+            String requestedPartnerUserCode,
             ConsultationSlotRow slot
     ) {
+        UUID resolvedPartnerUserId = requestedPartnerUserId == null
+                ? selectUserIdByPublicCode(requestedPartnerUserCode, "상담 담당자를 찾을 수 없습니다.")
+                : requestedPartnerUserId;
         UUID slotPartnerUserId = slot == null ? null : slot.partnerUserId();
-        if (slotPartnerUserId != null && requestedPartnerUserId != null && !slotPartnerUserId.equals(requestedPartnerUserId)) {
+        if (slotPartnerUserId != null && resolvedPartnerUserId != null && !slotPartnerUserId.equals(resolvedPartnerUserId)) {
             throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "상담 시간의 담당자와 배정 담당자가 다릅니다.");
         }
-        UUID partnerUserId = slotPartnerUserId == null ? requestedPartnerUserId : slotPartnerUserId;
+        UUID partnerUserId = slotPartnerUserId == null ? resolvedPartnerUserId : slotPartnerUserId;
         if (partnerUserId == null) {
             return null;
         }
@@ -406,14 +422,18 @@ public class ConsultationServiceImpl implements ConsultationService {
 
     private UUID selectAssignedPartnerUserId(
             UUID requestedPartnerUserId,
+            String requestedPartnerUserCode,
             ConsultationSlotRow assignedSlot,
             ConsultationReservationRow reservation
     ) {
+        UUID resolvedPartnerUserId = requestedPartnerUserId == null
+                ? selectUserIdByPublicCode(requestedPartnerUserCode, "상담 담당자를 찾을 수 없습니다.")
+                : requestedPartnerUserId;
         UUID slotPartnerUserId = assignedSlot == null ? null : assignedSlot.partnerUserId();
-        if (slotPartnerUserId != null && requestedPartnerUserId != null && !slotPartnerUserId.equals(requestedPartnerUserId)) {
+        if (slotPartnerUserId != null && resolvedPartnerUserId != null && !slotPartnerUserId.equals(resolvedPartnerUserId)) {
             throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "상담 시간의 담당자와 배정 담당자가 다릅니다.");
         }
-        UUID partnerUserId = slotPartnerUserId == null ? requestedPartnerUserId : slotPartnerUserId;
+        UUID partnerUserId = slotPartnerUserId == null ? resolvedPartnerUserId : slotPartnerUserId;
         if (partnerUserId != null) {
             validateUserExists(partnerUserId, "상담 담당자를 찾을 수 없습니다.");
             return partnerUserId;
@@ -474,6 +494,23 @@ public class ConsultationServiceImpl implements ConsultationService {
         }
     }
 
+    private UUID selectUserIdByPublicCode(String publicCode, String notFoundMessage) {
+        String normalized = normalizePublicCode(publicCode);
+        if (normalized == null) {
+            return null;
+        }
+        UUID userId = consultationDao.selectUserIdByPublicCode(normalized);
+        if (userId == null) {
+            throw notFound(notFoundMessage);
+        }
+        return userId;
+    }
+
+    private String normalizePublicCode(String publicCode) {
+        String trimmed = trimToNull(publicCode);
+        return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
+    }
+
     private ConsultationSlotResponse toSlotResponse(ConsultationSlotRow row) {
         return new ConsultationSlotResponse(
                 row.slotId(),
@@ -490,11 +527,16 @@ public class ConsultationServiceImpl implements ConsultationService {
     private ConsultationReservationResponse toReservationResponse(ConsultationReservationRow row) {
         return new ConsultationReservationResponse(
                 row.reservationId(),
+                row.reservationCode(),
                 row.slotId(),
                 row.memberUserId(),
+                row.memberUserCode(),
                 row.partnerUserId(),
+                row.partnerUserCode(),
                 row.progressId(),
+                row.progressCode(),
                 row.verificationId(),
+                row.verificationCode(),
                 row.startAt(),
                 row.endAt(),
                 row.statusCode(),

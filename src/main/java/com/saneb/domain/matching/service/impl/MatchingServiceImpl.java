@@ -412,9 +412,13 @@ public class MatchingServiceImpl implements MatchingService {
     private MatchingCaseSummaryResponse toSummaryResponse(MatchingCaseRow row) {
         return new MatchingCaseSummaryResponse(
                 row.matchingCaseId(),
+                row.matchingCaseCode(),
                 row.announcementId(),
+                row.announcementCode(),
                 row.memberUserId(),
+                row.memberUserCode(),
                 row.verificationId(),
+                row.verificationCode(),
                 row.statusCode(),
                 row.blockedReasonCode(),
                 row.matchedAt(),
@@ -436,6 +440,7 @@ public class MatchingServiceImpl implements MatchingService {
     private MatchingMemberLookupResponse toMemberLookupResponse(MatchingMemberLookupRow row) {
         return new MatchingMemberLookupResponse(
                 row.userId(),
+                row.userCode(),
                 row.loginId(),
                 row.name(),
                 row.statusCode(),
@@ -446,9 +451,13 @@ public class MatchingServiceImpl implements MatchingService {
     private MatchingCaseDetailsResponse toDetailsResponse(MatchingCaseRow row) {
         return new MatchingCaseDetailsResponse(
                 row.matchingCaseId(),
+                row.matchingCaseCode(),
                 row.announcementId(),
+                row.announcementCode(),
                 row.memberUserId(),
+                row.memberUserCode(),
                 row.verificationId(),
+                row.verificationCode(),
                 row.statusCode(),
                 row.blockedReasonCode(),
                 row.matchedAt(),

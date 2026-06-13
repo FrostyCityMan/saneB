@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record MatchingMemberLookupResponse(
         UUID userId,
+        String userCode,
         String loginId,
         String name,
         String statusCode,

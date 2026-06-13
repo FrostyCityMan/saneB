@@ -351,6 +351,7 @@ class AnnouncementControllerSmokeTest {
     private AnnouncementSummaryRow summaryRow() {
         return new AnnouncementSummaryRow(
                 ANNOUNCEMENT_ID,
+                "ANN-000001",
                 "BUSINESS",
                 "Operating Capital Support",
                 "Seoul City",
@@ -368,6 +369,7 @@ class AnnouncementControllerSmokeTest {
     private AnnouncementDetailsRow detailsRow(String approvalStatusCode) {
         return new AnnouncementDetailsRow(
                 ANNOUNCEMENT_ID,
+                "ANN-000001",
                 "BUSINESS",
                 "Operating Capital Support",
                 "Seoul City",

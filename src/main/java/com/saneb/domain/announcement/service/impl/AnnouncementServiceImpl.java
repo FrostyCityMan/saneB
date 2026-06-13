@@ -431,6 +431,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         return new AnnouncementDetailsResponse(
                 row.announcementId(),
+                row.announcementCode(),
                 row.targetTypeCode(),
                 row.title(),
                 row.agencyName(),
@@ -530,6 +531,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private AnnouncementSummaryResponse toSummaryResponse(AnnouncementSummaryRow row) {
         return new AnnouncementSummaryResponse(
                 row.announcementId(),
+                row.announcementCode(),
                 row.targetTypeCode(),
                 row.title(),
                 row.agencyName(),

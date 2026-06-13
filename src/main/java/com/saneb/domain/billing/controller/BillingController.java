@@ -144,7 +144,7 @@ public class BillingController {
     }
 
     @PostMapping("/mock-payments/monthly-subscription")
-    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     public ApiResponse<MockMonthlyPaymentResponse> insertMockMonthlyPayment(
             Authentication authentication,
             @Valid @RequestBody MockMonthlyPaymentRequest request

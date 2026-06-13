@@ -85,7 +85,7 @@ class ConsultationServiceImplTest {
 
         var response = consultationService.insertConsultationReservation(
                 authentication(USER_ID, List.of("USER")),
-                new ConsultationReservationCreateRequest(null, null, null, null, null, "전화 상담 희망")
+                new ConsultationReservationCreateRequest(null, null, null, null, null, null, null, "전화 상담 희망")
         );
 
         ArgumentCaptor<ConsultationReservationInsertCommand> reservationCaptor =
@@ -108,7 +108,7 @@ class ConsultationServiceImplTest {
 
         var response = consultationService.insertConsultationReservation(
                 authentication(USER_ID, List.of("OPERATOR")),
-                new ConsultationReservationCreateRequest(SLOT_ID, USER_ID, null, null, null, "전화 상담 희망")
+                new ConsultationReservationCreateRequest(SLOT_ID, USER_ID, null, null, null, null, null, "전화 상담 희망")
         );
 
         ArgumentCaptor<ConsultationReservationInsertCommand> reservationCaptor =
@@ -130,7 +130,7 @@ class ConsultationServiceImplTest {
         var response = consultationService.updateConsultationReservationStatus(
                 authentication(PARTNER_USER_ID, List.of("PARTNER")),
                 RESERVATION_ID,
-                new ConsultationReservationStatusUpdateRequest("confirmed", null, null, "확정")
+                new ConsultationReservationStatusUpdateRequest("confirmed", null, null, null, "확정")
         );
 
         ArgumentCaptor<ConsultationReservationStatusCommand> statusCaptor =
@@ -151,7 +151,7 @@ class ConsultationServiceImplTest {
         assertThatThrownBy(() -> consultationService.updateConsultationReservationStatus(
                 authentication(USER_ID, List.of("USER")),
                 RESERVATION_ID,
-                new ConsultationReservationStatusUpdateRequest("CONFIRMED", null, null, null)
+                new ConsultationReservationStatusUpdateRequest("CONFIRMED", null, null, null, null)
         ))
                 .isInstanceOf(ApiException.class)
                 .extracting(error -> ((ApiException) error).errorCode())
@@ -174,9 +174,14 @@ class ConsultationServiceImplTest {
     private ConsultationReservationRow reservation(String statusCode) {
         return new ConsultationReservationRow(
                 RESERVATION_ID,
+                "CNS-000001",
                 SLOT_ID,
                 USER_ID,
+                "USR-000001",
                 PARTNER_USER_ID,
+                "USR-000002",
+                null,
+                null,
                 null,
                 null,
                 START_AT,
@@ -195,8 +200,13 @@ class ConsultationServiceImplTest {
     private ConsultationReservationRow slotlessReservation(String statusCode) {
         return new ConsultationReservationRow(
                 RESERVATION_ID,
+                "CNS-000001",
                 null,
                 USER_ID,
+                "USR-000001",
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,

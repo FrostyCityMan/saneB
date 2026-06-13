@@ -77,17 +77,17 @@
                             <span class="status-chip" th:text="${item.statusLabel}">작성 중</span>
                             <h3>
                                 검증 번호
-                                <span th:text="${item.verificationId}">uuid</span>
+                                <span th:text="${item.verificationCode}">검증 코드</span>
                             </h3>
                             <p>
                                 회원 번호
-                                <span th:text="${item.memberUserId}">uuid</span>
+                                <span th:text="${item.memberUserCode}">회원 코드</span>
                             </p>
                         </div>
                         <dl class="flow-summary-list compact-summary-list">
                             <div>
                                 <dt>담당 파트너</dt>
-                                <dd th:text="${item.partnerUserId == null ? '미지정' : item.partnerUserId}">uuid</dd>
+                                <dd th:text="${item.partnerUserCode == null ? '미지정' : item.partnerUserCode}">담당자 코드</dd>
                             </div>
                             <div>
                                 <dt>현재 검증</dt>

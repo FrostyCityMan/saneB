@@ -162,6 +162,20 @@ class BillingControllerSmokeTest {
     }
 
     @Test
+    void insertMockMonthlyPaymentRejectsOperatorRole() throws Exception {
+        mockMvc.perform(post("/api/v1/mock-payments/monthly-subscription")
+                        .with(user(operatorPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "planId": "%s",
+                                  "simulateFailure": false
+                                }
+                                """.formatted(PLAN_ID)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void updatePaymentStatusRejectsUserRole() throws Exception {
         mockMvc.perform(patch("/api/v1/payments/{paymentId}/status", PAYMENT_ID)
                         .with(user(userPrincipal()))

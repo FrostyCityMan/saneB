@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: page('상담 관리', ~{::main})}">
+      th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
 <main class="consultation-page"
       data-consultation-app
       th:data-operating="${page.operating}">
     <section class="summary-panel">
         <div class="summary-header">
             <div>
-                <div class="section-label">상담 관리</div>
-                <p>사용자는 상담을 요청하고, 운영자는 요청 건을 확인해 담당자와 상태를 수동으로 배정합니다.</p>
+                <div class="section-label" th:text="${page.pageTitle}">상담 요청</div>
+                <p th:text="${page.summaryText}">상담이 필요한 내용을 남기면 운영자가 확인한 뒤 담당자를 배정합니다.</p>
             </div>
             <span class="soft-status">수기 배정</span>
         </div>
@@ -24,8 +24,8 @@
             </div>
             <form data-consultation-request-form novalidate>
                 <div class="field-block" th:if="${page.operating}">
-                    <label for="consultationMemberUserId">회원 ID</label>
-                    <input id="consultationMemberUserId" name="memberUserId" type="text" placeholder="운영자가 대신 접수할 때만 입력">
+                    <label for="consultationMemberUserCode">회원 코드</label>
+                    <input id="consultationMemberUserCode" name="memberUserCode" type="text" placeholder="예: USR-000001">
                 </div>
                 <div class="field-block">
                     <label for="consultationRequestNote">상담 요청 내용</label>
@@ -63,8 +63,9 @@
         <form data-consultation-status-form novalidate>
             <div class="form-grid">
                 <div class="field-block">
-                    <label for="consultationReservationId">상담 요청 ID</label>
-                    <input id="consultationReservationId" name="reservationId" type="text" placeholder="목록에서 선택">
+                    <label for="consultationReservationId">상담 요청 코드</label>
+                    <input id="consultationReservationId" name="reservationId" type="hidden">
+                    <input type="text" placeholder="목록에서 선택" data-consultation-reservation-code readonly>
                 </div>
                 <div class="field-block">
                     <label for="consultationStatusCode">상태</label>
@@ -77,8 +78,8 @@
                     </select>
                 </div>
                 <div class="field-block">
-                    <label for="consultationPartnerUserId">담당자 ID</label>
-                    <input id="consultationPartnerUserId" name="partnerUserId" type="text" placeholder="배정 또는 확정 시 입력">
+                    <label for="consultationPartnerUserCode">담당자 코드</label>
+                    <input id="consultationPartnerUserCode" name="partnerUserCode" type="text" placeholder="예: USR-000002">
                 </div>
                 <div class="field-block span-2">
                     <label for="consultationStatusNote">상담 메모</label>

@@ -10,6 +10,9 @@
             <arg column="member_user_id" javaType="java.util.UUID"/>
             <arg column="partner_user_id" javaType="java.util.UUID"/>
             <arg column="business_profile_id" javaType="java.util.UUID"/>
+            <arg column="verification_code" javaType="java.lang.String"/>
+            <arg column="member_user_code" javaType="java.lang.String"/>
+            <arg column="partner_user_code" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="is_current" javaType="java.lang.Boolean"/>
             <arg column="is_matching_blocked" javaType="java.lang.Boolean"/>
@@ -105,6 +108,9 @@
             pv.member_user_id,
             pv.partner_user_id,
             pv.business_profile_id,
+            pv.public_code AS verification_code,
+            member_user.public_code AS member_user_code,
+            partner_user.public_code AS partner_user_code,
             pv.status_code,
             pv.is_current,
             pv.is_matching_blocked,
@@ -115,6 +121,8 @@
             pv.created_at,
             pv.updated_at
         FROM partner_verifications pv
+        INNER JOIN users member_user ON member_user.id = pv.member_user_id
+        LEFT JOIN users partner_user ON partner_user.id = pv.partner_user_id
         <include refid="PartnerVerificationSearchWhere"/>
         ORDER BY pv.created_at DESC, pv.id DESC
         LIMIT #{size}
@@ -136,6 +144,9 @@
             pv.member_user_id,
             pv.partner_user_id,
             pv.business_profile_id,
+            pv.public_code AS verification_code,
+            member_user.public_code AS member_user_code,
+            partner_user.public_code AS partner_user_code,
             pv.status_code,
             pv.is_current,
             pv.is_matching_blocked,
@@ -146,6 +157,8 @@
             pv.created_at,
             pv.updated_at
         FROM partner_verifications pv
+        INNER JOIN users member_user ON member_user.id = pv.member_user_id
+        LEFT JOIN users partner_user ON partner_user.id = pv.partner_user_id
         WHERE pv.id = #{verificationId}
     </select>
 

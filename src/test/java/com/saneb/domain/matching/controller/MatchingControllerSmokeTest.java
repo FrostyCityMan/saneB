@@ -40,6 +40,10 @@ class MatchingControllerSmokeTest {
     private static final UUID MEMBER_USER_ID = UUID.fromString("50000000-0000-0000-0000-000000000003");
     private static final UUID VERIFICATION_ID = UUID.fromString("50000000-0000-0000-0000-000000000004");
     private static final UUID RESULT_DETAIL_ID = UUID.fromString("50000000-0000-0000-0000-000000000005");
+    private static final String MATCHING_CASE_CODE = "MCH-000001";
+    private static final String ANNOUNCEMENT_CODE = "ANN-000001";
+    private static final String MEMBER_USER_CODE = "USR-000002";
+    private static final String VERIFICATION_CODE = "VRF-000001";
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,7 +61,7 @@ class MatchingControllerSmokeTest {
                         .content(createRequest()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.matchingCaseId").value(MATCHING_CASE_ID.toString()))
+                .andExpect(jsonPath("$.data.matchingCaseCode").value(MATCHING_CASE_CODE))
                 .andExpect(jsonPath("$.data.statusCode").value("MATCHED"));
     }
 
@@ -107,6 +111,7 @@ class MatchingControllerSmokeTest {
         when(matchingService.selectMatchingMemberLookupList(any(), eq(1), eq(10)))
                 .thenReturn(PageResponse.of(List.of(new MatchingMemberLookupResponse(
                         MEMBER_USER_ID,
+                        MEMBER_USER_CODE,
                         "user01",
                         "사용자",
                         "ACTIVE",
@@ -120,7 +125,7 @@ class MatchingControllerSmokeTest {
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.items[0].userId").value(MEMBER_USER_ID.toString()))
+                .andExpect(jsonPath("$.data.items[0].userCode").value(MEMBER_USER_CODE))
                 .andExpect(jsonPath("$.data.items[0].loginId").value("user01"));
     }
 
@@ -182,9 +187,13 @@ class MatchingControllerSmokeTest {
         OffsetDateTime now = OffsetDateTime.now();
         return new MatchingCaseSummaryResponse(
                 MATCHING_CASE_ID,
+                MATCHING_CASE_CODE,
                 ANNOUNCEMENT_ID,
+                ANNOUNCEMENT_CODE,
                 MEMBER_USER_ID,
+                MEMBER_USER_CODE,
                 VERIFICATION_ID,
+                VERIFICATION_CODE,
                 statusCode,
                 blockedReasonCode,
                 now,
@@ -207,9 +216,13 @@ class MatchingControllerSmokeTest {
         OffsetDateTime now = OffsetDateTime.now();
         return new MatchingCaseDetailsResponse(
                 MATCHING_CASE_ID,
+                MATCHING_CASE_CODE,
                 ANNOUNCEMENT_ID,
+                ANNOUNCEMENT_CODE,
                 MEMBER_USER_ID,
+                MEMBER_USER_CODE,
                 VERIFICATION_ID,
+                VERIFICATION_CODE,
                 statusCode,
                 blockedReasonCode,
                 now,

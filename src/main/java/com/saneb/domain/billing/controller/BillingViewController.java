@@ -18,24 +18,32 @@ public class BillingViewController {
     }
 
     @GetMapping("/app/billing/mock")
-    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     public String selectMockBillingPage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
-        model.addAttribute("page", MockBillingPageModel.from(authMe));
+        model.addAttribute("page", BillingPageModel.from(authMe, "BILLING_MOCK"));
         return "app/mock-billing";
     }
 
-    public record MockBillingPageModel(
+    @GetMapping("/app/billing/plans")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    public String selectSubscriptionPlanSettingsPage(Authentication authentication, Model model) {
+        AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", BillingPageModel.from(authMe, "BILLING_PLANS"));
+        return "app/subscription-plan-settings";
+    }
+
+    public record BillingPageModel(
             AuthMeResponse auth,
             String roleLabel,
             String activeNav
     ) {
 
-        private static MockBillingPageModel from(AuthMeResponse auth) {
-            return new MockBillingPageModel(
+        private static BillingPageModel from(AuthMeResponse auth, String activeNav) {
+            return new BillingPageModel(
                     auth,
                     BillingViewController.roleLabel(auth.primaryRole()),
-                    "BILLING_MOCK"
+                    activeNav
             );
         }
     }

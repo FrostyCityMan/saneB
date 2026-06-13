@@ -249,15 +249,15 @@
                 <dl class="flow-summary-list">
                     <div>
                         <dt>검증 번호</dt>
-                        <dd th:text="${page.details.verificationId}">uuid</dd>
+                        <dd th:text="${page.details.verificationCode}">검증 코드</dd>
                     </div>
                     <div>
                         <dt>회원 번호</dt>
-                        <dd th:text="${page.details.memberUserId}">uuid</dd>
+                        <dd th:text="${page.details.memberUserCode}">회원 코드</dd>
                     </div>
                     <div>
-                        <dt>사업자 정보 번호</dt>
-                        <dd th:text="${page.details.businessProfileId == null ? '미지정' : page.details.businessProfileId}">uuid</dd>
+                        <dt>사업자 정보</dt>
+                        <dd th:text="${page.details.businessProfileId == null ? '미지정' : '등록됨'}">등록됨</dd>
                     </div>
                     <div>
                         <dt>매칭 차단</dt>

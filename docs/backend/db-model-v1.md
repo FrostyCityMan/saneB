@@ -58,6 +58,7 @@ Scaffold 상태:
 - 입력되지 않은 조건은 매칭에서 제외하고 결과에는 `SKIPPED`로 기록한다.
 - 매칭 결과는 점수나 순위가 아니라 필수조건 통과 여부만 저장한다.
 - 사용자 대시보드는 별도 저장 테이블을 만들지 않고 검증, 매칭, 진행 상태 테이블을 집계하는 읽기 모델로 제공한다.
+- 화면과 운영자가 직접 식별하는 주요 업무 리소스는 내부 UUID와 별도로 `public_code`를 가진다. 내부 PK/FK는 UUID를 유지하고, 화면 노출·검색·수기 입력에는 `USR-000001`, `ANN-000001`, `MCH-000001`, `APP-000001`, `VRF-000001`, `CNS-000001` 형식의 공개 코드를 우선 사용한다.
 
 ## 4. 공통 컬럼
 
@@ -77,7 +78,7 @@ Scaffold 상태:
 
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
-| `users` | `login_id`, `password_hash`, `name`, `phone`, `email`, `status_code`, `password_reset_required`, `last_login_at` | PK `id` | UQ `login_id`, UQ `phone`, IDX `status_code` |
+| `users` | `public_code`, `login_id`, `password_hash`, `name`, `phone`, `email`, `status_code`, `password_reset_required`, `last_login_at` | PK `id` | UQ `public_code`, UQ `login_id`, UQ `phone`, IDX `status_code` |
 | `roles` | `role_code`, `role_name`, `sort_order` | PK `role_code` | UQ `role_name` |
 | `user_roles` | `user_id`, `role_code` | PK `(user_id, role_code)`, FK `users.id`, FK `roles.role_code` | IDX `role_code` |
 | `auth_login_histories` | `user_id`, `login_id`, `login_result_code`, `ip_address`, `user_agent`, `failure_reason_code` | PK `id`, FK `users.id` nullable | IDX `(user_id, created_at)`, IDX `(login_id, created_at)` |
@@ -109,7 +110,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
 | `partner_profiles` | `user_id`, `partner_name`, `business_registration_no`, `status_code` | PK `id`, FK `users.id` | UQ `user_id`, UQ `business_registration_no`, IDX `status_code` |
-| `partner_verifications` | `member_user_id`, `partner_user_id`, `business_profile_id`, `status_code`, `is_current`, `is_matching_blocked`, `submitted_at`, `verified_at`, `reviewed_by`, `review_note` | PK `id`, FK `users.id`, FK `business_profiles.id` | Partial UQ `(member_user_id) WHERE is_current = true`, IDX `(partner_user_id, status_code)`, IDX `(member_user_id, status_code)` |
+| `partner_verifications` | `public_code`, `member_user_id`, `partner_user_id`, `business_profile_id`, `status_code`, `is_current`, `is_matching_blocked`, `submitted_at`, `verified_at`, `reviewed_by`, `review_note` | PK `id`, FK `users.id`, FK `business_profiles.id` | UQ `public_code`, Partial UQ `(member_user_id) WHERE is_current = true`, IDX `(partner_user_id, status_code)`, IDX `(member_user_id, status_code)` |
 | `verification_member_values` | `verification_id`, `birth_year`, `address`, `region_code`, `is_householder`, `is_household_member`, `health_insurance_basis_code`, `has_income` | PK `id`, FK `partner_verifications.id` | UQ `verification_id`, IDX `region_code` |
 | `verification_business_values` | `verification_id`, `annual_revenue`, `employee_count`, `regular_employee_count`, `tax_status_code`, `nice_credit_score`, `kcb_credit_score`, `has_existing_loan`, `has_policy_fund_usage`, `has_guarantee_usage`, `financial_checked_on` | PK `id`, FK `partner_verifications.id` | UQ `verification_id` |
 | `verification_family_values` | `verification_id`, `relation_type_code`, `birth_year`, `address`, `school_age_status_code`, `enrollment_status_code`, `is_cohabiting`, `is_supported`, `has_income` | PK `id`, FK `partner_verifications.id` | IDX `(verification_id, relation_type_code)` |
@@ -140,7 +141,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
-| `announcements` | `target_type_code`, `title`, `agency_name`, `summary`, `application_start_date`, `application_end_date`, `manual_status_code`, `approval_status_code`, `income_judgement_code`, `min_amount`, `max_amount`, `created_by`, `updated_by` | PK `id`, FK `users.id` | UQ `(agency_name, title, application_start_date)`, IDX `(target_type_code, application_start_date, application_end_date)`, IDX `(manual_status_code, approval_status_code)` |
+| `announcements` | `public_code`, `target_type_code`, `title`, `agency_name`, `summary`, `application_start_date`, `application_end_date`, `manual_status_code`, `approval_status_code`, `income_judgement_code`, `min_amount`, `max_amount`, `created_by`, `updated_by` | PK `id`, FK `users.id` | UQ `public_code`, UQ `(agency_name, title, application_start_date)`, IDX `(target_type_code, application_start_date, application_end_date)`, IDX `(manual_status_code, approval_status_code)` |
 | `announcement_options` | `announcement_id`, `option_group_code`, `option_code` | PK `id`, FK `announcements.id` | UQ `(announcement_id, option_group_code, option_code)` |
 | `announcement_approval_requests` | `announcement_id`, `requested_by`, `decided_by`, `approval_status_code`, `request_note`, `decision_note`, `requested_at`, `decided_at` | PK `id`, FK `announcements.id`, FK `users.id` | IDX `(announcement_id, approval_status_code)`, IDX `(requested_by, requested_at)` |
 | `announcement_status_histories` | `announcement_id`, `before_status_code`, `after_status_code`, `reason`, `changed_by`, `changed_at` | PK `id`, FK `announcements.id`, FK `users.id` | IDX `(announcement_id, changed_at)` |
@@ -172,8 +173,10 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
-| `matching_cases` | `announcement_id`, `member_user_id`, nullable `verification_id`, `status_code`, `blocked_reason_code`, `matched_at`, `reviewed_by`, `reviewed_at` | PK `id`, FK `announcements.id`, FK `users.id`, FK `partner_verifications.id` | UQ `(announcement_id, member_user_id, verification_id)`, partial UQ `(announcement_id, member_user_id) WHERE verification_id IS NULL`, IDX `(member_user_id, status_code)`, IDX `(announcement_id, status_code)` |
+| `matching_cases` | `public_code`, `announcement_id`, `member_user_id`, nullable `verification_id`, `status_code`, `blocked_reason_code`, `matched_at`, `reviewed_by`, `reviewed_at` | PK `id`, FK `announcements.id`, FK `users.id`, FK `partner_verifications.id` | UQ `public_code`, UQ `(announcement_id, member_user_id, verification_id)`, partial UQ `(announcement_id, member_user_id) WHERE verification_id IS NULL`, IDX `(member_user_id, status_code)`, IDX `(announcement_id, status_code)` |
 | `matching_result_details` | `matching_case_id`, `condition_scope_code`, `condition_key`, `result_code`, `basis_value`, `required_value`, `reason` | PK `id`, FK `matching_cases.id` | UQ `(matching_case_id, condition_scope_code, condition_key)`, IDX `(result_code)` |
+
+공고와 회원은 다대다 관계다. `matching_cases`는 `announcements`와 `users` 사이의 매칭 관계 엔티티이며, 한 회원은 여러 공고 후보를 가질 수 있고 한 공고는 여러 회원 후보를 가질 수 있다. unique 제약은 같은 공고와 같은 회원의 동일 검증 기준 후보 중복 생성을 막기 위한 장치이며, 공고 또는 회원 단위의 일대일 관계를 의미하지 않는다.
 
 매칭은 `approval_status_code = APPROVED`인 공고를 기준으로 수행한다. `verification_id`가 있으면 `status_code = VERIFIED`, `is_current = true`인 파트너 검증값을 확인하고, `verification_id`가 없으면 운영자 수동 매칭으로 저장한다.
 
@@ -184,7 +187,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `announcement_progress_steps` | `announcement_id`, `step_order`, `step_name`, `guide_message`, `action_guide`, `completion_condition_code`, `next_condition_code`, `is_active` | PK `id`, FK `announcements.id` | UQ `(announcement_id, step_order)`, IDX `(announcement_id, is_active)` |
 | `announcement_step_documents` | `step_id`, `document_type_code`, `is_required`, `sort_order` | PK `id`, FK `announcement_progress_steps.id` | UQ `(step_id, document_type_code)` |
 | `announcement_step_buttons` | `step_id`, `button_code`, `button_label`, `button_action_code`, `next_step_id`, `sort_order` | PK `id`, FK `announcement_progress_steps.id` | UQ `(step_id, button_code)` |
-| `application_progresses` | `matching_case_id`, `announcement_id`, `member_user_id`, `current_step_id`, `status_code`, `receipt_no`, `receipt_date`, `result_code`, `result_note`, `result_date` | PK `id`, FK `matching_cases.id`, FK `announcements.id`, FK `users.id`, FK `announcement_progress_steps.id` | UQ `matching_case_id`, IDX `(member_user_id, status_code)`, IDX `(announcement_id, status_code)` |
+| `application_progresses` | `public_code`, `matching_case_id`, `announcement_id`, `member_user_id`, `current_step_id`, `status_code`, `receipt_no`, `receipt_date`, `result_code`, `result_note`, `result_date` | PK `id`, FK `matching_cases.id`, FK `announcements.id`, FK `users.id`, FK `announcement_progress_steps.id` | UQ `public_code`, UQ `matching_case_id`, IDX `(member_user_id, status_code)`, IDX `(announcement_id, status_code)` |
 | `application_step_states` | `progress_id`, `step_id`, `status_code`, `started_at`, `completed_at` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | UQ `(progress_id, step_id)` |
 | `application_action_logs` | `progress_id`, `step_id`, `actor_user_id`, `action_code`, `button_code`, `input_json` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id`, FK `users.id` | IDX `(progress_id, created_at)`, IDX `(actor_user_id, created_at)` |
 | `application_step_checklists` | `progress_id`, `step_document_id`, `is_checked`, `checked_at`, `checked_by` | PK `id`, FK `application_progresses.id`, FK `announcement_step_documents.id`, FK `users.id` | UQ `(progress_id, step_document_id)` |
@@ -225,7 +228,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
 | `partner_availability_slots` | `partner_user_id`, `start_at`, `end_at`, `status_code`, `note` | PK `id`, FK `users.id` | UQ `(partner_user_id, start_at, end_at)`, IDX `(partner_user_id, start_at)`, IDX `(status_code, start_at)` |
-| `consultation_reservations` | nullable `slot_id`, `member_user_id`, nullable `partner_user_id`, `progress_id`, `verification_id`, `status_code`, `request_note`, `status_note` | PK `id`, FK `partner_availability_slots.id`, FK `users.id`, FK `application_progresses.id`, FK `partner_verifications.id` | partial UQ active `slot_id`, IDX `(member_user_id, status_code, created_at)`, IDX `(partner_user_id, status_code, created_at)` |
+| `consultation_reservations` | `public_code`, nullable `slot_id`, `member_user_id`, nullable `partner_user_id`, `progress_id`, `verification_id`, `status_code`, `request_note`, `status_note` | PK `id`, FK `partner_availability_slots.id`, FK `users.id`, FK `application_progresses.id`, FK `partner_verifications.id` | UQ `public_code`, partial UQ active `slot_id`, IDX `(member_user_id, status_code, created_at)`, IDX `(partner_user_id, status_code, created_at)` |
 | `consultation_histories` | `reservation_id`, `actor_user_id`, `before_status_code`, `after_status_code`, `note` | PK `id`, FK `consultation_reservations.id`, FK `users.id` | IDX `(reservation_id, created_at)`, IDX `(actor_user_id, created_at)` |
 
 MVP 상담은 자동 예약이 아니라 수기 배정 방식이다. 일반 사용자는 `slot_id`와 `partner_user_id` 없이 `REQUESTED` 상태로 상담 요청을 접수할 수 있고, 운영자 또는 관리자가 담당자와 시간을 배정하면 `ASSIGNED` 상태로 전환한다. 상담 예약 취소/배정/확정/완료 상태 변경은 `consultation_histories`에 남긴다. 상담 메모에는 상담에 필요한 최소 내용만 저장하며, 감사 로그 metadata에는 개인정보 원문을 저장하지 않는다.

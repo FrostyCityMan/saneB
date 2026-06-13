@@ -28,8 +28,8 @@
                     <dd th:text="${page.auditLog.resourceLabel}">회원</dd>
                 </div>
                 <div>
-                    <dt>대상 번호</dt>
-                    <dd th:text="${page.auditLog.resourceId != null ? page.auditLog.resourceId : '없음'}">uuid</dd>
+                    <dt>대상 식별</dt>
+                    <dd th:text="${page.auditLog.resourceId != null ? '서버 내부 기록' : '없음'}">서버 내부 기록</dd>
                 </div>
                 <div>
                     <dt>결과</dt>

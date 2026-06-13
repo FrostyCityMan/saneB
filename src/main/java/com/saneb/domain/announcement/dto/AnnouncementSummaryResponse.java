@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record AnnouncementSummaryResponse(
         UUID announcementId,
+        String announcementCode,
         String targetTypeCode,
         String title,
         String agencyName,

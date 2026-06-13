@@ -7,9 +7,13 @@
     <resultMap id="MatchingCaseRowMap" type="com.saneb.domain.matching.vo.MatchingCaseRow">
         <constructor>
             <arg column="matching_case_id" javaType="java.util.UUID"/>
+            <arg column="matching_case_code" javaType="java.lang.String"/>
             <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
             <arg column="member_user_id" javaType="java.util.UUID"/>
+            <arg column="member_user_code" javaType="java.lang.String"/>
             <arg column="verification_id" javaType="java.util.UUID"/>
+            <arg column="verification_code" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="blocked_reason_code" javaType="java.lang.String"/>
             <arg column="matched_at" javaType="java.time.OffsetDateTime"/>
@@ -65,6 +69,7 @@
     <resultMap id="MatchingMemberLookupRowMap" type="com.saneb.domain.matching.vo.MatchingMemberLookupRow">
         <constructor>
             <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="user_code" javaType="java.lang.String"/>
             <arg column="login_id" javaType="java.lang.String"/>
             <arg column="name" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
@@ -109,6 +114,7 @@
             <if test="keyword != null and keyword != ''">
                 AND (
                     u.login_id ILIKE concat('%', #{keyword}, '%')
+                    OR u.public_code ILIKE concat('%', #{keyword}, '%')
                     OR u.name ILIKE concat('%', #{keyword}, '%')
                 )
             </if>
@@ -119,9 +125,13 @@
         -- Select matching cases for paginated operation screens.
         SELECT
             mc.id AS matching_case_id,
+            mc.public_code AS matching_case_code,
             mc.announcement_id,
+            a.public_code AS announcement_code,
             mc.member_user_id,
+            u.public_code AS member_user_code,
             mc.verification_id,
+            pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
             mc.matched_at,
@@ -147,6 +157,7 @@
         FROM matching_cases mc
         INNER JOIN announcements a ON a.id = mc.announcement_id
         INNER JOIN users u ON u.id = mc.member_user_id
+        LEFT JOIN partner_verifications pv ON pv.id = mc.verification_id
         <include refid="MatchingCaseSearchWhere"/>
         ORDER BY
             a.application_end_date ASC NULLS LAST,
@@ -169,6 +180,7 @@
         -- Select active member users for matching operation lookup modal.
         SELECT
             u.id AS user_id,
+            u.public_code AS user_code,
             u.login_id,
             u.name,
             u.status_code,
@@ -475,9 +487,13 @@
         -- Select matching case details by primary key.
         SELECT
             mc.id AS matching_case_id,
+            mc.public_code AS matching_case_code,
             mc.announcement_id,
+            a.public_code AS announcement_code,
             mc.member_user_id,
+            u.public_code AS member_user_code,
             mc.verification_id,
+            pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
             mc.matched_at,
@@ -503,6 +519,7 @@
         FROM matching_cases mc
         INNER JOIN announcements a ON a.id = mc.announcement_id
         INNER JOIN users u ON u.id = mc.member_user_id
+        LEFT JOIN partner_verifications pv ON pv.id = mc.verification_id
         WHERE mc.id = #{matchingCaseId}
     </select>
 
@@ -510,9 +527,13 @@
         -- Select matching case by business unique key to avoid duplicate creation.
         SELECT
             mc.id AS matching_case_id,
+            mc.public_code AS matching_case_code,
             mc.announcement_id,
+            a.public_code AS announcement_code,
             mc.member_user_id,
+            u.public_code AS member_user_code,
             mc.verification_id,
+            pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
             mc.matched_at,
@@ -538,6 +559,7 @@
         FROM matching_cases mc
         INNER JOIN announcements a ON a.id = mc.announcement_id
         INNER JOIN users u ON u.id = mc.member_user_id
+        LEFT JOIN partner_verifications pv ON pv.id = mc.verification_id
         WHERE mc.announcement_id = #{announcementId}
           AND mc.member_user_id = #{memberUserId}
         <choose>

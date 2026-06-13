@@ -118,8 +118,12 @@ class ApplicationProgressViewControllerSmokeTest {
         OffsetDateTime now = OffsetDateTime.now();
         return new MatchingCaseSummaryResponse(
                 MATCHING_CASE_ID,
+                "MCH-000001",
                 ANNOUNCEMENT_ID,
+                "ANN-000001",
                 USER_ID,
+                "USR-000001",
+                null,
                 null,
                 "MATCHED",
                 null,
@@ -146,6 +150,10 @@ class ApplicationProgressViewControllerSmokeTest {
                 MATCHING_CASE_ID,
                 ANNOUNCEMENT_ID,
                 USER_ID,
+                "APP-000001",
+                "MCH-000001",
+                "ANN-000001",
+                "USR-000001",
                 STEP_ID,
                 "READY",
                 null,

@@ -5,11 +5,16 @@ import java.util.UUID;
 
 public record ConsultationReservationRow(
         UUID reservationId,
+        String reservationCode,
         UUID slotId,
         UUID memberUserId,
+        String memberUserCode,
         UUID partnerUserId,
+        String partnerUserCode,
         UUID progressId,
+        String progressCode,
         UUID verificationId,
+        String verificationCode,
         OffsetDateTime startAt,
         OffsetDateTime endAt,
         String statusCode,

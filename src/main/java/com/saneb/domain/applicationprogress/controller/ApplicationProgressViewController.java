@@ -448,6 +448,8 @@ public class ApplicationProgressViewController {
     public record StartableMatchingModel(
             UUID matchingCaseId,
             UUID announcementId,
+            String matchingCaseCode,
+            String announcementCode,
             String statusLabel,
             String matchedAtText
     ) {
@@ -456,6 +458,8 @@ public class ApplicationProgressViewController {
             return new StartableMatchingModel(
                     response.matchingCaseId(),
                     response.announcementId(),
+                    response.matchingCaseCode(),
+                    response.announcementCode(),
                     matchingStatusLabel(response.statusCode()),
                     dateTimeText(response.matchedAt())
             );
@@ -464,6 +468,7 @@ public class ApplicationProgressViewController {
 
     public record SummaryModel(
             UUID progressId,
+            String progressCode,
             String statusCode,
             String statusLabel,
             String receiptNo,
@@ -477,6 +482,7 @@ public class ApplicationProgressViewController {
         private static SummaryModel from(ApplicationProgressSummaryResponse response) {
             return new SummaryModel(
                     response.progressId(),
+                    response.progressCode(),
                     response.statusCode(),
                     progressStatusLabel(response.statusCode()),
                     response.receiptNo() == null ? "접수 전" : response.receiptNo(),
@@ -494,6 +500,10 @@ public class ApplicationProgressViewController {
             UUID matchingCaseId,
             UUID announcementId,
             UUID memberUserId,
+            String progressCode,
+            String matchingCaseCode,
+            String announcementCode,
+            String memberUserCode,
             UUID currentStepId,
             String statusCode,
             String statusLabel,
@@ -515,6 +525,10 @@ public class ApplicationProgressViewController {
                     response.matchingCaseId(),
                     response.announcementId(),
                     response.memberUserId(),
+                    response.progressCode(),
+                    response.matchingCaseCode(),
+                    response.announcementCode(),
+                    response.memberUserCode(),
                     response.currentStepId(),
                     response.statusCode(),
                     progressStatusLabel(response.statusCode()),

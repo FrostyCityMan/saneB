@@ -182,10 +182,10 @@
         }
     };
 
-    const updateCurrentAnnouncement = (announcementId) => {
+    const updateCurrentAnnouncement = (announcementId, announcementCode) => {
         currentAnnouncementId = announcementId || "";
         if (currentIdLabel) {
-            currentIdLabel.textContent = currentAnnouncementId || "신규 입력";
+            currentIdLabel.textContent = announcementCode || currentAnnouncementId || "신규 입력";
         }
     };
 
@@ -589,7 +589,7 @@
         const meta = document.createElement("span");
         meta.className = "list-meta";
         const approvalLabel = approvalStatusLabels[item.approvalStatusCode] || item.approvalStatusCode || "초안";
-        meta.textContent = `${targetLabels[item.targetTypeCode] || item.targetTypeCode} · ${item.manualStatusCode || "NORMAL"} · ${approvalLabel}`;
+        meta.textContent = `${item.announcementCode || "공고 코드 없음"} · ${targetLabels[item.targetTypeCode] || item.targetTypeCode} · ${item.manualStatusCode || "NORMAL"} · ${approvalLabel}`;
 
         const title = document.createElement("strong");
         title.textContent = item.title || "제목 없음";
@@ -936,7 +936,7 @@
     };
 
     const populateDetails = (details) => {
-        updateCurrentAnnouncement(details.announcementId);
+        updateCurrentAnnouncement(details.announcementId, details.announcementCode);
         const targetField = app.querySelector(`input[name='targetTypeCode'][value='${details.targetTypeCode || "BUSINESS"}']`);
         if (targetField) {
             targetField.checked = true;

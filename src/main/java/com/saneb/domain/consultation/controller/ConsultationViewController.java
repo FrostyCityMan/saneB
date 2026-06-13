@@ -29,15 +29,22 @@ public class ConsultationViewController {
             AuthMeResponse auth,
             String roleLabel,
             String activeNav,
+            String pageTitle,
+            String summaryText,
             boolean operating
     ) {
 
         private static ConsultationPageModel from(AuthMeResponse auth) {
+            boolean operating = auth.roles().contains("OPERATOR") || auth.roles().contains("ADMIN");
             return new ConsultationPageModel(
                     auth,
                     ConsultationViewController.roleLabel(auth.primaryRole()),
                     "CONSULTATIONS",
-                    auth.roles().contains("OPERATOR") || auth.roles().contains("ADMIN")
+                    operating ? "상담 관리" : "상담 요청",
+                    operating
+                            ? "운영자는 요청 건을 확인해 담당자와 상태를 수동으로 배정합니다."
+                            : "상담이 필요한 내용을 남기면 운영자가 확인한 뒤 담당자를 배정합니다.",
+                    operating
             );
         }
     }

@@ -42,10 +42,10 @@
                     <article class="startable-matching-item" th:each="item : ${page.startableMatchings}">
                         <div>
                             <span th:text="${item.statusLabel}">신청 가능</span>
-                            <strong th:text="${item.announcementId}">공고 ID</strong>
+                            <strong th:text="${item.announcementCode}">공고 코드</strong>
                             <small>
                                 매칭:
-                                <span th:text="${item.matchingCaseId}">매칭 ID</span>
+                                <span th:text="${item.matchingCaseCode}">매칭 코드</span>
                                 ·
                                 <span th:text="${item.matchedAtText}">기록 없음</span>
                             </small>
@@ -69,15 +69,15 @@
                 <dl class="flow-meta-grid">
                     <div>
                         <dt>진행 번호</dt>
-                        <dd th:text="${page.details.progressId}">uuid</dd>
+                        <dd th:text="${page.details.progressCode}">진행 코드</dd>
                     </div>
                     <div>
                         <dt>매칭 번호</dt>
-                        <dd th:text="${page.details.matchingCaseId}">uuid</dd>
+                        <dd th:text="${page.details.matchingCaseCode}">매칭 코드</dd>
                     </div>
                     <div>
                         <dt>공고 번호</dt>
-                        <dd th:text="${page.details.announcementId}">uuid</dd>
+                        <dd th:text="${page.details.announcementCode}">공고 코드</dd>
                     </div>
                 </dl>
             </section>
@@ -278,7 +278,7 @@
                        th:each="item : ${page.progressItems}"
                        th:href="@{/app/application-progresses/{progressId}(progressId=${item.progressId})}">
                         <span th:text="${item.statusLabel}">진행 중</span>
-                        <strong th:text="${item.progressId}">uuid</strong>
+                        <strong th:text="${item.progressCode}">진행 코드</strong>
                         <small>
                             접수:
                             <span th:text="${item.receiptNo}">접수 전</span>

@@ -7,6 +7,7 @@
     <resultMap id="AnnouncementSummaryRowMap" type="com.saneb.domain.announcement.vo.AnnouncementSummaryRow">
         <constructor>
             <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
             <arg column="target_type_code" javaType="java.lang.String"/>
             <arg column="title" javaType="java.lang.String"/>
             <arg column="agency_name" javaType="java.lang.String"/>
@@ -24,6 +25,7 @@
     <resultMap id="AnnouncementDetailsRowMap" type="com.saneb.domain.announcement.vo.AnnouncementDetailsRow">
         <constructor>
             <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
             <arg column="target_type_code" javaType="java.lang.String"/>
             <arg column="title" javaType="java.lang.String"/>
             <arg column="agency_name" javaType="java.lang.String"/>
@@ -121,6 +123,7 @@
             <if test="keyword != null and keyword != ''">
                 AND (
                     a.title ILIKE concat('%', #{keyword}, '%')
+                    OR a.public_code ILIKE concat('%', #{keyword}, '%')
                     OR a.agency_name ILIKE concat('%', #{keyword}, '%')
                 )
             </if>
@@ -140,6 +143,7 @@
         -- Select announcement list for operation input screens.
         SELECT
             a.id AS announcement_id,
+            a.public_code AS announcement_code,
             a.target_type_code,
             a.title,
             a.agency_name,
@@ -170,6 +174,7 @@
         -- Select announcement details by primary key.
         SELECT
             a.id AS announcement_id,
+            a.public_code AS announcement_code,
             a.target_type_code,
             a.title,
             a.agency_name,

@@ -16,6 +16,7 @@
 - SQL은 DAO와 Mapper XML을 통해서만 실행한다.
 - MyBatis XML에서 `SELECT *`와 `${}`는 금지한다.
 - MVP에서는 AI 자동판단, 추천도, 우선순위, 선정확률, 가점 계산을 제공하지 않는다.
+- API의 `...Id` 필드는 서버 내부 PK/FK용 UUID다. 화면 표시, 운영자 검색, 수기 입력에는 `...Code` 필드를 우선 사용한다. `userCode`, `announcementCode`, `matchingCaseCode`, `progressCode`, `verificationCode`, `reservationCode`는 사람이 읽을 수 있는 고유 문자열이며 내부 UUID를 대체해 화면에 노출하는 업무 식별자다.
 
 ## 2. 공통 Response Wrapper
 
@@ -705,6 +706,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 `verificationId`는 선택값이다. 현재 운영 기준에서는 검증 없이 수동 매칭을 생성할 수 있으며, 이 경우 `matching_cases.verification_id`는 `null`로 저장한다. 검증 ID를 전달한 경우에는 기존처럼 검증 완료, current, matching block 여부를 서버에서 확인한다.
 
+공고와 회원의 매칭은 다대다 관계로 처리한다. `matching_cases` 한 행은 특정 공고와 특정 회원 사이의 후보 관계를 나타내며, 회원 1명은 여러 공고 후보를 가질 수 있고 공고 1건은 여러 회원 후보를 가질 수 있다. API는 동일 공고-회원 조합의 중복 후보 생성을 막되, 공고 또는 회원을 단일 매칭으로 제한하지 않는다.
+
 #### MatchingCandidateGenerateRequest
 
 ```json
@@ -731,9 +734,13 @@ Member / Business / Family API skeleton 착수 기준:
 ```json
 {
   "matchingCaseId": "uuid",
+  "matchingCaseCode": "MCH-000001",
   "announcementId": "uuid",
+  "announcementCode": "ANN-000001",
   "memberUserId": "uuid",
+  "memberUserCode": "USR-000001",
   "verificationId": "uuid",
+  "verificationCode": "VRF-000001",
   "statusCode": "MATCHED",
   "announcementTitle": "공고명",
   "agencyName": "기관명",
@@ -780,9 +787,13 @@ Member / Business / Family API skeleton 착수 기준:
 ```json
 {
   "progressId": "uuid",
+  "progressCode": "APP-000001",
   "matchingCaseId": "uuid",
+  "matchingCaseCode": "MCH-000001",
   "announcementId": "uuid",
+  "announcementCode": "ANN-000001",
   "memberUserId": "uuid",
+  "memberUserCode": "USR-000001",
   "currentStepId": "uuid",
   "statusCode": "IN_PROGRESS",
   "stepStates": [
@@ -1367,14 +1378,16 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 {
   "slotId": null,
   "memberUserId": null,
+  "memberUserCode": "USR-000001",
   "partnerUserId": null,
+  "partnerUserCode": null,
   "progressId": null,
   "verificationId": null,
   "requestNote": "전화 상담 희망"
 }
 ```
 
-일반 사용자는 본인 상담 요청만 생성할 수 있다. `slotId` 없이 접수할 수 있으며, 운영자와 관리자는 `memberUserId`, `partnerUserId`, `slotId`를 지정해 수기 접수할 수 있다. 사용자가 생성한 요청의 담당자 배정은 운영자 또는 관리자가 수행한다.
+일반 사용자는 본인 상담 요청만 생성할 수 있다. `slotId` 없이 접수할 수 있으며, 운영자와 관리자는 `memberUserId` 또는 `memberUserCode`, `partnerUserId` 또는 `partnerUserCode`, `slotId`를 지정해 수기 접수할 수 있다. 화면에서는 `memberUserCode`, `partnerUserCode`를 우선 사용한다. 사용자가 생성한 요청의 담당자 배정은 운영자 또는 관리자가 수행한다.
 
 #### ConsultationReservationStatusUpdateRequest
 
@@ -1382,12 +1395,13 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 {
   "statusCode": "ASSIGNED",
   "partnerUserId": "uuid",
+  "partnerUserCode": "USR-000002",
   "slotId": null,
   "note": "확정"
 }
 ```
 
-예약 상태 흐름은 `REQUESTED -> ASSIGNED|CONFIRMED|CANCELED`, `ASSIGNED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. `ASSIGNED`, `CONFIRMED` 처리에는 담당자 `partnerUserId`가 필요하다. 일반 사용자는 본인 예약 취소만 가능하다.
+예약 상태 흐름은 `REQUESTED -> ASSIGNED|CONFIRMED|CANCELED`, `ASSIGNED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. `ASSIGNED`, `CONFIRMED` 처리에는 담당자 `partnerUserId` 또는 `partnerUserCode`가 필요하다. 화면에서는 `partnerUserCode`를 우선 사용한다. 일반 사용자는 본인 예약 취소만 가능하다.
 
 ## 15. Subscription / Payment API
 
@@ -1406,11 +1420,13 @@ MVP 1차는 월 단순 구독 구조다. 복잡한 할인, 사용량 과금, 자
 | `GET` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 거래 목록 |
 | `POST` | `/api/v1/payments` | `USER`, `OPERATOR`, `ADMIN` | 결제 요청 거래 생성 |
 | `PATCH` | `/api/v1/payments/{paymentId}/status` | `OPERATOR`, `ADMIN` | 결제 승인/실패/취소 기록 |
-| `POST` | `/api/v1/mock-payments/monthly-subscription` | `USER`, `OPERATOR`, `ADMIN` | 월 구독 mock 결제 처리 |
+| `POST` | `/api/v1/mock-payments/monthly-subscription` | `USER` | 월 구독 mock 결제 처리 |
 | `GET` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 거래 목록 |
 | `POST` | `/api/v1/refunds` | `USER`, `OPERATOR`, `ADMIN` | 환불 요청 생성 |
 | `PATCH` | `/api/v1/refunds/{refundId}/status` | `OPERATOR`, `ADMIN` | 환불 승인/실패 기록 |
 | `POST` | `/api/v1/payment-webhooks/{providerCode}` | webhook secret | 결제사 이벤트 수신 |
+
+관리자 화면은 결제를 진행하지 않는다. 운영자와 관리자는 `/app/billing/plans`에서 월 구독으로 받을 금액만 등록하거나 활성/비활성 처리한다. 사용자 결제 화면은 `/app/billing/mock`이며 일반 사용자에게만 제공한다.
 
 #### SubscriptionPlanCreateRequest
 
