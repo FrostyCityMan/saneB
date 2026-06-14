@@ -3,6 +3,8 @@ os: linux
 files:
   - source: app.jar
     destination: /home/ubuntu/app
+  - source: scripts/operations
+    destination: /home/ubuntu/app/scripts/operations
 file_exists_behavior: OVERWRITE
 hooks:
   ApplicationStop:

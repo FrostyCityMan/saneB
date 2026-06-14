@@ -29,10 +29,34 @@ if ! command -v psql >/dev/null 2>&1; then
   exit 14
 fi
 
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
+read_env_value() {
+  local key="$1"
+  python3 - "$ENV_FILE" "$key" <<'PY'
+import sys
+
+path = sys.argv[1]
+target_key = sys.argv[2]
+
+with open(path, encoding="utf-8") as handle:
+    for raw_line in handle:
+        line = raw_line.rstrip("\r\n")
+        if not line or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key.strip() != target_key:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        print(value)
+        break
+PY
+}
+
+AWS_REGION="${AWS_REGION:-$(read_env_value AWS_REGION)}"
+DB_SECRET_ARN="${DB_SECRET_ARN:-$(read_env_value DB_SECRET_ARN)}"
+DB_URL="${DB_URL:-$(read_env_value DB_URL)}"
+DB_USERNAME="${DB_USERNAME:-$(read_env_value DB_USERNAME)}"
 
 : "${AWS_REGION:?AWS_REGION is required.}"
 : "${DB_SECRET_ARN:?DB_SECRET_ARN is required.}"

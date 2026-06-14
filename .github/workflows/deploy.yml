@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
           bundle_dir="build/codedeploy"
           rm -rf "${bundle_dir}"
-          mkdir -p "${bundle_dir}/scripts"
+          mkdir -p "${bundle_dir}/scripts/operations"
 
           jar_file="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*plain.jar' | head -n 1)"
           if [ -z "${jar_file}" ]; then
@@ -79,7 +79,9 @@ jobs:
           cp "${jar_file}" "${bundle_dir}/app.jar"
           cp appspec.yml "${bundle_dir}/appspec.yml"
           cp scripts/start.sh scripts/stop.sh scripts/validate.sh "${bundle_dir}/scripts/"
+          cp scripts/operations/*.sh scripts/operations/*.sql "${bundle_dir}/scripts/operations/"
           chmod +x "${bundle_dir}/scripts/"*.sh
+          chmod +x "${bundle_dir}/scripts/operations/"*.sh
 
           (
             cd "${bundle_dir}"
