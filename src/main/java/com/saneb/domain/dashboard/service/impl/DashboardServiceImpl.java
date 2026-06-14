@@ -25,6 +25,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private static final String BASIS_ANNOUNCEMENT_AMOUNT_RANGE = "ANNOUNCEMENT_AMOUNT_RANGE";
     private static final String BASIC_INFO_REQUIRED = "BASIC_INFO_REQUIRED";
+    private static final String BASIC_MATCHING_REVIEW_REQUIRED = "BASIC_MATCHING_REVIEW_REQUIRED";
     private static final String SUBSCRIPTION_REQUIRED = "SUBSCRIPTION_REQUIRED";
     private static final String CONSULTATION_REQUEST_REQUIRED = "CONSULTATION_REQUEST_REQUIRED";
     private static final String FINAL_MATCHING_WAITING = "FINAL_MATCHING_WAITING";
@@ -110,11 +111,11 @@ public class DashboardServiceImpl implements DashboardService {
         }
         if (dashboardDao.selectActiveSubscriptionCount(userId) < 1) {
             return new DashboardCurrentActionResponse(
-                    SUBSCRIPTION_REQUIRED,
-                    "구독 결제가 필요합니다.",
-                    "진행 가능 공고를 확인했습니다. 상담과 상세 진행을 위해 월 구독을 완료해 주세요.",
-                    "구독 결제",
-                    "/app/billing/mock",
+                    BASIC_MATCHING_REVIEW_REQUIRED,
+                    "현재 매칭 공고를 확인해 주세요.",
+                    "저장한 기본정보와 맞는 공고를 확인한 뒤 구독과 상담을 진행합니다.",
+                    "현재 매칭 공고 보기",
+                    "/app/matching/basic-candidates",
                     null,
                     10
             );
@@ -289,7 +290,7 @@ public class DashboardServiceImpl implements DashboardService {
         if (!hasCandidate(candidateSummary)) {
             return "저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다.";
         }
-        return "관리자가 선택할 수 있는 진행 가능 공고를 표시합니다.";
+        return "기본정보 기준으로 현재 확인 가능한 공고입니다. 서류 입력 후 최종 매칭이 다시 정리됩니다.";
     }
 
     private String selectCurrentStepDescription(DashboardCurrentStepRow currentStep) {

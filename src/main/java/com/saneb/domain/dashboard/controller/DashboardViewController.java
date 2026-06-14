@@ -280,6 +280,7 @@ public class DashboardViewController {
             case "WAITING_RESULT" -> "결과 대기";
             case "COMPLETED" -> "완료";
             case "BASIC_INFO_REQUIRED" -> "기본 정보 필요";
+            case "BASIC_MATCHING_REVIEW_REQUIRED" -> "현재 매칭 공고 확인";
             case "SUBSCRIPTION_REQUIRED" -> "구독 필요";
             case "CONSULTATION_REQUEST_REQUIRED" -> "상담 요청 필요";
             case "FINAL_MATCHING_WAITING" -> "최종 확인 중";

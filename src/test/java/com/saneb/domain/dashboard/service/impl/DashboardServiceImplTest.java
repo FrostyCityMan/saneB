@@ -165,7 +165,7 @@ class DashboardServiceImplTest {
     }
 
     @Test
-    void selectMyCurrentActionRequiresSubscriptionWhenBasicCandidateExists() {
+    void selectMyCurrentActionRequiresBasicMatchingReviewWhenBasicCandidateExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
                 new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 1, 1, null, null)
@@ -175,9 +175,9 @@ class DashboardServiceImplTest {
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
 
-        assertThat(response.actionCode()).isEqualTo("SUBSCRIPTION_REQUIRED");
-        assertThat(response.primaryButtonLabel()).isEqualTo("구독 결제");
-        assertThat(response.route()).isEqualTo("/app/billing/mock");
+        assertThat(response.actionCode()).isEqualTo("BASIC_MATCHING_REVIEW_REQUIRED");
+        assertThat(response.primaryButtonLabel()).isEqualTo("현재 매칭 공고 보기");
+        assertThat(response.route()).isEqualTo("/app/matching/basic-candidates");
     }
 
     @Test

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('현재 매칭 공고', ~{::main})}">
+<main class="basic-matching-page">
+    <section class="basic-matching-shell" aria-label="현재 매칭 공고">
+        <section class="summary-panel basic-matching-hero">
+            <div class="summary-header">
+                <div>
+                    <div class="section-label">현재 매칭 공고</div>
+                    <p>기본정보 기준으로 현재 확인 가능한 공고입니다. 서류 입력과 담당자 확인 후 최종 진행 공고가 결정됩니다.</p>
+                </div>
+                <span class="soft-status">기본정보 기준</span>
+            </div>
+            <div class="top-summary-grid basic-matching-summary">
+                <article class="top-summary-card">
+                    <span>확인된 공고</span>
+                    <strong>
+                        <span th:text="${page.totalCount}">0</span>
+                        건
+                    </strong>
+                    <small>최종 매칭 전 현재 후보입니다.</small>
+                </article>
+                <article class="top-summary-card amount-card">
+                    <span>예상 가능 금액 범위</span>
+                    <strong th:text="${page.amountRangeText}">확인 대기</strong>
+                    <small>공고에 입력된 금액 기준입니다.</small>
+                </article>
+                <article class="top-summary-card">
+                    <span>다음 단계</span>
+                    <strong>구독 후 상담</strong>
+                    <small>상담과 서류 입력 후 최종 매칭을 확인합니다.</small>
+                </article>
+            </div>
+            <div class="basic-matching-actions">
+                <a class="secondary-action" th:href="@{/app/member/basic-info}">기본정보 수정</a>
+                <a class="primary-action" th:if="${page.hasCandidates}" th:href="@{/app/billing/mock}">구독 결제하기</a>
+            </div>
+        </section>
+
+        <section class="plain-panel basic-matching-guide">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">확인 기준</span>
+                    <h2>이 목록은 최종 매칭 전 후보입니다.</h2>
+                </div>
+            </div>
+            <p>
+                기본정보만으로 넓게 확인한 공고입니다. 실제 진행 가능 여부는 구독 후 상담, 서류별 선택 입력,
+                담당자 확인을 거쳐 최종 매칭에서 다시 정리됩니다.
+            </p>
+        </section>
+
+        <section class="basic-matching-list" th:if="${page.hasCandidates}">
+            <article class="basic-matching-card" th:each="candidate : ${page.candidates}">
+                <div class="basic-matching-card-head">
+                    <div>
+                        <span th:text="${candidate.targetLabel}">사업자</span>
+                        <h2 th:text="${candidate.title}">공고명</h2>
+                        <p th:text="${candidate.agencyName}">기관명</p>
+                    </div>
+                    <strong th:text="${candidate.statusLabel}">기본정보 일치</strong>
+                </div>
+                <dl class="basic-matching-meta">
+                    <div>
+                        <dt>공고 번호</dt>
+                        <dd th:text="${candidate.announcementCode}">ANN-000001</dd>
+                    </div>
+                    <div>
+                        <dt>매칭 번호</dt>
+                        <dd th:text="${candidate.matchingCaseCode}">MCH-000001</dd>
+                    </div>
+                    <div>
+                        <dt>예상 금액</dt>
+                        <dd th:text="${candidate.amountRangeText}">금액 미입력</dd>
+                    </div>
+                    <div>
+                        <dt>접수 기간</dt>
+                        <dd th:text="${candidate.periodText}">기간 미입력</dd>
+                    </div>
+                </dl>
+            </article>
+        </section>
+
+        <section class="plain-panel basic-matching-empty" th:if="${!page.hasCandidates}">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">확인 결과</span>
+                    <h2>아직 확인된 현재 매칭 공고가 없습니다.</h2>
+                </div>
+            </div>
+            <p>기본정보를 더 입력하거나 수정하면 공고 조건과 다시 비교됩니다.</p>
+            <a class="primary-action" th:href="@{/app/member/basic-info}">기본정보 수정</a>
+        </section>
+    </section>
+</main>
+</html>

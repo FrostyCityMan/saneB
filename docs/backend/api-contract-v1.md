@@ -723,6 +723,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 승인되고 수동 상태가 정상인 공고를 대상으로 사용자의 저장된 기본정보와 공고 조건을 비교한다. 조건이 맞으면 `matching_stage_code=BASIC`, `matching_basis_code=BASIC_INFO` 후보를 생성한다. 회원이 기본정보를 저장하면 서버가 자동으로 기본 후보를 갱신하며, 이 endpoint는 운영자/관리자 재계산용이다.
 
+일반 사용자는 `GET /api/v1/matching/cases/basic-candidates` 응답을 사용하는 `/app/matching/basic-candidates` 화면에서 현재 매칭 공고를 확인한다. 이 화면은 내부 UUID를 노출하지 않고 공고 코드와 매칭 코드 같은 공개 코드만 표시한다. 사용자-facing 명칭은 현재 매칭 공고이지만 내부 의미는 `matching_stage_code=BASIC`인 기본정보 기준 후보이며, 최종 확정 공고가 아니다. 현재 매칭 공고 확인 후 구독 결제와 상담 요청으로 이어진다.
+
 #### MatchingFinalRecalculateRequest
 
 ```json
@@ -899,7 +901,7 @@ MVP v1 DB 집계 기준:
 - 진행 가능한 후보는 `matching_cases.matching_stage_code = BASIC` 기준으로 집계한다. `MATCHED`, `REVIEW_REQUIRED`, `PROGRESSED`만 후보로 포함하며, 해당 데이터가 없으면 empty state를 반환한다.
 - 사용자 화면의 핵심 후보 분류는 사업자/개인/가족 기준의 `targetCandidateCounts`를 우선 사용한다. 기존 `candidateCounts`는 v1 호환 필드로 유지하되 사용자 대시보드의 주요 분류로 강조하지 않는다.
 - 금액 범위는 후보 `matching_cases`에 연결된 `announcements.min_amount`, `announcements.max_amount`의 최소/최대값만 사용한다. `application_progresses.received_amount`와 혼합하지 않는다.
-- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 진행 단계가 없으면 기본정보 입력, 구독 결제, 상담 요청, 최종 매칭 대기, 관리자 진행 시작 대기 순서로 1개의 행동만 반환한다. 일반 사용자가 직접 신청 진행을 생성하는 route는 반환하지 않는다.
+- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 진행 단계가 없으면 기본정보 입력, 현재 매칭 공고 확인, 상담 요청, 최종 매칭 대기, 관리자 진행 시작 대기 순서로 1개의 행동만 반환한다. 구독 결제는 `/app/matching/basic-candidates` 화면에서 후보 확인 후 진입한다. 일반 사용자가 직접 신청 진행을 생성하는 route는 반환하지 않는다.
 - 진행/승인/수령 금액은 `application_progresses` 기준으로 집계한다. 누적 수령 금액은 `received_amount`가 있고 `status_code IN (APPROVED, COMPLETED)` 또는 `result_code = APPROVED`인 행만 합산한다.
 - 개인정보 원문은 대시보드 집계에 포함하지 않고, 사용자 식별자와 진행/공고 운영 데이터만 조인한다.
 - 사용자 대시보드 화면은 현재 해야 할 행동, 진행 가능 현황, 누적 현황 3개 영역만 표시한다. 검증/전자증명/재검증/최근 상태 영역은 사용자 화면의 핵심 영역으로 사용하지 않는다.
@@ -964,13 +966,13 @@ DashboardSummaryResponse 필드 계약:
 
 ```json
 {
-  "actionCode": "BASIC_INFO_REQUIRED",
-  "title": "기본 정보를 입력해 주세요.",
-  "description": "사업자·개인·가족 기본정보를 저장하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
-  "primaryButtonLabel": "기본 정보 입력",
-  "route": "/app/member/basic-info",
+  "actionCode": "BASIC_MATCHING_REVIEW_REQUIRED",
+  "title": "현재 매칭 공고를 확인해 주세요.",
+  "description": "저장한 기본정보와 맞는 공고를 확인한 뒤 구독과 상담을 진행합니다.",
+  "primaryButtonLabel": "현재 매칭 공고 보기",
+  "route": "/app/matching/basic-candidates",
   "dueDate": null,
-  "displayOrder": 5
+  "displayOrder": 10
 }
 ```
 
