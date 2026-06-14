@@ -16,6 +16,7 @@ import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.matching.dto.MatchingCandidateGenerateResponse;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingFinalRecalculateRequest;
 import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
@@ -67,7 +68,7 @@ class MatchingControllerSmokeTest {
 
     @Test
     void selectMatchingCaseListReturnsPagedApiResponse() throws Exception {
-        when(matchingService.selectMatchingCaseList(any(), any(), any(), any(), eq(1), eq(20)))
+        when(matchingService.selectMatchingCaseList(any(), any(), any(), any(), any(), any(), eq(1), eq(20)))
                 .thenReturn(PageResponse.of(List.of(summary("REVIEW_REQUIRED", "NEEDS_REVIEW")), 1, 20, 1));
 
         mockMvc.perform(get("/api/v1/matching/cases")
@@ -80,6 +81,57 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].statusCode").value("REVIEW_REQUIRED"))
                 .andExpect(jsonPath("$.data.items[0].announcementTitle").value("테스트 공고"))
                 .andExpect(jsonPath("$.data.totalCount").value(1));
+    }
+
+    @Test
+    void insertFinalMatchingCandidatesReturnsApiResponse() throws Exception {
+        when(matchingService.insertFinalMatchingCandidates(any(), any(MatchingFinalRecalculateRequest.class)))
+                .thenReturn(new MatchingCandidateGenerateResponse(
+                        MEMBER_USER_ID,
+                        1,
+                        0,
+                        List.of(summary("MATCHED", null))
+                ));
+
+        mockMvc.perform(post("/api/v1/matching/cases/final-recalculate")
+                        .with(user(operatorPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "memberUserId": "%s"
+                                }
+                                """.formatted(MEMBER_USER_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.createdCount").value(1));
+    }
+
+    @Test
+    void selectBasicCandidatesReturnsPagedApiResponse() throws Exception {
+        when(matchingService.selectMyBasicMatchingCaseList(any(), eq(1), eq(20)))
+                .thenReturn(PageResponse.of(List.of(summary("MATCHED", null)), 1, 20, 1));
+
+        mockMvc.perform(get("/api/v1/matching/cases/basic-candidates")
+                        .with(user(userPrincipal()))
+                        .param("page", "1")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.items[0].statusCode").value("MATCHED"));
+    }
+
+    @Test
+    void selectFinalMatchingCaseListReturnsPagedApiResponse() throws Exception {
+        when(matchingService.selectFinalMatchingCaseList(any(), any(), any(), eq(1), eq(20)))
+                .thenReturn(PageResponse.of(List.of(summary("MATCHED", null)), 1, 20, 1));
+
+        mockMvc.perform(get("/api/v1/matching/cases/final")
+                        .with(user(operatorPrincipal()))
+                        .param("page", "1")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.items[0].matchingStageCode").value("FINAL"));
     }
 
     @Test
@@ -196,6 +248,8 @@ class MatchingControllerSmokeTest {
                 VERIFICATION_CODE,
                 statusCode,
                 blockedReasonCode,
+                "FINAL",
+                "DOCUMENT_INPUT",
                 now,
                 now,
                 now,
@@ -225,6 +279,8 @@ class MatchingControllerSmokeTest {
                 VERIFICATION_CODE,
                 statusCode,
                 blockedReasonCode,
+                "FINAL",
+                "DOCUMENT_INPUT",
                 now,
                 USER_ID,
                 now,
@@ -247,6 +303,23 @@ class MatchingControllerSmokeTest {
                         null
                 ),
                 List.of("OPERATOR")
+        );
+    }
+
+    private AuthenticatedUserDetails userPrincipal() {
+        return new AuthenticatedUserDetails(
+                new AuthUserDetailsRow(
+                        USER_ID,
+                        "local_user",
+                        "password-hash",
+                        "Local User",
+                        "ACTIVE",
+                        false,
+                        null,
+                        null,
+                        null
+                ),
+                List.of("USER")
         );
     }
 

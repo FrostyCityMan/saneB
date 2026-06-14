@@ -55,7 +55,7 @@ class ApplicationProgressControllerSmokeTest {
                 .thenReturn(details("READY"));
 
         mockMvc.perform(post("/api/v1/application-progresses")
-                        .with(user(userPrincipal()))
+                        .with(user(operatorPrincipal()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

@@ -6,8 +6,11 @@ import com.saneb.domain.dashboard.dto.DashboardCurrentActionResponse;
 import com.saneb.domain.dashboard.dto.DashboardProgressSummaryResponse;
 import com.saneb.domain.dashboard.dto.DashboardSummaryResponse;
 import com.saneb.domain.dashboard.service.DashboardService;
+import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.service.MatchingService;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.security.core.Authentication;
@@ -22,10 +25,16 @@ public class DashboardViewController {
 
     private final AuthService authService;
     private final DashboardService dashboardService;
+    private final MatchingService matchingService;
 
-    public DashboardViewController(AuthService authService, DashboardService dashboardService) {
+    public DashboardViewController(
+            AuthService authService,
+            DashboardService dashboardService,
+            MatchingService matchingService
+    ) {
         this.authService = authService;
         this.dashboardService = dashboardService;
+        this.matchingService = matchingService;
     }
 
     @GetMapping("/app")
@@ -45,12 +54,15 @@ public class DashboardViewController {
         DashboardSummaryResponse summary = dashboardService.selectMySummary(authentication);
         DashboardCurrentActionResponse currentAction = dashboardService.selectMyCurrentAction(authentication);
         DashboardProgressSummaryResponse progressSummary = dashboardService.selectMyProgressSummary(authentication);
+        List<MatchingCaseSummaryResponse> basicCandidates =
+                matchingService.selectMyBasicMatchingCaseList(authentication, 1, 5).items();
 
         model.addAttribute("page", DashboardPageModel.from(
                 authMe,
                 summary,
                 currentAction,
-                progressSummary
+                progressSummary,
+                basicCandidates
         ));
         return "app/dashboard";
     }
@@ -64,6 +76,7 @@ public class DashboardViewController {
             String verificationStatusLabel,
             String noticeMessage,
             List<MetricModel> candidateMetrics,
+            List<CandidateItemModel> candidateItems,
             String supportAmountRangeText,
             int finalMatchedCount,
             ActionModel currentAction,
@@ -75,7 +88,8 @@ public class DashboardViewController {
                 AuthMeResponse auth,
                 DashboardSummaryResponse summary,
                 DashboardCurrentActionResponse currentAction,
-                DashboardProgressSummaryResponse progressSummary
+                DashboardProgressSummaryResponse progressSummary,
+                List<MatchingCaseSummaryResponse> basicCandidates
         ) {
             return new DashboardPageModel(
                     auth,
@@ -90,6 +104,7 @@ public class DashboardViewController {
                             new MetricModel("개인 기준", summary.targetCandidateCounts().personal(), "user"),
                             new MetricModel("가족 기준", summary.targetCandidateCounts().family(), "family")
                     ),
+                    basicCandidates.stream().map(CandidateItemModel::from).toList(),
                     amountRangeText(summary.supportAmountRange()),
                     summary.finalMatchedCount(),
                     ActionModel.from(currentAction),
@@ -118,6 +133,7 @@ public class DashboardViewController {
                             new MetricModel("개인 기준", 0, "user"),
                             new MetricModel("가족 기준", 0, "family")
                     ),
+                    List.of(),
                     "확인 대기",
                     0,
                     ActionModel.none(),
@@ -134,6 +150,29 @@ public class DashboardViewController {
     }
 
     public record MetricModel(String label, int value, String icon) {
+    }
+
+    public record CandidateItemModel(
+            String announcementCode,
+            String title,
+            String agencyName,
+            String targetLabel,
+            String amountRangeText,
+            String periodText,
+            String statusLabel
+    ) {
+
+        private static CandidateItemModel from(MatchingCaseSummaryResponse response) {
+            return new CandidateItemModel(
+                    response.announcementCode() == null ? "공고 코드 없음" : response.announcementCode(),
+                    response.announcementTitle() == null ? "공고명 미입력" : response.announcementTitle(),
+                    response.agencyName() == null ? "기관 미입력" : response.agencyName(),
+                    DashboardViewController.targetLabel(response.targetTypeCode()),
+                    DashboardViewController.amountRangeText(response.minAmount(), response.maxAmount()),
+                    DashboardViewController.periodText(response.applicationStartDate(), response.applicationEndDate()),
+                    DashboardViewController.matchingStatusLabel(response.statusCode())
+            );
+        }
     }
 
     public record ActionModel(
@@ -179,6 +218,44 @@ public class DashboardViewController {
         return wonText(range.minAmount()) + " ~ " + wonText(range.maxAmount());
     }
 
+    private static String amountRangeText(BigDecimal minAmount, BigDecimal maxAmount) {
+        if (minAmount == null && maxAmount == null) {
+            return "금액 미입력";
+        }
+        String minText = minAmount == null ? "하한 없음" : wonText(minAmount);
+        String maxText = maxAmount == null ? "상한 없음" : wonText(maxAmount);
+        return minText + " ~ " + maxText;
+    }
+
+    private static String periodText(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null && endDate == null) {
+            return "기간 미입력";
+        }
+        return (startDate == null ? "시작일 미입력" : startDate.toString())
+                + " ~ "
+                + (endDate == null ? "마감일 미입력" : endDate.toString());
+    }
+
+    private static String targetLabel(String code) {
+        return switch (code == null ? "" : code) {
+            case "BUSINESS" -> "사업자";
+            case "PERSONAL" -> "개인";
+            case "SPOUSE", "CHILD", "PARENT", "FAMILY" -> "가족";
+            default -> "구분 미입력";
+        };
+    }
+
+    private static String matchingStatusLabel(String code) {
+        return switch (code == null ? "" : code) {
+            case "MATCHED" -> "기본정보 일치";
+            case "REVIEW_REQUIRED" -> "확인 필요";
+            case "PROGRESSED" -> "진행 전환";
+            case "NOT_MATCHED" -> "미매칭";
+            case "BLOCKED" -> "제외";
+            default -> "상태 미입력";
+        };
+    }
+
     private static String wonText(BigDecimal amount) {
         if (amount == null) {
             return "0원";
@@ -203,6 +280,9 @@ public class DashboardViewController {
             case "WAITING_RESULT" -> "결과 대기";
             case "COMPLETED" -> "완료";
             case "BASIC_INFO_REQUIRED" -> "기본 정보 필요";
+            case "SUBSCRIPTION_REQUIRED" -> "구독 필요";
+            case "CONSULTATION_REQUEST_REQUIRED" -> "상담 요청 필요";
+            case "FINAL_MATCHING_WAITING" -> "최종 확인 중";
             default -> "진행 준비";
         };
     }

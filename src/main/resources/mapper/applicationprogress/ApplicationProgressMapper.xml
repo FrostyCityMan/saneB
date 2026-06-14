@@ -33,6 +33,7 @@
             <arg column="announcement_id" javaType="java.util.UUID"/>
             <arg column="member_user_id" javaType="java.util.UUID"/>
             <arg column="status_code" javaType="java.lang.String"/>
+            <arg column="matching_stage_code" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
 
@@ -201,7 +202,8 @@
             mc.id AS matching_case_id,
             mc.announcement_id,
             mc.member_user_id,
-            mc.status_code
+            mc.status_code,
+            mc.matching_stage_code
         FROM matching_cases mc
         WHERE mc.id = #{matchingCaseId}
     </select>

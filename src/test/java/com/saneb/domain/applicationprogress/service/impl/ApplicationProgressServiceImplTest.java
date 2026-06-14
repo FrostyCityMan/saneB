@@ -47,7 +47,8 @@ class ApplicationProgressServiceImplTest {
                         MATCHING_CASE_ID,
                         ANNOUNCEMENT_ID,
                         OTHER_USER_ID,
-                        "MATCHED"
+                        "MATCHED",
+                        "FINAL"
                 )
         );
 

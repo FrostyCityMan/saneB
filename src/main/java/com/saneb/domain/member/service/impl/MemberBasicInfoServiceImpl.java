@@ -20,6 +20,7 @@ import com.saneb.domain.member.vo.MemberDocumentInputValueCommand;
 import com.saneb.domain.member.vo.MemberDocumentInputValueRow;
 import com.saneb.domain.member.vo.MemberProfileCommand;
 import com.saneb.domain.member.vo.MemberProfileRow;
+import com.saneb.domain.matching.service.MatchingService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -72,9 +73,11 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
     );
 
     private final MemberBasicInfoDao memberBasicInfoDao;
+    private final MatchingService matchingService;
 
-    public MemberBasicInfoServiceImpl(MemberBasicInfoDao memberBasicInfoDao) {
+    public MemberBasicInfoServiceImpl(MemberBasicInfoDao memberBasicInfoDao, MatchingService matchingService) {
         this.memberBasicInfoDao = memberBasicInfoDao;
+        this.matchingService = matchingService;
     }
 
     @Override
@@ -160,6 +163,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             saveDocumentInputValues(userId, actorUserId, request.documentInputs());
         }
 
+        matchingService.insertBasicMatchingCandidates(actorUserId, userId);
         return selectBasicInfoResponse(userId);
     }
 

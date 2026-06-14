@@ -6,6 +6,7 @@ import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
 import com.saneb.domain.matching.vo.MatchingCandidateAnnouncementRow;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
+import com.saneb.domain.matching.vo.MatchingCaseStageStatusCommand;
 import com.saneb.domain.matching.vo.MatchingCaseStatusCommand;
 import com.saneb.domain.matching.vo.MatchingMemberLookupRow;
 import com.saneb.domain.matching.vo.MatchingMemberLookupSearchCondition;
@@ -27,7 +28,8 @@ public interface MatchingDao {
     long selectMatchingMemberUserCount(@Param("memberUserId") UUID memberUserId);
 
     List<MatchingCandidateAnnouncementRow> selectEligibleAnnouncementCandidateList(
-            @Param("memberUserId") UUID memberUserId
+            @Param("memberUserId") UUID memberUserId,
+            @Param("finalMatching") boolean finalMatching
     );
 
     List<MatchingMemberLookupRow> selectMatchingMemberLookupList(MatchingMemberLookupSearchCondition condition);
@@ -40,6 +42,13 @@ public interface MatchingDao {
             @Param("announcementId") UUID announcementId,
             @Param("memberUserId") UUID memberUserId,
             @Param("verificationId") UUID verificationId
+    );
+
+    MatchingCaseRow selectMatchingCaseDetailsByStageBusinessKey(
+            @Param("announcementId") UUID announcementId,
+            @Param("memberUserId") UUID memberUserId,
+            @Param("verificationId") UUID verificationId,
+            @Param("matchingStageCode") String matchingStageCode
     );
 
     List<MatchingResultDetailRow> selectMatchingResultDetailList(@Param("matchingCaseId") UUID matchingCaseId);
@@ -55,6 +64,18 @@ public interface MatchingDao {
     void insertMatchingResultDetail(MatchingResultDetailCommand command);
 
     int updateMatchingCaseStatus(MatchingCaseStatusCommand command);
+
+    int updateMatchingCaseStageStatus(
+            @Param("announcementId") UUID announcementId,
+            @Param("memberUserId") UUID memberUserId,
+            @Param("verificationId") UUID verificationId,
+            @Param("matchingStageCode") String matchingStageCode,
+            @Param("statusCode") String statusCode,
+            @Param("matchingBasisCode") String matchingBasisCode,
+            @Param("actorUserId") UUID actorUserId
+    );
+
+    int updateMatchingCaseStageNotEligible(MatchingCaseStageStatusCommand command);
 
     void insertAuditLog(AuditLogCommand command);
 }

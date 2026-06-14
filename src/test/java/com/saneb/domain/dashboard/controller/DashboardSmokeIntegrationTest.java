@@ -110,6 +110,8 @@ class DashboardSmokeIntegrationTest {
     }
 
     private DashboardFixture insertDashboardFixture() {
+        deleteDashboardFixtureRows();
+
         UUID verificationId = UUID.randomUUID();
         UUID policyAnnouncementId = UUID.randomUUID();
         UUID supportAnnouncementId = UUID.randomUUID();
@@ -228,6 +230,104 @@ class DashboardSmokeIntegrationTest {
         return new DashboardFixture(List.of(policyMatchingCaseId, supportMatchingCaseId, subsidyMatchingCaseId));
     }
 
+    private void deleteDashboardFixtureRows() {
+        jdbcTemplate.update(
+                """
+                        DELETE FROM application_step_states
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM application_action_logs
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM application_step_checklists
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM progress_reminder_logs
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM application_input_values
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        UPDATE consultation_reservations
+                        SET progress_id = null,
+                            updated_at = now(),
+                            updated_by = ?
+                        WHERE progress_id IN (
+                            SELECT id
+                            FROM application_progresses
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_OPERATOR_ID,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM application_progresses
+                        WHERE member_user_id = ?
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM matching_result_details
+                        WHERE matching_case_id IN (
+                            SELECT id
+                            FROM matching_cases
+                            WHERE member_user_id = ?
+                        )
+                        """,
+                LOCAL_USER_ID
+        );
+        jdbcTemplate.update(
+                """
+                        DELETE FROM matching_cases
+                        WHERE member_user_id = ?
+                        """,
+                LOCAL_USER_ID
+        );
+    }
+
     private void insertAnnouncement(
             UUID announcementId,
             String title,
@@ -286,10 +386,34 @@ class DashboardSmokeIntegrationTest {
                             member_user_id,
                             verification_id,
                             status_code,
+                            matching_stage_code,
+                            matching_basis_code,
                             matched_at,
                             created_by,
                             updated_by
-                        ) VALUES (?, ?, ?, ?, ?, now(), ?, ?)
+                        ) VALUES (?, ?, ?, null, ?, 'BASIC', 'BASIC_INFO', now(), ?, ?)
+                        """,
+                UUID.randomUUID(),
+                announcementId,
+                LOCAL_USER_ID,
+                statusCode,
+                LOCAL_OPERATOR_ID,
+                LOCAL_OPERATOR_ID
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO matching_cases (
+                            id,
+                            announcement_id,
+                            member_user_id,
+                            verification_id,
+                            status_code,
+                            matching_stage_code,
+                            matching_basis_code,
+                            matched_at,
+                            created_by,
+                            updated_by
+                        ) VALUES (?, ?, ?, ?, ?, 'FINAL', 'DOCUMENT_INPUT', now(), ?, ?)
                         """,
                 matchingCaseId,
                 announcementId,

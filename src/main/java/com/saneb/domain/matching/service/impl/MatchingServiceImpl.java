@@ -11,6 +11,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingFinalRecalculateRequest;
 import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
@@ -20,6 +21,7 @@ import com.saneb.domain.matching.vo.MatchingCandidateAnnouncementRow;
 import com.saneb.domain.matching.vo.MatchingCaseCreateCommand;
 import com.saneb.domain.matching.vo.MatchingCaseRow;
 import com.saneb.domain.matching.vo.MatchingCaseSearchCondition;
+import com.saneb.domain.matching.vo.MatchingCaseStageStatusCommand;
 import com.saneb.domain.matching.vo.MatchingCaseStatusCommand;
 import com.saneb.domain.matching.vo.MatchingMemberLookupRow;
 import com.saneb.domain.matching.vo.MatchingMemberLookupSearchCondition;
@@ -46,9 +48,18 @@ public class MatchingServiceImpl implements MatchingService {
     private static final String RESULT_SCOPE_CODE = "APPLICATION";
     private static final String RESULT_CONDITION_KEY = "RESTRICTION_FLAGS";
     private static final String BASIC_PROFILE_CONDITION_KEY = "BASIC_PROFILE_CONDITIONS";
+    private static final String BASIC_STAGE_CODE = "BASIC";
+    private static final String FINAL_STAGE_CODE = "FINAL";
+    private static final String BASIC_BASIS_CODE = "BASIC_INFO";
+    private static final String PARTNER_BASIS_CODE = "PARTNER_INPUT";
+    private static final String DOCUMENT_BASIS_CODE = "DOCUMENT_INPUT";
 
     private static final Set<String> MATCHING_STATUS_CODES = Set.of(
             "MATCHED", "NOT_MATCHED", "REVIEW_REQUIRED", "BLOCKED", "PROGRESSED"
+    );
+    private static final Set<String> MATCHING_STAGE_CODES = Set.of(BASIC_STAGE_CODE, FINAL_STAGE_CODE);
+    private static final Set<String> MATCHING_BASIS_CODES = Set.of(
+            BASIC_BASIS_CODE, PARTNER_BASIS_CODE, DOCUMENT_BASIS_CODE
     );
     private static final List<String> HARD_BLOCK_RESTRICTION_CODES = List.of(
             "POLICY_FUND_RESTRICTED",
@@ -83,64 +94,44 @@ public class MatchingServiceImpl implements MatchingService {
             MatchingCandidateGenerateRequest request
     ) {
         UUID actorUserId = selectRequiredActorUserId(authentication);
-        UUID memberUserId = request.memberUserId();
-        if (matchingDao.selectMatchingMemberUserCount(memberUserId) == 0) {
-            insertFailureAudit(actorUserId, "MEMBER_USER_NOT_FOUND");
-            throw notFound();
-        }
+        return saveMatchingCandidates(
+                actorUserId,
+                request.memberUserId(),
+                BASIC_STAGE_CODE,
+                BASIC_BASIS_CODE,
+                false,
+                "MATCHING_CANDIDATE_GENERATE"
+        );
+    }
 
-        List<MatchingCandidateAnnouncementRow> candidates =
-                matchingDao.selectEligibleAnnouncementCandidateList(memberUserId);
-        int createdCount = 0;
-        int skippedCount = 0;
-        for (MatchingCandidateAnnouncementRow candidate : candidates) {
-            MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByBusinessKey(
-                    candidate.announcementId(),
-                    memberUserId,
-                    null
-            );
-            if (existing != null) {
-                skippedCount++;
-                continue;
-            }
-            UUID matchingCaseId = UUID.randomUUID();
-            matchingDao.insertMatchingCase(new MatchingCaseCreateCommand(
-                    matchingCaseId,
-                    candidate.announcementId(),
-                    memberUserId,
-                    null,
-                    "MATCHED",
-                    null,
-                    actorUserId
-            ));
-            matchingDao.insertMatchingResultDetail(new MatchingResultDetailCommand(
-                    UUID.randomUUID(),
-                    matchingCaseId,
-                    RESULT_SCOPE_CODE,
-                    BASIC_PROFILE_CONDITION_KEY,
-                    "PASS",
-                    String.valueOf(candidate.matchedConditionCount() == null ? 0 : candidate.matchedConditionCount()),
-                    String.valueOf(candidate.checkedConditionCount() == null ? 0 : candidate.checkedConditionCount()),
-                    "저장된 기본정보가 공고 조건을 충족했습니다.",
-                    actorUserId
-            ));
-            createdCount++;
-        }
-
-        insertAudit(actorUserId, "MATCHING_CANDIDATE_GENERATE", memberUserId, "SUCCESS", metadata(
-                "createdCount", String.valueOf(createdCount),
-                "skippedCount", String.valueOf(skippedCount),
-                "candidateCount", String.valueOf(candidates.size())
-        ));
-        List<MatchingCaseSummaryResponse> candidateList = selectMatchingCaseList(
-                null,
+    @Override
+    @Transactional
+    public MatchingCandidateGenerateResponse insertBasicMatchingCandidates(UUID actorUserId, UUID memberUserId) {
+        return saveMatchingCandidates(
+                actorUserId,
                 memberUserId,
-                null,
-                null,
-                1,
-                MAX_PAGE_SIZE
-        ).items();
-        return new MatchingCandidateGenerateResponse(memberUserId, createdCount, skippedCount, candidateList);
+                BASIC_STAGE_CODE,
+                BASIC_BASIS_CODE,
+                false,
+                "MATCHING_BASIC_AUTO_GENERATE"
+        );
+    }
+
+    @Override
+    @Transactional
+    public MatchingCandidateGenerateResponse insertFinalMatchingCandidates(
+            Authentication authentication,
+            MatchingFinalRecalculateRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        return saveMatchingCandidates(
+                actorUserId,
+                request.memberUserId(),
+                FINAL_STAGE_CODE,
+                DOCUMENT_BASIS_CODE,
+                true,
+                "MATCHING_FINAL_RECALCULATE"
+        );
     }
 
     @Override
@@ -155,10 +146,11 @@ public class MatchingServiceImpl implements MatchingService {
             validateVerification(actorUserId, request.verificationId(), request.memberUserId());
         }
 
-        MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByBusinessKey(
+        MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByStageBusinessKey(
                 request.announcementId(),
                 request.memberUserId(),
-                request.verificationId()
+                request.verificationId(),
+                FINAL_STAGE_CODE
         );
         if (existing != null) {
             insertAudit(actorUserId, "MATCHING_CASE_CREATE", existing.matchingCaseId(), "SUCCESS", metadata(
@@ -178,6 +170,8 @@ public class MatchingServiceImpl implements MatchingService {
                 request.verificationId(),
                 decision.statusCode(),
                 decision.reasonCode(),
+                FINAL_STAGE_CODE,
+                PARTNER_BASIS_CODE,
                 actorUserId
         ));
         matchingDao.insertMatchingResultDetail(new MatchingResultDetailCommand(
@@ -199,24 +193,127 @@ public class MatchingServiceImpl implements MatchingService {
         return selectMatchingCaseDetails(matchingCaseId);
     }
 
+    private MatchingCandidateGenerateResponse saveMatchingCandidates(
+            UUID actorUserId,
+            UUID memberUserId,
+            String matchingStageCode,
+            String matchingBasisCode,
+            boolean finalMatching,
+            String auditActionCode
+    ) {
+        if (actorUserId == null || memberUserId == null || matchingDao.selectMatchingMemberUserCount(memberUserId) == 0) {
+            insertFailureAudit(actorUserId, "MEMBER_USER_NOT_FOUND");
+            throw notFound();
+        }
+
+        List<MatchingCandidateAnnouncementRow> candidates =
+                matchingDao.selectEligibleAnnouncementCandidateList(memberUserId, finalMatching);
+        List<UUID> eligibleAnnouncementIds = candidates.stream()
+                .map(MatchingCandidateAnnouncementRow::announcementId)
+                .toList();
+        int staleCount = matchingDao.updateMatchingCaseStageNotEligible(new MatchingCaseStageStatusCommand(
+                memberUserId,
+                matchingStageCode,
+                "NOT_MATCHED",
+                actorUserId,
+                eligibleAnnouncementIds
+        ));
+
+        int createdCount = 0;
+        int skippedCount = staleCount;
+        for (MatchingCandidateAnnouncementRow candidate : candidates) {
+            MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByStageBusinessKey(
+                    candidate.announcementId(),
+                    memberUserId,
+                    null,
+                    matchingStageCode
+            );
+            if (existing != null) {
+                if (!"MATCHED".equals(existing.statusCode()) || !matchingBasisCode.equals(existing.matchingBasisCode())) {
+                    matchingDao.updateMatchingCaseStageStatus(
+                            candidate.announcementId(),
+                            memberUserId,
+                            null,
+                            matchingStageCode,
+                            "MATCHED",
+                            matchingBasisCode,
+                            actorUserId
+                    );
+                }
+                skippedCount++;
+                continue;
+            }
+
+            UUID matchingCaseId = UUID.randomUUID();
+            matchingDao.insertMatchingCase(new MatchingCaseCreateCommand(
+                    matchingCaseId,
+                    candidate.announcementId(),
+                    memberUserId,
+                    null,
+                    "MATCHED",
+                    null,
+                    matchingStageCode,
+                    matchingBasisCode,
+                    actorUserId
+            ));
+            matchingDao.insertMatchingResultDetail(new MatchingResultDetailCommand(
+                    UUID.randomUUID(),
+                    matchingCaseId,
+                    RESULT_SCOPE_CODE,
+                    BASIC_PROFILE_CONDITION_KEY,
+                    "PASS",
+                    String.valueOf(candidate.matchedConditionCount() == null ? 0 : candidate.matchedConditionCount()),
+                    String.valueOf(candidate.checkedConditionCount() == null ? 0 : candidate.checkedConditionCount()),
+                    selectCandidateReason(matchingStageCode),
+                    actorUserId
+            ));
+            createdCount++;
+        }
+
+        insertAudit(actorUserId, auditActionCode, memberUserId, "SUCCESS", metadata(
+                "createdCount", String.valueOf(createdCount),
+                "skippedCount", String.valueOf(skippedCount),
+                "candidateCount", String.valueOf(candidates.size())
+        ));
+        List<MatchingCaseSummaryResponse> candidateList = selectMatchingCaseList(
+                null,
+                memberUserId,
+                null,
+                "MATCHED",
+                matchingStageCode,
+                null,
+                1,
+                MAX_PAGE_SIZE
+        ).items();
+        return new MatchingCandidateGenerateResponse(memberUserId, createdCount, skippedCount, candidateList);
+    }
+
     @Override
     public PageResponse<MatchingCaseSummaryResponse> selectMatchingCaseList(
             UUID announcementId,
             UUID memberUserId,
             UUID verificationId,
             String statusCode,
+            String matchingStageCode,
+            String matchingBasisCode,
             int page,
             int size
     ) {
         validatePageRequest(page, size);
         String normalizedStatusCode = normalizeOptionalCode(statusCode);
         validateOptionalCode("statusCode", normalizedStatusCode, MATCHING_STATUS_CODES);
+        String normalizedStageCode = normalizeOptionalCode(matchingStageCode);
+        validateOptionalCode("matchingStageCode", normalizedStageCode, MATCHING_STAGE_CODES);
+        String normalizedBasisCode = normalizeOptionalCode(matchingBasisCode);
+        validateOptionalCode("matchingBasisCode", normalizedBasisCode, MATCHING_BASIS_CODES);
 
         MatchingCaseSearchCondition condition = new MatchingCaseSearchCondition(
                 announcementId,
                 memberUserId,
                 verificationId,
                 normalizedStatusCode,
+                normalizedStageCode,
+                normalizedBasisCode,
                 page,
                 size,
                 (page - 1) * size
@@ -227,6 +324,40 @@ public class MatchingServiceImpl implements MatchingService {
                 .map(this::toSummaryResponse)
                 .toList();
         return PageResponse.of(items, page, size, totalCount);
+    }
+
+    @Override
+    public PageResponse<MatchingCaseSummaryResponse> selectMyBasicMatchingCaseList(
+            Authentication authentication,
+            int page,
+            int size
+    ) {
+        UUID userId = selectRequiredActorUserId(authentication);
+        return selectMatchingCaseList(null, userId, null, null, BASIC_STAGE_CODE, null, page, size);
+    }
+
+    @Override
+    public PageResponse<MatchingCaseSummaryResponse> selectFinalMatchingCaseList(
+            UUID announcementId,
+            UUID memberUserId,
+            String statusCode,
+            int page,
+            int size
+    ) {
+        String effectiveStatusCode = normalizeOptionalCode(statusCode);
+        if (effectiveStatusCode == null) {
+            effectiveStatusCode = "MATCHED";
+        }
+        return selectMatchingCaseList(
+                announcementId,
+                memberUserId,
+                null,
+                effectiveStatusCode,
+                FINAL_STAGE_CODE,
+                null,
+                page,
+                size
+        );
     }
 
     @Override
@@ -401,6 +532,13 @@ public class MatchingServiceImpl implements MatchingService {
         return null;
     }
 
+    private String selectCandidateReason(String matchingStageCode) {
+        if (FINAL_STAGE_CODE.equals(matchingStageCode)) {
+            return "저장된 기본정보와 서류별 선택 입력값이 공고 조건을 충족했습니다.";
+        }
+        return "저장된 기본정보가 공고 조건을 충족했습니다.";
+    }
+
     private MatchingCaseRow selectMatchingCaseRow(UUID matchingCaseId) {
         MatchingCaseRow row = matchingDao.selectMatchingCaseDetails(matchingCaseId);
         if (row == null) {
@@ -421,6 +559,8 @@ public class MatchingServiceImpl implements MatchingService {
                 row.verificationCode(),
                 row.statusCode(),
                 row.blockedReasonCode(),
+                row.matchingStageCode(),
+                row.matchingBasisCode(),
                 row.matchedAt(),
                 row.createdAt(),
                 row.updatedAt(),
@@ -460,6 +600,8 @@ public class MatchingServiceImpl implements MatchingService {
                 row.verificationCode(),
                 row.statusCode(),
                 row.blockedReasonCode(),
+                row.matchingStageCode(),
+                row.matchingBasisCode(),
                 row.matchedAt(),
                 row.reviewedBy(),
                 row.reviewedAt(),

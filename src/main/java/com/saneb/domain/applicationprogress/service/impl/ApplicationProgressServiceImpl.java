@@ -87,11 +87,11 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         if (matchingCase == null) {
             throw notFound();
         }
-        if (!hasProgressStartOperatingRole(actor) && !matchingCase.memberUserId().equals(actor.userId())) {
+        if (!hasProgressStartOperatingRole(actor)) {
             throw new ApiException(
                     ErrorCode.AUTH_FORBIDDEN,
                     HttpStatus.FORBIDDEN,
-                    "본인의 공고만 진행할 수 있습니다."
+                    "관리자 또는 운영자만 신청 진행을 시작할 수 있습니다."
             );
         }
         if (!"MATCHED".equals(matchingCase.statusCode())) {
@@ -99,6 +99,13 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                     ErrorCode.PROGRESS_CONDITION_NOT_MET,
                     HttpStatus.CONFLICT,
                     "Only MATCHED matching cases can start application progress."
+            );
+        }
+        if (!"FINAL".equals(matchingCase.matchingStageCode())) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "최종 매칭으로 확인된 공고만 신청 진행을 시작할 수 있습니다."
             );
         }
 

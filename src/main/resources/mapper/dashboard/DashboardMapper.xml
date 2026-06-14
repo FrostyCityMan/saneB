@@ -78,6 +78,7 @@
                 mc.status_code
             FROM matching_cases mc
             WHERE mc.member_user_id = #{userId}
+              AND mc.matching_stage_code = 'BASIC'
               AND mc.status_code IN ('MATCHED', 'REVIEW_REQUIRED', 'PROGRESSED')
         )
         SELECT
@@ -123,8 +124,13 @@
             CAST(count(1) FILTER (
                 WHERE cc.status_code = 'MATCHED'
             ) AS integer) AS startable_matched_count,
-            CAST(count(1) FILTER (
-                WHERE cc.status_code IN ('MATCHED', 'PROGRESSED')
+            CAST((
+                SELECT
+                    count(1)
+                FROM matching_cases final_mc
+                WHERE final_mc.member_user_id = #{userId}
+                  AND final_mc.matching_stage_code = 'FINAL'
+                  AND final_mc.status_code IN ('MATCHED', 'PROGRESSED')
             ) AS integer) AS final_matched_count,
             min(a.min_amount) AS min_amount,
             max(a.max_amount) AS max_amount
@@ -201,5 +207,32 @@
             progress_step.step_order ASC,
             step_state.id ASC
         LIMIT 1
+    </select>
+
+    <select id="selectBasicInfoSavedCount" resultType="long">
+        -- Count whether the user has saved the first basic information form.
+        SELECT
+            count(1)
+        FROM member_profiles mp
+        WHERE mp.user_id = #{userId}
+    </select>
+
+    <select id="selectActiveSubscriptionCount" resultType="long">
+        -- Count active monthly service subscriptions for dashboard action routing.
+        SELECT
+            count(1)
+        FROM user_subscriptions us
+        WHERE us.user_id = #{userId}
+          AND us.status_code = 'ACTIVE'
+          AND (us.current_period_end IS NULL OR us.current_period_end &gt; now())
+    </select>
+
+    <select id="selectConsultationReservationCount" resultType="long">
+        -- Count active manual consultation requests after subscription.
+        SELECT
+            count(1)
+        FROM consultation_reservations cr
+        WHERE cr.member_user_id = #{userId}
+          AND cr.status_code IN ('REQUESTED', 'ASSIGNED', 'CONFIRMED', 'COMPLETED')
     </select>
 </mapper>

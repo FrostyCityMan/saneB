@@ -60,8 +60,6 @@ class ApplicationProgressViewControllerSmokeTest {
         when(applicationProgressService.selectApplicationProgressList(
                 any(), any(), any(), any(), any(), any(Integer.class), any(Integer.class)
         )).thenReturn(PageResponse.of(List.of(), 1, 20, 0));
-        when(matchingService.selectMatchingCaseList(any(), any(), any(), any(), any(Integer.class), any(Integer.class)))
-                .thenReturn(PageResponse.of(List.of(matchingSummary()), 1, 20, 1));
         when(applicationProgressService.insertApplicationProgress(any(), any()))
                 .thenReturn(progressDetails());
         when(applicationProgressService.selectApplicationProgressDetails(PROGRESS_ID))
@@ -74,9 +72,8 @@ class ApplicationProgressViewControllerSmokeTest {
                         .with(user("local_user").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(view().name("app/application-progress-detail"))
-                .andExpect(content().string(containsString("신청 가능한 공고")))
-                .andExpect(content().string(containsString("검증 없이 진행 가능")))
-                .andExpect(content().string(containsString("신청 시작")));
+                .andExpect(content().string(containsString("선택된 신청 진행 건이 없습니다.")))
+                .andExpect(content().string(containsString("관리자가 최종 매칭된 공고로 진행을 시작하면")));
     }
 
     @Test
@@ -93,7 +90,7 @@ class ApplicationProgressViewControllerSmokeTest {
     @Test
     void insertApplicationProgressFromViewRedirectsToCreatedProgress() throws Exception {
         mockMvc.perform(post("/app/application-progresses/start")
-                        .with(user("local_user").roles("USER"))
+                        .with(user("local_operator").roles("OPERATOR"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("matchingCaseId", MATCHING_CASE_ID.toString()))
@@ -127,6 +124,8 @@ class ApplicationProgressViewControllerSmokeTest {
                 null,
                 "MATCHED",
                 null,
+                "FINAL",
+                "DOCUMENT_INPUT",
                 now,
                 now,
                 now,

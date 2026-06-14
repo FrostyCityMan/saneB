@@ -9,6 +9,8 @@ public record MatchingCaseCreateCommand(
         UUID verificationId,
         String statusCode,
         String blockedReasonCode,
+        String matchingStageCode,
+        String matchingBasisCode,
         UUID actorUserId
 ) {
 }

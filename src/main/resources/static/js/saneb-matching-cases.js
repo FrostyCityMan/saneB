@@ -5,6 +5,8 @@
     }
 
     const baseUrl = app.dataset.baseUrl;
+    const finalUrl = app.dataset.finalUrl || `${baseUrl}/final`;
+    const finalRecalculateUrl = app.dataset.finalRecalculateUrl || `${baseUrl}/final-recalculate`;
     const progressUrl = app.dataset.progressUrl;
     const announcementLookupUrl = app.dataset.announcementLookupUrl;
     const memberLookupUrl = app.dataset.memberLookupUrl;
@@ -22,6 +24,17 @@
         REVIEW_REQUIRED: "검토 필요",
         BLOCKED: "차단",
         PROGRESSED: "진행 전환"
+    };
+
+    const stageLabels = {
+        BASIC: "기본 후보",
+        FINAL: "최종 매칭"
+    };
+
+    const basisLabels = {
+        BASIC_INFO: "기본정보",
+        PARTNER_INPUT: "상담 입력",
+        DOCUMENT_INPUT: "서류 입력"
     };
 
     const targetLabels = {
@@ -130,6 +143,8 @@
             ["예상 금액", amountRangeText(item.minAmount, item.maxAmount)],
             ["접수 기간", periodText(item.applicationStartDate, item.applicationEndDate)],
             ["회원", item.memberName || item.memberLoginId || item.memberUserCode],
+            ["매칭 단계", stageLabels[item.matchingStageCode] || item.matchingStageCode || "-"],
+            ["판단 기준", basisLabels[item.matchingBasisCode] || item.matchingBasisCode || "-"],
             ["차단 사유", item.blockedReasonCode || "없음"]
         ].forEach(([label, value]) => {
             const group = document.createElement("div");
@@ -228,7 +243,7 @@
             return;
         }
         if (!items || items.length === 0) {
-            renderEmpty("조회된 매칭 케이스가 없습니다.");
+            renderEmpty("조회된 최종 매칭 케이스가 없습니다.");
             return;
         }
         list.replaceChildren();
@@ -247,9 +262,9 @@
     };
 
     const loadMatchingList = async () => {
-        const data = await requestJson(`${baseUrl}?${buildSearchParams().toString()}`, { method: "GET" });
+        const data = await requestJson(`${finalUrl}?${buildSearchParams().toString()}`, { method: "GET" });
         renderList(data ? data.items : []);
-        setMessage("매칭 목록을 조회했습니다.", "success");
+        setMessage("최종 매칭 목록을 조회했습니다.", "success");
     };
 
     const lookupModal = (type) => app.querySelector(`[data-lookup-modal='${type}']`);
@@ -403,7 +418,7 @@
             try {
                 setBusy(button, true, "생성 중");
                 const memberUserId = validateUuidText(valueOf(candidateForm, "memberUserId"), "회원 코드");
-                const data = await requestJson(`${baseUrl}/candidates`, {
+                const data = await requestJson(finalRecalculateUrl, {
                     method: "POST",
                     body: JSON.stringify({ memberUserId })
                 });
@@ -412,7 +427,7 @@
                     searchMemberField.value = memberUserId;
                 }
                 renderList(data ? data.candidates : []);
-                setMessage(`조건 매칭 후보 ${data.createdCount || 0}건을 생성했습니다.`, "success");
+                setMessage(`최종 매칭 ${data.createdCount || 0}건을 새로 반영했습니다.`, "success");
             } catch (error) {
                 setMessage(error.message, "error");
             } finally {

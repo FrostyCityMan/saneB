@@ -54,7 +54,9 @@ Scaffold 상태:
 - boolean 컬럼은 `is_`, `has_`, `can_` 접두어를 사용한다.
 - 운영 migration에는 테스트 계정과 샘플 업무 데이터를 넣지 않는다.
 - 검증 ID가 있는 매칭은 회원 입력값보다 파트너 전자증명/증빙 검증값을 우선한다.
-- 현재 운영 테스트에서는 `matching_cases.verification_id` 없이도 운영자가 승인 공고와 회원을 선택해 수동 매칭을 생성할 수 있다.
+- 현재 운영 흐름에서는 `matching_cases.verification_id` 없이도 기본정보 기준 후보와 최종 매칭을 분리해 생성할 수 있다.
+- `matching_stage_code='BASIC'`은 사용자 기본정보 기준의 넓은 후보이고, `matching_stage_code='FINAL'`은 상담과 서류별 선택 입력 이후 관리자가 진행할 공고를 고르는 최종 후보이다.
+- `matching_basis_code`는 `BASIC_INFO`, `PARTNER_INPUT`, `DOCUMENT_INPUT` 중 하나이며, 추천도·선정확률·점수·우선순위 의미를 갖지 않는다.
 - 입력되지 않은 조건은 매칭에서 제외하고 결과에는 `SKIPPED`로 기록한다.
 - 매칭 결과는 점수나 순위가 아니라 필수조건 통과 여부만 저장한다.
 - 사용자 대시보드는 별도 저장 테이블을 만들지 않고 검증, 매칭, 진행 상태 테이블을 집계하는 읽기 모델로 제공한다.
@@ -173,12 +175,12 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
-| `matching_cases` | `public_code`, `announcement_id`, `member_user_id`, nullable `verification_id`, `status_code`, `blocked_reason_code`, `matched_at`, `reviewed_by`, `reviewed_at` | PK `id`, FK `announcements.id`, FK `users.id`, FK `partner_verifications.id` | UQ `public_code`, UQ `(announcement_id, member_user_id, verification_id)`, partial UQ `(announcement_id, member_user_id) WHERE verification_id IS NULL`, IDX `(member_user_id, status_code)`, IDX `(announcement_id, status_code)` |
+| `matching_cases` | `public_code`, `announcement_id`, `member_user_id`, nullable `verification_id`, `status_code`, `blocked_reason_code`, `matching_stage_code`, `matching_basis_code`, `matched_at`, `reviewed_by`, `reviewed_at` | PK `id`, FK `announcements.id`, FK `users.id`, FK `partner_verifications.id` | UQ `public_code`, UQ `(announcement_id, member_user_id, verification_id)`, partial UQ `(announcement_id, member_user_id, matching_stage_code) WHERE verification_id IS NULL`, IDX `(member_user_id, matching_stage_code, status_code)`, IDX `(matching_stage_code, status_code, matched_at)` |
 | `matching_result_details` | `matching_case_id`, `condition_scope_code`, `condition_key`, `result_code`, `basis_value`, `required_value`, `reason` | PK `id`, FK `matching_cases.id` | UQ `(matching_case_id, condition_scope_code, condition_key)`, IDX `(result_code)` |
 
 공고와 회원은 다대다 관계다. `matching_cases`는 `announcements`와 `users` 사이의 매칭 관계 엔티티이며, 한 회원은 여러 공고 후보를 가질 수 있고 한 공고는 여러 회원 후보를 가질 수 있다. unique 제약은 같은 공고와 같은 회원의 동일 검증 기준 후보 중복 생성을 막기 위한 장치이며, 공고 또는 회원 단위의 일대일 관계를 의미하지 않는다.
 
-매칭은 `approval_status_code = APPROVED`인 공고를 기준으로 수행한다. `verification_id`가 있으면 `status_code = VERIFIED`, `is_current = true`인 파트너 검증값을 확인하고, `verification_id`가 없으면 운영자 수동 매칭으로 저장한다.
+매칭은 `approval_status_code = APPROVED`이고 신청 기간이 유효한 공고를 기준으로 수행한다. `BASIC` 후보는 사용자 기본정보 저장 후 자동 생성되며 사용자가 대시보드에서 넓은 후보를 확인하는 용도다. `FINAL` 후보는 구독, 상담 요청, 서류별 선택 입력 이후 관리자가 최종 재계산하며, 관리자 매칭 화면 기본 목록에는 `FINAL + MATCHED`만 노출한다. 신청 진행 생성은 `FINAL + MATCHED` 매칭만 허용한다.
 
 ### 5.8 Progress Steps / Logs
 

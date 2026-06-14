@@ -14,6 +14,8 @@ public record MatchingCaseDetailsResponse(
         String verificationCode,
         String statusCode,
         String blockedReasonCode,
+        String matchingStageCode,
+        String matchingBasisCode,
         OffsetDateTime matchedAt,
         UUID reviewedBy,
         OffsetDateTime reviewedAt,

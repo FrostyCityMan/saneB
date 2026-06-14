@@ -16,6 +16,8 @@ public record MatchingCaseSummaryResponse(
         String verificationCode,
         String statusCode,
         String blockedReasonCode,
+        String matchingStageCode,
+        String matchingBasisCode,
         OffsetDateTime matchedAt,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt,

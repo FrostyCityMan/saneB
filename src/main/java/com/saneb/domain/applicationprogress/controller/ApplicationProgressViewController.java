@@ -116,7 +116,7 @@ public class ApplicationProgressViewController {
     }
 
     @PostMapping("/app/application-progresses/start")
-    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
     public String insertApplicationProgress(
             Authentication authentication,
             @RequestParam UUID matchingCaseId,
@@ -261,21 +261,7 @@ public class ApplicationProgressViewController {
     }
 
     private List<StartableMatchingModel> selectStartableMatchings(AuthMeResponse authMe) {
-        if (!hasAnyRole(authMe, "USER")) {
-            return List.of();
-        }
-        return matchingService.selectMatchingCaseList(
-                        null,
-                        authMe.userId(),
-                        null,
-                        "MATCHED",
-                        1,
-                        20
-                )
-                .items()
-                .stream()
-                .map(StartableMatchingModel::from)
-                .toList();
+        return List.of();
     }
 
     private static void addSuccess(RedirectAttributes redirectAttributes, String message) {

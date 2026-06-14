@@ -16,6 +16,8 @@
             <arg column="verification_code" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="blocked_reason_code" javaType="java.lang.String"/>
+            <arg column="matching_stage_code" javaType="java.lang.String"/>
+            <arg column="matching_basis_code" javaType="java.lang.String"/>
             <arg column="matched_at" javaType="java.time.OffsetDateTime"/>
             <arg column="reviewed_by" javaType="java.util.UUID"/>
             <arg column="reviewed_at" javaType="java.time.OffsetDateTime"/>
@@ -99,6 +101,12 @@
             <if test="statusCode != null and statusCode != ''">
                 AND mc.status_code = #{statusCode}
             </if>
+            <if test="matchingStageCode != null and matchingStageCode != ''">
+                AND mc.matching_stage_code = #{matchingStageCode}
+            </if>
+            <if test="matchingBasisCode != null and matchingBasisCode != ''">
+                AND mc.matching_basis_code = #{matchingBasisCode}
+            </if>
         </where>
     </sql>
 
@@ -134,6 +142,8 @@
             pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
+            mc.matching_stage_code,
+            mc.matching_basis_code,
             mc.matched_at,
             mc.reviewed_by,
             mc.reviewed_at,
@@ -277,16 +287,63 @@
             ORDER BY bp.created_at DESC, bp.id DESC
             LIMIT 1
         ) bp ON true
+        LEFT JOIN LATERAL (
+            SELECT
+                max(mdiv.value_date) FILTER (
+                    WHERE sdf.document_type_code = 'BUSINESS_REGISTRATION'
+                      AND sdf.field_key = 'OPENING_DATE'
+                ) AS opening_date,
+                max(mdiv.value_number) FILTER (
+                    WHERE sdf.scope_code = 'BUSINESS'
+                      AND sdf.field_key IN ('ANNUAL_REVENUE', 'SUPPLY_AMOUNT', 'TOTAL_INCOME_AMOUNT')
+                ) AS annual_revenue,
+                max(mdiv.value_number) FILTER (
+                    WHERE sdf.scope_code = 'PERSONAL'
+                      AND sdf.field_key IN (
+                          'COMPREHENSIVE_INCOME_AMOUNT',
+                          'TOTAL_INCOME_AMOUNT',
+                          'BUSINESS_INCOME_AMOUNT',
+                          'LABOR_INCOME_AMOUNT'
+                      )
+                ) AS personal_income_amount,
+                max(mdiv.value_text) FILTER (
+                    WHERE sdf.field_key = 'WORKPLACE_REGION_CODE'
+                ) AS workplace_region_code,
+                max(mdiv.value_text) FILTER (
+                    WHERE sdf.field_key = 'BUSINESS_TYPE_CODE'
+                ) AS business_type_code,
+                max(mdiv.value_text) FILTER (
+                    WHERE sdf.field_key = 'REGION_CODE'
+                ) AS region_code,
+                max(mdiv.value_text) FILTER (
+                    WHERE sdf.field_key IN ('HEALTH_INSURANCE_BASIS_CODE', 'INSURANCE_SUBSCRIBER_TYPE')
+                ) AS health_insurance_basis_code,
+                max(mdiv.value_number) FILTER (
+                    WHERE sdf.field_key = 'CHILD_COUNT'
+                ) AS child_count,
+                max(mdiv.value_number) FILTER (
+                    WHERE sdf.field_key = 'PARENT_COUNT'
+                ) AS parent_count,
+                max(mdiv.value_number) FILTER (
+                    WHERE sdf.field_key = 'HOUSEHOLD_MEMBER_COUNT'
+                ) AS household_member_count,
+                bool_or(mdiv.value_boolean) FILTER (
+                    WHERE sdf.field_key = 'HAS_SPOUSE'
+                ) AS has_spouse,
+                bool_or(mdiv.value_boolean) FILTER (
+                    WHERE sdf.field_key = 'NATIONAL_TAX_DELINQUENT'
+                ) AS national_tax_delinquent,
+                bool_or(mdiv.value_boolean) FILTER (
+                    WHERE sdf.field_key = 'LOCAL_TAX_DELINQUENT'
+                ) AS local_tax_delinquent
+            FROM member_document_input_values mdiv
+            INNER JOIN standard_document_fields sdf ON sdf.id = mdiv.standard_field_id
+            WHERE mdiv.user_id = #{memberUserId}
+        ) doc ON true
         WHERE a.approval_status_code = 'APPROVED'
           AND a.manual_status_code = 'NORMAL'
-          AND NOT EXISTS (
-              SELECT
-                  1
-              FROM matching_cases mc
-              WHERE mc.announcement_id = a.id
-                AND mc.member_user_id = #{memberUserId}
-                AND mc.verification_id IS NULL
-          )
+          AND (a.application_start_date IS NULL OR a.application_start_date &lt;= current_date)
+          AND (a.application_end_date IS NULL OR a.application_end_date &gt;= current_date)
           AND NOT EXISTS (
               SELECT
                   1
@@ -312,53 +369,78 @@
                       CASE
                           WHEN anc.condition_scope_code = 'BUSINESS'
                                AND anc.condition_key IN ('ANNUAL_REVENUE', 'SUPPLY_AMOUNT', 'TOTAL_INCOME_AMOUNT')
-                          THEN bp.annual_revenue
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.annual_revenue, bp.annual_revenue)
+                              ELSE bp.annual_revenue
+                          END
                           WHEN anc.condition_scope_code = 'BUSINESS'
                                AND anc.condition_key IN ('BUSINESS_YEARS', 'BUSINESS_AGE', 'BUSINESS_AGE_YEARS')
-                               AND bp.opening_date IS NOT NULL
-                          THEN floor(EXTRACT(YEAR FROM age(current_date, bp.opening_date)))::numeric
+                               AND (
+                                   (#{finalMatching} = true AND COALESCE(doc.opening_date, bp.opening_date) IS NOT NULL)
+                                   OR (#{finalMatching} = false AND bp.opening_date IS NOT NULL)
+                               )
+                          THEN floor(EXTRACT(YEAR FROM age(
+                              current_date,
+                              CASE WHEN #{finalMatching} = true THEN COALESCE(doc.opening_date, bp.opening_date) ELSE bp.opening_date END
+                          )))::numeric
                           WHEN anc.condition_scope_code = 'PERSONAL'
                                AND anc.condition_key = 'AGE'
                                AND mp.birth_year IS NOT NULL
                           THEN (EXTRACT(YEAR FROM current_date)::integer - mp.birth_year)::numeric
                           WHEN anc.condition_scope_code = 'PERSONAL'
                                AND anc.condition_key IN ('INCOME_AMOUNT', 'TOTAL_INCOME_AMOUNT')
-                          THEN mp.income_amount
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.personal_income_amount, mp.income_amount)
+                              ELSE mp.income_amount
+                          END
                           WHEN anc.condition_scope_code = 'CHILD'
                                AND anc.condition_key IN ('CHILD_COUNT', 'FAMILY_CHILD_COUNT')
-                          THEN (
+                          THEN CASE
+                              WHEN #{finalMatching} = true AND doc.child_count IS NOT NULL THEN doc.child_count
+                              ELSE (
                               SELECT
                                   count(1)::numeric
                               FROM family_members fm
                               WHERE fm.user_id = #{memberUserId}
                                 AND fm.relation_type_code = 'CHILD'
-                          )
+                              )
+                          END
                           WHEN anc.condition_scope_code = 'PARENT'
                                AND anc.condition_key IN ('PARENT_COUNT', 'FAMILY_PARENT_COUNT')
-                          THEN (
+                          THEN CASE
+                              WHEN #{finalMatching} = true AND doc.parent_count IS NOT NULL THEN doc.parent_count
+                              ELSE (
                               SELECT
                                   count(1)::numeric
                               FROM family_members fm
                               WHERE fm.user_id = #{memberUserId}
                                 AND fm.relation_type_code = 'PARENT'
-                          )
+                              )
+                          END
                           WHEN anc.condition_scope_code = 'SPOUSE'
                                AND anc.condition_key IN ('SPOUSE_COUNT', 'HAS_SPOUSE')
-                          THEN (
+                          THEN CASE
+                              WHEN #{finalMatching} = true AND doc.has_spouse IS NOT NULL
+                              THEN CASE WHEN doc.has_spouse THEN 1 ELSE 0 END::numeric
+                              ELSE (
                               SELECT
                                   count(1)::numeric
                               FROM family_members fm
                               WHERE fm.user_id = #{memberUserId}
                                 AND fm.relation_type_code = 'SPOUSE'
-                          )
+                              )
+                          END
                           WHEN anc.condition_scope_code = 'APPLICATION'
                                AND anc.condition_key IN ('HOUSEHOLD_MEMBER_COUNT', 'FAMILY_MEMBER_COUNT')
-                          THEN (
+                          THEN CASE
+                              WHEN #{finalMatching} = true AND doc.household_member_count IS NOT NULL THEN doc.household_member_count
+                              ELSE (
                               SELECT
                                   count(1)::numeric
                               FROM family_members fm
                               WHERE fm.user_id = #{memberUserId}
-                          )
+                              )
+                          END
                           ELSE NULL::numeric
                       END AS basis_number
               ) basis
@@ -392,10 +474,16 @@
                       CASE
                           WHEN option_groups.condition_scope_code = 'BUSINESS'
                                AND option_groups.condition_key = 'WORKPLACE_REGION_CODE'
-                          THEN bp.workplace_region_code
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.workplace_region_code, bp.workplace_region_code)
+                              ELSE bp.workplace_region_code
+                          END
                           WHEN option_groups.condition_scope_code = 'BUSINESS'
                                AND option_groups.condition_key = 'BUSINESS_TYPE_CODE'
-                          THEN bp.business_type_code
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.business_type_code, bp.business_type_code)
+                              ELSE bp.business_type_code
+                          END
                           WHEN option_groups.condition_scope_code = 'BUSINESS'
                                AND option_groups.condition_key IN ('BUSINESS_STAGE', 'COMPANY_STAGE')
                           THEN bp.company_stage_code
@@ -415,10 +503,16 @@
                           END
                           WHEN option_groups.condition_scope_code = 'PERSONAL'
                                AND option_groups.condition_key = 'REGION_CODE'
-                          THEN mp.region_code
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.region_code, mp.region_code)
+                              ELSE mp.region_code
+                          END
                           WHEN option_groups.condition_scope_code = 'PERSONAL'
                                AND option_groups.condition_key = 'HEALTH_INSURANCE_BASIS_CODE'
-                          THEN mp.health_insurance_basis_code
+                          THEN CASE
+                              WHEN #{finalMatching} = true THEN COALESCE(doc.health_insurance_basis_code, mp.health_insurance_basis_code)
+                              ELSE mp.health_insurance_basis_code
+                          END
                           WHEN option_groups.condition_scope_code = 'PERSONAL'
                                AND option_groups.condition_key = 'HAS_INCOME'
                           THEN CASE
@@ -429,6 +523,8 @@
                           WHEN option_groups.condition_scope_code = 'CHILD'
                                AND option_groups.condition_key IN ('HAS_CHILD', 'CHILD_COUNT')
                           THEN CASE
+                              WHEN #{finalMatching} = true AND doc.child_count IS NOT NULL AND doc.child_count > 0 THEN 'TRUE'
+                              WHEN #{finalMatching} = true AND doc.child_count IS NOT NULL THEN 'FALSE'
                               WHEN EXISTS (
                                   SELECT
                                       1
@@ -441,6 +537,8 @@
                           WHEN option_groups.condition_scope_code = 'SPOUSE'
                                AND option_groups.condition_key IN ('HAS_SPOUSE', 'SPOUSE_COUNT')
                           THEN CASE
+                              WHEN #{finalMatching} = true AND doc.has_spouse IS NOT NULL AND doc.has_spouse THEN 'TRUE'
+                              WHEN #{finalMatching} = true AND doc.has_spouse IS NOT NULL THEN 'FALSE'
                               WHEN EXISTS (
                                   SELECT
                                       1
@@ -453,6 +551,8 @@
                           WHEN option_groups.condition_scope_code = 'PARENT'
                                AND option_groups.condition_key IN ('HAS_PARENT', 'PARENT_COUNT')
                           THEN CASE
+                              WHEN #{finalMatching} = true AND doc.parent_count IS NOT NULL AND doc.parent_count > 0 THEN 'TRUE'
+                              WHEN #{finalMatching} = true AND doc.parent_count IS NOT NULL THEN 'FALSE'
                               WHEN EXISTS (
                                   SELECT
                                       1
@@ -496,6 +596,8 @@
             pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
+            mc.matching_stage_code,
+            mc.matching_basis_code,
             mc.matched_at,
             mc.reviewed_by,
             mc.reviewed_at,
@@ -536,6 +638,8 @@
             pv.public_code AS verification_code,
             mc.status_code,
             mc.blocked_reason_code,
+            mc.matching_stage_code,
+            mc.matching_basis_code,
             mc.matched_at,
             mc.reviewed_by,
             mc.reviewed_at,
@@ -562,6 +666,58 @@
         LEFT JOIN partner_verifications pv ON pv.id = mc.verification_id
         WHERE mc.announcement_id = #{announcementId}
           AND mc.member_user_id = #{memberUserId}
+        <choose>
+            <when test="verificationId != null">
+          AND mc.verification_id = #{verificationId}
+            </when>
+            <otherwise>
+          AND mc.verification_id IS NULL
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectMatchingCaseDetailsByStageBusinessKey" resultMap="MatchingCaseRowMap">
+        -- Select matching case by stage-aware business key to keep basic and final matching separate.
+        SELECT
+            mc.id AS matching_case_id,
+            mc.public_code AS matching_case_code,
+            mc.announcement_id,
+            a.public_code AS announcement_code,
+            mc.member_user_id,
+            u.public_code AS member_user_code,
+            mc.verification_id,
+            pv.public_code AS verification_code,
+            mc.status_code,
+            mc.blocked_reason_code,
+            mc.matching_stage_code,
+            mc.matching_basis_code,
+            mc.matched_at,
+            mc.reviewed_by,
+            mc.reviewed_at,
+            mc.created_at,
+            mc.updated_at,
+            a.title AS announcement_title,
+            a.agency_name,
+            a.target_type_code,
+            a.min_amount,
+            a.max_amount,
+            a.application_start_date,
+            a.application_end_date,
+            u.login_id AS member_login_id,
+            u.name AS member_name,
+            EXISTS (
+                SELECT
+                    1
+                FROM application_progresses ap
+                WHERE ap.matching_case_id = mc.id
+            ) AS progress_created
+        FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
+        INNER JOIN users u ON u.id = mc.member_user_id
+        LEFT JOIN partner_verifications pv ON pv.id = mc.verification_id
+        WHERE mc.announcement_id = #{announcementId}
+          AND mc.member_user_id = #{memberUserId}
+          AND mc.matching_stage_code = #{matchingStageCode}
         <choose>
             <when test="verificationId != null">
           AND mc.verification_id = #{verificationId}
@@ -630,6 +786,8 @@
             verification_id,
             status_code,
             blocked_reason_code,
+            matching_stage_code,
+            matching_basis_code,
             matched_at,
             created_by,
             updated_by
@@ -640,6 +798,8 @@
             #{verificationId,jdbcType=OTHER},
             #{statusCode},
             #{blockedReasonCode},
+            #{matchingStageCode},
+            #{matchingBasisCode},
             now(),
             #{actorUserId},
             #{actorUserId}
@@ -682,6 +842,70 @@
             updated_by = #{actorUserId},
             updated_at = now()
         WHERE id = #{matchingCaseId}
+    </update>
+
+    <update id="updateMatchingCaseStageStatus">
+        -- Reactivate or demote one stage-specific matching case for the current matching pass.
+        UPDATE matching_cases
+        SET
+            status_code = #{statusCode},
+            blocked_reason_code = NULL,
+            matching_basis_code = #{matchingBasisCode},
+            matched_at = CASE WHEN #{statusCode} = 'MATCHED' THEN now() ELSE matched_at END,
+            reviewed_by = CASE WHEN #{statusCode} = 'NOT_MATCHED' THEN #{actorUserId} ELSE reviewed_by END,
+            reviewed_at = CASE WHEN #{statusCode} = 'NOT_MATCHED' THEN now() ELSE reviewed_at END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE announcement_id = #{announcementId}
+          AND member_user_id = #{memberUserId}
+          AND matching_stage_code = #{matchingStageCode}
+        <choose>
+            <when test="verificationId != null">
+          AND verification_id = #{verificationId}
+            </when>
+            <otherwise>
+          AND verification_id IS NULL
+            </otherwise>
+        </choose>
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM application_progresses ap
+              WHERE ap.matching_case_id = matching_cases.id
+          )
+    </update>
+
+    <update id="updateMatchingCaseStageNotEligible">
+        -- Mark stale stage-specific candidates as not matched when they no longer pass the current condition check.
+        UPDATE matching_cases
+        SET
+            status_code = #{statusCode},
+            blocked_reason_code = NULL,
+            reviewed_by = #{actorUserId},
+            reviewed_at = now(),
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE member_user_id = #{memberUserId}
+          AND matching_stage_code = #{matchingStageCode}
+          AND verification_id IS NULL
+          AND status_code IN ('MATCHED', 'REVIEW_REQUIRED')
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM application_progresses ap
+              WHERE ap.matching_case_id = matching_cases.id
+          )
+        <choose>
+            <when test="eligibleAnnouncementIds != null and eligibleAnnouncementIds.size() > 0">
+          AND announcement_id NOT IN
+              <foreach collection="eligibleAnnouncementIds" item="announcementId" open="(" separator="," close=")">
+                  #{announcementId}
+              </foreach>
+            </when>
+            <otherwise>
+          AND 1 = 1
+            </otherwise>
+        </choose>
     </update>
 
     <insert id="insertAuditLog">

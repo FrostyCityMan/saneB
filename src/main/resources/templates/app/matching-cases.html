@@ -4,6 +4,8 @@
 <main class="matching-page"
       data-matching-app
       th:data-base-url="@{/api/v1/matching/cases}"
+      th:data-final-url="@{/api/v1/matching/cases/final}"
+      th:data-final-recalculate-url="@{/api/v1/matching/cases/final-recalculate}"
       th:data-progress-url="@{/api/v1/application-progresses}"
       th:data-announcement-lookup-url="@{/api/v1/announcements}"
       th:data-member-lookup-url="@{/api/v1/matching/cases/member-lookups}"
@@ -13,20 +15,20 @@
             <div class="summary-header">
                 <div>
                     <div class="section-label">매칭 관리</div>
-                    <p>승인된 공고와 사용자를 연결해 매칭 케이스를 생성하고 상태를 관리합니다.</p>
+                    <p>상담과 서류 입력이 끝난 회원의 최종 매칭을 확인하고 진행할 공고를 선택합니다.</p>
                 </div>
                 <span class="soft-status">서버 검증 기준</span>
             </div>
             <div class="top-summary-grid matching-summary-grid">
                 <article class="top-summary-card">
-                    <span>생성 조건</span>
-                    <strong>승인 공고</strong>
-                    <small>공고 승인 상태가 승인일 때만 생성됩니다.</small>
+                    <span>목록 기준</span>
+                    <strong>최종 매칭</strong>
+                    <small>조건에 맞는 최종 매칭만 기본 노출합니다.</small>
                 </article>
                 <article class="top-summary-card">
-                    <span>현재 기준</span>
-                    <strong>검증 생략 가능</strong>
-                    <small>검증 절차 없이도 운영자가 수동 매칭을 생성할 수 있습니다.</small>
+                    <span>정렬 기준</span>
+                    <strong>마감 임박 순</strong>
+                    <small>접수 마감일이 빠른 공고부터 표시합니다.</small>
                 </article>
                 <article class="top-summary-card">
                     <span>금지 정책</span>
@@ -37,49 +39,12 @@
         </section>
 
         <section class="matching-grid">
-            <form class="plain-panel matching-form" data-matching-create-form novalidate
-                  th:if="${page.canOperate}">
-                <div class="panel-heading compact-heading">
-                    <div>
-                        <span class="eyebrow">생성</span>
-                        <h2>매칭 케이스 생성</h2>
-                    </div>
-                </div>
-                <div class="field-block">
-                    <label for="matchingAnnouncementCode">공고 코드</label>
-                    <div class="lookup-input-row">
-                        <input id="matchingAnnouncementCode" name="announcementCodeDisplay" type="text" placeholder="돋보기로 승인 공고 선택" readonly required>
-                        <input name="announcementId" type="hidden">
-                        <button class="icon-lookup-button" type="button" data-lookup-open="announcement" aria-label="공고 조회">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
-                                <path d="m16 16 4 4"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="field-block">
-                    <label for="matchingMemberUserCode">회원 코드</label>
-                    <div class="lookup-input-row">
-                        <input id="matchingMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="돋보기로 회원 선택" readonly required>
-                        <input name="memberUserId" type="hidden">
-                        <button class="icon-lookup-button" type="button" data-lookup-open="member" aria-label="회원 조회">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M10.8 18.1a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>
-                                <path d="m16 16 4 4"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <button class="primary-action button-action" type="submit" data-matching-create-submit>매칭 생성</button>
-            </form>
-
             <form class="plain-panel matching-form" data-matching-candidate-form novalidate
                   th:if="${page.canOperate}">
                 <div class="panel-heading compact-heading">
                     <div>
-                        <span class="eyebrow">후보 생성</span>
-                        <h2>회원별 조건 매칭</h2>
+                        <span class="eyebrow">최종 확인</span>
+                        <h2>회원별 최종 매칭 재계산</h2>
                     </div>
                 </div>
                 <div class="field-block">
@@ -94,9 +59,9 @@
                             </svg>
                         </button>
                     </div>
-                    <small class="field-help">승인 공고와 저장된 기본정보가 맞으면 후보를 생성합니다.</small>
+                    <small class="field-help">기본정보와 서류별 선택 입력값을 기준으로 최종 매칭만 다시 계산합니다.</small>
                 </div>
-                <button class="primary-action button-action" type="submit" data-matching-candidate-submit>조건 매칭 후보 생성</button>
+                <button class="primary-action button-action" type="submit" data-matching-candidate-submit>최종 매칭 재계산</button>
             </form>
 
             <form class="plain-panel matching-form" data-matching-search-form novalidate>
@@ -149,9 +114,9 @@
 
         <section class="plain-panel matching-list-panel">
             <div class="panel-heading compact-heading">
-                <div>
-                    <span class="eyebrow">목록</span>
-                    <h2>매칭 케이스</h2>
+                    <div>
+                        <span class="eyebrow">목록</span>
+                    <h2>최종 매칭 케이스</h2>
                 </div>
             </div>
             <p class="matching-message" data-matching-message role="status">매칭 목록을 불러오는 중입니다.</p>

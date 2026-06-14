@@ -84,6 +84,34 @@
                     </div>
                 </article>
             </div>
+
+            <div class="dashboard-candidate-list" th:if="${not #lists.isEmpty(page.candidateItems)}">
+                <article class="dashboard-candidate-item" th:each="candidate : ${page.candidateItems}">
+                    <div>
+                        <span th:text="${candidate.targetLabel}">사업자</span>
+                        <strong th:text="${candidate.title}">공고명</strong>
+                        <small>
+                            <span th:text="${candidate.agencyName}">기관명</span>
+                            ·
+                            <span th:text="${candidate.periodText}">기간</span>
+                        </small>
+                    </div>
+                    <dl>
+                        <div>
+                            <dt>공고 번호</dt>
+                            <dd th:text="${candidate.announcementCode}">ANN-000001</dd>
+                        </div>
+                        <div>
+                            <dt>예상 금액</dt>
+                            <dd th:text="${candidate.amountRangeText}">금액 미입력</dd>
+                        </div>
+                        <div>
+                            <dt>상태</dt>
+                            <dd th:text="${candidate.statusLabel}">기본정보 일치</dd>
+                        </div>
+                    </dl>
+                </article>
+            </div>
         </section>
 
         <section class="plain-panel progress-panel">

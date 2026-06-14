@@ -473,10 +473,12 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
                             member_user_id,
                             verification_id,
                             status_code,
+                            matching_stage_code,
+                            matching_basis_code,
                             matched_at,
                             created_by,
                             updated_by
-                        ) VALUES (?, ?, ?, ?, 'PROGRESSED', now(), ?, ?)
+                        ) VALUES (?, ?, ?, ?, 'PROGRESSED', 'FINAL', 'DOCUMENT_INPUT', now(), ?, ?)
                         """,
                 matchingCaseId,
                 announcementId,

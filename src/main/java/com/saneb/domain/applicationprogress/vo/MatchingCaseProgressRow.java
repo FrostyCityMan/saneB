@@ -6,6 +6,7 @@ public record MatchingCaseProgressRow(
         UUID matchingCaseId,
         UUID announcementId,
         UUID memberUserId,
-        String statusCode
+        String statusCode,
+        String matchingStageCode
 ) {
 }

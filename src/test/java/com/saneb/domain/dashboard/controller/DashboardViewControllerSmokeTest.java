@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import static org.mockito.Mockito.when;
 
+import com.saneb.common.response.PageResponse;
 import com.saneb.domain.dashboard.dto.DashboardCurrentActionResponse;
 import com.saneb.domain.dashboard.dto.DashboardProgressSummaryResponse;
 import com.saneb.domain.dashboard.dto.DashboardReverificationStatusResponse;
 import com.saneb.domain.dashboard.dto.DashboardSummaryResponse;
 import com.saneb.domain.dashboard.service.DashboardService;
+import com.saneb.domain.matching.service.MatchingService;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +33,9 @@ class DashboardViewControllerSmokeTest {
 
     @MockitoBean
     private DashboardService dashboardService;
+
+    @MockitoBean
+    private MatchingService matchingService;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +63,8 @@ class DashboardViewControllerSmokeTest {
         when(dashboardService.selectMyReverificationStatus(org.mockito.ArgumentMatchers.any())).thenReturn(
                 new DashboardReverificationStatusResponse(false, null, null, List.of())
         );
+        when(matchingService.selectMyBasicMatchingCaseList(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.eq(5)))
+                .thenReturn(PageResponse.of(List.of(), 1, 5, 0));
     }
 
     @Test

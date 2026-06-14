@@ -20,4 +20,10 @@ public interface DashboardDao {
     DashboardProgressSummaryRow selectProgressSummary(@Param("userId") UUID userId);
 
     DashboardCurrentStepRow selectCurrentStepDetails(@Param("userId") UUID userId);
+
+    long selectBasicInfoSavedCount(@Param("userId") UUID userId);
+
+    long selectActiveSubscriptionCount(@Param("userId") UUID userId);
+
+    long selectConsultationReservationCount(@Param("userId") UUID userId);
 }

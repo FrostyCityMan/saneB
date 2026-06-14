@@ -686,8 +686,11 @@ Member / Business / Family API skeleton 착수 기준:
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `GET` | `/api/v1/standard-document-fields` | authenticated | 공고 조건/입력항목용 표준 서류 필드 목록 |
-| `POST` | `/api/v1/matching/cases` | `OPERATOR`, `ADMIN` | 매칭 케이스 생성/재계산 |
-| `POST` | `/api/v1/matching/cases/candidates` | `OPERATOR`, `ADMIN` | 회원 기본정보 기준 조건 매칭 후보 생성 |
+| `POST` | `/api/v1/matching/cases` | `OPERATOR`, `ADMIN` | 호환용 수동 최종 매칭 생성 |
+| `POST` | `/api/v1/matching/cases/candidates` | `OPERATOR`, `ADMIN` | 회원 기본정보 기준 조건 매칭 후보 재계산 |
+| `POST` | `/api/v1/matching/cases/final-recalculate` | `OPERATOR`, `ADMIN` | 상담/서류별 선택 입력 이후 최종 매칭 재계산 |
+| `GET` | `/api/v1/matching/cases/basic-candidates` | `USER` | 내 기본정보 기준 후보 목록 |
+| `GET` | `/api/v1/matching/cases/final` | `OPERATOR`, `APPROVER`, `REVIEWER`, `ADMIN` | 관리자 최종 매칭 후보 목록 |
 | `GET` | `/api/v1/matching/cases/member-lookups` | `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 생성용 회원 조회 |
 | `GET` | `/api/v1/matching/cases` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 목록 |
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 상세 |
@@ -706,6 +709,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 `verificationId`는 선택값이다. 현재 운영 기준에서는 검증 없이 수동 매칭을 생성할 수 있으며, 이 경우 `matching_cases.verification_id`는 `null`로 저장한다. 검증 ID를 전달한 경우에는 기존처럼 검증 완료, current, matching block 여부를 서버에서 확인한다.
 
+이 endpoint는 기존 v1 호환을 위한 수동 보정용이다. 기본 운영 흐름은 사람이 매칭 케이스를 직접 만드는 방식이 아니라, 사용자 기본정보 저장 시 `BASIC` 후보를 자동 갱신하고 상담/서류별 선택 입력 이후 관리자가 `FINAL` 후보를 재계산한 뒤 진행할 공고를 선택하는 방식이다. 수동 생성 매칭은 `matching_stage_code=FINAL`, `matching_basis_code=PARTNER_INPUT`으로 저장한다.
+
 공고와 회원의 매칭은 다대다 관계로 처리한다. `matching_cases` 한 행은 특정 공고와 특정 회원 사이의 후보 관계를 나타내며, 회원 1명은 여러 공고 후보를 가질 수 있고 공고 1건은 여러 회원 후보를 가질 수 있다. API는 동일 공고-회원 조합의 중복 후보 생성을 막되, 공고 또는 회원을 단일 매칭으로 제한하지 않는다.
 
 #### MatchingCandidateGenerateRequest
@@ -716,7 +721,17 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-승인되고 수동 상태가 정상인 공고를 대상으로 사용자의 저장된 기본정보와 공고 조건을 비교한다. 조건이 맞으면 `matching_cases` 후보를 생성하고, 이미 같은 공고/회원의 검증 없는 후보가 있으면 중복 생성하지 않는다. 생성된 후보는 관리자 화면에서 `application_end_date ASC NULLS LAST`, `application_start_date ASC`, `created_at ASC` 순서로 확인한다.
+승인되고 수동 상태가 정상인 공고를 대상으로 사용자의 저장된 기본정보와 공고 조건을 비교한다. 조건이 맞으면 `matching_stage_code=BASIC`, `matching_basis_code=BASIC_INFO` 후보를 생성한다. 회원이 기본정보를 저장하면 서버가 자동으로 기본 후보를 갱신하며, 이 endpoint는 운영자/관리자 재계산용이다.
+
+#### MatchingFinalRecalculateRequest
+
+```json
+{
+  "memberUserId": "uuid"
+}
+```
+
+구독 이후 상담 요청과 서류별 선택 입력이 진행된 회원을 대상으로 최종 매칭 후보를 재계산한다. 서류별 선택 입력값이 있는 조건은 해당 값을 우선 사용하고, 없으면 기본정보를 사용한다. 조건에 부합하지 않는 기존 최종 후보는 `NOT_MATCHED`로 전환되어 관리자 기본 최종 목록에 노출되지 않는다.
 
 #### MatchingCandidateGenerateResponse
 
@@ -742,6 +757,8 @@ Member / Business / Family API skeleton 착수 기준:
   "verificationId": "uuid",
   "verificationCode": "VRF-000001",
   "statusCode": "MATCHED",
+  "matchingStageCode": "FINAL",
+  "matchingBasisCode": "DOCUMENT_INPUT",
   "announcementTitle": "공고명",
   "agencyName": "기관명",
   "targetTypeCode": "BUSINESS",
@@ -756,13 +773,13 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-매칭 응답에는 추천도, 우선순위, 선정확률, 가점 값을 포함하지 않는다.
+`matchingStageCode=BASIC`은 사용자 기본정보 기준의 넓은 후보이고, `matchingStageCode=FINAL`은 상담/서류별 선택 입력 이후 관리자가 진행 공고를 선택하기 위한 최종 후보다. 매칭 응답에는 추천도, 우선순위, 선정확률, 가점 값을 포함하지 않는다.
 
 ## 9. Application Progress API
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
-| `POST` | `/api/v1/application-progresses` | `USER`, `OPERATOR`, `ADMIN` | 매칭 케이스에서 진행 시작 |
+| `POST` | `/api/v1/application-progresses` | `OPERATOR`, `ADMIN` | 최종 매칭 케이스에서 진행 시작 |
 | `GET` | `/api/v1/application-progresses` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 진행 목록 |
 | `GET` | `/api/v1/application-progresses/{progressId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 진행 상세 |
 | `PATCH` | `/api/v1/application-progresses/{progressId}/steps/{stepId}/action` | `USER`, `PARTNER`, `OPERATOR` | 단계 행동 처리 |
@@ -778,7 +795,7 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-일반 사용자는 본인 `matchingCaseId`만 진행 시작할 수 있다. 운영자와 관리자는 기존처럼 다른 회원의 매칭 케이스를 진행 시작할 수 있다. `matching_cases.verification_id`가 `null`인 매칭 케이스도 `statusCode = MATCHED`이고 공고 진행 단계가 있으면 신청 진행을 시작할 수 있다.
+신청 진행 생성은 관리자 또는 운영자만 수행한다. 사용자는 기본 후보를 확인하고 구독/상담/서류별 선택 입력 흐름을 진행하지만, 최종 진행 공고 선택은 관리자 화면에서 수행한다. `matching_cases.verification_id`가 `null`이어도 `matching_stage_code=FINAL`, `statusCode=MATCHED`이고 공고 진행 단계가 있으면 신청 진행을 시작할 수 있다.
 
 #### ApplicationProgressDetailsResponse
 
@@ -879,12 +896,13 @@ Member / Business / Family API skeleton 착수 기준:
 
 MVP v1 DB 집계 기준:
 
-- 진행 가능한 후보는 `matching_cases` 기준으로 집계한다. `MATCHED`, `REVIEW_REQUIRED`, `PROGRESSED`만 후보로 포함하며, 해당 데이터가 없으면 empty state를 반환한다.
-- 후보 유형은 V1의 별도 유형 컬럼을 추가하지 않고 `announcement_options.option_group_code = PAYMENT_METHOD` 기준으로 분류한다. `LOAN`, `GUARANTEE`, `INTEREST_SUPPORT`는 `policyFund`, `VOUCHER`, `POINT`, `GOODS`, `TAX_DEDUCTION`은 `supportFund`, `CASH`, `REFUND`는 `subsidy`로 집계한다.
+- 진행 가능한 후보는 `matching_cases.matching_stage_code = BASIC` 기준으로 집계한다. `MATCHED`, `REVIEW_REQUIRED`, `PROGRESSED`만 후보로 포함하며, 해당 데이터가 없으면 empty state를 반환한다.
+- 사용자 화면의 핵심 후보 분류는 사업자/개인/가족 기준의 `targetCandidateCounts`를 우선 사용한다. 기존 `candidateCounts`는 v1 호환 필드로 유지하되 사용자 대시보드의 주요 분류로 강조하지 않는다.
 - 금액 범위는 후보 `matching_cases`에 연결된 `announcements.min_amount`, `announcements.max_amount`의 최소/최대값만 사용한다. `application_progresses.received_amount`와 혼합하지 않는다.
-- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 없고 진행 가능한 매칭이 있으면 신청 진행 진입을 반환한다. 진행/결과 상태가 없고 사용자가 아직 시작하지 않은 경우에는 `BASIC_INFO_REQUIRED`를 반환한다.
+- 현재 해야 할 행동은 `application_step_states.status_code IN (READY, IN_PROGRESS)`인 단계 1건을 우선 반환한다. 진행 단계가 없으면 기본정보 입력, 구독 결제, 상담 요청, 최종 매칭 대기, 관리자 진행 시작 대기 순서로 1개의 행동만 반환한다. 일반 사용자가 직접 신청 진행을 생성하는 route는 반환하지 않는다.
 - 진행/승인/수령 금액은 `application_progresses` 기준으로 집계한다. 누적 수령 금액은 `received_amount`가 있고 `status_code IN (APPROVED, COMPLETED)` 또는 `result_code = APPROVED`인 행만 합산한다.
 - 개인정보 원문은 대시보드 집계에 포함하지 않고, 사용자 식별자와 진행/공고 운영 데이터만 조인한다.
+- 사용자 대시보드 화면은 현재 해야 할 행동, 진행 가능 현황, 누적 현황 3개 영역만 표시한다. 검증/전자증명/재검증/최근 상태 영역은 사용자 화면의 핵심 영역으로 사용하지 않는다.
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
@@ -929,12 +947,12 @@ DashboardSummaryResponse 필드 계약:
 | 필드 | 타입 | nullable | Frontend 사용 기준 |
 |---|---|---:|---|
 | `serviceStatusCode` | `string` | false | 대시보드 전체 상태 배지 |
-| `candidateCounts.policyFund` | `number` | false | 정책자금 후보 건수 |
-| `candidateCounts.supportFund` | `number` | false | 지원금 후보 건수 |
-| `candidateCounts.subsidy` | `number` | false | 보조금 후보 건수 |
-| `targetCandidateCounts.business` | `number` | false | 사업자 기준 후보 건수 |
-| `targetCandidateCounts.personal` | `number` | false | 개인 기준 후보 건수 |
-| `targetCandidateCounts.family` | `number` | false | 가족 기준 후보 건수 |
+| `candidateCounts.policyFund` | `number` | false | v1 호환용 정책자금 후보 건수 |
+| `candidateCounts.supportFund` | `number` | false | v1 호환용 지원금 후보 건수 |
+| `candidateCounts.subsidy` | `number` | false | v1 호환용 보조금 후보 건수 |
+| `targetCandidateCounts.business` | `number` | false | 사용자 화면 우선 표시: 사업자 기준 후보 건수 |
+| `targetCandidateCounts.personal` | `number` | false | 사용자 화면 우선 표시: 개인 기준 후보 건수 |
+| `targetCandidateCounts.family` | `number` | false | 사용자 화면 우선 표시: 가족 기준 후보 건수 |
 | `finalMatchedCount` | `number` | false | 최종 매칭 확정 건수 |
 | `supportAmountRange.minAmount` | `number` | true | 공고 기준 최소 지원금액 |
 | `supportAmountRange.maxAmount` | `number` | true | 공고 기준 최대 지원금액 |

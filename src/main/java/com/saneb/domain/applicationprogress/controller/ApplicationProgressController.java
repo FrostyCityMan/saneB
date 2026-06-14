@@ -39,7 +39,7 @@ public class ApplicationProgressController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'OPERATOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
     public ApiResponse<ApplicationProgressDetailsResponse> insertApplicationProgress(
             Authentication authentication,
             @Valid @RequestBody ApplicationProgressStartRequest request

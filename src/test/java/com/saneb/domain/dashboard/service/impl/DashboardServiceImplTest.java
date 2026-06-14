@@ -152,12 +152,10 @@ class DashboardServiceImplTest {
     @Test
     void selectMyCurrentActionReturnsBasicInfoRequiredWhenNoStepExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
-        when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
-                new DashboardVerificationStatusRow("DRAFT", null)
-        );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
                 new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 0, 0, null, null)
         );
+        when(dashboardDao.selectBasicInfoSavedCount(USER_ID)).thenReturn(0L);
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
 
@@ -167,20 +165,52 @@ class DashboardServiceImplTest {
     }
 
     @Test
-    void selectMyCurrentActionAllowsApplicationStartBeforeVerificationWhenMatchedCaseExists() {
+    void selectMyCurrentActionRequiresSubscriptionWhenBasicCandidateExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
-        when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
-                new DashboardVerificationStatusRow("DRAFT", null)
-        );
         when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
                 new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 1, 1, null, null)
         );
+        when(dashboardDao.selectBasicInfoSavedCount(USER_ID)).thenReturn(1L);
+        when(dashboardDao.selectActiveSubscriptionCount(USER_ID)).thenReturn(0L);
 
         DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
 
-        assertThat(response.actionCode()).isEqualTo("APPLICATION_START_AVAILABLE");
-        assertThat(response.primaryButtonLabel()).isEqualTo("신청 진행하기");
-        assertThat(response.route()).isEqualTo("/app/application-progresses");
+        assertThat(response.actionCode()).isEqualTo("SUBSCRIPTION_REQUIRED");
+        assertThat(response.primaryButtonLabel()).isEqualTo("구독 결제");
+        assertThat(response.route()).isEqualTo("/app/billing/mock");
+    }
+
+    @Test
+    void selectMyCurrentActionRequiresConsultationWhenSubscriptionIsActive() {
+        when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
+        when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
+                new DashboardCandidateSummaryRow(0, 0, 0, 1, 0, 0, 1, 0, null, null)
+        );
+        when(dashboardDao.selectBasicInfoSavedCount(USER_ID)).thenReturn(1L);
+        when(dashboardDao.selectActiveSubscriptionCount(USER_ID)).thenReturn(1L);
+        when(dashboardDao.selectConsultationReservationCount(USER_ID)).thenReturn(0L);
+
+        DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
+
+        assertThat(response.actionCode()).isEqualTo("CONSULTATION_REQUEST_REQUIRED");
+        assertThat(response.primaryButtonLabel()).isEqualTo("상담 요청");
+        assertThat(response.route()).isEqualTo("/app/consultations");
+    }
+
+    @Test
+    void selectMyCurrentActionWaitsForFinalMatchingAfterConsultationRequest() {
+        when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
+        when(dashboardDao.selectCandidateSummary(USER_ID)).thenReturn(
+                new DashboardCandidateSummaryRow(0, 0, 0, 1, 0, 0, 1, 0, null, null)
+        );
+        when(dashboardDao.selectBasicInfoSavedCount(USER_ID)).thenReturn(1L);
+        when(dashboardDao.selectActiveSubscriptionCount(USER_ID)).thenReturn(1L);
+        when(dashboardDao.selectConsultationReservationCount(USER_ID)).thenReturn(1L);
+
+        DashboardCurrentActionResponse response = dashboardService.selectMyCurrentAction(authentication);
+
+        assertThat(response.actionCode()).isEqualTo("FINAL_MATCHING_WAITING");
+        assertThat(response.route()).isNull();
     }
 
     @Test

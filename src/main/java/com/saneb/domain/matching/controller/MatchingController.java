@@ -8,6 +8,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingFinalRecalculateRequest;
 import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import com.saneb.domain.matching.service.MatchingService;
@@ -57,6 +58,43 @@ public class MatchingController {
         return ApiResponse.success(matchingService.insertMatchingCandidates(authentication, request));
     }
 
+    @PostMapping("/final-recalculate")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    public ApiResponse<MatchingCandidateGenerateResponse> insertFinalMatchingCandidates(
+            Authentication authentication,
+            @Valid @RequestBody MatchingFinalRecalculateRequest request
+    ) {
+        return ApiResponse.success(matchingService.insertFinalMatchingCandidates(authentication, request));
+    }
+
+    @GetMapping("/basic-candidates")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse<PageResponse<MatchingCaseSummaryResponse>> selectMyBasicMatchingCaseList(
+            Authentication authentication,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ApiResponse.success(matchingService.selectMyBasicMatchingCaseList(authentication, page, size));
+    }
+
+    @GetMapping("/final")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
+    public ApiResponse<PageResponse<MatchingCaseSummaryResponse>> selectFinalMatchingCaseList(
+            @RequestParam(required = false) UUID announcementId,
+            @RequestParam(required = false) UUID memberUserId,
+            @RequestParam(required = false) String statusCode,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ApiResponse.success(matchingService.selectFinalMatchingCaseList(
+                announcementId,
+                memberUserId,
+                statusCode,
+                page,
+                size
+        ));
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'APPROVER', 'REVIEWER', 'ADMIN')")
     public ApiResponse<PageResponse<MatchingCaseSummaryResponse>> selectMatchingCaseList(
@@ -64,6 +102,8 @@ public class MatchingController {
             @RequestParam(required = false) UUID memberUserId,
             @RequestParam(required = false) UUID verificationId,
             @RequestParam(required = false) String statusCode,
+            @RequestParam(required = false) String matchingStageCode,
+            @RequestParam(required = false) String matchingBasisCode,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
@@ -72,6 +112,8 @@ public class MatchingController {
                 memberUserId,
                 verificationId,
                 statusCode,
+                matchingStageCode,
+                matchingBasisCode,
                 page,
                 size
         ));

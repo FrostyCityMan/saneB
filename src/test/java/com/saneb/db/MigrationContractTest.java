@@ -226,6 +226,21 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v19MigrationContainsMatchingStageFlow() throws IOException {
+        String sql = selectV19Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN matching_stage_code",
+                "ADD COLUMN matching_basis_code",
+                "CREATE UNIQUE INDEX uq_matching_cases_stage_no_verification",
+                "'BASIC'",
+                "'FINAL'",
+                "'BASIC_INFO'",
+                "'DOCUMENT_INPUT'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -288,6 +303,11 @@ class MigrationContractTest {
 
     private String selectV17Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V17__seed_mock_subscription_plan.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV19Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V19__add_matching_stage_flow.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

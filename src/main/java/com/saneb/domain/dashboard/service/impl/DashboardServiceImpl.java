@@ -25,6 +25,9 @@ public class DashboardServiceImpl implements DashboardService {
 
     private static final String BASIS_ANNOUNCEMENT_AMOUNT_RANGE = "ANNOUNCEMENT_AMOUNT_RANGE";
     private static final String BASIC_INFO_REQUIRED = "BASIC_INFO_REQUIRED";
+    private static final String SUBSCRIPTION_REQUIRED = "SUBSCRIPTION_REQUIRED";
+    private static final String CONSULTATION_REQUEST_REQUIRED = "CONSULTATION_REQUEST_REQUIRED";
+    private static final String FINAL_MATCHING_WAITING = "FINAL_MATCHING_WAITING";
     private static final String PROGRESS_ACTION_REQUIRED = "PROGRESS_ACTION_REQUIRED";
     private static final String NO_ACTION = "NONE";
 
@@ -82,17 +85,60 @@ public class DashboardServiceImpl implements DashboardService {
             );
         }
 
-        DashboardVerificationStatusRow verification = selectVerificationStatus(userId);
         DashboardCandidateSummaryRow candidateSummary = selectCandidateSummary(userId);
-        if (hasStartableMatching(candidateSummary)) {
+        if (dashboardDao.selectBasicInfoSavedCount(userId) < 1) {
             return new DashboardCurrentActionResponse(
-                    "APPLICATION_START_AVAILABLE",
-                    "신청 가능한 공고가 있습니다.",
-                    "관리자가 선택한 공고를 기준으로 다음 진행 단계를 확인하세요.",
-                    "신청 진행하기",
-                    "/app/application-progresses",
+                    BASIC_INFO_REQUIRED,
+                    "기본 정보를 입력해 주세요.",
+                    "사업자·개인·가족 기본정보를 저장하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
+                    "기본 정보 입력",
+                    "/app/member/basic-info",
+                    null,
+                    5
+            );
+        }
+        if (!hasCandidate(candidateSummary)) {
+            return new DashboardCurrentActionResponse(
+                    NO_ACTION,
+                    "기본정보와 맞는 공고를 확인 중입니다.",
+                    "저장된 기본정보 기준으로 바로 진행 가능한 공고가 아직 없습니다. 필요하면 기본정보를 수정해 주세요.",
+                    "기본정보 수정",
+                    "/app/member/basic-info",
+                    null,
+                    30
+            );
+        }
+        if (dashboardDao.selectActiveSubscriptionCount(userId) < 1) {
+            return new DashboardCurrentActionResponse(
+                    SUBSCRIPTION_REQUIRED,
+                    "구독 결제가 필요합니다.",
+                    "진행 가능 공고를 확인했습니다. 상담과 상세 진행을 위해 월 구독을 완료해 주세요.",
+                    "구독 결제",
+                    "/app/billing/mock",
+                    null,
+                    10
+            );
+        }
+        if (dashboardDao.selectConsultationReservationCount(userId) < 1) {
+            return new DashboardCurrentActionResponse(
+                    CONSULTATION_REQUEST_REQUIRED,
+                    "첫 상담을 요청해 주세요.",
+                    "구독이 활성화되었습니다. 운영자가 담당자를 배정할 수 있도록 상담 요청을 남겨 주세요.",
+                    "상담 요청",
+                    "/app/consultations",
                     null,
                     15
+            );
+        }
+        if (candidateSummary.finalMatchedCount() < 1) {
+            return new DashboardCurrentActionResponse(
+                    FINAL_MATCHING_WAITING,
+                    "최종 매칭 확인 중입니다.",
+                    "상담과 서류 입력 내용을 기준으로 관리자가 진행할 공고를 확인하고 있습니다.",
+                    null,
+                    null,
+                    null,
+                    20
             );
         }
         DashboardProgressSummaryRow progressSummary = selectProgressSummary(userId);
@@ -111,13 +157,13 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         return new DashboardCurrentActionResponse(
-                BASIC_INFO_REQUIRED,
-                "기본 정보를 입력해 주세요.",
-                "사업자·개인·가족 기본정보를 저장하면 공고 조건과 비교해 진행 가능 현황을 확인합니다.",
-                "기본 정보 입력",
-                "/app/member/basic-info",
+                NO_ACTION,
+                "진행 시작을 준비 중입니다.",
+                "관리자가 최종 매칭된 공고로 신청 진행을 시작하면 다음 행동이 표시됩니다.",
                 null,
-                5
+                null,
+                null,
+                90
         );
     }
 

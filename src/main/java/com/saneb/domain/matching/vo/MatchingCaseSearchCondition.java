@@ -7,6 +7,8 @@ public record MatchingCaseSearchCondition(
         UUID memberUserId,
         UUID verificationId,
         String statusCode,
+        String matchingStageCode,
+        String matchingBasisCode,
         int page,
         int size,
         int offset

@@ -55,6 +55,7 @@ class DashboardStatusMatrixIntegrationTest {
     void readyOrInProgressStateReturnsProgressRouteAndDatabaseCounts() throws Exception {
         String privacyMarker = "matrix-private-ready-" + UUID.randomUUID();
         DashboardUser member = insertDashboardUser("matrix-ready-member", "USER", privacyMarker);
+        insertMemberProfile(member.userId());
         DashboardUser operator = insertDashboardUser("matrix-ready-operator", "OPERATOR");
         UUID verificationId = insertVerification(UUID.randomUUID(), member.userId(), operator.userId(), "VERIFIED");
         UUID announcementId = insertAnnouncement(operator.userId(), "Matrix Ready Announcement", new BigDecimal("1200000"), new BigDecimal("4500000"), "LOAN");
@@ -113,7 +114,10 @@ class DashboardStatusMatrixIntegrationTest {
     void approvedResultStateReturnsNoneActionAndReceivedAmountFromDatabase() throws Exception {
         String privacyMarker = "matrix-private-approved-" + UUID.randomUUID();
         DashboardUser member = insertDashboardUser("matrix-approved-member", "USER", privacyMarker);
+        insertMemberProfile(member.userId());
         DashboardUser operator = insertDashboardUser("matrix-approved-operator", "OPERATOR");
+        insertActiveSubscription(member.userId(), operator.userId());
+        insertConsultationReservation(member.userId(), operator.userId());
         UUID verificationId = insertVerification(UUID.randomUUID(), member.userId(), operator.userId(), "VERIFIED");
         UUID announcementId = insertAnnouncement(operator.userId(), "Matrix Approved Announcement", new BigDecimal("2500000"), new BigDecimal("7600000"), "CASH");
         UUID matchingCaseId = insertMatchingCase(UUID.randomUUID(), announcementId, member.userId(), verificationId, operator.userId(), "PROGRESSED");
@@ -336,10 +340,34 @@ class DashboardStatusMatrixIntegrationTest {
                             member_user_id,
                             verification_id,
                             status_code,
+                            matching_stage_code,
+                            matching_basis_code,
                             matched_at,
                             created_by,
                             updated_by
-                        ) VALUES (?, ?, ?, ?, ?, now(), ?, ?)
+                        ) VALUES (?, ?, ?, null, ?, 'BASIC', 'BASIC_INFO', now(), ?, ?)
+                        """,
+                UUID.randomUUID(),
+                announcementId,
+                memberUserId,
+                statusCode,
+                operatorUserId,
+                operatorUserId
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO matching_cases (
+                            id,
+                            announcement_id,
+                            member_user_id,
+                            verification_id,
+                            status_code,
+                            matching_stage_code,
+                            matching_basis_code,
+                            matched_at,
+                            created_by,
+                            updated_by
+                        ) VALUES (?, ?, ?, ?, ?, 'FINAL', 'DOCUMENT_INPUT', now(), ?, ?)
                         """,
                 matchingCaseId,
                 announcementId,
@@ -350,6 +378,75 @@ class DashboardStatusMatrixIntegrationTest {
                 operatorUserId
         );
         return matchingCaseId;
+    }
+
+    private void insertMemberProfile(UUID memberUserId) {
+        jdbcTemplate.update(
+                """
+                        INSERT INTO member_profiles (
+                            user_id,
+                            birth_year,
+                            region_code,
+                            is_householder,
+                            is_household_member,
+                            created_by,
+                            updated_by
+                        ) VALUES (?, 1988, 'SEOUL', true, false, ?, ?)
+                        """,
+                memberUserId,
+                memberUserId,
+                memberUserId
+        );
+    }
+
+    private void insertActiveSubscription(UUID memberUserId, UUID operatorUserId) {
+        UUID planId = jdbcTemplate.queryForObject(
+                """
+                        SELECT id
+                        FROM subscription_plans
+                        WHERE plan_code = 'SANEB_MONTHLY_MOCK'
+                        LIMIT 1
+                        """,
+                UUID.class
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO user_subscriptions (
+                            user_id,
+                            plan_id,
+                            status_code,
+                            current_period_start,
+                            current_period_end,
+                            created_by,
+                            updated_by
+                        ) VALUES (?, ?, 'ACTIVE', now(), now() + interval '30 days', ?, ?)
+                        """,
+                memberUserId,
+                planId,
+                operatorUserId,
+                operatorUserId
+        );
+    }
+
+    private void insertConsultationReservation(UUID memberUserId, UUID operatorUserId) {
+        jdbcTemplate.update(
+                """
+                        INSERT INTO consultation_reservations (
+                            id,
+                            member_user_id,
+                            partner_user_id,
+                            status_code,
+                            request_note,
+                            created_by,
+                            updated_by
+                        ) VALUES (?, ?, ?, 'REQUESTED', '상태 매트릭스 테스트 상담 요청', ?, ?)
+                        """,
+                UUID.randomUUID(),
+                memberUserId,
+                operatorUserId,
+                memberUserId,
+                memberUserId
+        );
     }
 
     private UUID insertProgressStep(UUID stepId, UUID announcementId, UUID operatorUserId, String stepName) {

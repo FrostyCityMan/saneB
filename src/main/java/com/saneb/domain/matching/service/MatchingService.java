@@ -7,6 +7,7 @@ import com.saneb.domain.matching.dto.MatchingCaseCreateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseDetailsResponse;
 import com.saneb.domain.matching.dto.MatchingCaseStatusUpdateRequest;
 import com.saneb.domain.matching.dto.MatchingCaseSummaryResponse;
+import com.saneb.domain.matching.dto.MatchingFinalRecalculateRequest;
 import com.saneb.domain.matching.dto.MatchingMemberLookupResponse;
 import com.saneb.domain.matching.dto.MatchingResultDetailResponse;
 import java.util.List;
@@ -25,10 +26,36 @@ public interface MatchingService {
             MatchingCandidateGenerateRequest request
     );
 
+    MatchingCandidateGenerateResponse insertBasicMatchingCandidates(
+            UUID actorUserId,
+            UUID memberUserId
+    );
+
+    MatchingCandidateGenerateResponse insertFinalMatchingCandidates(
+            Authentication authentication,
+            MatchingFinalRecalculateRequest request
+    );
+
     PageResponse<MatchingCaseSummaryResponse> selectMatchingCaseList(
             UUID announcementId,
             UUID memberUserId,
             UUID verificationId,
+            String statusCode,
+            String matchingStageCode,
+            String matchingBasisCode,
+            int page,
+            int size
+    );
+
+    PageResponse<MatchingCaseSummaryResponse> selectMyBasicMatchingCaseList(
+            Authentication authentication,
+            int page,
+            int size
+    );
+
+    PageResponse<MatchingCaseSummaryResponse> selectFinalMatchingCaseList(
+            UUID announcementId,
+            UUID memberUserId,
             String statusCode,
             int page,
             int size
