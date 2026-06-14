@@ -15,6 +15,7 @@
             <arg column="is_required" javaType="java.lang.Boolean"/>
             <arg column="is_sensitive" javaType="java.lang.Boolean"/>
             <arg column="sort_order" javaType="int"/>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
             <arg column="help_text" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
@@ -61,6 +62,8 @@
             <arg column="field_type_code" javaType="java.lang.String"/>
             <arg column="scope_code" javaType="java.lang.String"/>
             <arg column="required_default" javaType="java.lang.Boolean"/>
+            <arg column="is_condition_eligible" javaType="java.lang.Boolean"/>
+            <arg column="is_selectable" javaType="java.lang.Boolean"/>
             <arg column="sort_order" javaType="java.lang.Integer"/>
             <arg column="help_text" javaType="java.lang.String"/>
         </constructor>
@@ -86,6 +89,7 @@
             air.is_required,
             air.is_sensitive,
             air.sort_order,
+            air.standard_field_id,
             air.help_text
         FROM announcement_input_requirements air
         WHERE air.announcement_id = #{announcementId}
@@ -156,6 +160,7 @@
             is_required,
             is_sensitive,
             sort_order,
+            standard_field_id,
             help_text,
             created_by,
             updated_by
@@ -169,6 +174,7 @@
             #{required},
             #{sensitive},
             #{sortOrder},
+            #{standardFieldId,jdbcType=OTHER},
             #{helpText},
             #{actorUserId},
             #{actorUserId}
@@ -185,6 +191,7 @@
             is_required = #{required},
             is_sensitive = #{sensitive},
             sort_order = #{sortOrder},
+            standard_field_id = #{standardFieldId,jdbcType=OTHER},
             help_text = #{helpText},
             updated_by = #{actorUserId},
             updated_at = now()
@@ -360,6 +367,8 @@
             sdf.field_type_code,
             sdf.scope_code,
             sdf.required_default,
+            sdf.is_condition_eligible,
+            sdf.is_selectable,
             sdf.sort_order,
             sdf.help_text
         FROM standard_document_fields sdf
@@ -371,5 +380,23 @@
           AND sdf.scope_code = #{scopeCode}
         </if>
         ORDER BY sdf.document_type_code ASC, sdf.sort_order ASC, sdf.field_key ASC
+    </select>
+
+    <select id="selectStandardDocumentFieldDetails" resultMap="StandardDocumentFieldRowMap">
+        -- Select one standard document field for server-side save validation.
+        SELECT
+            sdf.id AS standard_field_id,
+            sdf.document_type_code,
+            sdf.field_key,
+            sdf.field_label,
+            sdf.field_type_code,
+            sdf.scope_code,
+            sdf.required_default,
+            sdf.is_condition_eligible,
+            sdf.is_selectable,
+            sdf.sort_order,
+            sdf.help_text
+        FROM standard_document_fields sdf
+        WHERE sdf.id = #{standardFieldId}
     </select>
 </mapper>

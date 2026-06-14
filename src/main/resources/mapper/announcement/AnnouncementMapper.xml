@@ -65,6 +65,7 @@
             <arg column="min_number" javaType="java.math.BigDecimal"/>
             <arg column="max_number" javaType="java.math.BigDecimal"/>
             <arg column="unit_code" javaType="java.lang.String"/>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
         </constructor>
     </resultMap>
 
@@ -74,6 +75,7 @@
             <arg column="condition_key" javaType="java.lang.String"/>
             <arg column="option_code" javaType="java.lang.String"/>
             <arg column="option_text" javaType="java.lang.String"/>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
         </constructor>
     </resultMap>
 
@@ -82,6 +84,20 @@
             <arg column="document_type_code" javaType="java.lang.String"/>
             <arg column="is_required" javaType="boolean"/>
             <arg column="sort_order" javaType="int"/>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="AnnouncementStandardDocumentFieldRowMap" type="com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow">
+        <constructor>
+            <arg column="standard_field_id" javaType="java.util.UUID"/>
+            <arg column="document_type_code" javaType="java.lang.String"/>
+            <arg column="field_key" javaType="java.lang.String"/>
+            <arg column="field_label" javaType="java.lang.String"/>
+            <arg column="field_type_code" javaType="java.lang.String"/>
+            <arg column="scope_code" javaType="java.lang.String"/>
+            <arg column="is_condition_eligible" javaType="java.lang.Boolean"/>
+            <arg column="is_selectable" javaType="java.lang.Boolean"/>
         </constructor>
     </resultMap>
 
@@ -221,7 +237,8 @@
             anc.value_number,
             anc.min_number,
             anc.max_number,
-            anc.unit_code
+            anc.unit_code,
+            anc.standard_field_id
         FROM announcement_numeric_conditions anc
         WHERE anc.announcement_id = #{announcementId}
         ORDER BY anc.condition_scope_code ASC, anc.condition_key ASC
@@ -233,7 +250,8 @@
             aoc.condition_scope_code,
             aoc.condition_key,
             aoc.option_code,
-            aoc.option_text
+            aoc.option_text,
+            aoc.standard_field_id
         FROM announcement_option_conditions aoc
         WHERE aoc.announcement_id = #{announcementId}
         ORDER BY aoc.condition_scope_code ASC, aoc.condition_key ASC, aoc.option_code ASC
@@ -244,7 +262,8 @@
         SELECT
             adr.document_type_code,
             adr.is_required,
-            adr.sort_order
+            adr.sort_order,
+            adr.standard_field_id
         FROM announcement_document_requirements adr
         WHERE adr.announcement_id = #{announcementId}
         ORDER BY adr.sort_order ASC, adr.document_type_code ASC
@@ -489,6 +508,7 @@
             min_number,
             max_number,
             unit_code,
+            standard_field_id,
             created_by,
             updated_by
         ) VALUES (
@@ -500,6 +520,7 @@
             #{minNumber},
             #{maxNumber},
             #{unitCode},
+            #{standardFieldId,jdbcType=OTHER},
             #{actorUserId},
             #{actorUserId}
         )
@@ -519,6 +540,7 @@
             condition_key,
             option_code,
             option_text,
+            standard_field_id,
             created_by,
             updated_by
         ) VALUES (
@@ -527,6 +549,7 @@
             #{conditionKey},
             #{optionCode},
             #{optionText},
+            #{standardFieldId,jdbcType=OTHER},
             #{actorUserId},
             #{actorUserId}
         )
@@ -545,6 +568,7 @@
             document_type_code,
             is_required,
             sort_order,
+            standard_field_id,
             created_by,
             updated_by
         ) VALUES (
@@ -552,10 +576,26 @@
             #{documentTypeCode},
             #{required},
             #{sortOrder},
+            #{standardFieldId,jdbcType=OTHER},
             #{actorUserId},
             #{actorUserId}
         )
     </insert>
+
+    <select id="selectStandardDocumentFieldDetails" resultMap="AnnouncementStandardDocumentFieldRowMap">
+        -- Select one standard document field for announcement condition validation.
+        SELECT
+            sdf.id AS standard_field_id,
+            sdf.document_type_code,
+            sdf.field_key,
+            sdf.field_label,
+            sdf.field_type_code,
+            sdf.scope_code,
+            sdf.is_condition_eligible,
+            sdf.is_selectable
+        FROM standard_document_fields sdf
+        WHERE sdf.id = #{standardFieldId}
+    </select>
 
     <delete id="deleteAnnouncementStepButtons">
         -- Replace step buttons for an announcement.

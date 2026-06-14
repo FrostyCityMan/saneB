@@ -7,6 +7,7 @@ public record AnnouncementDocumentRequirementCommand(
         String documentTypeCode,
         Boolean required,
         Integer sortOrder,
+        UUID standardFieldId,
         UUID actorUserId
 ) {
 }

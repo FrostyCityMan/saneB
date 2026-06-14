@@ -78,4 +78,6 @@ public interface DynamicAnnouncementInputDao {
             @Param("documentTypeCode") String documentTypeCode,
             @Param("scopeCode") String scopeCode
     );
+
+    StandardDocumentFieldRow selectStandardDocumentFieldDetails(@Param("standardFieldId") UUID standardFieldId);
 }

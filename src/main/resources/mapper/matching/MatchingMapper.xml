@@ -227,6 +227,7 @@
                     count(1)
                 FROM announcement_numeric_conditions anc
                 WHERE anc.announcement_id = a.id
+                  AND (#{finalMatching} = true OR anc.standard_field_id IS NULL)
             )
             + (
                 SELECT
@@ -234,10 +235,12 @@
                 FROM (
                     SELECT
                         aoc.condition_scope_code,
-                        aoc.condition_key
+                        aoc.condition_key,
+                        aoc.standard_field_id
                     FROM announcement_option_conditions aoc
                     WHERE aoc.announcement_id = a.id
-                    GROUP BY aoc.condition_scope_code, aoc.condition_key
+                      AND (#{finalMatching} = true OR aoc.standard_field_id IS NULL)
+                    GROUP BY aoc.condition_scope_code, aoc.condition_key, aoc.standard_field_id
                 ) option_groups
             )
             + (
@@ -251,6 +254,7 @@
                     count(1)
                 FROM announcement_numeric_conditions anc
                 WHERE anc.announcement_id = a.id
+                  AND (#{finalMatching} = true OR anc.standard_field_id IS NULL)
             )
             + (
                 SELECT
@@ -258,10 +262,12 @@
                 FROM (
                     SELECT
                         aoc.condition_scope_code,
-                        aoc.condition_key
+                        aoc.condition_key,
+                        aoc.standard_field_id
                     FROM announcement_option_conditions aoc
                     WHERE aoc.announcement_id = a.id
-                    GROUP BY aoc.condition_scope_code, aoc.condition_key
+                      AND (#{finalMatching} = true OR aoc.standard_field_id IS NULL)
+                    GROUP BY aoc.condition_scope_code, aoc.condition_key, aoc.standard_field_id
                 ) option_groups
             )
             + (
@@ -367,6 +373,28 @@
               CROSS JOIN LATERAL (
                   SELECT
                       CASE
+                          WHEN #{finalMatching} = true
+                               AND anc.standard_field_id IS NOT NULL
+                          THEN (
+                              SELECT
+                                  COALESCE(
+                                      mdiv.value_number,
+                                      CASE
+                                          WHEN mdiv.value_date IS NOT NULL
+                                          THEN floor(EXTRACT(YEAR FROM age(current_date, mdiv.value_date)))::numeric
+                                          ELSE NULL::numeric
+                                      END,
+                                      CASE
+                                          WHEN mdiv.value_boolean IS NULL THEN NULL::numeric
+                                          WHEN mdiv.value_boolean THEN 1::numeric
+                                          ELSE 0::numeric
+                                      END
+                                  )
+                              FROM member_document_input_values mdiv
+                              WHERE mdiv.user_id = #{memberUserId}
+                                AND mdiv.standard_field_id = anc.standard_field_id
+                              LIMIT 1
+                          )
                           WHEN anc.condition_scope_code = 'BUSINESS'
                                AND anc.condition_key IN ('ANNUAL_REVENUE', 'SUPPLY_AMOUNT', 'TOTAL_INCOME_AMOUNT')
                           THEN CASE
@@ -445,6 +473,7 @@
                       END AS basis_number
               ) basis
               WHERE anc.announcement_id = a.id
+                AND (#{finalMatching} = true OR anc.standard_field_id IS NULL)
                 AND (
                     basis.basis_number IS NULL
                     OR NOT (
@@ -464,14 +493,33 @@
                   SELECT
                       aoc.condition_scope_code,
                       aoc.condition_key,
+                      aoc.standard_field_id,
                       array_agg(aoc.option_code ORDER BY aoc.option_code) AS option_codes
                   FROM announcement_option_conditions aoc
                   WHERE aoc.announcement_id = a.id
-                  GROUP BY aoc.condition_scope_code, aoc.condition_key
+                    AND (#{finalMatching} = true OR aoc.standard_field_id IS NULL)
+                  GROUP BY aoc.condition_scope_code, aoc.condition_key, aoc.standard_field_id
               ) option_groups
               CROSS JOIN LATERAL (
                   SELECT
                       CASE
+                          WHEN #{finalMatching} = true
+                               AND option_groups.standard_field_id IS NOT NULL
+                          THEN (
+                              SELECT
+                                  COALESCE(
+                                      upper(NULLIF(mdiv.value_text, '')),
+                                      CASE
+                                          WHEN mdiv.value_boolean IS NULL THEN NULL
+                                          WHEN mdiv.value_boolean THEN 'TRUE'
+                                          ELSE 'FALSE'
+                                      END
+                                  )
+                              FROM member_document_input_values mdiv
+                              WHERE mdiv.user_id = #{memberUserId}
+                                AND mdiv.standard_field_id = option_groups.standard_field_id
+                              LIMIT 1
+                          )
                           WHEN option_groups.condition_scope_code = 'BUSINESS'
                                AND option_groups.condition_key = 'WORKPLACE_REGION_CODE'
                           THEN CASE

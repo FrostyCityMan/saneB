@@ -113,8 +113,10 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
             String scopeCode = normalizeRequiredCode("scopeCode", requirement.scopeCode(), SCOPE_CODES);
             AnnouncementInputRequirementRow existing = existingByFieldKey.get(fieldKey);
             if (existing != null && progressExists) {
-                validateImmutableRequirement(existing, fieldTypeCode, scopeCode, requirement.sensitive());
+                validateImmutableRequirement(existing, fieldTypeCode, scopeCode, requirement.sensitive(), requirement.standardFieldId());
             }
+            StandardDocumentFieldRow standardField = selectSelectableStandardField(requirement.standardFieldId());
+            validateRequirementStandardField(standardField, fieldKey, fieldTypeCode, scopeCode);
 
             UUID requirementId = existing == null ? UUID.randomUUID() : existing.requirementId();
             AnnouncementInputRequirementCommand command = new AnnouncementInputRequirementCommand(
@@ -127,6 +129,7 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                     Boolean.TRUE.equals(requirement.required()),
                     Boolean.TRUE.equals(requirement.sensitive()),
                     requirement.sortOrder(),
+                    requirement.standardFieldId(),
                     trimToNull(requirement.helpText()),
                     actorUserId
             );
@@ -293,6 +296,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
             if (requirement.sortOrder() < 0) {
                 throw validationFailed("sortOrder must be zero or positive.");
             }
+            StandardDocumentFieldRow standardField = selectSelectableStandardField(requirement.standardFieldId());
+            validateRequirementStandardField(
+                    standardField,
+                    normalizeCode(requirement.fieldKey()),
+                    fieldTypeCode,
+                    normalizeRequiredCode("scopeCode", requirement.scopeCode(), SCOPE_CODES)
+            );
             validateUnique("optionCode", nullToEmpty(requirement.options()), option -> normalizeCode(option.optionCode()));
             if (OPTION_FIELD_TYPE_CODES.contains(fieldTypeCode) && nullToEmpty(requirement.options()).isEmpty()) {
                 throw validationFailed("Option field type requires at least one option.");
@@ -307,12 +317,14 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
             AnnouncementInputRequirementRow existing,
             String fieldTypeCode,
             String scopeCode,
-            Boolean sensitive
+            Boolean sensitive,
+            UUID standardFieldId
     ) {
         if (!existing.fieldTypeCode().equals(fieldTypeCode)
                 || !existing.scopeCode().equals(scopeCode)
-                || Boolean.TRUE.equals(existing.sensitive()) != Boolean.TRUE.equals(sensitive)) {
-            throw validationFailed("fieldTypeCode, scopeCode, and sensitive cannot be changed after progress exists.");
+                || Boolean.TRUE.equals(existing.sensitive()) != Boolean.TRUE.equals(sensitive)
+                || !equalsNullable(existing.standardFieldId(), standardFieldId)) {
+            throw validationFailed("fieldTypeCode, scopeCode, sensitive, and standardFieldId cannot be changed after progress exists.");
         }
     }
 
@@ -530,6 +542,7 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 Boolean.TRUE.equals(requirement.required()),
                 Boolean.TRUE.equals(requirement.sensitive()),
                 requirement.sortOrder(),
+                requirement.standardFieldId(),
                 requirement.helpText(),
                 nullToEmpty(options).stream()
                         .map(option -> new AnnouncementInputRequirementsResponse.OptionResponse(
@@ -551,6 +564,7 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 row.fieldTypeCode(),
                 row.scopeCode(),
                 Boolean.TRUE.equals(row.requiredDefault()),
+                Boolean.TRUE.equals(row.conditionEligible()),
                 row.sortOrder() == null ? 0 : row.sortOrder(),
                 row.helpText()
         );
@@ -591,6 +605,33 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    private StandardDocumentFieldRow selectSelectableStandardField(UUID standardFieldId) {
+        if (standardFieldId == null) {
+            return null;
+        }
+        StandardDocumentFieldRow field = dynamicAnnouncementInputDao.selectStandardDocumentFieldDetails(standardFieldId);
+        if (field == null || !Boolean.TRUE.equals(field.selectable())) {
+            throw validationFailed("선택할 수 없는 표준 서류 항목입니다.");
+        }
+        return field;
+    }
+
+    private void validateRequirementStandardField(
+            StandardDocumentFieldRow standardField,
+            String fieldKey,
+            String fieldTypeCode,
+            String scopeCode
+    ) {
+        if (standardField == null) {
+            return;
+        }
+        if (!standardField.fieldKey().equals(fieldKey)
+                || !standardField.fieldTypeCode().equals(fieldTypeCode)
+                || !standardField.scopeCode().equals(scopeCode)) {
+            throw validationFailed("표준 서류 항목과 입력 항목의 식별값, 입력 유형, 적용 범위가 일치해야 합니다.");
+        }
+    }
+
     private int scalarCount(ApplicationInputValuesSaveRequest.InputValueRequest value) {
         int count = 0;
         if (trimToNull(value.valueText()) != null) {
@@ -610,6 +651,10 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
 
     private boolean hasAnyOption(ApplicationInputValuesSaveRequest.InputValueRequest value) {
         return normalizeOptionalCode(value.optionCode()) != null || !nullToEmpty(value.optionCodes()).isEmpty();
+    }
+
+    private boolean equalsNullable(UUID left, UUID right) {
+        return left == null ? right == null : left.equals(right);
     }
 
     private void validateOptionCode(String optionCode, Set<String> validOptionCodes) {

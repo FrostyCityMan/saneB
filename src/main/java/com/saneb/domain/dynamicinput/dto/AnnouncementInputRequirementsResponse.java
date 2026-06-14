@@ -17,6 +17,7 @@ public record AnnouncementInputRequirementsResponse(
             boolean required,
             boolean sensitive,
             int sortOrder,
+            UUID standardFieldId,
             String helpText,
             List<OptionResponse> options
     ) {

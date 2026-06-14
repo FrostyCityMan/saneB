@@ -24,6 +24,7 @@ import com.saneb.domain.announcement.vo.AnnouncementStepButtonCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepButtonRow;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentRow;
+import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
 import java.util.List;
 import java.util.UUID;
@@ -104,6 +105,10 @@ public interface AnnouncementDao {
     void deleteAnnouncementDocumentRequirements(@Param("announcementId") UUID announcementId);
 
     void insertAnnouncementDocumentRequirement(AnnouncementDocumentRequirementCommand command);
+
+    AnnouncementStandardDocumentFieldRow selectStandardDocumentFieldDetails(
+            @Param("standardFieldId") UUID standardFieldId
+    );
 
     void deleteAnnouncementStepButtons(@Param("announcementId") UUID announcementId);
 

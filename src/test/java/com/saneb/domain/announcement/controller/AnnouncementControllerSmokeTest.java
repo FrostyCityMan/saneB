@@ -19,6 +19,7 @@ import com.saneb.domain.announcement.vo.AnnouncementApprovalRequestCommand;
 import com.saneb.domain.announcement.vo.AnnouncementApprovalStatusCommand;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementManualStatusCommand;
+import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
@@ -49,6 +50,7 @@ class AnnouncementControllerSmokeTest {
 
     private static final UUID USER_ID = UUID.fromString("10000000-0000-0000-0000-000000000001");
     private static final UUID ANNOUNCEMENT_ID = UUID.fromString("20000000-0000-0000-0000-000000000001");
+    private static final UUID STANDARD_FIELD_ID = UUID.fromString("20000000-0000-0000-0000-000000000002");
 
     @Autowired
     private MockMvc mockMvc;
@@ -225,6 +227,41 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao, times(3)).insertAnnouncementNumericCondition(any());
         verify(announcementDao, times(3)).insertAnnouncementOptionCondition(any());
         verify(announcementDao, times(4)).insertAnnouncementDocumentRequirement(any());
+    }
+
+    @Test
+    void updateAnnouncementConditionsRejectsNonEligibleStandardField() throws Exception {
+        stubDetails();
+        when(announcementDao.selectStandardDocumentFieldDetails(STANDARD_FIELD_ID))
+                .thenReturn(new AnnouncementStandardDocumentFieldRow(
+                        STANDARD_FIELD_ID,
+                        "BUSINESS_REGISTRATION",
+                        "WORKPLACE_ADDRESS",
+                        "사업장 주소",
+                        "TEXT",
+                        "BUSINESS",
+                        false,
+                        true
+                ));
+
+        mockMvc.perform(put("/api/v1/announcements/{announcementId}/conditions", ANNOUNCEMENT_ID)
+                        .with(user(operatorPrincipal()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "numericConditions": [
+                                    {
+                                      "standardFieldId": "%s",
+                                      "conditionScopeCode": "BUSINESS",
+                                      "conditionKey": "WORKPLACE_ADDRESS",
+                                      "comparatorCode": "LTE",
+                                      "valueNumber": 1
+                                    }
+                                  ]
+                                }
+                                """.formatted(STANDARD_FIELD_ID)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test

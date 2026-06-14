@@ -1,6 +1,7 @@
 package com.saneb.domain.announcement.vo;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record AnnouncementNumericConditionRow(
         String conditionScopeCode,
@@ -9,6 +10,7 @@ public record AnnouncementNumericConditionRow(
         BigDecimal valueNumber,
         BigDecimal minNumber,
         BigDecimal maxNumber,
-        String unitCode
+        String unitCode,
+        UUID standardFieldId
 ) {
 }

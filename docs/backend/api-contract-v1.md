@@ -589,6 +589,8 @@ Member / Business / Family API skeleton 착수 기준:
 | `GET` | `/api/v1/announcements/{announcementId}` | authenticated | 공고 상세 |
 | `PUT` | `/api/v1/announcements/{announcementId}` | `OPERATOR` | 공고 기본 정보 수정 |
 | `PUT` | `/api/v1/announcements/{announcementId}/conditions` | `OPERATOR` | 공고 조건 저장 |
+| `GET` | `/api/v1/announcements/{announcementId}/input-requirements` | authenticated | 공고별 추가 입력 항목 조회 |
+| `PUT` | `/api/v1/announcements/{announcementId}/input-requirements` | `OPERATOR` | 공고별 추가 입력 항목 저장 |
 | `PUT` | `/api/v1/announcements/{announcementId}/steps` | `OPERATOR` | 진행 단계 저장 |
 | `POST` | `/api/v1/announcements/{announcementId}/approval-requests` | `OPERATOR`, `ADMIN` | 승인 요청 |
 | `PATCH` | `/api/v1/announcements/{announcementId}/approval` | `APPROVER`, `ADMIN` | 승인/반려/취소 |
@@ -628,6 +630,7 @@ Member / Business / Family API skeleton 착수 기준:
   ],
   "numericConditions": [
     {
+      "standardFieldId": null,
       "conditionScopeCode": "BUSINESS",
       "conditionKey": "ANNUAL_REVENUE",
       "comparatorCode": "LTE",
@@ -639,6 +642,7 @@ Member / Business / Family API skeleton 착수 기준:
   ],
   "optionConditions": [
     {
+      "standardFieldId": null,
       "conditionScopeCode": "BUSINESS",
       "conditionKey": "BUSINESS_TYPE",
       "optionCode": "SOLE_PROPRIETOR",
@@ -647,6 +651,7 @@ Member / Business / Family API skeleton 착수 기준:
   ],
   "documentRequirements": [
     {
+      "standardFieldId": null,
       "documentTypeCode": "BUSINESS_REGISTRATION",
       "required": true,
       "sortOrder": 1
@@ -654,6 +659,14 @@ Member / Business / Family API skeleton 착수 기준:
   ]
 }
 ```
+
+`standardFieldId`는 선택값이다. 값이 없으면 기존처럼 기본정보 기반 조건으로 저장한다. 값이 있으면 `standard_document_fields.id`를 참조하며, 수치/선택 조건에서는 `is_condition_eligible=true`인 항목만 허용한다. 필요 서류와 동적 입력 항목은 `is_condition_eligible=false` 항목도 요청 입력으로 사용할 수 있다.
+
+매칭 단계 정책:
+
+- `BASIC` 후보는 사용자 기본정보 기준의 넓은 후보이므로 `standardFieldId`가 연결된 서류 조건을 계산하지 않는다.
+- `FINAL` 후보는 사용자 기본정보와 `member_document_input_values`에 저장된 서류별 선택 입력값을 함께 사용한다.
+- 서류 조건은 추천도, 선정확률, 점수, 우선순위 계산으로 확장하지 않는다.
 
 #### AnnouncementStepsSaveRequest
 
@@ -681,6 +694,29 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
+#### AnnouncementInputRequirementsSaveRequest
+
+```json
+{
+  "requirements": [
+    {
+      "standardFieldId": "uuid",
+      "fieldKey": "OPENING_DATE",
+      "fieldLabel": "개업일",
+      "fieldTypeCode": "DATE",
+      "scopeCode": "BUSINESS",
+      "required": false,
+      "sensitive": false,
+      "sortOrder": 1,
+      "helpText": "사업자등록증에 표시된 개업일을 입력합니다.",
+      "options": []
+    }
+  ]
+}
+```
+
+`standardFieldId`는 선택값이다. 표준 항목을 선택하면 `fieldKey`, `fieldTypeCode`, `scopeCode`는 표준 항목과 일치해야 한다. 동적 입력 항목은 사용자에게 추가로 값을 받기 위한 구조이며, `conditionEligible=false` 항목도 입력 요청용으로 저장할 수 있다.
+
 ## 8. Matching API
 
 | Method | Path | 권한 | 설명 |
@@ -696,6 +732,27 @@ Member / Business / Family API skeleton 착수 기준:
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 케이스 상세 |
 | `GET` | `/api/v1/matching/cases/{matchingCaseId}/results` | `USER`, `PARTNER`, `OPERATOR`, `APPROVER`, `ADMIN` | 조건별 매칭 결과 |
 | `PATCH` | `/api/v1/matching/cases/{matchingCaseId}/status` | `OPERATOR`, `APPROVER`, `ADMIN` | 매칭 상태 수동 변경 |
+
+#### StandardDocumentFieldResponse
+
+```json
+[
+  {
+    "standardFieldId": "uuid",
+    "documentTypeCode": "BUSINESS_REGISTRATION",
+    "fieldKey": "OPENING_DATE",
+    "fieldLabel": "개업일",
+    "fieldTypeCode": "DATE",
+    "scopeCode": "BUSINESS",
+    "requiredDefault": false,
+    "conditionEligible": true,
+    "sortOrder": 20,
+    "helpText": "사업자등록증에 표시된 개업일입니다."
+  }
+]
+```
+
+`conditionEligible=true`인 항목은 공고 조건으로 사용할 수 있다. `conditionEligible=false`인 항목은 사용자 또는 운영자에게 입력 요청은 가능하지만 매칭 조건으로 저장할 수 없다.
 
 #### MatchingCaseCreateRequest
 

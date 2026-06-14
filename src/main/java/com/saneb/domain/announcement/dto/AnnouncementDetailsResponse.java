@@ -54,7 +54,8 @@ public record AnnouncementDetailsResponse(
             BigDecimal valueNumber,
             BigDecimal minNumber,
             BigDecimal maxNumber,
-            String unitCode
+            String unitCode,
+            UUID standardFieldId
     ) {
     }
 
@@ -62,14 +63,16 @@ public record AnnouncementDetailsResponse(
             String conditionScopeCode,
             String conditionKey,
             String optionCode,
-            String optionText
+            String optionText,
+            UUID standardFieldId
     ) {
     }
 
     public record DocumentRequirementResponse(
             String documentTypeCode,
             Boolean required,
-            Integer sortOrder
+            Integer sortOrder,
+            UUID standardFieldId
     ) {
     }
 

@@ -155,9 +155,9 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
 |---|---|---|---|
 | `announcement_industry_conditions` | `announcement_id`, `condition_type_code`, `ksic_code` | PK `id`, FK `announcements.id` | UQ `(announcement_id, condition_type_code, ksic_code)` |
-| `announcement_numeric_conditions` | `announcement_id`, `condition_scope_code`, `condition_key`, `comparator_code`, `value_number`, `min_number`, `max_number`, `unit_code` | PK `id`, FK `announcements.id` | UQ `(announcement_id, condition_scope_code, condition_key)`, IDX `(condition_scope_code, condition_key)` |
-| `announcement_option_conditions` | `announcement_id`, `condition_scope_code`, `condition_key`, `option_code`, `option_text` | PK `id`, FK `announcements.id` | UQ `(announcement_id, condition_scope_code, condition_key, option_code)`, IDX `(condition_scope_code, condition_key)` |
-| `announcement_document_requirements` | `announcement_id`, `document_type_code`, `is_required`, `sort_order` | PK `id`, FK `announcements.id` | UQ `(announcement_id, document_type_code)` |
+| `announcement_numeric_conditions` | `announcement_id`, nullable `standard_field_id`, `condition_scope_code`, `condition_key`, `comparator_code`, `value_number`, `min_number`, `max_number`, `unit_code` | PK `id`, FK `announcements.id`, FK `standard_document_fields.id` | UQ `(announcement_id, condition_scope_code, condition_key)`, IDX `(condition_scope_code, condition_key)` |
+| `announcement_option_conditions` | `announcement_id`, nullable `standard_field_id`, `condition_scope_code`, `condition_key`, `option_code`, `option_text` | PK `id`, FK `announcements.id`, FK `standard_document_fields.id` | UQ `(announcement_id, condition_scope_code, condition_key, option_code)`, IDX `(condition_scope_code, condition_key)` |
+| `announcement_document_requirements` | `announcement_id`, nullable `standard_field_id`, `document_type_code`, `is_required`, `sort_order` | PK `id`, FK `announcements.id`, FK `standard_document_fields.id` | UQ `(announcement_id, document_type_code)` |
 
 조건 scope:
 
@@ -391,6 +391,14 @@ dev seed:
 정책:
 
 - 표준 서류 필드의 `required_default`는 기본 `false`다. 일반 사용자에게 서류 내용 입력을 기본 필수로 강제하지 않는다.
+
+`V20__add_condition_eligible_standard_document_fields.sql`은 `standard_document_fields.is_condition_eligible`을 추가한다.
+
+- `is_condition_eligible=true`인 표준 서류 필드만 공고 조건의 `standard_field_id`로 사용할 수 있다.
+- `is_condition_eligible=false`인 표준 서류 필드는 필요 서류 또는 동적 입력 항목으로 요청할 수 있지만 매칭 조건으로는 사용할 수 없다.
+- `matching_stage_code='BASIC'` 후보 계산은 `standard_field_id IS NULL`인 기본정보 조건만 사용한다.
+- `matching_stage_code='FINAL'` 후보 계산은 `standard_field_id`가 연결된 조건에 대해 `member_document_input_values.standard_field_id` 값을 직접 비교한다.
+- 이 필드는 추천도, 선정확률, 점수, 우선순위 계산에 사용하지 않는다.
 - 자동 추천도, 선정확률, 점수, AI 자동판단 컬럼은 추가하지 않는다.
 - 네이버 전자증명 API 자동 수집을 전제로 하는 저장 컬럼은 추가하지 않는다.
 

@@ -37,6 +37,7 @@ import com.saneb.domain.announcement.vo.AnnouncementStepButtonCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepButtonRow;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentRow;
+import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
@@ -82,6 +83,10 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             "BUSINESS", "PERSONAL", "SPOUSE", "CHILD", "PARENT", "APPLICATION", "SUPPORT"
     );
     private static final Set<String> COMPARATOR_CODES = Set.of("GTE", "LTE", "GT", "LT", "EQ", "BETWEEN");
+    private static final Set<String> NUMERIC_CONDITION_FIELD_TYPE_CODES = Set.of("NUMBER", "AMOUNT", "DATE");
+    private static final Set<String> OPTION_CONDITION_FIELD_TYPE_CODES = Set.of(
+            "BOOLEAN", "SELECT", "RADIO", "MULTI_SELECT"
+    );
 
     private final AnnouncementDao announcementDao;
 
@@ -206,6 +211,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     condition.minNumber(),
                     condition.maxNumber(),
                     normalizeOptionalCode(condition.unitCode()),
+                    condition.standardFieldId(),
                     actorUserId
             ));
         }
@@ -217,6 +223,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     normalizeText(condition.conditionKey()),
                     normalizeText(condition.optionCode()),
                     trimToNull(condition.optionText()),
+                    condition.standardFieldId(),
                     actorUserId
             ));
         }
@@ -227,6 +234,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                     normalizeText(requirement.documentTypeCode()),
                     requirement.required(),
                     requirement.sortOrder(),
+                    requirement.standardFieldId(),
                     actorUserId
             ));
         }
@@ -466,7 +474,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                                         condition.valueNumber(),
                                         condition.minNumber(),
                                         condition.maxNumber(),
-                                        condition.unitCode()
+                                        condition.unitCode(),
+                                        condition.standardFieldId()
                                 ))
                                 .toList(),
                         optionConditions.stream()
@@ -474,14 +483,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                                         condition.conditionScopeCode(),
                                         condition.conditionKey(),
                                         condition.optionCode(),
-                                        condition.optionText()
+                                        condition.optionText(),
+                                        condition.standardFieldId()
                                 ))
                                 .toList(),
                         documentRequirements.stream()
                                 .map(requirement -> new AnnouncementDetailsResponse.DocumentRequirementResponse(
                                         requirement.documentTypeCode(),
                                         requirement.required(),
-                                        requirement.sortOrder()
+                                        requirement.sortOrder(),
+                                        requirement.standardFieldId()
                                 ))
                                 .toList()
                 ),
@@ -573,12 +584,18 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         for (AnnouncementConditionsSaveRequest.NumericConditionRequest condition
                 : nullToEmpty(request.numericConditions())) {
             String comparatorCode = normalizeRequiredCode("comparatorCode", condition.comparatorCode(), COMPARATOR_CODES);
-            normalizeRequiredCode("conditionScopeCode", condition.conditionScopeCode(), CONDITION_SCOPE_CODES);
+            String scopeCode = normalizeRequiredCode("conditionScopeCode", condition.conditionScopeCode(), CONDITION_SCOPE_CODES);
+            validateConditionStandardField(condition.standardFieldId(), scopeCode, NUMERIC_CONDITION_FIELD_TYPE_CODES);
             validateNumericCondition(comparatorCode, condition.valueNumber(), condition.minNumber(), condition.maxNumber());
         }
         for (AnnouncementConditionsSaveRequest.OptionConditionRequest condition
                 : nullToEmpty(request.optionConditions())) {
-            normalizeRequiredCode("conditionScopeCode", condition.conditionScopeCode(), CONDITION_SCOPE_CODES);
+            String scopeCode = normalizeRequiredCode("conditionScopeCode", condition.conditionScopeCode(), CONDITION_SCOPE_CODES);
+            validateConditionStandardField(condition.standardFieldId(), scopeCode, OPTION_CONDITION_FIELD_TYPE_CODES);
+        }
+        for (AnnouncementConditionsSaveRequest.DocumentRequirementRequest requirement
+                : nullToEmpty(request.documentRequirements())) {
+            validateDocumentRequirementStandardField(requirement.standardFieldId(), requirement.documentTypeCode());
         }
     }
 
@@ -626,6 +643,44 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if (valueNumber == null) {
             throw validation("numeric condition requires valueNumber unless comparatorCode is BETWEEN.");
         }
+    }
+
+    private void validateConditionStandardField(
+            UUID standardFieldId,
+            String scopeCode,
+            Set<String> allowedFieldTypeCodes
+    ) {
+        if (standardFieldId == null) {
+            return;
+        }
+        AnnouncementStandardDocumentFieldRow field = selectStandardDocumentField(standardFieldId);
+        if (!Boolean.TRUE.equals(field.conditionEligible())) {
+            throw validation("이 표준 서류 항목은 조건으로 사용할 수 없습니다.");
+        }
+        if (!allowedFieldTypeCodes.contains(field.fieldTypeCode())) {
+            throw validation("선택한 표준 서류 항목은 이 조건 유형에 사용할 수 없습니다.");
+        }
+        if (!field.scopeCode().equals(scopeCode)) {
+            throw validation("표준 서류 항목의 적용 범위와 조건 범위가 일치해야 합니다.");
+        }
+    }
+
+    private void validateDocumentRequirementStandardField(UUID standardFieldId, String documentTypeCode) {
+        if (standardFieldId == null) {
+            return;
+        }
+        AnnouncementStandardDocumentFieldRow field = selectStandardDocumentField(standardFieldId);
+        if (!field.documentTypeCode().equals(normalizeOptionalCode(documentTypeCode))) {
+            throw validation("필요 서류와 표준 서류 항목의 서류 종류가 일치해야 합니다.");
+        }
+    }
+
+    private AnnouncementStandardDocumentFieldRow selectStandardDocumentField(UUID standardFieldId) {
+        AnnouncementStandardDocumentFieldRow field = announcementDao.selectStandardDocumentFieldDetails(standardFieldId);
+        if (field == null || !Boolean.TRUE.equals(field.selectable())) {
+            throw validation("선택할 수 없는 표준 서류 항목입니다.");
+        }
+        return field;
     }
 
     private <T, K> void validateUnique(String fieldName, List<T> values, Function<T, K> keySelector) {

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 public record AnnouncementInputRequirementsSaveRequest(
         @Valid List<RequirementRequest> requirements
@@ -18,6 +19,7 @@ public record AnnouncementInputRequirementsSaveRequest(
             @NotNull Boolean required,
             @NotNull Boolean sensitive,
             @Min(0) int sortOrder,
+            UUID standardFieldId,
             String helpText,
             @Valid List<OptionRequest> options
     ) {

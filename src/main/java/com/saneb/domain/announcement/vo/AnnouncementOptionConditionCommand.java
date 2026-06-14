@@ -8,6 +8,7 @@ public record AnnouncementOptionConditionCommand(
         String conditionKey,
         String optionCode,
         String optionText,
+        UUID standardFieldId,
         UUID actorUserId
 ) {
 }

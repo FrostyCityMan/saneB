@@ -12,6 +12,7 @@ public record AnnouncementInputRequirementRow(
         Boolean required,
         Boolean sensitive,
         Integer sortOrder,
+        UUID standardFieldId,
         String helpText
 ) {
 }

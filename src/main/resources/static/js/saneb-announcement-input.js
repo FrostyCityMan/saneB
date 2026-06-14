@@ -45,10 +45,25 @@
         REJECTED: "반려",
         CANCELED: "취소"
     };
+    const documentTypeLabels = {
+        BUSINESS_REGISTRATION: "사업자등록증",
+        VAT_TAX_BASE: "부가세 과세표준증명원",
+        TAX_EXEMPT_INCOME: "면세사업자 수입금액증명원",
+        INCOME_CERTIFICATE: "소득금액증명원",
+        NATIONAL_TAX_PAID: "국세완납증명서",
+        LOCAL_TAX_PAID: "지방세완납증명서",
+        RESIDENT_REGISTRATION: "주민등록등본",
+        FAMILY_RELATION: "가족관계증명서",
+        HEALTH_INSURANCE_PAYMENT: "건강보험료 납부확인서",
+        HEALTH_INSURANCE_QUALIFICATION: "건강보험 자격확인서"
+    };
     const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
+    const numericStandardFieldTypes = new Set(["NUMBER", "AMOUNT", "DATE"]);
+    const optionStandardFieldTypes = new Set(["BOOLEAN", "SELECT", "RADIO", "MULTI_SELECT"]);
 
     const baseUrl = app.dataset.baseUrl;
     const listUrl = app.dataset.listUrl;
+    const standardFieldsUrl = app.dataset.standardFieldsUrl;
     const listContainer = app.querySelector("[data-announcement-list]");
     const message = app.querySelector("[data-announcement-message]");
     const currentIdLabel = app.querySelector("[data-current-announcement-id]");
@@ -79,6 +94,7 @@
         document: documentRequirementList?.querySelector("[data-document-requirement-row]")?.cloneNode(true)
     };
     let defaultStepRequests = [];
+    let standardDocumentFields = [];
 
     const selectErrorMessage = (payload, fallback) => {
         if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
@@ -243,7 +259,7 @@
         };
     };
 
-    const buildNumericCondition = (scope, key, comparator, valueNumber, minNumber, maxNumber, unitCode) => {
+    const buildNumericCondition = (scope, key, comparator, valueNumber, minNumber, maxNumber, unitCode, standardFieldId) => {
         if (!key) {
             return null;
         }
@@ -256,6 +272,7 @@
         }
 
         return {
+            standardFieldId: nullIfBlank(standardFieldId),
             conditionScopeCode: scope,
             conditionKey: key,
             comparatorCode: comparator,
@@ -316,6 +333,7 @@
         });
         list.append(row);
         normalizeConditionRows(list, selector, removeSelector);
+        populateConditionStandardFieldSelects();
         return row;
     };
 
@@ -344,6 +362,7 @@
             list.append(row);
         });
         normalizeConditionRows(list, selector, removeSelector);
+        populateConditionStandardFieldSelects();
     };
 
     const buildConditionsRequest = () => {
@@ -372,7 +391,8 @@
                     numberOf(row, "[name='valueNumber']"),
                     numberOf(row, "[name='minNumber']"),
                     numberOf(row, "[name='maxNumber']"),
-                    valueOf(row, "[name='unitCode']")
+                    valueOf(row, "[name='unitCode']"),
+                    valueOf(row, "[name='standardFieldId']")
             );
             if (numeric) {
                 numericConditions.push(numeric);
@@ -390,6 +410,7 @@
                 throw new Error("선택/상태 조건은 조건 항목과 선택값을 모두 입력해 주세요.");
             }
             optionConditions.push({
+                standardFieldId: nullIfBlank(valueOf(row, "[name='standardFieldId']")),
                 conditionScopeCode: valueOf(row, "[name='conditionScopeCode']") || selectedTargetCode(),
                 conditionKey,
                 optionCode,
@@ -404,6 +425,7 @@
                 return;
             }
             documentRequirements.push({
+                standardFieldId: nullIfBlank(valueOf(row, "[name='standardFieldId']")),
                 documentTypeCode,
                 required: Boolean(row.querySelector("[name='required']")?.checked),
                 sortOrder: documentRequirements.length + 1
@@ -466,6 +488,151 @@
             }
             field.value = value ?? "";
         }
+    };
+
+    const selectStandardField = (standardFieldId) => {
+        if (!standardFieldId) {
+            return null;
+        }
+        return standardDocumentFields.find((field) => field.standardFieldId === standardFieldId) || null;
+    };
+
+    const standardFieldText = (field) => {
+        const documentLabel = documentTypeLabels[field.documentTypeCode] || field.documentTypeCode || "서류";
+        const conditionLabel = field.conditionEligible ? "조건 가능" : "입력 전용";
+        return `${documentLabel} · ${field.fieldLabel || field.fieldKey} (${conditionLabel})`;
+    };
+
+    const populateStandardFieldSelect = (select, selectedValue, filter, emptyLabel) => {
+        if (!select) {
+            return;
+        }
+        const currentValue = selectedValue ?? select.value ?? "";
+        select.replaceChildren();
+
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = emptyLabel;
+        select.append(empty);
+
+        standardDocumentFields
+                .filter((field) => field.selectable !== false)
+                .filter(filter)
+                .forEach((field) => {
+                    const option = document.createElement("option");
+                    option.value = field.standardFieldId;
+                    option.textContent = standardFieldText(field);
+                    select.append(option);
+                });
+
+        if (currentValue && !Array.from(select.options).some((option) => option.value === currentValue)) {
+            const fallback = document.createElement("option");
+            fallback.value = currentValue;
+            fallback.textContent = "불러올 수 없는 표준 항목";
+            select.append(fallback);
+        }
+        select.value = currentValue || "";
+    };
+
+    const populateConditionStandardFieldSelects = () => {
+        numericRows().forEach((row) => {
+            populateStandardFieldSelect(
+                    row.querySelector("[data-numeric-standard-field]"),
+                    valueOf(row, "[name='standardFieldId']"),
+                    (field) => field.conditionEligible === true && numericStandardFieldTypes.has(field.fieldTypeCode),
+                    "기본정보 항목 직접 선택"
+            );
+        });
+        optionRows().forEach((row) => {
+            populateStandardFieldSelect(
+                    row.querySelector("[data-option-standard-field]"),
+                    valueOf(row, "[name='standardFieldId']"),
+                    (field) => field.conditionEligible === true && optionStandardFieldTypes.has(field.fieldTypeCode),
+                    "기본정보 항목 직접 선택"
+            );
+        });
+        documentRows().forEach((row) => {
+            const documentTypeCode = valueOf(row, "[name='documentTypeCode']");
+            populateStandardFieldSelect(
+                    row.querySelector("[data-document-standard-field]"),
+                    valueOf(row, "[name='standardFieldId']"),
+                    (field) => !documentTypeCode || field.documentTypeCode === documentTypeCode,
+                    "서류 전체 요청"
+            );
+        });
+    };
+
+    const populateDynamicStandardFieldSelects = () => {
+        app.querySelectorAll("[data-dynamic-requirement-row]").forEach((row) => {
+            populateStandardFieldSelect(
+                    row.querySelector("[data-dynamic-standard-field]"),
+                    valueOf(row, "[name='standardFieldId']"),
+                    () => true,
+                    "직접 입력"
+            );
+        });
+    };
+
+    const populateAllStandardFieldSelects = () => {
+        populateConditionStandardFieldSelects();
+        populateDynamicStandardFieldSelects();
+    };
+
+    const conditionKeyForStandardField = (field) => {
+        if (field.fieldKey === "OPENING_DATE") {
+            return "BUSINESS_YEARS";
+        }
+        return field.fieldKey || "";
+    };
+
+    const applyStandardFieldToConditionRow = (row, field, optionCondition = false) => {
+        if (!row || !field) {
+            return;
+        }
+        setFieldValue(row, "[name='conditionScopeCode']", field.scopeCode || selectedTargetCode());
+        setFieldValue(row, "[name='conditionKey']", conditionKeyForStandardField(field));
+        if (optionCondition) {
+            if (field.fieldTypeCode === "BOOLEAN" && !valueOf(row, "[name='optionCode']")) {
+                setFieldValue(row, "[name='optionCode']", "TRUE");
+            }
+            if (!valueOf(row, "[name='optionText']")) {
+                setFieldValue(row, "[name='optionText']", field.fieldLabel || "");
+            }
+        }
+    };
+
+    const applyStandardFieldToDocumentRow = (row, field) => {
+        if (!row || !field) {
+            return;
+        }
+        setFieldValue(row, "[name='documentTypeCode']", field.documentTypeCode || "");
+        populateConditionStandardFieldSelects();
+        setFieldValue(row, "[name='standardFieldId']", field.standardFieldId || "");
+    };
+
+    const applyStandardFieldToDynamicRequirementRow = (row, field) => {
+        if (!row || !field) {
+            return;
+        }
+        setFieldValue(row, "[name='fieldKey']", field.fieldKey || "");
+        setFieldValue(row, "[name='fieldLabel']", field.fieldLabel || "");
+        setFieldValue(row, "[name='fieldTypeCode']", field.fieldTypeCode || "TEXT");
+        setFieldValue(row, "[name='scopeCode']", field.scopeCode || "APPLICATION");
+        setFieldValue(row, "[name='helpText']", field.helpText || "");
+        const requiredField = row.querySelector("[name='required']");
+        if (requiredField) {
+            requiredField.checked = Boolean(field.requiredDefault);
+        }
+        row.querySelector("[name='fieldTypeCode']")?.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    const loadStandardDocumentFields = async () => {
+        if (!standardFieldsUrl) {
+            return;
+        }
+        const data = await requestJson(standardFieldsUrl, { method: "GET" });
+        standardDocumentFields = Array.isArray(data) ? data : [];
+        populateAllStandardFieldSelects();
     };
 
     const clearStepRow = (row) => {
@@ -649,6 +816,17 @@
         row.className = "dynamic-requirement-row";
         row.dataset.dynamicRequirementRow = "true";
 
+        const standardFieldBlock = document.createElement("div");
+        standardFieldBlock.className = "field-block span-2";
+        const standardFieldLabel = document.createElement("label");
+        standardFieldLabel.textContent = "표준 서류 항목";
+        const standardFieldSelect = document.createElement("select");
+        standardFieldSelect.name = "standardFieldId";
+        standardFieldSelect.dataset.dynamicStandardField = "true";
+        const standardFieldHelp = document.createElement("small");
+        standardFieldHelp.textContent = "서류 항목을 선택하면 아래 입력 항목이 자동으로 채워집니다. 조건으로 사용할 수 없는 항목도 요청 입력으로는 사용할 수 있습니다.";
+        standardFieldBlock.append(standardFieldLabel, standardFieldSelect, standardFieldHelp);
+
         const fieldKeyBlock = document.createElement("div");
         fieldKeyBlock.className = "field-block";
         const fieldKeyLabel = document.createElement("label");
@@ -743,7 +921,13 @@
         remove.textContent = "삭제";
         actions.append(remove);
 
-        row.append(fieldKeyBlock, labelBlock, fieldTypeBlock, scopeBlock, sortBlock, flags, optionBlock, helpBlock, actions);
+        row.append(standardFieldBlock, fieldKeyBlock, labelBlock, fieldTypeBlock, scopeBlock, sortBlock, flags, optionBlock, helpBlock, actions);
+        populateStandardFieldSelect(
+                standardFieldSelect,
+                requirement.standardFieldId || "",
+                () => true,
+                "직접 입력"
+        );
 
         const updateOptionVisibility = () => {
             optionBlock.hidden = !optionFieldTypes.has(fieldTypeSelect.value);
@@ -805,6 +989,7 @@
                     throw new Error("선택형 입력에는 선택 항목을 하나 이상 입력해 주세요.");
                 }
                 return {
+                    standardFieldId: nullIfBlank(valueOf(row, "[name='standardFieldId']")),
                     fieldKey: valueOf(row, "[name='fieldKey']"),
                     fieldLabel: valueOf(row, "[name='fieldLabel']"),
                     fieldTypeCode,
@@ -892,6 +1077,7 @@
                 "[data-numeric-condition-remove]",
                 conditions?.numericConditions || [],
                 (row, condition) => {
+                    setFieldValue(row, "[name='standardFieldId']", condition.standardFieldId || "");
                     setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
                     setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
                     setFieldValue(row, "[name='comparatorCode']", condition.comparatorCode || "LTE");
@@ -908,6 +1094,7 @@
                 "[data-option-condition-remove]",
                 conditions?.optionConditions || [],
                 (row, condition) => {
+                    setFieldValue(row, "[name='standardFieldId']", condition.standardFieldId || "");
                     setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
                     setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
                     setFieldValue(row, "[name='optionCode']", condition.optionCode || "");
@@ -921,6 +1108,7 @@
                 "[data-document-requirement-remove]",
                 conditions?.documentRequirements || [],
                 (row, document) => {
+                    setFieldValue(row, "[name='standardFieldId']", document.standardFieldId || "");
                     setFieldValue(row, "[name='documentTypeCode']", document.documentTypeCode || "");
                     const requiredField = row.querySelector("[name='required']");
                     if (requiredField) {
@@ -1004,6 +1192,45 @@
     app.addEventListener("change", (event) => {
         if (event.target.matches("input[name='targetTypeCode']")) {
             updateTargetUi();
+            populateConditionStandardFieldSelects();
+            return;
+        }
+        if (event.target.matches("[data-numeric-standard-field]")) {
+            applyStandardFieldToConditionRow(
+                    event.target.closest("[data-numeric-condition-row]"),
+                    selectStandardField(event.target.value),
+                    false
+            );
+            return;
+        }
+        if (event.target.matches("[data-option-standard-field]")) {
+            applyStandardFieldToConditionRow(
+                    event.target.closest("[data-option-condition-row]"),
+                    selectStandardField(event.target.value),
+                    true
+            );
+            return;
+        }
+        if (event.target.matches("[data-document-standard-field]")) {
+            applyStandardFieldToDocumentRow(
+                    event.target.closest("[data-document-requirement-row]"),
+                    selectStandardField(event.target.value)
+            );
+            return;
+        }
+        if (event.target.matches("[data-document-requirement-row] [name='documentTypeCode']")) {
+            const row = event.target.closest("[data-document-requirement-row]");
+            if (row) {
+                setFieldValue(row, "[name='standardFieldId']", "");
+            }
+            populateConditionStandardFieldSelects();
+            return;
+        }
+        if (event.target.matches("[data-dynamic-standard-field]")) {
+            applyStandardFieldToDynamicRequirementRow(
+                    event.target.closest("[data-dynamic-requirement-row]"),
+                    selectStandardField(event.target.value)
+            );
         }
     });
 
@@ -1354,5 +1581,8 @@
     updateTargetUi();
     updateApprovalUi("");
     renderDynamicRequirements([]);
+    loadStandardDocumentFields().catch((error) => {
+        setMessage(error.message, "error");
+    });
     loadAnnouncementList();
 })();

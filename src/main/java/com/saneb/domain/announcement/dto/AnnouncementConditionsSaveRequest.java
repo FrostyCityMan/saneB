@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 public record AnnouncementConditionsSaveRequest(
         @Valid
@@ -56,7 +57,9 @@ public record AnnouncementConditionsSaveRequest(
             BigDecimal maxNumber,
 
             @Size(max = 30, message = "unitCode must be 30 characters or less")
-            String unitCode
+            String unitCode,
+
+            UUID standardFieldId
     ) {
     }
 
@@ -74,7 +77,9 @@ public record AnnouncementConditionsSaveRequest(
             String optionCode,
 
             @Size(max = 500, message = "optionText must be 500 characters or less")
-            String optionText
+            String optionText,
+
+            UUID standardFieldId
     ) {
     }
 
@@ -87,7 +92,9 @@ public record AnnouncementConditionsSaveRequest(
             Boolean required,
 
             @NotNull(message = "sortOrder is required")
-            Integer sortOrder
+            Integer sortOrder,
+
+            UUID standardFieldId
     ) {
     }
 }

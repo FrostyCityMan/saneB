@@ -12,6 +12,7 @@ public record AnnouncementNumericConditionCommand(
         BigDecimal minNumber,
         BigDecimal maxNumber,
         String unitCode,
+        UUID standardFieldId,
         UUID actorUserId
 ) {
 }

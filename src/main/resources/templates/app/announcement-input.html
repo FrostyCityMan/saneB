@@ -4,7 +4,8 @@
 <main class="announcement-page"
       data-announcement-app
       th:data-list-url="@{/api/v1/announcements}"
-      th:data-base-url="@{/api/v1/announcements}">
+      th:data-base-url="@{/api/v1/announcements}"
+      th:data-standard-fields-url="@{/api/v1/standard-document-fields}">
     <section class="announcement-shell" aria-label="공고 입력">
         <div class="announcement-workspace">
             <section class="announcement-hero">
@@ -181,6 +182,10 @@
                         </div>
                         <span class="soft-status" data-active-target-label>사업자 지원</span>
                     </div>
+                    <p class="dynamic-input-help">
+                        기본정보 조건은 현재 매칭 공고에 사용하고, 서류 기준 항목을 선택한 조건은 전체 서류 입력 후 최종 매칭에 사용합니다.
+                        조건으로 사용할 수 없는 서류 항목은 필요 서류 또는 동적 입력 항목으로만 요청할 수 있습니다.
+                    </p>
 
                     <section class="condition-editor-group">
                         <div class="condition-group-heading">
@@ -214,6 +219,13 @@
                         </div>
                         <div class="condition-list" data-numeric-condition-list>
                             <article class="condition-row numeric-condition-row" data-numeric-condition-row>
+                                <div class="field-block span-2">
+                                    <label>서류 기준 항목</label>
+                                    <select name="standardFieldId" data-numeric-standard-field>
+                                        <option value="">기본정보 항목 직접 선택</option>
+                                    </select>
+                                    <small>조건으로 설정 가능한 숫자, 금액, 날짜 항목만 표시합니다.</small>
+                                </div>
                                 <div class="field-block">
                                     <label>범위</label>
                                     <select name="conditionScopeCode">
@@ -273,6 +285,13 @@
                         </div>
                         <div class="condition-list" data-option-condition-list>
                             <article class="condition-row option-condition-row" data-option-condition-row>
+                                <div class="field-block span-2">
+                                    <label>서류 기준 항목</label>
+                                    <select name="standardFieldId" data-option-standard-field>
+                                        <option value="">기본정보 항목 직접 선택</option>
+                                    </select>
+                                    <small>조건으로 설정 가능한 선택, 상태 항목만 표시합니다.</small>
+                                </div>
                                 <div class="field-block">
                                     <label>범위</label>
                                     <select name="conditionScopeCode">
@@ -338,6 +357,13 @@
                                         <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인서</option>
                                         <option value="HEALTH_INSURANCE_QUALIFICATION">건강보험 자격확인서</option>
                                     </select>
+                                </div>
+                                <div class="field-block span-2">
+                                    <label>요청할 세부 항목</label>
+                                    <select name="standardFieldId" data-document-standard-field>
+                                        <option value="">서류 전체 요청</option>
+                                    </select>
+                                    <small>조건으로 쓸 수 없는 항목도 사용자에게 선택 입력으로 요청할 수 있습니다.</small>
                                 </div>
                                 <label class="inline-check">
                                     <input name="required" type="checkbox"> 필수 서류로 요청
@@ -538,7 +564,7 @@
                     </div>
 
                     <p class="dynamic-input-help">
-                        신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. 입력 유형과 적용 범위는 저장 가능한 값만 선택합니다.
+                        신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. 표준 서류 항목을 선택하면 항목명, 입력 유형, 적용 범위가 자동으로 채워집니다.
                     </p>
 
                     <div class="dynamic-requirements-toolbar">

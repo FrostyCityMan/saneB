@@ -12,6 +12,7 @@ public record AnnouncementInputRequirementCommand(
         Boolean required,
         Boolean sensitive,
         int sortOrder,
+        UUID standardFieldId,
         String helpText,
         UUID actorUserId
 ) {

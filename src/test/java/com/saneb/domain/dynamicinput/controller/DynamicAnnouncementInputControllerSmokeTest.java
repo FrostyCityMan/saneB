@@ -12,6 +12,7 @@ import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import com.saneb.domain.dynamicinput.dto.AnnouncementInputRequirementsResponse;
 import com.saneb.domain.dynamicinput.dto.ApplicationInputValuesResponse;
+import com.saneb.domain.dynamicinput.dto.StandardDocumentFieldResponse;
 import com.saneb.domain.dynamicinput.service.DynamicAnnouncementInputService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -34,6 +35,7 @@ class DynamicAnnouncementInputControllerSmokeTest {
     private static final UUID REQUIREMENT_ID = UUID.fromString("80000000-0000-0000-0000-000000000002");
     private static final UUID OPTION_ID = UUID.fromString("80000000-0000-0000-0000-000000000003");
     private static final UUID PROGRESS_ID = UUID.fromString("80000000-0000-0000-0000-000000000004");
+    private static final UUID STANDARD_FIELD_ID = UUID.fromString("80000000-0000-0000-0000-000000000005");
 
     @Autowired
     private MockMvc mockMvc;
@@ -135,6 +137,30 @@ class DynamicAnnouncementInputControllerSmokeTest {
                 .andExpect(jsonPath("$.data.values[0].fieldKey").value("BUSINESS_PLACE"));
     }
 
+    @Test
+    void selectStandardDocumentFieldsReturnsConditionEligible() throws Exception {
+        org.mockito.Mockito.when(dynamicAnnouncementInputService.selectStandardDocumentFieldList(null, null))
+                .thenReturn(List.of(new StandardDocumentFieldResponse(
+                        STANDARD_FIELD_ID,
+                        "BUSINESS_REGISTRATION",
+                        "OPENING_DATE",
+                        "개업일",
+                        "DATE",
+                        "BUSINESS",
+                        false,
+                        true,
+                        10,
+                        "사업자등록증에 표시된 개업일입니다."
+                )));
+
+        mockMvc.perform(get("/api/v1/standard-document-fields")
+                        .with(user(operatorPrincipal())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].standardFieldId").value(STANDARD_FIELD_ID.toString()))
+                .andExpect(jsonPath("$.data[0].conditionEligible").value(true));
+    }
+
     private AnnouncementInputRequirementsResponse requirementsResponse() {
         return new AnnouncementInputRequirementsResponse(
                 ANNOUNCEMENT_ID,
@@ -147,6 +173,7 @@ class DynamicAnnouncementInputControllerSmokeTest {
                         true,
                         false,
                         1,
+                        null,
                         "공고 입력 항목",
                         List.of(new AnnouncementInputRequirementsResponse.OptionResponse(
                                 OPTION_ID,

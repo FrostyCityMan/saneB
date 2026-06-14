@@ -10,6 +10,7 @@ public record StandardDocumentFieldResponse(
         String fieldTypeCode,
         String scopeCode,
         boolean requiredDefault,
+        boolean conditionEligible,
         int sortOrder,
         String helpText
 ) {
