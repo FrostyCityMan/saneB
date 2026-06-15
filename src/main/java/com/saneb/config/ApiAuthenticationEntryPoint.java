@@ -28,6 +28,10 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) throws IOException {
+        if (acceptsHtml(request)) {
+            response.sendRedirect(request.getContextPath() + "/invalid-access?reason=auth");
+            return;
+        }
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
@@ -35,5 +39,10 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 response.getWriter(),
                 ApiResponse.failure(ErrorResponse.of(ErrorCode.AUTH_REQUIRED), "인증이 필요합니다.")
         );
+    }
+
+    private boolean acceptsHtml(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains(MediaType.TEXT_HTML_VALUE);
     }
 }

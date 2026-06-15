@@ -28,6 +28,10 @@ public class ApiAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException
     ) throws IOException {
+        if (acceptsHtml(request)) {
+            response.sendRedirect(request.getContextPath() + "/invalid-access?reason=forbidden");
+            return;
+        }
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
@@ -35,5 +39,10 @@ public class ApiAccessDeniedHandler implements AccessDeniedHandler {
                 response.getWriter(),
                 ApiResponse.failure(ErrorResponse.of(ErrorCode.AUTH_FORBIDDEN), "권한이 없습니다.")
         );
+    }
+
+    private boolean acceptsHtml(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains(MediaType.TEXT_HTML_VALUE);
     }
 }

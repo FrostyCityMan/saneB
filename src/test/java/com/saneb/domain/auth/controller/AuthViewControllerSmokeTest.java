@@ -47,6 +47,28 @@ class AuthViewControllerSmokeTest {
     }
 
     @Test
+    void selectInvalidAccessPageReturnsLoginReturnAction() throws Exception {
+        mockMvc.perform(get("/invalid-access")
+                        .queryParam("reason", "auth"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/invalid-access"))
+                .andExpect(content().string(containsString("잘못된 접근")))
+                .andExpect(content().string(containsString("로그인 화면으로 돌아가기")))
+                .andExpect(content().string(containsString("/login")))
+                .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void forbiddenBrowserPageRedirectsToInvalidAccessPage() throws Exception {
+        mockMvc.perform(get("/app/admin/users")
+                        .accept(org.springframework.http.MediaType.TEXT_HTML))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/invalid-access?reason=forbidden"))
+                .andExpect(header().string("Location", "/invalid-access?reason=forbidden"));
+    }
+
+    @Test
     @WithMockUser(username = "user01", roles = "USER")
     void selectLoginPageRedirectsAuthenticatedUserToDefaultRoute() throws Exception {
         mockMvc.perform(get("/login"))

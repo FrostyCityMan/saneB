@@ -567,6 +567,67 @@
     font-weight: 750;
 }
 
+.invalid-access-shell {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 32px 18px;
+}
+
+.invalid-access-card {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    width: min(100%, 520px);
+    border: 1px solid var(--saneb-border);
+    border-radius: var(--saneb-radius);
+    background: rgba(255, 253, 248, 0.94);
+    box-shadow: var(--saneb-shadow);
+    padding: 36px 28px 30px;
+    text-align: center;
+}
+
+.invalid-access-brand {
+    margin-bottom: 8px;
+    font-size: 28px;
+}
+
+.invalid-access-icon {
+    margin: 0;
+}
+
+.invalid-access-card h1 {
+    margin: 0;
+    color: #202522;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.invalid-access-card p {
+    margin: 0;
+    color: #394038;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.6;
+}
+
+.invalid-access-card small {
+    color: var(--saneb-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.invalid-access-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    margin-top: 8px;
+    padding: 0 20px;
+    text-decoration: none;
+}
+
 @media (max-width: 1180px) {
     .saneb-login-body {
         background: linear-gradient(135deg, #fbf8f1 0%, #fffdf8 48%, #f8f0e3 100%);
@@ -670,5 +731,18 @@
     .login-footer {
         justify-content: flex-start;
         gap: 14px;
+    }
+
+    .invalid-access-card {
+        padding: 28px 18px 22px;
+    }
+
+    .invalid-access-card h1 {
+        font-size: 24px;
+    }
+
+    .invalid-access-action {
+        width: 100%;
+        min-width: 0;
     }
 }
