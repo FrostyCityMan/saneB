@@ -46,6 +46,114 @@
         FAMILY: "가족"
     };
 
+    const conditionScopeLabels = {
+        BUSINESS: "사업자 조건",
+        PERSONAL: "개인 조건",
+        SPOUSE: "배우자 조건",
+        CHILD: "자녀 조건",
+        PARENT: "부모 조건",
+        APPLICATION: "신청 조건",
+        SUPPORT: "지원 내용",
+        FAMILY: "가족 조건"
+    };
+
+    const conditionKeyLabels = {
+        ANNUAL_REVENUE: "신고 매출액",
+        SUPPLY_AMOUNT: "공급가액",
+        TOTAL_INCOME_AMOUNT: "총 소득금액",
+        BUSINESS_YEARS: "업력",
+        OPENING_DATE: "개업일",
+        AGE: "대표자 나이",
+        REPRESENTATIVE_AGE: "대표자 나이",
+        HOUSEHOLD_MEMBER_COUNT: "세대원 수",
+        FAMILY_MEMBER_COUNT: "가구원 수",
+        CHILD_COUNT: "자녀 수",
+        FAMILY_CHILD_COUNT: "자녀 수",
+        PARENT_COUNT: "부모 수",
+        FAMILY_PARENT_COUNT: "부모 수",
+        SPOUSE_COUNT: "배우자 수",
+        HAS_CHILD: "자녀 여부",
+        HAS_SPOUSE: "배우자 여부",
+        HAS_PARENT: "부모 여부",
+        HAS_INCOME: "소득 여부",
+        WORKPLACE_REGION_CODE: "사업장 지역",
+        REGION_CODE: "주소지 지역",
+        BUSINESS_TYPE_CODE: "사업자 유형",
+        COMPANY_STAGE: "사업 상태",
+        BUSINESS_STAGE: "사업 상태",
+        TAX_TYPE_CODE: "과세 유형",
+        HAS_POLICY_FUND_USAGE: "정책자금 이용 이력",
+        HAS_GUARANTEE_USAGE: "보증 이용 이력",
+        HEALTH_INSURANCE_BASIS_CODE: "건강보험 자격",
+        INSURANCE_SUBSCRIBER_TYPE: "건강보험 자격",
+        MONTHLY_HEALTH_INSURANCE_PREMIUM: "월 건강보험료",
+        RECENT_HEALTH_INSURANCE_PREMIUM: "최근 건강보험료",
+        ANNUAL_HEALTH_INSURANCE_PREMIUM: "연 건강보험료",
+        NATIONAL_TAX_DELINQUENT: "국세 체납 여부",
+        LOCAL_TAX_DELINQUENT: "지방세 체납 여부",
+        TAX_PAID_STATUS: "세금 완납 여부",
+        IS_HOUSEHOLDER: "세대주 여부"
+    };
+
+    const conditionResultLabels = {
+        PASS: "충족",
+        FAIL: "미충족",
+        SKIPPED: "확인 제외",
+        REVIEW_REQUIRED: "검토 필요"
+    };
+
+    const conditionValueLabels = {
+        TRUE: "예",
+        FALSE: "아니오",
+        YES: "예",
+        NO: "아니오",
+        UNKNOWN: "잘 모름",
+        NONE: "없음",
+        HAS_INCOME: "소득 있음",
+        SEOUL: "서울",
+        BUSAN: "부산",
+        DAEGU: "대구",
+        INCHEON: "인천",
+        GWANGJU: "광주",
+        DAEJEON: "대전",
+        ULSAN: "울산",
+        SEJONG: "세종",
+        GYEONGGI: "경기",
+        GANGWON: "강원",
+        CHUNGBUK: "충북",
+        CHUNGNAM: "충남",
+        JEONBUK: "전북",
+        JEONNAM: "전남",
+        GYEONGBUK: "경북",
+        GYEONGNAM: "경남",
+        JEJU: "제주",
+        SOLE_PROPRIETOR: "개인사업자",
+        CORPORATION: "법인사업자",
+        SIMPLIFIED_TAXPAYER: "간이과세자",
+        GENERAL_TAXPAYER: "일반과세자",
+        TAX_EXEMPT: "면세사업자",
+        PRE_STARTUP: "예비창업",
+        EARLY_STARTUP: "창업초기",
+        OPERATING: "운영 중",
+        SUSPENDED: "휴업",
+        CLOSURE_PLANNED: "폐업 예정",
+        CLOSED: "폐업",
+        RESTART_PREPARING: "재창업 준비",
+        WORKPLACE: "직장가입자",
+        LOCAL: "지역가입자",
+        DEPENDENT: "피부양자"
+    };
+
+    const koreanLabel = (labels, value) => {
+        if (value == null || String(value).trim() === "") {
+            return "-";
+        }
+        const text = String(value).trim();
+        return labels[text] || labels[text.toUpperCase()] || text;
+    };
+
+    const conditionValueText = (value) => koreanLabel(conditionValueLabels, value);
+
     const selectErrorMessage = (payload, fallback) => {
         const fieldErrors = payload && payload.data && Array.isArray(payload.data.fieldErrors)
                 ? payload.data.fieldErrors
@@ -570,7 +678,12 @@
             } else {
                 data.forEach((item) => {
                     const row = document.createElement("p");
-                    row.textContent = `${item.conditionScopeCode || "-"} / ${item.conditionKey || "-"} / ${item.resultCode || "-"}`;
+                    const scope = koreanLabel(conditionScopeLabels, item.conditionScopeCode);
+                    const key = koreanLabel(conditionKeyLabels, item.conditionKey);
+                    const result = koreanLabel(conditionResultLabels, item.resultCode);
+                    const basis = conditionValueText(item.basisValue);
+                    const required = conditionValueText(item.requiredValue);
+                    row.textContent = `${scope} / ${key} / 결과: ${result} / 입력값: ${basis} / 기준값: ${required}`;
                     results.append(row);
                 });
             }
