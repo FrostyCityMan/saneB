@@ -147,6 +147,13 @@
         return payload.data;
     };
 
+    const withAppLoading = (task, options) => {
+        if (window.AppLoading) {
+            return window.AppLoading.withLoading(task, options);
+        }
+        return task();
+    };
+
     const setMessage = (text, status = "info") => {
         if (!message) {
             return;
@@ -879,7 +886,15 @@
             return;
         }
         try {
-            const data = await requestJson(currentApiUrl);
+            const data = await withAppLoading(
+                () => requestJson(currentApiUrl),
+                {
+                    preset: "default-api",
+                    title: isAdminApp ? "고객 정보 불러오는 중" : "기본정보 불러오는 중",
+                    message: "저장된 정보를 확인하고 있습니다.",
+                    delayMs: 200
+                }
+            );
             renderResponse(data);
             setMessage(isAdminApp ? "선택한 회원의 정보를 불러왔습니다." : "저장된 기본정보를 불러왔습니다.", "success");
         } catch (error) {
@@ -995,10 +1010,17 @@
         setBusy(true);
         setMessage("");
         try {
-            const data = await requestJson(currentApiUrl, {
-                method: "PUT",
-                body: JSON.stringify(buildPayload())
-            });
+            const data = await withAppLoading(
+                () => requestJson(currentApiUrl, {
+                    method: "PUT",
+                    body: JSON.stringify(buildPayload())
+                }),
+                {
+                    preset: "save",
+                    title: isAdminApp ? "고객 정보 저장 중" : "기본정보 저장 중",
+                    message: "입력한 내용을 서버 검증 후 저장하고 있습니다."
+                }
+            );
             renderResponse(data);
             setMessage(
                 isAdminApp

@@ -80,6 +80,7 @@ class CandidatePreviewControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("대표자명")))
                 .andExpect(content().string(containsString("가족 간단 정보")))
-                .andExpect(content().string(containsString("간단 결과 확인하기")));
+                .andExpect(content().string(containsString("간단 결과 확인하기")))
+                .andExpect(content().string(containsString("saneb-loading.js")));
     }
 }

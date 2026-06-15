@@ -31,6 +31,7 @@ class MemberBasicInfoViewControllerSmokeTest {
                 .andExpect(view().name("app/member-basic-info"))
                 .andExpect(content().string(containsString("기본 정보 입력")))
                 .andExpect(content().string(containsString("결과 확인하기")))
+                .andExpect(content().string(containsString("saneb-loading.js")))
                 .andExpect(content().string(not(containsString(LEGACY_PRIMARY_MATCHING_LABEL))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }

@@ -36,6 +36,13 @@
         submitButton.textContent = busy ? "확인 중" : submitButton.dataset.defaultText;
     };
 
+    const withAppLoading = (task, options) => {
+        if (window.AppLoading) {
+            return window.AppLoading.withLoading(task, options);
+        }
+        return task();
+    };
+
     const valueOf = (name) => String(form.querySelector(`[name='${name}']`)?.value || "").trim();
 
     const numberOrNull = (value) => {
@@ -192,31 +199,41 @@
         setMessage("");
         const families = buildFamilies();
         try {
-            const response = await fetch("/api/v1/pre-signup/candidate-preview", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
+            const data = await withAppLoading(
+                async () => {
+                    const response = await fetch("/api/v1/pre-signup/candidate-preview", {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            representativeName: textOrNull(valueOf("representativeName")),
+                            birthYear,
+                            regionCode: textOrNull(valueOf("regionCode")),
+                            ksicCode: textOrNull(valueOf("ksicCode")),
+                            annualRevenue,
+                            openingDate: textOrNull(valueOf("openingDate")),
+                            hasSpouse: families.some((family) => family.relationTypeCode === "SPOUSE") ? true : null,
+                            hasChild: families.some((family) => family.relationTypeCode === "CHILD") ? true : null,
+                            hasParent: families.some((family) => family.relationTypeCode === "PARENT") ? true : null,
+                            families
+                        })
+                    });
+                    const payload = await response.json().catch(() => null);
+                    if (!response.ok || !payload || payload.success !== true) {
+                        throw new Error(payload?.message || "간단 결과 확인에 실패했습니다.");
+                    }
+                    return payload.data || {};
                 },
-                body: JSON.stringify({
-                    representativeName: textOrNull(valueOf("representativeName")),
-                    birthYear,
-                    regionCode: textOrNull(valueOf("regionCode")),
-                    ksicCode: textOrNull(valueOf("ksicCode")),
-                    annualRevenue,
-                    openingDate: textOrNull(valueOf("openingDate")),
-                    hasSpouse: families.some((family) => family.relationTypeCode === "SPOUSE") ? true : null,
-                    hasChild: families.some((family) => family.relationTypeCode === "CHILD") ? true : null,
-                    hasParent: families.some((family) => family.relationTypeCode === "PARENT") ? true : null,
-                    families
-                })
-            });
-            const payload = await response.json().catch(() => null);
-            if (!response.ok || !payload || payload.success !== true) {
-                throw new Error(payload?.message || "간단 결과 확인에 실패했습니다.");
-            }
-            renderResult(payload.data || {});
+                {
+                    preset: "search",
+                    title: "간단 결과 확인 중",
+                    message: "입력한 기본정보 기준으로 현재 확인 가능한 공고를 찾고 있습니다."
+                }
+            );
+            renderResult(data);
             setMessage("간단 결과 확인이 완료되었습니다.", "success");
         } catch (error) {
             setMessage(error.message || "간단 결과 확인에 실패했습니다.", "error");

@@ -72,6 +72,13 @@
         return payload.data;
     };
 
+    const withAppLoading = (task, options) => {
+        if (window.AppLoading) {
+            return window.AppLoading.withLoading(task, options);
+        }
+        return task();
+    };
+
     const valueForRequirement = (requirementId) => currentValues.find((value) => value.requirementId === requirementId);
 
     const optionsForRequirement = (requirementId) => {
@@ -348,10 +355,24 @@
 
     const loadDynamicInputs = async () => {
         setSummary("불러오는 중");
-        const values = await requestJson(app.dataset.inputValuesUrl, { method: "GET" });
-        const requirements = await requestJson(
-                `/api/v1/announcements/${encodeURIComponent(values.announcementId)}/input-requirements`,
-                { method: "GET" }
+        const { values, requirements } = await withAppLoading(
+                async () => {
+                    const loadedValues = await requestJson(app.dataset.inputValuesUrl, { method: "GET" });
+                    const loadedRequirements = await requestJson(
+                            `/api/v1/announcements/${encodeURIComponent(loadedValues.announcementId)}/input-requirements`,
+                            { method: "GET" }
+                    );
+                    return {
+                        values: loadedValues,
+                        requirements: loadedRequirements
+                    };
+                },
+                {
+                    preset: "default-api",
+                    title: "입력 항목 불러오는 중",
+                    message: "공고별 입력 항목과 저장된 값을 확인하고 있습니다.",
+                    delayMs: 200
+                }
         );
         currentRequirements = new Map((requirements.requirements || [])
                 .map((requirement) => [requirement.requirementId, requirement]));
@@ -365,10 +386,17 @@
             setMessage("");
             try {
                 setBusy(true);
-                const response = await requestJson(app.dataset.inputValuesUrl, {
-                    method: "PUT",
-                    body: JSON.stringify(buildSaveRequest())
-                });
+                const response = await withAppLoading(
+                        () => requestJson(app.dataset.inputValuesUrl, {
+                            method: "PUT",
+                            body: JSON.stringify(buildSaveRequest())
+                        }),
+                        {
+                            preset: "save",
+                            title: "입력값 저장 중",
+                            message: "공고별 입력값을 서버 검증 후 저장하고 있습니다."
+                        }
+                );
                 currentValues = response.values || [];
                 renderFields();
                 setMessage("입력값이 저장되었습니다.", "success");

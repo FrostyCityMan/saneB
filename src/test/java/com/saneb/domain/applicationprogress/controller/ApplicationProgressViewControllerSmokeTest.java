@@ -84,6 +84,7 @@ class ApplicationProgressViewControllerSmokeTest {
                 .andExpect(view().name("app/application-progress-detail"))
                 .andExpect(content().string(containsString("다음 행동")))
                 .andExpect(content().string(containsString("진행 원함")))
+                .andExpect(content().string(containsString("saneb-loading.js")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("버튼 코드"))));
     }
 
