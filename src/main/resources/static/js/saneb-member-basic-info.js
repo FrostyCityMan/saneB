@@ -7,6 +7,7 @@
     const isAdminApp = app.hasAttribute("data-admin-member-basic-info-app");
     const apiUrl = app.dataset.basicInfoUrl || "";
     const adminBaseUrl = app.dataset.baseUrl || "";
+    const addressSearchUrl = app.dataset.addressSearchUrl || "";
     const form = app.querySelector("[data-basic-info-form]");
     const familyList = app.querySelector("[data-family-list]");
     const addFamilyButton = app.querySelector("[data-family-add]");
@@ -18,6 +19,11 @@
     const placeholder = app.querySelector("[data-admin-member-placeholder]");
     const selectedMemberName = app.querySelector("[data-selected-member-name]");
     const selectedMemberLogin = app.querySelector("[data-selected-member-login]");
+    const addressModal = app.querySelector("[data-address-modal]");
+    const addressKeyword = app.querySelector("[data-address-search-keyword]");
+    const addressSubmit = app.querySelector("[data-address-search-submit]");
+    const addressMessage = app.querySelector("[data-address-search-message]");
+    const addressResults = app.querySelector("[data-address-search-results]");
 
     const regionOptions = [
         ["SEOUL", "서울"],
@@ -56,6 +62,27 @@
         ["DEPENDENT", "피부양자"],
         ["UNKNOWN", "잘 모름"]
     ];
+    const sidoNameToRegionCode = new Map([
+        ["서울특별시", "SEOUL"],
+        ["부산광역시", "BUSAN"],
+        ["대구광역시", "DAEGU"],
+        ["인천광역시", "INCHEON"],
+        ["광주광역시", "GWANGJU"],
+        ["대전광역시", "DAEJEON"],
+        ["울산광역시", "ULSAN"],
+        ["세종특별자치시", "SEJONG"],
+        ["경기도", "GYEONGGI"],
+        ["강원특별자치도", "GANGWON"],
+        ["강원도", "GANGWON"],
+        ["충청북도", "CHUNGBUK"],
+        ["충청남도", "CHUNGNAM"],
+        ["전북특별자치도", "JEONBUK"],
+        ["전라북도", "JEONBUK"],
+        ["전라남도", "JEONNAM"],
+        ["경상북도", "GYEONGBUK"],
+        ["경상남도", "GYEONGNAM"],
+        ["제주특별자치도", "JEJU"]
+    ]);
     const selectOptionsByFieldKey = {
         REGION_CODE: regionOptions,
         WORKPLACE_REGION_CODE: regionOptions,
@@ -68,6 +95,8 @@
     let documentCatalog = [];
     let selectedDocumentTypes = new Set();
     let selectedUserId = null;
+    let activeAddressTarget = "member";
+    let currentAddressResults = [];
 
     const selectApiUrl = () => {
         if (!isAdminApp) {
@@ -183,6 +212,15 @@
         field.value = value == null ? "" : String(value);
     };
 
+    const setAddressMessage = (text, status = "info") => {
+        if (!addressMessage) {
+            return;
+        }
+        addressMessage.textContent = text || "";
+        addressMessage.classList.toggle("is-error", status === "error");
+        addressMessage.classList.toggle("is-success", status === "success");
+    };
+
     const setSelectValue = (name, value) => {
         const field = form.querySelector(`[name='${name}']`);
         if (!field) {
@@ -203,6 +241,137 @@
         option.value = value;
         option.textContent = label;
         select.append(option);
+    };
+
+    const selectRegionCodeBySidoName = (sidoName) => {
+        const text = String(sidoName || "").trim();
+        return sidoNameToRegionCode.get(text) || null;
+    };
+
+    const showAddressModal = (target) => {
+        if (!addressModal) {
+            setMessage("주소 검색 화면을 찾을 수 없습니다.", "error");
+            return;
+        }
+        if (!addressSearchUrl) {
+            setMessage("주소 검색 주소가 설정되지 않았습니다.", "error");
+            return;
+        }
+        activeAddressTarget = target === "business" ? "business" : "member";
+        currentAddressResults = [];
+        if (addressResults) {
+            addressResults.replaceChildren();
+        }
+        if (addressKeyword) {
+            addressKeyword.value = "";
+        }
+        setAddressMessage("");
+        addressModal.hidden = false;
+        addressKeyword?.focus();
+    };
+
+    const hideAddressModal = () => {
+        if (!addressModal) {
+            return;
+        }
+        addressModal.hidden = true;
+        currentAddressResults = [];
+    };
+
+    const renderAddressResults = (items) => {
+        if (!addressResults) {
+            return;
+        }
+        addressResults.replaceChildren();
+        if (items.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "field-help";
+            empty.textContent = "검색 결과가 없습니다. 도로명, 건물명, 지번을 다시 입력하세요.";
+            addressResults.append(empty);
+            return;
+        }
+        items.forEach((item, index) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "address-result-button";
+            button.dataset.addressResultIndex = String(index);
+
+            const main = document.createElement("strong");
+            main.textContent = item.roadAddress || item.roadAddressPart1 || "도로명주소 미제공";
+            const meta = document.createElement("span");
+            meta.textContent = [
+                item.postalCode ? `우편번호 ${item.postalCode}` : "",
+                item.jibunAddress || "",
+                item.buildingName || ""
+            ].filter(Boolean).join(" · ");
+            button.append(main, meta);
+            addressResults.append(button);
+        });
+    };
+
+    const searchAddress = async () => {
+        const keyword = String(addressKeyword?.value || "").trim();
+        if (keyword.length < 2) {
+            setAddressMessage("주소 검색어는 두 글자 이상 입력하세요.", "error");
+            return;
+        }
+        const params = new URLSearchParams({
+            keyword,
+            page: "1",
+            size: "10",
+            firstSort: "road",
+            includeHistory: "false"
+        });
+        if (addressSubmit) {
+            addressSubmit.disabled = true;
+            addressSubmit.textContent = "검색 중";
+        }
+        setAddressMessage("");
+        try {
+            const data = await requestJson(`${addressSearchUrl}?${params.toString()}`);
+            currentAddressResults = Array.isArray(data.items) ? data.items : [];
+            renderAddressResults(currentAddressResults);
+            setAddressMessage(`${data.totalCount || currentAddressResults.length}건 중 ${currentAddressResults.length}건을 표시합니다.`, "success");
+        } catch (error) {
+            currentAddressResults = [];
+            renderAddressResults(currentAddressResults);
+            setAddressMessage(error.message || "주소 검색에 실패했습니다.", "error");
+        } finally {
+            if (addressSubmit) {
+                addressSubmit.disabled = false;
+                addressSubmit.textContent = "검색";
+            }
+        }
+    };
+
+    const selectAddressResult = (index) => {
+        const item = currentAddressResults[index];
+        if (!item) {
+            setAddressMessage("선택한 주소를 확인할 수 없습니다.", "error");
+            return;
+        }
+        const prefix = activeAddressTarget === "business" ? "workplace" : "";
+        const fieldName = (suffix) => activeAddressTarget === "business"
+            ? `${prefix}${suffix}`
+            : `${suffix.charAt(0).toLowerCase()}${suffix.slice(1)}`;
+        const regionField = activeAddressTarget === "business" ? "workplaceRegionCode" : "regionCode";
+        const regionCode = selectRegionCodeBySidoName(item.sidoName);
+
+        if (regionCode) {
+            setSelectValue(regionField, regionCode);
+        }
+        setFieldValue(fieldName("PostalCode"), item.postalCode);
+        setFieldValue(fieldName("RoadAddress"), item.roadAddress || item.roadAddressPart1);
+        setFieldValue(fieldName("JibunAddress"), item.jibunAddress);
+        setFieldValue(fieldName("SidoName"), item.sidoName);
+        setFieldValue(fieldName("SigunguName"), item.sigunguName);
+        setFieldValue(fieldName("EupmyeondongName"), item.eupmyeondongName);
+        setFieldValue(fieldName("LegalDongCode"), item.legalDongCode);
+        setFieldValue(fieldName("RoadNameCode"), item.roadNameCode);
+        setFieldValue(fieldName("BuildingManagementNo"), item.buildingManagementNo);
+        setFieldValue(fieldName("AddressSourceCode"), "JUSO_API");
+        hideAddressModal();
+        form.querySelector(`[name='${fieldName("DetailAddress")}']`)?.focus();
     };
 
     const selectOptionsForField = (field) => {
@@ -413,6 +582,17 @@
     const renderResponse = (data) => {
         setFieldValue("birthYear", data.birthYear);
         setSelectValue("regionCode", data.regionCode);
+        setFieldValue("postalCode", data.postalCode);
+        setFieldValue("roadAddress", data.roadAddress);
+        setFieldValue("jibunAddress", data.jibunAddress);
+        setFieldValue("detailAddress", data.detailAddress);
+        setFieldValue("sidoName", data.sidoName);
+        setFieldValue("sigunguName", data.sigunguName);
+        setFieldValue("eupmyeondongName", data.eupmyeondongName);
+        setFieldValue("legalDongCode", data.legalDongCode);
+        setFieldValue("roadNameCode", data.roadNameCode);
+        setFieldValue("buildingManagementNo", data.buildingManagementNo);
+        setFieldValue("addressSourceCode", data.addressSourceCode);
         setSelectValue("incomePresenceCode", data.incomePresenceCode);
         setFieldValue("incomeAmount", data.incomeAmount);
         setSelectValue("healthInsuranceBasisCode", data.healthInsuranceBasisCode);
@@ -421,6 +601,17 @@
         setFieldValue("businessRegistrationNo", business.businessRegistrationNo);
         setFieldValue("businessName", business.businessName);
         setSelectValue("workplaceRegionCode", business.workplaceRegionCode);
+        setFieldValue("workplacePostalCode", business.workplacePostalCode);
+        setFieldValue("workplaceRoadAddress", business.workplaceRoadAddress);
+        setFieldValue("workplaceJibunAddress", business.workplaceJibunAddress);
+        setFieldValue("workplaceDetailAddress", business.workplaceDetailAddress);
+        setFieldValue("workplaceSidoName", business.workplaceSidoName);
+        setFieldValue("workplaceSigunguName", business.workplaceSigunguName);
+        setFieldValue("workplaceEupmyeondongName", business.workplaceEupmyeondongName);
+        setFieldValue("workplaceLegalDongCode", business.workplaceLegalDongCode);
+        setFieldValue("workplaceRoadNameCode", business.workplaceRoadNameCode);
+        setFieldValue("workplaceBuildingManagementNo", business.workplaceBuildingManagementNo);
+        setFieldValue("workplaceAddressSourceCode", business.workplaceAddressSourceCode);
         setFieldValue("openingDate", business.openingDate);
         setFieldValue("annualRevenue", business.annualRevenue);
         setFieldValue("annualRevenueYear", business.annualRevenueYear);
@@ -447,6 +638,17 @@
             businessRegistrationNo: textOrNull(valueOf("businessRegistrationNo")),
             businessName: textOrNull(valueOf("businessName")),
             workplaceRegionCode: textOrNull(valueOf("workplaceRegionCode")),
+            workplacePostalCode: textOrNull(valueOf("workplacePostalCode")),
+            workplaceRoadAddress: textOrNull(valueOf("workplaceRoadAddress")),
+            workplaceJibunAddress: textOrNull(valueOf("workplaceJibunAddress")),
+            workplaceDetailAddress: textOrNull(valueOf("workplaceDetailAddress")),
+            workplaceSidoName: textOrNull(valueOf("workplaceSidoName")),
+            workplaceSigunguName: textOrNull(valueOf("workplaceSigunguName")),
+            workplaceEupmyeondongName: textOrNull(valueOf("workplaceEupmyeondongName")),
+            workplaceLegalDongCode: textOrNull(valueOf("workplaceLegalDongCode")),
+            workplaceRoadNameCode: textOrNull(valueOf("workplaceRoadNameCode")),
+            workplaceBuildingManagementNo: textOrNull(valueOf("workplaceBuildingManagementNo")),
+            workplaceAddressSourceCode: textOrNull(valueOf("workplaceAddressSourceCode")),
             openingDate: textOrNull(valueOf("openingDate")),
             ksicCode: textOrNull(valueOf("ksicCode")),
             businessTypeCode: textOrNull(valueOf("businessTypeCode")),
@@ -513,6 +715,17 @@
         return {
             birthYear: numberOrNull(valueOf("birthYear")),
             regionCode: textOrNull(valueOf("regionCode")),
+            postalCode: textOrNull(valueOf("postalCode")),
+            roadAddress: textOrNull(valueOf("roadAddress")),
+            jibunAddress: textOrNull(valueOf("jibunAddress")),
+            detailAddress: textOrNull(valueOf("detailAddress")),
+            sidoName: textOrNull(valueOf("sidoName")),
+            sigunguName: textOrNull(valueOf("sigunguName")),
+            eupmyeondongName: textOrNull(valueOf("eupmyeondongName")),
+            legalDongCode: textOrNull(valueOf("legalDongCode")),
+            roadNameCode: textOrNull(valueOf("roadNameCode")),
+            buildingManagementNo: textOrNull(valueOf("buildingManagementNo")),
+            addressSourceCode: textOrNull(valueOf("addressSourceCode")),
             hasIncome: incomeFlag(incomePresenceCode),
             incomePresenceCode,
             incomeAmount: numberOrNull(valueOf("incomeAmount")),
@@ -597,6 +810,39 @@
             selectedDocumentTypes.delete(documentTypeCode);
         }
         renderDocuments();
+    });
+
+    app.querySelectorAll("[data-address-search-open]").forEach((button) => {
+        button.addEventListener("click", () => {
+            showAddressModal(button.dataset.addressTarget || "member");
+        });
+    });
+
+    app.querySelectorAll("[data-address-search-close]").forEach((button) => {
+        button.addEventListener("click", hideAddressModal);
+    });
+
+    addressModal?.addEventListener("click", (event) => {
+        if (event.target === addressModal) {
+            hideAddressModal();
+        }
+    });
+
+    addressSubmit?.addEventListener("click", searchAddress);
+
+    addressKeyword?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchAddress();
+        }
+    });
+
+    addressResults?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-address-result-index]");
+        if (!button) {
+            return;
+        }
+        selectAddressResult(Number(button.dataset.addressResultIndex));
     });
 
     form?.addEventListener("submit", async (event) => {

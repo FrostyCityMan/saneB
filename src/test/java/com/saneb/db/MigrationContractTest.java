@@ -263,6 +263,24 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v22MigrationContainsStructuredAddressFields() throws IOException {
+        String sql = selectV22Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN postal_code varchar(20)",
+                "ADD COLUMN road_address varchar(500)",
+                "ADD COLUMN legal_dong_code varchar(30)",
+                "ADD COLUMN workplace_postal_code varchar(20)",
+                "ADD COLUMN workplace_road_address varchar(500)",
+                "ADD COLUMN workplace_legal_dong_code varchar(30)",
+                "ck_member_profiles_address_source",
+                "ck_business_profiles_workplace_address_source",
+                "ix_member_profiles_legal_dong_code",
+                "ix_business_profiles_workplace_legal_dong_code"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -335,6 +353,11 @@ class MigrationContractTest {
 
     private String selectV21Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V21__create_standard_code_catalogs.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV22Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V22__add_structured_address_fields.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

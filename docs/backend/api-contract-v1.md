@@ -299,6 +299,70 @@ AuthMeResponse 필드 계약:
 - 서류 기반 값은 모두 선택 입력이다. 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공하고 저장 자체를 막지 않는다.
 - 운영 secret, 외부 API key, 개인정보 원문을 감사 로그 metadata에 저장하지 않는다.
 
+## 4.3 Address Search API
+
+행정안전부 도로명주소 검색 API를 서버에서 대신 호출하는 내부 API다. 브라우저는 외부 도메인이나 승인키를 직접 알 수 없으며, 화면은 `/api/v1/addresses/road`만 호출한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/addresses/road` | authenticated | 도로명주소 검색 결과 조회 |
+
+Request query:
+
+| 필드 | 필수 | 설명 |
+|---|---|---|
+| `keyword` | Y | 도로명, 건물명, 지번 검색어. 두 글자 이상 |
+| `page` | N | 기본값 `1` |
+| `size` | N | 기본값 `10`, 최대 `20` |
+| `firstSort` | N | `none`, `road`, `location` |
+| `includeHistory` | N | 변동 주소 포함 여부. 기본값 `false` |
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "postalCode": "30112",
+        "roadAddress": "세종특별자치시 도움6로 42",
+        "roadAddressPart1": "세종특별자치시 도움6로 42",
+        "roadAddressPart2": "",
+        "jibunAddress": "세종특별자치시 어진동 572",
+        "sidoName": "세종특별자치시",
+        "sigunguName": "",
+        "eupmyeondongName": "어진동",
+        "legalDongCode": "3611010300",
+        "roadNameCode": "361103258001",
+        "buildingManagementNo": "3611010300105720000000001",
+        "buildingName": "행정안전부",
+        "apartment": false
+      }
+    ],
+    "page": 1,
+    "size": 10,
+    "totalCount": 1,
+    "totalPages": 1
+  },
+  "message": ""
+}
+```
+
+환경변수:
+
+- `JUSO_API_ENABLED`: 주소 검색 API 사용 여부.
+- `JUSO_API_BASE_URL`: 기본값 `https://business.juso.go.kr/addrlink/addrLinkApi.do`.
+- `JUSO_API_KEY`: 행정안전부 도로명주소 API 승인키. 운영 secret이며 코드, 문서, 브라우저에 실제 값을 기록하지 않는다.
+- `JUSO_API_TIMEOUT_MILLIS`: 외부 API timeout.
+
+정책:
+
+- 주소 검색 API는 인증 사용자만 호출한다.
+- 외부 API 승인키는 서버 환경변수로만 주입한다.
+- 회원/사업자 저장 API에는 검색 결과의 구조화 필드만 저장하고 외부 API 원문 전체는 저장하지 않는다.
+- `regionCode`, `workplaceRegionCode`는 기존 시도 단위 매칭 코드를 유지하며, `legalDongCode` 등 상세 주소 식별자는 보조 비교 데이터로 저장한다.
+
 ## 5. Member / Business / Family API
 
 | Method | Path | 권한 | 설명 |
@@ -372,6 +436,17 @@ AuthMeResponse 필드 계약:
 {
   "birthYear": 1988,
   "regionCode": "SEOUL",
+  "postalCode": "04524",
+  "roadAddress": "서울특별시 중구 세종대로 110",
+  "jibunAddress": "서울특별시 중구 태평로1가 31",
+  "detailAddress": "101호",
+  "sidoName": "서울특별시",
+  "sigunguName": "중구",
+  "eupmyeondongName": "태평로1가",
+  "legalDongCode": "1114010300",
+  "roadNameCode": "111403005001",
+  "buildingManagementNo": "1114010300100310000000001",
+  "addressSourceCode": "JUSO_API",
   "hasIncome": true,
   "incomePresenceCode": "HAS_INCOME",
   "incomeAmount": 30000000,
@@ -380,6 +455,17 @@ AuthMeResponse 필드 계약:
     "businessRegistrationNo": "123-45-67890",
     "businessName": "사내비상점",
     "workplaceRegionCode": "SEOUL",
+    "workplacePostalCode": "04524",
+    "workplaceRoadAddress": "서울특별시 중구 세종대로 110",
+    "workplaceJibunAddress": "서울특별시 중구 태평로1가 31",
+    "workplaceDetailAddress": "2층",
+    "workplaceSidoName": "서울특별시",
+    "workplaceSigunguName": "중구",
+    "workplaceEupmyeondongName": "태평로1가",
+    "workplaceLegalDongCode": "1114010300",
+    "workplaceRoadNameCode": "111403005001",
+    "workplaceBuildingManagementNo": "1114010300100310000000001",
+    "workplaceAddressSourceCode": "JUSO_API",
     "openingDate": "2022-01-01",
     "ksicCode": "47911",
     "businessTypeCode": "SOLE_PROPRIETOR",
@@ -418,6 +504,8 @@ AuthMeResponse 필드 계약:
 통합 기본정보 저장 정책:
 
 - `business`는 선택 객체다. 사업자 정보를 하나라도 입력하면 `businessRegistrationNo`, `businessName`을 함께 저장해야 한다.
+- 주소 검색으로 선택한 구조화 주소값은 선택 입력이다. `addressSourceCode`, `workplaceAddressSourceCode`는 `JUSO_API`, `MANUAL`만 허용한다.
+- `regionCode`, `workplaceRegionCode`는 기존 시도 단위 조건 비교용 코드이며, `legalDongCode`, `workplaceLegalDongCode`는 향후 시군구/읍면동 조건 비교용 보조 식별자다.
 - `families`는 배우자, 자녀, 부모 1단계만 허용한다.
 - `incomePresenceCode`는 `UNKNOWN`, `NONE`, `HAS_INCOME`만 허용한다.
 - `documentInputs`는 사용자 기본정보 입력 하단의 서류별 선택 입력값이다. `standardFieldId`는 `standard_document_fields.id`를 참조한다.

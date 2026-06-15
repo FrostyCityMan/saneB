@@ -53,6 +53,7 @@ class AdminMemberBasicInfoControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(USER_ID.toString()))
+                .andExpect(jsonPath("$.data.legalDongCode").value("1114010300"))
                 .andExpect(jsonPath("$.data.documentInputs[0].documentTypeLabel").value("사업자등록증"));
     }
 
@@ -65,6 +66,10 @@ class AdminMemberBasicInfoControllerSmokeTest {
                                 {
                                   "birthYear": 1988,
                                   "regionCode": "SEOUL",
+                                  "postalCode": "04524",
+                                  "roadAddress": "서울특별시 중구 세종대로 110",
+                                  "legalDongCode": "1114010300",
+                                  "addressSourceCode": "JUSO_API",
                                   "incomePresenceCode": "UNKNOWN",
                                   "families": [],
                                   "documentInputs": [
@@ -106,6 +111,17 @@ class AdminMemberBasicInfoControllerSmokeTest {
                 USER_ID,
                 1988,
                 "SEOUL",
+                "04524",
+                "서울특별시 중구 세종대로 110",
+                "서울특별시 중구 태평로1가 31",
+                "101호",
+                "서울특별시",
+                "중구",
+                "태평로1가",
+                "1114010300",
+                "111403005001",
+                "1114010300100310000000001",
+                "JUSO_API",
                 true,
                 "HAS_INCOME",
                 BigDecimal.valueOf(30_000_000),
@@ -114,6 +130,17 @@ class AdminMemberBasicInfoControllerSmokeTest {
                         "123-45-67890",
                         "사내비상점",
                         "SEOUL",
+                        "04524",
+                        "서울특별시 중구 세종대로 110",
+                        "서울특별시 중구 태평로1가 31",
+                        "2층",
+                        "서울특별시",
+                        "중구",
+                        "태평로1가",
+                        "1114010300",
+                        "111403005001",
+                        "1114010300100310000000001",
+                        "JUSO_API",
                         LocalDate.of(2022, 1, 1),
                         "47911",
                         "SOLE_PROPRIETOR",

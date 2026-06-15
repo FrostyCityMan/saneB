@@ -3,7 +3,8 @@
       th:replace="~{fragments/layout :: page('고객 정보 입력', ~{::main})}">
 <main class="admin-member-basic-page"
       data-admin-member-basic-info-app
-      th:data-base-url="@{/api/v1/admin/member-basic-info}">
+      th:data-base-url="@{/api/v1/admin/member-basic-info}"
+      th:data-address-search-url="@{/api/v1/addresses/road}">
     <section class="admin-member-basic-shell" aria-label="고객 정보 입력">
         <section class="summary-panel admin-member-basic-hero">
             <div class="summary-header">
@@ -186,6 +187,30 @@
                             <option value="JEJU">제주</option>
                         </select>
                     </div>
+                    <div class="field-block span-2 address-field-block">
+                        <div class="field-label-row">
+                            <label for="adminRoadAddress">거주지 도로명주소</label>
+                            <button class="secondary-action compact-action" type="button"
+                                    data-address-search-open
+                                    data-address-target="member">
+                                주소 검색
+                            </button>
+                        </div>
+                        <div class="address-input-grid">
+                            <input id="adminPostalCode" name="postalCode" type="text" maxlength="20" placeholder="우편번호" readonly>
+                            <input id="adminRoadAddress" name="roadAddress" type="text" maxlength="500" placeholder="도로명주소" readonly>
+                            <input id="adminDetailAddress" name="detailAddress" type="text" maxlength="300" placeholder="상세주소를 입력하세요">
+                        </div>
+                        <small>회원이 전달한 주소를 검색으로 선택하고 상세주소를 입력합니다.</small>
+                        <input type="hidden" name="jibunAddress">
+                        <input type="hidden" name="sidoName">
+                        <input type="hidden" name="sigunguName">
+                        <input type="hidden" name="eupmyeondongName">
+                        <input type="hidden" name="legalDongCode">
+                        <input type="hidden" name="roadNameCode">
+                        <input type="hidden" name="buildingManagementNo">
+                        <input type="hidden" name="addressSourceCode">
+                    </div>
                     <div class="field-block">
                         <label for="adminBasicIncomePresenceCode">소득 여부</label>
                         <select id="adminBasicIncomePresenceCode" name="incomePresenceCode">
@@ -250,6 +275,30 @@
                                 <option value="GYEONGNAM">경남</option>
                                 <option value="JEJU">제주</option>
                             </select>
+                        </div>
+                        <div class="field-block span-2 address-field-block">
+                            <div class="field-label-row">
+                                <label for="adminWorkplaceRoadAddress">사업장 도로명주소</label>
+                                <button class="secondary-action compact-action" type="button"
+                                        data-address-search-open
+                                        data-address-target="business">
+                                    주소 검색
+                                </button>
+                            </div>
+                            <div class="address-input-grid">
+                                <input id="adminWorkplacePostalCode" name="workplacePostalCode" type="text" maxlength="20" placeholder="우편번호" readonly>
+                                <input id="adminWorkplaceRoadAddress" name="workplaceRoadAddress" type="text" maxlength="500" placeholder="도로명주소" readonly>
+                                <input id="adminWorkplaceDetailAddress" name="workplaceDetailAddress" type="text" maxlength="300" placeholder="상세주소를 입력하세요">
+                            </div>
+                            <small>사업자등록증 또는 실제 사업장 기준 주소를 선택합니다.</small>
+                            <input type="hidden" name="workplaceJibunAddress">
+                            <input type="hidden" name="workplaceSidoName">
+                            <input type="hidden" name="workplaceSigunguName">
+                            <input type="hidden" name="workplaceEupmyeondongName">
+                            <input type="hidden" name="workplaceLegalDongCode">
+                            <input type="hidden" name="workplaceRoadNameCode">
+                            <input type="hidden" name="workplaceBuildingManagementNo">
+                            <input type="hidden" name="workplaceAddressSourceCode">
                         </div>
                         <div class="field-block">
                             <label for="adminBasicOpeningDate">개업일</label>
@@ -346,6 +395,28 @@
             </form>
         </section>
     </section>
+    <div class="address-search-modal" data-address-modal hidden role="dialog" aria-modal="true" aria-labelledby="adminAddressSearchTitle">
+        <section class="address-search-dialog">
+            <div class="address-search-head">
+                <div>
+                    <span class="eyebrow">주소 검색</span>
+                    <h2 id="adminAddressSearchTitle">도로명주소 검색</h2>
+                </div>
+                <button class="icon-button" type="button" data-address-search-close aria-label="닫기">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="address-search-controls">
+                <input type="search" data-address-search-keyword placeholder="예: 세종 도움6로 42">
+                <button class="primary-action button-action" type="button" data-address-search-submit>검색</button>
+            </div>
+            <p class="field-help">도로명, 건물명, 지번을 두 글자 이상 입력하세요.</p>
+            <div class="address-search-message" data-address-search-message role="status"></div>
+            <div class="address-search-results" data-address-search-results></div>
+        </section>
+    </div>
     <script th:src="@{/js/saneb-member-basic-info.js}"></script>
 </main>
 </html>

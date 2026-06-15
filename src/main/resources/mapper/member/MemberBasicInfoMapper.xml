@@ -9,6 +9,17 @@
             <arg column="user_id" javaType="java.util.UUID"/>
             <arg column="birth_year" javaType="java.lang.Integer"/>
             <arg column="region_code" javaType="java.lang.String"/>
+            <arg column="postal_code" javaType="java.lang.String"/>
+            <arg column="road_address" javaType="java.lang.String"/>
+            <arg column="jibun_address" javaType="java.lang.String"/>
+            <arg column="detail_address" javaType="java.lang.String"/>
+            <arg column="sido_name" javaType="java.lang.String"/>
+            <arg column="sigungu_name" javaType="java.lang.String"/>
+            <arg column="eupmyeondong_name" javaType="java.lang.String"/>
+            <arg column="legal_dong_code" javaType="java.lang.String"/>
+            <arg column="road_name_code" javaType="java.lang.String"/>
+            <arg column="building_management_no" javaType="java.lang.String"/>
+            <arg column="address_source_code" javaType="java.lang.String"/>
             <arg column="has_income" javaType="java.lang.Boolean"/>
             <arg column="income_presence_code" javaType="java.lang.String"/>
             <arg column="income_amount" javaType="java.math.BigDecimal"/>
@@ -22,6 +33,17 @@
             <arg column="business_registration_no" javaType="java.lang.String"/>
             <arg column="business_name" javaType="java.lang.String"/>
             <arg column="workplace_region_code" javaType="java.lang.String"/>
+            <arg column="workplace_postal_code" javaType="java.lang.String"/>
+            <arg column="workplace_road_address" javaType="java.lang.String"/>
+            <arg column="workplace_jibun_address" javaType="java.lang.String"/>
+            <arg column="workplace_detail_address" javaType="java.lang.String"/>
+            <arg column="workplace_sido_name" javaType="java.lang.String"/>
+            <arg column="workplace_sigungu_name" javaType="java.lang.String"/>
+            <arg column="workplace_eupmyeondong_name" javaType="java.lang.String"/>
+            <arg column="workplace_legal_dong_code" javaType="java.lang.String"/>
+            <arg column="workplace_road_name_code" javaType="java.lang.String"/>
+            <arg column="workplace_building_management_no" javaType="java.lang.String"/>
+            <arg column="workplace_address_source_code" javaType="java.lang.String"/>
             <arg column="opening_date" javaType="java.time.LocalDate"/>
             <arg column="ksic_code" javaType="java.lang.String"/>
             <arg column="business_type_code" javaType="java.lang.String"/>
@@ -91,6 +113,17 @@
             mp.user_id,
             mp.birth_year,
             mp.region_code,
+            mp.postal_code,
+            mp.road_address,
+            mp.jibun_address,
+            mp.detail_address,
+            mp.sido_name,
+            mp.sigungu_name,
+            mp.eupmyeondong_name,
+            mp.legal_dong_code,
+            mp.road_name_code,
+            mp.building_management_no,
+            mp.address_source_code,
             mp.has_income,
             mp.income_presence_code,
             mp.income_amount,
@@ -106,6 +139,17 @@
             bp.business_registration_no,
             bp.business_name,
             bp.workplace_region_code,
+            bp.workplace_postal_code,
+            bp.workplace_road_address,
+            bp.workplace_jibun_address,
+            bp.workplace_detail_address,
+            bp.workplace_sido_name,
+            bp.workplace_sigungu_name,
+            bp.workplace_eupmyeondong_name,
+            bp.workplace_legal_dong_code,
+            bp.workplace_road_name_code,
+            bp.workplace_building_management_no,
+            bp.workplace_address_source_code,
             bp.opening_date,
             bp.ksic_code,
             bp.business_type_code,
@@ -193,6 +237,17 @@
             user_id,
             birth_year,
             region_code,
+            postal_code,
+            road_address,
+            jibun_address,
+            detail_address,
+            sido_name,
+            sigungu_name,
+            eupmyeondong_name,
+            legal_dong_code,
+            road_name_code,
+            building_management_no,
+            address_source_code,
             has_income,
             income_presence_code,
             income_amount,
@@ -203,6 +258,17 @@
             #{userId},
             #{birthYear},
             #{regionCode},
+            #{postalCode},
+            #{roadAddress},
+            #{jibunAddress},
+            #{detailAddress},
+            #{sidoName},
+            #{sigunguName},
+            #{eupmyeondongName},
+            #{legalDongCode},
+            #{roadNameCode},
+            #{buildingManagementNo},
+            #{addressSourceCode},
             #{hasIncome},
             #{incomePresenceCode},
             #{incomeAmount},
@@ -213,6 +279,17 @@
         ON CONFLICT (user_id) DO UPDATE SET
             birth_year = EXCLUDED.birth_year,
             region_code = EXCLUDED.region_code,
+            postal_code = EXCLUDED.postal_code,
+            road_address = EXCLUDED.road_address,
+            jibun_address = EXCLUDED.jibun_address,
+            detail_address = EXCLUDED.detail_address,
+            sido_name = EXCLUDED.sido_name,
+            sigungu_name = EXCLUDED.sigungu_name,
+            eupmyeondong_name = EXCLUDED.eupmyeondong_name,
+            legal_dong_code = EXCLUDED.legal_dong_code,
+            road_name_code = EXCLUDED.road_name_code,
+            building_management_no = EXCLUDED.building_management_no,
+            address_source_code = EXCLUDED.address_source_code,
             has_income = EXCLUDED.has_income,
             income_presence_code = EXCLUDED.income_presence_code,
             income_amount = EXCLUDED.income_amount,
@@ -238,6 +315,17 @@
             business_registration_no,
             business_name,
             workplace_region_code,
+            workplace_postal_code,
+            workplace_road_address,
+            workplace_jibun_address,
+            workplace_detail_address,
+            workplace_sido_name,
+            workplace_sigungu_name,
+            workplace_eupmyeondong_name,
+            workplace_legal_dong_code,
+            workplace_road_name_code,
+            workplace_building_management_no,
+            workplace_address_source_code,
             opening_date,
             ksic_code,
             business_type_code,
@@ -253,6 +341,17 @@
             #{businessRegistrationNo},
             #{businessName},
             #{workplaceRegionCode},
+            #{workplacePostalCode},
+            #{workplaceRoadAddress},
+            #{workplaceJibunAddress},
+            #{workplaceDetailAddress},
+            #{workplaceSidoName},
+            #{workplaceSigunguName},
+            #{workplaceEupmyeondongName},
+            #{workplaceLegalDongCode},
+            #{workplaceRoadNameCode},
+            #{workplaceBuildingManagementNo},
+            #{workplaceAddressSourceCode},
             #{openingDate},
             #{ksicCode},
             #{businessTypeCode},
@@ -273,6 +372,17 @@
             business_registration_no = #{businessRegistrationNo},
             business_name = #{businessName},
             workplace_region_code = #{workplaceRegionCode},
+            workplace_postal_code = #{workplacePostalCode},
+            workplace_road_address = #{workplaceRoadAddress},
+            workplace_jibun_address = #{workplaceJibunAddress},
+            workplace_detail_address = #{workplaceDetailAddress},
+            workplace_sido_name = #{workplaceSidoName},
+            workplace_sigungu_name = #{workplaceSigunguName},
+            workplace_eupmyeondong_name = #{workplaceEupmyeondongName},
+            workplace_legal_dong_code = #{workplaceLegalDongCode},
+            workplace_road_name_code = #{workplaceRoadNameCode},
+            workplace_building_management_no = #{workplaceBuildingManagementNo},
+            workplace_address_source_code = #{workplaceAddressSourceCode},
             opening_date = #{openingDate},
             ksic_code = #{ksicCode},
             business_type_code = #{businessTypeCode},

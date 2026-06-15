@@ -1786,6 +1786,131 @@ svg {
     gap: 18px;
 }
 
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.compact-action {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+}
+
+.address-field-block {
+    gap: 8px;
+}
+
+.address-input-grid {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1.3fr) minmax(0, 0.9fr);
+    gap: 8px;
+}
+
+.address-input-grid input[readonly] {
+    background: #fffdf7;
+    color: #394038;
+}
+
+.address-search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    background: rgba(30, 34, 30, 0.48);
+    padding: 20px;
+}
+
+.address-search-modal[hidden] {
+    display: none;
+}
+
+.address-search-dialog {
+    display: grid;
+    gap: 14px;
+    width: min(720px, 100%);
+    max-height: min(720px, calc(100vh - 40px));
+    overflow: auto;
+    border: 1px solid var(--saneb-border);
+    border-radius: 8px;
+    background: #fffdf7;
+    box-shadow: 0 24px 60px rgba(39, 36, 30, 0.22);
+    padding: 20px;
+}
+
+.address-search-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.address-search-head h2 {
+    margin: 2px 0 0;
+    color: #202522;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.address-search-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.address-search-results {
+    display: grid;
+    gap: 8px;
+}
+
+.address-result-button {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #ffffff;
+    padding: 12px;
+    color: #202522;
+    text-align: left;
+}
+
+.address-result-button:hover,
+.address-result-button:focus-visible {
+    border-color: #b19b74;
+    background: #fff8e9;
+}
+
+.address-result-button strong {
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.address-result-button span {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.address-search-message {
+    min-height: 20px;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.address-search-message.is-success {
+    color: #0b6f49;
+}
+
+.address-search-message.is-error {
+    color: #a13d2d;
+}
+
 .field-help {
     margin: 0;
     color: var(--saneb-muted);
@@ -3983,7 +4108,9 @@ svg {
     }
 
     .document-input-toolbar,
-    .document-field-grid {
+    .document-field-grid,
+    .address-search-controls,
+    .address-input-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
@@ -3994,7 +4121,8 @@ svg {
     .dynamic-field-header,
     .dynamic-field-badges,
     .family-row .secondary-action,
-    .member-document-card-head {
+    .member-document-card-head,
+    .field-label-row {
         display: grid;
         justify-content: stretch;
     }
@@ -4003,7 +4131,8 @@ svg {
     .dynamic-requirements-toolbar .secondary-action,
     .dynamic-requirement-actions .secondary-action,
     .document-input-toolbar .secondary-action,
-    .member-document-card-head .secondary-action {
+    .member-document-card-head .secondary-action,
+    .field-label-row .secondary-action {
         width: 100%;
     }
 

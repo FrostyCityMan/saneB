@@ -63,6 +63,12 @@ saneb:
       fixed-delay-ms: ${SANEB_INACTIVITY_REMINDER_FIXED_DELAY_MS:3600000}
       initial-delay-ms: ${SANEB_INACTIVITY_REMINDER_INITIAL_DELAY_MS:60000}
       batch-size: ${SANEB_INACTIVITY_REMINDER_BATCH_SIZE:50}
+  address:
+    road:
+      enabled: ${JUSO_API_ENABLED:false}
+      base-url: ${JUSO_API_BASE_URL:https://business.juso.go.kr/addrlink/addrLinkApi.do}
+      api-key: ${JUSO_API_KEY:}
+      timeout-millis: ${JUSO_API_TIMEOUT_MILLIS:5000}
   ai:
     provider-code: ${SANEB_AI_PROVIDER_CODE:LOCAL_SAFE}
     model-code: ${SANEB_AI_MODEL_CODE:RULE_TEMPLATE_V1}

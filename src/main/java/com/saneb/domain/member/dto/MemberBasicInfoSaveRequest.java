@@ -13,6 +13,28 @@ public record MemberBasicInfoSaveRequest(
         Integer birthYear,
         @Size(max = 30, message = "지역 코드는 30자 이하로 입력하세요.")
         String regionCode,
+        @Size(max = 20, message = "우편번호는 20자 이하로 입력하세요.")
+        String postalCode,
+        @Size(max = 500, message = "도로명주소는 500자 이하로 입력하세요.")
+        String roadAddress,
+        @Size(max = 500, message = "지번주소는 500자 이하로 입력하세요.")
+        String jibunAddress,
+        @Size(max = 300, message = "상세주소는 300자 이하로 입력하세요.")
+        String detailAddress,
+        @Size(max = 100, message = "시도명은 100자 이하로 입력하세요.")
+        String sidoName,
+        @Size(max = 100, message = "시군구명은 100자 이하로 입력하세요.")
+        String sigunguName,
+        @Size(max = 100, message = "읍면동명은 100자 이하로 입력하세요.")
+        String eupmyeondongName,
+        @Size(max = 30, message = "법정동 코드는 30자 이하로 입력하세요.")
+        String legalDongCode,
+        @Size(max = 30, message = "도로명 코드는 30자 이하로 입력하세요.")
+        String roadNameCode,
+        @Size(max = 50, message = "건물관리번호는 50자 이하로 입력하세요.")
+        String buildingManagementNo,
+        @Size(max = 30, message = "주소 입력 출처 코드는 30자 이하로 입력하세요.")
+        String addressSourceCode,
         Boolean hasIncome,
         @Size(max = 30, message = "소득 여부 코드는 30자 이하로 입력하세요.")
         String incomePresenceCode,
@@ -35,6 +57,28 @@ public record MemberBasicInfoSaveRequest(
             String businessName,
             @Size(max = 30, message = "사업장 지역 코드는 30자 이하로 입력하세요.")
             String workplaceRegionCode,
+            @Size(max = 20, message = "사업장 우편번호는 20자 이하로 입력하세요.")
+            String workplacePostalCode,
+            @Size(max = 500, message = "사업장 도로명주소는 500자 이하로 입력하세요.")
+            String workplaceRoadAddress,
+            @Size(max = 500, message = "사업장 지번주소는 500자 이하로 입력하세요.")
+            String workplaceJibunAddress,
+            @Size(max = 300, message = "사업장 상세주소는 300자 이하로 입력하세요.")
+            String workplaceDetailAddress,
+            @Size(max = 100, message = "사업장 시도명은 100자 이하로 입력하세요.")
+            String workplaceSidoName,
+            @Size(max = 100, message = "사업장 시군구명은 100자 이하로 입력하세요.")
+            String workplaceSigunguName,
+            @Size(max = 100, message = "사업장 읍면동명은 100자 이하로 입력하세요.")
+            String workplaceEupmyeondongName,
+            @Size(max = 30, message = "사업장 법정동 코드는 30자 이하로 입력하세요.")
+            String workplaceLegalDongCode,
+            @Size(max = 30, message = "사업장 도로명 코드는 30자 이하로 입력하세요.")
+            String workplaceRoadNameCode,
+            @Size(max = 50, message = "사업장 건물관리번호는 50자 이하로 입력하세요.")
+            String workplaceBuildingManagementNo,
+            @Size(max = 30, message = "사업장 주소 입력 출처 코드는 30자 이하로 입력하세요.")
+            String workplaceAddressSourceCode,
             LocalDate openingDate,
             @Size(max = 30, message = "업종 코드는 30자 이하로 입력하세요.")
             String ksicCode,

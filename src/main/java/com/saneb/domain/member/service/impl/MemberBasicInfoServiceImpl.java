@@ -58,6 +58,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             "CLOSED",
             "RESTART_PREPARING"
     );
+    private static final Set<String> ADDRESS_SOURCE_CODES = Set.of("JUSO_API", "MANUAL");
     private static final Set<String> DOCUMENT_TEXT_FIELD_TYPES = Set.of("TEXT", "TEXTAREA", "SELECT", "RADIO", "MULTI_SELECT");
     private static final Map<String, String> DOCUMENT_TYPE_LABELS = Map.ofEntries(
             Map.entry("BUSINESS_REGISTRATION", "사업자등록증"),
@@ -116,11 +117,24 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         validateBirthYear(request.birthYear(), "출생연도");
         String incomePresenceCode = normalizeCode(request.incomePresenceCode());
         validateOptionalCode(incomePresenceCode, INCOME_PRESENCE_CODES, "소득 여부");
+        String addressSourceCode = normalizeCode(request.addressSourceCode());
+        validateOptionalCode(addressSourceCode, ADDRESS_SOURCE_CODES, "주소 입력 출처");
 
         memberBasicInfoDao.saveMemberProfile(new MemberProfileCommand(
                 userId,
                 request.birthYear(),
                 normalizeCode(request.regionCode()),
+                trimToNull(request.postalCode()),
+                trimToNull(request.roadAddress()),
+                trimToNull(request.jibunAddress()),
+                trimToNull(request.detailAddress()),
+                trimToNull(request.sidoName()),
+                trimToNull(request.sigunguName()),
+                trimToNull(request.eupmyeondongName()),
+                normalizeCode(request.legalDongCode()),
+                trimToNull(request.roadNameCode()),
+                trimToNull(request.buildingManagementNo()),
+                addressSourceCode,
                 normalizeIncomeFlag(request.hasIncome(), incomePresenceCode),
                 incomePresenceCode,
                 request.incomeAmount(),
@@ -140,6 +154,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                         businessCommand.businessRegistrationNo(),
                         businessCommand.businessName(),
                         businessCommand.workplaceRegionCode(),
+                        businessCommand.workplacePostalCode(),
+                        businessCommand.workplaceRoadAddress(),
+                        businessCommand.workplaceJibunAddress(),
+                        businessCommand.workplaceDetailAddress(),
+                        businessCommand.workplaceSidoName(),
+                        businessCommand.workplaceSigunguName(),
+                        businessCommand.workplaceEupmyeondongName(),
+                        businessCommand.workplaceLegalDongCode(),
+                        businessCommand.workplaceRoadNameCode(),
+                        businessCommand.workplaceBuildingManagementNo(),
+                        businessCommand.workplaceAddressSourceCode(),
                         businessCommand.openingDate(),
                         businessCommand.ksicCode(),
                         businessCommand.businessTypeCode(),
@@ -176,6 +201,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 userId,
                 member == null ? null : member.birthYear(),
                 member == null ? null : member.regionCode(),
+                member == null ? null : member.postalCode(),
+                member == null ? null : member.roadAddress(),
+                member == null ? null : member.jibunAddress(),
+                member == null ? null : member.detailAddress(),
+                member == null ? null : member.sidoName(),
+                member == null ? null : member.sigunguName(),
+                member == null ? null : member.eupmyeondongName(),
+                member == null ? null : member.legalDongCode(),
+                member == null ? null : member.roadNameCode(),
+                member == null ? null : member.buildingManagementNo(),
+                member == null ? null : member.addressSourceCode(),
                 member == null ? null : member.hasIncome(),
                 member == null ? null : member.incomePresenceCode(),
                 member == null ? null : member.incomeAmount(),
@@ -203,6 +239,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 row.businessRegistrationNo(),
                 row.businessName(),
                 row.workplaceRegionCode(),
+                row.workplacePostalCode(),
+                row.workplaceRoadAddress(),
+                row.workplaceJibunAddress(),
+                row.workplaceDetailAddress(),
+                row.workplaceSidoName(),
+                row.workplaceSigunguName(),
+                row.workplaceEupmyeondongName(),
+                row.workplaceLegalDongCode(),
+                row.workplaceRoadNameCode(),
+                row.workplaceBuildingManagementNo(),
+                row.workplaceAddressSourceCode(),
                 row.openingDate(),
                 row.ksicCode(),
                 row.businessTypeCode(),
@@ -411,8 +458,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         validateYear(business.annualRevenueYear(), "연매출 기준연도");
         String businessTypeCode = normalizeCode(business.businessTypeCode());
         String companyStageCode = normalizeCode(business.companyStageCode());
+        String workplaceAddressSourceCode = normalizeCode(business.workplaceAddressSourceCode());
         validateOptionalCode(businessTypeCode, BUSINESS_TYPE_CODES, "사업자 유형");
         validateOptionalCode(companyStageCode, COMPANY_STAGE_CODES, "사업 상태");
+        validateOptionalCode(workplaceAddressSourceCode, ADDRESS_SOURCE_CODES, "사업장 주소 입력 출처");
 
         return new BusinessProfileCommand(
                 null,
@@ -420,6 +469,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 businessRegistrationNo,
                 businessName,
                 normalizeCode(business.workplaceRegionCode()),
+                trimToNull(business.workplacePostalCode()),
+                trimToNull(business.workplaceRoadAddress()),
+                trimToNull(business.workplaceJibunAddress()),
+                trimToNull(business.workplaceDetailAddress()),
+                trimToNull(business.workplaceSidoName()),
+                trimToNull(business.workplaceSigunguName()),
+                trimToNull(business.workplaceEupmyeondongName()),
+                normalizeCode(business.workplaceLegalDongCode()),
+                trimToNull(business.workplaceRoadNameCode()),
+                trimToNull(business.workplaceBuildingManagementNo()),
+                workplaceAddressSourceCode,
                 business.openingDate(),
                 normalizeCode(business.ksicCode()),
                 businessTypeCode,
@@ -464,6 +524,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return trimToNull(business.businessRegistrationNo()) == null
                 && trimToNull(business.businessName()) == null
                 && trimToNull(business.workplaceRegionCode()) == null
+                && trimToNull(business.workplacePostalCode()) == null
+                && trimToNull(business.workplaceRoadAddress()) == null
+                && trimToNull(business.workplaceJibunAddress()) == null
+                && trimToNull(business.workplaceDetailAddress()) == null
+                && trimToNull(business.workplaceSidoName()) == null
+                && trimToNull(business.workplaceSigunguName()) == null
+                && trimToNull(business.workplaceEupmyeondongName()) == null
+                && trimToNull(business.workplaceLegalDongCode()) == null
+                && trimToNull(business.workplaceRoadNameCode()) == null
+                && trimToNull(business.workplaceBuildingManagementNo()) == null
+                && trimToNull(business.workplaceAddressSourceCode()) == null
                 && business.openingDate() == null
                 && trimToNull(business.ksicCode()) == null
                 && trimToNull(business.businessTypeCode()) == null
