@@ -25,7 +25,8 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.billing.dao",
         "com.saneb.domain.operation.dao",
         "com.saneb.domain.adminreport.dao",
-        "com.saneb.domain.aiassist.dao"
+        "com.saneb.domain.aiassist.dao",
+        "com.saneb.domain.standardcode.dao"
 })
 public class MyBatisMapperConfig {
 }

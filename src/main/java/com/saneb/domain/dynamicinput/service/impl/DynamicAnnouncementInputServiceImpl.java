@@ -565,9 +565,18 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 row.scopeCode(),
                 Boolean.TRUE.equals(row.requiredDefault()),
                 Boolean.TRUE.equals(row.conditionEligible()),
+                selectConditionUsageCode(row.conditionUsageCode(), row.conditionEligible()),
                 row.sortOrder() == null ? 0 : row.sortOrder(),
                 row.helpText()
         );
+    }
+
+    private String selectConditionUsageCode(String conditionUsageCode, Boolean conditionEligible) {
+        String normalized = normalizeOptionalCode(conditionUsageCode);
+        if (normalized != null) {
+            return normalized;
+        }
+        return Boolean.TRUE.equals(conditionEligible) ? "CONDITION_READY" : "INPUT_ONLY";
     }
 
     private ApplicationProgressInputRow selectAuthorizedProgress(AuthenticatedUserDetails actor, UUID progressId) {

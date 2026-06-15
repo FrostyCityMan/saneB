@@ -5,7 +5,8 @@
       data-announcement-app
       th:data-list-url="@{/api/v1/announcements}"
       th:data-base-url="@{/api/v1/announcements}"
-      th:data-standard-fields-url="@{/api/v1/standard-document-fields}">
+      th:data-standard-fields-url="@{/api/v1/standard-document-fields}"
+      th:data-standard-codes-url="@{/api/v1/standard-codes}">
     <section class="announcement-shell" aria-label="공고 입력">
         <div class="announcement-workspace">
             <section class="announcement-hero">
@@ -184,7 +185,8 @@
                     </div>
                     <p class="dynamic-input-help">
                         기본정보 조건은 현재 매칭 공고에 사용하고, 서류 기준 항목을 선택한 조건은 전체 서류 입력 후 최종 매칭에 사용합니다.
-                        조건으로 사용할 수 없는 서류 항목은 필요 서류 또는 동적 입력 항목으로만 요청할 수 있습니다.
+                        업태와 종목은 통계청 한국표준산업분류(KSIC) 코드로 표준화해 업종 조건에 입력합니다.
+                        조건으로 사용할 수 없는 서류 항목은 필요 서류 또는 동적 입력 항목으로 요청한 뒤 담당자가 확인합니다.
                     </p>
 
                     <section class="condition-editor-group">
@@ -201,9 +203,17 @@
                                         <option value="EXCLUDE">제외 업종</option>
                                     </select>
                                 </div>
-                                <div class="field-block">
-                                    <label>업종 번호</label>
-                                    <input name="ksicCode" type="text" maxlength="30" placeholder="예: 47911 또는 음식점업">
+                                <div class="field-block span-2">
+                                    <label>표준산업분류 코드(KSIC)</label>
+                                    <div class="amount-range">
+                                        <input name="ksicKeyword" type="search" maxlength="80"
+                                               placeholder="예: 음식점, 전자상거래, 56111">
+                                        <button class="secondary-action" type="button" data-ksic-search>검색</button>
+                                    </div>
+                                    <select name="ksicCode" data-ksic-select>
+                                        <option value="">KSIC 코드를 검색해 선택하세요</option>
+                                    </select>
+                                    <small data-ksic-selected-label>업태/종목 텍스트를 그대로 비교하지 않고 KSIC 코드 기준으로 판단합니다.</small>
                                 </div>
                                 <div class="condition-row-actions">
                                     <button class="secondary-action" type="button" data-industry-condition-remove>삭제</button>

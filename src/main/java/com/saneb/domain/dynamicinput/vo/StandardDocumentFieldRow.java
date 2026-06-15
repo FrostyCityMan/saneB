@@ -11,6 +11,7 @@ public record StandardDocumentFieldRow(
         String scopeCode,
         Boolean requiredDefault,
         Boolean conditionEligible,
+        String conditionUsageCode,
         Boolean selectable,
         Integer sortOrder,
         String helpText

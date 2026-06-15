@@ -10,6 +10,7 @@ public record AnnouncementStandardDocumentFieldRow(
         String fieldTypeCode,
         String scopeCode,
         Boolean conditionEligible,
+        String conditionUsageCode,
         Boolean selectable
 ) {
 }

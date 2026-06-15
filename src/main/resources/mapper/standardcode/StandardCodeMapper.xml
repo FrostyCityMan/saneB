@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.standardcode.dao.StandardCodeDao">
+
+    <resultMap id="StandardCodeGroupRowMap" type="com.saneb.domain.standardcode.vo.StandardCodeGroupRow">
+        <constructor>
+            <arg column="standard_code_group_id" javaType="java.util.UUID"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_name" javaType="java.lang.String"/>
+            <arg column="source_name" javaType="java.lang.String"/>
+            <arg column="source_url" javaType="java.lang.String"/>
+            <arg column="version_label" javaType="java.lang.String"/>
+            <arg column="active" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="StandardCodeRowMap" type="com.saneb.domain.standardcode.vo.StandardCodeRow">
+        <constructor>
+            <arg column="standard_code_id" javaType="java.util.UUID"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_name" javaType="java.lang.String"/>
+            <arg column="code" javaType="java.lang.String"/>
+            <arg column="code_name" javaType="java.lang.String"/>
+            <arg column="parent_code" javaType="java.lang.String"/>
+            <arg column="level_no" javaType="java.lang.Integer"/>
+            <arg column="sort_order" javaType="java.lang.Integer"/>
+            <arg column="active" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectStandardCodeGroupList" resultMap="StandardCodeGroupRowMap">
+        -- Select active and inactive standard code groups for operation screens.
+        SELECT
+            scg.id AS standard_code_group_id,
+            scg.group_code,
+            scg.group_name,
+            scg.source_name,
+            scg.source_url,
+            scg.version_label,
+            scg.is_active AS active
+        FROM standard_code_groups scg
+        ORDER BY scg.is_active DESC, scg.group_code ASC
+    </select>
+
+    <select id="selectStandardCodeList" resultMap="StandardCodeRowMap">
+        -- Select standard codes by group and optional keyword.
+        SELECT
+            sc.id AS standard_code_id,
+            scg.group_code,
+            scg.group_name,
+            sc.code,
+            sc.code_name,
+            sc.parent_code,
+            sc.level_no,
+            sc.sort_order,
+            sc.is_active AS active
+        FROM standard_codes sc
+        INNER JOIN standard_code_groups scg ON scg.id = sc.group_id
+        WHERE scg.group_code = #{groupCode}
+        <if test="active != null">
+          AND sc.is_active = #{active}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (
+              sc.code ILIKE concat('%', #{keyword}, '%')
+              OR sc.code_name ILIKE concat('%', #{keyword}, '%')
+          )
+        </if>
+        ORDER BY sc.sort_order ASC, sc.code ASC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectStandardCodeCount" resultType="long">
+        -- Count standard codes by group and optional keyword.
+        SELECT
+            count(1)
+        FROM standard_codes sc
+        INNER JOIN standard_code_groups scg ON scg.id = sc.group_id
+        WHERE scg.group_code = #{groupCode}
+        <if test="active != null">
+          AND sc.is_active = #{active}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          AND (
+              sc.code ILIKE concat('%', #{keyword}, '%')
+              OR sc.code_name ILIKE concat('%', #{keyword}, '%')
+          )
+        </if>
+    </select>
+</mapper>

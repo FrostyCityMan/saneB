@@ -241,6 +241,7 @@ class AnnouncementControllerSmokeTest {
                         "TEXT",
                         "BUSINESS",
                         false,
+                        "INPUT_ONLY",
                         true
                 ));
 

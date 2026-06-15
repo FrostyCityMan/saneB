@@ -660,7 +660,7 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-`standardFieldId`는 선택값이다. 값이 없으면 기존처럼 기본정보 기반 조건으로 저장한다. 값이 있으면 `standard_document_fields.id`를 참조하며, 수치/선택 조건에서는 `is_condition_eligible=true`인 항목만 허용한다. 필요 서류와 동적 입력 항목은 `is_condition_eligible=false` 항목도 요청 입력으로 사용할 수 있다.
+`standardFieldId`는 선택값이다. 값이 없으면 기존처럼 기본정보 기반 조건으로 저장한다. 값이 있으면 `standard_document_fields.id`를 참조한다. 수치/선택 조건에서는 `conditionUsageCode=CONDITION_READY`인 항목만 자동 조건으로 저장할 수 있다. `STANDARDIZATION_REQUIRED` 항목은 화면에 조건 후보로 노출하되 자동 조건 저장은 차단한다. 업태/종목은 `announcement_industry_conditions.ksic_code`에 KSIC 코드로 저장한다. 필요 서류와 동적 입력 항목은 `INPUT_ONLY`, `STANDARDIZATION_REQUIRED` 항목도 요청 입력으로 사용할 수 있다.
 
 매칭 단계 정책:
 
@@ -715,7 +715,32 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-`standardFieldId`는 선택값이다. 표준 항목을 선택하면 `fieldKey`, `fieldTypeCode`, `scopeCode`는 표준 항목과 일치해야 한다. 동적 입력 항목은 사용자에게 추가로 값을 받기 위한 구조이며, `conditionEligible=false` 항목도 입력 요청용으로 저장할 수 있다.
+`standardFieldId`는 선택값이다. 표준 항목을 선택하면 `fieldKey`, `fieldTypeCode`, `scopeCode`는 표준 항목과 일치해야 한다. 동적 입력 항목은 사용자에게 추가로 값을 받기 위한 구조이며, `conditionUsageCode`가 `INPUT_ONLY` 또는 `STANDARDIZATION_REQUIRED`인 항목도 입력 요청용으로 저장할 수 있다.
+
+## 7.1 Standard Code API
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/standard-code-groups` | authenticated | 표준 코드 그룹 목록 |
+| `GET` | `/api/v1/standard-codes` | authenticated | 표준 코드 그룹별 코드 검색 |
+
+#### StandardCodeResponse
+
+```json
+{
+  "standardCodeId": "uuid",
+  "groupCode": "KSIC_11",
+  "groupName": "한국표준산업분류 제11차",
+  "code": "56111",
+  "codeName": "한식 일반 음식점업",
+  "parentCode": "56",
+  "levelNo": 5,
+  "sortOrder": 56111,
+  "active": true
+}
+```
+
+`GET /api/v1/standard-codes?groupCode=KSIC_11&keyword=음식&page=1&size=20`은 `ApiResponse<PageResponse<StandardCodeResponse>>`로 응답한다. 운영 중 외부 표준 코드 API를 실시간 호출하지 않으며, DB seed에 적재된 코드만 조회한다.
 
 ## 8. Matching API
 
@@ -746,13 +771,14 @@ Member / Business / Family API skeleton 착수 기준:
     "scopeCode": "BUSINESS",
     "requiredDefault": false,
     "conditionEligible": true,
+    "conditionUsageCode": "CONDITION_READY",
     "sortOrder": 20,
     "helpText": "사업자등록증에 표시된 개업일입니다."
   }
 ]
 ```
 
-`conditionEligible=true`인 항목은 공고 조건으로 사용할 수 있다. `conditionEligible=false`인 항목은 사용자 또는 운영자에게 입력 요청은 가능하지만 매칭 조건으로 저장할 수 없다.
+`conditionEligible`은 기존 화면 호환을 위해 유지한다. 신규 화면과 서버 검증은 `conditionUsageCode`를 기준으로 한다. `CONDITION_READY`는 자동 조건 저장 가능, `STANDARDIZATION_REQUIRED`는 표준 코드 매핑 후 별도 구조로 처리 필요, `INPUT_ONLY`는 입력/확인 전용이다.
 
 #### MatchingCaseCreateRequest
 

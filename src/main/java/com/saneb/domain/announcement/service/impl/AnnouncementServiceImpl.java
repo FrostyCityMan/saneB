@@ -654,7 +654,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             return;
         }
         AnnouncementStandardDocumentFieldRow field = selectStandardDocumentField(standardFieldId);
-        if (!Boolean.TRUE.equals(field.conditionEligible())) {
+        String conditionUsageCode = normalizeOptionalCode(field.conditionUsageCode());
+        if (!"CONDITION_READY".equals(conditionUsageCode)) {
+            if ("STANDARDIZATION_REQUIRED".equals(conditionUsageCode)) {
+                throw validation("표준 코드 매핑이 필요한 항목은 자동 조건으로 저장할 수 없습니다. 업종은 표준산업분류 코드(KSIC) 업종 조건으로 입력해 주세요.");
+            }
             throw validation("이 표준 서류 항목은 조건으로 사용할 수 없습니다.");
         }
         if (!allowedFieldTypeCodes.contains(field.fieldTypeCode())) {

@@ -63,6 +63,7 @@
             <arg column="scope_code" javaType="java.lang.String"/>
             <arg column="required_default" javaType="java.lang.Boolean"/>
             <arg column="is_condition_eligible" javaType="java.lang.Boolean"/>
+            <arg column="condition_usage_code" javaType="java.lang.String"/>
             <arg column="is_selectable" javaType="java.lang.Boolean"/>
             <arg column="sort_order" javaType="java.lang.Integer"/>
             <arg column="help_text" javaType="java.lang.String"/>
@@ -368,6 +369,7 @@
             sdf.scope_code,
             sdf.required_default,
             sdf.is_condition_eligible,
+            sdf.condition_usage_code,
             sdf.is_selectable,
             sdf.sort_order,
             sdf.help_text
@@ -393,6 +395,7 @@
             sdf.scope_code,
             sdf.required_default,
             sdf.is_condition_eligible,
+            sdf.condition_usage_code,
             sdf.is_selectable,
             sdf.sort_order,
             sdf.help_text

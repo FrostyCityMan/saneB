@@ -241,6 +241,28 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v21MigrationContainsStandardCodeCatalogs() throws IOException {
+        String sql = selectV21Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN condition_usage_code",
+                "'INPUT_ONLY'",
+                "'CONDITION_READY'",
+                "'STANDARDIZATION_REQUIRED'",
+                "CREATE TABLE standard_code_groups",
+                "CREATE TABLE standard_codes",
+                "CREATE TABLE standard_field_code_groups",
+                "CONSTRAINT uq_standard_code_groups_code",
+                "CONSTRAINT uq_standard_codes_group_code",
+                "CONSTRAINT ck_standard_field_code_groups_usage",
+                "'KSIC_11'",
+                "'REGION_SIDO'",
+                "'HEALTH_INSURANCE_TYPE'",
+                "'REFERENCE_MAPPING'"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -308,6 +330,11 @@ class MigrationContractTest {
 
     private String selectV19Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V19__add_matching_stage_flow.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV21Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V21__create_standard_code_catalogs.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

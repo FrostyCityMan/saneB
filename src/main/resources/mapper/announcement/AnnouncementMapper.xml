@@ -97,6 +97,7 @@
             <arg column="field_type_code" javaType="java.lang.String"/>
             <arg column="scope_code" javaType="java.lang.String"/>
             <arg column="is_condition_eligible" javaType="java.lang.Boolean"/>
+            <arg column="condition_usage_code" javaType="java.lang.String"/>
             <arg column="is_selectable" javaType="java.lang.Boolean"/>
         </constructor>
     </resultMap>
@@ -592,6 +593,7 @@
             sdf.field_type_code,
             sdf.scope_code,
             sdf.is_condition_eligible,
+            sdf.condition_usage_code,
             sdf.is_selectable
         FROM standard_document_fields sdf
         WHERE sdf.id = #{standardFieldId}

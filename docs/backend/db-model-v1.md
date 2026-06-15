@@ -394,13 +394,26 @@ dev seed:
 
 `V20__add_condition_eligible_standard_document_fields.sql`은 `standard_document_fields.is_condition_eligible`을 추가한다.
 
-- `is_condition_eligible=true`인 표준 서류 필드만 공고 조건의 `standard_field_id`로 사용할 수 있다.
-- `is_condition_eligible=false`인 표준 서류 필드는 필요 서류 또는 동적 입력 항목으로 요청할 수 있지만 매칭 조건으로는 사용할 수 없다.
+- `is_condition_eligible`은 과거 boolean 호환 필드로 유지한다.
+- 자동 조건 저장 가능 여부의 상위 계약은 V21의 `condition_usage_code`를 사용한다.
 - `matching_stage_code='BASIC'` 후보 계산은 `standard_field_id IS NULL`인 기본정보 조건만 사용한다.
 - `matching_stage_code='FINAL'` 후보 계산은 `standard_field_id`가 연결된 조건에 대해 `member_document_input_values.standard_field_id` 값을 직접 비교한다.
 - 이 필드는 추천도, 선정확률, 점수, 우선순위 계산에 사용하지 않는다.
 - 자동 추천도, 선정확률, 점수, AI 자동판단 컬럼은 추가하지 않는다.
 - 네이버 전자증명 API 자동 수집을 전제로 하는 저장 컬럼은 추가하지 않는다.
+
+`V21__create_standard_code_catalogs.sql`은 외부 API 호출 없이 공고 조건 표준 코드를 DB seed로 관리하기 위한 구조를 추가한다.
+
+- `standard_document_fields.condition_usage_code`: 표준 서류 항목의 조건 사용 상태다. 값은 `INPUT_ONLY`, `CONDITION_READY`, `STANDARDIZATION_REQUIRED`만 허용한다.
+- `standard_code_groups`: KSIC, 사업자 유형, 과세 유형, 지역, 법정동, 건강보험 자격 구분 등 표준 코드 그룹이다.
+- `standard_codes`: 코드 그룹별 실제 코드 목록이다. 운영 migration에는 MVP 대표 subset만 seed하고, 대량 전체 코드는 별도 운영 import 스크립트로 분리한다.
+- `standard_field_code_groups`: 표준 서류 항목과 표준 코드 그룹의 연결 정보다. 사용 목적은 `CONDITION_VALUE`, `DISPLAY_OPTION`, `REFERENCE_MAPPING`으로 구분한다.
+
+`condition_usage_code` 정책:
+
+- `CONDITION_READY`: 공고 수치/선택 조건의 `standard_field_id`로 저장할 수 있고, 최종 매칭에서 자동 비교할 수 있다.
+- `STANDARDIZATION_REQUIRED`: 화면에는 조건 후보로 보여주지만 자동 조건 저장은 차단한다. 업태/종목은 예외적으로 `announcement_industry_conditions.ksic_code`에 KSIC 코드로 저장한다.
+- `INPUT_ONLY`: 사용자/운영자 입력 또는 확인 용도이며 공고 조건 저장에는 사용할 수 없다.
 
 `V16__create_member_document_input_values.sql`은 사용자 기본정보 입력 화면의 서류별 선택 입력값 저장 구조를 추가한다.
 

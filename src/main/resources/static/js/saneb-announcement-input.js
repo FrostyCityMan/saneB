@@ -38,6 +38,11 @@
         APPLICATION: "신청 조건",
         SUPPORT: "지원 내용"
     };
+    const conditionUsageLabels = {
+        CONDITION_READY: "조건 가능",
+        STANDARDIZATION_REQUIRED: "표준화 필요",
+        INPUT_ONLY: "입력 전용"
+    };
     const approvalStatusLabels = {
         DRAFT: "초안",
         REQUESTED: "승인 요청",
@@ -64,6 +69,7 @@
     const baseUrl = app.dataset.baseUrl;
     const listUrl = app.dataset.listUrl;
     const standardFieldsUrl = app.dataset.standardFieldsUrl;
+    const standardCodesUrl = app.dataset.standardCodesUrl;
     const listContainer = app.querySelector("[data-announcement-list]");
     const message = app.querySelector("[data-announcement-message]");
     const currentIdLabel = app.querySelector("[data-current-announcement-id]");
@@ -164,6 +170,16 @@
             throw new Error(selectErrorMessage(payload, "요청 처리에 실패했습니다."));
         }
         return payload.data;
+    };
+
+    const urlWithQuery = (url, params) => {
+        const next = new URL(url, window.location.origin);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && String(value).trim() !== "") {
+                next.searchParams.set(key, String(value));
+            }
+        });
+        return next.toString();
     };
 
     const togglePanel = (panel, active) => {
@@ -299,6 +315,9 @@
         });
         row.querySelectorAll("select").forEach((field) => {
             field.selectedIndex = 0;
+        });
+        row.querySelectorAll("[data-ksic-selected-label]").forEach((label) => {
+            label.textContent = "업태/종목 텍스트를 그대로 비교하지 않고 KSIC 코드 기준으로 판단합니다.";
         });
     };
 
@@ -499,7 +518,8 @@
 
     const standardFieldText = (field) => {
         const documentLabel = documentTypeLabels[field.documentTypeCode] || field.documentTypeCode || "서류";
-        const conditionLabel = field.conditionEligible ? "조건 가능" : "입력 전용";
+        const conditionUsageCode = field.conditionUsageCode || (field.conditionEligible ? "CONDITION_READY" : "INPUT_ONLY");
+        const conditionLabel = conditionUsageLabels[conditionUsageCode] || "확인 필요";
         return `${documentLabel} · ${field.fieldLabel || field.fieldKey} (${conditionLabel})`;
     };
 
@@ -539,7 +559,7 @@
             populateStandardFieldSelect(
                     row.querySelector("[data-numeric-standard-field]"),
                     valueOf(row, "[name='standardFieldId']"),
-                    (field) => field.conditionEligible === true && numericStandardFieldTypes.has(field.fieldTypeCode),
+                    (field) => numericStandardFieldTypes.has(field.fieldTypeCode),
                     "기본정보 항목 직접 선택"
             );
         });
@@ -547,7 +567,7 @@
             populateStandardFieldSelect(
                     row.querySelector("[data-option-standard-field]"),
                     valueOf(row, "[name='standardFieldId']"),
-                    (field) => field.conditionEligible === true && optionStandardFieldTypes.has(field.fieldTypeCode),
+                    (field) => optionStandardFieldTypes.has(field.fieldTypeCode),
                     "기본정보 항목 직접 선택"
             );
         });
@@ -633,6 +653,96 @@
         const data = await requestJson(standardFieldsUrl, { method: "GET" });
         standardDocumentFields = Array.isArray(data) ? data : [];
         populateAllStandardFieldSelects();
+    };
+
+    const updateKsicSelectedLabel = (row) => {
+        if (!row) {
+            return;
+        }
+        const select = row.querySelector("[data-ksic-select]");
+        const label = row.querySelector("[data-ksic-selected-label]");
+        if (!select || !label) {
+            return;
+        }
+        const selected = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
+        label.textContent = selected && selected.value
+                ? `선택된 업종: ${selected.textContent}`
+                : "업태/종목 텍스트를 그대로 비교하지 않고 KSIC 코드 기준으로 판단합니다.";
+    };
+
+    const ensureKsicOption = (row, code, labelText) => {
+        if (!row || !code) {
+            return;
+        }
+        const select = row.querySelector("[data-ksic-select]");
+        if (!select) {
+            return;
+        }
+        if (!Array.from(select.options).some((option) => option.value === code)) {
+            const option = document.createElement("option");
+            option.value = code;
+            option.textContent = labelText || code;
+            select.append(option);
+        }
+        select.value = code;
+        updateKsicSelectedLabel(row);
+    };
+
+    const renderKsicOptions = (row, codes) => {
+        const select = row?.querySelector("[data-ksic-select]");
+        if (!select) {
+            return;
+        }
+        const currentValue = select.value;
+        select.replaceChildren();
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = "KSIC 코드를 검색해 선택하세요";
+        select.append(empty);
+        codes.forEach((code) => {
+            const option = document.createElement("option");
+            option.value = code.code;
+            option.textContent = `${code.code} · ${code.codeName}`;
+            select.append(option);
+        });
+        if (currentValue && !Array.from(select.options).some((option) => option.value === currentValue)) {
+            ensureKsicOption(row, currentValue, currentValue);
+        } else {
+            select.value = currentValue || "";
+            updateKsicSelectedLabel(row);
+        }
+    };
+
+    const searchKsicCodes = async (button) => {
+        const row = button.closest("[data-industry-condition-row]");
+        if (!row) {
+            return;
+        }
+        const keyword = valueOf(row, "[name='ksicKeyword']");
+        if (!keyword) {
+            setMessage("검색할 업종명 또는 KSIC 코드를 입력해 주세요.", "error");
+            return;
+        }
+        if (!standardCodesUrl) {
+            setMessage("표준 코드 조회 주소가 설정되지 않았습니다.", "error");
+            return;
+        }
+        try {
+            setBusy(button, true, "검색 중");
+            const data = await requestJson(urlWithQuery(standardCodesUrl, {
+                groupCode: "KSIC_11",
+                keyword,
+                page: 1,
+                size: 20
+            }), { method: "GET" });
+            const codes = Array.isArray(data?.items) ? data.items : [];
+            renderKsicOptions(row, codes);
+            setMessage(codes.length > 0 ? "KSIC 검색 결과를 불러왔습니다." : "검색 결과가 없습니다.", codes.length > 0 ? "success" : "info");
+        } catch (error) {
+            setMessage(error.message, "error");
+        } finally {
+            setBusy(button, false);
+        }
     };
 
     const clearStepRow = (row) => {
@@ -1067,7 +1177,7 @@
                 conditions?.industryConditions || [],
                 (row, condition) => {
                     setFieldValue(row, "[name='conditionTypeCode']", condition.conditionTypeCode || "INCLUDE");
-                    setFieldValue(row, "[name='ksicCode']", condition.ksicCode || "");
+                    ensureKsicOption(row, condition.ksicCode || "", condition.ksicCode || "");
                 }
         );
         renderConditionRows(
@@ -1231,6 +1341,10 @@
                     event.target.closest("[data-dynamic-requirement-row]"),
                     selectStandardField(event.target.value)
             );
+            return;
+        }
+        if (event.target.matches("[data-ksic-select]")) {
+            updateKsicSelectedLabel(event.target.closest("[data-industry-condition-row]"));
         }
     });
 
@@ -1276,7 +1390,13 @@
                     conditionTemplates.industry,
                     "[data-industry-condition-row]",
                     "[data-industry-condition-remove]"
-            )?.querySelector("[name='ksicCode']")?.focus();
+            )?.querySelector("[name='ksicKeyword']")?.focus();
+            return;
+        }
+
+        if (event.target.matches("[data-ksic-search]")) {
+            event.preventDefault();
+            await searchKsicCodes(event.target);
             return;
         }
 

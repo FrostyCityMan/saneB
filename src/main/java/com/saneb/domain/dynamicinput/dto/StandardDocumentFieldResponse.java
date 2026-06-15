@@ -11,6 +11,7 @@ public record StandardDocumentFieldResponse(
         String scopeCode,
         boolean requiredDefault,
         boolean conditionEligible,
+        String conditionUsageCode,
         int sortOrder,
         String helpText
 ) {

@@ -149,6 +149,7 @@ class DynamicAnnouncementInputControllerSmokeTest {
                         "BUSINESS",
                         false,
                         true,
+                        "CONDITION_READY",
                         10,
                         "사업자등록증에 표시된 개업일입니다."
                 )));
@@ -158,7 +159,8 @@ class DynamicAnnouncementInputControllerSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].standardFieldId").value(STANDARD_FIELD_ID.toString()))
-                .andExpect(jsonPath("$.data[0].conditionEligible").value(true));
+                .andExpect(jsonPath("$.data[0].conditionEligible").value(true))
+                .andExpect(jsonPath("$.data[0].conditionUsageCode").value("CONDITION_READY"));
     }
 
     private AnnouncementInputRequirementsResponse requirementsResponse() {
