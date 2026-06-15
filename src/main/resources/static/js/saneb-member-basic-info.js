@@ -24,6 +24,8 @@
     const addressSubmit = app.querySelector("[data-address-search-submit]");
     const addressMessage = app.querySelector("[data-address-search-message]");
     const addressResults = app.querySelector("[data-address-search-results]");
+    const ageOutput = app.querySelector("[data-age-output]");
+    const businessYearsOutput = app.querySelector("[data-business-years-output]");
 
     const regionOptions = [
         ["SEOUL", "서울"],
@@ -97,6 +99,7 @@
     let selectedUserId = null;
     let activeAddressTarget = "member";
     let currentAddressResults = [];
+    const otherRestrictionQuestionCode = "OTHER_RESTRICTION";
 
     const selectApiUrl = () => {
         if (!isAdminApp) {
@@ -202,6 +205,45 @@
             return false;
         }
         return null;
+    };
+
+    const currentYear = () => new Date().getFullYear();
+
+    const updateAgeOutput = () => {
+        if (!ageOutput) {
+            return;
+        }
+        const birthYear = numberOrNull(valueOf("birthYear"));
+        if (birthYear == null || Number.isNaN(birthYear)) {
+            ageOutput.textContent = "나이는 자동으로 계산됩니다.";
+            return;
+        }
+        const age = currentYear() - birthYear;
+        ageOutput.textContent = age >= 0 ? `현재 기준 약 ${age.toLocaleString("ko-KR")}세입니다.` : "출생연도를 확인하세요.";
+    };
+
+    const updateBusinessYearsOutput = () => {
+        if (!businessYearsOutput) {
+            return;
+        }
+        const openingDateText = valueOf("openingDate");
+        if (!openingDateText) {
+            businessYearsOutput.textContent = "업력은 자동으로 계산됩니다.";
+            return;
+        }
+        const openingDate = new Date(`${openingDateText}T00:00:00`);
+        if (Number.isNaN(openingDate.getTime()) || openingDate > new Date()) {
+            businessYearsOutput.textContent = "개업일을 확인하세요.";
+            return;
+        }
+        const now = new Date();
+        let months = (now.getFullYear() - openingDate.getFullYear()) * 12 + (now.getMonth() - openingDate.getMonth());
+        if (now.getDate() < openingDate.getDate()) {
+            months -= 1;
+        }
+        const years = Math.max(0, Math.floor(months / 12));
+        const remainMonths = Math.max(0, months % 12);
+        businessYearsOutput.textContent = `현재 기준 약 ${years}년 ${remainMonths}개월입니다.`;
     };
 
     const setFieldValue = (name, value) => {
@@ -412,6 +454,42 @@
                 <input name="familyBirthYear" type="number" min="1900" max="2200" placeholder="예: 2018">
             </div>
             <div class="field-block">
+                <label>자녀 학령 상태</label>
+                <select name="familySchoolAgeStatusCode">
+                    <option value="">선택 안 함</option>
+                    <option value="PRESCHOOL">미취학</option>
+                    <option value="ELEMENTARY">초등</option>
+                    <option value="MIDDLE_HIGH">중고등</option>
+                    <option value="COLLEGE">대학</option>
+                    <option value="NONE">해당 없음</option>
+                </select>
+            </div>
+            <div class="field-block">
+                <label>자녀 재학 상태</label>
+                <select name="familyEnrollmentStatusCode">
+                    <option value="">선택 안 함</option>
+                    <option value="ENROLLED">재학</option>
+                    <option value="NOT_ENROLLED">미재학</option>
+                    <option value="UNKNOWN">잘 모름</option>
+                </select>
+            </div>
+            <div class="field-block">
+                <label>동거 여부</label>
+                <select name="familyCohabiting">
+                    <option value="">선택 안 함</option>
+                    <option value="true">예</option>
+                    <option value="false">아니오</option>
+                </select>
+            </div>
+            <div class="field-block">
+                <label>부양 여부</label>
+                <select name="familySupported">
+                    <option value="">선택 안 함</option>
+                    <option value="true">예</option>
+                    <option value="false">아니오</option>
+                </select>
+            </div>
+            <div class="field-block">
                 <label>소득 여부</label>
                 <select name="familyIncomePresenceCode">
                     <option value="">선택 안 함</option>
@@ -428,6 +506,10 @@
         `;
         row.querySelector("[name='relationTypeCode']").value = family.relationTypeCode || "";
         row.querySelector("[name='familyBirthYear']").value = family.birthYear == null ? "" : String(family.birthYear);
+        row.querySelector("[name='familySchoolAgeStatusCode']").value = family.schoolAgeStatusCode || "";
+        row.querySelector("[name='familyEnrollmentStatusCode']").value = family.enrollmentStatusCode || "";
+        row.querySelector("[name='familyCohabiting']").value = family.cohabiting == null ? "" : String(family.cohabiting);
+        row.querySelector("[name='familySupported']").value = family.supported == null ? "" : String(family.supported);
         row.querySelector("[name='familyIncomePresenceCode']").value = family.incomePresenceCode || "";
         row.querySelector("[name='familyIncomeAmount']").value = family.incomeAmount == null ? "" : String(family.incomeAmount);
         familyList.append(row);
@@ -598,6 +680,7 @@
         setSelectValue("healthInsuranceBasisCode", data.healthInsuranceBasisCode);
 
         const business = data.business || {};
+        setFieldValue("representativeName", business.representativeName);
         setFieldValue("businessRegistrationNo", business.businessRegistrationNo);
         setFieldValue("businessName", business.businessName);
         setSelectValue("workplaceRegionCode", business.workplaceRegionCode);
@@ -615,11 +698,20 @@
         setFieldValue("openingDate", business.openingDate);
         setFieldValue("annualRevenue", business.annualRevenue);
         setFieldValue("annualRevenueYear", business.annualRevenueYear);
+        setFieldValue("employeeCount", business.employeeCount);
+        setFieldValue("regularEmployeeCount", business.regularEmployeeCount);
+        setFieldValue("plannedHireCount", business.plannedHireCount);
+        setFieldValue("niceCreditScore", business.niceCreditScore);
+        setFieldValue("kcbCreditScore", business.kcbCreditScore);
+        setSelectValue("hasExistingLoan", business.hasExistingLoan);
         setSelectValue("businessTypeCode", business.businessTypeCode);
         setSelectValue("companyStageCode", business.companyStageCode);
         setFieldValue("ksicCode", business.ksicCode);
         setSelectValue("hasPolicyFundUsage", business.hasPolicyFundUsage);
         setSelectValue("hasGuaranteeUsage", business.hasGuaranteeUsage);
+        renderInterviewResponses(data.interviewResponses || []);
+        updateAgeOutput();
+        updateBusinessYearsOutput();
 
         familyList.replaceChildren();
         (data.families || []).forEach(renderFamilyRow);
@@ -633,9 +725,23 @@
         renderDocuments();
     };
 
+    const renderInterviewResponses = (responses) => {
+        const responseByQuestion = new Map(
+            (responses || []).map((response) => [response.questionCode, response])
+        );
+        form.querySelectorAll("[data-interview-question-code]").forEach((field) => {
+            const questionCode = field.dataset.interviewQuestionCode;
+            const response = responseByQuestion.get(questionCode);
+            field.value = response?.answerCode || "";
+        });
+        const otherRestriction = responseByQuestion.get(otherRestrictionQuestionCode);
+        setFieldValue("interviewOtherRestrictionNote", otherRestriction?.note);
+    };
+
     const buildBusinessPayload = () => {
         const payload = {
             businessRegistrationNo: textOrNull(valueOf("businessRegistrationNo")),
+            representativeName: textOrNull(valueOf("representativeName")),
             businessName: textOrNull(valueOf("businessName")),
             workplaceRegionCode: textOrNull(valueOf("workplaceRegionCode")),
             workplacePostalCode: textOrNull(valueOf("workplacePostalCode")),
@@ -655,6 +761,12 @@
             companyStageCode: textOrNull(valueOf("companyStageCode")),
             annualRevenue: numberOrNull(valueOf("annualRevenue")),
             annualRevenueYear: numberOrNull(valueOf("annualRevenueYear")),
+            employeeCount: numberOrNull(valueOf("employeeCount")),
+            regularEmployeeCount: numberOrNull(valueOf("regularEmployeeCount")),
+            plannedHireCount: numberOrNull(valueOf("plannedHireCount")),
+            niceCreditScore: numberOrNull(valueOf("niceCreditScore")),
+            kcbCreditScore: numberOrNull(valueOf("kcbCreditScore")),
+            hasExistingLoan: booleanOrNull(valueOf("hasExistingLoan")),
             hasPolicyFundUsage: booleanOrNull(valueOf("hasPolicyFundUsage")),
             hasGuaranteeUsage: booleanOrNull(valueOf("hasGuaranteeUsage"))
         };
@@ -668,6 +780,10 @@
                 return {
                     relationTypeCode: textOrNull(rowValueOf(row, "relationTypeCode")),
                     birthYear: numberOrNull(rowValueOf(row, "familyBirthYear")),
+                    schoolAgeStatusCode: textOrNull(rowValueOf(row, "familySchoolAgeStatusCode")),
+                    enrollmentStatusCode: textOrNull(rowValueOf(row, "familyEnrollmentStatusCode")),
+                    cohabiting: booleanOrNull(rowValueOf(row, "familyCohabiting")),
+                    supported: booleanOrNull(rowValueOf(row, "familySupported")),
                     hasIncome: incomeFlag(incomePresenceCode),
                     incomePresenceCode,
                     incomeAmount: numberOrNull(rowValueOf(row, "familyIncomeAmount"))
@@ -710,6 +826,26 @@
             }));
     };
 
+    const buildInterviewPayload = () => {
+        const otherRestrictionNote = textOrNull(valueOf("interviewOtherRestrictionNote"));
+        return Array.from(form.querySelectorAll("[data-interview-question-code]"))
+            .map((field) => {
+                const questionCode = field.dataset.interviewQuestionCode;
+                const note = questionCode === otherRestrictionQuestionCode ? otherRestrictionNote : null;
+                const selectedAnswer = textOrNull(field.value);
+                const answerCode = selectedAnswer || (note ? "UNKNOWN" : null);
+                if (!questionCode || answerCode == null) {
+                    return null;
+                }
+                return {
+                    questionCode,
+                    answerCode,
+                    note
+                };
+            })
+            .filter(Boolean);
+    };
+
     const buildPayload = () => {
         const incomePresenceCode = textOrNull(valueOf("incomePresenceCode"));
         return {
@@ -732,6 +868,7 @@
             healthInsuranceBasisCode: textOrNull(valueOf("healthInsuranceBasisCode")),
             business: buildBusinessPayload(),
             families: buildFamilyPayload(),
+            interviewResponses: buildInterviewPayload(),
             documentInputs: buildDocumentPayload()
         };
     };
@@ -836,6 +973,9 @@
             searchAddress();
         }
     });
+
+    form?.querySelector("[name='birthYear']")?.addEventListener("input", updateAgeOutput);
+    form?.querySelector("[name='openingDate']")?.addEventListener("input", updateBusinessYearsOutput);
 
     addressResults?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-address-result-index]");

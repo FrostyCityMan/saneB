@@ -2,6 +2,8 @@ package com.saneb.domain.member.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -47,10 +49,14 @@ public record MemberBasicInfoSaveRequest(
         @Valid
         List<FamilyInfoRequest> families,
         @Valid
+        List<InterviewResponseRequest> interviewResponses,
+        @Valid
         List<DocumentInputSaveRequest> documentInputs
 ) {
 
     public record BusinessInfoRequest(
+            @Size(max = 100, message = "대표자명은 100자 이하로 입력하세요.")
+            String representativeName,
             @Size(max = 30, message = "사업자등록번호는 30자 이하로 입력하세요.")
             String businessRegistrationNo,
             @Size(max = 200, message = "상호명은 200자 이하로 입력하세요.")
@@ -89,6 +95,19 @@ public record MemberBasicInfoSaveRequest(
             @DecimalMin(value = "0", message = "연매출은 0 이상으로 입력하세요.")
             BigDecimal annualRevenue,
             Integer annualRevenueYear,
+            @Min(value = 0, message = "직원 수는 0 이상으로 입력하세요.")
+            Integer employeeCount,
+            @Min(value = 0, message = "상시근로자 수는 0 이상으로 입력하세요.")
+            Integer regularEmployeeCount,
+            @Min(value = 0, message = "신규 채용 예정 인원은 0 이상으로 입력하세요.")
+            Integer plannedHireCount,
+            @Min(value = 0, message = "NICE 신용 점수는 0 이상으로 입력하세요.")
+            @Max(value = 1000, message = "NICE 신용 점수는 1000 이하로 입력하세요.")
+            Integer niceCreditScore,
+            @Min(value = 0, message = "KCB 신용 점수는 0 이상으로 입력하세요.")
+            @Max(value = 1000, message = "KCB 신용 점수는 1000 이하로 입력하세요.")
+            Integer kcbCreditScore,
+            Boolean hasExistingLoan,
             Boolean hasPolicyFundUsage,
             Boolean hasGuaranteeUsage
     ) {
@@ -99,11 +118,29 @@ public record MemberBasicInfoSaveRequest(
             @Size(max = 30, message = "가족 관계 코드는 30자 이하로 입력하세요.")
             String relationTypeCode,
             Integer birthYear,
+            @Size(max = 50, message = "학령 상태 코드는 50자 이하로 입력하세요.")
+            String schoolAgeStatusCode,
+            @Size(max = 50, message = "재학 상태 코드는 50자 이하로 입력하세요.")
+            String enrollmentStatusCode,
+            Boolean cohabiting,
+            Boolean supported,
             Boolean hasIncome,
             @Size(max = 30, message = "가족 소득 여부 코드는 30자 이하로 입력하세요.")
             String incomePresenceCode,
             @DecimalMin(value = "0", message = "가족 소득 금액은 0 이상으로 입력하세요.")
             BigDecimal incomeAmount
+    ) {
+    }
+
+    public record InterviewResponseRequest(
+            @NotBlank(message = "확인 질문 코드를 선택하세요.")
+            @Size(max = 64, message = "확인 질문 코드는 64자 이하로 입력하세요.")
+            String questionCode,
+            @NotBlank(message = "확인 질문 답변을 선택하세요.")
+            @Size(max = 16, message = "확인 질문 답변은 16자 이하로 입력하세요.")
+            String answerCode,
+            @Size(max = 1000, message = "기타 제한 메모는 1000자 이하로 입력하세요.")
+            String note
     ) {
     }
 

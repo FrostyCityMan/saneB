@@ -70,6 +70,35 @@
               )
           )
           AND (
+              #{ksicCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_industry_conditions aic_include_required
+                  WHERE aic_include_required.announcement_id = a.id
+                    AND aic_include_required.condition_type_code = 'INCLUDE'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_industry_conditions aic_include
+                  WHERE aic_include.announcement_id = a.id
+                    AND aic_include.condition_type_code = 'INCLUDE'
+                    AND aic_include.ksic_code = #{ksicCode,jdbcType=VARCHAR}
+              )
+          )
+          AND (
+              #{ksicCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_industry_conditions aic_exclude
+                  WHERE aic_exclude.announcement_id = a.id
+                    AND aic_exclude.condition_type_code = 'EXCLUDE'
+                    AND aic_exclude.ksic_code = #{ksicCode,jdbcType=VARCHAR}
+              )
+          )
+          AND (
               #{businessYears,jdbcType=NUMERIC} IS NULL
               OR NOT EXISTS (
                   SELECT
@@ -98,20 +127,48 @@
               )
           )
           AND (
+              #{age,jdbcType=NUMERIC} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_age_required
+                  WHERE anc_age_required.announcement_id = a.id
+                    AND anc_age_required.condition_key = 'AGE'
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_numeric_conditions anc_age
+                  WHERE anc_age.announcement_id = a.id
+                    AND anc_age.condition_key = 'AGE'
+                    AND (
+                        (anc_age.comparator_code = 'GTE' AND #{age,jdbcType=NUMERIC} &gt;= anc_age.value_number)
+                        OR (anc_age.comparator_code = 'LTE' AND #{age,jdbcType=NUMERIC} &lt;= anc_age.value_number)
+                        OR (anc_age.comparator_code = 'GT' AND #{age,jdbcType=NUMERIC} &gt; anc_age.value_number)
+                        OR (anc_age.comparator_code = 'LT' AND #{age,jdbcType=NUMERIC} &lt; anc_age.value_number)
+                        OR (anc_age.comparator_code = 'EQ' AND #{age,jdbcType=NUMERIC} = anc_age.value_number)
+                        OR (
+                            anc_age.comparator_code = 'BETWEEN'
+                            AND #{age,jdbcType=NUMERIC} BETWEEN anc_age.min_number AND anc_age.max_number
+                        )
+                    )
+              )
+          )
+          AND (
               #{hasSpouseCode,jdbcType=VARCHAR} IS NULL
               OR NOT EXISTS (
                   SELECT
                       1
                   FROM announcement_option_conditions aoc_spouse_required
                   WHERE aoc_spouse_required.announcement_id = a.id
-                    AND aoc_spouse_required.condition_key = 'HAS_SPOUSE'
+                    AND aoc_spouse_required.condition_key IN ('HAS_SPOUSE', 'SPOUSE_COUNT')
               )
               OR EXISTS (
                   SELECT
                       1
                   FROM announcement_option_conditions aoc_spouse
                   WHERE aoc_spouse.announcement_id = a.id
-                    AND aoc_spouse.condition_key = 'HAS_SPOUSE'
+                    AND aoc_spouse.condition_key IN ('HAS_SPOUSE', 'SPOUSE_COUNT')
                     AND aoc_spouse.option_code = #{hasSpouseCode,jdbcType=VARCHAR}
               )
           )
@@ -122,15 +179,33 @@
                       1
                   FROM announcement_option_conditions aoc_child_required
                   WHERE aoc_child_required.announcement_id = a.id
-                    AND aoc_child_required.condition_key = 'HAS_CHILD'
+                    AND aoc_child_required.condition_key IN ('HAS_CHILD', 'CHILD_COUNT')
               )
               OR EXISTS (
                   SELECT
                       1
                   FROM announcement_option_conditions aoc_child
                   WHERE aoc_child.announcement_id = a.id
-                    AND aoc_child.condition_key = 'HAS_CHILD'
+                    AND aoc_child.condition_key IN ('HAS_CHILD', 'CHILD_COUNT')
                     AND aoc_child.option_code = #{hasChildCode,jdbcType=VARCHAR}
+              )
+          )
+          AND (
+              #{hasParentCode,jdbcType=VARCHAR} IS NULL
+              OR NOT EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_parent_required
+                  WHERE aoc_parent_required.announcement_id = a.id
+                    AND aoc_parent_required.condition_key IN ('HAS_PARENT', 'PARENT_COUNT')
+              )
+              OR EXISTS (
+                  SELECT
+                      1
+                  FROM announcement_option_conditions aoc_parent
+                  WHERE aoc_parent.announcement_id = a.id
+                    AND aoc_parent.condition_key IN ('HAS_PARENT', 'PARENT_COUNT')
+                    AND aoc_parent.option_code = #{hasParentCode,jdbcType=VARCHAR}
               )
           )
     </select>

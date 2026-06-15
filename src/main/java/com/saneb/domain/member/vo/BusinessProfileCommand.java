@@ -7,6 +7,7 @@ import java.util.UUID;
 public record BusinessProfileCommand(
         UUID businessProfileId,
         UUID userId,
+        String representativeName,
         String businessRegistrationNo,
         String businessName,
         String workplaceRegionCode,
@@ -27,6 +28,12 @@ public record BusinessProfileCommand(
         String companyStageCode,
         BigDecimal annualRevenue,
         Integer annualRevenueYear,
+        Integer employeeCount,
+        Integer regularEmployeeCount,
+        Integer plannedHireCount,
+        Integer niceCreditScore,
+        Integer kcbCreditScore,
+        Boolean hasExistingLoan,
         Boolean hasPolicyFundUsage,
         Boolean hasGuaranteeUsage,
         UUID actorUserId

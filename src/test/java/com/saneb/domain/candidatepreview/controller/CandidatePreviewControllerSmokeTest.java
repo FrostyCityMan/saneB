@@ -2,8 +2,10 @@ package com.saneb.domain.candidatepreview.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,11 +48,22 @@ class CandidatePreviewControllerSmokeTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "representativeName": "홍길동",
+                                  "birthYear": 1988,
                                   "regionCode": "SEOUL",
+                                  "ksicCode": "47911",
                                   "annualRevenue": 30000000,
                                   "openingDate": "2024-01-01",
                                   "hasSpouse": true,
-                                  "hasChild": false
+                                  "hasChild": false,
+                                  "hasParent": true,
+                                  "families": [
+                                    {
+                                      "relationTypeCode": "PARENT",
+                                      "birthYear": 1955,
+                                      "cohabiting": true
+                                    }
+                                  ]
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -64,6 +77,9 @@ class CandidatePreviewControllerSmokeTest {
     @Test
     void anonymousUserCanOpenCandidatePreviewPage() throws Exception {
         mockMvc.perform(get("/candidate-preview"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("대표자명")))
+                .andExpect(content().string(containsString("가족 간단 정보")))
+                .andExpect(content().string(containsString("간단 결과 확인하기")));
     }
 }

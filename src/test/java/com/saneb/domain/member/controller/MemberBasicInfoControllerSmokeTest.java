@@ -54,7 +54,13 @@ class MemberBasicInfoControllerSmokeTest {
                 .andExpect(jsonPath("$.data.roadAddress").value("서울특별시 중구 세종대로 110"))
                 .andExpect(jsonPath("$.data.business.businessName").value("사내비상점"))
                 .andExpect(jsonPath("$.data.business.workplaceRoadAddress").value("서울특별시 중구 세종대로 110"))
+                .andExpect(jsonPath("$.data.business.employeeCount").value(5))
+                .andExpect(jsonPath("$.data.business.niceCreditScore").value(750))
+                .andExpect(jsonPath("$.data.business.hasExistingLoan").value(false))
                 .andExpect(jsonPath("$.data.families[0].relationTypeCode").value("CHILD"))
+                .andExpect(jsonPath("$.data.families[0].schoolAgeStatusCode").value("ELEMENTARY"))
+                .andExpect(jsonPath("$.data.families[0].enrollmentStatusCode").value("ENROLLED"))
+                .andExpect(jsonPath("$.data.interviewResponses[0].questionLabel").value("기존 동일 사업 진행 여부"))
                 .andExpect(jsonPath("$.data.documentInputs[0].documentTypeLabel").value("사업자등록증"))
                 .andExpect(jsonPath("$.data.documentInputs[0].fields[0].fieldLabel").value("사업장 주소"));
     }
@@ -83,6 +89,7 @@ class MemberBasicInfoControllerSmokeTest {
                                   "incomeAmount": 30000000,
                                   "healthInsuranceBasisCode": "WORKPLACE",
                                   "business": {
+                                    "representativeName": "홍길동",
                                     "businessRegistrationNo": "123-45-67890",
                                     "businessName": "사내비상점",
                                     "workplaceRegionCode": "SEOUL",
@@ -102,6 +109,12 @@ class MemberBasicInfoControllerSmokeTest {
                                     "companyStageCode": "OPERATING",
                                     "annualRevenue": 120000000,
                                     "annualRevenueYear": 2025,
+                                    "employeeCount": 5,
+                                    "regularEmployeeCount": 3,
+                                    "plannedHireCount": 1,
+                                    "niceCreditScore": 750,
+                                    "kcbCreditScore": 720,
+                                    "hasExistingLoan": false,
                                     "hasPolicyFundUsage": false,
                                     "hasGuaranteeUsage": false
                                   },
@@ -109,7 +122,22 @@ class MemberBasicInfoControllerSmokeTest {
                                     {
                                       "relationTypeCode": "CHILD",
                                       "birthYear": 2018,
+                                      "schoolAgeStatusCode": "ELEMENTARY",
+                                      "enrollmentStatusCode": "ENROLLED",
+                                      "cohabiting": true,
+                                      "supported": true,
                                       "incomePresenceCode": "NONE"
+                                    }
+                                  ],
+                                  "interviewResponses": [
+                                    {
+                                      "questionCode": "SAME_BUSINESS_IN_PROGRESS",
+                                      "answerCode": "NO"
+                                    },
+                                    {
+                                      "questionCode": "OTHER_RESTRICTION",
+                                      "answerCode": "UNKNOWN",
+                                      "note": "확인 예정"
                                     }
                                   ],
                                   "documentInputs": [
@@ -159,6 +187,7 @@ class MemberBasicInfoControllerSmokeTest {
                 BigDecimal.valueOf(30_000_000),
                 "WORKPLACE",
                 new MemberBasicInfoResponse.BusinessInfoResponse(
+                        "홍길동",
                         "123-45-67890",
                         "사내비상점",
                         "SEOUL",
@@ -179,6 +208,12 @@ class MemberBasicInfoControllerSmokeTest {
                         "OPERATING",
                         BigDecimal.valueOf(120_000_000),
                         2025,
+                        5,
+                        3,
+                        1,
+                        750,
+                        720,
+                        false,
                         false,
                         false
                 ),
@@ -186,10 +221,30 @@ class MemberBasicInfoControllerSmokeTest {
                         UUID.fromString("10000000-0000-0000-0000-000000000003"),
                         "CHILD",
                         2018,
+                        "ELEMENTARY",
+                        "ENROLLED",
+                        true,
+                        true,
                         false,
                         "NONE",
                         null
                 )),
+                List.of(
+                        new MemberBasicInfoResponse.InterviewResponse(
+                                "SAME_BUSINESS_IN_PROGRESS",
+                                "기존 동일 사업 진행 여부",
+                                "NO",
+                                "아니오",
+                                null
+                        ),
+                        new MemberBasicInfoResponse.InterviewResponse(
+                                "OTHER_RESTRICTION",
+                                "기타 제한 여부",
+                                "UNKNOWN",
+                                "잘 모르겠음",
+                                "확인 예정"
+                        )
+                ),
                 List.of(new MemberBasicInfoResponse.DocumentInputResponse(
                         "BUSINESS_REGISTRATION",
                         "사업자등록증",

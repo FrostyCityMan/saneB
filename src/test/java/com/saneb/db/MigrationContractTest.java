@@ -281,6 +281,23 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v25MigrationContainsMemberInterviewResponses() throws IOException {
+        String sql = selectV25Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN has_existing_loan boolean",
+                "CREATE TABLE member_interview_responses",
+                "CONSTRAINT uq_member_interview_responses_question",
+                "CONSTRAINT ck_member_interview_responses_question",
+                "SAME_BUSINESS_IN_PROGRESS",
+                "DUPLICATE_SUPPORT_USAGE",
+                "BUSINESS_ACTUALLY_OPERATING",
+                "OTHER_RESTRICTION",
+                "CONSTRAINT ck_member_interview_responses_answer"
+        );
+    }
+
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
@@ -358,6 +375,11 @@ class MigrationContractTest {
 
     private String selectV22Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V22__add_structured_address_fields.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV25Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V25__add_member_interview_responses.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

@@ -2,6 +2,7 @@ package com.saneb.domain.candidatepreview.service.impl;
 
 import com.saneb.domain.candidatepreview.dao.CandidatePreviewDao;
 import com.saneb.domain.candidatepreview.dto.CandidatePreviewRequest;
+import com.saneb.domain.candidatepreview.dto.CandidatePreviewRequest.FamilyPreviewRequest;
 import com.saneb.domain.candidatepreview.dto.CandidatePreviewResponse;
 import com.saneb.domain.candidatepreview.vo.CandidatePreviewRow;
 import com.saneb.domain.candidatepreview.vo.CandidatePreviewSearchCondition;
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +31,11 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
                 normalizeCode(request.regionCode()),
                 request.annualRevenue(),
                 businessYears(request.openingDate()),
-                booleanCode(request.hasSpouse()),
-                booleanCode(request.hasChild())
+                age(request.birthYear()),
+                normalizeCode(request.ksicCode()),
+                booleanCode(resolveFamilyPresence(request.hasSpouse(), request.families(), "SPOUSE")),
+                booleanCode(resolveFamilyPresence(request.hasChild(), request.families(), "CHILD")),
+                booleanCode(resolveFamilyPresence(request.hasParent(), request.families(), "PARENT"))
         ));
         return new CandidatePreviewResponse(
                 row == null ? 0 : row.possibleCandidateCount(),
@@ -52,6 +57,27 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
             return null;
         }
         return Boolean.TRUE.equals(value) ? "TRUE" : "FALSE";
+    }
+
+    private Boolean resolveFamilyPresence(Boolean explicitValue, List<FamilyPreviewRequest> families, String relationTypeCode) {
+        if (explicitValue != null) {
+            return explicitValue;
+        }
+        if (families == null || families.isEmpty()) {
+            return null;
+        }
+        return families.stream()
+                .filter(family -> family != null && relationTypeCode.equals(normalizeCode(family.relationTypeCode())))
+                .findAny()
+                .map(ignored -> Boolean.TRUE)
+                .orElse(null);
+    }
+
+    private BigDecimal age(Integer birthYear) {
+        if (birthYear == null || birthYear < 1900 || birthYear > 2200) {
+            return null;
+        }
+        return BigDecimal.valueOf(LocalDate.now().getYear() - birthYear);
     }
 
     private BigDecimal businessYears(LocalDate openingDate) {

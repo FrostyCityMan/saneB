@@ -7,9 +7,11 @@ import com.saneb.domain.member.dao.MemberBasicInfoDao;
 import com.saneb.domain.member.dto.MemberBasicInfoResponse;
 import com.saneb.domain.member.dto.MemberBasicInfoResponse.DocumentFieldInputResponse;
 import com.saneb.domain.member.dto.MemberBasicInfoResponse.DocumentInputResponse;
+import com.saneb.domain.member.dto.MemberBasicInfoResponse.InterviewResponse;
 import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest;
 import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest.DocumentFieldValueRequest;
 import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest.DocumentInputSaveRequest;
+import com.saneb.domain.member.dto.MemberBasicInfoSaveRequest.InterviewResponseRequest;
 import com.saneb.domain.member.service.MemberBasicInfoService;
 import com.saneb.domain.member.vo.BusinessProfileCommand;
 import com.saneb.domain.member.vo.BusinessProfileRow;
@@ -18,6 +20,8 @@ import com.saneb.domain.member.vo.FamilyMemberRow;
 import com.saneb.domain.member.vo.MemberDocumentFieldRow;
 import com.saneb.domain.member.vo.MemberDocumentInputValueCommand;
 import com.saneb.domain.member.vo.MemberDocumentInputValueRow;
+import com.saneb.domain.member.vo.MemberInterviewResponseCommand;
+import com.saneb.domain.member.vo.MemberInterviewResponseRow;
 import com.saneb.domain.member.vo.MemberProfileCommand;
 import com.saneb.domain.member.vo.MemberProfileRow;
 import com.saneb.domain.matching.service.MatchingService;
@@ -42,6 +46,18 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
 
     private static final Set<String> RELATION_TYPE_CODES = Set.of("SPOUSE", "CHILD", "PARENT");
     private static final Set<String> INCOME_PRESENCE_CODES = Set.of("UNKNOWN", "NONE", "HAS_INCOME");
+    private static final Set<String> SCHOOL_AGE_STATUS_CODES = Set.of(
+            "PRESCHOOL",
+            "ELEMENTARY",
+            "MIDDLE_HIGH",
+            "COLLEGE",
+            "NONE"
+    );
+    private static final Set<String> ENROLLMENT_STATUS_CODES = Set.of(
+            "ENROLLED",
+            "NOT_ENROLLED",
+            "UNKNOWN"
+    );
     private static final Set<String> BUSINESS_TYPE_CODES = Set.of(
             "SOLE_PROPRIETOR",
             "CORPORATION",
@@ -59,6 +75,24 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             "RESTART_PREPARING"
     );
     private static final Set<String> ADDRESS_SOURCE_CODES = Set.of("JUSO_API", "MANUAL");
+    private static final Set<String> INTERVIEW_QUESTION_CODES = Set.of(
+            "SAME_BUSINESS_IN_PROGRESS",
+            "DUPLICATE_SUPPORT_USAGE",
+            "BUSINESS_ACTUALLY_OPERATING",
+            "OTHER_RESTRICTION"
+    );
+    private static final Set<String> INTERVIEW_ANSWER_CODES = Set.of("YES", "NO", "UNKNOWN");
+    private static final Map<String, String> INTERVIEW_QUESTION_LABELS = Map.of(
+            "SAME_BUSINESS_IN_PROGRESS", "기존 동일 사업 진행 여부",
+            "DUPLICATE_SUPPORT_USAGE", "중복 지원 여부",
+            "BUSINESS_ACTUALLY_OPERATING", "실제 사업 운영 여부",
+            "OTHER_RESTRICTION", "기타 제한 여부"
+    );
+    private static final Map<String, String> INTERVIEW_ANSWER_LABELS = Map.of(
+            "YES", "예",
+            "NO", "아니오",
+            "UNKNOWN", "잘 모르겠음"
+    );
     private static final Set<String> DOCUMENT_TEXT_FIELD_TYPES = Set.of("TEXT", "TEXTAREA", "SELECT", "RADIO", "MULTI_SELECT");
     private static final Map<String, String> DOCUMENT_TYPE_LABELS = Map.ofEntries(
             Map.entry("BUSINESS_REGISTRATION", "사업자등록증"),
@@ -151,6 +185,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 memberBasicInfoDao.updateBusinessProfile(new BusinessProfileCommand(
                         businessProfileId,
                         businessCommand.userId(),
+                        businessCommand.representativeName(),
                         businessCommand.businessRegistrationNo(),
                         businessCommand.businessName(),
                         businessCommand.workplaceRegionCode(),
@@ -171,6 +206,12 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                         businessCommand.companyStageCode(),
                         businessCommand.annualRevenue(),
                         businessCommand.annualRevenueYear(),
+                        businessCommand.employeeCount(),
+                        businessCommand.regularEmployeeCount(),
+                        businessCommand.plannedHireCount(),
+                        businessCommand.niceCreditScore(),
+                        businessCommand.kcbCreditScore(),
+                        businessCommand.hasExistingLoan(),
                         businessCommand.hasPolicyFundUsage(),
                         businessCommand.hasGuaranteeUsage(),
                         businessCommand.actorUserId()
@@ -182,6 +223,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         for (MemberBasicInfoSaveRequest.FamilyInfoRequest family : safeFamilies(request.families())) {
             FamilyMemberCommand command = selectFamilyMemberCommand(userId, actorUserId, family);
             memberBasicInfoDao.insertFamilyMember(command);
+        }
+
+        if (request.interviewResponses() != null) {
+            saveInterviewResponses(userId, actorUserId, request.interviewResponses());
         }
 
         if (request.documentInputs() != null) {
@@ -222,11 +267,16 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                                 row.familyMemberId(),
                                 row.relationTypeCode(),
                                 row.birthYear(),
+                                row.schoolAgeStatusCode(),
+                                row.enrollmentStatusCode(),
+                                row.cohabiting(),
+                                row.supported(),
                                 row.hasIncome(),
                                 row.incomePresenceCode(),
                                 row.incomeAmount()
                         ))
                         .toList(),
+                selectInterviewResponses(userId),
                 selectDocumentInputResponses(userId)
         );
     }
@@ -236,6 +286,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
             return null;
         }
         return new MemberBasicInfoResponse.BusinessInfoResponse(
+                row.representativeName(),
                 row.businessRegistrationNo(),
                 row.businessName(),
                 row.workplaceRegionCode(),
@@ -256,9 +307,51 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 row.companyStageCode(),
                 row.annualRevenue(),
                 row.annualRevenueYear(),
+                row.employeeCount(),
+                row.regularEmployeeCount(),
+                row.plannedHireCount(),
+                row.niceCreditScore(),
+                row.kcbCreditScore(),
+                row.hasExistingLoan(),
                 row.hasPolicyFundUsage(),
                 row.hasGuaranteeUsage()
         );
+    }
+
+    private List<InterviewResponse> selectInterviewResponses(UUID userId) {
+        return memberBasicInfoDao.selectMemberInterviewResponseList(userId).stream()
+                .map(row -> new InterviewResponse(
+                        row.questionCode(),
+                        INTERVIEW_QUESTION_LABELS.getOrDefault(row.questionCode(), row.questionCode()),
+                        row.answerCode(),
+                        INTERVIEW_ANSWER_LABELS.getOrDefault(row.answerCode(), row.answerCode()),
+                        row.note()
+                ))
+                .toList();
+    }
+
+    private void saveInterviewResponses(UUID userId, UUID actorUserId, List<InterviewResponseRequest> responses) {
+        memberBasicInfoDao.deleteMemberInterviewResponseList(userId);
+        Set<String> savedQuestionCodes = new HashSet<>();
+        for (InterviewResponseRequest response : safeInterviewResponses(responses)) {
+            if (response == null) {
+                continue;
+            }
+            String questionCode = normalizeCode(response.questionCode());
+            String answerCode = normalizeCode(response.answerCode());
+            validateRequiredCode(questionCode, INTERVIEW_QUESTION_CODES, "확인 질문");
+            validateRequiredCode(answerCode, INTERVIEW_ANSWER_CODES, "확인 질문 답변");
+            if (!savedQuestionCodes.add(questionCode)) {
+                throw validationFailed("같은 확인 질문은 한 번만 저장하세요.");
+            }
+            memberBasicInfoDao.insertMemberInterviewResponse(new MemberInterviewResponseCommand(
+                    userId,
+                    questionCode,
+                    answerCode,
+                    trimToNull(response.note()),
+                    actorUserId
+            ));
+        }
     }
 
     private List<DocumentInputResponse> selectDocumentInputResponses(UUID userId) {
@@ -451,11 +544,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         }
         String businessRegistrationNo = trimToNull(business.businessRegistrationNo());
         String businessName = trimToNull(business.businessName());
-        if (businessRegistrationNo == null || businessName == null) {
-            throw validationFailed("사업자 정보를 입력할 때는 사업자등록번호와 상호명을 함께 입력하세요.");
-        }
         validateBusinessDate(business.openingDate());
         validateYear(business.annualRevenueYear(), "연매출 기준연도");
+        validateNonNegative(business.employeeCount(), "직원 수");
+        validateNonNegative(business.regularEmployeeCount(), "상시근로자 수");
+        validateNonNegative(business.plannedHireCount(), "신규 채용 예정 인원");
+        validateCreditScore(business.niceCreditScore(), "NICE 신용 점수");
+        validateCreditScore(business.kcbCreditScore(), "KCB 신용 점수");
         String businessTypeCode = normalizeCode(business.businessTypeCode());
         String companyStageCode = normalizeCode(business.companyStageCode());
         String workplaceAddressSourceCode = normalizeCode(business.workplaceAddressSourceCode());
@@ -466,6 +561,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return new BusinessProfileCommand(
                 null,
                 userId,
+                trimToNull(business.representativeName()),
                 businessRegistrationNo,
                 businessName,
                 normalizeCode(business.workplaceRegionCode()),
@@ -486,6 +582,12 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 companyStageCode,
                 business.annualRevenue(),
                 business.annualRevenueYear(),
+                business.employeeCount(),
+                business.regularEmployeeCount(),
+                business.plannedHireCount(),
+                business.niceCreditScore(),
+                business.kcbCreditScore(),
+                business.hasExistingLoan(),
                 business.hasPolicyFundUsage(),
                 business.hasGuaranteeUsage(),
                 actorUserId
@@ -500,6 +602,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         String relationTypeCode = normalizeCode(family.relationTypeCode());
         validateRequiredCode(relationTypeCode, RELATION_TYPE_CODES, "가족 관계");
         validateBirthYear(family.birthYear(), "가족 출생연도");
+        String schoolAgeStatusCode = normalizeCode(family.schoolAgeStatusCode());
+        validateOptionalCode(schoolAgeStatusCode, SCHOOL_AGE_STATUS_CODES, "자녀 학령 상태");
+        String enrollmentStatusCode = normalizeCode(family.enrollmentStatusCode());
+        validateOptionalCode(enrollmentStatusCode, ENROLLMENT_STATUS_CODES, "자녀 재학 상태");
         String incomePresenceCode = normalizeCode(family.incomePresenceCode());
         validateOptionalCode(incomePresenceCode, INCOME_PRESENCE_CODES, "가족 소득 여부");
         return new FamilyMemberCommand(
@@ -507,6 +613,10 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 userId,
                 relationTypeCode,
                 family.birthYear(),
+                schoolAgeStatusCode,
+                enrollmentStatusCode,
+                family.cohabiting(),
+                family.supported(),
                 normalizeIncomeFlag(family.hasIncome(), incomePresenceCode),
                 incomePresenceCode,
                 family.incomeAmount(),
@@ -522,6 +632,7 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
 
     private boolean isEmptyBusiness(MemberBasicInfoSaveRequest.BusinessInfoRequest business) {
         return trimToNull(business.businessRegistrationNo()) == null
+                && trimToNull(business.representativeName()) == null
                 && trimToNull(business.businessName()) == null
                 && trimToNull(business.workplaceRegionCode()) == null
                 && trimToNull(business.workplacePostalCode()) == null
@@ -541,8 +652,18 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 && trimToNull(business.companyStageCode()) == null
                 && business.annualRevenue() == null
                 && business.annualRevenueYear() == null
+                && business.employeeCount() == null
+                && business.regularEmployeeCount() == null
+                && business.plannedHireCount() == null
+                && business.niceCreditScore() == null
+                && business.kcbCreditScore() == null
+                && business.hasExistingLoan() == null
                 && business.hasPolicyFundUsage() == null
                 && business.hasGuaranteeUsage() == null;
+    }
+
+    private List<InterviewResponseRequest> safeInterviewResponses(List<InterviewResponseRequest> responses) {
+        return responses == null ? List.of() : responses;
     }
 
     private Boolean normalizeIncomeFlag(Boolean explicitValue, String incomePresenceCode) {
@@ -568,6 +689,18 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
     private void validateBusinessDate(LocalDate openingDate) {
         if (openingDate != null && openingDate.isAfter(LocalDate.now())) {
             throw validationFailed("개업일은 오늘 이후 날짜로 입력할 수 없습니다.");
+        }
+    }
+
+    private void validateNonNegative(Integer value, String label) {
+        if (value != null && value < 0) {
+            throw validationFailed(label + "는 0 이상으로 입력하세요.");
+        }
+    }
+
+    private void validateCreditScore(Integer value, String label) {
+        if (value != null && (value < 0 || value > 1000)) {
+            throw validationFailed(label + "는 0부터 1000 사이로 입력하세요.");
         }
     }
 

@@ -161,7 +161,7 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 
 ### Pre-signup Candidate Preview
 
-회원가입 전 임시 후보 확인은 개인정보를 저장하지 않고 승인·진행 중 공고를 기준으로 후보 수와 예상 지원금 범위만 반환한다. 추천도, 선정확률, 우선순위, 가점은 계산하지 않는다.
+회원가입 전 임시 후보 확인은 개인정보를 저장하지 않고 승인·진행 중 공고를 기준으로 후보 수와 예상 지원금 범위만 반환한다. 대표자명, 출생연도, 사업 시작일, 사업장 지역, 업종, 가족 간단 정보를 받을 수 있으나 저장하지 않는다. 추천도, 선정확률, 우선순위, 가점은 계산하지 않는다.
 
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
@@ -171,11 +171,29 @@ MVP v1에서 `defaultRoute`는 역할별 기본 진입점을 반환한다. Front
 
 ```json
 {
+  "representativeName": "홍길동",
+  "birthYear": 1988,
   "regionCode": "SEOUL",
+  "ksicCode": "47911",
   "annualRevenue": 120000000,
   "openingDate": "2023-01-10",
   "hasSpouse": true,
-  "hasChild": false
+  "hasChild": true,
+  "hasParent": true,
+  "families": [
+    {
+      "relationTypeCode": "CHILD",
+      "birthYear": 2018,
+      "schoolAgeStatusCode": "ELEMENTARY",
+      "cohabiting": null
+    },
+    {
+      "relationTypeCode": "PARENT",
+      "birthYear": 1955,
+      "schoolAgeStatusCode": null,
+      "cohabiting": true
+    }
+  ]
 }
 ```
 
@@ -452,6 +470,7 @@ Response:
   "incomeAmount": 30000000,
   "healthInsuranceBasisCode": "WORKPLACE",
   "business": {
+    "representativeName": "홍길동",
     "businessRegistrationNo": "123-45-67890",
     "businessName": "사내비상점",
     "workplaceRegionCode": "SEOUL",
@@ -472,6 +491,12 @@ Response:
     "companyStageCode": "OPERATING",
     "annualRevenue": 120000000,
     "annualRevenueYear": 2025,
+    "employeeCount": 5,
+    "regularEmployeeCount": 3,
+    "plannedHireCount": 1,
+    "niceCreditScore": 750,
+    "kcbCreditScore": 720,
+    "hasExistingLoan": false,
     "hasPolicyFundUsage": false,
     "hasGuaranteeUsage": false
   },
@@ -479,9 +504,23 @@ Response:
     {
       "relationTypeCode": "CHILD",
       "birthYear": 2018,
+      "schoolAgeStatusCode": "ELEMENTARY",
+      "cohabiting": true,
       "hasIncome": false,
       "incomePresenceCode": "NONE",
       "incomeAmount": null
+    }
+  ],
+  "interviewResponses": [
+    {
+      "questionCode": "SAME_BUSINESS_IN_PROGRESS",
+      "answerCode": "NO",
+      "note": null
+    },
+    {
+      "questionCode": "OTHER_RESTRICTION",
+      "answerCode": "UNKNOWN",
+      "note": "확인 예정"
     }
   ],
   "documentInputs": [
@@ -503,11 +542,15 @@ Response:
 
 통합 기본정보 저장 정책:
 
-- `business`는 선택 객체다. 사업자 정보를 하나라도 입력하면 `businessRegistrationNo`, `businessName`을 함께 저장해야 한다.
+- `business`는 선택 객체다. 빠른 기본정보 입력에서는 대표자명, 사업 시작일, 사업장 지역, 업종만 저장할 수 있다. 사업자등록번호와 상호명은 알 수 있을 때 입력한다.
 - 주소 검색으로 선택한 구조화 주소값은 선택 입력이다. `addressSourceCode`, `workplaceAddressSourceCode`는 `JUSO_API`, `MANUAL`만 허용한다.
 - `regionCode`, `workplaceRegionCode`는 기존 시도 단위 조건 비교용 코드이며, `legalDongCode`, `workplaceLegalDongCode`는 향후 시군구/읍면동 조건 비교용 보조 식별자다.
 - `families`는 배우자, 자녀, 부모 1단계만 허용한다.
 - `incomePresenceCode`는 `UNKNOWN`, `NONE`, `HAS_INCOME`만 허용한다.
+- 사업자 선택 입력값에는 `employeeCount`, `regularEmployeeCount`, `plannedHireCount`, `niceCreditScore`, `kcbCreditScore`, `hasExistingLoan`을 포함할 수 있다. 신용 점수는 NICE와 KCB를 분리해 저장하며 0~1000 범위만 허용한다. NICE/KCB와 기대출 여부는 외부 API 자동조회가 아니라 사용자 또는 운영자가 직접 입력하는 수동 값이다.
+- 가족 선택 입력값에는 `schoolAgeStatusCode`, `enrollmentStatusCode`, `cohabiting`, `supported`, `incomePresenceCode`, `incomeAmount`를 포함할 수 있다. 자녀 학령/재학, 부모 동거/부양, 배우자 소득, 가구합산 소득 조건은 저장된 가족 목록 기준으로 매칭한다.
+- `interviewResponses`는 간단 인터뷰 선택 응답이다. 허용 `questionCode`는 `SAME_BUSINESS_IN_PROGRESS`, `DUPLICATE_SUPPORT_USAGE`, `BUSINESS_ACTUALLY_OPERATING`, `OTHER_RESTRICTION`이며, 허용 `answerCode`는 `YES`, `NO`, `UNKNOWN`이다. 정책자금 이용 여부와 보증기관 이용 여부는 기존 `business.hasPolicyFundUsage`, `business.hasGuaranteeUsage`를 재사용한다.
+- 지원 품목, 제외 품목, 지원 용도처럼 자동 조건보다 담당자 확인이 필요한 항목은 공고 동적 입력 항목으로 설정한다.
 - `documentInputs`는 사용자 기본정보 입력 하단의 서류별 선택 입력값이다. `standardFieldId`는 `standard_document_fields.id`를 참조한다.
 - `documentInputs`가 요청에 포함되면 기존 서류 입력값을 전체 교체 저장한다. 빈 배열은 서류 입력값 전체 삭제를 의미하며, 필드가 없으면 기존 값을 유지한다.
 - 서류 기반 값은 모두 선택 입력이다. 누락 시 일부 매칭 또는 입증에서 불리할 수 있다는 안내만 제공하고, 기본정보 저장 자체를 막지 않는다.
@@ -575,7 +618,12 @@ Response:
   "businessItem": "전자상거래",
   "ksicCode": "47911",
   "businessTypeCode": "SOLE_PROPRIETOR",
-  "companyStageCode": "OPERATING"
+  "companyStageCode": "OPERATING",
+  "employeeCount": 5,
+  "regularEmployeeCount": 3,
+  "plannedHireCount": 1,
+  "niceCreditScore": 750,
+  "kcbCreditScore": 720
 }
 ```
 
@@ -589,10 +637,12 @@ Response:
   "birthYear": 2018,
   "address": "서울특별시 ...",
   "schoolAgeStatusCode": "PRESCHOOL",
-  "enrollmentStatusCode": null,
+  "enrollmentStatusCode": "ENROLLED",
   "cohabiting": true,
   "supported": true,
-  "hasIncome": false
+  "hasIncome": false,
+  "incomePresenceCode": "NONE",
+  "incomeAmount": null
 }
 ```
 

@@ -6,7 +6,10 @@ public record CandidatePreviewSearchCondition(
         String regionCode,
         BigDecimal annualRevenue,
         BigDecimal businessYears,
+        BigDecimal age,
+        String ksicCode,
         String hasSpouseCode,
-        String hasChildCode
+        String hasChildCode,
+        String hasParentCode
 ) {
 }

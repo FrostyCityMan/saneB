@@ -26,10 +26,12 @@ public record MemberBasicInfoResponse(
         String healthInsuranceBasisCode,
         BusinessInfoResponse business,
         List<FamilyInfoResponse> families,
+        List<InterviewResponse> interviewResponses,
         List<DocumentInputResponse> documentInputs
 ) {
 
     public record BusinessInfoResponse(
+            String representativeName,
             String businessRegistrationNo,
             String businessName,
             String workplaceRegionCode,
@@ -50,6 +52,12 @@ public record MemberBasicInfoResponse(
             String companyStageCode,
             BigDecimal annualRevenue,
             Integer annualRevenueYear,
+            Integer employeeCount,
+            Integer regularEmployeeCount,
+            Integer plannedHireCount,
+            Integer niceCreditScore,
+            Integer kcbCreditScore,
+            Boolean hasExistingLoan,
             Boolean hasPolicyFundUsage,
             Boolean hasGuaranteeUsage
     ) {
@@ -59,9 +67,22 @@ public record MemberBasicInfoResponse(
             UUID familyMemberId,
             String relationTypeCode,
             Integer birthYear,
+            String schoolAgeStatusCode,
+            String enrollmentStatusCode,
+            Boolean cohabiting,
+            Boolean supported,
             Boolean hasIncome,
             String incomePresenceCode,
             BigDecimal incomeAmount
+    ) {
+    }
+
+    public record InterviewResponse(
+            String questionCode,
+            String questionLabel,
+            String answerCode,
+            String answerLabel,
+            String note
     ) {
     }
 

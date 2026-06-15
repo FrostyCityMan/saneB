@@ -1926,7 +1926,7 @@ svg {
 
 .family-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     align-items: end;
     gap: 12px;
     border: 1px solid var(--saneb-border);
@@ -1937,6 +1937,7 @@ svg {
 
 .family-remove-button {
     min-width: 68px;
+    justify-self: end;
 }
 
 .document-input-toolbar {

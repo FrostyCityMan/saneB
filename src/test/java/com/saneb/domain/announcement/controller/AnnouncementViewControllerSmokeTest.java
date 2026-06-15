@@ -33,6 +33,16 @@ class AnnouncementViewControllerSmokeTest {
                 .andExpect(content().string(containsString("data-announcement-approval-form")))
                 .andExpect(content().string(containsString("/api/v1/announcements")))
                 .andExpect(content().string(containsString("data-announcement-basic-form")))
+                .andExpect(content().string(containsString("소득 기준")))
+                .andExpect(content().string(containsString("가구원 수")))
+                .andExpect(content().string(containsString("직원 수")))
+                .andExpect(content().string(containsString("NICE 신용 점수")))
+                .andExpect(content().string(containsString("배우자 소득")))
+                .andExpect(content().string(containsString("자녀 재학 상태")))
+                .andExpect(content().string(containsString("부모 부양 여부")))
+                .andExpect(content().string(containsString("지원 품목, 제외 품목, 지원 용도")))
+                .andExpect(content().string(containsString("기업 형태")))
+                .andExpect(content().string(containsString("중복 수혜 제한 - 정책자금 이용 이력")))
                 .andExpect(content().string(not(containsString("파트너 검증"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }

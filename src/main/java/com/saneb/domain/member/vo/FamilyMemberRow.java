@@ -7,6 +7,10 @@ public record FamilyMemberRow(
         UUID familyMemberId,
         String relationTypeCode,
         Integer birthYear,
+        String schoolAgeStatusCode,
+        String enrollmentStatusCode,
+        Boolean cohabiting,
+        Boolean supported,
         Boolean hasIncome,
         String incomePresenceCode,
         BigDecimal incomeAmount

@@ -54,6 +54,9 @@ class AdminMemberBasicInfoControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.data.legalDongCode").value("1114010300"))
+                .andExpect(jsonPath("$.data.business.kcbCreditScore").value(720))
+                .andExpect(jsonPath("$.data.business.hasExistingLoan").value(false))
+                .andExpect(jsonPath("$.data.interviewResponses[0].answerLabel").value("아니오"))
                 .andExpect(jsonPath("$.data.documentInputs[0].documentTypeLabel").value("사업자등록증"));
     }
 
@@ -72,6 +75,12 @@ class AdminMemberBasicInfoControllerSmokeTest {
                                   "addressSourceCode": "JUSO_API",
                                   "incomePresenceCode": "UNKNOWN",
                                   "families": [],
+                                  "interviewResponses": [
+                                    {
+                                      "questionCode": "BUSINESS_ACTUALLY_OPERATING",
+                                      "answerCode": "YES"
+                                    }
+                                  ],
                                   "documentInputs": [
                                     {
                                       "documentTypeCode": "BUSINESS_REGISTRATION",
@@ -127,6 +136,7 @@ class AdminMemberBasicInfoControllerSmokeTest {
                 BigDecimal.valueOf(30_000_000),
                 "WORKPLACE",
                 new MemberBasicInfoResponse.BusinessInfoResponse(
+                        "홍길동",
                         "123-45-67890",
                         "사내비상점",
                         "SEOUL",
@@ -147,10 +157,23 @@ class AdminMemberBasicInfoControllerSmokeTest {
                         "OPERATING",
                         BigDecimal.valueOf(120_000_000),
                         2025,
+                        5,
+                        3,
+                        1,
+                        750,
+                        720,
+                        false,
                         false,
                         false
                 ),
                 List.of(),
+                List.of(new MemberBasicInfoResponse.InterviewResponse(
+                        "SAME_BUSINESS_IN_PROGRESS",
+                        "기존 동일 사업 진행 여부",
+                        "NO",
+                        "아니오",
+                        null
+                )),
                 List.of(new MemberBasicInfoResponse.DocumentInputResponse(
                         "BUSINESS_REGISTRATION",
                         "사업자등록증",

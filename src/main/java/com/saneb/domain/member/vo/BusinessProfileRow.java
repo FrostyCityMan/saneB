@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record BusinessProfileRow(
         UUID businessProfileId,
+        String representativeName,
         String businessRegistrationNo,
         String businessName,
         String workplaceRegionCode,
@@ -26,6 +27,12 @@ public record BusinessProfileRow(
         String companyStageCode,
         BigDecimal annualRevenue,
         Integer annualRevenueYear,
+        Integer employeeCount,
+        Integer regularEmployeeCount,
+        Integer plannedHireCount,
+        Integer niceCreditScore,
+        Integer kcbCreditScore,
+        Boolean hasExistingLoan,
         Boolean hasPolicyFundUsage,
         Boolean hasGuaranteeUsage
 ) {

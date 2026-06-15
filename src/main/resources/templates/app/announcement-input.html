@@ -251,16 +251,37 @@
                                 <div class="field-block">
                                     <label>조건 항목</label>
                                     <select name="conditionKey">
-                                        <option value="ANNUAL_REVENUE">신고 매출액</option>
-                                        <option value="SUPPLY_AMOUNT">공급가액</option>
-                                        <option value="TOTAL_INCOME_AMOUNT">총 소득금액</option>
-                                        <option value="BUSINESS_YEARS">업력</option>
-                                        <option value="AGE">대표자 나이</option>
-                                        <option value="HOUSEHOLD_MEMBER_COUNT">세대원 수</option>
-                                        <option value="CHILD_COUNT">자녀 수</option>
-                                        <option value="PARENT_COUNT">부모 수</option>
-                                        <option value="SPOUSE_COUNT">배우자 수</option>
-                                        <option value="MONTHLY_HEALTH_INSURANCE_PREMIUM">월 건강보험료</option>
+                                        <optgroup label="사업자 기본 조건">
+                                            <option value="BUSINESS_YEARS">업력</option>
+                                            <option value="ANNUAL_REVENUE">매출</option>
+                                            <option value="SUPPLY_AMOUNT">공급가액</option>
+                                            <option value="TOTAL_INCOME_AMOUNT">총 소득금액</option>
+                                            <option value="EMPLOYEE_COUNT">직원 수</option>
+                                            <option value="REGULAR_EMPLOYEE_COUNT">상시근로자 수</option>
+                                            <option value="PLANNED_HIRE_COUNT">신규 채용 예정 인원</option>
+                                            <option value="NICE_CREDIT_SCORE">NICE 신용 점수</option>
+                                            <option value="KCB_CREDIT_SCORE">KCB 신용 점수</option>
+                                        </optgroup>
+                                        <optgroup label="개인 조건">
+                                            <option value="AGE">출생연도 기준 나이</option>
+                                            <option value="INCOME_AMOUNT">소득 기준</option>
+                                        </optgroup>
+                                        <optgroup label="가족 조건">
+                                            <option value="SPOUSE_INCOME_AMOUNT">배우자 소득</option>
+                                            <option value="HOUSEHOLD_INCOME_AMOUNT">가구합산 소득</option>
+                                            <option value="HOUSEHOLD_MEMBER_COUNT">세대원 수</option>
+                                            <option value="FAMILY_MEMBER_COUNT">가구원 수</option>
+                                            <option value="CHILD_COUNT">자녀 수</option>
+                                            <option value="FAMILY_CHILD_COUNT">자녀 수(가족 기준)</option>
+                                            <option value="CHILD_BIRTH_YEAR">자녀 출생연도</option>
+                                            <option value="PARENT_COUNT">부모 수</option>
+                                            <option value="FAMILY_PARENT_COUNT">부모 수(가족 기준)</option>
+                                            <option value="PARENT_AGE">부모 연령</option>
+                                            <option value="SPOUSE_COUNT">배우자 수</option>
+                                        </optgroup>
+                                        <optgroup label="건강보험 조건">
+                                            <option value="MONTHLY_HEALTH_INSURANCE_PREMIUM">월 건강보험료</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 <div class="field-block">
@@ -317,18 +338,28 @@
                                 <div class="field-block">
                                     <label>조건 항목</label>
                                     <select name="conditionKey">
-                                        <option value="WORKPLACE_REGION_CODE">사업장 지역</option>
-                                        <option value="REGION_CODE">주소지 지역</option>
-                                        <option value="BUSINESS_TYPE_CODE">사업자 유형</option>
-                                        <option value="COMPANY_STAGE">사업 상태</option>
-                                        <option value="TAX_TYPE_CODE">과세 유형</option>
-                                        <option value="HAS_CHILD">자녀 여부</option>
-                                        <option value="HAS_SPOUSE">배우자 여부</option>
-                                        <option value="HAS_PARENT">부모 여부</option>
-                                        <option value="HAS_INCOME">소득 여부</option>
-                                        <option value="HAS_POLICY_FUND_USAGE">정책자금 이용 이력</option>
-                                        <option value="HAS_GUARANTEE_USAGE">보증 이용 이력</option>
-                                        <option value="HEALTH_INSURANCE_BASIS_CODE">건강보험 자격</option>
+                                        <optgroup label="사업자 기본 조건">
+                                            <option value="WORKPLACE_REGION_CODE">사업장 지역</option>
+                                            <option value="BUSINESS_TYPE_CODE">기업 형태</option>
+                                            <option value="COMPANY_STAGE">사업 상태</option>
+                                            <option value="TAX_TYPE_CODE">과세 유형</option>
+                                            <option value="HAS_POLICY_FUND_USAGE">중복 수혜 제한 - 정책자금 이용 이력</option>
+                                            <option value="HAS_GUARANTEE_USAGE">중복 수혜 제한 - 보증 이용 이력</option>
+                                        </optgroup>
+                                        <optgroup label="개인 조건">
+                                            <option value="REGION_CODE">주소지 지역</option>
+                                            <option value="HAS_INCOME">소득 여부</option>
+                                            <option value="HEALTH_INSURANCE_BASIS_CODE">건강보험 기준</option>
+                                        </optgroup>
+                                        <optgroup label="가족 조건">
+                                            <option value="HAS_SPOUSE">배우자 여부</option>
+                                            <option value="HAS_CHILD">자녀 여부</option>
+                                            <option value="HAS_PARENT">부모 여부</option>
+                                            <option value="CHILD_SCHOOL_AGE_STATUS_CODE">자녀 학령 상태</option>
+                                            <option value="CHILD_ENROLLMENT_STATUS_CODE">자녀 재학 상태</option>
+                                            <option value="PARENT_COHABITING">부모 동거 여부</option>
+                                            <option value="PARENT_SUPPORTED">부모 부양 여부</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 <div class="field-block">
@@ -575,6 +606,7 @@
 
                     <p class="dynamic-input-help">
                         신청 진행 중 사용자에게 추가로 받을 입력 항목을 설정합니다. 표준 서류 항목을 선택하면 항목명, 입력 유형, 적용 범위가 자동으로 채워집니다.
+                        지원 품목, 제외 품목, 지원 용도처럼 자동 매칭보다 담당자 확인이 필요한 내용은 이 영역에서 선택 입력으로 추가하세요.
                     </p>
 
                     <div class="dynamic-requirements-toolbar">

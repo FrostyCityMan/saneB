@@ -286,6 +286,11 @@
                 bp.business_type_code,
                 bp.company_stage_code,
                 bp.annual_revenue,
+                bp.employee_count,
+                bp.regular_employee_count,
+                bp.planned_hire_count,
+                bp.nice_credit_score,
+                bp.kcb_credit_score,
                 bp.has_policy_fund_usage,
                 bp.has_guarantee_usage
             FROM business_profiles bp
@@ -402,6 +407,21 @@
                               ELSE bp.annual_revenue
                           END
                           WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key = 'EMPLOYEE_COUNT'
+                          THEN bp.employee_count::numeric
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key = 'REGULAR_EMPLOYEE_COUNT'
+                          THEN bp.regular_employee_count::numeric
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key = 'PLANNED_HIRE_COUNT'
+                          THEN bp.planned_hire_count::numeric
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key = 'NICE_CREDIT_SCORE'
+                          THEN bp.nice_credit_score::numeric
+                          WHEN anc.condition_scope_code = 'BUSINESS'
+                               AND anc.condition_key = 'KCB_CREDIT_SCORE'
+                          THEN bp.kcb_credit_score::numeric
+                          WHEN anc.condition_scope_code = 'BUSINESS'
                                AND anc.condition_key IN ('BUSINESS_YEARS', 'BUSINESS_AGE', 'BUSINESS_AGE_YEARS')
                                AND (
                                    (#{finalMatching} = true AND COALESCE(doc.opening_date, bp.opening_date) IS NOT NULL)
@@ -421,6 +441,18 @@
                               WHEN #{finalMatching} = true THEN COALESCE(doc.personal_income_amount, mp.income_amount)
                               ELSE mp.income_amount
                           END
+                          WHEN anc.condition_scope_code = 'SPOUSE'
+                               AND anc.condition_key IN ('SPOUSE_INCOME_AMOUNT', 'INCOME_AMOUNT')
+                          THEN (
+                              SELECT
+                                  fm.income_amount
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'SPOUSE'
+                                AND fm.income_amount IS NOT NULL
+                              ORDER BY fm.income_amount DESC, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
                           WHEN anc.condition_scope_code = 'CHILD'
                                AND anc.condition_key IN ('CHILD_COUNT', 'FAMILY_CHILD_COUNT')
                           THEN CASE
@@ -433,6 +465,26 @@
                                 AND fm.relation_type_code = 'CHILD'
                               )
                           END
+                          WHEN anc.condition_scope_code = 'CHILD'
+                               AND anc.condition_key = 'CHILD_BIRTH_YEAR'
+                          THEN (
+                              SELECT
+                                  fm.birth_year::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'CHILD'
+                                AND fm.birth_year IS NOT NULL
+                                AND (
+                                    (anc.comparator_code = 'BETWEEN' AND fm.birth_year::numeric BETWEEN anc.min_number AND anc.max_number)
+                                    OR (anc.comparator_code = 'GTE' AND fm.birth_year::numeric >= anc.value_number)
+                                    OR (anc.comparator_code = 'LTE' AND fm.birth_year::numeric &lt;= anc.value_number)
+                                    OR (anc.comparator_code = 'GT' AND fm.birth_year::numeric > anc.value_number)
+                                    OR (anc.comparator_code = 'LT' AND fm.birth_year::numeric &lt; anc.value_number)
+                                    OR (anc.comparator_code = 'EQ' AND fm.birth_year::numeric = anc.value_number)
+                                )
+                              ORDER BY fm.birth_year ASC, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
                           WHEN anc.condition_scope_code = 'PARENT'
                                AND anc.condition_key IN ('PARENT_COUNT', 'FAMILY_PARENT_COUNT')
                           THEN CASE
@@ -445,6 +497,26 @@
                                 AND fm.relation_type_code = 'PARENT'
                               )
                           END
+                          WHEN anc.condition_scope_code = 'PARENT'
+                               AND anc.condition_key = 'PARENT_AGE'
+                          THEN (
+                              SELECT
+                                  (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'PARENT'
+                                AND fm.birth_year IS NOT NULL
+                                AND (
+                                    (anc.comparator_code = 'BETWEEN' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric BETWEEN anc.min_number AND anc.max_number)
+                                    OR (anc.comparator_code = 'GTE' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric >= anc.value_number)
+                                    OR (anc.comparator_code = 'LTE' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric &lt;= anc.value_number)
+                                    OR (anc.comparator_code = 'GT' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric > anc.value_number)
+                                    OR (anc.comparator_code = 'LT' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric &lt; anc.value_number)
+                                    OR (anc.comparator_code = 'EQ' AND (EXTRACT(YEAR FROM current_date)::integer - fm.birth_year)::numeric = anc.value_number)
+                                )
+                              ORDER BY fm.birth_year ASC, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
                           WHEN anc.condition_scope_code = 'SPOUSE'
                                AND anc.condition_key IN ('SPOUSE_COUNT', 'HAS_SPOUSE')
                           THEN CASE
@@ -469,6 +541,19 @@
                               WHERE fm.user_id = #{memberUserId}
                               )
                           END
+                          WHEN anc.condition_scope_code = 'APPLICATION'
+                               AND anc.condition_key IN ('HOUSEHOLD_INCOME_AMOUNT', 'FAMILY_INCOME_AMOUNT')
+                          THEN (
+                              SELECT
+                                  CASE
+                                      WHEN mp.income_amount IS NULL
+                                           AND count(fm.income_amount) = 0
+                                      THEN NULL::numeric
+                                      ELSE COALESCE(mp.income_amount, 0)::numeric + COALESCE(sum(fm.income_amount), 0)::numeric
+                                  END
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                          )
                           ELSE NULL::numeric
                       END AS basis_number
               ) basis
@@ -494,7 +579,7 @@
                       aoc.condition_scope_code,
                       aoc.condition_key,
                       aoc.standard_field_id,
-                      array_agg(aoc.option_code ORDER BY aoc.option_code) AS option_codes
+                      array_agg(upper(aoc.option_code) ORDER BY upper(aoc.option_code)) AS option_codes
                   FROM announcement_option_conditions aoc
                   WHERE aoc.announcement_id = a.id
                     AND (#{finalMatching} = true OR aoc.standard_field_id IS NULL)
@@ -582,6 +667,32 @@
                               ) THEN 'TRUE'
                               ELSE 'FALSE'
                           END
+                          WHEN option_groups.condition_scope_code = 'CHILD'
+                               AND option_groups.condition_key = 'CHILD_SCHOOL_AGE_STATUS_CODE'
+                          THEN (
+                              SELECT
+                                  upper(fm.school_age_status_code)
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'CHILD'
+                                AND fm.school_age_status_code IS NOT NULL
+                                AND upper(fm.school_age_status_code) = ANY(option_groups.option_codes)
+                              ORDER BY fm.birth_year ASC NULLS LAST, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
+                          WHEN option_groups.condition_scope_code = 'CHILD'
+                               AND option_groups.condition_key = 'CHILD_ENROLLMENT_STATUS_CODE'
+                          THEN (
+                              SELECT
+                                  upper(fm.enrollment_status_code)
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'CHILD'
+                                AND fm.enrollment_status_code IS NOT NULL
+                                AND upper(fm.enrollment_status_code) = ANY(option_groups.option_codes)
+                              ORDER BY fm.birth_year ASC NULLS LAST, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
                           WHEN option_groups.condition_scope_code = 'SPOUSE'
                                AND option_groups.condition_key IN ('HAS_SPOUSE', 'SPOUSE_COUNT')
                           THEN CASE
@@ -596,6 +707,32 @@
                               ) THEN 'TRUE'
                               ELSE 'FALSE'
                           END
+                          WHEN option_groups.condition_scope_code = 'PARENT'
+                               AND option_groups.condition_key = 'PARENT_COHABITING'
+                          THEN (
+                              SELECT
+                                  CASE WHEN fm.is_cohabiting THEN 'TRUE' ELSE 'FALSE' END
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'PARENT'
+                                AND fm.is_cohabiting IS NOT NULL
+                                AND CASE WHEN fm.is_cohabiting THEN 'TRUE' ELSE 'FALSE' END = ANY(option_groups.option_codes)
+                              ORDER BY fm.birth_year ASC NULLS LAST, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
+                          WHEN option_groups.condition_scope_code = 'PARENT'
+                               AND option_groups.condition_key = 'PARENT_SUPPORTED'
+                          THEN (
+                              SELECT
+                                  CASE WHEN fm.is_supported THEN 'TRUE' ELSE 'FALSE' END
+                              FROM family_members fm
+                              WHERE fm.user_id = #{memberUserId}
+                                AND fm.relation_type_code = 'PARENT'
+                                AND fm.is_supported IS NOT NULL
+                                AND CASE WHEN fm.is_supported THEN 'TRUE' ELSE 'FALSE' END = ANY(option_groups.option_codes)
+                              ORDER BY fm.birth_year ASC NULLS LAST, fm.created_at ASC, fm.id ASC
+                              LIMIT 1
+                          )
                           WHEN option_groups.condition_scope_code = 'PARENT'
                                AND option_groups.condition_key IN ('HAS_PARENT', 'PARENT_COUNT')
                           THEN CASE
