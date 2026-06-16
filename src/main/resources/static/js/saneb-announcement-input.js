@@ -43,6 +43,60 @@
         STANDARDIZATION_REQUIRED: "표준화 필요",
         INPUT_ONLY: "입력 전용"
     };
+    const conditionKeyLabels = {
+        BUSINESS_YEARS: "업력",
+        ANNUAL_REVENUE: "매출",
+        SUPPLY_AMOUNT: "공급가액",
+        TOTAL_INCOME_AMOUNT: "총 소득금액",
+        COMPREHENSIVE_INCOME_AMOUNT: "종합소득금액",
+        BUSINESS_INCOME_AMOUNT: "사업소득",
+        LABOR_INCOME_AMOUNT: "근로소득",
+        EMPLOYEE_COUNT: "직원 수",
+        REGULAR_EMPLOYEE_COUNT: "상시근로자 수",
+        PLANNED_HIRE_COUNT: "신규 채용 예정 인원",
+        NICE_CREDIT_SCORE: "NICE 신용 점수",
+        KCB_CREDIT_SCORE: "KCB 신용 점수",
+        AGE: "출생연도 기준 나이",
+        INCOME_AMOUNT: "소득 기준",
+        SPOUSE_INCOME_AMOUNT: "배우자 소득",
+        HOUSEHOLD_INCOME_AMOUNT: "가구합산 소득",
+        HOUSEHOLD_MEMBER_COUNT: "세대원 수",
+        FAMILY_MEMBER_COUNT: "가구원 수",
+        CHILD_COUNT: "자녀 수",
+        FAMILY_CHILD_COUNT: "자녀 수",
+        CHILD_BIRTH_YEAR: "자녀 출생연도",
+        PARENT_COUNT: "부모 수",
+        FAMILY_PARENT_COUNT: "부모 수",
+        PARENT_AGE: "부모 연령",
+        SPOUSE_COUNT: "배우자 수",
+        MONTHLY_HEALTH_INSURANCE_PREMIUM: "월 건강보험료",
+        RECENT_HEALTH_INSURANCE_PREMIUM: "최근 건강보험료",
+        ANNUAL_HEALTH_INSURANCE_PREMIUM: "연 건강보험료",
+        WORKPLACE_REGION_CODE: "사업장 지역",
+        BUSINESS_TYPE_CODE: "기업 형태",
+        COMPANY_STAGE: "사업 상태",
+        TAX_TYPE_CODE: "과세 유형",
+        HAS_POLICY_FUND_USAGE: "중복 수혜 제한 - 정책자금 이용 이력",
+        HAS_GUARANTEE_USAGE: "중복 수혜 제한 - 보증 이용 이력",
+        NATIONAL_TAX_DELINQUENT: "국세 체납 여부",
+        LOCAL_TAX_DELINQUENT: "지방세 체납 여부",
+        TAX_PAID_STATUS: "세금 완납 여부",
+        REGION_CODE: "주소지 지역",
+        HAS_INCOME: "소득 여부",
+        HEALTH_INSURANCE_BASIS_CODE: "건강보험 기준",
+        INSURANCE_SUBSCRIBER_TYPE: "건강보험 가입 유형",
+        IS_HOUSEHOLDER: "세대주 여부",
+        DEPENDENT_STATUS: "피부양자 여부",
+        WORKPLACE_INSURED_STATUS: "직장가입 여부",
+        LOCAL_INSURED_STATUS: "지역가입 여부",
+        HAS_SPOUSE: "배우자 여부",
+        HAS_CHILD: "자녀 여부",
+        HAS_PARENT: "부모 여부",
+        CHILD_SCHOOL_AGE_STATUS_CODE: "자녀 학령 상태",
+        CHILD_ENROLLMENT_STATUS_CODE: "자녀 재학 상태",
+        PARENT_COHABITING: "부모 동거 여부",
+        PARENT_SUPPORTED: "부모 부양 여부"
+    };
     const approvalStatusLabels = {
         DRAFT: "초안",
         REQUESTED: "승인 요청",
@@ -496,13 +550,26 @@
         };
     };
 
+    const fallbackOptionLabel = (field, value) => {
+        if (field.name === "conditionKey") {
+            return conditionKeyLabels[value] || "미등록 조건 항목";
+        }
+        return value;
+    };
+
     const setFieldValue = (row, selector, value) => {
         const field = row.querySelector(selector);
         if (field) {
+            if (field.tagName === "SELECT") {
+                Array.from(field.options)
+                        .filter((option) => option.dataset.fallbackOption === "true" && option.value !== value)
+                        .forEach((option) => option.remove());
+            }
             if (field.tagName === "SELECT" && value && !Array.from(field.options).some((option) => option.value === value)) {
                 const option = document.createElement("option");
                 option.value = value;
-                option.textContent = value;
+                option.textContent = fallbackOptionLabel(field, value);
+                option.dataset.fallbackOption = "true";
                 field.append(option);
             }
             field.value = value ?? "";
