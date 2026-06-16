@@ -808,6 +808,26 @@ Member / Business / Family API skeleton 착수 기준:
 
 #### AnnouncementStepsSaveRequest
 
+공고 진행 단계는 공고별로 N개를 저장할 수 있다. 각 단계는 N개의 버튼과 N개의 필요 서류를 가진다. 저장 시 기존 단계, 버튼, 단계 서류를 전체 교체한다.
+
+완료 조건 코드:
+
+| 코드 | 의미 | 서버 이동 조건 |
+|---|---|---|
+| `BUTTON_CLICK` | 버튼 선택 | 등록된 단계 버튼 선택 |
+| `ALL_REQUIRED_DOCUMENTS_CHECKED` | 필수 서류 전체 확인 | 현재 단계 필수 서류 체크 완료 |
+| `REQUIRED_INPUTS_SAVED` | 필수 입력값 저장 | 신청 진행 필수 동적 입력값 저장 완료 |
+| `RECEIPT_SAVED` | 접수 정보 저장 | 접수번호와 접수일 저장 완료 |
+| `RESULT_SAVED` | 최종 결과 저장 | 최종 결과와 결과일 저장 완료 |
+
+버튼 행동 코드:
+
+| 코드 | 의미 |
+|---|---|
+| `MOVE_NEXT` | 다음 단계로 이동 |
+| `COMPLETE_STEP` | 현재 단계 완료 처리 |
+| `STOP_PROGRESS` | 진행 중단 처리 |
+
 ```json
 {
   "steps": [
@@ -824,9 +844,38 @@ Member / Business / Family API skeleton 착수 기준:
           "buttonLabel": "진행 원함",
           "buttonActionCode": "MOVE_NEXT",
           "sortOrder": 1
+        },
+        {
+          "buttonCode": "NOT_INTERESTED",
+          "buttonLabel": "관심없음",
+          "buttonActionCode": "STOP_PROGRESS",
+          "sortOrder": 2
         }
       ],
       "documents": []
+    },
+    {
+      "stepOrder": 2,
+      "stepName": "서류 안내",
+      "guideMessage": "진행에 필요한 서류를 준비하고 체크리스트를 확인합니다.",
+      "actionGuide": "필수 서류가 모두 준비되면 서류 준비 완료를 선택하세요.",
+      "completionConditionCode": "ALL_REQUIRED_DOCUMENTS_CHECKED",
+      "nextConditionCode": "REQUIRED_DOCUMENTS_CHECKED",
+      "buttons": [
+        {
+          "buttonCode": "DOCUMENTS_READY",
+          "buttonLabel": "서류 준비 완료",
+          "buttonActionCode": "MOVE_NEXT",
+          "sortOrder": 1
+        }
+      ],
+      "documents": [
+        {
+          "documentTypeCode": "BUSINESS_REGISTRATION",
+          "required": true,
+          "sortOrder": 1
+        }
+      ]
     }
   ]
 }

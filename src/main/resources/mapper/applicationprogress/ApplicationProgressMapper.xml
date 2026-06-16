@@ -53,6 +53,9 @@
             <arg column="step_id" javaType="java.util.UUID"/>
             <arg column="step_order" javaType="java.lang.Integer"/>
             <arg column="step_name" javaType="java.lang.String"/>
+            <arg column="guide_message" javaType="java.lang.String"/>
+            <arg column="action_guide" javaType="java.lang.String"/>
+            <arg column="completion_condition_code" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="started_at" javaType="java.time.OffsetDateTime"/>
             <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
@@ -229,6 +232,9 @@
             ass.step_id,
             aps.step_order,
             aps.step_name,
+            aps.guide_message,
+            aps.action_guide,
+            aps.completion_condition_code,
             ass.status_code,
             ass.started_at,
             ass.completed_at
@@ -246,6 +252,9 @@
             ass.step_id,
             aps.step_order,
             aps.step_name,
+            aps.guide_message,
+            aps.action_guide,
+            aps.completion_condition_code,
             ass.status_code,
             ass.started_at,
             ass.completed_at

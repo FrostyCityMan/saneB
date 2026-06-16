@@ -455,150 +455,199 @@
                         <article class="step-editor" data-step-row>
                             <div class="step-order">1</div>
                             <div class="form-grid">
+                                <div class="step-row-actions span-2">
+                                    <button class="secondary-action" type="button" data-step-move-up>위로</button>
+                                    <button class="secondary-action" type="button" data-step-move-down>아래로</button>
+                                    <button class="secondary-action" type="button" data-step-remove>단계 삭제</button>
+                                </div>
                                 <div class="field-block">
                                     <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 안내 발송">
+                                    <input name="stepName" type="text" maxlength="100" value="안내 발송" placeholder="예: 안내 발송">
                                 </div>
                                 <div class="field-block">
                                     <label>완료 조건</label>
                                     <select name="completionConditionCode">
                                         <option value="BUTTON_CLICK">버튼 선택</option>
-                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
-                                        <option value="STATUS_CONFIRMED">상태 확인</option>
+                                        <option value="ALL_REQUIRED_DOCUMENTS_CHECKED">필수 서류 전체 확인</option>
+                                        <option value="REQUIRED_INPUTS_SAVED">필수 입력값 저장</option>
+                                        <option value="RECEIPT_SAVED">접수 정보 저장</option>
+                                        <option value="RESULT_SAVED">최종 결과 저장</option>
                                     </select>
                                 </div>
                                 <div class="field-block span-2">
                                     <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2" placeholder="예: 현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다."></textarea>
+                                    <textarea name="guideMessage" rows="2" placeholder="예: 현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.">현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.</textarea>
                                 </div>
                                 <div class="field-block span-2">
                                     <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2" placeholder="예: 진행 의사를 선택하세요."></textarea>
+                                    <textarea name="actionGuide" rows="2" placeholder="예: 진행 의사를 선택하세요.">진행 의사를 선택하세요.</textarea>
                                 </div>
                                 <div class="field-block">
                                     <label>다음 단계 기준</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 진행 의사 확인">
+                                    <input name="nextConditionCode" type="text" maxlength="80" value="진행 의사 확인" placeholder="예: 진행 의사 확인">
                                 </div>
                                 <div class="field-block">
-                                    <label>버튼 이름</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 진행 원함">
+                                    <label>사용 여부</label>
+                                    <label class="inline-check compact-check">
+                                        <input name="stepActive" type="checkbox" checked> 단계 사용
+                                    </label>
                                 </div>
-                                <div class="field-block">
-                                    <label>버튼 식별값</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 진행원함">
-                                </div>
-                                <div class="field-block">
-                                    <label>요구 서류</label>
-                                    <select name="stepDocumentTypeCode">
-                                        <option value="">없음</option>
-                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
-                                        <option value="INCOME_CERTIFICATE">소득증명</option>
-                                        <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인</option>
-                                    </select>
-                                </div>
-                                <label class="inline-check">
-                                    <input name="stepActive" type="checkbox" checked> 사용
-                                </label>
-                            </div>
-                        </article>
 
-                        <article class="step-editor" data-step-row>
-                            <div class="step-order">2</div>
-                            <div class="form-grid">
-                                <div class="field-block">
-                                    <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 신청 접수">
-                                </div>
-                                <div class="field-block">
-                                    <label>완료 조건</label>
-                                    <select name="completionConditionCode">
-                                        <option value="BUTTON_CLICK">버튼 선택</option>
-                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
-                                        <option value="STATUS_CONFIRMED">상태 확인</option>
-                                    </select>
-                                </div>
-                                <div class="field-block span-2">
-                                    <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2" placeholder="예: 필수 서류와 신청 정보를 확인합니다."></textarea>
-                                </div>
-                                <div class="field-block span-2">
-                                    <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2" placeholder="예: 신청 완료 여부를 확인하세요."></textarea>
-                                </div>
-                                <div class="field-block">
-                                    <label>다음 단계 기준</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 신청 접수 완료">
-                                </div>
-                                <div class="field-block">
-                                    <label>버튼 이름</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 신청 완료">
-                                </div>
-                                <div class="field-block">
-                                    <label>버튼 식별값</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 신청완료">
-                                </div>
-                                <div class="field-block">
-                                    <label>요구 서류</label>
-                                    <select name="stepDocumentTypeCode">
-                                        <option value="">없음</option>
-                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
-                                        <option value="INCOME_CERTIFICATE">소득증명</option>
-                                        <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인</option>
-                                    </select>
-                                </div>
-                                <label class="inline-check">
-                                    <input name="stepActive" type="checkbox" checked> 사용
-                                </label>
-                            </div>
-                        </article>
+                                <section class="step-subsection span-2">
+                                    <div class="step-subsection-header">
+                                        <div>
+                                            <strong>단계별 버튼</strong>
+                                            <small>사용자가 선택할 행동 버튼입니다. 순서는 저장 시 자동으로 정리됩니다.</small>
+                                        </div>
+                                        <button class="secondary-action" type="button" data-step-button-add>버튼 추가</button>
+                                    </div>
+                                    <div class="step-button-list" data-step-button-list>
+                                        <article class="step-button-row" data-step-button-row>
+                                            <div class="field-block">
+                                                <label>버튼 이름</label>
+                                                <input name="buttonLabel" type="text" maxlength="100" value="진행 원함" placeholder="예: 진행 원함">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 식별값</label>
+                                                <input name="buttonCode" type="text" maxlength="80" value="WANT_TO_PROCEED" placeholder="예: WANT_TO_PROCEED">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 행동</label>
+                                                <select name="buttonActionCode">
+                                                    <option value="MOVE_NEXT">다음 단계 이동</option>
+                                                    <option value="COMPLETE_STEP">현재 단계 완료</option>
+                                                    <option value="STOP_PROGRESS">진행 중단</option>
+                                                </select>
+                                            </div>
+                                            <div class="field-block">
+                                                <label>이동할 단계</label>
+                                                <select name="nextStepId">
+                                                    <option value="">다음 순서 단계</option>
+                                                </select>
+                                            </div>
+                                            <div class="step-nested-actions">
+                                                <button class="secondary-action" type="button" data-step-button-remove>버튼 삭제</button>
+                                            </div>
+                                        </article>
+                                        <article class="step-button-row" data-step-button-row>
+                                            <div class="field-block">
+                                                <label>버튼 이름</label>
+                                                <input name="buttonLabel" type="text" maxlength="100" value="이미 지원받음" placeholder="예: 이미 지원받음">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 식별값</label>
+                                                <input name="buttonCode" type="text" maxlength="80" value="ALREADY_RECEIVED" placeholder="예: ALREADY_RECEIVED">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 행동</label>
+                                                <select name="buttonActionCode">
+                                                    <option value="MOVE_NEXT">다음 단계 이동</option>
+                                                    <option value="COMPLETE_STEP">현재 단계 완료</option>
+                                                    <option value="STOP_PROGRESS" selected>진행 중단</option>
+                                                </select>
+                                            </div>
+                                            <div class="field-block">
+                                                <label>이동할 단계</label>
+                                                <select name="nextStepId">
+                                                    <option value="">다음 순서 단계</option>
+                                                </select>
+                                            </div>
+                                            <div class="step-nested-actions">
+                                                <button class="secondary-action" type="button" data-step-button-remove>버튼 삭제</button>
+                                            </div>
+                                        </article>
+                                        <article class="step-button-row" data-step-button-row>
+                                            <div class="field-block">
+                                                <label>버튼 이름</label>
+                                                <input name="buttonLabel" type="text" maxlength="100" value="이미 진행중" placeholder="예: 이미 진행중">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 식별값</label>
+                                                <input name="buttonCode" type="text" maxlength="80" value="ALREADY_IN_PROGRESS" placeholder="예: ALREADY_IN_PROGRESS">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 행동</label>
+                                                <select name="buttonActionCode">
+                                                    <option value="MOVE_NEXT">다음 단계 이동</option>
+                                                    <option value="COMPLETE_STEP">현재 단계 완료</option>
+                                                    <option value="STOP_PROGRESS" selected>진행 중단</option>
+                                                </select>
+                                            </div>
+                                            <div class="field-block">
+                                                <label>이동할 단계</label>
+                                                <select name="nextStepId">
+                                                    <option value="">다음 순서 단계</option>
+                                                </select>
+                                            </div>
+                                            <div class="step-nested-actions">
+                                                <button class="secondary-action" type="button" data-step-button-remove>버튼 삭제</button>
+                                            </div>
+                                        </article>
+                                        <article class="step-button-row" data-step-button-row>
+                                            <div class="field-block">
+                                                <label>버튼 이름</label>
+                                                <input name="buttonLabel" type="text" maxlength="100" value="관심없음" placeholder="예: 관심없음">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 식별값</label>
+                                                <input name="buttonCode" type="text" maxlength="80" value="NOT_INTERESTED" placeholder="예: NOT_INTERESTED">
+                                            </div>
+                                            <div class="field-block">
+                                                <label>버튼 행동</label>
+                                                <select name="buttonActionCode">
+                                                    <option value="MOVE_NEXT">다음 단계 이동</option>
+                                                    <option value="COMPLETE_STEP">현재 단계 완료</option>
+                                                    <option value="STOP_PROGRESS" selected>진행 중단</option>
+                                                </select>
+                                            </div>
+                                            <div class="field-block">
+                                                <label>이동할 단계</label>
+                                                <select name="nextStepId">
+                                                    <option value="">다음 순서 단계</option>
+                                                </select>
+                                            </div>
+                                            <div class="step-nested-actions">
+                                                <button class="secondary-action" type="button" data-step-button-remove>버튼 삭제</button>
+                                            </div>
+                                        </article>
+                                    </div>
+                                </section>
 
-                        <article class="step-editor" data-step-row>
-                            <div class="step-order">3</div>
-                            <div class="form-grid">
-                                <div class="field-block">
-                                    <label>단계명</label>
-                                    <input name="stepName" type="text" maxlength="100" placeholder="예: 결과 확인">
-                                </div>
-                                <div class="field-block">
-                                    <label>완료 조건</label>
-                                    <select name="completionConditionCode">
-                                        <option value="STATUS_CONFIRMED">상태 확인</option>
-                                        <option value="BUTTON_CLICK">버튼 선택</option>
-                                        <option value="DOCUMENT_SUBMITTED">서류 제출</option>
-                                    </select>
-                                </div>
-                                <div class="field-block span-2">
-                                    <label>안내 문구</label>
-                                    <textarea name="guideMessage" rows="2" placeholder="예: 기관 결과를 확인하고 사용자 진행 상태에 반영합니다."></textarea>
-                                </div>
-                                <div class="field-block span-2">
-                                    <label>행동 안내</label>
-                                    <textarea name="actionGuide" rows="2" placeholder="예: 확인된 결과만 최종 매칭으로 표시합니다."></textarea>
-                                </div>
-                                <div class="field-block">
-                                    <label>다음 단계 기준</label>
-                                    <input name="nextConditionCode" type="text" maxlength="80" placeholder="예: 결과 확인 완료">
-                                </div>
-                                <div class="field-block">
-                                    <label>버튼 이름</label>
-                                    <input name="buttonLabel" type="text" maxlength="100" placeholder="예: 결과 확인">
-                                </div>
-                                <div class="field-block">
-                                    <label>버튼 식별값</label>
-                                    <input name="buttonCode" type="text" maxlength="80" placeholder="예: 결과확인">
-                                </div>
-                                <div class="field-block">
-                                    <label>요구 서류</label>
-                                    <select name="stepDocumentTypeCode">
-                                        <option value="">없음</option>
-                                        <option value="BUSINESS_REGISTRATION">사업자등록증</option>
-                                        <option value="INCOME_CERTIFICATE">소득증명</option>
-                                        <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인</option>
-                                    </select>
-                                </div>
-                                <label class="inline-check">
-                                    <input name="stepActive" type="checkbox" checked> 사용
-                                </label>
+                                <section class="step-subsection span-2">
+                                    <div class="step-subsection-header">
+                                        <div>
+                                            <strong>단계 필요 서류</strong>
+                                            <small>이 단계에서 확인할 서류입니다. 필수 서류는 모두 체크되어야 단계 이동이 가능합니다.</small>
+                                        </div>
+                                        <button class="secondary-action" type="button" data-step-document-add>서류 추가</button>
+                                    </div>
+                                    <div class="step-document-list" data-step-document-list>
+                                        <article class="step-document-row" data-step-document-row>
+                                            <div class="field-block">
+                                                <label>필요 서류</label>
+                                                <select name="stepDocumentTypeCode">
+                                                    <option value="">없음</option>
+                                                    <option value="BUSINESS_REGISTRATION">사업자등록증</option>
+                                                    <option value="VAT_TAX_BASE">부가세 과세표준증명원</option>
+                                                    <option value="TAX_EXEMPT_INCOME">면세사업자 수입금액증명원</option>
+                                                    <option value="INCOME_CERTIFICATE">소득금액증명원</option>
+                                                    <option value="NATIONAL_TAX_PAID">국세완납증명서</option>
+                                                    <option value="LOCAL_TAX_PAID">지방세완납증명서</option>
+                                                    <option value="RESIDENT_REGISTRATION">주민등록등본</option>
+                                                    <option value="FAMILY_RELATION">가족관계증명서</option>
+                                                    <option value="HEALTH_INSURANCE_PAYMENT">건강보험료 납부확인서</option>
+                                                    <option value="HEALTH_INSURANCE_QUALIFICATION">건강보험 자격확인서</option>
+                                                </select>
+                                            </div>
+                                            <label class="inline-check compact-check">
+                                                <input name="stepDocumentRequired" type="checkbox"> 필수 서류
+                                            </label>
+                                            <div class="step-nested-actions">
+                                                <button class="secondary-action" type="button" data-step-document-remove>서류 삭제</button>
+                                            </div>
+                                        </article>
+                                    </div>
+                                </section>
                             </div>
                         </article>
                     </div>

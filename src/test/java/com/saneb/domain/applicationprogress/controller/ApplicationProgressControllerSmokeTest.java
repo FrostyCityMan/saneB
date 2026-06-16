@@ -228,6 +228,9 @@ class ApplicationProgressControllerSmokeTest {
                         STEP_ID,
                         1,
                         "Guide Sent",
+                        "Check the guide.",
+                        "Select next action.",
+                        "BUTTON_CLICK",
                         "READY",
                         now,
                         null

@@ -9,6 +9,9 @@ public record ApplicationStepStateRow(
         UUID stepId,
         Integer stepOrder,
         String stepName,
+        String guideMessage,
+        String actionGuide,
+        String completionConditionCode,
         String statusCode,
         OffsetDateTime startedAt,
         OffsetDateTime completedAt

@@ -65,6 +65,18 @@
                     <p th:text="${page.currentStep == null ? '결과 대기 또는 종료 상태입니다.' : page.currentStep.statusLabel + ' 상태의 단계입니다.'}">
                         현재 단계 안내
                     </p>
+                    <div class="flow-condition-summary" th:if="${page.currentStep != null}">
+                        <span th:text="${page.currentStep.completionConditionLabel}">버튼 선택</span>
+                        <small th:text="${#strings.isEmpty(page.currentStep.guideMessage) ? '등록된 안내 문구가 없습니다.' : page.currentStep.guideMessage}">
+                            단계 안내 문구
+                        </small>
+                        <small th:text="${#strings.isEmpty(page.currentStep.actionGuide) ? '등록된 행동 안내가 없습니다.' : page.currentStep.actionGuide}">
+                            단계 행동 안내
+                        </small>
+                    </div>
+                    <p class="flow-condition-warning"
+                       th:if="${page.actionBlocked}"
+                       th:text="${page.actionBlockMessage}">필수 조치가 남아 있습니다.</p>
                 </div>
                 <dl class="flow-meta-grid">
                     <div>
@@ -122,6 +134,7 @@
                                 <strong th:text="${step.stepName}">단계명</strong>
                                 <span th:text="${step.statusLabel}">준비</span>
                             </div>
+                            <small class="flow-step-condition" th:text="${step.completionConditionLabel}">완료 조건</small>
                             <small>
                                 시작:
                                 <span th:text="${step.startedAtText}">기록 없음</span>
@@ -161,6 +174,11 @@
                             </span>
                         </label>
                     </div>
+                    <p class="flow-condition-warning"
+                       th:if="${page.currentRequiredUncheckedDocumentCount > 0}"
+                       th:text="${'필수 서류 ' + page.currentRequiredUncheckedDocumentCount + '건을 체크해야 다음 단계로 이동할 수 있습니다.'}">
+                        필수 서류가 남아 있습니다.
+                    </p>
                     <div class="form-actions">
                         <button class="secondary-action" type="submit">체크리스트 저장</button>
                     </div>
@@ -184,12 +202,20 @@
                           th:action="@{/app/application-progresses/{progressId}/steps/{stepId}/action(progressId=${page.details.progressId}, stepId=${page.currentStep.stepId})}"
                           method="post">
                         <input type="hidden" name="buttonCode" th:value="${button.buttonCode}">
-                        <button class="primary-action button-action" type="submit" th:text="${button.buttonLabel}">
+                        <button class="primary-action button-action"
+                                type="submit"
+                                th:disabled="${page.actionBlocked}"
+                                th:data-server-blocked="${page.actionBlocked}"
+                                th:title="${page.actionBlocked ? page.actionBlockMessage : ''}"
+                                th:text="${button.buttonLabel}">
                             다음 단계로 진행
                         </button>
                         <small th:text="${button.actionLabel}">다음 단계 이동</small>
                     </form>
                 </div>
+                <p class="flow-condition-warning"
+                   th:if="${page.actionBlocked}"
+                   th:text="${page.actionBlockMessage}">필수 조치가 남아 있습니다.</p>
                 <p class="empty-state" th:if="${#lists.isEmpty(page.currentStepButtons)}">
                     현재 단계에 등록된 행동 버튼이 없습니다. 공고 입력 화면에서 단계 버튼을 확인해 주세요.
                 </p>
@@ -197,6 +223,7 @@
 
             <section class="flow-grid-2" th:if="${page.details != null and page.canOperate}">
                 <form class="flow-panel flow-form"
+                      th:classappend="${page.receiptConditionActive} ? ' is-current-condition' : ''"
                       th:action="@{/app/application-progresses/{progressId}/receipt(progressId=${page.details.progressId})}"
                       method="post">
                     <div class="panel-heading compact-heading">
@@ -204,6 +231,7 @@
                             <span class="eyebrow">접수</span>
                             <h2>접수 정보</h2>
                         </div>
+                        <span class="soft-status" th:if="${page.receiptConditionActive}">현재 단계 완료 조건</span>
                     </div>
                     <div class="form-grid single-grid">
                         <div class="field-block">
@@ -223,6 +251,7 @@
                 </form>
 
                 <form class="flow-panel flow-form"
+                      th:classappend="${page.resultConditionActive} ? ' is-current-condition' : ''"
                       th:action="@{/app/application-progresses/{progressId}/result(progressId=${page.details.progressId})}"
                       method="post">
                     <div class="panel-heading compact-heading">
@@ -230,6 +259,7 @@
                             <span class="eyebrow">결과</span>
                             <h2>최종 결과</h2>
                         </div>
+                        <span class="soft-status" th:if="${page.resultConditionActive}">현재 단계 완료 조건</span>
                     </div>
                     <div class="form-grid single-grid">
                         <div class="field-block">

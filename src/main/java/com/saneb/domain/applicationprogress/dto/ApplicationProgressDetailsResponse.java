@@ -35,6 +35,9 @@ public record ApplicationProgressDetailsResponse(
             UUID stepId,
             int stepOrder,
             String stepName,
+            String guideMessage,
+            String actionGuide,
+            String completionConditionCode,
             String statusCode,
             OffsetDateTime startedAt,
             OffsetDateTime completedAt

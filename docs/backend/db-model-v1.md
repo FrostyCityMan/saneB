@@ -200,7 +200,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `application_step_checklists` | `progress_id`, `step_document_id`, `is_checked`, `checked_at`, `checked_by` | PK `id`, FK `application_progresses.id`, FK `announcement_step_documents.id`, FK `users.id` | UQ `(progress_id, step_document_id)` |
 | `progress_reminder_logs` | `progress_id`, `step_id`, `reminder_type_code`, `attempt_no`, `scheduled_at`, `sent_at`, `result_code` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | UQ `(progress_id, reminder_type_code)`, IDX `(progress_id, scheduled_at)`, IDX `(result_code)` |
 
-진행 단계는 사용자의 단일 행동 완료를 중심으로 설계한다. 완료 조건 충족 전 다음 단계 이동은 서버에서 차단한다.
+진행 단계는 사용자의 단일 행동 완료를 중심으로 설계한다. 완료 조건 충족 전 다음 단계 이동은 서버에서 차단한다. `completion_condition_code`는 `BUTTON_CLICK`, `ALL_REQUIRED_DOCUMENTS_CHECKED`, `REQUIRED_INPUTS_SAVED`, `RECEIPT_SAVED`, `RESULT_SAVED`를 기본 계약으로 사용한다. 기존 호환 코드인 `DOCUMENT_SUBMITTED`, `STATUS_CONFIRMED`은 조회 호환만 유지한다. 버튼 행동은 `MOVE_NEXT`, `COMPLETE_STEP`, `STOP_PROGRESS`를 사용한다.
 24시간/72시간/7일/14일 미진행 분류는 `progress_reminder_logs`로 중복 발송을 차단한다. 사용자가 단계 문서 또는 공고별 입력값을 저장하면 `application_progresses.updated_at`을 갱신해 이후 미진행 기준 시간이 다시 계산된다.
 
 ### 5.9 Audit / Status Histories

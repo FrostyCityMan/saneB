@@ -210,6 +210,110 @@
         HEALTH_INSURANCE_PAYMENT: "건강보험료 납부확인서",
         HEALTH_INSURANCE_QUALIFICATION: "건강보험 자격확인서"
     };
+    const stepButtonActionLabels = {
+        MOVE_NEXT: "다음 단계 이동",
+        COMPLETE_STEP: "현재 단계 완료",
+        STOP_PROGRESS: "진행 중단"
+    };
+    const completionConditionLabels = {
+        BUTTON_CLICK: "버튼 선택",
+        ALL_REQUIRED_DOCUMENTS_CHECKED: "필수 서류 전체 확인",
+        REQUIRED_INPUTS_SAVED: "필수 입력값 저장",
+        RECEIPT_SAVED: "접수 정보 저장",
+        RESULT_SAVED: "최종 결과 저장",
+        DOCUMENT_SUBMITTED: "필수 서류 전체 확인",
+        STATUS_CONFIRMED: "최종 결과 저장"
+    };
+    const defaultProgressStepRequests = [
+        {
+            stepOrder: 1,
+            stepName: "안내 발송",
+            guideMessage: "현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.",
+            actionGuide: "진행 의사를 선택하세요.",
+            completionConditionCode: "BUTTON_CLICK",
+            nextConditionCode: "진행 의사 확인",
+            active: true,
+            buttons: [
+                { buttonCode: "WANT_TO_PROCEED", buttonLabel: "진행 원함", buttonActionCode: "MOVE_NEXT", sortOrder: 1 },
+                { buttonCode: "ALREADY_RECEIVED", buttonLabel: "이미 지원받음", buttonActionCode: "STOP_PROGRESS", sortOrder: 2 },
+                { buttonCode: "ALREADY_IN_PROGRESS", buttonLabel: "이미 진행중", buttonActionCode: "STOP_PROGRESS", sortOrder: 3 },
+                { buttonCode: "NOT_INTERESTED", buttonLabel: "관심없음", buttonActionCode: "STOP_PROGRESS", sortOrder: 4 }
+            ],
+            documents: []
+        },
+        {
+            stepOrder: 2,
+            stepName: "서류 안내",
+            guideMessage: "진행에 필요한 서류를 준비하고 체크리스트를 확인합니다.",
+            actionGuide: "필수 서류가 모두 준비되면 서류 준비 완료를 선택하세요.",
+            completionConditionCode: "ALL_REQUIRED_DOCUMENTS_CHECKED",
+            nextConditionCode: "필수 서류 전체 확인",
+            active: true,
+            buttons: [
+                { buttonCode: "DOCUMENTS_READY", buttonLabel: "서류 준비 완료", buttonActionCode: "MOVE_NEXT", sortOrder: 1 }
+            ],
+            documents: [
+                { documentTypeCode: "BUSINESS_REGISTRATION", required: true, sortOrder: 1 },
+                { documentTypeCode: "VAT_TAX_BASE", required: true, sortOrder: 2 },
+                { documentTypeCode: "RESIDENT_REGISTRATION", required: true, sortOrder: 3 },
+                { documentTypeCode: "FAMILY_RELATION", required: true, sortOrder: 4 }
+            ]
+        },
+        {
+            stepOrder: 3,
+            stepName: "접수 단계",
+            guideMessage: "실제 사업명, 기관명, 접수 방식 등 접수 전 확인이 필요한 정보를 안내합니다.",
+            actionGuide: "접수 진행 여부를 선택하세요.",
+            completionConditionCode: "BUTTON_CLICK",
+            nextConditionCode: "접수 진행 의사 확인",
+            active: true,
+            buttons: [
+                { buttonCode: "START_RECEIPT", buttonLabel: "접수 진행하기", buttonActionCode: "MOVE_NEXT", sortOrder: 1 },
+                { buttonCode: "ALREADY_RECEIVED", buttonLabel: "이미 지원받음", buttonActionCode: "STOP_PROGRESS", sortOrder: 2 },
+                { buttonCode: "STOP_APPLICATION", buttonLabel: "진행 중단", buttonActionCode: "STOP_PROGRESS", sortOrder: 3 }
+            ],
+            documents: []
+        },
+        {
+            stepOrder: 4,
+            stepName: "접수 진행",
+            guideMessage: "실제 접수번호와 접수일을 저장합니다.",
+            actionGuide: "접수 정보를 저장한 뒤 접수 완료를 선택하세요.",
+            completionConditionCode: "RECEIPT_SAVED",
+            nextConditionCode: "접수 정보 저장",
+            active: true,
+            buttons: [
+                { buttonCode: "RECEIPT_DONE", buttonLabel: "접수 완료", buttonActionCode: "MOVE_NEXT", sortOrder: 1 }
+            ],
+            documents: []
+        },
+        {
+            stepOrder: 5,
+            stepName: "접수 완료",
+            guideMessage: "접수 완료 후 결과를 기다리는 단계입니다.",
+            actionGuide: "결과를 확인할 수 있으면 결과 입력하기를 선택하세요.",
+            completionConditionCode: "BUTTON_CLICK",
+            nextConditionCode: "결과 입력 가능",
+            active: true,
+            buttons: [
+                { buttonCode: "OPEN_RESULT_INPUT", buttonLabel: "결과 입력하기", buttonActionCode: "MOVE_NEXT", sortOrder: 1 }
+            ],
+            documents: []
+        },
+        {
+            stepOrder: 6,
+            stepName: "결과 입력",
+            guideMessage: "최종 결과와 실제 수령 금액을 저장합니다.",
+            actionGuide: "결과 정보를 저장한 뒤 결과 저장을 선택하세요.",
+            completionConditionCode: "RESULT_SAVED",
+            nextConditionCode: "최종 결과 저장",
+            active: true,
+            buttons: [
+                { buttonCode: "SAVE_RESULT", buttonLabel: "결과 저장", buttonActionCode: "MOVE_NEXT", sortOrder: 1 }
+            ],
+            documents: []
+        }
+    ];
     const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
     const numericStandardFieldTypes = new Set(["NUMBER", "AMOUNT", "DATE"]);
     const optionStandardFieldTypes = new Set(["BOOLEAN", "SELECT", "RADIO", "MULTI_SELECT"]);
@@ -246,6 +350,11 @@
         numeric: numericConditionList?.querySelector("[data-numeric-condition-row]")?.cloneNode(true),
         option: optionConditionList?.querySelector("[data-option-condition-row]")?.cloneNode(true),
         document: documentRequirementList?.querySelector("[data-document-requirement-row]")?.cloneNode(true)
+    };
+    const stepTemplates = {
+        row: stepsList?.querySelector("[data-step-row]")?.cloneNode(true),
+        button: stepsList?.querySelector("[data-step-button-row]")?.cloneNode(true),
+        document: stepsList?.querySelector("[data-step-document-row]")?.cloneNode(true)
     };
     let defaultStepRequests = [];
     let standardDocumentFields = [];
@@ -700,6 +809,8 @@
     };
 
     const stepRows = () => stepsList ? Array.from(stepsList.querySelectorAll("[data-step-row]")) : [];
+    const stepButtonRows = (row) => row ? Array.from(row.querySelectorAll("[data-step-button-row]")) : [];
+    const stepDocumentRows = (row) => row ? Array.from(row.querySelectorAll("[data-step-document-row]")) : [];
 
     const buildStepRequestFromRow = (row, stepOrder) => {
         const stepName = valueOf(row, "[name='stepName']");
@@ -707,21 +818,37 @@
             return null;
         }
 
-        const buttonLabel = valueOf(row, "[name='buttonLabel']");
-        const buttonCode = valueOf(row, "[name='buttonCode']") || `STEP_${stepOrder}_BUTTON`;
-        const documentTypeCode = valueOf(row, "[name='stepDocumentTypeCode']");
-        const buttons = buttonLabel ? [{
-            buttonCode,
-            buttonLabel,
-            buttonActionCode: "MOVE_NEXT",
-            nextStepId: null,
-            sortOrder: 1
-        }] : [];
-        const documents = documentTypeCode ? [{
-            documentTypeCode,
-            required: false,
-            sortOrder: 1
-        }] : [];
+        const buttons = [];
+        stepButtonRows(row).forEach((buttonRow) => {
+            const buttonLabel = valueOf(buttonRow, "[name='buttonLabel']");
+            const explicitButtonCode = valueOf(buttonRow, "[name='buttonCode']");
+            if (!buttonLabel && !explicitButtonCode) {
+                return;
+            }
+            if (!buttonLabel) {
+                throw new Error("단계 버튼 이름을 입력해 주세요.");
+            }
+            buttons.push({
+                buttonCode: explicitButtonCode || `STEP_${stepOrder}_BUTTON_${buttons.length + 1}`,
+                buttonLabel,
+                buttonActionCode: valueOf(buttonRow, "[name='buttonActionCode']") || "MOVE_NEXT",
+                nextStepId: nullIfBlank(valueOf(buttonRow, "[name='nextStepId']")),
+                sortOrder: buttons.length + 1
+            });
+        });
+
+        const documents = [];
+        stepDocumentRows(row).forEach((documentRow) => {
+            const documentTypeCode = valueOf(documentRow, "[name='stepDocumentTypeCode']");
+            if (!documentTypeCode) {
+                return;
+            }
+            documents.push({
+                documentTypeCode,
+                required: Boolean(documentRow.querySelector("[name='stepDocumentRequired']")?.checked),
+                sortOrder: documents.length + 1
+            });
+        });
 
         return {
             stepOrder,
@@ -742,6 +869,18 @@
         }
         if (field.name === "optionCode") {
             return "등록되지 않은 선택값";
+        }
+        if (field.name === "buttonActionCode") {
+            return stepButtonActionLabels[value] || value;
+        }
+        if (field.name === "completionConditionCode") {
+            return completionConditionLabels[value] || value;
+        }
+        if (field.name === "stepDocumentTypeCode") {
+            return documentTypeLabels[value] || value;
+        }
+        if (field.name === "nextStepId") {
+            return "저장된 이동 단계";
         }
         return value;
     };
@@ -1000,22 +1139,141 @@
         }
     };
 
+    const createStepButtonRow = (button = {}) => {
+        const source = stepTemplates.button;
+        if (!source) {
+            return null;
+        }
+        const row = source.cloneNode(true);
+        setFieldValue(row, "[name='buttonLabel']", button.buttonLabel || "");
+        setFieldValue(row, "[name='buttonCode']", button.buttonCode || "");
+        setFieldValue(row, "[name='buttonActionCode']", button.buttonActionCode || "MOVE_NEXT");
+        setFieldValue(row, "[name='nextStepId']", button.nextStepId || "");
+        return row;
+    };
+
+    const createStepDocumentRow = (documentRequest = {}) => {
+        const source = stepTemplates.document;
+        if (!source) {
+            return null;
+        }
+        const row = source.cloneNode(true);
+        setFieldValue(row, "[name='stepDocumentTypeCode']", documentRequest.documentTypeCode || "");
+        const requiredField = row.querySelector("[name='stepDocumentRequired']");
+        if (requiredField) {
+            requiredField.checked = Boolean(documentRequest.required);
+        }
+        return row;
+    };
+
+    const normalizeStepButtonRows = (row) => {
+        const buttonRows = stepButtonRows(row);
+        buttonRows.forEach((buttonRow) => {
+            const removeButton = buttonRow.querySelector("[data-step-button-remove]");
+            if (removeButton) {
+                removeButton.disabled = buttonRows.length <= 1;
+            }
+        });
+    };
+
+    const normalizeStepDocumentRows = (row) => {
+        const documentRowsForStep = stepDocumentRows(row);
+        documentRowsForStep.forEach((documentRow) => {
+            const removeButton = documentRow.querySelector("[data-step-document-remove]");
+            if (removeButton) {
+                removeButton.disabled = documentRowsForStep.length <= 1;
+            }
+        });
+    };
+
+    const populateStepNextOptions = () => {
+        const rows = stepRows();
+        rows.forEach((row) => {
+            stepButtonRows(row).forEach((buttonRow) => {
+                const select = buttonRow.querySelector("[name='nextStepId']");
+                if (!select) {
+                    return;
+                }
+                const currentValue = select.value;
+                select.replaceChildren();
+
+                const empty = document.createElement("option");
+                empty.value = "";
+                empty.textContent = "다음 순서 단계";
+                select.append(empty);
+
+                rows.forEach((targetRow, index) => {
+                    const targetStepId = targetRow.dataset.stepId || "";
+                    if (!targetStepId || targetRow === row) {
+                        return;
+                    }
+                    const option = document.createElement("option");
+                    option.value = targetStepId;
+                    option.textContent = `${index + 1}단계 · ${valueOf(targetRow, "[name='stepName']") || "단계명 미입력"}`;
+                    select.append(option);
+                });
+
+                if (currentValue && !Array.from(select.options).some((option) => option.value === currentValue)) {
+                    const fallback = document.createElement("option");
+                    fallback.value = currentValue;
+                    fallback.textContent = "저장된 이동 단계";
+                    fallback.dataset.fallbackOption = "true";
+                    select.append(fallback);
+                }
+                select.value = currentValue || "";
+            });
+        });
+    };
+
+    const renderStepButtonRows = (row, buttons = []) => {
+        const list = row.querySelector("[data-step-button-list]");
+        if (!list) {
+            return;
+        }
+        list.replaceChildren();
+        const sourceButtons = buttons.length > 0 ? buttons : [{}];
+        sourceButtons.forEach((button) => {
+            const buttonRow = createStepButtonRow(button);
+            if (buttonRow) {
+                list.append(buttonRow);
+            }
+        });
+        normalizeStepButtonRows(row);
+    };
+
+    const renderStepDocumentRows = (row, documents = []) => {
+        const list = row.querySelector("[data-step-document-list]");
+        if (!list) {
+            return;
+        }
+        list.replaceChildren();
+        const sourceDocuments = documents.length > 0 ? documents : [{}];
+        sourceDocuments.forEach((documentRequest) => {
+            const documentRow = createStepDocumentRow(documentRequest);
+            if (documentRow) {
+                list.append(documentRow);
+            }
+        });
+        normalizeStepDocumentRows(row);
+    };
+
     const clearStepRow = (row) => {
+        row.dataset.stepId = "";
         setFieldValue(row, "[name='stepName']", "");
         setFieldValue(row, "[name='completionConditionCode']", "BUTTON_CLICK");
         setFieldValue(row, "[name='guideMessage']", "");
         setFieldValue(row, "[name='actionGuide']", "");
         setFieldValue(row, "[name='nextConditionCode']", "");
-        setFieldValue(row, "[name='buttonLabel']", "");
-        setFieldValue(row, "[name='buttonCode']", "");
-        setFieldValue(row, "[name='stepDocumentTypeCode']", "");
         const activeField = row.querySelector("[name='stepActive']");
         if (activeField) {
             activeField.checked = true;
         }
+        renderStepButtonRows(row, [{}]);
+        renderStepDocumentRows(row, [{}]);
     };
 
     const applyStepToRow = (row, step) => {
+        row.dataset.stepId = step.stepId || "";
         setFieldValue(row, "[name='stepName']", step.stepName || "");
         setFieldValue(row, "[name='completionConditionCode']", step.completionConditionCode || "BUTTON_CLICK");
         setFieldValue(row, "[name='guideMessage']", step.guideMessage || "");
@@ -1025,13 +1283,8 @@
         if (activeField) {
             activeField.checked = step.active !== false;
         }
-
-        const firstButton = (step.buttons || [])[0];
-        setFieldValue(row, "[name='buttonLabel']", firstButton ? firstButton.buttonLabel || "" : "");
-        setFieldValue(row, "[name='buttonCode']", firstButton ? firstButton.buttonCode || "" : "");
-
-        const firstDocument = (step.documents || [])[0];
-        setFieldValue(row, "[name='stepDocumentTypeCode']", firstDocument ? firstDocument.documentTypeCode || "" : "");
+        renderStepButtonRows(row, step.buttons || []);
+        renderStepDocumentRows(row, step.documents || []);
     };
 
     const normalizeStepRows = () => {
@@ -1040,27 +1293,29 @@
             if (order) {
                 order.textContent = String(index + 1);
             }
-            let removeButton = row.querySelector("[data-step-remove]");
-            if (!removeButton) {
-                const actionBlock = document.createElement("div");
-                actionBlock.className = "step-row-actions span-2";
-                removeButton = document.createElement("button");
-                removeButton.type = "button";
-                removeButton.className = "secondary-action";
-                removeButton.dataset.stepRemove = "true";
-                removeButton.textContent = "단계 삭제";
-                actionBlock.append(removeButton);
-                row.querySelector(".form-grid")?.append(actionBlock);
+            const removeButton = row.querySelector("[data-step-remove]");
+            if (removeButton) {
+                removeButton.disabled = rows.length <= 1;
             }
-            removeButton.disabled = rows.length <= 1;
+            const upButton = row.querySelector("[data-step-move-up]");
+            if (upButton) {
+                upButton.disabled = index === 0;
+            }
+            const downButton = row.querySelector("[data-step-move-down]");
+            if (downButton) {
+                downButton.disabled = index === rows.length - 1;
+            }
+            normalizeStepButtonRows(row);
+            normalizeStepDocumentRows(row);
         });
+        populateStepNextOptions();
     };
 
     const renderStepRows = (steps = []) => {
         if (!stepsList) {
             return;
         }
-        const source = stepRows()[0];
+        const source = stepTemplates.row || stepRows()[0];
         if (!source) {
             return;
         }
@@ -1083,7 +1338,7 @@
     };
 
     const appendBlankStepRow = () => {
-        const source = stepRows()[0];
+        const source = stepTemplates.row || stepRows()[0];
         if (!source || !stepsList) {
             return;
         }
@@ -1654,6 +1909,91 @@
             return;
         }
 
+        if (event.target.matches("[data-step-move-up]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const previous = row?.previousElementSibling;
+            if (row && previous) {
+                stepsList.insertBefore(row, previous);
+                normalizeStepRows();
+            }
+            return;
+        }
+
+        if (event.target.matches("[data-step-move-down]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const next = row?.nextElementSibling;
+            if (row && next) {
+                stepsList.insertBefore(next, row);
+                normalizeStepRows();
+            }
+            return;
+        }
+
+        if (event.target.matches("[data-step-button-add]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const list = row?.querySelector("[data-step-button-list]");
+            const buttonRow = createStepButtonRow({});
+            if (list && buttonRow) {
+                list.append(buttonRow);
+                normalizeStepButtonRows(row);
+                populateStepNextOptions();
+                buttonRow.querySelector("[name='buttonLabel']")?.focus();
+            }
+            return;
+        }
+
+        if (event.target.matches("[data-step-button-remove]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const buttonRows = stepButtonRows(row);
+            const buttonRow = event.target.closest("[data-step-button-row]");
+            if (buttonRows.length <= 1) {
+                setFieldValue(buttonRow, "[name='buttonLabel']", "");
+                setFieldValue(buttonRow, "[name='buttonCode']", "");
+                setFieldValue(buttonRow, "[name='buttonActionCode']", "MOVE_NEXT");
+                setFieldValue(buttonRow, "[name='nextStepId']", "");
+            } else {
+                buttonRow?.remove();
+            }
+            normalizeStepButtonRows(row);
+            populateStepNextOptions();
+            return;
+        }
+
+        if (event.target.matches("[data-step-document-add]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const list = row?.querySelector("[data-step-document-list]");
+            const documentRow = createStepDocumentRow({});
+            if (list && documentRow) {
+                list.append(documentRow);
+                normalizeStepDocumentRows(row);
+                documentRow.querySelector("[name='stepDocumentTypeCode']")?.focus();
+            }
+            return;
+        }
+
+        if (event.target.matches("[data-step-document-remove]")) {
+            event.preventDefault();
+            const row = event.target.closest("[data-step-row]");
+            const documentRowsForStep = stepDocumentRows(row);
+            const documentRow = event.target.closest("[data-step-document-row]");
+            if (documentRowsForStep.length <= 1) {
+                setFieldValue(documentRow, "[name='stepDocumentTypeCode']", "");
+                const requiredField = documentRow?.querySelector("[name='stepDocumentRequired']");
+                if (requiredField) {
+                    requiredField.checked = false;
+                }
+            } else {
+                documentRow?.remove();
+            }
+            normalizeStepDocumentRows(row);
+            return;
+        }
+
         if (event.target.matches("[data-industry-condition-add]")) {
             event.preventDefault();
             appendConditionRow(
@@ -1797,6 +2137,9 @@
     app.addEventListener("input", (event) => {
         if (event.target.matches("[data-option-condition-row] [name='optionText']")) {
             event.target.dataset.touched = "true";
+        }
+        if (event.target.matches("[data-step-row] [name='stepName']")) {
+            populateStepNextOptions();
         }
     });
 
@@ -1972,10 +2315,8 @@
     normalizeConditionRows(optionConditionList, "[data-option-condition-row]", "[data-option-condition-remove]");
     optionRows().forEach((row) => renderOptionValueSelect(row, valueOf(row, "[name='optionCode']")));
     normalizeConditionRows(documentRequirementList, "[data-document-requirement-row]", "[data-document-requirement-remove]");
-    defaultStepRequests = stepRows()
-            .map((row, index) => buildStepRequestFromRow(row, index + 1))
-            .filter(Boolean);
-    normalizeStepRows();
+    defaultStepRequests = defaultProgressStepRequests;
+    renderStepRows(defaultStepRequests);
     updateTargetUi();
     updateApprovalUi("");
     renderDynamicRequirements([]);

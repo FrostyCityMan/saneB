@@ -2063,7 +2063,72 @@ svg {
 
 .step-row-actions {
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: flex-end;
+}
+
+.step-subsection {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffdf8;
+    padding: 12px;
+}
+
+.step-subsection-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.step-subsection-header strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.step-subsection-header small {
+    display: block;
+    margin-top: 3px;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.step-button-list,
+.step-document-list {
+    display: grid;
+    gap: 9px;
+}
+
+.step-button-row,
+.step-document-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    gap: 10px;
+    align-items: end;
+    border: 1px solid #eadfc8;
+    border-radius: 7px;
+    background: #fffaf0;
+    padding: 10px;
+}
+
+.step-document-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.step-nested-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.compact-check {
+    align-self: end;
+    min-height: 40px;
 }
 
 .announcement-search {
@@ -2501,6 +2566,48 @@ svg {
     font-size: 12px;
     font-weight: 700;
     line-height: 1.35;
+}
+
+.flow-condition-summary {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.flow-condition-summary span {
+    display: inline-flex;
+    width: fit-content;
+    border: 1px solid var(--saneb-border);
+    border-radius: 999px;
+    background: #fffdf8;
+    color: var(--saneb-teal);
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.flow-condition-summary small,
+.flow-step-condition {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.flow-condition-warning {
+    border: 1px solid #e5b85f;
+    border-radius: 7px;
+    background: #fff7df;
+    color: #805000;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.flow-panel.is-current-condition {
+    border-color: #d4a947;
+    box-shadow: 0 0 0 3px rgba(212, 169, 71, 0.12);
 }
 
 .single-grid {
@@ -4004,6 +4111,8 @@ svg {
     .flow-action-card,
     .flow-grid-2,
     .action-submit-form,
+    .step-button-row,
+    .step-document-row,
     .verification-document-row,
     .verification-list-row,
     .admin-users-summary-grid,
@@ -4022,6 +4131,7 @@ svg {
     }
 
     .row-actions,
+    .step-subsection-header,
     .pagination-row {
         align-items: stretch;
         flex-direction: column;

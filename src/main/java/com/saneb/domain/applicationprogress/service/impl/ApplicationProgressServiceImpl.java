@@ -52,6 +52,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
             "APPROVED", "REJECTED", "SUPPLEMENT_REQUESTED", "STOPPED"
     );
     private static final Set<String> OPERATING_ROLES = Set.of("PARTNER", "OPERATOR", "APPROVER", "REVIEWER", "ADMIN");
+    private static final String ACTION_STOP_PROGRESS = "STOP_PROGRESS";
 
     private final ApplicationProgressDao applicationProgressDao;
     private final DynamicAnnouncementInputDao dynamicAnnouncementInputDao;
@@ -228,26 +229,20 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         if (button == null) {
             throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "Step button does not exist.");
         }
-        if (applicationProgressDao.selectRequiredUncheckedDocumentCount(progressId, stepId) > 0) {
-            throw new ApiException(
-                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
-                    HttpStatus.CONFLICT,
-                    "Required step documents are not checked."
-            );
-        }
-        if (dynamicAnnouncementInputDao.selectMissingRequiredApplicationInputCount(progressId) > 0) {
-            throw new ApiException(
-                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
-                    HttpStatus.CONFLICT,
-                    "Required application input values are missing."
-            );
+
+        boolean stopProgress = ACTION_STOP_PROGRESS.equals(normalizeOptionalCode(button.buttonActionCode()));
+        if (!stopProgress) {
+            validateCurrentStepCanMove(progress, stepState);
         }
 
-        UUID nextStepId = button.nextStepId() == null
-                ? applicationProgressDao.selectNextActiveStepId(progress.announcementId(), stepState.stepOrder())
-                : button.nextStepId();
-        if (nextStepId != null && applicationProgressDao.selectApplicationStepState(progressId, nextStepId) == null) {
-            throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "Next step is not initialized.");
+        UUID nextStepId = null;
+        if (!stopProgress) {
+            nextStepId = button.nextStepId() == null
+                    ? applicationProgressDao.selectNextActiveStepId(progress.announcementId(), stepState.stepOrder())
+                    : button.nextStepId();
+            if (nextStepId != null && applicationProgressDao.selectApplicationStepState(progressId, nextStepId) == null) {
+                throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, "Next step is not initialized.");
+            }
         }
 
         applicationProgressDao.insertApplicationActionLog(new ApplicationActionLogCommand(
@@ -260,7 +255,9 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         ));
         applicationProgressDao.updateApplicationStepStateStatus(progressId, stepId, "COMPLETED", actorUserId);
 
-        if (nextStepId == null) {
+        if (stopProgress) {
+            applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, "STOPPED", actorUserId);
+        } else if (nextStepId == null) {
             applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, "WAITING_RESULT", actorUserId);
         } else {
             applicationProgressDao.updateApplicationStepStateStatus(progressId, nextStepId, "READY", actorUserId);
@@ -450,10 +447,50 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                 row.stepId(),
                 row.stepOrder(),
                 row.stepName(),
+                row.guideMessage(),
+                row.actionGuide(),
+                row.completionConditionCode(),
                 row.statusCode(),
                 row.startedAt(),
                 row.completedAt()
         );
+    }
+
+    private void validateCurrentStepCanMove(ApplicationProgressRow progress, ApplicationStepStateRow stepState) {
+        UUID progressId = progress.progressId();
+        UUID stepId = stepState.stepId();
+        if (applicationProgressDao.selectRequiredUncheckedDocumentCount(progressId, stepId) > 0) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "필수 서류를 모두 확인한 뒤 다음 단계로 이동할 수 있습니다."
+            );
+        }
+        if (dynamicAnnouncementInputDao.selectMissingRequiredApplicationInputCount(progressId) > 0) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "필수 입력값을 저장한 뒤 다음 단계로 이동할 수 있습니다."
+            );
+        }
+
+        String completionConditionCode = normalizeOptionalCode(stepState.completionConditionCode());
+        if ("RECEIPT_SAVED".equals(completionConditionCode)
+                && (trimToNull(progress.receiptNo()) == null || progress.receiptDate() == null)) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "접수번호와 접수일을 저장한 뒤 다음 단계로 이동할 수 있습니다."
+            );
+        }
+        if ("RESULT_SAVED".equals(completionConditionCode)
+                && (trimToNull(progress.resultCode()) == null || progress.resultDate() == null)) {
+            throw new ApiException(
+                    ErrorCode.PROGRESS_CONDITION_NOT_MET,
+                    HttpStatus.CONFLICT,
+                    "최종 결과와 결과일을 저장한 뒤 다음 단계로 이동할 수 있습니다."
+            );
+        }
     }
 
     private ApplicationProgressDetailsResponse.ChecklistResponse toChecklistResponse(ApplicationChecklistRow row) {

@@ -87,6 +87,18 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private static final Set<String> OPTION_CONDITION_FIELD_TYPE_CODES = Set.of(
             "BOOLEAN", "SELECT", "RADIO", "MULTI_SELECT"
     );
+    private static final Set<String> STEP_COMPLETION_CONDITION_CODES = Set.of(
+            "BUTTON_CLICK",
+            "ALL_REQUIRED_DOCUMENTS_CHECKED",
+            "REQUIRED_INPUTS_SAVED",
+            "RECEIPT_SAVED",
+            "RESULT_SAVED",
+            "DOCUMENT_SUBMITTED",
+            "STATUS_CONFIRMED"
+    );
+    private static final Set<String> STEP_BUTTON_ACTION_CODES = Set.of(
+            "MOVE_NEXT", "COMPLETE_STEP", "STOP_PROGRESS"
+    );
 
     private final AnnouncementDao announcementDao;
 
@@ -603,7 +615,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         List<AnnouncementStepsSaveRequest.StepRequest> steps = nullToEmpty(request.steps());
         validateUnique("stepOrder", steps, AnnouncementStepsSaveRequest.StepRequest::stepOrder);
         for (AnnouncementStepsSaveRequest.StepRequest step : steps) {
+            normalizeRequiredCode("completionConditionCode", step.completionConditionCode(), STEP_COMPLETION_CONDITION_CODES);
             validateUnique("buttonCode", nullToEmpty(step.buttons()), AnnouncementStepsSaveRequest.ButtonRequest::buttonCode);
+            for (AnnouncementStepsSaveRequest.ButtonRequest button : nullToEmpty(step.buttons())) {
+                normalizeRequiredCode("buttonActionCode", button.buttonActionCode(), STEP_BUTTON_ACTION_CODES);
+            }
             validateUnique(
                     "documentTypeCode",
                     nullToEmpty(step.documents()),

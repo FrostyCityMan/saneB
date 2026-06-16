@@ -84,6 +84,8 @@ class ApplicationProgressViewControllerSmokeTest {
                 .andExpect(view().name("app/application-progress-detail"))
                 .andExpect(content().string(containsString("다음 행동")))
                 .andExpect(content().string(containsString("진행 원함")))
+                .andExpect(content().string(containsString("버튼 선택")))
+                .andExpect(content().string(containsString("진행 의사를 선택하세요.")))
                 .andExpect(content().string(containsString("saneb-loading.js")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString("버튼 코드"))));
     }
@@ -169,6 +171,9 @@ class ApplicationProgressViewControllerSmokeTest {
                         STEP_ID,
                         1,
                         "진행 의사 확인",
+                        "현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.",
+                        "진행 의사를 선택하세요.",
+                        "BUTTON_CLICK",
                         "READY",
                         now,
                         null

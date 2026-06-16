@@ -333,6 +333,27 @@ public class ApplicationProgressViewController {
         };
     }
 
+    private static String completionConditionLabel(String code) {
+        return switch (code) {
+            case "BUTTON_CLICK" -> "버튼 선택";
+            case "ALL_REQUIRED_DOCUMENTS_CHECKED", "DOCUMENT_SUBMITTED" -> "필수 서류 전체 확인";
+            case "REQUIRED_INPUTS_SAVED" -> "필수 입력값 저장";
+            case "RECEIPT_SAVED" -> "접수 정보 저장";
+            case "RESULT_SAVED", "STATUS_CONFIRMED" -> "최종 결과 저장";
+            default -> code == null || code.isBlank() ? "버튼 선택" : code;
+        };
+    }
+
+    private static String completionConditionHelp(String code) {
+        return switch (code) {
+            case "ALL_REQUIRED_DOCUMENTS_CHECKED", "DOCUMENT_SUBMITTED" -> "필수 서류를 모두 체크한 뒤 단계 행동을 처리할 수 있습니다.";
+            case "REQUIRED_INPUTS_SAVED" -> "필수 입력값을 저장한 뒤 단계 행동을 처리할 수 있습니다.";
+            case "RECEIPT_SAVED" -> "접수번호와 접수일을 저장한 뒤 단계 행동을 처리할 수 있습니다.";
+            case "RESULT_SAVED", "STATUS_CONFIRMED" -> "최종 결과와 결과일을 저장한 뒤 단계 행동을 처리할 수 있습니다.";
+            default -> "등록된 버튼을 선택하면 다음 단계로 이동합니다.";
+        };
+    }
+
     private static String stepButtonLabel(ApplicationProgressDetailsResponse.StepButtonResponse response) {
         if (response.buttonLabel() != null && !response.buttonLabel().isBlank()) {
             return response.buttonLabel();
@@ -340,6 +361,7 @@ public class ApplicationProgressViewController {
         return switch (response.buttonActionCode()) {
             case "MOVE_NEXT" -> "다음 단계로 진행";
             case "COMPLETE_STEP" -> "현재 단계 완료";
+            case "STOP_PROGRESS" -> "진행 중단";
             default -> "진행 처리";
         };
     }
@@ -348,6 +370,7 @@ public class ApplicationProgressViewController {
         return switch (code) {
             case "MOVE_NEXT" -> "다음 단계 이동";
             case "COMPLETE_STEP" -> "단계 완료";
+            case "STOP_PROGRESS" -> "진행 중단";
             default -> "진행 처리";
         };
     }
@@ -403,7 +426,12 @@ public class ApplicationProgressViewController {
             long totalCount,
             DetailsModel details,
             StepStateModel currentStep,
-            List<StepButtonModel> currentStepButtons
+            List<StepButtonModel> currentStepButtons,
+            long currentRequiredUncheckedDocumentCount,
+            boolean receiptConditionActive,
+            boolean resultConditionActive,
+            boolean actionBlocked,
+            String actionBlockMessage
     ) {
 
         private static ApplicationProgressPageModel from(
@@ -415,6 +443,14 @@ public class ApplicationProgressViewController {
                 List<StartableMatchingModel> startableMatchings
         ) {
             DetailsModel detailsModel = details == null ? null : DetailsModel.from(details);
+            long uncheckedDocumentCount = countCurrentRequiredUncheckedDocuments(details, currentStep);
+            boolean receiptConditionActive = isCurrentCompletionCondition(currentStep, "RECEIPT_SAVED");
+            boolean resultConditionActive = isCurrentCompletionCondition(currentStep, "RESULT_SAVED", "STATUS_CONFIRMED");
+            boolean receiptMissing = receiptConditionActive
+                    && (details == null || details.receiptNo() == null || details.receiptNo().isBlank() || details.receiptDate() == null);
+            boolean resultMissing = resultConditionActive
+                    && (details == null || details.resultCode() == null || details.resultCode().isBlank() || details.resultDate() == null);
+            boolean actionBlocked = uncheckedDocumentCount > 0 || receiptMissing || resultMissing;
             return new ApplicationProgressPageModel(
                     auth,
                     ApplicationProgressViewController.roleLabel(auth.primaryRole()),
@@ -426,9 +462,48 @@ public class ApplicationProgressViewController {
                     progressPage.totalCount(),
                     detailsModel,
                     currentStep,
-                    selectCurrentStepButtons(details, currentStep)
+                    selectCurrentStepButtons(details, currentStep),
+                    uncheckedDocumentCount,
+                    receiptConditionActive,
+                    resultConditionActive,
+                    actionBlocked,
+                    ApplicationProgressViewController.actionBlockMessage(uncheckedDocumentCount, receiptMissing, resultMissing)
             );
         }
+    }
+
+    private static boolean isCurrentCompletionCondition(StepStateModel currentStep, String... conditionCodes) {
+        if (currentStep == null || currentStep.completionConditionCode() == null) {
+            return false;
+        }
+        return Set.of(conditionCodes).contains(currentStep.completionConditionCode());
+    }
+
+    private static long countCurrentRequiredUncheckedDocuments(
+            ApplicationProgressDetailsResponse details,
+            StepStateModel currentStep
+    ) {
+        if (details == null || currentStep == null || details.checklists() == null) {
+            return 0;
+        }
+        return details.checklists().stream()
+                .filter(document -> currentStep.stepId().equals(document.stepId()))
+                .filter(ApplicationProgressDetailsResponse.ChecklistResponse::required)
+                .filter(document -> !document.checked())
+                .count();
+    }
+
+    private static String actionBlockMessage(long uncheckedDocumentCount, boolean receiptMissing, boolean resultMissing) {
+        if (uncheckedDocumentCount > 0) {
+            return "필수 서류 " + uncheckedDocumentCount + "건을 먼저 체크해 주세요.";
+        }
+        if (receiptMissing) {
+            return "접수번호와 접수일을 저장해야 다음 단계로 이동할 수 있습니다.";
+        }
+        if (resultMissing) {
+            return "최종 결과와 결과일을 저장해야 다음 단계로 이동할 수 있습니다.";
+        }
+        return "";
     }
 
     public record StartableMatchingModel(
@@ -554,6 +629,10 @@ public class ApplicationProgressViewController {
             UUID stepId,
             int stepOrder,
             String stepName,
+            String guideMessage,
+            String actionGuide,
+            String completionConditionCode,
+            String completionConditionLabel,
             String statusCode,
             String statusLabel,
             String startedAtText,
@@ -566,6 +645,10 @@ public class ApplicationProgressViewController {
                     response.stepId(),
                     response.stepOrder(),
                     response.stepName(),
+                    response.guideMessage(),
+                    response.actionGuide(),
+                    response.completionConditionCode(),
+                    ApplicationProgressViewController.completionConditionLabel(response.completionConditionCode()),
                     response.statusCode(),
                     stepStatusLabel(response.statusCode()),
                     dateTimeText(response.startedAt()),

@@ -275,20 +275,43 @@ class AnnouncementControllerSmokeTest {
                         .content("""
                                 {
                                   "steps": [
-                                    { "stepOrder": 1, "stepName": "Guide Sent", "guideMessage": "Check the guide.", "actionGuide": "Select next action.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_1_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_1_DONE", "buttonLabel": "Step 1 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "BUSINESS_REGISTRATION", "required": true, "sortOrder": 1 }] },
-                                    { "stepOrder": 2, "stepName": "Prepare Documents", "guideMessage": "Prepare required files.", "actionGuide": "Confirm preparation.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_2_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_2_DONE", "buttonLabel": "Step 2 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "INCOME_CERTIFICATE", "required": true, "sortOrder": 1 }] },
-                                    { "stepOrder": 3, "stepName": "Submit Application", "guideMessage": "Submit to agency.", "actionGuide": "Confirm submission.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "STEP_3_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_3_DONE", "buttonLabel": "Step 3 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [{ "documentTypeCode": "HEALTH_INSURANCE", "required": true, "sortOrder": 1 }] },
-                                    { "stepOrder": 4, "stepName": "Agency Review", "guideMessage": "Wait for review.", "actionGuide": "Confirm review status.", "completionConditionCode": "STATUS_CONFIRMED", "nextConditionCode": "STEP_4_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_4_DONE", "buttonLabel": "Step 4 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [] },
-                                    { "stepOrder": 5, "stepName": "Result Confirmed", "guideMessage": "Confirm result.", "actionGuide": "Record final result.", "completionConditionCode": "STATUS_CONFIRMED", "nextConditionCode": "STEP_5_DONE", "active": true, "buttons": [{ "buttonCode": "STEP_5_DONE", "buttonLabel": "Step 5 done", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }], "documents": [] }
+                                    { "stepOrder": 1, "stepName": "안내 발송", "guideMessage": "현재 사업 정보 기준으로 진행 가능한 항목이 확인되었습니다.", "actionGuide": "진행 의사를 선택하세요.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "진행 의사 확인", "active": true, "buttons": [
+                                      { "buttonCode": "WANT_TO_PROCEED", "buttonLabel": "진행 원함", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 },
+                                      { "buttonCode": "ALREADY_RECEIVED", "buttonLabel": "이미 지원받음", "buttonActionCode": "STOP_PROGRESS", "sortOrder": 2 },
+                                      { "buttonCode": "ALREADY_IN_PROGRESS", "buttonLabel": "이미 진행중", "buttonActionCode": "STOP_PROGRESS", "sortOrder": 3 },
+                                      { "buttonCode": "NOT_INTERESTED", "buttonLabel": "관심없음", "buttonActionCode": "STOP_PROGRESS", "sortOrder": 4 }
+                                    ], "documents": [] },
+                                    { "stepOrder": 2, "stepName": "서류 안내", "guideMessage": "진행에 필요한 서류를 준비합니다.", "actionGuide": "필수 서류가 모두 준비되면 서류 준비 완료를 선택하세요.", "completionConditionCode": "ALL_REQUIRED_DOCUMENTS_CHECKED", "nextConditionCode": "필수 서류 전체 확인", "active": true, "buttons": [
+                                      { "buttonCode": "DOCUMENTS_READY", "buttonLabel": "서류 준비 완료", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }
+                                    ], "documents": [
+                                      { "documentTypeCode": "BUSINESS_REGISTRATION", "required": true, "sortOrder": 1 },
+                                      { "documentTypeCode": "VAT_TAX_BASE", "required": true, "sortOrder": 2 },
+                                      { "documentTypeCode": "RESIDENT_REGISTRATION", "required": true, "sortOrder": 3 },
+                                      { "documentTypeCode": "FAMILY_RELATION", "required": true, "sortOrder": 4 }
+                                    ] },
+                                    { "stepOrder": 3, "stepName": "접수 단계", "guideMessage": "접수 전 최종 확인을 진행합니다.", "actionGuide": "접수 진행 여부를 선택하세요.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "접수 진행 의사 확인", "active": true, "buttons": [
+                                      { "buttonCode": "START_RECEIPT", "buttonLabel": "접수 진행하기", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 },
+                                      { "buttonCode": "ALREADY_RECEIVED", "buttonLabel": "이미 지원받음", "buttonActionCode": "STOP_PROGRESS", "sortOrder": 2 },
+                                      { "buttonCode": "STOP_APPLICATION", "buttonLabel": "진행 중단", "buttonActionCode": "STOP_PROGRESS", "sortOrder": 3 }
+                                    ], "documents": [] },
+                                    { "stepOrder": 4, "stepName": "접수 진행", "guideMessage": "접수 정보를 저장합니다.", "actionGuide": "접수 정보를 저장한 뒤 접수 완료를 선택하세요.", "completionConditionCode": "RECEIPT_SAVED", "nextConditionCode": "접수 정보 저장", "active": true, "buttons": [
+                                      { "buttonCode": "RECEIPT_DONE", "buttonLabel": "접수 완료", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }
+                                    ], "documents": [] },
+                                    { "stepOrder": 5, "stepName": "접수 완료", "guideMessage": "결과 대기 상태입니다.", "actionGuide": "결과를 확인할 수 있으면 결과 입력하기를 선택하세요.", "completionConditionCode": "BUTTON_CLICK", "nextConditionCode": "결과 입력 가능", "active": true, "buttons": [
+                                      { "buttonCode": "OPEN_RESULT_INPUT", "buttonLabel": "결과 입력하기", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }
+                                    ], "documents": [] },
+                                    { "stepOrder": 6, "stepName": "결과 입력", "guideMessage": "최종 결과를 저장합니다.", "actionGuide": "결과 정보를 저장한 뒤 결과 저장을 선택하세요.", "completionConditionCode": "RESULT_SAVED", "nextConditionCode": "최종 결과 저장", "active": true, "buttons": [
+                                      { "buttonCode": "SAVE_RESULT", "buttonLabel": "결과 저장", "buttonActionCode": "MOVE_NEXT", "sortOrder": 1 }
+                                    ], "documents": [] }
                                   ]
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(announcementDao, times(5)).insertAnnouncementProgressStep(any());
-        verify(announcementDao, times(5)).insertAnnouncementStepButton(any());
-        verify(announcementDao, times(3)).insertAnnouncementStepDocument(any());
+        verify(announcementDao, times(6)).insertAnnouncementProgressStep(any());
+        verify(announcementDao, times(11)).insertAnnouncementStepButton(any());
+        verify(announcementDao, times(4)).insertAnnouncementStepDocument(any());
     }
 
     @Test

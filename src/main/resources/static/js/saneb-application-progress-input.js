@@ -288,8 +288,11 @@
             if (!actionButton) {
                 return;
             }
-            actionButton.disabled = missingRequired.length > 0;
-            actionButton.title = missingRequired.length > 0 ? "필수 입력값 저장 후 진행할 수 있습니다." : "";
+            const serverBlocked = actionButton.dataset.serverBlocked === "true";
+            actionButton.disabled = serverBlocked || missingRequired.length > 0;
+            if (!serverBlocked) {
+                actionButton.title = missingRequired.length > 0 ? "필수 입력값 저장 후 진행할 수 있습니다." : "";
+            }
         });
     };
 
