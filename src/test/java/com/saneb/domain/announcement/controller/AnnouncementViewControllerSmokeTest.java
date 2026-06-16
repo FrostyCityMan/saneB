@@ -49,6 +49,9 @@ class AnnouncementViewControllerSmokeTest {
                 .andExpect(content().string(containsString("지방세 체납 여부")))
                 .andExpect(content().string(containsString("세대주 여부")))
                 .andExpect(content().string(containsString("피부양자 여부")))
+                .andExpect(content().string(containsString("data-option-value-select")))
+                .andExpect(content().string(containsString("조건 항목을 선택하면 선택값이 표시됩니다.")))
+                .andExpect(content().string(not(containsString("placeholder=\"예: 개인사업자\""))))
                 .andExpect(content().string(not(containsString("파트너 검증"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }

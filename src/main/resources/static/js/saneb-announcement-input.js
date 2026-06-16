@@ -97,6 +97,100 @@
         PARENT_COHABITING: "부모 동거 여부",
         PARENT_SUPPORTED: "부모 부양 여부"
     };
+    const booleanConditionKeys = new Set([
+        "IS_HOUSEHOLDER",
+        "HAS_SPOUSE",
+        "HAS_CHILD",
+        "HAS_PARENT",
+        "NATIONAL_TAX_DELINQUENT",
+        "LOCAL_TAX_DELINQUENT",
+        "HAS_POLICY_FUND_USAGE",
+        "HAS_GUARANTEE_USAGE",
+        "DEPENDENT_STATUS",
+        "WORKPLACE_INSURED_STATUS",
+        "LOCAL_INSURED_STATUS",
+        "PARENT_COHABITING",
+        "PARENT_SUPPORTED"
+    ]);
+    const booleanOptionCandidates = [
+        { code: "TRUE", label: "예" },
+        { code: "FALSE", label: "아니오" }
+    ];
+    const regionOptionCandidates = [
+        { code: "SEOUL", label: "서울" },
+        { code: "BUSAN", label: "부산" },
+        { code: "DAEGU", label: "대구" },
+        { code: "INCHEON", label: "인천" },
+        { code: "GWANGJU", label: "광주" },
+        { code: "DAEJEON", label: "대전" },
+        { code: "ULSAN", label: "울산" },
+        { code: "SEJONG", label: "세종" },
+        { code: "GYEONGGI", label: "경기" },
+        { code: "GANGWON", label: "강원" },
+        { code: "CHUNGBUK", label: "충북" },
+        { code: "CHUNGNAM", label: "충남" },
+        { code: "JEONBUK", label: "전북" },
+        { code: "JEONNAM", label: "전남" },
+        { code: "GYEONGBUK", label: "경북" },
+        { code: "GYEONGNAM", label: "경남" },
+        { code: "JEJU", label: "제주" }
+    ];
+    const optionCandidatesByConditionKey = {
+        TAX_TYPE_CODE: [
+            { code: "GENERAL_TAXPAYER", label: "일반과세자" },
+            { code: "SIMPLIFIED_TAXPAYER", label: "간이과세자" },
+            { code: "TAX_EXEMPT", label: "면세사업자" }
+        ],
+        BUSINESS_TYPE_CODE: [
+            { code: "SOLE_PROPRIETOR", label: "개인사업자" },
+            { code: "CORPORATION", label: "법인사업자" }
+        ],
+        COMPANY_STAGE: [
+            { code: "PRE_STARTUP", label: "예비창업" },
+            { code: "EARLY_STARTUP", label: "초기창업" },
+            { code: "OPERATING", label: "운영 중" },
+            { code: "SUSPENDED", label: "휴업" },
+            { code: "CLOSURE_PLANNED", label: "폐업 예정" },
+            { code: "CLOSED", label: "폐업" },
+            { code: "RESTART_PREPARING", label: "재창업 준비" }
+        ],
+        WORKPLACE_REGION_CODE: regionOptionCandidates,
+        REGION_CODE: regionOptionCandidates,
+        HEALTH_INSURANCE_BASIS_CODE: [
+            { code: "WORKPLACE", label: "직장가입자" },
+            { code: "LOCAL", label: "지역가입자" },
+            { code: "DEPENDENT", label: "피부양자" },
+            { code: "UNKNOWN", label: "잘 모름" }
+        ],
+        INSURANCE_SUBSCRIBER_TYPE: [
+            { code: "WORKPLACE", label: "직장가입자" },
+            { code: "LOCAL", label: "지역가입자" },
+            { code: "DEPENDENT", label: "피부양자" },
+            { code: "UNKNOWN", label: "잘 모름" }
+        ],
+        TAX_PAID_STATUS: [
+            { code: "PAID", label: "완납" },
+            { code: "DELINQUENT", label: "체납" },
+            { code: "UNKNOWN", label: "확인 필요" }
+        ],
+        HAS_INCOME: [
+            { code: "UNKNOWN", label: "잘 모름" },
+            { code: "NONE", label: "소득 없음" },
+            { code: "HAS_INCOME", label: "소득 있음" }
+        ],
+        CHILD_SCHOOL_AGE_STATUS_CODE: [
+            { code: "PRESCHOOL", label: "미취학" },
+            { code: "ELEMENTARY", label: "초등" },
+            { code: "MIDDLE_HIGH", label: "중·고등" },
+            { code: "COLLEGE", label: "대학생" },
+            { code: "NONE", label: "해당 없음" }
+        ],
+        CHILD_ENROLLMENT_STATUS_CODE: [
+            { code: "ENROLLED", label: "재학" },
+            { code: "NOT_ENROLLED", label: "비재학" },
+            { code: "UNKNOWN", label: "확인 필요" }
+        ]
+    };
     const approvalStatusLabels = {
         DRAFT: "초안",
         REQUESTED: "승인 요청",
@@ -359,6 +453,94 @@
     const optionRows = () => conditionRows(optionConditionList, "[data-option-condition-row]");
     const documentRows = () => conditionRows(documentRequirementList, "[data-document-requirement-row]");
 
+    const optionCandidatesForConditionKey = (conditionKey) => {
+        if (!conditionKey) {
+            return [];
+        }
+        if (booleanConditionKeys.has(conditionKey)) {
+            return booleanOptionCandidates;
+        }
+        return optionCandidatesByConditionKey[conditionKey] || [];
+    };
+
+    const optionCandidateLabel = (conditionKey, optionCode) => {
+        if (!conditionKey || !optionCode) {
+            return "";
+        }
+        const candidate = optionCandidatesForConditionKey(conditionKey)
+                .find((option) => option.code === optionCode);
+        return candidate ? candidate.label : "";
+    };
+
+    const optionValueEmptyLabel = (conditionKey, candidateCount) => {
+        if (!conditionKey) {
+            return "조건 항목을 먼저 선택하세요";
+        }
+        if (candidateCount === 0) {
+            return "선택 가능한 값이 없습니다";
+        }
+        return "선택값을 선택하세요";
+    };
+
+    const renderOptionValueSelect = (row, selectedValue = "") => {
+        const select = row?.querySelector("[name='optionCode']");
+        if (!select) {
+            return;
+        }
+        const conditionKey = valueOf(row, "[name='conditionKey']");
+        const candidates = optionCandidatesForConditionKey(conditionKey);
+        select.replaceChildren();
+
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = optionValueEmptyLabel(conditionKey, candidates.length);
+        select.append(empty);
+
+        candidates.forEach((candidate) => {
+            const option = document.createElement("option");
+            option.value = candidate.code;
+            option.textContent = candidate.label;
+            select.append(option);
+        });
+
+        if (selectedValue && !candidates.some((candidate) => candidate.code === selectedValue)) {
+            const fallback = document.createElement("option");
+            fallback.value = selectedValue;
+            fallback.textContent = "등록되지 않은 선택값";
+            fallback.dataset.fallbackOption = "true";
+            select.append(fallback);
+        }
+
+        select.value = selectedValue || "";
+    };
+
+    const clearOptionMemoTouched = (row) => {
+        const memo = row?.querySelector("[name='optionText']");
+        if (memo) {
+            delete memo.dataset.touched;
+        }
+    };
+
+    const setOptionMemoFromSelection = (row, force = false) => {
+        const select = row?.querySelector("[name='optionCode']");
+        const memo = row?.querySelector("[name='optionText']");
+        if (!select || !memo) {
+            return;
+        }
+        if (!force && memo.dataset.touched === "true") {
+            return;
+        }
+        const selected = select.selectedOptions && select.selectedOptions.length > 0 ? select.selectedOptions[0] : null;
+        const isFallback = selected?.dataset.fallbackOption === "true";
+        memo.value = select.value && selected && !isFallback ? selected.textContent : "";
+    };
+
+    const resetOptionValueForConditionKey = (row) => {
+        renderOptionValueSelect(row, "");
+        setFieldValue(row, "[name='optionText']", "");
+        clearOptionMemoTouched(row);
+    };
+
     const clearConditionRow = (row) => {
         row.querySelectorAll("input, textarea").forEach((field) => {
             if (field.type === "checkbox") {
@@ -373,6 +555,10 @@
         row.querySelectorAll("[data-ksic-selected-label]").forEach((label) => {
             label.textContent = "업태/종목 텍스트를 그대로 비교하지 않고 KSIC 코드 기준으로 판단합니다.";
         });
+        if (row.matches("[data-option-condition-row]")) {
+            renderOptionValueSelect(row, "");
+            clearOptionMemoTouched(row);
+        }
     };
 
     const normalizeConditionRows = (list, selector, removeSelector) => {
@@ -554,6 +740,9 @@
         if (field.name === "conditionKey") {
             return conditionKeyLabels[value] || "미등록 조건 항목";
         }
+        if (field.name === "optionCode") {
+            return "등록되지 않은 선택값";
+        }
         return value;
     };
 
@@ -677,14 +866,13 @@
             return;
         }
         setFieldValue(row, "[name='conditionScopeCode']", field.scopeCode || selectedTargetCode());
-        setFieldValue(row, "[name='conditionKey']", conditionKeyForStandardField(field));
+        const conditionKey = conditionKeyForStandardField(field);
+        setFieldValue(row, "[name='conditionKey']", conditionKey);
         if (optionCondition) {
-            if (field.fieldTypeCode === "BOOLEAN" && !valueOf(row, "[name='optionCode']")) {
-                setFieldValue(row, "[name='optionCode']", "TRUE");
-            }
-            if (!valueOf(row, "[name='optionText']")) {
-                setFieldValue(row, "[name='optionText']", field.fieldLabel || "");
-            }
+            clearOptionMemoTouched(row);
+            const defaultOptionCode = field.fieldTypeCode === "BOOLEAN" ? "TRUE" : "";
+            renderOptionValueSelect(row, defaultOptionCode);
+            setOptionMemoFromSelection(row, true);
         }
     };
 
@@ -1273,9 +1461,17 @@
                 (row, condition) => {
                     setFieldValue(row, "[name='standardFieldId']", condition.standardFieldId || "");
                     setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
-                    setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
-                    setFieldValue(row, "[name='optionCode']", condition.optionCode || "");
-                    setFieldValue(row, "[name='optionText']", condition.optionText || "");
+                    const conditionKey = condition.conditionKey || "";
+                    const optionCode = condition.optionCode || "";
+                    setFieldValue(row, "[name='conditionKey']", conditionKey);
+                    renderOptionValueSelect(row, optionCode);
+                    setFieldValue(row, "[name='optionText']", condition.optionText || optionCandidateLabel(conditionKey, optionCode));
+                    if (condition.optionText) {
+                        const optionText = row.querySelector("[name='optionText']");
+                        if (optionText) {
+                            optionText.dataset.touched = "true";
+                        }
+                    }
                 }
         );
         renderConditionRows(
@@ -1370,6 +1566,14 @@
         if (event.target.matches("input[name='targetTypeCode']")) {
             updateTargetUi();
             populateConditionStandardFieldSelects();
+            return;
+        }
+        if (event.target.matches("[data-option-condition-row] [name='conditionKey']")) {
+            resetOptionValueForConditionKey(event.target.closest("[data-option-condition-row]"));
+            return;
+        }
+        if (event.target.matches("[data-option-condition-row] [name='optionCode']")) {
+            setOptionMemoFromSelection(event.target.closest("[data-option-condition-row]"));
             return;
         }
         if (event.target.matches("[data-numeric-standard-field]")) {
@@ -1590,6 +1794,12 @@
         }
     });
 
+    app.addEventListener("input", (event) => {
+        if (event.target.matches("[data-option-condition-row] [name='optionText']")) {
+            event.target.dataset.touched = "true";
+        }
+    });
+
     basicForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const button = app.querySelector("[data-basic-submit]");
@@ -1760,6 +1970,7 @@
     normalizeConditionRows(industryConditionList, "[data-industry-condition-row]", "[data-industry-condition-remove]");
     normalizeConditionRows(numericConditionList, "[data-numeric-condition-row]", "[data-numeric-condition-remove]");
     normalizeConditionRows(optionConditionList, "[data-option-condition-row]", "[data-option-condition-remove]");
+    optionRows().forEach((row) => renderOptionValueSelect(row, valueOf(row, "[name='optionCode']")));
     normalizeConditionRows(documentRequirementList, "[data-document-requirement-row]", "[data-document-requirement-remove]");
     defaultStepRequests = stepRows()
             .map((row, index) => buildStepRequestFromRow(row, index + 1))
