@@ -46,6 +46,11 @@
         FAMILY: "가족"
     };
 
+    const targetClass = (targetTypeCode) => {
+        const code = String(targetTypeCode || "").toLowerCase();
+        return code ? `target-${code}` : "target-unknown";
+    };
+
     const conditionScopeLabels = {
         BUSINESS: "사업자 조건",
         PERSONAL: "개인 조건",
@@ -247,7 +252,7 @@
 
     const renderCase = (item) => {
         const card = document.createElement("article");
-        card.className = "matching-case-card";
+        card.className = `matching-case-card ${targetClass(item.targetTypeCode)}`;
         card.dataset.matchingCaseId = item.matchingCaseId;
 
         const head = document.createElement("div");

@@ -17,6 +17,7 @@ public record AnnouncementSummaryRow(
         String approvalStatusCode,
         BigDecimal minAmount,
         BigDecimal maxAmount,
+        String receptionTypeCode,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {

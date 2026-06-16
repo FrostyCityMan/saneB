@@ -734,6 +734,21 @@ Member / Business / Family API skeleton 착수 기준:
 | `PATCH` | `/api/v1/announcements/{announcementId}/approval` | `APPROVER`, `ADMIN` | 승인/반려/취소 |
 | `PATCH` | `/api/v1/announcements/{announcementId}/manual-status` | `OPERATOR`, `APPROVER` | 수동 상태 변경 |
 
+#### Announcement 상태 응답 필드
+
+`GET /api/v1/announcements`와 `GET /api/v1/announcements/{announcementId}`는 기존 필드를 유지하며 다음 상태 필드를 추가로 제공한다.
+
+| 필드 | 설명 |
+|---|---|
+| `manualStatusCode` | 관리자가 직접 설정한 수동 상태. 기존 필드 유지 |
+| `automaticStatusCode` | 신청 시작일/마감일 기준 계산 상태. `UPCOMING`, `OPEN`, `CLOSING_SOON`, `ENDED` |
+| `automaticStatusLabel` | 자동 상태 한글명. `모집예정`, `접수중`, `마감임박`, `종료` |
+| `effectiveStatusCode` | 실제 화면 노출 상태. 수동 상태가 `NORMAL`이 아니면 수동 상태, `NORMAL`이면 자동 상태 |
+| `effectiveStatusLabel` | 실제 화면 노출 상태 한글명 |
+| `receptionTypeCode` | 목록 응답에서 접수 성격 배지 표시에 사용하는 선택값. 예: `BUDGET_EXHAUSTION`, `FIRST_COME`, `ALWAYS_OPEN`, `PERIOD`, `EARLY_CLOSE_POSSIBLE` |
+
+자동 상태는 DB 저장 컬럼이 아니며 조회 시 계산한다. 수동 상태가 `NORMAL`이 아닌 공고는 수동 상태가 자동 상태보다 우선한다.
+
 #### AnnouncementSaveRequest
 
 ```json

@@ -17,6 +17,7 @@
             <arg column="approval_status_code" javaType="java.lang.String"/>
             <arg column="min_amount" javaType="java.math.BigDecimal"/>
             <arg column="max_amount" javaType="java.math.BigDecimal"/>
+            <arg column="reception_type_code" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
         </constructor>
@@ -170,6 +171,14 @@
             a.approval_status_code,
             a.min_amount,
             a.max_amount,
+            (
+                SELECT ao.option_code
+                FROM announcement_options ao
+                WHERE ao.announcement_id = a.id
+                  AND ao.option_group_code = 'RECEPTION_TYPE'
+                ORDER BY ao.option_code ASC
+                LIMIT 1
+            ) AS reception_type_code,
             a.created_at,
             a.updated_at
         FROM announcements a

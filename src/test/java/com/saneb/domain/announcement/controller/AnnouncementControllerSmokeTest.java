@@ -98,6 +98,11 @@ class AnnouncementControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.items[0].announcementId").value(ANNOUNCEMENT_ID.toString()))
                 .andExpect(jsonPath("$.data.items[0].title").value("Operating Capital Support"))
+                .andExpect(jsonPath("$.data.items[0].automaticStatusCode").value("OPEN"))
+                .andExpect(jsonPath("$.data.items[0].automaticStatusLabel").value("접수중"))
+                .andExpect(jsonPath("$.data.items[0].effectiveStatusCode").value("OPEN"))
+                .andExpect(jsonPath("$.data.items[0].effectiveStatusLabel").value("접수중"))
+                .andExpect(jsonPath("$.data.items[0].receptionTypeCode").value("FIRST_COME"))
                 .andExpect(jsonPath("$.data.page").value(1))
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
@@ -114,6 +119,8 @@ class AnnouncementControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.announcementId").value(ANNOUNCEMENT_ID.toString()))
                 .andExpect(jsonPath("$.data.approvalStatusCode").value("DRAFT"))
+                .andExpect(jsonPath("$.data.automaticStatusCode").value("OPEN"))
+                .andExpect(jsonPath("$.data.effectiveStatusCode").value("OPEN"))
                 .andExpect(jsonPath("$.data.options[0].optionCode").value("ONLINE"));
 
         verify(announcementDao).insertAnnouncement(any());
@@ -416,12 +423,13 @@ class AnnouncementControllerSmokeTest {
                 "BUSINESS",
                 "Operating Capital Support",
                 "Seoul City",
-                LocalDate.of(2026, 6, 1),
-                LocalDate.of(2026, 6, 30),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(10),
                 "NORMAL",
                 "DRAFT",
                 new BigDecimal("1000000"),
                 new BigDecimal("5000000"),
+                "FIRST_COME",
                 OffsetDateTime.now(),
                 OffsetDateTime.now()
         );
@@ -435,8 +443,8 @@ class AnnouncementControllerSmokeTest {
                 "Operating Capital Support",
                 "Seoul City",
                 "MVP operation test announcement",
-                LocalDate.of(2026, 6, 1),
-                LocalDate.of(2026, 6, 30),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(10),
                 "NORMAL",
                 approvalStatusCode,
                 "VAT_TAX_BASE_ONLY",

@@ -1471,17 +1471,54 @@ svg {
 }
 
 .target-card {
+    --target-accent: var(--saneb-teal);
     display: grid;
     align-content: start;
     gap: 7px;
     min-height: 118px;
     border: 1px solid var(--saneb-border);
+    border-left: 4px solid var(--target-accent);
     border-radius: 7px;
     background: #fffdf8;
     padding: 13px;
     color: #353b38;
     cursor: pointer;
     transition: border-color 0.16s ease, background-color 0.16s ease, opacity 0.16s ease;
+}
+
+.target-card--business,
+.announcement-list-item.target-business,
+.announcement-badge.is-target-business,
+.matching-case-card.target-business {
+    --target-accent: #2563eb;
+}
+
+.target-card--personal,
+.announcement-list-item.target-personal,
+.announcement-badge.is-target-personal,
+.matching-case-card.target-personal {
+    --target-accent: #7c3aed;
+}
+
+.target-card--spouse,
+.announcement-list-item.target-spouse,
+.announcement-badge.is-target-spouse,
+.matching-case-card.target-spouse {
+    --target-accent: #db2777;
+}
+
+.target-card--child,
+.announcement-list-item.target-child,
+.announcement-badge.is-target-child,
+.matching-case-card.target-child {
+    --target-accent: #15803d;
+}
+
+.target-card--parent,
+.announcement-list-item.target-parent,
+.announcement-badge.is-target-parent,
+.matching-case-card.target-parent {
+    --target-accent: #ca8a04;
 }
 
 .target-card input {
@@ -1504,9 +1541,9 @@ svg {
 }
 
 .target-card.is-active {
-    border-color: var(--saneb-teal);
+    border-color: var(--target-accent);
     background: #f3f7ef;
-    color: var(--saneb-teal);
+    color: var(--target-accent);
 }
 
 .target-card.is-muted {
@@ -2164,15 +2201,115 @@ svg {
 }
 
 .announcement-list-item {
+    --target-accent: var(--saneb-teal);
     display: grid;
     gap: 5px;
     width: 100%;
     border: 1px solid var(--saneb-border);
+    border-left: 4px solid var(--target-accent);
     border-radius: 7px;
     background: #fffdf8;
     padding: 12px;
     color: var(--saneb-text);
     text-align: left;
+}
+
+.announcement-list-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.announcement-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    border: 1px solid rgba(121, 111, 92, 0.24);
+    border-radius: 999px;
+    background: #fffaf0;
+    color: #4d493f;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1.3;
+}
+
+.announcement-badge[class*="is-target-"] {
+    border-color: color-mix(in srgb, var(--target-accent) 35%, #ffffff);
+    background: color-mix(in srgb, var(--target-accent) 10%, #fffdf8);
+    color: var(--target-accent);
+}
+
+.announcement-badge.is-status-open {
+    border-color: #9fd6b8;
+    background: #edf8f1;
+    color: #146c43;
+}
+
+.announcement-badge.is-status-upcoming {
+    border-color: #a7c7f3;
+    background: #eef6ff;
+    color: #1d4f91;
+}
+
+.announcement-badge.is-status-closing-soon {
+    border-color: #edc985;
+    background: #fff6df;
+    color: #9d560b;
+}
+
+.announcement-badge.is-status-ended,
+.announcement-badge.is-status-closed,
+.announcement-badge.is-status-early-closed,
+.announcement-badge.is-status-budget-exhausted,
+.announcement-badge.is-status-suspended,
+.announcement-badge.is-status-paused,
+.announcement-badge.is-status-hidden {
+    border-color: #e7b9aa;
+    background: #fff3ee;
+    color: #9f3e22;
+}
+
+.announcement-badge.is-reception-type {
+    border-color: #d5c8a6;
+    background: #fff8e8;
+    color: #806017;
+}
+
+.announcement-status-summary {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: #fffdf8;
+    padding: 12px;
+}
+
+.announcement-status-summary[hidden] {
+    display: none;
+}
+
+.announcement-status-summary div {
+    display: grid;
+    grid-template-columns: minmax(94px, auto) minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.announcement-status-summary dt {
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.announcement-status-summary dd {
+    margin: 0;
+    color: var(--saneb-text);
+    font-size: 12px;
+    font-weight: 850;
+    line-height: 1.45;
 }
 
 .announcement-list-item:hover,
@@ -3538,9 +3675,11 @@ svg {
 }
 
 .matching-case-card {
+    --target-accent: var(--saneb-teal);
     display: grid;
     gap: 13px;
     border: 1px solid var(--saneb-border);
+    border-left: 4px solid var(--target-accent);
     border-radius: 8px;
     background: #fffdf8;
     padding: 16px;

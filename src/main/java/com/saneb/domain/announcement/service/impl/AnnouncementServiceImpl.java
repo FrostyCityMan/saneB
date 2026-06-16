@@ -41,6 +41,7 @@ import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -448,6 +449,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .collect(Collectors.groupingBy(AnnouncementStepDocumentRow::stepId));
         Map<UUID, List<AnnouncementStepButtonRow>> buttonsByStepId = stepButtons.stream()
                 .collect(Collectors.groupingBy(AnnouncementStepButtonRow::stepId));
+        AnnouncementStatusPolicy.AnnouncementStatusView status = AnnouncementStatusPolicy.selectStatus(
+                row.applicationStartDate(),
+                row.applicationEndDate(),
+                row.manualStatusCode(),
+                LocalDate.now()
+        );
 
         return new AnnouncementDetailsResponse(
                 row.announcementId(),
@@ -459,6 +466,10 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 row.applicationStartDate(),
                 row.applicationEndDate(),
                 row.manualStatusCode(),
+                status.automaticStatusCode(),
+                status.automaticStatusLabel(),
+                status.effectiveStatusCode(),
+                status.effectiveStatusLabel(),
                 row.approvalStatusCode(),
                 row.incomeJudgementCode(),
                 row.minAmount(),
@@ -552,6 +563,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     }
 
     private AnnouncementSummaryResponse toSummaryResponse(AnnouncementSummaryRow row) {
+        AnnouncementStatusPolicy.AnnouncementStatusView status = AnnouncementStatusPolicy.selectStatus(
+                row.applicationStartDate(),
+                row.applicationEndDate(),
+                row.manualStatusCode(),
+                LocalDate.now()
+        );
         return new AnnouncementSummaryResponse(
                 row.announcementId(),
                 row.announcementCode(),
@@ -561,6 +578,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 row.applicationStartDate(),
                 row.applicationEndDate(),
                 row.manualStatusCode(),
+                status.automaticStatusCode(),
+                status.automaticStatusLabel(),
+                status.effectiveStatusCode(),
+                status.effectiveStatusLabel(),
+                row.receptionTypeCode(),
                 row.approvalStatusCode(),
                 row.minAmount(),
                 row.maxAmount(),

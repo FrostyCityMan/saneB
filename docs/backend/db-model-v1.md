@@ -153,7 +153,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `announcement_approval_requests` | `announcement_id`, `requested_by`, `decided_by`, `approval_status_code`, `request_note`, `decision_note`, `requested_at`, `decided_at` | PK `id`, FK `announcements.id`, FK `users.id` | IDX `(announcement_id, approval_status_code)`, IDX `(requested_by, requested_at)` |
 | `announcement_status_histories` | `announcement_id`, `before_status_code`, `after_status_code`, `reason`, `changed_by`, `changed_at` | PK `id`, FK `announcements.id`, FK `users.id` | IDX `(announcement_id, changed_at)` |
 
-자동 상태는 `application_start_date`, `application_end_date`, 기준일로 계산한다. 수동 상태가 있으면 수동 상태를 우선한다.
+자동 상태는 별도 저장 컬럼이 아니라 `application_start_date`, `application_end_date`, 기준일로 조회 시 계산한다. 계산값은 `UPCOMING`(모집예정), `OPEN`(접수중), `CLOSING_SOON`(마감임박), `ENDED`(종료)이다. 수동 상태가 `NORMAL`이 아니면 `manual_status_code`가 최종 노출 상태로 우선 적용되고, `NORMAL`이면 자동 상태가 최종 노출 상태가 된다.
 
 ### 5.6 Announcement Conditions
 

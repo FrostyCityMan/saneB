@@ -73,7 +73,7 @@
         RECENT_HEALTH_INSURANCE_PREMIUM: "최근 건강보험료",
         ANNUAL_HEALTH_INSURANCE_PREMIUM: "연 건강보험료",
         WORKPLACE_REGION_CODE: "사업장 지역",
-        BUSINESS_TYPE_CODE: "기업 형태",
+        BUSINESS_TYPE_CODE: "사업자 유형",
         COMPANY_STAGE: "사업 상태",
         TAX_TYPE_CODE: "과세 유형",
         HAS_POLICY_FUND_USAGE: "중복 수혜 제한 - 정책자금 이용 이력",
@@ -197,6 +197,29 @@
         APPROVED: "승인",
         REJECTED: "반려",
         CANCELED: "취소"
+    };
+    const manualStatusLabels = {
+        NORMAL: "정상 노출",
+        PAUSED: "일시중지",
+        EARLY_CLOSED: "조기마감",
+        SUSPENDED: "접수중단",
+        BUDGET_EXHAUSTED: "예산소진",
+        CLOSED: "종료",
+        HIDDEN: "숨김처리"
+    };
+    const receptionTypeLabels = {
+        BUDGET_EXHAUSTION: "예산 소진형",
+        FIRST_COME: "선착순형",
+        ALWAYS_OPEN: "상시접수형",
+        PERIOD: "기간형",
+        EARLY_CLOSE_POSSIBLE: "조기마감 가능형"
+    };
+    const receptionTypeShortLabels = {
+        BUDGET_EXHAUSTION: "예산",
+        FIRST_COME: "선착",
+        ALWAYS_OPEN: "상시",
+        PERIOD: "기간",
+        EARLY_CLOSE_POSSIBLE: "조기"
     };
     const documentTypeLabels = {
         BUSINESS_REGISTRATION: "사업자등록증",
@@ -336,6 +359,11 @@
     const statusForm = app.querySelector("[data-announcement-status-form]");
     const approvalForm = app.querySelector("[data-announcement-approval-form]");
     const approvalStatusLabel = app.querySelector("[data-approval-status-label]");
+    const statusSummary = app.querySelector("[data-announcement-status-summary]");
+    const effectiveStatusLabel = app.querySelector("[data-effective-status-label]");
+    const automaticStatusLabel = app.querySelector("[data-automatic-status-label]");
+    const manualStatusLabel = app.querySelector("[data-manual-status-label]");
+    const receptionTypeLabel = app.querySelector("[data-reception-type-label]");
     const searchForm = app.querySelector("[data-announcement-search-form]");
     const businessPanel = app.querySelector("[data-business-panel]");
     const nonBusinessPanel = app.querySelector("[data-non-business-panel]");
@@ -410,6 +438,67 @@
     const selectedTargetCode = () => {
         const checked = app.querySelector("input[name='targetTypeCode']:checked");
         return checked ? checked.value : "BUSINESS";
+    };
+
+    const targetClass = (targetTypeCode) => {
+        const code = String(targetTypeCode || "").toLowerCase();
+        return code ? `target-${code}` : "target-unknown";
+    };
+
+    const statusClass = (statusCode) => {
+        const code = String(statusCode || "").toLowerCase().replaceAll("_", "-");
+        return code ? `status-${code}` : "status-unknown";
+    };
+
+    const createBadge = (text, ...classes) => {
+        const badge = document.createElement("span");
+        badge.className = ["announcement-badge", ...classes.filter(Boolean)].join(" ");
+        badge.textContent = text || "-";
+        return badge;
+    };
+
+    const receptionTypeCodeFromOptions = (options) => {
+        const item = (options || []).find((option) => option.optionGroupCode === "RECEPTION_TYPE");
+        return item?.optionCode || "";
+    };
+
+    const receptionTypeText = (receptionTypeCode) => {
+        if (!receptionTypeCode) {
+            return "선택 안 함";
+        }
+        return receptionTypeLabels[receptionTypeCode] || receptionTypeCode;
+    };
+
+    const renderStatusSummary = (details) => {
+        if (!statusSummary) {
+            return;
+        }
+        const manualCode = details?.manualStatusCode || "NORMAL";
+        const receptionCode = receptionTypeCodeFromOptions(details?.options);
+        if (effectiveStatusLabel) {
+            effectiveStatusLabel.textContent = details?.effectiveStatusLabel || manualStatusLabels[manualCode] || manualCode;
+        }
+        if (automaticStatusLabel) {
+            automaticStatusLabel.textContent = details?.automaticStatusLabel || "-";
+        }
+        if (manualStatusLabel) {
+            manualStatusLabel.textContent = manualStatusLabels[manualCode] || manualCode;
+        }
+        if (receptionTypeLabel) {
+            receptionTypeLabel.textContent = receptionTypeText(receptionCode);
+        }
+        statusSummary.hidden = false;
+    };
+
+    const resetStatusSummary = () => {
+        if (statusSummary) {
+            statusSummary.hidden = true;
+        }
+        [effectiveStatusLabel, automaticStatusLabel, manualStatusLabel, receptionTypeLabel].forEach((node) => {
+            if (node) {
+                node.textContent = "-";
+            }
+        });
     };
 
     const requestJson = async (url, options = {}) => {
@@ -1370,13 +1459,13 @@
     const renderListItem = (item) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "announcement-list-item";
+        button.className = `announcement-list-item ${targetClass(item.targetTypeCode)}`;
         button.dataset.announcementId = item.announcementId;
 
         const meta = document.createElement("span");
         meta.className = "list-meta";
         const approvalLabel = approvalStatusLabels[item.approvalStatusCode] || item.approvalStatusCode || "초안";
-        meta.textContent = `${item.announcementCode || "공고 코드 없음"} · ${targetLabels[item.targetTypeCode] || item.targetTypeCode} · ${item.manualStatusCode || "NORMAL"} · ${approvalLabel}`;
+        meta.textContent = `${item.announcementCode || "공고 코드 없음"} · ${approvalLabel}`;
 
         const title = document.createElement("strong");
         title.textContent = item.title || "제목 없음";
@@ -1387,7 +1476,21 @@
                 : "신청 기간 미입력";
         sub.textContent = `${item.agencyName || "기관 미입력"} · ${dateText}`;
 
-        button.append(meta, title, sub);
+        const badges = document.createElement("div");
+        badges.className = "announcement-list-badges";
+        badges.append(createBadge(targetLabels[item.targetTypeCode] || item.targetTypeCode || "대상 없음", `is-${targetClass(item.targetTypeCode)}`));
+        badges.append(createBadge(
+                item.effectiveStatusLabel || manualStatusLabels[item.manualStatusCode] || item.manualStatusCode || "상태 없음",
+                `is-${statusClass(item.effectiveStatusCode || item.manualStatusCode)}`
+        ));
+        if (item.receptionTypeCode) {
+            badges.append(createBadge(
+                    receptionTypeShortLabels[item.receptionTypeCode] || receptionTypeLabels[item.receptionTypeCode] || item.receptionTypeCode,
+                    "is-reception-type"
+            ));
+        }
+
+        button.append(meta, title, sub, badges);
         return button;
     };
 
@@ -1770,6 +1873,7 @@
         applyOptions(details.options);
         applyConditions(details.conditions, details.targetTypeCode || "BUSINESS");
         applySteps(details.steps);
+        renderStatusSummary(details);
         statusForm.querySelector("[name='manualStatusCode']").value = details.manualStatusCode || "NORMAL";
         statusForm.querySelector("[name='reason']").value = "";
         updateApprovalUi(details.approvalStatusCode || "DRAFT");
@@ -1812,6 +1916,7 @@
             businessTarget.checked = true;
         }
         renderDynamicRequirements([]);
+        resetStatusSummary();
         setDynamicRequirementSummary("공고 저장 후 설정");
         updateTargetUi();
         setMessage("신규 공고 입력 상태입니다.");

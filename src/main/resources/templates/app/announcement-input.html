@@ -31,27 +31,27 @@
                     <span class="soft-status">선택 대상만 조건 입력</span>
                 </div>
                 <div class="target-grid" role="radiogroup" aria-label="공고 대표 대상">
-                    <label class="target-card is-active" data-target-card>
+                    <label class="target-card target-card--business is-active" data-target-card>
                         <input type="radio" name="targetTypeCode" value="BUSINESS" checked>
                         <span>사업자 지원</span>
                         <small>업종, 사업자 유형, 업력, 매출 기준</small>
                     </label>
-                    <label class="target-card" data-target-card>
+                    <label class="target-card target-card--personal" data-target-card>
                         <input type="radio" name="targetTypeCode" value="PERSONAL">
                         <span>개인 지원</span>
                         <small>연령, 소득, 거주지 기준</small>
                     </label>
-                    <label class="target-card" data-target-card>
+                    <label class="target-card target-card--spouse" data-target-card>
                         <input type="radio" name="targetTypeCode" value="SPOUSE">
                         <span>배우자 지원</span>
                         <small>배우자 소득 및 관계 기준</small>
                     </label>
-                    <label class="target-card" data-target-card>
+                    <label class="target-card target-card--child" data-target-card>
                         <input type="radio" name="targetTypeCode" value="CHILD">
                         <span>자녀 지원</span>
                         <small>자녀 연령 및 재학 기준</small>
                     </label>
-                    <label class="target-card" data-target-card>
+                    <label class="target-card target-card--parent" data-target-card>
                         <input type="radio" name="targetTypeCode" value="PARENT">
                         <span>부모 지원</span>
                         <small>부모 연령 및 부양 기준</small>
@@ -345,7 +345,7 @@
                                     <select name="conditionKey">
                                         <optgroup label="사업자 기본 조건">
                                             <option value="WORKPLACE_REGION_CODE">사업장 지역</option>
-                                            <option value="BUSINESS_TYPE_CODE">기업 형태</option>
+                                            <option value="BUSINESS_TYPE_CODE">사업자 유형</option>
                                             <option value="COMPANY_STAGE">사업 상태</option>
                                             <option value="TAX_TYPE_CODE">과세 유형</option>
                                             <option value="HAS_POLICY_FUND_USAGE">중복 수혜 제한 - 정책자금 이용 이력</option>
@@ -723,6 +723,24 @@
                         <h2>수동 상태</h2>
                     </div>
                 </div>
+                <dl class="announcement-status-summary" data-announcement-status-summary hidden>
+                    <div>
+                        <dt>최종 노출 상태</dt>
+                        <dd data-effective-status-label>-</dd>
+                    </div>
+                    <div>
+                        <dt>자동 상태</dt>
+                        <dd data-automatic-status-label>-</dd>
+                    </div>
+                    <div>
+                        <dt>수동 상태</dt>
+                        <dd data-manual-status-label>-</dd>
+                    </div>
+                    <div>
+                        <dt>접수 성격</dt>
+                        <dd data-reception-type-label>-</dd>
+                    </div>
+                </dl>
                 <div class="field-block">
                     <label for="manualStatusCode">상태</label>
                     <select id="manualStatusCode" name="manualStatusCode">
