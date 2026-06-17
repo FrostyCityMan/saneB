@@ -1159,7 +1159,7 @@ svg {
 }
 
 .top-summary-card.amount-card strong {
-    font-size: 21px;
+    font-size: 29px;
 }
 
 .compact-candidates {
@@ -1208,6 +1208,28 @@ svg {
     font-weight: 850;
     line-height: 1.25;
     overflow-wrap: anywhere;
+}
+
+.public-preview-result strong > span,
+.metric-card strong > span,
+.top-summary-card strong > span,
+.progress-metrics strong > span,
+.received-amount strong > span,
+.check-row strong > span,
+.final-inline strong > span,
+.bottom-total-grid strong > span {
+    display: inline;
+}
+
+.public-preview-result strong,
+.metric-card:not(.amount-card) strong,
+.top-summary-card:not(.amount-card) strong,
+.progress-metrics strong,
+.received-amount strong,
+.check-row strong,
+.final-inline strong,
+.bottom-total-grid strong {
+    white-space: nowrap;
 }
 
 .bottom-total-grid + .progress-metrics {
@@ -4545,7 +4567,7 @@ svg {
     }
 
     .top-summary-card.amount-card strong {
-        font-size: 18px;
+        font-size: 25px;
     }
 
     .metric-card {
