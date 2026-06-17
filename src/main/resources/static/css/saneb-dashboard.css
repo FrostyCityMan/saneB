@@ -444,6 +444,26 @@ svg {
     font-size: 24px;
 }
 
+.public-preview-result strong > span,
+.metric-card strong > span,
+.top-summary-card strong > span,
+.progress-metrics strong > span,
+.received-amount strong > span,
+.check-row strong > span,
+.final-inline strong > span {
+    display: inline;
+}
+
+.public-preview-result strong,
+.metric-card:not(.amount-card) strong,
+.top-summary-card:not(.amount-card) strong,
+.progress-metrics strong,
+.received-amount strong,
+.check-row strong,
+.final-inline strong {
+    white-space: nowrap;
+}
+
 .mock-plan-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
