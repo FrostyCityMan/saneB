@@ -15,7 +15,9 @@ import com.saneb.domain.operation.vo.OperationTaskRow;
 import com.saneb.domain.operation.vo.OperationTaskSearchCondition;
 import com.saneb.domain.operation.vo.OperationTaskStatusCommand;
 import com.saneb.domain.operation.vo.ProgressReminderInsertCommand;
+import com.saneb.domain.operation.vo.StatusRefreshTargetUserRow;
 import com.saneb.domain.operation.vo.StalledApplicationProgressRow;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -47,6 +49,18 @@ public interface OperationDao {
     List<StalledApplicationProgressRow> selectStalledApplicationProgressList(
             @Param("reminderTypeCode") String reminderTypeCode,
             @Param("thresholdAt") OffsetDateTime thresholdAt,
+            @Param("limit") int limit
+    );
+
+    List<StalledApplicationProgressRow> selectDeadlineReminderProgressList(
+            @Param("reminderTypeCode") String reminderTypeCode,
+            @Param("targetDate") LocalDate targetDate,
+            @Param("limit") int limit
+    );
+
+    List<StatusRefreshTargetUserRow> selectStatusRefreshTargetUserList(
+            @Param("thresholdAt") OffsetDateTime thresholdAt,
+            @Param("recentSince") OffsetDateTime recentSince,
             @Param("limit") int limit
     );
 

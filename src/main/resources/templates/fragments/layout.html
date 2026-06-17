@@ -35,6 +35,15 @@
                 <span>대시보드</span>
             </a>
             <a class="side-link"
+               th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN' or page.auth.primaryRole == 'PARTNER' or page.auth.primaryRole == 'REVIEWER' or page.auth.primaryRole == 'APPROVER'}"
+               th:href="@{/app/notifications}"
+               th:classappend="${page.activeNav == 'NOTIFICATIONS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M18 15.4V11a6 6 0 1 0-12 0v4.4L4.8 17h14.4L18 15.4Z"/><path d="M9.8 19a2.3 2.3 0 0 0 4.4 0"/></svg>
+                </span>
+                <span>알림</span>
+            </a>
+            <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'REVIEWER')}"
                th:href="@{/app/reviewer/dashboard}"
                th:classappend="${page.activeNav == 'REVIEWER_DASHBOARD'} ? ' active' : ''">
@@ -69,6 +78,15 @@
                     <svg viewBox="0 0 24 24"><path d="M5 5.2h14v10.5H8.2L5 18.8V5.2Z"/><path d="M8.2 8.8h7.6M8.2 12h4.6"/></svg>
                 </span>
                 <span th:text="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'">상담 요청</span>
+            </a>
+            <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/operation-tasks}"
+               th:classappend="${page.activeNav == 'OPERATION_TASKS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.2M8 15.4h3"/><path d="m15 15.4 1.2 1.2 2.4-2.8"/></svg>
+                </span>
+                <span>운영 업무 큐</span>
             </a>
             <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'USER')}"
@@ -179,10 +197,14 @@
                 <h1 th:text="${title}">사용자 대시보드</h1>
             </div>
             <div class="account-area">
-                <button class="icon-button" type="button" aria-label="알림">
+                <a class="icon-button"
+                   th:href="@{/app/notifications}"
+                   aria-label="알림"
+                   data-notification-link
+                   data-notification-count-url="/api/v1/notifications/me">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 15.4V11a6 6 0 1 0-12 0v4.4L4.8 17h14.4L18 15.4Z"/><path d="M9.8 19a2.3 2.3 0 0 0 4.4 0"/></svg>
-                    <span class="alert-dot">3</span>
-                </button>
+                    <span class="alert-dot" data-notification-badge hidden>0</span>
+                </a>
                 <button class="icon-button help-button" type="button" aria-label="도움말">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/><path d="M9.7 9.2a2.5 2.5 0 0 1 4.7 1.2c0 1.8-2 2-2 3.7M12 17.4h.1"/></svg>
                 </button>
@@ -223,5 +245,6 @@
         </footer>
     </div>
 </div>
+<script th:src="@{/js/saneb-notification-badge.js}"></script>
 </body>
 </html>

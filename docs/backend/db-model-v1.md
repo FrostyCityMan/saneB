@@ -201,7 +201,7 @@ MVP에서는 회원이 입력한 정보와 파트너가 검증한 정보를 분�
 | `progress_reminder_logs` | `progress_id`, `step_id`, `reminder_type_code`, `attempt_no`, `scheduled_at`, `sent_at`, `result_code` | PK `id`, FK `application_progresses.id`, FK `announcement_progress_steps.id` | UQ `(progress_id, reminder_type_code)`, IDX `(progress_id, scheduled_at)`, IDX `(result_code)` |
 
 진행 단계는 사용자의 단일 행동 완료를 중심으로 설계한다. 완료 조건 충족 전 다음 단계 이동은 서버에서 차단한다. `completion_condition_code`는 `BUTTON_CLICK`, `ALL_REQUIRED_DOCUMENTS_CHECKED`, `REQUIRED_INPUTS_SAVED`, `RECEIPT_SAVED`, `RESULT_SAVED`를 기본 계약으로 사용한다. 기존 호환 코드인 `DOCUMENT_SUBMITTED`, `STATUS_CONFIRMED`은 조회 호환만 유지한다. 버튼 행동은 `MOVE_NEXT`, `COMPLETE_STEP`, `STOP_PROGRESS`를 사용한다.
-24시간/72시간/7일/14일 미진행 분류는 `progress_reminder_logs`로 중복 발송을 차단한다. 사용자가 단계 문서 또는 공고별 입력값을 저장하면 `application_progresses.updated_at`을 갱신해 이후 미진행 기준 시간이 다시 계산된다.
+24시간/48시간/마감 2일 전/7일/14일 미진행 분류는 `progress_reminder_logs`로 중복 발송을 차단한다. 사용자가 단계 문서 또는 공고별 입력값을 저장하면 `application_progresses.updated_at`을 갱신해 이후 미진행 기준 시간이 다시 계산된다. 상시 접수 또는 마감일 미입력 공고는 마감 2일 전 리마인드 대상에서 제외한다.
 
 ### 5.9 Audit / Status Histories
 
@@ -262,6 +262,8 @@ PG사는 TossPayments를 우선 기준으로 둔다. DB 계약은 `provider_code
 | `operation_tasks` | `task_type_code`, `status_code`, `priority_code`, `title`, `description`, `resource_type`, `resource_id`, `due_at`, `completed_at` | PK `id`, FK `users.id` 감사 컬럼 | IDX `(status_code, due_at)`, IDX `(resource_type, resource_id)`, IDX `(task_type_code, status_code)` |
 | `operation_task_comments` | `task_id`, `author_user_id`, `comment_text` | PK `id`, FK `operation_tasks.id`, FK `users.id` | IDX `(task_id, created_at)` |
 | `operation_task_assignments` | `task_id`, `assignee_user_id`, `status_code`, `assigned_by`, `assigned_at`, `completed_at` | PK `id`, FK `operation_tasks.id`, FK `users.id` | UQ `(task_id, assignee_user_id)`, IDX `(assignee_user_id, status_code)` |
+
+인앱 알림은 `/app/notifications`에서 사용자에게 노출한다. 외부 이메일/SMS/카카오 provider는 연결하지 않으며, `IN_APP` 알림만 즉시 `SENT`로 저장한다. 장기 미진행과 TM 재접촉은 `operation_tasks`에 함께 적재하여 `/app/operation-tasks`에서 운영자가 처리한다. 6개월 정보 재확인은 `notification_messages`에만 남기고 별도 운영 업무는 생성하지 않는다.
 
 외부 알림 provider payload 원문은 저장하지 않는다. `notification_delivery_logs.metadata_json`과 `audit_logs.metadata_json`에는 channel, resource type, provider 설정 여부 같은 비식별 metadata만 저장한다.
 

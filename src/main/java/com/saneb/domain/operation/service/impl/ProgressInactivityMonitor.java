@@ -5,7 +5,9 @@ import com.saneb.domain.operation.vo.NotificationDeliveryLogCommand;
 import com.saneb.domain.operation.vo.NotificationMessageInsertCommand;
 import com.saneb.domain.operation.vo.OperationTaskInsertCommand;
 import com.saneb.domain.operation.vo.ProgressReminderInsertCommand;
+import com.saneb.domain.operation.vo.StatusRefreshTargetUserRow;
 import com.saneb.domain.operation.vo.StalledApplicationProgressRow;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -44,9 +46,11 @@ public class ProgressInactivityMonitor {
         OffsetDateTime now = OffsetDateTime.now();
         int handledCount = 0;
         handledCount += handleReminder("FIRST_REMINDER", now.minusHours(24), 1, "공고 신청 진행 안내", "아직 완료되지 않은 공고 신청 단계가 있습니다.", false);
-        handledCount += handleReminder("RE_GUIDE", now.minusHours(72), 2, "공고 신청 재안내", "신청 단계가 72시간 이상 멈춰 있습니다. 필요한 항목을 확인해 주세요.", false);
+        handledCount += handleReminder("RE_GUIDE", now.minusHours(48), 2, "공고 신청 재안내", "신청 단계가 48시간 이상 멈춰 있습니다. 필요한 항목을 확인해 주세요.", false);
+        handledCount += handleDeadlineReminder(LocalDate.now().plusDays(2));
         handledCount += handleReminder("LONG_STALLED", now.minusDays(7), 3, "장기 미진행 분류", "신청 단계가 7일 이상 멈춰 있어 운영 확인 대상으로 분류되었습니다.", true);
         handledCount += handleReminder("TM_RECONTACT", now.minusDays(14), 4, "TM 재접촉 대상", "신청 단계가 14일 이상 멈춰 있어 재접촉 대상으로 분류되었습니다.", true);
+        handledCount += handleStatusRefreshReminder(now.minusMonths(6), now.minusDays(30));
         if (handledCount > 0) {
             log.info("Classified inactive application progresses. handledCount={}", handledCount);
         }
@@ -85,18 +89,83 @@ public class ProgressInactivityMonitor {
         return rows.size();
     }
 
+    private int handleDeadlineReminder(LocalDate targetDate) {
+        String reminderTypeCode = "DEADLINE_D_MINUS_2";
+        List<StalledApplicationProgressRow> rows = operationDao.selectDeadlineReminderProgressList(
+                reminderTypeCode,
+                targetDate,
+                batchSize
+        );
+        OffsetDateTime now = OffsetDateTime.now();
+        for (StalledApplicationProgressRow row : rows) {
+            insertNotification(
+                    row,
+                    "공고 마감 2일 전 안내",
+                    "진행 중인 공고의 접수 마감이 2일 남았습니다. 필요한 행동을 확인해 주세요."
+            );
+            operationDao.insertProgressReminderLog(new ProgressReminderInsertCommand(
+                    UUID.randomUUID(),
+                    row.progressId(),
+                    row.currentStepId(),
+                    reminderTypeCode,
+                    5,
+                    now,
+                    now,
+                    "SUCCESS"
+            ));
+        }
+        return rows.size();
+    }
+
+    private int handleStatusRefreshReminder(OffsetDateTime thresholdAt, OffsetDateTime recentSince) {
+        List<StatusRefreshTargetUserRow> rows = operationDao.selectStatusRefreshTargetUserList(
+                thresholdAt,
+                recentSince,
+                batchSize
+        );
+        for (StatusRefreshTargetUserRow row : rows) {
+            insertUserNotification(
+                    row.userId(),
+                    "정보 재확인이 필요합니다",
+                    "최근 정보 확인일 기준 6개월이 지났습니다. 정확한 매칭을 위해 사업 상태, 세금 상태, 금융 상태와 가족 정보를 다시 확인해 주세요.",
+                    "GENERAL",
+                    null,
+                    "{\"source\":\"STATUS_REFRESH_MONITOR\",\"periodMonths\":6}"
+            );
+        }
+        return rows.size();
+    }
+
     private void insertNotification(StalledApplicationProgressRow row, String title, String body) {
+        insertUserNotification(
+                row.memberUserId(),
+                title,
+                body,
+                RESOURCE_TYPE,
+                row.progressId(),
+                "{\"source\":\"INACTIVITY_MONITOR\"}"
+        );
+    }
+
+    private void insertUserNotification(
+            UUID recipientUserId,
+            String title,
+            String body,
+            String resourceType,
+            UUID resourceId,
+            String metadataJson
+    ) {
         UUID notificationId = UUID.randomUUID();
         operationDao.insertNotificationMessage(new NotificationMessageInsertCommand(
                 notificationId,
-                row.memberUserId(),
+                recipientUserId,
                 null,
                 "IN_APP",
                 title,
                 body,
                 "SENT",
-                RESOURCE_TYPE,
-                row.progressId(),
+                resourceType,
+                resourceId,
                 null
         ));
         operationDao.insertNotificationDeliveryLog(new NotificationDeliveryLogCommand(
@@ -109,7 +178,7 @@ public class ProgressInactivityMonitor {
                 null,
                 null,
                 null,
-                "{\"source\":\"INACTIVITY_MONITOR\"}"
+                metadataJson
         ));
     }
 

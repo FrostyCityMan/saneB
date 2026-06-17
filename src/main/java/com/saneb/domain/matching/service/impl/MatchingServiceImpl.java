@@ -28,6 +28,10 @@ import com.saneb.domain.matching.vo.MatchingMemberLookupSearchCondition;
 import com.saneb.domain.matching.vo.MatchingResultDetailCommand;
 import com.saneb.domain.matching.vo.MatchingResultDetailRow;
 import com.saneb.domain.matching.vo.VerificationMatchingRow;
+import com.saneb.domain.operation.dao.OperationDao;
+import com.saneb.domain.operation.vo.NotificationDeliveryLogCommand;
+import com.saneb.domain.operation.vo.NotificationMessageInsertCommand;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -79,10 +83,16 @@ public class MatchingServiceImpl implements MatchingService {
     );
 
     private final MatchingDao matchingDao;
+    private final OperationDao operationDao;
     private final TransactionTemplate auditTransactionTemplate;
 
-    public MatchingServiceImpl(MatchingDao matchingDao, PlatformTransactionManager transactionManager) {
+    public MatchingServiceImpl(
+            MatchingDao matchingDao,
+            OperationDao operationDao,
+            PlatformTransactionManager transactionManager
+    ) {
         this.matchingDao = matchingDao;
+        this.operationDao = operationDao;
         this.auditTransactionTemplate = new TransactionTemplate(transactionManager);
         this.auditTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -221,6 +231,7 @@ public class MatchingServiceImpl implements MatchingService {
 
         int createdCount = 0;
         int skippedCount = staleCount;
+        List<UUID> createdMatchingCaseIds = new ArrayList<>();
         for (MatchingCandidateAnnouncementRow candidate : candidates) {
             MatchingCaseRow existing = matchingDao.selectMatchingCaseDetailsByStageBusinessKey(
                     candidate.announcementId(),
@@ -256,6 +267,7 @@ public class MatchingServiceImpl implements MatchingService {
                     matchingBasisCode,
                     actorUserId
             ));
+            createdMatchingCaseIds.add(matchingCaseId);
             matchingDao.insertMatchingResultDetail(new MatchingResultDetailCommand(
                     UUID.randomUUID(),
                     matchingCaseId,
@@ -268,6 +280,9 @@ public class MatchingServiceImpl implements MatchingService {
                     actorUserId
             ));
             createdCount++;
+        }
+        if (BASIC_STAGE_CODE.equals(matchingStageCode) && createdCount > 0) {
+            insertNewCandidateNotification(actorUserId, memberUserId, createdCount, createdMatchingCaseIds.get(0));
         }
 
         insertAudit(actorUserId, auditActionCode, memberUserId, "SUCCESS", metadata(
@@ -286,6 +301,39 @@ public class MatchingServiceImpl implements MatchingService {
                 MAX_PAGE_SIZE
         ).items();
         return new MatchingCandidateGenerateResponse(memberUserId, createdCount, skippedCount, candidateList);
+    }
+
+    private void insertNewCandidateNotification(
+            UUID actorUserId,
+            UUID memberUserId,
+            int createdCount,
+            UUID firstMatchingCaseId
+    ) {
+        UUID notificationId = UUID.randomUUID();
+        operationDao.insertNotificationMessage(new NotificationMessageInsertCommand(
+                notificationId,
+                memberUserId,
+                null,
+                "IN_APP",
+                "새로운 가능 공고가 확인되었습니다",
+                "기본정보 기준으로 현재 확인 가능한 공고 " + createdCount + "건이 새로 확인되었습니다.",
+                "SENT",
+                "MATCHING_CASE",
+                firstMatchingCaseId,
+                actorUserId
+        ));
+        operationDao.insertNotificationDeliveryLog(new NotificationDeliveryLogCommand(
+                UUID.randomUUID(),
+                notificationId,
+                "IN_APP",
+                "INTERNAL",
+                "SUCCESS",
+                1,
+                null,
+                null,
+                null,
+                "{\"source\":\"BASIC_MATCHING_CANDIDATE_GENERATE\",\"createdCount\":\"" + createdCount + "\"}"
+        ));
     }
 
     @Override

@@ -259,11 +259,14 @@ svg {
 
 .icon-button {
     position: relative;
+    display: inline-grid;
+    place-items: center;
     width: 36px;
     height: 36px;
     border: 0;
     background: transparent;
     color: #615d54;
+    text-decoration: none;
 }
 
 .icon-button svg {
@@ -283,6 +286,10 @@ svg {
     font-size: 10px;
     font-weight: 800;
     line-height: 17px;
+}
+
+.alert-dot[hidden] {
+    display: none;
 }
 
 .account-copy {
@@ -4933,9 +4940,161 @@ svg {
     cursor: progress;
 }
 
+.notification-page,
+.operation-task-page {
+    display: grid;
+    gap: 18px;
+}
+
+.notification-toolbar,
+.operation-task-actions,
+.notification-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.notification-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.notification-filter input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--saneb-teal);
+}
+
+.notification-list,
+.operation-task-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.notification-card,
+.operation-task-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 8px;
+    background: #fffaf2;
+}
+
+.notification-card.is-read {
+    background: #fbf6ec;
+    opacity: 0.78;
+}
+
+.notification-card-header,
+.operation-task-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.notification-card h3,
+.operation-task-card h3 {
+    margin: 4px 0 0;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.notification-body,
+.operation-task-description {
+    margin: 0;
+    color: #4b4a42;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.notification-read-state {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid var(--saneb-border);
+    border-radius: 999px;
+    background: #f5ead7;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.notification-meta,
+.operation-task-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.operation-task-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    align-items: end;
+    margin-top: 14px;
+}
+
+.operation-task-filters .form-actions {
+    margin: 0;
+}
+
+.operation-task-card.priority-urgent,
+.operation-task-card.priority-high {
+    border-color: rgba(190, 75, 49, 0.36);
+    box-shadow: inset 4px 0 0 rgba(190, 75, 49, 0.55);
+}
+
+.operation-task-card.priority-normal {
+    box-shadow: inset 4px 0 0 var(--saneb-gold);
+}
+
+.operation-task-card.priority-low {
+    box-shadow: inset 4px 0 0 #a7b698;
+}
+
+.operation-task-comment {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: start;
+}
+
+.operation-task-comment textarea {
+    min-height: 44px;
+    resize: vertical;
+}
+
 @keyframes app-loading-spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 720px) {
+    .notification-card-header,
+    .operation-task-header,
+    .notification-toolbar,
+    .operation-task-comment {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .notification-meta,
+    .operation-task-meta,
+    .operation-task-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .operation-task-comment {
+        display: grid;
+        grid-template-columns: 1fr;
     }
 }
 

@@ -80,6 +80,12 @@
         </constructor>
     </resultMap>
 
+    <resultMap id="StatusRefreshTargetUserRowMap" type="com.saneb.domain.operation.vo.StatusRefreshTargetUserRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+
     <sql id="NotificationMessageColumns">
         nm.id AS notification_id,
         nm.recipient_user_id,
@@ -271,6 +277,74 @@
                 AND prl.reminder_type_code = #{reminderTypeCode}
           )
         ORDER BY ap.updated_at ASC, ap.id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectDeadlineReminderProgressList" resultMap="StalledApplicationProgressRowMap">
+        -- Select active application progresses whose announcement deadline is two days away.
+        SELECT
+            ap.id AS progress_id,
+            ap.member_user_id,
+            ap.current_step_id,
+            ap.status_code,
+            ap.updated_at
+        FROM application_progresses ap
+        INNER JOIN announcements a ON a.id = ap.announcement_id
+        WHERE ap.status_code IN ('READY', 'IN_PROGRESS', 'SUPPLEMENT_REQUESTED')
+          AND ap.current_step_id IS NOT NULL
+          AND a.application_end_date = #{targetDate}
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM progress_reminder_logs prl
+              WHERE prl.progress_id = ap.id
+                AND prl.reminder_type_code = #{reminderTypeCode}
+          )
+        ORDER BY a.application_end_date ASC, ap.updated_at ASC, ap.id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectStatusRefreshTargetUserList" resultMap="StatusRefreshTargetUserRowMap">
+        -- Select users whose saved matching basis has not been refreshed for six months.
+        SELECT
+            u.id AS user_id
+        FROM users u
+        LEFT JOIN member_profiles mp ON mp.user_id = u.id
+        LEFT JOIN business_profiles bp ON bp.user_id = u.id
+        LEFT JOIN (
+            SELECT
+                fm.user_id,
+                max(fm.updated_at) AS family_updated_at
+            FROM family_members fm
+            GROUP BY fm.user_id
+        ) fm_latest ON fm_latest.user_id = u.id
+        LEFT JOIN LATERAL (
+            SELECT
+                max(value.updated_at) AS latest_updated_at
+            FROM (
+                VALUES
+                    (mp.updated_at),
+                    (bp.updated_at),
+                    (fm_latest.family_updated_at),
+                    (u.created_at)
+            ) AS value(updated_at)
+        ) latest_profile ON true
+        WHERE u.status_code = 'ACTIVE'
+          AND latest_profile.latest_updated_at &lt;= #{thresholdAt}
+          AND NOT EXISTS (
+              SELECT
+                  1
+              FROM notification_messages nm
+              WHERE nm.recipient_user_id = u.id
+                AND nm.channel_code = 'IN_APP'
+                AND nm.resource_type = 'GENERAL'
+                AND nm.title = '정보 재확인이 필요합니다'
+                AND nm.created_at &gt;= #{recentSince}
+          )
+        ORDER BY COALESCE(
+            latest_profile.latest_updated_at,
+            u.created_at
+        ) ASC, u.id ASC
         LIMIT #{limit}
     </select>
 

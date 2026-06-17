@@ -1843,6 +1843,8 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | `POST` | `/api/v1/operation-tasks/{taskId}/comments` | `OPERATOR`, `ADMIN` | 운영 업무 댓글 등록 |
 | `POST` | `/api/v1/operation-tasks/{taskId}/assignments` | `OPERATOR`, `ADMIN` | 운영 업무 담당자 배정 |
 
+사용자 화면은 `/app/notifications`에서 내 알림을 조회하고 읽음 처리한다. 상단 알림 배지는 `/api/v1/notifications/me?unreadOnly=true`의 실제 미확인 건수로 표시한다. 운영자와 관리자는 `/app/operation-tasks`에서 운영 업무 큐를 조회하고 상태를 처리한다.
+
 #### NotificationSendRequest
 
 ```json
@@ -1883,9 +1885,12 @@ webhook 요청은 `X-SANEB-WEBHOOK-SECRET` header가 `PAYMENT_WEBHOOK_SECRET` �
 | 기준 | 처리 |
 |---|---|
 | 24시간 미진행 | `FIRST_REMINDER` 인앱 알림 |
-| 72시간 미진행 | `RE_GUIDE` 인앱 알림 |
+| 48시간 미진행 | `RE_GUIDE` 인앱 알림 |
+| 공고 마감 2일 전 | `DEADLINE_D_MINUS_2` 인앱 알림. 상시 접수 또는 마감일 미입력 공고는 제외 |
 | 7일 이상 미진행 | `LONG_STALLED` 인앱 알림 및 `DELAYED_PROGRESS` 운영 업무 |
 | 14일 이상 미진행 | `TM_RECONTACT` 인앱 알림 및 `RECONTACT` 운영 업무 |
+| 신규 가능 항목 발생 | `BASIC` 매칭 후보가 새로 생성될 때 사용자에게 인앱 알림 |
+| 6개월 정보 미갱신 | 회원 기본정보, 사업자 정보, 가족 정보 기준 최근 수정일이 6개월을 넘으면 인앱 재확인 알림 |
 
 사용자가 단계 이동, 체크리스트 저장, 동적 입력 저장 등 행동을 완료하면 `application_progresses.updated_at`이 갱신되며 이후 리마인드 판단에서 제외된다. 스케줄러는 `SANEB_INACTIVITY_REMINDER_ENABLED`, `SANEB_INACTIVITY_REMINDER_FIXED_DELAY_MS`, `SANEB_INACTIVITY_REMINDER_INITIAL_DELAY_MS`, `SANEB_INACTIVITY_REMINDER_BATCH_SIZE` 환경변수로 조정한다.
 
