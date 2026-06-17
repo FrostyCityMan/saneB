@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/consents/current").permitAll()
                         .requestMatchers("/api/v1/payment-webhooks/**").permitAll()
                         .requestMatchers("/css/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/js/**").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+    <title id="title">사내비 로고 심볼</title>
+    <desc id="desc">지원사업 길찾기와 확인을 상징하는 딥 틸, 세이지 그린, 골드 컬러의 로고 심볼</desc>
+    <rect x="6" y="6" width="52" height="52" rx="14" fill="#fffdf8" stroke="#dfcaa5" stroke-width="2"/>
+    <path d="M32 12.5 48 19.4v12.4c0 12.5-6.9 20-16 23.1-9.1-3.1-16-10.6-16-23.1V19.4l16-6.9Z"
+          fill="#f6efe2" stroke="#65784b" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M22 37.2c4.8-10.3 12.7-15.9 22.5-16.9"
+          fill="none" stroke="#053f40" stroke-width="4" stroke-linecap="round"/>
+    <path d="m38.5 16.6 7.8 3.4-5.8 6.1"
+          fill="none" stroke="#053f40" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m23.3 34.8 6.3 6 12.7-14.2"
+          fill="none" stroke="#0b5b5a" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="46.2" cy="20.1" r="4.2" fill="#c77a13"/>
+</svg>
