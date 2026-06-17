@@ -97,6 +97,7 @@
         PARENT_COHABITING: "부모 동거 여부",
         PARENT_SUPPORTED: "부모 부양 여부"
     };
+    const creditConditionKeys = new Set(["NICE_CREDIT_SCORE", "KCB_CREDIT_SCORE"]);
     const booleanConditionKeys = new Set([
         "IS_HOUSEHOLDER",
         "HAS_SPOUSE",
@@ -352,6 +353,7 @@
     const conditionsForm = app.querySelector("[data-announcement-conditions-form]");
     const industryConditionList = conditionsForm ? conditionsForm.querySelector("[data-industry-condition-list]") : null;
     const numericConditionList = conditionsForm ? conditionsForm.querySelector("[data-numeric-condition-list]") : null;
+    const creditConditionList = conditionsForm ? conditionsForm.querySelector("[data-credit-condition-list]") : null;
     const optionConditionList = conditionsForm ? conditionsForm.querySelector("[data-option-condition-list]") : null;
     const documentRequirementList = conditionsForm ? conditionsForm.querySelector("[data-document-requirement-list]") : null;
     const stepsForm = app.querySelector("[data-announcement-steps-form]");
@@ -376,6 +378,7 @@
     const conditionTemplates = {
         industry: industryConditionList?.querySelector("[data-industry-condition-row]")?.cloneNode(true),
         numeric: numericConditionList?.querySelector("[data-numeric-condition-row]")?.cloneNode(true),
+        credit: creditConditionList?.querySelector("[data-credit-condition-row]")?.cloneNode(true),
         option: optionConditionList?.querySelector("[data-option-condition-row]")?.cloneNode(true),
         document: documentRequirementList?.querySelector("[data-document-requirement-row]")?.cloneNode(true)
     };
@@ -625,6 +628,12 @@
         if (!key) {
             return null;
         }
+        if (creditConditionKeys.has(key)) {
+            const values = comparator === "BETWEEN" ? [minNumber, maxNumber] : [valueNumber];
+            if (values.some((value) => value !== null && (value < 0 || value > 1000))) {
+                throw new Error("신용점수는 0~1000 범위로 입력해 주세요.");
+            }
+        }
         if (comparator === "BETWEEN") {
             if (minNumber === null || maxNumber === null) {
                 throw new Error("구간 조건은 최소값과 최대값을 모두 입력해 주세요.");
@@ -648,6 +657,7 @@
     const conditionRows = (list, selector) => list ? Array.from(list.querySelectorAll(selector)) : [];
     const industryRows = () => conditionRows(industryConditionList, "[data-industry-condition-row]");
     const numericRows = () => conditionRows(numericConditionList, "[data-numeric-condition-row]");
+    const creditRows = () => conditionRows(creditConditionList, "[data-credit-condition-row]");
     const optionRows = () => conditionRows(optionConditionList, "[data-option-condition-row]");
     const documentRows = () => conditionRows(documentRequirementList, "[data-document-requirement-row]");
 
@@ -836,13 +846,13 @@
         });
 
         const numericConditions = [];
-        numericRows().forEach((row) => {
+        const appendNumericCondition = (row, defaultScopeCode = selectedTargetCode()) => {
             const conditionKey = valueOf(row, "[name='conditionKey']");
             if (!conditionKey) {
                 return;
             }
             const numeric = buildNumericCondition(
-                    valueOf(row, "[name='conditionScopeCode']") || selectedTargetCode(),
+                    valueOf(row, "[name='conditionScopeCode']") || defaultScopeCode,
                     conditionKey,
                     valueOf(row, "[name='comparatorCode']") || "LTE",
                     numberOf(row, "[name='valueNumber']"),
@@ -854,7 +864,9 @@
             if (numeric) {
                 numericConditions.push(numeric);
             }
-        });
+        };
+        numericRows().forEach((row) => appendNumericCondition(row));
+        creditRows().forEach((row) => appendNumericCondition(row, "BUSINESS"));
 
         const optionConditions = [];
         optionRows().forEach((row) => {
@@ -1043,8 +1055,18 @@
             populateStandardFieldSelect(
                     row.querySelector("[data-numeric-standard-field]"),
                     valueOf(row, "[name='standardFieldId']"),
-                    (field) => numericStandardFieldTypes.has(field.fieldTypeCode),
+                    (field) => numericStandardFieldTypes.has(field.fieldTypeCode)
+                            && !creditConditionKeys.has(field.fieldKey),
                     "기본정보 항목 직접 선택"
+            );
+        });
+        creditRows().forEach((row) => {
+            populateStandardFieldSelect(
+                    row.querySelector("[data-credit-standard-field]"),
+                    valueOf(row, "[name='standardFieldId']"),
+                    (field) => numericStandardFieldTypes.has(field.fieldTypeCode)
+                            && creditConditionKeys.has(field.fieldKey),
+                    "기본정보 신용점수 사용"
             );
         });
         optionRows().forEach((row) => {
@@ -1782,6 +1804,10 @@
     };
 
     const applyConditions = (conditions, targetCode) => {
+        const numericConditions = conditions?.numericConditions || [];
+        const creditConditions = numericConditions.filter((condition) => creditConditionKeys.has(condition.conditionKey));
+        const generalNumericConditions = numericConditions.filter((condition) => !creditConditionKeys.has(condition.conditionKey));
+
         renderConditionRows(
                 industryConditionList,
                 conditionTemplates.industry,
@@ -1798,7 +1824,7 @@
                 conditionTemplates.numeric,
                 "[data-numeric-condition-row]",
                 "[data-numeric-condition-remove]",
-                conditions?.numericConditions || [],
+                generalNumericConditions,
                 (row, condition) => {
                     setFieldValue(row, "[name='standardFieldId']", condition.standardFieldId || "");
                     setFieldValue(row, "[name='conditionScopeCode']", condition.conditionScopeCode || targetCode);
@@ -1808,6 +1834,23 @@
                     setFieldValue(row, "[name='minNumber']", condition.minNumber ?? "");
                     setFieldValue(row, "[name='maxNumber']", condition.maxNumber ?? "");
                     setFieldValue(row, "[name='unitCode']", condition.unitCode || "");
+                }
+        );
+        renderConditionRows(
+                creditConditionList,
+                conditionTemplates.credit,
+                "[data-credit-condition-row]",
+                "[data-credit-condition-remove]",
+                creditConditions,
+                (row, condition) => {
+                    setFieldValue(row, "[name='standardFieldId']", condition.standardFieldId || "");
+                    setFieldValue(row, "[name='conditionScopeCode']", "BUSINESS");
+                    setFieldValue(row, "[name='conditionKey']", condition.conditionKey || "");
+                    setFieldValue(row, "[name='comparatorCode']", condition.comparatorCode || "GTE");
+                    setFieldValue(row, "[name='valueNumber']", condition.valueNumber ?? "");
+                    setFieldValue(row, "[name='minNumber']", condition.minNumber ?? "");
+                    setFieldValue(row, "[name='maxNumber']", condition.maxNumber ?? "");
+                    setFieldValue(row, "[name='unitCode']", condition.unitCode || "점");
                 }
         );
         renderConditionRows(
@@ -1942,6 +1985,16 @@
                     selectStandardField(event.target.value),
                     false
             );
+            return;
+        }
+        if (event.target.matches("[data-credit-standard-field]")) {
+            const row = event.target.closest("[data-credit-condition-row]");
+            applyStandardFieldToConditionRow(
+                    row,
+                    selectStandardField(event.target.value),
+                    false
+            );
+            setFieldValue(row, "[name='conditionScopeCode']", "BUSINESS");
             return;
         }
         if (event.target.matches("[data-option-standard-field]")) {
@@ -2128,6 +2181,18 @@
             return;
         }
 
+        if (event.target.matches("[data-credit-condition-add]")) {
+            event.preventDefault();
+            appendConditionRow(
+                    creditConditionList,
+                    conditionTemplates.credit,
+                    "[data-credit-condition-row]",
+                    "[data-credit-condition-remove]",
+                    { conditionScopeCode: "BUSINESS", unitCode: "점" }
+            )?.querySelector("[name='conditionKey']")?.focus();
+            return;
+        }
+
         if (event.target.matches("[data-option-condition-add]")) {
             event.preventDefault();
             appendConditionRow(
@@ -2170,6 +2235,17 @@
                     numericConditionList,
                     "[data-numeric-condition-row]",
                     "[data-numeric-condition-remove]"
+            );
+            return;
+        }
+
+        if (event.target.matches("[data-credit-condition-remove]")) {
+            event.preventDefault();
+            removeConditionRow(
+                    event.target,
+                    creditConditionList,
+                    "[data-credit-condition-row]",
+                    "[data-credit-condition-remove]"
             );
             return;
         }
@@ -2417,6 +2493,7 @@
 
     normalizeConditionRows(industryConditionList, "[data-industry-condition-row]", "[data-industry-condition-remove]");
     normalizeConditionRows(numericConditionList, "[data-numeric-condition-row]", "[data-numeric-condition-remove]");
+    normalizeConditionRows(creditConditionList, "[data-credit-condition-row]", "[data-credit-condition-remove]");
     normalizeConditionRows(optionConditionList, "[data-option-condition-row]", "[data-option-condition-remove]");
     optionRows().forEach((row) => renderOptionValueSelect(row, valueOf(row, "[name='optionCode']")));
     normalizeConditionRows(documentRequirementList, "[data-document-requirement-row]", "[data-document-requirement-remove]");

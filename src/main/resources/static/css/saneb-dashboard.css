@@ -1930,6 +1930,10 @@ svg {
     grid-column: 1 / -1;
 }
 
+.condition-number-row small {
+    grid-column: 1 / -1;
+}
+
 .document-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1953,6 +1957,13 @@ svg {
     margin: 0;
 }
 
+.condition-group-heading p {
+    margin: 6px 0 0;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .condition-list {
     display: grid;
     gap: 10px;
@@ -1971,6 +1982,11 @@ svg {
 
 .numeric-condition-row {
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+.credit-condition-row {
+    border-color: #d8c297;
+    background: #fff7e6;
 }
 
 .option-condition-row {
@@ -4467,6 +4483,7 @@ svg {
     .document-grid,
     .condition-row,
     .numeric-condition-row,
+    .credit-condition-row,
     .option-condition-row,
     .document-requirement-row {
         grid-template-columns: 1fr;
