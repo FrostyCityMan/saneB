@@ -1219,10 +1219,16 @@ svg {
 .final-inline strong > span,
 .bottom-total-grid strong > span {
     display: inline;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
 }
 
 .public-preview-result strong,
-.metric-card:not(.amount-card) strong,
+.metric-card strong,
 .top-summary-card:not(.amount-card) strong,
 .progress-metrics strong,
 .received-amount strong,
@@ -1230,6 +1236,8 @@ svg {
 .final-inline strong,
 .bottom-total-grid strong {
     white-space: nowrap;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
 }
 
 .bottom-total-grid + .progress-metrics {
