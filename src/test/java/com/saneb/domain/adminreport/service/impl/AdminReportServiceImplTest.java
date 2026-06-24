@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminReportServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.adminreport.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,11 +51,17 @@ class AdminReportServiceImplTest {
 
     private AdminReportServiceImpl adminReportService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         adminReportService = new AdminReportServiceImpl(adminReportDao);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertReportExportCreatesCompletedCsvExportAndSnapshot() {
         when(adminReportDao.selectAdminReportSummary()).thenReturn(summary());
@@ -65,6 +83,9 @@ class AdminReportServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("COMPLETED");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectAdminReportSummaryRejectsNonAdmin() {
         assertThatThrownBy(() -> adminReportService.selectAdminReportSummary(authentication(List.of("USER"))))
@@ -73,6 +94,9 @@ class AdminReportServiceImplTest {
                 .isEqualTo(ErrorCode.AUTH_FORBIDDEN);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectReportExportDownloadRejectsUncompletedExport() {
         when(adminReportDao.selectReportExportDetails(EXPORT_ID)).thenReturn(new ReportExportRow(
@@ -96,10 +120,20 @@ class AdminReportServiceImplTest {
                 .isEqualTo(ErrorCode.PROGRESS_CONDITION_NOT_MET);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AdminReportSummaryRow summary() {
         return new AdminReportSummaryRow(10, 8, 3, 2, 5, 4, 7, 6, 2, 1, new BigDecimal("99000.00"), 3, 4);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ReportExportRow export() {
         return new ReportExportRow(
                 EXPORT_ID,
@@ -117,6 +151,13 @@ class AdminReportServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private UsernamePasswordAuthenticationToken authentication(List<String> roles) {
         AuthenticatedUserDetails principal = new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

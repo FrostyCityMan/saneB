@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ConsultationServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.consultation.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -51,10 +63,34 @@ public class ConsultationServiceImpl implements ConsultationService {
 
     private final ConsultationDao consultationDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param consultationDao 입력 값
+     */
     public ConsultationServiceImpl(ConsultationDao consultationDao) {
         this.consultationDao = consultationDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param partnerUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param startFrom 입력 값
+     *
+     * @param startTo 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<ConsultationSlotResponse> selectConsultationSlotList(
             Authentication authentication,
@@ -92,7 +128,25 @@ public class ConsultationServiceImpl implements ConsultationService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ConsultationSlotResponse insertConsultationSlot(
             Authentication authentication,
@@ -114,7 +168,29 @@ public class ConsultationServiceImpl implements ConsultationService {
         return toSlotResponse(selectSlotRow(slotId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param slotId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param slotId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ConsultationSlotResponse updateConsultationSlotStatus(
             Authentication authentication,
@@ -138,6 +214,23 @@ public class ConsultationServiceImpl implements ConsultationService {
         return toSlotResponse(selectSlotRow(slotId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param partnerUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<ConsultationReservationResponse> selectConsultationReservationList(
             Authentication authentication,
@@ -176,7 +269,25 @@ public class ConsultationServiceImpl implements ConsultationService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ConsultationReservationResponse insertConsultationReservation(
             Authentication authentication,
@@ -223,7 +334,29 @@ public class ConsultationServiceImpl implements ConsultationService {
         return toReservationResponse(selectReservationRow(reservationId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param reservationId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param reservationId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ConsultationReservationResponse updateConsultationReservationStatus(
             Authentication authentication,
@@ -276,6 +409,15 @@ public class ConsultationServiceImpl implements ConsultationService {
         return toReservationResponse(selectReservationRow(reservationId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param requestedPartnerUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectSlotPartnerUserId(AuthenticatedUserDetails actor, UUID requestedPartnerUserId) {
         if (hasOperatingRole(actor)) {
             return requestedPartnerUserId == null ? actor.userId() : requestedPartnerUserId;
@@ -289,6 +431,17 @@ public class ConsultationServiceImpl implements ConsultationService {
         throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "상담 시간 등록 권한이 없습니다.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param requestedMemberUserId 입력 값
+     *
+     * @param requestedMemberUserCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectReservationMemberUserId(
             AuthenticatedUserDetails actor,
             UUID requestedMemberUserId,
@@ -306,6 +459,19 @@ public class ConsultationServiceImpl implements ConsultationService {
         return actor.userId();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param requestedPartnerUserId 입력 값
+     *
+     * @param requestedPartnerUserCode 입력 값
+     *
+     * @param slot 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectReservationPartnerUserId(
             AuthenticatedUserDetails actor,
             UUID requestedPartnerUserId,
@@ -330,12 +496,30 @@ public class ConsultationServiceImpl implements ConsultationService {
         return partnerUserId;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param startAt 입력 값
+     *
+     * @param endAt 입력 값
+     */
     private void validateSlotTime(OffsetDateTime startAt, OffsetDateTime endAt) {
         if (startAt == null || endAt == null || !endAt.isAfter(startAt)) {
             throw validationFailed("상담 종료 시간은 시작 시간보다 뒤여야 합니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @param verificationId 입력 값
+     */
     private void validateReservationReference(
             AuthenticatedUserDetails actor,
             UUID memberUserId,
@@ -362,12 +546,28 @@ public class ConsultationServiceImpl implements ConsultationService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param partnerUserId 입력 값
+     */
     private void validatePartnerSlotAccess(AuthenticatedUserDetails actor, UUID partnerUserId) {
         if (!hasOperatingRole(actor) && !partnerUserId.equals(actor.userId())) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "본인 상담 시간만 변경할 수 있습니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param reservation 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     */
     private void validateReservationAccess(
             AuthenticatedUserDetails actor,
             ConsultationReservationRow reservation,
@@ -388,6 +588,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "상담 예약 상태를 변경할 수 없습니다.");
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param beforeStatusCode 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     */
     private void validateReservationTransition(String beforeStatusCode, String afterStatusCode) {
         boolean allowed = switch (beforeStatusCode) {
             case "REQUESTED" -> Set.of("ASSIGNED", "CONFIRMED", "CANCELED").contains(afterStatusCode);
@@ -400,6 +607,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param reservationStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectSlotStatusForReservation(String reservationStatusCode) {
         return switch (reservationStatusCode) {
             case "CANCELED" -> "OPEN";
@@ -408,6 +622,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         };
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param slotId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationSlotRow selectReservableSlot(UUID slotId) {
         ConsultationSlotRow slot = selectSlotRow(slotId);
         if (!"OPEN".equals(slot.statusCode())) {
@@ -420,6 +641,19 @@ public class ConsultationServiceImpl implements ConsultationService {
         return slot;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param requestedPartnerUserId 입력 값
+     *
+     * @param requestedPartnerUserCode 입력 값
+     *
+     * @param assignedSlot 입력 값
+     *
+     * @param reservation 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectAssignedPartnerUserId(
             UUID requestedPartnerUserId,
             String requestedPartnerUserCode,
@@ -441,12 +675,30 @@ public class ConsultationServiceImpl implements ConsultationService {
         return reservation.partnerUserId();
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @param partnerUserId 입력 값
+     */
     private void validateAssignmentRequirement(String statusCode, UUID partnerUserId) {
         if (Set.of("ASSIGNED", "CONFIRMED").contains(statusCode) && partnerUserId == null) {
             throw validationFailed("상담 담당자를 선택하세요.");
         }
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param reservation 입력 값
+     *
+     * @param assignedSlot 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void updateReservationSlotStatus(
             ConsultationReservationRow reservation,
             ConsultationSlotRow assignedSlot,
@@ -472,6 +724,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param slotId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationSlotRow selectSlotRow(UUID slotId) {
         ConsultationSlotRow row = consultationDao.selectConsultationSlotDetails(slotId);
         if (row == null) {
@@ -480,6 +739,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param reservationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationReservationRow selectReservationRow(UUID reservationId) {
         ConsultationReservationRow row = consultationDao.selectConsultationReservationDetails(reservationId);
         if (row == null) {
@@ -488,12 +754,28 @@ public class ConsultationServiceImpl implements ConsultationService {
         return row;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param message 입력 값
+     */
     private void validateUserExists(UUID userId, String message) {
         if (userId == null || consultationDao.selectUserCount(userId) == 0) {
             throw notFound(message);
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param publicCode 입력 값
+     *
+     * @param notFoundMessage 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectUserIdByPublicCode(String publicCode, String notFoundMessage) {
         String normalized = normalizePublicCode(publicCode);
         if (normalized == null) {
@@ -506,11 +788,25 @@ public class ConsultationServiceImpl implements ConsultationService {
         return userId;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param publicCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizePublicCode(String publicCode) {
         String trimmed = trimToNull(publicCode);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationSlotResponse toSlotResponse(ConsultationSlotRow row) {
         return new ConsultationSlotResponse(
                 row.slotId(),
@@ -524,6 +820,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationReservationResponse toReservationResponse(ConsultationReservationRow row) {
         return new ConsultationReservationResponse(
                 row.reservationId(),
@@ -550,6 +853,13 @@ public class ConsultationServiceImpl implements ConsultationService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -560,20 +870,52 @@ public class ConsultationServiceImpl implements ConsultationService {
         throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "DB 인증 사용자만 사용할 수 있습니다.");
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasPartnerOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(PARTNER_OPERATING_ROLES::contains);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "페이지 요청 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = normalizeOptionalCode(value);
         if (code == null || !allowedValues.contains(code)) {
@@ -582,17 +924,40 @@ public class ConsultationServiceImpl implements ConsultationService {
         return code;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " is invalid.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -600,6 +965,17 @@ public class ConsultationServiceImpl implements ConsultationService {
         return value.trim();
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID resourceId, String metadataJson) {
         consultationDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -611,20 +987,58 @@ public class ConsultationServiceImpl implements ConsultationService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound(String message) {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: BillingServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.billing.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -83,16 +95,43 @@ public class BillingServiceImpl implements BillingService {
     private final BillingDao billingDao;
     private final String configuredWebhookSecret;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param billingDao 입력 값
+     *
+     * @param environment 입력 값
+     */
     @Autowired
     public BillingServiceImpl(BillingDao billingDao, Environment environment) {
         this(billingDao, environment.getProperty("saneb.payment.webhook-secret", ""));
     }
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param billingDao 입력 값
+     *
+     * @param configuredWebhookSecret 입력 값
+     */
     BillingServiceImpl(BillingDao billingDao, String configuredWebhookSecret) {
         this.billingDao = billingDao;
         this.configuredWebhookSecret = configuredWebhookSecret == null ? "" : configuredWebhookSecret;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param active 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<SubscriptionPlanResponse> selectSubscriptionPlanList(
             Authentication authentication,
@@ -116,7 +155,25 @@ public class BillingServiceImpl implements BillingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public SubscriptionPlanResponse insertSubscriptionPlan(
             Authentication authentication,
@@ -140,7 +197,29 @@ public class BillingServiceImpl implements BillingService {
         return toPlanResponse(selectPlanRow(planId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param planId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param planId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public SubscriptionPlanResponse updateSubscriptionPlanStatus(
             Authentication authentication,
@@ -160,6 +239,21 @@ public class BillingServiceImpl implements BillingService {
         return toPlanResponse(selectPlanRow(planId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<UserSubscriptionResponse> selectUserSubscriptionList(
             Authentication authentication,
@@ -187,7 +281,25 @@ public class BillingServiceImpl implements BillingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public UserSubscriptionResponse insertUserSubscription(
             Authentication authentication,
@@ -220,7 +332,29 @@ public class BillingServiceImpl implements BillingService {
         return toSubscriptionResponse(selectSubscriptionRow(subscriptionId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param subscriptionId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param subscriptionId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public UserSubscriptionResponse updateUserSubscriptionCancel(
             Authentication authentication,
@@ -242,6 +376,23 @@ public class BillingServiceImpl implements BillingService {
         return toSubscriptionResponse(selectSubscriptionRow(subscriptionId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param subscriptionId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<PaymentTransactionResponse> selectPaymentTransactionList(
             Authentication authentication,
@@ -271,7 +422,25 @@ public class BillingServiceImpl implements BillingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public PaymentTransactionResponse insertPaymentTransaction(
             Authentication authentication,
@@ -313,7 +482,25 @@ public class BillingServiceImpl implements BillingService {
         return toPaymentResponse(selectPaymentRow(paymentId));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MockMonthlyPaymentResponse insertMockMonthlyPayment(
             Authentication authentication,
@@ -371,7 +558,29 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param paymentId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param paymentId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public PaymentTransactionResponse updatePaymentTransactionStatus(
             Authentication authentication,
@@ -391,6 +600,23 @@ public class BillingServiceImpl implements BillingService {
         return toPaymentResponse(selectPaymentRow(paymentId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param paymentId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<RefundTransactionResponse> selectRefundTransactionList(
             Authentication authentication,
@@ -420,7 +646,25 @@ public class BillingServiceImpl implements BillingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public RefundTransactionResponse insertRefundTransaction(
             Authentication authentication,
@@ -459,7 +703,29 @@ public class BillingServiceImpl implements BillingService {
         return toRefundResponse(selectRefundRow(refundId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param refundId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param refundId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public RefundTransactionResponse updateRefundTransactionStatus(
             Authentication authentication,
@@ -479,7 +745,29 @@ public class BillingServiceImpl implements BillingService {
         return toRefundResponse(selectRefundRow(refundId));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param providerCode 입력 값
+     *
+     * @param webhookSecret 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param providerCode 입력 값
+     *
+     * @param webhookSecret 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public PaymentProviderEventResponse insertPaymentProviderEvent(
             String providerCode,
@@ -543,6 +831,21 @@ public class BillingServiceImpl implements BillingService {
         return toProviderEventResponse(billingDao.selectPaymentProviderEventByKey(normalizedProviderCode, providerEventId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param payment 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     *
+     * @param providerPaymentKey 입력 값
+     *
+     * @param failureCode 입력 값
+     *
+     * @param failureMessage 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void updatePaymentStatus(
             PaymentTransactionRow payment,
             String afterStatusCode,
@@ -576,6 +879,21 @@ public class BillingServiceImpl implements BillingService {
                         "providerPaymentKeyProvided", String.valueOf(trimToNull(providerPaymentKey) != null)));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param refund 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     *
+     * @param providerRefundKey 입력 값
+     *
+     * @param failureCode 입력 값
+     *
+     * @param failureMessage 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void updateRefundStatus(
             RefundTransactionRow refund,
             String afterStatusCode,
@@ -616,6 +934,17 @@ public class BillingServiceImpl implements BillingService {
         ));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param subscription 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param cancelReason 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void updateSubscriptionStatus(
             UserSubscriptionRow subscription,
             String statusCode,
@@ -626,6 +955,21 @@ public class BillingServiceImpl implements BillingService {
                 subscription.currentPeriodStart(), subscription.currentPeriodEnd());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param subscription 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param cancelReason 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param currentPeriodStart 입력 값
+     *
+     * @param currentPeriodEnd 입력 값
+     */
     private void updateSubscriptionStatus(
             UserSubscriptionRow subscription,
             String statusCode,
@@ -644,6 +988,13 @@ public class BillingServiceImpl implements BillingService {
         ));
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param beforeStatusCode 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     */
     private void validatePaymentTransition(String beforeStatusCode, String afterStatusCode) {
         boolean allowed = switch (beforeStatusCode) {
             case "REQUESTED" -> Set.of("APPROVED", "FAILED", "CANCELED").contains(afterStatusCode);
@@ -655,6 +1006,13 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentTransactionRow selectPaymentForProviderEvent(PaymentProviderEventRequest request) {
         if (request.paymentId() != null) {
             return selectPaymentRow(request.paymentId());
@@ -669,6 +1027,13 @@ public class BillingServiceImpl implements BillingService {
         throw notFound("결제 거래를 찾을 수 없습니다.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private RefundTransactionRow selectRefundForProviderEvent(PaymentProviderEventRequest request) {
         if (request.refundId() == null) {
             throw validationFailed("refundId 값이 필요합니다.");
@@ -676,6 +1041,17 @@ public class BillingServiceImpl implements BillingService {
         return selectRefundRow(request.refundId());
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param expectedAmount 입력 값
+     *
+     * @param expectedCurrencyCode 입력 값
+     *
+     * @param requestAmount 입력 값
+     *
+     * @param requestCurrencyCode 입력 값
+     */
     private void validateProviderEventAmount(
             BigDecimal expectedAmount,
             String expectedCurrencyCode,
@@ -691,6 +1067,11 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param webhookSecret 입력 값
+     */
     private void validateWebhookSecret(String webhookSecret) {
         if (configuredWebhookSecret.isBlank()
                 || webhookSecret == null
@@ -699,6 +1080,15 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param requestedUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectTargetUserId(AuthenticatedUserDetails actor, UUID requestedUserId) {
         if (hasOperatingRole(actor)) {
             return requestedUserId == null ? actor.userId() : requestedUserId;
@@ -709,6 +1099,15 @@ public class BillingServiceImpl implements BillingService {
         return actor.userId();
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param plan 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserSubscriptionRow insertPendingSubscription(AuthenticatedUserDetails actor, SubscriptionPlanRow plan) {
         UUID subscriptionId = UUID.randomUUID();
         billingDao.insertUserSubscription(new UserSubscriptionInsertCommand(
@@ -728,24 +1127,52 @@ public class BillingServiceImpl implements BillingService {
         return selectSubscriptionRow(subscriptionId);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param ownerUserId 입력 값
+     *
+     * @param message 입력 값
+     */
     private void validateUserAccess(AuthenticatedUserDetails actor, UUID ownerUserId, String message) {
         if (!hasOperatingRole(actor) && !ownerUserId.equals(actor.userId())) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, message);
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param message 입력 값
+     */
     private void validateOperatingRole(AuthenticatedUserDetails actor, String message) {
         if (!hasOperatingRole(actor)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, message);
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     */
     private void validateMockPaymentUserRole(AuthenticatedUserDetails actor) {
         if (!actor.roles().contains("USER") || hasOperatingRole(actor)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "구독 결제는 일반 사용자만 진행할 수 있습니다.");
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param planId 입력 값
+     *
+     * @return 처리 결과
+     */
     private SubscriptionPlanRow selectPlanRow(UUID planId) {
         SubscriptionPlanRow row = billingDao.selectSubscriptionPlanDetails(planId);
         if (row == null) {
@@ -754,6 +1181,13 @@ public class BillingServiceImpl implements BillingService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param subscriptionId 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserSubscriptionRow selectSubscriptionRow(UUID subscriptionId) {
         UserSubscriptionRow row = billingDao.selectUserSubscriptionDetails(subscriptionId);
         if (row == null) {
@@ -762,6 +1196,13 @@ public class BillingServiceImpl implements BillingService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param paymentId 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentTransactionRow selectPaymentRow(UUID paymentId) {
         PaymentTransactionRow row = billingDao.selectPaymentTransactionDetails(paymentId);
         if (row == null) {
@@ -770,6 +1211,13 @@ public class BillingServiceImpl implements BillingService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param refundId 입력 값
+     *
+     * @return 처리 결과
+     */
     private RefundTransactionRow selectRefundRow(UUID refundId) {
         RefundTransactionRow row = billingDao.selectRefundTransactionDetails(refundId);
         if (row == null) {
@@ -778,6 +1226,15 @@ public class BillingServiceImpl implements BillingService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param billingCycleCode 입력 값
+     *
+     * @param startAt 입력 값
+     *
+     * @return 처리 결과
+     */
     private OffsetDateTime selectPeriodEnd(String billingCycleCode, OffsetDateTime startAt) {
         return switch (billingCycleCode) {
             case "MONTHLY" -> startAt.plusMonths(1);
@@ -786,11 +1243,27 @@ public class BillingServiceImpl implements BillingService {
         };
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param paymentId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String generateMerchantUid(UUID paymentId) {
         return "SANEB-" + OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
                 + "-" + paymentId.toString().substring(0, 8);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param amount 입력 값
+     *
+     * @param positiveOnly 입력 값
+     *
+     * @return 처리 결과
+     */
     private BigDecimal validateAmount(BigDecimal amount, boolean positiveOnly) {
         if (amount == null || amount.scale() > 2) {
             throw validationFailed("금액은 소수점 둘째 자리까지 입력하세요.");
@@ -802,12 +1275,30 @@ public class BillingServiceImpl implements BillingService {
         return amount;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "페이지 요청 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = normalizeOptionalCode(value);
         if (code == null || !allowedValues.contains(code)) {
@@ -816,6 +1307,15 @@ public class BillingServiceImpl implements BillingService {
         return code;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeFreeCode(String fieldName, String value) {
         String code = normalizeOptionalCode(value);
         if (code == null || code.length() > MAX_CODE_LENGTH || !code.matches("[A-Z0-9_\\-]+")) {
@@ -824,17 +1324,40 @@ public class BillingServiceImpl implements BillingService {
         return code;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeCurrencyCode(String value) {
         String code = normalizeOptionalCode(value);
         if (code == null) {
@@ -846,6 +1369,15 @@ public class BillingServiceImpl implements BillingService {
         return code;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimRequired(String value, String message) {
         String trimmed = trimToNull(value);
         if (trimmed == null) {
@@ -854,6 +1386,13 @@ public class BillingServiceImpl implements BillingService {
         return trimmed;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -861,6 +1400,13 @@ public class BillingServiceImpl implements BillingService {
         return value.trim();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -871,10 +1417,24 @@ public class BillingServiceImpl implements BillingService {
         throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "DB 인증 사용자만 사용할 수 있습니다.");
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private SubscriptionPlanResponse toPlanResponse(SubscriptionPlanRow row) {
         return new SubscriptionPlanResponse(
                 row.planId(),
@@ -891,6 +1451,13 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserSubscriptionResponse toSubscriptionResponse(UserSubscriptionRow row) {
         return new UserSubscriptionResponse(
                 row.subscriptionId(),
@@ -911,6 +1478,13 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentTransactionResponse toPaymentResponse(PaymentTransactionRow row) {
         return new PaymentTransactionResponse(
                 row.paymentId(),
@@ -933,6 +1507,13 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private RefundTransactionResponse toRefundResponse(RefundTransactionRow row) {
         return new RefundTransactionResponse(
                 row.refundId(),
@@ -953,6 +1534,13 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentProviderEventResponse toProviderEventResponse(PaymentProviderEventRow row) {
         return new PaymentProviderEventResponse(
                 row.eventId(),
@@ -966,6 +1554,19 @@ public class BillingServiceImpl implements BillingService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceType 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, String resourceType, UUID resourceId, String metadataJson) {
         billingDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -977,20 +1578,58 @@ public class BillingServiceImpl implements BillingService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound(String message) {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }

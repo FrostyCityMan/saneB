@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: PartnerVerificationViewControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.partnerverification.controller;
 
 import static org.hamcrest.Matchers.containsString;
@@ -46,6 +58,9 @@ class PartnerVerificationViewControllerSmokeTest {
     @MockitoBean
     private PartnerVerificationService partnerVerificationService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         PartnerVerificationSummaryResponse summary = summary();
@@ -58,6 +73,11 @@ class PartnerVerificationViewControllerSmokeTest {
         when(partnerVerificationService.selectPartnerVerificationDetails(VERIFICATION_ID)).thenReturn(details);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectPartnerVerificationListPageUsesKoreanLabels() throws Exception {
         when(authService.selectAuthMe(any())).thenReturn(partnerAuth());
@@ -73,6 +93,11 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("검증 ID"))));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectCurrentVerificationProgressPageUsesKoreanLabels() throws Exception {
         mockMvc.perform(get("/app/member/verifications/current")
@@ -87,6 +112,11 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("검증 ID"))));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectPartnerVerificationInputPageUsesKoreanLabels() throws Exception {
         when(authService.selectAuthMe(any())).thenReturn(partnerAuth());
@@ -103,6 +133,11 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("검증 ID"))));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthMeResponse userAuth() {
         return new AuthMeResponse(
                 USER_ID,
@@ -116,6 +151,11 @@ class PartnerVerificationViewControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthMeResponse partnerAuth() {
         return new AuthMeResponse(
                 PARTNER_ID,
@@ -129,6 +169,11 @@ class PartnerVerificationViewControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationSummaryResponse summary() {
         OffsetDateTime now = OffsetDateTime.now();
         return new PartnerVerificationSummaryResponse(
@@ -149,6 +194,11 @@ class PartnerVerificationViewControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse details() {
         OffsetDateTime now = OffsetDateTime.now();
         return new PartnerVerificationDetailsResponse(

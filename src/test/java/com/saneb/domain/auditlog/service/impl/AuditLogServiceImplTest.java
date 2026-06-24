@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuditLogServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auditlog.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,11 +46,17 @@ class AuditLogServiceImplTest {
 
     private AuditLogServiceImpl auditLogService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         auditLogService = new AuditLogServiceImpl(auditLogDao);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectAuditLogListMapsLabelsAndPagination() {
         when(auditLogDao.selectAuditLogCount(org.mockito.ArgumentMatchers.any())).thenReturn(1L);
@@ -60,6 +78,9 @@ class AuditLogServiceImplTest {
         assertThat(captor.getValue().resultCode()).isEqualTo("SUCCESS");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectAuditLogDetailsMapsMetadata() {
         when(auditLogDao.selectAuditLogDetails(AUDIT_LOG_ID)).thenReturn(detailsRow());
@@ -71,6 +92,9 @@ class AuditLogServiceImplTest {
         assertThat(response.actionLabel()).isEqualTo("권한 변경");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectAuditLogDetailsThrowsWhenMissing() {
         assertThatThrownBy(() -> auditLogService.selectAuditLogDetails(AUDIT_LOG_ID))
@@ -79,6 +103,9 @@ class AuditLogServiceImplTest {
                 .isEqualTo(ErrorCode.RESOURCE_NOT_FOUND);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectAuditLogListRejectsInvalidResultCode() {
         assertThatThrownBy(() -> auditLogService.selectAuditLogList(null, null, null, "BAD", 1, 20))
@@ -87,6 +114,11 @@ class AuditLogServiceImplTest {
                 .isEqualTo(ErrorCode.VALIDATION_FAILED);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuditLogSummaryRow summaryRow() {
         return new AuditLogSummaryRow(
                 AUDIT_LOG_ID,
@@ -101,6 +133,11 @@ class AuditLogServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuditLogDetailsRow detailsRow() {
         return new AuditLogDetailsRow(
                 AUDIT_LOG_ID,

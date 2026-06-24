@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DocumentFileServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.documentfile.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -58,6 +70,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
     private final Path storageRoot;
     private final long maxUploadBytes;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param documentFileDao 입력 값
+     *
+     * @param environment 입력 값
+     */
     @Autowired
     public DocumentFileServiceImpl(
             DocumentFileDao documentFileDao,
@@ -70,6 +89,15 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         );
     }
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param documentFileDao 입력 값
+     *
+     * @param storageRoot 입력 값
+     *
+     * @param maxUploadBytes 입력 값
+     */
     DocumentFileServiceImpl(
             DocumentFileDao documentFileDao,
             String storageRoot,
@@ -80,7 +108,25 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         this.maxUploadBytes = maxUploadBytes;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param file 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param file 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public StoredFileResponse insertStoredFile(Authentication authentication, MultipartFile file) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
@@ -120,6 +166,15 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return toStoredFileResponse(selectStoredFileRow(fileId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param fileId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public StoredFileResponse selectStoredFileDetails(Authentication authentication, UUID fileId) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
@@ -128,7 +183,25 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return toStoredFileResponse(row);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public DocumentSubmissionResponse insertDocumentSubmission(
             Authentication authentication,
@@ -163,6 +236,23 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return toDocumentSubmissionResponse(selectDocumentSubmissionRow(submissionId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param resourceTypeCode 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<DocumentSubmissionResponse> selectDocumentSubmissionList(
             Authentication authentication,
@@ -195,7 +285,29 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param submissionId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param submissionId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public DocumentSubmissionResponse updateDocumentSubmissionReview(
             Authentication authentication,
@@ -227,6 +339,11 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return toDocumentSubmissionResponse(selectDocumentSubmissionRow(submissionId));
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param file 입력 값
+     */
     private void validateUploadFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw validationFailed("업로드할 파일을 선택하세요.");
@@ -239,6 +356,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         }
     }
 
+    /**
+     * 입력 데이터를 읽어 처리합니다.
+     *
+     * @param file 입력 값
+     *
+     * @return 처리 결과
+     */
     private byte[] readFileBytes(MultipartFile file) {
         try {
             return file.getBytes();
@@ -251,6 +375,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fileBytes 입력 값
+     *
+     * @return 처리 결과
+     */
     private String checksumSha256(byte[] fileBytes) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -264,6 +395,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         }
     }
 
+    /**
+     * 업무 처리에 필요한 값을 해석합니다.
+     *
+     * @param storageKey 입력 값
+     *
+     * @return 처리 결과
+     */
     private Path resolveStoragePath(String storageKey) {
         Path targetPath = storageRoot.resolve(storageKey).normalize();
         if (!targetPath.startsWith(storageRoot)) {
@@ -272,6 +410,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return targetPath;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param filename 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOriginalFilename(String filename) {
         String cleaned = StringUtils.cleanPath(filename == null ? "upload.bin" : filename);
         String nameOnly = Path.of(cleaned).getFileName().toString();
@@ -281,6 +426,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return nameOnly.length() > MAX_FILENAME_LENGTH ? nameOnly.substring(0, MAX_FILENAME_LENGTH) : nameOnly;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param originalFilename 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectSafeExtension(String originalFilename) {
         int dotIndex = originalFilename.lastIndexOf('.');
         if (dotIndex < 0 || dotIndex == originalFilename.length() - 1) {
@@ -293,6 +445,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return extension;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param contentType 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeContentType(String contentType) {
         String value = trimToNull(contentType);
         if (value == null) {
@@ -301,12 +460,28 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return value.length() > MAX_CONTENT_TYPE_LENGTH ? value.substring(0, MAX_CONTENT_TYPE_LENGTH) : value;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param file 입력 값
+     */
     private void validateFileAccess(AuthenticatedUserDetails actor, StoredFileRow file) {
         if (!file.ownerUserId().equals(actor.userId()) && !hasOperatingRole(actor)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "파일에 접근할 수 없습니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param resourceTypeCode 입력 값
+     *
+     * @param resourceId 입력 값
+     */
     private void validateResourceAccess(AuthenticatedUserDetails actor, String resourceTypeCode, UUID resourceId) {
         if ("PARTNER_VERIFICATION".equals(resourceTypeCode)) {
             PartnerVerificationAccessRow row = documentFileDao.selectPartnerVerificationAccess(resourceId);
@@ -327,6 +502,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param fileId 입력 값
+     *
+     * @return 처리 결과
+     */
     private StoredFileRow selectStoredFileRow(UUID fileId) {
         StoredFileRow row = documentFileDao.selectStoredFileDetails(fileId);
         if (row == null) {
@@ -335,6 +517,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param submissionId 입력 값
+     *
+     * @return 처리 결과
+     */
     private DocumentSubmissionRow selectDocumentSubmissionRow(UUID submissionId) {
         DocumentSubmissionRow row = documentFileDao.selectDocumentSubmissionDetails(submissionId);
         if (row == null) {
@@ -343,6 +532,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private StoredFileResponse toStoredFileResponse(StoredFileRow row) {
         return new StoredFileResponse(
                 row.fileId(),
@@ -356,6 +552,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private DocumentSubmissionResponse toDocumentSubmissionResponse(DocumentSubmissionRow row) {
         return new DocumentSubmissionResponse(
                 row.submissionId(),
@@ -375,6 +578,13 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -385,16 +595,37 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "DB 인증 사용자만 사용할 수 있습니다.");
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "페이지 요청 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeDocumentTypeCode(String value) {
         String code = normalizeRequiredCode("documentTypeCode", value, null);
         if (code.length() > 80) {
@@ -403,6 +634,17 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return code;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = normalizeOptionalCode(value);
         if (code == null || (allowedValues != null && !allowedValues.contains(code))) {
@@ -411,17 +653,40 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return code;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " is invalid.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -429,6 +694,17 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         return value.trim();
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID resourceId, String metadataJson) {
         documentFileDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -440,16 +716,45 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 데이터를 삭제합니다.
+     *
+     * @param targetPath 입력 값
+     */
     private void deleteQuietly(Path targetPath) {
         try {
             Files.deleteIfExists(targetPath);
@@ -458,10 +763,24 @@ public class DocumentFileServiceImpl implements DocumentFileService {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound(String message) {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }

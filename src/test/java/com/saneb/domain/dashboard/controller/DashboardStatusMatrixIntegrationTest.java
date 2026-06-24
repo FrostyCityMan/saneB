@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DashboardStatusMatrixIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dashboard.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +50,11 @@ class DashboardStatusMatrixIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void noVerificationOrDraftStateReturnsBasicInfoDashboard() throws Exception {
         String noVerificationPrivacyMarker = "matrix-private-no-verification-" + UUID.randomUUID();
@@ -51,6 +68,11 @@ class DashboardStatusMatrixIntegrationTest {
         assertBasicInfoDashboard(draftUser.loginId(), draftPrivacyMarker);
     }
 
+    /**
+     * 입력 데이터를 읽어 처리합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void readyOrInProgressStateReturnsProgressRouteAndDatabaseCounts() throws Exception {
         String privacyMarker = "matrix-private-ready-" + UUID.randomUUID();
@@ -110,6 +132,11 @@ class DashboardStatusMatrixIntegrationTest {
         assertNoAuditMetadataLeak(privacyMarker);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void approvedResultStateReturnsNoneActionAndReceivedAmountFromDatabase() throws Exception {
         String privacyMarker = "matrix-private-approved-" + UUID.randomUUID();
@@ -166,6 +193,15 @@ class DashboardStatusMatrixIntegrationTest {
         assertNoAuditMetadataLeak(privacyMarker);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param privacyMarker 입력 값
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private void assertBasicInfoDashboard(String loginId, String privacyMarker) throws Exception {
         mockMvc.perform(get("/api/v1/dashboard/me/summary").with(user(loginId)))
                 .andExpect(status().isOk())
@@ -202,10 +238,30 @@ class DashboardStatusMatrixIntegrationTest {
         assertNoAuditMetadataLeak(privacyMarker);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param loginPrefix 입력 값
+     *
+     * @param roleCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private DashboardUser insertDashboardUser(String loginPrefix, String roleCode) {
         return insertDashboardUser(loginPrefix, roleCode, null);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param loginPrefix 입력 값
+     *
+     * @param roleCode 입력 값
+     *
+     * @param privacyMarker 입력 값
+     *
+     * @return 처리 결과
+     */
     private DashboardUser insertDashboardUser(String loginPrefix, String roleCode, String privacyMarker) {
         UUID userId = UUID.randomUUID();
         String suffix = UUID.randomUUID().toString().replace("-", "");
@@ -243,6 +299,19 @@ class DashboardStatusMatrixIntegrationTest {
         return new DashboardUser(userId, loginId);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param operatorUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID insertVerification(UUID verificationId, UUID memberUserId, UUID operatorUserId, String statusCode) {
         jdbcTemplate.update(
                 """
@@ -273,6 +342,21 @@ class DashboardStatusMatrixIntegrationTest {
         return verificationId;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param operatorUserId 입력 값
+     *
+     * @param titlePrefix 입력 값
+     *
+     * @param minAmount 입력 값
+     *
+     * @param maxAmount 입력 값
+     *
+     * @param paymentMethodCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID insertAnnouncement(
             UUID operatorUserId,
             String titlePrefix,
@@ -324,6 +408,23 @@ class DashboardStatusMatrixIntegrationTest {
         return announcementId;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param operatorUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID insertMatchingCase(
             UUID matchingCaseId,
             UUID announcementId,
@@ -380,6 +481,11 @@ class DashboardStatusMatrixIntegrationTest {
         return matchingCaseId;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     */
     private void insertMemberProfile(UUID memberUserId) {
         jdbcTemplate.update(
                 """
@@ -399,6 +505,13 @@ class DashboardStatusMatrixIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param operatorUserId 입력 값
+     */
     private void insertActiveSubscription(UUID memberUserId, UUID operatorUserId) {
         UUID planId = jdbcTemplate.queryForObject(
                 """
@@ -428,6 +541,13 @@ class DashboardStatusMatrixIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param operatorUserId 입력 값
+     */
     private void insertConsultationReservation(UUID memberUserId, UUID operatorUserId) {
         jdbcTemplate.update(
                 """
@@ -449,6 +569,19 @@ class DashboardStatusMatrixIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param operatorUserId 입력 값
+     *
+     * @param stepName 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID insertProgressStep(UUID stepId, UUID announcementId, UUID operatorUserId, String stepName) {
         jdbcTemplate.update(
                 """
@@ -492,6 +625,25 @@ class DashboardStatusMatrixIntegrationTest {
         return stepId;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param currentStepId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param receivedAmount 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID insertApplicationProgress(
             UUID progressId,
             UUID matchingCaseId,
@@ -533,6 +685,17 @@ class DashboardStatusMatrixIntegrationTest {
         return progressId;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param stepId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     */
     private void insertStepState(UUID progressId, UUID stepId, UUID memberUserId, String statusCode) {
         jdbcTemplate.update(
                 """
@@ -553,12 +716,24 @@ class DashboardStatusMatrixIntegrationTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param result 입력 값
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private void assertCurrentActionRouteIsExplicitNull(MvcResult result) throws Exception {
         JsonNode data = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
         assertThat(data.has("route")).isTrue();
         assertThat(data.get("route").isNull()).isTrue();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param privacyMarker 입력 값
+     */
     private void assertNoAuditMetadataLeak(String privacyMarker) {
         Long leakCount = jdbcTemplate.queryForObject(
                 """

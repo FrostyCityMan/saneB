@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AppLogServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.applog.service.impl;
 
 import com.saneb.domain.applog.dto.AppLogResponse;
@@ -39,6 +51,11 @@ public class AppLogServiceImpl implements AppLogService {
     private final String configuredLogPath;
     private final int maxScanLines;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param environment 입력 값
+     */
     @Autowired
     public AppLogServiceImpl(Environment environment) {
         this(
@@ -47,11 +64,29 @@ public class AppLogServiceImpl implements AppLogService {
         );
     }
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param configuredLogPath 입력 값
+     *
+     * @param maxScanLines 입력 값
+     */
     AppLogServiceImpl(String configuredLogPath, int maxScanLines) {
         this.configuredLogPath = configuredLogPath == null ? "" : configuredLogPath.trim();
         this.maxScanLines = Math.max(MAX_REQUEST_LINES, maxScanLines);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param levelCode 입력 값
+     *
+     * @param keyword 입력 값
+     *
+     * @param lines 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AppLogResponse selectAppLog(String levelCode, String keyword, int lines) {
         int requestedLines = normalizeLines(lines);
@@ -91,6 +126,17 @@ public class AppLogServiceImpl implements AppLogService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param logPath 입력 값
+     *
+     * @param limit 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private List<String> selectRecentLines(Path logPath, int limit) throws IOException {
         ArrayDeque<String> recentLines = new ArrayDeque<>();
         try (Stream<String> lines = Files.lines(logPath, StandardCharsets.UTF_8)) {
@@ -104,6 +150,19 @@ public class AppLogServiceImpl implements AppLogService {
         return new ArrayList<>(recentLines);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param sourceLines 입력 값
+     *
+     * @param levelCode 입력 값
+     *
+     * @param keyword 입력 값
+     *
+     * @param requestedLines 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<AppLogLineResponse> filterLines(
             List<String> sourceLines,
             String levelCode,
@@ -125,6 +184,15 @@ public class AppLogServiceImpl implements AppLogService {
         return responses;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param line 입력 값
+     *
+     * @param levelCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean matchesLevel(String line, String levelCode) {
         if (!StringUtils.hasText(levelCode)) {
             return true;
@@ -132,6 +200,15 @@ public class AppLogServiceImpl implements AppLogService {
         return line.toUpperCase(Locale.ROOT).contains(levelCode);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param line 입력 값
+     *
+     * @param keyword 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean matchesKeyword(String line, String keyword) {
         if (!StringUtils.hasText(keyword)) {
             return true;
@@ -139,12 +216,26 @@ public class AppLogServiceImpl implements AppLogService {
         return line.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param line 입력 값
+     *
+     * @return 처리 결과
+     */
     private String maskSensitiveValues(String line) {
         String masked = AUTHORIZATION_BEARER_PATTERN.matcher(line).replaceAll("$1***");
         masked = BEARER_PATTERN.matcher(masked).replaceAll("$1***");
         return KEY_VALUE_SECRET_PATTERN.matcher(masked).replaceAll("$1$2***");
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param lines 입력 값
+     *
+     * @return 처리 결과
+     */
     private int normalizeLines(int lines) {
         if (lines <= 0) {
             return DEFAULT_LINES;
@@ -152,6 +243,13 @@ public class AppLogServiceImpl implements AppLogService {
         return Math.min(lines, MAX_REQUEST_LINES);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param levelCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeLevelCode(String levelCode) {
         if (!StringUtils.hasText(levelCode)) {
             return "";
@@ -160,6 +258,13 @@ public class AppLogServiceImpl implements AppLogService {
         return LEVEL_CODES.contains(normalized) ? normalized : "";
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeKeyword(String keyword) {
         if (!StringUtils.hasText(keyword)) {
             return "";
@@ -167,6 +272,19 @@ public class AppLogServiceImpl implements AppLogService {
         return keyword.trim();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param requestedLines 입력 값
+     *
+     * @param levelCode 입력 값
+     *
+     * @param keyword 입력 값
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private AppLogResponse unavailable(int requestedLines, String levelCode, String keyword, String message) {
         return new AppLogResponse(
                 configuredLogPath,

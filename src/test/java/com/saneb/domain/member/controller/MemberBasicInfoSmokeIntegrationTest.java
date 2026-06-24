@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MemberBasicInfoSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.member.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +45,11 @@ class MemberBasicInfoSmokeIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localUserSelectsAndSavesDocumentInputValues() throws Exception {
         MockHttpSession session = loginLocalUser();
@@ -74,6 +91,13 @@ class MemberBasicInfoSmokeIntegrationTest {
         assertThat(selectDocumentInputValueCount("local_user", standardFieldId)).isEqualTo(1);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalUser() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -92,6 +116,15 @@ class MemberBasicInfoSmokeIntegrationTest {
         throw new IllegalStateException("local_user login failed for member basic info smoke.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param documentTypeCode 입력 값
+     *
+     * @param fieldKey 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectStandardFieldId(String documentTypeCode, String fieldKey) {
         return jdbcTemplate.queryForObject(
                 """
@@ -106,6 +139,15 @@ class MemberBasicInfoSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param standardFieldId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectDocumentInputValueCount(String loginId, UUID standardFieldId) {
         Long count = jdbcTemplate.queryForObject(
                 """

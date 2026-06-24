@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AnnouncementControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.announcement.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -61,7 +73,17 @@ class AnnouncementControllerSmokeTest {
     @TestConfiguration
     static class AnnouncementControllerSmokeTestConfig {
 
+        /**
+         * 업무 처리를 수행합니다.
+         *
+         * @return 처리 결과
+         */
         @Bean
+        /**
+         * 업무 처리를 수행합니다.
+         *
+         * @return 처리 결과
+         */
         @Primary
         PlatformTransactionManager transactionManager() {
             return new AbstractPlatformTransactionManager() {
@@ -85,6 +107,11 @@ class AnnouncementControllerSmokeTest {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectAnnouncementListReturnsPagedApiResponse() throws Exception {
         when(announcementDao.selectAnnouncementCount(any())).thenReturn(1L);
@@ -107,6 +134,11 @@ class AnnouncementControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAnnouncementReturnsApiResponse() throws Exception {
         stubDetails();
@@ -127,6 +159,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).insertAnnouncementOption(any());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementReturnsApiResponse() throws Exception {
         stubDetails();
@@ -144,6 +181,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).deleteAnnouncementOptions(ANNOUNCEMENT_ID);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementConditionsReturnsApiResponse() throws Exception {
         stubDetails();
@@ -236,6 +278,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao, times(4)).insertAnnouncementDocumentRequirement(any());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementConditionsRejectsNonEligibleStandardField() throws Exception {
         stubDetails();
@@ -272,6 +319,11 @@ class AnnouncementControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(false));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementStepsReturnsApiResponse() throws Exception {
         stubDetails();
@@ -321,6 +373,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao, times(4)).insertAnnouncementStepDocument(any());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementManualStatusReturnsApiResponse() throws Exception {
         stubDetails();
@@ -342,6 +399,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).insertAnnouncementStatusHistory(any());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAnnouncementApprovalRequestReturnsApiResponse() throws Exception {
         stubDetails();
@@ -362,6 +424,11 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).updateAnnouncementApprovalStatus(any(AnnouncementApprovalStatusCommand.class));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAnnouncementApprovalReturnsApiResponse() throws Exception {
         stubDetailsWithApprovalStatuses("REQUESTED", "APPROVED");
@@ -386,10 +453,20 @@ class AnnouncementControllerSmokeTest {
         verify(announcementDao).updateAnnouncementApprovalStatus(any(AnnouncementApprovalStatusCommand.class));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     private void stubDetails() {
         stubDetailsWithApprovalStatuses("DRAFT");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param firstStatus 입력 값
+     *
+     * @param followingStatuses 입력 값
+     */
     private void stubDetailsWithApprovalStatuses(String firstStatus, String... followingStatuses) {
         AnnouncementDetailsRow[] rows = new AnnouncementDetailsRow[followingStatuses.length + 1];
         rows[0] = detailsRow(firstStatus);
@@ -416,6 +493,11 @@ class AnnouncementControllerSmokeTest {
         when(announcementDao.selectAnnouncementStepButtonList(any())).thenReturn(List.of());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AnnouncementSummaryRow summaryRow() {
         return new AnnouncementSummaryRow(
                 ANNOUNCEMENT_ID,
@@ -435,6 +517,13 @@ class AnnouncementControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param approvalStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementDetailsRow detailsRow(String approvalStatusCode) {
         return new AnnouncementDetailsRow(
                 ANNOUNCEMENT_ID,
@@ -455,6 +544,11 @@ class AnnouncementControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -472,6 +566,11 @@ class AnnouncementControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails approverPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -489,6 +588,13 @@ class AnnouncementControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param title 입력 값
+     *
+     * @return 처리 결과
+     */
     private String saveRequest(String title) {
         return """
                 {

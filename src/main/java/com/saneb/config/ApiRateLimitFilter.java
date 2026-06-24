@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ApiRateLimitFilter.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +47,13 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     private final ConcurrentHashMap<String, RateWindow> windows = new ConcurrentHashMap<>();
     private volatile long lastCleanupMillis;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param objectMapper 입력 값
+     *
+     * @param environment 입력 값
+     */
     @Autowired
     public ApiRateLimitFilter(ObjectMapper objectMapper, Environment environment) {
         this(
@@ -46,6 +65,19 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         );
     }
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param objectMapper 입력 값
+     *
+     * @param enabled 입력 값
+     *
+     * @param maxRequests 입력 값
+     *
+     * @param windowSeconds 입력 값
+     *
+     * @param clock 입력 값
+     */
     ApiRateLimitFilter(
             ObjectMapper objectMapper,
             boolean enabled,
@@ -60,6 +92,19 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         this.clock = clock;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param response 입력 값
+     *
+     * @param filterChain 입력 값
+     *
+     * @throws ServletException 처리 중 예외가 발생한 경우
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -84,6 +129,15 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         writeRateLimitResponse(response, decision);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key 입력 값
+     *
+     * @param nowMillis 입력 값
+     *
+     * @return 처리 결과
+     */
     private RateDecision recordRequest(String key, long nowMillis) {
         RateWindow window = windows.compute(key, (ignored, current) -> {
             if (current == null || nowMillis - current.windowStartMillis() >= windowMillis) {
@@ -97,6 +151,11 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         return new RateDecision(window.count() <= maxRequests, remaining, retryAfterMillis);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param nowMillis 입력 값
+     */
     private void cleanupExpiredWindows(long nowMillis) {
         if (nowMillis - lastCleanupMillis < windowMillis) {
             return;
@@ -107,14 +166,35 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         );
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean isApiV1Request(HttpServletRequest request) {
         return normalizedPath(request).startsWith(API_PREFIX);
     }
 
+    /**
+     * 업무 처리에 필요한 값을 해석합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private String resolveLimitKey(HttpServletRequest request) {
         return resolveClientIp(request) + "|" + request.getMethod() + "|" + normalizedPath(request);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizedPath(HttpServletRequest request) {
         String path = request.getRequestURI();
         String contextPath = request.getContextPath();
@@ -124,6 +204,13 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         return path;
     }
 
+    /**
+     * 업무 처리에 필요한 값을 해석합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private String resolveClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (StringUtils.hasText(forwardedFor)) {
@@ -132,6 +219,13 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
+    /**
+     * 응답 데이터를 작성합니다.
+     *
+     * @param response 입력 값
+     *
+     * @param decision 입력 값
+     */
     private void writeRateLimitHeaders(HttpServletResponse response, RateDecision decision) {
         response.setHeader("X-Rate-Limit-Limit", String.valueOf(maxRequests));
         response.setHeader("X-Rate-Limit-Remaining", String.valueOf(decision.remaining()));
@@ -140,6 +234,15 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * 응답 데이터를 작성합니다.
+     *
+     * @param response 입력 값
+     *
+     * @param decision 입력 값
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private void writeRateLimitResponse(HttpServletResponse response, RateDecision decision) throws IOException {
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -154,12 +257,24 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param retryAfterMillis 입력 값
+     *
+     * @return 처리 결과
+     */
     private long toRetryAfterSeconds(long retryAfterMillis) {
         return Math.max(1L, (retryAfterMillis + MILLIS_PER_SECOND - 1L) / MILLIS_PER_SECOND);
     }
 
     private record RateWindow(long windowStartMillis, int count) {
 
+        /**
+         * 업무 처리를 수행합니다.
+         *
+         * @return 처리 결과
+         */
         private RateWindow incremented() {
             return new RateWindow(windowStartMillis, count + 1);
         }

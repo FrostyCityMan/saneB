@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MemberBasicInfoServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.member.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -95,39 +107,150 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
     );
     private static final Set<String> DOCUMENT_TEXT_FIELD_TYPES = Set.of("TEXT", "TEXTAREA", "SELECT", "RADIO", "MULTI_SELECT");
     private static final Map<String, String> DOCUMENT_TYPE_LABELS = Map.ofEntries(
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param BUSINESS_REGISTRATION 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("BUSINESS_REGISTRATION", "사업자등록증"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param VAT_TAX_BASE 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("VAT_TAX_BASE", "부가세과세표준증명원"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param TAX_EXEMPT_INCOME 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("TAX_EXEMPT_INCOME", "수입금액증명원(면세사업자)"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param INCOME_CERTIFICATE 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("INCOME_CERTIFICATE", "소득금액증명원"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param NATIONAL_TAX_PAID 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("NATIONAL_TAX_PAID", "국세완납증명서"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param LOCAL_TAX_PAID 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("LOCAL_TAX_PAID", "지방세완납증명서"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param RESIDENT_REGISTRATION 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("RESIDENT_REGISTRATION", "주민등록등본"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param FAMILY_RELATION 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("FAMILY_RELATION", "가족관계증명서"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param HEALTH_INSURANCE_PAYMENT 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("HEALTH_INSURANCE_PAYMENT", "건강보험료 납부확인서"),
+            /**
+             * 업무 처리를 수행합니다.
+             *
+             * @param HEALTH_INSURANCE_QUALIFICATION 입력 값
+             *
+             * @return 처리 결과
+             */
             Map.entry("HEALTH_INSURANCE_QUALIFICATION", "건강보험 자격확인서")
     );
 
     private final MemberBasicInfoDao memberBasicInfoDao;
     private final MatchingService matchingService;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param memberBasicInfoDao 입력 값
+     *
+     * @param matchingService 입력 값
+     */
     public MemberBasicInfoServiceImpl(MemberBasicInfoDao memberBasicInfoDao, MatchingService matchingService) {
         this.memberBasicInfoDao = memberBasicInfoDao;
         this.matchingService = matchingService;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public MemberBasicInfoResponse selectMyBasicInfo(Authentication authentication) {
         UUID userId = selectCurrentUserId(authentication);
         return selectBasicInfoResponse(userId);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MemberBasicInfoResponse saveMyBasicInfo(Authentication authentication, MemberBasicInfoSaveRequest request) {
         UUID userId = selectCurrentUserId(authentication);
         return saveBasicInfo(userId, userId, request);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public MemberBasicInfoResponse selectMemberBasicInfo(Authentication authentication, UUID userId) {
         selectCurrentUserId(authentication);
@@ -135,7 +258,29 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return selectBasicInfoResponse(userId);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MemberBasicInfoResponse saveMemberBasicInfo(
             Authentication authentication,
@@ -147,6 +292,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return saveBasicInfo(userId, actorUserId, request);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private MemberBasicInfoResponse saveBasicInfo(UUID userId, UUID actorUserId, MemberBasicInfoSaveRequest request) {
         validateBirthYear(request.birthYear(), "출생연도");
         String incomePresenceCode = normalizeCode(request.incomePresenceCode());
@@ -237,6 +393,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return selectBasicInfoResponse(userId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private MemberBasicInfoResponse selectBasicInfoResponse(UUID userId) {
         MemberProfileRow member = memberBasicInfoDao.selectMemberProfileDetails(userId);
         BusinessProfileRow business = memberBasicInfoDao.selectBusinessProfileDetails(userId);
@@ -281,6 +444,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private MemberBasicInfoResponse.BusinessInfoResponse selectBusinessResponse(BusinessProfileRow row) {
         if (row == null) {
             return null;
@@ -318,6 +488,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<InterviewResponse> selectInterviewResponses(UUID userId) {
         return memberBasicInfoDao.selectMemberInterviewResponseList(userId).stream()
                 .map(row -> new InterviewResponse(
@@ -330,6 +507,15 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 .toList();
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param responses 입력 값
+     */
     private void saveInterviewResponses(UUID userId, UUID actorUserId, List<InterviewResponseRequest> responses) {
         memberBasicInfoDao.deleteMemberInterviewResponseList(userId);
         Set<String> savedQuestionCodes = new HashSet<>();
@@ -354,6 +540,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<DocumentInputResponse> selectDocumentInputResponses(UUID userId) {
         List<MemberDocumentFieldRow> fields = memberBasicInfoDao.selectMemberDocumentFieldList();
         Map<UUID, MemberDocumentInputValueRow> valueByFieldId = new HashMap<>();
@@ -382,6 +575,15 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return responses;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param field 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private DocumentFieldInputResponse selectDocumentFieldResponse(
             MemberDocumentFieldRow field,
             MemberDocumentInputValueRow value
@@ -402,6 +604,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         );
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param field 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasDocumentFieldResponseValue(DocumentFieldInputResponse field) {
         return trimToNull(field.valueText()) != null
                 || field.valueNumber() != null
@@ -409,6 +618,15 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 || field.valueBoolean() != null;
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param documents 입력 값
+     */
     private void saveDocumentInputValues(UUID userId, UUID actorUserId, List<DocumentInputSaveRequest> documents) {
         List<MemberDocumentFieldRow> fields = memberBasicInfoDao.selectMemberDocumentFieldList();
         Map<UUID, MemberDocumentFieldRow> fieldById = new HashMap<>();
@@ -459,6 +677,19 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param field 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private MemberDocumentInputValueCommand selectDocumentValueCommand(
             UUID userId,
             UUID actorUserId,
@@ -495,6 +726,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         throw validationFailed(field.fieldLabel() + "의 입력 유형을 확인하세요.");
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param field 입력 값
+     *
+     * @param value 입력 값
+     */
     private void validateSingleDocumentValue(MemberDocumentFieldRow field, DocumentFieldValueRequest value) {
         int valueCount = 0;
         if (normalizeDocumentTextValue(value.valueText()) != null) {
@@ -514,6 +752,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         }
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasDocumentFieldValue(DocumentFieldValueRequest value) {
         return value != null
                 && (normalizeDocumentTextValue(value.valueText()) != null
@@ -522,18 +767,50 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 || value.valueBoolean() != null);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeDocumentTextValue(String value) {
         return trimToNull(value);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param documents 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<DocumentInputSaveRequest> safeDocumentInputs(List<DocumentInputSaveRequest> documents) {
         return documents == null ? List.of() : documents;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fields 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<DocumentFieldValueRequest> safeDocumentFields(List<DocumentFieldValueRequest> fields) {
         return fields == null ? List.of() : fields;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param business 입력 값
+     *
+     * @return 처리 결과
+     */
     private BusinessProfileCommand selectBusinessProfileCommand(
             UUID userId,
             UUID actorUserId,
@@ -594,6 +871,17 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param family 입력 값
+     *
+     * @return 처리 결과
+     */
     private FamilyMemberCommand selectFamilyMemberCommand(
             UUID userId,
             UUID actorUserId,
@@ -624,12 +912,26 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param families 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<MemberBasicInfoSaveRequest.FamilyInfoRequest> safeFamilies(
             List<MemberBasicInfoSaveRequest.FamilyInfoRequest> families
     ) {
         return families == null ? List.of() : families;
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param business 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean isEmptyBusiness(MemberBasicInfoSaveRequest.BusinessInfoRequest business) {
         return trimToNull(business.businessRegistrationNo()) == null
                 && trimToNull(business.representativeName()) == null
@@ -662,10 +964,26 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
                 && business.hasGuaranteeUsage() == null;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param responses 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<InterviewResponseRequest> safeInterviewResponses(List<InterviewResponseRequest> responses) {
         return responses == null ? List.of() : responses;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param explicitValue 입력 값
+     *
+     * @param incomePresenceCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private Boolean normalizeIncomeFlag(Boolean explicitValue, String incomePresenceCode) {
         if ("HAS_INCOME".equals(incomePresenceCode)) {
             return true;
@@ -676,52 +994,115 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return explicitValue;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param birthYear 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateBirthYear(Integer birthYear, String label) {
         validateYear(birthYear, label);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param year 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateYear(Integer year, String label) {
         if (year != null && (year < 1900 || year > 2200)) {
             throw validationFailed(label + "는 1900년부터 2200년 사이로 입력하세요.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param openingDate 입력 값
+     */
     private void validateBusinessDate(LocalDate openingDate) {
         if (openingDate != null && openingDate.isAfter(LocalDate.now())) {
             throw validationFailed("개업일은 오늘 이후 날짜로 입력할 수 없습니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateNonNegative(Integer value, String label) {
         if (value != null && value < 0) {
             throw validationFailed(label + "는 0 이상으로 입력하세요.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateCreditScore(Integer value, String label) {
         if (value != null && (value < 0 || value > 1000)) {
             throw validationFailed(label + "는 0부터 1000 사이로 입력하세요.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateRequiredCode(String value, Set<String> allowedValues, String label) {
         if (value == null || !allowedValues.contains(value)) {
             throw validationFailed(label + " 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @param label 입력 값
+     */
     private void validateOptionalCode(String value, Set<String> allowedValues, String label) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(label + " 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param userId 입력 값
+     */
     private void validateUserExists(UUID userId) {
         if (userId == null || memberBasicInfoDao.selectUserCountByUserId(userId) < 1) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -736,11 +1117,25 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return userId;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -749,6 +1144,13 @@ public class MemberBasicInfoServiceImpl implements MemberBasicInfoService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }

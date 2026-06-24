@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DynamicAnnouncementInputSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dynamicinput.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +56,11 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localOperatorSavesDynamicRequirementsAndProgressInputValues() throws Exception {
         MockHttpSession session = loginLocalOperator();
@@ -294,6 +311,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
                 .andExpect(jsonPath("$.data.errorCode").value("VALIDATION_FAILED"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalOperator() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -312,6 +336,11 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         throw new IllegalStateException("local_operator login failed for dynamic input smoke.");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @return 처리 결과
+     */
     private DynamicInputFixture insertFixture() {
         String fixtureKey = UUID.randomUUID().toString();
         UUID memberUserId = UUID.randomUUID();
@@ -331,6 +360,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return new DynamicInputFixture(announcementId, progressId, stepId);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param loginId 입력 값
+     */
     private void insertMemberUser(UUID memberUserId, String loginId) {
         jdbcTemplate.update(
                 """
@@ -362,6 +398,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param title 입력 값
+     */
     private void insertAnnouncement(UUID announcementId, String title) {
         jdbcTemplate.update(
                 """
@@ -394,6 +437,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepId 입력 값
+     *
+     * @param announcementId 입력 값
+     */
     private void insertStep(UUID stepId, UUID announcementId) {
         jdbcTemplate.update(
                 """
@@ -418,6 +468,11 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepId 입력 값
+     */
     private void insertStepButton(UUID stepId) {
         jdbcTemplate.update(
                 """
@@ -438,6 +493,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param memberUserId 입력 값
+     */
     private void insertVerification(UUID verificationId, UUID memberUserId) {
         jdbcTemplate.update(
                 """
@@ -464,6 +526,17 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param verificationId 입력 값
+     */
     private void insertMatchingCase(UUID matchingCaseId, UUID announcementId, UUID memberUserId, UUID verificationId) {
         jdbcTemplate.update(
                 """
@@ -489,6 +562,19 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param stepId 입력 값
+     */
     private void insertApplicationProgress(
             UUID progressId,
             UUID matchingCaseId,
@@ -535,6 +621,15 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private RequirementIds selectRequirementIds(MvcResult result) throws Exception {
         JsonNode requirements = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8))
                 .path("data")
@@ -559,6 +654,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return new RequirementIds(privateMemoId, requestAmountId, applicationMethodId, supportTypesId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectRequirementCount(UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -572,6 +674,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectOptionCount(UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -586,6 +695,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectInputValueCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -599,6 +715,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectInputValueOptionCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -613,6 +736,13 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectInputAuditCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -628,6 +758,15 @@ class DynamicAnnouncementInputSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param privateText 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditPrivacyLeakCount(UUID progressId, String privateText) {
         Long count = jdbcTemplate.queryForObject(
                 """

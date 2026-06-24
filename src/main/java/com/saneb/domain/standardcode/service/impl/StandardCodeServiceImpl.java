@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: StandardCodeServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.standardcode.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -22,10 +34,20 @@ public class StandardCodeServiceImpl implements StandardCodeService {
 
     private final StandardCodeDao standardCodeDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param standardCodeDao 입력 값
+     */
     public StandardCodeServiceImpl(StandardCodeDao standardCodeDao) {
         this.standardCodeDao = standardCodeDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     */
     @Override
     public List<StandardCodeGroupResponse> selectStandardCodeGroupList() {
         return standardCodeDao.selectStandardCodeGroupList().stream()
@@ -33,6 +55,21 @@ public class StandardCodeServiceImpl implements StandardCodeService {
                 .toList();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param groupCode 입력 값
+     *
+     * @param keyword 입력 값
+     *
+     * @param active 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<StandardCodeResponse> selectStandardCodeList(
             String groupCode,
@@ -58,6 +95,13 @@ public class StandardCodeServiceImpl implements StandardCodeService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private StandardCodeGroupResponse toGroupResponse(StandardCodeGroupRow row) {
         return new StandardCodeGroupResponse(
                 row.standardCodeGroupId(),
@@ -70,6 +114,13 @@ public class StandardCodeServiceImpl implements StandardCodeService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private StandardCodeResponse toCodeResponse(StandardCodeRow row) {
         return new StandardCodeResponse(
                 row.standardCodeId(),
@@ -84,6 +135,13 @@ public class StandardCodeServiceImpl implements StandardCodeService {
         );
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(
@@ -94,6 +152,15 @@ public class StandardCodeServiceImpl implements StandardCodeService {
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value) {
         String normalized = trimToNull(value);
         if (normalized == null) {
@@ -106,6 +173,13 @@ public class StandardCodeServiceImpl implements StandardCodeService {
         return normalized.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;

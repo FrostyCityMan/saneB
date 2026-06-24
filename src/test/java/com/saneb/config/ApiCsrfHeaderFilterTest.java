@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ApiCsrfHeaderFilterTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +27,11 @@ class ApiCsrfHeaderFilterTest {
 
     private final ApiCsrfHeaderFilter filter = new ApiCsrfHeaderFilter(new ObjectMapper());
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void authenticatedBrowserApiMutationRequiresMatchingCsrfHeader() throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -34,6 +51,11 @@ class ApiCsrfHeaderFilterTest {
                 .contains("화면을 새로고침한 뒤 다시 시도하세요.");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void authenticatedBrowserApiMutationPassesWithMatchingCsrfHeader() throws Exception {
         MockHttpServletRequest request = apiPost(
@@ -49,6 +71,11 @@ class ApiCsrfHeaderFilterTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void apiMutationWithoutBrowserSessionCookiePassesForServerAndTestClients() throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -58,6 +85,11 @@ class ApiCsrfHeaderFilterTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void paymentWebhookIsExcludedFromBrowserCsrfHeaderRule() throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -72,12 +104,28 @@ class ApiCsrfHeaderFilterTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param uri 입력 값
+     *
+     * @return 처리 결과
+     */
     private MockHttpServletRequest apiPost(String uri) {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", uri);
         request.setRequestURI(uri);
         return request;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param uri 입력 값
+     *
+     * @param cookies 입력 값
+     *
+     * @return 처리 결과
+     */
     private MockHttpServletRequest apiPost(String uri, Cookie... cookies) {
         MockHttpServletRequest request = apiPost(uri);
         request.setCookies(cookies);

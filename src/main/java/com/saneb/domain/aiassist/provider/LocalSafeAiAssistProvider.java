@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: LocalSafeAiAssistProvider.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.aiassist.provider;
 
 import org.springframework.core.env.Environment;
@@ -12,11 +24,23 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
     private final String providerCode;
     private final String modelCode;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param environment 입력 값
+     */
     public LocalSafeAiAssistProvider(Environment environment) {
         this.providerCode = environment.getProperty("saneb.ai.provider-code", DEFAULT_PROVIDER_CODE);
         this.modelCode = environment.getProperty("saneb.ai.model-code", DEFAULT_MODEL_CODE);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AiAssistProviderResponse generate(AiAssistProviderRequest request) {
         String resultText = switch (request.assistTypeCode()) {
@@ -41,6 +65,11 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String announcementSummaryTemplate() {
         return """
                 공고 요약 초안
@@ -51,6 +80,11 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String documentDraftTemplate() {
         return """
                 필요 서류 초안
@@ -62,6 +96,11 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String operationMemoTemplate() {
         return """
                 운영 메모 요약 초안
@@ -72,6 +111,11 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String userReplyTemplate() {
         return """
                 사용자 답변 초안
@@ -81,6 +125,11 @@ public class LocalSafeAiAssistProvider implements AiAssistProvider {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String generalTemplate() {
         return """
                 AI 보조 초안

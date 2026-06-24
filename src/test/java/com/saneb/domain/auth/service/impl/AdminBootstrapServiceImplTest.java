@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminBootstrapServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auth.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +38,9 @@ class AdminBootstrapServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * 업무 데이터를 저장합니다.
+     */
     @Test
     void saveBootstrapAdminSkipsWhenActiveAdminExists() {
         when(adminBootstrapDao.selectActiveAdminCount()).thenReturn(1);
@@ -38,6 +53,9 @@ class AdminBootstrapServiceImplTest {
         verify(adminBootstrapDao, never()).insertAdminRole(any());
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     */
     @Test
     void saveBootstrapAdminInsertsAdminWhenNoActiveAdminExists() {
         when(adminBootstrapDao.selectActiveAdminCount()).thenReturn(0);
@@ -55,6 +73,9 @@ class AdminBootstrapServiceImplTest {
         assertThat(captor.getValue().name()).isEqualTo("관리자");
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     */
     @Test
     void saveBootstrapAdminUpdatesExistingLoginWhenNoActiveAdminExists() {
         UUID existingUserId = UUID.randomUUID();
@@ -71,6 +92,9 @@ class AdminBootstrapServiceImplTest {
         assertThat(captor.getValue().userId()).isEqualTo(existingUserId);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     */
     @Test
     void saveBootstrapAdminRejectsShortPassword() {
         AdminBootstrapServiceImpl service = new AdminBootstrapServiceImpl(adminBootstrapDao, passwordEncoder);

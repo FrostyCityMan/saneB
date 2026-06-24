@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AiAssistControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.aiassist.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +54,9 @@ class AiAssistControllerSmokeTest {
     @MockitoBean
     private AiAssistService aiAssistService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         AiAssistResponse response = response("PENDING_REVIEW");
@@ -52,6 +67,11 @@ class AiAssistControllerSmokeTest {
         when(aiAssistService.updateAiAssistResultReview(any(), eq(RESULT_ID), any())).thenReturn(response("ACCEPTED"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAiAssistRequestReturnsDraftResponse() throws Exception {
         mockMvc.perform(post("/api/v1/ai-assist/requests")
@@ -70,6 +90,11 @@ class AiAssistControllerSmokeTest {
                 .andExpect(jsonPath("$.data.reviewStatusCode").value("PENDING_REVIEW"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectAiAssistRequestListReturnsPageResponse() throws Exception {
         mockMvc.perform(get("/api/v1/ai-assist/requests")
@@ -79,6 +104,11 @@ class AiAssistControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateAiAssistResultReviewReturnsUpdatedStatus() throws Exception {
         mockMvc.perform(patch("/api/v1/ai-assist/results/{resultId}/review", RESULT_ID)
@@ -93,6 +123,11 @@ class AiAssistControllerSmokeTest {
                 .andExpect(jsonPath("$.data.reviewStatusCode").value("ACCEPTED"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAiAssistRequestRejectsUserRole() throws Exception {
         mockMvc.perform(post("/api/v1/ai-assist/requests")
@@ -107,6 +142,13 @@ class AiAssistControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param reviewStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private AiAssistResponse response(String reviewStatusCode) {
         return new AiAssistResponse(
                 REQUEST_ID,
@@ -125,14 +167,31 @@ class AiAssistControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return principal(List.of("OPERATOR"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return principal(List.of("USER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal(List<String> roles) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

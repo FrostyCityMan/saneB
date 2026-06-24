@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: BillingControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.billing.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +63,9 @@ class BillingControllerSmokeTest {
     @MockitoBean
     private BillingService billingService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(billingService.selectSubscriptionPlanList(any(), any(), eq(1), eq(20)))
@@ -80,6 +95,11 @@ class BillingControllerSmokeTest {
                 .thenReturn(providerEvent());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectSubscriptionPlanListReturnsPagedApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/subscription-plans")
@@ -91,6 +111,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].planCode").value("BASIC"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertSubscriptionPlanRejectsUserRole() throws Exception {
         mockMvc.perform(post("/api/v1/subscription-plans")
@@ -100,6 +125,11 @@ class BillingControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertSubscriptionPlanReturnsApiResponseForOperator() throws Exception {
         mockMvc.perform(post("/api/v1/subscription-plans")
@@ -110,6 +140,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.planId").value(PLAN_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertSubscriptionReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/subscriptions")
@@ -125,6 +160,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("PENDING"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertPaymentReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/payments")
@@ -143,6 +183,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("REQUESTED"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertMockMonthlyPaymentReturnsActiveSubscription() throws Exception {
         mockMvc.perform(post("/api/v1/mock-payments/monthly-subscription")
@@ -161,6 +206,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.resultMessage").value("모의 결제가 완료되어 월 구독이 활성화되었습니다."));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertMockMonthlyPaymentRejectsOperatorRole() throws Exception {
         mockMvc.perform(post("/api/v1/mock-payments/monthly-subscription")
@@ -175,6 +225,11 @@ class BillingControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updatePaymentStatusRejectsUserRole() throws Exception {
         mockMvc.perform(patch("/api/v1/payments/{paymentId}/status", PAYMENT_ID)
@@ -188,6 +243,11 @@ class BillingControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertRefundReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/refunds")
@@ -204,6 +264,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.refundId").value(REFUND_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertPaymentProviderEventIsAvailableWithoutLoginButUsesSecretHeader() throws Exception {
         mockMvc.perform(post("/api/v1/payment-webhooks/MANUAL")
@@ -222,6 +287,11 @@ class BillingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.providerEventId").value("event-001"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String planRequest() {
         return """
                 {
@@ -236,6 +306,11 @@ class BillingControllerSmokeTest {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private SubscriptionPlanResponse plan() {
         return new SubscriptionPlanResponse(
                 PLAN_ID,
@@ -252,6 +327,13 @@ class BillingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserSubscriptionResponse subscription(String statusCode) {
         return new UserSubscriptionResponse(
                 SUBSCRIPTION_ID,
@@ -272,6 +354,13 @@ class BillingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentTransactionResponse payment(String statusCode) {
         return new PaymentTransactionResponse(
                 PAYMENT_ID,
@@ -294,6 +383,13 @@ class BillingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private RefundTransactionResponse refund(String statusCode) {
         return new RefundTransactionResponse(
                 REFUND_ID,
@@ -314,6 +410,11 @@ class BillingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private PaymentProviderEventResponse providerEvent() {
         return new PaymentProviderEventResponse(
                 EVENT_ID,
@@ -327,14 +428,35 @@ class BillingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return principal(USER_ID, "local_user", List.of("USER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return principal(USER_ID, "local_operator", List.of("OPERATOR"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param loginId 입력 값
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal(UUID userId, String loginId, List<String> roles) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

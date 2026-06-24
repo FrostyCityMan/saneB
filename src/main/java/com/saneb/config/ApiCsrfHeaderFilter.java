@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ApiCsrfHeaderFilter.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,10 +41,28 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param objectMapper 입력 값
+     */
     public ApiCsrfHeaderFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param response 입력 값
+     *
+     * @param filterChain 입력 값
+     *
+     * @throws ServletException 처리 중 예외가 발생한 경우
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -54,6 +84,13 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
         writeForbiddenResponse(response);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean requiresCsrfHeader(HttpServletRequest request) {
         if (SAFE_METHODS.contains(request.getMethod())) {
             return false;
@@ -67,6 +104,13 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
         return StringUtils.hasText(selectCookieValue(request, SESSION_COOKIE_NAME));
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizedPath(HttpServletRequest request) {
         String path = request.getRequestURI();
         String contextPath = request.getContextPath();
@@ -76,6 +120,15 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
         return path;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param cookieName 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectCookieValue(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -89,6 +142,13 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
         return "";
     }
 
+    /**
+     * 응답 데이터를 작성합니다.
+     *
+     * @param response 입력 값
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private void writeForbiddenResponse(HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

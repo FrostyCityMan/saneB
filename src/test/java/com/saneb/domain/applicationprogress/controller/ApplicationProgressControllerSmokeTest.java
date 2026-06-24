@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ApplicationProgressControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.applicationprogress.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +61,11 @@ class ApplicationProgressControllerSmokeTest {
     @MockBean
     private ApplicationProgressService applicationProgressService;
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertApplicationProgressReturnsApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.insertApplicationProgress(any(), any()))
@@ -68,6 +85,11 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("READY"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectApplicationProgressListReturnsPagedApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.selectApplicationProgressList(
@@ -86,6 +108,11 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectApplicationProgressDetailsReturnsApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.selectApplicationProgressDetails(PROGRESS_ID))
@@ -99,6 +126,11 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.stepButtons[0].buttonLabel").value("진행 원함"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateStepActionReturnsApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.updateProgressStepAction(any(), eq(PROGRESS_ID), eq(STEP_ID), any()))
@@ -120,6 +152,11 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("IN_PROGRESS"));
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void saveDocumentsReturnsApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.saveProgressStepDocuments(any(), eq(PROGRESS_ID), eq(STEP_ID), any()))
@@ -143,6 +180,11 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.checklists[0].checked").value(true));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateReceiptAndResultReturnApiResponse() throws Exception {
         org.mockito.Mockito.when(applicationProgressService.updateProgressReceipt(any(), eq(PROGRESS_ID), any()))
@@ -179,6 +221,13 @@ class ApplicationProgressControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("APPROVED"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationProgressSummaryResponse summary(String statusCode) {
         OffsetDateTime now = OffsetDateTime.now();
         return new ApplicationProgressSummaryResponse(
@@ -202,6 +251,13 @@ class ApplicationProgressControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationProgressDetailsResponse details(String statusCode) {
         OffsetDateTime now = OffsetDateTime.now();
         return new ApplicationProgressDetailsResponse(
@@ -256,6 +312,11 @@ class ApplicationProgressControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -273,6 +334,11 @@ class ApplicationProgressControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

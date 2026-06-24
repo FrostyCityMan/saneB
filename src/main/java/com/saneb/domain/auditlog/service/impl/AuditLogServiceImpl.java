@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuditLogServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auditlog.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -38,10 +50,32 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     private final AuditLogDao auditLogDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param auditLogDao 입력 값
+     */
     public AuditLogServiceImpl(AuditLogDao auditLogDao) {
         this.auditLogDao = auditLogDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceType 입력 값
+     *
+     * @param resultCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<AuditLogSummaryResponse> selectAuditLogList(
             String keyword,
@@ -73,6 +107,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param auditLogId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AuditLogDetailsResponse selectAuditLogDetails(UUID auditLogId) {
         AuditLogDetailsRow row = auditLogDao.selectAuditLogDetails(auditLogId);
@@ -82,6 +123,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         return toDetailsResponse(row);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuditLogSummaryResponse toSummaryResponse(AuditLogSummaryRow row) {
         return new AuditLogSummaryResponse(
                 row.auditLogId(),
@@ -98,6 +146,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuditLogDetailsResponse toDetailsResponse(AuditLogDetailsRow row) {
         return new AuditLogDetailsResponse(
                 row.auditLogId(),
@@ -117,6 +172,15 @@ public class AuditLogServiceImpl implements AuditLogService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param actorName 입력 값
+     *
+     * @param actorLoginId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String actorDisplayName(String actorName, String actorLoginId) {
         if (actorName != null && !actorName.isBlank() && actorLoginId != null && !actorLoginId.isBlank()) {
             return actorName + " (" + actorLoginId + ")";
@@ -130,6 +194,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         return "시스템";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param actionCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String actionLabel(String actionCode) {
         return switch (actionCode) {
             case "USER_STATUS_UPDATE" -> "계정 상태 변경";
@@ -169,6 +240,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         };
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param resourceType 입력 값
+     *
+     * @return 처리 결과
+     */
     private String resourceLabel(String resourceType) {
         return switch (resourceType) {
             case "USER" -> "회원";
@@ -187,6 +265,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         };
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param resultCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String resultLabel(String resultCode) {
         return switch (resultCode) {
             case "SUCCESS" -> "성공";
@@ -195,6 +280,13 @@ public class AuditLogServiceImpl implements AuditLogService {
         };
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(
@@ -205,6 +297,15 @@ public class AuditLogServiceImpl implements AuditLogService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param code 입력 값
+     *
+     * @param allowedCodes 입력 값
+     */
     private void validateOptionalCode(String fieldName, String code, Set<String> allowedCodes) {
         if (code != null && !allowedCodes.contains(code)) {
             throw new ApiException(
@@ -215,11 +316,25 @@ public class AuditLogServiceImpl implements AuditLogService {
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase();
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

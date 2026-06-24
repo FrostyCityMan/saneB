@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: BillingServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.billing.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,11 +60,17 @@ class BillingServiceImplTest {
 
     private BillingServiceImpl billingService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         billingService = new BillingServiceImpl(billingDao, "secret");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertUserSubscriptionActivatesFreePlanWithoutPayment() {
         when(billingDao.selectSubscriptionPlanDetails(PLAN_ID)).thenReturn(plan(BigDecimal.ZERO));
@@ -72,6 +90,9 @@ class BillingServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("ACTIVE");
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     */
     @Test
     void updatePaymentTransactionStatusApprovesPaymentAndActivatesSubscription() {
         when(billingDao.selectPaymentTransactionDetails(PAYMENT_ID))
@@ -97,6 +118,9 @@ class BillingServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("APPROVED");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertRefundRejectsAmountGreaterThanRemainingApprovedPayment() {
         when(billingDao.selectPaymentTransactionDetails(PAYMENT_ID)).thenReturn(payment("APPROVED"));
@@ -111,6 +135,9 @@ class BillingServiceImplTest {
                 .isEqualTo(ErrorCode.VALIDATION_FAILED);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertPaymentProviderEventRejectsMissingSecret() {
         assertThatThrownBy(() -> billingService.insertPaymentProviderEvent(
@@ -135,6 +162,9 @@ class BillingServiceImplTest {
                 .isEqualTo(ErrorCode.AUTH_FORBIDDEN);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertPaymentProviderEventApprovesPaymentWithValidSecret() {
         when(billingDao.selectPaymentProviderEventByKey("MANUAL", "event-001"))
@@ -166,6 +196,13 @@ class BillingServiceImplTest {
         assertThat(response.resultCode()).isEqualTo("RECEIVED");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param priceAmount 입력 값
+     *
+     * @return 처리 결과
+     */
     private SubscriptionPlanRow plan(BigDecimal priceAmount) {
         return new SubscriptionPlanRow(
                 PLAN_ID,
@@ -182,6 +219,13 @@ class BillingServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserSubscriptionRow subscription(String statusCode) {
         return new UserSubscriptionRow(
                 SUBSCRIPTION_ID,
@@ -202,6 +246,13 @@ class BillingServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private PaymentTransactionRow payment(String statusCode) {
         return new PaymentTransactionRow(
                 PAYMENT_ID,
@@ -224,6 +275,11 @@ class BillingServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private com.saneb.domain.billing.vo.PaymentProviderEventRow providerEvent() {
         return new com.saneb.domain.billing.vo.PaymentProviderEventRow(
                 REFUND_ID,
@@ -237,6 +293,15 @@ class BillingServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private UsernamePasswordAuthenticationToken authentication(UUID userId, List<String> roles) {
         AuthenticatedUserDetails principal = new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

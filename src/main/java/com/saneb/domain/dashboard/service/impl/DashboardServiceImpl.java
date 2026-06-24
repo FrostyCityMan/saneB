@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DashboardServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dashboard.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -34,10 +46,22 @@ public class DashboardServiceImpl implements DashboardService {
 
     private final DashboardDao dashboardDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param dashboardDao 입력 값
+     */
     public DashboardServiceImpl(DashboardDao dashboardDao) {
         this.dashboardDao = dashboardDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public DashboardSummaryResponse selectMySummary(Authentication authentication) {
         UUID userId = selectCurrentUserId(authentication);
@@ -68,6 +92,13 @@ public class DashboardServiceImpl implements DashboardService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public DashboardCurrentActionResponse selectMyCurrentAction(Authentication authentication) {
         UUID userId = selectCurrentUserId(authentication);
@@ -168,6 +199,13 @@ public class DashboardServiceImpl implements DashboardService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public DashboardProgressSummaryResponse selectMyProgressSummary(Authentication authentication) {
         DashboardProgressSummaryRow summary = selectProgressSummary(selectCurrentUserId(authentication));
@@ -181,6 +219,13 @@ public class DashboardServiceImpl implements DashboardService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public DashboardReverificationStatusResponse selectMyReverificationStatus(Authentication authentication) {
         DashboardVerificationStatusRow verification = selectVerificationStatus(selectCurrentUserId(authentication));
@@ -198,6 +243,13 @@ public class DashboardServiceImpl implements DashboardService {
         return new DashboardReverificationStatusResponse(false, verification.verifiedAt(), null, List.of());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -209,6 +261,13 @@ public class DashboardServiceImpl implements DashboardService {
         return dashboardDao.selectUserIdByLoginId(authentication.getName());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private DashboardVerificationStatusRow selectVerificationStatus(UUID userId) {
         if (userId == null) {
             return null;
@@ -216,6 +275,13 @@ public class DashboardServiceImpl implements DashboardService {
         return dashboardDao.selectCurrentVerificationStatus(userId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private DashboardCandidateSummaryRow selectCandidateSummary(UUID userId) {
         if (userId == null) {
             return emptyCandidateSummary();
@@ -224,6 +290,13 @@ public class DashboardServiceImpl implements DashboardService {
         return row == null ? emptyCandidateSummary() : row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private DashboardProgressSummaryRow selectProgressSummary(UUID userId) {
         if (userId == null) {
             return emptyProgressSummary();
@@ -232,18 +305,46 @@ public class DashboardServiceImpl implements DashboardService {
         return row == null ? emptyProgressSummary() : row;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private DashboardCandidateSummaryRow emptyCandidateSummary() {
         return new DashboardCandidateSummaryRow(0, 0, 0, 0, 0, 0, 0, 0, null, null);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private DashboardProgressSummaryRow emptyProgressSummary() {
         return new DashboardProgressSummaryRow(0, 0, 0, 0, 0, BigDecimal.ZERO);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verification 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectVerificationStatusCode(DashboardVerificationStatusRow verification) {
         return verification == null ? "DRAFT" : verification.statusCode();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verification 입력 값
+     *
+     * @param progressSummary 입력 값
+     *
+     * @param candidateSummary 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectServiceStatusCode(
             DashboardVerificationStatusRow verification,
             DashboardProgressSummaryRow progressSummary,
@@ -267,10 +368,24 @@ public class DashboardServiceImpl implements DashboardService {
         return BASIC_INFO_REQUIRED;
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param candidateSummary 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasStartableMatching(DashboardCandidateSummaryRow candidateSummary) {
         return candidateSummary.startableMatchedCount() > 0;
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param candidateSummary 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasCandidate(DashboardCandidateSummaryRow candidateSummary) {
         return candidateSummary.policyFundCount() > 0
                 || candidateSummary.supportFundCount() > 0
@@ -283,6 +398,15 @@ public class DashboardServiceImpl implements DashboardService {
                 || candidateSummary.maxAmount() != null;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verification 입력 값
+     *
+     * @param candidateSummary 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectNoticeMessage(
             DashboardVerificationStatusRow verification,
             DashboardCandidateSummaryRow candidateSummary
@@ -293,6 +417,13 @@ public class DashboardServiceImpl implements DashboardService {
         return "기본정보 기준으로 현재 확인 가능한 공고입니다. 서류 입력 후 최종 매칭이 다시 정리됩니다.";
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param currentStep 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectCurrentStepDescription(DashboardCurrentStepRow currentStep) {
         if (currentStep.actionGuide() != null && !currentStep.actionGuide().isBlank()) {
             return currentStep.actionGuide();
@@ -300,6 +431,13 @@ public class DashboardServiceImpl implements DashboardService {
         return currentStep.guideMessage();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param stepStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private int selectStepDisplayOrder(String stepStatusCode) {
         return "IN_PROGRESS".equals(stepStatusCode) ? 10 : 20;
     }

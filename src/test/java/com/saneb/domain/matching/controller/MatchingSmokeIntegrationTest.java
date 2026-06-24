@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MatchingSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.matching.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +55,11 @@ class MatchingSmokeIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localOperatorCreatesMatchingCasesByVerifiedVerificationOnly() throws Exception {
         MockHttpSession session = loginLocalOperator();
@@ -132,6 +149,21 @@ class MatchingSmokeIntegrationTest {
         assertThat(selectAuditMetadataPrivacyLeakCount(List.of(matchedCaseId, reviewCaseId, blockedCaseId))).isEqualTo(0);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param session 입력 값
+     *
+     * @param fixture 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param resultCode 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID createMatchingCase(
             MockHttpSession session,
             MatchingFixture fixture,
@@ -159,6 +191,17 @@ class MatchingSmokeIntegrationTest {
         return matchingCaseId;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param session 입력 값
+     *
+     * @param fixture 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID createMatchingCaseWithoutVerification(
             MockHttpSession session,
             MatchingFixture fixture
@@ -185,6 +228,13 @@ class MatchingSmokeIntegrationTest {
         return matchingCaseId;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalOperator() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -203,10 +253,34 @@ class MatchingSmokeIntegrationTest {
         throw new IllegalStateException("local_operator login failed for matching smoke.");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param fixtureKey 입력 값
+     *
+     * @param suffix 입력 값
+     *
+     * @param restrictionCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingFixture insertFixture(String fixtureKey, String suffix, String restrictionCode) {
         return insertFixture(fixtureKey, suffix, restrictionCode, "APPROVED");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param fixtureKey 입력 값
+     *
+     * @param suffix 입력 값
+     *
+     * @param restrictionCode 입력 값
+     *
+     * @param approvalStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingFixture insertFixture(String fixtureKey, String suffix, String restrictionCode, String approvalStatusCode) {
         UUID memberUserId = UUID.randomUUID();
         UUID announcementId = UUID.randomUUID();
@@ -220,6 +294,15 @@ class MatchingSmokeIntegrationTest {
         return new MatchingFixture(announcementId, memberUserId, verificationId);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param fixtureKey 입력 값
+     *
+     * @param suffix 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingFixture insertFixtureWithoutVerification(String fixtureKey, String suffix) {
         UUID memberUserId = UUID.randomUUID();
         UUID announcementId = UUID.randomUUID();
@@ -228,6 +311,13 @@ class MatchingSmokeIntegrationTest {
         return new MatchingFixture(announcementId, memberUserId, null);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param loginId 입력 값
+     */
     private void insertMemberUser(UUID memberUserId, String loginId) {
         jdbcTemplate.update(
                 """
@@ -259,6 +349,15 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param approvalStatusCode 입력 값
+     */
     private void insertAnnouncement(UUID announcementId, String title, String approvalStatusCode) {
         jdbcTemplate.update(
                 """
@@ -292,6 +391,13 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param memberUserId 입력 값
+     */
     private void insertVerification(UUID verificationId, UUID memberUserId) {
         jdbcTemplate.update(
                 """
@@ -318,6 +424,13 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param restrictionCode 입력 값
+     */
     private void insertRestrictionFlag(UUID verificationId, String restrictionCode) {
         jdbcTemplate.update(
                 """
@@ -337,6 +450,13 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fixture 입력 값
+     *
+     * @return 처리 결과
+     */
     private String createRequest(MatchingFixture fixture) {
         return """
                 {
@@ -347,6 +467,13 @@ class MatchingSmokeIntegrationTest {
                 """.formatted(fixture.announcementId(), fixture.memberUserId(), fixture.verificationId());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fixture 입력 값
+     *
+     * @return 처리 결과
+     */
     private String createRequestWithoutVerification(MatchingFixture fixture) {
         return """
                 {
@@ -356,11 +483,27 @@ class MatchingSmokeIntegrationTest {
                 """.formatted(fixture.announcementId(), fixture.memberUserId());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID selectMatchingCaseId(MvcResult result) throws Exception {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
         return UUID.fromString(root.path("data").path("matchingCaseId").asText());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param fixture 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectMatchingCaseCount(MatchingFixture fixture) {
         if (fixture.verificationId() == null) {
             Long count = jdbcTemplate.queryForObject(
@@ -393,6 +536,13 @@ class MatchingSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectRequiredValue(UUID matchingCaseId) {
         return jdbcTemplate.queryForObject(
                 """
@@ -407,6 +557,13 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectResultCode(UUID matchingCaseId) {
         return jdbcTemplate.queryForObject(
                 """
@@ -421,6 +578,13 @@ class MatchingSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseIds 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectApplicationProgressCount(List<UUID> matchingCaseIds) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -436,6 +600,17 @@ class MatchingSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseIds 입력 값
+     *
+     * @param createdCount 입력 값
+     *
+     * @param skippedCount 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectMatchingCreateAuditCount(List<UUID> matchingCaseIds, String createdCount, String skippedCount) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -457,6 +632,13 @@ class MatchingSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectStatusUpdateAuditCount(UUID matchingCaseId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -473,6 +655,13 @@ class MatchingSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param failureReasonCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectFailureAuditCount(String failureReasonCode) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -491,6 +680,13 @@ class MatchingSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseIds 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditMetadataPrivacyLeakCount(List<UUID> matchingCaseIds) {
         Long count = jdbcTemplate.queryForObject(
                 """

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AddressServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.address.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +27,9 @@ import org.junit.jupiter.api.Test;
 
 class AddressServiceImplTest {
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectRoadAddressListMapsJusoResponse() {
         AddressServiceImpl service = new AddressServiceImpl(
@@ -47,6 +62,9 @@ class AddressServiceImplTest {
         assertThat(response.items().get(0).legalDongCode()).isEqualTo("3611010300");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectRoadAddressListRejectsShortKeyword() {
         AddressServiceImpl service = new AddressServiceImpl(
@@ -59,6 +77,9 @@ class AddressServiceImplTest {
                 .hasMessage("주소 검색어는 두 글자 이상 입력하세요.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectRoadAddressListRejectsDisabledApi() {
         AddressServiceImpl service = new AddressServiceImpl(
@@ -73,6 +94,13 @@ class AddressServiceImplTest {
 
     private record StubRoadAddressClient(RoadAddressApiResponse response) implements RoadAddressClient {
 
+        /**
+         * 업무 데이터를 조회합니다.
+         *
+         * @param condition 입력 값
+         *
+         * @return 처리 결과
+         */
         @Override
         public RoadAddressApiResponse selectRoadAddressList(AddressSearchCondition condition) {
             return response;

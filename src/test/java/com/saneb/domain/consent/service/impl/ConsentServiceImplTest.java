@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ConsentServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.consent.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,11 +56,17 @@ class ConsentServiceImplTest {
 
     private ConsentServiceImpl consentService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         consentService = new ConsentServiceImpl(consentDao);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectCurrentConsentListMapsCurrentVersions() {
         when(consentDao.selectCurrentConsentVersionList()).thenReturn(List.of(version("PRIVACY_POLICY")));
@@ -59,6 +77,9 @@ class ConsentServiceImplTest {
         assertThat(response.getFirst().consentName()).isEqualTo("개인정보 처리방침");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertMyConsentSavesCurrentVersionAndRequestMetadata() {
         when(consentDao.selectCurrentConsentVersionDetailsByCode("E_CERT")).thenReturn(version("E_CERT"));
@@ -82,6 +103,9 @@ class ConsentServiceImplTest {
         assertThat(captor.getValue().ipAddress()).isEqualTo("127.0.0.1");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertSignupRequiredConsentsStoresTermsAndPrivacy() {
         when(consentDao.selectCurrentConsentVersionDetailsByCode("TERMS_OF_SERVICE")).thenReturn(
@@ -102,6 +126,9 @@ class ConsentServiceImplTest {
                 .containsExactly("TERMS_OF_SERVICE", "PRIVACY_POLICY");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertMyConsentRejectsInvalidConsentCode() {
         assertThatThrownBy(() -> consentService.insertMyConsent(
@@ -114,6 +141,13 @@ class ConsentServiceImplTest {
                 .isEqualTo(ErrorCode.VALIDATION_FAILED);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param consentCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsentVersionRow version(String consentCode) {
         return new ConsentVersionRow(
                 CONSENT_VERSION_ID,
@@ -129,6 +163,13 @@ class ConsentServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param consentCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private UserConsentRow userConsent(String consentCode) {
         return new UserConsentRow(
                 USER_CONSENT_ID,
@@ -141,6 +182,11 @@ class ConsentServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private UsernamePasswordAuthenticationToken authentication() {
         AuthUserDetailsRow row = new AuthUserDetailsRow(
                 USER_ID,

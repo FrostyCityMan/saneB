@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminBootstrapServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auth.service.impl;
 
 import com.saneb.domain.auth.dao.AdminBootstrapDao;
@@ -19,12 +31,37 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
     private final AdminBootstrapDao adminBootstrapDao;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param adminBootstrapDao 입력 값
+     *
+     * @param passwordEncoder 입력 값
+     */
     public AdminBootstrapServiceImpl(AdminBootstrapDao adminBootstrapDao, PasswordEncoder passwordEncoder) {
         this.adminBootstrapDao = adminBootstrapDao;
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param rawPassword 입력 값
+     *
+     * @param name 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param rawPassword 입력 값
+     *
+     * @param name 입력 값
+     */
     @Transactional
     public void saveBootstrapAdmin(String loginId, String rawPassword, String name) {
         String normalizedLoginId = normalizeRequired("loginId", loginId);
@@ -54,6 +91,15 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
         adminBootstrapDao.insertAdminRole(command.userId());
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param field 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequired(String field, String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(field + " is required.");
@@ -61,6 +107,11 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
         return value.trim();
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param rawPassword 입력 값
+     */
     private void validatePassword(String rawPassword) {
         if (rawPassword == null || rawPassword.length() < MIN_BOOTSTRAP_PASSWORD_LENGTH) {
             throw new IllegalArgumentException("Bootstrap admin password must be at least 12 characters.");

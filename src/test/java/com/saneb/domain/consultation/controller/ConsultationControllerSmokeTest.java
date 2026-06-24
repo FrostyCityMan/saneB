@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ConsultationControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.consultation.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +57,9 @@ class ConsultationControllerSmokeTest {
     @MockitoBean
     private ConsultationService consultationService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(consultationService.selectConsultationSlotList(any(), any(), any(), any(), any(), eq(1), eq(20)))
@@ -58,6 +73,11 @@ class ConsultationControllerSmokeTest {
                 .thenReturn(reservation("CONFIRMED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectConsultationSlotListReturnsPagedApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/consultation-slots")
@@ -69,6 +89,11 @@ class ConsultationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].slotId").value(SLOT_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertConsultationSlotReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/consultation-slots")
@@ -86,6 +111,11 @@ class ConsultationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("OPEN"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertConsultationSlotRejectsUserRole() throws Exception {
         mockMvc.perform(post("/api/v1/consultation-slots")
@@ -100,6 +130,11 @@ class ConsultationControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertConsultationReservationReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/consultation-reservations")
@@ -117,6 +152,11 @@ class ConsultationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("REQUESTED"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateConsultationReservationStatusReturnsApiResponse() throws Exception {
         mockMvc.perform(patch("/api/v1/consultation-reservations/{reservationId}/status", RESERVATION_ID)
@@ -133,6 +173,11 @@ class ConsultationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("CONFIRMED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectConsultationReservationListReturnsPagedApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/consultation-reservations")
@@ -144,6 +189,13 @@ class ConsultationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].reservationId").value(RESERVATION_ID.toString()));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationSlotResponse slot(String statusCode) {
         return new ConsultationSlotResponse(
                 SLOT_ID,
@@ -157,6 +209,13 @@ class ConsultationControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationReservationResponse reservation(String statusCode) {
         return new ConsultationReservationResponse(
                 RESERVATION_ID,
@@ -183,14 +242,35 @@ class ConsultationControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return principal(USER_ID, "local_user", List.of("USER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails partnerPrincipal() {
         return principal(PARTNER_USER_ID, "local_partner", List.of("PARTNER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param loginId 입력 값
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal(UUID userId, String loginId, List<String> roles) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

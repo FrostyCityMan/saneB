@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DynamicAnnouncementInputServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dynamicinput.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -62,10 +74,22 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
 
     private final DynamicAnnouncementInputDao dynamicAnnouncementInputDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param dynamicAnnouncementInputDao 입력 값
+     */
     public DynamicAnnouncementInputServiceImpl(DynamicAnnouncementInputDao dynamicAnnouncementInputDao) {
         this.dynamicAnnouncementInputDao = dynamicAnnouncementInputDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AnnouncementInputRequirementsResponse selectAnnouncementInputRequirements(UUID announcementId) {
         validateAnnouncementExists(announcementId);
@@ -76,7 +100,29 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AnnouncementInputRequirementsResponse saveAnnouncementInputRequirements(
             Authentication authentication,
@@ -153,6 +199,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return selectAnnouncementInputRequirements(announcementId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public ApplicationInputValuesResponse selectApplicationInputValues(Authentication authentication, UUID progressId) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
@@ -160,6 +215,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return selectApplicationInputValuesResponse(progress);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param documentTypeCode 입력 값
+     *
+     * @param scopeCode 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public List<StandardDocumentFieldResponse> selectStandardDocumentFieldList(
             String documentTypeCode,
@@ -178,7 +242,29 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 .toList();
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ApplicationInputValuesResponse saveApplicationInputValues(
             Authentication authentication,
@@ -231,6 +317,17 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return selectApplicationInputValuesResponse(progress);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param requirementId 입력 값
+     *
+     * @param fieldTypeCode 입력 값
+     *
+     * @param options 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void saveOptions(
             UUID requirementId,
             String fieldTypeCode,
@@ -283,10 +380,22 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param requirementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<AnnouncementInputOptionRow> selectOptionRows(UUID requirementId) {
         return dynamicAnnouncementInputDao.selectAnnouncementInputOptionListByRequirementId(requirementId);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param request 입력 값
+     */
     private void validateRequirementsRequest(AnnouncementInputRequirementsSaveRequest request) {
         List<AnnouncementInputRequirementsSaveRequest.RequirementRequest> requirements = nullToEmpty(request.requirements());
         validateUnique("fieldKey", requirements, requirement -> normalizeCode(requirement.fieldKey()));
@@ -313,6 +422,19 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param existing 입력 값
+     *
+     * @param fieldTypeCode 입력 값
+     *
+     * @param scopeCode 입력 값
+     *
+     * @param sensitive 입력 값
+     *
+     * @param standardFieldId 입력 값
+     */
     private void validateImmutableRequirement(
             AnnouncementInputRequirementRow existing,
             String fieldTypeCode,
@@ -328,6 +450,17 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param values 입력 값
+     *
+     * @param requirements 입력 값
+     *
+     * @param requirementsById 입력 값
+     *
+     * @param optionCodesByRequirementId 입력 값
+     */
     private void validateInputValuesRequest(
             List<ApplicationInputValuesSaveRequest.InputValueRequest> values,
             List<AnnouncementInputRequirementRow> requirements,
@@ -355,6 +488,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param requirement 입력 값
+     *
+     * @param validOptionCodes 입력 값
+     */
     private void validateValueForFieldType(
             ApplicationInputValuesSaveRequest.InputValueRequest value,
             AnnouncementInputRequirementRow requirement,
@@ -406,6 +548,19 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param requirement 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<ApplicationInputValueCommand> toInputValueCommands(
             UUID progressId,
             AnnouncementInputRequirementRow requirement,
@@ -440,6 +595,19 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param requirementId 입력 값
+     *
+     * @param optionCode 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationInputValueCommand optionValueCommand(
             UUID progressId,
             UUID requirementId,
@@ -459,6 +627,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progress 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationInputValuesResponse selectApplicationInputValuesResponse(ApplicationProgressInputRow progress) {
         List<AnnouncementInputRequirementRow> requirements =
                 dynamicAnnouncementInputDao.selectAnnouncementInputRequirementList(progress.announcementId());
@@ -474,6 +649,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return new ApplicationInputValuesResponse(progress.progressId(), progress.announcementId(), values);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param requirement 입력 값
+     *
+     * @param rows 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationInputValuesResponse.InputValueResponse toInputValueResponse(
             AnnouncementInputRequirementRow requirement,
             List<ApplicationInputValueRow> rows
@@ -507,6 +691,17 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param requirements 입력 값
+     *
+     * @param options 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementInputRequirementsResponse toRequirementsResponse(
             UUID announcementId,
             List<AnnouncementInputRequirementRow> requirements,
@@ -529,6 +724,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param requirement 입력 값
+     *
+     * @param options 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementInputRequirementsResponse.RequirementResponse toRequirementResponse(
             AnnouncementInputRequirementRow requirement,
             List<AnnouncementInputOptionRow> options
@@ -555,6 +759,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private StandardDocumentFieldResponse toStandardDocumentFieldResponse(StandardDocumentFieldRow row) {
         return new StandardDocumentFieldResponse(
                 row.standardFieldId(),
@@ -571,6 +782,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param conditionUsageCode 입력 값
+     *
+     * @param conditionEligible 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectConditionUsageCode(String conditionUsageCode, Boolean conditionEligible) {
         String normalized = normalizeOptionalCode(conditionUsageCode);
         if (normalized != null) {
@@ -579,6 +799,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return Boolean.TRUE.equals(conditionEligible) ? "CONDITION_READY" : "INPUT_ONLY";
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApplicationProgressInputRow selectAuthorizedProgress(AuthenticatedUserDetails actor, UUID progressId) {
         ApplicationProgressInputRow progress = dynamicAnnouncementInputDao.selectApplicationProgressForInput(progressId);
         if (progress == null) {
@@ -590,12 +819,24 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return progress;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param announcementId 입력 값
+     */
     private void validateAnnouncementExists(UUID announcementId) {
         if (dynamicAnnouncementInputDao.selectAnnouncementCount(announcementId) == 0) {
             throw notFound("Announcement was not found.");
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "Authentication is required.");
@@ -610,10 +851,24 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         );
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param standardFieldId 입력 값
+     *
+     * @return 처리 결과
+     */
     private StandardDocumentFieldRow selectSelectableStandardField(UUID standardFieldId) {
         if (standardFieldId == null) {
             return null;
@@ -625,6 +880,17 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return field;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param standardField 입력 값
+     *
+     * @param fieldKey 입력 값
+     *
+     * @param fieldTypeCode 입력 값
+     *
+     * @param scopeCode 입력 값
+     */
     private void validateRequirementStandardField(
             StandardDocumentFieldRow standardField,
             String fieldKey,
@@ -641,6 +907,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private int scalarCount(ApplicationInputValuesSaveRequest.InputValueRequest value) {
         int count = 0;
         if (trimToNull(value.valueText()) != null) {
@@ -658,20 +931,54 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return count;
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasAnyOption(ApplicationInputValuesSaveRequest.InputValueRequest value) {
         return normalizeOptionalCode(value.optionCode()) != null || !nullToEmpty(value.optionCodes()).isEmpty();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param left 입력 값
+     *
+     * @param right 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean equalsNullable(UUID left, UUID right) {
         return left == null ? right == null : left.equals(right);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param optionCode 입력 값
+     *
+     * @param validOptionCodes 입력 값
+     */
     private void validateOptionCode(String optionCode, Set<String> validOptionCodes) {
         if (!validOptionCodes.contains(optionCode)) {
             throw validationFailed("optionCode does not belong to the requirement.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String normalized = normalizeOptionalCode(value);
         if (normalized == null || !allowedValues.contains(normalized)) {
@@ -680,17 +987,40 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return normalized;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " is invalid.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeCode(String value) {
         String normalized = trimToNull(value);
         if (normalized == null) {
@@ -699,6 +1029,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return normalized.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredText(String value) {
         String normalized = trimToNull(value);
         if (normalized == null) {
@@ -707,6 +1044,13 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return normalized;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -715,10 +1059,28 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param values 입력 값
+     *
+     * @return 처리 결과
+     */
     private <T> List<T> nullToEmpty(List<T> values) {
         return values == null ? List.of() : values;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param values 입력 값
+     *
+     * @param keySelector 입력 값
+     *
+     * @return 처리 결과
+     */
     private <T, K> void validateUnique(String fieldName, List<T> values, Function<T, K> keySelector) {
         List<K> keys = new ArrayList<>();
         for (T value : values) {
@@ -732,6 +1094,15 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         }
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param progressId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, UUID progressId, String metadataJson) {
         dynamicAnnouncementInputDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -743,24 +1114,69 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException progressConditionNotMet(String message) {
         return new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound(String message) {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }

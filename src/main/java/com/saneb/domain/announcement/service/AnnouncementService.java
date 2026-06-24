@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AnnouncementService.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.announcement.service;
 
 import com.saneb.common.response.PageResponse;
@@ -14,6 +26,23 @@ import org.springframework.security.core.Authentication;
 
 public interface AnnouncementService {
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param targetTypeCode 입력 값
+     *
+     * @param manualStatusCode 입력 값
+     *
+     * @param approvalStatusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     PageResponse<AnnouncementSummaryResponse> selectAnnouncementList(
             String keyword,
             String targetTypeCode,
@@ -23,40 +52,116 @@ public interface AnnouncementService {
             int size
     );
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     AnnouncementDetailsResponse insertAnnouncement(Authentication authentication, AnnouncementSaveRequest request);
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     AnnouncementDetailsResponse selectAnnouncementDetails(UUID announcementId);
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     AnnouncementDetailsResponse updateAnnouncement(
             Authentication authentication,
             UUID announcementId,
             AnnouncementSaveRequest request
     );
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     void updateAnnouncementConditions(
             Authentication authentication,
             UUID announcementId,
             AnnouncementConditionsSaveRequest request
     );
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     void updateAnnouncementSteps(
             Authentication authentication,
             UUID announcementId,
             AnnouncementStepsSaveRequest request
     );
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     void updateAnnouncementManualStatus(
             Authentication authentication,
             UUID announcementId,
             AnnouncementManualStatusUpdateRequest request
     );
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     AnnouncementDetailsResponse insertAnnouncementApprovalRequest(
             Authentication authentication,
             UUID announcementId,
             AnnouncementApprovalRequestCreateRequest request
     );
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     AnnouncementDetailsResponse updateAnnouncementApproval(
             Authentication authentication,
             UUID announcementId,

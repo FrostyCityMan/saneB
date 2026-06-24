@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: RoadAddressHttpClient.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.address.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +38,13 @@ public class RoadAddressHttpClient implements RoadAddressClient {
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param properties 입력 값
+     *
+     * @param objectMapper 입력 값
+     */
     public RoadAddressHttpClient(RoadAddressProperties properties, ObjectMapper objectMapper) {
         this.properties = properties;
         this.objectMapper = objectMapper;
@@ -34,6 +53,13 @@ public class RoadAddressHttpClient implements RoadAddressClient {
                 .build();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param condition 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public RoadAddressApiResponse selectRoadAddressList(AddressSearchCondition condition) {
         HttpRequest request = HttpRequest.newBuilder(selectUri(condition))
@@ -66,6 +92,13 @@ public class RoadAddressHttpClient implements RoadAddressClient {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param condition 입력 값
+     *
+     * @return 처리 결과
+     */
     private URI selectUri(AddressSearchCondition condition) {
         List<String> params = new ArrayList<>();
         params.add(queryParam("confmKey", properties.apiKey()));
@@ -80,12 +113,28 @@ public class RoadAddressHttpClient implements RoadAddressClient {
         return URI.create(properties.baseUrl() + separator + String.join("&", params));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param name 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String queryParam(String name, String value) {
         return URLEncoder.encode(name, StandardCharsets.UTF_8)
                 + "="
                 + URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param timeoutMillis 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectTimeoutMillis(int timeoutMillis) {
         return Math.max(timeoutMillis, 1000);
     }

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: PartnerVerificationServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.partnerverification.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -82,10 +94,32 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
 
     private final PartnerVerificationDao partnerVerificationDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param partnerVerificationDao 입력 값
+     */
     public PartnerVerificationServiceImpl(PartnerVerificationDao partnerVerificationDao) {
         this.partnerVerificationDao = partnerVerificationDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param partnerUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param current 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<PartnerVerificationSummaryResponse> selectPartnerVerificationList(
             UUID memberUserId,
@@ -116,7 +150,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public PartnerVerificationDetailsResponse insertPartnerVerification(
             Authentication authentication,
@@ -142,6 +194,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return selectPartnerVerificationDetails(verificationId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PartnerVerificationDetailsResponse selectPartnerVerificationDetails(UUID verificationId) {
         PartnerVerificationRow row = selectPartnerVerificationRow(verificationId);
@@ -155,7 +214,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateVerificationMemberValues(
             Authentication authentication,
@@ -181,7 +258,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         insertAudit(actorUserId, "PARTNER_VERIFICATION_MEMBER_VALUES_SAVE", verificationId, metadata("section", "member"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateVerificationBusinessValues(
             Authentication authentication,
@@ -210,7 +305,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         insertAudit(actorUserId, "PARTNER_VERIFICATION_BUSINESS_VALUES_SAVE", verificationId, metadata("section", "business"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateVerificationFamilyValues(
             Authentication authentication,
@@ -244,7 +357,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         ));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateVerificationDocuments(
             Authentication authentication,
@@ -275,7 +406,25 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         ));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateVerificationRestrictionFlags(
             Authentication authentication,
@@ -304,7 +453,29 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         ));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public PartnerVerificationDetailsResponse updatePartnerVerificationStatus(
             Authentication authentication,
@@ -346,6 +517,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return selectPartnerVerificationDetails(verificationId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationRow selectPartnerVerificationRow(UUID verificationId) {
         PartnerVerificationRow row = partnerVerificationDao.selectPartnerVerificationDetails(verificationId);
         if (row == null) {
@@ -354,6 +532,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return row;
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationSummaryResponse toSummaryResponse(PartnerVerificationRow row) {
         return new PartnerVerificationSummaryResponse(
                 row.verificationId(),
@@ -373,6 +558,23 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @param memberValues 입력 값
+     *
+     * @param businessValues 입력 값
+     *
+     * @param familyValues 입력 값
+     *
+     * @param restrictionFlags 입력 값
+     *
+     * @param documents 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse toDetailsResponse(
             PartnerVerificationRow row,
             VerificationMemberValuesRow memberValues,
@@ -406,6 +608,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse.MemberValuesResponse toMemberValuesResponse(
             VerificationMemberValuesRow row
     ) {
@@ -423,6 +632,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse.BusinessValuesResponse toBusinessValuesResponse(
             VerificationBusinessValuesRow row
     ) {
@@ -443,6 +659,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse.FamilyValueResponse toFamilyValueResponse(
             VerificationFamilyValueRow row
     ) {
@@ -458,6 +681,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse.RestrictionFlagResponse toRestrictionFlagResponse(
             VerificationRestrictionFlagRow row
     ) {
@@ -468,6 +698,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse.DocumentResponse toDocumentResponse(VerificationDocumentRow row) {
         return new PartnerVerificationDetailsResponse.DocumentResponse(
                 row.documentTypeCode(),
@@ -479,24 +716,46 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param userId 입력 값
+     */
     private void validateUserExists(UUID userId) {
         if (partnerVerificationDao.selectUserCountById(userId) == 0) {
             throw notFound();
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param businessProfileId 입력 값
+     */
     private void validateBusinessProfileExists(UUID businessProfileId) {
         if (businessProfileId != null && partnerVerificationDao.selectBusinessProfileCountById(businessProfileId) == 0) {
             throw notFound();
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "Invalid page request.");
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     */
     private void ensureMutable(PartnerVerificationRow row) {
         if (!MUTABLE_STATUS_CODES.contains(row.statusCode())) {
             throw new ApiException(
@@ -507,6 +766,13 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param beforeStatusCode 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     */
     private void validateStatusTransition(String beforeStatusCode, String afterStatusCode) {
         boolean valid = switch (beforeStatusCode) {
             case "DRAFT" -> "SUBMITTED".equals(afterStatusCode);
@@ -523,6 +789,17 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String normalized = normalizeOptionalCode(value);
         if (normalized == null || !allowedValues.contains(normalized)) {
@@ -531,17 +808,40 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return normalized;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " is invalid.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -550,10 +850,24 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param values 입력 값
+     *
+     * @return 처리 결과
+     */
     private <T> List<T> nullToEmpty(List<T> values) {
         return values == null ? List.of() : values;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectRequiredActorUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "Authentication is required.");
@@ -568,6 +882,17 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID verificationId, String metadataJson) {
         partnerVerificationDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -579,18 +904,52 @@ public class PartnerVerificationServiceImpl implements PartnerVerificationServic
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key, String value) {
         return "{\"" + key + "\":\"" + value + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2) {
         return "{\"" + key1 + "\":\"" + value1 + "\",\"" + key2 + "\":\"" + value2 + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound() {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "Partner verification was not found.");
     }

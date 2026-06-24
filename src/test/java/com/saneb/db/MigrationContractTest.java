@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MigrationContractTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.db;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,6 +21,11 @@ import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v1MigrationContainsMvpTables() throws IOException {
         String sql = selectV1Migration();
@@ -35,6 +52,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v1MigrationDoesNotContainExcludedMatchingMetrics() throws IOException {
         String sql = selectV1Migration().toLowerCase();
@@ -48,6 +70,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v4MigrationContainsDynamicAnnouncementInputTables() throws IOException {
         String sql = selectV4Migration();
@@ -63,6 +90,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v6MigrationAllowsMatchingWithoutVerification() throws IOException {
         String sql = selectV6Migration();
@@ -73,6 +105,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v7MigrationContainsUserConsentTables() throws IOException {
         String sql = selectV7Migration();
@@ -89,6 +126,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v8MigrationContainsDocumentFileSubmissionTables() throws IOException {
         String sql = selectV8Migration();
@@ -104,6 +146,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v9MigrationContainsConsultationReservationTables() throws IOException {
         String sql = selectV9Migration();
@@ -119,6 +166,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v10MigrationContainsSubscriptionPaymentTables() throws IOException {
         String sql = selectV10Migration();
@@ -136,6 +188,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v11MigrationContainsNotificationAndOperationTaskTables() throws IOException {
         String sql = selectV11Migration();
@@ -154,6 +211,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v12MigrationContainsAdminReportExportTables() throws IOException {
         String sql = selectV12Migration();
@@ -168,6 +230,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v14MigrationContainsReviewerAndManualConsultationChanges() throws IOException {
         String sql = selectV14Migration();
@@ -183,6 +250,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v15MigrationContainsStandardDocumentFieldsAndBasicIncomeAdditions() throws IOException {
         String sql = selectV15Migration();
@@ -199,6 +271,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v16MigrationContainsMemberDocumentInputValues() throws IOException {
         String sql = selectV16Migration();
@@ -212,6 +289,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v17MigrationContainsMockMonthlySubscriptionPlan() throws IOException {
         String sql = selectV17Migration();
@@ -226,6 +308,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v19MigrationContainsMatchingStageFlow() throws IOException {
         String sql = selectV19Migration();
@@ -241,6 +328,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v21MigrationContainsStandardCodeCatalogs() throws IOException {
         String sql = selectV21Migration();
@@ -263,6 +355,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v22MigrationContainsStructuredAddressFields() throws IOException {
         String sql = selectV22Migration();
@@ -281,6 +378,11 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     @Test
     void v25MigrationContainsMemberInterviewResponses() throws IOException {
         String sql = selectV25Migration();
@@ -298,86 +400,205 @@ class MigrationContractTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV1Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V1__create_mvp_schema.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV4Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V4__create_dynamic_announcement_inputs.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV6Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V6__allow_matching_without_verification.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV7Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V7__create_user_consents.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV8Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V8__create_document_file_submissions.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV9Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V9__create_consultation_reservations.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV10Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V10__create_subscription_payments.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV11Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V11__create_notifications_operation_tasks.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV12Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V12__create_admin_report_exports.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV14Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V14__add_reviewer_and_manual_consultation.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV15Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V15__create_standard_document_fields.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV16Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V16__create_member_document_input_values.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV17Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V17__seed_mock_subscription_plan.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV19Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V19__add_matching_stage_flow.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV21Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V21__create_standard_code_catalogs.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV22Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V22__add_structured_address_fields.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
     private String selectV25Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V25__add_member_interview_responses.sql");
         return resource.getContentAsString(StandardCharsets.UTF_8);

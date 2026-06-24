@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminUserManagementControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.adminuser.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +50,9 @@ class AdminUserManagementControllerSmokeTest {
     @MockitoBean
     private AdminUserManagementService adminUserManagementService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(adminUserManagementService.selectUserList(any(), any(), any(), eq(1), eq(20)))
@@ -47,7 +62,17 @@ class AdminUserManagementControllerSmokeTest {
         when(adminUserManagementService.updateUserRoles(any(), eq(USER_ID), any())).thenReturn(sampleUser());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void selectUserListReturnsPagedApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/admin/users")
@@ -60,7 +85,17 @@ class AdminUserManagementControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].roles[0]").value("USER"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void selectRoleListReturnsApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/admin/users/roles"))
@@ -69,7 +104,17 @@ class AdminUserManagementControllerSmokeTest {
                 .andExpect(jsonPath("$.data[0].roleCode").value("USER"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void updateUserStatusReturnsApiResponse() throws Exception {
         mockMvc.perform(patch("/api/v1/admin/users/{userId}/status", USER_ID)
@@ -84,7 +129,17 @@ class AdminUserManagementControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("ACTIVE"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void updateUserRolesReturnsApiResponse() throws Exception {
         mockMvc.perform(put("/api/v1/admin/users/{userId}/roles", USER_ID)
@@ -98,13 +153,28 @@ class AdminUserManagementControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void adminUserApisRejectNonAdminUser() throws Exception {
         mockMvc.perform(get("/api/v1/admin/users"))
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     static AdminUserSummaryResponse sampleUser() {
         OffsetDateTime now = OffsetDateTime.now();
         return new AdminUserSummaryResponse(
@@ -122,6 +192,11 @@ class AdminUserManagementControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     static List<AdminRoleResponse> sampleRoles() {
         return List.of(
                 new AdminRoleResponse("USER", "사용자", 10),

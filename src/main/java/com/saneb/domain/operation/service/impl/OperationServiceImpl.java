@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: OperationServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.operation.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -69,10 +81,28 @@ public class OperationServiceImpl implements OperationService {
 
     private final OperationDao operationDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param operationDao 입력 값
+     */
     public OperationServiceImpl(OperationDao operationDao) {
         this.operationDao = operationDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param unreadOnly 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<NotificationMessageResponse> selectMyNotificationList(
             Authentication authentication,
@@ -96,7 +126,25 @@ public class OperationServiceImpl implements OperationService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public NotificationMessageResponse insertAdminNotification(
             Authentication authentication,
@@ -142,7 +190,25 @@ public class OperationServiceImpl implements OperationService {
         return toNotificationResponse(selectNotificationRow(notificationId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param notificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param notificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public NotificationMessageResponse updateNotificationRead(Authentication authentication, UUID notificationId) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
@@ -159,6 +225,23 @@ public class OperationServiceImpl implements OperationService {
         return toNotificationResponse(selectNotificationRow(notificationId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskTypeCode 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param priorityCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<OperationTaskResponse> selectOperationTaskList(
             Authentication authentication,
@@ -193,7 +276,25 @@ public class OperationServiceImpl implements OperationService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public OperationTaskResponse insertOperationTask(
             Authentication authentication,
@@ -234,7 +335,29 @@ public class OperationServiceImpl implements OperationService {
         return toTaskResponse(selectTaskRow(taskId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public OperationTaskResponse updateOperationTaskStatus(
             Authentication authentication,
@@ -255,7 +378,29 @@ public class OperationServiceImpl implements OperationService {
         return toTaskResponse(selectTaskRow(taskId));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public OperationTaskCommentResponse insertOperationTaskComment(
             Authentication authentication,
@@ -280,7 +425,29 @@ public class OperationServiceImpl implements OperationService {
         return toCommentResponse(operationDao.selectOperationTaskCommentDetails(commentId));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param taskId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public OperationTaskAssignmentResponse insertOperationTaskAssignment(
             Authentication authentication,
@@ -299,6 +466,17 @@ public class OperationServiceImpl implements OperationService {
         return toAssignmentResponse(row);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param taskId 입력 값
+     *
+     * @param assigneeUserId 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskAssignmentRow insertAssignment(UUID taskId, UUID assigneeUserId, UUID actorUserId) {
         validateUserExists(assigneeUserId);
         UUID assignmentId = UUID.randomUUID();
@@ -311,6 +489,13 @@ public class OperationServiceImpl implements OperationService {
         return operationDao.selectOperationTaskAssignmentDetails(assignmentId);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param beforeStatusCode 입력 값
+     *
+     * @param afterStatusCode 입력 값
+     */
     private void validateTaskTransition(String beforeStatusCode, String afterStatusCode) {
         if ("DONE".equals(beforeStatusCode) || "CANCELED".equals(beforeStatusCode)) {
             throw new ApiException(ErrorCode.INVALID_STATUS_TRANSITION, HttpStatus.BAD_REQUEST, "완료 또는 취소된 업무는 변경할 수 없습니다.");
@@ -326,6 +511,15 @@ public class OperationServiceImpl implements OperationService {
         throw new ApiException(ErrorCode.INVALID_STATUS_TRANSITION, HttpStatus.BAD_REQUEST, "허용되지 않는 운영 업무 상태 변경입니다.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param templateCode 입력 값
+     *
+     * @param channelCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private NotificationTemplateRow selectTemplateIfRequested(String templateCode, String channelCode) {
         String normalizedTemplateCode = normalizeOptionalCode(templateCode);
         if (normalizedTemplateCode == null) {
@@ -338,6 +532,13 @@ public class OperationServiceImpl implements OperationService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param channelCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectProviderCode(String channelCode) {
         return switch (channelCode) {
             case "IN_APP" -> "INTERNAL";
@@ -348,6 +549,13 @@ public class OperationServiceImpl implements OperationService {
         };
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param notificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private NotificationMessageRow selectNotificationRow(UUID notificationId) {
         NotificationMessageRow row = operationDao.selectNotificationMessageDetails(notificationId);
         if (row == null) {
@@ -356,6 +564,13 @@ public class OperationServiceImpl implements OperationService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param taskId 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskRow selectTaskRow(UUID taskId) {
         OperationTaskRow row = operationDao.selectOperationTaskDetails(taskId);
         if (row == null) {
@@ -364,12 +579,24 @@ public class OperationServiceImpl implements OperationService {
         return row;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param userId 입력 값
+     */
     private void validateUserExists(UUID userId) {
         if (userId == null || operationDao.selectUserCount(userId) == 0) {
             throw notFound("회원을 찾을 수 없습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param resourceType 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeResourceType(String resourceType) {
         String normalizedResourceType = normalizeOptionalCode(resourceType);
         if (normalizedResourceType == null) {
@@ -379,12 +606,30 @@ public class OperationServiceImpl implements OperationService {
         return normalizedResourceType;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "페이지 요청 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = normalizeOptionalCode(value);
         if (code == null || !allowedValues.contains(code)) {
@@ -393,22 +638,54 @@ public class OperationServiceImpl implements OperationService {
         return code;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " 값이 올바르지 않습니다.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimTitle(String value) {
         String title = trimRequired(value, "제목을 입력하세요.");
         return title.length() > MAX_TITLE_LENGTH ? title.substring(0, MAX_TITLE_LENGTH) : title;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimRequired(String value, String message) {
         String trimmed = trimToNull(value);
         if (trimmed == null) {
@@ -417,6 +694,13 @@ public class OperationServiceImpl implements OperationService {
         return trimmed;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -424,6 +708,13 @@ public class OperationServiceImpl implements OperationService {
         return value.trim();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -434,16 +725,37 @@ public class OperationServiceImpl implements OperationService {
         throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "DB 인증 사용자만 사용할 수 있습니다.");
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @param message 입력 값
+     */
     private void validateOperatingRole(AuthenticatedUserDetails actor, String message) {
         if (!hasOperatingRole(actor)) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, message);
         }
     }
 
+    /**
+     * 조건 충족 여부를 확인합니다.
+     *
+     * @param actor 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean hasOperatingRole(AuthenticatedUserDetails actor) {
         return actor.roles().stream().anyMatch(OPERATING_ROLES::contains);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private NotificationMessageResponse toNotificationResponse(NotificationMessageRow row) {
         return new NotificationMessageResponse(
                 row.notificationId(),
@@ -460,6 +772,13 @@ public class OperationServiceImpl implements OperationService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskResponse toTaskResponse(OperationTaskRow row) {
         return new OperationTaskResponse(
                 row.taskId(),
@@ -477,6 +796,13 @@ public class OperationServiceImpl implements OperationService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskCommentResponse toCommentResponse(OperationTaskCommentRow row) {
         return new OperationTaskCommentResponse(
                 row.commentId(),
@@ -487,6 +813,13 @@ public class OperationServiceImpl implements OperationService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskAssignmentResponse toAssignmentResponse(OperationTaskAssignmentRow row) {
         return new OperationTaskAssignmentResponse(
                 row.assignmentId(),
@@ -499,6 +832,19 @@ public class OperationServiceImpl implements OperationService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceType 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, String resourceType, UUID resourceId, String metadataJson) {
         operationDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -510,20 +856,58 @@ public class OperationServiceImpl implements OperationService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound(String message) {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }

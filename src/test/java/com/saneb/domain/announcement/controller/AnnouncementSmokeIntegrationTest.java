@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AnnouncementSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.announcement.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +53,11 @@ class AnnouncementSmokeIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localSeedOperatorCompletesOperationAnnouncementInputFlow() throws Exception {
         MockHttpSession session = loginLocalOperator();
@@ -134,6 +151,13 @@ class AnnouncementSmokeIntegrationTest {
         assertThat(selectStatusHistoryCount(firstAnnouncementId)).isEqualTo(1);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalOperator() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -152,11 +176,27 @@ class AnnouncementSmokeIntegrationTest {
         throw new IllegalStateException("local_operator login failed for announcement smoke.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID selectAnnouncementId(MvcResult result) throws Exception {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
         return UUID.fromString(root.path("data").path("announcementId").asText());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param titlePrefix 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAnnouncementCountByTitlePrefix(String titlePrefix) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -170,6 +210,15 @@ class AnnouncementSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param tableName 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectCount(String tableName, UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 "SELECT count(1) FROM " + tableName + " WHERE announcement_id = ?",
@@ -179,6 +228,13 @@ class AnnouncementSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectStepDocumentCount(UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -193,6 +249,13 @@ class AnnouncementSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectStepButtonCount(UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -207,6 +270,13 @@ class AnnouncementSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectStatusHistoryCount(UUID announcementId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -221,6 +291,13 @@ class AnnouncementSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param title 입력 값
+     *
+     * @return 처리 결과
+     */
     private String saveRequest(String title) {
         return """
                 {
@@ -243,6 +320,11 @@ class AnnouncementSmokeIntegrationTest {
                 """.formatted(title);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String conditionsRequest() {
         return """
                 {
@@ -279,6 +361,11 @@ class AnnouncementSmokeIntegrationTest {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String stepsRequest() {
         return """
                 {

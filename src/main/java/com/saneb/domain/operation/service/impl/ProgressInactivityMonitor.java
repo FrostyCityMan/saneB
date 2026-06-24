@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ProgressInactivityMonitor.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.operation.service.impl;
 
 import com.saneb.domain.operation.dao.OperationDao;
@@ -29,6 +41,13 @@ public class ProgressInactivityMonitor {
     private final OperationDao operationDao;
     private final int batchSize;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param operationDao 입력 값
+     *
+     * @param batchSize 입력 값
+     */
     public ProgressInactivityMonitor(
             OperationDao operationDao,
             @Value("$" + "{saneb.operation.inactivity.batch-size:50}") int batchSize
@@ -37,10 +56,16 @@ public class ProgressInactivityMonitor {
         this.batchSize = Math.max(1, batchSize);
     }
 
+    /**
+     * 대상 데이터를 분류합니다.
+     */
     @Scheduled(
             initialDelayString = "$" + "{saneb.operation.inactivity.initial-delay-ms:60000}",
             fixedDelayString = "$" + "{saneb.operation.inactivity.fixed-delay-ms:3600000}"
     )
+    /**
+     * 대상 데이터를 분류합니다.
+     */
     @Transactional
     public void classifyInactiveProgresses() {
         OffsetDateTime now = OffsetDateTime.now();
@@ -56,6 +81,23 @@ public class ProgressInactivityMonitor {
         }
     }
 
+    /**
+     * 업무 흐름을 처리합니다.
+     *
+     * @param reminderTypeCode 입력 값
+     *
+     * @param thresholdAt 입력 값
+     *
+     * @param attemptNo 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param body 입력 값
+     *
+     * @param createOperationTask 입력 값
+     *
+     * @return 처리 결과
+     */
     private int handleReminder(
             String reminderTypeCode,
             OffsetDateTime thresholdAt,
@@ -89,6 +131,13 @@ public class ProgressInactivityMonitor {
         return rows.size();
     }
 
+    /**
+     * 업무 흐름을 처리합니다.
+     *
+     * @param targetDate 입력 값
+     *
+     * @return 처리 결과
+     */
     private int handleDeadlineReminder(LocalDate targetDate) {
         String reminderTypeCode = "DEADLINE_D_MINUS_2";
         List<StalledApplicationProgressRow> rows = operationDao.selectDeadlineReminderProgressList(
@@ -117,6 +166,15 @@ public class ProgressInactivityMonitor {
         return rows.size();
     }
 
+    /**
+     * 업무 흐름을 처리합니다.
+     *
+     * @param thresholdAt 입력 값
+     *
+     * @param recentSince 입력 값
+     *
+     * @return 처리 결과
+     */
     private int handleStatusRefreshReminder(OffsetDateTime thresholdAt, OffsetDateTime recentSince) {
         List<StatusRefreshTargetUserRow> rows = operationDao.selectStatusRefreshTargetUserList(
                 thresholdAt,
@@ -136,6 +194,15 @@ public class ProgressInactivityMonitor {
         return rows.size();
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param row 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param body 입력 값
+     */
     private void insertNotification(StalledApplicationProgressRow row, String title, String body) {
         insertUserNotification(
                 row.memberUserId(),
@@ -147,6 +214,21 @@ public class ProgressInactivityMonitor {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param recipientUserId 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param body 입력 값
+     *
+     * @param resourceType 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertUserNotification(
             UUID recipientUserId,
             String title,
@@ -182,6 +264,17 @@ public class ProgressInactivityMonitor {
         ));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param row 입력 값
+     *
+     * @param reminderTypeCode 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param now 입력 값
+     */
     private void insertOperationTaskIfMissing(
             StalledApplicationProgressRow row,
             String reminderTypeCode,

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminReportControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.adminreport.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +54,9 @@ class AdminReportControllerSmokeTest {
     @MockitoBean
     private AdminReportService adminReportService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(adminReportService.selectAdminReportSummary(any())).thenReturn(summary());
@@ -50,6 +65,11 @@ class AdminReportControllerSmokeTest {
         when(adminReportService.selectReportExportDownload(any(), eq(EXPORT_ID))).thenReturn(download());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectAdminReportSummaryReturnsApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/admin/reports/summary")
@@ -59,6 +79,11 @@ class AdminReportControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalUserCount").value(10));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectAdminReportSummaryRejectsUserRole() throws Exception {
         mockMvc.perform(get("/api/v1/admin/reports/summary")
@@ -66,6 +91,11 @@ class AdminReportControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertReportExportReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/admin/reports/exports")
@@ -82,6 +112,11 @@ class AdminReportControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("COMPLETED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectReportExportDownloadReturnsWrappedContent() throws Exception {
         mockMvc.perform(get("/api/v1/admin/reports/exports/{exportId}/download", EXPORT_ID)
@@ -91,10 +126,20 @@ class AdminReportControllerSmokeTest {
                 .andExpect(jsonPath("$.data.content").value("a,b\n1,2\n"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AdminReportSummaryResponse summary() {
         return new AdminReportSummaryResponse(10, 8, 3, 2, 5, 4, 7, 6, 2, 1, new BigDecimal("99000.00"), 3, 4);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ReportExportResponse export() {
         return new ReportExportResponse(
                 EXPORT_ID,
@@ -111,18 +156,40 @@ class AdminReportControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ReportExportDownloadResponse download() {
         return new ReportExportDownloadResponse(EXPORT_ID, "operation_summary.csv", "text/csv;charset=UTF-8", "a,b\n1,2\n");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails adminPrincipal() {
         return principal(List.of("ADMIN"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return principal(List.of("USER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal(List<String> roles) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

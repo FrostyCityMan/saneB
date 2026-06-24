@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuthControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +71,17 @@ class AuthControllerSmokeTest {
     @TestConfiguration
     static class AuthControllerSmokeTestConfig {
 
+        /**
+         * 업무 처리를 수행합니다.
+         *
+         * @return 처리 결과
+         */
         @Bean
+        /**
+         * 업무 처리를 수행합니다.
+         *
+         * @return 처리 결과
+         */
         @Primary
         PlatformTransactionManager transactionManager() {
             return new AbstractPlatformTransactionManager() {
@@ -83,6 +105,11 @@ class AuthControllerSmokeTest {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void loginReturnsApiResponseAndWritesSuccessHistory() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("user01"))
@@ -112,6 +139,11 @@ class AuthControllerSmokeTest {
         assertThat(historyCaptor.getValue().failureReasonCode()).isNull();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void loginReturnsOperatorDashboardDefaultRoute() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("operator01"))
@@ -132,6 +164,11 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/operator/dashboard"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void signupCreatesUserRoleAndSession() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("newuser")).thenReturn(null);
@@ -171,6 +208,11 @@ class AuthControllerSmokeTest {
         assertThat(passwordEncoder.matches("new-password", signupCaptor.getValue().passwordHash())).isTrue();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void signupRejectsDuplicateLoginId() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("user01"))
@@ -196,6 +238,11 @@ class AuthControllerSmokeTest {
         verify(authDao, never()).insertUserRole(any(), any());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void signupRejectsPasswordConfirmMismatch() throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
@@ -217,6 +264,11 @@ class AuthControllerSmokeTest {
         verify(authDao, never()).insertUser(any());
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void loginReturnsPasswordRouteWhenResetIsRequired() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("user01"))
@@ -237,6 +289,11 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/password"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void loginFailureReturnsErrorCodeAndWritesFailHistory() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("missing")).thenReturn(null);
@@ -262,7 +319,17 @@ class AuthControllerSmokeTest {
         assertThat(historyCaptor.getValue().failureReasonCode()).isEqualTo("USER_NOT_FOUND");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void logoutReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/auth/logout"))
@@ -270,7 +337,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void selectAuthMeReturnsApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -281,6 +358,11 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/dashboard"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectAuthMeWithoutAuthenticationReturnsErrorCode() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -289,7 +371,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.errorCode").value("AUTH_REQUIRED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void selectAuthMeReturnsAdminDashboardDefaultRouteForAdmin() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -299,7 +391,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/admin/dashboard"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "approver01", roles = "APPROVER")
     void selectAuthMeReturnsApproverReviewDefaultRouteForApprover() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -309,7 +411,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/approver/reviews"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator01", roles = "OPERATOR")
     void selectAuthMeReturnsOperatorDashboardDefaultRouteForOperator() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -319,7 +431,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/operator/dashboard"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "partner01", roles = "PARTNER")
     void selectAuthMeReturnsPartnerVerificationListDefaultRouteForPartner() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
@@ -329,7 +451,17 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.defaultRoute").value("/app/partner/verifications"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void updatePasswordUpdatesBcryptHash() throws Exception {
         when(authDao.selectAuthUserDetailsByLoginId("user01"))
@@ -354,7 +486,17 @@ class AuthControllerSmokeTest {
         assertThat(passwordEncoder.matches("new-password", passwordCaptor.getValue().passwordHash())).isTrue();
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void updatePasswordReturnsKoreanFieldErrorWhenNewPasswordIsTooShort() throws Exception {
         mockMvc.perform(patch("/api/v1/auth/password")
@@ -372,10 +514,26 @@ class AuthControllerSmokeTest {
                 .andExpect(jsonPath("$.data.fieldErrors[0].message").value("새 비밀번호는 8~16자로 입력해 주세요."));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param passwordHash 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthUserDetailsRow activeUser(String passwordHash) {
         return activeUser(passwordHash, false);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param passwordHash 입력 값
+     *
+     * @param passwordResetRequired 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthUserDetailsRow activeUser(String passwordHash, boolean passwordResetRequired) {
         return new AuthUserDetailsRow(
                 USER_ID,

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AiAssistServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.aiassist.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -52,12 +64,37 @@ public class AiAssistServiceImpl implements AiAssistService {
     private final AiAssistDao aiAssistDao;
     private final AiAssistProvider aiAssistProvider;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param aiAssistDao 입력 값
+     *
+     * @param aiAssistProvider 입력 값
+     */
     public AiAssistServiceImpl(AiAssistDao aiAssistDao, AiAssistProvider aiAssistProvider) {
         this.aiAssistDao = aiAssistDao;
         this.aiAssistProvider = aiAssistProvider;
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AiAssistResponse insertAiAssistRequest(Authentication authentication, AiAssistCreateRequest request) {
         AuthenticatedUserDetails actor = selectRequiredOperatorPrincipal(authentication);
@@ -107,6 +144,23 @@ public class AiAssistServiceImpl implements AiAssistService {
         return toResponse(selectRequiredRequestDetails(requestId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param assistTypeCode 입력 값
+     *
+     * @param resourceType 입력 값
+     *
+     * @param reviewStatusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<AiAssistResponse> selectAiAssistRequestList(
             Authentication authentication,
@@ -137,13 +191,44 @@ public class AiAssistServiceImpl implements AiAssistService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param requestId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AiAssistResponse selectAiAssistRequestDetails(Authentication authentication, UUID requestId) {
         selectRequiredOperatorPrincipal(authentication);
         return toResponse(selectRequiredRequestDetails(requestId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param resultId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param resultId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AiAssistResponse updateAiAssistResultReview(
             Authentication authentication,
@@ -167,6 +252,13 @@ public class AiAssistServiceImpl implements AiAssistService {
         return toResponse(selectRequiredRequestDetails(before.requestId()));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param requestId 입력 값
+     *
+     * @return 처리 결과
+     */
     private AiAssistRow selectRequiredRequestDetails(UUID requestId) {
         AiAssistRow row = aiAssistDao.selectAiAssistDetails(requestId);
         if (row == null) {
@@ -175,6 +267,13 @@ public class AiAssistServiceImpl implements AiAssistService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredOperatorPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -186,6 +285,17 @@ public class AiAssistServiceImpl implements AiAssistService {
         throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "운영 권한이 필요합니다.");
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = normalizeOptionalCode(value, null, allowedValues);
         if (code == null) {
@@ -194,6 +304,17 @@ public class AiAssistServiceImpl implements AiAssistService {
         return code;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @param defaultValue 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value, String defaultValue, Set<String> allowedValues) {
         String code = value == null || value.isBlank() ? defaultValue : value.trim().toUpperCase(Locale.ROOT);
         if (code != null && !allowedValues.contains(code)) {
@@ -202,6 +323,13 @@ public class AiAssistServiceImpl implements AiAssistService {
         return code;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param input 입력 값
+     *
+     * @return 처리 결과
+     */
     private String sha256(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -211,6 +339,13 @@ public class AiAssistServiceImpl implements AiAssistService {
         }
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AiAssistResponse toResponse(AiAssistRow row) {
         return new AiAssistResponse(
                 row.requestId(),
@@ -229,6 +364,17 @@ public class AiAssistServiceImpl implements AiAssistService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param requestId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID requestId, String metadataJson) {
         aiAssistDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -240,6 +386,31 @@ public class AiAssistServiceImpl implements AiAssistService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @param key4 입력 값
+     *
+     * @param value4 입력 값
+     *
+     * @param key5 입력 값
+     *
+     * @param value5 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(
             String key1,
             String value1,
@@ -259,6 +430,13 @@ public class AiAssistServiceImpl implements AiAssistService {
                 + key5 + "\":\"" + safeValue(value5) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }

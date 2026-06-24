@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MatchingServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.matching.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -86,6 +98,15 @@ public class MatchingServiceImpl implements MatchingService {
     private final OperationDao operationDao;
     private final TransactionTemplate auditTransactionTemplate;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param matchingDao 입력 값
+     *
+     * @param operationDao 입력 값
+     *
+     * @param transactionManager 입력 값
+     */
     public MatchingServiceImpl(
             MatchingDao matchingDao,
             OperationDao operationDao,
@@ -97,7 +118,25 @@ public class MatchingServiceImpl implements MatchingService {
         this.auditTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MatchingCandidateGenerateResponse insertMatchingCandidates(
             Authentication authentication,
@@ -114,7 +153,25 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MatchingCandidateGenerateResponse insertBasicMatchingCandidates(UUID actorUserId, UUID memberUserId) {
         return saveMatchingCandidates(
@@ -127,7 +184,25 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MatchingCandidateGenerateResponse insertFinalMatchingCandidates(
             Authentication authentication,
@@ -144,7 +219,25 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MatchingCaseDetailsResponse insertMatchingCase(
             Authentication authentication,
@@ -203,6 +296,23 @@ public class MatchingServiceImpl implements MatchingService {
         return selectMatchingCaseDetails(matchingCaseId);
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param matchingStageCode 입력 값
+     *
+     * @param matchingBasisCode 입력 값
+     *
+     * @param finalMatching 입력 값
+     *
+     * @param auditActionCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCandidateGenerateResponse saveMatchingCandidates(
             UUID actorUserId,
             UUID memberUserId,
@@ -303,6 +413,17 @@ public class MatchingServiceImpl implements MatchingService {
         return new MatchingCandidateGenerateResponse(memberUserId, createdCount, skippedCount, candidateList);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param createdCount 입력 값
+     *
+     * @param firstMatchingCaseId 입력 값
+     */
     private void insertNewCandidateNotification(
             UUID actorUserId,
             UUID memberUserId,
@@ -336,6 +457,27 @@ public class MatchingServiceImpl implements MatchingService {
         ));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param matchingStageCode 입력 값
+     *
+     * @param matchingBasisCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<MatchingCaseSummaryResponse> selectMatchingCaseList(
             UUID announcementId,
@@ -374,6 +516,17 @@ public class MatchingServiceImpl implements MatchingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<MatchingCaseSummaryResponse> selectMyBasicMatchingCaseList(
             Authentication authentication,
@@ -384,6 +537,21 @@ public class MatchingServiceImpl implements MatchingService {
         return selectMatchingCaseList(null, userId, null, null, BASIC_STAGE_CODE, null, page, size);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<MatchingCaseSummaryResponse> selectFinalMatchingCaseList(
             UUID announcementId,
@@ -408,6 +576,17 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<MatchingMemberLookupResponse> selectMatchingMemberLookupList(
             String keyword,
@@ -428,11 +607,25 @@ public class MatchingServiceImpl implements MatchingService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public MatchingCaseDetailsResponse selectMatchingCaseDetails(UUID matchingCaseId) {
         return toDetailsResponse(selectMatchingCaseRow(matchingCaseId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public List<MatchingResultDetailResponse> selectMatchingResultDetailList(UUID matchingCaseId) {
         selectMatchingCaseRow(matchingCaseId);
@@ -442,7 +635,29 @@ public class MatchingServiceImpl implements MatchingService {
                 .toList();
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public MatchingCaseDetailsResponse updateMatchingCaseStatus(
             Authentication authentication,
@@ -475,6 +690,13 @@ public class MatchingServiceImpl implements MatchingService {
         return selectMatchingCaseDetails(matchingCaseId);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param announcementId 입력 값
+     */
     private void validateAnnouncement(UUID actorUserId, UUID announcementId) {
         AnnouncementMatchingRow row = matchingDao.selectAnnouncementForMatching(announcementId);
         if (row == null) {
@@ -499,6 +721,15 @@ public class MatchingServiceImpl implements MatchingService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param memberUserId 입력 값
+     */
     private void validateVerification(UUID actorUserId, UUID verificationId, UUID memberUserId) {
         VerificationMatchingRow row = matchingDao.selectVerificationForMatching(verificationId);
         if (row == null) {
@@ -527,6 +758,13 @@ public class MatchingServiceImpl implements MatchingService {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingDecision decideMatching(UUID verificationId) {
         if (verificationId == null) {
             return new MatchingDecision(
@@ -571,6 +809,15 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param orderedCodes 입력 값
+     *
+     * @param checkedCodes 입력 값
+     *
+     * @return 처리 결과
+     */
     private String firstContained(List<String> orderedCodes, List<String> checkedCodes) {
         for (String code : orderedCodes) {
             if (checkedCodes.contains(code)) {
@@ -580,6 +827,13 @@ public class MatchingServiceImpl implements MatchingService {
         return null;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingStageCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectCandidateReason(String matchingStageCode) {
         if (FINAL_STAGE_CODE.equals(matchingStageCode)) {
             return "저장된 기본정보와 서류별 선택 입력값이 공고 조건을 충족했습니다.";
@@ -587,6 +841,13 @@ public class MatchingServiceImpl implements MatchingService {
         return "저장된 기본정보가 공고 조건을 충족했습니다.";
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCaseRow selectMatchingCaseRow(UUID matchingCaseId) {
         MatchingCaseRow row = matchingDao.selectMatchingCaseDetails(matchingCaseId);
         if (row == null) {
@@ -595,6 +856,13 @@ public class MatchingServiceImpl implements MatchingService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCaseSummaryResponse toSummaryResponse(MatchingCaseRow row) {
         return new MatchingCaseSummaryResponse(
                 row.matchingCaseId(),
@@ -625,6 +893,13 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingMemberLookupResponse toMemberLookupResponse(MatchingMemberLookupRow row) {
         return new MatchingMemberLookupResponse(
                 row.userId(),
@@ -636,6 +911,13 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCaseDetailsResponse toDetailsResponse(MatchingCaseRow row) {
         return new MatchingCaseDetailsResponse(
                 row.matchingCaseId(),
@@ -658,6 +940,13 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingResultDetailResponse toResultDetailResponse(MatchingResultDetailRow row) {
         return new MatchingResultDetailResponse(
                 row.matchingResultDetailId(),
@@ -672,18 +961,43 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "Invalid page request.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validateLookupPageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > 50) {
             throw new ApiException(ErrorCode.INVALID_PAGE_REQUEST, HttpStatus.BAD_REQUEST, "Invalid lookup page request.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String normalized = normalizeOptionalCode(value);
         if (normalized == null || !allowedValues.contains(normalized)) {
@@ -692,17 +1006,40 @@ public class MatchingServiceImpl implements MatchingService {
         return normalized;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validationFailed(fieldName + " is invalid.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String trimmed = trimToNull(value);
         return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -711,10 +1048,26 @@ public class MatchingServiceImpl implements MatchingService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param left 입력 값
+     *
+     * @param right 입력 값
+     *
+     * @return 처리 결과
+     */
     private boolean equalsNullable(String left, String right) {
         return left == null ? right == null : left.equals(right);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectRequiredActorUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "Authentication is required.");
@@ -729,6 +1082,13 @@ public class MatchingServiceImpl implements MatchingService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param failureReasonCode 입력 값
+     */
     private void insertFailureAudit(UUID actorUserId, String failureReasonCode) {
         auditTransactionTemplate.executeWithoutResult(status -> insertAudit(
                 actorUserId,
@@ -743,6 +1103,19 @@ public class MatchingServiceImpl implements MatchingService {
         ));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param resultCode 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID resourceId, String resultCode, String metadataJson) {
         matchingDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -754,20 +1127,56 @@ public class MatchingServiceImpl implements MatchingService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound() {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "Matching resource was not found.");
     }

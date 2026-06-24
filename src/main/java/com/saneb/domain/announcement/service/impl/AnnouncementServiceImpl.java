@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AnnouncementServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.announcement.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -103,10 +115,32 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementDao announcementDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param announcementDao 입력 값
+     */
     public AnnouncementServiceImpl(AnnouncementDao announcementDao) {
         this.announcementDao = announcementDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param targetTypeCode 입력 값
+     *
+     * @param manualStatusCode 입력 값
+     *
+     * @param approvalStatusCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<AnnouncementSummaryResponse> selectAnnouncementList(
             String keyword,
@@ -140,7 +174,25 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AnnouncementDetailsResponse insertAnnouncement(Authentication authentication, AnnouncementSaveRequest request) {
         UUID actorUserId = selectRequiredActorUserId(authentication);
@@ -152,6 +204,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return selectAnnouncementDetails(announcementId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AnnouncementDetailsResponse selectAnnouncementDetails(UUID announcementId) {
         AnnouncementDetailsRow row = selectAnnouncementDetailsRow(announcementId);
@@ -168,7 +227,29 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AnnouncementDetailsResponse updateAnnouncement(
             Authentication authentication,
@@ -187,7 +268,25 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return selectAnnouncementDetails(announcementId);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateAnnouncementConditions(
             Authentication authentication,
@@ -253,7 +352,25 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateAnnouncementSteps(
             Authentication authentication,
@@ -307,7 +424,25 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     */
     @Transactional
     public void updateAnnouncementManualStatus(
             Authentication authentication,
@@ -342,7 +477,29 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         ));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AnnouncementDetailsResponse insertAnnouncementApprovalRequest(
             Authentication authentication,
@@ -364,7 +521,29 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return selectAnnouncementDetails(announcementId);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AnnouncementDetailsResponse updateAnnouncementApproval(
             Authentication authentication,
@@ -398,6 +577,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return selectAnnouncementDetails(announcementId);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param options 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void replaceAnnouncementOptions(
             UUID announcementId,
             List<AnnouncementSaveRequest.OptionRequest> options,
@@ -414,6 +602,17 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @param actorUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementSaveCommand toSaveCommand(
             UUID announcementId,
             AnnouncementSaveRequest request,
@@ -434,6 +633,29 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @param options 입력 값
+     *
+     * @param industryConditions 입력 값
+     *
+     * @param numericConditions 입력 값
+     *
+     * @param optionConditions 입력 값
+     *
+     * @param documentRequirements 입력 값
+     *
+     * @param steps 입력 값
+     *
+     * @param stepDocuments 입력 값
+     *
+     * @param stepButtons 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementDetailsResponse toDetailsResponse(
             AnnouncementDetailsRow row,
             List<AnnouncementOptionRow> options,
@@ -529,6 +751,17 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param step 입력 값
+     *
+     * @param documents 입력 값
+     *
+     * @param buttons 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementDetailsResponse.ProgressStepResponse toProgressStepResponse(
             AnnouncementProgressStepRow step,
             List<AnnouncementStepDocumentRow> documents,
@@ -562,6 +795,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementSummaryResponse toSummaryResponse(AnnouncementSummaryRow row) {
         AnnouncementStatusPolicy.AnnouncementStatusView status = AnnouncementStatusPolicy.selectStatus(
                 row.applicationStartDate(),
@@ -591,6 +831,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementDetailsRow selectAnnouncementDetailsRow(UUID announcementId) {
         AnnouncementDetailsRow row = announcementDao.selectAnnouncementDetails(announcementId);
         if (row == null) {
@@ -599,6 +846,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return row;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param request 입력 값
+     */
     private void validateSaveRequest(AnnouncementSaveRequest request) {
         normalizeRequiredCode("targetTypeCode", request.targetTypeCode(), TARGET_TYPE_CODES);
         normalizeRequiredCode("incomeJudgementCode", request.incomeJudgementCode(), INCOME_JUDGEMENT_CODES);
@@ -610,6 +862,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param request 입력 값
+     */
     private void validateConditionsRequest(AnnouncementConditionsSaveRequest request) {
         for (AnnouncementConditionsSaveRequest.IndustryConditionRequest condition
                 : nullToEmpty(request.industryConditions())) {
@@ -633,6 +890,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param request 입력 값
+     */
     private void validateStepsRequest(AnnouncementStepsSaveRequest request) {
         List<AnnouncementStepsSaveRequest.StepRequest> steps = nullToEmpty(request.steps());
         validateUnique("stepOrder", steps, AnnouncementStepsSaveRequest.StepRequest::stepOrder);
@@ -650,6 +912,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(
@@ -660,12 +929,30 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param minAmount 입력 값
+     *
+     * @param maxAmount 입력 값
+     */
     private void validateAmountRange(BigDecimal minAmount, BigDecimal maxAmount) {
         if (minAmount != null && maxAmount != null && minAmount.compareTo(maxAmount) > 0) {
             throw validation("minAmount must be less than or equal to maxAmount.");
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param comparatorCode 입력 값
+     *
+     * @param valueNumber 입력 값
+     *
+     * @param minNumber 입력 값
+     *
+     * @param maxNumber 입력 값
+     */
     private void validateNumericCondition(
             String comparatorCode,
             BigDecimal valueNumber,
@@ -683,6 +970,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param standardFieldId 입력 값
+     *
+     * @param scopeCode 입력 값
+     *
+     * @param allowedFieldTypeCodes 입력 값
+     */
     private void validateConditionStandardField(
             UUID standardFieldId,
             String scopeCode,
@@ -707,6 +1003,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param standardFieldId 입력 값
+     *
+     * @param documentTypeCode 입력 값
+     */
     private void validateDocumentRequirementStandardField(UUID standardFieldId, String documentTypeCode) {
         if (standardFieldId == null) {
             return;
@@ -717,6 +1020,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param standardFieldId 입력 값
+     *
+     * @return 처리 결과
+     */
     private AnnouncementStandardDocumentFieldRow selectStandardDocumentField(UUID standardFieldId) {
         AnnouncementStandardDocumentFieldRow field = announcementDao.selectStandardDocumentFieldDetails(standardFieldId);
         if (field == null || !Boolean.TRUE.equals(field.selectable())) {
@@ -725,6 +1035,17 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return field;
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param values 입력 값
+     *
+     * @param keySelector 입력 값
+     *
+     * @return 처리 결과
+     */
     private <T, K> void validateUnique(String fieldName, List<T> values, Function<T, K> keySelector) {
         long distinctCount = values.stream()
                 .map(keySelector)
@@ -741,6 +1062,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectRequiredActorUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "Authentication is required.");
@@ -755,12 +1083,32 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         );
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     */
     private void validateOptionalCode(String fieldName, String value, Set<String> allowedValues) {
         if (value != null && !allowedValues.contains(value)) {
             throw validation(fieldName + " is not supported.");
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String normalizedValue = normalizeOptionalCode(value);
         if (normalizedValue == null || !allowedValues.contains(normalizedValue)) {
@@ -769,11 +1117,25 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return normalizedValue;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String value) {
         String normalizedValue = trimToNull(value);
         return normalizedValue == null ? null : normalizedValue.toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeText(String value) {
         String normalizedValue = trimToNull(value);
         if (normalizedValue == null) {
@@ -782,6 +1144,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return normalizedValue;
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -790,14 +1159,37 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         return trimmedValue.isEmpty() ? null : trimmedValue;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param values 입력 값
+     *
+     * @return 처리 결과
+     */
     private <T> List<T> nullToEmpty(List<T> values) {
         return values == null ? List.of() : values;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validation(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param approvalStatusCode 입력 값
+     *
+     * @param actorUserId 입력 값
+     */
     private void updateApprovalStatus(UUID announcementId, String approvalStatusCode, UUID actorUserId) {
         int updatedCount = announcementDao.updateAnnouncementApprovalStatus(new AnnouncementApprovalStatusCommand(
                 announcementId,
@@ -809,10 +1201,22 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException invalidStatusTransition(String message) {
         return new ApiException(ErrorCode.INVALID_STATUS_TRANSITION, HttpStatus.CONFLICT, message);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound() {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "Announcement was not found.");
     }

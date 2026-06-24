@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AddressServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.address.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -23,11 +35,33 @@ public class AddressServiceImpl implements AddressService {
     private final RoadAddressProperties properties;
     private final RoadAddressClient roadAddressClient;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param properties 입력 값
+     *
+     * @param roadAddressClient 입력 값
+     */
     public AddressServiceImpl(RoadAddressProperties properties, RoadAddressClient roadAddressClient) {
         this.properties = properties;
         this.roadAddressClient = roadAddressClient;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @param firstSort 입력 값
+     *
+     * @param includeHistory 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<AddressSearchResponse> selectRoadAddressList(
             String keyword,
@@ -83,6 +117,13 @@ public class AddressServiceImpl implements AddressService {
         return PageResponse.of(items, normalizedPage, normalizedSize, parseLong(common.totalCount()));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param juso 입력 값
+     *
+     * @return 처리 결과
+     */
     private AddressSearchResponse selectAddressSearchResponse(RoadAddressApiResponse.Juso juso) {
         return new AddressSearchResponse(
                 trimToNull(juso.zipNo()),
@@ -101,6 +142,13 @@ public class AddressServiceImpl implements AddressService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param apiResponse 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<RoadAddressApiResponse.Juso> safeJusoList(RoadAddressApiResponse apiResponse) {
         if (apiResponse == null || apiResponse.results() == null || apiResponse.results().juso() == null) {
             return List.of();
@@ -108,6 +156,13 @@ public class AddressServiceImpl implements AddressService {
         return apiResponse.results().juso();
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param firstSort 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeFirstSort(String firstSort) {
         String normalized = trimToNull(firstSort);
         if (normalized == null) {
@@ -120,6 +175,13 @@ public class AddressServiceImpl implements AddressService {
         return lower;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private long parseLong(String value) {
         try {
             return Long.parseLong(String.valueOf(value == null ? "0" : value));
@@ -128,6 +190,11 @@ public class AddressServiceImpl implements AddressService {
         }
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException addressServiceFailed() {
         return new ApiException(
                 ErrorCode.INTERNAL_ERROR,
@@ -136,10 +203,24 @@ public class AddressServiceImpl implements AddressService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param message 입력 값
+     *
+     * @return 처리 결과
+     */
     private ApiException validationFailed(String message) {
         return new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, message);
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;

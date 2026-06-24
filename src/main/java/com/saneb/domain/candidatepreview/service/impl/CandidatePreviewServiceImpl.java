@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: CandidatePreviewServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.candidatepreview.service.impl;
 
 import com.saneb.domain.candidatepreview.dao.CandidatePreviewDao;
@@ -21,10 +33,22 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
 
     private final CandidatePreviewDao candidatePreviewDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param candidatePreviewDao 입력 값
+     */
     public CandidatePreviewServiceImpl(CandidatePreviewDao candidatePreviewDao) {
         this.candidatePreviewDao = candidatePreviewDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public CandidatePreviewResponse selectCandidatePreview(CandidatePreviewRequest request) {
         CandidatePreviewRow row = candidatePreviewDao.selectCandidatePreview(new CandidatePreviewSearchCondition(
@@ -45,6 +69,13 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
         );
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeCode(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -52,6 +83,13 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
         return value.trim().toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String booleanCode(Boolean value) {
         if (value == null) {
             return null;
@@ -59,6 +97,17 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
         return Boolean.TRUE.equals(value) ? "TRUE" : "FALSE";
     }
 
+    /**
+     * 업무 처리에 필요한 값을 해석합니다.
+     *
+     * @param explicitValue 입력 값
+     *
+     * @param families 입력 값
+     *
+     * @param relationTypeCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private Boolean resolveFamilyPresence(Boolean explicitValue, List<FamilyPreviewRequest> families, String relationTypeCode) {
         if (explicitValue != null) {
             return explicitValue;
@@ -73,6 +122,13 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
                 .orElse(null);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param birthYear 입력 값
+     *
+     * @return 처리 결과
+     */
     private BigDecimal age(Integer birthYear) {
         if (birthYear == null || birthYear < 1900 || birthYear > 2200) {
             return null;
@@ -80,6 +136,13 @@ public class CandidatePreviewServiceImpl implements com.saneb.domain.candidatepr
         return BigDecimal.valueOf(LocalDate.now().getYear() - birthYear);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param openingDate 입력 값
+     *
+     * @return 처리 결과
+     */
     private BigDecimal businessYears(LocalDate openingDate) {
         if (openingDate == null || openingDate.isAfter(LocalDate.now())) {
             return null;

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuthSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +44,11 @@ class AuthSmokeIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localSeedAccountCompletesSessionAuthFlow() throws Exception {
         String signupLoginId = "signup_" + Long.toString(System.nanoTime(), 36);
@@ -144,6 +161,13 @@ class AuthSmokeIntegrationTest {
         assertThat(selectLoginHistoryCount("FAIL")).isEqualTo(beforeFailCount + 1);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param resultCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectLoginHistoryCount(String resultCode) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -159,6 +183,15 @@ class AuthSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param roleCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectUserRoleCount(String loginId, String roleCode) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -175,6 +208,13 @@ class AuthSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectUserConsentCount(String loginId) {
         Long count = jdbcTemplate.queryForObject(
                 """

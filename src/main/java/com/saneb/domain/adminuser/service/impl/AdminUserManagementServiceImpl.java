@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminUserManagementServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.adminuser.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -37,10 +49,30 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
 
     private final AdminUserManagementDao adminUserManagementDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param adminUserManagementDao 입력 값
+     */
     public AdminUserManagementServiceImpl(AdminUserManagementDao adminUserManagementDao) {
         this.adminUserManagementDao = adminUserManagementDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param keyword 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param roleCode 입력 값
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public PageResponse<AdminUserSummaryResponse> selectUserList(
             String keyword,
@@ -70,6 +102,11 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return PageResponse.of(items, page, size, totalCount);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     */
     @Override
     public List<AdminRoleResponse> selectRoleList() {
         return adminUserManagementDao.selectRoleList().stream()
@@ -77,7 +114,29 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
                 .toList();
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AdminUserSummaryResponse updateUserStatus(
             Authentication authentication,
@@ -114,7 +173,29 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return toUserResponse(selectUserRow(userId));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param userId 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public AdminUserSummaryResponse updateUserRoles(
             Authentication authentication,
@@ -148,6 +229,13 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return toUserResponse(selectUserRow(userId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminUserSummaryRow selectUserRow(UUID userId) {
         AdminUserSummaryRow row = adminUserManagementDao.selectUserDetails(userId);
         if (row == null) {
@@ -156,6 +244,13 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return row;
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminUserSummaryResponse toUserResponse(AdminUserSummaryRow row) {
         return new AdminUserSummaryResponse(
                 row.userId(),
@@ -172,10 +267,24 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminRoleResponse toRoleResponse(AdminRoleRow row) {
         return new AdminRoleResponse(row.roleCode(), row.roleName(), row.sortOrder());
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param roleCodes 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<String> normalizeRoleCodes(List<String> roleCodes) {
         LinkedHashSet<String> normalizedRoleCodes = new LinkedHashSet<>();
         if (roleCodes != null) {
@@ -191,6 +300,13 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
                 .toList();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param roleCodesText 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<String> splitRoleCodes(String roleCodesText) {
         if (roleCodesText == null || roleCodesText.isBlank()) {
             return List.of();
@@ -205,6 +321,13 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return roleCodes;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private UUID selectRequiredActorUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -219,6 +342,13 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         );
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param page 입력 값
+     *
+     * @param size 입력 값
+     */
     private void validatePageRequest(int page, int size) {
         if (page < 1 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new ApiException(
@@ -229,6 +359,15 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         }
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param code 입력 값
+     *
+     * @param allowedCodes 입력 값
+     */
     private void validateOptionalCode(String fieldName, String code, Set<String> allowedCodes) {
         if (code != null && !allowedCodes.contains(code)) {
             throw new ApiException(
@@ -239,6 +378,17 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param code 입력 값
+     *
+     * @param allowedCodes 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String code, Set<String> allowedCodes) {
         String normalizedCode = normalizeOptionalCode(code);
         if (normalizedCode == null || !allowedCodes.contains(normalizedCode)) {
@@ -251,18 +401,48 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         return normalizedCode;
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param code 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeOptionalCode(String code) {
         return code == null || code.isBlank() ? null : code.trim().toUpperCase();
     }
 
+    /**
+     * 문자열 입력 값을 정리합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String trimToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException notFound() {
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param actionCode 입력 값
+     *
+     * @param resourceId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, String actionCode, UUID resourceId, String metadataJson) {
         adminUserManagementDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -274,16 +454,47 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param roleCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private int selectRolePriority(String roleCode) {
         return switch (roleCode) {
             case "ADMIN" -> 1;

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ApplicationProgressSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.applicationprogress.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +57,11 @@ class ApplicationProgressSmokeIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localOperatorCreatesAndCompletesApplicationProgressFlow() throws Exception {
         MockHttpSession session = loginLocalOperator();
@@ -192,6 +209,13 @@ class ApplicationProgressSmokeIntegrationTest {
         assertThat(selectAuditMetadataPrivacyLeakCount(progressId)).isEqualTo(0);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalOperator() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -210,6 +234,11 @@ class ApplicationProgressSmokeIntegrationTest {
         throw new IllegalStateException("local_operator login failed for application progress smoke.");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @return 처리 결과
+     */
     private ProgressFixture insertFixture() {
         String fixtureKey = UUID.randomUUID().toString();
         UUID memberUserId = UUID.randomUUID();
@@ -232,6 +261,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return new ProgressFixture(matchingCaseId, firstStepId, secondStepId, stepDocumentId);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param loginId 입력 값
+     */
     private void insertMemberUser(UUID memberUserId, String loginId) {
         jdbcTemplate.update(
                 """
@@ -263,6 +299,13 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param title 입력 값
+     */
     private void insertAnnouncement(UUID announcementId, String title) {
         jdbcTemplate.update(
                 """
@@ -295,6 +338,19 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param stepOrder 입력 값
+     *
+     * @param stepName 입력 값
+     *
+     * @param nextStepId 입력 값
+     */
     private void insertStep(UUID stepId, UUID announcementId, int stepOrder, String stepName, UUID nextStepId) {
         jdbcTemplate.update(
                 """
@@ -334,6 +390,13 @@ class ApplicationProgressSmokeIntegrationTest {
         }
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepDocumentId 입력 값
+     *
+     * @param stepId 입력 값
+     */
     private void insertStepDocument(UUID stepDocumentId, UUID stepId) {
         jdbcTemplate.update(
                 """
@@ -354,6 +417,17 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param stepId 입력 값
+     *
+     * @param buttonCode 입력 값
+     *
+     * @param buttonActionCode 입력 값
+     *
+     * @param nextStepId 입력 값
+     */
     private void insertStepButton(UUID stepId, String buttonCode, String buttonActionCode, UUID nextStepId) {
         jdbcTemplate.update(
                 """
@@ -378,6 +452,13 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param memberUserId 입력 값
+     */
     private void insertVerification(UUID verificationId, UUID memberUserId) {
         jdbcTemplate.update(
                 """
@@ -404,6 +485,17 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param memberUserId 입력 값
+     *
+     * @param verificationId 입력 값
+     */
     private void insertMatchingCase(UUID matchingCaseId, UUID announcementId, UUID memberUserId, UUID verificationId) {
         jdbcTemplate.update(
                 """
@@ -429,11 +521,27 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID selectProgressId(MvcResult result) throws Exception {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
         return UUID.fromString(root.path("data").path("progressId").asText());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectProgressCount(UUID matchingCaseId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -447,6 +555,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectMatchingStatus(UUID matchingCaseId) {
         return jdbcTemplate.queryForObject(
                 """
@@ -459,6 +574,15 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectStepStateCount(UUID progressId, String statusCode) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -474,6 +598,15 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param stepId 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectSingleStepState(UUID progressId, UUID stepId) {
         return jdbcTemplate.queryForObject(
                 """
@@ -488,6 +621,13 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private BigDecimal selectReceivedAmount(UUID progressId) {
         return jdbcTemplate.queryForObject(
                 """
@@ -502,6 +642,13 @@ class ApplicationProgressSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectChecklistCheckedCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -518,6 +665,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectActionLogCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -531,6 +685,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectActionLogPrivacyLeakCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -545,6 +706,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -566,6 +734,13 @@ class ApplicationProgressSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditMetadataPrivacyLeakCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """

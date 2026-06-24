@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DocumentFileServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.documentfile.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,11 +63,19 @@ class DocumentFileServiceImplTest {
 
     private DocumentFileServiceImpl documentFileService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         documentFileService = new DocumentFileServiceImpl(documentFileDao, tempDir.toString(), 1024);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertStoredFileWritesFileAndSavesMetadata() throws Exception {
         when(documentFileDao.selectStoredFileDetails(any())).thenAnswer(invocation -> storedFile(
@@ -79,6 +99,9 @@ class DocumentFileServiceImplTest {
         assertThat(response.fileId()).isEqualTo(command.fileId());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertStoredFileRejectsEmptyFile() {
         assertThatThrownBy(() -> documentFileService.insertStoredFile(
@@ -90,6 +113,9 @@ class DocumentFileServiceImplTest {
                 .isEqualTo(ErrorCode.VALIDATION_FAILED);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertDocumentSubmissionValidatesResourceAndWritesAudit() {
         when(documentFileDao.selectStoredFileDetails(FILE_ID)).thenReturn(storedFile(FILE_ID, "docs/test.pdf", "business.pdf"));
@@ -117,6 +143,9 @@ class DocumentFileServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("SUBMITTED");
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     */
     @Test
     void updateDocumentSubmissionReviewSavesLatestStateAndHistory() {
         when(documentFileDao.selectDocumentSubmissionDetails(SUBMISSION_ID))
@@ -139,6 +168,9 @@ class DocumentFileServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("APPROVED");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectStoredFileDetailsRejectsOtherUserFile() {
         when(documentFileDao.selectStoredFileDetails(FILE_ID)).thenReturn(
@@ -151,10 +183,34 @@ class DocumentFileServiceImplTest {
                 .isEqualTo(ErrorCode.AUTH_FORBIDDEN);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fileId 입력 값
+     *
+     * @param storageKey 입력 값
+     *
+     * @param originalFilename 입력 값
+     *
+     * @return 처리 결과
+     */
     private StoredFileRow storedFile(UUID fileId, String storageKey, String originalFilename) {
         return storedFile(fileId, storageKey, originalFilename, USER_ID);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fileId 입력 값
+     *
+     * @param storageKey 입력 값
+     *
+     * @param originalFilename 입력 값
+     *
+     * @param ownerUserId 입력 값
+     *
+     * @return 처리 결과
+     */
     private StoredFileRow storedFile(UUID fileId, String storageKey, String originalFilename, UUID ownerUserId) {
         return new StoredFileRow(
                 fileId,
@@ -170,6 +226,13 @@ class DocumentFileServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private DocumentSubmissionRow submission(String statusCode) {
         return new DocumentSubmissionRow(
                 SUBMISSION_ID,
@@ -189,6 +252,13 @@ class DocumentFileServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private UsernamePasswordAuthenticationToken authentication(List<String> roles) {
         AuthUserDetailsRow row = new AuthUserDetailsRow(
                 USER_ID,

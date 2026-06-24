@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminDashboardServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.admindashboard.service.impl;
 
 import com.saneb.domain.admindashboard.dao.AdminDashboardDao;
@@ -53,10 +65,20 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 
     private final AdminDashboardDao adminDashboardDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param adminDashboardDao 입력 값
+     */
     public AdminDashboardServiceImpl(AdminDashboardDao adminDashboardDao) {
         this.adminDashboardDao = adminDashboardDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     */
     @Override
     public AdminDashboardSummaryResponse selectSummary() {
         AdminUserSummaryRow userSummary = nullToEmpty(adminDashboardDao.selectUserSummary());
@@ -129,6 +151,15 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param rows 입력 값
+     *
+     * @param statusCodes 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<StatusCountResponse> selectStatusCounts(List<AdminStatusCountRow> rows, List<String> statusCodes) {
         Map<String, AdminStatusCountRow> rowByStatusCode = rows == null
                 ? Map.of()
@@ -141,6 +172,13 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 .toList();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private List<StatusCountResponse> progressStatusCounts(AdminApplicationProgressSummaryRow row) {
         return List.of(
                 new StatusCountResponse("READY", row.readyCount()),
@@ -154,12 +192,28 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCounts 입력 값
+     *
+     * @return 처리 결과
+     */
     private int sumStatusCount(List<StatusCountResponse> statusCounts) {
         return statusCounts.stream()
                 .mapToInt(StatusCountResponse::count)
                 .sum();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCounts 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private int countFor(List<StatusCountResponse> statusCounts, String statusCode) {
         return statusCounts.stream()
                 .filter(statusCount -> statusCode.equals(statusCount.statusCode()))
@@ -168,14 +222,35 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 .orElse(0);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminUserSummaryRow nullToEmpty(AdminUserSummaryRow row) {
         return row == null ? new AdminUserSummaryRow(0, 0, 0, 0, 0, 0, 0) : row;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminAnnouncementSummaryRow nullToEmpty(AdminAnnouncementSummaryRow row) {
         return row == null ? new AdminAnnouncementSummaryRow(0, 0, 0, 0, 0, 0, 0, 0) : row;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminApplicationProgressSummaryRow nullToEmpty(AdminApplicationProgressSummaryRow row) {
         return row == null ? new AdminApplicationProgressSummaryRow(
                 0,
@@ -191,6 +266,13 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         ) : row;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminAuditSummaryRow nullToEmpty(AdminAuditSummaryRow row) {
         return row == null ? new AdminAuditSummaryRow(0, 0, 0) : row;
     }

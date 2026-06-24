@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: MatchingControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.matching.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +64,11 @@ class MatchingControllerSmokeTest {
     @MockBean
     private MatchingService matchingService;
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertMatchingCaseReturnsApiResponse() throws Exception {
         when(matchingService.insertMatchingCase(any(), any())).thenReturn(details("MATCHED", null));
@@ -66,6 +83,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("MATCHED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectMatchingCaseListReturnsPagedApiResponse() throws Exception {
         when(matchingService.selectMatchingCaseList(any(), any(), any(), any(), any(), any(), eq(1), eq(20)))
@@ -83,6 +105,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertFinalMatchingCandidatesReturnsApiResponse() throws Exception {
         when(matchingService.insertFinalMatchingCandidates(any(), any(MatchingFinalRecalculateRequest.class)))
@@ -106,6 +133,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.createdCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectBasicCandidatesReturnsPagedApiResponse() throws Exception {
         when(matchingService.selectMyBasicMatchingCaseList(any(), eq(1), eq(20)))
@@ -120,6 +152,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].statusCode").value("MATCHED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectFinalMatchingCaseListReturnsPagedApiResponse() throws Exception {
         when(matchingService.selectFinalMatchingCaseList(any(), any(), any(), eq(1), eq(20)))
@@ -134,6 +171,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].matchingStageCode").value("FINAL"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertMatchingCandidatesReturnsApiResponse() throws Exception {
         when(matchingService.insertMatchingCandidates(any(), any()))
@@ -158,6 +200,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.candidates[0].statusCode").value("MATCHED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectMatchingMemberLookupListReturnsPagedApiResponse() throws Exception {
         when(matchingService.selectMatchingMemberLookupList(any(), eq(1), eq(10)))
@@ -181,6 +228,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].loginId").value("user01"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectMatchingCaseDetailsReturnsApiResponse() throws Exception {
         when(matchingService.selectMatchingCaseDetails(MATCHING_CASE_ID)).thenReturn(details("BLOCKED", "POLICY_FUND_RESTRICTED"));
@@ -192,6 +244,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.blockedReasonCode").value("POLICY_FUND_RESTRICTED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectMatchingResultDetailListReturnsApiResponse() throws Exception {
         when(matchingService.selectMatchingResultDetailList(MATCHING_CASE_ID)).thenReturn(List.of(
@@ -216,6 +273,11 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data[0].conditionKey").value("RESTRICTION_FLAGS"));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateMatchingCaseStatusReturnsApiResponse() throws Exception {
         when(matchingService.updateMatchingCaseStatus(any(), eq(MATCHING_CASE_ID), any()))
@@ -235,6 +297,15 @@ class MatchingControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("NOT_MATCHED"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @param blockedReasonCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCaseSummaryResponse summary(String statusCode, String blockedReasonCode) {
         OffsetDateTime now = OffsetDateTime.now();
         return new MatchingCaseSummaryResponse(
@@ -266,6 +337,15 @@ class MatchingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @param blockedReasonCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private MatchingCaseDetailsResponse details(String statusCode, String blockedReasonCode) {
         OffsetDateTime now = OffsetDateTime.now();
         return new MatchingCaseDetailsResponse(
@@ -289,6 +369,11 @@ class MatchingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -306,6 +391,11 @@ class MatchingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -323,6 +413,11 @@ class MatchingControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String createRequest() {
         return """
                 {

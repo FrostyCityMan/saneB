@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AdminReportServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.adminreport.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -33,17 +45,47 @@ public class AdminReportServiceImpl implements AdminReportService {
 
     private final AdminReportDao adminReportDao;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param adminReportDao 입력 값
+     */
     public AdminReportServiceImpl(AdminReportDao adminReportDao) {
         this.adminReportDao = adminReportDao;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AdminReportSummaryResponse selectAdminReportSummary(Authentication authentication) {
         selectRequiredAdminPrincipal(authentication);
         return toSummaryResponse(selectSummaryRow());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public ReportExportResponse insertReportExport(Authentication authentication, ReportExportCreateRequest request) {
         AuthenticatedUserDetails actor = selectRequiredAdminPrincipal(authentication);
@@ -77,12 +119,30 @@ public class AdminReportServiceImpl implements AdminReportService {
         return toExportResponse(selectExportRow(exportId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param exportId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public ReportExportResponse selectReportExportDetails(Authentication authentication, UUID exportId) {
         selectRequiredAdminPrincipal(authentication);
         return toExportResponse(selectExportRow(exportId));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param exportId 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public ReportExportDownloadResponse selectReportExportDownload(Authentication authentication, UUID exportId) {
         selectRequiredAdminPrincipal(authentication);
@@ -98,6 +158,11 @@ public class AdminReportServiceImpl implements AdminReportService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     */
     private AdminReportSummaryRow selectSummaryRow() {
         AdminReportSummaryRow row = adminReportDao.selectAdminReportSummary();
         if (row == null) {
@@ -106,6 +171,13 @@ public class AdminReportServiceImpl implements AdminReportService {
         return row;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param exportId 입력 값
+     *
+     * @return 처리 결과
+     */
     private ReportExportRow selectExportRow(UUID exportId) {
         ReportExportRow row = adminReportDao.selectReportExportDetails(exportId);
         if (row == null) {
@@ -114,6 +186,15 @@ public class AdminReportServiceImpl implements AdminReportService {
         return row;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @param formatCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String buildSummaryExportContent(AdminReportSummaryRow row, String formatCode) {
         String delimiter = "CSV".equals(formatCode) ? "," : "\t";
         return String.join(delimiter,
@@ -147,6 +228,15 @@ public class AdminReportServiceImpl implements AdminReportService {
         ) + "\n";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param reportTypeCode 입력 값
+     *
+     * @param formatCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private String buildFileName(String reportTypeCode, String formatCode) {
         String suffix = "CSV".equals(formatCode) ? ".csv" : ".tsv";
         return reportTypeCode.toLowerCase(Locale.ROOT) + "-"
@@ -154,6 +244,13 @@ public class AdminReportServiceImpl implements AdminReportService {
                 + suffix;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private String summaryJson(AdminReportSummaryRow row) {
         return "{"
                 + "\"totalUserCount\":" + row.totalUserCount() + ","
@@ -172,6 +269,13 @@ public class AdminReportServiceImpl implements AdminReportService {
                 + "}";
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectRequiredAdminPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -183,6 +287,17 @@ public class AdminReportServiceImpl implements AdminReportService {
         throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.");
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param fieldName 입력 값
+     *
+     * @param value 입력 값
+     *
+     * @param allowedValues 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequiredCode(String fieldName, String value, Set<String> allowedValues) {
         String code = value == null || value.isBlank() ? null : value.trim().toUpperCase(Locale.ROOT);
         if (code == null || !allowedValues.contains(code)) {
@@ -191,6 +306,13 @@ public class AdminReportServiceImpl implements AdminReportService {
         return code;
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private AdminReportSummaryResponse toSummaryResponse(AdminReportSummaryRow row) {
         return new AdminReportSummaryResponse(
                 row.totalUserCount(),
@@ -209,6 +331,13 @@ public class AdminReportServiceImpl implements AdminReportService {
         );
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param row 입력 값
+     *
+     * @return 처리 결과
+     */
     private ReportExportResponse toExportResponse(ReportExportRow row) {
         return new ReportExportResponse(
                 row.exportId(),
@@ -225,6 +354,15 @@ public class AdminReportServiceImpl implements AdminReportService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param actorUserId 입력 값
+     *
+     * @param exportId 입력 값
+     *
+     * @param metadataJson 입력 값
+     */
     private void insertAudit(UUID actorUserId, UUID exportId, String metadataJson) {
         adminReportDao.insertAuditLog(new AuditLogCommand(
                 actorUserId,
@@ -236,12 +374,36 @@ public class AdminReportServiceImpl implements AdminReportService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param key1 입력 값
+     *
+     * @param value1 입력 값
+     *
+     * @param key2 입력 값
+     *
+     * @param value2 입력 값
+     *
+     * @param key3 입력 값
+     *
+     * @param value3 입력 값
+     *
+     * @return 처리 결과
+     */
     private String metadata(String key1, String value1, String key2, String value2, String key3, String value3) {
         return "{\"" + key1 + "\":\"" + safeValue(value1) + "\",\""
                 + key2 + "\":\"" + safeValue(value2) + "\",\""
                 + key3 + "\":\"" + safeValue(value3) + "\"}";
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String safeValue(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }

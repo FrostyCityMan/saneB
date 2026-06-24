@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: ConsultationServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.consultation.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,11 +59,17 @@ class ConsultationServiceImplTest {
 
     private ConsultationServiceImpl consultationService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         consultationService = new ConsultationServiceImpl(consultationDao);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertConsultationSlotUsesPartnerActorWhenPartnerCreatesSlot() {
         when(consultationDao.selectConsultationSlotDetails(any())).thenReturn(slot("OPEN"));
@@ -68,6 +86,9 @@ class ConsultationServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("OPEN");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertConsultationSlotRejectsInvalidTime() {
         assertThatThrownBy(() -> consultationService.insertConsultationSlot(
@@ -79,6 +100,9 @@ class ConsultationServiceImplTest {
                 .isEqualTo(ErrorCode.VALIDATION_FAILED);
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertConsultationReservationCreatesSlotlessUserRequest() {
         when(consultationDao.selectConsultationReservationDetails(any())).thenReturn(slotlessReservation("REQUESTED"));
@@ -100,6 +124,9 @@ class ConsultationServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("REQUESTED");
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertConsultationReservationAllowsOperatorToAssignSlot() {
         when(consultationDao.selectConsultationSlotDetails(SLOT_ID)).thenReturn(slot("OPEN"));
@@ -121,6 +148,9 @@ class ConsultationServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("REQUESTED");
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     */
     @Test
     void updateConsultationReservationStatusAllowsPartnerToConfirm() {
         when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID))
@@ -144,6 +174,9 @@ class ConsultationServiceImplTest {
         assertThat(response.statusCode()).isEqualTo("CONFIRMED");
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     */
     @Test
     void updateConsultationReservationStatusRejectsUserConfirm() {
         when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(reservation("REQUESTED"));
@@ -158,6 +191,13 @@ class ConsultationServiceImplTest {
                 .isEqualTo(ErrorCode.AUTH_FORBIDDEN);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationSlotRow slot(String statusCode) {
         return new ConsultationSlotRow(
                 SLOT_ID,
@@ -171,6 +211,13 @@ class ConsultationServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationReservationRow reservation(String statusCode) {
         return new ConsultationReservationRow(
                 RESERVATION_ID,
@@ -197,6 +244,13 @@ class ConsultationServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private ConsultationReservationRow slotlessReservation(String statusCode) {
         return new ConsultationReservationRow(
                 RESERVATION_ID,
@@ -223,6 +277,15 @@ class ConsultationServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private UsernamePasswordAuthenticationToken authentication(UUID userId, List<String> roles) {
         AuthenticatedUserDetails principal = new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

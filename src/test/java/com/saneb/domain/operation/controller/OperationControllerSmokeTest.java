@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: OperationControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.operation.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +59,9 @@ class OperationControllerSmokeTest {
     @MockitoBean
     private OperationService operationService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(operationService.selectMyNotificationList(any(), any(), eq(1), eq(20)))
@@ -61,6 +76,11 @@ class OperationControllerSmokeTest {
         when(operationService.insertOperationTaskAssignment(any(), eq(TASK_ID), any())).thenReturn(assignment());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void selectMyNotificationListReturnsPagedApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/notifications/me")
@@ -72,6 +92,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.items[0].notificationId").value(NOTIFICATION_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateNotificationReadReturnsApiResponse() throws Exception {
         mockMvc.perform(patch("/api/v1/notifications/{notificationId}/read", NOTIFICATION_ID)
@@ -80,6 +105,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.readAt").exists());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAdminNotificationRejectsUserRole() throws Exception {
         mockMvc.perform(post("/api/v1/admin/notifications/send")
@@ -89,6 +119,11 @@ class OperationControllerSmokeTest {
                 .andExpect(status().isForbidden());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertAdminNotificationReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/admin/notifications/send")
@@ -99,6 +134,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.channelCode").value("IN_APP"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertOperationTaskReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/operation-tasks")
@@ -118,6 +158,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.taskId").value(TASK_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void updateOperationTaskStatusReturnsApiResponse() throws Exception {
         mockMvc.perform(patch("/api/v1/operation-tasks/{taskId}/status", TASK_ID)
@@ -132,6 +177,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("IN_PROGRESS"));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertOperationTaskCommentReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/operation-tasks/{taskId}/comments", TASK_ID)
@@ -146,6 +196,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.commentId").value(COMMENT_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void insertOperationTaskAssignmentReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/operation-tasks/{taskId}/assignments", TASK_ID)
@@ -160,6 +215,11 @@ class OperationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.assignmentId").value(ASSIGNMENT_ID.toString()));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String notificationRequest() {
         return """
                 {
@@ -172,6 +232,13 @@ class OperationControllerSmokeTest {
                 """.formatted(USER_ID);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param read 입력 값
+     *
+     * @return 처리 결과
+     */
     private NotificationMessageResponse notification(boolean read) {
         return new NotificationMessageResponse(
                 NOTIFICATION_ID,
@@ -188,6 +255,13 @@ class OperationControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private OperationTaskResponse task(String statusCode) {
         return new OperationTaskResponse(
                 TASK_ID,
@@ -205,22 +279,51 @@ class OperationControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private OperationTaskCommentResponse comment() {
         return new OperationTaskCommentResponse(COMMENT_ID, TASK_ID, USER_ID, "확인했습니다.", CREATED_AT);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private OperationTaskAssignmentResponse assignment() {
         return new OperationTaskAssignmentResponse(ASSIGNMENT_ID, TASK_ID, USER_ID, "ASSIGNED", USER_ID, CREATED_AT, null);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails userPrincipal() {
         return principal("local_user", List.of("USER"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails operatorPrincipal() {
         return principal("local_operator", List.of("OPERATOR"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @param roles 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal(String loginId, List<String> roles) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AiAssistServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.aiassist.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +46,9 @@ class AiAssistServiceImplTest {
     private AiAssistProvider aiAssistProvider;
     private AiAssistServiceImpl aiAssistService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         aiAssistDao = org.mockito.Mockito.mock(AiAssistDao.class);
@@ -56,6 +71,9 @@ class AiAssistServiceImplTest {
         ));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     */
     @Test
     void insertAiAssistRequestStoresHashAndLengthWithoutRawInput() {
         String rawInput = "홍길동 010-1111-2222 개인정보 포함 가능 원문";
@@ -82,6 +100,9 @@ class AiAssistServiceImplTest {
         assertThat(resultCaptor.getValue().resultText()).isEqualTo("공고 요약 초안");
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     */
     @Test
     void updateAiAssistResultReviewUpdatesReviewStatus() {
         aiAssistService.updateAiAssistResultReview(authentication(), RESULT_ID, new AiAssistReviewRequest("ACCEPTED"));
@@ -89,12 +110,22 @@ class AiAssistServiceImplTest {
         verify(aiAssistDao).updateAiAssistResultReviewStatus(RESULT_ID, "ACCEPTED", OPERATOR_ID);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private TestingAuthenticationToken authentication() {
         TestingAuthenticationToken authentication = new TestingAuthenticationToken(principal(), null);
         authentication.setAuthenticated(true);
         return authentication;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails principal() {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -112,6 +143,15 @@ class AiAssistServiceImplTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param requestId 입력 값
+     *
+     * @param reviewStatusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private AiAssistRow row(UUID requestId, String reviewStatusCode) {
         return new AiAssistRow(
                 requestId,

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: PartnerVerificationControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.partnerverification.controller;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +54,9 @@ class PartnerVerificationControllerSmokeTest {
     @MockitoBean
     private PartnerVerificationService partnerVerificationService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         PartnerVerificationDetailsResponse details = details("DRAFT");
@@ -59,7 +74,17 @@ class PartnerVerificationControllerSmokeTest {
                 .thenReturn(details("SUBMITTED"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void selectPartnerVerificationListReturnsApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/partner-verifications"))
@@ -69,7 +94,17 @@ class PartnerVerificationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.totalCount").value(1));
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void insertPartnerVerificationReturnsApiResponse() throws Exception {
         mockMvc.perform(post("/api/v1/partner-verifications")
@@ -84,7 +119,17 @@ class PartnerVerificationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("DRAFT"));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void selectPartnerVerificationDetailsReturnsApiResponse() throws Exception {
         mockMvc.perform(get("/api/v1/partner-verifications/{verificationId}", VERIFICATION_ID))
@@ -93,7 +138,17 @@ class PartnerVerificationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.verificationId").value(VERIFICATION_ID.toString()));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void updatePartnerVerificationValuesReturnApiResponse() throws Exception {
         mockMvc.perform(put("/api/v1/partner-verifications/{verificationId}/member-values", VERIFICATION_ID)
@@ -133,7 +188,17 @@ class PartnerVerificationControllerSmokeTest {
         verify(partnerVerificationService).updateVerificationBusinessValues(any(), eq(VERIFICATION_ID), any());
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void updatePartnerVerificationCollectionsReturnApiResponse() throws Exception {
         mockMvc.perform(put("/api/v1/partner-verifications/{verificationId}/family-values", VERIFICATION_ID)
@@ -186,7 +251,17 @@ class PartnerVerificationControllerSmokeTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "operator", roles = "OPERATOR")
     void updatePartnerVerificationStatusReturnsApiResponse() throws Exception {
         mockMvc.perform(patch("/api/v1/partner-verifications/{verificationId}/status", VERIFICATION_ID)
@@ -201,6 +276,13 @@ class PartnerVerificationControllerSmokeTest {
                 .andExpect(jsonPath("$.data.statusCode").value("SUBMITTED"));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationSummaryResponse summary(String statusCode) {
         return new PartnerVerificationSummaryResponse(
                 VERIFICATION_ID,
@@ -220,6 +302,13 @@ class PartnerVerificationControllerSmokeTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private PartnerVerificationDetailsResponse details(String statusCode) {
         return new PartnerVerificationDetailsResponse(
                 VERIFICATION_ID,

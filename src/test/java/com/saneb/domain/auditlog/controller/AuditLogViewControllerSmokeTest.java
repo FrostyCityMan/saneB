@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuditLogViewControllerSmokeTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auditlog.controller;
 
 import static org.hamcrest.Matchers.containsString;
@@ -32,6 +44,9 @@ class AuditLogViewControllerSmokeTest {
     @MockitoBean
     private AuditLogService auditLogService;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         when(auditLogService.selectAuditLogList(any(), any(), any(), any(), eq(1), eq(20)))
@@ -40,7 +55,17 @@ class AuditLogViewControllerSmokeTest {
                 .thenReturn(AuditLogControllerSmokeTest.sampleDetails());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "admin01", roles = "ADMIN")
     void selectAuditLogListPageReturnsThymeleafView() throws Exception {
         mockMvc.perform(get("/app/audit-logs"))
@@ -54,7 +79,17 @@ class AuditLogViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "approver01", roles = "APPROVER")
     void selectAuditLogDetailsPageAllowsApproverUser() throws Exception {
         mockMvc.perform(get("/app/audit-logs/{auditLogId}", AuditLogControllerSmokeTest.AUDIT_LOG_ID))
@@ -65,7 +100,17 @@ class AuditLogViewControllerSmokeTest {
                 .andExpect(content().string(containsString("changedCount")));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @WithMockUser(username = "user01", roles = "USER")
     void selectAuditLogListPageRejectsUser() throws Exception {
         mockMvc.perform(get("/app/audit-logs"))

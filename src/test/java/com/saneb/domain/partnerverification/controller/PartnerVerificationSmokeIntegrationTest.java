@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: PartnerVerificationSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.partnerverification.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +54,11 @@ class PartnerVerificationSmokeIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localOperatorCompletesPartnerVerificationInputFlowWithoutMatchingCreation() throws Exception {
         MockHttpSession session = loginLocalOperator();
@@ -208,6 +225,17 @@ class PartnerVerificationSmokeIntegrationTest {
         assertThat(selectAuditMetadataPrivacyLeakCount(verificationId)).isEqualTo(0);
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param session 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private void updateStatus(MockHttpSession session, UUID verificationId, String statusCode) throws Exception {
         mockMvc.perform(patch("/api/v1/partner-verifications/{verificationId}/status", verificationId)
                         .session(session)
@@ -222,6 +250,13 @@ class PartnerVerificationSmokeIntegrationTest {
                 .andExpect(jsonPath("$.data.statusCode").value(statusCode));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalOperator() throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -240,11 +275,29 @@ class PartnerVerificationSmokeIntegrationTest {
         throw new IllegalStateException("local_operator login failed for partner verification smoke.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID selectVerificationId(MvcResult result) throws Exception {
         JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
         return UUID.fromString(root.path("data").path("verificationId").asText());
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectPartnerVerificationCount(UUID verificationId, String statusCode) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -262,6 +315,15 @@ class PartnerVerificationSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param tableName 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectCountByVerification(String tableName, UUID verificationId) {
         Long count = jdbcTemplate.queryForObject(
                 "SELECT count(1) FROM " + tableName + " WHERE verification_id = ?",
@@ -271,6 +333,13 @@ class PartnerVerificationSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectCheckedDocumentCount(UUID verificationId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -287,6 +356,13 @@ class PartnerVerificationSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditCount(UUID verificationId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -311,6 +387,13 @@ class PartnerVerificationSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectApplicationProgressCountByVerification(UUID verificationId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -325,6 +408,13 @@ class PartnerVerificationSmokeIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param verificationId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditMetadataPrivacyLeakCount(UUID verificationId) {
         Long count = jdbcTemplate.queryForObject(
                 """

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DashboardServiceImplTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dashboard.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +51,9 @@ class DashboardServiceImplTest {
 
     private Authentication authentication;
 
+    /**
+     * 업무 처리를 수행합니다.
+     */
     @BeforeEach
     void setUp() {
         dashboardService = new DashboardServiceImpl(dashboardDao);
@@ -63,6 +78,9 @@ class DashboardServiceImplTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMySummaryUsesMatchingCasesAndAnnouncementAmountRange() {
         when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
@@ -102,6 +120,9 @@ class DashboardServiceImplTest {
         assertThat(response.verificationStatusCode()).isEqualTo("VERIFIED");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMySummaryReturnsEmptyStateWhenMatchingCasesDoNotExist() {
         when(dashboardDao.selectCurrentVerificationStatus(USER_ID)).thenReturn(
@@ -125,6 +146,9 @@ class DashboardServiceImplTest {
         assertThat(response.noticeMessage()).isEqualTo("저장된 기본정보 기준으로 진행 가능한 공고가 아직 없습니다.");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyCurrentActionPrefersReadyOrInProgressStepState() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(
@@ -149,6 +173,9 @@ class DashboardServiceImplTest {
         assertThat(response.displayOrder()).isEqualTo(10);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyCurrentActionReturnsBasicInfoRequiredWhenNoStepExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
@@ -164,6 +191,9 @@ class DashboardServiceImplTest {
         assertThat(response.route()).isEqualTo("/app/member/basic-info");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyCurrentActionRequiresBasicMatchingReviewWhenBasicCandidateExists() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
@@ -180,6 +210,9 @@ class DashboardServiceImplTest {
         assertThat(response.route()).isEqualTo("/app/matching/basic-candidates");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyCurrentActionRequiresConsultationWhenSubscriptionIsActive() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
@@ -197,6 +230,9 @@ class DashboardServiceImplTest {
         assertThat(response.route()).isEqualTo("/app/consultations");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyCurrentActionWaitsForFinalMatchingAfterConsultationRequest() {
         when(dashboardDao.selectCurrentStepDetails(USER_ID)).thenReturn(null);
@@ -213,6 +249,9 @@ class DashboardServiceImplTest {
         assertThat(response.route()).isNull();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyProgressSummaryUsesApplicationProgressesOnly() {
         when(dashboardDao.selectProgressSummary(USER_ID)).thenReturn(
@@ -236,6 +275,9 @@ class DashboardServiceImplTest {
         assertThat(response.totalReceivedAmount()).isEqualByComparingTo("7000000.00");
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     */
     @Test
     void selectMyReverificationStatusUsesExpiredVerificationState() {
         OffsetDateTime verifiedAt = OffsetDateTime.parse("2026-05-01T10:00:00+09:00");

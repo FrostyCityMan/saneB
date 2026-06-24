@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: DashboardSmokeIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.dashboard.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -37,6 +49,11 @@ class DashboardSmokeIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localSeedUserDashboardReadsMatchingAndProgressDataFromDatabase() throws Exception {
         DashboardFixture fixture = insertDashboardFixture();
@@ -83,6 +100,11 @@ class DashboardSmokeIntegrationTest {
         assertMatchingCasesRemainOwnedByFixture(fixture);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localSeedMatchUserCanOpenSeededMatchingProgress() throws Exception {
         MockHttpSession session = login("local_match_user");
@@ -109,6 +131,11 @@ class DashboardSmokeIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @return 처리 결과
+     */
     private DashboardFixture insertDashboardFixture() {
         deleteDashboardFixtureRows();
 
@@ -230,6 +257,9 @@ class DashboardSmokeIntegrationTest {
         return new DashboardFixture(List.of(policyMatchingCaseId, supportMatchingCaseId, subsidyMatchingCaseId));
     }
 
+    /**
+     * 업무 데이터를 삭제합니다.
+     */
     private void deleteDashboardFixtureRows() {
         jdbcTemplate.update(
                 """
@@ -328,6 +358,19 @@ class DashboardSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param announcementId 입력 값
+     *
+     * @param title 입력 값
+     *
+     * @param minAmount 입력 값
+     *
+     * @param maxAmount 입력 값
+     *
+     * @param paymentMethodCode 입력 값
+     */
     private void insertAnnouncement(
             UUID announcementId,
             String title,
@@ -377,6 +420,17 @@ class DashboardSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param statusCode 입력 값
+     */
     private void insertMatchingCase(UUID matchingCaseId, UUID announcementId, UUID verificationId, String statusCode) {
         jdbcTemplate.update(
                 """
@@ -425,6 +479,21 @@ class DashboardSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param matchingCaseId 입력 값
+     *
+     * @param announcementId 입력 값
+     *
+     * @param currentStepId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @param receivedAmount 입력 값
+     */
     private void insertApplicationProgress(
             UUID progressId,
             UUID matchingCaseId,
@@ -463,10 +532,26 @@ class DashboardSmokeIntegrationTest {
         );
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession loginLocalUser() throws Exception {
         return login("local_user");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession login(String loginId) throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -485,6 +570,11 @@ class DashboardSmokeIntegrationTest {
         throw new IllegalStateException(loginId + " login failed for dashboard smoke.");
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param fixture 입력 값
+     */
     private void assertMatchingCasesRemainOwnedByFixture(DashboardFixture fixture) {
         Long count = jdbcTemplate.queryForObject(
                 """

@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: AuthServiceImpl.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.domain.auth.service.impl;
 
 import com.saneb.common.error.ApiException;
@@ -50,6 +62,17 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final SecurityContextRepository securityContextRepository;
 
+    /**
+     * 객체를 생성합니다.
+     *
+     * @param authDao 입력 값
+     *
+     * @param consentService 입력 값
+     *
+     * @param passwordEncoder 입력 값
+     *
+     * @param securityContextRepository 입력 값
+     */
     public AuthServiceImpl(
             AuthDao authDao,
             ConsentService consentService,
@@ -62,7 +85,29 @@ public class AuthServiceImpl implements AuthService {
         this.securityContextRepository = securityContextRepository;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional(noRollbackFor = ApiException.class)
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         AuthUserDetailsRow user = authDao.selectAuthUserDetailsByLoginId(request.loginId());
@@ -89,7 +134,29 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponse.from(toAuthMeResponse(principal));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     *
+     * @return 처리 결과
+     */
     @Transactional
     public LoginResponse signup(
             SignupRequest request,
@@ -139,6 +206,13 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponse.from(toAuthMeResponse(principal));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     */
     @Override
     public void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         SecurityContext emptyContext = SecurityContextHolder.createEmptyContext();
@@ -151,6 +225,13 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     @Override
     public AuthMeResponse selectAuthMe(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -180,7 +261,29 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     */
     @Override
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @param request 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     */
     @Transactional
     public void updatePassword(
             Authentication authentication,
@@ -201,6 +304,13 @@ public class AuthServiceImpl implements AuthService {
         saveAuthentication(withUpdatedPassword(principal, passwordHash), httpRequest, httpResponse);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param authentication 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails selectCurrentPrincipal(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
@@ -217,6 +327,13 @@ public class AuthServiceImpl implements AuthService {
         return toPrincipal(user);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param user 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails toPrincipal(AuthUserDetailsRow user) {
         List<String> roles = authDao.selectRoleCodeListByUserId(user.userId()).stream()
                 .sorted(Comparator.comparingInt(this::selectRolePriority))
@@ -224,6 +341,13 @@ public class AuthServiceImpl implements AuthService {
         return new AuthenticatedUserDetails(user, roles.isEmpty() ? List.of("USER") : roles);
     }
 
+    /**
+     * 업무 데이터를 응답 형식으로 변환합니다.
+     *
+     * @param principal 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthMeResponse toAuthMeResponse(AuthenticatedUserDetails principal) {
         List<String> roles = principal.roles().stream()
                 .sorted(Comparator.comparingInt(this::selectRolePriority))
@@ -246,6 +370,19 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    /**
+     * 업무 데이터를 등록합니다.
+     *
+     * @param userId 입력 값
+     *
+     * @param loginId 입력 값
+     *
+     * @param loginResultCode 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param failureReasonCode 입력 값
+     */
     private void insertLoginHistory(
             java.util.UUID userId,
             String loginId,
@@ -263,6 +400,15 @@ public class AuthServiceImpl implements AuthService {
         ));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param principal 입력 값
+     *
+     * @param passwordHash 입력 값
+     *
+     * @return 처리 결과
+     */
     private AuthenticatedUserDetails withUpdatedPassword(AuthenticatedUserDetails principal, String passwordHash) {
         return new AuthenticatedUserDetails(
                 new AuthUserDetailsRow(
@@ -280,6 +426,15 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param principal 입력 값
+     *
+     * @param httpRequest 입력 값
+     *
+     * @param httpResponse 입력 값
+     */
     private void saveAuthentication(
             AuthenticatedUserDetails principal,
             HttpServletRequest httpRequest,
@@ -296,6 +451,11 @@ public class AuthServiceImpl implements AuthService {
         securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
     }
 
+    /**
+     * 요청 값과 업무 규칙을 검증합니다.
+     *
+     * @param request 입력 값
+     */
     private void validateSignupRequest(SignupRequest request) {
         if (!request.password().equals(request.passwordConfirm())) {
             throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, "비밀번호 확인이 일치하지 않습니다.");
@@ -305,10 +465,24 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 입력 값을 표준 형식으로 정규화합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String normalizeRequired(String value) {
         return value == null ? "" : value.trim();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param value 입력 값
+     *
+     * @return 처리 결과
+     */
     private String nullIfBlank(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -316,6 +490,13 @@ public class AuthServiceImpl implements AuthService {
         return value.trim();
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param httpRequest 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectClientIpAddress(HttpServletRequest httpRequest) {
         String forwardedFor = httpRequest.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isBlank()) {
@@ -324,6 +505,13 @@ public class AuthServiceImpl implements AuthService {
         return httpRequest.getRemoteAddr();
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param userAgent 입력 값
+     *
+     * @return 처리 결과
+     */
     private String truncateUserAgent(String userAgent) {
         if (userAgent == null || userAgent.length() <= MAX_USER_AGENT_LENGTH) {
             return userAgent;
@@ -331,6 +519,11 @@ public class AuthServiceImpl implements AuthService {
         return userAgent.substring(0, MAX_USER_AGENT_LENGTH);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private ApiException invalidCredentials() {
         return new ApiException(
                 ErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -339,6 +532,13 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param primaryRole 입력 값
+     *
+     * @return 처리 결과
+     */
     private String selectDefaultRoute(String primaryRole) {
         return switch (primaryRole) {
             case "ADMIN" -> ADMIN_ROUTE;
@@ -350,6 +550,13 @@ public class AuthServiceImpl implements AuthService {
         };
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param role 입력 값
+     *
+     * @return 처리 결과
+     */
     private int selectRolePriority(String role) {
         return switch (role) {
             case "ADMIN" -> 1;

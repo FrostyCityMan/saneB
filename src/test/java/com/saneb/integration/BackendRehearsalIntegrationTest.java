@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 범데이터소프트. All rights reserved.
+ *
+ * 본 소프트웨어 및 관련 문서는 범데이터소프트의 지식재산입니다.
+ * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
+ *
+ * 프로젝트명: saneB
+ * 파일명: BackendRehearsalIntegrationTest.java
+ * 작성자: 김도훈
+ *
+ */
+
 package com.saneb.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +59,11 @@ class BackendRehearsalIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     @Test
     void localOperatorCompletesBackendRehearsalFlowAndDashboardReflectsRealData() throws Exception {
         MockHttpSession operatorSession = login("local_operator");
@@ -387,6 +404,15 @@ class BackendRehearsalIntegrationTest {
         assertThat(selectApprovedProgressCount(progressId)).isEqualTo(1);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param loginId 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private MockHttpSession login(String loginId) throws Exception {
         for (String password : List.of("password", "new-password")) {
             MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
@@ -406,6 +432,15 @@ class BackendRehearsalIntegrationTest {
         throw new IllegalStateException(loginId + " login failed for backend rehearsal.");
     }
 
+    /**
+     * 업무 데이터를 저장합니다.
+     *
+     * @param session 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private void saveVerificationValues(MockHttpSession session, UUID verificationId) throws Exception {
         mockMvc.perform(put("/api/v1/partner-verifications/{verificationId}/member-values", verificationId)
                         .session(session)
@@ -474,6 +509,17 @@ class BackendRehearsalIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
+    /**
+     * 업무 데이터를 수정합니다.
+     *
+     * @param session 입력 값
+     *
+     * @param verificationId 입력 값
+     *
+     * @param statusCode 입력 값
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private void updateVerificationStatus(MockHttpSession session, UUID verificationId, String statusCode) throws Exception {
         mockMvc.perform(patch("/api/v1/partner-verifications/{verificationId}/status", verificationId)
                         .session(session)
@@ -489,6 +535,11 @@ class BackendRehearsalIntegrationTest {
                 .andExpect(jsonPath("$.data.statusCode").value(statusCode));
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param announcementId 입력 값
+     */
     private void markAnnouncementApproved(UUID announcementId) {
         jdbcTemplate.update(
                 """
@@ -504,6 +555,15 @@ class BackendRehearsalIntegrationTest {
         );
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private RequirementIds selectRequirementIds(MvcResult result) throws Exception {
         JsonNode requirements = readJson(result).path("data").path("requirements");
         UUID sensitiveMemoId = null;
@@ -526,6 +586,17 @@ class BackendRehearsalIntegrationTest {
         return new RequirementIds(sensitiveMemoId, requestAmountId, supportTypesId);
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param result 입력 값
+     *
+     * @param path 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private UUID selectUuid(MvcResult result, String... path) throws Exception {
         JsonNode node = readJson(result);
         for (String segment : path) {
@@ -536,10 +607,26 @@ class BackendRehearsalIntegrationTest {
         return UUID.fromString(node.asText());
     }
 
+    /**
+     * 입력 데이터를 읽어 처리합니다.
+     *
+     * @param result 입력 값
+     *
+     * @return 처리 결과
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
     private JsonNode readJson(MvcResult result) throws Exception {
         return objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectApplicationInputValueCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -553,6 +640,13 @@ class BackendRehearsalIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectApplicationInputOptionValueCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -567,6 +661,15 @@ class BackendRehearsalIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @param privateValue 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectAuditPrivacyLeakCount(UUID progressId, String privateValue) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -583,6 +686,13 @@ class BackendRehearsalIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @param progressId 입력 값
+     *
+     * @return 처리 결과
+     */
     private long selectApprovedProgressCount(UUID progressId) {
         Long count = jdbcTemplate.queryForObject(
                 """
@@ -600,6 +710,13 @@ class BackendRehearsalIntegrationTest {
         return count == null ? 0 : count;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @param title 입력 값
+     *
+     * @return 처리 결과
+     */
     private String announcementRequest(String title) {
         return """
                 {
@@ -622,6 +739,11 @@ class BackendRehearsalIntegrationTest {
                 """.formatted(title);
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String conditionsRequest() {
         return """
                 {
@@ -658,6 +780,11 @@ class BackendRehearsalIntegrationTest {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String stepsRequest() {
         return """
                 {
@@ -685,6 +812,11 @@ class BackendRehearsalIntegrationTest {
                 """;
     }
 
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @return 처리 결과
+     */
     private String inputRequirementsRequest() {
         return """
                 {
