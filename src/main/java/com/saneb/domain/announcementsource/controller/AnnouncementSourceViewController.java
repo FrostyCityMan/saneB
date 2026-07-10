@@ -47,8 +47,31 @@ public class AnnouncementSourceViewController {
     @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
     public String selectAnnouncementSourcePage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
-        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe));
+        model.addAttribute("page", AnnouncementSourcePageModel.from(
+                authMe,
+                "ANNOUNCEMENT_SOURCES",
+                "API 공고 수집"
+        ));
         return "app/announcement-sources";
+    }
+
+    /**
+     * 수집된 공고만 조회하고 검수하는 관리자 화면을 조회합니다.
+     *
+     * @param authentication 인증 정보
+     * @param model 화면 모델
+     * @return 수집 공고 검수 화면
+     */
+    @GetMapping("/app/admin/collected-announcements")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectCollectedAnnouncementPage(Authentication authentication, Model model) {
+        AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(
+                authMe,
+                "COLLECTED_ANNOUNCEMENTS",
+                "수집 공고 검수"
+        ));
+        return "app/collected-announcements";
     }
 
     public record AnnouncementSourcePageModel(
@@ -61,16 +84,22 @@ public class AnnouncementSourceViewController {
         /**
          * 업무 데이터를 응답 형식으로 변환합니다.
          *
-         * @param auth 입력 값
+         * @param auth 인증 정보
+         * @param activeNav 활성 메뉴
+         * @param pageTitle 화면 제목
          *
          * @return 처리 결과
          */
-        private static AnnouncementSourcePageModel from(AuthMeResponse auth) {
+        private static AnnouncementSourcePageModel from(
+                AuthMeResponse auth,
+                String activeNav,
+                String pageTitle
+        ) {
             return new AnnouncementSourcePageModel(
                     auth,
                     AnnouncementSourceViewController.roleLabel(auth.primaryRole()),
-                    "ANNOUNCEMENT_SOURCES",
-                    "API 공고 수집"
+                    activeNav,
+                    pageTitle
             );
         }
     }

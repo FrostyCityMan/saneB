@@ -22,9 +22,20 @@
             <span>사내비</span>
         </a>
 
+        <button class="mobile-nav-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="sanebPrimaryNavigation"
+                data-mobile-nav-toggle>
+            <span class="mobile-nav-toggle-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </span>
+            <span>전체 메뉴</span>
+        </button>
+
         <div class="role-pill" th:text="${page.roleLabel}">일반 사용자</div>
 
-        <nav class="side-nav">
+        <nav class="side-nav" id="sanebPrimaryNavigation">
             <a class="side-link"
                th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN'}"
                th:href="${page.auth.defaultRoute}"
@@ -123,6 +134,15 @@
                     <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.8M8 15.4h3.4"/><path d="M16.2 14.8 19 12l-2.8-2.8"/></svg>
                 </span>
                 <span>외부 공고 수집</span>
+            </a>
+            <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/collected-announcements}"
+               th:classappend="${page.activeNav == 'COLLECTED_ANNOUNCEMENTS'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 4.8h14v14.4H5z"/><path d="M8.2 8.4h7.6M8.2 12h7.6M8.2 15.6h4.8"/><path d="m15 15.7 1.5 1.5 2.8-3.2"/></svg>
+                </span>
+                <span>수집 공고 검수</span>
             </a>
             <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
@@ -254,6 +274,7 @@
         </footer>
     </div>
 </div>
+<script th:src="@{/js/saneb-layout.js}"></script>
 <script th:src="@{/js/saneb-notification-badge.js}"></script>
 </body>
 </html>

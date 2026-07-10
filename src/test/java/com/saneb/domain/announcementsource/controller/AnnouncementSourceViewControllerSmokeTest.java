@@ -60,4 +60,33 @@ class AnnouncementSourceViewControllerSmokeTest {
         mockMvc.perform(get("/app/admin/announcement-sources"))
                 .andExpect(status().isForbidden());
     }
+
+    /**
+     * 수집 공고 검수 화면이 전용 목록 구조와 메뉴를 렌더링하는지 확인합니다.
+     *
+     * @throws Exception 요청 처리 오류
+     */
+    @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void selectCollectedAnnouncementPageReturnsDedicatedView() throws Exception {
+        mockMvc.perform(get("/app/admin/collected-announcements"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/collected-announcements"))
+                .andExpect(content().string(containsString("수집 공고 검수")))
+                .andExpect(content().string(containsString("data-collected-announcement-page")))
+                .andExpect(content().string(containsString("수집 공고만 모아 확인")))
+                .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    /**
+     * 일반 사용자가 수집 공고 검수 화면에 접근할 수 없는지 확인합니다.
+     *
+     * @throws Exception 요청 처리 오류
+     */
+    @Test
+    @WithMockUser(username = "user01", roles = "USER")
+    void selectCollectedAnnouncementPageRejectsUser() throws Exception {
+        mockMvc.perform(get("/app/admin/collected-announcements"))
+                .andExpect(status().isForbidden());
+    }
 }

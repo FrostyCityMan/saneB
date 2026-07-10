@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
+<main class="announcement-source-page collected-announcement-page"
+      data-collected-announcement-page
+      data-source-url="/api/v1/admin/announcement-sources"
+      th:attr="data-role-code=${page.auth.primaryRole}">
+    <section class="summary-panel">
+        <div class="summary-header">
+            <div>
+                <div class="section-label">수집 공고 검수</div>
+                <p>외부에서 수집한 공고만 모아 확인합니다. 원문과 중복 여부를 검수한 뒤 운영 공고로 전환하세요.</p>
+            </div>
+            <div class="summary-actions">
+                <a class="secondary-action" th:href="@{/app/admin/announcement-sources}">수집 관리로 이동</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="collected-announcement-metrics" aria-label="수집 공고 현황">
+        <article class="metric-card">
+            <span>전체 수집 공고</span>
+            <strong data-collected-total-count>0건</strong>
+            <p>모든 외부 수집처의 원문</p>
+        </article>
+        <article class="metric-card">
+            <span>검수 대기</span>
+            <strong data-collected-pending-count>0건</strong>
+            <p>운영자가 확인해야 할 공고</p>
+        </article>
+        <article class="metric-card">
+            <span>현재 조회 결과</span>
+            <strong data-collected-filtered-count>0건</strong>
+            <p>선택한 검색 조건의 결과</p>
+        </article>
+    </section>
+
+    <section class="plain-panel collected-announcement-filter-panel">
+        <div class="panel-heading compact-heading">
+            <div>
+                <span class="eyebrow">검색</span>
+                <h2>수집 공고만 모아 확인</h2>
+            </div>
+        </div>
+        <form class="collected-announcement-filter" data-collected-filter-form>
+            <label class="field-block">
+                <span>수집처</span>
+                <select name="providerCode">
+                    <option value="">전체 수집처</option>
+                    <option value="BIZINFO">기업마당</option>
+                    <option value="GOV24_PUBLIC_SERVICE">정부24 공공서비스</option>
+                    <option value="LOCAL_GOV_NOTICE">전국 지자체 공고</option>
+                </select>
+            </label>
+            <label class="field-block">
+                <span>검수 상태</span>
+                <select name="reviewStatusCode">
+                    <option value="">전체 상태</option>
+                    <option value="REVIEW_PENDING">검수대기</option>
+                    <option value="CONDITION_INPUT_REQUIRED">조건 입력 필요</option>
+                    <option value="REVIEW_COMPLETED">검수완료</option>
+                    <option value="ACTIVATED">활성 전환</option>
+                    <option value="ARCHIVED">보관</option>
+                </select>
+            </label>
+            <label class="field-block collected-keyword-field">
+                <span>검색어</span>
+                <input name="keyword" type="search" maxlength="100" placeholder="공고명, 기관명, 관리코드">
+            </label>
+            <div class="collected-filter-actions">
+                <button class="primary-action" type="submit">조회</button>
+                <button class="secondary-action" type="button" data-collected-filter-reset>초기화</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="collected-announcement-workspace">
+        <section class="collected-announcement-list-panel" aria-label="수집 공고 목록">
+            <div class="panel-heading compact-heading">
+                <div>
+                    <span class="eyebrow">목록</span>
+                    <h2>수집된 공고</h2>
+                </div>
+                <strong class="collected-list-count" data-collected-list-count>0건</strong>
+            </div>
+            <div class="announcement-source-list collected-announcement-list" data-collected-list>
+                <p class="collected-empty-state">수집 공고를 조회하고 있습니다.</p>
+            </div>
+            <nav class="local-source-pagination" aria-label="수집 공고 페이지">
+                <button class="secondary-action" type="button" aria-label="이전 페이지" data-collected-page-prev>‹</button>
+                <span data-collected-page-info>1 / 1</span>
+                <button class="secondary-action" type="button" aria-label="다음 페이지" data-collected-page-next>›</button>
+            </nav>
+        </section>
+
+        <article class="announcement-source-detail collected-announcement-detail" data-collected-detail aria-live="polite">
+            <div class="collected-detail-empty">
+                <strong>공고를 선택하세요.</strong>
+                <p>목록에서 공고를 선택하면 원문 정보와 검수 작업을 확인할 수 있습니다.</p>
+            </div>
+        </article>
+    </section>
+
+    <script th:src="@{/js/saneb-collected-announcements.js}"></script>
+</main>
+</html>
