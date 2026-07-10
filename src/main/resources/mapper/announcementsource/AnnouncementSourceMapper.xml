@@ -312,7 +312,7 @@
             #{scheduleId},
             coalesce(#{requestStatusCode}, 'APPROVAL_PENDING'),
             #{approvedBy},
-            CASE WHEN #{approvedBy} IS NOT NULL THEN now() ELSE NULL END,
+            CASE WHEN CAST(#{approvedBy} AS uuid) IS NOT NULL THEN now() ELSE NULL END,
             #{approvalNote}
         )
     </insert>

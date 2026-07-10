@@ -492,6 +492,20 @@ class MigrationContractTest {
     }
 
     /**
+     * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
+     *
+     * @throws IOException Mapper 읽기 오류
+     */
+    @Test
+    void announcementSourceMapperCastsNullableApprovedByAsUuid() throws IOException {
+        String mapper = selectAnnouncementSourceMapper();
+
+        assertThat(mapper)
+                .contains("CASE WHEN CAST(#{approvedBy} AS uuid) IS NOT NULL THEN now() ELSE NULL END")
+                .doesNotContain("CASE WHEN #{approvedBy} IS NOT NULL THEN now() ELSE NULL END");
+    }
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @return 처리 결과
@@ -743,6 +757,19 @@ class MigrationContractTest {
     private String selectV29Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V29__seed_local_government_notice_sources.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 외부 공고 수집 Mapper를 UTF-8로 조회합니다.
+     *
+     * @return 외부 공고 수집 Mapper XML
+     * @throws IOException Mapper 읽기 오류
+     */
+    private String selectAnnouncementSourceMapper() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "mapper/announcementsource/AnnouncementSourceMapper.xml"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
