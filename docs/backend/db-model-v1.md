@@ -285,6 +285,43 @@ PG사는 TossPayments를 우선 기준으로 둔다. DB 계약은 `provider_code
 
 AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.input_hash_sha256`과 `input_length`만 저장하며, `ai_assist_results.result_text`는 운영자 검토용 초안이다. 외부 provider payload 원문과 secret은 저장하지 않는다.
 
+### 5.17 Announcement Source Collection
+
+| 테이블 | 핵심 컬럼 | PK/FK | Index / Unique |
+|---|---|---|---|
+| `announcement_source_collection_requests` | `public_code`, `request_type_code`, `provider_code`, `request_status_code`, `search_keyword`, `search_region_code`, `search_category_code`, `max_count`, `requested_by`, `requested_at`, `approved_by`, `approved_at`, `approval_note` | PK `id`, FK `users.id` | UQ `public_code`, IDX `(request_status_code, requested_at)`, IDX `(provider_code, requested_at)` |
+| `announcement_source_collection_runs` | `public_code`, `request_id`, `provider_code`, `run_status_code`, `total_count`, `collected_count`, `duplicate_count`, `skipped_ended_count`, `failed_count`, `started_at`, `finished_at`, `error_message` | PK `id`, FK `announcement_source_collection_requests.id` | UQ `public_code`, IDX `(provider_code, started_at)`, IDX `(run_status_code, started_at)` |
+| `announcement_source_collection_run_items` | `run_id`, `source_snapshot_id`, `provider_notice_id`, `source_url`, `item_status_code`, `skip_reason_code`, `error_message` | PK `id`, FK `announcement_source_collection_runs.id`, FK `announcement_source_snapshots.id` | IDX `(run_id, item_status_code)` |
+| `announcement_source_snapshots` | `public_code`, `provider_code`, `provider_notice_id`, `title`, `agency_name`, `application_start_date`, `application_end_date`, `posted_date`, `modified_date`, `source_url`, `body_text`, `inquiry_text`, `application_method_text`, `raw_payload_json`, `raw_hash`, `review_status_code`, `reviewed_by`, `reviewed_at` | PK `id`, FK `users.id` | UQ `public_code`, partial UQ `(provider_code, provider_notice_id)`, partial UQ `(provider_code, source_url)`, UQ `(provider_code, raw_hash)`, IDX `(review_status_code, created_at)`, IDX `(application_end_date)` |
+| `announcement_source_attachments` | `source_snapshot_id`, `attachment_name`, `attachment_url`, `sort_order` | PK `id`, FK `announcement_source_snapshots.id` | IDX `(source_snapshot_id, sort_order)` |
+| `announcement_source_highlights` | `source_snapshot_id`, `highlight_type_code`, `highlight_text`, `start_offset`, `end_offset`, `sort_order` | PK `id`, FK `announcement_source_snapshots.id` | IDX `(source_snapshot_id, highlight_type_code)` |
+| `announcement_source_duplicate_candidates` | `source_snapshot_id`, `announcement_id`, `match_type_code`, `title_matched`, `agency_matched`, `provider_notice_matched`, `period_matched`, `source_url_matched`, `similarity_reason`, `decision_status_code`, `decided_by`, `decided_at`, `decision_note` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `(source_snapshot_id, announcement_id)`, IDX `(source_snapshot_id, match_type_code, decision_status_code)`, IDX `(announcement_id, decision_status_code)` |
+| `announcement_source_review_histories` | `source_snapshot_id`, `before_status_code`, `after_status_code`, `review_note`, `changed_by`, `changed_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `users.id` | IDX `(source_snapshot_id, changed_at)` |
+| `announcement_source_links` | `source_snapshot_id`, `announcement_id`, `linked_by`, `linked_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `source_snapshot_id`, UQ `announcement_id` |
+
+외부 공고 원문은 `announcement_source_snapshots`에 보존하고, 실제 매칭에 사용하는 운영 공고는 기존 `announcements`와 조건 테이블에 운영자가 별도로 입력한다. 하이라이트는 검수 참고용이며 `announcement_numeric_conditions`, `announcement_option_conditions`, `announcement_industry_conditions`에 자동 저장하지 않는다.
+
+수집 실행은 `announcement_source_collection_requests.request_status_code='APPROVED'`인 요청만 허용한다. 배치와 버튼 실행은 모두 먼저 요청을 만들고 승인 후 실행하는 동일한 절차를 따른다. 종료된 과거 공고는 `announcement_source_collection_run_items.item_status_code='SKIPPED_ENDED'`로 기록하고 사용자 매칭 대상 운영 공고로 전환하지 않는다.
+
+신규 수집 원문은 운영 공고 전환 전에 기존 활성 공고와 자동 비교한다. 비교 기준은 사업명, 주관기관, provider 공고번호, 신청기간, 원문 URL이다. 동일 공고는 `match_type_code='EXACT_DUPLICATE'`, 유사 공고는 `match_type_code='SIMILAR'`로 `announcement_source_duplicate_candidates`에 저장한다. 보류 후보가 있으면 신규 운영 공고 DRAFT 생성은 차단되며, 운영자가 `CREATE_NEW_SELECTED`, `UPDATE_EXISTING_SELECTED`, `IGNORED` 중 하나를 결정해야 한다. 하이라이트와 마찬가지로 중복 후보도 검수 보조 데이터이며 매칭 조건으로 자동 저장하지 않는다.
+
+### 5.18 Local Government Notice Collection
+
+| 테이블 | 역할 | 주요 제약 |
+|---|---|---|
+| `local_government_notice_sources` | 시·도, 시·군·구, 기관, 고시공고 URL, ON/OFF, 마지막 수집 상태 관리 | `public_code` unique, active `(sigungu_code, notice_url)` unique, 검증완료·파서 지정 URL만 ON |
+| `local_government_notice_parser_profiles` | CSS selector 기반 정적 파서 프로필 | `profile_code` unique, 스크립트·동적 표현식 저장 금지 |
+| `announcement_source_collection_source_results` | 수집 실행의 URL별 성공·신규·중복·실패 결과 | `(run_id, local_government_source_id)` unique |
+| `announcement_source_snapshot_duplicates` | 기업마당·정부24·지자체 원문 간 정확·유사 중복 관계 | UUID canonical 순서 check, `(source_id, candidate_source_id)` unique |
+| `announcement_source_collection_schedules` | 최초 승인 후 자동 실행되는 정기 수집 일정 | 승인·중지·반려·만료 상태, 다음 실행 시각 index |
+| `announcement_source_schedule_executions` | 동일 예정시각 중복 실행 방지 | `(schedule_id, scheduled_for)` unique |
+
+지자체 provider code는 `LOCAL_GOV_NOTICE`다. V29는 검토 대상 244개 고유 행정구역 URL을 모두 OFF로 seed하며, 실행 가능한 파서를 운영자가 검증한 URL만 개별 ON 처리한다. “226개”는 코드나 DB 제약으로 고정하지 않는다.
+
+지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.
+
+운영 공고 DRAFT 생성 직후 수집 원문은 `CONDITION_INPUT_REQUIRED`다. 대표 대상, 자격 조건, 진행 단계, 행동카드, 안내 문구를 입력·검수하고 운영 공고가 승인되어 정상 노출될 때만 `ACTIVATED`로 전환한다.
+
 ## 6. Enum / Status Code
 
 | 코드 그룹 | 값 |
@@ -340,6 +377,15 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 | `ai_assist_resource_type` | `GENERAL`, `ANNOUNCEMENT`, `APPLICATION_PROGRESS`, `MATCHING_CASE`, `OPERATION_TASK`, `USER` |
 | `ai_assist_request_status_code` | `REQUESTED`, `COMPLETED`, `FAILED` |
 | `ai_assist_review_status_code` | `PENDING_REVIEW`, `ACCEPTED`, `DISCARDED` |
+| `announcement_source_provider_code` | `BIZINFO`, `GOV24_PUBLIC_SERVICE`, `LOCAL_GOV_NOTICE` |
+| `announcement_source_collection_request_type_code` | `BATCH`, `MANUAL` |
+| `announcement_source_collection_request_status_code` | `APPROVAL_PENDING`, `APPROVED`, `REJECTED`, `CANCELED`, `EXPIRED` |
+| `announcement_source_collection_run_status_code` | `QUEUED`, `RUNNING`, `COMPLETED`, `PARTIAL_FAILED`, `FAILED` |
+| `announcement_source_run_item_status_code` | `COLLECTED`, `DUPLICATE`, `SKIPPED_ENDED`, `FAILED` |
+| `announcement_source_review_status_code` | `COLLECTED`, `REVIEW_PENDING`, `CONDITION_INPUT_REQUIRED`, `REVIEW_COMPLETED`, `ACTIVATED`, `ARCHIVED`, `DUPLICATE`, `SKIPPED_ENDED` |
+| `announcement_source_highlight_type_code` | `TARGET`, `SUPPORT_CONTENT`, `APPLICATION_PERIOD`, `APPLICATION_METHOD`, `EXCLUDED_TARGET`, `PREFERRED_CONDITION`, `BUSINESS_AGE_CONDITION`, `SALES_CONDITION`, `INDUSTRY_CONDITION`, `REGION_CONDITION`, `INCOME_CONDITION`, `ASSET_CONDITION`, `HEALTH_INSURANCE_CONDITION`, `REQUIRED_DOCUMENT`, `INQUIRY` |
+| `announcement_source_duplicate_match_type_code` | `EXACT_DUPLICATE`, `SIMILAR` |
+| `announcement_source_duplicate_decision_status_code` | `PENDING`, `CREATE_NEW_SELECTED`, `UPDATE_EXISTING_SELECTED`, `IGNORED` |
 
 초기에는 `varchar`와 `CHECK` constraint를 사용한다. 코드명이 자주 바뀌는 영역만 별도 코드 테이블로 승격한다.
 

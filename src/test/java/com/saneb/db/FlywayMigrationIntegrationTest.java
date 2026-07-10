@@ -107,6 +107,18 @@ class FlywayMigrationIntegrationTest {
                     where version = '14'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '28'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '29'
+                      and success = true
+                    """)).isEqualTo(1);
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -118,6 +130,17 @@ class FlywayMigrationIntegrationTest {
             assertThat(selectLong(statement, "select count(1) from roles where role_code = 'REVIEWER'"))
                     .isEqualTo(1);
             assertThat(selectLong(statement, "select count(1) from consent_versions")).isEqualTo(4);
+            assertThat(selectLong(statement, "select count(1) from local_government_notice_sources"))
+                    .isEqualTo(244);
+            assertThat(selectLong(statement, "select count(1) from local_government_notice_sources where is_enabled = false"))
+                    .isEqualTo(244);
+            assertThat(selectLong(statement, "select count(distinct sigungu_code) from local_government_notice_sources"))
+                    .isEqualTo(244);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where validation_status_code = 'CHECK_REQUIRED'
+                    """)).isEqualTo(13);
         }
     }
 
@@ -171,7 +194,22 @@ class FlywayMigrationIntegrationTest {
                 "report_exports",
                 "admin_report_snapshots",
                 "ai_assist_requests",
-                "ai_assist_results"
+                "ai_assist_results",
+                "announcement_source_collection_requests",
+                "announcement_source_collection_runs",
+                "announcement_source_collection_run_items",
+                "announcement_source_snapshots",
+                "announcement_source_attachments",
+                "announcement_source_highlights",
+                "announcement_source_duplicate_candidates",
+                "announcement_source_review_histories",
+                "announcement_source_links",
+                "local_government_notice_parser_profiles",
+                "local_government_notice_sources",
+                "announcement_source_collection_source_results",
+                "announcement_source_snapshot_duplicates",
+                "announcement_source_collection_schedules",
+                "announcement_source_schedule_executions"
         );
     }
 

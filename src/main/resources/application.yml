@@ -69,6 +69,31 @@ saneb:
       base-url: ${JUSO_API_BASE_URL:https://business.juso.go.kr/addrlink/addrLinkApi.do}
       api-key: ${JUSO_API_KEY:}
       timeout-millis: ${JUSO_API_TIMEOUT_MILLIS:5000}
+  announcement-source:
+    collection:
+      batch:
+        enabled: ${SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED:false}
+        cron: ${SANEB_ANNOUNCEMENT_SOURCE_BATCH_CRON:0 0 8 * * *}
+        provider-codes: ${SANEB_ANNOUNCEMENT_SOURCE_BATCH_PROVIDER_CODES:BIZINFO}
+        max-count: ${SANEB_ANNOUNCEMENT_SOURCE_BATCH_MAX_COUNT:100}
+    providers:
+      bizinfo:
+        base-url: ${BIZINFO_API_BASE_URL:https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do}
+        api-key: ${BIZINFO_API_KEY:}
+        timeout-millis: ${BIZINFO_API_TIMEOUT_MILLIS:5000}
+      gov24:
+        base-url: ${GOV24_PUBLIC_SERVICE_API_BASE_URL:}
+        api-key: ${GOV24_PUBLIC_SERVICE_API_KEY:}
+        timeout-millis: ${GOV24_PUBLIC_SERVICE_API_TIMEOUT_MILLIS:5000}
+    local-government:
+      timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_TIMEOUT_MILLIS:8000}
+      max-response-bytes: ${SANEB_LOCAL_GOV_NOTICE_MAX_RESPONSE_BYTES:2097152}
+      max-concurrency: ${SANEB_LOCAL_GOV_NOTICE_MAX_CONCURRENCY:4}
+      user-agent: ${SANEB_LOCAL_GOV_NOTICE_USER_AGENT:saneB-notice-collector/1.0}
+      schedule:
+        enabled: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED:false}
+        poll-delay-millis: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_POLL_DELAY_MILLIS:60000}
+        initial-delay-millis: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_INITIAL_DELAY_MILLIS:30000}
   ai:
     provider-code: ${SANEB_AI_PROVIDER_CODE:LOCAL_SAFE}
     model-code: ${SANEB_AI_MODEL_CODE:RULE_TEMPLATE_V1}

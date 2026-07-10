@@ -116,6 +116,15 @@
                 <span>공고 입력</span>
             </a>
             <a class="side-link"
+               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+               th:href="@{/app/admin/announcement-sources}"
+               th:classappend="${page.activeNav == 'ANNOUNCEMENT_SOURCES'} ? ' active' : ''">
+                <span class="nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.8M8 15.4h3.4"/><path d="M16.2 14.8 19 12l-2.8-2.8"/></svg>
+                </span>
+                <span>외부 공고 수집</span>
+            </a>
+            <a class="side-link"
                th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
                th:href="@{/app/matching/cases}"
                th:classappend="${page.activeNav == 'MATCHING_CASES'} ? ' active' : ''">

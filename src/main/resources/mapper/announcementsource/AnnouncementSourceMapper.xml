@@ -1,0 +1,1176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceDao">
+
+    <insert id="insertAuditLog">
+        -- Record announcement-source operator changes without source content or secrets.
+        INSERT INTO audit_logs (actor_user_id, action_code, resource_type, resource_id, result_code, metadata_json)
+        VALUES (#{actorUserId}, #{actionCode}, #{resourceType}, #{resourceId}, #{resultCode}, CAST(#{metadataJson} AS jsonb))
+    </insert>
+
+    <resultMap id="CollectionRequestRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow">
+        <constructor>
+            <arg column="request_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="request_type_code" javaType="java.lang.String"/>
+            <arg column="request_status_code" javaType="java.lang.String"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="requested_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="requested_from" javaType="java.lang.String"/>
+            <arg column="search_keyword" javaType="java.lang.String"/>
+            <arg column="search_region_code" javaType="java.lang.String"/>
+            <arg column="search_category_code" javaType="java.lang.String"/>
+            <arg column="start_date" javaType="java.time.LocalDate"/>
+            <arg column="end_date" javaType="java.time.LocalDate"/>
+            <arg column="max_count" javaType="java.lang.Integer"/>
+            <arg column="request_note" javaType="java.lang.String"/>
+            <arg column="local_government_source_id" javaType="java.util.UUID"/>
+            <arg column="schedule_id" javaType="java.util.UUID"/>
+            <arg column="approved_by" javaType="java.util.UUID"/>
+            <arg column="approved_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="approval_note" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="CollectionRunRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunRow">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="request_id" javaType="java.util.UUID"/>
+            <arg column="request_public_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="request_type_code" javaType="java.lang.String"/>
+            <arg column="run_status_code" javaType="java.lang.String"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="finished_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="total_count" javaType="int"/>
+            <arg column="collected_count" javaType="int"/>
+            <arg column="skipped_ended_count" javaType="int"/>
+            <arg column="duplicate_count" javaType="int"/>
+            <arg column="failed_count" javaType="int"/>
+            <arg column="error_message" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="CollectionRunItemRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunItemRow">
+        <constructor>
+            <arg column="item_id" javaType="java.util.UUID"/>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="source_public_code" javaType="java.lang.String"/>
+            <arg column="provider_notice_id" javaType="java.lang.String"/>
+            <arg column="source_url" javaType="java.lang.String"/>
+            <arg column="item_status_code" javaType="java.lang.String"/>
+            <arg column="error_message" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SourceSnapshotRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="provider_notice_id" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="application_start_date" javaType="java.time.LocalDate"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="posted_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="modified_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="source_url" javaType="java.lang.String"/>
+            <arg column="body_text" javaType="java.lang.String"/>
+            <arg column="inquiry_text" javaType="java.lang.String"/>
+            <arg column="application_method_text" javaType="java.lang.String"/>
+            <arg column="source_completeness_code" javaType="java.lang.String"/>
+            <arg column="missing_fields_json" javaType="java.lang.String"/>
+            <arg column="raw_hash" javaType="java.lang.String"/>
+            <arg column="review_status_code" javaType="java.lang.String"/>
+            <arg column="collected_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SourceAttachmentRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceAttachmentRow">
+        <constructor>
+            <arg column="attachment_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="file_name" javaType="java.lang.String"/>
+            <arg column="file_url" javaType="java.lang.String"/>
+            <arg column="file_type_code" javaType="java.lang.String"/>
+            <arg column="sort_order" javaType="int"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SourceHighlightRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightRow">
+        <constructor>
+            <arg column="highlight_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="highlight_type_code" javaType="java.lang.String"/>
+            <arg column="matched_text" javaType="java.lang.String"/>
+            <arg column="start_offset" javaType="java.lang.Integer"/>
+            <arg column="end_offset" javaType="java.lang.Integer"/>
+            <arg column="line_no" javaType="java.lang.Integer"/>
+            <arg column="match_rule_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="DuplicateCandidateRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow">
+        <constructor>
+            <arg column="candidate_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
+            <arg column="announcement_title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="application_start_date" javaType="java.time.LocalDate"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="manual_status_code" javaType="java.lang.String"/>
+            <arg column="approval_status_code" javaType="java.lang.String"/>
+            <arg column="linked_source_code" javaType="java.lang.String"/>
+            <arg column="linked_provider_notice_id" javaType="java.lang.String"/>
+            <arg column="linked_source_url" javaType="java.lang.String"/>
+            <arg column="match_type_code" javaType="java.lang.String"/>
+            <arg column="title_matched" javaType="boolean"/>
+            <arg column="agency_matched" javaType="boolean"/>
+            <arg column="provider_notice_matched" javaType="boolean"/>
+            <arg column="period_matched" javaType="boolean"/>
+            <arg column="source_url_matched" javaType="boolean"/>
+            <arg column="similarity_reason" javaType="java.lang.String"/>
+            <arg column="decision_status_code" javaType="java.lang.String"/>
+            <arg column="decided_by" javaType="java.util.UUID"/>
+            <arg column="decided_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="decision_note" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SnapshotDuplicateRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateRow">
+        <constructor>
+            <arg column="duplicate_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="candidate_source_id" javaType="java.util.UUID"/>
+            <arg column="candidate_public_code" javaType="java.lang.String"/>
+            <arg column="candidate_provider_code" javaType="java.lang.String"/>
+            <arg column="candidate_title" javaType="java.lang.String"/>
+            <arg column="candidate_agency_name" javaType="java.lang.String"/>
+            <arg column="candidate_posted_date" javaType="java.time.LocalDate"/>
+            <arg column="candidate_source_url" javaType="java.lang.String"/>
+            <arg column="match_type_code" javaType="java.lang.String"/>
+            <arg column="title_matched" javaType="_boolean"/>
+            <arg column="agency_matched" javaType="_boolean"/>
+            <arg column="posted_date_matched" javaType="_boolean"/>
+            <arg column="source_url_matched" javaType="_boolean"/>
+            <arg column="match_reason" javaType="java.lang.String"/>
+            <arg column="decision_status_code" javaType="java.lang.String"/>
+            <arg column="decided_by" javaType="java.util.UUID"/>
+            <arg column="decided_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="decision_note" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="SourceSnapshotColumns">
+        ass.id AS source_id,
+        ass.public_code,
+        ass.provider_code,
+        ass.provider_notice_id,
+        ass.title,
+        ass.agency_name,
+        ass.application_start_date,
+        ass.application_end_date,
+        ass.posted_at,
+        ass.modified_at,
+        ass.source_url,
+        ass.body_text,
+        ass.inquiry_text,
+        ass.application_method_text,
+        ass.source_completeness_code,
+        ass.missing_fields_json::text AS missing_fields_json,
+        ass.raw_hash,
+        ass.review_status_code,
+        ass.collected_at,
+        ass.created_at,
+        ass.updated_at
+    </sql>
+
+    <sql id="CollectionRequestWhere">
+        <where>
+            <if test="providerCode != null and providerCode != ''">
+                AND ascr.provider_code = #{providerCode}
+            </if>
+            <if test="requestTypeCode != null and requestTypeCode != ''">
+                AND ascr.request_type_code = #{requestTypeCode}
+            </if>
+            <if test="requestStatusCode != null and requestStatusCode != ''">
+                AND ascr.request_status_code = #{requestStatusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="CollectionRunWhere">
+        <where>
+            <if test="requestId != null">
+                AND ascrun.request_id = #{requestId}
+            </if>
+            <if test="runStatusCode != null and runStatusCode != ''">
+                AND ascrun.run_status_code = #{runStatusCode}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="SourceWhere">
+        <where>
+            <if test="providerCode != null and providerCode != ''">
+                AND ass.provider_code = #{providerCode}
+            </if>
+            <if test="reviewStatusCode != null and reviewStatusCode != ''">
+                AND ass.review_status_code = #{reviewStatusCode}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    ass.title ILIKE concat('%', #{keyword}, '%')
+                    OR ass.public_code ILIKE concat('%', #{keyword}, '%')
+                    OR ass.agency_name ILIKE concat('%', #{keyword}, '%')
+                    OR ass.provider_notice_id ILIKE concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <sql id="DuplicateCandidateColumns">
+        asdc.id AS candidate_id,
+        asdc.source_id,
+        asdc.announcement_id,
+        a.public_code AS announcement_code,
+        a.title AS announcement_title,
+        a.agency_name,
+        a.application_start_date,
+        a.application_end_date,
+        a.manual_status_code,
+        a.approval_status_code,
+        linked_src.public_code AS linked_source_code,
+        linked_src.provider_notice_id AS linked_provider_notice_id,
+        linked_src.source_url AS linked_source_url,
+        asdc.match_type_code,
+        asdc.title_matched,
+        asdc.agency_matched,
+        asdc.provider_notice_matched,
+        asdc.period_matched,
+        asdc.source_url_matched,
+        asdc.similarity_reason,
+        asdc.decision_status_code,
+        asdc.decided_by,
+        asdc.decided_at,
+        asdc.decision_note,
+        asdc.created_at,
+        asdc.updated_at
+    </sql>
+
+    <insert id="insertCollectionRequest">
+        -- Insert external announcement collection request.
+        INSERT INTO announcement_source_collection_requests (
+            id,
+            provider_code,
+            request_type_code,
+            requested_by,
+            requested_from,
+            search_keyword,
+            search_region_code,
+            search_category_code,
+            start_date,
+            end_date,
+            max_count,
+            request_note,
+            local_government_source_id,
+            schedule_id,
+            request_status_code,
+            approved_by,
+            approved_at,
+            approval_note
+        ) VALUES (
+            #{requestId},
+            #{providerCode},
+            #{requestTypeCode},
+            #{requestedBy},
+            #{requestedFrom},
+            #{searchKeyword},
+            #{searchRegionCode},
+            #{searchCategoryCode},
+            #{startDate},
+            #{endDate},
+            #{maxCount},
+            #{requestNote},
+            #{localGovernmentSourceId},
+            #{scheduleId},
+            coalesce(#{requestStatusCode}, 'APPROVAL_PENDING'),
+            #{approvedBy},
+            CASE WHEN #{approvedBy} IS NOT NULL THEN now() ELSE NULL END,
+            #{approvalNote}
+        )
+    </insert>
+
+    <select id="selectCollectionRequestList" resultMap="CollectionRequestRowMap">
+        -- Select external announcement collection requests.
+        SELECT
+            ascr.id AS request_id,
+            ascr.public_code,
+            ascr.provider_code,
+            ascr.request_type_code,
+            ascr.request_status_code,
+            ascr.requested_by,
+            ascr.requested_at,
+            ascr.requested_from,
+            ascr.search_keyword,
+            ascr.search_region_code,
+            ascr.search_category_code,
+            ascr.start_date,
+            ascr.end_date,
+            ascr.max_count,
+            ascr.request_note,
+            ascr.local_government_source_id,
+            ascr.schedule_id,
+            ascr.approved_by,
+            ascr.approved_at,
+            ascr.approval_note,
+            ascr.created_at,
+            ascr.updated_at
+        FROM announcement_source_collection_requests ascr
+        <include refid="CollectionRequestWhere"/>
+        ORDER BY ascr.requested_at DESC, ascr.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectCollectionRequestCount" resultType="long">
+        -- Count external announcement collection requests.
+        SELECT
+            count(1)
+        FROM announcement_source_collection_requests ascr
+        <include refid="CollectionRequestWhere"/>
+    </select>
+
+    <select id="selectCollectionRequestDetails" resultMap="CollectionRequestRowMap">
+        -- Select external announcement collection request details.
+        SELECT
+            ascr.id AS request_id,
+            ascr.public_code,
+            ascr.provider_code,
+            ascr.request_type_code,
+            ascr.request_status_code,
+            ascr.requested_by,
+            ascr.requested_at,
+            ascr.requested_from,
+            ascr.search_keyword,
+            ascr.search_region_code,
+            ascr.search_category_code,
+            ascr.start_date,
+            ascr.end_date,
+            ascr.max_count,
+            ascr.request_note,
+            ascr.local_government_source_id,
+            ascr.schedule_id,
+            ascr.approved_by,
+            ascr.approved_at,
+            ascr.approval_note,
+            ascr.created_at,
+            ascr.updated_at
+        FROM announcement_source_collection_requests ascr
+        WHERE ascr.id = #{requestId}
+    </select>
+
+    <select id="selectOpenBatchRequestCount" resultType="long">
+        -- Count open batch collection requests for duplicate prevention.
+        SELECT
+            count(1)
+        FROM announcement_source_collection_requests ascr
+        WHERE ascr.provider_code = #{providerCode}
+          AND ascr.request_type_code = 'BATCH'
+          AND ascr.request_status_code = 'APPROVAL_PENDING'
+          AND (
+              (ascr.search_region_code IS NULL AND #{searchRegionCode} IS NULL)
+              OR ascr.search_region_code = #{searchRegionCode}
+          )
+          AND (
+              (ascr.search_category_code IS NULL AND #{searchCategoryCode} IS NULL)
+              OR ascr.search_category_code = #{searchCategoryCode}
+          )
+    </select>
+
+    <update id="updateCollectionRequestApproval">
+        -- Approve or reject external announcement collection request.
+        UPDATE announcement_source_collection_requests
+        SET
+            request_status_code = #{requestStatusCode},
+            approved_by = #{approvedBy},
+            approved_at = now(),
+            approval_note = #{approvalNote},
+            updated_at = now()
+        WHERE id = #{requestId}
+          AND request_status_code = 'APPROVAL_PENDING'
+    </update>
+
+    <insert id="insertCollectionRun">
+        -- Insert external announcement collection run.
+        INSERT INTO announcement_source_collection_runs (
+            id,
+            request_id,
+            run_status_code,
+            started_at
+        ) VALUES (
+            #{runId},
+            #{requestId},
+            #{runStatusCode},
+            now()
+        )
+    </insert>
+
+    <update id="updateCollectionRunResult">
+        -- Update external announcement collection run result.
+        UPDATE announcement_source_collection_runs
+        SET
+            run_status_code = #{runStatusCode},
+            finished_at = now(),
+            total_count = #{totalCount},
+            collected_count = #{collectedCount},
+            skipped_ended_count = #{skippedEndedCount},
+            duplicate_count = #{duplicateCount},
+            failed_count = #{failedCount},
+            error_message = #{errorMessage}
+        WHERE id = #{runId}
+    </update>
+
+    <select id="selectCollectionRunList" resultMap="CollectionRunRowMap">
+        -- Select external announcement collection runs.
+        SELECT
+            ascrun.id AS run_id,
+            ascrun.public_code,
+            ascrun.request_id,
+            ascr.public_code AS request_public_code,
+            ascr.provider_code,
+            ascr.request_type_code,
+            ascrun.run_status_code,
+            ascrun.started_at,
+            ascrun.finished_at,
+            ascrun.total_count,
+            ascrun.collected_count,
+            ascrun.skipped_ended_count,
+            ascrun.duplicate_count,
+            ascrun.failed_count,
+            ascrun.error_message,
+            ascrun.created_at
+        FROM announcement_source_collection_runs ascrun
+        INNER JOIN announcement_source_collection_requests ascr ON ascr.id = ascrun.request_id
+        <include refid="CollectionRunWhere"/>
+        ORDER BY ascrun.created_at DESC, ascrun.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectCollectionRunCount" resultType="long">
+        -- Count external announcement collection runs.
+        SELECT
+            count(1)
+        FROM announcement_source_collection_runs ascrun
+        INNER JOIN announcement_source_collection_requests ascr ON ascr.id = ascrun.request_id
+        <include refid="CollectionRunWhere"/>
+    </select>
+
+    <select id="selectCollectionRunDetails" resultMap="CollectionRunRowMap">
+        -- Select external announcement collection run details.
+        SELECT
+            ascrun.id AS run_id,
+            ascrun.public_code,
+            ascrun.request_id,
+            ascr.public_code AS request_public_code,
+            ascr.provider_code,
+            ascr.request_type_code,
+            ascrun.run_status_code,
+            ascrun.started_at,
+            ascrun.finished_at,
+            ascrun.total_count,
+            ascrun.collected_count,
+            ascrun.skipped_ended_count,
+            ascrun.duplicate_count,
+            ascrun.failed_count,
+            ascrun.error_message,
+            ascrun.created_at
+        FROM announcement_source_collection_runs ascrun
+        INNER JOIN announcement_source_collection_requests ascr ON ascr.id = ascrun.request_id
+        WHERE ascrun.id = #{runId}
+    </select>
+
+    <insert id="insertCollectionRunItem">
+        -- Insert external announcement collection run item.
+        INSERT INTO announcement_source_collection_run_items (
+            id,
+            run_id,
+            source_id,
+            provider_notice_id,
+            source_url,
+            item_status_code,
+            error_message
+        ) VALUES (
+            #{itemId},
+            #{runId},
+            #{sourceId},
+            #{providerNoticeId},
+            #{sourceUrl},
+            #{itemStatusCode},
+            #{errorMessage}
+        )
+    </insert>
+
+    <select id="selectCollectionRunItemList" resultMap="CollectionRunItemRowMap">
+        -- Select external announcement collection run items.
+        SELECT
+            ascri.id AS item_id,
+            ascri.run_id,
+            ascri.source_id,
+            ass.public_code AS source_public_code,
+            ascri.provider_notice_id,
+            ascri.source_url,
+            ascri.item_status_code,
+            ascri.error_message,
+            ascri.created_at
+        FROM announcement_source_collection_run_items ascri
+        LEFT JOIN announcement_source_snapshots ass ON ass.id = ascri.source_id
+        WHERE ascri.run_id = #{runId}
+        ORDER BY ascri.created_at ASC, ascri.id ASC
+    </select>
+
+    <insert id="insertSourceSnapshot">
+        -- Insert immutable external announcement source snapshot.
+        INSERT INTO announcement_source_snapshots (
+            id,
+            provider_code,
+            provider_notice_id,
+            title,
+            agency_name,
+            application_start_date,
+            application_end_date,
+            posted_at,
+            modified_at,
+            source_url,
+            body_text,
+            inquiry_text,
+            application_method_text,
+            source_completeness_code,
+            missing_fields_json,
+            raw_payload_json,
+            raw_hash,
+            review_status_code,
+            local_government_source_id,
+            canonical_source_url,
+            normalized_title,
+            normalized_agency_name,
+            posted_date
+        ) VALUES (
+            #{sourceId},
+            #{providerCode},
+            #{providerNoticeId},
+            #{title},
+            #{agencyName},
+            #{applicationStartDate},
+            #{applicationEndDate},
+            #{postedAt},
+            #{modifiedAt},
+            #{sourceUrl},
+            #{bodyText},
+            #{inquiryText},
+            #{applicationMethodText},
+            #{sourceCompletenessCode},
+            CAST(#{missingFieldsJson} AS jsonb),
+            CAST(#{rawPayloadJson} AS jsonb),
+            #{rawHash},
+            #{reviewStatusCode},
+            #{localGovernmentSourceId},
+            #{canonicalSourceUrl},
+            #{normalizedTitle},
+            #{normalizedAgencyName},
+            #{postedDate}
+        )
+    </insert>
+
+    <select id="selectSourceByProviderNoticeId" resultMap="SourceSnapshotRowMap">
+        -- Select source snapshot by provider notice id.
+        SELECT
+            ass.id AS source_id,
+            ass.public_code,
+            ass.provider_code,
+            ass.provider_notice_id,
+            ass.title,
+            ass.agency_name,
+            ass.application_start_date,
+            ass.application_end_date,
+            ass.posted_at,
+            ass.modified_at,
+            ass.source_url,
+            ass.body_text,
+            ass.inquiry_text,
+            ass.application_method_text,
+            ass.source_completeness_code,
+            ass.missing_fields_json::text AS missing_fields_json,
+            ass.raw_hash,
+            ass.review_status_code,
+            ass.collected_at,
+            ass.created_at,
+            ass.updated_at
+        FROM announcement_source_snapshots ass
+        WHERE ass.provider_code = #{providerCode}
+          AND ass.provider_notice_id = #{providerNoticeId}
+    </select>
+
+    <select id="selectSourceByUrl" resultMap="SourceSnapshotRowMap">
+        -- Select source snapshot by provider url.
+        SELECT
+            ass.id AS source_id,
+            ass.public_code,
+            ass.provider_code,
+            ass.provider_notice_id,
+            ass.title,
+            ass.agency_name,
+            ass.application_start_date,
+            ass.application_end_date,
+            ass.posted_at,
+            ass.modified_at,
+            ass.source_url,
+            ass.body_text,
+            ass.inquiry_text,
+            ass.application_method_text,
+            ass.source_completeness_code,
+            ass.missing_fields_json::text AS missing_fields_json,
+            ass.raw_hash,
+            ass.review_status_code,
+            ass.collected_at,
+            ass.created_at,
+            ass.updated_at
+        FROM announcement_source_snapshots ass
+        WHERE ass.provider_code = #{providerCode}
+          AND ass.source_url = #{sourceUrl}
+    </select>
+
+    <select id="selectSourceByRawHash" resultMap="SourceSnapshotRowMap">
+        -- Select source snapshot by raw payload hash.
+        SELECT
+            ass.id AS source_id,
+            ass.public_code,
+            ass.provider_code,
+            ass.provider_notice_id,
+            ass.title,
+            ass.agency_name,
+            ass.application_start_date,
+            ass.application_end_date,
+            ass.posted_at,
+            ass.modified_at,
+            ass.source_url,
+            ass.body_text,
+            ass.inquiry_text,
+            ass.application_method_text,
+            ass.source_completeness_code,
+            ass.missing_fields_json::text AS missing_fields_json,
+            ass.raw_hash,
+            ass.review_status_code,
+            ass.collected_at,
+            ass.created_at,
+            ass.updated_at
+        FROM announcement_source_snapshots ass
+        WHERE ass.provider_code = #{providerCode}
+          AND ass.raw_hash = #{rawHash}
+    </select>
+
+    <select id="selectExactSourceAcrossProviders" resultMap="SourceSnapshotRowMap">
+        -- Find exact duplicate source across all other providers.
+        SELECT <include refid="SourceSnapshotColumns"/>
+        FROM announcement_source_snapshots ass
+        WHERE ass.provider_code &lt;&gt; #{providerCode}
+          AND (
+              (#{canonicalSourceUrl} IS NOT NULL AND ass.canonical_source_url = #{canonicalSourceUrl})
+              OR (
+                  #{postedDate} IS NOT NULL
+                  AND ass.normalized_title = #{normalizedTitle}
+                  AND ass.normalized_agency_name = #{normalizedAgencyName}
+                  AND ass.posted_date = #{postedDate}
+              )
+          )
+        ORDER BY ass.collected_at ASC, ass.id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectSimilarSourceAcrossProvidersList" resultMap="SourceSnapshotRowMap">
+        -- Find title and agency matches that require operator review.
+        SELECT <include refid="SourceSnapshotColumns"/>
+        FROM announcement_source_snapshots src
+        INNER JOIN announcement_source_snapshots ass
+            ON ass.id &lt;&gt; src.id
+           AND ass.provider_code &lt;&gt; src.provider_code
+           AND ass.normalized_title = src.normalized_title
+           AND ass.normalized_agency_name = src.normalized_agency_name
+        WHERE src.id = #{sourceId}
+          AND NOT (
+              (ass.canonical_source_url IS NOT NULL AND ass.canonical_source_url = src.canonical_source_url)
+              OR (src.posted_date IS NOT NULL AND ass.posted_date = src.posted_date)
+          )
+        ORDER BY ass.collected_at DESC, ass.id DESC
+        LIMIT 20
+    </select>
+
+    <insert id="insertSnapshotDuplicate">
+        -- Store cross-provider duplicate pair in canonical UUID order.
+        INSERT INTO announcement_source_snapshot_duplicates (
+            id, source_id, candidate_source_id, match_type_code, title_matched, agency_matched,
+            posted_date_matched, source_url_matched, match_reason, decision_status_code
+        ) VALUES (
+            #{duplicateId}, LEAST(#{sourceId}, #{candidateSourceId}), GREATEST(#{sourceId}, #{candidateSourceId}),
+            #{matchTypeCode}, #{titleMatched}, #{agencyMatched}, #{postedDateMatched}, #{sourceUrlMatched},
+            #{matchReason}, #{decisionStatusCode}
+        )
+        ON CONFLICT (source_id, candidate_source_id) DO NOTHING
+    </insert>
+
+    <select id="selectSnapshotDuplicateList" resultMap="SnapshotDuplicateRowMap">
+        -- Select cross-provider duplicate and similar candidates for one source.
+        SELECT
+            assd.id AS duplicate_id,
+            #{sourceId} AS source_id,
+            candidate.id AS candidate_source_id,
+            candidate.public_code AS candidate_public_code,
+            candidate.provider_code AS candidate_provider_code,
+            candidate.title AS candidate_title,
+            candidate.agency_name AS candidate_agency_name,
+            candidate.posted_date AS candidate_posted_date,
+            candidate.source_url AS candidate_source_url,
+            assd.match_type_code,
+            assd.title_matched,
+            assd.agency_matched,
+            assd.posted_date_matched,
+            assd.source_url_matched,
+            assd.match_reason,
+            assd.decision_status_code,
+            assd.decided_by,
+            assd.decided_at,
+            assd.decision_note
+        FROM announcement_source_snapshot_duplicates assd
+        INNER JOIN announcement_source_snapshots candidate
+            ON candidate.id = CASE
+                WHEN assd.source_id = #{sourceId} THEN assd.candidate_source_id
+                ELSE assd.source_id
+            END
+        WHERE assd.source_id = #{sourceId}
+           OR assd.candidate_source_id = #{sourceId}
+        ORDER BY
+            CASE assd.match_type_code WHEN 'EXACT_DUPLICATE' THEN 0 ELSE 1 END,
+            candidate.collected_at ASC,
+            assd.id ASC
+    </select>
+
+    <update id="updateSnapshotDuplicateDecision">
+        -- Save operator decision for one cross-provider similar candidate.
+        UPDATE announcement_source_snapshot_duplicates
+        SET decision_status_code = #{decisionStatusCode},
+            decided_by = #{decidedBy},
+            decided_at = now(),
+            decision_note = #{decisionNote},
+            updated_at = now()
+        WHERE id = #{duplicateId}
+          AND (source_id = #{sourceId} OR candidate_source_id = #{sourceId})
+          AND match_type_code = 'SIMILAR'
+          AND decision_status_code = 'PENDING'
+    </update>
+
+    <select id="selectPendingSnapshotDuplicateCount" resultType="long">
+        -- Count pending cross-provider similar candidates before DRAFT conversion.
+        SELECT count(1)
+        FROM announcement_source_snapshot_duplicates assd
+        WHERE (assd.source_id = #{sourceId} OR assd.candidate_source_id = #{sourceId})
+          AND assd.match_type_code = 'SIMILAR'
+          AND assd.decision_status_code = 'PENDING'
+    </select>
+
+    <select id="selectSourceList" resultMap="SourceSnapshotRowMap">
+        -- Select external announcement source snapshots.
+        SELECT
+            ass.id AS source_id,
+            ass.public_code,
+            ass.provider_code,
+            ass.provider_notice_id,
+            ass.title,
+            ass.agency_name,
+            ass.application_start_date,
+            ass.application_end_date,
+            ass.posted_at,
+            ass.modified_at,
+            ass.source_url,
+            ass.body_text,
+            ass.inquiry_text,
+            ass.application_method_text,
+            ass.source_completeness_code,
+            ass.missing_fields_json::text AS missing_fields_json,
+            ass.raw_hash,
+            ass.review_status_code,
+            ass.collected_at,
+            ass.created_at,
+            ass.updated_at
+        FROM announcement_source_snapshots ass
+        <include refid="SourceWhere"/>
+        ORDER BY ass.collected_at DESC, ass.id DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectSourceCount" resultType="long">
+        -- Count external announcement source snapshots.
+        SELECT
+            count(1)
+        FROM announcement_source_snapshots ass
+        <include refid="SourceWhere"/>
+    </select>
+
+    <select id="selectSourceDetails" resultMap="SourceSnapshotRowMap">
+        -- Select external announcement source details.
+        SELECT
+            ass.id AS source_id,
+            ass.public_code,
+            ass.provider_code,
+            ass.provider_notice_id,
+            ass.title,
+            ass.agency_name,
+            ass.application_start_date,
+            ass.application_end_date,
+            ass.posted_at,
+            ass.modified_at,
+            ass.source_url,
+            ass.body_text,
+            ass.inquiry_text,
+            ass.application_method_text,
+            ass.source_completeness_code,
+            ass.missing_fields_json::text AS missing_fields_json,
+            ass.raw_hash,
+            ass.review_status_code,
+            ass.collected_at,
+            ass.created_at,
+            ass.updated_at
+        FROM announcement_source_snapshots ass
+        WHERE ass.id = #{sourceId}
+    </select>
+
+    <insert id="insertSourceAttachment">
+        -- Insert source attachment url.
+        INSERT INTO announcement_source_attachments (
+            id,
+            source_id,
+            file_name,
+            file_url,
+            file_type_code,
+            sort_order
+        ) VALUES (
+            #{attachmentId},
+            #{sourceId},
+            #{fileName},
+            #{fileUrl},
+            #{fileTypeCode},
+            #{sortOrder}
+        )
+    </insert>
+
+    <select id="selectSourceAttachmentList" resultMap="SourceAttachmentRowMap">
+        -- Select source attachment urls.
+        SELECT
+            asa.id AS attachment_id,
+            asa.source_id,
+            asa.file_name,
+            asa.file_url,
+            asa.file_type_code,
+            asa.sort_order
+        FROM announcement_source_attachments asa
+        WHERE asa.source_id = #{sourceId}
+        ORDER BY asa.sort_order ASC, asa.id ASC
+    </select>
+
+    <insert id="insertSourceHighlight">
+        -- Insert source highlight reference.
+        INSERT INTO announcement_source_highlights (
+            id,
+            source_id,
+            highlight_type_code,
+            matched_text,
+            start_offset,
+            end_offset,
+            line_no,
+            match_rule_code
+        ) VALUES (
+            #{highlightId},
+            #{sourceId},
+            #{highlightTypeCode},
+            #{matchedText},
+            #{startOffset},
+            #{endOffset},
+            #{lineNo},
+            #{matchRuleCode}
+        )
+    </insert>
+
+    <select id="selectSourceHighlightList" resultMap="SourceHighlightRowMap">
+        -- Select source highlights.
+        SELECT
+            ash.id AS highlight_id,
+            ash.source_id,
+            ash.highlight_type_code,
+            ash.matched_text,
+            ash.start_offset,
+            ash.end_offset,
+            ash.line_no,
+            ash.match_rule_code
+        FROM announcement_source_highlights ash
+        WHERE ash.source_id = #{sourceId}
+        ORDER BY ash.line_no ASC NULLS LAST, ash.start_offset ASC NULLS LAST, ash.id ASC
+    </select>
+
+    <select id="selectActiveAnnouncementDuplicateCandidateList" resultMap="DuplicateCandidateRowMap">
+        -- Select active operational announcements that may duplicate a collected source.
+        SELECT
+            gen_random_uuid() AS candidate_id,
+            src.id AS source_id,
+            a.id AS announcement_id,
+            a.public_code AS announcement_code,
+            a.title AS announcement_title,
+            a.agency_name,
+            a.application_start_date,
+            a.application_end_date,
+            a.manual_status_code,
+            a.approval_status_code,
+            linked_src.public_code AS linked_source_code,
+            linked_src.provider_notice_id AS linked_provider_notice_id,
+            linked_src.source_url AS linked_source_url,
+            CASE
+                WHEN (
+                    coalesce(src.source_url IS NOT NULL AND linked_src.source_url = src.source_url, false)
+                    OR coalesce(src.provider_notice_id IS NOT NULL AND linked_src.provider_notice_id = src.provider_notice_id, false)
+                    OR (
+                        lower(trim(a.title)) = lower(trim(src.title))
+                        AND lower(trim(coalesce(a.agency_name, ''))) = lower(trim(coalesce(src.agency_name, '')))
+                        AND a.application_start_date IS NOT DISTINCT FROM src.application_start_date
+                        AND a.application_end_date IS NOT DISTINCT FROM src.application_end_date
+                    )
+                ) THEN 'EXACT_DUPLICATE'
+                ELSE 'SIMILAR'
+            END AS match_type_code,
+            lower(trim(a.title)) = lower(trim(src.title)) AS title_matched,
+            lower(trim(coalesce(a.agency_name, ''))) = lower(trim(coalesce(src.agency_name, ''))) AS agency_matched,
+            coalesce(src.provider_notice_id IS NOT NULL AND linked_src.provider_notice_id = src.provider_notice_id, false)
+                    AS provider_notice_matched,
+            (
+                a.application_start_date IS NOT DISTINCT FROM src.application_start_date
+                AND a.application_end_date IS NOT DISTINCT FROM src.application_end_date
+            ) AS period_matched,
+            coalesce(src.source_url IS NOT NULL AND linked_src.source_url = src.source_url, false) AS source_url_matched,
+            concat_ws(', ',
+                CASE WHEN lower(trim(a.title)) = lower(trim(src.title)) THEN '사업명 일치' END,
+                CASE WHEN lower(trim(coalesce(a.agency_name, ''))) = lower(trim(coalesce(src.agency_name, '')))
+                    THEN '주관기관 일치' END,
+                CASE WHEN coalesce(src.provider_notice_id IS NOT NULL
+                        AND linked_src.provider_notice_id = src.provider_notice_id, false)
+                    THEN '공고번호 일치' END,
+                CASE WHEN a.application_start_date IS NOT DISTINCT FROM src.application_start_date
+                        AND a.application_end_date IS NOT DISTINCT FROM src.application_end_date
+                    THEN '신청기간 일치' END,
+                CASE WHEN coalesce(src.source_url IS NOT NULL AND linked_src.source_url = src.source_url, false)
+                    THEN '원문 URL 일치' END,
+                CASE WHEN lower(a.title) LIKE concat('%', lower(src.title), '%')
+                        OR lower(src.title) LIKE concat('%', lower(a.title), '%')
+                    THEN '사업명 유사' END,
+                CASE WHEN lower(trim(coalesce(a.agency_name, ''))) = lower(trim(coalesce(src.agency_name, '')))
+                        AND NOT (
+                            a.application_start_date IS NOT DISTINCT FROM src.application_start_date
+                            AND a.application_end_date IS NOT DISTINCT FROM src.application_end_date
+                        )
+                    THEN '같은 기관의 기간 겹침 후보' END
+            ) AS similarity_reason,
+            'PENDING' AS decision_status_code,
+            CAST(NULL AS uuid) AS decided_by,
+            CAST(NULL AS timestamptz) AS decided_at,
+            CAST(NULL AS text) AS decision_note,
+            now() AS created_at,
+            now() AS updated_at
+        FROM announcement_source_snapshots src
+        INNER JOIN announcements a ON a.approval_status_code = 'APPROVED'
+        LEFT JOIN announcement_source_links asl ON asl.announcement_id = a.id
+        LEFT JOIN announcement_source_snapshots linked_src ON linked_src.id = asl.source_id
+        WHERE src.id = #{sourceId}
+          AND a.manual_status_code = 'NORMAL'
+          AND (a.application_end_date IS NULL OR a.application_end_date >= CURRENT_DATE)
+          AND (
+              coalesce(src.source_url IS NOT NULL AND linked_src.source_url = src.source_url, false)
+              OR coalesce(src.provider_notice_id IS NOT NULL AND linked_src.provider_notice_id = src.provider_notice_id, false)
+              OR lower(trim(a.title)) = lower(trim(src.title))
+              OR (
+                  lower(trim(coalesce(a.agency_name, ''))) = lower(trim(coalesce(src.agency_name, '')))
+                  AND (
+                      a.application_start_date IS NULL
+                      OR src.application_end_date IS NULL
+                      OR a.application_start_date &lt;= src.application_end_date
+                  )
+                  AND (
+                      a.application_end_date IS NULL
+                      OR src.application_start_date IS NULL
+                      OR a.application_end_date &gt;= src.application_start_date
+                  )
+              )
+              OR lower(a.title) LIKE concat('%', lower(src.title), '%')
+              OR lower(src.title) LIKE concat('%', lower(a.title), '%')
+          )
+    </select>
+
+    <insert id="insertDuplicateCandidate">
+        -- Insert duplicate or similar announcement candidate for operator review.
+        INSERT INTO announcement_source_duplicate_candidates (
+            id,
+            source_id,
+            announcement_id,
+            match_type_code,
+            title_matched,
+            agency_matched,
+            provider_notice_matched,
+            period_matched,
+            source_url_matched,
+            similarity_reason
+        ) VALUES (
+            #{candidateId},
+            #{sourceId},
+            #{announcementId},
+            #{matchTypeCode},
+            #{titleMatched},
+            #{agencyMatched},
+            #{providerNoticeMatched},
+            #{periodMatched},
+            #{sourceUrlMatched},
+            #{similarityReason}
+        )
+        ON CONFLICT (source_id, announcement_id) DO NOTHING
+    </insert>
+
+    <select id="selectDuplicateCandidateList" resultMap="DuplicateCandidateRowMap">
+        -- Select duplicate or similar candidates for a source.
+        SELECT
+            <include refid="DuplicateCandidateColumns"/>
+        FROM announcement_source_duplicate_candidates asdc
+        INNER JOIN announcements a ON a.id = asdc.announcement_id
+        LEFT JOIN announcement_source_links asl ON asl.announcement_id = a.id
+        LEFT JOIN announcement_source_snapshots linked_src ON linked_src.id = asl.source_id
+        WHERE asdc.source_id = #{sourceId}
+        ORDER BY
+            CASE asdc.match_type_code
+                WHEN 'EXACT_DUPLICATE' THEN 0
+                ELSE 1
+            END ASC,
+            a.application_end_date ASC NULLS LAST,
+            asdc.created_at ASC,
+            asdc.id ASC
+    </select>
+
+    <select id="selectPendingDuplicateCandidateCount" resultType="long">
+        -- Count pending duplicate or similar candidates for a source.
+        SELECT
+            count(1)
+        FROM announcement_source_duplicate_candidates asdc
+        WHERE asdc.source_id = #{sourceId}
+          AND asdc.decision_status_code = 'PENDING'
+    </select>
+
+    <select id="selectPendingExactDuplicateCandidateCount" resultType="long">
+        -- Count pending exact duplicate candidates for a source.
+        SELECT
+            count(1)
+        FROM announcement_source_duplicate_candidates asdc
+        WHERE asdc.source_id = #{sourceId}
+          AND asdc.match_type_code = 'EXACT_DUPLICATE'
+          AND asdc.decision_status_code = 'PENDING'
+    </select>
+
+    <select id="selectDuplicateCandidateDetails" resultMap="DuplicateCandidateRowMap">
+        -- Select duplicate or similar candidate details.
+        SELECT
+            <include refid="DuplicateCandidateColumns"/>
+        FROM announcement_source_duplicate_candidates asdc
+        INNER JOIN announcements a ON a.id = asdc.announcement_id
+        LEFT JOIN announcement_source_links asl ON asl.announcement_id = a.id
+        LEFT JOIN announcement_source_snapshots linked_src ON linked_src.id = asl.source_id
+        WHERE asdc.source_id = #{sourceId}
+          AND asdc.id = #{candidateId}
+    </select>
+
+    <update id="updateDuplicateCandidateDecision">
+        -- Update duplicate candidate operator decision.
+        UPDATE announcement_source_duplicate_candidates
+        SET
+            decision_status_code = #{decisionStatusCode},
+            decided_by = #{decidedBy},
+            decided_at = now(),
+            decision_note = #{decisionNote},
+            updated_at = now()
+        WHERE source_id = #{sourceId}
+          AND id = #{candidateId}
+          AND decision_status_code = 'PENDING'
+    </update>
+
+    <update id="updateSourceReviewStatus">
+        -- Update source review status.
+        UPDATE announcement_source_snapshots
+        SET
+            review_status_code = #{reviewStatusCode},
+            updated_at = now()
+        WHERE id = #{sourceId}
+    </update>
+
+    <select id="selectApprovedLinkedAnnouncementCount" resultType="long">
+        -- Count linked operational announcements that are approved and normally exposed.
+        SELECT count(1)
+        FROM announcement_source_links asl
+        INNER JOIN announcements a ON a.id = asl.announcement_id
+        WHERE asl.source_id = #{sourceId}
+          AND a.approval_status_code = 'APPROVED'
+          AND a.manual_status_code = 'NORMAL'
+    </select>
+
+    <insert id="insertSourceReviewHistory">
+        -- Insert source review status history.
+        INSERT INTO announcement_source_review_histories (
+            id,
+            source_id,
+            previous_status_code,
+            next_status_code,
+            reason,
+            changed_by
+        ) VALUES (
+            #{historyId},
+            #{sourceId},
+            #{previousStatusCode},
+            #{nextStatusCode},
+            #{reason},
+            #{changedBy}
+        )
+    </insert>
+
+    <insert id="insertSourceLink">
+        -- Link external source snapshot and operational announcement.
+        INSERT INTO announcement_source_links (
+            id,
+            source_id,
+            announcement_id,
+            linked_by
+        ) VALUES (
+            #{linkId},
+            #{sourceId},
+            #{announcementId},
+            #{linkedBy}
+        )
+        ON CONFLICT (source_id, announcement_id) DO NOTHING
+    </insert>
+</mapper>

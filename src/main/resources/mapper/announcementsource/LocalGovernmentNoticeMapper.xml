@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao">
+
+    <insert id="insertAuditLog">
+        -- Record local-government URL and schedule changes without response bodies or secrets.
+        INSERT INTO audit_logs (actor_user_id, action_code, resource_type, resource_id, result_code, metadata_json)
+        VALUES (#{actorUserId}, #{actionCode}, #{resourceType}, #{resourceId}, #{resultCode}, CAST(#{metadataJson} AS jsonb))
+    </insert>
+
+    <resultMap id="SourceRowMap" type="com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="sido_code" javaType="java.lang.String"/>
+            <arg column="sido_name" javaType="java.lang.String"/>
+            <arg column="sigungu_code" javaType="java.lang.String"/>
+            <arg column="sigungu_name" javaType="java.lang.String"/>
+            <arg column="institution_type_code" javaType="java.lang.String"/>
+            <arg column="institution_name" javaType="java.lang.String"/>
+            <arg column="homepage_url" javaType="java.lang.String"/>
+            <arg column="notice_url" javaType="java.lang.String"/>
+            <arg column="page_type_code" javaType="java.lang.String"/>
+            <arg column="parser_profile_code" javaType="java.lang.String"/>
+            <arg column="parser_profile_name" javaType="java.lang.String"/>
+            <arg column="collection_hint" javaType="java.lang.String"/>
+            <arg column="confidence_code" javaType="java.lang.String"/>
+            <arg column="validation_status_code" javaType="java.lang.String"/>
+            <arg column="is_enabled" javaType="_boolean"/>
+            <arg column="collection_status_code" javaType="java.lang.String"/>
+            <arg column="last_collected_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="last_success_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="last_http_status" javaType="java.lang.Integer"/>
+            <arg column="last_error_code" javaType="java.lang.String"/>
+            <arg column="last_error_message" javaType="java.lang.String"/>
+            <arg column="etag" javaType="java.lang.String"/>
+            <arg column="last_modified_value" javaType="java.lang.String"/>
+            <arg column="last_content_fingerprint" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="deleted_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ParserProfileRowMap" type="com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeParserProfileRow">
+        <constructor>
+            <arg column="profile_code" javaType="java.lang.String"/>
+            <arg column="profile_name" javaType="java.lang.String"/>
+            <arg column="parser_type_code" javaType="java.lang.String"/>
+            <arg column="list_item_selector" javaType="java.lang.String"/>
+            <arg column="title_selector" javaType="java.lang.String"/>
+            <arg column="date_selector" javaType="java.lang.String"/>
+            <arg column="link_selector" javaType="java.lang.String"/>
+            <arg column="date_pattern" javaType="java.lang.String"/>
+            <arg column="is_enabled" javaType="_boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ScheduleRowMap" type="com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceScheduleRow">
+        <constructor>
+            <arg column="schedule_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="schedule_name" javaType="java.lang.String"/>
+            <arg column="cron_expression" javaType="java.lang.String"/>
+            <arg column="timezone" javaType="java.lang.String"/>
+            <arg column="schedule_status_code" javaType="java.lang.String"/>
+            <arg column="max_count" javaType="java.lang.Integer"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="approved_by" javaType="java.util.UUID"/>
+            <arg column="approved_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="approval_note" javaType="java.lang.String"/>
+            <arg column="last_run_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="next_run_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="SourceColumns">
+        lgns.id AS source_id,
+        lgns.public_code,
+        lgns.sido_code,
+        lgns.sido_name,
+        lgns.sigungu_code,
+        lgns.sigungu_name,
+        lgns.institution_type_code,
+        lgns.institution_name,
+        lgns.homepage_url,
+        lgns.notice_url,
+        lgns.page_type_code,
+        lgns.parser_profile_code,
+        lgnpp.profile_name AS parser_profile_name,
+        lgns.collection_hint,
+        lgns.confidence_code,
+        lgns.validation_status_code,
+        lgns.is_enabled,
+        lgns.collection_status_code,
+        lgns.last_collected_at,
+        lgns.last_success_at,
+        lgns.last_http_status,
+        lgns.last_error_code,
+        lgns.last_error_message,
+        lgns.etag,
+        lgns.last_modified_value,
+        lgns.last_content_fingerprint,
+        lgns.created_at,
+        lgns.updated_at,
+        lgns.deleted_at
+    </sql>
+
+    <sql id="SourceWhere">
+        WHERE lgns.deleted_at IS NULL
+        <if test="sidoName != null and sidoName != ''">
+            AND lgns.sido_name = #{sidoName}
+        </if>
+        <if test="validationStatusCode != null and validationStatusCode != ''">
+            AND lgns.validation_status_code = #{validationStatusCode}
+        </if>
+        <if test="collectionStatusCode != null and collectionStatusCode != ''">
+            AND lgns.collection_status_code = #{collectionStatusCode}
+        </if>
+        <if test="enabled != null">
+            AND lgns.is_enabled = #{enabled}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                lgns.public_code ILIKE concat('%', #{keyword}, '%')
+                OR lgns.sido_name ILIKE concat('%', #{keyword}, '%')
+                OR lgns.sigungu_name ILIKE concat('%', #{keyword}, '%')
+                OR lgns.institution_name ILIKE concat('%', #{keyword}, '%')
+                OR lgns.notice_url ILIKE concat('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <sql id="ScheduleColumns">
+        ass.id AS schedule_id,
+        ass.public_code,
+        ass.provider_code,
+        ass.schedule_name,
+        ass.cron_expression,
+        ass.timezone,
+        ass.schedule_status_code,
+        ass.max_count,
+        ass.requested_by,
+        ass.approved_by,
+        ass.approved_at,
+        ass.approval_note,
+        ass.last_run_at,
+        ass.next_run_at,
+        ass.created_at,
+        ass.updated_at
+    </sql>
+
+    <insert id="insertSource">
+        -- Register a local-government notice source in disabled state.
+        INSERT INTO local_government_notice_sources (
+            id, sido_code, sido_name, sigungu_code, sigungu_name, institution_type_code, institution_name,
+            homepage_url, notice_url, page_type_code, parser_profile_code, collection_hint, confidence_code,
+            validation_status_code, is_enabled, collection_status_code, created_by, updated_by
+        ) VALUES (
+            #{sourceId}, #{sidoCode}, #{sidoName}, #{sigunguCode}, #{sigunguName}, #{institutionTypeCode}, #{institutionName},
+            #{homepageUrl}, #{noticeUrl}, #{pageTypeCode}, #{parserProfileCode}, #{collectionHint}, #{confidenceCode},
+            #{validationStatusCode}, false, 'CHECK_REQUIRED', #{actorUserId}, #{actorUserId}
+        )
+    </insert>
+
+    <update id="updateSource">
+        -- Update local-government notice source metadata without changing ON/OFF.
+        UPDATE local_government_notice_sources
+        SET sido_code = #{sidoCode},
+            sido_name = #{sidoName},
+            sigungu_code = #{sigunguCode},
+            sigungu_name = #{sigunguName},
+            institution_type_code = #{institutionTypeCode},
+            institution_name = #{institutionName},
+            homepage_url = #{homepageUrl},
+            notice_url = #{noticeUrl},
+            page_type_code = #{pageTypeCode},
+            parser_profile_code = #{parserProfileCode},
+            collection_hint = #{collectionHint},
+            confidence_code = #{confidenceCode},
+            validation_status_code = #{validationStatusCode},
+            collection_status_code = CASE WHEN #{validationStatusCode} = 'VERIFIED' THEN 'READY' ELSE 'CHECK_REQUIRED' END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND deleted_at IS NULL
+    </update>
+
+    <update id="updateSourceEnabled">
+        -- Enable only a verified source with an executable parser profile.
+        UPDATE local_government_notice_sources
+        SET is_enabled = #{enabled},
+            collection_status_code = CASE WHEN #{enabled} THEN 'READY' ELSE 'DISABLED' END,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND deleted_at IS NULL
+          AND (
+              NOT #{enabled}
+              OR (
+                  validation_status_code = 'VERIFIED'
+                  AND parser_profile_code IS NOT NULL
+                  AND parser_profile_code &lt;&gt; 'MANUAL_ONLY'
+              )
+          )
+    </update>
+
+    <update id="deleteSource">
+        -- Soft delete a local-government notice source and stop collection.
+        UPDATE local_government_notice_sources
+        SET is_enabled = false,
+            collection_status_code = 'DISABLED',
+            deleted_at = now(),
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND deleted_at IS NULL
+    </update>
+
+    <select id="selectSourceList" resultMap="SourceRowMap">
+        -- Select local-government notice source registry.
+        SELECT <include refid="SourceColumns"/>
+        FROM local_government_notice_sources lgns
+        LEFT JOIN local_government_notice_parser_profiles lgnpp ON lgnpp.profile_code = lgns.parser_profile_code
+        <include refid="SourceWhere"/>
+        ORDER BY lgns.sido_name ASC, lgns.sigungu_name ASC, lgns.public_code ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectSourceCount" resultType="long">
+        -- Count local-government notice source registry.
+        SELECT count(1)
+        FROM local_government_notice_sources lgns
+        <include refid="SourceWhere"/>
+    </select>
+
+    <select id="selectSourceDetails" resultMap="SourceRowMap">
+        -- Select local-government notice source details.
+        SELECT <include refid="SourceColumns"/>
+        FROM local_government_notice_sources lgns
+        LEFT JOIN local_government_notice_parser_profiles lgnpp ON lgnpp.profile_code = lgns.parser_profile_code
+        WHERE lgns.id = #{sourceId}
+          AND lgns.deleted_at IS NULL
+    </select>
+
+    <select id="selectEnabledSourceList" resultMap="SourceRowMap">
+        -- Select verified and enabled local-government notice sources for collection.
+        SELECT <include refid="SourceColumns"/>
+        FROM local_government_notice_sources lgns
+        INNER JOIN local_government_notice_parser_profiles lgnpp
+            ON lgnpp.profile_code = lgns.parser_profile_code
+           AND lgnpp.is_enabled = true
+           AND lgnpp.parser_type_code &lt;&gt; 'MANUAL_ONLY'
+        WHERE lgns.deleted_at IS NULL
+          AND lgns.is_enabled = true
+          AND lgns.validation_status_code = 'VERIFIED'
+          <if test="sourceId != null">
+              AND lgns.id = #{sourceId}
+          </if>
+        ORDER BY lgns.last_collected_at ASC NULLS FIRST, lgns.sido_name ASC, lgns.sigungu_name ASC
+        LIMIT #{maxCount}
+    </select>
+
+    <select id="selectParserProfileList" resultMap="ParserProfileRowMap">
+        -- Select parser profiles available to operators.
+        SELECT profile_code, profile_name, parser_type_code, list_item_selector, title_selector,
+               date_selector, link_selector, date_pattern, is_enabled
+        FROM local_government_notice_parser_profiles
+        ORDER BY profile_name ASC, profile_code ASC
+    </select>
+
+    <select id="selectParserProfileDetails" resultMap="ParserProfileRowMap">
+        -- Select parser profile details for a collection attempt.
+        SELECT profile_code, profile_name, parser_type_code, list_item_selector, title_selector,
+               date_selector, link_selector, date_pattern, is_enabled
+        FROM local_government_notice_parser_profiles
+        WHERE profile_code = #{profileCode}
+    </select>
+
+    <select id="selectCollectionSummary" resultType="com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionSummaryRow">
+        -- Aggregate local-government source and review traffic-light counts.
+        SELECT
+            count(1) FILTER (WHERE lgns.deleted_at IS NULL) AS total_count,
+            count(1) FILTER (WHERE lgns.deleted_at IS NULL AND lgns.is_enabled = true) AS enabled_count,
+            count(1) FILTER (WHERE lgns.deleted_at IS NULL AND lgns.collection_status_code IN ('SUCCESS', 'NO_CHANGE')) AS success_count,
+            count(1) FILTER (WHERE lgns.deleted_at IS NULL AND lgns.collection_status_code IN ('CHECK_REQUIRED', 'READY', 'DISABLED')) AS warning_count,
+            count(1) FILTER (WHERE lgns.deleted_at IS NULL AND lgns.collection_status_code IN ('FAILED', 'URL_ERROR', 'ACCESS_BLOCKED', 'PARSER_UNSUPPORTED')) AS failed_count,
+            (SELECT count(1) FROM announcement_source_snapshots ass
+             WHERE ass.provider_code = 'LOCAL_GOV_NOTICE'
+               AND ass.review_status_code IN ('REVIEW_PENDING', 'CONDITION_INPUT_REQUIRED')) AS review_pending_count
+        FROM local_government_notice_sources lgns
+    </select>
+
+    <insert id="insertCollectionResult">
+        -- Store one collection result for each local-government URL in a run.
+        INSERT INTO announcement_source_collection_source_results (
+            id, run_id, local_government_source_id, result_status_code, discovered_count,
+            new_count, duplicate_count, failed_count, http_status, error_code, error_message, finished_at
+        ) VALUES (
+            #{resultId}, #{runId}, #{sourceId}, #{resultStatusCode}, #{discoveredCount},
+            #{newCount}, #{duplicateCount}, #{failedCount}, #{httpStatus}, #{errorCode}, #{errorMessage}, now()
+        )
+        ON CONFLICT (run_id, local_government_source_id) DO UPDATE
+        SET result_status_code = excluded.result_status_code,
+            discovered_count = excluded.discovered_count,
+            new_count = excluded.new_count,
+            duplicate_count = excluded.duplicate_count,
+            failed_count = excluded.failed_count,
+            http_status = excluded.http_status,
+            error_code = excluded.error_code,
+            error_message = excluded.error_message,
+            finished_at = excluded.finished_at,
+            updated_at = now()
+    </insert>
+
+    <update id="updateCollectionResultCounts">
+        -- Accumulate new and duplicate item counts after unified duplicate checks.
+        UPDATE announcement_source_collection_source_results
+        SET new_count = new_count + #{newIncrement},
+            duplicate_count = duplicate_count + #{duplicateIncrement},
+            updated_at = now()
+        WHERE run_id = #{runId}
+          AND local_government_source_id = #{sourceId}
+    </update>
+
+    <update id="updateSourceCollectionStatus">
+        -- Update last collection metadata without storing response bodies.
+        UPDATE local_government_notice_sources
+        SET collection_status_code = #{collectionStatusCode},
+            last_collected_at = now(),
+            last_success_at = CASE WHEN #{success} THEN now() ELSE last_success_at END,
+            last_http_status = #{httpStatus},
+            last_error_code = #{errorCode},
+            last_error_message = #{errorMessage},
+            etag = coalesce(#{etag}, etag),
+            last_modified_value = coalesce(#{lastModifiedValue}, last_modified_value),
+            last_content_fingerprint = coalesce(#{contentFingerprint}, last_content_fingerprint),
+            updated_at = now()
+        WHERE id = #{sourceId}
+    </update>
+
+    <insert id="insertSchedule">
+        -- Insert a local-government collection schedule awaiting approval.
+        INSERT INTO announcement_source_collection_schedules (
+            id, provider_code, schedule_name, cron_expression, timezone, max_count, requested_by, next_run_at
+        ) VALUES (
+            #{scheduleId}, #{providerCode}, #{scheduleName}, #{cronExpression}, #{timezone}, #{maxCount},
+            #{requestedBy}, #{nextRunAt}
+        )
+    </insert>
+
+    <select id="selectScheduleList" resultMap="ScheduleRowMap">
+        -- Select collection schedules.
+        SELECT <include refid="ScheduleColumns"/>
+        FROM announcement_source_collection_schedules ass
+        ORDER BY ass.created_at DESC, ass.public_code DESC
+    </select>
+
+    <select id="selectScheduleDetails" resultMap="ScheduleRowMap">
+        -- Select collection schedule details.
+        SELECT <include refid="ScheduleColumns"/>
+        FROM announcement_source_collection_schedules ass
+        WHERE ass.id = #{scheduleId}
+    </select>
+
+    <update id="updateScheduleStatus">
+        -- Apply server-validated schedule approval, pause, rejection, or expiry.
+        UPDATE announcement_source_collection_schedules
+        SET schedule_status_code = #{scheduleStatusCode},
+            approved_by = CASE WHEN #{scheduleStatusCode} = 'APPROVED' THEN #{actorUserId} ELSE approved_by END,
+            approved_at = CASE WHEN #{scheduleStatusCode} = 'APPROVED' THEN now() ELSE approved_at END,
+            approval_note = #{approvalNote},
+            next_run_at = #{nextRunAt},
+            updated_at = now()
+        WHERE id = #{scheduleId}
+    </update>
+
+    <select id="selectDueScheduleList" resultMap="ScheduleRowMap">
+        -- Select due approved schedules; execution-slot uniqueness prevents duplicate execution.
+        SELECT <include refid="ScheduleColumns"/>
+        FROM announcement_source_collection_schedules ass
+        WHERE ass.provider_code = 'LOCAL_GOV_NOTICE'
+          AND ass.schedule_status_code = 'APPROVED'
+          AND ass.next_run_at IS NOT NULL
+          AND ass.next_run_at &lt;= #{dueAt}
+        ORDER BY ass.next_run_at ASC, ass.id ASC
+        LIMIT 10
+    </select>
+
+    <insert id="insertScheduleExecution">
+        -- Claim an approved schedule slot exactly once.
+        INSERT INTO announcement_source_schedule_executions (
+            id, schedule_id, scheduled_for, request_id, run_id, execution_status_code, error_message
+        ) VALUES (
+            #{executionId}, #{scheduleId}, #{scheduledFor}, #{requestId}, #{runId}, #{executionStatusCode}, #{errorMessage}
+        )
+        ON CONFLICT (schedule_id, scheduled_for) DO NOTHING
+    </insert>
+
+    <update id="updateScheduleExecution">
+        -- Update schedule execution result.
+        UPDATE announcement_source_schedule_executions
+        SET request_id = coalesce(#{requestId}, request_id),
+            run_id = coalesce(#{runId}, run_id),
+            execution_status_code = #{executionStatusCode},
+            error_message = #{errorMessage},
+            updated_at = now()
+        WHERE id = #{executionId}
+    </update>
+
+    <update id="updateScheduleNextRun">
+        -- Advance approved schedule after one claimed run.
+        UPDATE announcement_source_collection_schedules
+        SET last_run_at = #{lastRunAt},
+            next_run_at = #{nextRunAt},
+            updated_at = now()
+        WHERE id = #{scheduleId}
+          AND schedule_status_code = 'APPROVED'
+    </update>
+</mapper>

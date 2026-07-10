@@ -401,6 +401,97 @@ class MigrationContractTest {
     }
 
     /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
+    @Test
+    void v26MigrationContainsAnnouncementSourceCollectionTables() throws IOException {
+        String sql = selectV26Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_collection_requests",
+                "CREATE TABLE announcement_source_collection_runs",
+                "CREATE TABLE announcement_source_collection_run_items",
+                "CREATE TABLE announcement_source_snapshots",
+                "CREATE TABLE announcement_source_attachments",
+                "CREATE TABLE announcement_source_highlights",
+                "CREATE TABLE announcement_source_review_histories",
+                "CREATE TABLE announcement_source_links",
+                "'APPROVAL_PENDING'",
+                "'BATCH'",
+                "'MANUAL'",
+                "'REVIEW_PENDING'",
+                "'ACTIVATED'",
+                "'SKIPPED_ENDED'"
+        );
+    }
+
+    /**
+     * 업무 처리를 수행합니다.
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
+    @Test
+    void v27MigrationContainsAnnouncementSourceDuplicateCandidates() throws IOException {
+        String sql = selectV27Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_duplicate_candidates",
+                "CONSTRAINT uq_announcement_source_duplicate_candidates_source_announcement",
+                "EXACT_DUPLICATE",
+                "SIMILAR",
+                "CREATE_NEW_SELECTED",
+                "UPDATE_EXISTING_SELECTED",
+                "IGNORED"
+        );
+    }
+
+    /**
+     * 지자체 URL 관리, URL별 결과, 교차 중복과 승인 스케줄 스키마를 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v28MigrationContainsLocalGovernmentNoticeCollectionContracts() throws IOException {
+        String sql = selectV28Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE local_government_notice_sources",
+                "CREATE TABLE local_government_notice_parser_profiles",
+                "CREATE TABLE announcement_source_collection_source_results",
+                "CREATE TABLE announcement_source_snapshot_duplicates",
+                "CREATE TABLE announcement_source_collection_schedules",
+                "CREATE TABLE announcement_source_schedule_executions",
+                "LOCAL_GOV_NOTICE",
+                "ck_announcement_source_snapshot_duplicates_order",
+                "uq_announcement_source_schedule_executions_slot"
+        );
+    }
+
+    /**
+     * 지자체 URL 정적 seed의 수량·보정·기본 OFF 정책을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v29MigrationContainsReviewedLocalGovernmentNoticeSeed() throws IOException {
+        String sql = selectV29Migration();
+
+        assertThat(sql).contains(
+                "Expected 244 local-government notice sources",
+                "Expected 244 unique local-government district codes",
+                "https://www.dalseong.daegu.kr/index.do?menu_id=00000194",
+                "https://seohae.go.kr/open_content/main/community/news/gosi.jsp",
+                "https://www.osan.go.kr/portal/saeol/gosi/list.do?mId=0302010000",
+                "https://www.dh.go.kr/www/selectBbsNttList.do?bbsNo=87&key=478",
+                "https://www.sangju.go.kr/page/10297/10606.tc",
+                "'MANUAL_ONLY'",
+                "false"
+        );
+    }
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @return 처리 결과
@@ -601,6 +692,58 @@ class MigrationContractTest {
      */
     private String selectV25Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource("db/migration/V25__add_member_interview_responses.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
+    private String selectV26Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource("db/migration/V26__create_announcement_source_collection.sql");
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 업무 데이터를 조회합니다.
+     *
+     * @return 처리 결과
+     *
+     * @throws IOException 처리 중 예외가 발생한 경우
+     */
+    private String selectV27Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V27__create_announcement_source_duplicate_candidates.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V28 migration을 UTF-8로 조회합니다.
+     *
+     * @return V28 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV28Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V28__create_local_government_notice_collection.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V29 migration을 UTF-8로 조회합니다.
+     *
+     * @return V29 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV29Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V29__seed_local_government_notice_sources.sql"
+        );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
 }

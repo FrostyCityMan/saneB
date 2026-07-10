@@ -944,6 +944,104 @@ Member / Business / Family API skeleton 착수 기준:
 
 `GET /api/v1/standard-codes?groupCode=KSIC_11&keyword=음식&page=1&size=20`은 `ApiResponse<PageResponse<StandardCodeResponse>>`로 응답한다. 운영 중 외부 표준 코드 API를 실시간 호출하지 않으며, DB seed에 적재된 코드만 조회한다.
 
+## 7.2 Admin Announcement Source Collection API
+
+외부 공고 수집은 원문 보관과 운영 공고 입력을 분리한다. 수집 원문과 하이라이트는 운영자 검수 참고용이며, 매칭 조건으로 자동 저장하지 않는다. 배치와 관리자 버튼 실행은 모두 먼저 수집 요청을 만들고 승인자가 승인한 뒤 실행한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `POST` | `/api/v1/admin/announcement-source-collections/requests` | `OPERATOR`, `ADMIN` | 수동 수집 요청 생성 |
+| `GET` | `/api/v1/admin/announcement-source-collections/requests` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 요청 목록 |
+| `GET` | `/api/v1/admin/announcement-source-collections/requests/{requestId}` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 요청 상세 |
+| `PATCH` | `/api/v1/admin/announcement-source-collections/requests/{requestId}/approval` | `APPROVER`, `ADMIN` | 수집 요청 승인/반려/취소 |
+| `POST` | `/api/v1/admin/announcement-source-collections/requests/{requestId}/runs` | `OPERATOR`, `ADMIN` | 승인된 요청 실행 |
+| `GET` | `/api/v1/admin/announcement-source-collections/runs` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 실행 이력 |
+| `GET` | `/api/v1/admin/announcement-source-collections/runs/{runId}` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 실행 상세 |
+| `GET` | `/api/v1/admin/announcement-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 원문 목록 |
+| `GET` | `/api/v1/admin/announcement-sources/{sourceId}` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 원문 상세, 첨부, 하이라이트 조회 |
+| `PATCH` | `/api/v1/admin/announcement-sources/{sourceId}/review-status` | `OPERATOR`, `APPROVER`, `ADMIN` | 검수 상태 변경 |
+| `PATCH` | `/api/v1/admin/announcement-sources/{sourceId}/duplicate-candidates/{candidateId}/decision` | `OPERATOR`, `ADMIN` | 중복/유사 공고 후보 검수 결정 |
+| `PATCH` | `/api/v1/admin/announcement-sources/{sourceId}/source-duplicates/{duplicateId}/decision` | `OPERATOR`, `ADMIN` | 교차 제공자 유사 원문 검수 결정 |
+| `POST` | `/api/v1/admin/announcement-sources/{sourceId}/announcements` | `OPERATOR`, `ADMIN` | 수집 원문을 운영 공고 초안으로 연결 |
+
+#### AnnouncementSourceCollectionRequestCreateRequest
+
+```json
+{
+  "providerCode": "BIZINFO",
+  "searchKeyword": "소상공인",
+  "searchRegionCode": "서울",
+  "searchCategoryCode": "01",
+  "maxCount": 100,
+  "requestNote": "서울 소상공인 모집 중 공고 확인"
+}
+```
+
+#### AnnouncementSourceCollectionApprovalRequest
+
+```json
+{
+  "requestStatusCode": "APPROVED",
+  "approvalNote": "검색 조건 확인 후 실행 승인"
+}
+```
+
+#### AnnouncementSourceSummaryResponse
+
+```json
+{
+  "sourceId": "uuid",
+  "sourceCode": "SRC-000001",
+  "providerCode": "BIZINFO",
+  "providerLabel": "기업마당",
+  "providerNoticeId": "20260601001",
+  "title": "소상공인 지원사업",
+  "agencyName": "중소벤처기업부",
+  "applicationStartDate": "2026-06-01",
+  "applicationEndDate": "2026-06-30",
+  "reviewStatusCode": "REVIEW_PENDING",
+  "reviewStatusLabel": "검수대기"
+}
+```
+
+`GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
+
+#### AnnouncementSourceDuplicateDecisionRequest
+
+```json
+{
+  "decisionActionCode": "UPDATE_EXISTING",
+  "targetTypeCode": "BUSINESS",
+  "incomeJudgementCode": "VAT_TAX_BASE_ONLY",
+  "decisionNote": "기존 운영 공고를 원문 기준으로 업데이트"
+}
+```
+
+`decisionActionCode` 값은 `CREATE_NEW`, `UPDATE_EXISTING`, `IGNORE`이다. `CREATE_NEW`는 해당 후보를 검수 완료 처리하고 신규 운영 공고 DRAFT 생성을 허용한다. `UPDATE_EXISTING`은 후보의 기존 운영 공고 기본정보를 수집 원문 기준으로 갱신하고 수집 원문을 활성 전환한다. `IGNORE`는 후보를 무시 처리한다. 보류 중인 중복/유사 후보가 있으면 `POST /api/v1/admin/announcement-sources/{sourceId}/announcements`는 실패한다.
+
+수집 실행은 신청 마감일이 현재일보다 과거인 공고를 `SKIPPED_ENDED`로 처리한다. 운영자가 검수 후 전환한 운영 공고는 `approval_status_code='DRAFT'`로 생성되며, 원문은 `CONDITION_INPUT_REQUIRED`로 유지한다. 조건과 진행 단계는 기존 공고 입력 화면에서 직접 입력한다. 외부 provider 인증키와 endpoint secret은 환경변수로만 주입한다.
+
+### 7.3 Local Government Notice Source API
+
+모든 URL은 등록·수정·redirect 시 서버에서 SSRF 검증한다. `http`, `https`만 허용하며 loopback, 사설망, link-local, AWS metadata, multicast, 인증정보 포함 URL, 비표준 포트를 차단한다.
+
+| Method | Path | 권한 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 목록, pagination |
+| `POST` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `ADMIN` | 지자체 URL OFF 상태 등록 |
+| `GET` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 상세 |
+| `PUT` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `OPERATOR`, `ADMIN` | 지자체 URL 수정 |
+| `PATCH` | `/api/v1/admin/local-government-notice-sources/{sourceId}/enabled` | `OPERATOR`, `ADMIN` | 검증완료·파서 지정 URL ON/OFF |
+| `DELETE` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `ADMIN` | 지자체 URL soft delete |
+| `POST` | `/api/v1/admin/local-government-notice-sources/{sourceId}/collection-requests` | `OPERATOR`, `ADMIN` | 단일 URL 수동 수집 승인 요청 |
+| `GET` | `/api/v1/admin/local-government-notice-parser-profiles` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 파서 목록 |
+| `GET` | `/api/v1/admin/local-government-notice-sources/collection-summary` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 신호등 집계 |
+| `GET` | `/api/v1/admin/announcement-source-collection-schedules` | `OPERATOR`, `APPROVER`, `ADMIN` | 정기 수집 일정 목록 |
+| `POST` | `/api/v1/admin/announcement-source-collection-schedules` | `OPERATOR`, `ADMIN` | 승인 대기 정기 일정 생성 |
+| `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
+
+신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
+
 ## 8. Matching API
 
 | Method | Path | 권한 | 설명 |
