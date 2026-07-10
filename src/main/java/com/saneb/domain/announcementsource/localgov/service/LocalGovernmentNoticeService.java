@@ -20,6 +20,8 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceEnabledRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceSaveRequest;
@@ -77,6 +79,14 @@ public interface LocalGovernmentNoticeService {
      * 지자체 공고 URL을 소프트 삭제합니다.
      */
     void deleteSource(Authentication authentication, UUID sourceId);
+
+    /**
+     * 지자체 공고 QA로 생성된 원문과 수집 이력을 정리합니다.
+     */
+    LocalGovernmentNoticeQaCleanupResponse deleteQaArtifacts(
+            Authentication authentication,
+            LocalGovernmentNoticeQaCleanupRequest request
+    );
 
     /**
      * 수동 수집 승인 요청을 생성합니다.

@@ -37,9 +37,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
@@ -56,6 +59,25 @@ public class LocalGovernmentNoticeCollector {
 
     private static final int MAX_REDIRECTS = 5;
     private static final Pattern DATE_PATTERN = Pattern.compile("(20\\d{2})[.\\-/년\\s]+(\\d{1,2})[.\\-/월\\s]+(\\d{1,2})");
+    private static final Pattern NON_NOTICE_TITLE_PATTERN = Pattern.compile(
+            "^(홈|로그인|로그아웃|회원가입|검색|목록|이전|다음|처음|끝|더보기|전체보기|바로가기|사이트맵)$"
+    );
+    private static final Pattern FILE_LINK_PATTERN = Pattern.compile(
+            ".*\\.(pdf|hwp|hwpx|doc|docx|xls|xlsx|ppt|pptx|zip|jpg|jpeg|png|gif)(?:[?#].*)?$",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern NON_NOTICE_LINK_PATTERN = Pattern.compile(
+            ".*(download|filedown|rss|login|logout|sitemap).*",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern DETAIL_LINK_PATTERN = Pattern.compile(
+            ".*(view|detail|selectbbsnttview|dataSid=|nttId=|nttNo=|articleId=|articleNo=|boardSeq=|bbsSeq=|jsb_key=|[?&](seq|idx|no|id)=\\d+|/\\d{3,}(?:[/?#].*)?$).*",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern STRUCTURED_CONTAINER_PATTERN = Pattern.compile(
+            ".*(item|list|board|notice|bbs|row|card).*",
+            Pattern.CASE_INSENSITIVE
+    );
     private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");
 
     private final LocalGovernmentNoticeUrlValidator urlValidator;
@@ -277,6 +299,9 @@ public class LocalGovernmentNoticeCollector {
         if (profile == null || !profile.enabled() || "MANUAL_ONLY".equals(profile.parserTypeCode())) {
             return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus, "PARSER_NOT_CONFIGURED", "수집 파서를 먼저 지정하세요.");
         }
+        if ("HEURISTIC_NOTICE".equals(profile.parserTypeCode())) {
+            return parseHeuristicDocument(source, document, httpStatus, etag, lastModifiedValue, fingerprint);
+        }
         Elements rows = document.select(profile.listItemSelector());
         if (rows.isEmpty()) {
             return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus, "LIST_SELECTOR_NOT_MATCHED", "공고 목록을 찾지 못했습니다. 파서를 확인하세요.");
@@ -290,7 +315,8 @@ public class LocalGovernmentNoticeCollector {
             String title = titleElement == null ? null : titleElement.text().trim();
             String link = linkElement == null ? null : linkElement.absUrl("href");
             LocalDate postedDate = dateElement == null ? null : parseDate(dateElement.text(), profile.datePattern());
-            if (title == null || title.isBlank() || link == null || link.isBlank() || postedDate == null) {
+            if (title == null || title.isBlank() || link == null || link.isBlank()
+                    || postedDate == null || !isRecentPostedDate(postedDate)) {
                 invalidCount++;
                 continue;
             }
@@ -317,6 +343,186 @@ public class LocalGovernmentNoticeCollector {
                 invalidCount > 0 ? "일부 행에서 제목, 등록일 또는 원문 URL을 찾지 못했습니다." : null,
                 List.copyOf(items)
         );
+    }
+
+    /**
+     * 상세 링크와 가까운 HTML 영역에서 등록일을 찾아 비표준 게시판의 최소 공고 정보를 추출합니다.
+     *
+     * @param source URL 관리 정보
+     * @param document HTML 문서
+     * @param httpStatus HTTP 상태
+     * @param etag ETag
+     * @param lastModifiedValue Last-Modified
+     * @param fingerprint 응답 fingerprint
+     * @return URL 단위 수집 결과
+     */
+    private LocalGovernmentNoticeCollectionOutcome parseHeuristicDocument(
+            LocalGovernmentNoticeSourceRow source,
+            Document document,
+            int httpStatus,
+            String etag,
+            String lastModifiedValue,
+            String fingerprint
+    ) {
+        List<AnnouncementSourceProviderItem> items = new ArrayList<>();
+        Set<String> seenUrls = new HashSet<>();
+        String sourceHost = normalizeHost(URI.create(document.location()).getHost());
+        for (Element anchor : document.select("a[href]")) {
+            String title = anchor.text().replaceAll("\\s+", " ").trim();
+            String rawLink = anchor.attr("href").trim();
+            String link = anchor.absUrl("href");
+            if (!isNoticeLinkCandidate(title, rawLink, link, sourceHost) || !seenUrls.add(link)) {
+                continue;
+            }
+            LocalDate postedDate = selectNearbyDate(anchor);
+            if (postedDate == null || !isRecentPostedDate(postedDate)) {
+                continue;
+            }
+            String canonicalUrl = normalizer.canonicalizeUrl(link);
+            String providerNoticeId = normalizer.hash(canonicalUrl);
+            Map<String, Object> rawPayload = new LinkedHashMap<>();
+            rawPayload.put("title", title);
+            rawPayload.put("postedDate", postedDate.toString());
+            rawPayload.put("sourceUrl", canonicalUrl);
+            items.add(new AnnouncementSourceProviderItem(
+                    "LOCAL_GOV_NOTICE", providerNoticeId, title, source.institutionName(), null, null,
+                    postedDate.atStartOfDay(KOREA_ZONE).toOffsetDateTime(), null, canonicalUrl,
+                    null, null, null, "MINIMAL", "[\"bodyText\",\"attachment\",\"inquiryText\",\"applicationMethodText\"]",
+                    writeJson(rawPayload), normalizer.hash(title + "|" + postedDate + "|" + canonicalUrl), List.of(), source.sourceId()
+            ));
+        }
+        if (items.isEmpty()) {
+            return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus, "HEURISTIC_ITEMS_NOT_FOUND", "공고 상세 링크와 등록일을 함께 찾지 못했습니다.");
+        }
+        return new LocalGovernmentNoticeCollectionOutcome(
+                source.sourceId(), "SUCCESS", items.size(), 0, httpStatus, etag, lastModifiedValue,
+                fingerprint, null, null, List.copyOf(items)
+        );
+    }
+
+    /**
+     * 공고 상세 링크로 사용할 수 있는 제목과 URL인지 확인합니다.
+     *
+     * @param title 링크 제목
+     * @param rawLink 원본 href
+     * @param absoluteLink 절대 URL
+     * @param sourceHost 수집원 host
+     * @return 공고 링크 후보이면 true
+     */
+    private boolean isNoticeLinkCandidate(String title, String rawLink, String absoluteLink, String sourceHost) {
+        if (title.length() < 5 || title.length() > 200 || NON_NOTICE_TITLE_PATTERN.matcher(title).matches()
+                || FILE_LINK_PATTERN.matcher(title).matches() || title.startsWith("RSS ")) {
+            return false;
+        }
+        String lowerRawLink = rawLink.toLowerCase(Locale.ROOT);
+        if (rawLink.isBlank() || "#".equals(rawLink) || lowerRawLink.startsWith("javascript:")
+                || FILE_LINK_PATTERN.matcher(lowerRawLink).matches()
+                || NON_NOTICE_LINK_PATTERN.matcher(lowerRawLink).matches()
+                || !DETAIL_LINK_PATTERN.matcher(lowerRawLink).matches()) {
+            return false;
+        }
+        try {
+            URI linkUri = URI.create(absoluteLink);
+            String scheme = linkUri.getScheme();
+            return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    && sourceHost.equals(normalizeHost(linkUri.getHost()));
+        } catch (RuntimeException exception) {
+            return false;
+        }
+    }
+
+    /**
+     * 링크에서 가까운 행·목록·카드 영역을 최대 네 단계까지 확인해 등록일을 찾습니다.
+     *
+     * @param anchor 상세 링크
+     * @return 등록일 또는 null
+     */
+    private LocalDate selectNearbyDate(Element anchor) {
+        Element current = anchor;
+        for (int depth = 0; depth < 4 && current != null; depth++) {
+            if (!isStructuredContainer(current)) {
+                current = current.parent();
+                continue;
+            }
+            String text = current.text();
+            if (text.length() > 2000) {
+                return null;
+            }
+            for (Element dateElement : current.select(
+                    "time, .date, .regdate, .wdate, [class*=date], [class*=reg-date], [class*=write-date]"
+            )) {
+                LocalDate date = parseDate(dateElement.text(), null);
+                if (date != null) {
+                    return date;
+                }
+            }
+            List<LocalDate> dates = selectDateList(text);
+            if (text.length() <= 500 && dates.size() == 1) {
+                return dates.getFirst();
+            }
+            current = current.parent();
+        }
+        return null;
+    }
+
+    /**
+     * 문자열에 포함된 모든 4자리 연도 날짜를 추출합니다.
+     *
+     * @param text 목록 행 텍스트
+     * @return 날짜 목록
+     */
+    private List<LocalDate> selectDateList(String text) {
+        Matcher matcher = DATE_PATTERN.matcher(text);
+        List<LocalDate> dates = new ArrayList<>();
+        while (matcher.find()) {
+            try {
+                dates.add(LocalDate.of(
+                        Integer.parseInt(matcher.group(1)),
+                        Integer.parseInt(matcher.group(2)),
+                        Integer.parseInt(matcher.group(3))
+                ));
+            } catch (RuntimeException ignored) {
+                // 잘못된 날짜 한 건은 무시하고 같은 행의 다른 날짜를 확인합니다.
+            }
+        }
+        return dates;
+    }
+
+    /**
+     * 날짜를 함께 읽을 수 있는 반복 행·목록·카드 컨테이너인지 확인합니다.
+     *
+     * @param element 링크 상위 요소
+     * @return 구조화 컨테이너이면 true
+     */
+    private boolean isStructuredContainer(Element element) {
+        String tagName = element.tagName();
+        return "tr".equals(tagName) || "li".equals(tagName) || "article".equals(tagName)
+                || STRUCTURED_CONTAINER_PATTERN.matcher(element.className()).matches();
+    }
+
+    /**
+     * URL 비교를 위해 www 접두사를 제거한 host를 반환합니다.
+     *
+     * @param host URL host
+     * @return 정규화 host
+     */
+    private String normalizeHost(String host) {
+        if (host == null) {
+            return "";
+        }
+        String normalized = host.toLowerCase(Locale.ROOT);
+        return normalized.startsWith("www.") ? normalized.substring(4) : normalized;
+    }
+
+    /**
+     * 현재 운영 대상에서 사용할 수 있는 최근 등록일인지 확인합니다.
+     *
+     * @param postedDate 공고 등록일
+     * @return 오늘 이전 1년 범위이면 true
+     */
+    private boolean isRecentPostedDate(LocalDate postedDate) {
+        LocalDate today = LocalDate.now(KOREA_ZONE);
+        return !postedDate.isBefore(today.minusYears(1)) && !postedDate.isAfter(today);
     }
 
     /**

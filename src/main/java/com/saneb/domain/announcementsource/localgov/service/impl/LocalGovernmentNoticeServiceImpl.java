@@ -24,6 +24,8 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceEnabledRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceSaveRequest;
@@ -200,6 +202,45 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             throw notFound();
         }
         insertAudit(actorUserId, "LOCAL_GOV_NOTICE_SOURCE_DELETE", "LOCAL_GOV_NOTICE_SOURCE", sourceId, "{}");
+    }
+
+    /**
+     * 운영 공고 연결 여부를 확인하고 지자체 QA 원문과 수집 이력만 삭제합니다.
+     */
+    @Override
+    @Transactional
+    public LocalGovernmentNoticeQaCleanupResponse deleteQaArtifacts(
+            Authentication authentication,
+            LocalGovernmentNoticeQaCleanupRequest request
+    ) {
+        if (request == null || !"DELETE_LOCAL_GOVERNMENT_QA_DATA".equals(request.confirmationText())) {
+            throw invalid("확인 문구가 올바르지 않습니다.");
+        }
+        UUID actorUserId = selectActorUserId(authentication);
+        long linkedSnapshotCount = localGovernmentNoticeDao.selectLinkedQaSnapshotCount();
+        if (linkedSnapshotCount > 0) {
+            throw invalid("운영 공고와 연결된 수집 원문이 있어 QA 데이터를 정리할 수 없습니다.");
+        }
+
+        int deletedScheduleExecutionCount = localGovernmentNoticeDao.deleteQaScheduleExecutionList();
+        int deletedRunCount = localGovernmentNoticeDao.deleteQaCollectionRunList();
+        int deletedRequestCount = localGovernmentNoticeDao.deleteQaCollectionRequestList();
+        int deletedSnapshotCount = localGovernmentNoticeDao.deleteQaSnapshotList();
+        int resetSourceCount = localGovernmentNoticeDao.resetQaSourceCollectionState();
+        LocalGovernmentNoticeQaCleanupResponse response = new LocalGovernmentNoticeQaCleanupResponse(
+                deletedScheduleExecutionCount,
+                deletedRunCount,
+                deletedRequestCount,
+                deletedSnapshotCount,
+                resetSourceCount
+        );
+        insertAudit(actorUserId, "LOCAL_GOV_NOTICE_QA_ARTIFACTS_DELETE", "LOCAL_GOV_NOTICE_QA", UUID.randomUUID(),
+                "{\"deletedScheduleExecutionCount\":" + deletedScheduleExecutionCount
+                        + ",\"deletedRunCount\":" + deletedRunCount
+                        + ",\"deletedRequestCount\":" + deletedRequestCount
+                        + ",\"deletedSnapshotCount\":" + deletedSnapshotCount
+                        + ",\"resetSourceCount\":" + resetSourceCount + "}");
+        return response;
     }
 
     /**

@@ -147,6 +147,20 @@ tasks.register('applicationProgressSmokeIntegrationTest', Test) {
     shouldRunAfter flywayIntegrationTest
 }
 
+tasks.register('localGovernmentParserQa', Test) {
+    description = 'Runs isolated parser QA against every local-government URL seed without writing collection data.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/LocalGovernmentNoticeParserFullQaTest.class'
+    environment 'SANEB_LOCAL_GOV_PARSER_QA', 'true'
+    systemProperty 'saneb.local-gov-qa.output-dir', layout.buildDirectory.dir('reports/local-government-parser-qa').get().asFile.absolutePath
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/localGovernmentParserQa')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/localGovernmentParserQa')
+    shouldRunAfter test
+}
+
 tasks.register('dynamicInputSmokeIntegrationTest', Test) {
     description = 'Runs dynamic announcement input smoke tests against real PostgreSQL with local seed data.'
     group = 'verification'

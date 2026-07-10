@@ -422,4 +422,68 @@
         WHERE id = #{scheduleId}
           AND schedule_status_code = 'APPROVED'
     </update>
+
+    <select id="selectLinkedQaSnapshotCount" resultType="long">
+        -- Block QA cleanup when a collected local-government source is linked to an operational announcement.
+        SELECT count(1)
+        FROM announcement_source_links asl
+        INNER JOIN announcement_source_snapshots ass ON ass.id = asl.source_id
+        WHERE ass.provider_code = 'LOCAL_GOV_NOTICE'
+    </select>
+
+    <delete id="deleteQaScheduleExecutionList">
+        -- Delete local-government schedule execution history before request and run history.
+        DELETE FROM announcement_source_schedule_executions asse
+        WHERE EXISTS (
+            SELECT 1
+            FROM announcement_source_collection_schedules ascs
+            WHERE ascs.id = asse.schedule_id
+              AND ascs.provider_code = 'LOCAL_GOV_NOTICE'
+        )
+           OR EXISTS (
+            SELECT 1
+            FROM announcement_source_collection_requests ascr
+            WHERE ascr.id = asse.request_id
+              AND ascr.provider_code = 'LOCAL_GOV_NOTICE'
+        )
+    </delete>
+
+    <delete id="deleteQaCollectionRunList">
+        -- Delete local-government collection runs; run items and source results cascade from the run.
+        DELETE FROM announcement_source_collection_runs ascrun
+        WHERE EXISTS (
+            SELECT 1
+            FROM announcement_source_collection_requests ascr
+            WHERE ascr.id = ascrun.request_id
+              AND ascr.provider_code = 'LOCAL_GOV_NOTICE'
+        )
+    </delete>
+
+    <delete id="deleteQaCollectionRequestList">
+        -- Delete local-government collection approval requests after their runs are removed.
+        DELETE FROM announcement_source_collection_requests
+        WHERE provider_code = 'LOCAL_GOV_NOTICE'
+    </delete>
+
+    <delete id="deleteQaSnapshotList">
+        -- Delete unlinked local-government source snapshots; dependent review data cascades.
+        DELETE FROM announcement_source_snapshots
+        WHERE provider_code = 'LOCAL_GOV_NOTICE'
+    </delete>
+
+    <update id="resetQaSourceCollectionState">
+        -- Reset collection runtime metadata while preserving URL registry and verified parser settings.
+        UPDATE local_government_notice_sources
+        SET collection_status_code = CASE WHEN is_enabled THEN 'READY' ELSE 'DISABLED' END,
+            last_collected_at = NULL,
+            last_success_at = NULL,
+            last_http_status = NULL,
+            last_error_code = NULL,
+            last_error_message = NULL,
+            etag = NULL,
+            last_modified_value = NULL,
+            last_content_fingerprint = NULL,
+            updated_at = now()
+        WHERE deleted_at IS NULL
+    </update>
 </mapper>

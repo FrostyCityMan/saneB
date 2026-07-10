@@ -140,7 +140,22 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'CHECK_REQUIRED'
-                    """)).isEqualTo(13);
+                    """)).isEqualTo(79);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where validation_status_code = 'VERIFIED'
+                    """)).isEqualTo(142);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where validation_status_code = 'FAILED'
+                    """)).isEqualTo(23);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where parser_profile_code = 'HEURISTIC_NOTICE'
+                    """)).isEqualTo(52);
         }
     }
 

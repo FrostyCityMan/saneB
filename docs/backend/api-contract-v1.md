@@ -1033,6 +1033,7 @@ Member / Business / Family API skeleton 착수 기준:
 | `PUT` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `OPERATOR`, `ADMIN` | 지자체 URL 수정 |
 | `PATCH` | `/api/v1/admin/local-government-notice-sources/{sourceId}/enabled` | `OPERATOR`, `ADMIN` | 검증완료·파서 지정 URL ON/OFF |
 | `DELETE` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `ADMIN` | 지자체 URL soft delete |
+| `DELETE` | `/api/v1/admin/local-government-notice-sources/qa-artifacts` | `ADMIN` | 확인 문구 검증 후 지자체 QA 수집 원문·요청·실행 이력 삭제 |
 | `POST` | `/api/v1/admin/local-government-notice-sources/{sourceId}/collection-requests` | `OPERATOR`, `ADMIN` | 단일 URL 수동 수집 승인 요청 |
 | `GET` | `/api/v1/admin/local-government-notice-parser-profiles` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 파서 목록 |
 | `GET` | `/api/v1/admin/local-government-notice-sources/collection-summary` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 신호등 집계 |
@@ -1041,6 +1042,8 @@ Member / Business / Family API skeleton 착수 기준:
 | `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
 
 신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
+
+QA 산출물 삭제 요청의 `confirmationText`는 `DELETE_LOCAL_GOVERNMENT_QA_DATA`와 정확히 일치해야 한다. `LOCAL_GOV_NOTICE` 원문이 운영 공고와 연결돼 있으면 전체 삭제를 차단한다. 삭제 범위는 지자체 수집 원문, 요청, 실행, URL별 결과와 스케줄 실행 이력이며 URL 관리 정보, 파서 검증 결과, 운영 공고, 감사 로그는 유지한다.
 
 ## 8. Matching API
 

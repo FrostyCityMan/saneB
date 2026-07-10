@@ -310,13 +310,15 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 | 테이블 | 역할 | 주요 제약 |
 |---|---|---|
 | `local_government_notice_sources` | 시·도, 시·군·구, 기관, 고시공고 URL, ON/OFF, 마지막 수집 상태 관리 | `public_code` unique, active `(sigungu_code, notice_url)` unique, 검증완료·파서 지정 URL만 ON |
-| `local_government_notice_parser_profiles` | CSS selector 기반 정적 파서 프로필 | `profile_code` unique, 스크립트·동적 표현식 저장 금지 |
+| `local_government_notice_parser_profiles` | CSS selector 기반 정적 파서와 제한형 공고 링크 탐색 프로필 | `profile_code` unique, 스크립트·동적 표현식 저장 금지 |
 | `announcement_source_collection_source_results` | 수집 실행의 URL별 성공·신규·중복·실패 결과 | `(run_id, local_government_source_id)` unique |
 | `announcement_source_snapshot_duplicates` | 기업마당·정부24·지자체 원문 간 정확·유사 중복 관계 | UUID canonical 순서 check, `(source_id, candidate_source_id)` unique |
 | `announcement_source_collection_schedules` | 최초 승인 후 자동 실행되는 정기 수집 일정 | 승인·중지·반려·만료 상태, 다음 실행 시각 index |
 | `announcement_source_schedule_executions` | 동일 예정시각 중복 실행 방지 | `(schedule_id, scheduled_for)` unique |
 
 지자체 provider code는 `LOCAL_GOV_NOTICE`다. V29는 검토 대상 244개 고유 행정구역 URL을 모두 OFF로 seed하며, 실행 가능한 파서를 운영자가 검증한 URL만 개별 ON 처리한다. “226개”는 코드나 DB 제약으로 고정하지 않는다.
+
+V30은 상세 URL 패턴, 동일 기관 host, 반복 목록 컨테이너, 인접 등록일을 모두 확인하는 `HEURISTIC_NOTICE`를 추가한다. 파일·다운로드·RSS·자바스크립트·단순 탐색 링크는 제외하며, 오늘보다 미래이거나 1년보다 오래된 등록일은 수집하지 않는다. V31은 2026-07-10 전수 QA에서 통과한 142곳에 검증 파서를 지정하되 신규 URL을 자동 ON 처리하지 않는다. 부분 추출·구조 미지원 URL은 `CHECK_REQUIRED`, 접속 실패 URL은 `FAILED`로 유지한다.
 
 지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.
 

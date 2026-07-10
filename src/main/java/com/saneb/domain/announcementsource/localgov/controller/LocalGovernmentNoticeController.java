@@ -21,6 +21,8 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceEnabledRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceSaveRequest;
@@ -110,6 +112,18 @@ public class LocalGovernmentNoticeController {
     public ApiResponse<Void> deleteSource(Authentication authentication, @PathVariable UUID sourceId) {
         localGovernmentNoticeService.deleteSource(authentication, sourceId);
         return ApiResponse.success(null, "지자체 공고 URL을 삭제했습니다.");
+    }
+
+    @DeleteMapping("/local-government-notice-sources/qa-artifacts")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<LocalGovernmentNoticeQaCleanupResponse> deleteQaArtifacts(
+            Authentication authentication,
+            @Valid @RequestBody LocalGovernmentNoticeQaCleanupRequest request
+    ) {
+        return ApiResponse.success(
+                localGovernmentNoticeService.deleteQaArtifacts(authentication, request),
+                "지자체 공고 QA 원문과 수집 이력을 정리했습니다."
+        );
     }
 
     @PostMapping("/local-government-notice-sources/{sourceId}/collection-requests")

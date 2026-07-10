@@ -72,6 +72,48 @@ public interface LocalGovernmentNoticeDao {
     int deleteSource(@Param("sourceId") UUID sourceId, @Param("actorUserId") UUID actorUserId);
 
     /**
+     * 운영 공고와 연결된 지자체 수집 원문 건수를 조회합니다.
+     *
+     * @return 연결된 원문 건수
+     */
+    long selectLinkedQaSnapshotCount();
+
+    /**
+     * 지자체 수집 스케줄 실행 이력을 삭제합니다.
+     *
+     * @return 삭제 건수
+     */
+    int deleteQaScheduleExecutionList();
+
+    /**
+     * 지자체 수집 실행 이력을 삭제합니다.
+     *
+     * @return 삭제 건수
+     */
+    int deleteQaCollectionRunList();
+
+    /**
+     * 지자체 수집 승인 요청 이력을 삭제합니다.
+     *
+     * @return 삭제 건수
+     */
+    int deleteQaCollectionRequestList();
+
+    /**
+     * 지자체 수집 원문을 삭제합니다.
+     *
+     * @return 삭제 건수
+     */
+    int deleteQaSnapshotList();
+
+    /**
+     * 지자체 URL의 마지막 수집 상태를 초기화합니다.
+     *
+     * @return 초기화 건수
+     */
+    int resetQaSourceCollectionState();
+
+    /**
      * 지자체 공고 URL 목록을 조회합니다.
      *
      * @param condition 검색 조건

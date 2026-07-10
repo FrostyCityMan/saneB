@@ -492,6 +492,41 @@ class MigrationContractTest {
     }
 
     /**
+     * 제한형 휴리스틱 파서 프로필 추가 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v30MigrationContainsHeuristicLocalGovernmentParser() throws IOException {
+        String sql = selectV30Migration();
+
+        assertThat(sql).contains(
+                "HEURISTIC_NOTICE",
+                "제한형 공고 링크 탐색",
+                "ck_local_government_notice_parser_profiles_type"
+        );
+    }
+
+    /**
+     * 전수 QA 통과·보류·실패 결과 반영 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v31MigrationContainsFullParserQaResult() throws IOException {
+        String sql = selectV31Migration();
+
+        assertThat(sql).contains(
+                "WITH qa_pass",
+                "('LGS-000002', 'HEURISTIC_NOTICE')",
+                "('LGS-000244', 'SPRING_BBS')",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "validation_status_code = 'FAILED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -764,6 +799,32 @@ class MigrationContractTest {
     private String selectV29Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V29__seed_local_government_notice_sources.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V30 migration을 UTF-8로 조회합니다.
+     *
+     * @return V30 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV30Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V30__add_heuristic_local_government_notice_parser.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V31 migration을 UTF-8로 조회합니다.
+     *
+     * @return V31 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV31Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V31__apply_local_government_parser_qa_results.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
