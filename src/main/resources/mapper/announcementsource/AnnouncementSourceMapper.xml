@@ -48,11 +48,11 @@
             <arg column="run_status_code" javaType="java.lang.String"/>
             <arg column="started_at" javaType="java.time.OffsetDateTime"/>
             <arg column="finished_at" javaType="java.time.OffsetDateTime"/>
-            <arg column="total_count" javaType="int"/>
-            <arg column="collected_count" javaType="int"/>
-            <arg column="skipped_ended_count" javaType="int"/>
-            <arg column="duplicate_count" javaType="int"/>
-            <arg column="failed_count" javaType="int"/>
+            <arg column="total_count" javaType="_int"/>
+            <arg column="collected_count" javaType="_int"/>
+            <arg column="skipped_ended_count" javaType="_int"/>
+            <arg column="duplicate_count" javaType="_int"/>
+            <arg column="failed_count" javaType="_int"/>
             <arg column="error_message" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
         </constructor>

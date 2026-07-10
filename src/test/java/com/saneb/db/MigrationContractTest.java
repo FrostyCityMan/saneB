@@ -502,6 +502,13 @@ class MigrationContractTest {
 
         assertThat(mapper)
                 .contains("CASE WHEN CAST(#{approvedBy} AS uuid) IS NOT NULL THEN now() ELSE NULL END")
+                .contains(
+                        "<arg column=\"total_count\" javaType=\"_int\"/>",
+                        "<arg column=\"collected_count\" javaType=\"_int\"/>",
+                        "<arg column=\"skipped_ended_count\" javaType=\"_int\"/>",
+                        "<arg column=\"duplicate_count\" javaType=\"_int\"/>",
+                        "<arg column=\"failed_count\" javaType=\"_int\"/>"
+                )
                 .doesNotContain("CASE WHEN #{approvedBy} IS NOT NULL THEN now() ELSE NULL END");
     }
 
