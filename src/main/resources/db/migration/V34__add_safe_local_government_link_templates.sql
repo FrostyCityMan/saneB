@@ -1,0 +1,251 @@
+-- Add declarative, non-executable link templates for common local-government board platforms.
+
+ALTER TABLE local_government_notice_parser_profiles
+    ADD COLUMN link_strategy_code varchar(30) NOT NULL DEFAULT 'AUTO',
+    ADD COLUMN link_function_name varchar(120),
+    ADD COLUMN link_function_argument_count integer,
+    ADD COLUMN link_url_template varchar(1000);
+
+ALTER TABLE local_government_notice_parser_profiles
+    ADD CONSTRAINT ck_local_government_notice_parser_profiles_link_strategy CHECK (
+        link_strategy_code IN ('AUTO', 'SAFE_TEMPLATE')
+    ),
+    ADD CONSTRAINT ck_local_government_notice_parser_profiles_link_template CHECK (
+        link_strategy_code = 'AUTO'
+        OR (link_strategy_code = 'SAFE_TEMPLATE' AND link_url_template IS NOT NULL)
+    ),
+    ADD CONSTRAINT ck_local_government_notice_parser_profiles_link_argument_count CHECK (
+        link_function_argument_count IS NULL
+        OR link_function_argument_count BETWEEN 1 AND 20
+    );
+
+INSERT INTO local_government_notice_parser_profiles (
+    id, profile_code, profile_name, parser_type_code,
+    list_item_selector, title_selector, date_selector, link_selector, date_pattern,
+    link_strategy_code, link_function_name, link_function_argument_count, link_url_template, is_enabled
+) VALUES
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa01',
+    'SAFE_BOARD_VIEW',
+    '공통 boardView 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.title a, td.list_tit a, td a[onclick*=boardView]',
+    'td.date, td.list_date',
+    'td.title a, td.list_tit a, td a[onclick*=boardView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'boardView',
+    7,
+    '/portal/bbs/view.do?mId={arg:6}&bIdx={arg:4}&ptIdx={arg:5}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa02',
+    'SAFE_BOARD_VIEW_SITE',
+    '공통 boardView 사이트형 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.title a, td.list_tit a, td a[onclick*=boardView]',
+    'td.date, td.list_date',
+    'td.title a, td.list_tit a, td a[onclick*=boardView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'boardView',
+    8,
+    '/portal/bbs/view.do?mId={arg:7}&bIdx={arg:5}&ptIdx={arg:6}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa03',
+    'SAFE_YH_BOARD_POST',
+    '공통 게시글 post 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.list_tit a[data-req-get-p-idx], td a[data-req-get-p-idx]',
+    'td.list_date, td.date',
+    'td.list_tit a[data-req-get-p-idx], td a[data-req-get-p-idx]',
+    NULL,
+    'SAFE_TEMPLATE',
+    NULL,
+    NULL,
+    '/portal/board/post/view.do?bcIdx={query:bcIdx}&mid={query:mid}&idx={attr:data-req-get-p-idx}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa04',
+    'SAFE_ICMS_BOARD',
+    '공통 ICMS 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td a[onclick*=fn_icms_navi_common]',
+    'td.regdate, td:nth-of-type(4), td[data-table-type=date]',
+    'td a[onclick*=fn_icms_navi_common]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fn_icms_navi_common',
+    2,
+    '/index.do?menu_id={query:menu_id}&menu_link=/icms/bbs/selectBoardArticle.do&bbsId={input:bbsId}&nttId={arg:2}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa05',
+    'SAFE_OPENWORKS_BOARD',
+    '공통 OpenWorks 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td a[onclick*=jsView]',
+    'td:nth-last-child(2)',
+    'td a[onclick*=jsView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'jsView',
+    4,
+    '/web/board/BD_board.view.do?bbsCd={arg:1}&seq={arg:2}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa06',
+    'SAFE_BD_SELECT_BBS',
+    '공통 BD 선택 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.subject a[onclick*=fnView], td a[onclick*=fnView]',
+    'td.date, td:nth-last-child(3)',
+    'td.subject a[onclick*=fnView], td a[onclick*=fnView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fnView',
+    6,
+    '/www/user/bbs/BD_selectBbs.do?q_bbsCode={arg:1}&q_bbscttSn={arg:2}&q_currPage={arg:5}&q_pClCode={arg:6}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa07',
+    'SAFE_ICMS_BOARD_EXTENDED',
+    '공통 ICMS 확장형 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td a[onclick*=fn_icms_navi_common]',
+    'td.regdate, td:nth-of-type(4), td[data-table-type=date]',
+    'td a[onclick*=fn_icms_navi_common]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fn_icms_navi_common',
+    5,
+    '/index.do?menu_id={query:menu_id}&menu_link=/icms/bbs/selectBoardArticle.do&bbsId={input:bbsId}&nttId={arg:2}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa08',
+    'SAFE_GOTO_VIEW',
+    '공통 goTo view 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td a[onclick*=''goTo.view'']',
+    'td.list_date, td.date',
+    'td a[onclick*=''goTo.view'']',
+    NULL,
+    'SAFE_TEMPLATE',
+    'goTo.view',
+    4,
+    'view.do?mId={arg:4}&bIdx={arg:2}&ptIdx={arg:3}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa09',
+    'SAFE_GOTO_VIEW_EXTENDED',
+    '공통 goTo view 확장형 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td a[onclick*=''goTo.view'']',
+    'td.list_date, td.date',
+    'td a[onclick*=''goTo.view'']',
+    NULL,
+    'SAFE_TEMPLATE',
+    'goTo.view',
+    5,
+    'view.do?mId={arg:4}&bIdx={arg:2}&ptIdx={arg:3}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa10',
+    'SAFE_YANGCHEON_SEOL',
+    '양천 새올 고시공고',
+    'GENERIC_TABLE',
+    'table.basic-list tbody tr',
+    'td.subject a[href*=doSeolContentDeailView]',
+    'td:nth-of-type(5)',
+    'td.subject a[href*=doSeolContentDeailView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'doSeolContentDeailView',
+    1,
+    'seolContentDeailView.do?not_ancmt_mgt_no={arg:1}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa11',
+    'SAFE_ANSAN_BBS',
+    '안산 공통 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.p-subject a[onclick*=fnGoDetail]',
+    'td:nth-of-type(4)',
+    'td.p-subject a[onclick*=fnGoDetail]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fnGoDetail',
+    1,
+    '/www/common/bbs/selectBbsDetail.do?bbs_code={query:bbs_code}&bbs_seq={arg:1}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa12',
+    'SAFE_GWD_BULLETIN',
+    '강원 도정 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.skinTb-sbj a[onclick*=goPage]',
+    'td.skinTb-date',
+    'td.skinTb-sbj a[onclick*=goPage]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'goPage',
+    1,
+    '?articleSeq={arg:1}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa13',
+    'SAFE_SANGJU_GOSI',
+    '상주 고시공고',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.tal a[onclick*=fnDetail]',
+    'td:nth-of-type(5)',
+    'td.tal a[onclick*=fnDetail]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fnDetail',
+    1,
+    '/gosi/detail.tc?mn={input:mn}&mgtNo={arg:1}',
+    true
+),
+(
+    '70f96df5-425c-4cf6-b5db-0b5cc2d6aa14',
+    'SAFE_GORYEONG_BOARD',
+    '고령 공통 게시판',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.bL_tableTitle a[onclick*=fn_articleLink]',
+    'td:nth-of-type(4)',
+    'td.bL_tableTitle a[onclick*=fn_articleLink]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'fn_articleLink',
+    1,
+    '/kor/boardView.do?IDX={query:IDX}&BRD_ID={query:BRD_ID}&BOARD_IDX={arg:1}&page=1',
+    true
+)
+ON CONFLICT (profile_code) DO NOTHING;

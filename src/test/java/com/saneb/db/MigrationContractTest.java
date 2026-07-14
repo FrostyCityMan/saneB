@@ -527,6 +527,476 @@ class MigrationContractTest {
     }
 
     /**
+     * 검증 URL 보정과 기관별 HTTP 요청 프로필 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v32MigrationContainsReviewedUrlsAndRequestProfiles() throws IOException {
+        String sql = selectV32Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN request_profile_code",
+                "BROWSER_HTTP1",
+                "('LGS-000011', 'https://www.dobong.go.kr/bbs.asp?code=10008769')",
+                "('LGS-000233', 'https://eminwon.haman.go.kr/emwp/jsp/ofr/OfrNotAncmtLSub.jsp?not_ancmt_se_code=01,04')",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 파서 보강 후 추가 전수 QA 통과 결과 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v33MigrationContainsHardenedParserQaResult() throws IOException {
+        String sql = selectV33Migration();
+
+        assertThat(sql).contains(
+                "WITH qa_pass",
+                "('LGS-000021', 'SPRING_BBS')",
+                "('LGS-000066', 'HEURISTIC_NOTICE')",
+                "('LGS-000117', 'CHUNCHEON_NOTICE_JSON')",
+                "('LGS-000223', 'SPRING_BBS')",
+                "('LGS-000239', 'HEURISTIC_NOTICE')",
+                "validation_status_code = 'VERIFIED'"
+        );
+    }
+
+    /**
+     * 안전한 상세 링크 템플릿과 공통 플랫폼 프로필 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v34MigrationContainsSafeLinkTemplateProfiles() throws IOException {
+        String sql = selectV34Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN link_strategy_code",
+                "SAFE_TEMPLATE",
+                "SAFE_BOARD_VIEW",
+                "SAFE_BOARD_VIEW_SITE",
+                "SAFE_YH_BOARD_POST",
+                "SAFE_ICMS_BOARD",
+                "SAFE_OPENWORKS_BOARD",
+                "SAFE_BD_SELECT_BBS",
+                "SAFE_GOTO_VIEW",
+                "SAFE_ICMS_BOARD_EXTENDED",
+                "SAFE_ANSAN_BBS",
+                "SAFE_GWD_BULLETIN",
+                "SAFE_SANGJU_GOSI",
+                "SAFE_GORYEONG_BOARD",
+                "{arg:6}",
+                "{attr:data-req-get-p-idx}",
+                "{input:bbsId}"
+        );
+    }
+
+    /**
+     * 안전 링크 상세 URL 검증을 통과한 출처만 승격하는 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v35MigrationContainsSafeLinkTemplateQaResult() throws IOException {
+        String sql = selectV35Migration();
+
+        assertThat(sql).contains(
+                "WITH qa_pass",
+                "('LGS-000016', 'SAFE_YANGCHEON_SEOL')",
+                "('LGS-000037', 'SAFE_BOARD_VIEW')",
+                "('LGS-000049', 'SAFE_ICMS_BOARD_EXTENDED')",
+                "('LGS-000082', 'SAFE_GOTO_VIEW')",
+                "('LGS-000092', 'SAFE_ANSAN_BBS')",
+                "('LGS-000098', 'SAFE_BOARD_VIEW_SITE')",
+                "('LGS-000116', 'SAFE_GWD_BULLETIN')",
+                "('LGS-000203', 'SAFE_GOTO_VIEW_EXTENDED')",
+                "('LGS-000205', 'SAFE_YH_BOARD_POST')",
+                "('LGS-000208', 'SAFE_SANGJU_GOSI')",
+                "('LGS-000216', 'SAFE_GORYEONG_BOARD')",
+                "('LGS-000231', 'SAFE_YH_BOARD_POST')",
+                "validation_status_code = 'VERIFIED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 공식 지자체 URL 보정이 자동 활성화 없이 적용되는지 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v36MigrationContainsReviewedOfficialUrls() throws IOException {
+        String sql = selectV36Migration();
+
+        assertThat(sql).contains(
+                "WITH reviewed_url (public_code, notice_url)",
+                "('LGS-000014', 'https://www.sdm.go.kr/news/notice.do')",
+                "parser_profile_code = 'MANUAL_ONLY'",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 반복되는 공공 게시판 구조의 공통 프로필 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v37MigrationContainsCommonParserProfiles() throws IOException {
+        String sql = selectV37Migration();
+
+        assertThat(sql).contains(
+                "SAFE_SEODAEMUN_NOTICE",
+                "/news/notice/notice.do?mode=view&sdmBoardSeq={arg:1}",
+                "SAFE_SAEOL_EMINWON",
+                "SUBJECT_NOTICE_TABLE",
+                "SCMS_CARD_NOTICE",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * JSON, 대전 통합, 셀 클릭형 등 잔여 공통 구조 지원 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v38MigrationContainsRemainingParserProfiles() throws IOException {
+        String sql = selectV38Migration();
+
+        assertThat(sql).contains(
+                "DAEJEON_EMINWON",
+                "SAFE_SAEOL_EMINWON_CELL",
+                "table tr:has(td:nth-of-type(3)[onclick*=searchDetail])",
+                "DAMYANG_NOTICE_JSON",
+                "('LGS-000071', 'DAEJEON_EMINWON_AGGREGATOR')",
+                "('LGS-000183', 'DAMYANG_NOTICE_JSON')",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 공개 게시판 폼 POST와 최종 QA 승격 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v39MigrationContainsPostFormAndFinalQaResult() throws IOException {
+        String sql = selectV39Migration();
+
+        assertThat(sql).contains(
+                "ADD COLUMN request_method_code",
+                "ADD COLUMN request_form_json",
+                "request_method_code = 'POST_FORM'",
+                "selectListOfrNotAncmtHomepage",
+                "('LGS-000089', 'SAFE_SAEOL_EMINWON')",
+                "('LGS-000145', 'SAFE_SAEOL_EMINWON_CELL')",
+                "validation_status_code = 'VERIFIED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 244개 전수 QA의 통과 및 부분 통과 상태 동기화 계약을 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v40MigrationContainsComprehensiveQaResult() throws IOException {
+        String sql = selectV40Migration();
+
+        assertThat(sql).contains(
+                "WITH qa_pass(public_code, parser_profile_code)",
+                "('LGS-000014', 'SAFE_SEODAEMUN_NOTICE')",
+                "('LGS-000071', 'DAEJEON_EMINWON_AGGREGATOR')",
+                "('LGS-000089', 'SAFE_SAEOL_EMINWON')",
+                "('LGS-000183', 'DAMYANG_NOTICE_JSON')",
+                "('LGS-000244', 'SPRING_BBS')",
+                "WITH qa_partial(public_code, parser_profile_code)",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+        assertThat(sql.split("\\('LGS-", -1).length - 1).isEqualTo(229);
+    }
+
+    /**
+     * 추가 공식 URL 보정이 비활성 검증대기 상태를 유지하는지 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v41MigrationContainsAdditionalOfficialUrlCorrections() throws IOException {
+        String sql = selectV41Migration();
+
+        assertThat(sql).contains(
+                "('LGS-000045', 'https://eminwon.jung.daegu.kr/",
+                "('LGS-000130', 'https://eminwon.ihc.go.kr/",
+                "('LGS-000141', 'https://www.yd21.go.kr/kr/html/sub02/020103.html?GotoPage=1&mode=L')",
+                "('LGS-000230', 'https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001')",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 좁은 공통 파서 프로필이 상세 링크 서명을 기준으로 등록되는지 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v42MigrationContainsNarrowReusableParserProfiles() throws IOException {
+        String sql = selectV42Migration();
+
+        assertThat(sql).contains(
+                "SAFE_SAEOL_EMINWON_LEGACY",
+                "SAFE_SAEOL_EMINWON_HREF",
+                "SAFE_EGOV_DETAIL_BUTTON",
+                "RFC_BLOGLIST_NOTICE",
+                "GURYE_BOARD_NOTICE",
+                "tr:has(td:nth-of-type(3) a[onclick*=searchDetail])",
+                "tr:has(td.subject button[onclick*=fn_search_detail])",
+                "is_enabled"
+        );
+        assertThat(sql.split("2a57f03e-2b48-4c3f-88cc-cc7bc1e142", -1).length - 1).isEqualTo(5);
+    }
+
+    /**
+     * 격리 QA로 확인한 8개 수집원만 검증 완료로 승격하는지 확인합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v43MigrationContainsNarrowParserQaResults() throws IOException {
+        String sql = selectV43Migration();
+
+        assertThat(sql).contains(
+                "('LGS-000029', 'RFC_BLOGLIST_NOTICE')",
+                "('LGS-000045', 'SAFE_SAEOL_EMINWON_LEGACY')",
+                "('LGS-000074', 'SAFE_EGOV_DETAIL_BUTTON')",
+                "('LGS-000130', 'SAFE_SAEOL_EMINWON_LEGACY')",
+                "('LGS-000141', 'SAEOL_GOSI')",
+                "('LGS-000161', 'SAFE_EGOV_DETAIL_BUTTON')",
+                "('LGS-000185', 'GURYE_BOARD_NOTICE')",
+                "('LGS-000230', 'SAEOL_GOSI')",
+                "validation_status_code = 'VERIFIED'",
+                "is_enabled = false"
+        );
+        assertThat(sql.split("\\('LGS-", -1).length - 1).isEqualTo(8);
+    }
+
+    /**
+     * 공주형 전자정부 게시판 프로필 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v44MigrationContainsSafeEgovDetailCellParserProfile() throws IOException {
+        String sql = selectV44Migration();
+
+        assertThat(sql).contains(
+                "SAFE_EGOV_DETAIL_CELL",
+                "table.table-default tbody tr:has(td.subject a[onclick*=fn_search_detail])",
+                "td[data-cell-header=\"등록일\"]",
+                "view.do?notAncmtMgtNo={arg:1}",
+                "SAFE_TEMPLATE"
+        );
+    }
+
+    /**
+     * 공주시청의 실사이트 QA 결과 반영 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v45MigrationAppliesGongjuQaResultWithoutEnablingCollection() throws IOException {
+        String sql = selectV45Migration();
+
+        assertThat(sql).contains(
+                "public_code = 'LGS-000149'",
+                "parser_profile_code = 'SAFE_EGOV_DETAIL_CELL'",
+                "validation_status_code = 'VERIFIED'",
+                "collection_status_code = 'READY'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 구형 공공사이트 호환 요청 프로필과 적용 대상을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v46MigrationAddsLegacyBrowserRequestProfile() throws IOException {
+        String sql = selectV46Migration();
+
+        assertThat(sql).contains(
+                "'DEFAULT', 'BROWSER_HTTP1', 'LEGACY_BROWSER'",
+                "request_profile_code = 'LEGACY_BROWSER'",
+                "'LGS-000008'",
+                "'LGS-000093'",
+                "'LGS-000148'",
+                "'LGS-000158'",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 구형 게시판별 좁은 파서와 안전한 상세 URL 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v47MigrationAddsLegacyBoardParserProfiles() throws IOException {
+        String sql = selectV47Migration();
+
+        assertThat(sql).contains(
+                "JUNGNANG_CONTEST_BOARD",
+                "SAFE_PYEONGTAEK_BOARD_RENEWAL",
+                "SAFE_EGOV_BOARD_BUTTON",
+                "SAFE_EGOV_DATA_BUTTON",
+                "/pyeongtaek/board/post/view.do?bcIdx={arg:4}&idx={arg:5}&mid={arg:6}",
+                "view.do?nttId={attr:data-ntt-id}",
+                "SAFE_TEMPLATE"
+        );
+    }
+
+    /**
+     * 구형 게시판 실사이트 QA 결과와 중랑구 보류 사유를 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v48MigrationAppliesLegacyBoardQaResults() throws IOException {
+        String sql = selectV48Migration();
+
+        assertThat(sql).contains(
+                "('LGS-000093', 'SAFE_PYEONGTAEK_BOARD_RENEWAL')",
+                "('LGS-000148', 'SAFE_EGOV_BOARD_BUTTON')",
+                "('LGS-000158', 'SAFE_EGOV_DATA_BUTTON')",
+                "validation_status_code = 'VERIFIED'",
+                "public_code = 'LGS-000008'",
+                "last_error_code = 'STALE_SOURCE_CONTENT'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 은평·강릉·순천의 현재 공식 목록 URL과 요청 프로필을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v49MigrationCorrectsRemainingOfficialNoticeUrls() throws IOException {
+        String sql = selectV49Migration();
+
+        assertThat(sql).contains(
+                "https://eminwon.ep.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
+                "https://www.gn.go.kr/www/selectGosiNttList.do",
+                "https://www.suncheon.go.kr/kr/news/0001/0001/?mode=list",
+                "'LEGACY_BROWSER'",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 축약 열 구조의 새올 전자민원 파서 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v50MigrationAddsCompactSaeolParserProfile() throws IOException {
+        String sql = selectV50Migration();
+
+        assertThat(sql).contains(
+                "SAFE_SAEOL_EMINWON_COMPACT",
+                "table.board1 tbody tr:has(td:nth-of-type(2) a[onclick*=searchDetail])",
+                "td:nth-of-type(4)",
+                "not_ancmt_mgt_no={arg:1}",
+                "SAFE_TEMPLATE"
+        );
+    }
+
+    /**
+     * 공식 URL 교체 후 은평·강릉·순천의 실사이트 QA 결과를 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v51MigrationAppliesCorrectedOfficialUrlQaResults() throws IOException {
+        String sql = selectV51Migration();
+
+        assertThat(sql).contains(
+                "('LGS-000013', 'SAFE_SAEOL_EMINWON_COMPACT')",
+                "('LGS-000119', 'SAEOL_GOSI')",
+                "('LGS-000180', 'SUBJECT_NOTICE_TABLE')",
+                "validation_status_code = 'VERIFIED'",
+                "collection_status_code = 'READY'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 강동구의 느린 전자민원 응답을 명시적 호환 요청으로 분리하는 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v52MigrationStabilizesGangdongRequestProfile() throws IOException {
+        String sql = selectV52Migration();
+
+        assertThat(sql).contains(
+                "request_profile_code = 'LEGACY_BROWSER'",
+                "public_code IN ('LGS-000026')",
+                "validation_status_code = 'CHECK_REQUIRED'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 강동구 호환 전송 적용 후 실사이트 QA 결과를 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v53MigrationAppliesGangdongTransportQaResult() throws IOException {
+        String sql = selectV53Migration();
+
+        assertThat(sql).contains(
+                "public_code = 'LGS-000026'",
+                "parser_profile_code = 'SAFE_SAEOL_EMINWON_HREF'",
+                "validation_status_code = 'VERIFIED'",
+                "collection_status_code = 'READY'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 잔여 3개 실사이트 QA 통과 결과가 수동 파서를 대체하는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v54MigrationAppliesRemainingVerifiedParserResults() throws IOException {
+        String sql = selectV54Migration();
+
+        assertThat(sql).contains(
+                "('LGS-000034', 'SAFE_SAEOL_EMINWON_LEGACY')",
+                "('LGS-000108', 'SAEOL_GOSI')",
+                "('LGS-000135', 'SAEOL_GOSI')",
+                "validation_status_code = 'VERIFIED'",
+                "collection_status_code = 'READY'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -825,6 +1295,305 @@ class MigrationContractTest {
     private String selectV31Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V31__apply_local_government_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V32 migration을 UTF-8로 조회합니다.
+     *
+     * @return V32 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV32Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V32__harden_local_government_notice_source_requests.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V33 migration을 UTF-8로 조회합니다.
+     *
+     * @return V33 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV33Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V33__apply_local_government_parser_qa_hardening_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V34 migration을 UTF-8로 조회합니다.
+     *
+     * @return V34 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV34Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V34__add_safe_local_government_link_templates.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V35 migration을 UTF-8로 조회합니다.
+     *
+     * @return V35 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV35Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V35__apply_safe_link_template_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V36 migration을 UTF-8로 조회합니다.
+     *
+     * @return V36 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV36Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V36__correct_official_local_government_notice_urls.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V37 migration을 UTF-8로 조회합니다.
+     *
+     * @return V37 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV37Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V37__add_common_local_government_notice_parser_profiles.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V38 migration을 UTF-8로 조회합니다.
+     *
+     * @return V38 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV38Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V38__support_remaining_local_government_notice_structures.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V39 migration을 UTF-8로 조회합니다.
+     *
+     * @return V39 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV39Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V39__correct_final_reviewed_local_government_notice_urls.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V40 migration을 UTF-8로 조회합니다.
+     *
+     * @return V40 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV40Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V40__apply_comprehensive_local_government_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V41 migration을 UTF-8로 조회합니다.
+     *
+     * @return V41 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV41Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V41__correct_additional_official_local_government_notice_urls.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V42 migration을 UTF-8로 조회합니다.
+     *
+     * @return V42 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV42Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V42__add_narrow_local_government_notice_parser_profiles.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V43 migration을 UTF-8로 조회합니다.
+     *
+     * @return V43 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV43Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V43__apply_narrow_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V44 migration을 UTF-8로 조회합니다.
+     *
+     * @return V44 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV44Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V44__add_egov_detail_cell_parser_profile.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V45 migration을 UTF-8로 조회합니다.
+     *
+     * @return V45 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV45Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V45__apply_gongju_parser_qa_result.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V46 migration을 UTF-8로 조회합니다.
+     *
+     * @return V46 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV46Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V46__add_legacy_browser_request_profile.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V47 migration을 UTF-8로 조회합니다.
+     *
+     * @return V47 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV47Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V47__add_legacy_board_parser_profiles.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V48 migration을 UTF-8로 조회합니다.
+     *
+     * @return V48 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV48Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V48__apply_legacy_board_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V49 migration을 UTF-8로 조회합니다.
+     *
+     * @return V49 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV49Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V49__correct_remaining_official_notice_urls.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V50 migration을 UTF-8로 조회합니다.
+     *
+     * @return V50 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV50Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V50__add_compact_saeol_parser_profile.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V51 migration을 UTF-8로 조회합니다.
+     *
+     * @return V51 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV51Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V51__apply_corrected_official_url_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V52 migration을 UTF-8로 조회합니다.
+     *
+     * @return V52 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV52Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V52__stabilize_gangdong_notice_request.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V53 migration을 UTF-8로 조회합니다.
+     *
+     * @return V53 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV53Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V53__apply_gangdong_transport_qa_result.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V54 migration을 UTF-8로 조회합니다.
+     *
+     * @return V54 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV54Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V54__apply_remaining_verified_parser_results.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

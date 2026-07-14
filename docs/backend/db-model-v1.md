@@ -309,8 +309,8 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 
 | 테이블 | 역할 | 주요 제약 |
 |---|---|---|
-| `local_government_notice_sources` | 시·도, 시·군·구, 기관, 고시공고 URL, ON/OFF, 마지막 수집 상태 관리 | `public_code` unique, active `(sigungu_code, notice_url)` unique, 검증완료·파서 지정 URL만 ON |
-| `local_government_notice_parser_profiles` | CSS selector 기반 정적 파서와 제한형 공고 링크 탐색 프로필 | `profile_code` unique, 스크립트·동적 표현식 저장 금지 |
+| `local_government_notice_sources` | 시·도, 시·군·구, 기관, 사용자용 URL, 선택적 수집 endpoint, HTTP 호환 프로필, GET/폼 POST 방식, ON/OFF, 마지막 수집 상태 관리 | `public_code` unique, active `(sigungu_code, notice_url)` unique, 검증완료·파서 지정 URL만 ON, 폼 POST는 공개 게시판 정적 필드만 허용 |
+| `local_government_notice_parser_profiles` | CSS selector 기반 HTML 파서, 제한형 링크 탐색, 검증된 JSON 필드 매핑, 안전 링크 템플릿 | `profile_code` unique, 허용 placeholder와 리터럴 함수 인자만 사용, 임의 스크립트·동적 표현식 저장 금지 |
 | `announcement_source_collection_source_results` | 수집 실행의 URL별 성공·신규·중복·실패 결과 | `(run_id, local_government_source_id)` unique |
 | `announcement_source_snapshot_duplicates` | 기업마당·정부24·지자체 원문 간 정확·유사 중복 관계 | UUID canonical 순서 check, `(source_id, candidate_source_id)` unique |
 | `announcement_source_collection_schedules` | 최초 승인 후 자동 실행되는 정기 수집 일정 | 승인·중지·반려·만료 상태, 다음 실행 시각 index |
@@ -318,7 +318,21 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 
 지자체 provider code는 `LOCAL_GOV_NOTICE`다. V29는 검토 대상 244개 고유 행정구역 URL을 모두 OFF로 seed하며, 실행 가능한 파서를 운영자가 검증한 URL만 개별 ON 처리한다. “226개”는 코드나 DB 제약으로 고정하지 않는다.
 
-V30은 상세 URL 패턴, 동일 기관 host, 반복 목록 컨테이너, 인접 등록일을 모두 확인하는 `HEURISTIC_NOTICE`를 추가한다. 파일·다운로드·RSS·자바스크립트·단순 탐색 링크는 제외하며, 오늘보다 미래이거나 1년보다 오래된 등록일은 수집하지 않는다. V31은 2026-07-10 전수 QA에서 통과한 142곳에 검증 파서를 지정하되 신규 URL을 자동 ON 처리하지 않는다. 부분 추출·구조 미지원 URL은 `CHECK_REQUIRED`, 접속 실패 URL은 `FAILED`로 유지한다.
+V30은 상세 URL 패턴, 동일 기관 host, 반복 목록 컨테이너, 인접 등록일을 모두 확인하는 `HEURISTIC_NOTICE`를 추가한다. V31은 2026-07-10 전수 QA에서 통과한 142곳에 검증 파서를 지정한다. V32는 검증된 16개 목록 URL을 보정하고 `DEFAULT`, `BROWSER_HTTP1` 요청 정책과 선택적 JSON 수집 endpoint를 추가한다. `GENERIC_JSON`은 DB에 고정된 목록 경로·제목·등록일·링크 식별자·동일 기관 링크 template만 사용한다. JavaScript 실행, TLS 검증 우회, 응답 원문 전체의 매칭 조건 자동 반영은 허용하지 않는다.
+
+V33은 2026-07-13 전수 QA와 춘천시 JSON endpoint 검증을 통과한 19곳을 추가하여 누적 161곳에 파서를 지정한다. 모든 지자체 URL은 계속 OFF 상태로 유지하며 운영자가 표본을 확인한 뒤 개별 ON 처리한다. 나머지는 `CHECK_REQUIRED` 또는 `FAILED` 상태로 유지한다. 2자리 연도는 2000년대로 제한해 해석하고, data 속성 및 스크립트 문자열에 URL이 명시된 경우에만 동일 host 링크로 변환한다.
+
+V34는 기관별 JavaScript를 실행하지 않고 플랫폼 함수의 문자열·숫자 리터럴 인자, 링크 `data` 속성, 목록 URL query, 문서 hidden input만 허용된 URL 템플릿에 대입하는 `SAFE_TEMPLATE` 전략을 추가한다. 허용 placeholder는 `arg`, `attr`, `query`, `input`으로 제한하며 함수 인자 수와 동일 기관 host를 함께 검증한다. V35는 목록 추출률과 대표 상세 URL을 검증한 29곳에 14개 공통 플랫폼 프로필을 지정하여 누적 190곳을 `VERIFIED`로 관리한다. 신규 승격 출처는 모두 OFF 상태를 유지하며, 외부 전자민원 host로 이동하는 출처는 자동 승격하지 않는다.
+
+V36~V38은 폐기된 URL을 현행 공식 목록으로 교체하고, 공통 게시판·셀 클릭형 새올 전자민원·대전 구청 통합 목록·검증된 JSON 응답을 정적 프로필로 보강한다. 대전 통합 목록의 상세 host는 검증된 5개 구청 host 고정 목록으로만 변환하며, 임의 host 입력은 허용하지 않는다.
+
+V39는 브라우저가 공개 검색 폼을 제출해야 목록이 생성되는 성남시청 구조를 위해 `request_method_code`와 `request_form_json`을 추가한다. `request_method_code`는 `GET`, `POST_FORM`만 허용한다. `POST_FORM` 값은 공개 게시판의 문자열형 정적 검색 필드만 저장하며 secret, cookie, 인증정보, 사용자 개인정보를 저장하지 않는다. 수집기는 필드명, 필드 수, 값 길이와 전체 본문 크기를 제한한 뒤 UTF-8 URL 인코딩한다.
+
+V40은 2026-07-14 전수 QA 결과를 정적 반영한다. 244곳 중 제목·등록일·안전한 상세 URL을 모두 확인한 224곳을 `VERIFIED/READY/OFF`로, 일부 행만 유효한 5곳을 `CHECK_REQUIRED/OFF`로 유지한다. 나머지 15곳은 접근 차단, 잘못된 기관 응답 헤더, timeout 또는 4xx/5xx로 로컬 환경에서 최종 확인하지 못했으며 파서 미지원 상태는 0곳이다. 이 migration은 어떤 출처도 자동으로 ON 처리하지 않는다.
+
+V41~V45는 추가 공식 URL 교체, 반복 가능한 좁은 게시판 파서, 공주시 전자정부 게시판의 안전 상세 URL 템플릿을 반영한다. V46은 표준 Java HTTP 클라이언트에서 요청 헤더 또는 framing 오류가 재현되고 URLConnection 요청에서 HTTP 200이 확인된 기관에 한해 `LEGACY_BROWSER`를 추가한다. 이 요청 정책은 GET 전용이며 브라우저 호환 헤더와 기본값의 2배 제한시간을 사용한다. TLS 인증서 검증을 끄거나 redirect URL 검증을 우회하지 않는다.
+
+V47~V54는 평택·천안·서천의 구형 게시판, 은평의 축약 열 새올 게시판, 강릉·순천의 현재 공식 HTTPS 목록, 강동의 느린 전자민원 응답을 각각 실사이트에서 재검증해 정적 프로필로 연결한다. 최종 DB 상태는 `VERIFIED 242`, `CHECK_REQUIRED 2`, `FAILED 0`이며 244곳 모두 `is_enabled=false`다. 중랑구는 최근 1년 이내 게시물이 없어 `STALE_SOURCE_CONTENT`, 금천구 지원사업 목록은 일부 행에 등록일이 없어 운영 재검토 대상으로 남긴다.
 
 지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.
 

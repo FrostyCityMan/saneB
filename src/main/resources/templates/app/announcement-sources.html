@@ -65,8 +65,21 @@
                 </div>
                 <div class="field-block"><label>기관명</label><input name="institutionName" maxlength="150" required placeholder="예: 강남구청"></div>
                 <div class="field-block wide-field"><label>고시공고 URL</label><input name="noticeUrl" type="url" required placeholder="https://기관주소/고시공고목록"></div>
+                <div class="field-block wide-field">
+                    <label>실제 수집 주소</label>
+                    <input name="collectionEndpointUrl" type="url" placeholder="목록이 별도 주소에서 제공될 때만 입력">
+                    <small>화면 주소와 데이터 제공 주소가 다를 때만 사용합니다.</small>
+                </div>
                 <div class="field-block wide-field"><label>기관 홈페이지</label><input name="homepageUrl" type="url" placeholder="https://기관주소"></div>
                 <div class="field-block"><label>페이지 유형</label><input name="pageTypeCode" maxlength="60" placeholder="예: notice_board"></div>
+                <div class="field-block">
+                    <label>요청 방식</label>
+                    <select name="requestProfileCode" required>
+                          <option value="DEFAULT">기본 요청</option>
+                          <option value="BROWSER_HTTP1">브라우저 호환 요청</option>
+                          <option value="LEGACY_BROWSER">구형 공공사이트 호환 요청</option>
+                      </select>
+                </div>
                 <div class="field-block"><label>수집 파서</label><select name="parserProfileCode" data-local-parser-select><option value="MANUAL_ONLY">수동 검증 필요</option></select></div>
                 <div class="field-block">
                     <label>URL 신뢰도</label>

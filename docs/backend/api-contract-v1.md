@@ -1025,6 +1025,10 @@ Member / Business / Family API skeleton 착수 기준:
 
 모든 URL은 등록·수정·redirect 시 서버에서 SSRF 검증한다. `http`, `https`만 허용하며 loopback, 사설망, link-local, AWS metadata, multicast, 인증정보 포함 URL, 비표준 포트를 차단한다.
 
+지자체 URL 저장 요청은 기존 v1 필드에 선택값 `collectionEndpointUrl`, `requestProfileCode`를 추가한다. `collectionEndpointUrl`은 화면 URL과 실제 공개 데이터 endpoint가 다를 때만 사용하며 동일한 SSRF 검증을 거친다. `requestProfileCode`는 `DEFAULT`, `BROWSER_HTTP1`, `LEGACY_BROWSER`만 허용하고 생략하면 `DEFAULT`다. `LEGACY_BROWSER`는 실사이트 격리 QA에서 표준 Java HTTP 클라이언트와 다른 결과가 재현된 기관에만 적용하며, 브라우저 호환 헤더와 2배 제한시간을 사용하는 GET 전용 정책이다. 조회 응답에는 두 필드와 내부 요청 방식인 `requestMethodCode`가 함께 반환된다. `requestMethodCode='POST_FORM'`과 공개 폼 값은 검증된 운영 migration으로만 관리하며 관리자 저장 요청에서 임의 입력받지 않는다. JSON endpoint는 서버에 검증된 `GENERIC_JSON` 파서 프로필이 지정된 경우에만 처리한다.
+
+파서 프로필은 서버 정적 seed로 관리한다. `SAFE_TEMPLATE` 프로필은 링크 함수 리터럴 인자 수와 `arg`, `attr`, `query`, `input` placeholder만 해석하며 JavaScript를 실행하지 않는다. 생성한 상세 URL은 같은 기관의 검증된 host일 때만 저장한다. 대전 통합 목록처럼 외부 전자민원 host로 이동하는 구조는 코드에 고정된 기관별 허용 목록만 사용한다. 2026-07-14 최종 전수 QA에서는 244개 중 242개 출처가 제목·등록일·상세 URL 검증을 통과했다. 중랑구는 최근 1년 이내 등록 공고가 없고, 금천구 지원사업 목록은 일부 행에 등록일이 없어 `CHECK_REQUIRED`로 유지한다. 모든 출처는 운영자가 개별 확인하기 전 OFF를 유지한다. 이 내부 프로필 확장은 기존 `/api/v1/admin/local-government-notice-parser-profiles`의 path와 응답 구조를 변경하지 않는다.
+
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `GET` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 목록, pagination |

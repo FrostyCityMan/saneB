@@ -119,6 +119,56 @@ class FlywayMigrationIntegrationTest {
                     where version = '29'
                       and success = true
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '39'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '40'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '41'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '42'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '43'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '44'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '45'
+                      and success = true
+                    """)).isEqualTo(1);
+            for (String version : List.of("46", "47", "48", "49", "50", "51", "52", "53", "54")) {
+                assertThat(selectLong(statement, """
+                        select count(1)
+                        from flyway_schema_history
+                        where version = '%s'
+                          and success = true
+                        """.formatted(version))).as("Flyway V%s".formatted(version)).isEqualTo(1);
+            }
 
             for (String tableName : selectRequiredTableNames()) {
                 assertThat(selectText(statement, "select to_regclass('public." + tableName + "')"))
@@ -140,22 +190,58 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'CHECK_REQUIRED'
-                    """)).isEqualTo(79);
+                    """)).isEqualTo(2);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'VERIFIED'
-                    """)).isEqualTo(142);
+                    """)).isEqualTo(242);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'FAILED'
-                    """)).isEqualTo(23);
+                    """)).isZero();
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code = 'HEURISTIC_NOTICE'
-                    """)).isEqualTo(52);
+                    """)).isEqualTo(36);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where request_profile_code = 'BROWSER_HTTP1'
+                    """)).isEqualTo(25);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where request_profile_code = 'LEGACY_BROWSER'
+                    """)).isEqualTo(8);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_parser_profiles
+                    where link_strategy_code = 'SAFE_TEMPLATE'
+                    """)).isEqualTo(32);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where parser_profile_code like 'SAFE_%'
+                    """)).isEqualTo(58);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where request_method_code = 'POST_FORM'
+                      and request_form_json is not null
+                    """)).isEqualTo(1);
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000089'
+                    """)).isEqualTo("SAFE_SAEOL_EMINWON");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000011'
+                    """)).isEqualTo("https://www.dobong.go.kr/bbs.asp?code=10008769");
         }
     }
 

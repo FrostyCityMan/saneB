@@ -13,6 +13,10 @@ java {
     }
 }
 
+configurations {
+    mockitoAgent
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -29,6 +33,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent('org.mockito:mockito-core') {
+        transitive = false
+    }
 }
 
 tasks.named('test') {
@@ -37,6 +44,7 @@ tasks.named('test') {
 
 tasks.withType(Test).configureEach {
     environment 'SANEB_INACTIVITY_REMINDER_ENABLED', 'false'
+    jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
 }
 
 tasks.register('flywayIntegrationTest', Test) {

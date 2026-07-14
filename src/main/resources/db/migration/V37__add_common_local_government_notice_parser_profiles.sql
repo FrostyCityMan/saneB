@@ -1,0 +1,300 @@
+-- Add reviewed parser profiles for recurring local-government board platforms.
+-- Every source remains disabled until the full QA verifies list extraction and detail links.
+
+INSERT INTO local_government_notice_parser_profiles (
+    id, profile_code, profile_name, parser_type_code,
+    list_item_selector, title_selector, date_selector, link_selector, date_pattern,
+    link_strategy_code, link_function_name, link_function_argument_count, link_url_template, is_enabled
+) VALUES
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa01',
+    'SAFE_SEOUL_NOTICE',
+    '서울시 고시공고',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.sib-lst-type-basic-subject a[href*=fnTbbsView]',
+    'td:nth-of-type(4)',
+    'td.sib-lst-type-basic-subject a[href*=fnTbbsView]',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'fnTbbsView',
+    1,
+    '/news/news_notice.do?bbsId={query:bbsId}&bbsNo={query:bbsNo}&nttNo={arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa02',
+    'JUNGGU_NOTICE_TABLE',
+    '서울 중구 공고 표',
+    'GENERIC_TABLE',
+    'div.board_list table tbody tr',
+    'td.tal p.title a',
+    'td:nth-of-type(3)',
+    'td.tal p.title a',
+    NULL,
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa03',
+    'DOBONG_NOTICE_TABLE',
+    '데이터 헤더형 공고 표',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td[data-cell-header=''제목''] a',
+    'td[data-cell-header=''등록일'']',
+    'td[data-cell-header=''제목''] a',
+    'yyyy.MM.dd',
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa04',
+    'NOWON_NOTICE_TABLE',
+    '셀 클래스형 공고 표',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.cell-subject a',
+    'td.cell-date',
+    'td.cell-subject a',
+    'yyyy-MM-dd',
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa05',
+    'SAFE_SEODAEMUN_NOTICE',
+    '서대문구 고시공고',
+    'GENERIC_TABLE',
+    'table.boardList tbody tr',
+    'td.aleft a[href*=goView]',
+    'td:nth-of-type(4)',
+    'td.aleft a[href*=goView]',
+    'yyyy.MM.dd',
+    'SAFE_TEMPLATE',
+    'goView',
+    1,
+    '/news/notice/notice.do?mode=view&sdmBoardSeq={arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa06',
+    'SAFE_GWANAK_NOTICE',
+    '관악구 고시공고',
+    'GENERIC_TABLE',
+    'table.list tbody tr',
+    'td:nth-of-type(3) a[onclick*=doBbsFView]',
+    'td:nth-of-type(7)',
+    'td:nth-of-type(3) a[onclick*=doBbsFView]',
+    'yyyyMMdd',
+    'SAFE_TEMPLATE',
+    'doBbsFView',
+    1,
+    '/site/gwanak/ex/bbsNew/View.do?not_ancmt_mgt_no={arg:1}&typeCode={query:typeCode}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa07',
+    'SAFE_SAEOL_EMINWON',
+    '새올 전자민원 고시공고',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td:nth-of-type(3) a[onclick*=searchDetail]',
+    'td:nth-of-type(5)',
+    'td:nth-of-type(3) a[onclick*=searchDetail]',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'searchDetail',
+    1,
+    '/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no={arg:1}&subCheck=Y',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa08',
+    'GUNWI_NOTICE_TABLE',
+    '군위군 고시공고',
+    'GENERIC_TABLE',
+    'table.tbl_board tbody tr',
+    'td.subject a',
+    'td.date',
+    'td.subject a',
+    'yyyy-MM-dd',
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa09',
+    'SAFE_EGOV_DETAIL',
+    '전자정부 표준 게시판 상세',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.subject a[onclick*=fn_search_detail]',
+    'td.regDate',
+    'td.subject a[onclick*=fn_search_detail]',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'fn_search_detail',
+    1,
+    'view.do?nttId={arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa10',
+    'SAFE_DONGGU_ARTICLE',
+    '대전 동구 기사형 게시판',
+    'GENERIC_LIST',
+    'div.notice_list > ul > li:not(.thead)',
+    'p.subject a[onclick*=''article.view'']',
+    'p.date',
+    'p.subject a[onclick*=''article.view'']',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'article.view',
+    1,
+    'newsNotice/{arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa11',
+    'SAFE_PAJU_SUMMARY',
+    '파주시 요약형 게시판',
+    'GENERIC_LIST',
+    'ul.summary-list > li',
+    'a.contentTip strong.subject',
+    'ul.article-info > li:last-child',
+    'a.contentTip[onclick*=jsView]',
+    NULL,
+    'SAFE_TEMPLATE',
+    'jsView',
+    4,
+    'BD_board.view.do?bbsCd={arg:1}&seq={arg:2}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa12',
+    'SAFE_GWD_GOPAGE2',
+    '강원 게시판 goPage2형',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.skinTb-sbj a[href*=goPage2]',
+    'td.skinTb-date',
+    'td.skinTb-sbj a[href*=goPage2]',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'goPage2',
+    1,
+    '/portal/openadmin/adminnews/notice?articleSeq={arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa13',
+    'SAFE_YANGYANG_READ',
+    '양양군 공지 읽기',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.skinTb-sbj a[onclick*=pf_readForm]',
+    'td.skinTb-date',
+    'td.skinTb-sbj a[onclick*=pf_readForm]',
+    'yyyy-MM-dd',
+    'SAFE_TEMPLATE',
+    'pf_readForm',
+    1,
+    '/gw/portal/yyc_news_notice?mode=readForm&boardCode={input:boardCode}&articleSeq={arg:1}',
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa14',
+    'EGOV_DIRECT_NOTICE_TABLE',
+    '전자정부 직접 링크 공고 표',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    '.list_subject a',
+    'td.date',
+    '.list_subject a',
+    'yyyy-MM-dd',
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa15',
+    'SUBJECT_NOTICE_TABLE',
+    '제목 클래스형 공고 표',
+    'GENERIC_TABLE',
+    'table tbody tr',
+    'td.subject > a:first-child, td.title > a:first-child, td.bb-list-title > a:first-child',
+    'td.date, td.bb-list-publish-date, td:nth-of-type(4)',
+    'td.subject > a:first-child, td.title > a:first-child, td.bb-list-title > a:first-child',
+    NULL,
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+),
+(
+    '71f96df5-425c-4cf6-b5db-0b5cc2d6aa16',
+    'SCMS_CARD_NOTICE',
+    'SCMS 카드형 공고 목록',
+    'GENERIC_LIST',
+    'ul.lst1 > li.li1',
+    'strong.t1',
+    '.wrap1t3 > span.t3:first-child, .t3wrap > span.t3:nth-child(2)',
+    'a.a1',
+    NULL,
+    'AUTO',
+    NULL,
+    NULL,
+    NULL,
+    true
+)
+ON CONFLICT (profile_code) DO NOTHING;
+
+UPDATE local_government_notice_parser_profiles
+SET link_url_template = '/portal/bulletin/notice?articleSeq={arg:1}',
+    updated_at = now()
+WHERE profile_code = 'SAFE_GWD_BULLETIN';
+
+WITH reviewed_url(public_code, notice_url) AS (
+    VALUES
+        ('LGS-000034', 'https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectListOfrNotAncmt&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_se_code=01%2C04&pageIndex=1&subCheck=Y&yyyy='),
+        ('LGS-000052', 'https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectListOfrNotAncmt&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_se_code=01%2C04&pageIndex=1&subCheck=Y&yyyy='),
+        ('LGS-000233', 'https://eminwon.haman.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectListOfrNotAncmt&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_se_code=01%2C04&pageIndex=1&subCheck=Y&yyyy=')
+)
+UPDATE local_government_notice_sources AS source
+SET notice_url = reviewed_url.notice_url,
+    collection_endpoint_url = NULL,
+    parser_profile_code = 'MANUAL_ONLY',
+    validation_status_code = 'CHECK_REQUIRED',
+    is_enabled = false,
+    collection_status_code = 'CHECK_REQUIRED',
+    last_http_status = NULL,
+    last_error_code = NULL,
+    last_error_message = NULL,
+    etag = NULL,
+    last_modified_value = NULL,
+    last_content_fingerprint = NULL,
+    updated_at = now()
+FROM reviewed_url
+WHERE source.public_code = reviewed_url.public_code
+  AND source.deleted_at IS NULL;
+
+UPDATE local_government_notice_sources
+SET request_profile_code = 'BROWSER_HTTP1',
+    updated_at = now()
+WHERE public_code IN ('LGS-000034', 'LGS-000052', 'LGS-000233')
+  AND deleted_at IS NULL;

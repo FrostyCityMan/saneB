@@ -27,7 +27,10 @@ public record LocalGovernmentNoticeSourceResponse(
         String institutionName,
         String homepageUrl,
         String noticeUrl,
+        String collectionEndpointUrl,
         String pageTypeCode,
+        String requestProfileCode,
+        String requestMethodCode,
         String parserProfileCode,
         String parserProfileName,
         String collectionHint,
@@ -53,8 +56,10 @@ public record LocalGovernmentNoticeSourceResponse(
     public static LocalGovernmentNoticeSourceResponse from(LocalGovernmentNoticeSourceRow row) {
         return new LocalGovernmentNoticeSourceResponse(
                 row.sourceId(), row.publicCode(), row.sidoCode(), row.sidoName(), row.sigunguCode(), row.sigunguName(),
-                row.institutionTypeCode(), row.institutionName(), row.homepageUrl(), row.noticeUrl(), row.pageTypeCode(),
-                row.parserProfileCode(), row.parserProfileName(), row.collectionHint(), row.confidenceCode(),
+                row.institutionTypeCode(), row.institutionName(), row.homepageUrl(), row.noticeUrl(),
+                row.collectionEndpointUrl(), row.pageTypeCode(),
+                row.requestProfileCode(), row.requestMethodCode(), row.parserProfileCode(), row.parserProfileName(),
+                row.collectionHint(), row.confidenceCode(),
                 row.validationStatusCode(), row.enabled(), row.collectionStatusCode(), trafficLight(row),
                 row.lastCollectedAt(), row.lastSuccessAt(), row.lastHttpStatus(), row.lastErrorCode(),
                 row.lastErrorMessage(), row.updatedAt()

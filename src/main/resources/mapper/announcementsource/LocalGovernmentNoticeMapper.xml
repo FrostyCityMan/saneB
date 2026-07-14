@@ -22,7 +22,11 @@
             <arg column="institution_name" javaType="java.lang.String"/>
             <arg column="homepage_url" javaType="java.lang.String"/>
             <arg column="notice_url" javaType="java.lang.String"/>
+            <arg column="collection_endpoint_url" javaType="java.lang.String"/>
             <arg column="page_type_code" javaType="java.lang.String"/>
+            <arg column="request_profile_code" javaType="java.lang.String"/>
+            <arg column="request_method_code" javaType="java.lang.String"/>
+            <arg column="request_form_json" javaType="java.lang.String"/>
             <arg column="parser_profile_code" javaType="java.lang.String"/>
             <arg column="parser_profile_name" javaType="java.lang.String"/>
             <arg column="collection_hint" javaType="java.lang.String"/>
@@ -54,6 +58,16 @@
             <arg column="date_selector" javaType="java.lang.String"/>
             <arg column="link_selector" javaType="java.lang.String"/>
             <arg column="date_pattern" javaType="java.lang.String"/>
+            <arg column="response_type_code" javaType="java.lang.String"/>
+            <arg column="json_items_path" javaType="java.lang.String"/>
+            <arg column="json_title_field" javaType="java.lang.String"/>
+            <arg column="json_date_field" javaType="java.lang.String"/>
+            <arg column="json_link_field" javaType="java.lang.String"/>
+            <arg column="json_link_template" javaType="java.lang.String"/>
+            <arg column="link_strategy_code" javaType="java.lang.String"/>
+            <arg column="link_function_name" javaType="java.lang.String"/>
+            <arg column="link_function_argument_count" javaType="java.lang.Integer"/>
+            <arg column="link_url_template" javaType="java.lang.String"/>
             <arg column="is_enabled" javaType="_boolean"/>
         </constructor>
     </resultMap>
@@ -90,7 +104,11 @@
         lgns.institution_name,
         lgns.homepage_url,
         lgns.notice_url,
+        lgns.collection_endpoint_url,
         lgns.page_type_code,
+        lgns.request_profile_code,
+        lgns.request_method_code,
+        lgns.request_form_json::text AS request_form_json,
         lgns.parser_profile_code,
         lgnpp.profile_name AS parser_profile_name,
         lgns.collection_hint,
@@ -159,11 +177,13 @@
         -- Register a local-government notice source in disabled state.
         INSERT INTO local_government_notice_sources (
             id, sido_code, sido_name, sigungu_code, sigungu_name, institution_type_code, institution_name,
-            homepage_url, notice_url, page_type_code, parser_profile_code, collection_hint, confidence_code,
+            homepage_url, notice_url, collection_endpoint_url, page_type_code, request_profile_code,
+            parser_profile_code, collection_hint, confidence_code,
             validation_status_code, is_enabled, collection_status_code, created_by, updated_by
         ) VALUES (
             #{sourceId}, #{sidoCode}, #{sidoName}, #{sigunguCode}, #{sigunguName}, #{institutionTypeCode}, #{institutionName},
-            #{homepageUrl}, #{noticeUrl}, #{pageTypeCode}, #{parserProfileCode}, #{collectionHint}, #{confidenceCode},
+            #{homepageUrl}, #{noticeUrl}, #{collectionEndpointUrl}, #{pageTypeCode}, #{requestProfileCode},
+            #{parserProfileCode}, #{collectionHint}, #{confidenceCode},
             #{validationStatusCode}, false, 'CHECK_REQUIRED', #{actorUserId}, #{actorUserId}
         )
     </insert>
@@ -179,7 +199,9 @@
             institution_name = #{institutionName},
             homepage_url = #{homepageUrl},
             notice_url = #{noticeUrl},
+            collection_endpoint_url = #{collectionEndpointUrl},
             page_type_code = #{pageTypeCode},
+            request_profile_code = #{requestProfileCode},
             parser_profile_code = #{parserProfileCode},
             collection_hint = #{collectionHint},
             confidence_code = #{confidenceCode},
@@ -269,7 +291,9 @@
     <select id="selectParserProfileList" resultMap="ParserProfileRowMap">
         -- Select parser profiles available to operators.
         SELECT profile_code, profile_name, parser_type_code, list_item_selector, title_selector,
-               date_selector, link_selector, date_pattern, is_enabled
+               date_selector, link_selector, date_pattern, response_type_code, json_items_path,
+               json_title_field, json_date_field, json_link_field, json_link_template,
+               link_strategy_code, link_function_name, link_function_argument_count, link_url_template, is_enabled
         FROM local_government_notice_parser_profiles
         ORDER BY profile_name ASC, profile_code ASC
     </select>
@@ -277,7 +301,9 @@
     <select id="selectParserProfileDetails" resultMap="ParserProfileRowMap">
         -- Select parser profile details for a collection attempt.
         SELECT profile_code, profile_name, parser_type_code, list_item_selector, title_selector,
-               date_selector, link_selector, date_pattern, is_enabled
+               date_selector, link_selector, date_pattern, response_type_code, json_items_path,
+               json_title_field, json_date_field, json_link_field, json_link_template,
+               link_strategy_code, link_function_name, link_function_argument_count, link_url_template, is_enabled
         FROM local_government_notice_parser_profiles
         WHERE profile_code = #{profileCode}
     </select>

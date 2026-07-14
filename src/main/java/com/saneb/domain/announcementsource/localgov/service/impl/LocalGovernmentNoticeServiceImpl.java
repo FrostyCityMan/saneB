@@ -64,6 +64,9 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     );
     private static final Set<String> CONFIDENCE_CODES = Set.of("HIGH", "MEDIUM", "LOW");
     private static final Set<String> VALIDATION_STATUS_CODES = Set.of("VERIFIED", "CHECK_REQUIRED", "FAILED");
+    private static final Set<String> REQUEST_PROFILE_CODES = Set.of(
+            "DEFAULT", "BROWSER_HTTP1", "LEGACY_BROWSER"
+    );
     private static final Set<String> SCHEDULE_STATUS_CODES = Set.of("APPROVED", "PAUSED", "REJECTED", "EXPIRED");
 
     private final LocalGovernmentNoticeDao localGovernmentNoticeDao;
@@ -395,9 +398,13 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
         normalizeRequired(request.institutionTypeCode(), INSTITUTION_TYPES, "기관 유형을 확인하세요.");
         normalizeRequired(request.confidenceCode(), CONFIDENCE_CODES, "URL 신뢰도 값을 확인하세요.");
         normalizeRequired(request.validationStatusCode(), VALIDATION_STATUS_CODES, "URL 검증 상태를 확인하세요.");
+        normalizeRequired(selectRequestProfileCode(request.requestProfileCode()), REQUEST_PROFILE_CODES, "요청 방식을 확인하세요.");
         urlValidator.validate(request.noticeUrl());
         if (request.homepageUrl() != null && !request.homepageUrl().isBlank()) {
             urlValidator.validate(request.homepageUrl());
+        }
+        if (request.collectionEndpointUrl() != null && !request.collectionEndpointUrl().isBlank()) {
+            urlValidator.validate(request.collectionEndpointUrl());
         }
         if (request.parserProfileCode() != null && !request.parserProfileCode().isBlank()
                 && localGovernmentNoticeDao.selectParserProfileDetails(request.parserProfileCode().trim()) == null) {
@@ -416,10 +423,22 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
         return new LocalGovernmentNoticeSourceCommand(
                 sourceId, blankToNull(request.sidoCode()), request.sidoName().trim(), request.sigunguCode().trim(),
                 request.sigunguName().trim(), normalizeOptional(request.institutionTypeCode()), request.institutionName().trim(),
-                blankToNull(request.homepageUrl()), request.noticeUrl().trim(), blankToNull(request.pageTypeCode()),
+                blankToNull(request.homepageUrl()), request.noticeUrl().trim(), blankToNull(request.collectionEndpointUrl()),
+                blankToNull(request.pageTypeCode()), selectRequestProfileCode(request.requestProfileCode()),
                 normalizeOptional(request.parserProfileCode()), blankToNull(request.collectionHint()),
                 normalizeOptional(request.confidenceCode()), normalizeOptional(request.validationStatusCode()), actorUserId
         );
+    }
+
+    /**
+     * 기존 v1 저장 요청에 요청 방식이 없으면 기본 요청 정책을 적용합니다.
+     *
+     * @param requestProfileCode 요청 방식
+     * @return 저장할 요청 방식
+     */
+    private String selectRequestProfileCode(String requestProfileCode) {
+        return requestProfileCode == null || requestProfileCode.isBlank()
+                ? "DEFAULT" : requestProfileCode.trim().toUpperCase(Locale.ROOT);
     }
 
     /**

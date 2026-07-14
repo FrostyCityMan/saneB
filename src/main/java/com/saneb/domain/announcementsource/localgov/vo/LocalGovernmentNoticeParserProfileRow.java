@@ -21,6 +21,16 @@ public record LocalGovernmentNoticeParserProfileRow(
         String dateSelector,
         String linkSelector,
         String datePattern,
+        String responseTypeCode,
+        String jsonItemsPath,
+        String jsonTitleField,
+        String jsonDateField,
+        String jsonLinkField,
+        String jsonLinkTemplate,
+        String linkStrategyCode,
+        String linkFunctionName,
+        Integer linkFunctionArgumentCount,
+        String linkUrlTemplate,
         boolean enabled
 ) {
 }
