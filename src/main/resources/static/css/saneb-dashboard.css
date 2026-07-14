@@ -160,6 +160,93 @@ svg {
     background: #c9c0ae;
 }
 
+.nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.nav-group-heading {
+    width: 100%;
+    margin: 0;
+}
+
+.nav-group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 40px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #68645b;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: left;
+}
+
+.nav-group-toggle:hover,
+.nav-group-toggle:focus-visible,
+.nav-group.has-active-link .nav-group-toggle {
+    background: #f2ecdf;
+    color: var(--saneb-teal);
+}
+
+.nav-group-toggle:focus-visible {
+    outline: 3px solid rgba(37, 107, 91, 0.3);
+    outline-offset: 1px;
+}
+
+.nav-group-title,
+.nav-group-icon,
+.nav-group-chevron {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nav-group-title {
+    gap: 10px;
+    min-width: 0;
+}
+
+.nav-group-icon {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+}
+
+.nav-group-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nav-group-chevron {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    transition: transform 160ms ease;
+}
+
+.nav-group.is-open .nav-group-chevron {
+    transform: rotate(180deg);
+}
+
+.nav-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.nav-group-items[hidden] {
+    display: none;
+}
+
 .side-link {
     display: flex;
     align-items: center;
@@ -4742,6 +4829,34 @@ svg {
         width: 100%;
     }
 
+    .nav-group,
+    .nav-group-heading,
+    .nav-group-items {
+        width: 100%;
+    }
+
+    .nav-group-toggle {
+        justify-content: center;
+        width: 52px;
+        min-height: 42px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .nav-group-title {
+        justify-content: center;
+    }
+
+    .nav-group-icon {
+        width: 21px;
+        height: 21px;
+    }
+
+    .nav-group-label,
+    .nav-group-chevron {
+        display: none;
+    }
+
     .brand span:not(.brand-mark),
     .role-pill,
     .side-link span:not(.nav-icon),
@@ -4884,6 +4999,27 @@ svg {
         border-top: 1px solid var(--saneb-border);
         padding: 10px 2px 2px;
         scrollbar-width: thin;
+    }
+
+    .nav-group {
+        align-items: stretch;
+    }
+
+    .nav-group-toggle {
+        justify-content: space-between;
+        width: 100%;
+        min-height: 44px;
+        margin: 0;
+        padding: 0 12px;
+    }
+
+    .nav-group-title {
+        justify-content: flex-start;
+    }
+
+    .nav-group-label,
+    .nav-group-chevron {
+        display: inline-flex;
     }
 
     .saneb-sidebar.is-mobile-nav-ready .side-nav {
@@ -5722,6 +5858,10 @@ svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .nav-group-chevron {
+        transition: none;
+    }
+
     .app-loading-spinner {
         animation: none;
     }

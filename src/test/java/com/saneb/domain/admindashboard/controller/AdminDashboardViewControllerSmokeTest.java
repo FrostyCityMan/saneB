@@ -66,6 +66,13 @@ class AdminDashboardViewControllerSmokeTest {
                 .andExpect(view().name("app/admin-dashboard"))
                 .andExpect(content().string(containsString("관리자 대시보드")))
                 .andExpect(content().string(containsString("운영 현황")))
+                .andExpect(content().string(containsString("고객·상담")))
+                .andExpect(content().string(containsString("공고·수집")))
+                .andExpect(content().string(containsString("매칭·진행")))
+                .andExpect(content().string(containsString("결제·구독")))
+                .andExpect(content().string(containsString("검수·시스템")))
+                .andExpect(content().string(containsString("data-nav-group-id=\"announcements\"")))
+                .andExpect(content().string(containsString("aria-controls=\"navGroupAnnouncements\"")))
                 .andExpect(content().string(containsString("감사 로그")))
                 .andExpect(content().string(not(containsString("전자증명 검증"))));
     }

@@ -100,6 +100,13 @@ class DashboardViewControllerSmokeTest {
                 .andExpect(view().name("app/dashboard"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("현재 해야 할 행동")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("로그아웃")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("내 정보·상담")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("매칭·진행")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("결제·구독")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("data-nav-group-toggle")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("검수·시스템")
+                )))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("진행 가능 현황")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("누적 현황")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(

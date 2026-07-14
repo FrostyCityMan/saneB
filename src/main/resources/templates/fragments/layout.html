@@ -14,7 +14,7 @@
 </head>
 <body class="saneb-body">
 <div class="saneb-shell">
-    <aside class="saneb-sidebar" aria-label="사용자 메뉴">
+    <aside class="saneb-sidebar" aria-label="주요 메뉴" th:attr="data-nav-role=${page.auth.primaryRole}">
         <a class="brand" th:href="${page.auth.defaultRoute}">
             <span class="brand-mark" aria-hidden="true">
                 <img th:src="@{/images/saneb-logo-mark.svg}" src="/images/saneb-logo-mark.svg" alt="">
@@ -35,187 +35,240 @@
 
         <div class="role-pill" th:text="${page.roleLabel}">일반 사용자</div>
 
-        <nav class="side-nav" id="sanebPrimaryNavigation">
-            <a class="side-link"
-               th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN'}"
-               th:href="${page.auth.defaultRoute}"
-               th:classappend="${page.activeNav == 'DASHBOARD'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8v8.7a.8.8 0 0 1-.8.8h-5v-5.7H9.8v5.7h-5a.8.8 0 0 1-.8-.8v-8.7Z"/></svg>
-                </span>
-                <span>대시보드</span>
-            </a>
-            <a class="side-link"
-               th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN' or page.auth.primaryRole == 'PARTNER' or page.auth.primaryRole == 'REVIEWER' or page.auth.primaryRole == 'APPROVER'}"
-               th:href="@{/app/notifications}"
-               th:classappend="${page.activeNav == 'NOTIFICATIONS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M18 15.4V11a6 6 0 1 0-12 0v4.4L4.8 17h14.4L18 15.4Z"/><path d="M9.8 19a2.3 2.3 0 0 0 4.4 0"/></svg>
-                </span>
-                <span>알림</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'REVIEWER')}"
-               th:href="@{/app/reviewer/dashboard}"
-               th:classappend="${page.activeNav == 'REVIEWER_DASHBOARD'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h3.2"/><path d="m15 16 1.6 1.6 3-3"/></svg>
-                </span>
-                <span>검수 대시보드</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/admin/users}"
-               th:classappend="${page.activeNav == 'ADMIN_USERS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M8.8 11.6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3.8 20a5 5 0 0 1 10 0"/><path d="M16.2 8.2h4M18.2 6.2v4M16.2 14.8h4M16.2 18.2h4"/></svg>
-                </span>
-                <span>회원관리</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/admin/member-basic-info}"
-               th:classappend="${page.activeNav == 'ADMIN_MEMBER_BASIC_INFO'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M8 4.6h8l3 3v11.8H5V4.6h3Z"/><path d="M15.6 4.8v3.4h3.2"/><path d="M8.2 12h7.6M8.2 15.4h4.4"/><path d="M8.2 9h3.8"/></svg>
-                </span>
-                <span>고객 정보 입력</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/consultations}"
-               th:classappend="${page.activeNav == 'CONSULTATIONS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v10.5H8.2L5 18.8V5.2Z"/><path d="M8.2 8.8h7.6M8.2 12h4.6"/></svg>
-                </span>
-                <span th:text="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'">상담 요청</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/operation-tasks}"
-               th:classappend="${page.activeNav == 'OPERATION_TASKS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.2M8 15.4h3"/><path d="m15 15.4 1.2 1.2 2.4-2.8"/></svg>
-                </span>
-                <span>운영 업무 큐</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'USER')}"
-               th:href="@{/app/billing/mock}"
-               th:classappend="${page.activeNav == 'BILLING_MOCK'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M4.8 6.4h14.4v11.2H4.8z"/><path d="M4.8 9.4h14.4"/><path d="M8 14.8h3.6"/></svg>
-                </span>
-                <span>구독 결제</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/billing/plans}"
-               th:classappend="${page.activeNav == 'BILLING_PLANS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9.1h8M8 12.2h4.8"/><path d="M15.2 14.8h2.1"/></svg>
-                </span>
-                <span>구독 금액 설정</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/announcements/input}"
-               th:classappend="${page.activeNav == 'ANNOUNCEMENT_INPUT'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M8.8 7.8h6.4M8.8 11.2h6.4M8.8 14.6h3.8"/><path d="M16.5 16.7 18.7 19"/></svg>
-                </span>
-                <span>공고 입력</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/admin/announcement-sources}"
-               th:classappend="${page.activeNav == 'ANNOUNCEMENT_SOURCES'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.8M8 15.4h3.4"/><path d="M16.2 14.8 19 12l-2.8-2.8"/></svg>
-                </span>
-                <span>외부 공고 수집</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/admin/collected-announcements}"
-               th:classappend="${page.activeNav == 'COLLECTED_ANNOUNCEMENTS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 4.8h14v14.4H5z"/><path d="M8.2 8.4h7.6M8.2 12h7.6M8.2 15.6h4.8"/><path d="m15 15.7 1.5 1.5 2.8-3.2"/></svg>
-                </span>
-                <span>수집 공고 검수</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/matching/cases}"
-               th:classappend="${page.activeNav == 'MATCHING_CASES'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M7 7.2h4.6l2.2 2.2H17"/><path d="M7 16.8h4.6l2.2-2.2H17"/><path d="M4 7.2h3M17 9.4l2-2-2-2M4 16.8h3M17 14.6l2 2-2 2"/></svg>
-                </span>
-                <span>매칭 관리</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/approver/reviews}"
-               th:classappend="${page.activeNav == 'APPROVER_REVIEWS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.6-4.7"/></svg>
-                </span>
-                <span>승인 큐</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/audit-logs}"
-               th:classappend="${page.activeNav == 'AUDIT_LOGS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M9 8h6M9 11.5h6M9 15h3.8"/><path d="m15 16 1.6 1.6 3-3"/></svg>
-                </span>
-                <span>감사 로그</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/admin/app-logs}"
-               th:classappend="${page.activeNav == 'APP_LOGS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M8.8 8h6.4M8.8 11.5h6.4M8.8 15h4.2"/><path d="M15.5 16.8h3.4"/></svg>
-                </span>
-                <span>앱 로그</span>
-            </a>
-            <a class="side-link"
-               th:if="${page.auth.primaryRole == 'USER'}"
-               th:href="@{/app/member/basic-info}"
-               th:classappend="${page.activeNav == 'MEMBER_BASIC_INFO'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg>
-                </span>
-                <span>기본 정보</span>
-            </a>
-            <a class="side-link"
-               th:if="${page.auth.primaryRole == 'USER'}"
-               th:href="@{/app/matching/basic-candidates}"
-               th:classappend="${page.activeNav == 'BASIC_MATCHING_CANDIDATES'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M7 7.2h4.6l2.2 2.2H17"/><path d="M7 16.8h4.6l2.2-2.2H17"/><path d="M4 7.2h3M17 9.4l2-2-2-2M4 16.8h3M17 14.6l2 2-2 2"/></svg>
-                </span>
-                <span>현재 매칭 공고</span>
-            </a>
-            <a class="side-link"
-               th:if="${#lists.contains(page.auth.roles, 'PARTNER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
-               th:href="@{/app/partner/verifications}"
-               th:classappend="${page.activeNav == 'PARTNER_VERIFICATION_LIST' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M7 4.4h10v15.2H7z"/><path d="M9.4 8h5.2M9.4 11.5h5.2M9.4 15h3.4"/><path d="M16.6 16.2 19.2 19"/></svg>
-                </span>
-                <span>검증 목록</span>
-            </a>
-            <a class="side-link"
-               th:if="${page.auth.primaryRole != 'ADMIN'}"
-               th:href="@{/app/application-progresses}"
-               th:classappend="${page.activeNav == 'APPLICATION_PROGRESS'} ? ' active' : ''">
-                <span class="nav-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M5 6.8h14v13H5z"/><path d="M8 6.6V4.4h8v2.2M8.2 12h7.6M8.2 16h5"/></svg>
-                </span>
-                <span>진행 현황</span>
-            </a>
+        <nav class="side-nav" id="sanebPrimaryNavigation" aria-label="업무 메뉴">
+            <section class="nav-group" data-nav-group data-nav-group-id="overview">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupOverviewToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupOverview" title="홈" data-nav-group-toggle>
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 5.2h6v6h-6zM13.5 5.2h6v6h-6zM4.5 14h6v4.8h-6zM13.5 14h6v4.8h-6z"/></svg></span>
+                            <span class="nav-group-label">홈</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupOverview" role="group" aria-labelledby="navGroupOverviewToggle">
+                    <a class="side-link" title="대시보드"
+                       th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN'}"
+                       th:href="${page.auth.defaultRoute}"
+                       th:classappend="${page.activeNav == 'DASHBOARD'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8v8.7a.8.8 0 0 1-.8.8h-5v-5.7H9.8v5.7h-5a.8.8 0 0 1-.8-.8v-8.7Z"/></svg></span>
+                        <span>대시보드</span>
+                    </a>
+                    <a class="side-link" title="알림"
+                       th:if="${page.auth.primaryRole == 'USER' or page.auth.primaryRole == 'OPERATOR' or page.auth.primaryRole == 'ADMIN' or page.auth.primaryRole == 'PARTNER' or page.auth.primaryRole == 'REVIEWER' or page.auth.primaryRole == 'APPROVER'}"
+                       th:href="@{/app/notifications}"
+                       th:classappend="${page.activeNav == 'NOTIFICATIONS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 15.4V11a6 6 0 1 0-12 0v4.4L4.8 17h14.4L18 15.4Z"/><path d="M9.8 19a2.3 2.3 0 0 0 4.4 0"/></svg></span>
+                        <span>알림</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="nav-group" data-nav-group data-nav-group-id="members"
+                     th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupMembersToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupMembers" data-nav-group-toggle
+                            th:title="${page.auth.primaryRole == 'USER'} ? '내 정보·상담' : '고객·상담'">
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4ZM3.4 19.4a5.1 5.1 0 0 1 10.2 0M15.2 7.3h5.3M15.2 11h4M15.2 14.7h5.3"/></svg></span>
+                            <span class="nav-group-label" th:text="${page.auth.primaryRole == 'USER'} ? '내 정보·상담' : '고객·상담'">고객·상담</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupMembers" role="group" aria-labelledby="navGroupMembersToggle">
+                    <a class="side-link" title="회원관리"
+                       th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/admin/users}"
+                       th:classappend="${page.activeNav == 'ADMIN_USERS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.8 11.6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3.8 20a5 5 0 0 1 10 0"/><path d="M16.2 8.2h4M18.2 6.2v4M16.2 14.8h4M16.2 18.2h4"/></svg></span>
+                        <span>회원관리</span>
+                    </a>
+                    <a class="side-link" title="고객 정보 입력"
+                       th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/admin/member-basic-info}"
+                       th:classappend="${page.activeNav == 'ADMIN_MEMBER_BASIC_INFO'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 4.6h8l3 3v11.8H5V4.6h3Z"/><path d="M15.6 4.8v3.4h3.2"/><path d="M8.2 12h7.6M8.2 15.4h4.4"/><path d="M8.2 9h3.8"/></svg></span>
+                        <span>고객 정보 입력</span>
+                    </a>
+                    <a class="side-link"
+                       th:title="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'"
+                       th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/consultations}"
+                       th:classappend="${page.activeNav == 'CONSULTATIONS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.2h14v10.5H8.2L5 18.8V5.2Z"/><path d="M8.2 8.8h7.6M8.2 12h4.6"/></svg></span>
+                        <span th:text="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'">상담 요청</span>
+                    </a>
+                    <a class="side-link" title="운영 업무 큐"
+                       th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/operation-tasks}"
+                       th:classappend="${page.activeNav == 'OPERATION_TASKS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.2M8 15.4h3"/><path d="m15 15.4 1.2 1.2 2.4-2.8"/></svg></span>
+                        <span>운영 업무 큐</span>
+                    </a>
+                    <a class="side-link" title="기본 정보"
+                       th:if="${page.auth.primaryRole == 'USER'}"
+                       th:href="@{/app/member/basic-info}"
+                       th:classappend="${page.activeNav == 'MEMBER_BASIC_INFO'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h4"/></svg></span>
+                        <span>기본 정보</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="nav-group" data-nav-group data-nav-group-id="announcements"
+                     th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupAnnouncementsToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupAnnouncements" title="공고·수집" data-nav-group-toggle>
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.5h9l3 3v12H6zM14.8 4.8v3h3M9 12h6M9 15.5h4"/></svg></span>
+                            <span class="nav-group-label">공고·수집</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupAnnouncements" role="group" aria-labelledby="navGroupAnnouncementsToggle">
+                    <a class="side-link" title="공고 입력"
+                       th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/announcements/input}"
+                       th:classappend="${page.activeNav == 'ANNOUNCEMENT_INPUT'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M8.8 7.8h6.4M8.8 11.2h6.4M8.8 14.6h3.8"/><path d="M16.5 16.7 18.7 19"/></svg></span>
+                        <span>공고 입력</span>
+                    </a>
+                    <a class="side-link" title="외부 공고 수집"
+                       th:href="@{/app/admin/announcement-sources}"
+                       th:classappend="${page.activeNav == 'ANNOUNCEMENT_SOURCES'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9h8M8 12.2h5.8M8 15.4h3.4"/><path d="M16.2 14.8 19 12l-2.8-2.8"/></svg></span>
+                        <span>외부 공고 수집</span>
+                    </a>
+                    <a class="side-link" title="수집 공고 검수"
+                       th:href="@{/app/admin/collected-announcements}"
+                       th:classappend="${page.activeNav == 'COLLECTED_ANNOUNCEMENTS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.8h14v14.4H5z"/><path d="M8.2 8.4h7.6M8.2 12h7.6M8.2 15.6h4.8"/><path d="m15 15.7 1.5 1.5 2.8-3.2"/></svg></span>
+                        <span>수집 공고 검수</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="nav-group" data-nav-group data-nav-group-id="matching">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupMatchingToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupMatching" title="매칭·진행" data-nav-group-toggle>
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7.2h4.6l2.2 2.2H17M7 16.8h4.6l2.2-2.2H17M4 7.2h3M17 9.4l2-2-2-2M4 16.8h3M17 14.6l2 2-2 2"/></svg></span>
+                            <span class="nav-group-label">매칭·진행</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupMatching" role="group" aria-labelledby="navGroupMatchingToggle">
+                    <a class="side-link" title="현재 매칭 공고"
+                       th:if="${page.auth.primaryRole == 'USER'}"
+                       th:href="@{/app/matching/basic-candidates}"
+                       th:classappend="${page.activeNav == 'BASIC_MATCHING_CANDIDATES'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7.2h4.6l2.2 2.2H17"/><path d="M7 16.8h4.6l2.2-2.2H17"/><path d="M4 7.2h3M17 9.4l2-2-2-2M4 16.8h3M17 14.6l2 2-2 2"/></svg></span>
+                        <span>현재 매칭 공고</span>
+                    </a>
+                    <a class="side-link" title="매칭 관리"
+                       th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/matching/cases}"
+                       th:classappend="${page.activeNav == 'MATCHING_CASES'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7.2h4.6l2.2 2.2H17"/><path d="M7 16.8h4.6l2.2-2.2H17"/><path d="M4 7.2h3M17 9.4l2-2-2-2M4 16.8h3M17 14.6l2 2-2 2"/></svg></span>
+                        <span>매칭 관리</span>
+                    </a>
+                    <a class="side-link" title="검증 목록"
+                       th:if="${#lists.contains(page.auth.roles, 'PARTNER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/partner/verifications}"
+                       th:classappend="${page.activeNav == 'PARTNER_VERIFICATION_LIST' or page.activeNav == 'PARTNER_VERIFICATION_INPUT'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.4h10v15.2H7z"/><path d="M9.4 8h5.2M9.4 11.5h5.2M9.4 15h3.4"/><path d="M16.6 16.2 19.2 19"/></svg></span>
+                        <span>검증 목록</span>
+                    </a>
+                    <a class="side-link" title="진행 현황"
+                       th:if="${page.auth.primaryRole != 'ADMIN'}"
+                       th:href="@{/app/application-progresses}"
+                       th:classappend="${page.activeNav == 'APPLICATION_PROGRESS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6.8h14v13H5z"/><path d="M8 6.6V4.4h8v2.2M8.2 12h7.6M8.2 16h5"/></svg></span>
+                        <span>진행 현황</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="nav-group" data-nav-group data-nav-group-id="billing"
+                     th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupBillingToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupBilling" title="결제·구독" data-nav-group-toggle>
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.8 6.4h14.4v11.2H4.8zM4.8 9.4h14.4M8 14.8h3.6"/></svg></span>
+                            <span class="nav-group-label">결제·구독</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupBilling" role="group" aria-labelledby="navGroupBillingToggle">
+                    <a class="side-link" title="구독 결제"
+                       th:if="${#lists.contains(page.auth.roles, 'USER')}"
+                       th:href="@{/app/billing/mock}"
+                       th:classappend="${page.activeNav == 'BILLING_MOCK'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.8 6.4h14.4v11.2H4.8z"/><path d="M4.8 9.4h14.4"/><path d="M8 14.8h3.6"/></svg></span>
+                        <span>구독 결제</span>
+                    </a>
+                    <a class="side-link" title="구독 금액 설정"
+                       th:if="${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/billing/plans}"
+                       th:classappend="${page.activeNav == 'BILLING_PLANS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.2h14v13.6H5z"/><path d="M8 9.1h8M8 12.2h4.8"/><path d="M15.2 14.8h2.1"/></svg></span>
+                        <span>구독 금액 설정</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="nav-group" data-nav-group data-nav-group-id="review"
+                     th:if="${#lists.contains(page.auth.roles, 'REVIEWER') or #lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}">
+                <h2 class="nav-group-heading">
+                    <button class="nav-group-toggle" id="navGroupReviewToggle" type="button"
+                            aria-expanded="true" aria-controls="navGroupReview" title="검수·시스템" data-nav-group-toggle>
+                        <span class="nav-group-title">
+                            <span class="nav-group-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6zM8.6 12l2.2 2.1 4.6-4.7"/></svg></span>
+                            <span class="nav-group-label">검수·시스템</span>
+                        </span>
+                        <span class="nav-group-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></svg></span>
+                    </button>
+                </h2>
+                <div class="nav-group-items" id="navGroupReview" role="group" aria-labelledby="navGroupReviewToggle">
+                    <a class="side-link" title="검수 대시보드"
+                       th:if="${#lists.contains(page.auth.roles, 'REVIEWER')}"
+                       th:href="@{/app/reviewer/dashboard}"
+                       th:classappend="${page.activeNav == 'REVIEWER_DASHBOARD'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.4h12v15.2H6z"/><path d="M9 8h6M9 11.5h6M9 15h3.2"/><path d="m15 16 1.6 1.6 3-3"/></svg></span>
+                        <span>검수 대시보드</span>
+                    </a>
+                    <a class="side-link" title="승인 큐"
+                       th:if="${#lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/approver/reviews}"
+                       th:classappend="${page.activeNav == 'APPROVER_REVIEWS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.2c0 4.6-2.9 7.4-7 8.8-4.1-1.4-7-4.2-7-8.8V6l7-2.8Z"/><path d="m8.6 12 2.2 2.1 4.6-4.7"/></svg></span>
+                        <span>승인 큐</span>
+                    </a>
+                    <a class="side-link" title="감사 로그"
+                       th:if="${#lists.contains(page.auth.roles, 'APPROVER') or #lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/audit-logs}"
+                       th:classappend="${page.activeNav == 'AUDIT_LOGS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M9 8h6M9 11.5h6M9 15h3.8"/><path d="m15 16 1.6 1.6 3-3"/></svg></span>
+                        <span>감사 로그</span>
+                    </a>
+                    <a class="side-link" title="앱 로그"
+                       th:if="${#lists.contains(page.auth.roles, 'ADMIN')}"
+                       th:href="@{/app/admin/app-logs}"
+                       th:classappend="${page.activeNav == 'APP_LOGS'} ? ' active' : ''">
+                        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4.2h12v15.6H6z"/><path d="M8.8 8h6.4M8.8 11.5h6.4M8.8 15h4.2"/><path d="M15.5 16.8h3.4"/></svg></span>
+                        <span>앱 로그</span>
+                    </a>
+                </div>
+            </section>
         </nav>
     </aside>
 
