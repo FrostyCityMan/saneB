@@ -372,8 +372,7 @@ svg {
     line-height: 1.6;
 }
 
-.announcement-source-page .summary-actions,
-.announcement-source-heading-actions {
+.announcement-source-page .summary-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -591,12 +590,6 @@ svg {
 
 .announcement-source-page .panel-heading h2 {
     margin-top: 3px;
-}
-
-.announcement-source-review-grid {
-    display: grid;
-    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-    gap: 16px;
 }
 
 .announcement-source-list {
@@ -960,7 +953,6 @@ svg {
     .announcement-source-page .summary-header,
     .announcement-source-page .panel-heading,
     .announcement-source-page .summary-actions,
-    .announcement-source-heading-actions,
     .announcement-source-page .inline-filter {
         display: grid;
         align-items: stretch;
@@ -969,15 +961,13 @@ svg {
     }
 
     .announcement-source-page .summary-actions .secondary-action,
-    .announcement-source-heading-actions > .secondary-action,
     .announcement-source-page .inline-filter select,
     .announcement-source-page .inline-filter input,
     .announcement-source-page .inline-filter button {
         width: 100%;
     }
 
-    .announcement-source-page .compact-grid,
-    .announcement-source-review-grid {
+    .announcement-source-page .compact-grid {
         grid-template-columns: 1fr;
     }
 

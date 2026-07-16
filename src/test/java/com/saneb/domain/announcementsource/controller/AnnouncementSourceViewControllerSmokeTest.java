@@ -55,6 +55,10 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("name=\"timezone\""))))
                 .andExpect(content().string(not(containsString("data-local-qa-cleanup-form"))))
                 .andExpect(content().string(not(containsString("지자체 수집 시험 데이터 삭제"))))
+                .andExpect(content().string(not(containsString("수집 공고 원문"))))
+                .andExpect(content().string(not(containsString("data-source-filter-form"))))
+                .andExpect(content().string(not(containsString("data-source-list"))))
+                .andExpect(content().string(not(containsString("data-source-detail"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 
