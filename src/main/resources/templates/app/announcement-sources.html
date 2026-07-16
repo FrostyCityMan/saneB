@@ -9,7 +9,6 @@
       data-local-source-url="/api/v1/admin/local-government-notice-sources"
       data-local-parser-url="/api/v1/admin/local-government-notice-parser-profiles"
       data-local-summary-url="/api/v1/admin/local-government-notice-sources/collection-summary"
-      data-local-qa-cleanup-url="/api/v1/admin/local-government-notice-sources/qa-artifacts"
       data-schedule-url="/api/v1/admin/announcement-source-collection-schedules"
       th:attr="data-role-code=${page.auth.primaryRole}">
     <section class="summary-panel announcement-source-hero">
@@ -116,11 +115,21 @@
     <section class="plain-panel">
         <div class="panel-heading compact-heading"><div><span class="eyebrow">정기 자동수집</span><h2>승인 스케줄</h2></div></div>
         <form class="announcement-source-form" data-schedule-form>
-            <div class="field-grid compact-grid">
-                <div class="field-block"><label>일정명</label><input name="scheduleName" required placeholder="예: 매일 오전 지자체 공고 수집"></div>
-                <div class="field-block"><label>실행 일정</label><input name="cronExpression" required value="0 0 8 * * *" aria-describedby="cronHelp"><small id="cronHelp">초·분·시·일·월·요일 순서입니다.</small></div>
-                <div class="field-block"><label>시간대</label><input name="timezone" required value="Asia/Seoul"></div>
-                <div class="field-block"><label>최대 URL 수</label><input name="maxCount" type="number" min="1" max="500" value="244"></div>
+            <div class="field-grid compact-grid announcement-schedule-grid">
+                <div class="field-block">
+                    <label for="scheduleName">일정명</label>
+                    <input id="scheduleName" name="scheduleName" required placeholder="예: 지자체 공고 정기 수집">
+                </div>
+                <div class="field-block">
+                    <label for="scheduleExecutionTime">실행 시각</label>
+                    <input id="scheduleExecutionTime" name="executionTime" type="time" required value="08:00"
+                           step="60" aria-describedby="scheduleExecutionTimeHelp">
+                    <small id="scheduleExecutionTimeHelp">매일 선택한 시각에 서울 시간 기준으로 실행됩니다.</small>
+                </div>
+                <div class="field-block">
+                    <label for="scheduleMaxCount">최대 URL 수</label>
+                    <input id="scheduleMaxCount" name="maxCount" type="number" min="1" max="500" value="244">
+                </div>
             </div>
             <div class="form-actions"><button class="primary-action button-action" type="submit">승인 요청 만들기</button></div>
         </form>
@@ -129,30 +138,6 @@
                 <tbody data-schedule-list aria-live="polite"><tr><td colspan="5">조회 중입니다.</td></tr></tbody>
             </table>
         </div>
-    </section>
-
-    <section class="plain-panel" th:if="${page.auth.primaryRole == 'ADMIN'}">
-        <div class="panel-heading compact-heading">
-            <div>
-                <span class="eyebrow">QA 정리</span>
-                <h2>지자체 수집 시험 데이터 삭제</h2>
-                <p>지자체에서 수집한 원문과 요청·실행 이력만 삭제합니다. 운영 공고와 감사 로그는 유지됩니다.</p>
-            </div>
-        </div>
-        <form class="announcement-source-form" data-local-qa-cleanup-form>
-            <div class="field-grid compact-grid">
-                <div class="field-block wide-field">
-                    <label for="localQaCleanupConfirmation">삭제 확인 문구</label>
-                    <input id="localQaCleanupConfirmation" name="confirmationText" required autocomplete="off"
-                           placeholder="DELETE_LOCAL_GOVERNMENT_QA_DATA">
-                    <small>운영 공고와 연결된 수집 원문이 있으면 삭제가 차단됩니다.</small>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="secondary-action" type="submit">시험 데이터와 수집 이력 삭제</button>
-            </div>
-            <p class="muted-copy" data-local-qa-cleanup-result>삭제 전입니다.</p>
-        </form>
     </section>
 
     <section class="plain-panel">

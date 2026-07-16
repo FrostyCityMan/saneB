@@ -394,6 +394,14 @@ svg {
     grid-column: span 2;
 }
 
+.announcement-source-page .announcement-schedule-grid {
+    align-items: start;
+}
+
+.announcement-schedule-grid .field-block > input {
+    min-height: 44px;
+}
+
 .announcement-source-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--saneb-border);

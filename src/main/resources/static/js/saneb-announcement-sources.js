@@ -10,8 +10,8 @@
     const localSourceUrl = page.dataset.localSourceUrl;
     const localParserUrl = page.dataset.localParserUrl;
     const localSummaryUrl = page.dataset.localSummaryUrl;
-    const localQaCleanupUrl = page.dataset.localQaCleanupUrl;
     const scheduleUrl = page.dataset.scheduleUrl;
+    const scheduleTimezone = "Asia/Seoul";
     const roleCode = page.dataset.roleCode;
     const canApprove = roleCode === "APPROVER" || roleCode === "ADMIN";
     const requestForm = page.querySelector("[data-source-request-form]");
@@ -33,10 +33,21 @@
     const localPageInfo = page.querySelector("[data-local-page-info]");
     const scheduleForm = page.querySelector("[data-schedule-form]");
     const scheduleList = page.querySelector("[data-schedule-list]");
-    const localQaCleanupForm = page.querySelector("[data-local-qa-cleanup-form]");
-    const localQaCleanupResult = page.querySelector("[data-local-qa-cleanup-result]");
     let localSourcePage = 1;
     let localSourceTotalPages = 1;
+
+    const scheduleTimeToCron = (executionTime) => {
+        const match = /^(\d{2}):(\d{2})$/.exec(executionTime || "");
+        if (!match) {
+            throw new Error("실행 시각을 선택해 주세요.");
+        }
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour > 23 || minute > 59) {
+            throw new Error("실행 시각을 올바르게 선택해 주세요.");
+        }
+        return `0 ${minute} ${hour} * * *`;
+    };
 
     const label = {
         BIZINFO: "기업마당",
@@ -635,33 +646,16 @@
         event.preventDefault();
         runAction(async () => {
             const payload = Object.fromEntries(new FormData(scheduleForm).entries());
+            payload.cronExpression = scheduleTimeToCron(payload.executionTime);
+            payload.timezone = scheduleTimezone;
+            delete payload.executionTime;
             payload.maxCount = payload.maxCount ? Number(payload.maxCount) : null;
             await requestJson(scheduleUrl, {method: "POST", body: JSON.stringify(payload)});
             scheduleForm.reset();
-            scheduleForm.elements.namedItem("timezone").value = "Asia/Seoul";
-            scheduleForm.elements.namedItem("cronExpression").value = "0 0 8 * * *";
+            scheduleForm.elements.namedItem("executionTime").value = "08:00";
             await renderSchedules();
         });
     });
-
-    if (localQaCleanupForm) {
-        localQaCleanupForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            runAction(async () => {
-                const payload = Object.fromEntries(new FormData(localQaCleanupForm).entries());
-                if (!window.confirm("지자체 수집 원문과 요청·실행 이력을 삭제하시겠습니까?")) {
-                    return;
-                }
-                const result = await requestJson(localQaCleanupUrl, {
-                    method: "DELETE",
-                    body: JSON.stringify(payload)
-                });
-                localQaCleanupResult.textContent = `원문 ${result.deletedSnapshotCount}건, 요청 ${result.deletedRequestCount}건, 실행 ${result.deletedRunCount}건을 삭제했습니다.`;
-                localQaCleanupForm.reset();
-                await renderAll();
-            });
-        });
-    }
 
     requestForm.addEventListener("submit", async (event) => {
         event.preventDefault();

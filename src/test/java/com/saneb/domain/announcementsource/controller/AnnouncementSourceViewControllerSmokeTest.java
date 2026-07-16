@@ -48,6 +48,13 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("data-announcement-source-page")))
                 .andExpect(content().string(containsString("announcement-source-hero")))
                 .andExpect(content().string(containsString("수집 공고 검수")))
+                .andExpect(content().string(containsString("name=\"executionTime\"")))
+                .andExpect(content().string(containsString("type=\"time\"")))
+                .andExpect(content().string(containsString("서울 시간 기준으로 실행됩니다")))
+                .andExpect(content().string(not(containsString("name=\"cronExpression\""))))
+                .andExpect(content().string(not(containsString("name=\"timezone\""))))
+                .andExpect(content().string(not(containsString("data-local-qa-cleanup-form"))))
+                .andExpect(content().string(not(containsString("지자체 수집 시험 데이터 삭제"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 
