@@ -46,6 +46,8 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(view().name("app/announcement-sources"))
                 .andExpect(content().string(containsString("외부 공고 수집")))
                 .andExpect(content().string(containsString("data-announcement-source-page")))
+                .andExpect(content().string(containsString("announcement-source-hero")))
+                .andExpect(content().string(containsString("수집 공고 검수")))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 
@@ -74,6 +76,7 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(view().name("app/collected-announcements"))
                 .andExpect(content().string(containsString("수집 공고 검수")))
                 .andExpect(content().string(containsString("data-collected-announcement-page")))
+                .andExpect(content().string(containsString("collected-announcement-metrics")))
                 .andExpect(content().string(containsString("수집 공고만 모아 확인")))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }

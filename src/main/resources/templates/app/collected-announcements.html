@@ -5,7 +5,7 @@
       data-collected-announcement-page
       data-source-url="/api/v1/admin/announcement-sources"
       th:attr="data-role-code=${page.auth.primaryRole}">
-    <section class="summary-panel">
+    <section class="summary-panel announcement-source-hero">
         <div class="summary-header">
             <div>
                 <div class="section-label">수집 공고 검수</div>
@@ -17,20 +17,20 @@
         </div>
     </section>
 
-    <section class="collected-announcement-metrics" aria-label="수집 공고 현황">
-        <article class="metric-card">
+    <section class="top-summary-grid collected-announcement-metrics" aria-label="수집 공고 현황">
+        <article class="top-summary-card">
             <span>전체 수집 공고</span>
-            <strong data-collected-total-count>0건</strong>
+            <strong data-collected-total-count aria-live="polite">0건</strong>
             <p>모든 외부 수집처의 원문</p>
         </article>
-        <article class="metric-card">
+        <article class="top-summary-card">
             <span>검수 대기</span>
-            <strong data-collected-pending-count>0건</strong>
+            <strong data-collected-pending-count aria-live="polite">0건</strong>
             <p>운영자가 확인해야 할 공고</p>
         </article>
-        <article class="metric-card">
+        <article class="top-summary-card">
             <span>현재 조회 결과</span>
-            <strong data-collected-filtered-count>0건</strong>
+            <strong data-collected-filtered-count aria-live="polite">0건</strong>
             <p>선택한 검색 조건의 결과</p>
         </article>
     </section>
@@ -68,7 +68,7 @@
                 <input name="keyword" type="search" maxlength="100" placeholder="공고명, 기관명, 관리코드">
             </label>
             <div class="collected-filter-actions">
-                <button class="primary-action" type="submit">조회</button>
+                <button class="primary-action button-action" type="submit">조회</button>
                 <button class="secondary-action" type="button" data-collected-filter-reset>초기화</button>
             </div>
         </form>
@@ -83,7 +83,7 @@
                 </div>
                 <strong class="collected-list-count" data-collected-list-count>0건</strong>
             </div>
-            <div class="announcement-source-list collected-announcement-list" data-collected-list>
+            <div class="announcement-source-list collected-announcement-list" data-collected-list aria-live="polite">
                 <p class="collected-empty-state">수집 공고를 조회하고 있습니다.</p>
             </div>
             <nav class="local-source-pagination" aria-label="수집 공고 페이지">
