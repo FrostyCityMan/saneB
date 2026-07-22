@@ -75,6 +75,20 @@ class AnnouncementSourceViewControllerSmokeTest {
     }
 
     /**
+     * 지자체 URL 수정 폼이 이전 행의 선택 입력값을 남기지 않는지 확인합니다.
+     *
+     * @throws Exception 요청 처리 오류
+     */
+    @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void selectAnnouncementSourceScriptClearsNullableFormValues() throws Exception {
+        mockMvc.perform(get("/js/saneb-announcement-sources.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("localSourceForm.reset();")))
+                .andExpect(content().string(containsString("field.value = value == null ? \"\" : value;")));
+    }
+
+    /**
      * 수집 공고 검수 화면이 전용 목록 구조와 메뉴를 렌더링하는지 확인합니다.
      *
      * @throws Exception 요청 처리 오류

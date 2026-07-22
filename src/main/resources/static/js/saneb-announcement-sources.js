@@ -164,10 +164,11 @@
     };
 
     const fillLocalSourceForm = (item) => {
+        localSourceForm.reset();
         Object.entries(item).forEach(([key, value]) => {
             const field = localSourceForm.elements.namedItem(key);
-            if (field && value != null) {
-                field.value = value;
+            if (field) {
+                field.value = value == null ? "" : value;
             }
         });
         localSaveButton.textContent = "URL 수정";
