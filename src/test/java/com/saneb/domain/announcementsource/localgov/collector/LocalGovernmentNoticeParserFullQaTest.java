@@ -68,6 +68,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 class LocalGovernmentNoticeParserFullQaTest {
 
     private static final int EXPECTED_SOURCE_COUNT = 244;
+    private static final int QA_CONCURRENCY = 4;
+    private static final long RETRY_DELAY_MILLIS = 750L;
     private static final int MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
     private static final String BROWSER_COMPATIBLE_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -527,9 +529,9 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @throws Exception 병렬 실행 실패
      */
     private List<QaResult> inspectAll(List<SourceSeed> sources) throws Exception {
-        try (ExecutorService executor = Executors.newFixedThreadPool(12)) {
+        try (ExecutorService executor = Executors.newFixedThreadPool(QA_CONCURRENCY)) {
             List<Future<QaResult>> futures = sources.stream()
-                    .map(source -> executor.submit(() -> inspect(source)))
+                    .map(source -> executor.submit(() -> inspectWithRetry(source)))
                     .toList();
             List<QaResult> results = new ArrayList<>();
             for (Future<QaResult> future : futures) {
@@ -539,6 +541,43 @@ class LocalGovernmentNoticeParserFullQaTest {
                     .sorted(Comparator.comparing(QaResult::publicCode))
                     .toList();
         }
+    }
+
+    /**
+     * 일시적 통신 실패만 한 번 재시도하고 지속적인 HTTP 또는 파서 오류는 그대로 반환합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 최종 QA 결과
+     */
+    private QaResult inspectWithRetry(SourceSeed source) {
+        QaResult result = inspect(source);
+        if (!isRetryableTransportFailure(result)) {
+            return result;
+        }
+        try {
+            Thread.sleep(RETRY_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return result;
+        }
+        return inspect(source);
+    }
+
+    /**
+     * 재시도로 회복 가능한 네트워크 오류와 제한적인 HTTP 상태인지 확인합니다.
+     *
+     * @param result 첫 번째 QA 결과
+     * @return 재시도 대상이면 true
+     */
+    private boolean isRetryableTransportFailure(QaResult result) {
+        if ("NETWORK_ERROR".equals(result.errorCode())) {
+            return true;
+        }
+        if (!"HTTP_ERROR".equals(result.errorCode()) || result.httpStatus() == null) {
+            return false;
+        }
+        int status = result.httpStatus();
+        return status == 408 || status == 425 || status == 429 || status >= 500;
     }
 
     /**

@@ -161,7 +161,7 @@ class FlywayMigrationIntegrationTest {
                     where version = '45'
                       and success = true
                     """)).isEqualTo(1);
-            for (String version : List.of("46", "47", "48", "49", "50", "51", "52", "53", "54")) {
+            for (String version : List.of("46", "47", "48", "49", "50", "51", "52", "53", "54", "55")) {
                 assertThat(selectLong(statement, """
                         select count(1)
                         from flyway_schema_history
@@ -190,12 +190,12 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'CHECK_REQUIRED'
-                    """)).isEqualTo(2);
+                    """)).isZero();
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where validation_status_code = 'VERIFIED'
-                    """)).isEqualTo(242);
+                    """)).isEqualTo(244);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
@@ -205,17 +205,17 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code = 'HEURISTIC_NOTICE'
-                    """)).isEqualTo(36);
+                    """)).isEqualTo(35);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'BROWSER_HTTP1'
-                    """)).isEqualTo(25);
+                    """)).isEqualTo(27);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'LEGACY_BROWSER'
-                    """)).isEqualTo(8);
+                    """)).isEqualTo(9);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_parser_profiles
@@ -225,7 +225,7 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code like 'SAFE_%'
-                    """)).isEqualTo(58);
+                    """)).isEqualTo(59);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources

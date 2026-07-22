@@ -159,6 +159,8 @@ tasks.register('localGovernmentParserQa', Test) {
     description = 'Runs isolated parser QA against every local-government URL seed without writing collection data.'
     group = 'verification'
     useJUnitPlatform()
+    maxHeapSize = '192m'
+    maxParallelForks = 1
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include '**/LocalGovernmentNoticeParserFullQaTest.class'

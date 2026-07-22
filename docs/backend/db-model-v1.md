@@ -334,6 +334,8 @@ V41~V45는 추가 공식 URL 교체, 반복 가능한 좁은 게시판 파서, �
 
 V47~V54는 평택·천안·서천의 구형 게시판, 은평의 축약 열 새올 게시판, 강릉·순천의 현재 공식 HTTPS 목록, 강동의 느린 전자민원 응답을 각각 실사이트에서 재검증해 정적 프로필로 연결한다. 최종 DB 상태는 `VERIFIED 242`, `CHECK_REQUIRED 2`, `FAILED 0`이며 244곳 모두 `is_enabled=false`다. 중랑구는 최근 1년 이내 게시물이 없어 `STALE_SOURCE_CONTENT`, 금천구 지원사업 목록은 일부 행에 등록일이 없어 운영 재검토 대상으로 남긴다.
 
+V55는 중랑·금천·성남·안양·속초·창원의 현재 공식 공고 화면과 검증된 수집 endpoint를 연결한다. 중랑·금천·창원은 기존 표준 목록 프로필을, 성남·안양·속초는 기존 안전한 새올 프로필을 재사용하며 별도 파서를 추가하지 않는다. 전수 QA에서 추가 확인된 강동·부산 남구의 간헐적 HTTPS 지연은 동일 공개 공고 HTTP endpoint와 느린 공공사이트용 `LEGACY_BROWSER` 정책으로 보정하고, 해운대·정읍·임실의 HTTP-to-HTTPS 전환은 공식 HTTPS URL과 브라우저형 요청 정책으로 보정한다. 사용자 바로가기 URL은 공식 HTTPS 화면을 유지하며 공개 수집 endpoint에는 개인정보나 secret을 포함하지 않는다. 적용 후 최종 DB 상태는 `VERIFIED 244`, `CHECK_REQUIRED 0`, `FAILED 0`이며 244곳 모두 `is_enabled=false`다. URL과 DOM 구조가 다시 변경되면 해당 출처만 후속 additive migration으로 보정한다.
+
 지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.
 
 운영 공고 DRAFT 생성 직후 수집 원문은 `CONDITION_INPUT_REQUIRED`다. 대표 대상, 자격 조건, 진행 단계, 행동카드, 안내 문구를 입력·검수하고 운영 공고가 승인되어 정상 노출될 때만 `ACTIVATED`로 전환한다.
