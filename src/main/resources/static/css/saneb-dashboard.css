@@ -4080,6 +4080,95 @@ svg {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.admin-collection-panel {
+    border-left-width: 5px;
+}
+
+.admin-collection-panel.signal-red {
+    border-left-color: #b74336;
+}
+
+.admin-collection-panel.signal-yellow {
+    border-left-color: #c69216;
+}
+
+.admin-collection-panel.signal-green {
+    border-left-color: #2d8065;
+}
+
+.admin-collection-health {
+    display: grid;
+    grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.admin-collection-signal {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.admin-collection-signal .signal-dot {
+    flex: 0 0 auto;
+    margin-top: 6px;
+}
+
+.admin-collection-signal strong {
+    display: block;
+    font-size: 1.1rem;
+}
+
+.admin-collection-signal p {
+    margin: 6px 0 0;
+    color: var(--saneb-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.admin-collection-metrics,
+.admin-automation-status {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--saneb-border);
+    border-radius: 7px;
+    background: var(--saneb-border);
+}
+
+.admin-collection-metrics div,
+.admin-automation-status div {
+    min-width: 0;
+    background: #fffdf8;
+    padding: 12px 14px;
+}
+
+.admin-collection-metrics dt,
+.admin-automation-status span {
+    display: block;
+    color: var(--saneb-muted);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.admin-collection-metrics dd,
+.admin-automation-status strong {
+    display: block;
+    margin: 5px 0 0;
+    color: var(--saneb-text);
+    font-size: 16px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.admin-automation-status {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 14px;
+}
+
 .admin-dashboard-page .admin-total-grid {
     margin-bottom: 14px;
 }
@@ -5023,6 +5112,14 @@ svg {
         grid-template-columns: 1fr;
     }
 
+    .admin-collection-health {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-automation-status {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .admin-users-summary-grid,
     .admin-users-filter,
     .admin-user-card,
@@ -5550,6 +5647,11 @@ svg {
 
     .top-summary-card.amount-card strong {
         font-size: 25px;
+    }
+
+    .admin-collection-metrics,
+    .admin-automation-status {
+        grid-template-columns: 1fr;
     }
 
     .metric-card {

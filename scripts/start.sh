@@ -26,6 +26,16 @@ has_env() {
   grep -Eq "^${key}=.+" "${ENV_FILE}"
 }
 
+set_env_value() {
+  local key="$1"
+  local value="$2"
+  if grep -Eq "^${key}=" "${ENV_FILE}"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "${ENV_FILE}"
+    return
+  fi
+  printf '\n%s=%s\n' "${key}" "${value}" >> "${ENV_FILE}"
+}
+
 install -d -o ubuntu -g ubuntu -m 755 "${APP_DIR}" "${APP_DIR}/logs" "${APP_DIR}/storage"
 touch "${LOG_FILE}"
 chown ubuntu:ubuntu "${LOG_FILE}"
@@ -41,6 +51,13 @@ require_env "DB_USERNAME"
 if ! has_env "DB_PASSWORD"; then
   require_env "DB_SECRET_ARN"
 fi
+
+# 운영 정책: 승인된 지자체 일정 실행과 설정 완료 API 제공자의 배치 승인요청 생성을 활성화합니다.
+set_env_value "SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED" "true"
+set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED" "true"
+set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_PROVIDER_CODES" "BIZINFO,GOV24_PUBLIC_SERVICE"
+chown ubuntu:ubuntu "${ENV_FILE}"
+chmod 600 "${ENV_FILE}"
 
 cat > "${LAUNCH_SCRIPT}" <<'LAUNCH'
 #!/usr/bin/env bash

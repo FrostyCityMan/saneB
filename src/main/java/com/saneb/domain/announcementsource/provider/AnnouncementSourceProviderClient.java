@@ -19,6 +19,15 @@ import java.util.UUID;
 public interface AnnouncementSourceProviderClient {
 
     /**
+     * 외부 제공자 호출에 필요한 설정이 준비됐는지 확인합니다.
+     *
+     * @return 호출 가능하면 true
+     */
+    default boolean isConfigured() {
+        return true;
+    }
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @return 처리 결과

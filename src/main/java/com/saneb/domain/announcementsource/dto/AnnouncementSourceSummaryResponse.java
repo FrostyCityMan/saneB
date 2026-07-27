@@ -29,6 +29,7 @@ public record AnnouncementSourceSummaryResponse(
         String sourceUrl,
         String sourceCompletenessCode,
         String reviewStatusCode,
+        OffsetDateTime postedAt,
         OffsetDateTime collectedAt
 ) {
 
@@ -52,6 +53,7 @@ public record AnnouncementSourceSummaryResponse(
                 row.sourceUrl(),
                 row.sourceCompletenessCode(),
                 row.reviewStatusCode(),
+                row.postedAt(),
                 row.collectedAt()
         );
     }

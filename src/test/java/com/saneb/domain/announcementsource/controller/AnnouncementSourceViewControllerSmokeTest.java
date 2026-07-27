@@ -103,7 +103,22 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("data-collected-announcement-page")))
                 .andExpect(content().string(containsString("collected-announcement-metrics")))
                 .andExpect(content().string(containsString("수집 공고만 모아 확인")))
+                .andExpect(content().string(containsString("<option value=\"REVIEW_PENDING\" selected>검수대기</option>")))
                 .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    /**
+     * 수집 공고 목록이 원문 등록일을 표시하는지 확인합니다.
+     *
+     * @throws Exception 요청 처리 오류
+     */
+    @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void selectCollectedAnnouncementScriptShowsOriginalPostedDate() throws Exception {
+        mockMvc.perform(get("/js/saneb-collected-announcements.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("formatDateTime(item.postedAt)")))
+                .andExpect(content().string(not(containsString("formatDateTime(item.collectedAt)"))));
     }
 
     /**

@@ -306,6 +306,7 @@ class AnnouncementSourceControllerSmokeTest {
                 "https://example.com",
                 "COMPLETE",
                 "REVIEW_PENDING",
+                NOW,
                 NOW
         );
     }

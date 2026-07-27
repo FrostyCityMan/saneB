@@ -1000,11 +1000,13 @@ Member / Business / Family API skeleton 착수 기준:
   "applicationStartDate": "2026-06-01",
   "applicationEndDate": "2026-06-30",
   "reviewStatusCode": "REVIEW_PENDING",
-  "reviewStatusLabel": "검수대기"
+  "reviewStatusLabel": "검수대기",
+  "postedAt": "2026-05-28T09:00:00+09:00",
+  "collectedAt": "2026-05-28T09:05:00+09:00"
 }
 ```
 
-`GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
+수집 공고 검수 화면은 `reviewStatusCode=REVIEW_PENDING`을 기본 조회 조건으로 사용하고 목록에는 `postedAt` 원문 등록일을 표시한다. `GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
 
 #### AnnouncementSourceDuplicateDecisionRequest
 
@@ -1046,6 +1048,8 @@ Member / Business / Family API skeleton 착수 기준:
 | `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
 
 신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
+
+운영 배포에서는 지자체 승인 일정 실행기와 API 제공자 배치 승인요청 생성기를 활성화한다. API 배치는 기업마당 또는 정부24의 URL과 인증키가 모두 설정된 제공자만 승인요청을 생성하며 인증키 값은 화면과 응답에 노출하지 않는다.
 
 QA 산출물 삭제 요청의 `confirmationText`는 `DELETE_LOCAL_GOVERNMENT_QA_DATA`와 정확히 일치해야 한다. `LOCAL_GOV_NOTICE` 원문이 운영 공고와 연결돼 있으면 전체 삭제를 차단한다. 삭제 범위는 지자체 수집 원문, 요청, 실행, URL별 결과와 스케줄 실행 이력이며 URL 관리 정보, 파서 검증 결과, 운영 공고, 감사 로그는 유지한다.
 

@@ -192,7 +192,7 @@
             const meta = document.createElement("span");
             meta.className = "collected-source-meta";
             appendText(meta, "span", item.agencyName || "기관 미확인");
-            appendText(meta, "span", `수집 ${formatDateTime(item.collectedAt)}`);
+            appendText(meta, "span", `원문 등록 ${formatDateTime(item.postedAt)}`);
             button.appendChild(meta);
             button.addEventListener("click", () => runAction(() => selectSource(item.sourceId, button)));
             sourceList.appendChild(button);

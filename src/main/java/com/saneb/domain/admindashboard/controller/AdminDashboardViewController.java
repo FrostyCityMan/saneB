@@ -15,6 +15,10 @@ package com.saneb.domain.admindashboard.controller;
 import com.saneb.domain.admindashboard.dto.AdminDashboardSummaryResponse;
 import com.saneb.domain.admindashboard.dto.AdminDashboardSummaryResponse.StatusCountResponse;
 import com.saneb.domain.admindashboard.service.AdminDashboardService;
+import com.saneb.domain.announcementsource.dto.AnnouncementSourceAutomationStatusResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
+import com.saneb.domain.announcementsource.localgov.service.LocalGovernmentNoticeService;
+import com.saneb.domain.announcementsource.service.AnnouncementSourceAutomationStatusService;
 import com.saneb.domain.auth.dto.AuthMeResponse;
 import com.saneb.domain.auth.service.AuthService;
 import java.math.BigDecimal;
@@ -34,10 +38,19 @@ public class AdminDashboardViewController {
 
     private final AuthService authService;
     private final AdminDashboardService adminDashboardService;
+    private final LocalGovernmentNoticeService localGovernmentNoticeService;
+    private final AnnouncementSourceAutomationStatusService automationStatusService;
 
-    public AdminDashboardViewController(AuthService authService, AdminDashboardService adminDashboardService) {
+    public AdminDashboardViewController(
+            AuthService authService,
+            AdminDashboardService adminDashboardService,
+            LocalGovernmentNoticeService localGovernmentNoticeService,
+            AnnouncementSourceAutomationStatusService automationStatusService
+    ) {
         this.authService = authService;
         this.adminDashboardService = adminDashboardService;
+        this.localGovernmentNoticeService = localGovernmentNoticeService;
+        this.automationStatusService = automationStatusService;
     }
 
     @GetMapping("/app/admin/dashboard")
@@ -45,7 +58,15 @@ public class AdminDashboardViewController {
     public String selectAdminDashboardPage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
         AdminDashboardSummaryResponse summary = adminDashboardService.selectSummary();
-        model.addAttribute("page", AdminDashboardPageModel.from(authMe, summary));
+        LocalGovernmentNoticeCollectionSummaryResponse collectionSummary =
+                localGovernmentNoticeService.selectCollectionSummary();
+        AnnouncementSourceAutomationStatusResponse automationStatus = automationStatusService.selectStatus();
+        model.addAttribute("page", AdminDashboardPageModel.from(
+                authMe,
+                summary,
+                collectionSummary,
+                automationStatus
+        ));
         return "app/admin-dashboard";
     }
 
@@ -54,18 +75,31 @@ public class AdminDashboardViewController {
             String roleLabel,
             String activeNav,
             AdminDashboardSummaryResponse summary,
+            LocalGovernmentNoticeCollectionSummaryResponse collectionSummary,
+            AnnouncementSourceAutomationStatusResponse automationStatus,
+            String collectionTrafficLabel,
+            String collectionTrafficClass,
             String totalReceivedAmountText,
             List<StatusMetricModel> verificationStatusMetrics,
             List<StatusMetricModel> matchingStatusMetrics,
             List<StatusMetricModel> progressStatusMetrics
     ) {
 
-        private static AdminDashboardPageModel from(AuthMeResponse auth, AdminDashboardSummaryResponse summary) {
+        private static AdminDashboardPageModel from(
+                AuthMeResponse auth,
+                AdminDashboardSummaryResponse summary,
+                LocalGovernmentNoticeCollectionSummaryResponse collectionSummary,
+                AnnouncementSourceAutomationStatusResponse automationStatus
+        ) {
             return new AdminDashboardPageModel(
                     auth,
                     AdminDashboardViewController.roleLabel(auth.primaryRole()),
                     "DASHBOARD",
                     summary,
+                    collectionSummary,
+                    automationStatus,
+                    collectionTrafficLabel(collectionSummary.trafficLightCode()),
+                    collectionTrafficClass(collectionSummary.trafficLightCode()),
                     wonText(summary.applicationProgressSummary().totalReceivedAmount()),
                     summary.verificationSummary().statusCounts().stream()
                             .map(statusCount -> StatusMetricModel.from(
@@ -86,6 +120,22 @@ public class AdminDashboardViewController {
                             ))
                             .toList()
             );
+        }
+
+        private static String collectionTrafficLabel(String code) {
+            return switch (code) {
+                case "RED" -> "수집 오류 확인 필요";
+                case "YELLOW" -> "신규·미처리 항목 확인 필요";
+                default -> "지자체 공고 수집 정상";
+            };
+        }
+
+        private static String collectionTrafficClass(String code) {
+            return switch (code) {
+                case "RED" -> "signal-red";
+                case "GREEN" -> "signal-green";
+                default -> "signal-yellow";
+            };
         }
     }
 

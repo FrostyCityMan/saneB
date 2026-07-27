@@ -54,6 +54,16 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
     }
 
     /**
+     * 기업마당 API 호출 설정이 준비됐는지 확인합니다.
+     *
+     * @return API URL과 인증키가 모두 있으면 true
+     */
+    @Override
+    public boolean isConfigured() {
+        return baseUrl != null && !baseUrl.isBlank() && apiKey != null && !apiKey.isBlank();
+    }
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @return 처리 결과

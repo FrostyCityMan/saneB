@@ -21,6 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.saneb.domain.admindashboard.service.AdminDashboardService;
+import com.saneb.domain.announcementsource.dto.AnnouncementSourceAutomationStatusResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
+import com.saneb.domain.announcementsource.localgov.service.LocalGovernmentNoticeService;
+import com.saneb.domain.announcementsource.service.AnnouncementSourceAutomationStatusService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +44,24 @@ class AdminDashboardViewControllerSmokeTest {
     @MockitoBean
     private AdminDashboardService adminDashboardService;
 
+    @MockitoBean
+    private LocalGovernmentNoticeService localGovernmentNoticeService;
+
+    @MockitoBean
+    private AnnouncementSourceAutomationStatusService automationStatusService;
+
     /**
      * 업무 처리를 수행합니다.
      */
     @BeforeEach
     void setUp() {
         when(adminDashboardService.selectSummary()).thenReturn(AdminDashboardControllerSmokeTest.sampleSummary());
+        when(localGovernmentNoticeService.selectCollectionSummary()).thenReturn(
+                new LocalGovernmentNoticeCollectionSummaryResponse(244, 240, 238, 2, 1, 7, "RED")
+        );
+        when(automationStatusService.selectStatus()).thenReturn(
+                new AnnouncementSourceAutomationStatusResponse(true, true, true, false)
+        );
     }
 
     /**
@@ -66,6 +82,11 @@ class AdminDashboardViewControllerSmokeTest {
                 .andExpect(view().name("app/admin-dashboard"))
                 .andExpect(content().string(containsString("관리자 대시보드")))
                 .andExpect(content().string(containsString("운영 현황")))
+                .andExpect(content().string(containsString("수집 신호등")))
+                .andExpect(content().string(containsString("수집 오류 확인 필요")))
+                .andExpect(content().string(containsString("지자체 정기 실행")))
+                .andExpect(content().string(containsString("정부24 연결")))
+                .andExpect(content().string(containsString("설정 필요")))
                 .andExpect(content().string(containsString("고객·상담")))
                 .andExpect(content().string(containsString("공고·수집")))
                 .andExpect(content().string(containsString("매칭·진행")))
