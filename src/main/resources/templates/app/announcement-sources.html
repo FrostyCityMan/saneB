@@ -31,9 +31,32 @@
         <div class="panel-heading compact-heading">
             <div>
                 <span class="eyebrow">전국 지자체</span>
-                <h2>고시공고 URL 관리</h2>
+                <h2>공고 게시판 URL 관리</h2>
             </div>
             <form class="inline-filter" data-local-source-filter-form>
+                <select name="sourceBoardTypeCode" aria-label="게시판 종류">
+                    <option value="">전체 게시판</option>
+                    <option value="LEGAL_NOTICE">고시·공고</option>
+                    <option value="SUPPORT_RECRUITMENT">지원·모집</option>
+                    <option value="GENERAL_NOTICE">일반 공지</option>
+                    <option value="PRESS_RELEASE">보도자료</option>
+                    <option value="UNVERIFIED">미확인</option>
+                </select>
+                <select name="collectionPolicyCode" aria-label="수집 정책">
+                    <option value="">전체 수집 정책</option>
+                    <option value="COLLECT_ALL">전체 수집</option>
+                    <option value="KEYWORD_FILTERED">지원사업 키워드만</option>
+                    <option value="EXCLUDED">수집 제외</option>
+                </select>
+                <select name="diagnosticReasonCode" aria-label="최근 진단 사유">
+                    <option value="">전체 진단 사유</option>
+                    <option value="TRANSPORT_FAILED">접속 실패</option>
+                    <option value="PARSER_FAILED">파싱 실패</option>
+                    <option value="PARTIAL_FIELDS">필드 누락</option>
+                    <option value="SEMANTIC_MISMATCH">게시판 불일치</option>
+                    <option value="IRRELEVANT_CONTENT">무관 게시물 제외</option>
+                    <option value="UNCLASSIFIED_ERROR">분류되지 않은 오류</option>
+                </select>
                 <select name="collectionStatusCode" aria-label="수집 상태">
                     <option value="">전체 상태</option>
                     <option value="READY">수집 준비</option>
@@ -65,7 +88,7 @@
                     </select>
                 </div>
                 <div class="field-block"><label>기관명</label><input name="institutionName" maxlength="150" required placeholder="예: 강남구청"></div>
-                <div class="field-block wide-field"><label>고시공고 URL</label><input name="noticeUrl" type="url" required placeholder="https://기관주소/고시공고목록"></div>
+                <div class="field-block wide-field"><label>공고 게시판 URL</label><input name="noticeUrl" type="url" required placeholder="https://기관주소/고시공고목록"></div>
                 <div class="field-block wide-field">
                     <label>실제 수집 주소</label>
                     <input name="collectionEndpointUrl" type="url" placeholder="목록이 별도 주소에서 제공될 때만 입력">
@@ -79,6 +102,7 @@
                           <option value="DEFAULT">기본 요청</option>
                           <option value="BROWSER_HTTP1">브라우저 호환 요청</option>
                           <option value="LEGACY_BROWSER">구형 공공사이트 호환 요청</option>
+                          <option value="SESSION_BROWSER">세션 유지 브라우저 요청</option>
                       </select>
                 </div>
                 <div class="field-block"><label>수집 파서</label><select name="parserProfileCode" data-local-parser-select><option value="MANUAL_ONLY">수동 검증 필요</option></select></div>
@@ -90,6 +114,37 @@
                     <label>URL 검증 상태</label>
                     <select name="validationStatusCode"><option value="CHECK_REQUIRED">확인 필요</option><option value="VERIFIED">검증완료</option><option value="FAILED">검증실패</option></select>
                 </div>
+                <div class="field-block">
+                    <label>게시판 종류</label>
+                    <select name="sourceBoardTypeCode" required>
+                        <option value="UNVERIFIED">미확인</option>
+                        <option value="LEGAL_NOTICE">고시·공고</option>
+                        <option value="SUPPORT_RECRUITMENT">지원사업·모집공고</option>
+                        <option value="GENERAL_NOTICE">일반 공지사항</option>
+                        <option value="PRESS_RELEASE">보도자료</option>
+                    </select>
+                </div>
+                <div class="field-block">
+                    <label>수집 정책</label>
+                    <select name="collectionPolicyCode" required>
+                        <option value="EXCLUDED">수집 제외</option>
+                        <option value="COLLECT_ALL">게시물 전체 수집</option>
+                        <option value="KEYWORD_FILTERED">지원사업 키워드만 수집</option>
+                    </select>
+                </div>
+                <label class="field-block semantic-verification-check">
+                    <span>의미 검증</span>
+                    <span class="form-check">
+                        <input class="form-check-input" name="semanticallyVerified" type="checkbox" value="true">
+                        <span>공식 게시판 종류와 최근 게시물 표본을 확인했습니다.</span>
+                    </span>
+                </label>
+                <div class="field-block wide-field">
+                    <label>의미 검증 근거</label>
+                    <input name="semanticVerificationNote" maxlength="1000"
+                           placeholder="예: 공식 사이트 메뉴 ‘고시공고’와 최근 게시물 3건 확인">
+                    <small>미확인 출처와 보도자료는 수집을 켤 수 없습니다.</small>
+                </div>
                 <div class="field-block wide-field"><label>수집 참고사항</label><input name="collectionHint" placeholder="접근 제한, 게시판 특징 등 운영 참고사항"></div>
             </div>
             <div class="form-actions">
@@ -100,8 +155,8 @@
 
         <div class="announcement-source-table-wrap">
             <table class="table table-sm align-middle local-source-table">
-                <thead><tr><th>신호</th><th>관리코드</th><th>지역·기관</th><th>수집 상태</th><th>마지막 수집</th><th>사용</th><th>관리</th></tr></thead>
-                <tbody data-local-source-list><tr><td colspan="7">조회 중입니다.</td></tr></tbody>
+                <thead><tr><th>신호</th><th>관리코드</th><th>지역·기관</th><th>게시판·정책</th><th>최근 진단</th><th>마지막 수집</th><th>사용</th><th>관리</th></tr></thead>
+                <tbody data-local-source-list><tr><td colspan="8">조회 중입니다.</td></tr></tbody>
             </table>
         </div>
         <nav class="local-source-pagination" aria-label="지자체 URL 페이지">
@@ -227,15 +282,30 @@
                     <th>수집</th>
                     <th>중복</th>
                     <th>종료 제외</th>
+                    <th>내용 제외</th>
                     <th>실패</th>
+                    <th>진단</th>
                 </tr>
                 </thead>
                 <tbody data-source-run-list aria-live="polite">
-                <tr><td colspan="7">조회 중입니다.</td></tr>
+                <tr><td colspan="9">조회 중입니다.</td></tr>
                 </tbody>
             </table>
         </div>
     </section>
+
+    <dialog class="announcement-source-diagnostic-dialog" data-source-diagnostic-dialog>
+        <div class="diagnostic-dialog-header">
+            <div>
+                <span class="eyebrow">관리자 진단</span>
+                <h2 data-source-diagnostic-title>수집 결과 상세</h2>
+            </div>
+            <button class="secondary-action small-action" type="button" data-source-diagnostic-close>닫기</button>
+        </div>
+        <div class="diagnostic-dialog-body" data-source-diagnostic-body aria-live="polite">
+            <p>수집 결과를 불러오고 있습니다.</p>
+        </div>
+    </dialog>
 
     <script th:src="@{/js/saneb-announcement-sources.js}"></script>
 </main>

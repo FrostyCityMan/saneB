@@ -42,7 +42,16 @@
         CREATE_NEW_SELECTED: "신규 등록 선택",
         UPDATE_EXISTING_SELECTED: "기존 공고 갱신 선택",
         IGNORED: "무시",
-        AUTO_CONFIRMED: "자동 중복 확인"
+        AUTO_CONFIRMED: "자동 중복 확인",
+        ACCEPTED: "유효 후보",
+        REVIEW_REQUIRED: "확인 필요",
+        EXCLUDED: "제외됨",
+        SOURCE_POLICY_COLLECT_ALL: "게시판 전체 수집 정책",
+        SOURCE_POLICY_EXCLUDED: "수집 제외 출처",
+        INCLUDE_KEYWORD_MATCHED: "지원사업 키워드 일치",
+        EXCLUDE_KEYWORD_MATCHED: "제외 키워드 일치",
+        NO_INCLUDE_KEYWORD: "지원사업 키워드 없음",
+        INCLUDE_AND_EXCLUDE_KEYWORD: "포함·제외 키워드 동시 일치"
     };
 
     const statusLabel = (code) => labels[code] || code || "-";
@@ -186,7 +195,8 @@
             appendText(button, "strong", item.title);
             const codeLine = document.createElement("span");
             codeLine.className = "collected-source-code";
-            codeLine.textContent = `${item.publicCode} · ${statusLabel(item.providerCode)} · ${statusLabel(item.reviewStatusCode)}`;
+            codeLine.textContent = `${item.publicCode} · ${statusLabel(item.providerCode)} · `
+                + `${statusLabel(item.reviewStatusCode)} · ${statusLabel(item.semanticStatusCode)}`;
             button.appendChild(codeLine);
 
             const meta = document.createElement("span");
@@ -322,7 +332,29 @@
         const data = await requestJson(`${sourceUrl}/${sourceId}`);
         sourceDetail.innerHTML = "";
         appendText(sourceDetail, "h3", data.title);
-        appendText(sourceDetail, "p", `${data.publicCode} · ${statusLabel(data.providerCode)} · ${statusLabel(data.reviewStatusCode)}`, "muted-copy");
+        appendText(
+            sourceDetail,
+            "p",
+            `${data.publicCode} · ${statusLabel(data.providerCode)} · ${statusLabel(data.reviewStatusCode)} · `
+                + `${statusLabel(data.semanticStatusCode)}`,
+            "muted-copy"
+        );
+
+        if (data.semanticStatusCode !== "ACCEPTED") {
+            const semanticNotice = document.createElement("div");
+            semanticNotice.className = `collected-semantic-notice is-${String(data.semanticStatusCode).toLowerCase()}`;
+            appendText(
+                semanticNotice,
+                "strong",
+                data.semanticStatusCode === "EXCLUDED" ? "검수 대상에서 제외된 게시물입니다." : "운영자 확인이 필요한 게시물입니다."
+            );
+            appendText(
+                semanticNotice,
+                "p",
+                `${statusLabel(data.semanticReasonCode)}${data.semanticMatchedKeywords ? ` · 일치: ${data.semanticMatchedKeywords}` : ""}`
+            );
+            sourceDetail.appendChild(semanticNotice);
+        }
 
         const actions = document.createElement("div");
         actions.className = "source-detail-actions";
@@ -351,7 +383,7 @@
                 pendingCandidates.length ? "중복 검수 후 공고 입력" : "공고 입력 시작",
                 "primary-action small-action",
                 () => convertSource(data.sourceId),
-                pendingCandidates.length > 0
+                pendingCandidates.length > 0 || data.semanticStatusCode === "EXCLUDED"
             );
         }
         sourceDetail.appendChild(actions);
@@ -364,6 +396,9 @@
         createMetaValue(meta, "신청 시작일", data.applicationStartDate);
         createMetaValue(meta, "신청 마감일", data.applicationEndDate);
         createMetaValue(meta, "수집 범위", statusLabel(data.sourceCompletenessCode));
+        createMetaValue(meta, "수집 판정", statusLabel(data.semanticStatusCode));
+        createMetaValue(meta, "판정 근거", statusLabel(data.semanticReasonCode));
+        createMetaValue(meta, "일치 키워드", data.semanticMatchedKeywords);
         createMetaValue(meta, "원문", data.sourceUrl, true);
         createMetaValue(meta, "신청방법", data.applicationMethodText);
         createMetaValue(meta, "문의처", data.inquiryText);

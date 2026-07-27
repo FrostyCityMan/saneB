@@ -29,6 +29,10 @@
     const localPageInfo = page.querySelector("[data-local-page-info]");
     const scheduleForm = page.querySelector("[data-schedule-form]");
     const scheduleList = page.querySelector("[data-schedule-list]");
+    const diagnosticDialog = page.querySelector("[data-source-diagnostic-dialog]");
+    const diagnosticTitle = page.querySelector("[data-source-diagnostic-title]");
+    const diagnosticBody = page.querySelector("[data-source-diagnostic-body]");
+    const diagnosticClose = page.querySelector("[data-source-diagnostic-close]");
     let localSourcePage = 1;
     let localSourceTotalPages = 1;
 
@@ -83,7 +87,23 @@
         PARSER_UNSUPPORTED: "파서 확인 필요",
         CHECK_REQUIRED: "확인 필요",
         DISABLED: "사용 안 함",
-        PAUSED: "일시중지"
+        PAUSED: "일시중지",
+        LEGAL_NOTICE: "고시·공고",
+        SUPPORT_RECRUITMENT: "지원·모집",
+        GENERAL_NOTICE: "일반 공지",
+        PRESS_RELEASE: "보도자료",
+        UNVERIFIED: "미확인",
+        COLLECT_ALL: "전체 수집",
+        KEYWORD_FILTERED: "키워드 선별",
+        EXCLUDED: "수집 제외",
+        ACCEPTED: "유효 후보",
+        REVIEW_REQUIRED: "확인 필요",
+        TRANSPORT_FAILED: "접속 실패",
+        PARSER_FAILED: "파싱 실패",
+        PARTIAL_FIELDS: "필드 누락",
+        SEMANTIC_MISMATCH: "게시판 불일치",
+        IRRELEVANT_CONTENT: "무관 게시물 제외",
+        UNCLASSIFIED_ERROR: "분류되지 않은 오류"
     };
 
     const statusLabel = (code) => label[code] || code || "-";
@@ -146,7 +166,13 @@
         const title = data.trafficLightCode === "RED" ? "수집 오류 확인 필요"
             : data.trafficLightCode === "YELLOW" ? "신규·미처리 항목 확인 필요" : "지자체 공고 수집 정상";
         appendText(card, "strong", title);
-        appendText(card, "small", `전체 ${data.totalCount}곳 · 사용 ${data.enabledCount}곳 · 오류 ${data.failedCount}곳 · 검수대기 ${data.reviewPendingCount}건`);
+        appendText(
+            card,
+            "small",
+            `전체 ${data.totalCount}곳 · 사용 ${data.enabledCount}곳 · 접속 ${data.transportFailureCount}곳 · `
+                + `파싱 ${data.parserFailureCount}곳 · 필드 누락 ${data.partialFieldsCount}곳 · `
+                + `게시판 불일치 ${data.semanticMismatchCount}곳 · 검수대기 ${data.reviewPendingCount}건`
+        );
         localSummary.appendChild(card);
     };
 
@@ -168,7 +194,11 @@
         Object.entries(item).forEach(([key, value]) => {
             const field = localSourceForm.elements.namedItem(key);
             if (field) {
-                field.value = value == null ? "" : value;
+                if (field.type === "checkbox") {
+                    field.checked = Boolean(value);
+                } else {
+                    field.value = value == null ? "" : value;
+                }
             }
         });
         localSaveButton.textContent = "URL 수정";
@@ -178,6 +208,9 @@
     const resetLocalSourceForm = () => {
         localSourceForm.reset();
         localSourceForm.elements.namedItem("sourceId").value = "";
+        localSourceForm.elements.namedItem("sourceBoardTypeCode").value = "UNVERIFIED";
+        localSourceForm.elements.namedItem("collectionPolicyCode").value = "EXCLUDED";
+        localSourceForm.elements.namedItem("semanticallyVerified").checked = false;
         localSaveButton.textContent = "URL 등록";
     };
 
@@ -206,7 +239,7 @@
     };
 
     const renderLocalSources = async () => {
-        localSourceList.innerHTML = "<tr><td colspan=\"7\">조회 중입니다.</td></tr>";
+        localSourceList.innerHTML = "<tr><td colspan=\"8\">조회 중입니다.</td></tr>";
         const params = new URLSearchParams(new FormData(localSourceFilterForm));
         params.set("page", String(localSourcePage));
         params.set("size", "20");
@@ -217,7 +250,7 @@
         localPageNext.disabled = localSourcePage >= localSourceTotalPages;
         localSourceList.innerHTML = "";
         if (!data.items.length) {
-            localSourceList.innerHTML = "<tr><td colspan=\"7\">조건에 맞는 지자체 URL이 없습니다.</td></tr>";
+            localSourceList.innerHTML = "<tr><td colspan=\"8\">조건에 맞는 지자체 URL이 없습니다.</td></tr>";
             return;
         }
         data.items.forEach((item) => {
@@ -230,7 +263,23 @@
             row.appendChild(signalCell);
             appendText(row, "td", item.publicCode);
             appendText(row, "td", `${item.sidoName} ${item.sigunguName} · ${item.institutionName}`);
-            appendText(row, "td", statusLabel(item.collectionStatusCode));
+            appendText(
+                row,
+                "td",
+                `${statusLabel(item.sourceBoardTypeCode)} · ${statusLabel(item.collectionPolicyCode)}`,
+                "source-policy-cell"
+            );
+            const diagnosticCell = document.createElement("td");
+            appendText(
+                diagnosticCell,
+                "strong",
+                item.diagnosticTitle || statusLabel(item.collectionStatusCode),
+                item.diagnosticReasonCode ? "diagnostic-warning" : "diagnostic-normal"
+            );
+            if (item.recommendedAction) {
+                appendText(diagnosticCell, "small", item.recommendedAction);
+            }
+            row.appendChild(diagnosticCell);
             appendText(row, "td", formatDateTime(item.lastCollectedAt));
 
             const enabledCell = document.createElement("td");
@@ -239,6 +288,10 @@
             toggleButton.className = item.enabled ? "status-toggle is-on" : "status-toggle";
             toggleButton.textContent = item.enabled ? "ON" : "OFF";
             toggleButton.setAttribute("aria-label", `${item.institutionName} 수집 ${item.enabled ? "끄기" : "켜기"}`);
+            if (!item.enabled && (!item.semanticallyVerified || item.collectionPolicyCode === "EXCLUDED")) {
+                toggleButton.title = "의미 검증을 완료하고 수집 정책을 확인한 뒤 켤 수 있습니다.";
+                toggleButton.disabled = true;
+            }
             toggleButton.addEventListener("click", () => runAction(() => toggleLocalSource(item)));
             enabledCell.appendChild(toggleButton);
             row.appendChild(enabledCell);
@@ -252,7 +305,12 @@
             link.rel = "noopener noreferrer";
             link.textContent = "바로가기";
             actions.appendChild(link);
-            [["수정", () => fillLocalSourceForm(item)], ["수집 요청", () => runAction(() => requestLocalCollection(item))], ["삭제", () => runAction(() => deleteLocalSource(item))]].forEach(([text, handler]) => {
+            [
+                ["수정", () => fillLocalSourceForm(item)],
+                ["진단", () => runAction(() => showSourceDiagnostics(item))],
+                ["수집 요청", () => runAction(() => requestLocalCollection(item))],
+                ["삭제", () => runAction(() => deleteLocalSource(item))]
+            ].forEach(([text, handler]) => {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.className = "secondary-action small-action";
@@ -263,6 +321,57 @@
             row.appendChild(actions);
             localSourceList.appendChild(row);
         });
+    };
+
+    const renderDiagnosticResults = (results) => {
+        diagnosticBody.innerHTML = "";
+        if (!results.length) {
+            appendText(diagnosticBody, "p", "이 출처의 수집 실행 이력이 없습니다.", "muted-copy");
+            return;
+        }
+        const list = document.createElement("div");
+        list.className = "source-diagnostic-list";
+        results.forEach((item) => {
+            const card = document.createElement("article");
+            card.className = "source-diagnostic-item";
+            appendText(
+                card,
+                "strong",
+                `${item.runPublicCode} · ${item.diagnosticTitle || statusLabel(item.resultStatusCode)}`
+            );
+            appendText(
+                card,
+                "span",
+                `발견 ${item.discoveredCount}건 · 신규 ${item.newCount}건 · 중복 ${item.duplicateCount}건 · `
+                    + `제외 ${item.excludedCount}건 · 실패 ${item.failedCount}건`,
+                "muted-copy"
+            );
+            if (item.errorMessage) {
+                appendText(card, "p", item.errorMessage, "diagnostic-error-copy");
+            }
+            if (item.recommendedAction) {
+                appendText(card, "p", item.recommendedAction, "muted-copy");
+            }
+            appendText(card, "time", formatDateTime(item.finishedAt || item.startedAt), "muted-copy");
+            list.appendChild(card);
+        });
+        diagnosticBody.appendChild(list);
+    };
+
+    const showSourceDiagnostics = async (item) => {
+        diagnosticTitle.textContent = `${item.institutionName} 수집 진단`;
+        diagnosticBody.innerHTML = "<p>최근 수집 결과를 불러오고 있습니다.</p>";
+        diagnosticDialog.showModal();
+        const data = await requestJson(`${localSourceUrl}/${item.sourceId}/collection-results?page=1&size=20`);
+        renderDiagnosticResults(data.items || []);
+    };
+
+    const showRunDiagnostics = async (item) => {
+        diagnosticTitle.textContent = `${item.publicCode} 실행 진단`;
+        diagnosticBody.innerHTML = "<p>URL별 수집 결과를 불러오고 있습니다.</p>";
+        diagnosticDialog.showModal();
+        const data = await requestJson(`${runUrl}/${item.runId}`);
+        renderDiagnosticResults(data.sourceResults || []);
     };
 
     const updateScheduleStatus = async (scheduleId, scheduleStatusCode) => {
@@ -348,11 +457,11 @@
     };
 
     const renderRuns = async () => {
-        runList.innerHTML = "<tr><td colspan=\"7\">조회 중입니다.</td></tr>";
+        runList.innerHTML = "<tr><td colspan=\"9\">조회 중입니다.</td></tr>";
         const data = await requestJson(`${runUrl}?page=1&size=20`);
         runList.innerHTML = "";
         if (!data.items.length) {
-            runList.innerHTML = "<tr><td colspan=\"7\">수집 실행 이력이 없습니다.</td></tr>";
+            runList.innerHTML = "<tr><td colspan=\"9\">수집 실행 이력이 없습니다.</td></tr>";
             return;
         }
         data.items.forEach((item) => {
@@ -363,7 +472,16 @@
             appendText(row, "td", `${item.collectedCount}건`);
             appendText(row, "td", `${item.duplicateCount}건`);
             appendText(row, "td", `${item.skippedEndedCount}건`);
+            appendText(row, "td", `${item.excludedCount}건`);
             appendText(row, "td", `${item.failedCount}건`);
+            const actionCell = document.createElement("td");
+            const detailButton = document.createElement("button");
+            detailButton.type = "button";
+            detailButton.className = "secondary-action small-action";
+            detailButton.textContent = "상세";
+            detailButton.addEventListener("click", () => runAction(() => showRunDiagnostics(item)));
+            actionCell.appendChild(detailButton);
+            row.appendChild(actionCell);
             runList.appendChild(row);
         });
     };
@@ -398,6 +516,7 @@
             const sourceId = formData.get("sourceId");
             const payload = Object.fromEntries(formData.entries());
             delete payload.sourceId;
+            payload.semanticallyVerified = formData.get("semanticallyVerified") === "true";
             await requestJson(sourceId ? `${localSourceUrl}/${sourceId}` : localSourceUrl, {
                 method: sourceId ? "PUT" : "POST",
                 body: JSON.stringify(payload)
@@ -456,6 +575,12 @@
     });
 
     refreshButton.addEventListener("click", renderAll);
+    diagnosticClose.addEventListener("click", () => diagnosticDialog.close());
+    diagnosticDialog.addEventListener("click", (event) => {
+        if (event.target === diagnosticDialog) {
+            diagnosticDialog.close();
+        }
+    });
 
     Promise.all([renderLocalParsers(), renderAll()]).catch((error) => {
         localSummary.textContent = error.message || "수집 관리 정보를 불러오지 못했습니다.";

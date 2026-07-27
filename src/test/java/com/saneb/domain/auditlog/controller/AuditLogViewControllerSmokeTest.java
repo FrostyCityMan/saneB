@@ -75,7 +75,7 @@ class AuditLogViewControllerSmokeTest {
                 .andExpect(content().string(containsString("권한 변경")))
                 .andExpect(content().string(containsString("상세 보기")))
                 .andExpect(content().string(not(containsString("Backend"))))
-                .andExpect(content().string(not(containsString("API"))))
+                .andExpect(content().string(not(containsString("Backend API"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
     }
 

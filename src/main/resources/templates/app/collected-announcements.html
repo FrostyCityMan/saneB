@@ -63,6 +63,15 @@
                     <option value="ARCHIVED">보관</option>
                 </select>
             </label>
+            <label class="field-block">
+                <span>수집 판정</span>
+                <select name="semanticStatusCode">
+                    <option value="ACCEPTED" selected>유효 후보</option>
+                    <option value="REVIEW_REQUIRED">확인 필요</option>
+                    <option value="EXCLUDED">제외됨</option>
+                    <option value="">전체 판정</option>
+                </select>
+            </label>
             <label class="field-block collected-keyword-field">
                 <span>검색어</span>
                 <input name="keyword" type="search" maxlength="100" placeholder="공고명, 기관명, 관리코드">

@@ -51,6 +51,7 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("name=\"executionTime\"")))
                 .andExpect(content().string(containsString("type=\"time\"")))
                 .andExpect(content().string(containsString("서울 시간 기준으로 실행됩니다")))
+                .andExpect(content().string(containsString("<option value=\"SESSION_BROWSER\">세션 유지 브라우저 요청</option>")))
                 .andExpect(content().string(not(containsString("name=\"cronExpression\""))))
                 .andExpect(content().string(not(containsString("name=\"timezone\""))))
                 .andExpect(content().string(not(containsString("data-local-qa-cleanup-form"))))
