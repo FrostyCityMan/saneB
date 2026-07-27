@@ -443,10 +443,22 @@ class LocalGovernmentNoticeParserFullQaTest {
             ),
             new ParserProfile(
                     "SUBJECT_NOTICE_TABLE", "table tbody tr",
-                    "td.subject > a:first-child, td.title > a:first-child, td.bb-list-title > a:first-child",
+                    "td.subject > a, td.title > a, td.bb-list-title > a",
                     "td.date, td.bb-list-publish-date, td:nth-of-type(4)",
-                    "td.subject > a:first-child, td.title > a:first-child, td.bb-list-title > a:first-child",
+                    "td.subject > a, td.title > a, td.bb-list-title > a",
                     null, "AUTO", null, null, null
+            ),
+            new ParserProfile(
+                    "SEONGBUK_EMINWON_TABLE",
+                    "table.p-table.simple tbody.text_center > tr:has(> td.p-subject > a)",
+                    "td.p-subject > a", "td:last-child", "td.p-subject > a", "yyyy-MM-dd",
+                    "AUTO", null, null, null
+            ),
+            new ParserProfile(
+                    "CHANGWON_GOSI_TABLE",
+                    "table.t3 tbody.tb > tr:has(> td.tal > a.a1)",
+                    "td.tal > a.a1", "td:nth-last-child(2)", "td.tal > a.a1", "yyyy-MM-dd",
+                    "AUTO", null, null, null
             ),
             new ParserProfile(
                     "SCMS_CARD_NOTICE", "ul.lst1 > li.li1", "strong.t1",

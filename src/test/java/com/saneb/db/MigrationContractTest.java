@@ -1115,6 +1115,26 @@ class MigrationContractTest {
     }
 
     /**
+     * 남은 부분 실패 출처가 실제 공고 행만 선택하는 좁은 프로필을 사용하는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v60MigrationStabilizesRemainingPartialRows() throws IOException {
+        String sql = selectV60Migration();
+
+        assertThat(sql).contains(
+                "td.subject > a, td.title > a, td.bb-list-title > a",
+                "'SEONGBUK_EMINWON_TABLE'",
+                "table.p-table.simple tbody.text_center > tr:has(> td.p-subject > a)",
+                "'CHANGWON_GOSI_TABLE'",
+                "table.t3 tbody.tb > tr:has(> td.tal > a.a1)",
+                "public_code = 'LGS-000009'",
+                "public_code = 'LGS-000224'"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -1764,6 +1784,19 @@ class MigrationContractTest {
     private String selectV59Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V59__tighten_local_government_notice_row_detection.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V60 migration을 UTF-8로 조회합니다.
+     *
+     * @return V60 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV60Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V60__stabilize_remaining_local_government_notice_rows.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

@@ -162,7 +162,8 @@ class FlywayMigrationIntegrationTest {
                       and success = true
                     """)).isEqualTo(1);
             for (String version : List.of(
-                    "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58"
+                    "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                    "59", "60"
             )) {
                 assertThat(selectLong(statement, """
                         select count(1)
@@ -244,6 +245,16 @@ class FlywayMigrationIntegrationTest {
                     where request_method_code = 'POST_FORM'
                       and request_form_json is not null
                     """)).isEqualTo(2);
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000009'
+                    """)).isEqualTo("SEONGBUK_EMINWON_TABLE");
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000224'
+                    """)).isEqualTo("CHANGWON_GOSI_TABLE");
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources

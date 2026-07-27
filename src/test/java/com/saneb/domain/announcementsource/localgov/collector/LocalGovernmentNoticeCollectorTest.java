@@ -28,6 +28,7 @@ import java.util.UUID;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -90,6 +91,63 @@ class LocalGovernmentNoticeCollectorTest {
         );
 
         assertThat(collector.isRetryableTransportFailure(outcome)).isFalse();
+    }
+
+    /**
+     * 새글 표식이 제목 링크 앞에 있어도 제목 클래스형 선택자가 공고 링크를 찾는지 검증합니다.
+     */
+    @Test
+    void subjectNoticeSelectorAcceptsMarkerBeforeTitleLink() {
+        Document document = Jsoup.parse("""
+                <table><tbody><tr>
+                  <td class="subject"><span class="new">새글</span><a href="/notice/1">지원사업 안내</a></td>
+                  <td>담당부서</td><td>2026-07-27</td>
+                </tr></tbody></table>
+                """);
+
+        Element title = document.selectFirst(
+                "td.subject > a, td.title > a, td.bb-list-title > a"
+        );
+
+        assertThat(title).isNotNull();
+        assertThat(title.text()).isEqualTo("지원사업 안내");
+    }
+
+    /**
+     * 성북구 검색 폼 내부 행을 제외하고 실제 고시공고 행만 선택하는지 검증합니다.
+     */
+    @Test
+    void seongbukSelectorIgnoresSearchFormRows() {
+        Document document = Jsoup.parse("""
+                <table><tbody><tr><td>검색</td></tr></tbody></table>
+                <table class="p-table simple"><tbody class="text_center">
+                  <tr><td>1</td><td class="p-subject"><a href="/notice/1">공고 제목</a></td><td>2026-07-27</td></tr>
+                </tbody></table>
+                """);
+
+        assertThat(document.select(
+                "table.p-table.simple tbody.text_center > tr:has(> td.p-subject > a)"
+        )).singleElement();
+    }
+
+    /**
+     * 창원시 목록에서 상세 링크가 없는 행과 전화번호 링크를 공고 후보로 선택하지 않는지 검증합니다.
+     */
+    @Test
+    void changwonSelectorIgnoresRowsWithoutDetailLink() {
+        Document document = Jsoup.parse("""
+                <table class="t3"><tbody class="tb">
+                  <tr><td>1</td><td class="tal"><a class="a1" href="?amode=view&id=1">공고 제목</a></td>
+                      <td><a href="tel:055-000-0000">전화</a></td><td>2026-07-27</td><td></td></tr>
+                  <tr><td>2</td><td class="tal">상세 링크 없는 공고</td>
+                      <td><a href="tel:055-000-0001">전화</a></td><td>2026-07-27</td><td></td></tr>
+                </tbody></table>
+                """);
+
+        Elements rows = document.select("table.t3 tbody.tb > tr:has(> td.tal > a.a1)");
+
+        assertThat(rows).singleElement();
+        assertThat(rows.first().selectFirst("td.tal > a.a1").text()).isEqualTo("공고 제목");
     }
 
     /**
