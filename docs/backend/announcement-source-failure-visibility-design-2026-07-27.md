@@ -406,6 +406,19 @@ DB에 저장된 `error_code`와 `error_message`를 원본으로 유지하고, �
 | `IRRELEVANT_CONTENT` | 일반 공지 정적 키워드 판정으로 제외된 게시물 |
 | `UNCLASSIFIED_ERROR` | 정의되지 않은 원본 오류 코드가 남아 있어 추가 분류가 필요한 상태 |
 
+`TRANSPORT_FAILED`는 상위 필터 계약을 유지하면서 원본 오류를 다음과 같이 세분화한다.
+
+| 원본 오류 코드 | 관리자 의미 |
+|---|---|
+| `DNS_LOOKUP_FAILED` | 운영 서버가 기관 주소를 조회하지 못함 |
+| `TLS_HANDSHAKE_FAILED` | 기관 사이트와 TLS 보안 연결 협상 실패 |
+| `CONNECTION_REFUSED` | 기관 방화벽·접근 경로에서 연결 거부 |
+| `CONNECTION_RESET` | 연결 후 기관 측에서 세션 중단 |
+| `RETRYABLE` | 응답 제한시간 초과 또는 일시적 서버 오류 |
+| `NETWORK_ERROR` | 위 유형으로 안전하게 분류되지 않은 네트워크 오류 |
+
+stack trace와 원문 예외 메시지는 DB·API·화면에 저장하지 않는다. 관리자는 한글 진단 제목과 코드별 권장 조치만 확인한다.
+
 구현된 additive 계약은 다음과 같다.
 
 - `GET /api/v1/admin/local-government-notice-sources`

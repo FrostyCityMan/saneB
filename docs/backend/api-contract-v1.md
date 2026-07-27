@@ -1040,6 +1040,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 2026-07-27 V58은 밀양시·함양군의 사용자 바로가기 URL을 각 기관 대표 누리집의 공식 고시·공고 화면으로 고정한다. 화면 URL과 공개 수집 endpoint가 다른 함양군은 기존 `collectionEndpointUrl` 분리 계약을 사용하며, 관리자와 사용자는 외부 새올 처리 주소가 아니라 함양군 대표 누리집 화면으로 이동한다.
 
+2026-07-27 V59는 새올 전자민원 셀 클릭형 목록에서 중첩 레이아웃 행을 공고 행으로 중복 인식하지 않도록 직접 자식 제목 셀을 가진 행만 선택한다. 수집기는 최근 1년 범위를 벗어난 과거 행과 빈 레이아웃 행을 필드 누락으로 계산하지 않으며, 당일 신규 공고가 등록일 대신 `시:분:초`만 제공하면 서울 기준 오늘 날짜로 해석한다. 실제 후보 행의 제목·등록일·원문 URL 누락만 `PARTIAL_FIELDS`로 남긴다.
+
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `GET` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 목록, pagination |
@@ -1058,6 +1060,8 @@ Member / Business / Family API skeleton 착수 기준:
 | `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
 
 출처 목록의 선택 query parameter는 `sourceBoardTypeCode`, `collectionPolicyCode`, `semanticallyVerified`, `diagnosticReasonCode`다. `diagnosticReasonCode`는 `TRANSPORT_FAILED`, `PARSER_FAILED`, `PARTIAL_FIELDS`, `SEMANTIC_MISMATCH`, `IRRELEVANT_CONTENT`, `UNCLASSIFIED_ERROR`를 지원한다. `UNCLASSIFIED_ERROR`는 원본 오류 코드를 유지하면서 미정의 오류를 접속 실패로 오분류하지 않기 위한 안전한 관리자 진단값이다. 수집 실행 상세 응답은 기존 `run`, `items`를 유지하고 URL별 `sourceResults[]`를 추가한다.
+
+`TRANSPORT_FAILED`의 원본 `errorCode`는 기존 `RETRYABLE`, `NETWORK_ERROR`, `HTTP_ERROR`와 함께 `DNS_LOOKUP_FAILED`, `TLS_HANDSHAKE_FAILED`, `CONNECTION_REFUSED`, `CONNECTION_RESET`을 지원한다. 응답에는 stack trace나 기관 응답 본문을 넣지 않고 각 코드에 대응하는 한글 진단 제목과 운영 조치만 반환한다. 네트워크 오류와 제한시간 초과는 최대 3회 재시도하며 기본 제한시간은 15초다.
 
 신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
 

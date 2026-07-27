@@ -52,8 +52,8 @@ public record LocalGovernmentNoticeCollectionResultResponse(
                 row.resultId(), row.runId(), row.runPublicCode(), row.sourceId(), row.sourcePublicCode(),
                 row.institutionName(), row.noticeUrl(), row.resultStatusCode(), row.discoveredCount(),
                 row.newCount(), row.duplicateCount(), row.failedCount(), row.excludedCount(), row.httpStatus(),
-                row.errorCode(), row.errorMessage(), reasonCode, selectTitle(reasonCode),
-                selectRecommendedAction(reasonCode), row.startedAt(), row.finishedAt()
+                row.errorCode(), row.errorMessage(), reasonCode, selectTitle(reasonCode, row.errorCode()),
+                selectRecommendedAction(reasonCode, row.errorCode()), row.startedAt(), row.finishedAt()
         );
     }
 
@@ -71,7 +71,8 @@ public record LocalGovernmentNoticeCollectionResultResponse(
         }
         if (row.errorCode() != null) {
             return switch (row.errorCode()) {
-                case "RETRYABLE", "NETWORK_ERROR", "HTTP_ERROR", "EMPTY_RESPONSE",
+                case "RETRYABLE", "NETWORK_ERROR", "DNS_LOOKUP_FAILED", "TLS_HANDSHAKE_FAILED",
+                        "CONNECTION_REFUSED", "CONNECTION_RESET", "HTTP_ERROR", "EMPTY_RESPONSE",
                         "COLLECTION_INTERRUPTED", "URL_VALIDATION_FAILED", "REDIRECT_URL_BLOCKED",
                         "TOO_MANY_REDIRECTS", "REDIRECT_LOCATION_MISSING", "ACCESS_BLOCKED" -> "TRANSPORT_FAILED";
                 case "PARSER_ERROR", "PARSER_NOT_CONFIGURED", "LIST_SELECTOR_NOT_MATCHED",
@@ -92,11 +93,21 @@ public record LocalGovernmentNoticeCollectionResultResponse(
      * 진단 사유를 관리자용 제목으로 변환합니다.
      *
      * @param reasonCode 진단 사유 코드
+     * @param errorCode 원본 오류 코드
      * @return 관리자용 제목
      */
-    private static String selectTitle(String reasonCode) {
+    private static String selectTitle(String reasonCode, String errorCode) {
+        if ("TRANSPORT_FAILED".equals(reasonCode)) {
+            return switch (String.valueOf(errorCode)) {
+                case "DNS_LOOKUP_FAILED" -> "기관 주소 조회 실패";
+                case "TLS_HANDSHAKE_FAILED" -> "보안 연결 협상 실패";
+                case "CONNECTION_REFUSED" -> "기관 연결 거부";
+                case "CONNECTION_RESET" -> "기관 연결 중단";
+                case "RETRYABLE" -> "기관 응답 시간 초과";
+                default -> "기관 사이트 접속 실패";
+            };
+        }
         return switch (String.valueOf(reasonCode)) {
-            case "TRANSPORT_FAILED" -> "기관 사이트 접속 실패";
             case "PARSER_FAILED" -> "게시판 파싱 실패";
             case "PARTIAL_FIELDS" -> "필수 필드 일부 누락";
             case "SEMANTIC_MISMATCH" -> "게시판 종류 불일치";
@@ -110,11 +121,21 @@ public record LocalGovernmentNoticeCollectionResultResponse(
      * 진단 사유에 맞는 복구 지침을 반환합니다.
      *
      * @param reasonCode 진단 사유 코드
+     * @param errorCode 원본 오류 코드
      * @return 권장 조치
      */
-    private static String selectRecommendedAction(String reasonCode) {
+    private static String selectRecommendedAction(String reasonCode, String errorCode) {
+        if ("TRANSPORT_FAILED".equals(reasonCode)) {
+            return switch (String.valueOf(errorCode)) {
+                case "DNS_LOOKUP_FAILED" -> "기관 공식 주소와 운영 서버 DNS 조회 상태를 확인하세요.";
+                case "TLS_HANDSHAKE_FAILED" -> "기관 사이트의 TLS 지원 방식과 요청 프로필을 재검증하세요.";
+                case "CONNECTION_REFUSED" -> "기관 방화벽·접근 제한과 공식 대체 URL을 확인하세요.";
+                case "CONNECTION_RESET" -> "기관의 자동수집 차단 여부와 요청 간격을 확인한 뒤 재수집하세요.";
+                case "RETRYABLE" -> "응답 제한시간 후 단일 URL로 다시 수집하세요.";
+                default -> "기관 사이트 연결과 차단 여부를 확인한 뒤 재수집하세요.";
+            };
+        }
         return switch (String.valueOf(reasonCode)) {
-            case "TRANSPORT_FAILED" -> "기관 사이트 연결과 차단 여부를 확인한 뒤 재수집하세요.";
             case "PARSER_FAILED" -> "원문 게시판 구조와 지정된 파서를 다시 검증하세요.";
             case "PARTIAL_FIELDS" -> "제목, 등록일, 원문 링크 선택자를 확인하세요.";
             case "SEMANTIC_MISMATCH" -> "공식 고시·공고 또는 지원사업 게시판 URL로 보정하세요.";

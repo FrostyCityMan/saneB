@@ -27,9 +27,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.NoRouteToHostException;
 import java.net.URI;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -51,11 +55,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -73,6 +79,9 @@ public class LocalGovernmentNoticeCollector {
     private static final Pattern DATE_PATTERN = Pattern.compile("(20\\d{2})[.\\-/년\\s]+(\\d{1,2})[.\\-/월\\s]+(\\d{1,2})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile(
             "(?<!\\d)(\\d{2})[.\\-/\\s]+(\\d{1,2})[.\\-/\\s]+(\\d{1,2})(?!\\d)"
+    );
+    private static final Pattern TIME_ONLY_PATTERN = Pattern.compile(
+            "^\\s*(?:[01]?\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d)?\\s*$"
     );
     private static final Pattern SCRIPT_PATH_PATTERN = Pattern.compile(
             "['\"]((?:https?://|/|\\./|\\.\\./)[^'\"]+)['\"]",
@@ -241,7 +250,7 @@ public class LocalGovernmentNoticeCollector {
         LocalGovernmentNoticeCollectionOutcome outcome = null;
         for (int attempt = 1; attempt <= MAX_TRANSPORT_ATTEMPTS; attempt++) {
             outcome = requestAndParse(source, profile, uri, 0);
-            if (!"RETRYABLE".equals(outcome.errorCode()) || attempt == MAX_TRANSPORT_ATTEMPTS) {
+            if (!isRetryableTransportFailure(outcome) || attempt == MAX_TRANSPORT_ATTEMPTS) {
                 return outcome;
             }
             try {
@@ -258,6 +267,24 @@ public class LocalGovernmentNoticeCollector {
             }
         }
         return outcome;
+    }
+
+    /**
+     * 제한시간 초과와 일시적인 네트워크 연결 오류를 내부 재시도 대상으로 분류합니다.
+     *
+     * @param outcome 단일 요청 결과
+     * @return 전송 계층 재시도 대상이면 true
+     */
+    boolean isRetryableTransportFailure(LocalGovernmentNoticeCollectionOutcome outcome) {
+        return outcome != null
+                && Set.of(
+                        "RETRYABLE",
+                        "NETWORK_ERROR",
+                        "DNS_LOOKUP_FAILED",
+                        "TLS_HANDSHAKE_FAILED",
+                        "CONNECTION_REFUSED",
+                        "CONNECTION_RESET"
+                ).contains(outcome.errorCode());
     }
 
     /**
@@ -322,7 +349,7 @@ public class LocalGovernmentNoticeCollector {
         } catch (SocketTimeoutException exception) {
             return failure(source.sourceId(), "FAILED", null, "RETRYABLE", "기관 사이트 응답 시간이 초과되었습니다.");
         } catch (IOException exception) {
-            return failure(source.sourceId(), "FAILED", null, "NETWORK_ERROR", "기관 사이트 연결에 실패했습니다.");
+            return selectNetworkFailure(source.sourceId(), exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             return failure(source.sourceId(), "FAILED", null, "COLLECTION_INTERRUPTED", "수집 작업이 중단되었습니다.");
@@ -380,13 +407,7 @@ public class LocalGovernmentNoticeCollector {
                         "기관 사이트 세션 준비 시간이 초과되었습니다."
                 );
             } catch (IOException exception) {
-                lastFailure = failure(
-                        source.sourceId(),
-                        "FAILED",
-                        null,
-                        "NETWORK_ERROR",
-                        "기관 사이트 세션 준비에 실패했습니다."
-                );
+                lastFailure = selectNetworkFailure(source.sourceId(), exception);
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 return failure(
@@ -407,6 +428,47 @@ public class LocalGovernmentNoticeCollector {
             }
         }
         return lastFailure;
+    }
+
+    /**
+     * 네트워크 예외 원인을 원문 없이 안전한 운영 진단 코드로 분류합니다.
+     *
+     * @param sourceId 지자체 URL 식별자
+     * @param exception 네트워크 예외
+     * @return 비식별 네트워크 실패 결과
+     */
+    LocalGovernmentNoticeCollectionOutcome selectNetworkFailure(UUID sourceId, IOException exception) {
+        if (hasCause(exception, UnknownHostException.class)) {
+            return failure(sourceId, "FAILED", null, "DNS_LOOKUP_FAILED", "기관 사이트 주소를 조회하지 못했습니다.");
+        }
+        if (hasCause(exception, SSLException.class)) {
+            return failure(sourceId, "FAILED", null, "TLS_HANDSHAKE_FAILED", "기관 사이트와 보안 연결을 협상하지 못했습니다.");
+        }
+        if (hasCause(exception, ConnectException.class) || hasCause(exception, NoRouteToHostException.class)) {
+            return failure(sourceId, "FAILED", null, "CONNECTION_REFUSED", "기관 사이트가 연결을 거부했거나 경로에 접근할 수 없습니다.");
+        }
+        if (hasCause(exception, SocketException.class)) {
+            return failure(sourceId, "FAILED", null, "CONNECTION_RESET", "기관 사이트가 연결을 중단했습니다.");
+        }
+        return failure(sourceId, "FAILED", null, "NETWORK_ERROR", "기관 사이트 연결에 실패했습니다.");
+    }
+
+    /**
+     * 예외 원인 체인에 지정한 유형이 포함되는지 제한된 깊이로 확인합니다.
+     *
+     * @param throwable 확인할 예외
+     * @param causeType 찾을 예외 유형
+     * @return 원인 체인에 유형이 있으면 true
+     */
+    private boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {
+        Throwable current = throwable;
+        for (int depth = 0; current != null && depth < 12; depth++) {
+            if (causeType.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     /**
@@ -595,9 +657,15 @@ public class LocalGovernmentNoticeCollector {
             ResolvedLink resolvedLink = linkElement == null
                     ? null : selectResolvedLink(linkElement, profile, source.noticeUrl());
             String link = resolvedLink == null ? null : resolvedLink.absoluteLink();
-            LocalDate postedDate = dateElement == null ? null : parseDate(dateElement.text(), profile.datePattern());
-            if (title == null || title.isBlank() || link == null || link.isBlank()
-                    || postedDate == null || !isRecentPostedDate(postedDate)) {
+            LocalDate postedDate = dateElement == null
+                    ? null : parsePostedDate(dateElement.text(), profile.datePattern());
+            if (isEmptyCandidateRow(title, linkElement, dateElement)) {
+                continue;
+            }
+            if (postedDate != null && !isRecentPostedDate(postedDate)) {
+                continue;
+            }
+            if (title == null || title.isBlank() || link == null || link.isBlank() || postedDate == null) {
                 invalidCount++;
                 continue;
             }
@@ -619,7 +687,7 @@ public class LocalGovernmentNoticeCollector {
         }
         String status = invalidCount > 0 ? "PARTIAL_FAILED" : "SUCCESS";
         return new LocalGovernmentNoticeCollectionOutcome(
-                source.sourceId(), status, rows.size(), invalidCount, httpStatus, etag, lastModifiedValue,
+                source.sourceId(), status, items.size() + invalidCount, invalidCount, httpStatus, etag, lastModifiedValue,
                 fingerprint, invalidCount > 0 ? "ITEM_FIELDS_MISSING" : null,
                 invalidCount > 0 ? "일부 행에서 제목, 등록일 또는 원문 URL을 찾지 못했습니다." : null,
                 List.copyOf(items)
@@ -653,9 +721,14 @@ public class LocalGovernmentNoticeCollector {
             Element dateElement = row.selectFirst("td.date");
             ResolvedLink resolvedLink = selectDaejeonEminwonLink(titleElement);
             String title = titleElement == null ? null : titleElement.text().trim();
-            LocalDate postedDate = dateElement == null ? null : parseDate(dateElement.text(), "yyyy-MM-dd");
-            if (title == null || title.isBlank() || postedDate == null || !isRecentPostedDate(postedDate)
-                    || resolvedLink == null) {
+            LocalDate postedDate = dateElement == null ? null : parsePostedDate(dateElement.text(), "yyyy-MM-dd");
+            if (isEmptyCandidateRow(title, titleElement, dateElement)) {
+                continue;
+            }
+            if (postedDate != null && !isRecentPostedDate(postedDate)) {
+                continue;
+            }
+            if (title == null || title.isBlank() || postedDate == null || resolvedLink == null) {
                 invalidCount++;
                 continue;
             }
@@ -679,7 +752,7 @@ public class LocalGovernmentNoticeCollector {
         }
         return new LocalGovernmentNoticeCollectionOutcome(
                 source.sourceId(), invalidCount > 0 ? "PARTIAL_FAILED" : "SUCCESS",
-                rows.size(), invalidCount, httpStatus, etag, lastModifiedValue, fingerprint,
+                items.size() + invalidCount, invalidCount, httpStatus, etag, lastModifiedValue, fingerprint,
                 invalidCount > 0 ? "ITEM_FIELDS_MISSING" : null,
                 invalidCount > 0 ? "일부 대전시 구청 공고의 필수값이 비어 있습니다." : null,
                 List.copyOf(items)
@@ -753,8 +826,14 @@ public class LocalGovernmentNoticeCollector {
                 String linkValue = selectJsonText(itemNode, profile.jsonLinkField());
                 LocalDate postedDate = parseDate(dateText, profile.datePattern());
                 String link = resolveJsonLink(source.noticeUrl(), profile.jsonLinkTemplate(), linkValue);
+                if (isBlank(title) && isBlank(dateText) && isBlank(linkValue)) {
+                    continue;
+                }
+                if (postedDate != null && !isRecentPostedDate(postedDate)) {
+                    continue;
+                }
                 if (title == null || title.isBlank() || title.length() > 500
-                        || postedDate == null || !isRecentPostedDate(postedDate) || link == null) {
+                        || postedDate == null || link == null) {
                     invalidCount++;
                     continue;
                 }
@@ -777,7 +856,7 @@ public class LocalGovernmentNoticeCollector {
             }
             return new LocalGovernmentNoticeCollectionOutcome(
                     source.sourceId(), invalidCount > 0 ? "PARTIAL_FAILED" : "SUCCESS",
-                    itemNodes.size(), invalidCount, httpStatus, etag, lastModifiedValue, fingerprint,
+                    items.size() + invalidCount, invalidCount, httpStatus, etag, lastModifiedValue, fingerprint,
                     invalidCount > 0 ? "JSON_ITEM_FIELDS_MISSING" : null,
                     invalidCount > 0 ? "일부 JSON 공고의 필수값이 비어 있습니다." : null,
                     List.copyOf(items)
@@ -1043,6 +1122,46 @@ public class LocalGovernmentNoticeCollector {
     private boolean isRecentPostedDate(LocalDate postedDate) {
         LocalDate today = LocalDate.now(KOREA_ZONE);
         return !postedDate.isBefore(today.minusYears(1)) && !postedDate.isAfter(today);
+    }
+
+    /**
+     * 목록의 헤더·빈 장식 행처럼 실제 공고 후보가 아닌 행인지 확인합니다.
+     *
+     * @param title 추출된 제목
+     * @param linkElement 링크 후보 요소
+     * @param dateElement 등록일 후보 요소
+     * @return 실제 후보 필드가 모두 비어 있으면 true
+     */
+    private boolean isEmptyCandidateRow(String title, Element linkElement, Element dateElement) {
+        return isBlank(title) && linkElement == null
+                && (dateElement == null || dateElement.text().isBlank());
+    }
+
+    /**
+     * 선택 입력 문자열이 비어 있는지 확인합니다.
+     *
+     * @param value 확인할 문자열
+     * @return null 또는 공백이면 true
+     */
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
+     * 날짜 표기와 당일 공고의 시각 전용 표기를 등록일로 변환합니다.
+     *
+     * @param text 날짜 또는 시각 문자열
+     * @param configuredPattern 프로필 날짜 패턴
+     * @return 변환된 등록일 또는 null
+     */
+    LocalDate parsePostedDate(String text, String configuredPattern) {
+        LocalDate parsedDate = parseDate(text, configuredPattern);
+        if (parsedDate != null) {
+            return parsedDate;
+        }
+        return text != null && TIME_ONLY_PATTERN.matcher(text).matches()
+                ? LocalDate.now(KOREA_ZONE)
+                : null;
     }
 
     /**

@@ -90,6 +90,9 @@ class LocalGovernmentNoticeParserFullQaTest {
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile(
             "(?<!\\d)(\\d{2})[.\\-/\\s]+(\\d{1,2})[.\\-/\\s]+(\\d{1,2})(?!\\d)"
     );
+    private static final Pattern TIME_ONLY_PATTERN = Pattern.compile(
+            "^\\s*(?:[01]?\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d)?\\s*$"
+    );
     private static final Pattern SCRIPT_PATH_PATTERN = Pattern.compile(
             "['\"]((?:https?://|/|\\./|\\.\\./)[^'\"]+)['\"]",
             Pattern.CASE_INSENSITIVE
@@ -459,7 +462,7 @@ class LocalGovernmentNoticeParserFullQaTest {
             ),
             new ParserProfile(
                     "SAFE_SAEOL_EMINWON_CELL",
-                    "table tr:has(td:nth-of-type(3)[onclick*=searchDetail])",
+                    "tr:has(> td:nth-of-type(3)[onclick*=searchDetail])",
                     "td:nth-of-type(3)[onclick*=searchDetail]", "td:nth-of-type(5)",
                     "td:nth-of-type(3)[onclick*=searchDetail]", "yyyy-MM-dd",
                     "SAFE_TEMPLATE", "searchDetail", 1,
@@ -777,13 +780,21 @@ class LocalGovernmentNoticeParserFullQaTest {
                     ? null : parserSupport.selectResolvedLink(linkElement, profile.toRow(), source.noticeUrl());
             String rawLink = resolvedLink == null ? null : resolvedLink.rawLink();
             String link = resolvedLink == null ? null : resolvedLink.absoluteLink();
-            LocalDate date = dateElement == null ? null : parseDate(dateElement.text(), profile.datePattern());
+            LocalDate date = dateElement == null
+                    ? null : parsePostedDate(dateElement.text(), profile.datePattern());
+            if ((title == null || title.isBlank()) && linkElement == null
+                    && (dateElement == null || dateElement.text().isBlank())) {
+                continue;
+            }
+            if (date != null && !isRecentPostedDate(date)) {
+                continue;
+            }
             if (title == null || title.isBlank() || title.length() > 500
                     || rawLink == null || rawLink.isBlank() || "#".equals(rawLink)
                     || rawLink.toLowerCase(Locale.ROOT).startsWith("javascript:")
                     || link == null || !(link.startsWith("http://") || link.startsWith("https://"))
                     || !isDistinctDetailLink(source.noticeUrl(), rawLink, link)
-                    || date == null || !isRecentPostedDate(date)) {
+                    || date == null) {
                 invalidCount++;
                 continue;
             }
@@ -792,7 +803,9 @@ class LocalGovernmentNoticeParserFullQaTest {
                 samples.add(title.replaceAll("\\s+", " ").trim() + " / " + date + " / " + link);
             }
         }
-        return new ProfileResult(profile.profileCode(), rows.size(), validCount, invalidCount, List.copyOf(samples));
+        return new ProfileResult(
+                profile.profileCode(), validCount + invalidCount, validCount, invalidCount, List.copyOf(samples)
+        );
     }
 
     /**
@@ -813,8 +826,15 @@ class LocalGovernmentNoticeParserFullQaTest {
             LocalGovernmentNoticeCollector.ResolvedLink link =
                     parserSupport.selectDaejeonEminwonLink(titleElement);
             String title = titleElement == null ? null : titleElement.text().trim();
-            LocalDate date = dateElement == null ? null : parseDate(dateElement.text(), profile.datePattern());
-            if (title == null || title.isBlank() || date == null || !isRecentPostedDate(date) || link == null) {
+            LocalDate date = dateElement == null
+                    ? null : parsePostedDate(dateElement.text(), profile.datePattern());
+            if ((title == null || title.isBlank()) && titleElement == null && dateElement == null) {
+                continue;
+            }
+            if (date != null && !isRecentPostedDate(date)) {
+                continue;
+            }
+            if (title == null || title.isBlank() || date == null || link == null) {
                 invalidCount++;
                 continue;
             }
@@ -823,7 +843,9 @@ class LocalGovernmentNoticeParserFullQaTest {
                 samples.add(title + " / " + date + " / " + link.absoluteLink());
             }
         }
-        return new ProfileResult(profile.profileCode(), rows.size(), validCount, invalidCount, List.copyOf(samples));
+        return new ProfileResult(
+                profile.profileCode(), validCount + invalidCount, validCount, invalidCount, List.copyOf(samples)
+        );
     }
 
     /**
@@ -909,7 +931,13 @@ class LocalGovernmentNoticeParserFullQaTest {
                 LocalDate date = parseDate(item.path(profile.dateField()).asText(null), "yyyy-MM-dd");
                 String linkValue = item.path(profile.linkField()).asText("").trim();
                 String link = resolveJsonLink(source.noticeUrl(), profile.linkTemplate(), linkValue);
-                if (title.isBlank() || date == null || !isRecentPostedDate(date) || link == null) {
+                if (title.isBlank() && date == null && linkValue.isBlank()) {
+                    continue;
+                }
+                if (date != null && !isRecentPostedDate(date)) {
+                    continue;
+                }
+                if (title.isBlank() || date == null || link == null) {
                     invalidCount++;
                     continue;
                 }
@@ -918,7 +946,9 @@ class LocalGovernmentNoticeParserFullQaTest {
                     samples.add(title + " / " + date + " / " + link);
                 }
             }
-            return new ProfileResult(profile.profileCode(), items.size(), validCount, invalidCount, List.copyOf(samples));
+            return new ProfileResult(
+                    profile.profileCode(), validCount + invalidCount, validCount, invalidCount, List.copyOf(samples)
+            );
         } catch (IOException exception) {
             return new ProfileResult(profile.profileCode(), 0, 0, 1, List.of());
         }
@@ -1169,6 +1199,23 @@ class LocalGovernmentNoticeParserFullQaTest {
     }
 
     /**
+     * 날짜 또는 당일 신규 공고의 시각 전용 표기를 등록일로 변환합니다.
+     *
+     * @param text 날짜 또는 시각 문자열
+     * @param configuredPattern 파서 날짜 패턴
+     * @return 변환된 등록일 또는 null
+     */
+    private LocalDate parsePostedDate(String text, String configuredPattern) {
+        LocalDate parsedDate = parseDate(text, configuredPattern);
+        if (parsedDate != null) {
+            return parsedDate;
+        }
+        return text != null && TIME_ONLY_PATTERN.matcher(text).matches()
+                ? LocalDate.now()
+                : null;
+    }
+
+    /**
      * 운영 수집기와 동일한 규칙으로 날짜를 변환합니다.
      *
      * @param text 날짜 원문
@@ -1223,9 +1270,7 @@ class LocalGovernmentNoticeParserFullQaTest {
         if (best.validCount() == 0) {
             return "PARSER_UNSUPPORTED";
         }
-        double validRatio = best.discoveredCount() == 0
-                ? 0.0 : (double) best.validCount() / best.discoveredCount();
-        return validRatio >= 0.8 ? "PASS" : "PARTIAL";
+        return best.invalidCount() == 0 ? "PASS" : "PARTIAL";
     }
 
     /**

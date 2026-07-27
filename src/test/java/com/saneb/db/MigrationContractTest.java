@@ -1100,6 +1100,21 @@ class MigrationContractTest {
     }
 
     /**
+     * 새올 셀 클릭형 파서가 상위 레이아웃 행을 공고 행으로 중복 선택하지 않는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v59MigrationSelectsOnlyDirectSaeolNoticeRows() throws IOException {
+        String sql = selectV59Migration();
+
+        assertThat(sql).contains(
+                "profile_code = 'SAFE_SAEOL_EMINWON_CELL'",
+                "tr:has(> td:nth-of-type(3)[onclick*=searchDetail])"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -1736,6 +1751,19 @@ class MigrationContractTest {
     private String selectV58Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V58__separate_official_notice_links_from_collection_endpoints.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V59 migration을 UTF-8로 조회합니다.
+     *
+     * @return V59 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV59Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V59__tighten_local_government_notice_row_detection.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

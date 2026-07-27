@@ -86,7 +86,7 @@ saneb:
         api-key: ${GOV24_PUBLIC_SERVICE_API_KEY:}
         timeout-millis: ${GOV24_PUBLIC_SERVICE_API_TIMEOUT_MILLIS:5000}
     local-government:
-      timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_TIMEOUT_MILLIS:8000}
+      timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_TIMEOUT_MILLIS:15000}
       max-response-bytes: ${SANEB_LOCAL_GOV_NOTICE_MAX_RESPONSE_BYTES:2097152}
       max-concurrency: ${SANEB_LOCAL_GOV_NOTICE_MAX_CONCURRENCY:4}
       user-agent: ${SANEB_LOCAL_GOV_NOTICE_USER_AGENT:saneB-notice-collector/1.0}

@@ -20,7 +20,10 @@ import com.saneb.domain.announcementsource.localgov.support.LocalGovernmentNotic
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeParserProfileRow;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow;
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -55,6 +58,39 @@ class LocalGovernmentNoticeCollectorTest {
     void parseDateConvertsTwoDigitYear() {
         assertThat(collector.parseDate("등록일 26.07.13", null))
                 .isEqualTo(LocalDate.of(2026, 7, 13));
+    }
+
+    /**
+     * 당일 신규 공고의 시각 전용 표기는 서울 기준 오늘 등록일로 변환합니다.
+     */
+    @Test
+    void parsePostedDateConvertsTimeOnlyValueToToday() {
+        assertThat(collector.parsePostedDate("15:36:26", "yyyy-MM-dd"))
+                .isEqualTo(LocalDate.now(ZoneId.of("Asia/Seoul")));
+    }
+
+    /**
+     * 제한시간 초과와 네트워크 연결 오류를 모두 전송 재시도 대상으로 분류합니다.
+     */
+    @Test
+    void isRetryableTransportFailureIncludesNetworkErrors() {
+        assertThat(collector.isRetryableTransportFailure(selectFailureOutcome("RETRYABLE"))).isTrue();
+        assertThat(collector.isRetryableTransportFailure(selectFailureOutcome("NETWORK_ERROR"))).isTrue();
+        assertThat(collector.isRetryableTransportFailure(selectFailureOutcome("HTTP_ERROR"))).isFalse();
+    }
+
+    /**
+     * DNS 조회 실패를 원문 없이 안전한 운영 진단 코드로 변환합니다.
+     */
+    @Test
+    void selectNetworkFailureClassifiesUnknownHost() {
+        LocalGovernmentNoticeCollectionOutcome result = collector.selectNetworkFailure(
+                UUID.randomUUID(),
+                new IOException("wrapped", new UnknownHostException("private-host.example"))
+        );
+
+        assertThat(result.errorCode()).isEqualTo("DNS_LOOKUP_FAILED");
+        assertThat(result.errorMessage()).isEqualTo("기관 사이트 주소를 조회하지 못했습니다.");
     }
 
     /**
@@ -154,6 +190,43 @@ class LocalGovernmentNoticeCollectorTest {
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().getFirst().sourceUrl())
                 .isEqualTo("https://example.go.kr/notices/view?id=100");
+    }
+
+    /**
+     * 최근 수집 범위를 벗어난 과거 JSON 공고는 필드 누락 실패로 계산하지 않습니다.
+     */
+    @Test
+    void parseJsonDocumentSkipsOldNoticeWithoutPartialFailure() {
+        UUID sourceId = UUID.randomUUID();
+        LocalGovernmentNoticeSourceRow source = new LocalGovernmentNoticeSourceRow(
+                sourceId, "LGS-TEST", "11", "서울", "110", "테스트구", "LOCAL_GOVERNMENT", "테스트기관",
+                "https://example.go.kr", "https://example.go.kr/notices/", "https://example.go.kr/api/notices",
+                "json", "DEFAULT", "GET", null, "TEST_JSON", "테스트 JSON", null, "HIGH", "VERIFIED",
+                "GENERAL_NOTICE", "KEYWORD_FILTERED", true, null, null, "테스트 의미 검증",
+                false, "READY", null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null
+        );
+        LocalGovernmentNoticeParserProfileRow profile = new LocalGovernmentNoticeParserProfileRow(
+                "TEST_JSON", "테스트 JSON", "GENERIC_JSON", null, null, null, null, "yyyy-MM-dd",
+                "JSON", "items", "title", "date", "id", "/notices/view?id={value}",
+                "AUTO", null, null, null, true
+        );
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        byte[] body = ("""
+                {"items":[
+                  {"title":"최근 지원사업 공고","date":"%s","id":"100"},
+                  {"title":"과거 지원사업 공고","date":"%s","id":"99"}
+                ]}
+                """.formatted(today.minusDays(1), today.minusYears(2))).getBytes(StandardCharsets.UTF_8);
+
+        LocalGovernmentNoticeCollectionOutcome result = collector.parseJsonDocument(
+                source, profile, body, 200, null, null, "fingerprint"
+        );
+
+        assertThat(result.resultStatusCode()).isEqualTo("SUCCESS");
+        assertThat(result.discoveredCount()).isEqualTo(1);
+        assertThat(result.failedCount()).isZero();
+        assertThat(result.items()).hasSize(1);
     }
 
     /**
@@ -296,6 +369,19 @@ class LocalGovernmentNoticeCollectorTest {
         assertThat(result.absoluteLink())
                 .startsWith("https://eminwon.seogu.go.kr/")
                 .endsWith("not_ancmt_mgt_no=51276");
+    }
+
+    /**
+     * 전송 재시도 판정용 실패 결과를 생성합니다.
+     *
+     * @param errorCode 검사할 오류 코드
+     * @return 실패 수집 결과
+     */
+    private LocalGovernmentNoticeCollectionOutcome selectFailureOutcome(String errorCode) {
+        return new LocalGovernmentNoticeCollectionOutcome(
+                UUID.randomUUID(), "FAILED", 0, 1, null, null, null,
+                null, errorCode, "테스트 오류", java.util.List.of()
+        );
     }
 
     /**

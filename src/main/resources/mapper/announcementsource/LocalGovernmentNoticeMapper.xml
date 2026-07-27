@@ -236,7 +236,8 @@
                          'DAEJEON_EMINWON_ITEMS_NOT_FOUND')
                         THEN 'PARSER_FAILED'
                     WHEN lgns.last_error_code IN (
-                         'RETRYABLE', 'NETWORK_ERROR', 'HTTP_ERROR', 'EMPTY_RESPONSE',
+                         'RETRYABLE', 'NETWORK_ERROR', 'DNS_LOOKUP_FAILED', 'TLS_HANDSHAKE_FAILED',
+                         'CONNECTION_REFUSED', 'CONNECTION_RESET', 'HTTP_ERROR', 'EMPTY_RESPONSE',
                          'COLLECTION_INTERRUPTED', 'URL_VALIDATION_FAILED', 'REDIRECT_URL_BLOCKED',
                          'TOO_MANY_REDIRECTS', 'REDIRECT_LOCATION_MISSING', 'ACCESS_BLOCKED'
                     )
@@ -482,7 +483,10 @@
                AND ass.semantic_status_code IN ('ACCEPTED', 'REVIEW_REQUIRED')) AS review_pending_count,
             count(1) FILTER (
                 WHERE lgns.deleted_at IS NULL
-                  AND lgns.last_error_code IN ('RETRYABLE', 'NETWORK_ERROR', 'HTTP_ERROR', 'EMPTY_RESPONSE')
+                  AND lgns.last_error_code IN (
+                      'RETRYABLE', 'NETWORK_ERROR', 'DNS_LOOKUP_FAILED', 'TLS_HANDSHAKE_FAILED',
+                      'CONNECTION_REFUSED', 'CONNECTION_RESET', 'HTTP_ERROR', 'EMPTY_RESPONSE'
+                  )
             ) AS transport_failure_count,
             count(1) FILTER (
                 WHERE lgns.deleted_at IS NULL

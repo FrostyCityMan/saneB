@@ -121,7 +121,8 @@ public record LocalGovernmentNoticeSourceResponse(
         }
         if (row.lastErrorCode() != null) {
             return switch (row.lastErrorCode()) {
-                case "RETRYABLE", "NETWORK_ERROR", "HTTP_ERROR", "EMPTY_RESPONSE",
+                case "RETRYABLE", "NETWORK_ERROR", "DNS_LOOKUP_FAILED", "TLS_HANDSHAKE_FAILED",
+                        "CONNECTION_REFUSED", "CONNECTION_RESET", "HTTP_ERROR", "EMPTY_RESPONSE",
                         "COLLECTION_INTERRUPTED", "URL_VALIDATION_FAILED", "REDIRECT_URL_BLOCKED",
                         "TOO_MANY_REDIRECTS", "REDIRECT_LOCATION_MISSING", "ACCESS_BLOCKED" -> "TRANSPORT_FAILED";
                 case "PARSER_ERROR", "PARSER_NOT_CONFIGURED", "LIST_SELECTOR_NOT_MATCHED",
@@ -145,8 +146,17 @@ public record LocalGovernmentNoticeSourceResponse(
      * @return 관리자용 진단 제목
      */
     private static String diagnosticTitle(LocalGovernmentNoticeSourceRow row) {
+        if ("TRANSPORT_FAILED".equals(diagnosticReason(row))) {
+            return switch (String.valueOf(row.lastErrorCode())) {
+                case "DNS_LOOKUP_FAILED" -> "기관 사이트 주소를 조회하지 못했습니다.";
+                case "TLS_HANDSHAKE_FAILED" -> "기관 사이트와 보안 연결을 협상하지 못했습니다.";
+                case "CONNECTION_REFUSED" -> "기관 사이트가 연결을 거부했습니다.";
+                case "CONNECTION_RESET" -> "기관 사이트가 연결을 중단했습니다.";
+                case "RETRYABLE" -> "기관 사이트 응답 시간이 초과되었습니다.";
+                default -> "기관 사이트에 연결하지 못했습니다.";
+            };
+        }
         return switch (String.valueOf(diagnosticReason(row))) {
-            case "TRANSPORT_FAILED" -> "기관 사이트에 연결하지 못했습니다.";
             case "PARSER_FAILED" -> "게시판 구조를 읽지 못했습니다.";
             case "PARTIAL_FIELDS" -> "일부 공고의 제목·등록일·링크가 누락되었습니다.";
             case "SEMANTIC_MISMATCH" -> "고시·공고 또는 지원사업 게시판으로 확인되지 않았습니다.";
@@ -163,8 +173,17 @@ public record LocalGovernmentNoticeSourceResponse(
      * @return 권장 조치
      */
     private static String recommendedAction(LocalGovernmentNoticeSourceRow row) {
+        if ("TRANSPORT_FAILED".equals(diagnosticReason(row))) {
+            return switch (String.valueOf(row.lastErrorCode())) {
+                case "DNS_LOOKUP_FAILED" -> "기관 공식 주소와 운영 서버 DNS 조회 상태를 확인하세요.";
+                case "TLS_HANDSHAKE_FAILED" -> "기관 사이트의 TLS 지원 방식과 요청 프로필을 재검증하세요.";
+                case "CONNECTION_REFUSED" -> "기관 방화벽·접근 제한과 공식 대체 URL을 확인하세요.";
+                case "CONNECTION_RESET" -> "기관의 자동수집 차단 여부와 요청 간격을 확인한 뒤 재수집하세요.";
+                case "RETRYABLE" -> "응답 제한시간 후 단일 URL로 다시 수집하세요.";
+                default -> "기관 사이트 접속 상태와 차단 여부를 확인한 뒤 다시 수집하세요.";
+            };
+        }
         return switch (String.valueOf(diagnosticReason(row))) {
-            case "TRANSPORT_FAILED" -> "기관 사이트 접속 상태와 차단 여부를 확인한 뒤 다시 수집하세요.";
             case "PARSER_FAILED" -> "원문 바로가기에서 게시판 구조를 확인하고 기존 파서 설정을 재검증하세요.";
             case "PARTIAL_FIELDS" -> "누락된 행의 제목, 등록일, 원문 링크 선택자를 확인하세요.";
             case "SEMANTIC_MISMATCH" -> "공식 고시·공고 또는 지원사업 URL로 보정하고 의미 검증을 완료하세요.";
