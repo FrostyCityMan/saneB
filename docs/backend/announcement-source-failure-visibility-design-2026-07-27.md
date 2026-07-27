@@ -404,6 +404,7 @@ DB에 저장된 `error_code`와 `error_message`를 원본으로 유지하고, �
 | `PARTIAL_FIELDS` | 제목·등록일·원문 URL 일부 또는 전체 누락 |
 | `SEMANTIC_MISMATCH` | 보도자료, 미확인 출처, 게시판 유형 불일치 |
 | `IRRELEVANT_CONTENT` | 일반 공지 정적 키워드 판정으로 제외된 게시물 |
+| `PROCESSING_FAILED` | 출처 수집·정적 의미 판정 중 내부 처리 예외 |
 | `UNCLASSIFIED_ERROR` | 정의되지 않은 원본 오류 코드가 남아 있어 추가 분류가 필요한 상태 |
 
 `TRANSPORT_FAILED`는 상위 필터 계약을 유지하면서 원본 오류를 다음과 같이 세분화한다.
@@ -417,7 +418,7 @@ DB에 저장된 `error_code`와 `error_message`를 원본으로 유지하고, �
 | `RETRYABLE` | 응답 제한시간 초과 또는 일시적 서버 오류 |
 | `NETWORK_ERROR` | 위 유형으로 안전하게 분류되지 않은 네트워크 오류 |
 
-stack trace와 원문 예외 메시지는 DB·API·화면에 저장하지 않는다. 관리자는 한글 진단 제목과 코드별 권장 조치만 확인한다.
+stack trace와 원문 예외 메시지는 DB·API 응답에 저장하지 않는다. 관리자는 출처 화면에서 한글 진단 제목과 코드별 권장 조치를 확인하고, 필요한 경우 관리자 전용 앱 로그에서 실행 ID와 출처 관리코드로 ERROR 로그를 추적한다.
 
 구현된 additive 계약은 다음과 같다.
 

@@ -26,12 +26,16 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionReques
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements AnnouncementSourceProviderClient {
 
     private static final String PROVIDER_CODE = "LOCAL_GOV_NOTICE";
+    private static final Logger log =
+            LoggerFactory.getLogger(LocalGovernmentNoticeAnnouncementSourceProviderClient.class);
 
     private final LocalGovernmentNoticeDao localGovernmentNoticeDao;
     private final LocalGovernmentNoticeCollector collector;
@@ -102,12 +106,25 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
         int failedCount = 0;
         int failedSourceCount = 0;
         for (LocalGovernmentNoticeSourceRow source : selectTargetSources(request)) {
-            LocalGovernmentNoticeParserProfileRow profile = localGovernmentNoticeDao.selectParserProfileDetails(
-                    source.parserProfileCode()
-            );
-            LocalGovernmentNoticeCollectionOutcome outcome = collector.collect(source, profile);
-            List<AnnouncementSourceProviderItem> classifiedItems =
-                    applySemanticDecisions(source, outcome.items(), rules);
+            LocalGovernmentNoticeCollectionOutcome outcome;
+            List<AnnouncementSourceProviderItem> classifiedItems;
+            try {
+                LocalGovernmentNoticeParserProfileRow profile = localGovernmentNoticeDao.selectParserProfileDetails(
+                        source.parserProfileCode()
+                );
+                outcome = collector.collect(source, profile);
+                classifiedItems = applySemanticDecisions(source, outcome.items(), rules);
+            } catch (RuntimeException exception) {
+                log.error(
+                        "지자체 공고 출처 처리에 실패했습니다. runId={}, sourceCode={}, exceptionType={}",
+                        runId,
+                        source.publicCode(),
+                        exception.getClass().getSimpleName(),
+                        exception
+                );
+                outcome = selectProcessingFailure(source);
+                classifiedItems = List.of();
+            }
             items.addAll(classifiedItems);
             failedCount += outcome.failedCount();
             if (isFailedStatus(outcome.resultStatusCode())) {
@@ -128,6 +145,30 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
                 ? failedSourceCount + "개 기관 URL 수집에 실패했습니다. URL별 결과를 확인하세요."
                 : null;
         return new AnnouncementSourceProviderBatch(List.copyOf(items), failedCount, errorMessage);
+    }
+
+    /**
+     * 출처별 내부 처리 예외를 원문 없이 관리자 진단 결과로 변환합니다.
+     *
+     * @param source 처리 중이던 지자체 출처
+     * @return 안전한 내부 처리 실패 결과
+     */
+    private LocalGovernmentNoticeCollectionOutcome selectProcessingFailure(
+            LocalGovernmentNoticeSourceRow source
+    ) {
+        return new LocalGovernmentNoticeCollectionOutcome(
+                source.sourceId(),
+                "FAILED",
+                0,
+                1,
+                null,
+                null,
+                null,
+                null,
+                "PROCESSING_FAILED",
+                "기관 공고를 처리하는 중 내부 오류가 발생했습니다.",
+                List.of()
+        );
     }
 
     /**

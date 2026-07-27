@@ -1059,9 +1059,11 @@ Member / Business / Family API skeleton 착수 기준:
 | `POST` | `/api/v1/admin/announcement-source-collection-schedules` | `OPERATOR`, `ADMIN` | 승인 대기 정기 일정 생성 |
 | `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
 
-출처 목록의 선택 query parameter는 `sourceBoardTypeCode`, `collectionPolicyCode`, `semanticallyVerified`, `diagnosticReasonCode`다. `diagnosticReasonCode`는 `TRANSPORT_FAILED`, `PARSER_FAILED`, `PARTIAL_FIELDS`, `SEMANTIC_MISMATCH`, `IRRELEVANT_CONTENT`, `UNCLASSIFIED_ERROR`를 지원한다. `UNCLASSIFIED_ERROR`는 원본 오류 코드를 유지하면서 미정의 오류를 접속 실패로 오분류하지 않기 위한 안전한 관리자 진단값이다. 수집 실행 상세 응답은 기존 `run`, `items`를 유지하고 URL별 `sourceResults[]`를 추가한다.
+출처 목록의 선택 query parameter는 `sourceBoardTypeCode`, `collectionPolicyCode`, `semanticallyVerified`, `diagnosticReasonCode`다. `diagnosticReasonCode`는 `TRANSPORT_FAILED`, `PARSER_FAILED`, `PARTIAL_FIELDS`, `SEMANTIC_MISMATCH`, `IRRELEVANT_CONTENT`, `PROCESSING_FAILED`, `UNCLASSIFIED_ERROR`를 지원한다. `PROCESSING_FAILED`는 수집·의미 판정 중 예기치 않은 내부 예외가 발생한 출처를 실행 결과에서 누락하지 않기 위한 관리자 진단값이다. `UNCLASSIFIED_ERROR`는 원본 오류 코드를 유지하면서 미정의 오류를 접속 실패로 오분류하지 않기 위한 안전한 관리자 진단값이다. 수집 실행 상세 응답은 기존 `run`, `items`를 유지하고 URL별 `sourceResults[]`를 추가한다.
 
 `TRANSPORT_FAILED`의 원본 `errorCode`는 기존 `RETRYABLE`, `NETWORK_ERROR`, `HTTP_ERROR`와 함께 `DNS_LOOKUP_FAILED`, `TLS_HANDSHAKE_FAILED`, `CONNECTION_REFUSED`, `CONNECTION_RESET`을 지원한다. 응답에는 stack trace나 기관 응답 본문을 넣지 않고 각 코드에 대응하는 한글 진단 제목과 운영 조치만 반환한다. 네트워크 오류와 제한시간 초과는 최대 3회 재시도하며 기본 제한시간은 15초다.
+
+출처 처리 중 내부 예외가 발생하면 URL별 결과는 `resultStatusCode=FAILED`, `errorCode=PROCESSING_FAILED`로 저장한다. 사용자 화면에는 노출하지 않으며 관리자 화면에는 안전한 안내만 반환한다. 원문 예외는 DB나 API 응답에 저장하지 않고 서버 ERROR 로그에서 실행 ID와 출처 관리코드로 추적한다.
 
 신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
 

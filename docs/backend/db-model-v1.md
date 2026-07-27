@@ -345,6 +345,8 @@ V58은 운영 활성화 시 DNS 검증이 실패한 밀양시·함양군의 사�
 
 V59는 `SAFE_SAEOL_EMINWON_CELL`의 행 selector를 직접 자식 제목 셀 기준으로 좁혀 중첩 레이아웃 행을 수집 대상에서 제외한다. schema나 기존 원문·실행 이력은 변경하지 않으며 파서 프로필 설정만 additive migration으로 보정한다. 수집기는 과거 공고와 빈 레이아웃 행을 실패 건수에서 제외하고 실제 현재 후보 행의 필수값 누락만 `PARTIAL_FAILED`로 저장한다.
 
+출처별 수집·의미 판정 중 예기치 않은 내부 예외는 `announcement_source_collection_source_results.error_code='PROCESSING_FAILED'`로 남긴다. 원문 예외나 stack trace는 이 테이블에 저장하지 않으며 실행 ID와 출처 관리코드만 서버 ERROR 로그의 추적 키로 사용한다.
+
 지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.
 
 운영 공고 DRAFT 생성 직후 수집 원문은 `CONDITION_INPUT_REQUIRED`다. 대표 대상, 자격 조건, 진행 단계, 행동카드, 안내 문구를 입력·검수하고 운영 공고가 승인되어 정상 노출될 때만 `ACTIVATED`로 전환한다.

@@ -76,6 +76,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -84,6 +86,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AnnouncementSourceServiceImpl implements AnnouncementSourceService {
 
+    private static final Logger log = LoggerFactory.getLogger(AnnouncementSourceServiceImpl.class);
     private static final Set<String> PROVIDER_CODES = Set.of("BIZINFO", "GOV24_PUBLIC_SERVICE", "LOCAL_GOV_NOTICE");
     private static final Set<String> REQUEST_TYPE_CODES = Set.of("BATCH", "MANUAL");
     private static final Set<String> APPROVAL_STATUS_CODES = Set.of("APPROVED", "REJECTED", "CANCELED", "EXPIRED");
@@ -409,7 +412,14 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             }
         } catch (RuntimeException exception) {
             counter.failedCount++;
-            errorMessage = exception.getMessage();
+            errorMessage = "수집 실행을 처리하는 중 내부 오류가 발생했습니다. 관리자 로그를 확인하세요.";
+            log.error(
+                    "외부 공고 수집 실행에 실패했습니다. runId={}, requestId={}, exceptionType={}",
+                    runId,
+                    requestId,
+                    exception.getClass().getSimpleName(),
+                    exception
+            );
         }
 
         String runStatusCode = selectRunStatusCode(counter, errorMessage);

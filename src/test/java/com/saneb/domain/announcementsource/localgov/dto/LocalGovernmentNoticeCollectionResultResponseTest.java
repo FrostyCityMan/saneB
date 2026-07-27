@@ -71,6 +71,20 @@ class LocalGovernmentNoticeCollectionResultResponseTest {
     }
 
     /**
+     * 출처별 내부 처리 오류가 관리자용 독립 진단으로 변환되는지 검증합니다.
+     */
+    @Test
+    void processingFailureHasDedicatedDiagnostic() {
+        LocalGovernmentNoticeCollectionResultResponse response = LocalGovernmentNoticeCollectionResultResponse.from(
+                row("FAILED", 0, 0, "PROCESSING_FAILED")
+        );
+
+        assertThat(response.diagnosticReasonCode()).isEqualTo("PROCESSING_FAILED");
+        assertThat(response.diagnosticTitle()).isEqualTo("내부 처리 실패");
+        assertThat(response.recommendedAction()).contains("서버 오류 로그");
+    }
+
+    /**
      * 일부 행의 필수 필드 누락을 데이터 품질 문제로 분류합니다.
      */
     @Test

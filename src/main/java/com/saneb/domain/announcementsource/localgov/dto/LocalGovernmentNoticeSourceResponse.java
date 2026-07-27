@@ -130,6 +130,7 @@ public record LocalGovernmentNoticeSourceResponse(
                         "JSON_PARSER_NOT_CONFIGURED", "JSON_ITEMS_NOT_FOUND", "JSON_PARSE_ERROR",
                         "DAEJEON_EMINWON_ITEMS_NOT_FOUND" -> "PARSER_FAILED";
                 case "ITEM_FIELDS_MISSING", "JSON_ITEM_FIELDS_MISSING" -> "PARTIAL_FIELDS";
+                case "PROCESSING_FAILED" -> "PROCESSING_FAILED";
                 default -> "UNCLASSIFIED_ERROR";
             };
         }
@@ -161,6 +162,7 @@ public record LocalGovernmentNoticeSourceResponse(
             case "PARTIAL_FIELDS" -> "일부 공고의 제목·등록일·링크가 누락되었습니다.";
             case "SEMANTIC_MISMATCH" -> "고시·공고 또는 지원사업 게시판으로 확인되지 않았습니다.";
             case "IRRELEVANT_CONTENT" -> "지원사업과 무관한 게시물을 제외했습니다.";
+            case "PROCESSING_FAILED" -> "공고 수집 내부 처리에 실패했습니다.";
             case "UNCLASSIFIED_ERROR" -> "분류되지 않은 수집 오류가 발생했습니다.";
             default -> null;
         };
@@ -188,6 +190,7 @@ public record LocalGovernmentNoticeSourceResponse(
             case "PARTIAL_FIELDS" -> "누락된 행의 제목, 등록일, 원문 링크 선택자를 확인하세요.";
             case "SEMANTIC_MISMATCH" -> "공식 고시·공고 또는 지원사업 URL로 보정하고 의미 검증을 완료하세요.";
             case "IRRELEVANT_CONTENT" -> "정적 키워드 판정 결과를 확인하고 필요한 경우 키워드 규칙을 보정하세요.";
+            case "PROCESSING_FAILED" -> "실행 상세와 서버 오류 로그를 확인한 뒤 다시 수집하세요.";
             case "UNCLASSIFIED_ERROR" -> "저장된 오류 코드와 서버 로그를 확인한 뒤 분류 규칙을 보강하세요.";
             default -> null;
         };

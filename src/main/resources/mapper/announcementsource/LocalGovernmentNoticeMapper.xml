@@ -235,6 +235,8 @@
                          'JSON_PARSER_NOT_CONFIGURED', 'JSON_ITEMS_NOT_FOUND', 'JSON_PARSE_ERROR',
                          'DAEJEON_EMINWON_ITEMS_NOT_FOUND')
                         THEN 'PARSER_FAILED'
+                    WHEN lgns.last_error_code = 'PROCESSING_FAILED'
+                        THEN 'PROCESSING_FAILED'
                     WHEN lgns.last_error_code IN (
                          'RETRYABLE', 'NETWORK_ERROR', 'DNS_LOOKUP_FAILED', 'TLS_HANDSHAKE_FAILED',
                          'CONNECTION_REFUSED', 'CONNECTION_RESET', 'HTTP_ERROR', 'EMPTY_RESPONSE',

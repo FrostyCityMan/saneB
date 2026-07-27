@@ -103,6 +103,7 @@
         PARTIAL_FIELDS: "필드 누락",
         SEMANTIC_MISMATCH: "게시판 불일치",
         IRRELEVANT_CONTENT: "무관 게시물 제외",
+        PROCESSING_FAILED: "내부 처리 실패",
         UNCLASSIFIED_ERROR: "분류되지 않은 오류"
     };
 
