@@ -80,6 +80,19 @@ class LocalGovernmentNoticeCollectorTest {
     }
 
     /**
+     * 정상 수집 결과의 빈 오류 코드가 재시도 판정에서 예외를 만들지 않는지 검증합니다.
+     */
+    @Test
+    void successfulOutcomeWithNoErrorCodeIsNotRetryable() {
+        LocalGovernmentNoticeCollectionOutcome outcome = new LocalGovernmentNoticeCollectionOutcome(
+                UUID.randomUUID(), "SUCCESS", 1, 0, 200, null, null,
+                "fingerprint", null, null, java.util.List.of()
+        );
+
+        assertThat(collector.isRetryableTransportFailure(outcome)).isFalse();
+    }
+
+    /**
      * DNS 조회 실패를 원문 없이 안전한 운영 진단 코드로 변환합니다.
      */
     @Test

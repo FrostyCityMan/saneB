@@ -277,6 +277,7 @@ public class LocalGovernmentNoticeCollector {
      */
     boolean isRetryableTransportFailure(LocalGovernmentNoticeCollectionOutcome outcome) {
         return outcome != null
+                && outcome.errorCode() != null
                 && Set.of(
                         "RETRYABLE",
                         "NETWORK_ERROR",
