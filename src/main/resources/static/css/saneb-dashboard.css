@@ -4146,12 +4146,20 @@ svg {
     padding: 12px 14px;
 }
 
+.admin-collection-metrics div {
+    padding-inline: 10px;
+}
+
 .admin-collection-metrics dt,
 .admin-automation-status span {
     display: block;
     color: var(--saneb-muted);
     font-size: 12px;
     font-weight: 750;
+}
+
+.admin-collection-metrics dt {
+    white-space: nowrap;
 }
 
 .admin-collection-metrics dd,
