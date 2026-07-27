@@ -1019,8 +1019,7 @@ class MigrationContractTest {
                 "http://eminwon.seongnam.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
                 "request_method_code = 'POST_FORM'",
                 "'LGS-000094'",
-                "http://eminwon.anyang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
-                "'SAFE_SAEOL_EMINWON_CELL'",
+                "https://www.anyang.go.kr/main/emwsWebList.do",
                 "'LGS-000122'",
                 "https://www.sokcho.go.kr/sc/portal/sokchonews/notification",
                 "http://eminwon.sokcho.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
@@ -1038,6 +1037,45 @@ class MigrationContractTest {
                 "request_profile_code = 'BROWSER_HTTP1'",
                 "validation_status_code = 'VERIFIED'",
                 "collection_status_code = 'READY'",
+                "is_enabled = false"
+        );
+    }
+
+    /**
+     * 안양시·밀양시·함양군의 공식 고시·공고 URL 및 기존 공통 파서 재사용 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v57MigrationCorrectsMiryangAndHamyangOfficialNoticeSources() throws IOException {
+        String sql = selectV57Migration();
+
+        assertThat(sql).contains(
+                "'LGS-000094'",
+                "https://www.anyang.go.kr/main/selectEminwonList.do",
+                "parser_profile_code = 'SPRING_BBS'",
+                "'LGS-000229'",
+                "https://miryang.go.kr/web/eMiryangMinwonList.do",
+                "parser_profile_code = 'SPRING_BBS'",
+                "'LGS-000239'",
+                "https://eminwon.hygn.go.kr/emwp/jsp/ofr/OfrNotAncmtLSub.jsp",
+                "'LGS-000230'",
+                "https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001&startPage=1",
+                "'LGS-000059'",
+                "https://biz.namdong.go.kr/main/news/announce.jsp",
+                "'LGS-000122'",
+                "https://www.sokcho.go.kr/sc/portal/sokchonews/notification",
+                "https://eminwon.hygn.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
+                "parser_profile_code = 'SAFE_SAEOL_EMINWON'",
+                "request_method_code = 'POST_FORM'",
+                "\"not_ancmt_se_code\":\"01,02,03,04,07\"",
+                "source_board_type_code = 'LEGAL_NOTICE'",
+                "collection_policy_code = 'COLLECT_ALL'",
+                "'TLS12_BROWSER'",
+                "request_profile_code = 'TLS12_BROWSER'",
+                "WHERE public_code IN ('LGS-000094')",
+                "WHERE public_code IN ('LGS-000059', 'LGS-000078', 'LGS-000229', 'LGS-000239')",
+                "WHERE public_code IN ('LGS-000122')",
                 "is_enabled = false"
         );
     }
@@ -1653,6 +1691,19 @@ class MigrationContractTest {
     private String selectV55Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V55__recover_remaining_local_government_notice_sources.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V57 migration을 UTF-8로 조회합니다.
+     *
+     * @return V57 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV57Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V57__correct_miryang_hamyang_official_notice_sources.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

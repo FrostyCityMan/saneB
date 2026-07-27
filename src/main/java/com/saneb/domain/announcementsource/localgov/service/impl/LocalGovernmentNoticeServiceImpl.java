@@ -72,7 +72,7 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             "COLLECT_ALL", "KEYWORD_FILTERED", "EXCLUDED"
     );
     private static final Set<String> REQUEST_PROFILE_CODES = Set.of(
-            "DEFAULT", "BROWSER_HTTP1", "LEGACY_BROWSER"
+            "DEFAULT", "BROWSER_HTTP1", "LEGACY_BROWSER", "TLS12_BROWSER", "SESSION_BROWSER"
     );
     private static final Set<String> SCHEDULE_STATUS_CODES = Set.of("APPROVED", "PAUSED", "REJECTED", "EXPIRED");
 

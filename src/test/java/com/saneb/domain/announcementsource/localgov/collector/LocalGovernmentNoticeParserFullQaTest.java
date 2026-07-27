@@ -58,6 +58,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -71,6 +72,7 @@ class LocalGovernmentNoticeParserFullQaTest {
 
     private static final int EXPECTED_SOURCE_COUNT = 244;
     private static final int QA_CONCURRENCY = 4;
+    private static final int MAX_TRANSPORT_ATTEMPTS = 3;
     private static final int SESSION_BOOTSTRAP_ATTEMPTS = 4;
     private static final long RETRY_DELAY_MILLIS = 750L;
     private static final int MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
@@ -103,6 +105,10 @@ class LocalGovernmentNoticeParserFullQaTest {
             "SET request_profile_code = 'LEGACY_BROWSER'.*?WHERE public_code IN \\((.*?)\\)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern TLS12_BROWSER_BLOCK_PATTERN = Pattern.compile(
+            "SET request_profile_code = 'TLS12_BROWSER'.*?WHERE public_code IN \\((.*?)\\)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+    );
     private static final Pattern SESSION_BROWSER_BLOCK_PATTERN = Pattern.compile(
             "SET request_profile_code = 'SESSION_BROWSER'.*?WHERE public_code IN \\((.*?)\\)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
@@ -123,8 +129,10 @@ class LocalGovernmentNoticeParserFullQaTest {
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGAL_SOURCE_URL_PATTERN = Pattern.compile(
-            ".*(eminwon|emwp|emws|saeol/gosi|selectgosi|/gosi([/.?]|$)|publicnotice|searchgosi"
-                    + "|ofraction|notancmt|not_ancmt|seolcontent|section=gosi|bcd=gosi).*",
+            ".*(eminwon|emiryangminwon|emwp|emws|saeol/gosi|selectgosi|/gosi([/.?]|$)|publicnotice|searchgosi"
+                    + "|ofraction|notancmt|not_ancmt|seolcontent|section=gosi|bcd=gosi"
+                    + "|DOM_000008902001002001|main/news/announce\\.jsp"
+                    + "|sc/portal/sokchonews/notification).*",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern PRESS_BOARD_PATTERN = Pattern.compile(
@@ -155,6 +163,13 @@ class LocalGovernmentNoticeParserFullQaTest {
                     + "&title=%EA%B3%A0%EC%8B%9C%EA%B3%B5%EA%B3%A0&cha_dep_code_nm=&initValue="
                     + "&countYn=Y&list_gubun=&not_ancmt_sj=&cgg_code=&not_ancmt_cn=&dept_nm="
                     + "&epcCheck=Y&yyyy=&nodate_recent_mm=&ofr_pageSize=10&Key=B_Subject&temp="
+            ,
+            "LGS-000239",
+            "pageIndex=1&jndinm=OfrNotAncmtEJB&context=NTIS&method=selectListOfrNotAncmt"
+                    + "&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_mgt_no=&homepage_pbs_yn=Y"
+                    + "&subCheck=Y&not_ancmt_se_code=01%2C02%2C03%2C04%2C07"
+                    + "&title=%EA%B3%A0%EC%8B%9C%EA%B3%B5%EA%B3%A0&cha_dep_code_nm=&initValue="
+                    + "&countYn=Y&list_gubun=&not_ancmt_sj=&ofr_pageSize=10&yyyy="
     );
     private static final List<ParserProfile> PROFILES = List.of(
             new ParserProfile("SAEOL_GOSI", "table tbody tr", "td a", "td:last-child", "td a", "yyyy-MM-dd", "AUTO", null, null, null),
@@ -476,6 +491,7 @@ class LocalGovernmentNoticeParserFullQaTest {
     private final SSLContext windowsSslContext = selectWindowsSslContext();
     private final HttpClient defaultHttpClient = createHttpClient(null);
     private final HttpClient browserHttp1Client = createHttpClient(HttpClient.Version.HTTP_1_1);
+    private final HttpClient tls12HttpClient = createTls12HttpClient();
     private final CookieManager sessionCookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
     private final HttpClient sessionBrowserHttpClient = createSessionHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -567,23 +583,26 @@ class LocalGovernmentNoticeParserFullQaTest {
     }
 
     /**
-     * 일시적 통신 실패만 한 번 재시도하고 지속적인 HTTP 또는 파서 오류는 그대로 반환합니다.
+     * 일시적 통신 실패만 지연을 두고 최대 세 번 요청하며 파서·의미 오류는 재시도하지 않습니다.
      *
      * @param source 지자체 URL seed
      * @return 최종 QA 결과
      */
     private QaResult inspectWithRetry(SourceSeed source) {
-        QaResult result = inspect(source);
-        if (!isRetryableTransportFailure(result)) {
-            return result;
+        QaResult result = null;
+        for (int attempt = 1; attempt <= MAX_TRANSPORT_ATTEMPTS; attempt++) {
+            result = inspect(source);
+            if (!isRetryableTransportFailure(result) || attempt == MAX_TRANSPORT_ATTEMPTS) {
+                return result;
+            }
+            try {
+                Thread.sleep(RETRY_DELAY_MILLIS * attempt);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                return result;
+            }
         }
-        try {
-            Thread.sleep(RETRY_DELAY_MILLIS);
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            return result;
-        }
-        return inspect(source);
+        return result;
     }
 
     /**
@@ -1357,6 +1376,7 @@ class LocalGovernmentNoticeParserFullQaTest {
         Map<String, String> collectionEndpoints = selectCollectionEndpointMap(hardeningMigration);
         Set<String> browserHttp1Sources = selectBrowserHttp1SourceCodes(hardeningMigration);
         Set<String> legacyBrowserSources = selectLegacyBrowserSourceCodes(hardeningMigration);
+        Set<String> tls12BrowserSources = selectTls12BrowserSourceCodes(hardeningMigration);
         Set<String> sessionBrowserSources = selectSessionBrowserSourceCodes(hardeningMigration);
         Matcher blockMatcher = SOURCE_INSERT_PATTERN.matcher(migration);
         List<SourceSeed> sources = new ArrayList<>();
@@ -1373,6 +1393,8 @@ class LocalGovernmentNoticeParserFullQaTest {
                      collectionEndpoints.get(publicCode),
                      sessionBrowserSources.contains(publicCode)
                              ? "SESSION_BROWSER"
+                             : tls12BrowserSources.contains(publicCode)
+                             ? "TLS12_BROWSER"
                              : legacyBrowserSources.contains(publicCode)
                              ? "LEGACY_BROWSER"
                              : browserHttp1Sources.contains(publicCode) || collectionEndpoints.containsKey(publicCode)
@@ -1460,6 +1482,21 @@ class LocalGovernmentNoticeParserFullQaTest {
      */
     private Set<String> selectLegacyBrowserSourceCodes(String migration) {
         Matcher blockMatcher = LEGACY_BROWSER_BLOCK_PATTERN.matcher(migration);
+        Set<String> sourceCodes = new HashSet<>();
+        while (blockMatcher.find()) {
+            sourceCodes.addAll(selectSqlStrings(blockMatcher.group(1)));
+        }
+        return Set.copyOf(sourceCodes);
+    }
+
+    /**
+     * V32 이후 migration에서 TLS 1.2 고정 요청 적용 대상을 읽습니다.
+     *
+     * @param migration V32 이후 migration 원문
+     * @return 관리코드 집합
+     */
+    private Set<String> selectTls12BrowserSourceCodes(String migration) {
+        Matcher blockMatcher = TLS12_BROWSER_BLOCK_PATTERN.matcher(migration);
         Set<String> sourceCodes = new HashSet<>();
         while (blockMatcher.find()) {
             sourceCodes.addAll(selectSqlStrings(blockMatcher.group(1)));
@@ -1796,6 +1833,7 @@ class LocalGovernmentNoticeParserFullQaTest {
     private boolean usesBrowserCompatibleRequest(SourceSeed source) {
         return "BROWSER_HTTP1".equals(source.requestProfileCode())
                 || "LEGACY_BROWSER".equals(source.requestProfileCode())
+                || "TLS12_BROWSER".equals(source.requestProfileCode())
                 || usesSessionBrowser(source);
     }
 
@@ -1845,6 +1883,25 @@ class LocalGovernmentNoticeParserFullQaTest {
     }
 
     /**
+     * TLS 1.2만 허용하는 구형 공공 HTTPS QA 클라이언트를 생성합니다.
+     *
+     * @return TLS 1.2 전용 QA 클라이언트
+     */
+    private HttpClient createTls12HttpClient() {
+        SSLParameters sslParameters = new SSLParameters();
+        sslParameters.setProtocols(new String[]{"TLSv1.2"});
+        HttpClient.Builder builder = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(20))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .version(HttpClient.Version.HTTP_1_1)
+                .sslParameters(sslParameters);
+        if (windowsSslContext != null) {
+            builder.sslContext(windowsSslContext);
+        }
+        return builder.build();
+    }
+
+    /**
      * Windows 인증서 저장소를 QA TLS 연결에 사용할 수 있도록 SSLContext를 생성합니다.
      *
      * @return Windows SSLContext, 사용할 수 없으면 null
@@ -1877,6 +1934,9 @@ class LocalGovernmentNoticeParserFullQaTest {
     private HttpClient selectHttpClient(SourceSeed source) {
         if (usesSessionBrowser(source)) {
             return sessionBrowserHttpClient;
+        }
+        if ("TLS12_BROWSER".equals(source.requestProfileCode())) {
+            return tls12HttpClient;
         }
         return "BROWSER_HTTP1".equals(source.requestProfileCode()) ? browserHttp1Client : defaultHttpClient;
     }

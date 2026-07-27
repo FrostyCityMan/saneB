@@ -161,7 +161,9 @@ class FlywayMigrationIntegrationTest {
                     where version = '45'
                       and success = true
                     """)).isEqualTo(1);
-            for (String version : List.of("46", "47", "48", "49", "50", "51", "52", "53", "54", "55")) {
+            for (String version : List.of(
+                    "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57"
+            )) {
                 assertThat(selectLong(statement, """
                         select count(1)
                         from flyway_schema_history
@@ -205,17 +207,22 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code = 'HEURISTIC_NOTICE'
-                    """)).isEqualTo(36);
+                    """)).isEqualTo(35);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'BROWSER_HTTP1'
-                    """)).isEqualTo(27);
+                    """)).isEqualTo(29);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'LEGACY_BROWSER'
-                    """)).isEqualTo(9);
+                    """)).isEqualTo(10);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where request_profile_code = 'TLS12_BROWSER'
+                    """)).isEqualTo(1);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
@@ -236,6 +243,30 @@ class FlywayMigrationIntegrationTest {
                     from local_government_notice_sources
                     where request_method_code = 'POST_FORM'
                       and request_form_json is not null
+                    """)).isEqualTo(2);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where source_board_type_code = 'LEGAL_NOTICE'
+                      and collection_policy_code = 'COLLECT_ALL'
+                    """)).isEqualTo(30);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where source_board_type_code = 'GENERAL_NOTICE'
+                      and collection_policy_code = 'KEYWORD_FILTERED'
+                    """)).isEqualTo(203);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where source_board_type_code = 'SUPPORT_RECRUITMENT'
+                      and collection_policy_code = 'COLLECT_ALL'
+                    """)).isEqualTo(10);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where source_board_type_code = 'PRESS_RELEASE'
+                      and collection_policy_code = 'EXCLUDED'
                     """)).isEqualTo(1);
             assertThat(selectText(statement, """
                     select parser_profile_code
@@ -247,6 +278,42 @@ class FlywayMigrationIntegrationTest {
                     from local_government_notice_sources
                     where public_code = 'LGS-000011'
                     """)).isEqualTo("https://www.dobong.go.kr/bbs.asp?code=10008769");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000229'
+                    """)).startsWith("https://miryang.go.kr/web/eMiryangMinwonList.do");
+            assertThat(selectText(statement, """
+                    select collection_endpoint_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000239'
+                    """)).isEqualTo(
+                    "https://eminwon.hygn.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do"
+            );
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000239'
+                    """)).isEqualTo("SAFE_SAEOL_EMINWON");
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000094'
+                    """)).isEqualTo("SPRING_BBS");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000230'
+                    """)).isEqualTo(
+                    "https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001&startPage=1"
+            );
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000059'
+                    """)).isEqualTo(
+                    "https://biz.namdong.go.kr/main/news/announce.jsp"
+            );
         }
     }
 

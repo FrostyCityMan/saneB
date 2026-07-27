@@ -55,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.net.ssl.SSLParameters;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -66,6 +67,8 @@ import org.springframework.stereotype.Component;
 public class LocalGovernmentNoticeCollector {
 
     private static final int MAX_REDIRECTS = 5;
+    private static final int MAX_TRANSPORT_ATTEMPTS = 3;
+    private static final long RETRY_DELAY_MILLIS = 750L;
     private static final int SESSION_BOOTSTRAP_ATTEMPTS = 4;
     private static final Pattern DATE_PATTERN = Pattern.compile("(20\\d{2})[.\\-/년\\s]+(\\d{1,2})[.\\-/월\\s]+(\\d{1,2})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile(
@@ -119,6 +122,7 @@ public class LocalGovernmentNoticeCollector {
     private final ObjectMapper objectMapper;
     private final HttpClient defaultHttpClient;
     private final HttpClient browserHttp1Client;
+    private final HttpClient tls12HttpClient;
     private final CookieManager sessionCookieManager;
     private final HttpClient sessionBrowserHttpClient;
     private final Duration timeout;
@@ -162,6 +166,14 @@ public class LocalGovernmentNoticeCollector {
                 .connectTimeout(this.timeout)
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        SSLParameters tls12Parameters = new SSLParameters();
+        tls12Parameters.setProtocols(new String[]{"TLSv1.2"});
+        this.tls12HttpClient = HttpClient.newBuilder()
+                .connectTimeout(this.timeout.multipliedBy(2))
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .version(HttpClient.Version.HTTP_1_1)
+                .sslParameters(tls12Parameters)
                 .build();
         this.sessionCookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
         this.sessionBrowserHttpClient = HttpClient.newBuilder()
@@ -214,7 +226,7 @@ public class LocalGovernmentNoticeCollector {
     }
 
     /**
-     * timeout과 일시적 5xx에 한해 최대 한 번 재시도합니다.
+     * timeout과 일시적 5xx에 한해 지연을 두고 최대 세 번 요청합니다.
      *
      * @param source URL 관리 정보
      * @param profile 파서 프로필
@@ -226,9 +238,24 @@ public class LocalGovernmentNoticeCollector {
             LocalGovernmentNoticeParserProfileRow profile,
             URI uri
     ) {
-        LocalGovernmentNoticeCollectionOutcome outcome = requestAndParse(source, profile, uri, 0);
-        if ("RETRYABLE".equals(outcome.errorCode())) {
-            return requestAndParse(source, profile, uri, 0);
+        LocalGovernmentNoticeCollectionOutcome outcome = null;
+        for (int attempt = 1; attempt <= MAX_TRANSPORT_ATTEMPTS; attempt++) {
+            outcome = requestAndParse(source, profile, uri, 0);
+            if (!"RETRYABLE".equals(outcome.errorCode()) || attempt == MAX_TRANSPORT_ATTEMPTS) {
+                return outcome;
+            }
+            try {
+                Thread.sleep(RETRY_DELAY_MILLIS * attempt);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                return failure(
+                        source.sourceId(),
+                        "FAILED",
+                        null,
+                        "COLLECTION_INTERRUPTED",
+                        "수집 재시도 대기 중 작업이 중단되었습니다."
+                );
+            }
         }
         return outcome;
     }
@@ -1421,6 +1448,9 @@ public class LocalGovernmentNoticeCollector {
         if (usesSessionBrowser(source)) {
             return sessionBrowserHttpClient;
         }
+        if (usesTls12Browser(source)) {
+            return tls12HttpClient;
+        }
         return usesBrowserHttp1(source) ? browserHttp1Client : defaultHttpClient;
     }
 
@@ -1445,6 +1475,16 @@ public class LocalGovernmentNoticeCollector {
     }
 
     /**
+     * TLS 1.2 고정 브라우저 요청 정책 적용 여부를 확인합니다.
+     *
+     * @param source 지자체 URL 정보
+     * @return TLS 1.2 요청 대상이면 true
+     */
+    private boolean usesTls12Browser(LocalGovernmentNoticeSourceRow source) {
+        return "TLS12_BROWSER".equals(source.requestProfileCode());
+    }
+
+    /**
      * 홈페이지 세션을 확보한 뒤 게시판을 요청해야 하는지 확인합니다.
      *
      * @param source 지자체 URL 정보
@@ -1461,7 +1501,10 @@ public class LocalGovernmentNoticeCollector {
      * @return 브라우저 호환 헤더 적용 대상이면 true
      */
     private boolean usesBrowserCompatibleRequest(LocalGovernmentNoticeSourceRow source) {
-        return usesBrowserHttp1(source) || usesLegacyBrowser(source) || usesSessionBrowser(source);
+        return usesBrowserHttp1(source)
+                || usesLegacyBrowser(source)
+                || usesTls12Browser(source)
+                || usesSessionBrowser(source);
     }
 
     /**
