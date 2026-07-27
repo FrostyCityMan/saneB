@@ -18,6 +18,7 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleResponse;
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleStatusRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
@@ -38,6 +39,10 @@ public interface LocalGovernmentNoticeService {
             String sidoName,
             String validationStatusCode,
             String collectionStatusCode,
+            String sourceBoardTypeCode,
+            String collectionPolicyCode,
+            Boolean semanticallyVerified,
+            String diagnosticReasonCode,
             Boolean enabled,
             String keyword,
             int page,
@@ -48,6 +53,15 @@ public interface LocalGovernmentNoticeService {
      * 지자체 공고 URL 상세를 조회합니다.
      */
     LocalGovernmentNoticeSourceResponse selectSourceDetails(UUID sourceId);
+
+    /**
+     * 지자체 출처의 최근 URL 단위 수집 진단 이력을 조회합니다.
+     */
+    PageResponse<LocalGovernmentNoticeCollectionResultResponse> selectCollectionResultList(
+            UUID sourceId,
+            int page,
+            int size
+    );
 
     /**
      * 지자체 공고 URL을 등록합니다.

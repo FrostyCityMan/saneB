@@ -84,9 +84,10 @@ class AnnouncementSourceControllerSmokeTest {
         when(announcementSourceService.selectCollectionRunDetails(RUN_ID))
                 .thenReturn(new AnnouncementSourceCollectionRunDetailsResponse(
                         collectionRun("COMPLETED"),
-                        List.of(collectionRunItem())
+                        List.of(collectionRunItem()),
+                        List.of()
                 ));
-        when(announcementSourceService.selectSourceList(any(), any(), any(), eq(1), eq(20)))
+        when(announcementSourceService.selectSourceList(any(), any(), any(), any(), eq(1), eq(20)))
                 .thenReturn(PageResponse.of(List.of(sourceSummary()), 1, 20, 1));
         when(announcementSourceService.selectSourceDetails(SOURCE_ID)).thenReturn(sourceDetails("REVIEW_PENDING"));
         when(announcementSourceService.updateSourceReviewStatus(any(), eq(SOURCE_ID), any()))
@@ -264,6 +265,7 @@ class AnnouncementSourceControllerSmokeTest {
                 0,
                 0,
                 0,
+                0,
                 null,
                 NOW
         );
@@ -283,6 +285,8 @@ class AnnouncementSourceControllerSmokeTest {
                 "BIZ-1",
                 "https://example.com",
                 "COLLECTED",
+                null,
+                null,
                 null,
                 NOW
         );
@@ -306,6 +310,9 @@ class AnnouncementSourceControllerSmokeTest {
                 "https://example.com",
                 "COMPLETE",
                 "REVIEW_PENDING",
+                "ACCEPTED",
+                "PROVIDER_TRUSTED",
+                null,
                 NOW,
                 NOW
         );
@@ -337,6 +344,9 @@ class AnnouncementSourceControllerSmokeTest {
                 "COMPLETE",
                 "{\"missingFields\":[]}",
                 statusCode,
+                "ACCEPTED",
+                "PROVIDER_TRUSTED",
+                null,
                 NOW,
                 List.of(new AnnouncementSourceAttachmentResponse(UUID.randomUUID(), "공고문", "https://example.com/file.pdf", "PDF", 0)),
                 List.of(new AnnouncementSourceHighlightResponse(UUID.randomUUID(), "TARGET", "지원대상: 서울 소재 소상공인", 0, 20, 1, "RULE_HEADING")),

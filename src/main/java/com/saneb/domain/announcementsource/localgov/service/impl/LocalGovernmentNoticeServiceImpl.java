@@ -22,6 +22,7 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleResponse;
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleStatusRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
@@ -64,6 +65,12 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     );
     private static final Set<String> CONFIDENCE_CODES = Set.of("HIGH", "MEDIUM", "LOW");
     private static final Set<String> VALIDATION_STATUS_CODES = Set.of("VERIFIED", "CHECK_REQUIRED", "FAILED");
+    private static final Set<String> SOURCE_BOARD_TYPE_CODES = Set.of(
+            "LEGAL_NOTICE", "SUPPORT_RECRUITMENT", "GENERAL_NOTICE", "PRESS_RELEASE", "UNVERIFIED"
+    );
+    private static final Set<String> COLLECTION_POLICY_CODES = Set.of(
+            "COLLECT_ALL", "KEYWORD_FILTERED", "EXCLUDED"
+    );
     private static final Set<String> REQUEST_PROFILE_CODES = Set.of(
             "DEFAULT", "BROWSER_HTTP1", "LEGACY_BROWSER"
     );
@@ -94,6 +101,10 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             String sidoName,
             String validationStatusCode,
             String collectionStatusCode,
+            String sourceBoardTypeCode,
+            String collectionPolicyCode,
+            Boolean semanticallyVerified,
+            String diagnosticReasonCode,
             Boolean enabled,
             String keyword,
             int page,
@@ -101,7 +112,8 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     ) {
         LocalGovernmentNoticeSourceSearchCondition condition = new LocalGovernmentNoticeSourceSearchCondition(
                 blankToNull(sidoName), normalizeOptional(validationStatusCode), normalizeOptional(collectionStatusCode),
-                enabled, blankToNull(keyword), size, (page - 1) * size
+                normalizeOptional(sourceBoardTypeCode), normalizeOptional(collectionPolicyCode), semanticallyVerified,
+                normalizeOptional(diagnosticReasonCode), enabled, blankToNull(keyword), size, (page - 1) * size
         );
         return PageResponse.of(
                 localGovernmentNoticeDao.selectSourceList(condition).stream()
@@ -120,6 +132,28 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     }
 
     /**
+     * 지자체 출처의 URL 단위 최근 수집 진단 이력을 조회합니다.
+     */
+    @Override
+    public PageResponse<LocalGovernmentNoticeCollectionResultResponse> selectCollectionResultList(
+            UUID sourceId,
+            int page,
+            int size
+    ) {
+        selectSourceRow(sourceId);
+        return PageResponse.of(
+                localGovernmentNoticeDao.selectCollectionResultListBySourceId(
+                                sourceId, size, (page - 1) * size
+                        ).stream()
+                        .map(LocalGovernmentNoticeCollectionResultResponse::from)
+                        .toList(),
+                page,
+                size,
+                localGovernmentNoticeDao.selectCollectionResultCountBySourceId(sourceId)
+        );
+    }
+
+    /**
      * 지자체 공고 URL을 OFF 상태로 등록합니다.
      */
     @Override
@@ -128,10 +162,10 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             Authentication authentication,
             LocalGovernmentNoticeSourceSaveRequest request
     ) {
-        validateSaveRequest(request);
+        validateSaveRequest(request, null);
         UUID sourceId = UUID.randomUUID();
         UUID actorUserId = selectActorUserId(authentication);
-        localGovernmentNoticeDao.insertSource(toCommand(sourceId, actorUserId, request));
+        localGovernmentNoticeDao.insertSource(toCommand(sourceId, actorUserId, request, null));
         insertAudit(actorUserId, "LOCAL_GOV_NOTICE_SOURCE_CREATE", "LOCAL_GOV_NOTICE_SOURCE", sourceId,
                 "{\"validationStatusCode\":\"" + normalizeOptional(request.validationStatusCode()) + "\"}");
         return selectSourceDetails(sourceId);
@@ -147,10 +181,10 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             UUID sourceId,
             LocalGovernmentNoticeSourceSaveRequest request
     ) {
-        selectSourceRow(sourceId);
-        validateSaveRequest(request);
+        LocalGovernmentNoticeSourceRow existing = selectSourceRow(sourceId);
+        validateSaveRequest(request, existing);
         UUID actorUserId = selectActorUserId(authentication);
-        int updated = localGovernmentNoticeDao.updateSource(toCommand(sourceId, actorUserId, request));
+        int updated = localGovernmentNoticeDao.updateSource(toCommand(sourceId, actorUserId, request, existing));
         if (updated == 0) {
             throw notFound();
         }
@@ -173,6 +207,12 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
         if (Boolean.TRUE.equals(request.enabled())) {
             if (!"VERIFIED".equals(row.validationStatusCode())) {
                 throw invalid("URL 검증 상태가 '검증완료'인 경우에만 수집을 켤 수 있습니다.");
+            }
+            if (!row.semanticallyVerified()
+                    || "UNVERIFIED".equals(row.sourceBoardTypeCode())
+                    || "EXCLUDED".equals(row.collectionPolicyCode())
+                    || "PRESS_RELEASE".equals(row.sourceBoardTypeCode())) {
+                throw invalid("게시판 종류와 수집 정책을 확인하고 의미 검증을 완료한 출처만 수집할 수 있습니다.");
             }
             LocalGovernmentNoticeParserProfileRow profile = row.parserProfileCode() == null
                     ? null : localGovernmentNoticeDao.selectParserProfileDetails(row.parserProfileCode());
@@ -394,10 +434,31 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     /**
      * 저장 요청의 코드와 외부 URL을 검증합니다.
      */
-    private void validateSaveRequest(LocalGovernmentNoticeSourceSaveRequest request) {
+    private void validateSaveRequest(
+            LocalGovernmentNoticeSourceSaveRequest request,
+            LocalGovernmentNoticeSourceRow existing
+    ) {
         normalizeRequired(request.institutionTypeCode(), INSTITUTION_TYPES, "기관 유형을 확인하세요.");
         normalizeRequired(request.confidenceCode(), CONFIDENCE_CODES, "URL 신뢰도 값을 확인하세요.");
         normalizeRequired(request.validationStatusCode(), VALIDATION_STATUS_CODES, "URL 검증 상태를 확인하세요.");
+        String boardTypeCode = selectBoardTypeCode(request, existing);
+        String collectionPolicyCode = selectCollectionPolicyCode(request, existing);
+        boolean semanticallyVerified = selectSemanticallyVerified(request, existing);
+        if (semanticallyVerified && "UNVERIFIED".equals(boardTypeCode)) {
+            throw invalid("게시판 종류를 확인한 뒤 의미 검증을 완료하세요.");
+        }
+        String semanticNote = request.semanticVerificationNote() == null && existing != null
+                ? existing.semanticVerificationNote() : request.semanticVerificationNote();
+        if (semanticallyVerified && (semanticNote == null || semanticNote.isBlank())) {
+            throw invalid("의미 검증 근거를 입력하세요.");
+        }
+        if ("PRESS_RELEASE".equals(boardTypeCode) && !"EXCLUDED".equals(collectionPolicyCode)) {
+            throw invalid("보도자료 게시판은 수집 제외 정책만 사용할 수 있습니다.");
+        }
+        if (!semanticallyVerified && (!"UNVERIFIED".equals(boardTypeCode)
+                || !"EXCLUDED".equals(collectionPolicyCode))) {
+            throw invalid("미확인 출처는 게시판 종류 '미확인', 수집 정책 '제외'로 저장하세요.");
+        }
         normalizeRequired(selectRequestProfileCode(request.requestProfileCode()), REQUEST_PROFILE_CODES, "요청 방식을 확인하세요.");
         urlValidator.validate(request.noticeUrl());
         if (request.homepageUrl() != null && !request.homepageUrl().isBlank()) {
@@ -418,16 +479,78 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
     private LocalGovernmentNoticeSourceCommand toCommand(
             UUID sourceId,
             UUID actorUserId,
-            LocalGovernmentNoticeSourceSaveRequest request
+            LocalGovernmentNoticeSourceSaveRequest request,
+            LocalGovernmentNoticeSourceRow existing
     ) {
+        boolean semanticallyVerified = selectSemanticallyVerified(request, existing);
+        String semanticVerificationNote = request.semanticVerificationNote() == null && existing != null
+                ? existing.semanticVerificationNote() : blankToNull(request.semanticVerificationNote());
         return new LocalGovernmentNoticeSourceCommand(
                 sourceId, blankToNull(request.sidoCode()), request.sidoName().trim(), request.sigunguCode().trim(),
                 request.sigunguName().trim(), normalizeOptional(request.institutionTypeCode()), request.institutionName().trim(),
                 blankToNull(request.homepageUrl()), request.noticeUrl().trim(), blankToNull(request.collectionEndpointUrl()),
                 blankToNull(request.pageTypeCode()), selectRequestProfileCode(request.requestProfileCode()),
                 normalizeOptional(request.parserProfileCode()), blankToNull(request.collectionHint()),
-                normalizeOptional(request.confidenceCode()), normalizeOptional(request.validationStatusCode()), actorUserId
+                normalizeOptional(request.confidenceCode()), normalizeOptional(request.validationStatusCode()),
+                selectBoardTypeCode(request, existing), selectCollectionPolicyCode(request, existing),
+                semanticallyVerified, semanticVerificationNote,
+                actorUserId
         );
+    }
+
+    /**
+     * 기존 v1 요청에 게시판 종류가 없으면 기존 값 또는 안전한 미확인 값을 사용합니다.
+     *
+     * @param request 저장 요청
+     * @param existing 기존 출처
+     * @return 게시판 종류
+     */
+    private String selectBoardTypeCode(
+            LocalGovernmentNoticeSourceSaveRequest request,
+            LocalGovernmentNoticeSourceRow existing
+    ) {
+        if (request.sourceBoardTypeCode() != null && !request.sourceBoardTypeCode().isBlank()) {
+            return normalizeRequired(
+                    request.sourceBoardTypeCode(), SOURCE_BOARD_TYPE_CODES, "게시판 종류를 확인하세요."
+            );
+        }
+        return existing == null ? "UNVERIFIED" : existing.sourceBoardTypeCode();
+    }
+
+    /**
+     * 기존 v1 요청에 수집 정책이 없으면 기존 값 또는 안전한 제외 정책을 사용합니다.
+     *
+     * @param request 저장 요청
+     * @param existing 기존 출처
+     * @return 수집 정책
+     */
+    private String selectCollectionPolicyCode(
+            LocalGovernmentNoticeSourceSaveRequest request,
+            LocalGovernmentNoticeSourceRow existing
+    ) {
+        if (request.collectionPolicyCode() != null && !request.collectionPolicyCode().isBlank()) {
+            return normalizeRequired(
+                    request.collectionPolicyCode(), COLLECTION_POLICY_CODES, "수집 정책을 확인하세요."
+            );
+        }
+        return existing == null ? "EXCLUDED" : existing.collectionPolicyCode();
+    }
+
+    /**
+     * 기존 v1 요청에 의미 검증 값이 없으면 기존 검증 상태를 보존합니다.
+     *
+     * @param request 저장 요청
+     * @param existing 기존 출처
+     * @return 의미 검증 여부
+     */
+    private boolean selectSemanticallyVerified(
+            LocalGovernmentNoticeSourceSaveRequest request,
+            LocalGovernmentNoticeSourceRow existing
+    ) {
+        if (request.semanticallyVerified() != null) {
+            return Boolean.TRUE.equals(request.semanticallyVerified());
+        }
+        return existing != null && existing.semanticallyVerified();
     }
 
     /**

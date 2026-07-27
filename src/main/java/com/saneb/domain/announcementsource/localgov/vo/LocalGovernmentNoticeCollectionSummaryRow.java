@@ -18,6 +18,12 @@ public record LocalGovernmentNoticeCollectionSummaryRow(
         long successCount,
         long warningCount,
         long failedCount,
-        long reviewPendingCount
+        long reviewPendingCount,
+        long transportFailureCount,
+        long parserFailureCount,
+        long partialFieldsCount,
+        long semanticMismatchCount,
+        long irrelevantContentCount,
+        long unverifiedSourceCount
 ) {
 }

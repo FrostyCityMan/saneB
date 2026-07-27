@@ -32,6 +32,12 @@
             <arg column="collection_hint" javaType="java.lang.String"/>
             <arg column="confidence_code" javaType="java.lang.String"/>
             <arg column="validation_status_code" javaType="java.lang.String"/>
+            <arg column="source_board_type_code" javaType="java.lang.String"/>
+            <arg column="collection_policy_code" javaType="java.lang.String"/>
+            <arg column="is_semantically_verified" javaType="_boolean"/>
+            <arg column="semantic_verified_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="semantic_verified_by" javaType="java.util.UUID"/>
+            <arg column="semantic_verification_note" javaType="java.lang.String"/>
             <arg column="is_enabled" javaType="_boolean"/>
             <arg column="collection_status_code" javaType="java.lang.String"/>
             <arg column="last_collected_at" javaType="java.time.OffsetDateTime"/>
@@ -42,9 +48,48 @@
             <arg column="etag" javaType="java.lang.String"/>
             <arg column="last_modified_value" javaType="java.lang.String"/>
             <arg column="last_content_fingerprint" javaType="java.lang.String"/>
+            <arg column="latest_result_status_code" javaType="java.lang.String"/>
+            <arg column="latest_result_discovered_count" javaType="java.lang.Integer"/>
+            <arg column="latest_result_failed_count" javaType="java.lang.Integer"/>
+            <arg column="latest_result_excluded_count" javaType="java.lang.Integer"/>
+            <arg column="latest_result_finished_at" javaType="java.time.OffsetDateTime"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
             <arg column="deleted_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="CollectionResultRowMap"
+               type="com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionResultRow">
+        <constructor>
+            <arg column="result_id" javaType="java.util.UUID"/>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="run_public_code" javaType="java.lang.String"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="source_public_code" javaType="java.lang.String"/>
+            <arg column="institution_name" javaType="java.lang.String"/>
+            <arg column="notice_url" javaType="java.lang.String"/>
+            <arg column="result_status_code" javaType="java.lang.String"/>
+            <arg column="discovered_count" javaType="_int"/>
+            <arg column="new_count" javaType="_int"/>
+            <arg column="duplicate_count" javaType="_int"/>
+            <arg column="failed_count" javaType="_int"/>
+            <arg column="excluded_count" javaType="_int"/>
+            <arg column="http_status" javaType="java.lang.Integer"/>
+            <arg column="error_code" javaType="java.lang.String"/>
+            <arg column="error_message" javaType="java.lang.String"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="finished_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SemanticKeywordRuleRowMap"
+               type="com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceSemanticKeywordRuleRow">
+        <constructor>
+            <arg column="rule_code" javaType="java.lang.String"/>
+            <arg column="rule_type_code" javaType="java.lang.String"/>
+            <arg column="keyword_text" javaType="java.lang.String"/>
+            <arg column="sort_order" javaType="_int"/>
         </constructor>
     </resultMap>
 
@@ -114,6 +159,12 @@
         lgns.collection_hint,
         lgns.confidence_code,
         lgns.validation_status_code,
+        lgns.source_board_type_code,
+        lgns.collection_policy_code,
+        lgns.is_semantically_verified,
+        lgns.semantic_verified_at,
+        lgns.semantic_verified_by,
+        lgns.semantic_verification_note,
         lgns.is_enabled,
         lgns.collection_status_code,
         lgns.last_collected_at,
@@ -124,9 +175,26 @@
         lgns.etag,
         lgns.last_modified_value,
         lgns.last_content_fingerprint,
+        latest_result.result_status_code AS latest_result_status_code,
+        latest_result.discovered_count AS latest_result_discovered_count,
+        latest_result.failed_count AS latest_result_failed_count,
+        latest_result.excluded_count AS latest_result_excluded_count,
+        latest_result.finished_at AS latest_result_finished_at,
         lgns.created_at,
         lgns.updated_at,
         lgns.deleted_at
+    </sql>
+
+    <sql id="SourceJoins">
+        LEFT JOIN local_government_notice_parser_profiles lgnpp ON lgnpp.profile_code = lgns.parser_profile_code
+        LEFT JOIN LATERAL (
+            SELECT result.result_status_code, result.discovered_count, result.failed_count,
+                   result.excluded_count, result.finished_at
+            FROM announcement_source_collection_source_results result
+            WHERE result.local_government_source_id = lgns.id
+            ORDER BY result.started_at DESC, result.id DESC
+            LIMIT 1
+        ) latest_result ON true
     </sql>
 
     <sql id="SourceWhere">
@@ -139,6 +207,47 @@
         </if>
         <if test="collectionStatusCode != null and collectionStatusCode != ''">
             AND lgns.collection_status_code = #{collectionStatusCode}
+        </if>
+        <if test="sourceBoardTypeCode != null and sourceBoardTypeCode != ''">
+            AND lgns.source_board_type_code = #{sourceBoardTypeCode}
+        </if>
+        <if test="collectionPolicyCode != null and collectionPolicyCode != ''">
+            AND lgns.collection_policy_code = #{collectionPolicyCode}
+        </if>
+        <if test="semanticallyVerified != null">
+            AND lgns.is_semantically_verified = #{semanticallyVerified}
+        </if>
+        <if test="diagnosticReasonCode != null and diagnosticReasonCode != ''">
+            AND (
+                CASE
+                    WHEN NOT lgns.is_semantically_verified
+                         OR lgns.source_board_type_code IN ('UNVERIFIED', 'PRESS_RELEASE')
+                         OR lgns.collection_policy_code = 'EXCLUDED'
+                        THEN 'SEMANTIC_MISMATCH'
+                    WHEN latest_result.result_status_code = 'PARTIAL_FAILED'
+                         OR lgns.last_error_code IN (
+                             'REQUIRED_FIELDS_MISSING', 'JSON_REQUIRED_FIELDS_MISSING',
+                             'ITEM_FIELDS_MISSING', 'JSON_ITEM_FIELDS_MISSING'
+                         )
+                        THEN 'PARTIAL_FIELDS'
+                    WHEN lgns.last_error_code IN ('PARSER_ERROR', 'PARSER_NOT_CONFIGURED',
+                         'LIST_SELECTOR_NOT_MATCHED', 'HEURISTIC_ITEMS_NOT_FOUND', 'UNSUPPORTED_CONTENT_TYPE',
+                         'JSON_PARSER_NOT_CONFIGURED', 'JSON_ITEMS_NOT_FOUND', 'JSON_PARSE_ERROR',
+                         'DAEJEON_EMINWON_ITEMS_NOT_FOUND')
+                        THEN 'PARSER_FAILED'
+                    WHEN lgns.last_error_code IN (
+                         'RETRYABLE', 'NETWORK_ERROR', 'HTTP_ERROR', 'EMPTY_RESPONSE',
+                         'COLLECTION_INTERRUPTED', 'URL_VALIDATION_FAILED', 'REDIRECT_URL_BLOCKED',
+                         'TOO_MANY_REDIRECTS', 'REDIRECT_LOCATION_MISSING', 'ACCESS_BLOCKED'
+                    )
+                        THEN 'TRANSPORT_FAILED'
+                    WHEN lgns.last_error_code IS NOT NULL
+                        THEN 'UNCLASSIFIED_ERROR'
+                    WHEN coalesce(latest_result.excluded_count, 0) &gt; 0
+                        THEN 'IRRELEVANT_CONTENT'
+                    ELSE NULL
+                END
+            ) = #{diagnosticReasonCode}
         </if>
         <if test="enabled != null">
             AND lgns.is_enabled = #{enabled}
@@ -179,12 +288,17 @@
             id, sido_code, sido_name, sigungu_code, sigungu_name, institution_type_code, institution_name,
             homepage_url, notice_url, collection_endpoint_url, page_type_code, request_profile_code,
             parser_profile_code, collection_hint, confidence_code,
-            validation_status_code, is_enabled, collection_status_code, created_by, updated_by
+            validation_status_code, source_board_type_code, collection_policy_code,
+            is_semantically_verified, semantic_verified_at, semantic_verified_by, semantic_verification_note,
+            is_enabled, collection_status_code, created_by, updated_by
         ) VALUES (
             #{sourceId}, #{sidoCode}, #{sidoName}, #{sigunguCode}, #{sigunguName}, #{institutionTypeCode}, #{institutionName},
             #{homepageUrl}, #{noticeUrl}, #{collectionEndpointUrl}, #{pageTypeCode}, #{requestProfileCode},
             #{parserProfileCode}, #{collectionHint}, #{confidenceCode},
-            #{validationStatusCode}, false, 'CHECK_REQUIRED', #{actorUserId}, #{actorUserId}
+            #{validationStatusCode}, #{sourceBoardTypeCode}, #{collectionPolicyCode},
+            #{semanticallyVerified}, CASE WHEN #{semanticallyVerified} THEN now() ELSE NULL END,
+            CASE WHEN #{semanticallyVerified} THEN #{actorUserId} ELSE NULL END, #{semanticVerificationNote},
+            false, 'CHECK_REQUIRED', #{actorUserId}, #{actorUserId}
         )
     </insert>
 
@@ -206,7 +320,30 @@
             collection_hint = #{collectionHint},
             confidence_code = #{confidenceCode},
             validation_status_code = #{validationStatusCode},
-            collection_status_code = CASE WHEN #{validationStatusCode} = 'VERIFIED' THEN 'READY' ELSE 'CHECK_REQUIRED' END,
+            source_board_type_code = #{sourceBoardTypeCode},
+            collection_policy_code = #{collectionPolicyCode},
+            is_semantically_verified = #{semanticallyVerified},
+            semantic_verified_at = CASE
+                WHEN #{semanticallyVerified} THEN coalesce(semantic_verified_at, now())
+                ELSE NULL
+            END,
+            semantic_verified_by = CASE WHEN #{semanticallyVerified} THEN #{actorUserId} ELSE NULL END,
+            semantic_verification_note = #{semanticVerificationNote},
+            is_enabled = CASE
+                WHEN #{semanticallyVerified}
+                     AND #{sourceBoardTypeCode} &lt;&gt; 'UNVERIFIED'
+                     AND #{collectionPolicyCode} &lt;&gt; 'EXCLUDED'
+                    THEN is_enabled
+                ELSE false
+            END,
+            collection_status_code = CASE
+                WHEN NOT #{semanticallyVerified}
+                     OR #{sourceBoardTypeCode} = 'UNVERIFIED'
+                     OR #{collectionPolicyCode} = 'EXCLUDED'
+                    THEN 'DISABLED'
+                WHEN #{validationStatusCode} = 'VERIFIED' THEN 'READY'
+                ELSE 'CHECK_REQUIRED'
+            END,
             updated_by = #{actorUserId},
             updated_at = now()
         WHERE id = #{sourceId}
@@ -228,6 +365,9 @@
                   validation_status_code = 'VERIFIED'
                   AND parser_profile_code IS NOT NULL
                   AND parser_profile_code &lt;&gt; 'MANUAL_ONLY'
+                  AND is_semantically_verified = true
+                  AND source_board_type_code &lt;&gt; 'UNVERIFIED'
+                  AND collection_policy_code &lt;&gt; 'EXCLUDED'
               )
           )
     </update>
@@ -248,7 +388,7 @@
         -- Select local-government notice source registry.
         SELECT <include refid="SourceColumns"/>
         FROM local_government_notice_sources lgns
-        LEFT JOIN local_government_notice_parser_profiles lgnpp ON lgnpp.profile_code = lgns.parser_profile_code
+        <include refid="SourceJoins"/>
         <include refid="SourceWhere"/>
         ORDER BY lgns.sido_name ASC, lgns.sigungu_name ASC, lgns.public_code ASC
         LIMIT #{size} OFFSET #{offset}
@@ -258,6 +398,7 @@
         -- Count local-government notice source registry.
         SELECT count(1)
         FROM local_government_notice_sources lgns
+        <include refid="SourceJoins"/>
         <include refid="SourceWhere"/>
     </select>
 
@@ -265,7 +406,7 @@
         -- Select local-government notice source details.
         SELECT <include refid="SourceColumns"/>
         FROM local_government_notice_sources lgns
-        LEFT JOIN local_government_notice_parser_profiles lgnpp ON lgnpp.profile_code = lgns.parser_profile_code
+        <include refid="SourceJoins"/>
         WHERE lgns.id = #{sourceId}
           AND lgns.deleted_at IS NULL
     </select>
@@ -278,14 +419,33 @@
             ON lgnpp.profile_code = lgns.parser_profile_code
            AND lgnpp.is_enabled = true
            AND lgnpp.parser_type_code &lt;&gt; 'MANUAL_ONLY'
+        LEFT JOIN LATERAL (
+            SELECT result.result_status_code, result.discovered_count, result.failed_count,
+                   result.excluded_count, result.finished_at
+            FROM announcement_source_collection_source_results result
+            WHERE result.local_government_source_id = lgns.id
+            ORDER BY result.started_at DESC, result.id DESC
+            LIMIT 1
+        ) latest_result ON true
         WHERE lgns.deleted_at IS NULL
           AND lgns.is_enabled = true
           AND lgns.validation_status_code = 'VERIFIED'
+          AND lgns.is_semantically_verified = true
+          AND lgns.source_board_type_code &lt;&gt; 'UNVERIFIED'
+          AND lgns.collection_policy_code &lt;&gt; 'EXCLUDED'
           <if test="sourceId != null">
               AND lgns.id = #{sourceId}
           </if>
         ORDER BY lgns.last_collected_at ASC NULLS FIRST, lgns.sido_name ASC, lgns.sigungu_name ASC
         LIMIT #{maxCount}
+    </select>
+
+    <select id="selectSemanticKeywordRuleList" resultMap="SemanticKeywordRuleRowMap">
+        -- Select enabled static semantic keyword rules in deterministic order.
+        SELECT rule_code, rule_type_code, keyword_text, sort_order
+        FROM announcement_source_semantic_keyword_rules
+        WHERE is_enabled = true
+        ORDER BY rule_type_code ASC, sort_order ASC, rule_code ASC
     </select>
 
     <select id="selectParserProfileList" resultMap="ParserProfileRowMap">
@@ -318,7 +478,56 @@
             count(1) FILTER (WHERE lgns.deleted_at IS NULL AND lgns.collection_status_code IN ('FAILED', 'URL_ERROR', 'ACCESS_BLOCKED', 'PARSER_UNSUPPORTED')) AS failed_count,
             (SELECT count(1) FROM announcement_source_snapshots ass
              WHERE ass.provider_code = 'LOCAL_GOV_NOTICE'
-               AND ass.review_status_code IN ('REVIEW_PENDING', 'CONDITION_INPUT_REQUIRED')) AS review_pending_count
+               AND ass.review_status_code IN ('REVIEW_PENDING', 'CONDITION_INPUT_REQUIRED')
+               AND ass.semantic_status_code IN ('ACCEPTED', 'REVIEW_REQUIRED')) AS review_pending_count,
+            count(1) FILTER (
+                WHERE lgns.deleted_at IS NULL
+                  AND lgns.last_error_code IN ('RETRYABLE', 'NETWORK_ERROR', 'HTTP_ERROR', 'EMPTY_RESPONSE')
+            ) AS transport_failure_count,
+            count(1) FILTER (
+                WHERE lgns.deleted_at IS NULL
+                  AND lgns.last_error_code IN ('PARSER_ERROR', 'PARSER_NOT_CONFIGURED',
+                      'LIST_SELECTOR_NOT_MATCHED', 'HEURISTIC_ITEMS_NOT_FOUND', 'UNSUPPORTED_CONTENT_TYPE',
+                      'JSON_PARSER_NOT_CONFIGURED')
+            ) AS parser_failure_count,
+            count(1) FILTER (
+                WHERE lgns.deleted_at IS NULL
+                  AND (
+                      lgns.last_error_code IN ('REQUIRED_FIELDS_MISSING', 'JSON_REQUIRED_FIELDS_MISSING')
+                      OR EXISTS (
+                          SELECT 1
+                          FROM announcement_source_collection_source_results partial_result
+                          WHERE partial_result.local_government_source_id = lgns.id
+                            AND partial_result.result_status_code = 'PARTIAL_FAILED'
+                            AND partial_result.started_at = (
+                                SELECT max(latest_partial.started_at)
+                                FROM announcement_source_collection_source_results latest_partial
+                                WHERE latest_partial.local_government_source_id = lgns.id
+                            )
+                      )
+                  )
+            ) AS partial_fields_count,
+            count(1) FILTER (
+                WHERE lgns.deleted_at IS NULL
+                  AND (
+                      NOT lgns.is_semantically_verified
+                      OR lgns.source_board_type_code IN ('UNVERIFIED', 'PRESS_RELEASE')
+                      OR lgns.collection_policy_code = 'EXCLUDED'
+                  )
+            ) AS semantic_mismatch_count,
+            coalesce((
+                SELECT sum(latest_result.excluded_count)
+                FROM (
+                    SELECT DISTINCT ON (result.local_government_source_id)
+                           result.local_government_source_id, result.excluded_count
+                    FROM announcement_source_collection_source_results result
+                    ORDER BY result.local_government_source_id, result.started_at DESC, result.id DESC
+                ) latest_result
+            ), 0) AS irrelevant_content_count,
+            count(1) FILTER (
+                WHERE lgns.deleted_at IS NULL
+                  AND NOT lgns.is_semantically_verified
+            ) AS unverified_source_count
         FROM local_government_notice_sources lgns
     </select>
 
@@ -326,10 +535,12 @@
         -- Store one collection result for each local-government URL in a run.
         INSERT INTO announcement_source_collection_source_results (
             id, run_id, local_government_source_id, result_status_code, discovered_count,
-            new_count, duplicate_count, failed_count, http_status, error_code, error_message, finished_at
+            new_count, duplicate_count, failed_count, excluded_count,
+            http_status, error_code, error_message, finished_at
         ) VALUES (
             #{resultId}, #{runId}, #{sourceId}, #{resultStatusCode}, #{discoveredCount},
-            #{newCount}, #{duplicateCount}, #{failedCount}, #{httpStatus}, #{errorCode}, #{errorMessage}, now()
+            #{newCount}, #{duplicateCount}, #{failedCount}, #{excludedCount},
+            #{httpStatus}, #{errorCode}, #{errorMessage}, now()
         )
         ON CONFLICT (run_id, local_government_source_id) DO UPDATE
         SET result_status_code = excluded.result_status_code,
@@ -337,6 +548,7 @@
             new_count = excluded.new_count,
             duplicate_count = excluded.duplicate_count,
             failed_count = excluded.failed_count,
+            excluded_count = excluded.excluded_count,
             http_status = excluded.http_status,
             error_code = excluded.error_code,
             error_message = excluded.error_message,
@@ -349,10 +561,71 @@
         UPDATE announcement_source_collection_source_results
         SET new_count = new_count + #{newIncrement},
             duplicate_count = duplicate_count + #{duplicateIncrement},
+            excluded_count = excluded_count + #{excludedIncrement},
             updated_at = now()
         WHERE run_id = #{runId}
           AND local_government_source_id = #{sourceId}
     </update>
+
+    <sql id="CollectionResultColumns">
+        result.id AS result_id,
+        result.run_id,
+        run.public_code AS run_public_code,
+        result.local_government_source_id AS source_id,
+        source.public_code AS source_public_code,
+        source.institution_name,
+        source.notice_url,
+        result.result_status_code,
+        result.discovered_count,
+        result.new_count,
+        result.duplicate_count,
+        result.failed_count,
+        result.excluded_count,
+        result.http_status,
+        result.error_code,
+        result.error_message,
+        result.started_at,
+        result.finished_at
+    </sql>
+
+    <select id="selectCollectionResultListByRunId" resultMap="CollectionResultRowMap">
+        -- Select URL-level collection diagnostics for one execution.
+        SELECT <include refid="CollectionResultColumns"/>
+        FROM announcement_source_collection_source_results result
+        INNER JOIN announcement_source_collection_runs run ON run.id = result.run_id
+        INNER JOIN local_government_notice_sources source ON source.id = result.local_government_source_id
+        WHERE result.run_id = #{runId}
+        ORDER BY
+            CASE result.result_status_code
+                WHEN 'FAILED' THEN 0
+                WHEN 'URL_ERROR' THEN 0
+                WHEN 'ACCESS_BLOCKED' THEN 0
+                WHEN 'PARSER_UNSUPPORTED' THEN 0
+                WHEN 'PARTIAL_FAILED' THEN 1
+                ELSE 2
+            END,
+            source.sido_name ASC,
+            source.sigungu_name ASC,
+            source.public_code ASC
+    </select>
+
+    <select id="selectCollectionResultListBySourceId" resultMap="CollectionResultRowMap">
+        -- Select recent URL-level collection diagnostics for one source.
+        SELECT <include refid="CollectionResultColumns"/>
+        FROM announcement_source_collection_source_results result
+        INNER JOIN announcement_source_collection_runs run ON run.id = result.run_id
+        INNER JOIN local_government_notice_sources source ON source.id = result.local_government_source_id
+        WHERE result.local_government_source_id = #{sourceId}
+        ORDER BY result.started_at DESC, result.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectCollectionResultCountBySourceId" resultType="long">
+        -- Count URL-level collection diagnostics for one source.
+        SELECT count(1)
+        FROM announcement_source_collection_source_results
+        WHERE local_government_source_id = #{sourceId}
+    </select>
 
     <update id="updateSourceCollectionStatus">
         -- Update last collection metadata without storing response bodies.

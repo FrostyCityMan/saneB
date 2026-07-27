@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import com.saneb.common.error.ApiException;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
+import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceCollectionRunResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceToAnnouncementRequest;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderAttachment;
@@ -64,6 +65,9 @@ class AnnouncementSourceServiceImplTest {
     private AnnouncementSourceDao announcementSourceDao;
 
     @Mock
+    private LocalGovernmentNoticeDao localGovernmentNoticeDao;
+
+    @Mock
     private AnnouncementDao announcementDao;
 
     @Mock
@@ -82,6 +86,7 @@ class AnnouncementSourceServiceImplTest {
         when(providerClient.selectProviderCode()).thenReturn("BIZINFO");
         service = new AnnouncementSourceServiceImpl(
                 announcementSourceDao,
+                localGovernmentNoticeDao,
                 announcementDao,
                 highlightService,
                 List.of(providerClient)
@@ -143,6 +148,36 @@ class AnnouncementSourceServiceImplTest {
         assertThat(response.duplicateCount()).isEqualTo(1);
         verify(announcementSourceDao, never()).insertSourceSnapshot(any());
         verify(announcementSourceDao).insertCollectionRunItem(any());
+    }
+
+    /**
+     * 의미 필터에서 제외된 게시물은 원문으로 저장하지 않고 실행 제외 이력만 남깁니다.
+     */
+    @Test
+    void insertCollectionRunRecordsSemanticallyExcludedItem() {
+        AnnouncementSourceProviderItem item = providerItem(
+                "LOCAL-IRRELEVANT",
+                LocalDate.now().plusDays(10)
+        ).withSemanticDecision("EXCLUDED", "NO_INCLUDE_KEYWORD", null);
+        when(announcementSourceDao.selectCollectionRequestDetails(REQUEST_ID))
+                .thenReturn(collectionRequest("APPROVED"));
+        when(providerClient.selectSourceItemList(any())).thenReturn(List.of(item));
+        when(announcementSourceDao.selectCollectionRunDetails(any()))
+                .thenAnswer(invocation -> new AnnouncementSourceCollectionRunRow(
+                        invocation.getArgument(0), "ASRUN-000001", REQUEST_ID, "ASR-000001",
+                        "BIZINFO", "MANUAL", "COMPLETED", NOW, NOW,
+                        1, 0, 0, 0, 0, 1, null, NOW
+                ));
+
+        AnnouncementSourceCollectionRunResponse response = service.insertCollectionRun(REQUEST_ID);
+
+        assertThat(response.excludedCount()).isEqualTo(1);
+        verify(announcementSourceDao, never()).insertSourceSnapshot(any());
+        ArgumentCaptor<AnnouncementSourceCollectionRunItemCommand> runItemCaptor =
+                ArgumentCaptor.forClass(AnnouncementSourceCollectionRunItemCommand.class);
+        verify(announcementSourceDao).insertCollectionRunItem(runItemCaptor.capture());
+        assertThat(runItemCaptor.getValue().itemStatusCode()).isEqualTo("EXCLUDED");
+        assertThat(runItemCaptor.getValue().semanticReasonCode()).isEqualTo("NO_INCLUDE_KEYWORD");
     }
 
     /**
@@ -288,6 +323,7 @@ class AnnouncementSourceServiceImplTest {
                 skippedEndedCount,
                 duplicateCount,
                 failedCount,
+                0,
                 null,
                 NOW
         );
@@ -354,6 +390,9 @@ class AnnouncementSourceServiceImplTest {
                 "{}",
                 "hash-BIZ-DUP",
                 "REVIEW_PENDING",
+                "ACCEPTED",
+                "PROVIDER_TRUSTED",
+                null,
                 NOW,
                 NOW,
                 NOW

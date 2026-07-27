@@ -29,6 +29,9 @@ public record AnnouncementSourceSummaryResponse(
         String sourceUrl,
         String sourceCompletenessCode,
         String reviewStatusCode,
+        String semanticStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords,
         OffsetDateTime postedAt,
         OffsetDateTime collectedAt
 ) {
@@ -53,6 +56,9 @@ public record AnnouncementSourceSummaryResponse(
                 row.sourceUrl(),
                 row.sourceCompletenessCode(),
                 row.reviewStatusCode(),
+                row.semanticStatusCode(),
+                row.semanticReasonCode(),
+                row.semanticMatchedKeywords(),
                 row.postedAt(),
                 row.collectedAt()
         );

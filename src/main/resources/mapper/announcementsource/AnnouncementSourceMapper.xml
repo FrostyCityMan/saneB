@@ -53,6 +53,7 @@
             <arg column="skipped_ended_count" javaType="_int"/>
             <arg column="duplicate_count" javaType="_int"/>
             <arg column="failed_count" javaType="_int"/>
+            <arg column="excluded_count" javaType="_int"/>
             <arg column="error_message" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
         </constructor>
@@ -67,6 +68,8 @@
             <arg column="provider_notice_id" javaType="java.lang.String"/>
             <arg column="source_url" javaType="java.lang.String"/>
             <arg column="item_status_code" javaType="java.lang.String"/>
+            <arg column="semantic_reason_code" javaType="java.lang.String"/>
+            <arg column="semantic_matched_keywords" javaType="java.lang.String"/>
             <arg column="error_message" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
         </constructor>
@@ -92,6 +95,9 @@
             <arg column="missing_fields_json" javaType="java.lang.String"/>
             <arg column="raw_hash" javaType="java.lang.String"/>
             <arg column="review_status_code" javaType="java.lang.String"/>
+            <arg column="semantic_status_code" javaType="java.lang.String"/>
+            <arg column="semantic_reason_code" javaType="java.lang.String"/>
+            <arg column="semantic_matched_keywords" javaType="java.lang.String"/>
             <arg column="collected_at" javaType="java.time.OffsetDateTime"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
@@ -196,6 +202,9 @@
         ass.missing_fields_json::text AS missing_fields_json,
         ass.raw_hash,
         ass.review_status_code,
+        ass.semantic_status_code,
+        ass.semantic_reason_code,
+        ass.semantic_matched_keywords,
         ass.collected_at,
         ass.created_at,
         ass.updated_at
@@ -233,6 +242,9 @@
             </if>
             <if test="reviewStatusCode != null and reviewStatusCode != ''">
                 AND ass.review_status_code = #{reviewStatusCode}
+            </if>
+            <if test="semanticStatusCode != null and semanticStatusCode != ''">
+                AND ass.semantic_status_code = #{semanticStatusCode}
             </if>
             <if test="keyword != null and keyword != ''">
                 AND (
@@ -443,6 +455,7 @@
             skipped_ended_count = #{skippedEndedCount},
             duplicate_count = #{duplicateCount},
             failed_count = #{failedCount},
+            excluded_count = #{excludedCount},
             error_message = #{errorMessage}
         WHERE id = #{runId}
     </update>
@@ -464,6 +477,7 @@
             ascrun.skipped_ended_count,
             ascrun.duplicate_count,
             ascrun.failed_count,
+            ascrun.excluded_count,
             ascrun.error_message,
             ascrun.created_at
         FROM announcement_source_collection_runs ascrun
@@ -500,6 +514,7 @@
             ascrun.skipped_ended_count,
             ascrun.duplicate_count,
             ascrun.failed_count,
+            ascrun.excluded_count,
             ascrun.error_message,
             ascrun.created_at
         FROM announcement_source_collection_runs ascrun
@@ -516,6 +531,8 @@
             provider_notice_id,
             source_url,
             item_status_code,
+            semantic_reason_code,
+            semantic_matched_keywords,
             error_message
         ) VALUES (
             #{itemId},
@@ -524,6 +541,8 @@
             #{providerNoticeId},
             #{sourceUrl},
             #{itemStatusCode},
+            #{semanticReasonCode},
+            #{semanticMatchedKeywords},
             #{errorMessage}
         )
     </insert>
@@ -538,6 +557,8 @@
             ascri.provider_notice_id,
             ascri.source_url,
             ascri.item_status_code,
+            ascri.semantic_reason_code,
+            ascri.semantic_matched_keywords,
             ascri.error_message,
             ascri.created_at
         FROM announcement_source_collection_run_items ascri
@@ -571,7 +592,10 @@
             canonical_source_url,
             normalized_title,
             normalized_agency_name,
-            posted_date
+            posted_date,
+            semantic_status_code,
+            semantic_reason_code,
+            semantic_matched_keywords
         ) VALUES (
             #{sourceId},
             #{providerCode},
@@ -595,7 +619,10 @@
             #{canonicalSourceUrl},
             #{normalizedTitle},
             #{normalizedAgencyName},
-            #{postedDate}
+            #{postedDate},
+            #{semanticStatusCode},
+            #{semanticReasonCode},
+            #{semanticMatchedKeywords}
         )
     </insert>
 
@@ -620,6 +647,9 @@
             ass.missing_fields_json::text AS missing_fields_json,
             ass.raw_hash,
             ass.review_status_code,
+            ass.semantic_status_code,
+            ass.semantic_reason_code,
+            ass.semantic_matched_keywords,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -649,6 +679,9 @@
             ass.missing_fields_json::text AS missing_fields_json,
             ass.raw_hash,
             ass.review_status_code,
+            ass.semantic_status_code,
+            ass.semantic_reason_code,
+            ass.semantic_matched_keywords,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -678,6 +711,9 @@
             ass.missing_fields_json::text AS missing_fields_json,
             ass.raw_hash,
             ass.review_status_code,
+            ass.semantic_status_code,
+            ass.semantic_reason_code,
+            ass.semantic_matched_keywords,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -815,6 +851,9 @@
             ass.missing_fields_json::text AS missing_fields_json,
             ass.raw_hash,
             ass.review_status_code,
+            ass.semantic_status_code,
+            ass.semantic_reason_code,
+            ass.semantic_matched_keywords,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -854,6 +893,9 @@
             ass.missing_fields_json::text AS missing_fields_json,
             ass.raw_hash,
             ass.review_status_code,
+            ass.semantic_status_code,
+            ass.semantic_reason_code,
+            ass.semantic_matched_keywords,
             ass.collected_at,
             ass.created_at,
             ass.updated_at

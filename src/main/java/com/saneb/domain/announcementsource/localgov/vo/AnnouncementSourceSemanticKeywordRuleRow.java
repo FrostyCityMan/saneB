@@ -5,19 +5,17 @@
  * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
  *
  * 프로젝트명: saneB
- * 파일명: AnnouncementSourceSearchCondition.java
+ * 파일명: AnnouncementSourceSemanticKeywordRuleRow.java
  * 작성자: 김도훈
  *
  */
 
-package com.saneb.domain.announcementsource.vo;
+package com.saneb.domain.announcementsource.localgov.vo;
 
-public record AnnouncementSourceSearchCondition(
-        String providerCode,
-        String reviewStatusCode,
-        String semanticStatusCode,
-        String keyword,
-        int size,
-        int offset
+public record AnnouncementSourceSemanticKeywordRuleRow(
+        String ruleCode,
+        String ruleTypeCode,
+        String keywordText,
+        int sortOrder
 ) {
 }

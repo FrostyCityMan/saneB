@@ -21,6 +21,12 @@ public record LocalGovernmentNoticeCollectionSummaryResponse(
         long warningCount,
         long failedCount,
         long reviewPendingCount,
+        long transportFailureCount,
+        long parserFailureCount,
+        long partialFieldsCount,
+        long semanticMismatchCount,
+        long irrelevantContentCount,
+        long unverifiedSourceCount,
         String trafficLightCode
 ) {
 
@@ -35,7 +41,9 @@ public record LocalGovernmentNoticeCollectionSummaryResponse(
                 : row.warningCount() > 0 || row.reviewPendingCount() > 0 ? "YELLOW" : "GREEN";
         return new LocalGovernmentNoticeCollectionSummaryResponse(
                 row.totalCount(), row.enabledCount(), row.successCount(), row.warningCount(), row.failedCount(),
-                row.reviewPendingCount(), trafficLightCode
+                row.reviewPendingCount(), row.transportFailureCount(), row.parserFailureCount(),
+                row.partialFieldsCount(), row.semanticMismatchCount(), row.irrelevantContentCount(),
+                row.unverifiedSourceCount(), trafficLightCode
         );
     }
 }

@@ -25,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.SocketTimeoutException;
@@ -64,6 +66,7 @@ import org.springframework.stereotype.Component;
 public class LocalGovernmentNoticeCollector {
 
     private static final int MAX_REDIRECTS = 5;
+    private static final int SESSION_BOOTSTRAP_ATTEMPTS = 4;
     private static final Pattern DATE_PATTERN = Pattern.compile("(20\\d{2})[.\\-/년\\s]+(\\d{1,2})[.\\-/월\\s]+(\\d{1,2})");
     private static final Pattern SHORT_DATE_PATTERN = Pattern.compile(
             "(?<!\\d)(\\d{2})[.\\-/\\s]+(\\d{1,2})[.\\-/\\s]+(\\d{1,2})(?!\\d)"
@@ -116,6 +119,8 @@ public class LocalGovernmentNoticeCollector {
     private final ObjectMapper objectMapper;
     private final HttpClient defaultHttpClient;
     private final HttpClient browserHttp1Client;
+    private final CookieManager sessionCookieManager;
+    private final HttpClient sessionBrowserHttpClient;
     private final Duration timeout;
     private final int maxResponseBytes;
     private final String userAgent;
@@ -157,6 +162,13 @@ public class LocalGovernmentNoticeCollector {
                 .connectTimeout(this.timeout)
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        this.sessionCookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+        this.sessionBrowserHttpClient = HttpClient.newBuilder()
+                .connectTimeout(this.timeout)
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .version(HttpClient.Version.HTTP_1_1)
+                .cookieHandler(this.sessionCookieManager)
                 .build();
     }
 
@@ -240,6 +252,12 @@ public class LocalGovernmentNoticeCollector {
             if (usesLegacyBrowser(source)) {
                 return requestAndParseLegacy(source, profile, uri, redirectCount);
             }
+            if (redirectCount == 0 && usesSessionBrowser(source)) {
+                LocalGovernmentNoticeCollectionOutcome sessionFailure = prepareBrowserSession(source);
+                if (sessionFailure != null) {
+                    return sessionFailure;
+                }
+            }
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(uri)
                     .timeout(timeout)
                     .header("User-Agent", usesBrowserCompatibleRequest(source)
@@ -286,6 +304,82 @@ public class LocalGovernmentNoticeCollector {
         } catch (RuntimeException exception) {
             return failure(source.sourceId(), "PARSER_UNSUPPORTED", null, "PARSER_ERROR", "공고 목록 구조를 해석하지 못했습니다.");
         }
+    }
+
+    /**
+     * 세션 고정이 필요한 공공 사이트의 홈페이지를 먼저 호출해 쿠키를 확보합니다.
+     *
+     * @param source 지자체 URL 정보
+     * @return 세션 준비 실패 결과, 성공하면 null
+     */
+    private LocalGovernmentNoticeCollectionOutcome prepareBrowserSession(
+            LocalGovernmentNoticeSourceRow source
+    ) {
+        LocalGovernmentNoticeCollectionOutcome lastFailure = null;
+        for (int attempt = 1; attempt <= SESSION_BOOTSTRAP_ATTEMPTS; attempt++) {
+            sessionCookieManager.getCookieStore().removeAll();
+            try {
+                URI homepageUri = urlValidator.validate(source.homepageUrl());
+                HttpRequest request = HttpRequest.newBuilder(homepageUri)
+                        .timeout(timeout)
+                        .header("User-Agent", BROWSER_COMPATIBLE_USER_AGENT)
+                        .header("Accept", "text/html,application/xhtml+xml")
+                        .header("Accept-Language", "ko-KR,ko;q=0.9,en;q=0.5")
+                        .header("Cache-Control", "no-cache")
+                        .header("Pragma", "no-cache")
+                        .GET()
+                        .build();
+                HttpResponse<Void> response = sessionBrowserHttpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.discarding()
+                );
+                if (response.statusCode() >= 200 && response.statusCode() < 400) {
+                    return null;
+                }
+                String errorCode = response.statusCode() >= 500 ? "RETRYABLE" : "HTTP_ERROR";
+                lastFailure = failure(
+                        source.sourceId(),
+                        "FAILED",
+                        response.statusCode(),
+                        errorCode,
+                        "기관 사이트 세션 준비에 실패했습니다."
+                );
+            } catch (HttpTimeoutException | SocketTimeoutException exception) {
+                lastFailure = failure(
+                        source.sourceId(),
+                        "FAILED",
+                        null,
+                        "RETRYABLE",
+                        "기관 사이트 세션 준비 시간이 초과되었습니다."
+                );
+            } catch (IOException exception) {
+                lastFailure = failure(
+                        source.sourceId(),
+                        "FAILED",
+                        null,
+                        "NETWORK_ERROR",
+                        "기관 사이트 세션 준비에 실패했습니다."
+                );
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                return failure(
+                        source.sourceId(),
+                        "FAILED",
+                        null,
+                        "COLLECTION_INTERRUPTED",
+                        "수집 작업이 중단되었습니다."
+                );
+            } catch (ApiException exception) {
+                return failure(
+                        source.sourceId(),
+                        "URL_ERROR",
+                        null,
+                        "URL_VALIDATION_FAILED",
+                        exception.getMessage()
+                );
+            }
+        }
+        return lastFailure;
     }
 
     /**
@@ -1324,6 +1418,9 @@ public class LocalGovernmentNoticeCollector {
      * @return 요청 클라이언트
      */
     private HttpClient selectHttpClient(LocalGovernmentNoticeSourceRow source) {
+        if (usesSessionBrowser(source)) {
+            return sessionBrowserHttpClient;
+        }
         return usesBrowserHttp1(source) ? browserHttp1Client : defaultHttpClient;
     }
 
@@ -1348,13 +1445,23 @@ public class LocalGovernmentNoticeCollector {
     }
 
     /**
+     * 홈페이지 세션을 확보한 뒤 게시판을 요청해야 하는지 확인합니다.
+     *
+     * @param source 지자체 URL 정보
+     * @return 세션 브라우저 프로필이면 true
+     */
+    private boolean usesSessionBrowser(LocalGovernmentNoticeSourceRow source) {
+        return "SESSION_BROWSER".equals(source.requestProfileCode());
+    }
+
+    /**
      * 브라우저에 가까운 요청 헤더가 필요한 프로필인지 확인합니다.
      *
      * @param source 지자체 URL 정보
      * @return 브라우저 호환 헤더 적용 대상이면 true
      */
     private boolean usesBrowserCompatibleRequest(LocalGovernmentNoticeSourceRow source) {
-        return usesBrowserHttp1(source) || usesLegacyBrowser(source);
+        return usesBrowserHttp1(source) || usesLegacyBrowser(source) || usesSessionBrowser(source);
     }
 
     /**

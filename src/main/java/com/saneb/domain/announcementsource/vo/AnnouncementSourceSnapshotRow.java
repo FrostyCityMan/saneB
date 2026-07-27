@@ -35,6 +35,9 @@ public record AnnouncementSourceSnapshotRow(
         String missingFieldsJson,
         String rawHash,
         String reviewStatusCode,
+        String semanticStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords,
         OffsetDateTime collectedAt,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

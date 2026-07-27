@@ -19,6 +19,7 @@ import com.saneb.domain.announcement.dao.AnnouncementDao;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementSaveCommand;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
+import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceAttachmentResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceCollectionApprovalRequest;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceCollectionRequestCreateRequest;
@@ -34,6 +35,7 @@ import com.saneb.domain.announcementsource.dto.AnnouncementSourceLinkResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceReviewStatusUpdateRequest;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceSummaryResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceSnapshotDuplicateResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceToAnnouncementRequest;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderAttachment;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderBatch;
@@ -100,6 +102,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private static final String DEFAULT_INCOME_JUDGEMENT_CODE = "VAT_TAX_BASE_ONLY";
 
     private final AnnouncementSourceDao announcementSourceDao;
+    private final LocalGovernmentNoticeDao localGovernmentNoticeDao;
     private final AnnouncementDao announcementDao;
     private final AnnouncementSourceHighlightService highlightService;
     private final Map<String, AnnouncementSourceProviderClient> providerClients;
@@ -110,6 +113,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      *
      * @param announcementSourceDao 입력 값
      *
+     * @param localGovernmentNoticeDao 지자체 출처 수집 결과 DAO
+     *
      * @param announcementDao 입력 값
      *
      * @param highlightService 입력 값
@@ -118,11 +123,13 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      */
     public AnnouncementSourceServiceImpl(
             AnnouncementSourceDao announcementSourceDao,
+            LocalGovernmentNoticeDao localGovernmentNoticeDao,
             AnnouncementDao announcementDao,
             AnnouncementSourceHighlightService highlightService,
             List<AnnouncementSourceProviderClient> providerClients
     ) {
         this.announcementSourceDao = announcementSourceDao;
+        this.localGovernmentNoticeDao = localGovernmentNoticeDao;
         this.announcementDao = announcementDao;
         this.highlightService = highlightService;
         this.providerClients = providerClients.stream()
@@ -384,6 +391,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 0,
                 0,
                 0,
+                0,
                 null
         ));
 
@@ -414,6 +422,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 counter.skippedEndedCount,
                 counter.duplicateCount,
                 counter.failedCount,
+                counter.excludedCount,
                 errorMessage
         ));
         return AnnouncementSourceCollectionRunResponse.from(selectCollectionRunRow(runId));
@@ -429,6 +438,12 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      * @param counter 입력 값
      */
     private void handleProviderItem(UUID runId, AnnouncementSourceProviderItem item, RunCounter counter) {
+        if ("EXCLUDED".equals(item.semanticStatusCode())) {
+            counter.excludedCount++;
+            insertRunItem(runId, null, item, "EXCLUDED", null);
+            updateProviderItemResult(runId, item, "EXCLUDED");
+            return;
+        }
         if (item.applicationEndDate() != null && item.applicationEndDate().isBefore(LocalDate.now())) {
             counter.skippedEndedCount++;
             insertRunItem(runId, null, item, "SKIPPED_ENDED", null);
@@ -477,7 +492,10 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 canonicalSourceUrl,
                 normalizedTitle,
                 normalizedAgencyName,
-                postedDate
+                postedDate,
+                item.semanticStatusCode(),
+                item.semanticReasonCode(),
+                item.semanticMatchedKeywords()
         ));
         int sortOrder = 0;
         for (AnnouncementSourceProviderAttachment attachment : item.attachments()) {
@@ -562,7 +580,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 .stream()
                 .map(AnnouncementSourceCollectionRunItemResponse::from)
                 .toList();
-        return new AnnouncementSourceCollectionRunDetailsResponse(run, items);
+        List<LocalGovernmentNoticeCollectionResultResponse> sourceResults =
+                localGovernmentNoticeDao.selectCollectionResultListByRunId(runId).stream()
+                        .map(LocalGovernmentNoticeCollectionResultResponse::from)
+                        .toList();
+        return new AnnouncementSourceCollectionRunDetailsResponse(run, items, sourceResults);
     }
 
     /**
@@ -584,6 +606,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     public PageResponse<AnnouncementSourceSummaryResponse> selectSourceList(
             String providerCode,
             String reviewStatusCode,
+            String semanticStatusCode,
             String keyword,
             int page,
             int size
@@ -591,6 +614,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         AnnouncementSourceSearchCondition condition = new AnnouncementSourceSearchCondition(
                 normalizeOptionalCode(providerCode),
                 normalizeOptionalCode(reviewStatusCode),
+                normalizeOptionalCode(semanticStatusCode),
                 nullIfBlank(keyword),
                 size,
                 (page - 1) * size
@@ -792,6 +816,13 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     ) {
         UUID actorUserId = selectActorUserId(authentication);
         AnnouncementSourceSnapshotRow source = selectSourceRow(sourceId);
+        if ("EXCLUDED".equals(source.semanticStatusCode())) {
+            throw new ApiException(
+                    ErrorCode.INVALID_STATUS_TRANSITION,
+                    HttpStatus.BAD_REQUEST,
+                    "지원사업과 무관한 것으로 분류된 원문은 운영 공고로 전환할 수 없습니다."
+            );
+        }
         if (!Set.of("REVIEW_PENDING", "CONDITION_INPUT_REQUIRED", "REVIEW_COMPLETED")
                 .contains(source.reviewStatusCode())) {
             throw new ApiException(
@@ -1087,6 +1118,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 item.providerNoticeId(),
                 item.sourceUrl(),
                 statusCode,
+                item.semanticReasonCode(),
+                item.semanticMatchedKeywords(),
                 errorMessage
         ));
     }
@@ -1140,6 +1173,13 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceSnapshotRow source,
             String nextStatusCode
     ) {
+        if ("EXCLUDED".equals(source.semanticStatusCode()) && !"ARCHIVED".equals(nextStatusCode)) {
+            throw new ApiException(
+                    ErrorCode.INVALID_STATUS_TRANSITION,
+                    HttpStatus.BAD_REQUEST,
+                    "수집 제외 판정 원문은 보관 처리만 할 수 있습니다."
+            );
+        }
         boolean valid = switch (source.reviewStatusCode()) {
             case "COLLECTED" -> Set.of("REVIEW_PENDING", "DUPLICATE", "SKIPPED_ENDED", "ARCHIVED").contains(nextStatusCode);
             case "REVIEW_PENDING" -> Set.of("CONDITION_INPUT_REQUIRED", "REVIEW_COMPLETED", "DUPLICATE", "ARCHIVED").contains(nextStatusCode);
@@ -1176,7 +1216,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      * @return 처리 결과
      */
     private String selectRunStatusCode(RunCounter counter, String errorMessage) {
-        if (errorMessage != null && counter.collectedCount == 0 && counter.duplicateCount == 0 && counter.skippedEndedCount == 0) {
+        if (errorMessage != null && counter.collectedCount == 0 && counter.duplicateCount == 0
+                && counter.skippedEndedCount == 0 && counter.excludedCount == 0) {
             return "FAILED";
         }
         if (counter.failedCount > 0) {
@@ -1327,5 +1368,6 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         private int skippedEndedCount;
         private int duplicateCount;
         private int failedCount;
+        private int excludedCount;
     }
 }

@@ -24,6 +24,8 @@ public record AnnouncementSourceCollectionRunItemResponse(
         String providerNoticeId,
         String sourceUrl,
         String itemStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords,
         String errorMessage,
         OffsetDateTime createdAt
 ) {
@@ -44,6 +46,8 @@ public record AnnouncementSourceCollectionRunItemResponse(
                 row.providerNoticeId(),
                 row.sourceUrl(),
                 row.itemStatusCode(),
+                row.semanticReasonCode(),
+                row.semanticMatchedKeywords(),
                 row.errorMessage(),
                 row.createdAt()
         );

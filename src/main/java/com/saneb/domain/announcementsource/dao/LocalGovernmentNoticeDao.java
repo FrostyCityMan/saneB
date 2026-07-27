@@ -13,11 +13,13 @@
 package com.saneb.domain.announcementsource.dao;
 
 import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceScheduleCommand;
+import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceSemanticKeywordRuleRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
 import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceScheduleExecutionCommand;
 import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceScheduleRow;
 import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceScheduleStatusCommand;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionResultCommand;
+import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionResultRow;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionSummaryRow;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeParserProfileRow;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceCollectionStatusCommand;
@@ -172,6 +174,13 @@ public interface LocalGovernmentNoticeDao {
     LocalGovernmentNoticeCollectionSummaryRow selectCollectionSummary();
 
     /**
+     * 활성 의미 판정 키워드 규칙 목록을 조회합니다.
+     *
+     * @return 정렬된 키워드 규칙 목록
+     */
+    List<AnnouncementSourceSemanticKeywordRuleRow> selectSemanticKeywordRuleList();
+
+    /**
      * URL 단위 수집 결과를 등록합니다.
      *
      * @param command 수집 결과 명령
@@ -185,13 +194,47 @@ public interface LocalGovernmentNoticeDao {
      * @param sourceId 지자체 URL 식별자
      * @param newIncrement 신규 증가 건수
      * @param duplicateIncrement 중복 증가 건수
+     * @param excludedIncrement 제외 증가 건수
      */
     void updateCollectionResultCounts(
             @Param("runId") UUID runId,
             @Param("sourceId") UUID sourceId,
             @Param("newIncrement") int newIncrement,
-            @Param("duplicateIncrement") int duplicateIncrement
+            @Param("duplicateIncrement") int duplicateIncrement,
+            @Param("excludedIncrement") int excludedIncrement
     );
+
+    /**
+     * 한 수집 실행의 URL별 결과를 조회합니다.
+     *
+     * @param runId 수집 실행 식별자
+     * @return URL별 결과 목록
+     */
+    List<LocalGovernmentNoticeCollectionResultRow> selectCollectionResultListByRunId(
+            @Param("runId") UUID runId
+    );
+
+    /**
+     * 한 출처의 최근 수집 결과를 조회합니다.
+     *
+     * @param sourceId 출처 식별자
+     * @param size 페이지 크기
+     * @param offset 시작 위치
+     * @return 최근 수집 결과 목록
+     */
+    List<LocalGovernmentNoticeCollectionResultRow> selectCollectionResultListBySourceId(
+            @Param("sourceId") UUID sourceId,
+            @Param("size") int size,
+            @Param("offset") int offset
+    );
+
+    /**
+     * 한 출처의 수집 결과 건수를 조회합니다.
+     *
+     * @param sourceId 출처 식별자
+     * @return 수집 결과 건수
+     */
+    long selectCollectionResultCountBySourceId(@Param("sourceId") UUID sourceId);
 
     /**
      * 지자체 URL의 마지막 수집 상태를 수정합니다.

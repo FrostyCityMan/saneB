@@ -31,6 +31,7 @@ public record AnnouncementSourceCollectionRunResponse(
         int skippedEndedCount,
         int duplicateCount,
         int failedCount,
+        int excludedCount,
         String errorMessage,
         OffsetDateTime createdAt
 ) {
@@ -58,6 +59,7 @@ public record AnnouncementSourceCollectionRunResponse(
                 row.skippedEndedCount(),
                 row.duplicateCount(),
                 row.failedCount(),
+                row.excludedCount(),
                 row.errorMessage(),
                 row.createdAt()
         );

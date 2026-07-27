@@ -5,19 +5,24 @@
  * 사전 서면 동의 없이 본 파일의 복제, 수정, 배포, 공개, 사용을 금지합니다.
  *
  * 프로젝트명: saneB
- * 파일명: LocalGovernmentNoticeCollectionResultCommand.java
+ * 파일명: LocalGovernmentNoticeCollectionResultRow.java
  * 작성자: 김도훈
  *
  */
 
 package com.saneb.domain.announcementsource.localgov.vo;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record LocalGovernmentNoticeCollectionResultCommand(
+public record LocalGovernmentNoticeCollectionResultRow(
         UUID resultId,
         UUID runId,
+        String runPublicCode,
         UUID sourceId,
+        String sourcePublicCode,
+        String institutionName,
+        String noticeUrl,
         String resultStatusCode,
         int discoveredCount,
         int newCount,
@@ -26,6 +31,8 @@ public record LocalGovernmentNoticeCollectionResultCommand(
         int excludedCount,
         Integer httpStatus,
         String errorCode,
-        String errorMessage
+        String errorMessage,
+        OffsetDateTime startedAt,
+        OffsetDateTime finishedAt
 ) {
 }

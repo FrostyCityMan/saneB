@@ -22,6 +22,8 @@ import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticePars
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -69,6 +71,7 @@ class LocalGovernmentNoticeParserFullQaTest {
 
     private static final int EXPECTED_SOURCE_COUNT = 244;
     private static final int QA_CONCURRENCY = 4;
+    private static final int SESSION_BOOTSTRAP_ATTEMPTS = 4;
     private static final long RETRY_DELAY_MILLIS = 750L;
     private static final int MAX_RESPONSE_BYTES = 3 * 1024 * 1024;
     private static final String BROWSER_COMPATIBLE_USER_AGENT =
@@ -100,6 +103,10 @@ class LocalGovernmentNoticeParserFullQaTest {
             "SET request_profile_code = 'LEGACY_BROWSER'.*?WHERE public_code IN \\((.*?)\\)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern SESSION_BROWSER_BLOCK_PATTERN = Pattern.compile(
+            "SET request_profile_code = 'SESSION_BROWSER'.*?WHERE public_code IN \\((.*?)\\)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+    );
     private static final Pattern COLLECTION_ENDPOINT_PATTERN = Pattern.compile(
             "SET collection_endpoint_url = '([^']+)'.*?WHERE public_code = '(LGS-\\d{6})'",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
@@ -114,6 +121,20 @@ class LocalGovernmentNoticeParserFullQaTest {
     private static final Pattern NON_NOTICE_LINK_PATTERN = Pattern.compile(
             ".*(download|filedown|rss|login|logout|sitemap).*",
             Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern LEGAL_SOURCE_URL_PATTERN = Pattern.compile(
+            ".*(eminwon|emwp|emws|saeol/gosi|selectgosi|/gosi([/.?]|$)|publicnotice|searchgosi"
+                    + "|ofraction|notancmt|not_ancmt|seolcontent|section=gosi|bcd=gosi).*",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern PRESS_BOARD_PATTERN = Pattern.compile(
+            ".*(보도자료|언론보도|브리핑).*"
+    );
+    private static final Pattern LEGAL_BOARD_PATTERN = Pattern.compile(
+            ".*(고시.?공고|고시공고|입법.?행정예고|새올전자민원).*"
+    );
+    private static final Pattern SUPPORT_BOARD_PATTERN = Pattern.compile(
+            ".*(지원사업|사업.?공고|지원.?모집|소상공인|중소기업|창업).*"
     );
     private static final Pattern DETAIL_LINK_PATTERN = Pattern.compile(
             ".*(view|detail|selectbbsnttview|dataSid=|nttId=|nttNo=|articleId=|articleNo=|boardSeq=|bbsSeq=|jsb_key=|[?&](seq|idx|no|id)=\\d+|/\\d{3,}(?:[/?#].*)?$).*",
@@ -455,6 +476,8 @@ class LocalGovernmentNoticeParserFullQaTest {
     private final SSLContext windowsSslContext = selectWindowsSslContext();
     private final HttpClient defaultHttpClient = createHttpClient(null);
     private final HttpClient browserHttp1Client = createHttpClient(HttpClient.Version.HTTP_1_1);
+    private final CookieManager sessionCookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+    private final HttpClient sessionBrowserHttpClient = createSessionHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Path qaOutputDirectory = Path.of(System.getProperty(
             "saneb.local-gov-qa.output-dir",
@@ -600,6 +623,18 @@ class LocalGovernmentNoticeParserFullQaTest {
         );
         try {
             domainSemaphore.acquire();
+            if (usesSessionBrowser(source)) {
+                int bootstrapStatus = prepareBrowserSession(source);
+                if (bootstrapStatus < 200 || bootstrapStatus >= 400) {
+                    return failure(
+                            source,
+                            "HTTP_ERROR",
+                            bootstrapStatus,
+                            "세션 준비 HTTP " + bootstrapStatus,
+                            startedAt
+                    );
+                }
+            }
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(uri)
                     .timeout(Duration.ofSeconds(15))
                     .header("User-Agent", usesBrowserCompatibleRequest(source)
@@ -630,11 +665,14 @@ class LocalGovernmentNoticeParserFullQaTest {
             JsonQaProfile jsonProfile = JSON_PROFILES.get(source.publicCode());
             if (jsonProfile != null) {
                 ProfileResult result = inspectJsonProfile(source, response.body(), jsonProfile);
+                SemanticQaResult semanticResult = selectDeclaredSemanticQa(source);
                 return new QaResult(
                         source.publicCode(), source.sidoName(), source.sigunguName(), source.institutionName(),
                         source.noticeUrl(), selectStatus(result), result.profileCode(), result.discoveredCount(),
                         result.validCount(), result.invalidCount(), response.statusCode(), null, null,
-                        String.join(" | ", result.samples()), elapsedMillis(startedAt)
+                        String.join(" | ", result.samples()), elapsedMillis(startedAt),
+                        semanticResult.sourceBoardTypeCode(), semanticResult.collectionPolicyCode(),
+                        semanticResult.semanticStatusCode(), semanticResult.semanticReasonCode()
                 );
             }
             Document document = Jsoup.parse(
@@ -648,11 +686,14 @@ class LocalGovernmentNoticeParserFullQaTest {
                     .toList();
             ProfileResult best = selectBestProfile(profileResults);
             String status = selectStatus(best);
+            SemanticQaResult semanticResult = inspectSourceSemantics(source, document);
             return new QaResult(
                     source.publicCode(), source.sidoName(), source.sigunguName(), source.institutionName(),
                     source.noticeUrl(), status, best.profileCode(), best.discoveredCount(), best.validCount(),
                     best.invalidCount(), response.statusCode(), null, null, String.join(" | ", best.samples()),
-                    elapsedMillis(startedAt)
+                    elapsedMillis(startedAt), semanticResult.sourceBoardTypeCode(),
+                    semanticResult.collectionPolicyCode(), semanticResult.semanticStatusCode(),
+                    semanticResult.semanticReasonCode()
             );
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
@@ -1185,6 +1226,122 @@ class LocalGovernmentNoticeParserFullQaTest {
     }
 
     /**
+     * HTML의 페이지 제목·경로 표식과 정적 출처 분류를 함께 사용해 게시판 의미를 확인합니다.
+     *
+     * @param source 지자체 URL seed
+     * @param document 수집한 HTML 문서
+     * @return 파싱 결과와 분리된 게시판 의미 검증 결과
+     */
+    private SemanticQaResult inspectSourceSemantics(SourceSeed source, Document document) {
+        SemanticQaResult declared = selectDeclaredSemanticQa(source);
+        String evidence = String.join(" ",
+                document.title(),
+                document.select("meta[property=og:title]").attr("content")
+        ).replaceAll("\\s+", " ").trim();
+
+        if ("PRESS_RELEASE".equals(declared.sourceBoardTypeCode())) {
+            return new SemanticQaResult(
+                    declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                    "EXCLUDED", "PRESS_RELEASE_SOURCE"
+            );
+        }
+        if (PRESS_BOARD_PATTERN.matcher(evidence).matches()
+                && !LEGAL_BOARD_PATTERN.matcher(evidence).matches()
+                && !SUPPORT_BOARD_PATTERN.matcher(evidence).matches()) {
+            return new SemanticQaResult(
+                    declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                    "SEMANTIC_MISMATCH", "PRESS_RELEASE_PAGE_EVIDENCE"
+            );
+        }
+        if ("GENERAL_NOTICE".equals(declared.sourceBoardTypeCode())) {
+            return new SemanticQaResult(
+                    declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                    "KEYWORD_FILTER_REQUIRED", "GENERAL_NOTICE_STATIC_KEYWORD_POLICY"
+            );
+        }
+        if ("LEGAL_NOTICE".equals(declared.sourceBoardTypeCode())
+                && (LEGAL_BOARD_PATTERN.matcher(evidence).matches()
+                || "public_notice_board".equals(source.pageTypeCode())
+                || LEGAL_SOURCE_URL_PATTERN.matcher(source.noticeUrl()).matches())) {
+            return new SemanticQaResult(
+                    declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                    "MATCHED", "LEGAL_NOTICE_PAGE_EVIDENCE"
+            );
+        }
+        if ("SUPPORT_RECRUITMENT".equals(declared.sourceBoardTypeCode())
+                && (SUPPORT_BOARD_PATTERN.matcher(evidence).matches()
+                || Set.of("small_business_support_page", "dedicated_small_business_board")
+                        .contains(source.pageTypeCode()))) {
+            return new SemanticQaResult(
+                    declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                    "MATCHED", "SUPPORT_RECRUITMENT_PAGE_EVIDENCE"
+            );
+        }
+        return new SemanticQaResult(
+                declared.sourceBoardTypeCode(), declared.collectionPolicyCode(),
+                "REVIEW_REQUIRED", "BOARD_EVIDENCE_INSUFFICIENT"
+        );
+    }
+
+    /**
+     * V56 정적 분류와 같은 규칙으로 출처의 게시판 유형과 수집 정책을 산출합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 정적 출처 분류 결과
+     */
+    private SemanticQaResult selectDeclaredSemanticQa(SourceSeed source) {
+        String boardTypeCode = selectSourceBoardTypeCode(source);
+        String policyCode = selectCollectionPolicyCode(source);
+        String semanticStatusCode = switch (boardTypeCode) {
+            case "PRESS_RELEASE" -> "EXCLUDED";
+            case "GENERAL_NOTICE" -> "KEYWORD_FILTER_REQUIRED";
+            case "LEGAL_NOTICE", "SUPPORT_RECRUITMENT" -> "MATCHED";
+            default -> "REVIEW_REQUIRED";
+        };
+        return new SemanticQaResult(
+                boardTypeCode,
+                policyCode,
+                semanticStatusCode,
+                "STATIC_SOURCE_CLASSIFICATION"
+        );
+    }
+
+    /**
+     * 정적 seed와 공식 URL 패턴으로 게시판 유형을 선택합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 게시판 유형 코드
+     */
+    private String selectSourceBoardTypeCode(SourceSeed source) {
+        if ("LGS-000084".equals(source.publicCode())) {
+            return "PRESS_RELEASE";
+        }
+        if (Set.of("small_business_support_page", "dedicated_small_business_board")
+                .contains(source.pageTypeCode())) {
+            return "SUPPORT_RECRUITMENT";
+        }
+        if ("public_notice_board".equals(source.pageTypeCode())
+                || LEGAL_SOURCE_URL_PATTERN.matcher(source.noticeUrl()).matches()) {
+            return "LEGAL_NOTICE";
+        }
+        return "GENERAL_NOTICE";
+    }
+
+    /**
+     * 게시판 유형에 맞는 수집 정책을 선택합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 수집 정책 코드
+     */
+    private String selectCollectionPolicyCode(SourceSeed source) {
+        return switch (selectSourceBoardTypeCode(source)) {
+            case "LEGAL_NOTICE", "SUPPORT_RECRUITMENT" -> "COLLECT_ALL";
+            case "GENERAL_NOTICE" -> "KEYWORD_FILTERED";
+            default -> "EXCLUDED";
+        };
+    }
+
+    /**
      * V29 migration에서 지자체 URL seed를 읽습니다.
      *
      * @return 지자체 URL seed 목록
@@ -1200,6 +1357,7 @@ class LocalGovernmentNoticeParserFullQaTest {
         Map<String, String> collectionEndpoints = selectCollectionEndpointMap(hardeningMigration);
         Set<String> browserHttp1Sources = selectBrowserHttp1SourceCodes(hardeningMigration);
         Set<String> legacyBrowserSources = selectLegacyBrowserSourceCodes(hardeningMigration);
+        Set<String> sessionBrowserSources = selectSessionBrowserSourceCodes(hardeningMigration);
         Matcher blockMatcher = SOURCE_INSERT_PATTERN.matcher(migration);
         List<SourceSeed> sources = new ArrayList<>();
         int sequence = 1;
@@ -1211,12 +1369,15 @@ class LocalGovernmentNoticeParserFullQaTest {
             String publicCode = "LGS-" + String.format(Locale.ROOT, "%06d", sequence++);
             sources.add(new SourceSeed(
                     publicCode, values.get(2), values.get(4), values.get(6),
-                    reviewedUrls.getOrDefault(publicCode, values.get(8)),
-                    collectionEndpoints.get(publicCode),
-                    legacyBrowserSources.contains(publicCode)
-                            ? "LEGACY_BROWSER"
-                            : browserHttp1Sources.contains(publicCode) || collectionEndpoints.containsKey(publicCode)
-                                    ? "BROWSER_HTTP1" : "DEFAULT"
+                     reviewedUrls.getOrDefault(publicCode, values.get(8)),
+                     collectionEndpoints.get(publicCode),
+                     sessionBrowserSources.contains(publicCode)
+                             ? "SESSION_BROWSER"
+                             : legacyBrowserSources.contains(publicCode)
+                             ? "LEGACY_BROWSER"
+                             : browserHttp1Sources.contains(publicCode) || collectionEndpoints.containsKey(publicCode)
+                                    ? "BROWSER_HTTP1" : "DEFAULT",
+                    values.get(9)
             ));
         }
         return List.copyOf(sources);
@@ -1307,6 +1468,21 @@ class LocalGovernmentNoticeParserFullQaTest {
     }
 
     /**
+     * V32 이후 migration에서 세션 고정 브라우저 요청 적용 대상을 읽습니다.
+     *
+     * @param migration V32 이후 migration 원문
+     * @return 관리코드 집합
+     */
+    private Set<String> selectSessionBrowserSourceCodes(String migration) {
+        Matcher blockMatcher = SESSION_BROWSER_BLOCK_PATTERN.matcher(migration);
+        Set<String> sourceCodes = new HashSet<>();
+        while (blockMatcher.find()) {
+            sourceCodes.addAll(selectSqlStrings(blockMatcher.group(1)));
+        }
+        return Set.copyOf(sourceCodes);
+    }
+
+    /**
      * V32 이후 migration에서 별도 수집 endpoint를 읽습니다.
      *
      * @param migration V32 migration 원문
@@ -1372,13 +1548,18 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @throws IOException 저장 실패
      */
     private void writeCsv(Path path, List<QaResult> results) throws IOException {
-        StringBuilder csv = new StringBuilder("\uFEFF관리코드,시도,시군구,기관명,URL,QA상태,추천파서,발견,유효,무효,HTTP,오류코드,오류메시지,표본,응답시간ms\n");
+        StringBuilder csv = new StringBuilder(
+                "\uFEFF관리코드,시도,시군구,기관명,URL,QA상태,추천파서,발견,유효,무효,HTTP,"
+                        + "오류코드,오류메시지,표본,응답시간ms,게시판유형,수집정책,의미검증상태,의미검증사유\n"
+        );
         for (QaResult result : results) {
             csv.append(Arrays.asList(
                             result.publicCode(), result.sidoName(), result.sigunguName(), result.institutionName(),
-                            result.noticeUrl(), result.statusCode(), result.profileCode(), result.discoveredCount(),
-                            result.validCount(), result.invalidCount(), result.httpStatus(), result.errorCode(),
-                            result.errorMessage(), result.samples(), result.elapsedMillis()
+                             result.noticeUrl(), result.statusCode(), result.profileCode(), result.discoveredCount(),
+                             result.validCount(), result.invalidCount(), result.httpStatus(), result.errorCode(),
+                             result.errorMessage(), result.samples(), result.elapsedMillis(),
+                             result.sourceBoardTypeCode(), result.collectionPolicyCode(),
+                             result.semanticStatusCode(), result.semanticReasonCode()
                     ).stream().map(this::csvValue).collect(Collectors.joining(",")))
                     .append('\n');
         }
@@ -1401,6 +1582,16 @@ class LocalGovernmentNoticeParserFullQaTest {
         Map<String, Long> profileCounts = results.stream()
                 .filter(result -> result.profileCode() != null && !result.profileCode().isBlank())
                 .collect(Collectors.groupingBy(QaResult::profileCode, LinkedHashMap::new, Collectors.counting()));
+        Map<String, Long> semanticStatusCounts = results.stream().collect(Collectors.groupingBy(
+                QaResult::semanticStatusCode,
+                LinkedHashMap::new,
+                Collectors.counting()
+        ));
+        Map<String, Long> boardTypeCounts = results.stream().collect(Collectors.groupingBy(
+                QaResult::sourceBoardTypeCode,
+                LinkedHashMap::new,
+                Collectors.counting()
+        ));
         StringBuilder markdown = new StringBuilder();
         markdown.append("# 지자체 파서 전수 QA 요약\n\n")
                 .append("- 검사 대상: ").append(results.size()).append("곳\n")
@@ -1408,6 +1599,10 @@ class LocalGovernmentNoticeParserFullQaTest {
                 .append("- 필수 추출값: 제목, 등록일, 원문 URL\n\n")
                 .append("## 상태 집계\n\n| 상태 | 건수 |\n|---|---:|\n");
         statusCounts.forEach((status, count) -> markdown.append('|').append(status).append('|').append(count).append("|\n"));
+        markdown.append("\n## 게시판 유형 집계\n\n| 유형 | 건수 |\n|---|---:|\n");
+        boardTypeCounts.forEach((status, count) -> markdown.append('|').append(status).append('|').append(count).append("|\n"));
+        markdown.append("\n## 의미 검증 집계\n\n| 상태 | 건수 |\n|---|---:|\n");
+        semanticStatusCounts.forEach((status, count) -> markdown.append('|').append(status).append('|').append(count).append("|\n"));
         markdown.append("\n## 추천 파서 집계\n\n| 파서 | 건수 |\n|---|---:|\n");
         profileCounts.forEach((profile, count) -> markdown.append('|').append(profile).append('|').append(count).append("|\n"));
         markdown.append("\n## 미통과 목록\n\n| 관리코드 | 기관 | 상태 | 오류 |\n|---|---|---|---|\n");
@@ -1417,6 +1612,19 @@ class LocalGovernmentNoticeParserFullQaTest {
                 .append('|').append(result.statusCode())
                 .append('|').append(escapeMarkdown(result.errorCode() == null ? "추출률 미달" : result.errorCode()))
                 .append("|\n"));
+        markdown.append("\n## 게시판 의미 확인 필요 목록\n\n")
+                .append("| 관리코드 | 기관 | 게시판 유형 | 의미 상태 | 사유 |\n")
+                .append("|---|---|---|---|---|\n");
+        results.stream()
+                .filter(result -> Set.of("SEMANTIC_MISMATCH", "REVIEW_REQUIRED")
+                        .contains(result.semanticStatusCode()))
+                .forEach(result -> markdown
+                        .append('|').append(result.publicCode())
+                        .append('|').append(escapeMarkdown(result.institutionName()))
+                        .append('|').append(result.sourceBoardTypeCode())
+                        .append('|').append(result.semanticStatusCode())
+                        .append('|').append(result.semanticReasonCode())
+                        .append("|\n"));
         Files.writeString(path, markdown.toString(), StandardCharsets.UTF_8);
     }
 
@@ -1461,7 +1669,9 @@ class LocalGovernmentNoticeParserFullQaTest {
         return new QaResult(
                 source.publicCode(), source.sidoName(), source.sigunguName(), source.institutionName(),
                 source.noticeUrl(), "FAILED", null, 0, 0, 0, httpStatus, errorCode,
-                errorMessage == null ? "" : errorMessage, "", elapsedMillis(startedAt)
+                errorMessage == null ? "" : errorMessage, "", elapsedMillis(startedAt),
+                selectSourceBoardTypeCode(source), selectCollectionPolicyCode(source),
+                "NOT_EVALUATED", errorCode
         );
     }
 
@@ -1489,6 +1699,48 @@ class LocalGovernmentNoticeParserFullQaTest {
         HttpResponse<byte[]> response = selectHttpClient(source)
                 .send(request, HttpResponse.BodyHandlers.ofByteArray());
         return new QaHttpResponse(response.statusCode(), response.body(), response.uri());
+    }
+
+    /**
+     * 세션 고정형 사이트의 공식 홈페이지를 먼저 호출해 QA 요청 쿠키를 확보합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 홈페이지 HTTP 상태
+     * @throws IOException 네트워크 오류
+     * @throws InterruptedException 요청 중단
+     */
+    private int prepareBrowserSession(SourceSeed source) throws IOException, InterruptedException {
+        URI noticeUri = URI.create(source.noticeUrl());
+        URI homepageUri = noticeUri.resolve("/");
+        int lastStatus = 0;
+        IOException lastException = null;
+        for (int attempt = 1; attempt <= SESSION_BOOTSTRAP_ATTEMPTS; attempt++) {
+            sessionCookieManager.getCookieStore().removeAll();
+            HttpRequest request = HttpRequest.newBuilder(homepageUri)
+                    .timeout(Duration.ofSeconds(15))
+                    .header("User-Agent", BROWSER_COMPATIBLE_USER_AGENT)
+                    .header("Accept", "text/html,application/xhtml+xml")
+                    .header("Accept-Language", "ko-KR,ko;q=0.9")
+                    .header("Cache-Control", "no-cache")
+                    .header("Pragma", "no-cache")
+                    .GET()
+                    .build();
+            try {
+                lastStatus = sessionBrowserHttpClient.send(
+                        request,
+                        HttpResponse.BodyHandlers.discarding()
+                ).statusCode();
+                if (lastStatus >= 200 && lastStatus < 400) {
+                    return lastStatus;
+                }
+            } catch (IOException exception) {
+                lastException = exception;
+            }
+        }
+        if (lastStatus == 0 && lastException != null) {
+            throw lastException;
+        }
+        return lastStatus;
     }
 
     /**
@@ -1543,7 +1795,18 @@ class LocalGovernmentNoticeParserFullQaTest {
      */
     private boolean usesBrowserCompatibleRequest(SourceSeed source) {
         return "BROWSER_HTTP1".equals(source.requestProfileCode())
-                || "LEGACY_BROWSER".equals(source.requestProfileCode());
+                || "LEGACY_BROWSER".equals(source.requestProfileCode())
+                || usesSessionBrowser(source);
+    }
+
+    /**
+     * 홈페이지 세션을 확보한 뒤 게시판을 요청하는 QA 대상인지 확인합니다.
+     *
+     * @param source 지자체 URL seed
+     * @return 세션 브라우저 프로필이면 true
+     */
+    private boolean usesSessionBrowser(SourceSeed source) {
+        return "SESSION_BROWSER".equals(source.requestProfileCode());
     }
 
     /**
@@ -1558,6 +1821,23 @@ class LocalGovernmentNoticeParserFullQaTest {
         if (version != null) {
             builder.version(version);
         }
+        if (windowsSslContext != null) {
+            builder.sslContext(windowsSslContext);
+        }
+        return builder.build();
+    }
+
+    /**
+     * 출처 도메인별 쿠키를 유지하는 HTTP/1.1 QA 클라이언트를 생성합니다.
+     *
+     * @return 세션 브라우저 QA 클라이언트
+     */
+    private HttpClient createSessionHttpClient() {
+        HttpClient.Builder builder = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .version(HttpClient.Version.HTTP_1_1)
+                .cookieHandler(sessionCookieManager);
         if (windowsSslContext != null) {
             builder.sslContext(windowsSslContext);
         }
@@ -1595,6 +1875,9 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @return 요청 클라이언트
      */
     private HttpClient selectHttpClient(SourceSeed source) {
+        if (usesSessionBrowser(source)) {
+            return sessionBrowserHttpClient;
+        }
         return "BROWSER_HTTP1".equals(source.requestProfileCode()) ? browserHttp1Client : defaultHttpClient;
     }
 
@@ -1633,7 +1916,8 @@ class LocalGovernmentNoticeParserFullQaTest {
             String institutionName,
             String noticeUrl,
             String collectionEndpointUrl,
-            String requestProfileCode
+            String requestProfileCode,
+            String pageTypeCode
     ) {
 
         /**
@@ -1687,7 +1971,19 @@ class LocalGovernmentNoticeParserFullQaTest {
             String errorCode,
             String errorMessage,
             String samples,
-            long elapsedMillis
+            long elapsedMillis,
+            String sourceBoardTypeCode,
+            String collectionPolicyCode,
+            String semanticStatusCode,
+            String semanticReasonCode
+    ) {
+    }
+
+    private record SemanticQaResult(
+            String sourceBoardTypeCode,
+            String collectionPolicyCode,
+            String semanticStatusCode,
+            String semanticReasonCode
     ) {
     }
 }

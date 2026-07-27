@@ -30,6 +30,10 @@ public record LocalGovernmentNoticeSourceSaveRequest(
         @Size(max = 50) String parserProfileCode,
         String collectionHint,
         @NotBlank @Size(max = 20) String confidenceCode,
-        @NotBlank @Size(max = 30) String validationStatusCode
+        @NotBlank @Size(max = 30) String validationStatusCode,
+        @Size(max = 40) String sourceBoardTypeCode,
+        @Size(max = 30) String collectionPolicyCode,
+        Boolean semanticallyVerified,
+        @Size(max = 1000) String semanticVerificationNote
 ) {
 }

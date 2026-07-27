@@ -23,6 +23,7 @@ public record AnnouncementSourceCollectionRunCommand(
         int skippedEndedCount,
         int duplicateCount,
         int failedCount,
+        int excludedCount,
         String errorMessage
 ) {
 }

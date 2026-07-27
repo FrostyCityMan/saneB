@@ -23,6 +23,8 @@ public record AnnouncementSourceCollectionRunItemRow(
         String providerNoticeId,
         String sourceUrl,
         String itemStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords,
         String errorMessage,
         OffsetDateTime createdAt
 ) {

@@ -21,6 +21,8 @@ public record AnnouncementSourceCollectionRunItemCommand(
         String providerNoticeId,
         String sourceUrl,
         String itemStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords,
         String errorMessage
 ) {
 }

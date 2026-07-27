@@ -12,10 +12,12 @@
 
 package com.saneb.domain.announcementsource.dto;
 
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import java.util.List;
 
 public record AnnouncementSourceCollectionRunDetailsResponse(
         AnnouncementSourceCollectionRunResponse run,
-        List<AnnouncementSourceCollectionRunItemResponse> items
+        List<AnnouncementSourceCollectionRunItemResponse> items,
+        List<LocalGovernmentNoticeCollectionResultResponse> sourceResults
 ) {
 }

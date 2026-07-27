@@ -132,8 +132,10 @@ class LocalGovernmentNoticeCollectorTest {
         LocalGovernmentNoticeSourceRow source = new LocalGovernmentNoticeSourceRow(
                 sourceId, "LGS-TEST", "11", "서울", "110", "테스트구", "LOCAL_GOVERNMENT", "테스트기관",
                 "https://example.go.kr", "https://example.go.kr/notices/", "https://example.go.kr/api/notices",
-                "json", "DEFAULT", "GET", null, "TEST_JSON", "테스트 JSON", null, "HIGH", "VERIFIED", false, "READY",
-                null, null, null, null, null, null, null, null, null, null, null
+                "json", "DEFAULT", "GET", null, "TEST_JSON", "테스트 JSON", null, "HIGH", "VERIFIED",
+                "GENERAL_NOTICE", "KEYWORD_FILTERED", true, null, null, "테스트 의미 검증",
+                false, "READY", null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null
         );
         LocalGovernmentNoticeParserProfileRow profile = new LocalGovernmentNoticeParserProfileRow(
                 "TEST_JSON", "테스트 JSON", "GENERIC_JSON", null, null, null, null, "yyyy-MM-dd",

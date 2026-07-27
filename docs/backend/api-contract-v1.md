@@ -1001,12 +1001,15 @@ Member / Business / Family API skeleton 착수 기준:
   "applicationEndDate": "2026-06-30",
   "reviewStatusCode": "REVIEW_PENDING",
   "reviewStatusLabel": "검수대기",
+  "semanticStatusCode": "ACCEPTED",
+  "semanticReasonCode": "INCLUDE_KEYWORD_MATCHED",
+  "semanticMatchedKeywords": "지원, 모집",
   "postedAt": "2026-05-28T09:00:00+09:00",
   "collectedAt": "2026-05-28T09:05:00+09:00"
 }
 ```
 
-수집 공고 검수 화면은 `reviewStatusCode=REVIEW_PENDING`을 기본 조회 조건으로 사용하고 목록에는 `postedAt` 원문 등록일을 표시한다. `GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
+수집 공고 검수 화면은 `reviewStatusCode=REVIEW_PENDING&semanticStatusCode=ACCEPTED`를 기본 조회 조건으로 사용하고 목록에는 `postedAt` 원문 등록일을 표시한다. `semanticStatusCode`는 `ACCEPTED`, `REVIEW_REQUIRED`, `EXCLUDED`이며 제외 원문은 기본 목록에서 숨기고 별도 필터에서만 조회한다. `GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`와 의미 판정 필드를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
 
 #### AnnouncementSourceDuplicateDecisionRequest
 
@@ -1027,7 +1030,9 @@ Member / Business / Family API skeleton 착수 기준:
 
 모든 URL은 등록·수정·redirect 시 서버에서 SSRF 검증한다. `http`, `https`만 허용하며 loopback, 사설망, link-local, AWS metadata, multicast, 인증정보 포함 URL, 비표준 포트를 차단한다.
 
-지자체 URL 저장 요청은 기존 v1 필드에 선택값 `collectionEndpointUrl`, `requestProfileCode`를 추가한다. `collectionEndpointUrl`은 화면 URL과 실제 공개 데이터 endpoint가 다를 때만 사용하며 동일한 SSRF 검증을 거친다. `requestProfileCode`는 `DEFAULT`, `BROWSER_HTTP1`, `LEGACY_BROWSER`만 허용하고 생략하면 `DEFAULT`다. `LEGACY_BROWSER`는 실사이트 격리 QA에서 표준 Java HTTP 클라이언트와 다른 결과가 재현된 기관에만 적용하며, 브라우저 호환 헤더와 2배 제한시간을 사용하는 GET 전용 정책이다. 조회 응답에는 두 필드와 내부 요청 방식인 `requestMethodCode`가 함께 반환된다. `requestMethodCode='POST_FORM'`과 공개 폼 값은 검증된 운영 migration으로만 관리하며 관리자 저장 요청에서 임의 입력받지 않는다. JSON endpoint는 서버에 검증된 `GENERIC_JSON` 파서 프로필이 지정된 경우에만 처리한다.
+지자체 URL 저장 요청은 기존 v1 필드에 선택값 `collectionEndpointUrl`, `requestProfileCode`, `sourceBoardTypeCode`, `collectionPolicyCode`, `semanticallyVerified`, `semanticVerificationNote`를 추가한다. 기존 클라이언트가 의미 검증 필드를 보내지 않으면 신규 등록은 `UNVERIFIED/EXCLUDED`, 수정은 기존 값을 유지한다. `collectionEndpointUrl`은 화면 URL과 실제 공개 데이터 endpoint가 다를 때만 사용하며 동일한 SSRF 검증을 거친다. `requestProfileCode`는 `DEFAULT`, `BROWSER_HTTP1`, `LEGACY_BROWSER`만 허용하고 생략하면 `DEFAULT`다. `LEGACY_BROWSER`는 실사이트 격리 QA에서 표준 Java HTTP 클라이언트와 다른 결과가 재현된 기관에만 적용하며, 브라우저 호환 헤더와 2배 제한시간을 사용하는 GET 전용 정책이다. 조회 응답에는 두 필드와 내부 요청 방식인 `requestMethodCode`가 함께 반환된다. `requestMethodCode='POST_FORM'`과 공개 폼 값은 검증된 운영 migration으로만 관리하며 관리자 저장 요청에서 임의 입력받지 않는다. JSON endpoint는 서버에 검증된 `GENERIC_JSON` 파서 프로필이 지정된 경우에만 처리한다.
+
+출처 ON 조건은 URL·파서 검증 완료, 의미 검증 완료, 게시판 유형이 `UNVERIFIED`가 아님, 수집 정책이 `EXCLUDED`가 아님을 모두 충족해야 한다. `PRESS_RELEASE`는 반드시 `EXCLUDED`로 저장하며 ON 전환을 차단한다. 일반 공지는 `KEYWORD_FILTERED`를 사용하고 정적 포함·제외 키워드의 일치 이유를 원문과 실행 항목에 기록한다.
 
 파서 프로필은 서버 정적 seed로 관리한다. `SAFE_TEMPLATE` 프로필은 링크 함수 리터럴 인자 수와 `arg`, `attr`, `query`, `input` placeholder만 해석하며 JavaScript를 실행하지 않는다. 생성한 상세 URL은 같은 기관의 검증된 host일 때만 저장한다. 대전 통합 목록처럼 외부 전자민원 host로 이동하는 구조는 코드에 고정된 기관별 허용 목록만 사용한다. 2026-07-22 복구 QA에서는 중랑·금천·성남·안양·속초·창원의 현재 공식 화면과 공개 수집 endpoint를 보정하고, 강동·부산 남구의 간헐적 HTTPS 지연은 기존 `LEGACY_BROWSER` 정책과 공개 수집 endpoint로, 해운대·정읍·임실의 HTTPS 전환은 기존 브라우저형 요청 정책으로 보강했다. 사용자 바로가기는 공식 HTTPS 화면을 유지하고 TLS 호환 또는 응답 지연이 있는 공개 공고 목록만 수집 endpoint로 분리한다. 244개 출처는 운영자가 개별 확인하기 전 모두 OFF를 유지하며, 기존 `/api/v1/admin/local-government-notice-parser-profiles`의 path와 응답 구조는 변경하지 않는다.
 
@@ -1041,11 +1046,14 @@ Member / Business / Family API skeleton 착수 기준:
 | `DELETE` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `ADMIN` | 지자체 URL soft delete |
 | `DELETE` | `/api/v1/admin/local-government-notice-sources/qa-artifacts` | `ADMIN` | 확인 문구 검증 후 지자체 QA 수집 원문·요청·실행 이력 삭제 |
 | `POST` | `/api/v1/admin/local-government-notice-sources/{sourceId}/collection-requests` | `OPERATOR`, `ADMIN` | 단일 URL 수동 수집 승인 요청 |
+| `GET` | `/api/v1/admin/local-government-notice-sources/{sourceId}/collection-results` | `OPERATOR`, `APPROVER`, `ADMIN` | 출처별 최근 수집 결과와 한글 진단, pagination |
 | `GET` | `/api/v1/admin/local-government-notice-parser-profiles` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 파서 목록 |
 | `GET` | `/api/v1/admin/local-government-notice-sources/collection-summary` | `OPERATOR`, `APPROVER`, `ADMIN` | 수집 신호등 집계 |
 | `GET` | `/api/v1/admin/announcement-source-collection-schedules` | `OPERATOR`, `APPROVER`, `ADMIN` | 정기 수집 일정 목록 |
 | `POST` | `/api/v1/admin/announcement-source-collection-schedules` | `OPERATOR`, `ADMIN` | 승인 대기 정기 일정 생성 |
 | `PATCH` | `/api/v1/admin/announcement-source-collection-schedules/{scheduleId}/status` | `APPROVER`, `ADMIN` | 일정 승인·중지·반려·만료 |
+
+출처 목록의 선택 query parameter는 `sourceBoardTypeCode`, `collectionPolicyCode`, `semanticallyVerified`, `diagnosticReasonCode`다. `diagnosticReasonCode`는 `TRANSPORT_FAILED`, `PARSER_FAILED`, `PARTIAL_FIELDS`, `SEMANTIC_MISMATCH`, `IRRELEVANT_CONTENT`, `UNCLASSIFIED_ERROR`를 지원한다. `UNCLASSIFIED_ERROR`는 원본 오류 코드를 유지하면서 미정의 오류를 접속 실패로 오분류하지 않기 위한 안전한 관리자 진단값이다. 수집 실행 상세 응답은 기존 `run`, `items`를 유지하고 URL별 `sourceResults[]`를 추가한다.
 
 신호등은 오류 URL이 있으면 `RED`, 신규 검수대기 또는 확인 필요 URL이 있으면 `YELLOW`, 오류와 미처리 항목이 없으면 `GREEN`이다. 자동 수집은 `APPROVED` 스케줄만 실행하며 `(schedule_id, scheduled_for)` unique key로 같은 예정시각의 중복 실행을 차단한다.
 

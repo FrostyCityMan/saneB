@@ -57,7 +57,10 @@ class AdminDashboardViewControllerSmokeTest {
     void setUp() {
         when(adminDashboardService.selectSummary()).thenReturn(AdminDashboardControllerSmokeTest.sampleSummary());
         when(localGovernmentNoticeService.selectCollectionSummary()).thenReturn(
-                new LocalGovernmentNoticeCollectionSummaryResponse(244, 240, 238, 2, 1, 7, "RED")
+                new LocalGovernmentNoticeCollectionSummaryResponse(
+                        244, 240, 238, 2, 1, 7,
+                        1, 0, 0, 1, 12, 0, "RED"
+                )
         );
         when(automationStatusService.selectStatus()).thenReturn(
                 new AnnouncementSourceAutomationStatusResponse(true, true, true, false)

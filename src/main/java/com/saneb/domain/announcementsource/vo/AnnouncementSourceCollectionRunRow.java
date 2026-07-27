@@ -30,6 +30,7 @@ public record AnnouncementSourceCollectionRunRow(
         int skippedEndedCount,
         int duplicateCount,
         int failedCount,
+        int excludedCount,
         String errorMessage,
         OffsetDateTime createdAt
 ) {

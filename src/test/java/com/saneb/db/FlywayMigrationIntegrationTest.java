@@ -205,7 +205,7 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code = 'HEURISTIC_NOTICE'
-                    """)).isEqualTo(35);
+                    """)).isEqualTo(36);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
@@ -216,6 +216,11 @@ class FlywayMigrationIntegrationTest {
                     from local_government_notice_sources
                     where request_profile_code = 'LEGACY_BROWSER'
                     """)).isEqualTo(9);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where request_profile_code = 'SESSION_BROWSER'
+                    """)).isEqualTo(1);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_parser_profiles

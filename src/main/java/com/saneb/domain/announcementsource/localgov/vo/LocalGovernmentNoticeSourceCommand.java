@@ -31,6 +31,10 @@ public record LocalGovernmentNoticeSourceCommand(
         String collectionHint,
         String confidenceCode,
         String validationStatusCode,
+        String sourceBoardTypeCode,
+        String collectionPolicyCode,
+        boolean semanticallyVerified,
+        String semanticVerificationNote,
         UUID actorUserId
 ) {
 }

@@ -39,6 +39,9 @@ public record AnnouncementSourceSnapshotCommand(
         String canonicalSourceUrl,
         String normalizedTitle,
         String normalizedAgencyName,
-        LocalDate postedDate
+        LocalDate postedDate,
+        String semanticStatusCode,
+        String semanticReasonCode,
+        String semanticMatchedKeywords
 ) {
 }

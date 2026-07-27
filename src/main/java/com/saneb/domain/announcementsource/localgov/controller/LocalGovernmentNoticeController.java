@@ -19,6 +19,7 @@ import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceSchedu
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleResponse;
 import com.saneb.domain.announcementsource.localgov.dto.AnnouncementSourceScheduleStatusRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionSummaryResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeParserProfileResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
@@ -63,19 +64,33 @@ public class LocalGovernmentNoticeController {
             @RequestParam(required = false) String sidoName,
             @RequestParam(required = false) String validationStatusCode,
             @RequestParam(required = false) String collectionStatusCode,
+            @RequestParam(required = false) String sourceBoardTypeCode,
+            @RequestParam(required = false) String collectionPolicyCode,
+            @RequestParam(required = false) Boolean semanticallyVerified,
+            @RequestParam(required = false) String diagnosticReasonCode,
             @RequestParam(required = false) Boolean enabled,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
         return ApiResponse.success(localGovernmentNoticeService.selectSourceList(
-                sidoName, validationStatusCode, collectionStatusCode, enabled, keyword, page, size
+                sidoName, validationStatusCode, collectionStatusCode, sourceBoardTypeCode,
+                collectionPolicyCode, semanticallyVerified, diagnosticReasonCode, enabled, keyword, page, size
         ));
     }
 
     @GetMapping("/local-government-notice-sources/{sourceId}")
     public ApiResponse<LocalGovernmentNoticeSourceResponse> selectSourceDetails(@PathVariable UUID sourceId) {
         return ApiResponse.success(localGovernmentNoticeService.selectSourceDetails(sourceId));
+    }
+
+    @GetMapping("/local-government-notice-sources/{sourceId}/collection-results")
+    public ApiResponse<PageResponse<LocalGovernmentNoticeCollectionResultResponse>> selectCollectionResultList(
+            @PathVariable UUID sourceId,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ApiResponse.success(localGovernmentNoticeService.selectCollectionResultList(sourceId, page, size));
     }
 
     @PostMapping("/local-government-notice-sources")

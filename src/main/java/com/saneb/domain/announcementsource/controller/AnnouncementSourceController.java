@@ -137,6 +137,7 @@ public class AnnouncementSourceController {
     public ApiResponse<PageResponse<AnnouncementSourceSummaryResponse>> selectSourceList(
             @RequestParam(required = false) String providerCode,
             @RequestParam(required = false) String reviewStatusCode,
+            @RequestParam(required = false) String semanticStatusCode,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
@@ -144,6 +145,7 @@ public class AnnouncementSourceController {
         return ApiResponse.success(announcementSourceService.selectSourceList(
                 providerCode,
                 reviewStatusCode,
+                semanticStatusCode,
                 keyword,
                 page,
                 size

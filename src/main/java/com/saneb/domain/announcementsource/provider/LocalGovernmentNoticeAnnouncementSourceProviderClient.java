@@ -15,8 +15,11 @@ package com.saneb.domain.announcementsource.provider;
 import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
 import com.saneb.domain.announcementsource.localgov.collector.LocalGovernmentNoticeCollectionOutcome;
 import com.saneb.domain.announcementsource.localgov.collector.LocalGovernmentNoticeCollector;
+import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceSemanticDecision;
+import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceSemanticFilter;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeCollectionResultCommand;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeParserProfileRow;
+import com.saneb.domain.announcementsource.localgov.vo.AnnouncementSourceSemanticKeywordRuleRow;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceCollectionStatusCommand;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow;
@@ -32,19 +35,23 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
 
     private final LocalGovernmentNoticeDao localGovernmentNoticeDao;
     private final LocalGovernmentNoticeCollector collector;
+    private final AnnouncementSourceSemanticFilter semanticFilter;
 
     /**
      * 지자체 공고 provider를 생성합니다.
      *
      * @param localGovernmentNoticeDao 지자체 공고 DAO
      * @param collector 안전한 HTML 수집기
+     * @param semanticFilter 정적 의미 판정기
      */
     public LocalGovernmentNoticeAnnouncementSourceProviderClient(
             LocalGovernmentNoticeDao localGovernmentNoticeDao,
-            LocalGovernmentNoticeCollector collector
+            LocalGovernmentNoticeCollector collector,
+            AnnouncementSourceSemanticFilter semanticFilter
     ) {
         this.localGovernmentNoticeDao = localGovernmentNoticeDao;
         this.collector = collector;
+        this.semanticFilter = semanticFilter;
     }
 
     /**
@@ -66,11 +73,13 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
     @Override
     public List<AnnouncementSourceProviderItem> selectSourceItemList(AnnouncementSourceCollectionRequestRow request) {
         List<AnnouncementSourceProviderItem> items = new ArrayList<>();
+        List<AnnouncementSourceSemanticKeywordRuleRow> rules =
+                localGovernmentNoticeDao.selectSemanticKeywordRuleList();
         for (LocalGovernmentNoticeSourceRow source : selectTargetSources(request)) {
             LocalGovernmentNoticeParserProfileRow profile = localGovernmentNoticeDao.selectParserProfileDetails(
                     source.parserProfileCode()
             );
-            items.addAll(collector.collect(source, profile).items());
+            items.addAll(applySemanticDecisions(source, collector.collect(source, profile).items(), rules));
         }
         return List.copyOf(items);
     }
@@ -88,6 +97,8 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
             UUID runId
     ) {
         List<AnnouncementSourceProviderItem> items = new ArrayList<>();
+        List<AnnouncementSourceSemanticKeywordRuleRow> rules =
+                localGovernmentNoticeDao.selectSemanticKeywordRuleList();
         int failedCount = 0;
         int failedSourceCount = 0;
         for (LocalGovernmentNoticeSourceRow source : selectTargetSources(request)) {
@@ -95,14 +106,17 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
                     source.parserProfileCode()
             );
             LocalGovernmentNoticeCollectionOutcome outcome = collector.collect(source, profile);
-            items.addAll(outcome.items());
+            List<AnnouncementSourceProviderItem> classifiedItems =
+                    applySemanticDecisions(source, outcome.items(), rules);
+            items.addAll(classifiedItems);
             failedCount += outcome.failedCount();
             if (isFailedStatus(outcome.resultStatusCode())) {
                 failedSourceCount++;
             }
             localGovernmentNoticeDao.insertCollectionResult(new LocalGovernmentNoticeCollectionResultCommand(
                     UUID.randomUUID(), runId, source.sourceId(), outcome.resultStatusCode(), outcome.discoveredCount(),
-                    0, 0, outcome.failedCount(), outcome.httpStatus(), outcome.errorCode(), outcome.errorMessage()
+                    0, 0, outcome.failedCount(), 0,
+                    outcome.httpStatus(), outcome.errorCode(), outcome.errorMessage()
             ));
             localGovernmentNoticeDao.updateSourceCollectionStatus(new LocalGovernmentNoticeSourceCollectionStatusCommand(
                     source.sourceId(), selectSourceStatus(outcome.resultStatusCode()), outcome.httpStatus(),
@@ -130,9 +144,34 @@ public class LocalGovernmentNoticeAnnouncementSourceProviderClient implements An
         }
         int newIncrement = "COLLECTED".equals(itemStatusCode) ? 1 : 0;
         int duplicateIncrement = "DUPLICATE".equals(itemStatusCode) ? 1 : 0;
+        int excludedIncrement = "EXCLUDED".equals(itemStatusCode) ? 1 : 0;
         localGovernmentNoticeDao.updateCollectionResultCounts(
-                runId, item.localGovernmentSourceId(), newIncrement, duplicateIncrement
+                runId, item.localGovernmentSourceId(), newIncrement, duplicateIncrement, excludedIncrement
         );
+    }
+
+    /**
+     * 한 출처에서 수집한 제목에 동일한 정적 의미 규칙을 적용합니다.
+     *
+     * @param source 수집 출처
+     * @param items 수집 항목
+     * @param rules 활성 키워드 규칙
+     * @return 의미 판정이 적용된 항목 목록
+     */
+    private List<AnnouncementSourceProviderItem> applySemanticDecisions(
+            LocalGovernmentNoticeSourceRow source,
+            List<AnnouncementSourceProviderItem> items,
+            List<AnnouncementSourceSemanticKeywordRuleRow> rules
+    ) {
+        return items.stream()
+                .map(item -> {
+                    AnnouncementSourceSemanticDecision decision =
+                            semanticFilter.selectDecision(source, item.title(), rules);
+                    return item.withSemanticDecision(
+                            decision.statusCode(), decision.reasonCode(), decision.matchedKeywords()
+                    );
+                })
+                .toList();
     }
 
     /**

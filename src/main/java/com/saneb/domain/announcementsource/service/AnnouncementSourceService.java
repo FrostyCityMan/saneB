@@ -176,6 +176,8 @@ public interface AnnouncementSourceService {
      *
      * @param reviewStatusCode 입력 값
      *
+     * @param semanticStatusCode 의미 판정 상태
+     *
      * @param keyword 입력 값
      *
      * @param page 입력 값
@@ -187,6 +189,7 @@ public interface AnnouncementSourceService {
     PageResponse<AnnouncementSourceSummaryResponse> selectSourceList(
             String providerCode,
             String reviewStatusCode,
+            String semanticStatusCode,
             String keyword,
             int page,
             int size
