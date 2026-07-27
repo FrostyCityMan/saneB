@@ -1038,6 +1038,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 2026-07-27 V57 보정에서는 밀양시와 함양군의 일반 공지 URL을 공식 고시·공고 URL로 교체한다. 밀양시는 `SPRING_BBS` GET, 함양군은 `SAFE_SAEOL_EMINWON` 공개 폼 POST를 사용하며 새로운 파서 유형을 추가하지 않는다. 같은 전수 QA와 운영 격리 시험에서 안양시 새올 endpoint timeout 및 공식 HTTPS 화면의 TLS 1.3 협상 종료가 재현되어, 공식 HTTPS 화면을 전용 `TLS12_BROWSER` 요청과 기존 `SPRING_BBS`로 직접 수집한다. 거제시는 `startPage=1`을 명시한 공식 고시공고 HTTPS 목록으로 보정하고, 남동구는 제목·작성일·상세 URL을 제공하는 공식 고시공고 목록으로 교체한다. 속초는 고시공고 의미 분류와 느린 endpoint 요청 정책을 함께 바로잡는다. 여섯 출처의 기존 스냅샷과 실행 이력은 보존되고, 운영자가 ON으로 승인한 이후 수집되는 항목부터 확정된 의미 정책을 적용한다.
 
+2026-07-27 V58은 밀양시·함양군의 사용자 바로가기 URL을 각 기관 대표 누리집의 공식 고시·공고 화면으로 고정한다. 화면 URL과 공개 수집 endpoint가 다른 함양군은 기존 `collectionEndpointUrl` 분리 계약을 사용하며, 관리자와 사용자는 외부 새올 처리 주소가 아니라 함양군 대표 누리집 화면으로 이동한다.
+
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `GET` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 목록, pagination |

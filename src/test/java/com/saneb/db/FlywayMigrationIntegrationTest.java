@@ -162,7 +162,7 @@ class FlywayMigrationIntegrationTest {
                       and success = true
                     """)).isEqualTo(1);
             for (String version : List.of(
-                    "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57"
+                    "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58"
             )) {
                 assertThat(selectLong(statement, """
                         select count(1)
@@ -282,7 +282,12 @@ class FlywayMigrationIntegrationTest {
                     select notice_url
                     from local_government_notice_sources
                     where public_code = 'LGS-000229'
-                    """)).startsWith("https://miryang.go.kr/web/eMiryangMinwonList.do");
+                    """)).startsWith("https://www.miryang.go.kr/web/eMiryangMinwonList.do");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000239'
+                    """)).isEqualTo("https://www.hygn.go.kr/00429/00543/00549.web");
             assertThat(selectText(statement, """
                     select collection_endpoint_url
                     from local_government_notice_sources

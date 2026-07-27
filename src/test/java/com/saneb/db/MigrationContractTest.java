@@ -1081,6 +1081,25 @@ class MigrationContractTest {
     }
 
     /**
+     * 밀양시·함양군 사용자 바로가기와 내부 수집 endpoint 분리 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v58MigrationSeparatesOfficialNoticeLinksFromCollectionEndpoints() throws IOException {
+        String sql = selectV58Migration();
+
+        assertThat(sql).contains(
+                "'LGS-000229'",
+                "https://www.miryang.go.kr/web/eMiryangMinwonList.do",
+                "'LGS-000239'",
+                "https://www.hygn.go.kr/00429/00543/00549.web",
+                "https://eminwon.hygn.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
+                "is_enabled = false"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -1704,6 +1723,19 @@ class MigrationContractTest {
     private String selectV57Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V57__correct_miryang_hamyang_official_notice_sources.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V58 migration을 UTF-8로 조회합니다.
+     *
+     * @return V58 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV58Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V58__separate_official_notice_links_from_collection_endpoints.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }
