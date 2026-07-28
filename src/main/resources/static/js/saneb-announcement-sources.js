@@ -7,7 +7,6 @@
     const requestUrl = page.dataset.requestUrl;
     const runUrl = page.dataset.runUrl;
     const localSourceUrl = page.dataset.localSourceUrl;
-    const localParserUrl = page.dataset.localParserUrl;
     const localSummaryUrl = page.dataset.localSummaryUrl;
     const scheduleUrl = page.dataset.scheduleUrl;
     const scheduleTimezone = "Asia/Seoul";
@@ -21,7 +20,6 @@
     const localSourceFilterForm = page.querySelector("[data-local-source-filter-form]");
     const localSourceForm = page.querySelector("[data-local-source-form]");
     const localSourceList = page.querySelector("[data-local-source-list]");
-    const localParserSelect = page.querySelector("[data-local-parser-select]");
     const localFormReset = page.querySelector("[data-local-form-reset]");
     const localSaveButton = page.querySelector("[data-local-save-button]");
     const localPagePrev = page.querySelector("[data-local-page-prev]");
@@ -84,7 +82,7 @@
         NO_CHANGE: "변경 없음",
         URL_ERROR: "URL 오류",
         ACCESS_BLOCKED: "접근 차단",
-        PARSER_UNSUPPORTED: "파서 확인 필요",
+        PARSER_UNSUPPORTED: "자동수집 준비 필요",
         CHECK_REQUIRED: "확인 필요",
         DISABLED: "사용 안 함",
         PAUSED: "일시중지",
@@ -99,7 +97,7 @@
         ACCEPTED: "유효 후보",
         REVIEW_REQUIRED: "확인 필요",
         TRANSPORT_FAILED: "접속 실패",
-        PARSER_FAILED: "파싱 실패",
+        PARSER_FAILED: "자료 구조 확인 필요",
         PARTIAL_FIELDS: "필드 누락",
         SEMANTIC_MISMATCH: "게시판 불일치",
         IRRELEVANT_CONTENT: "무관 게시물 제외",
@@ -171,23 +169,10 @@
             card,
             "small",
             `전체 ${data.totalCount}곳 · 사용 ${data.enabledCount}곳 · 접속 ${data.transportFailureCount}곳 · `
-                + `파싱 ${data.parserFailureCount}곳 · 필드 누락 ${data.partialFieldsCount}곳 · `
+                + `자료 구조 ${data.parserFailureCount}곳 · 필드 누락 ${data.partialFieldsCount}곳 · `
                 + `게시판 불일치 ${data.semanticMismatchCount}곳 · 검수대기 ${data.reviewPendingCount}건`
         );
         localSummary.appendChild(card);
-    };
-
-    const renderLocalParsers = async () => {
-        const current = localParserSelect.value;
-        const data = await requestJson(localParserUrl);
-        localParserSelect.innerHTML = "";
-        data.forEach((item) => {
-            const option = document.createElement("option");
-            option.value = item.profileCode;
-            option.textContent = `${item.profileName} (${item.parserTypeCode})`;
-            localParserSelect.appendChild(option);
-        });
-        localParserSelect.value = current || "MANUAL_ONLY";
     };
 
     const fillLocalSourceForm = (item) => {
@@ -289,8 +274,16 @@
             toggleButton.className = item.enabled ? "status-toggle is-on" : "status-toggle";
             toggleButton.textContent = item.enabled ? "ON" : "OFF";
             toggleButton.setAttribute("aria-label", `${item.institutionName} 수집 ${item.enabled ? "끄기" : "켜기"}`);
-            if (!item.enabled && (!item.semanticallyVerified || item.collectionPolicyCode === "EXCLUDED")) {
-                toggleButton.title = "의미 검증을 완료하고 수집 정책을 확인한 뒤 켤 수 있습니다.";
+            const automaticCollectionReady = Boolean(item.parserProfileCode)
+                && item.parserProfileCode !== "MANUAL_ONLY";
+            if (!item.enabled && (
+                !item.semanticallyVerified
+                || item.collectionPolicyCode === "EXCLUDED"
+                || !automaticCollectionReady
+            )) {
+                toggleButton.title = !automaticCollectionReady
+                    ? "자동수집 준비가 완료되지 않은 출처입니다. 진단 결과를 확인하세요."
+                    : "의미 검증을 완료하고 수집 정책을 확인한 뒤 켤 수 있습니다.";
                 toggleButton.disabled = true;
             }
             toggleButton.addEventListener("click", () => runAction(() => toggleLocalSource(item)));
@@ -316,6 +309,10 @@
                 button.type = "button";
                 button.className = "secondary-action small-action";
                 button.textContent = text;
+                if (text === "수집 요청" && !automaticCollectionReady) {
+                    button.disabled = true;
+                    button.title = "자동수집 준비가 완료된 뒤 요청할 수 있습니다.";
+                }
                 button.addEventListener("click", handler);
                 actions.appendChild(button);
             });
@@ -583,7 +580,7 @@
         }
     });
 
-    Promise.all([renderLocalParsers(), renderAll()]).catch((error) => {
+    renderAll().catch((error) => {
         localSummary.textContent = error.message || "수집 관리 정보를 불러오지 못했습니다.";
     });
 })();

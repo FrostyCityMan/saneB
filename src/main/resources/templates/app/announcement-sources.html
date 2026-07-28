@@ -6,7 +6,6 @@
       data-request-url="/api/v1/admin/announcement-source-collections/requests"
       data-run-url="/api/v1/admin/announcement-source-collections/runs"
       data-local-source-url="/api/v1/admin/local-government-notice-sources"
-      data-local-parser-url="/api/v1/admin/local-government-notice-parser-profiles"
       data-local-summary-url="/api/v1/admin/local-government-notice-sources/collection-summary"
       data-schedule-url="/api/v1/admin/announcement-source-collection-schedules"
       th:attr="data-role-code=${page.auth.primaryRole}">
@@ -107,7 +106,6 @@
                           <option value="SESSION_BROWSER">세션 유지 브라우저 요청</option>
                       </select>
                 </div>
-                <div class="field-block"><label>수집 파서</label><select name="parserProfileCode" data-local-parser-select><option value="MANUAL_ONLY">수동 검증 필요</option></select></div>
                 <div class="field-block">
                     <label>URL 신뢰도</label>
                     <select name="confidenceCode"><option value="HIGH">높음</option><option value="MEDIUM" selected>보통</option><option value="LOW">낮음</option></select>

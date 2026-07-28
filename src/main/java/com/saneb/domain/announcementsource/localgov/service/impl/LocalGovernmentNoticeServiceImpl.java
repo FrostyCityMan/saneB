@@ -217,7 +217,7 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             LocalGovernmentNoticeParserProfileRow profile = row.parserProfileCode() == null
                     ? null : localGovernmentNoticeDao.selectParserProfileDetails(row.parserProfileCode());
             if (profile == null || !profile.enabled() || "MANUAL_ONLY".equals(profile.parserTypeCode())) {
-                throw invalid("실행 가능한 수집 파서를 지정한 뒤 수집을 켜세요.");
+                throw invalid("이 출처는 아직 자동수집 준비가 완료되지 않았습니다. 진단 결과를 확인해 주세요.");
             }
             urlValidator.validate(row.noticeUrl());
         }
@@ -226,7 +226,7 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
                 sourceId, Boolean.TRUE.equals(request.enabled()), actorUserId
         ));
         if (updated == 0) {
-            throw invalid("URL 검증 상태와 수집 파서 설정을 확인하세요.");
+            throw invalid("URL 검증 상태와 자동수집 준비 상태를 확인하세요.");
         }
         insertAudit(actorUserId, "LOCAL_GOV_NOTICE_SOURCE_ENABLED_UPDATE", "LOCAL_GOV_NOTICE_SOURCE", sourceId,
                 "{\"enabled\":" + Boolean.TRUE.equals(request.enabled()) + "}");
@@ -467,10 +467,6 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
         if (request.collectionEndpointUrl() != null && !request.collectionEndpointUrl().isBlank()) {
             urlValidator.validate(request.collectionEndpointUrl());
         }
-        if (request.parserProfileCode() != null && !request.parserProfileCode().isBlank()
-                && localGovernmentNoticeDao.selectParserProfileDetails(request.parserProfileCode().trim()) == null) {
-            throw invalid("선택한 수집 파서를 찾을 수 없습니다.");
-        }
     }
 
     /**
@@ -490,12 +486,27 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
                 request.sigunguName().trim(), normalizeOptional(request.institutionTypeCode()), request.institutionName().trim(),
                 blankToNull(request.homepageUrl()), request.noticeUrl().trim(), blankToNull(request.collectionEndpointUrl()),
                 blankToNull(request.pageTypeCode()), selectRequestProfileCode(request.requestProfileCode()),
-                normalizeOptional(request.parserProfileCode()), blankToNull(request.collectionHint()),
+                selectSystemParserProfileCode(existing), blankToNull(request.collectionHint()),
                 normalizeOptional(request.confidenceCode()), normalizeOptional(request.validationStatusCode()),
                 selectBoardTypeCode(request, existing), selectCollectionPolicyCode(request, existing),
                 semanticallyVerified, semanticVerificationNote,
                 actorUserId
         );
+    }
+
+    /**
+     * 파서 배정을 사용자 입력과 분리하고 기존 시스템 설정을 보존합니다.
+     *
+     * @param existing 기존 출처
+     * @return 시스템이 관리하는 파서 프로필 코드
+     */
+    private String selectSystemParserProfileCode(LocalGovernmentNoticeSourceRow existing) {
+        if (existing == null
+                || existing.parserProfileCode() == null
+                || existing.parserProfileCode().isBlank()) {
+            return "MANUAL_ONLY";
+        }
+        return existing.parserProfileCode();
     }
 
     /**

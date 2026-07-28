@@ -34,7 +34,7 @@ class LocalGovernmentNoticeCollectionResultResponseTest {
     }
 
     /**
-     * JSON 파서 미설정을 파싱 실패로 분류합니다.
+     * JSON 자동수집 미설정을 자료 구조 문제로 분류하고 시스템 조치를 안내합니다.
      */
     @Test
     void jsonParserNotConfiguredIsParserFailed() {
@@ -43,6 +43,9 @@ class LocalGovernmentNoticeCollectionResultResponseTest {
         );
 
         assertThat(response.diagnosticReasonCode()).isEqualTo("PARSER_FAILED");
+        assertThat(response.diagnosticTitle()).isEqualTo("게시판 자료 구조 확인 필요");
+        assertThat(response.recommendedAction()).contains("자동수집 구성");
+        assertThat(response.recommendedAction()).doesNotContain("지정된 파서");
     }
 
     /**

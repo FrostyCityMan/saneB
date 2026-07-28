@@ -52,6 +52,9 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("type=\"time\"")))
                 .andExpect(content().string(containsString("서울 시간 기준으로 실행됩니다")))
                 .andExpect(content().string(containsString("<option value=\"SESSION_BROWSER\">세션 유지 브라우저 요청</option>")))
+                .andExpect(content().string(not(containsString("name=\"parserProfileCode\""))))
+                .andExpect(content().string(not(containsString("data-local-parser-select"))))
+                .andExpect(content().string(not(containsString("data-local-parser-url"))))
                 .andExpect(content().string(not(containsString("name=\"cronExpression\""))))
                 .andExpect(content().string(not(containsString("name=\"timezone\""))))
                 .andExpect(content().string(not(containsString("data-local-qa-cleanup-form"))))
@@ -86,7 +89,10 @@ class AnnouncementSourceViewControllerSmokeTest {
         mockMvc.perform(get("/js/saneb-announcement-sources.js"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("localSourceForm.reset();")))
-                .andExpect(content().string(containsString("field.value = value == null ? \"\" : value;")));
+                .andExpect(content().string(containsString("field.value = value == null ? \"\" : value;")))
+                .andExpect(content().string(containsString("automaticCollectionReady")))
+                .andExpect(content().string(not(containsString("renderLocalParsers"))))
+                .andExpect(content().string(not(containsString("localParserUrl"))));
     }
 
     /**

@@ -134,6 +134,9 @@ public record LocalGovernmentNoticeSourceResponse(
                 default -> "UNCLASSIFIED_ERROR";
             };
         }
+        if (!automaticCollectionReady(row)) {
+            return "PARSER_FAILED";
+        }
         if (row.latestResultExcludedCount() != null && row.latestResultExcludedCount() > 0) {
             return "IRRELEVANT_CONTENT";
         }
@@ -158,7 +161,9 @@ public record LocalGovernmentNoticeSourceResponse(
             };
         }
         return switch (String.valueOf(diagnosticReason(row))) {
-            case "PARSER_FAILED" -> "게시판 구조를 읽지 못했습니다.";
+            case "PARSER_FAILED" -> automaticCollectionReady(row)
+                    ? "게시판 구조를 읽지 못했습니다."
+                    : "자동수집 준비가 완료되지 않았습니다.";
             case "PARTIAL_FIELDS" -> "일부 공고의 제목·등록일·링크가 누락되었습니다.";
             case "SEMANTIC_MISMATCH" -> "고시·공고 또는 지원사업 게시판으로 확인되지 않았습니다.";
             case "IRRELEVANT_CONTENT" -> "지원사업과 무관한 게시물을 제외했습니다.";
@@ -186,7 +191,9 @@ public record LocalGovernmentNoticeSourceResponse(
             };
         }
         return switch (String.valueOf(diagnosticReason(row))) {
-            case "PARSER_FAILED" -> "원문 바로가기에서 게시판 구조를 확인하고 기존 파서 설정을 재검증하세요.";
+            case "PARSER_FAILED" -> automaticCollectionReady(row)
+                    ? "원문 게시판 구조를 확인하고 자동수집 구성을 점검하세요."
+                    : "시스템 QA가 완료되면 자동수집이 활성화됩니다.";
             case "PARTIAL_FIELDS" -> "누락된 행의 제목, 등록일, 원문 링크 선택자를 확인하세요.";
             case "SEMANTIC_MISMATCH" -> "공식 고시·공고 또는 지원사업 URL로 보정하고 의미 검증을 완료하세요.";
             case "IRRELEVANT_CONTENT" -> "정적 키워드 판정 결과를 확인하고 필요한 경우 키워드 규칙을 보정하세요.";
@@ -194,5 +201,17 @@ public record LocalGovernmentNoticeSourceResponse(
             case "UNCLASSIFIED_ERROR" -> "저장된 오류 코드와 서버 로그를 확인한 뒤 분류 규칙을 보강하세요.";
             default -> null;
         };
+    }
+
+    /**
+     * 출처에 실행 가능한 시스템 파서가 배정됐는지 확인합니다.
+     *
+     * @param row 지자체 공고 URL 조회 결과
+     * @return 자동수집 준비 여부
+     */
+    private static boolean automaticCollectionReady(LocalGovernmentNoticeSourceRow row) {
+        return row.parserProfileCode() != null
+                && !row.parserProfileCode().isBlank()
+                && !"MANUAL_ONLY".equals(row.parserProfileCode());
     }
 }

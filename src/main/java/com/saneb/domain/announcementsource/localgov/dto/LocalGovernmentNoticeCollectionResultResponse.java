@@ -109,7 +109,7 @@ public record LocalGovernmentNoticeCollectionResultResponse(
             };
         }
         return switch (String.valueOf(reasonCode)) {
-            case "PARSER_FAILED" -> "게시판 파싱 실패";
+            case "PARSER_FAILED" -> "게시판 자료 구조 확인 필요";
             case "PARTIAL_FIELDS" -> "필수 필드 일부 누락";
             case "SEMANTIC_MISMATCH" -> "게시판 종류 불일치";
             case "IRRELEVANT_CONTENT" -> "무관 게시물 제외";
@@ -138,7 +138,7 @@ public record LocalGovernmentNoticeCollectionResultResponse(
             };
         }
         return switch (String.valueOf(reasonCode)) {
-            case "PARSER_FAILED" -> "원문 게시판 구조와 지정된 파서를 다시 검증하세요.";
+            case "PARSER_FAILED" -> "원문 게시판 구조와 자동수집 구성을 다시 점검하세요.";
             case "PARTIAL_FIELDS" -> "제목, 등록일, 원문 링크 선택자를 확인하세요.";
             case "SEMANTIC_MISMATCH" -> "공식 고시·공고 또는 지원사업 게시판 URL로 보정하세요.";
             case "IRRELEVANT_CONTENT" -> "일치 키워드와 제외 규칙을 확인하세요.";

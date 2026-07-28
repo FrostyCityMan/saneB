@@ -349,6 +349,8 @@ V61은 V57 적용 후에도 일반 공지로 남아 있던 203개 기관을 공�
 
 V62는 2026-07-28 격리 전수 QA 결과를 정적으로 적용한다. V61 대상 203곳 중 제목·등록일·별도 상세 URL을 모두 추출한 190곳만 파서 프로필을 지정해 `READY/ON`으로 전환한다. 나머지 13곳은 관리자 화면에서 `PARTIAL_FIELDS`, `PARSER_FAILED`, `TRANSPORT_FAILED`로 구분할 수 있는 원본 오류 코드를 저장하고 OFF 상태를 유지한다. 전체 244곳 기준 QA 결과는 통과 230, 일부 필드 누락 5, 파서 미지원 6, 전송 실패 3이다. 강남구·대전 동구·용인시·서천군은 일반 공지 또는 채용 URL 대신 공식 고시·공고 메뉴와 실제 새올 수집 endpoint를 분리해 저장한다.
 
+`local_government_notice_sources.parser_profile_code`는 시스템 소유 설정이다. 신규 출처는 `MANUAL_ONLY`로 등록하고, 일반 관리자 수정 요청에서는 기존 값을 보존한다. 실행 가능한 프로필 배정은 정적 migration과 격리 QA 결과로만 변경하며 운영자가 화면에서 직접 선택하지 않는다.
+
 출처별 수집·의미 판정 중 예기치 않은 내부 예외는 `announcement_source_collection_source_results.error_code='PROCESSING_FAILED'`로 남긴다. 원문 예외나 stack trace는 이 테이블에 저장하지 않으며 실행 ID와 출처 관리코드만 서버 ERROR 로그의 추적 키로 사용한다.
 
 지자체 수집은 제목, 등록일, 기관명, 원문 URL만 `source_completeness_code='MINIMAL'`로 저장한다. 본문·첨부·하이라이트와 매칭 조건 자동 저장은 수행하지 않는다. 정확한 교차 중복은 `DUPLICATE`, 유사 중복은 운영자 판단 전 `PENDING`으로 보존한다.

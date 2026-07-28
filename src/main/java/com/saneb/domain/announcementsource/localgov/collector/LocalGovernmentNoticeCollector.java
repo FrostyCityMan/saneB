@@ -634,7 +634,13 @@ public class LocalGovernmentNoticeCollector {
             String fingerprint
     ) {
         if (profile == null || !profile.enabled() || "MANUAL_ONLY".equals(profile.parserTypeCode())) {
-            return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus, "PARSER_NOT_CONFIGURED", "수집 파서를 먼저 지정하세요.");
+            return failure(
+                    source.sourceId(),
+                    "PARSER_UNSUPPORTED",
+                    httpStatus,
+                    "PARSER_NOT_CONFIGURED",
+                    "자동수집 준비가 완료되지 않았습니다."
+            );
         }
         if ("HEURISTIC_NOTICE".equals(profile.parserTypeCode())) {
             return parseHeuristicDocument(source, document, httpStatus, etag, lastModifiedValue, fingerprint);
@@ -646,7 +652,13 @@ public class LocalGovernmentNoticeCollector {
         }
         Elements rows = document.select(profile.listItemSelector());
         if (rows.isEmpty()) {
-            return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus, "LIST_SELECTOR_NOT_MATCHED", "공고 목록을 찾지 못했습니다. 파서를 확인하세요.");
+            return failure(
+                    source.sourceId(),
+                    "PARSER_UNSUPPORTED",
+                    httpStatus,
+                    "LIST_SELECTOR_NOT_MATCHED",
+                    "공고 목록을 찾지 못했습니다. 자동수집 구성을 확인하세요."
+            );
         }
         List<AnnouncementSourceProviderItem> items = new ArrayList<>();
         int invalidCount = 0;
@@ -810,7 +822,7 @@ public class LocalGovernmentNoticeCollector {
     ) {
         if (profile == null || !profile.enabled() || !"GENERIC_JSON".equals(profile.parserTypeCode())) {
             return failure(source.sourceId(), "PARSER_UNSUPPORTED", httpStatus,
-                    "JSON_PARSER_NOT_CONFIGURED", "JSON 수집 파서를 먼저 지정하세요.");
+                    "JSON_PARSER_NOT_CONFIGURED", "JSON 자동수집 준비가 완료되지 않았습니다.");
         }
         try {
             JsonNode root = objectMapper.readTree(body);

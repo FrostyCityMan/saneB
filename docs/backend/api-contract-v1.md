@@ -1034,7 +1034,7 @@ Member / Business / Family API skeleton 착수 기준:
 
 출처 ON 조건은 URL·파서 검증 완료, 의미 검증 완료, 게시판 유형이 `UNVERIFIED`가 아님, 수집 정책이 `EXCLUDED`가 아님을 모두 충족해야 한다. `PRESS_RELEASE`는 반드시 `EXCLUDED`로 저장하며 ON 전환을 차단한다. 일반 공지는 `KEYWORD_FILTERED`를 사용하고 정적 포함·제외 키워드의 일치 이유를 원문과 실행 항목에 기록한다.
 
-파서 프로필은 서버 정적 seed로 관리한다. `SAFE_TEMPLATE` 프로필은 링크 함수 리터럴 인자 수와 `arg`, `attr`, `query`, `input` placeholder만 해석하며 JavaScript를 실행하지 않는다. 생성한 상세 URL은 같은 기관의 검증된 host일 때만 저장한다. 대전 통합 목록처럼 외부 전자민원 host로 이동하는 구조는 코드에 고정된 기관별 허용 목록만 사용한다. 2026-07-22 복구 QA에서는 중랑·금천·성남·안양·속초·창원의 현재 공식 화면과 공개 수집 endpoint를 보정하고, 강동·부산 남구의 간헐적 HTTPS 지연은 기존 `LEGACY_BROWSER` 정책과 공개 수집 endpoint로, 해운대·정읍·임실의 HTTPS 전환은 기존 브라우저형 요청 정책으로 보강했다. 사용자 바로가기는 공식 HTTPS 화면을 유지하고 TLS 호환 또는 응답 지연이 있는 공개 공고 목록만 수집 endpoint로 분리한다. 244개 출처는 운영자가 개별 확인하기 전 모두 OFF를 유지하며, 기존 `/api/v1/admin/local-government-notice-parser-profiles`의 path와 응답 구조는 변경하지 않는다.
+파서 프로필은 서버 정적 seed와 격리 QA 결과로 관리한다. 관리자 화면은 `parserProfileCode` 선택 항목을 노출하지 않으며, 신규 출처는 `MANUAL_ONLY`, 기존 출처 수정은 서버에 저장된 파서 배정을 보존한다. 기존 v1 저장 요청의 `parserProfileCode` 필드는 호환성상 유지하지만 일반 클라이언트 입력으로 파서 배정을 변경하지 않는다. `SAFE_TEMPLATE` 프로필은 링크 함수 리터럴 인자 수와 `arg`, `attr`, `query`, `input` placeholder만 해석하며 JavaScript를 실행하지 않는다. 생성한 상세 URL은 같은 기관의 검증된 host일 때만 저장한다. 대전 통합 목록처럼 외부 전자민원 host로 이동하는 구조는 코드에 고정된 기관별 허용 목록만 사용한다. 2026-07-22 복구 QA에서는 중랑·금천·성남·안양·속초·창원의 현재 공식 화면과 공개 수집 endpoint를 보정하고, 강동·부산 남구의 간헐적 HTTPS 지연은 기존 `LEGACY_BROWSER` 정책과 공개 수집 endpoint로, 해운대·정읍·임실의 HTTPS 전환은 기존 브라우저형 요청 정책으로 보강했다. 사용자 바로가기는 공식 HTTPS 화면을 유지하고 TLS 호환 또는 응답 지연이 있는 공개 공고 목록만 수집 endpoint로 분리한다. 244개 출처는 시스템 QA가 완료되기 전 모두 OFF를 유지하며, 기존 `/api/v1/admin/local-government-notice-parser-profiles`의 path와 응답 구조는 내부 진단 호환을 위해 변경하지 않는다.
 
 2026-07-27 V57 보정에서는 밀양시와 함양군의 일반 공지 URL을 공식 고시·공고 URL로 교체한다. 밀양시는 `SPRING_BBS` GET, 함양군은 `SAFE_SAEOL_EMINWON` 공개 폼 POST를 사용하며 새로운 파서 유형을 추가하지 않는다. 같은 전수 QA와 운영 격리 시험에서 안양시 새올 endpoint timeout 및 공식 HTTPS 화면의 TLS 1.3 협상 종료가 재현되어, 공식 HTTPS 화면을 전용 `TLS12_BROWSER` 요청과 기존 `SPRING_BBS`로 직접 수집한다. 거제시는 `startPage=1`을 명시한 공식 고시공고 HTTPS 목록으로 보정하고, 남동구는 제목·작성일·상세 URL을 제공하는 공식 고시공고 목록으로 교체한다. 속초는 고시공고 의미 분류와 느린 endpoint 요청 정책을 함께 바로잡는다. 여섯 출처의 기존 스냅샷과 실행 이력은 보존되고, 운영자가 ON으로 승인한 이후 수집되는 항목부터 확정된 의미 정책을 적용한다.
 
@@ -1050,7 +1050,7 @@ Member / Business / Family API skeleton 착수 기준:
 | `POST` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `ADMIN` | 지자체 URL OFF 상태 등록 |
 | `GET` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 상세 |
 | `PUT` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `OPERATOR`, `ADMIN` | 지자체 URL 수정 |
-| `PATCH` | `/api/v1/admin/local-government-notice-sources/{sourceId}/enabled` | `OPERATOR`, `ADMIN` | 검증완료·파서 지정 URL ON/OFF |
+| `PATCH` | `/api/v1/admin/local-government-notice-sources/{sourceId}/enabled` | `OPERATOR`, `ADMIN` | 검증완료·자동수집 준비 완료 URL ON/OFF |
 | `DELETE` | `/api/v1/admin/local-government-notice-sources/{sourceId}` | `ADMIN` | 지자체 URL soft delete |
 | `DELETE` | `/api/v1/admin/local-government-notice-sources/qa-artifacts` | `ADMIN` | 확인 문구 검증 후 지자체 QA 수집 원문·요청·실행 이력 삭제 |
 | `POST` | `/api/v1/admin/local-government-notice-sources/{sourceId}/collection-requests` | `OPERATOR`, `ADMIN` | 단일 URL 수동 수집 승인 요청 |

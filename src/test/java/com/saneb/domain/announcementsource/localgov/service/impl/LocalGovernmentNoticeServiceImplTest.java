@@ -23,11 +23,17 @@ import com.saneb.common.error.ApiException;
 import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupRequest;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeQaCleanupResponse;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceEnabledRequest;
+import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeSourceSaveRequest;
 import com.saneb.domain.announcementsource.localgov.support.LocalGovernmentNoticeUrlValidator;
+import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceCommand;
+import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceEnabledCommand;
+import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceService;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +49,7 @@ import org.springframework.security.core.Authentication;
 class LocalGovernmentNoticeServiceImplTest {
 
     private static final UUID ADMIN_ID = UUID.fromString("97000000-0000-0000-0000-000000000001");
+    private static final UUID SOURCE_ID = UUID.fromString("97000000-0000-0000-0000-000000000002");
 
     @Mock
     private LocalGovernmentNoticeDao localGovernmentNoticeDao;
@@ -113,6 +120,59 @@ class LocalGovernmentNoticeServiceImplTest {
     }
 
     /**
+     * 신규 출처는 사용자 요청값과 관계없이 시스템 대기 파서로 등록합니다.
+     */
+    @Test
+    void insertSourceAssignsSystemManagedParser() {
+        when(localGovernmentNoticeDao.selectSourceDetails(any(UUID.class)))
+                .thenReturn(sourceRow("MANUAL_ONLY"));
+
+        service.insertSource(authentication(), sourceRequest("SPRING_BBS"));
+
+        ArgumentCaptor<LocalGovernmentNoticeSourceCommand> commandCaptor =
+                ArgumentCaptor.forClass(LocalGovernmentNoticeSourceCommand.class);
+        verify(localGovernmentNoticeDao).insertSource(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().parserProfileCode()).isEqualTo("MANUAL_ONLY");
+    }
+
+    /**
+     * 출처 수정 시 사용자가 보낸 파서 값 대신 기존 시스템 배정을 보존합니다.
+     */
+    @Test
+    void updateSourcePreservesSystemManagedParser() {
+        LocalGovernmentNoticeSourceRow existing = sourceRow("SAEOL_GOSI");
+        when(localGovernmentNoticeDao.selectSourceDetails(SOURCE_ID)).thenReturn(existing);
+        when(localGovernmentNoticeDao.updateSource(any(LocalGovernmentNoticeSourceCommand.class))).thenReturn(1);
+
+        service.updateSource(authentication(), SOURCE_ID, sourceRequest("SPRING_BBS"));
+
+        ArgumentCaptor<LocalGovernmentNoticeSourceCommand> commandCaptor =
+                ArgumentCaptor.forClass(LocalGovernmentNoticeSourceCommand.class);
+        verify(localGovernmentNoticeDao).updateSource(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().parserProfileCode()).isEqualTo("SAEOL_GOSI");
+    }
+
+    /**
+     * 자동수집 준비 전에는 기술적인 파서 선택 요구 없이 ON 전환을 차단합니다.
+     */
+    @Test
+    void updateSourceEnabledExplainsAutomaticCollectionReadiness() {
+        when(localGovernmentNoticeDao.selectSourceDetails(SOURCE_ID))
+                .thenReturn(sourceRow("MANUAL_ONLY"));
+
+        assertThatThrownBy(() -> service.updateSourceEnabled(
+                authentication(),
+                SOURCE_ID,
+                new LocalGovernmentNoticeSourceEnabledRequest(true)
+        ))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("자동수집 준비가 완료되지 않았습니다");
+
+        verify(localGovernmentNoticeDao, never())
+                .updateSourceEnabled(any(LocalGovernmentNoticeSourceEnabledCommand.class));
+    }
+
+    /**
      * 관리자 인증 객체를 생성합니다.
      */
     private Authentication authentication() {
@@ -138,5 +198,91 @@ class LocalGovernmentNoticeServiceImplTest {
      */
     private LocalGovernmentNoticeQaCleanupRequest cleanupRequest() {
         return new LocalGovernmentNoticeQaCleanupRequest("DELETE_LOCAL_GOVERNMENT_QA_DATA");
+    }
+
+    /**
+     * 출처 저장 요청을 생성합니다.
+     *
+     * @param parserProfileCode 클라이언트가 보낸 파서 코드
+     * @return 저장 요청
+     */
+    private LocalGovernmentNoticeSourceSaveRequest sourceRequest(String parserProfileCode) {
+        return new LocalGovernmentNoticeSourceSaveRequest(
+                "11",
+                "서울특별시",
+                "11680",
+                "강남구",
+                "BASIC_LOCAL_GOVERNMENT",
+                "강남구청",
+                "https://www.gangnam.go.kr",
+                "https://www.gangnam.go.kr/notice/list.do?mid=ID05_040201",
+                null,
+                "public_notice_board",
+                "DEFAULT",
+                parserProfileCode,
+                null,
+                "HIGH",
+                "VERIFIED",
+                "LEGAL_NOTICE",
+                "KEYWORD_FILTERED",
+                true,
+                "공식 고시공고 게시판 확인"
+        );
+    }
+
+    /**
+     * 출처 조회 행을 생성합니다.
+     *
+     * @param parserProfileCode 시스템 파서 코드
+     * @return 출처 조회 행
+     */
+    private LocalGovernmentNoticeSourceRow sourceRow(String parserProfileCode) {
+        OffsetDateTime now = OffsetDateTime.now();
+        return new LocalGovernmentNoticeSourceRow(
+                SOURCE_ID,
+                "LGS-TEST",
+                "11",
+                "서울특별시",
+                "11680",
+                "강남구",
+                "BASIC_LOCAL_GOVERNMENT",
+                "강남구청",
+                "https://www.gangnam.go.kr",
+                "https://www.gangnam.go.kr/notice/list.do?mid=ID05_040201",
+                null,
+                "public_notice_board",
+                "DEFAULT",
+                "GET",
+                null,
+                parserProfileCode,
+                null,
+                null,
+                "HIGH",
+                "VERIFIED",
+                "LEGAL_NOTICE",
+                "KEYWORD_FILTERED",
+                true,
+                now,
+                ADMIN_ID,
+                "공식 고시공고 게시판 확인",
+                false,
+                "READY",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                now,
+                now,
+                null
+        );
     }
 }
