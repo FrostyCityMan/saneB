@@ -301,6 +301,60 @@ class LocalGovernmentNoticeCollectorTest {
     }
 
     /**
+     * 운영자용 공식 URL과 수집 endpoint의 host가 달라도 상세 URL은 실제 응답 host를 따릅니다.
+     */
+    @Test
+    void parseDocumentBuildsDetailUrlFromCollectionEndpointHost() {
+        UUID sourceId = UUID.randomUUID();
+        LocalGovernmentNoticeSourceRow source = new LocalGovernmentNoticeSourceRow(
+                sourceId, "LGS-TEST", "26", "부산", "261", "테스트구", "LOCAL_GOVERNMENT", "테스트기관",
+                "https://www.example.go.kr", "https://www.example.go.kr/legal-notices",
+                "https://eminwon.example.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",
+                "html", "BROWSER_HTTP1", "POST_FORM", null, "TEST_SAEOL", "테스트 새올", null,
+                "HIGH", "VERIFIED", "LEGAL_NOTICE", "KEYWORD_FILTERED", true, null, null,
+                "공식 고시공고 메뉴와 새올 수집 endpoint 분리", false, "READY", null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null, null, null
+        );
+        LocalGovernmentNoticeParserProfileRow profile = new LocalGovernmentNoticeParserProfileRow(
+                "TEST_SAEOL", "테스트 새올", "SAEOL_GOSI",
+                "table tbody tr:has(td:nth-of-type(2) a[onclick*=searchDetail]), "
+                        + "table tbody tr:has(td:nth-of-type(2) a[href*=searchDetail])",
+                "td:nth-of-type(2) a[onclick*=searchDetail], "
+                        + "td:nth-of-type(2) a[href*=searchDetail]",
+                "td:nth-of-type(4)",
+                "td:nth-of-type(2) a[onclick*=searchDetail], "
+                        + "td:nth-of-type(2) a[href*=searchDetail]",
+                "yyyy-MM-dd",
+                "HTML", null, null, null, null, null,
+                "SAFE_TEMPLATE", "searchDetail", 1,
+                "/emwp/jsp/ofr/OfrNotAncmtL.jsp?not_ancmt_mgt_no={arg:1}", true
+        );
+        Document document = Jsoup.parse(
+                """
+                        <table><tbody><tr>
+                          <td>1</td>
+                          <td><a href="javaScript:searchDetail('20260000123')">지원사업 공고</a></td>
+                          <td>경제과</td>
+                          <td>2026-07-28</td>
+                        </tr></tbody></table>
+                        """,
+                source.collectionEndpointUrl()
+        );
+
+        LocalGovernmentNoticeCollectionOutcome result = collector.parseDocument(
+                source, profile, document, 200, null, null, "fingerprint"
+        );
+
+        assertThat(result.resultStatusCode()).isEqualTo("SUCCESS");
+        assertThat(result.items()).singleElement().satisfies(item ->
+                assertThat(item.sourceUrl()).isEqualTo(
+                        "https://eminwon.example.go.kr/emwp/jsp/ofr/"
+                                + "OfrNotAncmtL.jsp?not_ancmt_mgt_no=20260000123"
+                )
+        );
+    }
+
+    /**
      * boardView 함수의 리터럴 인자를 검증된 상세 URL 템플릿에 대입합니다.
      */
     @Test
@@ -323,6 +377,38 @@ class LocalGovernmentNoticeCollectorTest {
         assertThat(result.absoluteLink()).isEqualTo(
                 "https://example.go.kr/portal/bbs/view.do?mId=0301010000&bIdx=153420&ptIdx=22"
         );
+    }
+
+    /**
+     * 공고 행에 선언된 안전한 함수 인자를 제목 셀에서도 해석합니다.
+     */
+    @Test
+    void selectResolvedLinkBuildsUrlFromSafeAncestorFunctionArguments() {
+        Document document = Jsoup.parse(
+                """
+                        <table><tbody>
+                          <tr onclick="viewData('67189','A')">
+                            <td>2026-1601</td>
+                            <td class="title">인천 공고 제목</td>
+                            <td>2026-07-28</td>
+                          </tr>
+                        </tbody></table>
+                        """,
+                "https://www.example.go.kr/citynet/list.do"
+        );
+
+        LocalGovernmentNoticeCollector.ResolvedLink result = collector.selectResolvedLink(
+                document.selectFirst("td.title"),
+                selectTemplateProfile(
+                        "viewData",
+                        "/citynet/detail.do?sno={arg:1}&gosiGbn={arg:2}"
+                ),
+                document.location()
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result.absoluteLink())
+                .isEqualTo("https://www.example.go.kr/citynet/detail.do?sno=67189&gosiGbn=A");
     }
 
     /**

@@ -1042,6 +1042,8 @@ Member / Business / Family API skeleton 착수 기준:
 
 2026-07-27 V59는 새올 전자민원 셀 클릭형 목록에서 중첩 레이아웃 행을 공고 행으로 중복 인식하지 않도록 직접 자식 제목 셀을 가진 행만 선택한다. 수집기는 최근 1년 범위를 벗어난 과거 행과 빈 레이아웃 행을 필드 누락으로 계산하지 않으며, 당일 신규 공고가 등록일 대신 `시:분:초`만 제공하면 서울 기준 오늘 날짜로 해석한다. 실제 후보 행의 제목·등록일·원문 URL 누락만 `PARTIAL_FIELDS`로 남긴다.
 
+2026-07-28 V61~V62는 일반 공지로 분류됐던 203개 기관의 사용자 바로가기를 공식 고시·공고 메뉴로 보정하고, 실제 목록이 별도 새올 endpoint에 있는 경우 `collectionEndpointUrl`과 공개 `POST_FORM` 설정을 분리한다. 격리 전수 QA에서 제목·등록일·별도 상세 URL을 모두 확인한 190개 출처만 활성화하며, 미통과 13개 출처는 OFF 상태와 원본 오류 코드를 유지한다. 강남구·대전 동구·용인시·서천군의 잘못된 공지·채용 URL도 공식 고시·공고 경로로 교체했다. 이 변경은 기존 `/api/v1/admin/local-government-notice-sources`의 path와 응답 필드를 변경하지 않으며, 관리자는 기존 `diagnosticReasonCode` 필터와 원문 바로가기로 보류 원인을 확인한다.
+
 | Method | Path | 권한 | 설명 |
 |---|---|---|---|
 | `GET` | `/api/v1/admin/local-government-notice-sources` | `OPERATOR`, `APPROVER`, `ADMIN` | 지자체 URL 목록, pagination |

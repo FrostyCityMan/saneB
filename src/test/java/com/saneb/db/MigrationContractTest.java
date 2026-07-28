@@ -1135,6 +1135,78 @@ class MigrationContractTest {
     }
 
     /**
+     * 일반 공지 출처를 공식 고시공고 게시판으로 보정하는 정적 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v61MigrationCorrectsReviewedSourcesToOfficialLegalNoticeBoards() throws IOException {
+        String sql = selectV61Migration();
+        String reviewedSources = sql.substring(
+                sql.indexOf("WITH reviewed_source ("),
+                sql.indexOf("UPDATE local_government_notice_sources AS source", sql.indexOf("WITH reviewed_source ("))
+        );
+
+        assertThat(countOccurrences(reviewedSources, "('LGS-")).isEqualTo(203);
+        assertThat(sql).contains(
+                "source_board_type_code = 'LEGAL_NOTICE'",
+                "collection_policy_code = 'KEYWORD_FILTERED'",
+                "validation_status_code = 'VERIFIED'",
+                "is_semantically_verified = true",
+                "parser_profile_code = 'MANUAL_ONLY'",
+                "request_method_code = 'POST_FORM'",
+                "'SAFE_SAEOL_EMINWON_LIST'",
+                "'MAPO_LEGAL_NOTICE_TABLE'",
+                "'SAFE_DAEGU_LEGAL_NOTICE'",
+                "'SAFE_INCHEON_CITYNET_NOTICE'",
+                "'SAFE_GWANGJU_NAMGU_NOTICE'",
+                "'SAFE_DAEJEON_DATA_KEY_NOTICE'",
+                "'SAFE_YUSEONG_LEGAL_NOTICE'",
+                "'SAFE_HWASEONG_LEGAL_NOTICE'",
+                "'SAFE_PORTAL_SAEOL_BOARD_VIEW'",
+                "'SAFE_GWANGMYEONG_LEGAL_NOTICE'",
+                "'SAFE_EGOV_DATA_LIST_NOTICE'",
+                "'YEONGCHEON_LEGAL_NOTICE'",
+                "https://www.gangnam.go.kr/notice/list.do?mid=ID05_040201",
+                "https://www.donggu.go.kr/dg/kor/contents/916",
+                "https://www.yongin.go.kr/home/yiNw/yiNwStable/yiNwStable02/yiNwStable02_01.jsp",
+                "https://www.seocheon.go.kr/prog/saeolGosi/03/kor/sub04_06_03/list.do",
+                "'LGS-000158', 'https://eminwon.seocheon.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do'"
+        );
+        assertThat(sql.toLowerCase()).doesNotContain("delete from", "truncate table");
+    }
+
+    /**
+     * 전수 QA를 통과한 출처만 활성화하고 실패 출처는 진단값과 함께 격리하는 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v62MigrationActivatesOnlyQaPassedSourcesAndIsolatesFailures() throws IOException {
+        String sql = selectV62Migration();
+        String passedSources = sql.substring(
+                sql.indexOf("WITH qa_pass_source"),
+                sql.indexOf("UPDATE local_government_notice_sources AS source")
+        );
+        String blockedSources = sql.substring(
+                sql.indexOf("WITH qa_blocked_source"),
+                sql.indexOf("UPDATE local_government_notice_sources AS source", sql.indexOf("WITH qa_blocked_source"))
+        );
+
+        assertThat(countOccurrences(passedSources, "('LGS-")).isEqualTo(190);
+        assertThat(countOccurrences(blockedSources, "('LGS-")).isEqualTo(13);
+        assertThat(sql).contains(
+                "is_enabled = true",
+                "is_enabled = false",
+                "'ITEM_FIELDS_MISSING'",
+                "'LIST_SELECTOR_NOT_MATCHED'",
+                "'HTTP_ERROR'",
+                "enabled_count <> 190 OR blocked_count <> 13"
+        );
+        assertThat(sql.toLowerCase()).doesNotContain("delete from", "truncate table");
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -1799,6 +1871,49 @@ class MigrationContractTest {
                 "db/migration/V60__stabilize_remaining_local_government_notice_rows.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V61 migration을 UTF-8로 조회합니다.
+     *
+     * @return V61 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV61Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V61__correct_general_notice_sources_to_official_legal_boards.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V62 migration을 UTF-8로 조회합니다.
+     *
+     * @return V62 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV62Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V62__apply_corrected_legal_notice_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 대상 문자열에서 검색 문자열이 나타난 횟수를 계산합니다.
+     *
+     * @param source 대상 문자열
+     * @param token 검색 문자열
+     * @return 검색 문자열 출현 횟수
+     */
+    private int countOccurrences(String source, String token) {
+        int count = 0;
+        int offset = 0;
+        while ((offset = source.indexOf(token, offset)) >= 0) {
+            count++;
+            offset += token.length();
+        }
+        return count;
     }
 
     /**

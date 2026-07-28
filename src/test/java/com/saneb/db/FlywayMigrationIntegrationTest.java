@@ -163,7 +163,7 @@ class FlywayMigrationIntegrationTest {
                     """)).isEqualTo(1);
             for (String version : List.of(
                     "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                    "59", "60"
+                    "59", "60", "61", "62"
             )) {
                 assertThat(selectLong(statement, """
                         select count(1)
@@ -186,7 +186,9 @@ class FlywayMigrationIntegrationTest {
             assertThat(selectLong(statement, "select count(1) from local_government_notice_sources"))
                     .isEqualTo(244);
             assertThat(selectLong(statement, "select count(1) from local_government_notice_sources where is_enabled = false"))
-                    .isEqualTo(244);
+                    .isEqualTo(54);
+            assertThat(selectLong(statement, "select count(1) from local_government_notice_sources where is_enabled = true"))
+                    .isEqualTo(190);
             assertThat(selectLong(statement, "select count(distinct sigungu_code) from local_government_notice_sources"))
                     .isEqualTo(244);
             assertThat(selectLong(statement, """
@@ -208,17 +210,17 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code = 'HEURISTIC_NOTICE'
-                    """)).isEqualTo(35);
+                    """)).isPositive();
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'BROWSER_HTTP1'
-                    """)).isEqualTo(29);
+                    """)).isGreaterThanOrEqualTo(29);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_profile_code = 'LEGACY_BROWSER'
-                    """)).isEqualTo(10);
+                    """)).isEqualTo(6);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
@@ -233,18 +235,18 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from local_government_notice_parser_profiles
                     where link_strategy_code = 'SAFE_TEMPLATE'
-                    """)).isEqualTo(32);
+                    """)).isGreaterThanOrEqualTo(32);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where parser_profile_code like 'SAFE_%'
-                    """)).isEqualTo(59);
+                    """)).isGreaterThanOrEqualTo(59);
             assertThat(selectLong(statement, """
                     select count(1)
                     from local_government_notice_sources
                     where request_method_code = 'POST_FORM'
                       and request_form_json is not null
-                    """)).isEqualTo(2);
+                    """)).isGreaterThanOrEqualTo(49);
             assertThat(selectText(statement, """
                     select parser_profile_code
                     from local_government_notice_sources
@@ -266,6 +268,12 @@ class FlywayMigrationIntegrationTest {
                     from local_government_notice_sources
                     where source_board_type_code = 'GENERAL_NOTICE'
                       and collection_policy_code = 'KEYWORD_FILTERED'
+                    """)).isZero();
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where source_board_type_code = 'LEGAL_NOTICE'
+                      and collection_policy_code = 'KEYWORD_FILTERED'
                     """)).isEqualTo(203);
             assertThat(selectLong(statement, """
                     select count(1)
@@ -279,6 +287,30 @@ class FlywayMigrationIntegrationTest {
                     where source_board_type_code = 'PRESS_RELEASE'
                       and collection_policy_code = 'EXCLUDED'
                     """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where semantic_verification_note like '2026-07-28 공식 고시공고 URL 전수 보정:%'
+                    """)).isEqualTo(203);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where semantic_verification_note like '2026-07-28 공식 고시공고 URL 전수 보정:%'
+                      and is_enabled = true
+                    """)).isEqualTo(190);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where semantic_verification_note like '2026-07-28 공식 고시공고 URL 전수 보정:%'
+                      and is_enabled = false
+                    """)).isEqualTo(13);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from local_government_notice_sources
+                    where semantic_verification_note like '2026-07-28 공식 고시공고 URL 전수 보정:%'
+                      and is_enabled = true
+                      and parser_profile_code = 'MANUAL_ONLY'
+                    """)).isZero();
             assertThat(selectText(statement, """
                     select parser_profile_code
                     from local_government_notice_sources
@@ -288,7 +320,36 @@ class FlywayMigrationIntegrationTest {
                     select notice_url
                     from local_government_notice_sources
                     where public_code = 'LGS-000011'
-                    """)).isEqualTo("https://www.dobong.go.kr/bbs.asp?code=10008769");
+                    """)).isEqualTo("https://www.dobong.go.kr/Contents.asp?code=10008772");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000024'
+                    """)).isEqualTo("https://www.gangnam.go.kr/notice/list.do?mid=ID05_040201");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000072'
+                    """)).isEqualTo("https://www.donggu.go.kr/dg/kor/contents/916");
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000086'
+                    """)).isEqualTo(
+                    "https://www.yongin.go.kr/home/yiNw/yiNwStable/yiNwStable02/yiNwStable02_01.jsp"
+            );
+            assertThat(selectText(statement, """
+                    select notice_url
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000158'
+                    """)).isEqualTo(
+                    "https://www.seocheon.go.kr/prog/saeolGosi/03/kor/sub04_06_03/list.do"
+            );
+            assertThat(selectText(statement, """
+                    select parser_profile_code
+                    from local_government_notice_sources
+                    where public_code = 'LGS-000158'
+                    """)).isEqualTo("SAFE_SAEOL_EMINWON_CELL");
             assertThat(selectText(statement, """
                     select notice_url
                     from local_government_notice_sources

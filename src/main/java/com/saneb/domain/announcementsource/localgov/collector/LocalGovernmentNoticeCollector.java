@@ -624,7 +624,7 @@ public class LocalGovernmentNoticeCollector {
      * @param fingerprint 응답 fingerprint
      * @return URL 단위 수집 결과
      */
-    private LocalGovernmentNoticeCollectionOutcome parseDocument(
+    LocalGovernmentNoticeCollectionOutcome parseDocument(
             LocalGovernmentNoticeSourceRow source,
             LocalGovernmentNoticeParserProfileRow profile,
             Document document,
@@ -656,7 +656,7 @@ public class LocalGovernmentNoticeCollector {
             Element dateElement = row.selectFirst(profile.dateSelector());
             String title = titleElement == null ? null : titleElement.text().trim();
             ResolvedLink resolvedLink = linkElement == null
-                    ? null : selectResolvedLink(linkElement, profile, source.noticeUrl());
+                    ? null : selectResolvedLink(linkElement, profile, document.location());
             String link = resolvedLink == null ? null : resolvedLink.absoluteLink();
             LocalDate postedDate = dateElement == null
                     ? null : parsePostedDate(dateElement.text(), profile.datePattern());
@@ -1446,6 +1446,13 @@ public class LocalGovernmentNoticeCollector {
         candidates.add(element.attr("onclick"));
         for (String attributeName : LINK_ATTRIBUTE_NAMES) {
             candidates.add(element.attr(attributeName));
+        }
+        Element actionContainer = element.closest("tr, li");
+        if (actionContainer != null && actionContainer != element) {
+            candidates.add(actionContainer.attr("onclick"));
+            for (String attributeName : LINK_ATTRIBUTE_NAMES) {
+                candidates.add(actionContainer.attr(attributeName));
+            }
         }
         for (String candidate : candidates) {
             Matcher matcher = callPattern.matcher(candidate);

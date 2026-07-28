@@ -26,6 +26,7 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -120,6 +121,16 @@ class LocalGovernmentNoticeParserFullQaTest {
             "SET collection_endpoint_url = '([^']+)'.*?WHERE public_code = '(LGS-\\d{6})'",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern REVIEWED_COLLECTION_ENDPOINT_PATTERN = Pattern.compile(
+            "\\(\\s*'(LGS-\\d{6})',\\s*'https?://[^']+',\\s*'(https?://[^']+)'"
+    );
+    private static final Pattern SAEOL_POST_FORM_PATTERN = Pattern.compile(
+            "\\(\\s*'(LGS-\\d{6})',\\s*'(https?://[^']+)',\\s*'(\\{[^']*})'::jsonb\\s*\\)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+    );
+    private static final Path V61_LEGAL_SOURCE_MIGRATION = Path.of(
+            "src/main/resources/db/migration/V61__correct_general_notice_sources_to_official_legal_boards.sql"
+    );
     private static final Pattern NON_NOTICE_TITLE_PATTERN = Pattern.compile(
             "^(홈|로그인|로그아웃|회원가입|검색|목록|이전|다음|처음|끝|더보기|전체보기|바로가기|사이트맵)$"
     );
@@ -158,7 +169,7 @@ class LocalGovernmentNoticeParserFullQaTest {
     private static final List<String> LINK_ATTRIBUTE_NAMES = List.of(
             "href", "data-url", "data-href", "data-action", "data-link", "data-view-url"
     );
-    private static final Map<String, String> POST_FORM_BODIES = Map.of(
+    private static final Map<String, String> LEGACY_POST_FORM_BODIES = Map.of(
             "LGS-000089",
             "pageIndex=&jndinm=OfrNotAncmtEJB&context=NTIS&method=selectListOfrNotAncmt"
                     + "&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_mgt_no=&homepage_pbs_yn=Y"
@@ -254,8 +265,10 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "seolContentDeailView.do?not_ancmt_mgt_no={arg:1}"
             ),
             new ParserProfile(
-                    "SAFE_ANSAN_BBS", "table tbody tr", "td.p-subject a[onclick*=fnGoDetail]",
-                    "td:nth-of-type(4)", "td.p-subject a[onclick*=fnGoDetail]", null,
+                    "SAFE_ANSAN_BBS",
+                    "table tbody tr:has(td.p-subject a[onclick*=fnGoDetail])",
+                    "td.p-subject a[onclick*=fnGoDetail]",
+                    "td:nth-of-type(5)", "td.p-subject a[onclick*=fnGoDetail]", "yyyy-MM-dd",
                     "SAFE_TEMPLATE", "fnGoDetail", 1,
                     "/www/common/bbs/selectBbsDetail.do?bbs_code={query:bbs_code}&bbs_seq={arg:1}"
             ),
@@ -270,11 +283,12 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "SAFE_TEMPLATE", "fnDetail", 1, "/gosi/detail.tc?mn={input:mn}&mgtNo={arg:1}"
             ),
             new ParserProfile(
-                    "SAFE_GORYEONG_BOARD", "table tbody tr",
-                    "td.bL_tableTitle a[onclick*=fn_articleLink]", "td:nth-of-type(4)",
-                    "td.bL_tableTitle a[onclick*=fn_articleLink]", null,
+                    "SAFE_GORYEONG_BOARD",
+                    "table tbody tr:has(td.bL_tableTitle a[onclick*=fn_articleLink])",
+                    "td.bL_tableTitle a[onclick*=fn_articleLink]", "td:nth-of-type(5)",
+                    "td.bL_tableTitle a[onclick*=fn_articleLink]", "yyyy-MM-dd",
                     "SAFE_TEMPLATE", "fn_articleLink", 1,
-                    "/kor/boardView.do?IDX={query:IDX}&BRD_ID={query:BRD_ID}&BOARD_IDX={arg:1}&page=1"
+                    "/kor/boardView.do?IDX=154&BRD_ID=1023&BOARD_IDX={arg:1}&page=1"
             ),
             new ParserProfile(
                     "SAFE_SEOUL_NOTICE", "table tbody tr",
@@ -294,8 +308,14 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "td[data-cell-header='제목'] a", "yyyy.MM.dd", "AUTO", null, null, null
             ),
             new ParserProfile(
-                    "NOWON_NOTICE_TABLE", "table tbody tr", "td.cell-subject a", "td.cell-date",
-                    "td.cell-subject a", "yyyy-MM-dd", "AUTO", null, null, null
+                    "NOWON_NOTICE_TABLE",
+                    "table tbody tr:has(td.cell-subject a[href*=opView])",
+                    "td.cell-subject a[href*=opView]", "td.cell-date",
+                    "td.cell-subject a[href*=opView]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "opView", 1,
+                    "BD_selectBbs.do?q_bbsCode={query:q_bbsCode}&q_clCode={query:q_clCode}"
+                            + "&q_estnColumn1={query:q_estnColumn1}"
+                            + "&q_ntceSiteCode={query:q_ntceSiteCode}&q_bbscttSn={arg:1}"
             ),
             new ParserProfile(
                     "SAFE_SEODAEMUN_NOTICE", "table.boardList tbody tr", "td.aleft a[href*=goView]",
@@ -311,9 +331,15 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "/site/gwanak/ex/bbsNew/View.do?not_ancmt_mgt_no={arg:1}&typeCode={query:typeCode}"
             ),
             new ParserProfile(
-                    "SAFE_SAEOL_EMINWON", "table tbody tr",
-                    "td:nth-of-type(3) a[onclick*=searchDetail]", "td:nth-of-type(5)",
-                    "td:nth-of-type(3) a[onclick*=searchDetail]", "yyyy-MM-dd",
+                    "SAFE_SAEOL_EMINWON",
+                    "table tbody tr:has(td:nth-of-type(3) a[onclick*=searchDetail]), "
+                            + "table tbody tr:has(td:nth-of-type(3) a[href*=searchDetail])",
+                    "td:nth-of-type(3) a[onclick*=searchDetail], "
+                            + "td:nth-of-type(3) a[href*=searchDetail]",
+                    "td:nth-of-type(5)",
+                    "td:nth-of-type(3) a[onclick*=searchDetail], "
+                            + "td:nth-of-type(3) a[href*=searchDetail]",
+                    "yyyy-MM-dd",
                     "SAFE_TEMPLATE", "searchDetail", 1,
                     "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y"
                             + "&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt"
@@ -332,9 +358,24 @@ class LocalGovernmentNoticeParserFullQaTest {
             ),
             new ParserProfile(
                     "SAFE_SAEOL_EMINWON_COMPACT",
-                    "table.board1 tbody tr:has(td:nth-of-type(2) a[onclick*=searchDetail])",
-                    "td:nth-of-type(2) a[onclick*=searchDetail]", "td:nth-of-type(4)",
-                    "td:nth-of-type(2) a[onclick*=searchDetail]", "yyyy-MM-dd",
+                    "table tbody tr:has(td:nth-of-type(2) a[onclick*=searchDetail]), "
+                            + "table tbody tr:has(td:nth-of-type(2) a[href*=searchDetail])",
+                    "td:nth-of-type(2) a[onclick*=searchDetail], "
+                            + "td:nth-of-type(2) a[href*=searchDetail]",
+                    "td:nth-of-type(4)",
+                    "td:nth-of-type(2) a[onclick*=searchDetail], "
+                            + "td:nth-of-type(2) a[href*=searchDetail]",
+                    "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "searchDetail", 1,
+                    "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y"
+                            + "&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt"
+                            + "&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no={arg:1}&subCheck=Y"
+            ),
+            new ParserProfile(
+                    "SAFE_SAEOL_EMINWON_LIST",
+                    "div.dbody > ul:has(li.title a[onclick*=searchDetail])",
+                    "li.title a[onclick*=searchDetail]", "li.col04",
+                    "li.title a[onclick*=searchDetail]", "yyyy-MM-dd",
                     "SAFE_TEMPLATE", "searchDetail", 1,
                     "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y"
                             + "&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt"
@@ -420,9 +461,12 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "SAFE_TEMPLATE", "article.view", 1, "newsNotice/{arg:1}"
             ),
             new ParserProfile(
-                    "SAFE_PAJU_SUMMARY", "ul.summary-list > li", "a.contentTip strong.subject",
-                    "ul.article-info > li:last-child", "a.contentTip[onclick*=jsView]", null,
-                    "SAFE_TEMPLATE", "jsView", 4, "BD_board.view.do?bbsCd={arg:1}&seq={arg:2}"
+                    "SAFE_PAJU_SUMMARY",
+                    "table tbody tr:has(td.cell-subject a[onclick*=jsView])",
+                    "td.cell-subject a[onclick*=jsView]", "td.cell-tit i",
+                    "td.cell-subject a[onclick*=jsView]", "yyyy/MM/dd",
+                    "SAFE_TEMPLATE", "jsView", 4,
+                    "BD_board.view.do?bbsCd={arg:1}&seq={arg:2}&showSummaryYn={arg:4}"
             ),
             new ParserProfile(
                     "SAFE_GWD_GOPAGE2", "table tbody tr", "td.skinTb-sbj a[href*=goPage2]",
@@ -462,7 +506,8 @@ class LocalGovernmentNoticeParserFullQaTest {
             ),
             new ParserProfile(
                     "SCMS_CARD_NOTICE", "ul.lst1 > li.li1", "strong.t1",
-                    ".wrap1t3 > span.t3:first-child, .t3wrap > span.t3:nth-child(2)",
+                    ".wrap1t3 > span.t3:matchesOwn(^\\s*등록일\\s*:), "
+                            + ".t3wrap > span.t3:matchesOwn(^\\s*등록일\\s*:)",
                     "a.a1", null, "AUTO", null, null, null
             ),
             new ParserProfile(
@@ -489,6 +534,104 @@ class LocalGovernmentNoticeParserFullQaTest {
                     "td.subject a[onclick*=popupCenterNew]", "yyyy-MM-dd",
                     "AUTO", null, null, null
             ),
+            new ParserProfile(
+                    "MAPO_LEGAL_NOTICE_TABLE",
+                    "table tbody tr:has(td.tal_l_i a[href*='/nPortal/detail'])",
+                    "td.tal_l_i a[href*='/nPortal/detail']", "td:last-child",
+                    "td.tal_l_i a[href*='/nPortal/detail']", "yyyyMMdd",
+                    "AUTO", null, null, null
+            ),
+            new ParserProfile(
+                    "SAFE_DAEGU_LEGAL_NOTICE",
+                    "table tbody tr:has(td[data-table-type=subject] a[href*=fn_goLinkView])",
+                    "td[data-table-type=subject] a[href*=fn_goLinkView]",
+                    "td[data-table-type=date]",
+                    "td[data-table-type=subject] a[href*=fn_goLinkView]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "fn_goLinkView", 2,
+                    "?menu_id={query:menu_id}"
+                            + "&menu_link=/front/daeguSidoGosi/daeguSidoGosiView.do"
+                            + "&sno={arg:1}&gosi_gbn={arg:2}"
+            ),
+            new ParserProfile(
+                    "SAFE_INCHEON_CITYNET_NOTICE",
+                    "table tbody tr[onclick*=viewData]",
+                    "td:nth-of-type(2)", "td:nth-of-type(4)", "td:nth-of-type(2)",
+                    "yyyy-MM-dd", "SAFE_TEMPLATE", "viewData", 2,
+                    "/citynet/jsp/sap/SAPGosiBizProcess.do?command=searchDetail"
+                            + "&flag=gosiGL&svp=Y&sido=ic&sno={arg:1}&gosiGbn={arg:2}"
+            ),
+            new ParserProfile(
+                    "SAFE_GWANGJU_NAMGU_NOTICE",
+                    "table tbody tr:has(td.AlignLeft a[onclick*=searchDetail])",
+                    "td.AlignLeft a[onclick*=searchDetail]", "td:nth-of-type(3)",
+                    "td.AlignLeft a[onclick*=searchDetail]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "searchDetail", 1,
+                    "/api/eminwon/gosiView.es?mid={query:mid}&method=selectOfrNotAncmt"
+                            + "&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no={arg:1}"
+            ),
+            new ParserProfile(
+                    "SAFE_DAEJEON_DATA_KEY_NOTICE",
+                    "table tbody tr:has(td.subject[data-key-no])",
+                    "td.subject[data-key-no] strong.bbs-subject-txt",
+                    "td[data-cell-header='등록일']", "td.subject[data-key-no]",
+                    "yyyy-MM-dd", "SAFE_TEMPLATE", null, null,
+                    "view.do?notAncmtMgtNo={attr:data-key-no}"
+            ),
+            new ParserProfile(
+                    "SAFE_YUSEONG_LEGAL_NOTICE",
+                    "table tbody tr:has(td.subject a[onclick*=fn_search_view])",
+                    "td.subject a[onclick*=fn_search_view]", "td:nth-of-type(5)",
+                    "td.subject a[onclick*=fn_search_view]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "fn_search_view", 1,
+                    "view.do?notAncmtMgtNo={arg:1}"
+            ),
+            new ParserProfile(
+                    "SAFE_HWASEONG_LEGAL_NOTICE",
+                    "table tbody tr:has(td.ta_lft a[href*=opGosiView])",
+                    "td.ta_lft a[href*=opGosiView]", "td:nth-of-type(4)",
+                    "td.ta_lft a[href*=opGosiView]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "opGosiView", 1,
+                    "BD_selectNoticeDetail.do?q_notAncmtMgtNo={arg:1}"
+            ),
+            new ParserProfile(
+                    "SAFE_PORTAL_SAEOL_BOARD_VIEW",
+                    "table tbody tr:has(td a[onclick*=boardView])",
+                    "td a[onclick*=boardView]", "td.date, td.gosi_date",
+                    "td a[onclick*=boardView]", null,
+                    "SAFE_TEMPLATE", "boardView", 2,
+                    "/portal/saeol/gosiView.do?notAncmtMgtNo={arg:2}&mId={query:mId}"
+            ),
+            new ParserProfile(
+                    "SAFE_GWANGMYEONG_LEGAL_NOTICE",
+                    "table tbody tr:has(td a[onclick*=opDetail])",
+                    "td a[onclick*=opDetail]", "td:nth-of-type(5)",
+                    "td a[onclick*=opDetail]", "yyyy-MM-dd",
+                    "SAFE_TEMPLATE", "opDetail", 1,
+                    "BD_selectNftcBbsDetail.do?q_nftcBbsCode=1001"
+                            + "&q_nftcBbsMgtno={arg:1}&q_currPage=1"
+            ),
+            new ParserProfile(
+                    "BORYEONG_LEGAL_NOTICE",
+                    "table tbody tr:has(td.left a[onclick*=popupCenter])",
+                    "td.left a[onclick*=popupCenter]", "td.date",
+                    "td.left a[onclick*=popupCenter]", "yyyy-MM-dd",
+                    "AUTO", null, null, null
+            ),
+            new ParserProfile(
+                    "SAFE_EGOV_DATA_LIST_NOTICE",
+                    "table tbody tr:has(td.subject button[data-list-no])",
+                    "td.subject button[data-list-no] strong.bbs-subject-txt",
+                    "td[data-cell-header='등록일']", "td.subject button[data-list-no]",
+                    "yyyy-MM-dd", "SAFE_TEMPLATE", null, null,
+                    "view.do?notAncmtMgtNo={attr:data-list-no}"
+            ),
+            new ParserProfile(
+                    "YEONGCHEON_LEGAL_NOTICE",
+                    "table tbody tr:has(td.tit a[data-action*=notAncmtMgtNo])",
+                    "td.tit a[data-action*=notAncmtMgtNo]", "td.date",
+                    "td.tit a[data-action*=notAncmtMgtNo]", "yyyyMMdd",
+                    "AUTO", null, null, null
+            ),
             new ParserProfile("HEURISTIC_NOTICE", null, null, null, null, null, "AUTO", null, null, null)
     );
     private static final Map<String, JsonQaProfile> JSON_PROFILES = Map.ofEntries(
@@ -510,6 +653,8 @@ class LocalGovernmentNoticeParserFullQaTest {
     private final CookieManager sessionCookieManager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
     private final HttpClient sessionBrowserHttpClient = createSessionHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, String> postFormBodies = selectPostFormBodyMap();
+    private final Set<String> v61LegalSourceCodes = selectV61LegalSourceCodes();
     private final Path qaOutputDirectory = Path.of(System.getProperty(
             "saneb.local-gov-qa.output-dir",
             "build/reports/local-government-parser-qa"
@@ -680,7 +825,7 @@ class LocalGovernmentNoticeParserFullQaTest {
             if (source.collectionEndpointUrl() != null && !source.collectionEndpointUrl().isBlank()) {
                 requestBuilder.header("Referer", source.noticeUrl());
             }
-            String postFormBody = POST_FORM_BODIES.get(source.publicCode());
+            String postFormBody = postFormBodies.get(source.publicCode());
             HttpRequest request = postFormBody == null
                     ? requestBuilder.GET().build()
                     : requestBuilder
@@ -789,7 +934,7 @@ class LocalGovernmentNoticeParserFullQaTest {
             Element linkElement = row.selectFirst(profile.linkSelector());
             String title = titleElement == null ? null : titleElement.text().trim();
             LocalGovernmentNoticeCollector.ResolvedLink resolvedLink = linkElement == null
-                    ? null : parserSupport.selectResolvedLink(linkElement, profile.toRow(), source.noticeUrl());
+                    ? null : parserSupport.selectResolvedLink(linkElement, profile.toRow(), document.location());
             String rawLink = resolvedLink == null ? null : resolvedLink.rawLink();
             String link = resolvedLink == null ? null : resolvedLink.absoluteLink();
             LocalDate date = dateElement == null
@@ -805,7 +950,7 @@ class LocalGovernmentNoticeParserFullQaTest {
                     || rawLink == null || rawLink.isBlank() || "#".equals(rawLink)
                     || rawLink.toLowerCase(Locale.ROOT).startsWith("javascript:")
                     || link == null || !(link.startsWith("http://") || link.startsWith("https://"))
-                    || !isDistinctDetailLink(source.noticeUrl(), rawLink, link)
+                    || !isDistinctDetailLink(document.location(), rawLink, link)
                     || date == null) {
                 invalidCount++;
                 continue;
@@ -1392,6 +1537,9 @@ class LocalGovernmentNoticeParserFullQaTest {
         if ("LGS-000084".equals(source.publicCode())) {
             return "PRESS_RELEASE";
         }
+        if (v61LegalSourceCodes.contains(source.publicCode())) {
+            return "LEGAL_NOTICE";
+        }
         if (Set.of("small_business_support_page", "dedicated_small_business_board")
                 .contains(source.pageTypeCode())) {
             return "SUPPORT_RECRUITMENT";
@@ -1410,6 +1558,9 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @return 수집 정책 코드
      */
     private String selectCollectionPolicyCode(SourceSeed source) {
+        if (v61LegalSourceCodes.contains(source.publicCode())) {
+            return "KEYWORD_FILTERED";
+        }
         return switch (selectSourceBoardTypeCode(source)) {
             case "LEGAL_NOTICE", "SUPPORT_RECRUITMENT" -> "COLLECT_ALL";
             case "GENERAL_NOTICE" -> "KEYWORD_FILTERED";
@@ -1448,7 +1599,9 @@ class LocalGovernmentNoticeParserFullQaTest {
                     publicCode, values.get(2), values.get(4), values.get(6),
                      reviewedUrls.getOrDefault(publicCode, values.get(8)),
                      collectionEndpoints.get(publicCode),
-                     sessionBrowserSources.contains(publicCode)
+                     postFormBodies.containsKey(publicCode)
+                             ? "BROWSER_HTTP1"
+                             : sessionBrowserSources.contains(publicCode)
                              ? "SESSION_BROWSER"
                              : tls12BrowserSources.contains(publicCode)
                              ? "TLS12_BROWSER"
@@ -1583,12 +1736,60 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @return 관리코드별 수집 endpoint
      */
     private Map<String, String> selectCollectionEndpointMap(String migration) {
-        Matcher matcher = COLLECTION_ENDPOINT_PATTERN.matcher(migration);
+        Matcher reviewedMatcher = REVIEWED_COLLECTION_ENDPOINT_PATTERN.matcher(migration);
         Map<String, String> endpoints = new LinkedHashMap<>();
+        while (reviewedMatcher.find()) {
+            endpoints.put(reviewedMatcher.group(1), reviewedMatcher.group(2));
+        }
+        Matcher matcher = COLLECTION_ENDPOINT_PATTERN.matcher(migration);
         while (matcher.find()) {
             endpoints.put(matcher.group(2), matcher.group(1));
         }
         return Map.copyOf(endpoints);
+    }
+
+    /**
+     * migration의 공개 새올 폼 JSON을 QA HTTP 요청 본문으로 변환합니다.
+     *
+     * @return 관리코드별 application/x-www-form-urlencoded 본문
+     */
+    private Map<String, String> selectPostFormBodyMap() {
+        Map<String, String> bodies = new LinkedHashMap<>(LEGACY_POST_FORM_BODIES);
+        try {
+            Matcher matcher = SAEOL_POST_FORM_PATTERN.matcher(selectHardeningMigrationText());
+            while (matcher.find()) {
+                JsonNode root = objectMapper.readTree(matcher.group(3).replace("''", "'"));
+                List<String> fields = new ArrayList<>();
+                root.fields().forEachRemaining(entry -> fields.add(
+                        URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
+                                + "="
+                                + URLEncoder.encode(entry.getValue().asText(), StandardCharsets.UTF_8)
+                ));
+                bodies.put(matcher.group(1), String.join("&", fields));
+            }
+            return Map.copyOf(bodies);
+        } catch (IOException exception) {
+            throw new IllegalStateException("새올 공개 폼 설정을 읽지 못했습니다.", exception);
+        }
+    }
+
+    /**
+     * V61에서 공식 고시공고 게시판으로 검증한 출처 코드를 읽습니다.
+     *
+     * @return V61 고시공고 출처 코드 집합
+     */
+    private Set<String> selectV61LegalSourceCodes() {
+        try {
+            String migration = Files.readString(V61_LEGAL_SOURCE_MIGRATION, StandardCharsets.UTF_8);
+            Matcher matcher = REVIEWED_URL_PATTERN.matcher(migration);
+            Set<String> sourceCodes = new HashSet<>();
+            while (matcher.find()) {
+                sourceCodes.add(matcher.group(1));
+            }
+            return Set.copyOf(sourceCodes);
+        } catch (IOException exception) {
+            throw new IllegalStateException("V61 고시공고 출처 목록을 읽지 못했습니다.", exception);
+        }
     }
 
     /**
@@ -1846,7 +2047,7 @@ class LocalGovernmentNoticeParserFullQaTest {
      * @throws IOException 네트워크 또는 응답 읽기 오류
      */
     private QaHttpResponse sendLegacyRequest(SourceSeed source, URI uri) throws IOException {
-        if (POST_FORM_BODIES.containsKey(source.publicCode())) {
+        if (postFormBodies.containsKey(source.publicCode())) {
             throw new IOException("구형 공공사이트 호환 요청은 GET 방식만 지원합니다.");
         }
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
