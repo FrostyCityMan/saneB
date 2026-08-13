@@ -67,26 +67,25 @@ jobs:
               --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode}}' \
               --output json
 
-            encoded_log_tail="$(
+            diagnostics_log_tail="$(
               aws deploy get-deployment-instance \
                 --deployment-id "${DEPLOYMENT_ID}" \
                 --instance-id "${instance_id}" \
                 --query "instanceSummary.lifecycleEvents[?lifecycleEventName=='ValidateService'].diagnostics.logTail | [0]" \
                 --output text
             )"
-            decoded_log_tail="$(printf '%s' "${encoded_log_tail}" | base64 --decode 2>/dev/null || printf '%s' "${encoded_log_tail}")"
             derived_reason="UNKNOWN"
 
-            if [[ "${decoded_log_tail}" == *"V68 cannot enforce one announcement link per source"* ]]; then
+            if [[ "${diagnostics_log_tail}" == *"V68 cannot enforce one announcement link per source"* ]]; then
               derived_reason="V68_DUPLICATE_SOURCE_LINKS"
-            elif [[ "${decoded_log_tail}" == *"Flyway"* || "${decoded_log_tail}" == *"Migration"* ]]; then
+            elif [[ "${diagnostics_log_tail}" == *"Flyway"* || "${diagnostics_log_tail}" == *"Migration"* ]]; then
               derived_reason="FLYWAY_MIGRATION_FAILED"
-            elif [[ "${decoded_log_tail}" == *"Health check failed"* ]]; then
+            elif [[ "${diagnostics_log_tail}" == *"Health check failed"* ]]; then
               derived_reason="HEALTH_TIMEOUT"
             fi
 
             echo "DERIVED_FAILURE_REASON=${derived_reason}"
-            unset encoded_log_tail decoded_log_tail
+            unset diagnostics_log_tail
           done
 
           rollback_id="$(
