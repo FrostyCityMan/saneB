@@ -60,11 +60,11 @@ jobs:
               continue
             fi
 
-            echo "Instance lifecycle summary: ${instance_id}"
+            echo "Instance lifecycle summary"
             aws deploy get-deployment-instance \
               --deployment-id "${DEPLOYMENT_ID}" \
               --instance-id "${instance_id}" \
-              --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode,Message:diagnostics.message,LogTail:diagnostics.logTail}}' \
+              --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode}}' \
               --output json
           done
 
