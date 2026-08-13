@@ -1,0 +1,84 @@
+name: Diagnose AWS CodeDeploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: "확인할 CodeDeploy 배포 ID"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+jobs:
+  diagnose:
+    name: Read-only deployment diagnosis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate repository variables
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${AWS_REGION:-}"
+          test -n "${AWS_GITHUB_ACTIONS_ROLE_ARN:-}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Inspect deployment and rollback
+        shell: bash
+        env:
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+        run: |
+          set -euo pipefail
+
+          echo "Deployment summary"
+          aws deploy get-deployment \
+            --deployment-id "${DEPLOYMENT_ID}" \
+            --query 'deploymentInfo.{DeploymentId:deploymentId,Status:status,Error:errorInformation,Rollback:rollbackInfo}' \
+            --output json
+
+          mapfile -t instance_ids < <(
+            aws deploy list-deployment-instances \
+              --deployment-id "${DEPLOYMENT_ID}" \
+              --query 'instancesList[]' \
+              --output text \
+            | tr '\t' '\n'
+          )
+
+          for instance_id in "${instance_ids[@]}"; do
+            if [ -z "${instance_id}" ]; then
+              continue
+            fi
+
+            echo "Instance lifecycle summary: ${instance_id}"
+            aws deploy get-deployment-instance \
+              --deployment-id "${DEPLOYMENT_ID}" \
+              --instance-id "${instance_id}" \
+              --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode,Message:diagnostics.message,LogTail:diagnostics.logTail}}' \
+              --output json
+          done
+
+          rollback_id="$(
+            aws deploy get-deployment \
+              --deployment-id "${DEPLOYMENT_ID}" \
+              --query 'deploymentInfo.rollbackInfo.rollbackDeploymentId' \
+              --output text
+          )"
+
+          if [ -n "${rollback_id}" ] && [ "${rollback_id}" != "None" ]; then
+            echo "Rollback deployment summary"
+            aws deploy get-deployment \
+              --deployment-id "${rollback_id}" \
+              --query 'deploymentInfo.{DeploymentId:deploymentId,Status:status,Error:errorInformation,CompleteTime:completeTime}' \
+              --output json
+          fi
