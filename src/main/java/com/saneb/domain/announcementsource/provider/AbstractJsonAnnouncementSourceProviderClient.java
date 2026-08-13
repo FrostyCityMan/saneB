@@ -14,6 +14,7 @@ package com.saneb.domain.announcementsource.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import java.io.IOException;
@@ -36,14 +37,20 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 
 abstract class AbstractJsonAnnouncementSourceProviderClient implements AnnouncementSourceProviderClient {
 
     private static final DateTimeFormatter BASIC_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final Set<String> ATTACHMENT_FIELD_NAMES = Set.of(
+            "filenm", "printfilenm", "flpthnm", "printflpthnm",
+            "첨부파일명", "첨부파일url", "filename", "fileurl",
+            "attachments", "attachmentfiles"
+    );
 
     protected final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -303,6 +310,39 @@ abstract class AbstractJsonAnnouncementSourceProviderClient implements Announcem
     }
 
     /**
+     * 첨부파일명·URL 필드를 제거한 provider 원문 JSON을 생성합니다.
+     *
+     * @param node provider 원문
+     * @return 첨부 metadata가 제거된 JSON
+     */
+    protected String selectRawPayloadJsonWithoutAttachments(JsonNode node) {
+        JsonNode sanitizedNode = node == null ? null : node.deepCopy();
+        removeAttachmentFields(sanitizedNode);
+        return selectRawPayloadJson(sanitizedNode);
+    }
+
+    private void removeAttachmentFields(JsonNode node) {
+        if (node == null || node.isNull()) {
+            return;
+        }
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            List<String> fieldNamesToRemove = new ArrayList<>();
+            objectNode.fieldNames().forEachRemaining(fieldName -> {
+                if (ATTACHMENT_FIELD_NAMES.contains(fieldName.toLowerCase(Locale.ROOT))) {
+                    fieldNamesToRemove.add(fieldName);
+                }
+            });
+            fieldNamesToRemove.forEach(objectNode::remove);
+            objectNode.elements().forEachRemaining(this::removeAttachmentFields);
+            return;
+        }
+        if (node.isArray()) {
+            node.elements().forEachRemaining(this::removeAttachmentFields);
+        }
+    }
+
+    /**
      * 원문 hash를 생성합니다.
      *
      * @param providerCode 입력 값
@@ -319,60 +359,6 @@ abstract class AbstractJsonAnnouncementSourceProviderClient implements Announcem
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 algorithm is not available.", exception);
         }
-    }
-
-    /**
-     * 첨부 파일 정보를 조회합니다.
-     *
-     * @param node 입력 값
-     *
-     * @param nameFields 입력 값
-     *
-     * @param urlFields 입력 값
-     *
-     * @return 처리 결과
-     */
-    protected List<AnnouncementSourceProviderAttachment> selectAttachments(
-            JsonNode node,
-            List<String> nameFields,
-            List<String> urlFields
-    ) {
-        List<AnnouncementSourceProviderAttachment> attachments = new ArrayList<>();
-        for (int index = 0; index < urlFields.size(); index++) {
-            String url = selectText(node, urlFields.get(index));
-            if (url == null || url.isBlank()) {
-                continue;
-            }
-            String name = index < nameFields.size() ? selectText(node, nameFields.get(index)) : null;
-            attachments.add(new AnnouncementSourceProviderAttachment(name, url, selectFileTypeCode(name, url)));
-        }
-        return attachments;
-    }
-
-    /**
-     * 파일 유형을 추정합니다.
-     *
-     * @param fileName 입력 값
-     *
-     * @param fileUrl 입력 값
-     *
-     * @return 처리 결과
-     */
-    private String selectFileTypeCode(String fileName, String fileUrl) {
-        String source = Optional.ofNullable(fileName).orElse(fileUrl).toLowerCase();
-        if (source.contains(".pdf")) {
-            return "PDF";
-        }
-        if (source.contains(".hwp") || source.contains(".hwpx")) {
-            return "HWP";
-        }
-        if (source.contains(".doc") || source.contains(".docx")) {
-            return "WORD";
-        }
-        if (source.contains(".xls") || source.contains(".xlsx")) {
-            return "EXCEL";
-        }
-        return "URL";
     }
 
     /**

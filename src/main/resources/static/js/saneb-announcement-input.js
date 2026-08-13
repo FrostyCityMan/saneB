@@ -5,14 +5,23 @@
     }
 
     const targetLabels = {
-        BUSINESS: "사업자 지원",
-        PERSONAL: "개인 지원",
-        SPOUSE: "배우자 지원",
-        CHILD: "자녀 지원",
-        PARENT: "부모 지원"
+        BUSINESS: "사업자",
+        PERSONAL: "본인(개인)",
+        SPOUSE: "배우자",
+        CHILD: "자녀",
+        PARENT: "부모님"
+    };
+    const supportTypeLabels = {
+        GENERAL_SUPPORT: "일반 지원",
+        GRANT_SUBSIDY: "지원금·보조금",
+        POLICY_FINANCE: "정책자금·융자",
+        GUARANTEE: "보증",
+        INTEREST_SUPPORT: "이차보전·이자지원",
+        VOUCHER_BENEFIT: "바우처·혜택",
+        REFUND_REDUCTION: "환급·감면"
     };
     const targetSpecificTitles = {
-        PERSONAL: "개인 조건",
+        PERSONAL: "본인(개인) 조건",
         SPOUSE: "배우자 조건",
         CHILD: "자녀 조건",
         PARENT: "부모 조건"
@@ -31,7 +40,7 @@
     };
     const scopeLabels = {
         BUSINESS: "사업자 조건",
-        PERSONAL: "개인 조건",
+        PERSONAL: "본인(개인) 조건",
         SPOUSE: "배우자 조건",
         CHILD: "자녀 조건",
         PARENT: "부모 조건",
@@ -343,12 +352,14 @@
     const optionStandardFieldTypes = new Set(["BOOLEAN", "SELECT", "RADIO", "MULTI_SELECT"]);
 
     const baseUrl = app.dataset.baseUrl;
+    const saveUrl = app.dataset.saveUrl || baseUrl;
     const listUrl = app.dataset.listUrl;
     const standardFieldsUrl = app.dataset.standardFieldsUrl;
     const standardCodesUrl = app.dataset.standardCodesUrl;
     const listContainer = app.querySelector("[data-announcement-list]");
     const message = app.querySelector("[data-announcement-message]");
     const currentIdLabel = app.querySelector("[data-current-announcement-id]");
+    const classificationInputMessage = app.querySelector("[data-classification-input-message]");
     const basicForm = app.querySelector("[data-announcement-basic-form]");
     const conditionsForm = app.querySelector("[data-announcement-conditions-form]");
     const industryConditionList = conditionsForm ? conditionsForm.querySelector("[data-industry-condition-list]") : null;
@@ -439,8 +450,28 @@
     };
 
     const selectedTargetCode = () => {
-        const checked = app.querySelector("input[name='targetTypeCode']:checked");
+        const checked = app.querySelector("input[name='primaryTargetCategoryCode']:checked");
         return checked ? checked.value : "BUSINESS";
+    };
+
+    const selectedTargetCategoryCodes = () => [...app.querySelectorAll("input[name='targetCategoryCodes']:checked")]
+            .map((field) => field.value);
+
+    const selectedSupportTypeCodes = () => [...app.querySelectorAll("input[name='supportTypeCodes']:checked")]
+            .map((field) => field.value);
+
+    const syncPrimaryTargetCategory = () => {
+        const primaryCode = selectedTargetCode();
+        const primaryTag = app.querySelector(`input[name='targetCategoryCodes'][value='${primaryCode}']`);
+        if (primaryTag) {
+            primaryTag.checked = true;
+        }
+        if (classificationInputMessage) {
+            const targetCount = selectedTargetCategoryCodes().length;
+            const supportCount = selectedSupportTypeCodes().length;
+            classificationInputMessage.textContent = `대표 대상 ${targetLabels[primaryCode] || primaryCode} · 지원대상 ${targetCount}개 · 지원형태 ${supportCount}개`;
+            classificationInputMessage.classList.toggle("is-error", supportCount === 0);
+        }
     };
 
     const targetClass = (targetTypeCode) => {
@@ -545,7 +576,7 @@
     const updateTargetUi = () => {
         const targetCode = selectedTargetCode();
         app.querySelectorAll("[data-target-card]").forEach((card) => {
-            const input = card.querySelector("input[name='targetTypeCode']");
+            const input = card.querySelector("input[name='primaryTargetCategoryCode']");
             const active = input && input.value === targetCode;
             card.classList.toggle("is-active", active);
             card.classList.toggle("is-muted", !active);
@@ -561,6 +592,7 @@
         if (targetSpecificTitle) {
             targetSpecificTitle.textContent = targetSpecificTitles[targetCode] || "개인/가족 조건";
         }
+        syncPrimaryTargetCategory();
     };
 
     const updateCurrentAnnouncement = (announcementId, announcementCode) => {
@@ -610,8 +642,17 @@
             throw new Error("공고명, 기관명, 소득/매출 판단 기준을 입력해 주세요.");
         }
 
+        syncPrimaryTargetCategory();
+        const targetCategoryCodes = selectedTargetCategoryCodes();
+        const supportTypeCodes = selectedSupportTypeCodes();
+        if (!targetCategoryCodes.length || !supportTypeCodes.length) {
+            throw new Error("지원대상과 지원형태를 각각 하나 이상 선택해 주세요.");
+        }
+
         return {
-            targetTypeCode: selectedTargetCode(),
+            primaryTargetCategoryCode: selectedTargetCode(),
+            targetCategoryCodes,
+            supportTypeCodes,
             title,
             agencyName,
             summary: nullIfBlank(valueOf(basicForm, "[name='summary']")),
@@ -1479,9 +1520,10 @@
     };
 
     const renderListItem = (item) => {
+        const primaryTargetCode = item.primaryTargetCategoryCode || item.targetTypeCode;
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `announcement-list-item ${targetClass(item.targetTypeCode)}`;
+        button.className = `announcement-list-item ${targetClass(primaryTargetCode)}`;
         button.dataset.announcementId = item.announcementId;
 
         const meta = document.createElement("span");
@@ -1500,7 +1542,13 @@
 
         const badges = document.createElement("div");
         badges.className = "announcement-list-badges";
-        badges.append(createBadge(targetLabels[item.targetTypeCode] || item.targetTypeCode || "대상 없음", `is-${targetClass(item.targetTypeCode)}`));
+        badges.append(createBadge(targetLabels[primaryTargetCode] || primaryTargetCode || "대상 없음", `is-${targetClass(primaryTargetCode)}`));
+        (item.targetCategoryCodes || []).filter((code) => code !== primaryTargetCode).forEach((code) => {
+            badges.append(createBadge(targetLabels[code] || code, "is-classification-tag"));
+        });
+        (item.supportTypeCodes || []).forEach((code) => {
+            badges.append(createBadge(supportTypeLabels[code] || code, "is-support-type"));
+        });
         badges.append(createBadge(
                 item.effectiveStatusLabel || manualStatusLabels[item.manualStatusCode] || item.manualStatusCode || "상태 없음",
                 `is-${statusClass(item.effectiveStatusCode || item.manualStatusCode)}`
@@ -1899,10 +1947,19 @@
 
     const populateDetails = (details) => {
         updateCurrentAnnouncement(details.announcementId, details.announcementCode);
-        const targetField = app.querySelector(`input[name='targetTypeCode'][value='${details.targetTypeCode || "BUSINESS"}']`);
+        const primaryTargetCode = details.primaryTargetCategoryCode || details.targetTypeCode || "BUSINESS";
+        const targetField = app.querySelector(`input[name='primaryTargetCategoryCode'][value='${primaryTargetCode}']`);
         if (targetField) {
             targetField.checked = true;
         }
+        const targetCategoryCodes = details.targetCategoryCodes?.length ? details.targetCategoryCodes : [primaryTargetCode];
+        app.querySelectorAll("input[name='targetCategoryCodes']").forEach((field) => {
+            field.checked = targetCategoryCodes.includes(field.value);
+        });
+        const supportTypeCodes = details.supportTypeCodes?.length ? details.supportTypeCodes : ["GENERAL_SUPPORT"];
+        app.querySelectorAll("input[name='supportTypeCodes']").forEach((field) => {
+            field.checked = supportTypeCodes.includes(field.value);
+        });
         updateTargetUi();
 
         basicForm.querySelector("[name='title']").value = details.title || "";
@@ -1914,7 +1971,7 @@
         basicForm.querySelector("[name='minAmount']").value = details.minAmount ?? "";
         basicForm.querySelector("[name='maxAmount']").value = details.maxAmount ?? "";
         applyOptions(details.options);
-        applyConditions(details.conditions, details.targetTypeCode || "BUSINESS");
+        applyConditions(details.conditions, primaryTargetCode);
         applySteps(details.steps);
         renderStatusSummary(details);
         statusForm.querySelector("[name='manualStatusCode']").value = details.manualStatusCode || "NORMAL";
@@ -1954,10 +2011,16 @@
         statusForm.reset();
         approvalForm?.reset();
         updateApprovalUi("");
-        const businessTarget = app.querySelector("input[name='targetTypeCode'][value='BUSINESS']");
+        const businessTarget = app.querySelector("input[name='primaryTargetCategoryCode'][value='BUSINESS']");
         if (businessTarget) {
             businessTarget.checked = true;
         }
+        app.querySelectorAll("input[name='targetCategoryCodes']").forEach((field) => {
+            field.checked = field.value === "BUSINESS";
+        });
+        app.querySelectorAll("input[name='supportTypeCodes']").forEach((field) => {
+            field.checked = field.value === "GENERAL_SUPPORT";
+        });
         renderDynamicRequirements([]);
         resetStatusSummary();
         setDynamicRequirementSummary("공고 저장 후 설정");
@@ -1966,9 +2029,13 @@
     };
 
     app.addEventListener("change", (event) => {
-        if (event.target.matches("input[name='targetTypeCode']")) {
+        if (event.target.matches("input[name='primaryTargetCategoryCode']")) {
             updateTargetUi();
             populateConditionStandardFieldSelects();
+            return;
+        }
+        if (event.target.matches("input[name='targetCategoryCodes'], input[name='supportTypeCodes']")) {
+            syncPrimaryTargetCategory();
             return;
         }
         if (event.target.matches("[data-option-condition-row] [name='conditionKey']")) {
@@ -2330,7 +2397,7 @@
         try {
             setBusy(button, true, "저장 중");
             const body = buildSaveRequest();
-            const url = currentAnnouncementId ? `${baseUrl}/${encodeURIComponent(currentAnnouncementId)}` : baseUrl;
+            const url = currentAnnouncementId ? `${saveUrl}/${encodeURIComponent(currentAnnouncementId)}` : saveUrl;
             const method = currentAnnouncementId ? "PUT" : "POST";
             const details = await requestJson(url, {
                 method,

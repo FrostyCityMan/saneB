@@ -24,6 +24,7 @@ import com.saneb.domain.announcement.dto.AnnouncementManualStatusUpdateRequest;
 import com.saneb.domain.announcement.dto.AnnouncementSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementStepsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementSummaryResponse;
+import com.saneb.domain.announcement.dto.AnnouncementV2SaveRequest;
 import com.saneb.domain.announcement.service.AnnouncementService;
 import com.saneb.domain.announcement.vo.AnnouncementApprovalDecisionCommand;
 import com.saneb.domain.announcement.vo.AnnouncementApprovalRequestCommand;
@@ -50,11 +51,14 @@ import com.saneb.domain.announcement.vo.AnnouncementStepButtonRow;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentRow;
 import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
+import com.saneb.domain.announcement.vo.AnnouncementSupportTypeAssignmentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
+import com.saneb.domain.announcement.vo.AnnouncementTargetCategoryAssignmentCommand;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +77,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private static final Set<String> TARGET_TYPE_CODES = Set.of(
             "BUSINESS", "PERSONAL", "SPOUSE", "CHILD", "PARENT"
+    );
+    private static final Set<String> SUPPORT_TYPE_CODES = Set.of(
+            "GENERAL_SUPPORT",
+            "GRANT_SUBSIDY",
+            "POLICY_FINANCE",
+            "GUARANTEE",
+            "INTEREST_SUPPORT",
+            "VOUCHER_BENEFIT",
+            "REFUND_REDUCTION"
     );
     private static final Set<String> MANUAL_STATUS_CODES = Set.of(
             "NORMAL", "PAUSED", "EARLY_CLOSED", "SUSPENDED", "BUDGET_EXHAUSTED", "CLOSED", "HIDDEN"
@@ -200,6 +213,36 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         UUID announcementId = UUID.randomUUID();
         announcementDao.insertAnnouncement(toSaveCommand(announcementId, request, actorUserId));
+        replaceLegacyPrimaryTargetClassification(
+                announcementId,
+                request.targetTypeCode(),
+                actorUserId
+        );
+        replaceAnnouncementOptions(announcementId, request.options(), actorUserId);
+        return selectAnnouncementDetails(announcementId);
+    }
+
+    @Override
+    @Transactional
+    public AnnouncementDetailsResponse insertAnnouncementV2(
+            Authentication authentication,
+            AnnouncementV2SaveRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        validateV2SaveRequest(request);
+        AnnouncementSaveRequest baseRequest = request.toV1Request();
+        validateSaveRequest(baseRequest);
+
+        UUID announcementId = UUID.randomUUID();
+        announcementDao.insertAnnouncement(toSaveCommand(announcementId, baseRequest, actorUserId));
+        replaceAnnouncementClassifications(
+                announcementId,
+                request.primaryTargetCategoryCode(),
+                request.targetCategoryCodes(),
+                request.supportTypeCodes(),
+                "MANUAL",
+                actorUserId
+        );
         replaceAnnouncementOptions(announcementId, request.options(), actorUserId);
         return selectAnnouncementDetails(announcementId);
     }
@@ -216,6 +259,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         AnnouncementDetailsRow row = selectAnnouncementDetailsRow(announcementId);
         return toDetailsResponse(
                 row,
+                announcementDao.selectAnnouncementTargetCategoryCodeList(announcementId),
+                announcementDao.selectAnnouncementSupportTypeCodeList(announcementId),
                 announcementDao.selectAnnouncementOptionList(announcementId),
                 announcementDao.selectAnnouncementIndustryConditionList(announcementId),
                 announcementDao.selectAnnouncementNumericConditionList(announcementId),
@@ -264,6 +309,40 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if (updatedCount == 0) {
             throw notFound();
         }
+        replaceLegacyPrimaryTargetClassification(
+                announcementId,
+                request.targetTypeCode(),
+                actorUserId
+        );
+        replaceAnnouncementOptions(announcementId, request.options(), actorUserId);
+        return selectAnnouncementDetails(announcementId);
+    }
+
+    @Override
+    @Transactional
+    public AnnouncementDetailsResponse updateAnnouncementV2(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementV2SaveRequest request
+    ) {
+        UUID actorUserId = selectRequiredActorUserId(authentication);
+        selectAnnouncementDetailsRow(announcementId);
+        validateV2SaveRequest(request);
+        AnnouncementSaveRequest baseRequest = request.toV1Request();
+        validateSaveRequest(baseRequest);
+
+        int updatedCount = announcementDao.updateAnnouncement(toSaveCommand(announcementId, baseRequest, actorUserId));
+        if (updatedCount == 0) {
+            throw notFound();
+        }
+        replaceAnnouncementClassifications(
+                announcementId,
+                request.primaryTargetCategoryCode(),
+                request.targetCategoryCodes(),
+                request.supportTypeCodes(),
+                "MANUAL",
+                actorUserId
+        );
         replaceAnnouncementOptions(announcementId, request.options(), actorUserId);
         return selectAnnouncementDetails(announcementId);
     }
@@ -586,6 +665,110 @@ public class AnnouncementServiceImpl implements AnnouncementService {
      *
      * @param actorUserId 입력 값
      */
+    private void replaceLegacyPrimaryTargetClassification(
+            UUID announcementId,
+            String primaryTargetCategoryCode,
+            UUID actorUserId
+    ) {
+        String normalizedPrimary = normalizeRequiredCode(
+                "targetTypeCode",
+                primaryTargetCategoryCode,
+                TARGET_TYPE_CODES
+        );
+        LinkedHashSet<String> targetCodes = new LinkedHashSet<>();
+        targetCodes.add(normalizedPrimary);
+        targetCodes.addAll(announcementDao.selectAnnouncementTargetCategoryCodeList(announcementId));
+        replaceAnnouncementClassifications(
+                announcementId,
+                normalizedPrimary,
+                List.copyOf(targetCodes),
+                announcementDao.selectAnnouncementSupportTypeCodeList(announcementId),
+                "MANUAL",
+                actorUserId
+        );
+    }
+
+    private void replaceAnnouncementClassifications(
+            UUID announcementId,
+            String primaryTargetCategoryCode,
+            List<String> targetCategoryCodes,
+            List<String> supportTypeCodes,
+            String assignmentSourceCode,
+            UUID actorUserId
+    ) {
+        String normalizedPrimary = normalizeRequiredCode(
+                "primaryTargetCategoryCode",
+                primaryTargetCategoryCode,
+                TARGET_TYPE_CODES
+        );
+        List<String> normalizedTargets = normalizeClassificationCodes(
+                "targetCategoryCodes",
+                targetCategoryCodes,
+                TARGET_TYPE_CODES,
+                false
+        );
+        List<String> normalizedSupports = normalizeClassificationCodes(
+                "supportTypeCodes",
+                supportTypeCodes,
+                SUPPORT_TYPE_CODES,
+                true
+        );
+        if (!normalizedTargets.contains(normalizedPrimary)) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_CATEGORY_INVALID,
+                    HttpStatus.BAD_REQUEST,
+                    "대표 지원대상은 지원대상 목록에 포함되어야 합니다."
+            );
+        }
+
+        announcementDao.deleteAnnouncementTargetCategoryAssignments(announcementId);
+        for (String targetCategoryCode : normalizedTargets) {
+            announcementDao.insertAnnouncementTargetCategoryAssignment(
+                    new AnnouncementTargetCategoryAssignmentCommand(
+                            UUID.randomUUID(),
+                            announcementId,
+                            targetCategoryCode,
+                            normalizedPrimary.equals(targetCategoryCode),
+                            assignmentSourceCode,
+                            actorUserId
+                    )
+            );
+        }
+
+        announcementDao.deleteAnnouncementSupportTypeAssignments(announcementId);
+        for (String supportTypeCode : normalizedSupports) {
+            announcementDao.insertAnnouncementSupportTypeAssignment(
+                    new AnnouncementSupportTypeAssignmentCommand(
+                            UUID.randomUUID(),
+                            announcementId,
+                            supportTypeCode,
+                            assignmentSourceCode,
+                            actorUserId
+                    )
+            );
+        }
+    }
+
+    private List<String> normalizeClassificationCodes(
+            String fieldName,
+            List<String> values,
+            Set<String> allowedCodes,
+            boolean allowEmpty
+    ) {
+        List<String> sourceValues = values == null ? List.of() : values;
+        if (!allowEmpty && sourceValues.isEmpty()) {
+            throw validation(fieldName + " must contain at least one value.");
+        }
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        for (String value : sourceValues) {
+            String code = normalizeRequiredCode(fieldName, value, allowedCodes);
+            if (!normalized.add(code)) {
+                throw validation(fieldName + " must not contain duplicate values.");
+            }
+        }
+        return List.copyOf(normalized);
+    }
+
     private void replaceAnnouncementOptions(
             UUID announcementId,
             List<AnnouncementSaveRequest.OptionRequest> options,
@@ -658,6 +841,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
      */
     private AnnouncementDetailsResponse toDetailsResponse(
             AnnouncementDetailsRow row,
+            List<String> targetCategoryCodes,
+            List<String> supportTypeCodes,
             List<AnnouncementOptionRow> options,
             List<AnnouncementIndustryConditionRow> industryConditions,
             List<AnnouncementNumericConditionRow> numericConditions,
@@ -682,6 +867,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 row.announcementId(),
                 row.announcementCode(),
                 row.targetTypeCode(),
+                targetCategoryCodes.isEmpty() ? List.of(row.targetTypeCode()) : List.copyOf(targetCategoryCodes),
+                List.copyOf(supportTypeCodes),
                 row.title(),
                 row.agencyName(),
                 row.summary(),
@@ -827,8 +1014,21 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 row.minAmount(),
                 row.maxAmount(),
                 row.createdAt(),
-                row.updatedAt()
+                row.updatedAt(),
+                splitCodes(row.targetCategoryCodes()),
+                splitCodes(row.supportTypeCodes())
         );
+    }
+
+    private List<String> splitCodes(String codes) {
+        if (codes == null || codes.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(codes.split(","))
+                .map(String::strip)
+                .filter(code -> !code.isBlank())
+                .distinct()
+                .toList();
     }
 
     /**
@@ -859,6 +1059,39 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 && request.applicationEndDate() != null
                 && request.applicationStartDate().isAfter(request.applicationEndDate())) {
             throw validation("applicationStartDate must not be after applicationEndDate.");
+        }
+    }
+
+    private void validateV2SaveRequest(AnnouncementV2SaveRequest request) {
+        String primary = normalizeRequiredCode(
+                "primaryTargetCategoryCode",
+                request.primaryTargetCategoryCode(),
+                TARGET_TYPE_CODES
+        );
+        List<String> targetCodes = normalizeClassificationCodes(
+                "targetCategoryCodes",
+                request.targetCategoryCodes(),
+                TARGET_TYPE_CODES,
+                false
+        );
+        List<String> supportCodes = normalizeClassificationCodes(
+                "supportTypeCodes",
+                request.supportTypeCodes(),
+                SUPPORT_TYPE_CODES,
+                false
+        );
+        if (targetCodes.size() > 5) {
+            throw validation("targetCategoryCodes must contain 5 values or less.");
+        }
+        if (!targetCodes.contains(primary)) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_CATEGORY_INVALID,
+                    HttpStatus.BAD_REQUEST,
+                    "대표 지원대상은 지원대상 목록에 포함되어야 합니다."
+            );
+        }
+        if (supportCodes.isEmpty()) {
+            throw validation("supportTypeCodes must contain at least one value.");
         }
     }
 

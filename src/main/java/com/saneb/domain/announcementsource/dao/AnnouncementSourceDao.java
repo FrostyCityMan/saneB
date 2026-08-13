@@ -30,6 +30,7 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateDecisio
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkedAnnouncementRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceReviewHistoryCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceReviewStatusCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSearchCondition;
@@ -37,6 +38,7 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateDecisionCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateRow;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRefreshCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRow;
 import java.util.List;
 import java.util.UUID;
@@ -184,6 +186,14 @@ public interface AnnouncementSourceDao {
     void insertSourceSnapshot(AnnouncementSourceSnapshotCommand command);
 
     /**
+     * 동일 provider 원문의 변경된 current snapshot을 낙관적으로 갱신합니다.
+     *
+     * @param command 변경 원문과 기존 raw hash·분류 버전
+     * @return 수정 건수
+     */
+    int updateSourceSnapshotContent(AnnouncementSourceSnapshotRefreshCommand command);
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @param providerCode 입력 값
@@ -291,6 +301,9 @@ public interface AnnouncementSourceDao {
      */
     List<AnnouncementSourceSnapshotRow> selectSourceList(AnnouncementSourceSearchCondition condition);
 
+    List<com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationTagSummaryRow>
+            selectSourceClassificationTagSummaryList(@org.apache.ibatis.annotations.Param("sourceIds") List<UUID> sourceIds);
+
     /**
      * 업무 데이터를 조회합니다.
      *
@@ -308,6 +321,14 @@ public interface AnnouncementSourceDao {
      * @return 처리 결과
      */
     AnnouncementSourceSnapshotRow selectSourceDetails(@Param("sourceId") UUID sourceId);
+
+    /**
+     * 운영 공고 전환을 직렬화하기 위해 원문 row를 잠가 조회합니다.
+     *
+     * @param sourceId 원문 식별자
+     * @return 잠긴 원문 row
+     */
+    AnnouncementSourceSnapshotRow selectSourceDetailsForUpdate(@Param("sourceId") UUID sourceId);
 
     /**
      * 업무 데이터를 등록합니다.
@@ -425,6 +446,14 @@ public interface AnnouncementSourceDao {
      * @return 승인·정상 노출 공고 건수
      */
     long selectApprovedLinkedAnnouncementCount(@Param("sourceId") UUID sourceId);
+
+    /**
+     * 원문에 이미 연결된 운영 공고 식별자와 공개 코드를 조회합니다.
+     *
+     * @param sourceId 원문 식별자
+     * @return 기존 연결 운영 공고 또는 null
+     */
+    AnnouncementSourceLinkedAnnouncementRow selectLinkedAnnouncementDetails(@Param("sourceId") UUID sourceId);
 
     /**
      * 업무 데이터를 등록합니다.

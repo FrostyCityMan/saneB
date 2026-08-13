@@ -16,6 +16,12 @@ public record AnnouncementSourceSearchCondition(
         String providerCode,
         String reviewStatusCode,
         String semanticStatusCode,
+        String targetCategoryCode,
+        String supportTypeCode,
+        String matchedGroupCode,
+        String matchedGroupKindCode,
+        String matchLocationCode,
+        java.util.UUID ruleReleaseId,
         String keyword,
         int size,
         int offset

@@ -31,6 +31,8 @@ public record AnnouncementSummaryRow(
         BigDecimal maxAmount,
         String receptionTypeCode,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        String targetCategoryCodes,
+        String supportTypeCodes
 ) {
 }

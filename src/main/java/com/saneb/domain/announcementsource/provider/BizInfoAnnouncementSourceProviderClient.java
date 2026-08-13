@@ -94,7 +94,7 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
             nodes = selectFirstArray(root);
         }
         return nodes.stream()
-                .map(this::toItem)
+                .map(this::selectProviderItem)
                 .toList();
     }
 
@@ -135,7 +135,7 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
      *
      * @return 처리 결과
      */
-    private AnnouncementSourceProviderItem toItem(JsonNode node) {
+    AnnouncementSourceProviderItem selectProviderItem(JsonNode node) {
         String title = selectText(node, "pblancNm", "title");
         String agencyName = selectText(node, "jrsdInsttNm", "author");
         String providerNoticeId = selectText(node, "pblancId", "seq");
@@ -144,7 +144,7 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
         String applicationMethodText = selectText(node, "reqstMthPapersCn", "rceptEngnHmpgUrl");
         String inquiryText = selectText(node, "refrncNm");
         DateRange dateRange = selectDateRange(selectText(node, "reqstBeginEndDe", "reqstDt"));
-        String rawPayloadJson = selectRawPayloadJson(node);
+        String rawPayloadJson = selectRawPayloadJsonWithoutAttachments(node);
         Map<String, String> fields = selectFieldMap(
                 "title", title,
                 "agencyName", agencyName,
@@ -171,11 +171,7 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
                 selectMissingFieldsJson(fields),
                 rawPayloadJson,
                 selectRawHash(PROVIDER_CODE, rawPayloadJson),
-                selectAttachments(
-                        node,
-                        List.of("fileNm", "printFileNm"),
-                        List.of("flpthNm", "printFlpthNm")
-                ),
+                List.of(),
                 null
         );
     }

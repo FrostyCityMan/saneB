@@ -54,6 +54,13 @@ class AnnouncementViewControllerSmokeTest {
                 .andExpect(content().string(containsString("승인 상태")))
                 .andExpect(content().string(containsString("data-announcement-approval-form")))
                 .andExpect(content().string(containsString("/api/v1/announcements")))
+                .andExpect(content().string(containsString("/api/v2/announcements")))
+                .andExpect(content().string(containsString("name=\"primaryTargetCategoryCode\"")))
+                .andExpect(content().string(containsString("name=\"targetCategoryCodes\"")))
+                .andExpect(content().string(containsString("name=\"supportTypeCodes\"")))
+                .andExpect(content().string(containsString("지원대상 다중 태그")))
+                .andExpect(content().string(containsString("지원형태 다중 태그")))
+                .andExpect(content().string(containsString("본인(개인)")))
                 .andExpect(content().string(containsString("data-announcement-basic-form")))
                 .andExpect(content().string(containsString("소득 기준")))
                 .andExpect(content().string(containsString("가구원 수")))
@@ -86,5 +93,22 @@ class AnnouncementViewControllerSmokeTest {
                 .andExpect(content().string(not(containsString("placeholder=\"예: 개인사업자\""))))
                 .andExpect(content().string(not(containsString("파트너 검증"))))
                 .andExpect(content().string(not(containsString("th:utext"))));
+    }
+
+    /**
+     * 공고 입력 스크립트가 V2 다중 분류 저장 계약을 구성하는지 확인합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
+    @Test
+    @WithMockUser(username = "operator01", roles = "OPERATOR")
+    void selectAnnouncementInputScriptUsesV2ClassificationFields() throws Exception {
+        mockMvc.perform(get("/js/saneb-announcement-input.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("primaryTargetCategoryCode: selectedTargetCode()")))
+                .andExpect(content().string(containsString("targetCategoryCodes,")))
+                .andExpect(content().string(containsString("supportTypeCodes,")))
+                .andExpect(content().string(containsString("const saveUrl = app.dataset.saveUrl || baseUrl")))
+                .andExpect(content().string(containsString("input[name='primaryTargetCategoryCode']")));
     }
 }

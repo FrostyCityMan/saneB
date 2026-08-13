@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao">
+
+    <resultMap id="ClassificationStateRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationStateRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="decision_id" javaType="java.util.UUID"/>
+            <arg column="decision_status_code" javaType="java.lang.String"/>
+            <arg column="reason_code" javaType="java.lang.String"/>
+            <arg column="review_status_code" javaType="java.lang.String"/>
+            <arg column="classification_row_version" javaType="java.lang.Integer"/>
+            <arg column="confirmed_target_count" javaType="java.lang.Long"/>
+            <arg column="confirmed_support_count" javaType="java.lang.Long"/>
+            <arg column="stale_confirmed_count" javaType="java.lang.Long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ClassificationDetailsRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationDetailsRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="decision_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_code" javaType="java.lang.String"/>
+            <arg column="semantic_status_code" javaType="java.lang.String"/>
+            <arg column="reason_code" javaType="java.lang.String"/>
+            <arg column="title_stage_code" javaType="java.lang.String"/>
+            <arg column="body_stage_code" javaType="java.lang.String"/>
+            <arg column="body_source_code" javaType="java.lang.String"/>
+            <arg column="body_availability_code" javaType="java.lang.String"/>
+            <arg column="classification_row_version" javaType="java.lang.Integer"/>
+            <arg column="evaluated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ClassificationMatchRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationMatchRow">
+        <constructor>
+            <arg column="rule_group_code" javaType="java.lang.String"/>
+            <arg column="canonical_keyword" javaType="java.lang.String"/>
+            <arg column="matched_term" javaType="java.lang.String"/>
+            <arg column="location_code" javaType="java.lang.String"/>
+            <arg column="start_offset" javaType="java.lang.Integer"/>
+            <arg column="end_offset" javaType="java.lang.Integer"/>
+            <arg column="applied_action_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ClassificationRuleTermRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationRuleTermRow">
+        <constructor>
+            <arg column="release_id" javaType="java.util.UUID"/>
+            <arg column="release_code" javaType="java.lang.String"/>
+            <arg column="rule_code" javaType="java.lang.String"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_kind_code" javaType="java.lang.String"/>
+            <arg column="target_category_code" javaType="java.lang.String"/>
+            <arg column="support_type_code" javaType="java.lang.String"/>
+            <arg column="strength_code" javaType="java.lang.String"/>
+            <arg column="rule_enabled" javaType="java.lang.Boolean"/>
+            <arg column="term_type_code" javaType="java.lang.String"/>
+            <arg column="term_text" javaType="java.lang.String"/>
+            <arg column="match_mode_code" javaType="java.lang.String"/>
+            <arg column="is_discovery_term" javaType="java.lang.Boolean"/>
+            <arg column="discovery_order" javaType="java.lang.Integer"/>
+            <arg column="is_classification_term" javaType="java.lang.Boolean"/>
+            <arg column="term_enabled" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="ContentVersionRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceContentVersionRow">
+        <constructor>
+            <arg column="content_version_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="body_text" javaType="java.lang.String"/>
+            <arg column="body_source_code" javaType="java.lang.String"/>
+            <arg column="body_availability_code" javaType="java.lang.String"/>
+            <arg column="source_url" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectActiveClassificationRuleTermList" resultMap="ClassificationRuleTermRowMap">
+        -- Load one immutable ACTIVE rule release for a collection run.
+        SELECT
+            ascrr.id AS release_id,
+            ascrr.release_code,
+            asckr.rule_code,
+            ascrg.group_code,
+            ascrg.group_kind_code,
+            atc.category_code AS target_category_code,
+            ast.support_type_code,
+            asckr.strength_code,
+            asckr.is_enabled AS rule_enabled,
+            asckt.term_type_code,
+            asckt.term_text,
+            asckt.match_mode_code,
+            asckt.is_discovery_term,
+            asckt.discovery_order,
+            asckt.is_classification_term,
+            asckt.is_enabled AS term_enabled
+        FROM announcement_source_classification_rule_releases ascrr
+        INNER JOIN announcement_source_classification_rule_groups ascrg
+                ON ascrg.release_id = ascrr.id
+        INNER JOIN announcement_source_classification_keyword_rules asckr
+                ON asckr.group_id = ascrg.id
+        INNER JOIN announcement_source_classification_keyword_terms asckt
+                ON asckt.keyword_rule_id = asckr.id
+               AND asckt.group_id = ascrg.id
+        LEFT JOIN announcement_target_categories atc ON atc.id = ascrg.target_category_id
+        LEFT JOIN announcement_support_types ast ON ast.id = ascrg.support_type_id
+        WHERE ascrr.release_status_code = 'ACTIVE'
+          AND ascrg.is_enabled = TRUE
+          AND asckr.is_enabled = TRUE
+          AND asckt.is_enabled = TRUE
+          AND (
+              asckt.is_classification_term = TRUE
+              OR ascrg.group_kind_code = 'PROTECTED_METADATA'
+          )
+        ORDER BY ascrg.sort_order ASC, asckr.sort_order ASC, asckt.term_type_code ASC, asckt.id ASC
+    </select>
+
+    <update id="updateCollectionRunRuleRelease">
+        -- Pin one immutable rule release and canonical provider search plan to the whole run.
+        UPDATE announcement_source_collection_runs
+        SET
+            rule_release_id = #{ruleReleaseId},
+            search_plan_hash = #{searchPlanHash},
+            search_plan_json = CAST(#{searchPlanJson} AS jsonb)
+        WHERE id = #{runId}
+          AND rule_release_id IS NULL
+    </update>
+
+    <insert id="insertContentVersion">
+        -- Append immutable source content while making duplicate delivery idempotent.
+        INSERT INTO announcement_source_content_versions (
+            id,
+            source_id,
+            raw_hash,
+            title,
+            body_text,
+            body_source_code,
+            body_availability_code,
+            source_url,
+            raw_payload_json,
+            collected_at
+        ) VALUES (
+            #{id},
+            #{sourceId},
+            #{rawHash},
+            #{title},
+            #{bodyText},
+            #{bodySourceCode},
+            #{bodyAvailabilityCode},
+            #{sourceUrl},
+            CAST(#{rawPayloadJson} AS jsonb),
+            #{collectedAt}
+        )
+        ON CONFLICT (source_id, raw_hash) DO NOTHING
+    </insert>
+
+    <select id="selectContentVersionId" resultType="java.util.UUID">
+        -- Resolve the immutable content version after idempotent insertion.
+        SELECT
+            ascv.id
+        FROM announcement_source_content_versions ascv
+        WHERE ascv.source_id = #{sourceId}
+          AND ascv.raw_hash = #{rawHash}
+    </select>
+
+    <select id="selectLatestContentVersionHash" resultType="java.lang.String">
+        -- Select the canonical hash of the current immutable source content.
+        SELECT
+            ascv.raw_hash
+        FROM announcement_source_content_versions ascv
+        WHERE ascv.source_id = #{sourceId}
+        ORDER BY ascv.collected_at DESC, ascv.created_at DESC, ascv.id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectLatestContentVersionDetails" resultMap="ContentVersionRowMap">
+        -- Select the latest immutable source content for an explicit reclassification.
+        SELECT
+            ascv.id AS content_version_id,
+            ascv.source_id,
+            ascv.title,
+            ascv.body_text,
+            ascv.body_source_code,
+            ascv.body_availability_code,
+            ascv.source_url
+        FROM announcement_source_content_versions ascv
+        WHERE ascv.source_id = #{sourceId}
+        ORDER BY ascv.collected_at DESC, ascv.created_at DESC, ascv.id DESC
+        LIMIT 1
+    </select>
+
+    <update id="updateCurrentEvaluationNotCurrent">
+        -- End the previous current evaluation before appending a new decision.
+        UPDATE announcement_source_classification_evaluations
+        SET is_current = FALSE
+        WHERE source_id = #{sourceId}
+          AND is_current = TRUE
+    </update>
+
+    <update id="updateConfirmedTargetClassificationStale">
+        -- Preserve confirmed target tags while marking an older evaluation stale.
+        UPDATE announcement_source_confirmed_target_categories
+        SET confirmation_status_code = 'STALE'
+        WHERE source_id = #{sourceId}
+          AND confirmation_status_code = 'CURRENT'
+    </update>
+
+    <update id="updateConfirmedSupportClassificationStale">
+        -- Preserve confirmed support tags while marking an older evaluation stale.
+        UPDATE announcement_source_confirmed_support_types
+        SET confirmation_status_code = 'STALE'
+        WHERE source_id = #{sourceId}
+          AND confirmation_status_code = 'CURRENT'
+    </update>
+
+    <insert id="insertClassificationEvaluation">
+        -- Append the explainable decision for one source content version.
+        INSERT INTO announcement_source_classification_evaluations (
+            id,
+            source_id,
+            content_version_id,
+            run_id,
+            rule_release_id,
+            engine_version,
+            body_source_code,
+            body_availability_code,
+            title_stage_code,
+            body_stage_code,
+            decision_status_code,
+            reason_code,
+            is_current
+        ) VALUES (
+            #{id},
+            #{sourceId},
+            #{contentVersionId},
+            #{runId},
+            #{ruleReleaseId},
+            #{engineVersion},
+            #{bodySourceCode},
+            #{bodyAvailabilityCode},
+            #{titleStageCode},
+            #{bodyStageCode},
+            #{decisionStatusCode},
+            #{reasonCode},
+            TRUE
+        )
+    </insert>
+
+    <insert id="insertClassificationMatch">
+        -- Persist the exact rule term and original title/body offsets used by the engine.
+        INSERT INTO announcement_source_classification_matches (
+            id,
+            evaluation_id,
+            keyword_rule_id,
+            keyword_term_id,
+            match_location_code,
+            matched_text,
+            start_offset,
+            end_offset,
+            applied_action_code
+        )
+        SELECT
+            #{id},
+            #{evaluationId},
+            asckr.id,
+            asckt.id,
+            #{locationCode},
+            #{matchedText},
+            #{startOffset},
+            #{endOffset},
+            #{appliedActionCode}
+        FROM announcement_source_classification_keyword_rules asckr
+        INNER JOIN announcement_source_classification_rule_groups ascrg
+                ON ascrg.id = asckr.group_id
+        INNER JOIN announcement_source_classification_keyword_terms asckt
+                ON asckt.keyword_rule_id = asckr.id
+               AND asckt.group_id = ascrg.id
+        WHERE ascrg.release_id = #{ruleReleaseId}
+          AND asckr.rule_code = #{ruleCode}
+          AND asckt.term_text = #{matchedRuleTerm}
+    </insert>
+
+    <insert id="insertClassificationTargetMatch">
+        -- Persist one automatic target tag by catalog code.
+        INSERT INTO announcement_source_classification_target_matches (
+            id,
+            evaluation_id,
+            target_category_id
+        )
+        SELECT
+            #{id},
+            #{evaluationId},
+            atc.id
+        FROM announcement_target_categories atc
+        WHERE atc.category_code = #{targetCategoryCode}
+    </insert>
+
+    <insert id="insertClassificationSupportMatch">
+        -- Persist one automatic support type tag by catalog code.
+        INSERT INTO announcement_source_classification_support_matches (
+            id,
+            evaluation_id,
+            support_type_id
+        )
+        SELECT
+            #{id},
+            #{evaluationId},
+            ast.id
+        FROM announcement_support_types ast
+        WHERE ast.support_type_code = #{supportTypeCode}
+    </insert>
+
+    <update id="updateSnapshotClassificationProjection">
+        -- Keep the legacy v1 semantic fields as a current read projection.
+        UPDATE announcement_source_snapshots
+        SET
+            semantic_status_code = #{semanticStatusCode},
+            semantic_reason_code = #{semanticReasonCode},
+            semantic_matched_keywords = #{semanticMatchedKeywords},
+            review_status_code = #{reviewStatusCode},
+            classification_row_version = classification_row_version + 1,
+            updated_at = now()
+        WHERE id = #{sourceId}
+        <if test="expectedVersion != null">
+            AND classification_row_version = #{expectedVersion}
+        </if>
+    </update>
+
+    <select id="selectClassificationStateDetails" resultMap="ClassificationStateRowMap">
+        -- Select current classification, optimistic version and manual confirmation freshness.
+        SELECT
+            ass.id AS source_id,
+            asce.id AS decision_id,
+            asce.decision_status_code,
+            asce.reason_code,
+            ass.review_status_code,
+            ass.classification_row_version,
+            (
+                SELECT count(1)
+                FROM announcement_source_confirmed_target_categories asctc
+                WHERE asctc.source_id = ass.id
+            ) AS confirmed_target_count,
+            (
+                SELECT count(1)
+                FROM announcement_source_confirmed_support_types ascst
+                WHERE ascst.source_id = ass.id
+            ) AS confirmed_support_count,
+            (
+                SELECT count(1)
+                FROM (
+                    SELECT asctc.based_on_evaluation_id
+                    FROM announcement_source_confirmed_target_categories asctc
+                    WHERE asctc.source_id = ass.id
+                    UNION ALL
+                    SELECT ascst.based_on_evaluation_id
+                    FROM announcement_source_confirmed_support_types ascst
+                    WHERE ascst.source_id = ass.id
+                ) confirmed
+                WHERE confirmed.based_on_evaluation_id IS DISTINCT FROM asce.id
+            ) AS stale_confirmed_count
+        FROM announcement_source_snapshots ass
+        LEFT JOIN announcement_source_classification_evaluations asce
+               ON asce.source_id = ass.id
+              AND asce.is_current = TRUE
+        WHERE ass.id = #{sourceId}
+    </select>
+
+    <select id="selectClassificationDetails" resultMap="ClassificationDetailsRowMap">
+        -- Select the current structured classification without exposing raw payload data.
+        SELECT
+            ass.id AS source_id,
+            asce.id AS decision_id,
+            ascrr.release_code AS rule_release_code,
+            asce.decision_status_code AS semantic_status_code,
+            asce.reason_code,
+            asce.title_stage_code,
+            asce.body_stage_code,
+            asce.body_source_code,
+            asce.body_availability_code,
+            ass.classification_row_version,
+            asce.evaluated_at
+        FROM announcement_source_snapshots ass
+        INNER JOIN announcement_source_classification_evaluations asce
+                ON asce.source_id = ass.id
+               AND asce.is_current = TRUE
+        INNER JOIN announcement_source_classification_rule_releases ascrr
+                ON ascrr.id = asce.rule_release_id
+        WHERE ass.id = #{sourceId}
+    </select>
+
+    <select id="selectClassificationMatchList" resultMap="ClassificationMatchRowMap">
+        -- Select explainable title/body matches for the current evaluation.
+        SELECT
+            ascrg.group_code AS rule_group_code,
+            canonical.term_text AS canonical_keyword,
+            ascm.matched_text AS matched_term,
+            ascm.match_location_code AS location_code,
+            ascm.start_offset,
+            ascm.end_offset,
+            ascm.applied_action_code
+        FROM announcement_source_classification_evaluations asce
+        INNER JOIN announcement_source_classification_matches ascm
+                ON ascm.evaluation_id = asce.id
+        INNER JOIN announcement_source_classification_keyword_rules asckr
+                ON asckr.id = ascm.keyword_rule_id
+        INNER JOIN announcement_source_classification_rule_groups ascrg
+                ON ascrg.id = asckr.group_id
+        LEFT JOIN announcement_source_classification_keyword_terms canonical
+               ON canonical.keyword_rule_id = asckr.id
+              AND canonical.term_type_code = 'CANONICAL'
+        WHERE asce.source_id = #{sourceId}
+          AND asce.is_current = TRUE
+        ORDER BY
+            CASE ascm.match_location_code WHEN 'TITLE' THEN 0 ELSE 1 END,
+            ascm.start_offset ASC,
+            ascrg.sort_order ASC
+    </select>
+
+    <select id="selectAutomaticTargetCategoryCodeList" resultType="string">
+        -- Select target tags produced by the current automatic evaluation.
+        SELECT
+            atc.category_code
+        FROM announcement_source_classification_evaluations asce
+        INNER JOIN announcement_source_classification_target_matches asctm
+                ON asctm.evaluation_id = asce.id
+        INNER JOIN announcement_target_categories atc ON atc.id = asctm.target_category_id
+        WHERE asce.source_id = #{sourceId}
+          AND asce.is_current = TRUE
+        ORDER BY atc.sort_order ASC, atc.category_code ASC
+    </select>
+
+    <select id="selectAutomaticSupportTypeCodeList" resultType="string">
+        -- Select support tags produced by the current automatic evaluation.
+        SELECT
+            ast.support_type_code
+        FROM announcement_source_classification_evaluations asce
+        INNER JOIN announcement_source_classification_support_matches ascsm
+                ON ascsm.evaluation_id = asce.id
+        INNER JOIN announcement_support_types ast ON ast.id = ascsm.support_type_id
+        WHERE asce.source_id = #{sourceId}
+          AND asce.is_current = TRUE
+        ORDER BY ast.sort_order ASC, ast.support_type_code ASC
+    </select>
+
+    <select id="selectConfirmedTargetCategoryCodeList" resultType="string">
+        -- Select administrator-confirmed target categories for the current source.
+        SELECT
+            atc.category_code
+        FROM announcement_source_confirmed_target_categories asctc
+        INNER JOIN announcement_target_categories atc ON atc.id = asctc.target_category_id
+        WHERE asctc.source_id = #{sourceId}
+        ORDER BY atc.sort_order ASC, atc.category_code ASC
+    </select>
+
+    <select id="selectConfirmedSupportTypeCodeList" resultType="string">
+        -- Select administrator-confirmed support types for the current source.
+        SELECT
+            ast.support_type_code
+        FROM announcement_source_confirmed_support_types ascst
+        INNER JOIN announcement_support_types ast ON ast.id = ascst.support_type_id
+        WHERE ascst.source_id = #{sourceId}
+        ORDER BY ast.sort_order ASC, ast.support_type_code ASC
+    </select>
+
+    <update id="updateClassificationRowVersion">
+        -- Acquire optimistic ownership before replacing manual classification tags.
+        UPDATE announcement_source_snapshots
+        SET
+            classification_row_version = classification_row_version + 1,
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND classification_row_version = #{expectedVersion}
+    </update>
+
+    <delete id="deleteConfirmedTargetCategoryList">
+        -- Replace administrator-confirmed target categories.
+        DELETE FROM announcement_source_confirmed_target_categories
+        WHERE source_id = #{sourceId}
+    </delete>
+
+    <insert id="insertConfirmedTargetCategory">
+        -- Insert one confirmed target category by stable catalog code.
+        INSERT INTO announcement_source_confirmed_target_categories (
+            id,
+            source_id,
+            target_category_id,
+            based_on_evaluation_id,
+            confirmed_by
+        )
+        SELECT
+            #{id},
+            #{sourceId},
+            atc.id,
+            #{evaluationId},
+            #{actorUserId}
+        FROM announcement_target_categories atc
+        WHERE atc.category_code = #{targetCategoryCode}
+          AND atc.is_enabled = TRUE
+    </insert>
+
+    <delete id="deleteConfirmedSupportTypeList">
+        -- Replace administrator-confirmed support types.
+        DELETE FROM announcement_source_confirmed_support_types
+        WHERE source_id = #{sourceId}
+    </delete>
+
+    <insert id="insertConfirmedSupportType">
+        -- Insert one confirmed support type by stable catalog code.
+        INSERT INTO announcement_source_confirmed_support_types (
+            id,
+            source_id,
+            support_type_id,
+            based_on_evaluation_id,
+            confirmed_by
+        )
+        SELECT
+            #{id},
+            #{sourceId},
+            ast.id,
+            #{evaluationId},
+            #{actorUserId}
+        FROM announcement_support_types ast
+        WHERE ast.support_type_code = #{supportTypeCode}
+          AND ast.is_enabled = TRUE
+    </insert>
+
+</mapper>

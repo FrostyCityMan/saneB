@@ -87,7 +87,9 @@ class AnnouncementSourceControllerSmokeTest {
                         List.of(collectionRunItem()),
                         List.of()
                 ));
-        when(announcementSourceService.selectSourceList(any(), any(), any(), any(), eq(1), eq(20)))
+        when(announcementSourceService.selectSourceList(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), eq(1), eq(20)
+        ))
                 .thenReturn(PageResponse.of(List.of(sourceSummary()), 1, 20, 1));
         when(announcementSourceService.selectSourceDetails(SOURCE_ID)).thenReturn(sourceDetails("REVIEW_PENDING"));
         when(announcementSourceService.updateSourceReviewStatus(any(), eq(SOURCE_ID), any()))
@@ -314,7 +316,9 @@ class AnnouncementSourceControllerSmokeTest {
                 "PROVIDER_TRUSTED",
                 null,
                 NOW,
-                NOW
+                NOW,
+                List.of("BUSINESS"),
+                List.of("GRANT_SUBSIDY")
         );
     }
 

@@ -111,4 +111,13 @@ public record AnnouncementSourceProviderItem(
                 localGovernmentSourceId, statusCode, reasonCode, matchedKeywords
         );
     }
+
+    public AnnouncementSourceProviderItem withBodyText(String nextBodyText) {
+        return new AnnouncementSourceProviderItem(
+                providerCode, providerNoticeId, title, agencyName, applicationStartDate, applicationEndDate,
+                postedAt, modifiedAt, sourceUrl, nextBodyText, inquiryText, applicationMethodText,
+                sourceCompletenessCode, missingFieldsJson, rawPayloadJson, rawHash, attachments,
+                localGovernmentSourceId, semanticStatusCode, semanticReasonCode, semanticMatchedKeywords
+        );
+    }
 }

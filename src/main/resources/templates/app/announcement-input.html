@@ -5,6 +5,7 @@
       data-announcement-app
       th:data-list-url="@{/api/v1/announcements}"
       th:data-base-url="@{/api/v1/announcements}"
+      th:data-save-url="@{/api/v2/announcements}"
       th:data-standard-fields-url="@{/api/v1/standard-document-fields}"
       th:data-standard-codes-url="@{/api/v1/standard-codes}">
     <section class="announcement-shell" aria-label="공고 입력">
@@ -28,35 +29,62 @@
                         <span class="eyebrow">1단계</span>
                         <h2 id="target-title">공고 대표 대상</h2>
                     </div>
-                    <span class="soft-status">선택 대상만 조건 입력</span>
+                    <span class="soft-status">대표 대상 기준으로 조건 입력</span>
                 </div>
                 <div class="target-grid" role="radiogroup" aria-label="공고 대표 대상">
                     <label class="target-card target-card--business is-active" data-target-card>
-                        <input type="radio" name="targetTypeCode" value="BUSINESS" checked>
-                        <span>사업자 지원</span>
+                        <input type="radio" name="primaryTargetCategoryCode" value="BUSINESS" checked>
+                        <span>사업자</span>
                         <small>업종, 사업자 유형, 업력, 매출 기준</small>
                     </label>
                     <label class="target-card target-card--personal" data-target-card>
-                        <input type="radio" name="targetTypeCode" value="PERSONAL">
-                        <span>개인 지원</span>
+                        <input type="radio" name="primaryTargetCategoryCode" value="PERSONAL">
+                        <span>본인(개인)</span>
                         <small>연령, 소득, 거주지 기준</small>
                     </label>
                     <label class="target-card target-card--spouse" data-target-card>
-                        <input type="radio" name="targetTypeCode" value="SPOUSE">
-                        <span>배우자 지원</span>
+                        <input type="radio" name="primaryTargetCategoryCode" value="SPOUSE">
+                        <span>배우자</span>
                         <small>배우자 소득 및 관계 기준</small>
                     </label>
                     <label class="target-card target-card--child" data-target-card>
-                        <input type="radio" name="targetTypeCode" value="CHILD">
-                        <span>자녀 지원</span>
+                        <input type="radio" name="primaryTargetCategoryCode" value="CHILD">
+                        <span>자녀</span>
                         <small>자녀 연령 및 재학 기준</small>
                     </label>
                     <label class="target-card target-card--parent" data-target-card>
-                        <input type="radio" name="targetTypeCode" value="PARENT">
-                        <span>부모 지원</span>
+                        <input type="radio" name="primaryTargetCategoryCode" value="PARENT">
+                        <span>부모님</span>
                         <small>부모 연령 및 부양 기준</small>
                     </label>
                 </div>
+                <div class="announcement-classification-fields">
+                    <fieldset class="classification-fieldset">
+                        <legend>지원대상 다중 태그 <span aria-hidden="true">*</span></legend>
+                        <p>공고가 실제로 지원하는 대상을 모두 선택하세요. 대표 대상은 자동으로 포함됩니다.</p>
+                        <div class="classification-choice-grid">
+                            <label><input type="checkbox" name="targetCategoryCodes" value="BUSINESS" checked> 사업자</label>
+                            <label><input type="checkbox" name="targetCategoryCodes" value="PERSONAL"> 본인(개인)</label>
+                            <label><input type="checkbox" name="targetCategoryCodes" value="SPOUSE"> 배우자</label>
+                            <label><input type="checkbox" name="targetCategoryCodes" value="CHILD"> 자녀</label>
+                            <label><input type="checkbox" name="targetCategoryCodes" value="PARENT"> 부모님</label>
+                        </div>
+                    </fieldset>
+                    <fieldset class="classification-fieldset">
+                        <legend>지원형태 다중 태그 <span aria-hidden="true">*</span></legend>
+                        <p>지원금, 융자, 보증 등 해당 형태를 하나 이상 선택하세요.</p>
+                        <div class="classification-choice-grid classification-choice-grid--support">
+                            <label><input type="checkbox" name="supportTypeCodes" value="GENERAL_SUPPORT" checked> 일반 지원</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="GRANT_SUBSIDY"> 지원금·보조금</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="POLICY_FINANCE"> 정책자금·융자</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="GUARANTEE"> 보증</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="INTEREST_SUPPORT"> 이차보전·이자지원</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="VOUCHER_BENEFIT"> 바우처·혜택</label>
+                            <label><input type="checkbox" name="supportTypeCodes" value="REFUND_REDUCTION"> 환급·감면</label>
+                        </div>
+                    </fieldset>
+                </div>
+                <p class="classification-input-message" data-classification-input-message role="status">대표 대상과 지원대상·지원형태 태그를 확인하세요.</p>
             </form>
 
             <form class="announcement-form" data-announcement-basic-form novalidate>
@@ -754,10 +782,10 @@
                     <select name="targetTypeCode" aria-label="대표 대상 필터">
                         <option value="">전체 대상</option>
                         <option value="BUSINESS">사업자</option>
-                        <option value="PERSONAL">개인</option>
+                        <option value="PERSONAL">본인(개인)</option>
                         <option value="SPOUSE">배우자</option>
                         <option value="CHILD">자녀</option>
-                        <option value="PARENT">부모</option>
+                        <option value="PARENT">부모님</option>
                     </select>
                     <button class="secondary-action" type="submit">조회</button>
                 </form>

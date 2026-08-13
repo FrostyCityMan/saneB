@@ -297,7 +297,7 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 | `announcement_source_highlights` | `source_snapshot_id`, `highlight_type_code`, `highlight_text`, `start_offset`, `end_offset`, `sort_order` | PK `id`, FK `announcement_source_snapshots.id` | IDX `(source_snapshot_id, highlight_type_code)` |
 | `announcement_source_duplicate_candidates` | `source_snapshot_id`, `announcement_id`, `match_type_code`, `title_matched`, `agency_matched`, `provider_notice_matched`, `period_matched`, `source_url_matched`, `similarity_reason`, `decision_status_code`, `decided_by`, `decided_at`, `decision_note` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `(source_snapshot_id, announcement_id)`, IDX `(source_snapshot_id, match_type_code, decision_status_code)`, IDX `(announcement_id, decision_status_code)` |
 | `announcement_source_review_histories` | `source_snapshot_id`, `before_status_code`, `after_status_code`, `review_note`, `changed_by`, `changed_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `users.id` | IDX `(source_snapshot_id, changed_at)` |
-| `announcement_source_links` | `source_snapshot_id`, `announcement_id`, `linked_by`, `linked_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `source_snapshot_id`, UQ `announcement_id` |
+| `announcement_source_links` | `source_id`, `announcement_id`, `linked_by`, `linked_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `source_id`, IDX `announcement_id` |
 
 외부 공고 원문은 `announcement_source_snapshots`에 보존하고, 실제 매칭에 사용하는 운영 공고는 기존 `announcements`와 조건 테이블에 운영자가 별도로 입력한다. 하이라이트는 검수 참고용이며 `announcement_numeric_conditions`, `announcement_option_conditions`, `announcement_industry_conditions`에 자동 저장하지 않는다.
 
@@ -531,3 +531,27 @@ dev seed:
 - 검증 ID가 있는 매칭은 파트너 검증값이 회원 입력값보다 매칭 기준에서 우선한다.
 - 검증 ID가 없는 매칭은 운영자 수동 생성 또는 관리자 조건 후보 생성으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
 - 진행 단계 완료 조건 충족 전 다음 단계 이동이 서버에서 차단된다.
+
+## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V68`)
+
+2026-08-12 로컬 구현 기준이며 운영 DB 적용 상태를 뜻하지 않는다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가한다.
+
+| migration | 계약 |
+|---|---|
+| `V63` | 지원대상·지원형태 카탈로그와 운영 공고 다중 배정 테이블 |
+| `V64` | `DRAFT -> ACTIVE -> RETIRED` 생명주기를 갖는 규칙 release/group/rule/term 및 `row_version` |
+| `V65` | 클라이언트 확정 정책을 담은 초기 `DRAFT` seed. 첨부 분석과 자동 활성화는 `false` |
+| `V66` | 불변 원문 버전, 판정 evaluation, 일치 근거, 자동 태그, 관리자 확정 태그와 수집 실행의 규칙·검색계획 고정값 |
+| `V67` | 운영 데이터와 격리 QA를 구분하는 `data_purpose_code` (`PRODUCTION`, `QA`) |
+| `V68` | 기존 중복을 자동 정리하지 않는 사전검사와 `announcement_source_links.source_id` 단독 UNIQUE. 여러 원문이 같은 운영 공고에 연결되는 것은 허용 |
+
+핵심 불변조건:
+
+- Flyway가 schema source of truth이며 초기 release는 운영에서 자동 활성화하지 않는다.
+- 자동 제외 원문도 `announcement_source_content_versions`와 판정 근거로 보존한다.
+- 현재 판정은 `is_current=true` 한 건만 유지하되 과거 evaluation은 삭제하지 않는다.
+- 자동 태그와 관리자가 확정한 태그를 분리하고, 재분류 시 기존 확정값은 `STALE`로 전환한다.
+- 기존 `announcements.target_type_code`와 V1 단일 입력 계약은 유지한다. V1 저장은 대표 태그만 갱신하고 추가 태그를 임의 삭제하지 않으며, 복수 저장은 `/api/v2`가 담당한다.
+- 기존 V1 첨부 행과 조회 응답은 호환을 위해 보존한다. 신규 수집은 첨부 URL·파일명을 provider 원문에서 제거하고 attachment 행을 생성하지 않으며, 다운로드·본문 추출·분류 근거 사용을 금지한다.
+- 일반 애플리케이션 수집 write는 `data_purpose_code='PRODUCTION'`만 생성한다. QA 원문을 DB에 쓰는 내부 경로는 운영 격리 QA 승인 시 별도 확정하며, QA 정리는 명시적으로 `QA`인 행만 대상으로 한다.
+- V56 판정 이력과 과거 snapshot을 migration에서 자동 재분류하지 않는다.

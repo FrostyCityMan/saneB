@@ -21,6 +21,7 @@ import com.saneb.domain.announcement.dto.AnnouncementManualStatusUpdateRequest;
 import com.saneb.domain.announcement.dto.AnnouncementSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementStepsSaveRequest;
 import com.saneb.domain.announcement.dto.AnnouncementSummaryResponse;
+import com.saneb.domain.announcement.dto.AnnouncementV2SaveRequest;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
@@ -64,6 +65,18 @@ public interface AnnouncementService {
     AnnouncementDetailsResponse insertAnnouncement(Authentication authentication, AnnouncementSaveRequest request);
 
     /**
+     * 다중 지원대상·지원형태 계약으로 공고를 등록합니다.
+     *
+     * @param authentication 인증 정보
+     * @param request v2 저장 요청
+     * @return 저장된 공고 상세
+     */
+    AnnouncementDetailsResponse insertAnnouncementV2(
+            Authentication authentication,
+            AnnouncementV2SaveRequest request
+    );
+
+    /**
      * 업무 데이터를 조회합니다.
      *
      * @param announcementId 입력 값
@@ -87,6 +100,20 @@ public interface AnnouncementService {
             Authentication authentication,
             UUID announcementId,
             AnnouncementSaveRequest request
+    );
+
+    /**
+     * 다중 지원대상·지원형태 계약으로 공고를 수정합니다.
+     *
+     * @param authentication 인증 정보
+     * @param announcementId 공고 식별자
+     * @param request v2 저장 요청
+     * @return 수정된 공고 상세
+     */
+    AnnouncementDetailsResponse updateAnnouncementV2(
+            Authentication authentication,
+            UUID announcementId,
+            AnnouncementV2SaveRequest request
     );
 
     /**

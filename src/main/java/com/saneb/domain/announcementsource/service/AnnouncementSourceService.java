@@ -177,6 +177,11 @@ public interface AnnouncementSourceService {
      * @param reviewStatusCode 입력 값
      *
      * @param semanticStatusCode 의미 판정 상태
+     * @param targetCategoryCode 자동 판정 지원대상
+     * @param supportTypeCode 자동 판정 지원형태
+     * @param matchedGroupCode 일치 규칙 그룹
+     * @param matchLocationCode 일치 위치
+     * @param ruleReleaseId 규칙 버전 식별자
      *
      * @param keyword 입력 값
      *
@@ -190,6 +195,12 @@ public interface AnnouncementSourceService {
             String providerCode,
             String reviewStatusCode,
             String semanticStatusCode,
+            String targetCategoryCode,
+            String supportTypeCode,
+            String matchedGroupCode,
+            String matchedGroupKindCode,
+            String matchLocationCode,
+            UUID ruleReleaseId,
             String keyword,
             int page,
             int size

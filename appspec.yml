@@ -12,7 +12,7 @@ hooks:
       timeout: 60
       runas: root
   BeforeInstall:
-    - location: scripts/stop.sh
+    - location: scripts/backup.sh
       timeout: 60
       runas: root
   AfterInstall:

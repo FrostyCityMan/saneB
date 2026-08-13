@@ -4,45 +4,64 @@
 <main class="announcement-source-page collected-announcement-page"
       data-collected-announcement-page
       data-source-url="/api/v1/admin/announcement-sources"
-      th:attr="data-role-code=${page.auth.primaryRole}">
+      data-conversion-url="/api/v2/admin/announcement-sources"
+      th:attr="data-role-code=${page.auth.primaryRole},data-can-manage=${#lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')},data-classification-v2-enabled=${classificationV2Enabled}">
     <section class="summary-panel announcement-source-hero">
         <div class="summary-header">
             <div>
-                <div class="section-label">수집 공고 검수</div>
-                <p>외부에서 수집한 공고만 모아 확인합니다. 원문과 중복 여부를 검수한 뒤 운영 공고로 전환하세요.</p>
+                <span class="section-label">수집 공고 검수</span>
+                <h2>분류 판정과 수집 상태를 나누어 확인합니다</h2>
+                <p>자동 제외도 원문과 판정 근거를 보존합니다. 유효 후보는 최종 확정 공고가 아니며, 운영자 검수와 조건 입력 후에만 운영 공고로 전환합니다.</p>
             </div>
             <div class="summary-actions">
-                <a class="secondary-action" th:href="@{/app/admin/announcement-sources}">수집 관리로 이동</a>
+                <a class="secondary-action" th:href="@{/app/admin/announcement-sources}">수집 관리</a>
+                <a class="secondary-action" th:href="@{/app/admin/announcement-keywords}">키워드 관리</a>
             </div>
+        </div>
+        <div class="classification-scope-notice" role="note">
+            <strong>첨부파일 판정 제외</strong>
+            <span>PDF·HWP 등 첨부파일은 신규 V2 수집·다운로드·본문 추출·분류에서 제외합니다. 기존 이력의 링크만 원문 확인용으로 표시합니다.</span>
         </div>
     </section>
 
-    <section class="top-summary-grid collected-announcement-metrics" aria-label="수집 공고 현황">
-        <article class="top-summary-card">
-            <span>전체 수집 공고</span>
-            <strong data-collected-total-count aria-live="polite">0건</strong>
-            <p>모든 외부 수집처의 원문</p>
+    <section class="top-summary-grid collected-announcement-metrics" aria-label="수집 공고 분류 현황">
+        <article class="top-summary-card is-action-required">
+            <span>조치 필요</span>
+            <strong data-collected-action-count aria-live="polite">0건</strong>
+            <p>관리자 검수 또는 조건 입력 필요</p>
+        </article>
+        <article class="top-summary-card is-accepted">
+            <span>유효 후보</span>
+            <strong data-collected-accepted-count aria-live="polite">0건</strong>
+            <p>제목·본문 분류를 통과한 후보</p>
+        </article>
+        <article class="top-summary-card is-excluded">
+            <span>자동 제외</span>
+            <strong data-collected-excluded-count aria-live="polite">0건</strong>
+            <p>삭제하지 않고 근거와 함께 보존</p>
         </article>
         <article class="top-summary-card">
-            <span>검수 대기</span>
-            <strong data-collected-pending-count aria-live="polite">0건</strong>
-            <p>운영자가 확인해야 할 공고</p>
-        </article>
-        <article class="top-summary-card">
-            <span>현재 조회 결과</span>
+            <span>현재 조회</span>
             <strong data-collected-filtered-count aria-live="polite">0건</strong>
-            <p>선택한 검색 조건의 결과</p>
+            <p>선택한 탭과 필터의 결과</p>
         </article>
     </section>
 
     <section class="plain-panel collected-announcement-filter-panel">
         <div class="panel-heading compact-heading">
             <div>
-                <span class="eyebrow">검색</span>
-                <h2>수집 공고만 모아 확인</h2>
+                <span class="eyebrow">분류함</span>
+                <h2>판정 결과별 공고 확인</h2>
             </div>
         </div>
+        <div class="classification-view-tabs" role="tablist" aria-label="공고 분류함">
+            <button type="button" role="tab" aria-selected="true" class="is-active" data-collected-view="ACTION_REQUIRED">조치 필요</button>
+            <button type="button" role="tab" aria-selected="false" data-collected-view="ACCEPTED">유효 후보</button>
+            <button type="button" role="tab" aria-selected="false" data-collected-view="EXCLUDED">자동 제외</button>
+            <button type="button" role="tab" aria-selected="false" data-collected-view="ALL">전체</button>
+        </div>
         <form class="collected-announcement-filter" data-collected-filter-form>
+            <input name="semanticStatusCode" type="hidden" value="REVIEW_REQUIRED">
             <label class="field-block">
                 <span>수집처</span>
                 <select name="providerCode">
@@ -53,9 +72,9 @@
                 </select>
             </label>
             <label class="field-block">
-                <span>검수 상태</span>
+                <span>운영 검수 상태</span>
                 <select name="reviewStatusCode">
-                    <option value="">전체 상태</option>
+                    <option value="">전체 검수 상태</option>
                     <option value="REVIEW_PENDING" selected>검수대기</option>
                     <option value="CONDITION_INPUT_REQUIRED">조건 입력 필요</option>
                     <option value="REVIEW_COMPLETED">검수완료</option>
@@ -64,13 +83,53 @@
                 </select>
             </label>
             <label class="field-block">
-                <span>수집 판정</span>
-                <select name="semanticStatusCode">
-                    <option value="ACCEPTED" selected>유효 후보</option>
-                    <option value="REVIEW_REQUIRED">확인 필요</option>
-                    <option value="EXCLUDED">제외됨</option>
-                    <option value="">전체 판정</option>
+                <span>지원대상</span>
+                <select name="targetCategoryCode">
+                    <option value="">전체 지원대상</option>
+                    <option value="BUSINESS">사업자</option>
+                    <option value="PERSONAL">본인(개인)</option>
+                    <option value="SPOUSE">배우자</option>
+                    <option value="CHILD">자녀</option>
+                    <option value="PARENT">부모님</option>
                 </select>
+            </label>
+            <label class="field-block">
+                <span>지원형태</span>
+                <select name="supportTypeCode">
+                    <option value="">전체 지원형태</option>
+                    <option value="GENERAL_SUPPORT">일반 지원</option>
+                    <option value="GRANT_SUBSIDY">지원금·보조금</option>
+                    <option value="POLICY_FINANCE">정책자금·융자</option>
+                    <option value="GUARANTEE">보증</option>
+                    <option value="INTEREST_SUPPORT">이차보전·이자지원</option>
+                    <option value="VOUCHER_BENEFIT">바우처·혜택</option>
+                    <option value="REFUND_REDUCTION">환급·감면</option>
+                </select>
+            </label>
+            <label class="field-block">
+                <span>일치 규칙</span>
+                <select name="matchedGroupKindCode">
+                    <option value="">전체 규칙 그룹</option>
+                    <option value="TARGET">지원대상</option>
+                    <option value="SUPPORT_TYPE">지원형태</option>
+                    <option value="REVIEW_A">그룹 A · 관리자 검수</option>
+                    <option value="AUTO_EXCLUDE_B">그룹 B · 자동 제외</option>
+                </select>
+            </label>
+            <label class="field-block">
+                <span>일치 위치</span>
+                <select name="matchLocationCode">
+                    <option value="">제목·본문 전체</option>
+                    <option value="TITLE">제목</option>
+                    <option value="BODY">본문</option>
+                </select>
+            </label>
+            <label class="field-block">
+                <span>규칙 버전 ID</span>
+                <input name="ruleReleaseId" type="text" inputmode="text" maxlength="36"
+                       pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+                       autocomplete="off" spellcheck="false" placeholder="UUID 36자 · 선택 입력"
+                       title="하이픈을 포함한 UUID 36자를 입력하세요">
             </label>
             <label class="field-block collected-keyword-field">
                 <span>검색어</span>
@@ -86,29 +145,72 @@
     <section class="collected-announcement-workspace">
         <section class="collected-announcement-list-panel" aria-label="수집 공고 목록">
             <div class="panel-heading compact-heading">
-                <div>
-                    <span class="eyebrow">목록</span>
-                    <h2>수집된 공고</h2>
-                </div>
+                <div><span class="eyebrow">목록</span><h2 data-collected-view-title>조치 필요 공고</h2></div>
                 <strong class="collected-list-count" data-collected-list-count>0건</strong>
             </div>
             <div class="announcement-source-list collected-announcement-list" data-collected-list aria-live="polite">
                 <p class="collected-empty-state">수집 공고를 조회하고 있습니다.</p>
             </div>
             <nav class="local-source-pagination" aria-label="수집 공고 페이지">
-                <button class="secondary-action" type="button" aria-label="이전 페이지" data-collected-page-prev>‹</button>
+                <button class="secondary-action" type="button" aria-label="이전 페이지" data-collected-page-prev>이전</button>
                 <span data-collected-page-info>1 / 1</span>
-                <button class="secondary-action" type="button" aria-label="다음 페이지" data-collected-page-next>›</button>
+                <button class="secondary-action" type="button" aria-label="다음 페이지" data-collected-page-next>다음</button>
             </nav>
         </section>
 
         <article class="announcement-source-detail collected-announcement-detail" data-collected-detail aria-live="polite">
-            <div class="collected-detail-empty">
-                <strong>공고를 선택하세요.</strong>
-                <p>목록에서 공고를 선택하면 원문 정보와 검수 작업을 확인할 수 있습니다.</p>
-            </div>
+            <div class="collected-detail-empty"><strong>공고를 선택하세요</strong><p>분류 판정, 수집 원문 상태, 운영 검수 상태를 각각 확인할 수 있습니다.</p></div>
         </article>
     </section>
+
+    <dialog class="saneb-dialog collected-conversion-dialog" data-conversion-dialog aria-labelledby="collected-conversion-title">
+        <form method="dialog" class="saneb-dialog-card" data-conversion-form novalidate>
+            <div class="saneb-dialog-header">
+                <div><span class="eyebrow">운영 공고 전환</span><h2 id="collected-conversion-title">대표 대상과 다중 태그 확인</h2></div>
+                <button class="dialog-close" type="button" data-conversion-close aria-label="전환 화면 닫기">×</button>
+            </div>
+            <p class="conversion-candidate-note">유효 후보는 최종 확정 결과가 아닙니다. 분류 제안을 확인하고 운영 기준으로 확정하세요.</p>
+            <p class="classification-scope-note" data-conversion-mode-note></p>
+            <fieldset class="conversion-fieldset">
+                <legend>대표 지원대상 <span aria-hidden="true">*</span></legend>
+                <div class="classification-choice-grid" data-conversion-primary-targets>
+                    <label><input type="radio" name="primaryTargetCategoryCode" value="BUSINESS" required> 사업자</label>
+                    <label><input type="radio" name="primaryTargetCategoryCode" value="PERSONAL"> 본인(개인)</label>
+                    <label><input type="radio" name="primaryTargetCategoryCode" value="SPOUSE"> 배우자</label>
+                    <label><input type="radio" name="primaryTargetCategoryCode" value="CHILD"> 자녀</label>
+                    <label><input type="radio" name="primaryTargetCategoryCode" value="PARENT"> 부모님</label>
+                </div>
+            </fieldset>
+            <fieldset class="conversion-fieldset" data-v2-only>
+                <legend>지원대상 다중 태그 <span aria-hidden="true">*</span></legend>
+                <div class="classification-choice-grid">
+                    <label><input type="checkbox" name="targetCategoryCodes" value="BUSINESS"> 사업자</label>
+                    <label><input type="checkbox" name="targetCategoryCodes" value="PERSONAL"> 본인(개인)</label>
+                    <label><input type="checkbox" name="targetCategoryCodes" value="SPOUSE"> 배우자</label>
+                    <label><input type="checkbox" name="targetCategoryCodes" value="CHILD"> 자녀</label>
+                    <label><input type="checkbox" name="targetCategoryCodes" value="PARENT"> 부모님</label>
+                </div>
+            </fieldset>
+            <fieldset class="conversion-fieldset" data-v2-only>
+                <legend>지원형태 다중 태그 <span aria-hidden="true">*</span></legend>
+                <div class="classification-choice-grid classification-choice-grid--support">
+                    <label><input type="checkbox" name="supportTypeCodes" value="GENERAL_SUPPORT"> 일반 지원</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="GRANT_SUBSIDY"> 지원금·보조금</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="POLICY_FINANCE"> 정책자금·융자</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="GUARANTEE"> 보증</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="INTEREST_SUPPORT"> 이차보전·이자지원</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="VOUCHER_BENEFIT"> 바우처·혜택</label>
+                    <label><input type="checkbox" name="supportTypeCodes" value="REFUND_REDUCTION"> 환급·감면</label>
+                </div>
+            </fieldset>
+            <label class="field-block"><span>소득·매출 판단 기준</span><select name="incomeJudgementCode" required><option value="VAT_TAX_BASE_ONLY">부가세 기준만 사용</option><option value="INCOME_CERT_ONLY">소득증명만 사용</option><option value="HEALTH_INSURANCE_ONLY">건강보험료만 사용</option><option value="ANY_ONE_DOCUMENT">서류 중 하나 선택</option><option value="NO_LIMIT">제한 없음</option></select></label>
+            <label class="field-block" data-v2-only><span>분류 확정 메모</span><textarea name="reviewNote" rows="3" maxlength="1000" placeholder="본문 자격조건을 확인한 근거를 기록하세요"></textarea></label>
+            <input name="expectedClassificationDecisionId" type="hidden">
+            <input name="expectedVersion" type="hidden">
+            <p class="dialog-message" data-conversion-message role="status"></p>
+            <div class="dialog-actions"><button class="secondary-action" type="button" data-conversion-close>취소</button><button class="primary-action button-action" type="submit" data-conversion-submit>분류 확정 후 운영 공고 전환</button></div>
+        </form>
+    </dialog>
 
     <script th:src="@{/js/saneb-collected-announcements.js}"></script>
 </main>

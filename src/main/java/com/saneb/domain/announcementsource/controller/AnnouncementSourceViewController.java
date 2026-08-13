@@ -14,6 +14,7 @@ package com.saneb.domain.announcementsource.controller;
 
 import com.saneb.domain.auth.dto.AuthMeResponse;
 import com.saneb.domain.auth.service.AuthService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -24,14 +25,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class AnnouncementSourceViewController {
 
     private final AuthService authService;
+    private final boolean classificationV2Enabled;
 
     /**
      * 객체를 생성합니다.
      *
      * @param authService 입력 값
      */
-    public AnnouncementSourceViewController(AuthService authService) {
+    public AnnouncementSourceViewController(
+            AuthService authService,
+            @Value("${saneb.announcement-source.classification-v2.enabled:false}")
+            boolean classificationV2Enabled
+    ) {
         this.authService = authService;
+        this.classificationV2Enabled = classificationV2Enabled;
     }
 
     /**
@@ -71,7 +78,27 @@ public class AnnouncementSourceViewController {
                 "COLLECTED_ANNOUNCEMENTS",
                 "수집 공고 검수"
         ));
+        model.addAttribute("classificationV2Enabled", classificationV2Enabled);
         return "app/collected-announcements";
+    }
+
+    /**
+     * 공고 분류 규칙 버전과 키워드를 조회하고 관리하는 화면을 조회합니다.
+     *
+     * @param authentication 인증 정보
+     * @param model 화면 모델
+     * @return 공고 키워드 관리 화면
+     */
+    @GetMapping("/app/admin/announcement-keywords")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAnnouncementKeywordPage(Authentication authentication, Model model) {
+        AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(
+                authMe,
+                "ANNOUNCEMENT_KEYWORDS",
+                "공고 키워드 관리"
+        ));
+        return "app/announcement-keywords";
     }
 
     public record AnnouncementSourcePageModel(

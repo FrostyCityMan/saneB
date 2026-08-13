@@ -16,6 +16,7 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRow;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.List;
 
 public record AnnouncementSourceSummaryResponse(
         UUID sourceId,
@@ -33,8 +34,15 @@ public record AnnouncementSourceSummaryResponse(
         String semanticReasonCode,
         String semanticMatchedKeywords,
         OffsetDateTime postedAt,
-        OffsetDateTime collectedAt
+        OffsetDateTime collectedAt,
+        List<String> targetCategoryCodes,
+        List<String> supportTypeCodes
 ) {
+
+    public AnnouncementSourceSummaryResponse {
+        targetCategoryCodes = targetCategoryCodes == null ? List.of() : List.copyOf(targetCategoryCodes);
+        supportTypeCodes = supportTypeCodes == null ? List.of() : List.copyOf(supportTypeCodes);
+    }
 
     /**
      * 업무 데이터를 응답 형식으로 변환합니다.
@@ -60,7 +68,24 @@ public record AnnouncementSourceSummaryResponse(
                 row.semanticReasonCode(),
                 row.semanticMatchedKeywords(),
                 row.postedAt(),
-                row.collectedAt()
+                row.collectedAt(),
+                List.of(),
+                List.of()
+        );
+    }
+
+    public static AnnouncementSourceSummaryResponse from(
+            AnnouncementSourceSnapshotRow row,
+            List<String> targetCategoryCodes,
+            List<String> supportTypeCodes
+    ) {
+        AnnouncementSourceSummaryResponse base = from(row);
+        return new AnnouncementSourceSummaryResponse(
+                base.sourceId(), base.publicCode(), base.providerCode(), base.providerNoticeId(),
+                base.title(), base.agencyName(), base.applicationStartDate(), base.applicationEndDate(),
+                base.sourceUrl(), base.sourceCompletenessCode(), base.reviewStatusCode(),
+                base.semanticStatusCode(), base.semanticReasonCode(), base.semanticMatchedKeywords(),
+                base.postedAt(), base.collectedAt(), targetCategoryCodes, supportTypeCodes
         );
     }
 }

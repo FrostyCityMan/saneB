@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.List;
 
 public record AnnouncementSummaryResponse(
         UUID announcementId,
@@ -35,6 +36,13 @@ public record AnnouncementSummaryResponse(
         BigDecimal minAmount,
         BigDecimal maxAmount,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        List<String> targetCategoryCodes,
+        List<String> supportTypeCodes
 ) {
+
+    public AnnouncementSummaryResponse {
+        targetCategoryCodes = targetCategoryCodes == null ? List.of() : List.copyOf(targetCategoryCodes);
+        supportTypeCodes = supportTypeCodes == null ? List.of() : List.copyOf(supportTypeCodes);
+    }
 }

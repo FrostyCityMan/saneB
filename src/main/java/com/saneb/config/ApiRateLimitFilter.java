@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Clock;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -34,7 +35,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class ApiRateLimitFilter extends OncePerRequestFilter {
 
-    private static final String API_PREFIX = "/api/v1/";
+    private static final Set<String> API_PREFIXES = Set.of("/api/v1/", "/api/v2/");
     private static final int MIN_MAX_REQUESTS = 1;
     private static final long MIN_WINDOW_SECONDS = 1L;
     private static final long MILLIS_PER_SECOND = 1000L;
@@ -111,7 +112,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        if (!enabled || !isApiV1Request(request)) {
+        if (!enabled || !isVersionedApiRequest(request)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -173,8 +174,9 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
      *
      * @return 처리 결과
      */
-    private boolean isApiV1Request(HttpServletRequest request) {
-        return normalizedPath(request).startsWith(API_PREFIX);
+    private boolean isVersionedApiRequest(HttpServletRequest request) {
+        String path = normalizedPath(request);
+        return API_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
     /**

@@ -70,6 +70,9 @@ saneb:
       api-key: ${JUSO_API_KEY:}
       timeout-millis: ${JUSO_API_TIMEOUT_MILLIS:5000}
   announcement-source:
+    classification-v2:
+      enabled: ${SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_ENABLED:false}
+      maximum-search-combinations: ${SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_MAX_SEARCH_COMBINATIONS:50}
     collection:
       batch:
         enabled: ${SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED:false}
@@ -90,6 +93,13 @@ saneb:
       max-response-bytes: ${SANEB_LOCAL_GOV_NOTICE_MAX_RESPONSE_BYTES:2097152}
       max-concurrency: ${SANEB_LOCAL_GOV_NOTICE_MAX_CONCURRENCY:4}
       user-agent: ${SANEB_LOCAL_GOV_NOTICE_USER_AGENT:saneB-notice-collector/1.0}
+      detail-body:
+        enabled: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_BODY_ENABLED:false}
+        connect-timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_CONNECT_TIMEOUT_MILLIS:3000}
+        read-timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_READ_TIMEOUT_MILLIS:7000}
+        max-response-bytes: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_MAX_RESPONSE_BYTES:2097152}
+        max-redirects: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_MAX_REDIRECTS:3}
+        max-host-concurrency: ${SANEB_LOCAL_GOV_NOTICE_DETAIL_MAX_HOST_CONCURRENCY:2}
       schedule:
         enabled: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED:false}
         poll-delay-millis: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_POLL_DELAY_MILLIS:60000}

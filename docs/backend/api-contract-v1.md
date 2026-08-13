@@ -4,13 +4,13 @@
 
 ## 1. 기준
 
-- 모든 API는 `/api/v1/...` 경로를 사용한다.
+- 기존 계약은 `/api/v1/...` 경로를 유지한다. 배열 의미처럼 기존 계약을 깨는 변경만 명시적으로 `/api/v2/...` 신규 경로를 사용한다.
 - 응답은 `ApiResponse<T>` wrapper를 사용한다.
 - 목록 API는 `PageResponse<T>`를 사용한다.
 - 인증과 권한 검증은 서버에서 수행한다.
-- `/api/v1/**` 요청은 서버 rate limit 적용 대상이다.
+- `/api/v1/**`, `/api/v2/**` 요청은 서버 rate limit 적용 대상이다.
 - 서버 화면 form과 `/logout`은 CSRF 검증 대상이다.
-- 브라우저 세션 쿠키가 포함된 `/api/v1/**` 변경 요청은 `XSRF-TOKEN` 쿠키와 같은 값을 `X-XSRF-TOKEN` header로 전송해야 한다. 단, `/api/v1/payment-webhooks/**`는 provider webhook 검증을 사용하므로 CSRF header 대상에서 제외한다.
+- 브라우저 세션 쿠키가 포함된 `/api/v1/**`, `/api/v2/**` 변경 요청은 `XSRF-TOKEN` 쿠키와 같은 값을 `X-XSRF-TOKEN` header로 전송해야 한다. 단, `/api/v1/payment-webhooks/**`는 provider webhook 검증을 사용하므로 CSRF header 대상에서 제외한다.
 - Controller는 URL 매핑, 요청/응답, DTO 변환만 담당한다.
 - 비즈니스 로직은 ServiceImpl에 둔다.
 - SQL은 DAO와 Mapper XML을 통해서만 실행한다.
@@ -2244,7 +2244,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 
 ## 22. Backend Gate
 
-- 모든 endpoint가 `/api/v1/...`를 사용한다.
+- 기존 endpoint는 `/api/v1/...`를 유지하고, 기존 의미를 깨는 신규 계약만 명시적으로 `/api/v2/...`를 사용한다.
 - 모든 응답이 `ApiResponse`를 사용한다.
 - 목록 응답은 `PageResponse`를 사용한다.
 - Controller는 DTO 변환과 route 처리만 담당한다.
@@ -2257,3 +2257,55 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 - 검증 ID가 포함된 매칭 요청은 검증 완료 전 생성이 차단된다.
 - 매칭 응답에 추천도, 우선순위, 선정확률, 가점 값을 포함하지 않는다.
 - AI 보조 응답은 운영자 검토용 초안이며 자동 승인, 자동 탈락, 추천 계산으로 사용하지 않는다.
+
+## 23. 공고 수집·분류 V2 증분 계약
+
+이 절은 2026-08-12 로컬 구현 계약이다. 운영 DB 반영, 초기 규칙 활성화, 기존 원문 재분류 실행 여부를 의미하지 않는다.
+
+### 23.1 기존 V1 호환과 V2 다중 태그
+
+- 기존 공고 상세·목록 응답에는 `targetCategoryCodes`, `supportTypeCodes`를 additive 필드로 제공한다.
+- `POST|PUT /api/v2/announcements`는 `targetCategoryCodes[]`, `supportTypeCodes[]`를 직접 저장한다.
+- `POST /api/v2/admin/announcement-sources/{sourceId}/announcements`는 확정된 다중 태그로 운영 공고 `DRAFT`만 생성한다. 외부 원문을 자동 활성화하지 않는다.
+- 기존 V1 저장 의미는 유지하며 대표 지원대상 한 건과 추가 다중 태그를 호환 처리한다.
+- 수집 원문 전환은 source 행을 잠근 뒤 기존 link를 먼저 확인한다. 이미 연결된 source의 동일 재요청은 기존 결과를 멱등 반환하고, 한 source를 다른 운영 공고로 중복 연결하는 요청은 쓰기 전에 409로 차단한다. 여러 source가 같은 운영 공고를 가리키는 것은 허용한다.
+
+### 23.2 분류 조회·확정·재분류
+
+| method | endpoint | 역할 | 설명 |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/announcement-sources/{sourceId}/classification` | `ADMIN`, `OPERATOR`, `APPROVER` | 현재 판정, 근거, 자동·확정 다중 태그 조회 |
+| `PUT` | `/api/v1/admin/announcement-sources/{sourceId}/confirmed-classification` | `ADMIN`, `OPERATOR` | 관리자 확정 태그 저장. 판정 ID와 `expectedVersion` 검증 |
+| `POST` | `/api/v1/admin/announcement-sources/{sourceId}/reclassifications` | `ADMIN` | 지정한 `ACTIVE` release와 불변 원문 버전으로 단건 재분류 |
+
+재분류는 새 evaluation을 append하고 기존 운영 공고의 승인·활성 상태를 자동 변경하지 않는다. 연결된 운영 공고가 있는 원문이 새 규칙에서 제외되면 운영 확인 task만 생성한다. `changeReason` 원문은 감사 metadata에 저장하지 않고 해시만 남긴다.
+
+수집 원문 목록은 기존 pagination을 유지하면서 `targetCategoryCode`, `supportTypeCode`, `matchedGroupCode`, `matchedGroupKindCode`, `matchLocationCode`, `ruleReleaseId` 필터와 다중 태그 배열을 additive로 제공한다.
+
+### 23.3 규칙 release 관리
+
+기준 prefix는 `/api/v1/admin/announcement-source-rule-releases`다.
+
+| method | suffix | 설명 |
+|---|---|---|
+| `GET`, `POST` | `` | release 목록·초안 복제 생성 |
+| `GET`, `POST` | `/{releaseId}/keyword-rules` | 규칙 목록·추가 |
+| `PUT`, `DELETE` | `/{releaseId}/keyword-rules/{ruleId}` | 초안 규칙 수정·삭제 |
+| `PATCH` | `/{releaseId}/keyword-rules/{ruleId}/status` | 사용·중지 상태 변경 |
+| `POST` | `/{releaseId}/preview` | 제목·본문만 사용하는 판정 미리보기 |
+| `POST` | `/{releaseId}/golden-set-runs` | 서버 QA-01~20 실행 및 `goldenSetRunId` 발급 |
+| `POST` | `/{releaseId}/publication` | 같은 초안/version의 서버 QA ID 확인 후 단일 transaction 게시 |
+
+`ACTIVE` release는 직접 수정할 수 없다. 게시 시 기존 `ACTIVE`는 `RETIRED`, 대상 `DRAFT`는 `ACTIVE`가 되며, `row_version` 충돌은 409다. 초기 V65 release는 `DRAFT`이므로 migration 적용만으로 수집 결과에 영향을 주지 않는다.
+
+### 23.4 수집 실행 안전 계약
+
+- `saneb.announcement-source.classification-v2.enabled` 기본값은 `false`다.
+- 외부 검색 지원 provider는 고정된 release의 지원대상×지원형태 검색계획을 사용하고, 지자체는 발견 후 같은 공통 엔진으로 판정한다.
+- 제목의 그룹 B는 자동 제외, 제목의 그룹 A는 관리자 검수, 본문의 그룹 B는 관리자 검수로 처리한다.
+- 상세본문 기능은 별도 flag 기본 `false`이며 공식 등록 host 일치, URL·DNS 검증, redirect·시간·크기·동시성 제한을 통과한 HTML만 입력으로 사용한다.
+- 신규 수집은 provider 응답의 첨부 URL·파일명 필드를 원문 저장 전에 제거하고 attachment 행을 생성하지 않는다. 지자체 상세 HTML에서도 첨부 링크와 표시명을 본문 추출 전에 제거한다.
+- PDF·HWP 등 첨부파일을 다운로드·추출·분류하지 않는다. 기존 V1 첨부 이력은 호환 조회만 유지한다.
+- 자동 제외·관리자 검수·유효 후보 모두 원문 버전과 일치 규칙 근거를 저장한다.
+- `data_purpose_code`가 명시적으로 `QA`인 원문·요청만 QA 정리 대상이다. 일반 애플리케이션 수집은 `PRODUCTION`만 생성하며, DB에 쓰는 격리 QA 경로는 운영 QA 승인 시 별도 확정한다.
+- 상세본문 기능을 운영에서 켜기 전 DNS 재바인딩을 포함한 private-range egress 차단 또는 연결 IP 고정 검증을 완료한다.

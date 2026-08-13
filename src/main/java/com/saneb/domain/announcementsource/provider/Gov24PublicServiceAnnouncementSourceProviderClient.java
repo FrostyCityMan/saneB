@@ -100,7 +100,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
             nodes = selectFirstArray(root);
         }
         return nodes.stream()
-                .map(this::toItem)
+                .map(this::selectProviderItem)
                 .toList();
     }
 
@@ -134,7 +134,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
      *
      * @return 처리 결과
      */
-    private AnnouncementSourceProviderItem toItem(JsonNode node) {
+    AnnouncementSourceProviderItem selectProviderItem(JsonNode node) {
         String title = selectText(node, "서비스명", "svcNm", "serviceName", "title", "pblancNm");
         String agencyName = selectText(node, "소관기관명", "jurMnofNm", "agencyName", "author", "jrsdInsttNm");
         String providerNoticeId = selectText(node, "서비스ID", "svcId", "serviceId", "id", "pblancId");
@@ -143,7 +143,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
         String applicationMethodText = selectText(node, "신청방법", "신청방법명", "aplyMtdNm", "applicationMethod", "reqstMthPapersCn");
         String inquiryText = selectText(node, "문의처", "문의처명", "inqplCtadrList", "inquiry", "refrncNm");
         DateRange dateRange = selectDateRange(selectText(node, "신청기한", "신청기간", "aplyEndYmd", "reqstBeginEndDe"));
-        String rawPayloadJson = selectRawPayloadJson(node);
+        String rawPayloadJson = selectRawPayloadJsonWithoutAttachments(node);
         Map<String, String> fields = selectFieldMap(
                 "title", title,
                 "agencyName", agencyName,
@@ -170,7 +170,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
                 selectMissingFieldsJson(fields),
                 rawPayloadJson,
                 selectRawHash(PROVIDER_CODE, rawPayloadJson),
-                selectAttachments(node, List.of("첨부파일명", "fileName"), List.of("첨부파일URL", "fileUrl")),
+                List.of(),
                 null
         );
     }

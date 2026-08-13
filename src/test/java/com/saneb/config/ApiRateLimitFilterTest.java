@@ -90,6 +90,25 @@ class ApiRateLimitFilterTest {
     }
 
     /**
+     * V2 API도 기존 API와 같은 요청 제한을 적용하는지 확인합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
+    @Test
+    void v2ApiRequestUsesSameRateLimitContract() throws Exception {
+        ApiRateLimitFilter filter = new ApiRateLimitFilter(objectMapper, true, 1, 60, FIXED_CLOCK);
+
+        MockHttpServletResponse firstResponse = new MockHttpServletResponse();
+        filter.doFilter(apiRequest("/api/v2/announcements"), firstResponse, new MockFilterChain());
+
+        MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+        filter.doFilter(apiRequest("/api/v2/announcements"), secondResponse, new MockFilterChain());
+
+        assertThat(firstResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(secondResponse.getStatus()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
+    }
+
+    /**
      * 업무 처리를 수행합니다.
      *
      * @throws Exception 처리 중 예외가 발생한 경우

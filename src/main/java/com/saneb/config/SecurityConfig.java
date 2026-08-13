@@ -55,7 +55,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/v1/**", "/actuator/**")
+                        .ignoringRequestMatchers("/api/v1/**", "/api/v2/**", "/actuator/**")
                 )
                 .securityContext(securityContext -> securityContext
                         .securityContextRepository(securityContextRepository)

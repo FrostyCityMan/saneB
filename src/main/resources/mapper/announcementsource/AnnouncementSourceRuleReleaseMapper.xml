@@ -1,0 +1,766 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceRuleReleaseDao">
+
+    <resultMap id="RuleReleaseRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleReleaseRow">
+        <constructor>
+            <arg column="release_id" javaType="java.util.UUID"/>
+            <arg column="release_code" javaType="java.lang.String"/>
+            <arg column="version_no" javaType="java.lang.Integer"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="release_status_code" javaType="java.lang.String"/>
+            <arg column="rule_snapshot_hash" javaType="java.lang.String"/>
+            <arg column="combination_operator_code" javaType="java.lang.String"/>
+            <arg column="body_unavailable_action_code" javaType="java.lang.String"/>
+            <arg column="attachment_analysis_enabled" javaType="java.lang.Boolean"/>
+            <arg column="auto_activation_enabled" javaType="java.lang.Boolean"/>
+            <arg column="change_note" javaType="java.lang.String"/>
+            <arg column="rule_count" javaType="java.lang.Long"/>
+            <arg column="enabled_rule_count" javaType="java.lang.Long"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="activated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="retired_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="KeywordRuleRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceKeywordRuleRow">
+        <constructor>
+            <arg column="rule_id" javaType="java.util.UUID"/>
+            <arg column="release_id" javaType="java.util.UUID"/>
+            <arg column="release_status_code" javaType="java.lang.String"/>
+            <arg column="release_row_version" javaType="java.lang.Integer"/>
+            <arg column="rule_row_version" javaType="java.lang.Integer"/>
+            <arg column="group_id" javaType="java.util.UUID"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_name" javaType="java.lang.String"/>
+            <arg column="group_kind_code" javaType="java.lang.String"/>
+            <arg column="target_category_code" javaType="java.lang.String"/>
+            <arg column="support_type_code" javaType="java.lang.String"/>
+            <arg column="rule_code" javaType="java.lang.String"/>
+            <arg column="strength_code" javaType="java.lang.String"/>
+            <arg column="rule_enabled" javaType="java.lang.Boolean"/>
+            <arg column="sort_order" javaType="java.lang.Integer"/>
+            <arg column="canonical_keyword" javaType="java.lang.String"/>
+            <arg column="match_mode_code" javaType="java.lang.String"/>
+            <arg column="is_discovery_term" javaType="java.lang.Boolean"/>
+            <arg column="discovery_order" javaType="java.lang.Integer"/>
+            <arg column="synonyms_text" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="RuleGroupRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleGroupRow">
+        <constructor>
+            <arg column="group_id" javaType="java.util.UUID"/>
+            <arg column="release_id" javaType="java.util.UUID"/>
+            <arg column="release_status_code" javaType="java.lang.String"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_name" javaType="java.lang.String"/>
+            <arg column="group_kind_code" javaType="java.lang.String"/>
+            <arg column="target_category_code" javaType="java.lang.String"/>
+            <arg column="support_type_code" javaType="java.lang.String"/>
+            <arg column="group_enabled" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="RuleTermRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleTermRow">
+        <constructor>
+            <arg column="release_id" javaType="java.util.UUID"/>
+            <arg column="release_code" javaType="java.lang.String"/>
+            <arg column="release_status_code" javaType="java.lang.String"/>
+            <arg column="release_version_no" javaType="java.lang.Integer"/>
+            <arg column="release_row_version" javaType="java.lang.Integer"/>
+            <arg column="group_id" javaType="java.util.UUID"/>
+            <arg column="group_code" javaType="java.lang.String"/>
+            <arg column="group_kind_code" javaType="java.lang.String"/>
+            <arg column="title_action_code" javaType="java.lang.String"/>
+            <arg column="body_action_code" javaType="java.lang.String"/>
+            <arg column="group_sort_order" javaType="java.lang.Integer"/>
+            <arg column="group_enabled" javaType="java.lang.Boolean"/>
+            <arg column="target_category_code" javaType="java.lang.String"/>
+            <arg column="support_type_code" javaType="java.lang.String"/>
+            <arg column="rule_id" javaType="java.util.UUID"/>
+            <arg column="rule_code" javaType="java.lang.String"/>
+            <arg column="strength_code" javaType="java.lang.String"/>
+            <arg column="rule_sort_order" javaType="java.lang.Integer"/>
+            <arg column="rule_row_version" javaType="java.lang.Integer"/>
+            <arg column="rule_enabled" javaType="java.lang.Boolean"/>
+            <arg column="term_id" javaType="java.util.UUID"/>
+            <arg column="term_type_code" javaType="java.lang.String"/>
+            <arg column="term_text" javaType="java.lang.String"/>
+            <arg column="normalized_term_text" javaType="java.lang.String"/>
+            <arg column="match_mode_code" javaType="java.lang.String"/>
+            <arg column="is_discovery_term" javaType="java.lang.Boolean"/>
+            <arg column="discovery_order" javaType="java.lang.Integer"/>
+            <arg column="is_classification_term" javaType="java.lang.Boolean"/>
+            <arg column="term_enabled" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="RuleReleaseColumns">
+        release.id AS release_id,
+        release.release_code,
+        release.version_no,
+        release.row_version,
+        release.release_status_code,
+        release.rule_snapshot_hash,
+        release.combination_operator_code,
+        release.body_unavailable_action_code,
+        release.attachment_analysis_enabled,
+        release.auto_activation_enabled,
+        release.change_note,
+        (
+            SELECT count(1)
+            FROM announcement_source_classification_keyword_rules counted_rule
+            INNER JOIN announcement_source_classification_rule_groups counted_group
+                    ON counted_group.id = counted_rule.group_id
+            WHERE counted_group.release_id = release.id
+        ) AS rule_count,
+        (
+            SELECT count(1)
+            FROM announcement_source_classification_keyword_rules enabled_rule
+            INNER JOIN announcement_source_classification_rule_groups enabled_group
+                    ON enabled_group.id = enabled_rule.group_id
+            WHERE enabled_group.release_id = release.id
+              AND enabled_group.is_enabled = TRUE
+              AND enabled_rule.is_enabled = TRUE
+        ) AS enabled_rule_count,
+        release.created_at,
+        release.activated_at,
+        release.retired_at
+    </sql>
+
+    <sql id="KeywordRuleColumns">
+        rule.id AS rule_id,
+        release.id AS release_id,
+        release.release_status_code,
+        release.row_version AS release_row_version,
+        rule.row_version AS rule_row_version,
+        rule_group.id AS group_id,
+        rule_group.group_code,
+        rule_group.group_name,
+        rule_group.group_kind_code,
+        target_category.category_code AS target_category_code,
+        support_type.support_type_code,
+        rule.rule_code,
+        rule.strength_code,
+        rule.is_enabled AS rule_enabled,
+        rule.sort_order,
+        canonical.term_text AS canonical_keyword,
+        canonical.match_mode_code,
+        canonical.is_discovery_term,
+        canonical.discovery_order,
+        coalesce((
+            SELECT string_agg(synonym.term_text, chr(31) ORDER BY synonym.term_text)
+            FROM announcement_source_classification_keyword_terms synonym
+            WHERE synonym.keyword_rule_id = rule.id
+              AND synonym.term_type_code = 'SYNONYM'
+        ), '') AS synonyms_text
+    </sql>
+
+    <select id="selectRuleReleaseList" resultMap="RuleReleaseRowMap">
+        -- List rule releases without loading keyword content.
+        SELECT
+            <include refid="RuleReleaseColumns"/>
+        FROM announcement_source_classification_rule_releases release
+        <where>
+            <if test="releaseStatusCode != null">
+                release.release_status_code = #{releaseStatusCode}
+            </if>
+        </where>
+        ORDER BY release.version_no DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectRuleReleaseCount" resultType="long">
+        -- Count releases for PageResponse.
+        SELECT count(1)
+        FROM announcement_source_classification_rule_releases release
+        <where>
+            <if test="releaseStatusCode != null">
+                release.release_status_code = #{releaseStatusCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRuleReleaseDetails" resultMap="RuleReleaseRowMap">
+        -- Select one release and its rule counts.
+        SELECT
+            <include refid="RuleReleaseColumns"/>
+        FROM announcement_source_classification_rule_releases release
+        WHERE release.id = #{releaseId}
+    </select>
+
+    <select id="selectRuleReleaseDetailsForUpdate" resultMap="RuleReleaseRowMap">
+        -- Serialize mutations to one release before checking its row version.
+        SELECT
+            <include refid="RuleReleaseColumns"/>
+        FROM announcement_source_classification_rule_releases release
+        WHERE release.id = #{releaseId}
+        FOR UPDATE OF release
+    </select>
+
+    <select id="selectActiveRuleReleaseDetailsForUpdate" resultMap="RuleReleaseRowMap">
+        -- Serialize ACTIVE cloning and publication against the one ACTIVE release.
+        SELECT
+            <include refid="RuleReleaseColumns"/>
+        FROM announcement_source_classification_rule_releases release
+        WHERE release.release_status_code = 'ACTIVE'
+        FOR UPDATE OF release
+    </select>
+
+    <select id="selectNextRuleReleaseVersionNo" resultType="int">
+        -- Allocate a public release version while the ACTIVE release row is locked.
+        SELECT coalesce(max(release.version_no), 0) + 1
+        FROM announcement_source_classification_rule_releases release
+    </select>
+
+    <insert id="insertClonedRuleRelease">
+        -- Clone fixed policy values into a non-active DRAFT release.
+        INSERT INTO announcement_source_classification_rule_releases (
+            id,
+            release_code,
+            version_no,
+            row_version,
+            release_status_code,
+            rule_snapshot_hash,
+            combination_operator_code,
+            body_unavailable_action_code,
+            attachment_analysis_enabled,
+            auto_activation_enabled,
+            change_note,
+            created_by,
+            created_at
+        )
+        SELECT
+            #{releaseId},
+            #{releaseCode},
+            #{versionNo},
+            0,
+            'DRAFT',
+            NULL,
+            source_release.combination_operator_code,
+            source_release.body_unavailable_action_code,
+            FALSE,
+            FALSE,
+            #{changeReason},
+            #{actorUserId},
+            now()
+        FROM announcement_source_classification_rule_releases source_release
+        WHERE source_release.id = #{sourceReleaseId}
+          AND source_release.release_status_code = 'ACTIVE'
+    </insert>
+
+    <insert id="insertClonedRuleGroupList">
+        -- Clone group policy while generating release-local group identifiers.
+        INSERT INTO announcement_source_classification_rule_groups (
+            id,
+            release_id,
+            group_code,
+            group_name,
+            group_kind_code,
+            target_category_id,
+            support_type_id,
+            title_action_code,
+            body_action_code,
+            sort_order,
+            is_enabled,
+            created_at,
+            updated_at
+        )
+        SELECT
+            md5(CAST(#{releaseId} AS text) || ':group:' || source_group.id::text)::uuid,
+            #{releaseId},
+            source_group.group_code,
+            source_group.group_name,
+            source_group.group_kind_code,
+            source_group.target_category_id,
+            source_group.support_type_id,
+            source_group.title_action_code,
+            source_group.body_action_code,
+            source_group.sort_order,
+            source_group.is_enabled,
+            now(),
+            now()
+        FROM announcement_source_classification_rule_groups source_group
+        WHERE source_group.release_id = #{sourceReleaseId}
+        ORDER BY source_group.sort_order, source_group.group_code
+    </insert>
+
+    <insert id="insertClonedKeywordRuleList">
+        -- Clone rules with row_version reset for the new DRAFT.
+        INSERT INTO announcement_source_classification_keyword_rules (
+            id,
+            group_id,
+            rule_code,
+            strength_code,
+            is_enabled,
+            sort_order,
+            row_version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        )
+        SELECT
+            md5(CAST(#{releaseId} AS text) || ':rule:' || source_rule.id::text)::uuid,
+            md5(CAST(#{releaseId} AS text) || ':group:' || source_group.id::text)::uuid,
+            source_rule.rule_code,
+            source_rule.strength_code,
+            source_rule.is_enabled,
+            source_rule.sort_order,
+            0,
+            #{actorUserId},
+            now(),
+            #{actorUserId},
+            now()
+        FROM announcement_source_classification_keyword_rules source_rule
+        INNER JOIN announcement_source_classification_rule_groups source_group
+                ON source_group.id = source_rule.group_id
+        WHERE source_group.release_id = #{sourceReleaseId}
+        ORDER BY source_group.sort_order, source_rule.sort_order, source_rule.rule_code
+    </insert>
+
+    <insert id="insertClonedKeywordTermList">
+        -- Clone canonical and synonym terms without changing their enabled state.
+        INSERT INTO announcement_source_classification_keyword_terms (
+            id,
+            keyword_rule_id,
+            group_id,
+            term_type_code,
+            term_text,
+            normalized_term_text,
+            match_mode_code,
+            is_discovery_term,
+            discovery_order,
+            is_classification_term,
+            is_enabled,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        )
+        SELECT
+            md5(CAST(#{releaseId} AS text) || ':term:' || source_term.id::text)::uuid,
+            md5(CAST(#{releaseId} AS text) || ':rule:' || source_rule.id::text)::uuid,
+            md5(CAST(#{releaseId} AS text) || ':group:' || source_group.id::text)::uuid,
+            source_term.term_type_code,
+            source_term.term_text,
+            source_term.normalized_term_text,
+            source_term.match_mode_code,
+            source_term.is_discovery_term,
+            source_term.discovery_order,
+            source_term.is_classification_term,
+            source_term.is_enabled,
+            #{actorUserId},
+            now(),
+            #{actorUserId},
+            now()
+        FROM announcement_source_classification_keyword_terms source_term
+        INNER JOIN announcement_source_classification_keyword_rules source_rule
+                ON source_rule.id = source_term.keyword_rule_id
+        INNER JOIN announcement_source_classification_rule_groups source_group
+                ON source_group.id = source_rule.group_id
+               AND source_group.id = source_term.group_id
+        WHERE source_group.release_id = #{sourceReleaseId}
+        ORDER BY source_group.sort_order, source_rule.sort_order, source_term.term_type_code, source_term.id
+    </insert>
+
+    <select id="selectKeywordRuleList" resultMap="KeywordRuleRowMap">
+        -- List keyword rules with canonical term and ordered synonyms.
+        SELECT
+            <include refid="KeywordRuleColumns"/>
+        FROM announcement_source_classification_keyword_rules rule
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.id = rule.group_id
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = rule_group.release_id
+        INNER JOIN announcement_source_classification_keyword_terms canonical
+                ON canonical.keyword_rule_id = rule.id
+               AND canonical.group_id = rule_group.id
+               AND canonical.term_type_code = 'CANONICAL'
+        LEFT JOIN announcement_target_categories target_category
+               ON target_category.id = rule_group.target_category_id
+        LEFT JOIN announcement_support_types support_type
+               ON support_type.id = rule_group.support_type_id
+        WHERE release.id = #{releaseId}
+        <if test="groupKindCode != null">
+            AND rule_group.group_kind_code = #{groupKindCode}
+        </if>
+        <if test="groupCode != null">
+            AND rule_group.group_code = #{groupCode}
+        </if>
+        <if test="strengthCode != null">
+            AND rule.strength_code = #{strengthCode}
+        </if>
+        <if test="matchModeCode != null">
+            AND EXISTS (
+                SELECT 1
+                FROM announcement_source_classification_keyword_terms mode_term
+                WHERE mode_term.keyword_rule_id = rule.id
+                  AND mode_term.match_mode_code = #{matchModeCode}
+            )
+        </if>
+        <if test="enabled != null">
+            AND rule.is_enabled = #{enabled}
+        </if>
+        <if test="keyword != null">
+            AND EXISTS (
+                SELECT 1
+                FROM announcement_source_classification_keyword_terms keyword_term
+                WHERE keyword_term.keyword_rule_id = rule.id
+                  AND keyword_term.term_text ILIKE '%' || #{keyword} || '%'
+            )
+        </if>
+        ORDER BY rule_group.sort_order, rule.sort_order, rule.rule_code
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectKeywordRuleCount" resultType="long">
+        -- Count keyword rules for PageResponse with the same filters as the list.
+        SELECT count(1)
+        FROM announcement_source_classification_keyword_rules rule
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.id = rule.group_id
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = rule_group.release_id
+        WHERE release.id = #{releaseId}
+        <if test="groupKindCode != null">
+            AND rule_group.group_kind_code = #{groupKindCode}
+        </if>
+        <if test="groupCode != null">
+            AND rule_group.group_code = #{groupCode}
+        </if>
+        <if test="strengthCode != null">
+            AND rule.strength_code = #{strengthCode}
+        </if>
+        <if test="matchModeCode != null">
+            AND EXISTS (
+                SELECT 1
+                FROM announcement_source_classification_keyword_terms mode_term
+                WHERE mode_term.keyword_rule_id = rule.id
+                  AND mode_term.match_mode_code = #{matchModeCode}
+            )
+        </if>
+        <if test="enabled != null">
+            AND rule.is_enabled = #{enabled}
+        </if>
+        <if test="keyword != null">
+            AND EXISTS (
+                SELECT 1
+                FROM announcement_source_classification_keyword_terms keyword_term
+                WHERE keyword_term.keyword_rule_id = rule.id
+                  AND keyword_term.term_text ILIKE '%' || #{keyword} || '%'
+            )
+        </if>
+    </select>
+
+    <select id="selectKeywordRuleDetails" resultMap="KeywordRuleRowMap">
+        -- Select one keyword rule with canonical term and synonyms.
+        SELECT
+            <include refid="KeywordRuleColumns"/>
+        FROM announcement_source_classification_keyword_rules rule
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.id = rule.group_id
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = rule_group.release_id
+        INNER JOIN announcement_source_classification_keyword_terms canonical
+                ON canonical.keyword_rule_id = rule.id
+               AND canonical.group_id = rule_group.id
+               AND canonical.term_type_code = 'CANONICAL'
+        LEFT JOIN announcement_target_categories target_category
+               ON target_category.id = rule_group.target_category_id
+        LEFT JOIN announcement_support_types support_type
+               ON support_type.id = rule_group.support_type_id
+        WHERE release.id = #{releaseId}
+          AND rule.id = #{ruleId}
+    </select>
+
+    <select id="selectKeywordRuleDetailsForUpdate" resultMap="KeywordRuleRowMap">
+        -- Lock one DRAFT rule after the release row has been locked.
+        SELECT
+            <include refid="KeywordRuleColumns"/>
+        FROM announcement_source_classification_keyword_rules rule
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.id = rule.group_id
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = rule_group.release_id
+        INNER JOIN announcement_source_classification_keyword_terms canonical
+                ON canonical.keyword_rule_id = rule.id
+               AND canonical.group_id = rule_group.id
+               AND canonical.term_type_code = 'CANONICAL'
+        LEFT JOIN announcement_target_categories target_category
+               ON target_category.id = rule_group.target_category_id
+        LEFT JOIN announcement_support_types support_type
+               ON support_type.id = rule_group.support_type_id
+        WHERE release.id = #{releaseId}
+          AND rule.id = #{ruleId}
+        FOR UPDATE OF rule
+    </select>
+
+    <select id="selectRuleGroupDetails" resultMap="RuleGroupRowMap">
+        -- Resolve a group only inside the requested release.
+        SELECT
+            rule_group.id AS group_id,
+            release.id AS release_id,
+            release.release_status_code,
+            rule_group.group_code,
+            rule_group.group_name,
+            rule_group.group_kind_code,
+            target_category.category_code AS target_category_code,
+            support_type.support_type_code,
+            rule_group.is_enabled AS group_enabled
+        FROM announcement_source_classification_rule_groups rule_group
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = rule_group.release_id
+        LEFT JOIN announcement_target_categories target_category
+               ON target_category.id = rule_group.target_category_id
+        LEFT JOIN announcement_support_types support_type
+               ON support_type.id = rule_group.support_type_id
+        WHERE release.id = #{releaseId}
+          AND rule_group.group_code = #{groupCode}
+    </select>
+
+    <select id="selectRuleTermList" resultMap="RuleTermRowMap">
+        -- Load a canonical order for hashing, preview, Golden QA, and publication comparison.
+        SELECT
+            release.id AS release_id,
+            release.release_code,
+            release.release_status_code,
+            release.version_no AS release_version_no,
+            release.row_version AS release_row_version,
+            rule_group.id AS group_id,
+            rule_group.group_code,
+            rule_group.group_kind_code,
+            rule_group.title_action_code,
+            rule_group.body_action_code,
+            rule_group.sort_order AS group_sort_order,
+            rule_group.is_enabled AS group_enabled,
+            target_category.category_code AS target_category_code,
+            support_type.support_type_code,
+            rule.id AS rule_id,
+            rule.rule_code,
+            rule.strength_code,
+            rule.sort_order AS rule_sort_order,
+            rule.row_version AS rule_row_version,
+            rule.is_enabled AS rule_enabled,
+            term.id AS term_id,
+            term.term_type_code,
+            term.term_text,
+            term.normalized_term_text,
+            term.match_mode_code,
+            term.is_discovery_term,
+            term.discovery_order,
+            term.is_classification_term,
+            term.is_enabled AS term_enabled
+        FROM announcement_source_classification_rule_releases release
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.release_id = release.id
+        INNER JOIN announcement_source_classification_keyword_rules rule
+                ON rule.group_id = rule_group.id
+        INNER JOIN announcement_source_classification_keyword_terms term
+                ON term.keyword_rule_id = rule.id
+               AND term.group_id = rule_group.id
+        LEFT JOIN announcement_target_categories target_category
+               ON target_category.id = rule_group.target_category_id
+        LEFT JOIN announcement_support_types support_type
+               ON support_type.id = rule_group.support_type_id
+        WHERE release.id = #{releaseId}
+        ORDER BY
+            rule_group.sort_order,
+            rule_group.group_code,
+            rule.sort_order,
+            rule.rule_code,
+            term.term_type_code,
+            term.normalized_term_text,
+            term.id
+    </select>
+
+    <select id="selectDuplicateTermCount" resultType="long">
+        -- Reject normalized duplicates inside one group and match mode.
+        SELECT count(1)
+        FROM announcement_source_classification_keyword_terms term
+        WHERE term.group_id = #{groupId}
+          AND term.match_mode_code = #{matchModeCode}
+          AND term.normalized_term_text IN
+          <foreach collection="normalizedTermList" item="normalizedTerm" open="(" separator="," close=")">
+              #{normalizedTerm}
+          </foreach>
+        <if test="excludedRuleId != null">
+            AND term.keyword_rule_id &lt;&gt; #{excludedRuleId}
+        </if>
+    </select>
+
+    <insert id="insertKeywordRule">
+        -- Insert one rule into a locked DRAFT release group.
+        INSERT INTO announcement_source_classification_keyword_rules (
+            id,
+            group_id,
+            rule_code,
+            strength_code,
+            is_enabled,
+            sort_order,
+            row_version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{ruleId},
+            #{groupId},
+            #{ruleCode},
+            #{strengthCode},
+            TRUE,
+            #{sortOrder},
+            0,
+            #{actorUserId},
+            now(),
+            #{actorUserId},
+            now()
+        )
+    </insert>
+
+    <insert id="insertKeywordTerm">
+        -- Insert one canonical term or explicit synonym without regular expressions.
+        INSERT INTO announcement_source_classification_keyword_terms (
+            id,
+            keyword_rule_id,
+            group_id,
+            term_type_code,
+            term_text,
+            normalized_term_text,
+            match_mode_code,
+            is_discovery_term,
+            discovery_order,
+            is_classification_term,
+            is_enabled,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{termId},
+            #{ruleId},
+            #{groupId},
+            #{termTypeCode},
+            #{termText},
+            #{normalizedTermText},
+            #{matchModeCode},
+            #{discoveryTerm},
+            #{discoveryOrder},
+            #{classificationTerm},
+            TRUE,
+            #{actorUserId},
+            now(),
+            #{actorUserId},
+            now()
+        )
+    </insert>
+
+    <update id="updateKeywordRule">
+        -- Update a DRAFT rule only when the client row version is current.
+        UPDATE announcement_source_classification_keyword_rules
+        SET group_id = #{groupId},
+            strength_code = #{strengthCode},
+            sort_order = #{sortOrder},
+            row_version = row_version + 1,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{ruleId}
+          AND row_version = #{expectedVersion}
+    </update>
+
+    <delete id="deleteKeywordTermList">
+        -- Replace DRAFT terms only after the owning rule passed optimistic locking.
+        DELETE FROM announcement_source_classification_keyword_terms
+        WHERE keyword_rule_id = #{ruleId}
+    </delete>
+
+    <update id="updateKeywordRuleStatus">
+        -- Disable or re-enable a DRAFT rule without deleting its history.
+        UPDATE announcement_source_classification_keyword_rules
+        SET is_enabled = #{enabled},
+            row_version = row_version + 1,
+            updated_by = #{actorUserId},
+            updated_at = now()
+        WHERE id = #{ruleId}
+          AND row_version = #{expectedVersion}
+    </update>
+
+    <delete id="deleteKeywordRule">
+        -- Physically delete only a service-validated, never-published DRAFT rule.
+        DELETE FROM announcement_source_classification_keyword_rules
+        WHERE id = #{ruleId}
+          AND row_version = #{expectedVersion}
+    </delete>
+
+    <update id="updateRuleReleaseRowVersion">
+        -- Mark a locked DRAFT release changed after a child mutation.
+        UPDATE announcement_source_classification_rule_releases
+        SET row_version = row_version + 1,
+            change_note = #{changeReason}
+        WHERE id = #{releaseId}
+          AND release_status_code = 'DRAFT'
+    </update>
+
+    <update id="updateRuleReleaseRowVersionExpected">
+        -- Reserve a DRAFT release mutation with release-level optimistic locking.
+        UPDATE announcement_source_classification_rule_releases
+        SET row_version = row_version + 1,
+            change_note = #{changeReason}
+        WHERE id = #{releaseId}
+          AND release_status_code = 'DRAFT'
+          AND row_version = #{expectedVersion}
+    </update>
+
+    <update id="updateActiveRuleReleaseRetired">
+        -- Retire the previous ACTIVE before publishing the candidate in the same transaction.
+        UPDATE announcement_source_classification_rule_releases
+        SET release_status_code = 'RETIRED',
+            row_version = row_version + 1,
+            change_note = #{changeReason},
+            retired_at = now()
+        WHERE release_status_code = 'ACTIVE'
+          AND id &lt;&gt; #{excludedReleaseId}
+    </update>
+
+    <update id="updateRuleReleaseActive">
+        -- Publish exactly the Golden-validated DRAFT version.
+        UPDATE announcement_source_classification_rule_releases
+        SET release_status_code = 'ACTIVE',
+            row_version = row_version + 1,
+            rule_snapshot_hash = #{ruleSnapshotHash},
+            change_note = #{changeReason},
+            activated_by = #{actorUserId},
+            activated_at = now()
+        WHERE id = #{releaseId}
+          AND release_status_code = 'DRAFT'
+          AND row_version = #{expectedVersion}
+    </update>
+
+    <insert id="insertAuditLog">
+        -- Record release and keyword mutations without source content or secrets.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            action_code,
+            resource_type,
+            resource_id,
+            result_code,
+            metadata_json
+        ) VALUES (
+            #{actorUserId},
+            #{actionCode},
+            #{resourceType},
+            #{resourceId},
+            #{resultCode},
+            CAST(#{metadataJson} AS jsonb)
+        )
+    </insert>
+</mapper>

@@ -72,6 +72,34 @@ class ApiCsrfHeaderFilterTest {
     }
 
     /**
+     * V2 API도 브라우저 세션에서 동일한 raw cookie-header 검증을 적용하는지 확인합니다.
+     *
+     * @throws Exception 처리 중 예외가 발생한 경우
+     */
+    @Test
+    void authenticatedBrowserV2ApiMutationUsesSameCsrfHeaderContract() throws Exception {
+        MockHttpServletRequest request = apiPost(
+                "/api/v2/announcements",
+                new Cookie("JSESSIONID", "session-id"),
+                new Cookie("XSRF-TOKEN", "csrf-token")
+        );
+        MockHttpServletResponse missingHeaderResponse = new MockHttpServletResponse();
+        filter.doFilter(request, missingHeaderResponse, new MockFilterChain());
+
+        MockHttpServletRequest matchingRequest = apiPost(
+                "/api/v2/announcements",
+                new Cookie("JSESSIONID", "session-id"),
+                new Cookie("XSRF-TOKEN", "csrf-token")
+        );
+        matchingRequest.addHeader("X-XSRF-TOKEN", "csrf-token");
+        MockHttpServletResponse matchingResponse = new MockHttpServletResponse();
+        filter.doFilter(matchingRequest, matchingResponse, new MockFilterChain());
+
+        assertThat(missingHeaderResponse.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(matchingResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    /**
      * 업무 처리를 수행합니다.
      *
      * @throws Exception 처리 중 예외가 발생한 경우

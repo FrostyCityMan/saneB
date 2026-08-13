@@ -265,11 +265,11 @@ public class LocalGovernmentNoticeServiceImpl implements LocalGovernmentNoticeSe
             throw invalid("운영 공고와 연결된 수집 원문이 있어 QA 데이터를 정리할 수 없습니다.");
         }
 
+        int resetSourceCount = localGovernmentNoticeDao.resetQaSourceCollectionState();
         int deletedScheduleExecutionCount = localGovernmentNoticeDao.deleteQaScheduleExecutionList();
         int deletedRunCount = localGovernmentNoticeDao.deleteQaCollectionRunList();
         int deletedRequestCount = localGovernmentNoticeDao.deleteQaCollectionRequestList();
         int deletedSnapshotCount = localGovernmentNoticeDao.deleteQaSnapshotList();
-        int resetSourceCount = localGovernmentNoticeDao.resetQaSourceCollectionState();
         LocalGovernmentNoticeQaCleanupResponse response = new LocalGovernmentNoticeQaCleanupResponse(
                 deletedScheduleExecutionCount,
                 deletedRunCount,

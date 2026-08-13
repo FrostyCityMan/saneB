@@ -734,22 +734,27 @@
         FROM announcement_source_links asl
         INNER JOIN announcement_source_snapshots ass ON ass.id = asl.source_id
         WHERE ass.provider_code = 'LOCAL_GOV_NOTICE'
+          AND ass.data_purpose_code = 'QA'
     </select>
 
     <delete id="deleteQaScheduleExecutionList">
-        -- Delete local-government schedule execution history before request and run history.
+        -- Delete only schedule executions linked to explicit QA requests or QA runs.
         DELETE FROM announcement_source_schedule_executions asse
         WHERE EXISTS (
-            SELECT 1
-            FROM announcement_source_collection_schedules ascs
-            WHERE ascs.id = asse.schedule_id
-              AND ascs.provider_code = 'LOCAL_GOV_NOTICE'
-        )
-           OR EXISTS (
             SELECT 1
             FROM announcement_source_collection_requests ascr
             WHERE ascr.id = asse.request_id
               AND ascr.provider_code = 'LOCAL_GOV_NOTICE'
+              AND ascr.data_purpose_code = 'QA'
+        )
+           OR EXISTS (
+            SELECT 1
+            FROM announcement_source_collection_runs ascrun
+            INNER JOIN announcement_source_collection_requests ascr
+                ON ascr.id = ascrun.request_id
+            WHERE ascrun.id = asse.run_id
+              AND ascr.provider_code = 'LOCAL_GOV_NOTICE'
+              AND ascr.data_purpose_code = 'QA'
         )
     </delete>
 
@@ -761,6 +766,7 @@
             FROM announcement_source_collection_requests ascr
             WHERE ascr.id = ascrun.request_id
               AND ascr.provider_code = 'LOCAL_GOV_NOTICE'
+              AND ascr.data_purpose_code = 'QA'
         )
     </delete>
 
@@ -768,17 +774,19 @@
         -- Delete local-government collection approval requests after their runs are removed.
         DELETE FROM announcement_source_collection_requests
         WHERE provider_code = 'LOCAL_GOV_NOTICE'
+          AND data_purpose_code = 'QA'
     </delete>
 
     <delete id="deleteQaSnapshotList">
         -- Delete unlinked local-government source snapshots; dependent review data cascades.
         DELETE FROM announcement_source_snapshots
         WHERE provider_code = 'LOCAL_GOV_NOTICE'
+          AND data_purpose_code = 'QA'
     </delete>
 
     <update id="resetQaSourceCollectionState">
-        -- Reset collection runtime metadata while preserving URL registry and verified parser settings.
-        UPDATE local_government_notice_sources
+        -- Reset only QA-only sources; never erase runtime evidence backed by production rows.
+        UPDATE local_government_notice_sources lgns
         SET collection_status_code = CASE WHEN is_enabled THEN 'READY' ELSE 'DISABLED' END,
             last_collected_at = NULL,
             last_success_at = NULL,
@@ -789,6 +797,40 @@
             last_modified_value = NULL,
             last_content_fingerprint = NULL,
             updated_at = now()
-        WHERE deleted_at IS NULL
+        WHERE lgns.deleted_at IS NULL
+          AND (
+              EXISTS (
+                  SELECT 1
+                  FROM announcement_source_snapshots qa_snapshot
+                  WHERE qa_snapshot.local_government_source_id = lgns.id
+                    AND qa_snapshot.data_purpose_code = 'QA'
+              )
+              OR EXISTS (
+                  SELECT 1
+                  FROM announcement_source_collection_source_results qa_result
+                  INNER JOIN announcement_source_collection_runs qa_run
+                      ON qa_run.id = qa_result.run_id
+                  INNER JOIN announcement_source_collection_requests qa_request
+                      ON qa_request.id = qa_run.request_id
+                  WHERE qa_result.local_government_source_id = lgns.id
+                    AND qa_request.data_purpose_code = 'QA'
+              )
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM announcement_source_snapshots production_snapshot
+              WHERE production_snapshot.local_government_source_id = lgns.id
+                AND production_snapshot.data_purpose_code = 'PRODUCTION'
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM announcement_source_collection_source_results production_result
+              INNER JOIN announcement_source_collection_runs production_run
+                  ON production_run.id = production_result.run_id
+              INNER JOIN announcement_source_collection_requests production_request
+                  ON production_request.id = production_run.request_id
+              WHERE production_result.local_government_source_id = lgns.id
+                AND production_request.data_purpose_code = 'PRODUCTION'
+          )
     </update>
 </mapper>

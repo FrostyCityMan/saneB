@@ -25,6 +25,7 @@ env:
 jobs:
   deploy:
     name: Build and deploy
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip deploy]') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -55,12 +56,12 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Build boot jar
+      - name: Run tests and build boot jar
         shell: bash
         run: |
           set -euo pipefail
           chmod +x ./gradlew
-          ./gradlew clean bootJar --no-daemon --console=plain
+          ./gradlew clean test bootJar --no-daemon --console=plain --max-workers=1
 
       - name: Build CodeDeploy bundle
         shell: bash
@@ -78,7 +79,7 @@ jobs:
 
           cp "${jar_file}" "${bundle_dir}/app.jar"
           cp appspec.yml "${bundle_dir}/appspec.yml"
-          cp scripts/start.sh scripts/stop.sh scripts/validate.sh "${bundle_dir}/scripts/"
+          cp scripts/backup.sh scripts/start.sh scripts/stop.sh scripts/validate.sh "${bundle_dir}/scripts/"
           cp scripts/operations/*.sh scripts/operations/*.sql "${bundle_dir}/scripts/operations/"
           chmod +x "${bundle_dir}/scripts/"*.sh
           chmod +x "${bundle_dir}/scripts/operations/"*.sh

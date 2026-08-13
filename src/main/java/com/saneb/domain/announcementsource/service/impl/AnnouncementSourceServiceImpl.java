@@ -18,6 +18,7 @@ import com.saneb.common.response.PageResponse;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementSaveCommand;
+import com.saneb.domain.announcement.vo.AnnouncementTargetCategoryAssignmentCommand;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceAttachmentResponse;
@@ -37,14 +38,20 @@ import com.saneb.domain.announcementsource.dto.AnnouncementSourceSummaryResponse
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceSnapshotDuplicateResponse;
 import com.saneb.domain.announcementsource.localgov.dto.LocalGovernmentNoticeCollectionResultResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceToAnnouncementRequest;
-import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderAttachment;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderBatch;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderClient;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem;
+import com.saneb.domain.announcementsource.provider.content.ProviderContentClient;
+import com.saneb.domain.announcementsource.provider.content.ProviderContentRequest;
+import com.saneb.domain.announcementsource.provider.content.ProviderContentResult;
+import com.saneb.domain.announcementsource.provider.content.ProviderContentCodes.StatusCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode;
+import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow;
 import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceHighlightService;
+import com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationCoordinator;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceService;
-import com.saneb.domain.announcementsource.vo.AnnouncementSourceAttachmentCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionApprovalCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestCommand;
@@ -54,21 +61,27 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunCom
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunItemCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunSearchCondition;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationTagSummaryRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateDecisionCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkedAnnouncementRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceReviewHistoryCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceReviewStatusCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSearchCondition;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotDuplicateDecisionCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRefreshCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -78,10 +91,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class AnnouncementSourceServiceImpl implements AnnouncementSourceService {
@@ -108,7 +124,10 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private final LocalGovernmentNoticeDao localGovernmentNoticeDao;
     private final AnnouncementDao announcementDao;
     private final AnnouncementSourceHighlightService highlightService;
+    private final AnnouncementSourceClassificationCoordinator classificationCoordinator;
+    private final TransactionTemplate itemTransactionTemplate;
     private final Map<String, AnnouncementSourceProviderClient> providerClients;
+    private final Map<String, ProviderContentClient> providerContentClients;
     private final AnnouncementSourceIdentityNormalizer identityNormalizer = new AnnouncementSourceIdentityNormalizer();
 
     /**
@@ -131,12 +150,39 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceHighlightService highlightService,
             List<AnnouncementSourceProviderClient> providerClients
     ) {
+        this(
+                announcementSourceDao,
+                localGovernmentNoticeDao,
+                announcementDao,
+                highlightService,
+                providerClients,
+                List.of(),
+                null,
+                null
+        );
+    }
+
+    @Autowired
+    public AnnouncementSourceServiceImpl(
+            AnnouncementSourceDao announcementSourceDao,
+            LocalGovernmentNoticeDao localGovernmentNoticeDao,
+            AnnouncementDao announcementDao,
+            AnnouncementSourceHighlightService highlightService,
+            List<AnnouncementSourceProviderClient> providerClients,
+            List<ProviderContentClient> providerContentClients,
+            AnnouncementSourceClassificationCoordinator classificationCoordinator,
+            PlatformTransactionManager transactionManager
+    ) {
         this.announcementSourceDao = announcementSourceDao;
         this.localGovernmentNoticeDao = localGovernmentNoticeDao;
         this.announcementDao = announcementDao;
         this.highlightService = highlightService;
+        this.classificationCoordinator = classificationCoordinator;
+        this.itemTransactionTemplate = transactionManager == null ? null : new TransactionTemplate(transactionManager);
         this.providerClients = providerClients.stream()
                 .collect(Collectors.toUnmodifiableMap(AnnouncementSourceProviderClient::selectProviderCode, Function.identity()));
+        this.providerContentClients = providerContentClients.stream()
+                .collect(Collectors.toUnmodifiableMap(ProviderContentClient::selectProviderCode, Function.identity()));
     }
 
     /**
@@ -373,7 +419,6 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      * @return 처리 결과
      */
     @Override
-    @Transactional
     public AnnouncementSourceCollectionRunResponse insertCollectionRun(UUID requestId) {
         AnnouncementSourceCollectionRequestRow request = selectCollectionRequestRow(requestId);
         if (!"APPROVED".equals(request.requestStatusCode())) {
@@ -397,18 +442,43 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 0,
                 null
         ));
-
         RunCounter counter = new RunCounter();
         String errorMessage = null;
         try {
-            AnnouncementSourceProviderBatch batch = "LOCAL_GOV_NOTICE".equals(request.providerCode())
-                    ? providerClient.selectSourceBatch(request, runId)
-                    : AnnouncementSourceProviderBatch.success(providerClient.selectSourceItemList(request));
+            AnnouncementSourceClassificationCoordinator.RunContext classificationRunContext =
+                    classificationCoordinator == null
+                            ? AnnouncementSourceClassificationCoordinator.RunContext.disabled()
+                            : classificationCoordinator.selectRunContext(runId, request.providerCode());
+            AnnouncementSourceProviderBatch batch = selectProviderBatch(
+                    request,
+                    runId,
+                    providerClient,
+                    classificationRunContext
+            );
             counter.totalCount = batch.items().size() + batch.failedCount();
             counter.failedCount = batch.failedCount();
             errorMessage = batch.errorMessage();
             for (AnnouncementSourceProviderItem item : batch.items()) {
-                handleProviderItem(runId, item, counter);
+                try {
+                    counter.apply(handleProviderItem(runId, item, classificationRunContext));
+                } catch (RuntimeException exception) {
+                    counter.failedCount++;
+                    String itemErrorMessage = "일부 공고 원문을 저장하지 못했습니다. 관리자 로그를 확인하세요.";
+                    if (errorMessage == null) {
+                        errorMessage = itemErrorMessage;
+                    } else if (!errorMessage.contains(itemErrorMessage)) {
+                        errorMessage = errorMessage + " " + itemErrorMessage;
+                    }
+                    insertFailedRunItemSafely(runId, item);
+                    log.error(
+                            "외부 공고 원문 저장에 실패했습니다. runId={}, providerCode={}, providerNoticeId={}, exceptionType={}",
+                            runId,
+                            item.providerCode(),
+                            item.providerNoticeId(),
+                            exception.getClass().getSimpleName(),
+                            exception
+                    );
+                }
             }
         } catch (RuntimeException exception) {
             counter.failedCount++;
@@ -438,6 +508,72 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         return AnnouncementSourceCollectionRunResponse.from(selectCollectionRunRow(runId));
     }
 
+    private AnnouncementSourceProviderBatch selectProviderBatch(
+            AnnouncementSourceCollectionRequestRow request,
+            UUID runId,
+            AnnouncementSourceProviderClient providerClient,
+            AnnouncementSourceClassificationCoordinator.RunContext classificationRunContext
+    ) {
+        if ("LOCAL_GOV_NOTICE".equals(request.providerCode())) {
+            return providerClient.selectSourceBatch(request, runId);
+        }
+        if (!classificationRunContext.enabled()
+                || classificationRunContext.searchPlan() == null
+                || classificationRunContext.searchPlan().strategyCode()
+                != com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlan.StrategyCode
+                .KEYWORD_COMBINATIONS) {
+            return AnnouncementSourceProviderBatch.success(providerClient.selectSourceItemList(request));
+        }
+
+        List<List<AnnouncementSourceProviderItem>> queryItemLists = new ArrayList<>();
+        for (com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlan.SearchQuery query
+                : classificationRunContext.searchPlan().queries()) {
+            AnnouncementSourceCollectionRequestRow plannedRequest = request.withSearchKeyword(query.keyword());
+            queryItemLists.add(providerClient.selectSourceItemList(plannedRequest));
+        }
+        int maximumCount = request.maxCount() == null ? 100 : request.maxCount();
+        return AnnouncementSourceProviderBatch.success(selectRoundRobinItemList(queryItemLists, maximumCount));
+    }
+
+    private List<AnnouncementSourceProviderItem> selectRoundRobinItemList(
+            List<List<AnnouncementSourceProviderItem>> queryItemLists,
+            int maximumCount
+    ) {
+        if (maximumCount <= 0 || queryItemLists.isEmpty()) {
+            return List.of();
+        }
+        Map<String, AnnouncementSourceProviderItem> mergedItems = new LinkedHashMap<>();
+        int itemIndex = 0;
+        boolean advanced;
+        do {
+            advanced = false;
+            for (List<AnnouncementSourceProviderItem> queryItems : queryItemLists) {
+                if (itemIndex >= queryItems.size()) {
+                    continue;
+                }
+                advanced = true;
+                AnnouncementSourceProviderItem item = queryItems.get(itemIndex);
+                mergedItems.putIfAbsent(selectProviderItemMergeKey(item), item);
+                if (mergedItems.size() >= maximumCount) {
+                    return List.copyOf(mergedItems.values());
+                }
+            }
+            itemIndex++;
+        } while (advanced);
+        return List.copyOf(mergedItems.values());
+    }
+
+    private String selectProviderItemMergeKey(AnnouncementSourceProviderItem item) {
+        if (item.providerNoticeId() != null && !item.providerNoticeId().isBlank()) {
+            return "PROVIDER_NOTICE_ID:" + item.providerNoticeId().strip();
+        }
+        String canonicalUrl = identityNormalizer.canonicalizeUrl(item.sourceUrl());
+        if (canonicalUrl != null && !canonicalUrl.isBlank()) {
+            return "CANONICAL_URL:" + canonicalUrl;
+        }
+        return "RAW_HASH:" + item.rawHash();
+    }
+
     /**
      * provider item을 저장합니다.
      *
@@ -447,26 +583,111 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      *
      * @param counter 입력 값
      */
-    private void handleProviderItem(UUID runId, AnnouncementSourceProviderItem item, RunCounter counter) {
-        if ("EXCLUDED".equals(item.semanticStatusCode())) {
-            counter.excludedCount++;
-            insertRunItem(runId, null, item, "EXCLUDED", null);
-            updateProviderItemResult(runId, item, "EXCLUDED");
-            return;
+    private ItemSaveOutcome handleProviderItem(
+            UUID runId,
+            AnnouncementSourceProviderItem originalItem,
+            AnnouncementSourceClassificationCoordinator.RunContext classificationRunContext
+    ) {
+        PreparedProviderContent providerContent = selectProviderContent(classificationRunContext, originalItem);
+        AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification =
+                classificationCoordinator == null
+                        ? AnnouncementSourceClassificationCoordinator.PreparedClassification.disabled(providerContent.item())
+                        : classificationCoordinator.selectClassification(
+                                classificationRunContext,
+                                providerContent.item(),
+                                providerContent.bodySourceCode(),
+                                providerContent.bodyAvailabilityCode()
+                        );
+        AnnouncementSourceProviderItem item = preparedClassification.item();
+        if (itemTransactionTemplate == null) {
+            return saveProviderItem(runId, item, preparedClassification);
         }
+        return Objects.requireNonNull(
+                itemTransactionTemplate.execute(ignored ->
+                        saveProviderItem(runId, item, preparedClassification)
+                ),
+                "item transaction result is required"
+        );
+    }
+
+    private PreparedProviderContent selectProviderContent(
+            AnnouncementSourceClassificationCoordinator.RunContext runContext,
+            AnnouncementSourceProviderItem item
+    ) {
+        if (item.bodyText() != null && !item.bodyText().isBlank()) {
+            BodySourceCode sourceCode = "LOCAL_GOV_NOTICE".equals(item.providerCode())
+                    ? BodySourceCode.DETAIL_PAGE_TEXT
+                    : BodySourceCode.PROVIDER_SUMMARY;
+            return new PreparedProviderContent(item, sourceCode, BodyAvailabilityCode.AVAILABLE);
+        }
+        if (!runContext.enabled() || !"LOCAL_GOV_NOTICE".equals(item.providerCode())) {
+            return new PreparedProviderContent(item, BodySourceCode.NONE, BodyAvailabilityCode.UNAVAILABLE);
+        }
+        if (classificationCoordinator == null
+                || !classificationCoordinator.selectBodyFetchRequired(runContext, item)) {
+            return new PreparedProviderContent(item, BodySourceCode.NONE, BodyAvailabilityCode.UNAVAILABLE);
+        }
+        ProviderContentClient contentClient = providerContentClients.get(item.providerCode());
+        if (contentClient == null || !contentClient.isEnabled()) {
+            return new PreparedProviderContent(item, BodySourceCode.NONE, BodyAvailabilityCode.UNSUPPORTED);
+        }
+        if (item.localGovernmentSourceId() == null) {
+            return new PreparedProviderContent(item, BodySourceCode.DETAIL_PAGE_TEXT, BodyAvailabilityCode.FETCH_FAILED);
+        }
+        LocalGovernmentNoticeSourceRow registeredSource =
+                localGovernmentNoticeDao.selectSourceDetails(item.localGovernmentSourceId());
+        if (registeredSource == null) {
+            return new PreparedProviderContent(item, BodySourceCode.DETAIL_PAGE_TEXT, BodyAvailabilityCode.FETCH_FAILED);
+        }
+        String registeredSourceUrl = registeredSource.collectionEndpointUrl() == null
+                || registeredSource.collectionEndpointUrl().isBlank()
+                ? registeredSource.noticeUrl()
+                : registeredSource.collectionEndpointUrl();
+        ProviderContentResult result = contentClient.selectContent(new ProviderContentRequest(
+                item.providerCode(),
+                registeredSource.sourceId(),
+                registeredSourceUrl,
+                item.sourceUrl()
+        ));
+        AnnouncementSourceProviderItem enrichedItem = result.statusCode() == StatusCode.AVAILABLE
+                ? item.withBodyText(result.bodyText())
+                : item;
+        return new PreparedProviderContent(
+                enrichedItem,
+                result.bodySourceCode(),
+                result.bodyAvailabilityCode()
+        );
+    }
+
+    private ItemSaveOutcome saveProviderItem(
+            UUID runId,
+            AnnouncementSourceProviderItem item,
+            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
+    ) {
         if (item.applicationEndDate() != null && item.applicationEndDate().isBefore(LocalDate.now())) {
-            counter.skippedEndedCount++;
             insertRunItem(runId, null, item, "SKIPPED_ENDED", null);
             updateProviderItemResult(runId, item, "SKIPPED_ENDED");
-            return;
+            return ItemSaveOutcome.SKIPPED_ENDED;
         }
 
         AnnouncementSourceSnapshotRow duplicate = selectDuplicateSource(item);
         if (duplicate != null) {
-            counter.duplicateCount++;
+            if (preparedClassification.enabled()
+                    && classificationCoordinator != null
+                    && classificationCoordinator.selectContentVersionAppendRequired(
+                            duplicate.sourceId(),
+                            preparedClassification
+                    )) {
+                return saveChangedProviderItem(
+                        runId,
+                        duplicate,
+                        item,
+                        preparedClassification
+                );
+            }
             insertRunItem(runId, duplicate.sourceId(), item, "DUPLICATE", null);
             updateProviderItemResult(runId, item, "DUPLICATE");
-            return;
+            return ItemSaveOutcome.DUPLICATE;
         }
 
         String canonicalSourceUrl = identityNormalizer.canonicalizeUrl(item.sourceUrl());
@@ -478,7 +699,9 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         );
 
         UUID sourceId = UUID.randomUUID();
-        String reviewStatusCode = exactDuplicate == null ? "REVIEW_PENDING" : "DUPLICATE";
+        String reviewStatusCode = "EXCLUDED".equals(item.semanticStatusCode())
+                ? "ARCHIVED"
+                : exactDuplicate == null ? "REVIEW_PENDING" : "DUPLICATE";
         announcementSourceDao.insertSourceSnapshot(new AnnouncementSourceSnapshotCommand(
                 sourceId,
                 item.providerCode(),
@@ -507,17 +730,6 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 item.semanticReasonCode(),
                 item.semanticMatchedKeywords()
         ));
-        int sortOrder = 0;
-        for (AnnouncementSourceProviderAttachment attachment : item.attachments()) {
-            announcementSourceDao.insertSourceAttachment(new AnnouncementSourceAttachmentCommand(
-                    UUID.randomUUID(),
-                    sourceId,
-                    attachment.fileName(),
-                    attachment.fileUrl(),
-                    attachment.fileTypeCode(),
-                    sortOrder++
-            ));
-        }
         for (AnnouncementSourceHighlightCommand highlight : highlightService.selectHighlightList(
                 sourceId,
                 item.bodyText(),
@@ -526,20 +738,113 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         )) {
             announcementSourceDao.insertSourceHighlight(highlight);
         }
+        if (classificationCoordinator != null) {
+            classificationCoordinator.saveClassification(
+                    sourceId,
+                    runId,
+                    preparedClassification,
+                    reviewStatusCode
+            );
+        }
+        if ("EXCLUDED".equals(item.semanticStatusCode())) {
+            insertRunItem(runId, sourceId, item, "EXCLUDED", null);
+            updateProviderItemResult(runId, item, "EXCLUDED");
+            return ItemSaveOutcome.EXCLUDED;
+        }
         if (exactDuplicate != null) {
             insertCrossProviderDuplicate(sourceId, exactDuplicate, "EXACT_DUPLICATE", "AUTO_CONFIRMED");
-            counter.duplicateCount++;
             insertRunItem(runId, sourceId, item, "DUPLICATE", null);
             updateProviderItemResult(runId, item, "DUPLICATE");
-            return;
+            return ItemSaveOutcome.DUPLICATE;
         }
         for (AnnouncementSourceSnapshotRow similar : announcementSourceDao.selectSimilarSourceAcrossProvidersList(sourceId)) {
             insertCrossProviderDuplicate(sourceId, similar, "SIMILAR", "PENDING");
         }
         insertDuplicateCandidates(sourceId);
-        counter.collectedCount++;
         insertRunItem(runId, sourceId, item, "COLLECTED", null);
         updateProviderItemResult(runId, item, "COLLECTED");
+        return ItemSaveOutcome.COLLECTED;
+    }
+
+    private ItemSaveOutcome saveChangedProviderItem(
+            UUID runId,
+            AnnouncementSourceSnapshotRow existingSource,
+            AnnouncementSourceProviderItem item,
+            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
+    ) {
+        if (existingSource.classificationRowVersion() == null) {
+            throw new IllegalStateException("기존 공고 원문의 분류 버전을 확인할 수 없습니다.");
+        }
+        String canonicalSourceUrl = identityNormalizer.canonicalizeUrl(item.sourceUrl());
+        String normalizedTitle = identityNormalizer.normalizeText(item.title());
+        String normalizedAgencyName = identityNormalizer.normalizeText(item.agencyName());
+        LocalDate postedDate = item.postedAt() == null ? null : item.postedAt().toLocalDate();
+        int updatedCount = announcementSourceDao.updateSourceSnapshotContent(
+                new AnnouncementSourceSnapshotRefreshCommand(
+                        existingSource.sourceId(),
+                        item.providerNoticeId(),
+                        item.title(),
+                        item.agencyName(),
+                        item.applicationStartDate(),
+                        item.applicationEndDate(),
+                        item.postedAt(),
+                        item.modifiedAt(),
+                        item.sourceUrl(),
+                        item.bodyText(),
+                        item.inquiryText(),
+                        item.applicationMethodText(),
+                        item.sourceCompletenessCode(),
+                        item.missingFieldsJson(),
+                        item.rawPayloadJson(),
+                        item.rawHash(),
+                        item.localGovernmentSourceId(),
+                        canonicalSourceUrl,
+                        normalizedTitle,
+                        normalizedAgencyName,
+                        postedDate,
+                        existingSource.rawHash(),
+                        existingSource.classificationRowVersion()
+                )
+        );
+        if (updatedCount != 1) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_VERSION_CONFLICT,
+                    HttpStatus.CONFLICT,
+                    "다른 수집 또는 검수 작업이 원문을 변경했습니다. 최신 상태에서 다시 수집해 주세요."
+            );
+        }
+
+        String reviewStatusCode = selectChangedSourceReviewStatus(
+                existingSource.reviewStatusCode(),
+                item.semanticStatusCode()
+        );
+        classificationCoordinator.saveChangedClassification(
+                existingSource.sourceId(),
+                runId,
+                preparedClassification,
+                reviewStatusCode,
+                existingSource.classificationRowVersion()
+        );
+
+        String itemStatusCode = "EXCLUDED".equals(item.semanticStatusCode())
+                ? "EXCLUDED"
+                : "COLLECTED";
+        insertRunItem(runId, existingSource.sourceId(), item, itemStatusCode, null);
+        updateProviderItemResult(runId, item, itemStatusCode);
+        return "EXCLUDED".equals(itemStatusCode)
+                ? ItemSaveOutcome.EXCLUDED
+                : ItemSaveOutcome.COLLECTED;
+    }
+
+    private String selectChangedSourceReviewStatus(
+            String currentReviewStatusCode,
+            String semanticStatusCode
+    ) {
+        if (Set.of("ACTIVATED", "REVIEW_COMPLETED", "CONDITION_INPUT_REQUIRED", "DUPLICATE")
+                .contains(currentReviewStatusCode)) {
+            return currentReviewStatusCode;
+        }
+        return "EXCLUDED".equals(semanticStatusCode) ? "ARCHIVED" : "REVIEW_PENDING";
     }
 
     /**
@@ -617,6 +922,12 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             String providerCode,
             String reviewStatusCode,
             String semanticStatusCode,
+            String targetCategoryCode,
+            String supportTypeCode,
+            String matchedGroupCode,
+            String matchedGroupKindCode,
+            String matchLocationCode,
+            UUID ruleReleaseId,
             String keyword,
             int page,
             int size
@@ -625,16 +936,49 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 normalizeOptionalCode(providerCode),
                 normalizeOptionalCode(reviewStatusCode),
                 normalizeOptionalCode(semanticStatusCode),
+                normalizeOptionalCode(targetCategoryCode),
+                normalizeOptionalCode(supportTypeCode),
+                normalizeOptionalCode(matchedGroupCode),
+                normalizeOptionalCode(matchedGroupKindCode),
+                normalizeOptionalCode(matchLocationCode),
+                ruleReleaseId,
                 nullIfBlank(keyword),
                 size,
                 (page - 1) * size
         );
         long totalCount = announcementSourceDao.selectSourceCount(condition);
-        List<AnnouncementSourceSummaryResponse> items = announcementSourceDao.selectSourceList(condition)
-                .stream()
-                .map(AnnouncementSourceSummaryResponse::from)
+        List<AnnouncementSourceSnapshotRow> sourceRows = announcementSourceDao.selectSourceList(condition);
+        Map<UUID, AnnouncementSourceClassificationTagSummaryRow> tagsBySourceId = sourceRows.isEmpty()
+                ? Map.of()
+                : announcementSourceDao.selectSourceClassificationTagSummaryList(
+                                sourceRows.stream().map(AnnouncementSourceSnapshotRow::sourceId).toList()
+                        ).stream()
+                        .collect(Collectors.toUnmodifiableMap(
+                                AnnouncementSourceClassificationTagSummaryRow::sourceId,
+                                Function.identity()
+                        ));
+        List<AnnouncementSourceSummaryResponse> items = sourceRows.stream()
+                .map(row -> {
+                    AnnouncementSourceClassificationTagSummaryRow tags = tagsBySourceId.get(row.sourceId());
+                    return AnnouncementSourceSummaryResponse.from(
+                            row,
+                            tags == null ? List.of() : splitCodes(tags.targetCategoryCodes()),
+                            tags == null ? List.of() : splitCodes(tags.supportTypeCodes())
+                    );
+                })
                 .toList();
         return PageResponse.of(items, page, size, totalCount);
+    }
+
+    private List<String> splitCodes(String codes) {
+        if (codes == null || codes.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(codes.split(","))
+                .map(String::strip)
+                .filter(code -> !code.isBlank())
+                .distinct()
+                .toList();
     }
 
     /**
@@ -725,13 +1069,30 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceDuplicateDecisionRequest request
     ) {
         UUID actorUserId = selectActorUserId(authentication);
-        AnnouncementSourceSnapshotRow source = selectSourceRow(sourceId);
-        AnnouncementSourceDuplicateCandidateRow candidate = selectDuplicateCandidateRow(sourceId, candidateId);
         String actionCode = normalizeRequiredCode(
                 "decisionActionCode",
                 request == null ? null : request.decisionActionCode(),
                 DUPLICATE_DECISION_ACTION_CODES
         );
+        AnnouncementSourceSnapshotRow source;
+        if (Set.of("CREATE_NEW", "UPDATE_EXISTING").contains(actionCode)) {
+            source = announcementSourceDao.selectSourceDetailsForUpdate(sourceId);
+            if (source == null) {
+                throw notFound("수집 원문을 찾을 수 없습니다.");
+            }
+            AnnouncementSourceLinkedAnnouncementRow linkedAnnouncement =
+                    announcementSourceDao.selectLinkedAnnouncementDetails(sourceId);
+            if (linkedAnnouncement != null) {
+                throw new ApiException(
+                        ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE,
+                        HttpStatus.CONFLICT,
+                        "이미 운영 공고에 연결된 원문은 중복 후보 결정을 다시 처리할 수 없습니다."
+                );
+            }
+        } else {
+            source = selectSourceRow(sourceId);
+        }
+        AnnouncementSourceDuplicateCandidateRow candidate = selectDuplicateCandidateRow(sourceId, candidateId);
 
         if ("UPDATE_EXISTING".equals(actionCode)) {
             updateExistingAnnouncementFromSource(actorUserId, source, candidate, request);
@@ -825,12 +1186,37 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceToAnnouncementRequest request
     ) {
         UUID actorUserId = selectActorUserId(authentication);
-        AnnouncementSourceSnapshotRow source = selectSourceRow(sourceId);
+        AnnouncementSourceSnapshotRow source = announcementSourceDao.selectSourceDetailsForUpdate(sourceId);
+        if (source == null) {
+            throw new ApiException(
+                    ErrorCode.RESOURCE_NOT_FOUND,
+                    HttpStatus.NOT_FOUND,
+                    "수집 원문을 찾을 수 없습니다."
+            );
+        }
+        AnnouncementSourceLinkedAnnouncementRow linkedAnnouncement =
+                announcementSourceDao.selectLinkedAnnouncementDetails(sourceId);
+        if (linkedAnnouncement != null) {
+            return new AnnouncementSourceLinkResponse(
+                    sourceId,
+                    source.publicCode(),
+                    linkedAnnouncement.announcementId(),
+                    linkedAnnouncement.announcementCode()
+            );
+        }
         if ("EXCLUDED".equals(source.semanticStatusCode())) {
             throw new ApiException(
                     ErrorCode.INVALID_STATUS_TRANSITION,
                     HttpStatus.BAD_REQUEST,
                     "지원사업과 무관한 것으로 분류된 원문은 운영 공고로 전환할 수 없습니다."
+            );
+        }
+        if ("REVIEW_REQUIRED".equals(source.semanticStatusCode())
+                && !"REVIEW_COMPLETED".equals(source.reviewStatusCode())) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_CLASSIFICATION_REQUIRED,
+                    HttpStatus.CONFLICT,
+                    "관리자 검수가 필요한 원문은 검수 완료 후 운영 공고로 전환할 수 있습니다."
             );
         }
         if (!Set.of("REVIEW_PENDING", "CONDITION_INPUT_REQUIRED", "REVIEW_COMPLETED")
@@ -868,6 +1254,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 BigDecimal.ZERO,
                 actorUserId
         ));
+        replaceLegacyAnnouncementTargetAssignment(announcementId, targetTypeCode, actorUserId);
         announcementSourceDao.insertSourceLink(new AnnouncementSourceLinkCommand(
                 UUID.randomUUID(),
                 sourceId,
@@ -1033,6 +1420,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         if (updated == 0) {
             throw notFound("업데이트할 운영 공고를 찾을 수 없습니다.");
         }
+        replaceLegacyAnnouncementTargetAssignment(
+                candidate.announcementId(),
+                defaultIfBlank(request.targetTypeCode(), announcement.targetTypeCode()),
+                actorUserId
+        );
         announcementSourceDao.insertSourceLink(new AnnouncementSourceLinkCommand(
                 UUID.randomUUID(),
                 source.sourceId(),
@@ -1048,6 +1440,30 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
      *
      * @return 처리 결과
      */
+    private void replaceLegacyAnnouncementTargetAssignment(
+            UUID announcementId,
+            String primaryTargetCategoryCode,
+            UUID actorUserId
+    ) {
+        LinkedHashSet<String> targetCategoryCodes = new LinkedHashSet<>();
+        targetCategoryCodes.add(primaryTargetCategoryCode);
+        targetCategoryCodes.addAll(announcementDao.selectAnnouncementTargetCategoryCodeList(announcementId));
+
+        announcementDao.deleteAnnouncementTargetCategoryAssignments(announcementId);
+        for (String targetCategoryCode : targetCategoryCodes) {
+            announcementDao.insertAnnouncementTargetCategoryAssignment(
+                    new AnnouncementTargetCategoryAssignmentCommand(
+                            UUID.randomUUID(),
+                            announcementId,
+                            targetCategoryCode,
+                            primaryTargetCategoryCode.equals(targetCategoryCode),
+                            "SOURCE_CONFIRMED",
+                            actorUserId
+                    )
+            );
+        }
+    }
+
     private String selectDecisionStatusCode(String actionCode) {
         if ("CREATE_NEW".equals(actionCode)) {
             return "CREATE_NEW_SELECTED";
@@ -1132,6 +1548,30 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 item.semanticMatchedKeywords(),
                 errorMessage
         ));
+    }
+
+    private void insertFailedRunItemSafely(
+            UUID runId,
+            AnnouncementSourceProviderItem item
+    ) {
+        try {
+            insertRunItem(
+                    runId,
+                    null,
+                    item,
+                    "FAILED",
+                    "원문 저장 중 내부 오류가 발생했습니다. 관리자 로그를 확인하세요."
+            );
+        } catch (RuntimeException exception) {
+            log.error(
+                    "외부 공고 원문 실패 이력을 저장하지 못했습니다. runId={}, providerCode={}, providerNoticeId={}, exceptionType={}",
+                    runId,
+                    item.providerCode(),
+                    item.providerNoticeId(),
+                    exception.getClass().getSimpleName(),
+                    exception
+            );
+        }
     }
 
     /**
@@ -1372,6 +1812,20 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         return new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }
 
+    private record PreparedProviderContent(
+            AnnouncementSourceProviderItem item,
+            BodySourceCode bodySourceCode,
+            BodyAvailabilityCode bodyAvailabilityCode
+    ) {
+    }
+
+    private enum ItemSaveOutcome {
+        COLLECTED,
+        SKIPPED_ENDED,
+        DUPLICATE,
+        EXCLUDED
+    }
+
     private static class RunCounter {
         private int totalCount;
         private int collectedCount;
@@ -1379,5 +1833,14 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         private int duplicateCount;
         private int failedCount;
         private int excludedCount;
+
+        private void apply(ItemSaveOutcome outcome) {
+            switch (outcome) {
+                case COLLECTED -> collectedCount++;
+                case SKIPPED_ENDED -> skippedEndedCount++;
+                case DUPLICATE -> duplicateCount++;
+                case EXCLUDED -> excludedCount++;
+            }
+        }
     }
 }

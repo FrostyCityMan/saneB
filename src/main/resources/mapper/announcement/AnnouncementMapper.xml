@@ -20,6 +20,8 @@
             <arg column="reception_type_code" javaType="java.lang.String"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="target_category_codes" javaType="java.lang.String"/>
+            <arg column="support_type_codes" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
 
@@ -180,7 +182,25 @@
                 LIMIT 1
             ) AS reception_type_code,
             a.created_at,
-            a.updated_at
+            a.updated_at,
+            (
+                SELECT string_agg(
+                    atc.category_code,
+                    ',' ORDER BY aatca.is_primary DESC, atc.sort_order, atc.category_code
+                )
+                FROM announcement_target_category_assignments aatca
+                INNER JOIN announcement_target_categories atc ON atc.id = aatca.target_category_id
+                WHERE aatca.announcement_id = a.id
+            ) AS target_category_codes,
+            (
+                SELECT string_agg(
+                    ast.support_type_code,
+                    ',' ORDER BY ast.sort_order, ast.support_type_code
+                )
+                FROM announcement_support_type_assignments aasta
+                INNER JOIN announcement_support_types ast ON ast.id = aasta.support_type_id
+                WHERE aasta.announcement_id = a.id
+            ) AS support_type_codes
         FROM announcements a
         <include refid="AnnouncementSearchWhere"/>
         ORDER BY a.created_at DESC, a.id DESC
@@ -226,6 +246,26 @@
         FROM announcement_options ao
         WHERE ao.announcement_id = #{announcementId}
         ORDER BY ao.option_group_code ASC, ao.option_code ASC
+    </select>
+
+    <select id="selectAnnouncementTargetCategoryCodeList" resultType="string">
+        -- Select multi-target category codes while keeping the legacy primary target first.
+        SELECT
+            atc.category_code
+        FROM announcement_target_category_assignments atca
+        INNER JOIN announcement_target_categories atc ON atc.id = atca.target_category_id
+        WHERE atca.announcement_id = #{announcementId}
+        ORDER BY atca.is_primary DESC, atc.sort_order ASC, atc.category_code ASC
+    </select>
+
+    <select id="selectAnnouncementSupportTypeCodeList" resultType="string">
+        -- Select support type codes assigned to an announcement.
+        SELECT
+            ast.support_type_code
+        FROM announcement_support_type_assignments asta
+        INNER JOIN announcement_support_types ast ON ast.id = asta.support_type_id
+        WHERE asta.announcement_id = #{announcementId}
+        ORDER BY ast.sort_order ASC, ast.support_type_code ASC
     </select>
 
     <select id="selectAnnouncementIndustryConditionList" resultMap="AnnouncementIndustryConditionRowMap">
@@ -352,6 +392,60 @@
             #{actorUserId},
             #{actorUserId}
         )
+    </insert>
+
+    <delete id="deleteAnnouncementTargetCategoryAssignments">
+        -- Replace all target category assignments in the same service transaction.
+        DELETE FROM announcement_target_category_assignments
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementTargetCategoryAssignment">
+        -- Insert one target category assignment by stable catalog code.
+        INSERT INTO announcement_target_category_assignments (
+            id,
+            announcement_id,
+            target_category_id,
+            is_primary,
+            assignment_source_code,
+            assigned_by
+        )
+        SELECT
+            #{id},
+            #{announcementId},
+            atc.id,
+            #{primary},
+            #{assignmentSourceCode},
+            #{actorUserId}
+        FROM announcement_target_categories atc
+        WHERE atc.category_code = #{targetCategoryCode}
+          AND atc.is_enabled = TRUE
+    </insert>
+
+    <delete id="deleteAnnouncementSupportTypeAssignments">
+        -- Replace all support type assignments in the same service transaction.
+        DELETE FROM announcement_support_type_assignments
+        WHERE announcement_id = #{announcementId}
+    </delete>
+
+    <insert id="insertAnnouncementSupportTypeAssignment">
+        -- Insert one support type assignment by stable catalog code.
+        INSERT INTO announcement_support_type_assignments (
+            id,
+            announcement_id,
+            support_type_id,
+            assignment_source_code,
+            assigned_by
+        )
+        SELECT
+            #{id},
+            #{announcementId},
+            ast.id,
+            #{assignmentSourceCode},
+            #{actorUserId}
+        FROM announcement_support_types ast
+        WHERE ast.support_type_code = #{supportTypeCode}
+          AND ast.is_enabled = TRUE
     </insert>
 
     <update id="updateAnnouncement">

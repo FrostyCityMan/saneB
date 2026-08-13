@@ -513,7 +513,9 @@ class AnnouncementControllerSmokeTest {
                 new BigDecimal("5000000"),
                 "FIRST_COME",
                 OffsetDateTime.now(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                "BUSINESS",
+                "GRANT_SUBSIDY"
         );
     }
 

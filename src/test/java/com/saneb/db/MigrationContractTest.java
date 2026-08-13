@@ -1207,6 +1207,178 @@ class MigrationContractTest {
     }
 
     /**
+     * 운영 공고의 다중 대상·지원유형 카탈로그와 결정적 대상 backfill 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v63MigrationCreatesClassificationCatalogsAndBackfillsOnlyTargets() throws IOException {
+        String sql = selectV63Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_target_categories",
+                "CREATE TABLE announcement_support_types",
+                "CREATE TABLE announcement_target_category_assignments",
+                "CREATE TABLE announcement_support_type_assignments",
+                "WHERE is_primary = true",
+                "'LEGACY_BACKFILL'",
+                "category.category_code = announcement.target_type_code"
+        );
+        assertThat(countOccurrences(sql, "md5('announcement-target-category-")).isEqualTo(5);
+        assertThat(countOccurrences(sql, "md5('announcement-support-type-")).isEqualTo(7);
+        assertThat(sql).doesNotContain("INSERT INTO announcement_support_type_assignments (");
+        assertThat(sql.toLowerCase()).doesNotContain("drop column target_type_code");
+    }
+
+    /**
+     * 규칙 release, 그룹, 규칙, term의 FK·UNIQUE·부분 UNIQUE 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v64MigrationCreatesVersionedRuleContract() throws IOException {
+        String sql = selectV64Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_classification_rule_releases",
+                "CREATE TABLE announcement_source_classification_rule_groups",
+                "CREATE TABLE announcement_source_classification_keyword_rules",
+                "CREATE TABLE announcement_source_classification_keyword_terms",
+                "release_status_code IN ('DRAFT', 'ACTIVE', 'RETIRED')",
+                "combination_operator_code = 'AND'",
+                "body_unavailable_action_code = 'REVIEW_REQUIRED'",
+                "attachment_analysis_enabled = false",
+                "auto_activation_enabled = false",
+                "WHERE release_status_code = 'ACTIVE'",
+                "UNIQUE (id, group_id)",
+                "FOREIGN KEY (keyword_rule_id, group_id)",
+                "UNIQUE (group_id, normalized_term_text, match_mode_code)",
+                "WHERE term_type_code = 'CANONICAL'"
+        );
+        assertThat(sql).doesNotContain("${", "SELECT *");
+    }
+
+    /**
+     * 초기 규칙이 비활성 DRAFT이고 B6 확정 구문만 활성화되는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v65MigrationSeedsDraftWithoutBroadAdministrativeTerms() throws IOException {
+        String sql = selectV65Migration();
+        String enabledB6 = sql.substring(
+                sql.indexOf("-- Group B: title EXCLUDED"),
+                sql.indexOf("-- B6 unconfirmed remainder")
+        );
+        String disabledB6 = sql.substring(
+                sql.indexOf("-- B6 unconfirmed remainder"),
+                sql.indexOf("-- B5 agency terms")
+        );
+
+        assertThat(sql).contains(
+                "'ASCR-000001'",
+                "'DRAFT'",
+                "'AND'",
+                "'REVIEW_REQUIRED'",
+                "'AUTO_EXCLUDE_B_EXPORT'",
+                "'PROTECTED_METADATA_AGENCY'",
+                "('기간제 근로자 채용', '기간제근로자 채용')",
+                "('임기제 공무원 채용', '임기제공무원 채용')",
+                "('물품 구매 입찰', '물품구매 입찰')"
+        );
+        assertThat(countOccurrences(enabledB6, "('AUTO_EXCLUDE_B_ADMINISTRATIVE'"))
+                .isEqualTo(13);
+        assertThat(countOccurrences(disabledB6, "('AUTO_EXCLUDE_B_ADMINISTRATIVE'"))
+                .isEqualTo(58);
+        assertThat(sql).doesNotContain(
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '채용공고'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '입찰공고'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '고시'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '의원'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '입찰'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '용역'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '물품구매'",
+                "('AUTO_EXCLUDE_B_ADMINISTRATIVE', '물품 구매'"
+        );
+        assertThat(sql).doesNotContain("announcement_source_semantic_keyword_rules");
+    }
+
+    /**
+     * 원문 버전·판정·근거 match·수동 확정 태그의 append-only 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v66MigrationCreatesClassificationEvidenceWithoutLegacyEvaluationConversion() throws IOException {
+        String sql = selectV66Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_content_versions",
+                "CREATE TABLE announcement_source_classification_evaluations",
+                "CREATE TABLE announcement_source_classification_matches",
+                "CREATE TABLE announcement_source_classification_target_matches",
+                "CREATE TABLE announcement_source_classification_support_matches",
+                "CREATE TABLE announcement_source_confirmed_target_categories",
+                "CREATE TABLE announcement_source_confirmed_support_types",
+                "WHERE is_current = true",
+                "match_location_code IN ('TITLE', 'BODY')",
+                "confirmation_status_code IN ('CURRENT', 'STALE')",
+                "ADD COLUMN rule_release_id uuid",
+                "ADD COLUMN classification_row_version integer NOT NULL DEFAULT 0",
+                "INSERT INTO announcement_source_content_versions"
+        );
+        assertThat(sql).doesNotContain(
+                "INSERT INTO announcement_source_classification_evaluations",
+                "INSERT INTO announcement_source_classification_matches"
+        );
+    }
+
+    /**
+     * QA 원문과 운영 근거가 기본값과 CHECK 제약으로 분리되는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v67MigrationSeparatesQaAndProductionDataPurpose() throws IOException {
+        String sql = selectV67Migration();
+
+        assertThat(countOccurrences(
+                sql,
+                "ADD COLUMN data_purpose_code varchar(20) NOT NULL DEFAULT 'PRODUCTION'"
+        )).isEqualTo(2);
+        assertThat(countOccurrences(
+                sql,
+                "data_purpose_code IN ('PRODUCTION', 'QA')"
+        )).isEqualTo(2);
+        assertThat(sql.toLowerCase()).doesNotContain("delete from", "truncate table");
+    }
+
+    /**
+     * 하나의 수집 원문이 둘 이상의 운영 공고로 전환되지 않는 DB 계약을 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v68MigrationEnforcesOneAnnouncementLinkPerSourceWithoutDataCleanup() throws IOException {
+        String sql = selectV68Migration();
+        String normalizedSql = sql.toLowerCase();
+
+        assertThat(sql).contains(
+                "FROM announcement_source_links",
+                "GROUP BY source_id",
+                "HAVING count(1) > 1",
+                "RAISE EXCEPTION USING",
+                "ADD CONSTRAINT uq_announcement_source_links_source UNIQUE (source_id)"
+        );
+        assertThat(normalizedSql).doesNotContain(
+                "unique (announcement_id)",
+                "delete from announcement_source_links",
+                "truncate table announcement_source_links",
+                "update announcement_source_links"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -1225,6 +1397,25 @@ class MigrationContractTest {
                         "<arg column=\"failed_count\" javaType=\"_int\"/>"
                 )
                 .doesNotContain("CASE WHEN #{approvedBy} IS NOT NULL THEN now() ELSE NULL END");
+    }
+
+    /**
+     * 운영 공고 전환 Mapper가 원문 잠금과 실제 공고 공개 코드 컬럼을 사용하는지 검증합니다.
+     *
+     * @throws IOException Mapper 읽기 오류
+     */
+    @Test
+    void announcementSourceMapperLocksSourceAndSelectsLinkedAnnouncementPublicCode() throws IOException {
+        String mapper = selectAnnouncementSourceMapper();
+
+        assertThat(mapper).contains(
+                "<select id=\"selectSourceDetailsForUpdate\" resultMap=\"SourceSnapshotRowMap\">",
+                "WHERE ass.id = #{sourceId}",
+                "FOR UPDATE",
+                "<select id=\"selectLinkedAnnouncementDetails\" resultMap=\"SourceLinkedAnnouncementRowMap\">",
+                "a.public_code AS announcement_code"
+        );
+        assertThat(mapper).doesNotContain("a.announcement_code");
     }
 
     /**
@@ -1895,6 +2086,84 @@ class MigrationContractTest {
     private String selectV62Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V62__apply_corrected_legal_notice_parser_qa_results.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V63 migration을 UTF-8로 조회합니다.
+     *
+     * @return V63 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV63Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V63__create_announcement_classification_catalogs.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V64 migration을 UTF-8로 조회합니다.
+     *
+     * @return V64 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV64Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V64__create_versioned_announcement_classification_rules.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V65 migration을 UTF-8로 조회합니다.
+     *
+     * @return V65 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV65Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V65__seed_announcement_classification_draft_v1.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V66 migration을 UTF-8로 조회합니다.
+     *
+     * @return V66 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV66Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V66__create_announcement_classification_evidence.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V67 migration을 UTF-8로 조회합니다.
+     *
+     * @return V67 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV67Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V67__separate_announcement_source_data_purpose.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    /**
+     * V68 migration을 UTF-8로 조회합니다.
+     *
+     * @return V68 SQL
+     * @throws IOException migration 읽기 오류
+     */
+    private String selectV68Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V68__enforce_single_announcement_source_link.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

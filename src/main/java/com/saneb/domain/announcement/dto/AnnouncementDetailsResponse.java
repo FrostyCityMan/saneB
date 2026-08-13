@@ -22,6 +22,8 @@ public record AnnouncementDetailsResponse(
         UUID announcementId,
         String announcementCode,
         String targetTypeCode,
+        List<String> targetCategoryCodes,
+        List<String> supportTypeCodes,
         String title,
         String agencyName,
         String summary,

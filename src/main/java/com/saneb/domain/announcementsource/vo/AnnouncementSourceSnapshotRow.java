@@ -38,6 +38,7 @@ public record AnnouncementSourceSnapshotRow(
         String semanticStatusCode,
         String semanticReasonCode,
         String semanticMatchedKeywords,
+        Integer classificationRowVersion,
         OffsetDateTime collectedAt,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

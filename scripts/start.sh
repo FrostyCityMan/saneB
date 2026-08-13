@@ -5,6 +5,7 @@ APP_NAME="saneb"
 APP_DIR="/home/ubuntu/app"
 ENV_FILE="${APP_DIR}/app.env"
 JAR_FILE="${APP_DIR}/app.jar"
+PREVIOUS_JAR_FILE="${APP_DIR}/app.jar.previous"
 LOG_FILE="${APP_DIR}/app.log"
 LAUNCH_SCRIPT="${APP_DIR}/launch-saneb.sh"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
@@ -13,6 +14,23 @@ fail() {
   echo "ERROR: $*" >&2
   exit 1
 }
+
+handle_deployment_exit() {
+  local exit_code=$?
+  trap - EXIT
+
+  if [ "${exit_code}" -ne 0 ] && [ -f "${PREVIOUS_JAR_FILE}" ]; then
+    echo "Deployment start failed. Restoring the previous application jar." >&2
+    cp -f "${PREVIOUS_JAR_FILE}" "${JAR_FILE}"
+    chown ubuntu:ubuntu "${JAR_FILE}"
+    systemctl daemon-reload || true
+    systemctl restart "${APP_NAME}.service" || true
+  fi
+
+  exit "${exit_code}"
+}
+
+trap handle_deployment_exit EXIT
 
 require_env() {
   local key="$1"
@@ -56,6 +74,9 @@ fi
 set_env_value "SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED" "true"
 set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED" "true"
 set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_PROVIDER_CODES" "BIZINFO,GOV24_PUBLIC_SERVICE"
+# 공고 분류 V2는 운영 QA와 별도 활성화 승인이 끝날 때까지 강제로 비활성화합니다.
+set_env_value "SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_ENABLED" "false"
+set_env_value "SANEB_LOCAL_GOV_NOTICE_DETAIL_BODY_ENABLED" "false"
 chown ubuntu:ubuntu "${ENV_FILE}"
 chmod 600 "${ENV_FILE}"
 

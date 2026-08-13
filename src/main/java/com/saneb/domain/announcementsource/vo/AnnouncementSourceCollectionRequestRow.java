@@ -40,4 +40,31 @@ public record AnnouncementSourceCollectionRequestRow(
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
+
+    public AnnouncementSourceCollectionRequestRow withSearchKeyword(String nextSearchKeyword) {
+        return new AnnouncementSourceCollectionRequestRow(
+                requestId,
+                publicCode,
+                providerCode,
+                requestTypeCode,
+                requestStatusCode,
+                requestedBy,
+                requestedAt,
+                requestedFrom,
+                nextSearchKeyword,
+                searchRegionCode,
+                searchCategoryCode,
+                startDate,
+                endDate,
+                maxCount,
+                requestNote,
+                localGovernmentSourceId,
+                scheduleId,
+                approvedBy,
+                approvedAt,
+                approvalNote,
+                createdAt,
+                updatedAt
+        );
+    }
 }

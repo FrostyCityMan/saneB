@@ -37,7 +37,9 @@ import com.saneb.domain.announcement.vo.AnnouncementStepButtonRow;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementStepDocumentRow;
 import com.saneb.domain.announcement.vo.AnnouncementStandardDocumentFieldRow;
+import com.saneb.domain.announcement.vo.AnnouncementSupportTypeAssignmentCommand;
 import com.saneb.domain.announcement.vo.AnnouncementSummaryRow;
+import com.saneb.domain.announcement.vo.AnnouncementTargetCategoryAssignmentCommand;
 import java.util.List;
 import java.util.UUID;
 import org.apache.ibatis.annotations.Mapper;
@@ -165,6 +167,50 @@ public interface AnnouncementDao {
      * @param command 입력 값
      */
     void insertAnnouncement(AnnouncementSaveCommand command);
+
+    /**
+     * 공고에 연결된 지원대상 코드를 조회합니다.
+     *
+     * @param announcementId 공고 식별자
+     * @return 대표 대상 우선 지원대상 코드 목록
+     */
+    List<String> selectAnnouncementTargetCategoryCodeList(@Param("announcementId") UUID announcementId);
+
+    /**
+     * 공고에 연결된 지원형태 코드를 조회합니다.
+     *
+     * @param announcementId 공고 식별자
+     * @return 지원형태 코드 목록
+     */
+    List<String> selectAnnouncementSupportTypeCodeList(@Param("announcementId") UUID announcementId);
+
+    /**
+     * 공고의 지원대상 연결을 교체하기 위해 기존 행을 삭제합니다.
+     *
+     * @param announcementId 공고 식별자
+     */
+    void deleteAnnouncementTargetCategoryAssignments(@Param("announcementId") UUID announcementId);
+
+    /**
+     * 공고의 지원대상 연결을 등록합니다.
+     *
+     * @param command 등록 명령
+     */
+    void insertAnnouncementTargetCategoryAssignment(AnnouncementTargetCategoryAssignmentCommand command);
+
+    /**
+     * 공고의 지원형태 연결을 교체하기 위해 기존 행을 삭제합니다.
+     *
+     * @param announcementId 공고 식별자
+     */
+    void deleteAnnouncementSupportTypeAssignments(@Param("announcementId") UUID announcementId);
+
+    /**
+     * 공고의 지원형태 연결을 등록합니다.
+     *
+     * @param command 등록 명령
+     */
+    void insertAnnouncementSupportTypeAssignment(AnnouncementSupportTypeAssignmentCommand command);
 
     /**
      * 업무 데이터를 수정합니다.

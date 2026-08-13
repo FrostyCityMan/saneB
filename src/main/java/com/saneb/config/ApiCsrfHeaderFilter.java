@@ -32,7 +32,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
 
-    private static final String API_PREFIX = "/api/v1/";
+    private static final Set<String> API_PREFIXES = Set.of("/api/v1/", "/api/v2/");
     private static final String PAYMENT_WEBHOOK_PREFIX = "/api/v1/payment-webhooks/";
     private static final String SESSION_COOKIE_NAME = "JSESSIONID";
     private static final String CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -97,7 +97,7 @@ public class ApiCsrfHeaderFilter extends OncePerRequestFilter {
         }
 
         String path = normalizedPath(request);
-        if (!path.startsWith(API_PREFIX) || path.startsWith(PAYMENT_WEBHOOK_PREFIX)) {
+        if (API_PREFIXES.stream().noneMatch(path::startsWith) || path.startsWith(PAYMENT_WEBHOOK_PREFIX)) {
             return false;
         }
 

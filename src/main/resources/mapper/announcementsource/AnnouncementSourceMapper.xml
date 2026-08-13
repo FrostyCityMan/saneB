@@ -98,9 +98,27 @@
             <arg column="semantic_status_code" javaType="java.lang.String"/>
             <arg column="semantic_reason_code" javaType="java.lang.String"/>
             <arg column="semantic_matched_keywords" javaType="java.lang.String"/>
+            <arg column="classification_row_version" javaType="java.lang.Integer"/>
             <arg column="collected_at" javaType="java.time.OffsetDateTime"/>
             <arg column="created_at" javaType="java.time.OffsetDateTime"/>
             <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SourceClassificationTagSummaryRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationTagSummaryRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="target_category_codes" javaType="java.lang.String"/>
+            <arg column="support_type_codes" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="SourceLinkedAnnouncementRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkedAnnouncementRow">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/>
+            <arg column="announcement_code" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
 
@@ -205,6 +223,7 @@
         ass.semantic_status_code,
         ass.semantic_reason_code,
         ass.semantic_matched_keywords,
+        ass.classification_row_version,
         ass.collected_at,
         ass.created_at,
         ass.updated_at
@@ -245,6 +264,80 @@
             </if>
             <if test="semanticStatusCode != null and semanticStatusCode != ''">
                 AND ass.semantic_status_code = #{semanticStatusCode}
+            </if>
+            <if test="targetCategoryCode != null and targetCategoryCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_target
+                    INNER JOIN announcement_source_classification_target_matches asctm
+                            ON asctm.evaluation_id = asce_target.id
+                    INNER JOIN announcement_target_categories atc ON atc.id = asctm.target_category_id
+                    WHERE asce_target.source_id = ass.id
+                      AND asce_target.is_current = TRUE
+                      AND atc.category_code = #{targetCategoryCode}
+                )
+            </if>
+            <if test="supportTypeCode != null and supportTypeCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_support
+                    INNER JOIN announcement_source_classification_support_matches ascsm
+                            ON ascsm.evaluation_id = asce_support.id
+                    INNER JOIN announcement_support_types ast ON ast.id = ascsm.support_type_id
+                    WHERE asce_support.source_id = ass.id
+                      AND asce_support.is_current = TRUE
+                      AND ast.support_type_code = #{supportTypeCode}
+                )
+            </if>
+            <if test="matchedGroupCode != null and matchedGroupCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_group
+                    INNER JOIN announcement_source_classification_matches ascm_group
+                            ON ascm_group.evaluation_id = asce_group.id
+                    INNER JOIN announcement_source_classification_keyword_rules asckr_group
+                            ON asckr_group.id = ascm_group.keyword_rule_id
+                    INNER JOIN announcement_source_classification_rule_groups ascrg_group
+                            ON ascrg_group.id = asckr_group.group_id
+                    WHERE asce_group.source_id = ass.id
+                      AND asce_group.is_current = TRUE
+                      AND ascrg_group.group_code = #{matchedGroupCode}
+                )
+            </if>
+            <if test="matchedGroupKindCode != null and matchedGroupKindCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_group_kind
+                    INNER JOIN announcement_source_classification_matches ascm_group_kind
+                            ON ascm_group_kind.evaluation_id = asce_group_kind.id
+                    INNER JOIN announcement_source_classification_keyword_rules asckr_group_kind
+                            ON asckr_group_kind.id = ascm_group_kind.keyword_rule_id
+                    INNER JOIN announcement_source_classification_rule_groups ascrg_group_kind
+                            ON ascrg_group_kind.id = asckr_group_kind.group_id
+                    WHERE asce_group_kind.source_id = ass.id
+                      AND asce_group_kind.is_current = TRUE
+                      AND ascrg_group_kind.group_kind_code = #{matchedGroupKindCode}
+                )
+            </if>
+            <if test="matchLocationCode != null and matchLocationCode != ''">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_location
+                    INNER JOIN announcement_source_classification_matches ascm_location
+                            ON ascm_location.evaluation_id = asce_location.id
+                    WHERE asce_location.source_id = ass.id
+                      AND asce_location.is_current = TRUE
+                      AND ascm_location.match_location_code = #{matchLocationCode}
+                )
+            </if>
+            <if test="ruleReleaseId != null">
+                AND EXISTS (
+                    SELECT 1
+                    FROM announcement_source_classification_evaluations asce_release
+                    WHERE asce_release.source_id = ass.id
+                      AND asce_release.is_current = TRUE
+                      AND asce_release.rule_release_id = #{ruleReleaseId}
+                )
             </if>
             <if test="keyword != null and keyword != ''">
                 AND (
@@ -328,6 +421,37 @@
             #{approvalNote}
         )
     </insert>
+
+    <update id="updateSourceSnapshotContent">
+        -- Refresh the current source projection only when both content and classification versions still match.
+        UPDATE announcement_source_snapshots
+        SET
+            provider_notice_id = #{providerNoticeId},
+            title = #{title},
+            agency_name = #{agencyName},
+            application_start_date = #{applicationStartDate},
+            application_end_date = #{applicationEndDate},
+            posted_at = #{postedAt},
+            modified_at = #{modifiedAt},
+            source_url = #{sourceUrl},
+            body_text = #{bodyText},
+            inquiry_text = #{inquiryText},
+            application_method_text = #{applicationMethodText},
+            source_completeness_code = #{sourceCompletenessCode},
+            missing_fields_json = CAST(#{missingFieldsJson} AS jsonb),
+            raw_payload_json = CAST(#{rawPayloadJson} AS jsonb),
+            raw_hash = #{rawHash},
+            local_government_source_id = #{localGovernmentSourceId},
+            canonical_source_url = #{canonicalSourceUrl},
+            normalized_title = #{normalizedTitle},
+            normalized_agency_name = #{normalizedAgencyName},
+            posted_date = #{postedDate},
+            collected_at = now(),
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND raw_hash = #{expectedRawHash}
+          AND classification_row_version = #{expectedVersion}
+    </update>
 
     <select id="selectCollectionRequestList" resultMap="CollectionRequestRowMap">
         -- Select external announcement collection requests.
@@ -650,6 +774,7 @@
             ass.semantic_status_code,
             ass.semantic_reason_code,
             ass.semantic_matched_keywords,
+            ass.classification_row_version,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -682,6 +807,7 @@
             ass.semantic_status_code,
             ass.semantic_reason_code,
             ass.semantic_matched_keywords,
+            ass.classification_row_version,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -714,6 +840,7 @@
             ass.semantic_status_code,
             ass.semantic_reason_code,
             ass.semantic_matched_keywords,
+            ass.classification_row_version,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -854,6 +981,7 @@
             ass.semantic_status_code,
             ass.semantic_reason_code,
             ass.semantic_matched_keywords,
+            ass.classification_row_version,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
@@ -870,6 +998,53 @@
             count(1)
         FROM announcement_source_snapshots ass
         <include refid="SourceWhere"/>
+    </select>
+
+    <select id="selectSourceClassificationTagSummaryList" resultMap="SourceClassificationTagSummaryRowMap">
+        -- Select current confirmed tags, falling back to the current automatic evaluation for a source page.
+        SELECT
+            ass.id AS source_id,
+            coalesce(
+                (
+                    SELECT string_agg(atc.category_code, ',' ORDER BY atc.sort_order, atc.category_code)
+                    FROM announcement_source_confirmed_target_categories asctc
+                    INNER JOIN announcement_target_categories atc ON atc.id = asctc.target_category_id
+                    WHERE asctc.source_id = ass.id
+                      AND asctc.confirmation_status_code = 'CURRENT'
+                ),
+                (
+                    SELECT string_agg(atc.category_code, ',' ORDER BY atc.sort_order, atc.category_code)
+                    FROM announcement_source_classification_evaluations asce
+                    INNER JOIN announcement_source_classification_target_matches asctm
+                            ON asctm.evaluation_id = asce.id
+                    INNER JOIN announcement_target_categories atc ON atc.id = asctm.target_category_id
+                    WHERE asce.source_id = ass.id
+                      AND asce.is_current = TRUE
+                )
+            ) AS target_category_codes,
+            coalesce(
+                (
+                    SELECT string_agg(ast.support_type_code, ',' ORDER BY ast.sort_order, ast.support_type_code)
+                    FROM announcement_source_confirmed_support_types ascst
+                    INNER JOIN announcement_support_types ast ON ast.id = ascst.support_type_id
+                    WHERE ascst.source_id = ass.id
+                      AND ascst.confirmation_status_code = 'CURRENT'
+                ),
+                (
+                    SELECT string_agg(ast.support_type_code, ',' ORDER BY ast.sort_order, ast.support_type_code)
+                    FROM announcement_source_classification_evaluations asce
+                    INNER JOIN announcement_source_classification_support_matches ascsm
+                            ON ascsm.evaluation_id = asce.id
+                    INNER JOIN announcement_support_types ast ON ast.id = ascsm.support_type_id
+                    WHERE asce.source_id = ass.id
+                      AND asce.is_current = TRUE
+                )
+            ) AS support_type_codes
+        FROM announcement_source_snapshots ass
+        WHERE ass.id IN
+        <foreach collection="sourceIds" item="sourceId" open="(" separator="," close=")">
+            #{sourceId}
+        </foreach>
     </select>
 
     <select id="selectSourceDetails" resultMap="SourceSnapshotRowMap">
@@ -896,11 +1071,20 @@
             ass.semantic_status_code,
             ass.semantic_reason_code,
             ass.semantic_matched_keywords,
+            ass.classification_row_version,
             ass.collected_at,
             ass.created_at,
             ass.updated_at
         FROM announcement_source_snapshots ass
         WHERE ass.id = #{sourceId}
+    </select>
+
+    <select id="selectSourceDetailsForUpdate" resultMap="SourceSnapshotRowMap">
+        -- Lock one source row to serialize operational announcement conversion.
+        SELECT <include refid="SourceSnapshotColumns"/>
+        FROM announcement_source_snapshots ass
+        WHERE ass.id = #{sourceId}
+        FOR UPDATE
     </select>
 
     <insert id="insertSourceAttachment">
@@ -1179,6 +1363,16 @@
         WHERE asl.source_id = #{sourceId}
           AND a.approval_status_code = 'APPROVED'
           AND a.manual_status_code = 'NORMAL'
+    </select>
+
+    <select id="selectLinkedAnnouncementDetails" resultMap="SourceLinkedAnnouncementRowMap">
+        -- Select the operational announcement already linked to one source.
+        SELECT
+            asl.announcement_id,
+            a.public_code AS announcement_code
+        FROM announcement_source_links asl
+        INNER JOIN announcements a ON a.id = asl.announcement_id
+        WHERE asl.source_id = #{sourceId}
     </select>
 
     <insert id="insertSourceReviewHistory">
