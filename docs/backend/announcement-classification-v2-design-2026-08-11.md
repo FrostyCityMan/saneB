@@ -1133,16 +1133,17 @@ And 운영 공고 전환은 제공되지 않는다
 - 전체 테스트, `bootJar`, Flyway PostgreSQL 통합 테스트가 통과한다.
 - 브라우저 QA는 사용자가 명시적으로 요청한 경우에만 수행하고, 미실행 시 통과로 보고하지 않는다.
 
-## 17. 운영 적용 전 남은 Gate
+## 17. 운영 schema 적용 후 남은 활성화 Gate
 
-1. 운영 DB의 실제 Flyway 버전·데이터 건수·`V68` 중복 사전검사 결과 확인
-2. migration 백업·복구 절차와 격리 QA 전용 write·cleanup 절차 확정
-3. DRAFT 규칙의 dry-run 대상과 예상 변경 건수 검토
-4. 상세본문 HTTP의 private-range egress 차단 또는 연결 IP 고정 검증
-5. ADMIN의 초기 release 활성화 승인과 제한된 신규 수집 canary 승인
-6. 기존 원문 재분류는 별도 실행 승인 전 금지
+2026-08-13 운영 DB에 V63~V68을 적용했다. 초기 release는 `DRAFT` 1건이며 `ACTIVE`는 0건이고, 분류 V2와 상세본문 feature flag는 모두 OFF다.
 
-이 Gate가 통과되기 전에는 운영 migration 적용, 규칙 활성화, feature flag ON, 재분류를 실행하지 않는다.
+1. migration 복구 절차와 격리 QA 전용 write·cleanup 절차 확정
+2. DRAFT 규칙의 dry-run 대상과 예상 변경 건수 검토
+3. 상세본문 HTTP의 private-range egress 차단 또는 연결 IP 고정 검증
+4. ADMIN의 초기 release 활성화 승인과 제한된 신규 수집 canary 승인
+5. 기존 원문 재분류는 별도 실행 승인 전 금지
+
+운영 migration은 적용됐지만, 이 Gate가 통과되기 전에는 규칙 활성화, feature flag ON, 제한 수집 canary, 기존 원문 재분류를 실행하지 않는다.
 
 ## 18. 2026-08-12 로컬 검증 결과
 
@@ -1153,4 +1154,14 @@ And 운영 공고 전환은 제공되지 않는다
 - 관리자 JavaScript 3개 `node --check`: 통과, 상주 Node.js 프로세스 없음
 - Mapper XML 파싱, `git diff --check`, `SELECT *`·MyBatis `${}`·`th:utext` 금지 패턴 검사: 통과
 - 브라우저 QA: 사용자 실행 지시가 없어 정책상 미실행
-- 운영 DB·외부 provider·규칙 활성화·재분류·배포: 이번 범위에서 미실행
+- 운영 DB·외부 provider·규칙 활성화·재분류·배포: 2026-08-12 로컬 검증 당시 미실행. 이후 운영 적용 결과는 19절에 기록한다.
+
+## 19. 2026-08-13 운영 적용 결과
+
+- GitHub Actions 수동 배포 `31683175372`, 대상 commit `0ed85b3`: 테스트, `bootJar`, S3 업로드, CodeDeploy 모두 성공
+- V68을 막던 동일·미사용 후속 source link 1행을 승인된 트랜잭션으로 분리하고 `audit_logs`에 복구 metadata를 기록했다. 공고 본체와 원문·매칭·진행 데이터는 삭제하지 않았다.
+- Flyway 최고 성공 버전 `68`, V68 성공 이력 1건, `announcement_source_links.source_id` UNIQUE 제약 존재, 중복 source 0건을 확인했다.
+- 초기 규칙 release는 `DRAFT` 1건, `ACTIVE` 0건이다.
+- `saneb.service`는 active이고 내부 `/actuator/health`는 `UP`이다.
+- `SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_ENABLED=false`, `SANEB_LOCAL_GOV_NOTICE_DETAIL_BODY_ENABLED=false`를 확인했다.
+- 규칙 활성화, feature flag ON, 외부 provider canary, 기존 원문 재분류, 브라우저 QA는 실행하지 않았다.

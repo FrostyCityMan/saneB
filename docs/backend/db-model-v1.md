@@ -534,7 +534,7 @@ dev seed:
 
 ## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V68`)
 
-2026-08-12 로컬 구현 기준이며 운영 DB 적용 상태를 뜻하지 않는다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가한다.
+2026-08-13 운영 DB에 V63~V68 적용을 확인했다. 초기 release는 `DRAFT` 1건, `ACTIVE` 0건이며 분류 V2와 상세본문 feature flag는 OFF다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가했다.
 
 | migration | 계약 |
 |---|---|

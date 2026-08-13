@@ -324,7 +324,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 | API CSRF header | 완료 | 브라우저 세션 `/api/v1/**`, `/api/v2/**` 변경 요청의 `X-XSRF-TOKEN` 검증 적용 |
 | API rate limit | 완료 | `/api/v1/**`, `/api/v2/**` 기본 요청 제한 적용, 환경변수로 제한값과 사용 여부 조정 |
 | AI 보조 | 완료 | `ai_assist_requests`, `ai_assist_results`, `/api/v1/ai-assist/...` 적용. 기본 provider는 외부 호출 없는 `LOCAL_SAFE` |
-| 공고 수집·분류 V2 | 로컬 구현·검증 완료, 운영 보류 | V63~V68, 공통 규칙 엔진, 다중 태그, 판정 근거, 규칙 관리·QA Gate, source 전환 멱등성 구현. 전체 테스트·`bootJar`·PostgreSQL 16 Flyway 통합 검증 통과. 운영 DB 적용·초기 DRAFT 활성화·재분류 실행은 별도 승인 필요 |
+| 공고 수집·분류 V2 | 운영 schema 배포 완료, 기능 활성화 보류 | V63~V68, 공통 규칙 엔진, 다중 태그, 판정 근거, 규칙 관리·QA Gate, source 전환 멱등성 구현. 2026-08-13 운영 V68·UNIQUE 제약·health를 확인했다. 초기 release는 DRAFT이며 규칙 활성화·feature flag ON·재분류는 별도 승인 필요 |
 
 ## 11. Gate 정책
 
@@ -359,10 +359,10 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 공고 수집·분류 V2 격리 QA: 운영 DB 반영 전 migration 백업·rollback 절차, 초기 DRAFT 검수, dry-run 영향 건수, DB 기록이 필요한 경우 내부 QA write·cleanup 절차, 네트워크 egress의 private-range 차단을 확정한다.
+1. 공고 수집·분류 V2 격리 QA: migration 복구 절차, 초기 DRAFT 검수, dry-run 영향 건수, DB 기록이 필요한 경우 내부 QA write·cleanup 절차, 네트워크 egress의 private-range 차단을 확정한다.
 2. 운영 승인 후 규칙 활성화와 제한된 신규 수집 canary를 실행한다. 기존 원문 일괄 재분류는 별도 실행 승인 전 금지한다.
 3. 전체 운영 실사용 QA
 4. TossPayments 실결제 계약 확인 후 Payment Hardening Gate
 5. 외부 AI provider 연동 여부 결정
 
-파일형 서류 제출/검토, 상담 수기 배정, 월 단순 구독 DB/API, 알림과 운영 큐, 장기 미진행/TM 재접촉, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit, AI 보조 DB/API는 완료했다. 공고 수집·분류 V2는 로컬 코드와 migration 구현까지만 완료했으며 운영 DB 반영, 초기 DRAFT 활성화, 재분류 실행은 아직 수행하지 않았다. 다음 Gate는 격리 QA와 영향도 검증이다. TossPayments 실결제 연결은 상점 key, webhook URL, 성공/실패 redirect URL, 자동결제 정책이 확정된 뒤 진행한다. 외부 AI provider 연동은 개인정보 원문 전송 금지 정책과 provider/secret 계약을 별도 승인한 뒤 진행한다.
+파일형 서류 제출/검토, 상담 수기 배정, 월 단순 구독 DB/API, 알림과 운영 큐, 장기 미진행/TM 재접촉, 관리자 리포트, 서버 화면 CSRF, API CSRF header, API rate limit, AI 보조 DB/API는 완료했다. 공고 수집·분류 V2는 운영 DB V68과 애플리케이션 배포까지 완료했으며 초기 release는 DRAFT, feature flag는 OFF다. 규칙 활성화와 재분류는 아직 수행하지 않았다. 다음 Gate는 격리 QA와 영향도 검증이다. TossPayments 실결제 연결은 상점 key, webhook URL, 성공/실패 redirect URL, 자동결제 정책이 확정된 뒤 진행한다. 외부 AI provider 연동은 개인정보 원문 전송 금지 정책과 provider/secret 계약을 별도 승인한 뒤 진행한다.

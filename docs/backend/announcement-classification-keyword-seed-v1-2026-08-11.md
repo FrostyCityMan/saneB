@@ -1,7 +1,7 @@
 # 공고 수집 분류 초기 키워드 release v1 명세
 
 - 작성일: 2026-08-11
-- 상태: 초기 DRAFT 로컬 seed·Golden QA 구현 완료, 운영 활성화 보류
+- 상태: 초기 DRAFT 운영 적재·Golden QA 구현 완료, 운영 활성화 보류
 - 관련 설계: `docs/backend/announcement-classification-v2-design-2026-08-11.md`
 
 ## 1. 현재 단계와 Gate
@@ -15,6 +15,7 @@
 - [x] 첨부 원문의 장문 지원대상 후보를 역할별로 정제
 - [x] 행정 잡공고의 광범위 단독어와 확정 문구를 분리
 - [x] DRAFT 정답 세트 QA-01~20 서버 검증
+- [x] 운영 DB V63~V68과 초기 DRAFT seed 적재
 - [ ] ADMIN의 초기 규칙 버전 활성화 승인
 
 이 문서는 Flyway `V65` seed와 관리자 초기 규칙 버전의 입력 명세다. `DRAFT_ENABLED`로 표시된 문구도 migration 적용만으로 운영 활성화하지 않는다. 초기 규칙 버전은 `DRAFT`로만 적재되며, 격리 QA와 관리자 활성화 이후 신규 수집부터 사용한다.
