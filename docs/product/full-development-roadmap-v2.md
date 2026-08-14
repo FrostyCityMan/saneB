@@ -359,7 +359,7 @@ AI 보조 도메인은 개인정보 원문 외부 전송 금지, provider 교체
 
 ## 12. 다음 구현 우선순위
 
-1. 공고 수집·분류 V2 격리 QA: migration 복구 절차, 초기 DRAFT 검수, dry-run 영향 건수, DB 기록이 필요한 경우 내부 QA write·cleanup 절차, 네트워크 egress의 private-range 차단을 확정한다.
+1. 공고 수집·분류 V2 격리 QA: migration 복구 절차, 초기 DRAFT 검수, dry-run 영향 건수, DB 기록이 필요한 경우 내부 QA write·cleanup 절차를 확정한다. 로컬 상세본문 수집은 검증된 IP를 연결 계층에 고정하도록 보강했으며, staging에서 기관별 HTML 추출 품질과 운영 네트워크의 private-range egress 차단을 확인한다.
 2. 운영 승인 후 규칙 활성화와 제한된 신규 수집 canary를 실행한다. 기존 원문 일괄 재분류는 별도 실행 승인 전 금지한다.
 3. 전체 운영 실사용 QA
 4. TossPayments 실결제 계약 확인 후 Payment Hardening Gate

@@ -8,6 +8,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -48,9 +50,13 @@ final class ProviderContentUrlValidator {
         return redirectUri;
     }
 
-    void validateBeforeRequest(URI requestUri, String allowedHost) {
+    ProviderContentRequestTarget selectRequestTarget(URI requestUri, String allowedHost) {
         selectAllowedHost(requestUri, allowedHost);
-        selectPublicAddress(allowedHost);
+        return new ProviderContentRequestTarget(
+                requestUri,
+                allowedHost,
+                selectPublicAddress(allowedHost)
+        );
     }
 
     private URI selectHttpUri(String value, FailureCode invalidCode) {
@@ -104,7 +110,7 @@ final class ProviderContentUrlValidator {
         return host;
     }
 
-    private void selectPublicAddress(String host) {
+    private List<InetAddress> selectPublicAddress(String host) {
         InetAddress[] addresses;
         try {
             addresses = hostResolver.selectAddressList(host);
@@ -119,6 +125,7 @@ final class ProviderContentUrlValidator {
                 throw invalid(FailureCode.ADDRESS_BLOCKED);
             }
         }
+        return List.copyOf(Arrays.asList(addresses.clone()));
     }
 
     private boolean selectBlockedAddress(InetAddress address) {

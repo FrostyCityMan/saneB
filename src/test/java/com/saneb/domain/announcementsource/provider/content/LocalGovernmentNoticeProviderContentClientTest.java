@@ -82,6 +82,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         assertThat(result.finalUrl()).isEqualTo(DETAIL_URL);
         assertThat(result.attemptCount()).isEqualTo(1);
         assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
+        assertThat(transport.lastPinnedAddresses()).containsExactly(publicAddress());
         assertThat(transport.lastReadTimeout()).isEqualTo(Duration.ofSeconds(7));
         assertThat(transport.lastMaxResponseBytes()).isEqualTo(TWO_MEBIBYTES);
     }
@@ -92,7 +93,8 @@ class LocalGovernmentNoticeProviderContentClientTest {
         transport.enqueue(html(
                 """
                         <html><body>
-                        <main>소상공인 지원금 본문</main>
+                        <main>
+                        <p>소상공인 지원금 본문</p>
                         <section class="attachment-list">
                         <span>첨부파일</span>
                         <span>수출자료.pdf</span>
@@ -104,6 +106,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                         <a href="#" onclick="downloadFile('104')">특허자료.docx</a>
                         <a href="/notices/42/details">상세보기</a>
                         <a href="/apply?noticeId=42">온라인 신청</a>
+                        </main>
                         </body></html>
                         """
         ));
@@ -156,6 +159,65 @@ class LocalGovernmentNoticeProviderContentClientTest {
 
         assertThat(result.failureCode()).isEqualTo(FailureCode.ADDRESS_BLOCKED);
         assertThat(transport.callCount()).isZero();
+    }
+
+    @Test
+    void selectContentRechecksDnsImmediatelyBeforeTransport() {
+        StubTransport transport = new StubTransport();
+        AtomicInteger resolutionCount = new AtomicInteger();
+        ProviderContentUrlValidator validator = new ProviderContentUrlValidator(host -> {
+            if (resolutionCount.incrementAndGet() < 3) {
+                return new InetAddress[]{publicAddress()};
+            }
+            return new InetAddress[]{address(10, 0, 0, 8)};
+        });
+        LocalGovernmentNoticeProviderContentClient client = client(true, transport, validator);
+
+        ProviderContentResult result = client.selectContent(request());
+
+        assertThat(result.failureCode()).isEqualTo(FailureCode.ADDRESS_BLOCKED);
+        assertThat(resolutionCount).hasValue(3);
+        assertThat(transport.callCount()).isZero();
+    }
+
+    @Test
+    void selectContentUsesSemanticMainAreaInsteadOfNavigationAndFooter() {
+        StubTransport transport = new StubTransport();
+        transport.enqueue(html(
+                """
+                        <html><body>
+                        <nav>해외진출 수출바우처 메뉴</nav>
+                        <main><h1>소상공인 정책자금 안내</h1><p>신청 대상과 지원 내용입니다.</p></main>
+                        <footer>기관 채용공고</footer>
+                        </body></html>
+                        """
+        ));
+        LocalGovernmentNoticeProviderContentClient client = client(true, transport, publicValidator());
+
+        ProviderContentResult result = client.selectContent(request());
+
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 정책자금 안내 신청 대상과 지원 내용입니다.");
+        assertThat(result.bodyText()).doesNotContain("수출바우처", "채용공고");
+    }
+
+    @Test
+    void selectContentDoesNotFallBackToNavigationWhenSemanticAreaIsEmpty() {
+        StubTransport transport = new StubTransport();
+        transport.enqueue(html(
+                """
+                        <html><body>
+                        <nav>소상공인 수출바우처 메뉴</nav>
+                        <main><a href="/files/export.pdf">수출자료.pdf</a></main>
+                        </body></html>
+                        """
+        ));
+        LocalGovernmentNoticeProviderContentClient client = client(true, transport, publicValidator());
+
+        ProviderContentResult result = client.selectContent(request());
+
+        assertThat(result.statusCode()).isEqualTo(StatusCode.FETCH_FAILED);
+        assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
     }
 
     @Test
@@ -445,7 +507,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final class StubTransport implements ProviderContentHttpTransport {
 
         private final Deque<Object> outcomes = new ArrayDeque<>();
-        private final List<URI> requestUris = new ArrayList<>();
+        private final List<ProviderContentRequestTarget> requestTargets = new ArrayList<>();
         private Duration lastReadTimeout;
         private int lastMaxResponseBytes;
 
@@ -455,12 +517,12 @@ class LocalGovernmentNoticeProviderContentClientTest {
 
         @Override
         public ProviderContentHttpResponse selectResponse(
-                URI uri,
+                ProviderContentRequestTarget requestTarget,
                 Duration readTimeout,
                 int maxResponseBytes,
                 String userAgent
         ) throws IOException, TimeoutException {
-            requestUris.add(uri);
+            requestTargets.add(requestTarget);
             lastReadTimeout = readTimeout;
             lastMaxResponseBytes = maxResponseBytes;
             Object outcome = outcomes.removeFirst();
@@ -474,11 +536,15 @@ class LocalGovernmentNoticeProviderContentClientTest {
         }
 
         private int callCount() {
-            return requestUris.size();
+            return requestTargets.size();
         }
 
         private List<URI> requestUris() {
-            return List.copyOf(requestUris);
+            return requestTargets.stream().map(ProviderContentRequestTarget::uri).toList();
+        }
+
+        private List<InetAddress> lastPinnedAddresses() {
+            return requestTargets.getLast().pinnedAddresses();
         }
 
         private Duration lastReadTimeout() {
@@ -500,7 +566,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
 
         @Override
         public ProviderContentHttpResponse selectResponse(
-                URI uri,
+                ProviderContentRequestTarget requestTarget,
                 Duration readTimeout,
                 int maxResponseBytes,
                 String userAgent

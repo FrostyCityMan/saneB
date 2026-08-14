@@ -1,7 +1,6 @@
 package com.saneb.domain.announcementsource.provider.content;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
@@ -9,7 +8,7 @@ import java.util.concurrent.TimeoutException;
 interface ProviderContentHttpTransport {
 
     ProviderContentHttpResponse selectResponse(
-            URI uri,
+            ProviderContentRequestTarget requestTarget,
             Duration readTimeout,
             int maxResponseBytes,
             String userAgent

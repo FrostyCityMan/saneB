@@ -230,6 +230,8 @@
 
 지자체 상세 본문 수집은 첨부파일 분석과 별개다. 스크립트·스타일·외부 하위 리소스를 실행하거나 가져오지 않고, 기존 URL 검증·동일 기관 host 제한을 유지해야 한다.
 
+2026-08-14 로컬 구현은 각 요청과 redirect 직전에 DNS를 다시 검증하고, 검증을 통과한 공개 IP 목록만 HTTP 연결 계층의 고정 DNS 결과로 사용한다. URI의 원래 기관 host는 TLS hostname 검증에 유지한다. HTML은 첨부 링크·표시명과 실행 불가 요소를 먼저 제거한 뒤 `main`, `[role=main]`, `article` 순으로 의미 본문 영역을 선택하고, 해당 영역이 없을 때만 `body`를 사용한다. 이 구현은 운영 feature flag를 변경하지 않으며 실제 기관별 canary 검증 전에는 활성화 완료로 보지 않는다.
+
 본문의 출처와 가용 상태를 혼동하지 않도록 다음 코드를 함께 저장한다.
 
 | 필드 | 코드 |
@@ -1139,7 +1141,7 @@ And 운영 공고 전환은 제공되지 않는다
 
 1. migration 복구 절차와 격리 QA 전용 write·cleanup 절차 확정
 2. DRAFT 규칙의 dry-run 대상과 예상 변경 건수 검토
-3. 상세본문 HTTP의 private-range egress 차단 또는 연결 IP 고정 검증
+3. 로컬 연결 IP 고정 구현의 staging 검증과 운영 네트워크 private-range egress 차단 확인
 4. ADMIN의 초기 release 활성화 승인과 제한된 신규 수집 canary 승인
 5. 기존 원문 재분류는 별도 실행 승인 전 금지
 

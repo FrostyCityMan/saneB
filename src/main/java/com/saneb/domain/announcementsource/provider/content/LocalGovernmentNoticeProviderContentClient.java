@@ -126,7 +126,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 Math.max(1, maxHostConcurrency)
         );
         this.userAgent = selectUserAgent(userAgent);
-        this.httpTransport = new JdkProviderContentHttpTransport(connectTimeout);
+        this.httpTransport = new PinnedProviderContentHttpTransport(connectTimeout);
         this.urlValidator = new ProviderContentUrlValidator(InetAddress::getAllByName);
     }
 
@@ -271,9 +271,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         while (true) {
             Integer responseStatus = null;
             try {
-                urlValidator.validateBeforeRequest(currentUri, allowedHost);
-                ProviderContentHttpResponse response = httpTransport.selectResponse(
+                ProviderContentRequestTarget requestTarget = urlValidator.selectRequestTarget(
                         currentUri,
+                        allowedHost
+                );
+                ProviderContentHttpResponse response = httpTransport.selectResponse(
+                        requestTarget,
                         readTimeout,
                         maxResponseBytes,
                         userAgent
@@ -409,7 +412,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         Document document = Jsoup.parse(html, sourceUri.toASCIIString());
         document.select("script, style, noscript, template, iframe, object, embed").remove();
         deleteAttachmentLinkElements(document);
-        String bodyText = document.body().text()
+        Element contentElement = selectContentElement(document);
+        String bodyText = contentElement.text()
                 .replace('\u00a0', ' ')
                 .replaceAll("\\s+", " ")
                 .trim();
@@ -417,6 +421,16 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             throw new ContentFailureException(FailureCode.BODY_TEXT_EMPTY);
         }
         return bodyText;
+    }
+
+    private Element selectContentElement(Document document) {
+        for (String selector : new String[]{"main", "[role=main]", "article"}) {
+            Element candidate = document.selectFirst(selector);
+            if (candidate != null) {
+                return candidate;
+            }
+        }
+        return document.body();
     }
 
     private void deleteAttachmentLinkElements(Document document) {

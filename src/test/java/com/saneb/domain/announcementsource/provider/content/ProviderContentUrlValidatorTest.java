@@ -48,6 +48,24 @@ class ProviderContentUrlValidatorTest {
     }
 
     @Test
+    void selectRequestTargetReturnsOnlyValidatedPublicAddresses() {
+        InetAddress first = address(8, 8, 8, 8);
+        InetAddress second = address(1, 1, 1, 1);
+        ProviderContentUrlValidator validator = new ProviderContentUrlValidator(
+                host -> new InetAddress[]{first, second}
+        );
+
+        ProviderContentRequestTarget target = validator.selectRequestTarget(
+                URI.create("https://city.example.go.kr/notices/42"),
+                "city.example.go.kr"
+        );
+
+        assertThat(target.uri()).isEqualTo(URI.create("https://city.example.go.kr/notices/42"));
+        assertThat(target.allowedHost()).isEqualTo("city.example.go.kr");
+        assertThat(target.pinnedAddresses()).containsExactly(first, second);
+    }
+
+    @Test
     void selectValidatedRequestBlocksPrivateLoopbackAndLinkLocalAddresses() {
         List<InetAddress> blocked = List.of(
                 address(10, 1, 2, 3),
