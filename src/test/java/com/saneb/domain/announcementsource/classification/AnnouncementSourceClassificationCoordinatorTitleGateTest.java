@@ -2,6 +2,7 @@ package com.saneb.domain.announcementsource.classification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao;
 import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem;
@@ -24,6 +25,7 @@ class AnnouncementSourceClassificationCoordinatorTitleGateTest {
                     mock(AnnouncementSourceClassificationDao.class),
                     mock(AnnouncementSourceSearchPlanBuilder.class),
                     mock(AnnouncementSourceClassificationPersistenceService.class),
+                    "BIZINFO,GOV24_PUBLIC_SERVICE,LOCAL_GOV_NOTICE",
                     50
             );
     private final AnnouncementSourceClassificationCoordinator.RunContext runContext =
@@ -48,6 +50,27 @@ class AnnouncementSourceClassificationCoordinatorTitleGateTest {
         assertThat(coordinator.selectBodyFetchRequired(
                 runContext, item("지역 축제 개최 안내")
         )).isFalse();
+    }
+
+    @Test
+    void disablesClassificationOutsideProviderCanaryAllowlist() {
+        AnnouncementSourceActiveRuleService activeRuleService = mock(AnnouncementSourceActiveRuleService.class);
+        AnnouncementSourceClassificationCoordinatorImpl canaryCoordinator =
+                new AnnouncementSourceClassificationCoordinatorImpl(
+                        true,
+                        activeRuleService,
+                        mock(AnnouncementSourceClassificationDao.class),
+                        mock(AnnouncementSourceSearchPlanBuilder.class),
+                        mock(AnnouncementSourceClassificationPersistenceService.class),
+                        "BIZINFO",
+                        50
+                );
+
+        AnnouncementSourceClassificationCoordinator.RunContext disabled =
+                canaryCoordinator.selectRunContext(UUID.randomUUID(), "LOCAL_GOV_NOTICE");
+
+        assertThat(disabled.enabled()).isFalse();
+        verifyNoInteractions(activeRuleService);
     }
 
     private AnnouncementSourceProviderItem item(String title) {

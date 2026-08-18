@@ -44,11 +44,10 @@ has_env() {
   grep -Eq "^${key}=.+" "${ENV_FILE}"
 }
 
-set_env_value() {
+set_env_default() {
   local key="$1"
   local value="$2"
   if grep -Eq "^${key}=" "${ENV_FILE}"; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "${ENV_FILE}"
     return
   fi
   printf '\n%s=%s\n' "${key}" "${value}" >> "${ENV_FILE}"
@@ -70,13 +69,14 @@ if ! has_env "DB_PASSWORD"; then
   require_env "DB_SECRET_ARN"
 fi
 
-# 운영 정책: 승인된 지자체 일정 실행과 설정 완료 API 제공자의 배치 승인요청 생성을 활성화합니다.
-set_env_value "SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED" "true"
-set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED" "true"
-set_env_value "SANEB_ANNOUNCEMENT_SOURCE_BATCH_PROVIDER_CODES" "BIZINFO,GOV24_PUBLIC_SERVICE"
-# 공고 분류 V2는 운영 QA와 별도 활성화 승인이 끝날 때까지 강제로 비활성화합니다.
-set_env_value "SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_ENABLED" "false"
-set_env_value "SANEB_LOCAL_GOV_NOTICE_DETAIL_BODY_ENABLED" "false"
+# 최초 배포 기본값만 기록합니다. 이후 승인된 운영 플래그는 재배포로 덮어쓰지 않습니다.
+set_env_default "SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED" "true"
+set_env_default "SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED" "true"
+set_env_default "SANEB_ANNOUNCEMENT_SOURCE_BATCH_PROVIDER_CODES" "BIZINFO,GOV24_PUBLIC_SERVICE"
+set_env_default "SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_ENABLED" "false"
+set_env_default "SANEB_ANNOUNCEMENT_SOURCE_CLASSIFICATION_V2_PROVIDER_CODES" "BIZINFO"
+set_env_default "SANEB_LOCAL_GOV_NOTICE_DETAIL_BODY_ENABLED" "false"
+set_env_default "SANEB_ANNOUNCEMENT_SOURCE_RECLASSIFICATION_WORKER_ENABLED" "true"
 chown ubuntu:ubuntu "${ENV_FILE}"
 chmod 600 "${ENV_FILE}"
 

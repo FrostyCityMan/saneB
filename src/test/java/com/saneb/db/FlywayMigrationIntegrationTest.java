@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceRulePublicationRequest;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceRuleGoldenSetRunRequest;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceRuleReleaseCreateRequest;
+import com.saneb.domain.announcementsource.dto.AnnouncementSourceReclassificationRunPreviewRequest;
+import com.saneb.domain.announcementsource.service.AnnouncementSourceReclassificationRunService;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceRuleReleaseService;
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
@@ -47,6 +49,9 @@ class FlywayMigrationIntegrationTest {
 
     @Autowired
     private AnnouncementSourceRuleReleaseService ruleReleaseService;
+
+    @Autowired
+    private AnnouncementSourceReclassificationRunService reclassificationRunService;
 
     @Test
     @Transactional
@@ -101,6 +106,15 @@ class FlywayMigrationIntegrationTest {
         assertThat(response.activeRelease().autoActivationEnabled()).isFalse();
         assertThat(response.goldenCaseCount()).isEqualTo(20);
         assertThat(response.goldenSetRunId()).startsWith("GOLDEN-");
+        var previewRun = reclassificationRunService.insertPreviewRun(
+                authentication,
+                new AnnouncementSourceReclassificationRunPreviewRequest(
+                        response.activeRelease().releaseId(), "BIZINFO", null, null,
+                        false, 100, 20, "빈 운영 원문 범위 Mapper 검증"
+                )
+        );
+        assertThat(previewRun.runStatusCode()).isEqualTo("PREVIEW_COMPLETED");
+        assertThat(previewRun.totalCount()).isZero();
         var clonedDraft = ruleReleaseService.insertRuleReleaseDraft(
                 authentication,
                 new AnnouncementSourceRuleReleaseCreateRequest(
@@ -277,7 +291,7 @@ class FlywayMigrationIntegrationTest {
                     """)).isEqualTo(1);
             for (String version : List.of(
                     "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                    "59", "60", "61", "62", "63", "64", "65", "66", "67", "68"
+                    "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69"
             )) {
                 assertThat(selectLong(statement, """
                         select count(1)
@@ -730,7 +744,9 @@ class FlywayMigrationIntegrationTest {
                 "announcement_source_classification_target_matches",
                 "announcement_source_classification_support_matches",
                 "announcement_source_confirmed_target_categories",
-                "announcement_source_confirmed_support_types"
+                "announcement_source_confirmed_support_types",
+                "announcement_source_reclassification_runs",
+                "announcement_source_reclassification_run_items"
         );
     }
 

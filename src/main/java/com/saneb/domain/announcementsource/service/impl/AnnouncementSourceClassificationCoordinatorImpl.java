@@ -15,6 +15,8 @@ import com.saneb.domain.announcementsource.service.AnnouncementSourceActiveRuleS
 import com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationCoordinator;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationPersistenceService;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +28,7 @@ public class AnnouncementSourceClassificationCoordinatorImpl
         implements AnnouncementSourceClassificationCoordinator {
 
     private final boolean enabled;
+    private final Set<String> enabledProviderCodes;
     private final AnnouncementSourceActiveRuleService activeRuleService;
     private final AnnouncementSourceClassificationDao classificationDao;
     private final AnnouncementSourceSearchPlanBuilder searchPlanBuilder;
@@ -39,10 +42,13 @@ public class AnnouncementSourceClassificationCoordinatorImpl
             AnnouncementSourceClassificationDao classificationDao,
             AnnouncementSourceSearchPlanBuilder searchPlanBuilder,
             AnnouncementSourceClassificationPersistenceService persistenceService,
+            @Value("${saneb.announcement-source.classification-v2.provider-codes:BIZINFO,GOV24_PUBLIC_SERVICE,LOCAL_GOV_NOTICE}")
+            String enabledProviderCodes,
             @Value("${saneb.announcement-source.classification-v2.maximum-search-combinations:50}")
             int maximumSearchCombinationCount
     ) {
         this.enabled = enabled;
+        this.enabledProviderCodes = parseProviderCodes(enabledProviderCodes);
         this.activeRuleService = activeRuleService;
         this.classificationDao = classificationDao;
         this.searchPlanBuilder = searchPlanBuilder;
@@ -53,7 +59,8 @@ public class AnnouncementSourceClassificationCoordinatorImpl
 
     @Override
     public RunContext selectRunContext(UUID runId, String providerCode) {
-        if (!enabled) {
+        if (!enabled || providerCode == null
+                || !enabledProviderCodes.contains(providerCode.trim().toUpperCase(Locale.ROOT))) {
             return RunContext.disabled();
         }
         AnnouncementSourceActiveRuleService.ActiveRuleSet activeRuleSet = activeRuleService.selectActiveRuleSet();
@@ -72,6 +79,17 @@ public class AnnouncementSourceClassificationCoordinatorImpl
             throw new IllegalStateException("수집 실행에 공고 분류 규칙 버전과 검색 계획을 고정하지 못했습니다.");
         }
         return new RunContext(true, activeRuleSet.releaseId(), activeRuleSet.ruleSet(), searchPlan);
+    }
+
+    private Set<String> parseProviderCodes(String providerCodes) {
+        if (providerCodes == null || providerCodes.isBlank()) {
+            return Set.of();
+        }
+        return List.of(providerCodes.split(",")).stream()
+                .map(String::trim)
+                .filter(code -> !code.isBlank())
+                .map(code -> code.toUpperCase(Locale.ROOT))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override

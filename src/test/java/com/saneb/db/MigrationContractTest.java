@@ -1378,6 +1378,27 @@ class MigrationContractTest {
         );
     }
 
+    @Test
+    void v69MigrationCreatesAuditableAndRecoverableReclassificationRuns() throws IOException {
+        String sql = selectV69Migration();
+        String mapper = selectAnnouncementSourceReclassificationRunMapper();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_reclassification_runs",
+                "CREATE TABLE announcement_source_reclassification_run_items",
+                "rule_release_id uuid NOT NULL",
+                "scope_snapshot_at timestamptz NOT NULL DEFAULT now()",
+                "request_reason_hash varchar(64) NOT NULL",
+                "UNIQUE (run_id, source_id)",
+                "'PREVIEW_PENDING'",
+                "'APPLY_PAUSED'",
+                "'ROLLBACK_PENDING'",
+                "'ROLLED_BACK'"
+        );
+        assertThat(mapper).contains("snapshot.data_purpose_code = 'PRODUCTION'");
+        assertThat(sql).doesNotContain("DROP TABLE", "TRUNCATE TABLE", "DELETE FROM announcement_source_snapshots");
+    }
+
     /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
@@ -2164,6 +2185,20 @@ class MigrationContractTest {
     private String selectV68Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V68__enforce_single_announcement_source_link.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV69Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V69__create_announcement_source_reclassification_runs.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectAnnouncementSourceReclassificationRunMapper() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "mapper/announcementsource/AnnouncementSourceReclassificationRunMapper.xml"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

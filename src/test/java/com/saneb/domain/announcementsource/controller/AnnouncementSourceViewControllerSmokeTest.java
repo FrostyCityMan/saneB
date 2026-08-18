@@ -180,6 +180,10 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("Golden QA 실행 식별자")))
                 .andExpect(content().string(containsString("QA 정답 세트와 영향 확인")))
                 .andExpect(content().string(containsString("data-golden-set-run")))
+                .andExpect(content().string(containsString("기존 수집 공고 영향도·적용")))
+                .andExpect(content().string(containsString("data-reclassification-preview-form")))
+                .andExpect(content().string(containsString("/api/v1/admin/announcement-source-reclassification-runs")))
+                .andExpect(content().string(containsString("연결된 운영 공고는 자동 비활성화하지 않습니다")))
                 .andExpect(content().string(containsString("readonly")))
                 .andExpect(content().string(containsString("기관명 보호 구간 오탐 방지")))
                 .andExpect(content().string(not(containsString("th:utext"))));
@@ -212,6 +216,13 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("requestAllPages")))
                 .andExpect(content().string(containsString("goldenSetRunId")))
                 .andExpect(content().string(containsString("/golden-set-runs")))
+                .andExpect(result -> assertThat(
+                        new String(result.getResponse().getContentAsByteArray(), StandardCharsets.UTF_8),
+                        containsString("기존 원문 재분류 적용")))
+                .andExpect(result -> assertThat(
+                        new String(result.getResponse().getContentAsByteArray(), StandardCharsets.UTF_8),
+                        containsString("기존 원문 재분류 원복")))
+                .andExpect(content().string(containsString("loadReclassificationRuns")))
                 .andExpect(content().string(not(containsString("truthSetExecutionId"))));
     }
 

@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceReclassificationRunDao">
+
+    <resultMap id="RunRowMap" type="com.saneb.domain.announcementsource.vo.AnnouncementSourceReclassificationRunRow">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_code" javaType="java.lang.String"/>
+            <arg column="rule_snapshot_hash" javaType="java.lang.String"/>
+            <arg column="run_status_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="collected_from" javaType="java.time.LocalDate"/>
+            <arg column="collected_to" javaType="java.time.LocalDate"/>
+            <arg column="include_linked_announcements" javaType="_boolean"/>
+            <arg column="maximum_count" javaType="_int"/>
+            <arg column="batch_size" javaType="_int"/>
+            <arg column="total_count" javaType="_int"/>
+            <arg column="pending_count" javaType="_int"/>
+            <arg column="previewed_count" javaType="_int"/>
+            <arg column="accepted_count" javaType="_int"/>
+            <arg column="review_required_count" javaType="_int"/>
+            <arg column="excluded_count" javaType="_int"/>
+            <arg column="applied_count" javaType="_int"/>
+            <arg column="conflict_count" javaType="_int"/>
+            <arg column="failed_count" javaType="_int"/>
+            <arg column="rolled_back_count" javaType="_int"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="row_version" javaType="_int"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="preview_completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="application_completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="rollback_completed_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="RunItemRowMap"
+               type="com.saneb.domain.announcementsource.vo.AnnouncementSourceReclassificationRunItemRow">
+        <constructor>
+            <arg column="item_id" javaType="java.util.UUID"/>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="content_version_id" javaType="java.util.UUID"/>
+            <arg column="content_hash" javaType="java.lang.String"/>
+            <arg column="expected_classification_version" javaType="_int"/>
+            <arg column="previous_evaluation_id" javaType="java.util.UUID"/>
+            <arg column="previous_semantic_status_code" javaType="java.lang.String"/>
+            <arg column="previous_semantic_reason_code" javaType="java.lang.String"/>
+            <arg column="previous_semantic_matched_keywords" javaType="java.lang.String"/>
+            <arg column="previous_review_status_code" javaType="java.lang.String"/>
+            <arg column="predicted_semantic_status_code" javaType="java.lang.String"/>
+            <arg column="predicted_reason_code" javaType="java.lang.String"/>
+            <arg column="prediction_hash" javaType="java.lang.String"/>
+            <arg column="item_status_code" javaType="java.lang.String"/>
+            <arg column="applied_evaluation_id" javaType="java.util.UUID"/>
+            <arg column="applied_classification_version" javaType="java.lang.Integer"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="RunSelectionColumns">
+        run.id AS run_id,
+        run.rule_release_id,
+        release.release_code AS rule_release_code,
+        run.rule_snapshot_hash,
+        run.run_status_code,
+        run.provider_code,
+        run.collected_from,
+        run.collected_to,
+        run.include_linked_announcements,
+        run.maximum_count,
+        run.batch_size,
+        run.total_count,
+        coalesce(counts.pending_count, 0)::integer AS pending_count,
+        coalesce(counts.previewed_count, 0)::integer AS previewed_count,
+        coalesce(counts.accepted_count, 0)::integer AS accepted_count,
+        coalesce(counts.review_required_count, 0)::integer AS review_required_count,
+        coalesce(counts.excluded_count, 0)::integer AS excluded_count,
+        coalesce(counts.applied_count, 0)::integer AS applied_count,
+        coalesce(counts.conflict_count, 0)::integer AS conflict_count,
+        coalesce(counts.failed_count, 0)::integer AS failed_count,
+        coalesce(counts.rolled_back_count, 0)::integer AS rolled_back_count,
+        run.requested_by,
+        run.row_version,
+        run.created_at,
+        run.updated_at,
+        run.preview_completed_at,
+        run.application_completed_at,
+        run.rollback_completed_at
+    </sql>
+
+    <sql id="RunSelectionJoins">
+        INNER JOIN announcement_source_classification_rule_releases release
+                ON release.id = run.rule_release_id
+        LEFT JOIN LATERAL (
+            SELECT
+                count(1) FILTER (WHERE item.item_status_code = 'PENDING') AS pending_count,
+                count(1) FILTER (WHERE item.item_status_code = 'PREVIEWED') AS previewed_count,
+                count(1) FILTER (WHERE item.predicted_semantic_status_code = 'ACCEPTED') AS accepted_count,
+                count(1) FILTER (WHERE item.predicted_semantic_status_code = 'REVIEW_REQUIRED') AS review_required_count,
+                count(1) FILTER (WHERE item.predicted_semantic_status_code = 'EXCLUDED') AS excluded_count,
+                count(1) FILTER (WHERE item.item_status_code = 'APPLIED') AS applied_count,
+                count(1) FILTER (WHERE item.item_status_code IN (
+                    'PREVIEW_CONFLICT', 'APPLY_CONFLICT', 'ROLLBACK_CONFLICT'
+                )) AS conflict_count,
+                count(1) FILTER (WHERE item.item_status_code IN (
+                    'PREVIEW_FAILED', 'APPLY_FAILED', 'ROLLBACK_FAILED'
+                )) AS failed_count,
+                count(1) FILTER (WHERE item.item_status_code = 'ROLLED_BACK') AS rolled_back_count
+            FROM announcement_source_reclassification_run_items item
+            WHERE item.run_id = run.id
+        ) counts ON TRUE
+    </sql>
+
+    <insert id="insertRun">
+        -- Create an immutable production reclassification scope against the current ACTIVE release.
+        INSERT INTO announcement_source_reclassification_runs (
+            id,
+            rule_release_id,
+            rule_snapshot_hash,
+            provider_code,
+            collected_from,
+            collected_to,
+            include_linked_announcements,
+            maximum_count,
+            batch_size,
+            request_reason_hash,
+            requested_by
+        )
+        SELECT
+            #{runId},
+            release.id,
+            release.rule_snapshot_hash,
+            #{providerCode},
+            #{collectedFrom},
+            #{collectedTo},
+            #{includeLinkedAnnouncements},
+            #{maximumCount},
+            #{batchSize},
+            #{requestReasonHash},
+            #{requestedBy}
+        FROM announcement_source_classification_rule_releases release
+        WHERE release.id = #{ruleReleaseId}
+          AND release.release_status_code = 'ACTIVE'
+          AND release.rule_snapshot_hash IS NOT NULL
+    </insert>
+
+    <insert id="insertRunTargetItems">
+        -- Freeze the selected production source and content versions before running the preview.
+        WITH run_scope AS (
+            SELECT
+                run.id,
+                run.provider_code,
+                run.collected_from,
+                run.collected_to,
+                run.include_linked_announcements,
+                run.maximum_count,
+                run.scope_snapshot_at
+            FROM announcement_source_reclassification_runs run
+            WHERE run.id = #{runId}
+        ), selected_sources AS (
+            SELECT
+                snapshot.id AS source_id,
+                content.id AS content_version_id,
+                content.raw_hash AS content_hash,
+                snapshot.classification_row_version,
+                current_evaluation.id AS previous_evaluation_id,
+                snapshot.semantic_status_code,
+                snapshot.semantic_reason_code,
+                snapshot.semantic_matched_keywords,
+                snapshot.review_status_code
+            FROM announcement_source_snapshots snapshot
+            CROSS JOIN run_scope
+            INNER JOIN LATERAL (
+                SELECT
+                    version.id,
+                    version.raw_hash
+                FROM announcement_source_content_versions version
+                WHERE version.source_id = snapshot.id
+                ORDER BY version.collected_at DESC, version.id DESC
+                LIMIT 1
+            ) content ON TRUE
+            LEFT JOIN announcement_source_classification_evaluations current_evaluation
+                   ON current_evaluation.source_id = snapshot.id
+                  AND current_evaluation.is_current = TRUE
+            WHERE snapshot.data_purpose_code = 'PRODUCTION'
+              AND snapshot.collected_at &lt;= run_scope.scope_snapshot_at
+              AND (run_scope.provider_code IS NULL OR snapshot.provider_code = run_scope.provider_code)
+              AND (run_scope.collected_from IS NULL OR snapshot.collected_at::date &gt;= run_scope.collected_from)
+              AND (run_scope.collected_to IS NULL OR snapshot.collected_at::date &lt;= run_scope.collected_to)
+              AND (
+                  run_scope.include_linked_announcements
+                  OR NOT EXISTS (
+                      SELECT 1
+                      FROM announcement_source_links source_link
+                      WHERE source_link.source_id = snapshot.id
+                  )
+              )
+            ORDER BY snapshot.collected_at ASC, snapshot.id ASC
+            LIMIT (SELECT maximum_count FROM run_scope)
+        )
+        INSERT INTO announcement_source_reclassification_run_items (
+            id,
+            run_id,
+            source_id,
+            content_version_id,
+            content_hash,
+            expected_classification_version,
+            previous_evaluation_id,
+            previous_semantic_status_code,
+            previous_semantic_reason_code,
+            previous_semantic_matched_keywords,
+            previous_review_status_code
+        )
+        SELECT
+            gen_random_uuid(),
+            #{runId},
+            selected_sources.source_id,
+            selected_sources.content_version_id,
+            selected_sources.content_hash,
+            selected_sources.classification_row_version,
+            selected_sources.previous_evaluation_id,
+            selected_sources.semantic_status_code,
+            selected_sources.semantic_reason_code,
+            selected_sources.semantic_matched_keywords,
+            selected_sources.review_status_code
+        FROM selected_sources
+    </insert>
+
+    <update id="updateRunTotalCount">
+        -- Record the immutable target count and complete an empty preview without worker activity.
+        UPDATE announcement_source_reclassification_runs run
+        SET total_count = target.total_count,
+            run_status_code = CASE WHEN target.total_count = 0 THEN 'PREVIEW_COMPLETED' ELSE run_status_code END,
+            preview_completed_at = CASE WHEN target.total_count = 0 THEN now() ELSE preview_completed_at END,
+            updated_at = now(),
+            row_version = row_version + 1
+        FROM (
+            SELECT count(1)::integer AS total_count
+            FROM announcement_source_reclassification_run_items item
+            WHERE item.run_id = #{runId}
+        ) target
+        WHERE run.id = #{runId}
+    </update>
+
+    <select id="selectRunDetails" resultMap="RunRowMap">
+        -- Select one reclassification run with aggregated progress and outcome counts.
+        SELECT
+            <include refid="RunSelectionColumns"/>
+        FROM announcement_source_reclassification_runs run
+        <include refid="RunSelectionJoins"/>
+        WHERE run.id = #{runId}
+    </select>
+
+    <select id="selectRunList" resultMap="RunRowMap">
+        -- Select recent production reclassification runs for administrator monitoring.
+        SELECT
+            <include refid="RunSelectionColumns"/>
+        FROM announcement_source_reclassification_runs run
+        <include refid="RunSelectionJoins"/>
+        ORDER BY run.created_at DESC, run.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectNextRunnableRunDetails" resultMap="RunRowMap">
+        -- Select the oldest resumable worker run; the deployment uses one application instance.
+        SELECT
+            <include refid="RunSelectionColumns"/>
+        FROM announcement_source_reclassification_runs run
+        <include refid="RunSelectionJoins"/>
+        WHERE run.run_status_code IN (
+            'PREVIEW_PENDING', 'PREVIEW_RUNNING',
+            'APPLY_PENDING', 'APPLY_RUNNING',
+            'ROLLBACK_PENDING', 'ROLLBACK_RUNNING'
+        )
+        ORDER BY run.created_at ASC, run.id ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectRunItemList" resultMap="RunItemRowMap">
+        -- Select a deterministic bounded work batch for one run phase.
+        SELECT
+            item.id AS item_id,
+            item.run_id,
+            item.source_id,
+            item.content_version_id,
+            item.content_hash,
+            item.expected_classification_version,
+            item.previous_evaluation_id,
+            item.previous_semantic_status_code,
+            item.previous_semantic_reason_code,
+            item.previous_semantic_matched_keywords,
+            item.previous_review_status_code,
+            item.predicted_semantic_status_code,
+            item.predicted_reason_code,
+            item.prediction_hash,
+            item.item_status_code,
+            item.applied_evaluation_id,
+            item.applied_classification_version
+        FROM announcement_source_reclassification_run_items item
+        WHERE item.run_id = #{runId}
+          AND item.item_status_code = #{itemStatusCode}
+        ORDER BY item.source_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectRunItemStatusCount" resultType="int">
+        -- Count only the conflict and failure outcomes belonging to the current run phase.
+        SELECT count(1)::integer
+        FROM announcement_source_reclassification_run_items item
+        WHERE item.run_id = #{runId}
+          AND item.item_status_code IN
+          <foreach collection="itemStatusCodes" item="statusCode" open="(" separator="," close=")">
+              #{statusCode}
+          </foreach>
+    </select>
+
+    <update id="updateRunStatus">
+        -- Perform an optimistic run transition and retain non-sensitive action reason hashes.
+        UPDATE announcement_source_reclassification_runs
+        SET run_status_code = #{nextStatusCode},
+            application_reason_hash = CASE
+                WHEN #{nextStatusCode} IN ('APPLY_PENDING', 'APPLY_PAUSED')
+                    THEN coalesce(#{actionReasonHash}, application_reason_hash)
+                ELSE application_reason_hash
+            END,
+            rollback_reason_hash = CASE
+                WHEN #{nextStatusCode} = 'ROLLBACK_PENDING'
+                    THEN coalesce(#{actionReasonHash}, rollback_reason_hash)
+                ELSE rollback_reason_hash
+            END,
+            preview_completed_at = CASE
+                WHEN #{nextStatusCode} IN ('PREVIEW_COMPLETED', 'PREVIEW_PARTIAL_FAILED') THEN now()
+                ELSE preview_completed_at
+            END,
+            application_started_at = CASE
+                WHEN #{nextStatusCode} IN ('APPLY_PENDING', 'APPLY_RUNNING')
+                    THEN coalesce(application_started_at, now())
+                ELSE application_started_at
+            END,
+            application_completed_at = CASE
+                WHEN #{nextStatusCode} IN ('APPLY_COMPLETED', 'APPLY_PARTIAL_FAILED') THEN now()
+                ELSE application_completed_at
+            END,
+            rollback_started_at = CASE
+                WHEN #{nextStatusCode} IN ('ROLLBACK_PENDING', 'ROLLBACK_RUNNING')
+                    THEN coalesce(rollback_started_at, now())
+                ELSE rollback_started_at
+            END,
+            rollback_completed_at = CASE
+                WHEN #{nextStatusCode} IN ('ROLLBACK_COMPLETED', 'ROLLBACK_PARTIAL_FAILED') THEN now()
+                ELSE rollback_completed_at
+            END,
+            row_version = row_version + 1,
+            updated_at = now()
+        WHERE id = #{runId}
+          AND row_version = #{expectedVersion}
+          AND run_status_code IN
+          <foreach collection="expectedStatusCodes" item="statusCode" open="(" separator="," close=")">
+              #{statusCode}
+          </foreach>
+    </update>
+
+    <update id="updateItemPreviewed">
+        -- Store a dry-run prediction without changing the source or current evaluation.
+        UPDATE announcement_source_reclassification_run_items
+        SET predicted_semantic_status_code = #{predictedSemanticStatusCode},
+            predicted_reason_code = #{predictedReasonCode},
+            prediction_hash = #{predictionHash},
+            item_status_code = 'PREVIEWED',
+            error_code = NULL,
+            error_message = NULL,
+            previewed_at = now(),
+            updated_at = now()
+        WHERE id = #{itemId}
+          AND item_status_code = 'PENDING'
+    </update>
+
+    <update id="updateItemApplied">
+        -- Link one successful application to its append-only evaluation.
+        UPDATE announcement_source_reclassification_run_items
+        SET item_status_code = 'APPLIED',
+            applied_evaluation_id = #{evaluationId},
+            applied_classification_version = #{appliedClassificationVersion},
+            error_code = NULL,
+            error_message = NULL,
+            applied_at = now(),
+            updated_at = now()
+        WHERE id = #{itemId}
+          AND item_status_code = 'PREVIEWED'
+    </update>
+
+    <update id="updateItemRolledBack">
+        -- Mark one applied item restored to its captured pre-run projection.
+        UPDATE announcement_source_reclassification_run_items
+        SET item_status_code = 'ROLLED_BACK',
+            error_code = NULL,
+            error_message = NULL,
+            rolled_back_at = now(),
+            updated_at = now()
+        WHERE id = #{itemId}
+          AND item_status_code = 'APPLIED'
+    </update>
+
+    <update id="updateItemFailure">
+        -- Retain a bounded operational failure reason without raw source content.
+        UPDATE announcement_source_reclassification_run_items
+        SET item_status_code = #{nextStatusCode},
+            error_code = #{errorCode},
+            error_message = #{errorMessage},
+            updated_at = now()
+        WHERE id = #{itemId}
+          AND item_status_code = #{expectedStatusCode}
+    </update>
+
+    <update id="updateAppliedEvaluationNotCurrent">
+        -- Remove only this run's applied evaluation from the current projection during rollback.
+        UPDATE announcement_source_classification_evaluations
+        SET is_current = FALSE
+        WHERE id = #{evaluationId}
+          AND source_id = #{sourceId}
+          AND is_current = TRUE
+    </update>
+
+    <update id="updatePreviousEvaluationCurrent">
+        -- Restore the captured previous evaluation without deleting the appended evaluation history.
+        UPDATE announcement_source_classification_evaluations
+        SET is_current = TRUE
+        WHERE id = #{evaluationId}
+          AND source_id = #{sourceId}
+          AND is_current = FALSE
+    </update>
+
+    <update id="updateConfirmedTargetCurrentForEvaluation">
+        -- Restore only administrator target confirmations based on the previous evaluation.
+        UPDATE announcement_source_confirmed_target_categories
+        SET confirmation_status_code = 'CURRENT'
+        WHERE source_id = #{sourceId}
+          AND based_on_evaluation_id = #{evaluationId}
+    </update>
+
+    <update id="updateConfirmedSupportCurrentForEvaluation">
+        -- Restore only administrator support confirmations based on the previous evaluation.
+        UPDATE announcement_source_confirmed_support_types
+        SET confirmation_status_code = 'CURRENT'
+        WHERE source_id = #{sourceId}
+          AND based_on_evaluation_id = #{evaluationId}
+    </update>
+
+    <update id="updateSnapshotProjectionRollback">
+        -- Restore the captured compatibility projection using optimistic classification ownership.
+        UPDATE announcement_source_snapshots
+        SET semantic_status_code = #{semanticStatusCode},
+            semantic_reason_code = #{semanticReasonCode},
+            semantic_matched_keywords = #{semanticMatchedKeywords},
+            review_status_code = #{reviewStatusCode},
+            classification_row_version = classification_row_version + 1,
+            updated_at = now()
+        WHERE id = #{sourceId}
+          AND classification_row_version = #{expectedVersion}
+    </update>
+</mapper>

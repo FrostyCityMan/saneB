@@ -2280,6 +2280,20 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 
 재분류는 새 evaluation을 append하고 기존 운영 공고의 승인·활성 상태를 자동 변경하지 않는다. 연결된 운영 공고가 있는 원문이 새 규칙에서 제외되면 운영 확인 task만 생성한다. `changeReason` 원문은 감사 metadata에 저장하지 않고 해시만 남긴다.
 
+기존 원문 일괄 재분류는 `/api/v1/admin/announcement-source-reclassification-runs`를 사용한다.
+
+| method | endpoint | 역할 | 설명 |
+|---|---|---|---|
+| `POST` | `/previews` | `ADMIN` | ACTIVE release, provider, 수집일, 연결 공고 포함 여부, 최대 건수로 변경 없는 미리보기 생성 |
+| `GET` | `` | `ADMIN`, `OPERATOR`, `APPROVER` | 최근 실행 20건과 상태·판정 분포·충돌·실패 집계 조회 |
+| `GET` | `/{runId}` | 내부 3역할 | 실행 단건 진행 상태 조회 |
+| `POST` | `/{runId}/application` | `ADMIN` | `PREVIEW_COMPLETED` 실행 적용 시작 |
+| `POST` | `/{runId}/pause` | `ADMIN` | 적용 배치 일시중지 |
+| `POST` | `/{runId}/resume` | `ADMIN` | 일시중지 실행 재개 |
+| `POST` | `/{runId}/rollback` | `ADMIN` | 적용된 항목만 append-only 이력을 보존하며 원복 |
+
+미리보기는 항목별 content version, 규칙 snapshot hash, 예상 판정 hash, 분류 version을 고정한다. 적용 시 하나라도 달라지면 해당 항목만 `APPLY_CONFLICT`로 남기며 다른 항목은 계속 처리한다. 적용 확인 문구는 `기존 원문 재분류 적용`, 원복 확인 문구는 `기존 원문 재분류 원복`이다. 원문 사유는 저장하지 않고 SHA-256만 실행 행에 보존한다.
+
 수집 원문 목록은 기존 pagination을 유지하면서 `targetCategoryCode`, `supportTypeCode`, `matchedGroupCode`, `matchedGroupKindCode`, `matchLocationCode`, `ruleReleaseId` 필터와 다중 태그 배열을 additive로 제공한다.
 
 ### 23.3 규칙 release 관리
@@ -2301,6 +2315,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 ### 23.4 수집 실행 안전 계약
 
 - `saneb.announcement-source.classification-v2.enabled` 기본값은 `false`다.
+- `saneb.announcement-source.classification-v2.provider-codes`로 신규 수집 분류 canary 채널을 제한한다. 전역 flag가 `true`여도 allowlist 밖 provider는 V1 수집 경로를 유지한다.
 - 외부 검색 지원 provider는 고정된 release의 지원대상×지원형태 검색계획을 사용하고, 지자체는 발견 후 같은 공통 엔진으로 판정한다.
 - 제목의 그룹 B는 자동 제외, 제목의 그룹 A는 관리자 검수, 본문의 그룹 B는 관리자 검수로 처리한다.
 - 상세본문 기능은 별도 flag 기본 `false`이며 공식 등록 host 일치, URL·DNS 검증, redirect·시간·크기·동시성 제한을 통과한 HTML만 입력으로 사용한다.

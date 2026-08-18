@@ -7,6 +7,7 @@
     }
 
     const releaseUrl = app.dataset.releaseUrl;
+    const reclassificationUrl = app.dataset.reclassificationUrl;
     const isAdmin = app.dataset.isAdmin === "true";
     const PAGE_SIZE = 100;
     const MAX_RELEASE_PAGE_COUNT = 20;
@@ -24,12 +25,17 @@
     const previewForm = app.querySelector("[data-preview-form]");
     const publicationDialog = app.querySelector("[data-publication-dialog]");
     const publicationForm = app.querySelector("[data-publication-form]");
+    const reclassificationPreviewForm = app.querySelector("[data-reclassification-preview-form]");
+    const reclassificationRunList = app.querySelector("[data-reclassification-run-list]");
+    const reclassificationMessage = app.querySelector("[data-reclassification-message]");
 
     let releases = [];
     let selectedRelease = null;
     let rules = [];
     let latestGoldenSetResult = null;
     let latestPublicationResult = null;
+    let reclassificationRuns = [];
+    let reclassificationPollId = null;
 
     const groupLabels = {
         TARGET_BUSINESS: "지원대상 · 사업자",
@@ -84,6 +90,22 @@
         TAG: "태그 부여",
         CONTEXT_ONLY: "문맥 보조",
         MASK_ONLY: "보호 구간"
+    };
+
+    const reclassificationStatusLabels = {
+        PREVIEW_PENDING: "미리보기 대기",
+        PREVIEW_RUNNING: "미리보기 진행",
+        PREVIEW_COMPLETED: "미리보기 완료",
+        PREVIEW_PARTIAL_FAILED: "미리보기 일부 실패",
+        APPLY_PENDING: "적용 대기",
+        APPLY_RUNNING: "적용 진행",
+        APPLY_PAUSED: "적용 일시중지",
+        APPLY_COMPLETED: "적용 완료",
+        APPLY_PARTIAL_FAILED: "적용 일부 실패",
+        ROLLBACK_PENDING: "원복 대기",
+        ROLLBACK_RUNNING: "원복 진행",
+        ROLLBACK_COMPLETED: "원복 완료",
+        ROLLBACK_PARTIAL_FAILED: "원복 일부 실패"
     };
 
     const unwrap = (payload) => payload && Object.prototype.hasOwnProperty.call(payload, "data")
@@ -249,8 +271,138 @@
         if (goldenSetRunButton) {
             goldenSetRunButton.disabled = !canEdit();
         }
+        const reclassificationPreviewButton = app.querySelector("[data-reclassification-preview]");
+        if (reclassificationPreviewButton) {
+            reclassificationPreviewButton.disabled = !isAdmin || statusCode !== "ACTIVE";
+        }
         renderQaSummary();
         renderHistory();
+    };
+
+    const isReclassificationRunning = (statusCode) => [
+        "PREVIEW_PENDING", "PREVIEW_RUNNING", "APPLY_PENDING", "APPLY_RUNNING",
+        "ROLLBACK_PENDING", "ROLLBACK_RUNNING"
+    ].includes(statusCode);
+
+    const reclassificationScopeLabel = (run) => {
+        const providerLabels = {
+            BIZINFO: "기업마당",
+            GOV24_PUBLIC_SERVICE: "정부24",
+            LOCAL_GOV_NOTICE: "지자체"
+        };
+        const period = run.collectedFrom || run.collectedTo
+            ? `${run.collectedFrom || "처음"}~${run.collectedTo || "현재"}`
+            : "전체 기간";
+        return `${providerLabels[run.providerCode] || run.providerCode || "전체 채널"} · ${period} · 최대 ${run.maximumCount}건`;
+    };
+
+    const appendReclassificationAction = (cell, label, action, danger = false) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `text-action${danger ? " is-danger" : ""}`;
+        button.dataset.reclassificationAction = action;
+        button.textContent = label;
+        cell.append(button);
+    };
+
+    const renderReclassificationRuns = () => {
+        if (!reclassificationRunList) {
+            return;
+        }
+        reclassificationRunList.replaceChildren();
+        if (!reclassificationRuns.length) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 6;
+            cell.className = "keyword-rule-empty";
+            cell.textContent = "아직 생성된 기존 원문 영향도 실행이 없습니다.";
+            row.append(cell);
+            reclassificationRunList.append(row);
+            return;
+        }
+        reclassificationRuns.forEach((run) => {
+            const row = document.createElement("tr");
+            row.dataset.reclassificationRunId = run.runId;
+            const statusCell = document.createElement("td");
+            statusCell.append(createBadge(
+                reclassificationStatusLabels[run.runStatusCode] || run.runStatusCode,
+                run.failedCount || run.conflictCount ? "is-disabled" : "is-enabled"
+            ));
+            row.append(statusCell);
+            row.append(textCell(reclassificationScopeLabel(run)));
+            row.append(textCell(`유효 ${run.acceptedCount} · 검수 ${run.reviewRequiredCount} · 제외 ${run.excludedCount}`));
+            row.append(textCell(`적용 ${run.appliedCount}/${run.totalCount} · 충돌 ${run.conflictCount} · 실패 ${run.failedCount} · 원복 ${run.rolledBackCount}`));
+            row.append(textCell(formatDateTime(run.updatedAt)));
+            const actionCell = document.createElement("td");
+            actionCell.className = "keyword-rule-row-actions";
+            if (!isAdmin) {
+                actionCell.textContent = "조회 전용";
+            } else if (run.runStatusCode === "PREVIEW_COMPLETED") {
+                appendReclassificationAction(actionCell, "적용", "apply");
+            } else if (["APPLY_PENDING", "APPLY_RUNNING"].includes(run.runStatusCode)) {
+                appendReclassificationAction(actionCell, "일시중지", "pause");
+            } else if (run.runStatusCode === "APPLY_PAUSED") {
+                appendReclassificationAction(actionCell, "재개", "resume");
+                if (run.appliedCount > 0) {
+                    appendReclassificationAction(actionCell, "원복", "rollback", true);
+                }
+            } else if (["APPLY_COMPLETED", "APPLY_PARTIAL_FAILED"].includes(run.runStatusCode)
+                    && run.appliedCount > run.rolledBackCount) {
+                appendReclassificationAction(actionCell, "원복", "rollback", true);
+            } else {
+                actionCell.textContent = isReclassificationRunning(run.runStatusCode) ? "처리 중" : "완료";
+            }
+            row.append(actionCell);
+            reclassificationRunList.append(row);
+        });
+    };
+
+    const loadReclassificationRuns = async (announce = false) => {
+        if (!reclassificationUrl) {
+            return;
+        }
+        try {
+            const payload = await requestJson(reclassificationUrl);
+            reclassificationRuns = asList(payload);
+            renderReclassificationRuns();
+            if (announce && reclassificationMessage) {
+                reclassificationMessage.textContent = `최근 실행 ${reclassificationRuns.length}건을 갱신했습니다.`;
+            }
+        } catch (error) {
+            if (reclassificationMessage) {
+                reclassificationMessage.textContent = `실행 이력을 불러오지 못했습니다. ${error.message}`;
+            }
+        }
+    };
+
+    const updateReclassificationAction = async (run, action) => {
+        const actionLabels = {apply: "적용", pause: "일시중지", resume: "재개", rollback: "원복"};
+        const reason = window.prompt(`${actionLabels[action]} 사유를 입력하세요.`);
+        if (!reason?.trim()) {
+            return;
+        }
+        const request = {expectedVersion: requireVersion(run.rowVersion, "재분류 실행"), changeReason: reason.trim()};
+        let endpoint = action;
+        if (action === "apply") {
+            endpoint = "application";
+            request.confirmationText = window.prompt("적용하려면 '기존 원문 재분류 적용'을 정확히 입력하세요.") || "";
+            if (request.confirmationText !== "기존 원문 재분류 적용") {
+                throw new Error("확인 문구가 일치하지 않아 적용을 시작하지 않았습니다.");
+            }
+        } else if (action === "rollback") {
+            request.confirmationText = window.prompt("원복하려면 '기존 원문 재분류 원복'을 정확히 입력하세요.") || "";
+            if (request.confirmationText !== "기존 원문 재분류 원복") {
+                throw new Error("확인 문구가 일치하지 않아 원복을 시작하지 않았습니다.");
+            }
+        }
+        await requestJson(`${reclassificationUrl}/${encodeURIComponent(run.runId)}/${endpoint}`, {
+            method: "POST",
+            body: JSON.stringify(request)
+        });
+        if (reclassificationMessage) {
+            reclassificationMessage.textContent = `${actionLabels[action]} 요청을 접수했습니다. 진행 상태를 자동으로 갱신합니다.`;
+        }
+        await loadReclassificationRuns();
     };
 
     const renderQaSummary = () => {
@@ -719,6 +871,60 @@
         }
     });
 
+    reclassificationPreviewForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!reclassificationPreviewForm.reportValidity() || !isAdmin
+                || (selectedRelease?.releaseStatusCode || selectedRelease?.statusCode) !== "ACTIVE") {
+            return;
+        }
+        const formData = new FormData(reclassificationPreviewForm);
+        const collectedFrom = String(formData.get("collectedFrom") || "");
+        const collectedTo = String(formData.get("collectedTo") || "");
+        if (collectedFrom && collectedTo && collectedFrom > collectedTo) {
+            reclassificationMessage.textContent = "수집 종료일은 수집 시작일보다 빠를 수 없습니다.";
+            return;
+        }
+        try {
+            const payload = {
+                ruleReleaseId: releaseIdOf(selectedRelease),
+                providerCode: String(formData.get("providerCode") || "") || null,
+                collectedFrom: collectedFrom || null,
+                collectedTo: collectedTo || null,
+                includeLinkedAnnouncements: formData.get("includeLinkedAnnouncements") === "on",
+                maximumCount: Number(formData.get("maximumCount")),
+                batchSize: Number(formData.get("batchSize")),
+                changeReason: String(formData.get("changeReason") || "").trim()
+            };
+            await requestJson(`${reclassificationUrl}/previews`, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            reclassificationMessage.textContent = "운영 데이터 변경 없는 영향도 미리보기를 생성했습니다. 결과를 자동으로 갱신합니다.";
+            await loadReclassificationRuns();
+        } catch (error) {
+            reclassificationMessage.textContent = error.message;
+        }
+    });
+
+    reclassificationRunList?.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-reclassification-action]");
+        const row = button?.closest("[data-reclassification-run-id]");
+        if (!button || !row || !isAdmin) {
+            return;
+        }
+        const run = reclassificationRuns.find((item) => item.runId === row.dataset.reclassificationRunId);
+        if (!run) {
+            return;
+        }
+        try {
+            await updateReclassificationAction(run, button.dataset.reclassificationAction);
+        } catch (error) {
+            reclassificationMessage.textContent = error.message;
+        }
+    });
+
+    app.querySelector("[data-reclassification-refresh]")?.addEventListener("click", () => loadReclassificationRuns(true));
+
     releaseSelect.addEventListener("change", async () => {
         selectedRelease = releases.find((release) => String(releaseIdOf(release)) === releaseSelect.value) || null;
         latestGoldenSetResult = null;
@@ -745,4 +951,11 @@
     app.querySelector("[data-publication-close]")?.addEventListener("click", () => closeDialog(publicationDialog));
 
     loadReleases();
+    loadReclassificationRuns();
+    reclassificationPollId = window.setInterval(() => {
+        if (reclassificationRuns.some((run) => isReclassificationRunning(run.runStatusCode))) {
+            loadReclassificationRuns();
+        }
+    }, 3000);
+    window.addEventListener("pagehide", () => window.clearInterval(reclassificationPollId), {once: true});
 })();

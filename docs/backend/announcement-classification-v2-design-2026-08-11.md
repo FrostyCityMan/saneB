@@ -686,6 +686,9 @@ ACTIVE release와 provider 검색 계획 고정
 - 관리자가 dry-run 대상·예상 상태 변경 건수를 확인한 뒤 실행한다.
 - 새 evaluation을 append하고 이전 evaluation은 current만 해제한다.
 - 연결된 운영 공고가 새 판정에서 제외돼도 운영 공고를 자동 숨기지 않고 운영 확인 작업만 생성한다.
+- `V69` 실행과 항목 테이블에 대상 범위, 규칙 snapshot hash, 원문 버전, 예상 판정 hash, 적용 evaluation, 충돌·실패·원복 상태를 저장한다.
+- worker는 최대 100건의 짧은 transaction으로 처리하며 관리자는 적용을 일시중지·재개할 수 있다. 한 항목의 충돌이나 실패가 다음 항목을 중단하지 않는다.
+- 원복은 append-only 판정 이력을 삭제하지 않는다. 적용 evaluation의 current만 해제하고 직전 current와 snapshot 호환 projection을 복원한다.
 
 ## 11. API 계약
 
@@ -709,6 +712,12 @@ ACTIVE release와 provider 검색 계획 고정
 | `GET` | `/api/v1/admin/announcement-sources/{sourceId}/classification` | 내부 3역할 | 구조화 판정 근거 |
 | `POST` | `/api/v1/admin/announcement-sources/{sourceId}/reclassifications` | `ADMIN` | 명시적 재분류 |
 | `PUT` | `/api/v1/admin/announcement-sources/{sourceId}/confirmed-classification` | `OPERATOR`, `ADMIN` | 검수 완료 태그 확정 |
+| `POST` | `/api/v1/admin/announcement-source-reclassification-runs/previews` | `ADMIN` | 기존 운영 원문 영향도 미리보기 실행 생성 |
+| `GET` | `/api/v1/admin/announcement-source-reclassification-runs[/{runId}]` | 내부 3역할 | 최근 실행·진행률·판정 분포 조회 |
+| `POST` | `/api/v1/admin/announcement-source-reclassification-runs/{runId}/application` | `ADMIN` | 완료된 미리보기 적용 |
+| `POST` | `/api/v1/admin/announcement-source-reclassification-runs/{runId}/pause` | `ADMIN` | 적용 일시중지 |
+| `POST` | `/api/v1/admin/announcement-source-reclassification-runs/{runId}/resume` | `ADMIN` | 적용 재개 |
+| `POST` | `/api/v1/admin/announcement-source-reclassification-runs/{runId}/rollback` | `ADMIN` | 적용분 원복 |
 
 규칙 쓰기 DTO의 핵심 필드는 다음과 같다.
 

@@ -83,6 +83,8 @@ public interface AnnouncementSourceRuleReleaseService {
 
     AnnouncementSourceClassificationRuleSet selectActiveRuleSet(UUID releaseId);
 
+    AnnouncementSourceClassificationRuleSet selectPublishedRuleSet(UUID releaseId);
+
     AnnouncementSourceRuleGoldenSetRunResponse insertGoldenSetRun(
             Authentication authentication,
             UUID releaseId,

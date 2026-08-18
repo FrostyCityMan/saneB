@@ -33,6 +33,7 @@ class AnnouncementSourceClassificationCoordinatorContentVersionTest {
                     classificationDao,
                     mock(AnnouncementSourceSearchPlanBuilder.class),
                     mock(AnnouncementSourceClassificationPersistenceService.class),
+                    "BIZINFO,GOV24_PUBLIC_SERVICE,LOCAL_GOV_NOTICE",
                     50
             );
 

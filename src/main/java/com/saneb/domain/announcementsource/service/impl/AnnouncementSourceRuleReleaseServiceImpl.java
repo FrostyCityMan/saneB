@@ -461,6 +461,19 @@ public class AnnouncementSourceRuleReleaseServiceImpl implements AnnouncementSou
     }
 
     @Override
+    public AnnouncementSourceClassificationRuleSet selectPublishedRuleSet(UUID releaseId) {
+        AnnouncementSourceRuleReleaseRow release = selectReleaseDetails(releaseId);
+        if (!Set.of("ACTIVE", "RETIRED").contains(release.releaseStatusCode())) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_RULE_RELEASE_NOT_ACTIVE,
+                    HttpStatus.CONFLICT,
+                    "게시된 규칙 버전만 재분류 실행에 사용할 수 있습니다."
+            );
+        }
+        return selectRuleSet(releaseId, ruleReleaseDao.selectRuleTermList(releaseId));
+    }
+
+    @Override
     @Transactional
     public AnnouncementSourceRuleGoldenSetRunResponse insertGoldenSetRun(
             Authentication authentication,

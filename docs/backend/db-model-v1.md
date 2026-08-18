@@ -532,7 +532,7 @@ dev seed:
 - 검증 ID가 없는 매칭은 운영자 수동 생성 또는 관리자 조건 후보 생성으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
 - 진행 단계 완료 조건 충족 전 다음 단계 이동이 서버에서 차단된다.
 
-## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V68`)
+## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V69`)
 
 2026-08-13 운영 DB에 V63~V68 적용을 확인했다. 초기 release는 `DRAFT` 1건, `ACTIVE` 0건이며 분류 V2와 상세본문 feature flag는 OFF다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가했다.
 
@@ -544,6 +544,7 @@ dev seed:
 | `V66` | 불변 원문 버전, 판정 evaluation, 일치 근거, 자동 태그, 관리자 확정 태그와 수집 실행의 규칙·검색계획 고정값 |
 | `V67` | 운영 데이터와 격리 QA를 구분하는 `data_purpose_code` (`PRODUCTION`, `QA`) |
 | `V68` | 기존 중복을 자동 정리하지 않는 사전검사와 `announcement_source_links.source_id` 단독 UNIQUE. 여러 원문이 같은 운영 공고에 연결되는 것은 허용 |
+| `V69` | 기존 운영 원문의 재분류 미리보기·적용·일시중지·재개·원복 실행과 항목별 고정 원문·예상 판정·충돌·실패 이력 |
 
 핵심 불변조건:
 
@@ -555,3 +556,5 @@ dev seed:
 - 기존 V1 첨부 행과 조회 응답은 호환을 위해 보존한다. 신규 수집은 첨부 URL·파일명을 provider 원문에서 제거하고 attachment 행을 생성하지 않으며, 다운로드·본문 추출·분류 근거 사용을 금지한다.
 - 일반 애플리케이션 수집 write는 `data_purpose_code='PRODUCTION'`만 생성한다. QA 원문을 DB에 쓰는 내부 경로는 운영 격리 QA 승인 시 별도 확정하며, QA 정리는 명시적으로 `QA`인 행만 대상으로 한다.
 - V56 판정 이력과 과거 snapshot을 migration에서 자동 재분류하지 않는다.
+- 기존 원문 재분류는 `data_purpose_code='PRODUCTION'` 대상만 실행 이력에 고정한다. 미리보기는 source/evaluation을 변경하지 않으며, 적용은 고정한 원문 버전과 `classification_row_version`이 일치할 때만 새 evaluation을 append한다.
+- 원복은 적용 evaluation을 삭제하지 않고 current만 해제하며 이전 current 판정과 snapshot 호환 projection을 복원한다. 연결된 운영 공고의 상태는 적용·원복 모두 자동 변경하지 않는다.
