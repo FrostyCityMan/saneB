@@ -534,7 +534,7 @@ dev seed:
 - 검증 ID가 없는 매칭은 운영자 수동 생성 또는 관리자 조건 후보 생성으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
 - 진행 단계 완료 조건 충족 전 다음 단계 이동이 서버에서 차단된다.
 
-## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V70`)
+## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V71`)
 
 2026-08-13 운영 DB에 V63~V68 적용을 확인했다. 초기 release는 `DRAFT` 1건, `ACTIVE` 0건이며 분류 V2와 상세본문 feature flag는 OFF다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가했다.
 
@@ -548,6 +548,7 @@ dev seed:
 | `V68` | 기존 중복을 자동 정리하지 않는 사전검사와 `announcement_source_links.source_id` 단독 UNIQUE. 여러 원문이 같은 운영 공고에 연결되는 것은 허용 |
 | `V69` | 기존 운영 원문의 재분류 미리보기·적용·일시중지·재개·원복 실행과 항목별 고정 원문·예상 판정·충돌·실패 이력 |
 | `V70` | 제목 제외 공고의 원문 비저장 tombstone·규칙 FK, 기존 수집·재분류 run item 비식별화와 link 없는 제외 snapshot 원문 삭제 |
+| `V71` | source 단위 비식별 정리와 FK 유지 비용을 제한하는 `announcement_source_collection_run_items.source_id` partial index |
 
 핵심 불변조건:
 

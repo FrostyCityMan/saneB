@@ -1442,6 +1442,23 @@ class MigrationContractTest {
     }
 
     /**
+     * 대량 제외 source 정리 시 수집 실행 항목의 FK 탐색이 전체 스캔으로 반복되지 않는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v71MigrationIndexesCollectionRunItemsBySource() throws IOException {
+        String sql = selectV71Migration();
+
+        assertThat(sql).contains(
+                "CREATE INDEX IF NOT EXISTS ix_announcement_source_collection_run_items_source",
+                "ON announcement_source_collection_run_items (source_id)",
+                "WHERE source_id IS NOT NULL"
+        );
+        assertThat(sql).doesNotContain("DELETE FROM", "TRUNCATE TABLE", "DROP TABLE");
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -2241,6 +2258,13 @@ class MigrationContractTest {
     private String selectV70Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V70__stop_persisting_title_excluded_sources.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV71Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V71__index_collection_run_items_by_source.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

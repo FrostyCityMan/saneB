@@ -186,6 +186,18 @@ class FlywayMigrationIntegrationTest {
             assertThat(selectLong(statement, """
                     select count(1)
                     from flyway_schema_history
+                    where version = '71'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from pg_indexes
+                    where schemaname = current_schema()
+                      and indexname = 'ix_announcement_source_collection_run_items_source'
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
                     where version = '4'
                       and success = true
                     """)).isEqualTo(1);
@@ -978,6 +990,11 @@ class FlywayMigrationIntegrationTest {
                             'PROVIDER_TRUSTED',
                             '과거 수집 문자열'
                         )
+                        """);
+                statement.executeUpdate("""
+                        CREATE INDEX ix_announcement_source_collection_run_items_source
+                            ON announcement_source_collection_run_items (source_id)
+                            WHERE source_id IS NOT NULL
                         """);
             }
 

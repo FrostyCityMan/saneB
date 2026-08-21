@@ -264,7 +264,7 @@ source 상태가 `QA_BLOCKED`면 키워드 분류기가 이를 `EXCLUDED`로 바
 
 ## 7. DB 상세 설계
 
-구현 결과 migration 번호는 `V63`~`V70`이다. `V68`은 한 수집 원문이 두 운영 공고로 중복 연결되지 않도록 `source_id` 단독 UNIQUE를 추가한다. 여러 provider 원문이 하나의 운영 공고를 가리키는 것은 허용하므로 `announcement_id`는 index만 유지한다. `V70`은 제목 자동 제외 공고의 원문 비저장 정책과 기존 제외 데이터 삭제를 적용한다.
+구현 결과 migration 번호는 `V63`~`V71`이다. `V68`은 한 수집 원문이 두 운영 공고로 중복 연결되지 않도록 `source_id` 단독 UNIQUE를 추가한다. 여러 provider 원문이 하나의 운영 공고를 가리키는 것은 허용하므로 `announcement_id`는 index만 유지한다. `V70`은 제목 자동 제외 공고의 원문 비저장 정책과 기존 제외 데이터 삭제를 적용한다. `V71`은 source 삭제 시 수집 실행 항목 FK 탐색이 반복 전체 스캔되지 않도록 `source_id` partial index를 보장한다.
 
 ### 7.1 V63 구현: 분류 카탈로그와 운영 공고 다중 태깅
 
