@@ -34,6 +34,8 @@ public interface AnnouncementSourceReclassificationRunDao {
             @Param("itemStatusCodes") List<String> itemStatusCodes
     );
 
+    int selectNonReversibleRunItemCount(@Param("runId") UUID runId);
+
     int updateRunStatus(
             @Param("runId") UUID runId,
             @Param("expectedVersion") int expectedVersion,

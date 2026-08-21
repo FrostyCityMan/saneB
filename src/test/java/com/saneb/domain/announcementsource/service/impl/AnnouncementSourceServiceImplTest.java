@@ -28,6 +28,17 @@ import static org.mockito.Mockito.when;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.AppliedActionCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyStageCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.MatchLocationCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.ReasonCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.RuleGroupKindCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.SemanticStatusCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.TitleStageCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationMatch;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationResult;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlan;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao;
@@ -52,6 +63,8 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunRow
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionRuleMatchCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionTombstoneCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkedAnnouncementRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotCommand;
@@ -348,7 +361,7 @@ class AnnouncementSourceServiceImplTest {
     }
 
     /**
-     * V2 기능이 꺼져 있어도 기존 의미 판정을 유지하면서 제외 원문과 실행 이력을 보존합니다.
+     * V2 기능이 꺼진 기존 제외 판정도 원문 없이 비가역 식별자와 실행 사유만 보존합니다.
      */
     @Test
     void insertCollectionRunRecordsSemanticallyExcludedItem() {
@@ -378,6 +391,9 @@ class AnnouncementSourceServiceImplTest {
         when(announcementSourceDao.selectCollectionRequestDetails(REQUEST_ID))
                 .thenReturn(collectionRequest("APPROVED"));
         when(providerClient.selectSourceItemList(any())).thenReturn(List.of(item));
+        UUID exclusionId = UUID.fromString("93000000-0000-0000-0000-000000000099");
+        when(announcementSourceDao.selectExclusionTombstoneId(eq("BIZINFO"), any()))
+                .thenReturn(exclusionId);
         when(announcementSourceDao.selectCollectionRunDetails(any()))
                 .thenAnswer(invocation -> new AnnouncementSourceCollectionRunRow(
                         invocation.getArgument(0), "ASRUN-000001", REQUEST_ID, "ASR-000001",
@@ -388,19 +404,119 @@ class AnnouncementSourceServiceImplTest {
         AnnouncementSourceCollectionRunResponse response = service.insertCollectionRun(REQUEST_ID);
 
         assertThat(response.excludedCount()).isEqualTo(1);
-        ArgumentCaptor<AnnouncementSourceSnapshotCommand> snapshotCaptor =
-                ArgumentCaptor.forClass(AnnouncementSourceSnapshotCommand.class);
+        ArgumentCaptor<AnnouncementSourceExclusionTombstoneCommand> tombstoneCaptor =
+                ArgumentCaptor.forClass(AnnouncementSourceExclusionTombstoneCommand.class);
         ArgumentCaptor<AnnouncementSourceCollectionRunItemCommand> runItemCaptor =
                 ArgumentCaptor.forClass(AnnouncementSourceCollectionRunItemCommand.class);
-        verify(announcementSourceDao).insertSourceSnapshot(snapshotCaptor.capture());
+        verify(announcementSourceDao).insertExclusionTombstone(tombstoneCaptor.capture());
+        verify(announcementSourceDao, never()).insertSourceSnapshot(any());
         verify(announcementSourceDao, never()).insertSourceAttachment(any(AnnouncementSourceAttachmentCommand.class));
         verify(announcementSourceDao).insertCollectionRunItem(runItemCaptor.capture());
-        assertThat(snapshotCaptor.getValue().reviewStatusCode()).isEqualTo("ARCHIVED");
-        assertThat(snapshotCaptor.getValue().semanticStatusCode()).isEqualTo("EXCLUDED");
-        assertThat(snapshotCaptor.getValue().semanticReasonCode()).isEqualTo("NO_INCLUDE_KEYWORD");
+        assertThat(tombstoneCaptor.getValue().providerCode()).isEqualTo("BIZINFO");
+        assertThat(tombstoneCaptor.getValue().identityHash()).hasSize(64);
+        assertThat(tombstoneCaptor.getValue().semanticReasonCode()).isEqualTo("NO_INCLUDE_KEYWORD");
+        assertThat(tombstoneCaptor.getValue().decisionSourceCode()).isEqualTo("LEGACY_SEMANTIC");
         assertThat(runItemCaptor.getValue().itemStatusCode()).isEqualTo("EXCLUDED");
         assertThat(runItemCaptor.getValue().semanticReasonCode()).isEqualTo("NO_INCLUDE_KEYWORD");
+        assertThat(runItemCaptor.getValue().sourceId()).isNull();
+        assertThat(runItemCaptor.getValue().providerNoticeId()).isNull();
+        assertThat(runItemCaptor.getValue().sourceUrl()).isNull();
+        assertThat(runItemCaptor.getValue().semanticMatchedKeywords()).isNull();
         verify(coordinator).selectRunContext(any(), eq("BIZINFO"));
+    }
+
+    @Test
+    void insertCollectionRunPreservesV2RuleReferencesWithoutExcludedSourceText() {
+        AnnouncementSourceProviderItem original = providerItem(
+                "BIZ-V2-EXCLUDED",
+                LocalDate.now().plusDays(10)
+        );
+        AnnouncementSourceProviderItem excluded = original.withSemanticDecision(
+                "EXCLUDED",
+                "TITLE_GROUP_B_MATCHED",
+                "수출"
+        );
+        UUID releaseId = UUID.fromString("93000000-0000-0000-0000-000000000033");
+        UUID exclusionId = UUID.fromString("93000000-0000-0000-0000-000000000034");
+        AnnouncementSourceClassificationResult result = new AnnouncementSourceClassificationResult(
+                "BIZINFO",
+                "ASCR-000001",
+                SemanticStatusCode.EXCLUDED,
+                ReasonCode.TITLE_GROUP_B_MATCHED,
+                TitleStageCode.GROUP_B_MATCHED,
+                BodyStageCode.NOT_EVALUATED,
+                BodySourceCode.NONE,
+                BodyAvailabilityCode.UNAVAILABLE,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of("AUTO_EXCLUDE_B_EXPORT"),
+                List.of(new AnnouncementSourceClassificationMatch(
+                        "AUTO_EXCLUDE_B_EXPORT_001",
+                        "AUTO_EXCLUDE_B_EXPORT",
+                        RuleGroupKindCode.AUTO_EXCLUDE_B,
+                        "수출",
+                        "수출",
+                        "수출",
+                        MatchLocationCode.TITLE,
+                        0,
+                        2,
+                        AppliedActionCode.EXCLUDED,
+                        false
+                ))
+        );
+        AnnouncementSourceClassificationCoordinator coordinator =
+                mock(AnnouncementSourceClassificationCoordinator.class);
+        AnnouncementSourceClassificationCoordinator.RunContext runContext =
+                new AnnouncementSourceClassificationCoordinator.RunContext(true, releaseId, null, null);
+        AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification =
+                new AnnouncementSourceClassificationCoordinator.PreparedClassification(
+                        true,
+                        releaseId,
+                        excluded,
+                        result
+                );
+        service = new AnnouncementSourceServiceImpl(
+                announcementSourceDao,
+                localGovernmentNoticeDao,
+                announcementDao,
+                highlightService,
+                List.of(providerClient),
+                List.of(),
+                coordinator,
+                null
+        );
+        when(announcementSourceDao.selectCollectionRequestDetails(REQUEST_ID))
+                .thenReturn(collectionRequest("APPROVED"));
+        when(providerClient.selectSourceItemList(any())).thenReturn(List.of(original));
+        when(coordinator.selectRunContext(any(), eq("BIZINFO"))).thenReturn(runContext);
+        when(coordinator.selectClassification(eq(runContext), eq(original), any(), any()))
+                .thenReturn(preparedClassification);
+        when(announcementSourceDao.selectExclusionTombstoneId(eq("BIZINFO"), any()))
+                .thenReturn(exclusionId);
+        when(announcementSourceDao.selectCollectionRunDetails(any()))
+                .thenAnswer(invocation -> new AnnouncementSourceCollectionRunRow(
+                        invocation.getArgument(0), "ASRUN-000001", REQUEST_ID, "ASR-000001",
+                        "BIZINFO", "MANUAL", "COMPLETED", NOW, NOW,
+                        1, 0, 0, 0, 0, 1, null, NOW
+                ));
+
+        AnnouncementSourceCollectionRunResponse response = service.insertCollectionRun(REQUEST_ID);
+
+        assertThat(response.excludedCount()).isEqualTo(1);
+        ArgumentCaptor<AnnouncementSourceExclusionRuleMatchCommand> matchCaptor =
+                ArgumentCaptor.forClass(AnnouncementSourceExclusionRuleMatchCommand.class);
+        ArgumentCaptor<AnnouncementSourceCollectionRunItemCommand> itemCaptor =
+                ArgumentCaptor.forClass(AnnouncementSourceCollectionRunItemCommand.class);
+        verify(announcementSourceDao).insertExclusionRuleMatch(matchCaptor.capture());
+        verify(announcementSourceDao).insertCollectionRunItem(itemCaptor.capture());
+        verify(announcementSourceDao, never()).insertSourceSnapshot(any());
+        verify(coordinator, never()).saveClassification(any(), any(), any(), any());
+        assertThat(matchCaptor.getValue().ruleCode()).isEqualTo("AUTO_EXCLUDE_B_EXPORT_001");
+        assertThat(matchCaptor.getValue().matchedRuleTerm()).isEqualTo("수출");
+        assertThat(itemCaptor.getValue().providerNoticeId()).isNull();
+        assertThat(itemCaptor.getValue().sourceUrl()).isNull();
+        assertThat(itemCaptor.getValue().semanticMatchedKeywords()).isNull();
     }
 
     @Test

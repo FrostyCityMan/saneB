@@ -1400,6 +1400,48 @@ class MigrationContractTest {
     }
 
     /**
+     * 제목 제외 공고가 원문 없이 비가역 tombstone과 규칙 참조로 전환되는지 검증합니다.
+     *
+     * @throws IOException migration 읽기 오류
+     */
+    @Test
+    void v70MigrationRemovesExcludedPlaintextAndPreservesNonReversibleEvidence() throws IOException {
+        String sql = selectV70Migration();
+
+        assertThat(sql).contains(
+                "CREATE TABLE announcement_source_exclusion_tombstones",
+                "CREATE TABLE announcement_source_exclusion_rule_matches",
+                "digest(",
+                "'sha256'",
+                "identity_hash varchar(64) NOT NULL",
+                "FOREIGN KEY (run_id) REFERENCES announcement_source_collection_runs (id) ON DELETE SET NULL",
+                "FOREIGN KEY (rule_release_id)",
+                "RAISE EXCEPTION 'Linked excluded announcement sources must be separated before V70 cleanup.'",
+                "SET source_id = NULL",
+                "provider_notice_id = NULL",
+                "source_url = NULL",
+                "semantic_matched_keywords = NULL",
+                "ADD COLUMN exclusion_id uuid",
+                "ALTER COLUMN source_id DROP NOT NULL",
+                "ALTER COLUMN content_version_id DROP NOT NULL",
+                "Active reclassification runs for excluded sources must finish before V70 cleanup.",
+                "UPDATE announcement_source_reclassification_run_items AS item",
+                "previous_evaluation_id = NULL",
+                "applied_evaluation_id = NULL",
+                "DELETE FROM announcement_source_snapshots",
+                "WHERE semantic_status_code = 'EXCLUDED'"
+        );
+        assertThat(sql).doesNotContain(
+                "title varchar",
+                "body_text text",
+                "raw_payload_json jsonb",
+                "matched_text varchar",
+                "source_url text",
+                "provider_notice_id varchar"
+        );
+    }
+
+    /**
      * 수집 승인 요청 INSERT가 nullable UUID의 PostgreSQL 타입을 명시하는지 확인합니다.
      *
      * @throws IOException Mapper 읽기 오류
@@ -2192,6 +2234,13 @@ class MigrationContractTest {
     private String selectV69Migration() throws IOException {
         ClassPathResource resource = new ClassPathResource(
                 "db/migration/V69__create_announcement_source_reclassification_runs.sql"
+        );
+        return resource.getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String selectV70Migration() throws IOException {
+        ClassPathResource resource = new ClassPathResource(
+                "db/migration/V70__stop_persisting_title_excluded_sources.sql"
         );
         return resource.getContentAsString(StandardCharsets.UTF_8);
     }

@@ -27,6 +27,8 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunSea
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateDecisionCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionRuleMatchCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionTombstoneCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkCommand;
@@ -168,6 +170,32 @@ public interface AnnouncementSourceDao {
      * @param command 입력 값
      */
     void insertCollectionRunItem(AnnouncementSourceCollectionRunItemCommand command);
+
+    /**
+     * 제목 제외 공고의 비가역 식별자와 판정 근거를 저장합니다.
+     *
+     * @param command 제외 tombstone 저장 명령
+     */
+    void insertExclusionTombstone(AnnouncementSourceExclusionTombstoneCommand command);
+
+    /**
+     * 제목 제외 공고의 tombstone 식별자를 조회합니다.
+     *
+     * @param providerCode 제공자 코드
+     * @param identityHash 비가역 공고 식별자
+     * @return tombstone 식별자
+     */
+    UUID selectExclusionTombstoneId(
+            @Param("providerCode") String providerCode,
+            @Param("identityHash") String identityHash
+    );
+
+    /**
+     * 제목 제외 판정의 규칙 참조를 원문 문자열 없이 저장합니다.
+     *
+     * @param command 제외 규칙 근거 저장 명령
+     */
+    void insertExclusionRuleMatch(AnnouncementSourceExclusionRuleMatchCommand command);
 
     /**
      * 업무 데이터를 조회합니다.

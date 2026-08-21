@@ -1,6 +1,7 @@
 package com.saneb.domain.announcementsource.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,6 +25,7 @@ import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceReclassificationRunDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceReclassificationRunPreviewRequest;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceReclassificationRunResponse;
+import com.saneb.domain.announcementsource.dto.AnnouncementSourceReclassificationRunActionRequest;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationPersistenceService;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceRuleReleaseService;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
@@ -180,6 +182,27 @@ class AnnouncementSourceReclassificationRunServiceImplTest {
 
         verify(runDao).updateRunStatus(
                 RUN_ID, 4, List.of("ROLLBACK_RUNNING"), "ROLLBACK_COMPLETED", null
+        );
+    }
+
+    @Test
+    void rollbackRejectsRunContainingRedactedTitleExclusionEvidence() {
+        AnnouncementSourceReclassificationRunRow run = runRow("APPLY_COMPLETED", 1, 4);
+        AnnouncementSourceReclassificationRunActionRequest request =
+                new AnnouncementSourceReclassificationRunActionRequest(
+                        4,
+                        "운영 제외 원문 정리 이후 원복 확인",
+                        "기존 원문 재분류 원복"
+                );
+        when(runDao.selectRunDetails(RUN_ID)).thenReturn(run);
+        when(runDao.selectNonReversibleRunItemCount(RUN_ID)).thenReturn(1);
+
+        assertThatThrownBy(() -> service.updateRollbackStarted(authentication(), RUN_ID, request))
+                .hasMessageContaining("원문이 비식별 삭제된 항목")
+                .hasMessageContaining("원복할 수 없습니다");
+
+        verify(runDao, never()).updateRunStatus(
+                any(), any(Integer.class), any(), anyString(), any()
         );
     }
 

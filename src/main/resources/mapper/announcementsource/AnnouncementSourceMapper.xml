@@ -671,6 +671,103 @@
         )
     </insert>
 
+    <insert id="insertExclusionTombstone">
+        -- Preserve only non-reversible identity and decision evidence for a title-excluded item.
+        INSERT INTO announcement_source_exclusion_tombstones (
+            id,
+            provider_code,
+            identity_hash,
+            last_raw_hash,
+            run_id,
+            rule_release_id,
+            semantic_reason_code,
+            title_stage_code,
+            body_stage_code,
+            decision_source_code,
+            occurrence_count,
+            first_excluded_at,
+            last_seen_at
+        ) VALUES (
+            #{exclusionId},
+            #{providerCode},
+            #{identityHash},
+            #{rawHash},
+            #{runId},
+            #{ruleReleaseId},
+            #{semanticReasonCode},
+            #{titleStageCode},
+            #{bodyStageCode},
+            #{decisionSourceCode},
+            1,
+            #{excludedAt},
+            #{excludedAt}
+        )
+        ON CONFLICT (provider_code, identity_hash) DO UPDATE
+        SET last_raw_hash = EXCLUDED.last_raw_hash,
+            run_id = coalesce(EXCLUDED.run_id, announcement_source_exclusion_tombstones.run_id),
+            rule_release_id = coalesce(
+                EXCLUDED.rule_release_id,
+                announcement_source_exclusion_tombstones.rule_release_id
+            ),
+            semantic_reason_code = EXCLUDED.semantic_reason_code,
+            title_stage_code = coalesce(
+                EXCLUDED.title_stage_code,
+                announcement_source_exclusion_tombstones.title_stage_code
+            ),
+            body_stage_code = coalesce(
+                EXCLUDED.body_stage_code,
+                announcement_source_exclusion_tombstones.body_stage_code
+            ),
+            decision_source_code = EXCLUDED.decision_source_code,
+            occurrence_count = announcement_source_exclusion_tombstones.occurrence_count + 1,
+            last_seen_at = EXCLUDED.last_seen_at,
+            updated_at = now()
+    </insert>
+
+    <select id="selectExclusionTombstoneId" resultType="java.util.UUID">
+        -- Resolve the exclusion tombstone without exposing provider identifiers or source text.
+        SELECT
+            aset.id
+        FROM announcement_source_exclusion_tombstones aset
+        WHERE aset.provider_code = #{providerCode}
+          AND aset.identity_hash = #{identityHash}
+    </select>
+
+    <insert id="insertExclusionRuleMatch">
+        -- Preserve rule references while omitting matched source text and offsets.
+        INSERT INTO announcement_source_exclusion_rule_matches (
+            id,
+            exclusion_id,
+            keyword_rule_id,
+            keyword_term_id,
+            match_location_code,
+            applied_action_code
+        )
+        SELECT
+            #{matchId},
+            #{exclusionId},
+            rule.id,
+            term.id,
+            #{matchLocationCode},
+            #{appliedActionCode}
+        FROM announcement_source_classification_keyword_rules rule
+        INNER JOIN announcement_source_classification_rule_groups rule_group
+                ON rule_group.id = rule.group_id
+        INNER JOIN announcement_source_classification_keyword_terms term
+                ON term.keyword_rule_id = rule.id
+               AND term.group_id = rule_group.id
+        WHERE rule_group.release_id = #{ruleReleaseId}
+          AND rule.rule_code = #{ruleCode}
+          AND term.term_text = #{matchedRuleTerm}
+        ON CONFLICT (
+            exclusion_id,
+            keyword_rule_id,
+            keyword_term_id,
+            match_location_code,
+            applied_action_code
+        ) DO NOTHING
+    </insert>
+
     <select id="selectCollectionRunItemList" resultMap="CollectionRunItemRowMap">
         -- Select external announcement collection run items.
         SELECT

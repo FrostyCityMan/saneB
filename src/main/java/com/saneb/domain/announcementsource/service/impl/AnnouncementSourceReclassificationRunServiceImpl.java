@@ -222,6 +222,13 @@ public class AnnouncementSourceReclassificationRunServiceImpl
         UUID actorUserId = selectActorUserId(authentication);
         requireConfirmation(request.confirmationText(), ROLLBACK_CONFIRMATION);
         AnnouncementSourceReclassificationRunRow run = selectRunRow(runId);
+        if (runDao.selectNonReversibleRunItemCount(runId) > 0) {
+            throw new ApiException(
+                    ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE,
+                    HttpStatus.CONFLICT,
+                    "제목 자동 제외로 원문이 비식별 삭제된 항목이 포함되어 이 실행은 원복할 수 없습니다."
+            );
+        }
         updateRunStatus(
                 run,
                 request.expectedVersion(),

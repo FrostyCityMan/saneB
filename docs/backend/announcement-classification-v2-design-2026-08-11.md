@@ -43,7 +43,7 @@
 2. `지원대상 키워드 AND 지원유형 키워드`를 기본 후보 조건으로 사용한다.
 3. 제목과 본문을 분리 판정하고, 적용 위치와 일치 규칙을 보존한다.
 4. 그룹 B 제목 일치를 그룹 A보다 우선해 자동 제외한다.
-5. 자동 제외 원문도 DB에 보존해 근거를 조회할 수 있게 한다.
+5. 제목 자동 제외 원문은 저장하지 않고 비가역 식별자·사유·규칙 참조만 보존한다.
 6. 지원대상과 지원유형을 복수 태깅한다.
 7. 관리자가 키워드·유의어를 관리하되 활성 규칙을 직접 덮어쓰지 않게 한다.
 8. 기존 `/api/v1`, 단일 `target_type_code`, V56 데이터를 깨지 않는다.
@@ -57,7 +57,7 @@
 - 수집 공고의 자동 운영 활성화
 - 수집 키워드로 운영 공고의 실제 매칭 조건 자동 생성
 - 관리자 화면에서 지자체 파서를 선택·변경하는 기능
-- 기존 V56 migration 수정 또는 기존 이력 삭제
+- 기존 V1~V69 migration 수정
 
 기존 V1 이력의 첨부 metadata 조회 계약은 호환을 위해 유지한다. 신규 수집에서는 첨부 URL·파일명 필드를 provider 원문에서 제거하고 attachment 행을 만들지 않으며, 상세 HTML에서도 첨부 링크와 표시명을 본문 추출 전에 제거한다.
 
@@ -116,7 +116,7 @@
 | 판정 방식 | 제목 소문자 `contains()` | 정규화 문구·독립 토큰, 제목·본문 분리 |
 | 제공자 적용 | 지자체만 필터, 다른 제공자는 `PROVIDER_TRUSTED` | 모든 제공자 공통 엔진 |
 | 충돌 정책 | INCLUDE+EXCLUDE → 검수 | 제목 B가 A보다 우선해 제외 |
-| 자동 제외 저장 | snapshot 저장 전 반환 | snapshot·decision·match·run item 모두 보존 |
+| 자동 제외 저장 | snapshot 저장 전 반환 | 원문 없이 tombstone·규칙 FK·run 사유만 보존 |
 | 본문 | 기업마당·정부24 일부 제공, 지자체 `null` | 본문 없음은 검수, 지자체 상세본문 Gate 분리 |
 | 판정 근거 | 쉼표 문자열 | 규칙·유의어·위치·release를 관계형 저장 |
 | 운영 전환 | JS가 `BUSINESS`로 고정 요청 | 관리자가 대표·복수 대상과 지원유형 확인 |
@@ -245,7 +245,7 @@
 
 | 판정 | `semantic_status_code` | `review_status_code` | run item |
 |---|---|---|---|
-| 제목 B 또는 조합 미충족 | `EXCLUDED` | `ARCHIVED` | `EXCLUDED`, `source_id` 포함 |
+| 제목 B 또는 조합 미충족 | `EXCLUDED` | snapshot 미생성 | `EXCLUDED`, 외부 ID·URL·source_id 없음 |
 | 본문 B·A·미확인 | `REVIEW_REQUIRED` | `REVIEW_PENDING` | `COLLECTED` |
 | 제목·본문 조합 확인 | `ACCEPTED` | `REVIEW_PENDING` | `COLLECTED` |
 | 중복 | 기존 의미 상태 보존 | `DUPLICATE` | `DUPLICATE` |
@@ -264,7 +264,7 @@ source 상태가 `QA_BLOCKED`면 키워드 분류기가 이를 `EXCLUDED`로 바
 
 ## 7. DB 상세 설계
 
-구현 결과 migration 번호는 `V63`~`V68`로 확정했다. `V68`은 한 수집 원문이 두 운영 공고로 중복 연결되지 않도록 `source_id` 단독 UNIQUE를 추가한다. 여러 provider 원문이 하나의 운영 공고를 가리키는 것은 허용하므로 `announcement_id`는 index만 유지한다.
+구현 결과 migration 번호는 `V63`~`V70`이다. `V68`은 한 수집 원문이 두 운영 공고로 중복 연결되지 않도록 `source_id` 단독 UNIQUE를 추가한다. 여러 provider 원문이 하나의 운영 공고를 가리키는 것은 허용하므로 `announcement_id`는 index만 유지한다. `V70`은 제목 자동 제외 공고의 원문 비저장 정책과 기존 제외 데이터 삭제를 적용한다.
 
 ### 7.1 V63 구현: 분류 카탈로그와 운영 공고 다중 태깅
 
@@ -429,7 +429,7 @@ ACTIVE release는 직접 수정하지 않는다. 관리자는 ACTIVE를 복제�
 - `collected_at timestamptz`
 - UNIQUE `(source_id, raw_hash)`
 
-기존 `announcement_source_snapshots`는 `/api/v1`과 목록 성능을 위한 current projection으로 유지한다. 같은 provider 원문의 hash가 바뀔 때만 content version을 append해 과거 판정의 원문 근거를 보존한다. 첨부 내용은 content version에도 저장하지 않는다.
+`ACCEPTED`와 `REVIEW_REQUIRED`의 기존 `announcement_source_snapshots`는 `/api/v1`과 목록 성능을 위한 current projection으로 유지한다. 같은 provider 원문의 hash가 바뀔 때만 content version을 append해 과거 판정의 원문 근거를 보존한다. 제목에서 `EXCLUDED`가 확정된 공고는 snapshot과 content version을 만들지 않는다. 첨부 내용은 content version에도 저장하지 않는다.
 
 #### `announcement_source_classification_evaluations`
 
@@ -526,7 +526,15 @@ QA 정리는 `data_purpose_code='QA'`만 대상으로 제한한다. 기존 행�
 
 현재 일반 애플리케이션 수집 write는 DB 기본값에 따라 `PRODUCTION`만 생성한다. 운영 DB에 QA 원문을 기록하는 내부 QA writer는 이번 로컬 구현 범위에 포함하지 않았으며, 격리 QA 실행을 승인할 때 별도 내부 전용 경로와 생성·정리 절차를 먼저 확정한다. QA 목적값을 관리자 일반 입력으로 받지 않는다.
 
-### 7.6 기존 데이터 이관
+### 7.6 V70 구현: 제목 제외 원문 비저장
+
+`announcement_source_exclusion_tombstones`는 provider 코드, provider ID·canonical URL·raw hash 중 안정 식별값의 SHA-256, 마지막 raw hash, run/release, 판정 사유·단계, 발생 횟수와 시각만 저장한다. 제목·본문·URL·provider 공고번호·raw JSON은 저장하지 않는다.
+
+`announcement_source_exclusion_rule_matches`는 rule·term FK, 위치와 적용 action만 저장하며 실제 제목 일치 문자열과 offset은 저장하지 않는다. 신규 `EXCLUDED` run item은 건수와 `semantic_reason_code`만 남기고 `source_id`, provider 공고번호, URL, 일치 문자열을 모두 `null`로 저장한다.
+
+V70은 기존 `semantic_status_code='EXCLUDED'` source에 운영 공고 link가 있거나 해당 source의 재분류 실행이 진행 중이면 전체 migration을 중단한다. 안전 조건을 충족하면 tombstone과 규칙 참조를 먼저 backfill하고, 수집 run item과 재분류 run item에서 source·content·evaluation 참조 및 일치 원문을 제거한 뒤 snapshot을 삭제한다. 재분류 항목의 상태·판정 해시·시각은 tombstone FK와 함께 감사 근거로 유지하지만 원문 삭제 후에는 해당 실행을 원복할 수 없다. FK cascade로 content version, evaluation, 원문 match와 하위 검수 데이터도 함께 삭제한다. 이는 사용자가 승인한 의도적이고 복구 불가능한 원문 제거다.
+
+### 7.7 기존 데이터 이관
 
 | 기존 데이터 | 처리 |
 |---|---|
@@ -535,7 +543,7 @@ QA 정리는 `data_purpose_code='QA'`만 대상으로 제한한다. 기존 행�
 | 기존 snapshot 판정 | `LEGACY_V56` evaluation 요약만 생성 가능 |
 | 기존 snapshot 원문 | 현재 raw hash로 content version 1건 backfill |
 | 기존 쉼표 키워드 | 위치·그룹이 없으므로 match 행으로 변환하지 않음 |
-| 기존 자동 제외 run item | snapshot이 없어 복구 불가, 재수집 외 추정 금지 |
+| 기존 자동 제외 snapshot·run item | V70에서 tombstone·규칙 FK로 치환하고 제목·본문·URL·raw JSON·일치 원문 삭제 |
 | 기존 연결 운영 공고 | 재분류로 자동 비활성화하지 않음 |
 
 ## 8. 공통 서비스 계층 설계
@@ -625,13 +633,14 @@ saveReclassification()
 
 ## 9. 원문 저장 순서
 
-현재의 `EXCLUDED` 조기 반환을 제거한다.
+제목 `EXCLUDED`는 원문 저장 전에 비식별 근거 저장 경로로 즉시 분기한다.
 
 ```text
 ACTIVE release와 provider 검색 계획 고정
 → Provider item 발견
 → provider ID·정규화 URL 기준 실행 내 병합
 → 제목 정규화와 제목 단계 사전 판정
+→ 제목 EXCLUDED면 identity hash·사유·규칙 FK·run 건수만 저장하고 종료
 → 제목 단계가 본문 확인 대상이면 공식 상세 본문 확보
 → 동일 provider의 기존 원문 확인
 → snapshot 저장 또는 안전한 갱신
@@ -644,7 +653,7 @@ ACTIVE release와 provider 검색 계획 고정
 → 검수 큐 반영
 ```
 
-제목 단계 사전 판정은 본문 요청 여부를 결정하기 위한 메모리 내 결과다. 최종 근거는 snapshot과 같은 짧은 item transaction에서 다시 검증·저장한다. 제목 B나 제목 조합 미충족 건도 본문 요청만 생략할 뿐 snapshot 저장은 생략하지 않는다.
+제목 단계 사전 판정은 본문 요청 여부와 원문 저장 여부를 결정하는 메모리 내 결과다. 제목 B나 제목 조합 미충족 건은 상세본문을 요청하지 않고 snapshot·content version·evaluation을 만들지 않는다. 비가역 identity hash, 판정 사유, rule·term FK와 run 건수만 짧은 item transaction에 저장한다.
 
 본문 확인 대상은 `TITLE_COMBINATION_MATCHED`와 `TITLE_GROUP_A_MATCHED`다. 그룹 A는 최종 상태가 검수로 고정되더라도 본문 근거와 복수 태그를 확보하기 위해 본문을 확인한다.
 
@@ -920,7 +929,7 @@ POST /api/v2/admin/announcement-sources/{sourceId}/announcements
 |---|---|---|
 | 분류 상태 | `ACCEPTED` | 유효 후보 |
 | 분류 상태 | `REVIEW_REQUIRED` | 관리자 검수 필요 |
-| 분류 상태 | `EXCLUDED` | 자동 제외, 원문 보관 |
+| 분류 상태 | `EXCLUDED` | 자동 제외, 원문 미보관 |
 | 처리 상태 | `REVIEW_PENDING` | 검수 대기 |
 | 처리 상태 | `REVIEW_COMPLETED` | 검수 완료 |
 | 확정 태그 | `STALE` | 새 판정 발생, 태그 재확인 필요 |
@@ -939,7 +948,7 @@ POST /api/v2/admin/announcement-sources/{sourceId}/announcements
 | `BODY_COMBINATION_NOT_CONFIRMED` | 본문에서 지원대상과 지원유형 조합을 다시 확인하지 못했습니다. |
 | `TARGET_SUPPORT_CONFIRMED` | 제목과 본문에서 지원대상과 지원유형을 확인했습니다. |
 
-자동 제외 원문도 별도 탭에서 조회할 수 있지만 운영 공고 전환 버튼은 비활성화하고 사유를 표시한다.
+자동 제외 공고의 원문은 목록·상세 탭에 노출하지 않는다. 운영 통계에는 제외 건수와 사유만 표시하고 source ID·제목·URL·일치 문자열은 제공하지 않는다.
 
 ### 12.3 운영 공고 입력
 
@@ -1029,10 +1038,10 @@ expectedMatchLocations, note
 | 정규화 단위 | NFKC, 대소문자, 공백·구분기호, 원문 code point offset 대응 |
 | 검색 계획 | discovery term만 사용, 조합별 호출, 실행 내 중복 병합, release 고정 |
 | 규칙 Service | DRAFT 편집, 활성화, 사용중지, 중복, version 충돌, audit |
-| Mapper/PostgreSQL | FK·UNIQUE·partial UNIQUE, evaluation append, 과거 태그 보존, 자동 제외 snapshot 보존 |
+| Mapper/PostgreSQL | FK·UNIQUE·partial UNIQUE, evaluation append, 과거 태그 보존, 자동 제외 원문 비저장 |
 | Controller MockMvc | wrapper, pagination, `@Valid`, 역할별 403, 409 충돌 |
 | View smoke | 본인(개인), 복수 선택, 정책 안내, 사용중지, 이력, `th:utext` 미사용 |
-| 수집 Service | 세 provider 공통 판정, source_id 보존, 본문 미확인 검수 |
+| 수집 Service | 세 provider 공통 판정, 제외 source 미생성, 본문 미확인 검수 |
 | 전환 회귀 | 대표 대상 포함, v1 단일 요청 유지, v2 배열 검증 |
 | 상태 회귀 | EXCLUDED 차단, REVIEW_REQUIRED 검수 완료 Gate, 자동 활성화 금지 |
 | Migration | 계약 정적 테스트와 실제 PostgreSQL Flyway 적용 |
@@ -1134,7 +1143,7 @@ And 운영 공고 전환은 제공되지 않는다
 - 제목 A+B는 항상 B 우선 자동 제외된다.
 - 본문 B는 자동 제외가 아니라 검수로 이동한다.
 - 기관명과 확정 제거 단독어로 인한 오탐이 없다.
-- 자동 제외 원문의 snapshot·raw·decision·match를 조회할 수 있다.
+- 자동 제외 원문은 snapshot·raw·일치 문자열 없이 비가역 identity와 decision·rule·term 참조만 조회할 수 있다.
 - 모든 판정에 release와 제목/본문 위치별 근거가 있다.
 - 지원대상·지원유형 다중 태그가 저장되고 대표 대상이 일관된다.
 - 기존 v1 단일 요청과 응답이 회귀하지 않는다.

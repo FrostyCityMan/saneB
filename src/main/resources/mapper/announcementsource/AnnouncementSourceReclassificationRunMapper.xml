@@ -317,6 +317,14 @@
           </foreach>
     </select>
 
+    <select id="selectNonReversibleRunItemCount" resultType="int">
+        -- Count redacted title-exclusion evidence that no longer has source content to restore.
+        SELECT count(1)::integer
+        FROM announcement_source_reclassification_run_items item
+        WHERE item.run_id = #{runId}
+          AND item.exclusion_id IS NOT NULL
+    </select>
+
     <update id="updateRunStatus">
         -- Perform an optimistic run transition and retain non-sensitive action reason hashes.
         UPDATE announcement_source_reclassification_runs

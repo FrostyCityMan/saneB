@@ -45,6 +45,7 @@ import com.saneb.domain.announcementsource.provider.content.ProviderContentClien
 import com.saneb.domain.announcementsource.provider.content.ProviderContentRequest;
 import com.saneb.domain.announcementsource.provider.content.ProviderContentResult;
 import com.saneb.domain.announcementsource.provider.content.ProviderContentCodes.StatusCode;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationMatch;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode;
 import com.saneb.domain.announcementsource.localgov.vo.LocalGovernmentNoticeSourceRow;
@@ -65,6 +66,8 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceClassificationTa
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateDecisionCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionRuleMatchCommand;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionTombstoneCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceHighlightCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceLinkedAnnouncementRow;
@@ -79,6 +82,7 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceSnapshotRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -664,6 +668,9 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceProviderItem item,
             AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
     ) {
+        if ("EXCLUDED".equals(item.semanticStatusCode())) {
+            return saveExcludedProviderItem(runId, item, preparedClassification);
+        }
         if (item.applicationEndDate() != null && item.applicationEndDate().isBefore(LocalDate.now())) {
             insertRunItem(runId, null, item, "SKIPPED_ENDED", null);
             updateProviderItemResult(runId, item, "SKIPPED_ENDED");
@@ -746,11 +753,6 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                     reviewStatusCode
             );
         }
-        if ("EXCLUDED".equals(item.semanticStatusCode())) {
-            insertRunItem(runId, sourceId, item, "EXCLUDED", null);
-            updateProviderItemResult(runId, item, "EXCLUDED");
-            return ItemSaveOutcome.EXCLUDED;
-        }
         if (exactDuplicate != null) {
             insertCrossProviderDuplicate(sourceId, exactDuplicate, "EXACT_DUPLICATE", "AUTO_CONFIRMED");
             insertRunItem(runId, sourceId, item, "DUPLICATE", null);
@@ -764,6 +766,74 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         insertRunItem(runId, sourceId, item, "COLLECTED", null);
         updateProviderItemResult(runId, item, "COLLECTED");
         return ItemSaveOutcome.COLLECTED;
+    }
+
+    /**
+     * 제목 단계에서 제외된 공고는 원문 snapshot 없이 비가역 식별자와 규칙 참조만 저장합니다.
+     */
+    private ItemSaveOutcome saveExcludedProviderItem(
+            UUID runId,
+            AnnouncementSourceProviderItem item,
+            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
+    ) {
+        String identityHash = selectExclusionIdentityHash(item);
+        var result = preparedClassification.result();
+        UUID requestedExclusionId = UUID.randomUUID();
+        announcementSourceDao.insertExclusionTombstone(new AnnouncementSourceExclusionTombstoneCommand(
+                requestedExclusionId,
+                item.providerCode(),
+                identityHash,
+                item.rawHash(),
+                runId,
+                preparedClassification.ruleReleaseId(),
+                item.semanticReasonCode(),
+                result == null ? null : result.titleStageCode().name(),
+                result == null ? null : result.bodyStageCode().name(),
+                preparedClassification.enabled() ? "V2_ENGINE" : "LEGACY_SEMANTIC",
+                OffsetDateTime.now()
+        ));
+        UUID exclusionId = announcementSourceDao.selectExclusionTombstoneId(
+                item.providerCode(),
+                identityHash
+        );
+        if (exclusionId == null) {
+            throw new IllegalStateException("제외 공고의 비식별 판정 근거를 확인할 수 없습니다.");
+        }
+        if (result != null && preparedClassification.ruleReleaseId() != null) {
+            for (AnnouncementSourceClassificationMatch match : result.matches()) {
+                if (match.maskedByProtectedMetadata()) {
+                    continue;
+                }
+                announcementSourceDao.insertExclusionRuleMatch(new AnnouncementSourceExclusionRuleMatchCommand(
+                        UUID.randomUUID(),
+                        exclusionId,
+                        preparedClassification.ruleReleaseId(),
+                        match.ruleCode(),
+                        match.matchedRuleTerm(),
+                        match.locationCode().name(),
+                        match.appliedActionCode().name()
+                ));
+            }
+        }
+        insertExcludedRunItem(runId, item);
+        updateProviderItemResult(runId, item, "EXCLUDED");
+        return ItemSaveOutcome.EXCLUDED;
+    }
+
+    /**
+     * 제공자 식별자 또는 canonical URL을 비가역 공고 식별자로 변환합니다.
+     */
+    private String selectExclusionIdentityHash(AnnouncementSourceProviderItem item) {
+        String identityValue;
+        if (item.providerNoticeId() != null && !item.providerNoticeId().isBlank()) {
+            identityValue = "PROVIDER_NOTICE_ID:" + item.providerNoticeId().strip();
+        } else {
+            String canonicalUrl = identityNormalizer.canonicalizeUrl(item.sourceUrl());
+            identityValue = canonicalUrl == null || canonicalUrl.isBlank()
+                    ? "RAW_HASH:" + item.rawHash()
+                    : "CANONICAL_URL:" + canonicalUrl;
+        }
+        return identityNormalizer.hash(item.providerCode() + "\n" + identityValue);
     }
 
     private ItemSaveOutcome saveChangedProviderItem(
@@ -1547,6 +1617,23 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 item.semanticReasonCode(),
                 item.semanticMatchedKeywords(),
                 errorMessage
+        ));
+    }
+
+    /**
+     * 제외 실행 건수와 사유만 저장하고 외부 식별자·URL·일치 원문은 저장하지 않습니다.
+     */
+    private void insertExcludedRunItem(UUID runId, AnnouncementSourceProviderItem item) {
+        announcementSourceDao.insertCollectionRunItem(new AnnouncementSourceCollectionRunItemCommand(
+                UUID.randomUUID(),
+                runId,
+                null,
+                null,
+                null,
+                "EXCLUDED",
+                item.semanticReasonCode(),
+                null,
+                null
         ));
     }
 

@@ -1009,7 +1009,7 @@ Member / Business / Family API skeleton 착수 기준:
 }
 ```
 
-수집 공고 검수 화면은 `reviewStatusCode=REVIEW_PENDING&semanticStatusCode=ACCEPTED`를 기본 조회 조건으로 사용하고 목록에는 `postedAt` 원문 등록일을 표시한다. `semanticStatusCode`는 `ACCEPTED`, `REVIEW_REQUIRED`, `EXCLUDED`이며 제외 원문은 기본 목록에서 숨기고 별도 필터에서만 조회한다. `GET /api/v1/admin/announcement-sources/{sourceId}`는 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`와 의미 판정 필드를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
+수집 공고 검수 화면은 `reviewStatusCode=REVIEW_PENDING&semanticStatusCode=ACCEPTED`를 기본 조회 조건으로 사용하고 목록에는 `postedAt` 원문 등록일을 표시한다. `semanticStatusCode`는 `ACCEPTED`, `REVIEW_REQUIRED`, `EXCLUDED`다. V70 이후 제목 단계 `EXCLUDED` 공고는 source snapshot을 생성하지 않으므로 원문 목록·상세 API의 조회 대상이 아니다. run 응답에는 제외 건수와 사유만 남고 해당 항목의 `sourceId`, provider 공고번호, URL, 일치 원문은 `null`이다. `GET /api/v1/admin/announcement-sources/{sourceId}`는 저장된 비제외 source에 대해 `attachments[]`, `highlights[]`, `duplicateCandidates[]`, `sourceDuplicates[]`와 의미 판정 필드를 포함한다. `duplicateCandidates[]`는 기존 활성 운영 공고와 비교한 결과다. `sourceDuplicates[]`는 기업마당·정부24·지자체 수집 원문 간 교차 중복 결과다. `matchTypeCode`는 `EXACT_DUPLICATE` 또는 `SIMILAR`이다.
 
 #### AnnouncementSourceDuplicateDecisionRequest
 
@@ -2278,7 +2278,7 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 | `PUT` | `/api/v1/admin/announcement-sources/{sourceId}/confirmed-classification` | `ADMIN`, `OPERATOR` | 관리자 확정 태그 저장. 판정 ID와 `expectedVersion` 검증 |
 | `POST` | `/api/v1/admin/announcement-sources/{sourceId}/reclassifications` | `ADMIN` | 지정한 `ACTIVE` release와 불변 원문 버전으로 단건 재분류 |
 
-재분류는 새 evaluation을 append하고 기존 운영 공고의 승인·활성 상태를 자동 변경하지 않는다. 연결된 운영 공고가 있는 원문이 새 규칙에서 제외되면 운영 확인 task만 생성한다. `changeReason` 원문은 감사 metadata에 저장하지 않고 해시만 남긴다.
+재분류는 새 evaluation을 append하고 기존 운영 공고의 승인·활성 상태를 자동 변경하지 않는다. 연결된 운영 공고가 있는 원문이 새 규칙에서 제외되면 운영 확인 task만 생성한다. `changeReason` 원문은 감사 metadata에 저장하지 않고 해시만 남긴다. V70에서 제목 자동 제외 원문이 비식별 삭제된 재분류 항목은 상태·판정 hash·tombstone 참조만 유지하며, 해당 항목이 포함된 실행의 원복 요청은 `409 ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE`로 거절한다.
 
 기존 원문 일괄 재분류는 `/api/v1/admin/announcement-source-reclassification-runs`를 사용한다.
 
@@ -2321,6 +2321,6 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 - 상세본문 기능은 별도 flag 기본 `false`이며 공식 등록 host 일치, URL·DNS 검증, redirect·시간·크기·동시성 제한을 통과한 HTML만 입력으로 사용한다.
 - 신규 수집은 provider 응답의 첨부 URL·파일명 필드를 원문 저장 전에 제거하고 attachment 행을 생성하지 않는다. 지자체 상세 HTML에서도 첨부 링크와 표시명을 본문 추출 전에 제거한다.
 - PDF·HWP 등 첨부파일을 다운로드·추출·분류하지 않는다. 기존 V1 첨부 이력은 호환 조회만 유지한다.
-- 자동 제외·관리자 검수·유효 후보 모두 원문 버전과 일치 규칙 근거를 저장한다.
+- 관리자 검수·유효 후보는 원문 버전과 일치 규칙 근거를 저장한다. 제목 자동 제외는 원문 없이 SHA-256 identity, 사유·단계, rule·term FK와 run 건수만 저장한다.
 - `data_purpose_code`가 명시적으로 `QA`인 원문·요청만 QA 정리 대상이다. 일반 애플리케이션 수집은 `PRODUCTION`만 생성하며, DB에 쓰는 격리 QA 경로는 운영 QA 승인 시 별도 확정한다.
 - 상세본문 기능을 운영에서 켜기 전 DNS 재바인딩을 포함한 private-range egress 차단 또는 연결 IP 고정 검증을 완료한다.

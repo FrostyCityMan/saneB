@@ -23,6 +23,7 @@ import com.saneb.domain.announcementsource.service.AnnouncementSourceRuleRelease
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,6 +32,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -173,6 +175,12 @@ class FlywayMigrationIntegrationTest {
                     select count(1)
                     from flyway_schema_history
                     where version = '1'
+                      and success = true
+                    """)).isEqualTo(1);
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from flyway_schema_history
+                    where version = '70'
                       and success = true
                     """)).isEqualTo(1);
             assertThat(selectLong(statement, """
@@ -661,6 +669,386 @@ class FlywayMigrationIntegrationTest {
                     from announcement_source_snapshots
                     where data_purpose_code not in ('PRODUCTION', 'QA')
                     """)).isZero();
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from announcement_source_snapshots
+                    where semantic_status_code = 'EXCLUDED'
+                    """)).isZero();
+            assertThat(selectLong(statement, """
+                    select count(1)
+                    from announcement_source_collection_run_items
+                    where item_status_code = 'EXCLUDED'
+                      and (
+                          source_id is not null
+                          or provider_notice_id is not null
+                          or source_url is not null
+                          or semantic_matched_keywords is not null
+                      )
+                    """)).isZero();
+        }
+    }
+
+    /**
+     * V69 운영 형태의 제외 원문을 V70이 tombstone으로 치환하고 평문 계층을 삭제하는지 검증합니다.
+     *
+     * @throws SQLException PostgreSQL 검증 오류
+     */
+    @Test
+    void v70MigrationBackfillsEvidenceAndDeletesExcludedPlaintext() throws SQLException {
+        String databaseUrl = System.getenv("DB_URL");
+        String databaseUsername = System.getenv("DB_USERNAME");
+        String databasePassword = System.getenv("DB_PASSWORD");
+        String schema = "v70_cleanup_" + UUID.randomUUID().toString().replace("-", "");
+        try {
+            Flyway.configure()
+                    .dataSource(databaseUrl, databaseUsername, databasePassword)
+                    .schemas(schema)
+                    .defaultSchema(schema)
+                    .target("69")
+                    .load()
+                    .migrate();
+            try (Connection connection = DriverManager.getConnection(
+                    databaseUrl,
+                    databaseUsername,
+                    databasePassword
+            ); Statement statement = connection.createStatement()) {
+                statement.execute("SET search_path TO " + schema);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_collection_requests (
+                            id, provider_code, request_type_code, request_status_code
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000001',
+                            'LOCAL_GOV_NOTICE',
+                            'MANUAL',
+                            'APPROVED'
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO users (
+                            id, login_id, password_hash, name, password_reset_required
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000009',
+                            'v70-cleanup-auditor',
+                            'test-only-password-hash',
+                            'V70 테스트 관리자',
+                            false
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_collection_runs (
+                            id, request_id, run_status_code, total_count, excluded_count
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000002',
+                            '74000000-0000-0000-0000-000000000001',
+                            'COMPLETED',
+                            1,
+                            1
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_snapshots (
+                            id,
+                            provider_code,
+                            provider_notice_id,
+                            title,
+                            agency_name,
+                            source_url,
+                            body_text,
+                            source_completeness_code,
+                            raw_payload_json,
+                            raw_hash,
+                            review_status_code,
+                            canonical_source_url,
+                            normalized_title,
+                            semantic_status_code,
+                            semantic_reason_code,
+                            semantic_matched_keywords
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000003',
+                            'LOCAL_GOV_NOTICE',
+                            'LEGACY-EXCLUDED-1',
+                            '삭제되어야 하는 제외 공고 제목',
+                            '테스트 기관',
+                            'https://example.go.kr/excluded/1',
+                            '삭제되어야 하는 본문',
+                            'COMPLETE',
+                            '{"title":"삭제되어야 하는 제외 공고 제목"}',
+                            repeat('a', 64),
+                            'ARCHIVED',
+                            'https://example.go.kr/excluded/1',
+                            '삭제되어야 하는 제외 공고 제목',
+                            'EXCLUDED',
+                            'TITLE_GROUP_B_MATCHED',
+                            '수출'
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_content_versions (
+                            id,
+                            source_id,
+                            raw_hash,
+                            title,
+                            body_text,
+                            body_source_code,
+                            body_availability_code,
+                            source_url,
+                            raw_payload_json,
+                            collected_at
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000004',
+                            '74000000-0000-0000-0000-000000000003',
+                            repeat('b', 64),
+                            '삭제되어야 하는 제외 공고 제목',
+                            '삭제되어야 하는 본문',
+                            'DETAIL_PAGE_TEXT',
+                            'AVAILABLE',
+                            'https://example.go.kr/excluded/1',
+                            '{"title":"삭제되어야 하는 제외 공고 제목"}',
+                            now()
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_classification_evaluations (
+                            id,
+                            source_id,
+                            content_version_id,
+                            run_id,
+                            rule_release_id,
+                            engine_version,
+                            body_source_code,
+                            body_availability_code,
+                            title_stage_code,
+                            body_stage_code,
+                            decision_status_code,
+                            reason_code,
+                            is_current
+                        )
+                        SELECT
+                            '74000000-0000-0000-0000-000000000005',
+                            '74000000-0000-0000-0000-000000000003',
+                            '74000000-0000-0000-0000-000000000004',
+                            '74000000-0000-0000-0000-000000000002',
+                            release.id,
+                            'RULE_V2',
+                            'NONE',
+                            'UNAVAILABLE',
+                            'GROUP_B_MATCHED',
+                            'NOT_EVALUATED',
+                            'EXCLUDED',
+                            'TITLE_GROUP_B_MATCHED',
+                            true
+                        FROM announcement_source_classification_rule_releases AS release
+                        WHERE release.release_code = 'ASCR-000001'
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_classification_matches (
+                            id,
+                            evaluation_id,
+                            keyword_rule_id,
+                            keyword_term_id,
+                            match_location_code,
+                            matched_text,
+                            start_offset,
+                            end_offset,
+                            applied_action_code
+                        )
+                        SELECT
+                            '74000000-0000-0000-0000-000000000006',
+                            '74000000-0000-0000-0000-000000000005',
+                            rule.id,
+                            term.id,
+                            'TITLE',
+                            '수출',
+                            0,
+                            2,
+                            'EXCLUDED'
+                        FROM announcement_source_classification_keyword_rules AS rule
+                        INNER JOIN announcement_source_classification_rule_groups AS rule_group
+                                ON rule_group.id = rule.group_id
+                        INNER JOIN announcement_source_classification_keyword_terms AS term
+                                ON term.keyword_rule_id = rule.id
+                               AND term.group_id = rule_group.id
+                        WHERE rule_group.group_code = 'AUTO_EXCLUDE_B_EXPORT'
+                          AND term.term_text = '수출'
+                        ORDER BY rule.sort_order, term.id
+                        LIMIT 1
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_reclassification_runs (
+                            id,
+                            rule_release_id,
+                            rule_snapshot_hash,
+                            run_status_code,
+                            maximum_count,
+                            batch_size,
+                            total_count,
+                            request_reason_hash,
+                            requested_by
+                        )
+                        SELECT
+                            '74000000-0000-0000-0000-000000000010',
+                            release.id,
+                            repeat('c', 64),
+                            'APPLY_COMPLETED',
+                            10,
+                            10,
+                            1,
+                            repeat('d', 64),
+                            '74000000-0000-0000-0000-000000000009'
+                        FROM announcement_source_classification_rule_releases AS release
+                        WHERE release.release_code = 'ASCR-000001'
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_reclassification_run_items (
+                            id,
+                            run_id,
+                            source_id,
+                            content_version_id,
+                            content_hash,
+                            expected_classification_version,
+                            previous_evaluation_id,
+                            previous_semantic_status_code,
+                            previous_semantic_reason_code,
+                            previous_semantic_matched_keywords,
+                            previous_review_status_code,
+                            predicted_semantic_status_code,
+                            predicted_reason_code,
+                            prediction_hash,
+                            item_status_code,
+                            applied_evaluation_id,
+                            applied_classification_version
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000011',
+                            '74000000-0000-0000-0000-000000000010',
+                            '74000000-0000-0000-0000-000000000003',
+                            '74000000-0000-0000-0000-000000000004',
+                            repeat('b', 64),
+                            0,
+                            NULL,
+                            'ACCEPTED',
+                            'PROVIDER_TRUSTED',
+                            '삭제되어야 하는 과거 매칭 문자열',
+                            'REVIEW_PENDING',
+                            'EXCLUDED',
+                            'TITLE_GROUP_B_MATCHED',
+                            repeat('e', 64),
+                            'APPLIED',
+                            '74000000-0000-0000-0000-000000000005',
+                            1
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_collection_run_items (
+                            id,
+                            run_id,
+                            source_id,
+                            provider_notice_id,
+                            source_url,
+                            item_status_code,
+                            semantic_reason_code,
+                            semantic_matched_keywords
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000007',
+                            '74000000-0000-0000-0000-000000000002',
+                            '74000000-0000-0000-0000-000000000003',
+                            'LEGACY-EXCLUDED-1',
+                            'https://example.go.kr/excluded/1',
+                            'EXCLUDED',
+                            'TITLE_GROUP_B_MATCHED',
+                            '수출'
+                        )
+                        """);
+                statement.executeUpdate("""
+                        INSERT INTO announcement_source_collection_run_items (
+                            id,
+                            run_id,
+                            source_id,
+                            provider_notice_id,
+                            source_url,
+                            item_status_code,
+                            semantic_reason_code,
+                            semantic_matched_keywords
+                        ) VALUES (
+                            '74000000-0000-0000-0000-000000000008',
+                            '74000000-0000-0000-0000-000000000002',
+                            '74000000-0000-0000-0000-000000000003',
+                            'LEGACY-EXCLUDED-1',
+                            'https://example.go.kr/excluded/1',
+                            'COLLECTED',
+                            'PROVIDER_TRUSTED',
+                            '과거 수집 문자열'
+                        )
+                        """);
+            }
+
+            Flyway.configure()
+                    .dataSource(databaseUrl, databaseUsername, databasePassword)
+                    .schemas(schema)
+                    .defaultSchema(schema)
+                    .load()
+                    .migrate();
+
+            try (Connection connection = DriverManager.getConnection(
+                    databaseUrl,
+                    databaseUsername,
+                    databasePassword
+            ); Statement statement = connection.createStatement()) {
+                statement.execute("SET search_path TO " + schema);
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_exclusion_tombstones
+                        """)).isEqualTo(1);
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_exclusion_rule_matches
+                        """)).isEqualTo(1);
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_snapshots
+                        WHERE semantic_status_code = 'EXCLUDED'
+                        """)).isZero();
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_content_versions
+                        """)).isZero();
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_classification_evaluations
+                        """)).isZero();
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_collection_run_items
+                        WHERE source_id IS NULL
+                          AND provider_notice_id IS NULL
+                          AND source_url IS NULL
+                          AND semantic_matched_keywords IS NULL
+                        """)).isEqualTo(2);
+                assertThat(selectLong(statement, """
+                        SELECT excluded_count
+                        FROM announcement_source_collection_runs
+                        WHERE id = '74000000-0000-0000-0000-000000000002'
+                        """)).isEqualTo(1);
+                assertThat(selectLong(statement, """
+                        SELECT count(*)
+                        FROM announcement_source_reclassification_run_items
+                        WHERE id = '74000000-0000-0000-0000-000000000011'
+                          AND exclusion_id IS NOT NULL
+                          AND source_id IS NULL
+                          AND content_version_id IS NULL
+                          AND previous_evaluation_id IS NULL
+                          AND applied_evaluation_id IS NULL
+                          AND previous_semantic_matched_keywords IS NULL
+                          AND item_status_code = 'APPLIED'
+                        """)).isEqualTo(1);
+            }
+        } finally {
+            try (Connection connection = DriverManager.getConnection(
+                    databaseUrl,
+                    databaseUsername,
+                    databasePassword
+            ); Statement statement = connection.createStatement()) {
+                statement.execute("DROP SCHEMA IF EXISTS " + schema + " CASCADE");
+            }
         }
     }
 
@@ -746,7 +1134,9 @@ class FlywayMigrationIntegrationTest {
                 "announcement_source_confirmed_target_categories",
                 "announcement_source_confirmed_support_types",
                 "announcement_source_reclassification_runs",
-                "announcement_source_reclassification_run_items"
+                "announcement_source_reclassification_run_items",
+                "announcement_source_exclusion_tombstones",
+                "announcement_source_exclusion_rule_matches"
         );
     }
 

@@ -298,8 +298,10 @@ AI 보조 입력 원문은 DB에 저장하지 않는다. `ai_assist_requests.inp
 | `announcement_source_duplicate_candidates` | `source_snapshot_id`, `announcement_id`, `match_type_code`, `title_matched`, `agency_matched`, `provider_notice_matched`, `period_matched`, `source_url_matched`, `similarity_reason`, `decision_status_code`, `decided_by`, `decided_at`, `decision_note` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `(source_snapshot_id, announcement_id)`, IDX `(source_snapshot_id, match_type_code, decision_status_code)`, IDX `(announcement_id, decision_status_code)` |
 | `announcement_source_review_histories` | `source_snapshot_id`, `before_status_code`, `after_status_code`, `review_note`, `changed_by`, `changed_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `users.id` | IDX `(source_snapshot_id, changed_at)` |
 | `announcement_source_links` | `source_id`, `announcement_id`, `linked_by`, `linked_at` | PK `id`, FK `announcement_source_snapshots.id`, FK `announcements.id`, FK `users.id` | UQ `source_id`, IDX `announcement_id` |
+| `announcement_source_exclusion_tombstones` | `provider_code`, `identity_hash`, `last_raw_hash`, `run_id`, `rule_release_id`, `semantic_reason_code`, `title_stage_code`, `body_stage_code`, `decision_source_code`, `occurrence_count`, `first_excluded_at`, `last_seen_at` | PK `id`, FK `announcement_source_collection_runs.id`, FK `announcement_source_classification_rule_releases.id` | UQ `(provider_code, identity_hash)`, IDX `(provider_code, last_seen_at)` |
+| `announcement_source_exclusion_rule_matches` | `exclusion_id`, `keyword_rule_id`, `keyword_term_id`, `match_location_code`, `applied_action_code` | PK `id`, FK tombstone·rule·term | UQ `(exclusion_id, keyword_rule_id, keyword_term_id, match_location_code, applied_action_code)` |
 
-외부 공고 원문은 `announcement_source_snapshots`에 보존하고, 실제 매칭에 사용하는 운영 공고는 기존 `announcements`와 조건 테이블에 운영자가 별도로 입력한다. 하이라이트는 검수 참고용이며 `announcement_numeric_conditions`, `announcement_option_conditions`, `announcement_industry_conditions`에 자동 저장하지 않는다.
+외부 공고 중 `ACCEPTED`와 `REVIEW_REQUIRED` 원문은 `announcement_source_snapshots`에 보존하고, 실제 매칭에 사용하는 운영 공고는 기존 `announcements`와 조건 테이블에 운영자가 별도로 입력한다. 제목 단계 `EXCLUDED` 공고는 snapshot을 생성하지 않고 비가역 tombstone과 규칙 참조만 남긴다. 하이라이트는 검수 참고용이며 `announcement_numeric_conditions`, `announcement_option_conditions`, `announcement_industry_conditions`에 자동 저장하지 않는다.
 
 수집 실행은 `announcement_source_collection_requests.request_status_code='APPROVED'`인 요청만 허용한다. 배치와 버튼 실행은 모두 먼저 요청을 만들고 승인 후 실행하는 동일한 절차를 따른다. 종료된 과거 공고는 `announcement_source_collection_run_items.item_status_code='SKIPPED_ENDED'`로 기록하고 사용자 매칭 대상 운영 공고로 전환하지 않는다.
 
@@ -532,7 +534,7 @@ dev seed:
 - 검증 ID가 없는 매칭은 운영자 수동 생성 또는 관리자 조건 후보 생성으로 생성되며, 동일 공고/회원 조합은 partial unique index로 중복을 차단한다.
 - 진행 단계 완료 조건 충족 전 다음 단계 이동이 서버에서 차단된다.
 
-## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V69`)
+## 10. Additive Migration: 공고 수집·분류 V2 (`V63`~`V70`)
 
 2026-08-13 운영 DB에 V63~V68 적용을 확인했다. 초기 release는 `DRAFT` 1건, `ACTIVE` 0건이며 분류 V2와 상세본문 feature flag는 OFF다. 기존 V1~V62 migration은 수정하지 않고 다음 migration만 추가했다.
 
@@ -545,11 +547,12 @@ dev seed:
 | `V67` | 운영 데이터와 격리 QA를 구분하는 `data_purpose_code` (`PRODUCTION`, `QA`) |
 | `V68` | 기존 중복을 자동 정리하지 않는 사전검사와 `announcement_source_links.source_id` 단독 UNIQUE. 여러 원문이 같은 운영 공고에 연결되는 것은 허용 |
 | `V69` | 기존 운영 원문의 재분류 미리보기·적용·일시중지·재개·원복 실행과 항목별 고정 원문·예상 판정·충돌·실패 이력 |
+| `V70` | 제목 제외 공고의 원문 비저장 tombstone·규칙 FK, 기존 수집·재분류 run item 비식별화와 link 없는 제외 snapshot 원문 삭제 |
 
 핵심 불변조건:
 
 - Flyway가 schema source of truth이며 초기 release는 운영에서 자동 활성화하지 않는다.
-- 자동 제외 원문도 `announcement_source_content_versions`와 판정 근거로 보존한다.
+- 제목 자동 제외 공고는 `announcement_source_content_versions`를 만들지 않는다. SHA-256 identity, raw hash, 상태·사유·단계, rule·term FK와 발생 건수만 보존한다.
 - 현재 판정은 `is_current=true` 한 건만 유지하되 과거 evaluation은 삭제하지 않는다.
 - 자동 태그와 관리자가 확정한 태그를 분리하고, 재분류 시 기존 확정값은 `STALE`로 전환한다.
 - 기존 `announcements.target_type_code`와 V1 단일 입력 계약은 유지한다. V1 저장은 대표 태그만 갱신하고 추가 태그를 임의 삭제하지 않으며, 복수 저장은 `/api/v2`가 담당한다.
@@ -557,4 +560,4 @@ dev seed:
 - 일반 애플리케이션 수집 write는 `data_purpose_code='PRODUCTION'`만 생성한다. QA 원문을 DB에 쓰는 내부 경로는 운영 격리 QA 승인 시 별도 확정하며, QA 정리는 명시적으로 `QA`인 행만 대상으로 한다.
 - V56 판정 이력과 과거 snapshot을 migration에서 자동 재분류하지 않는다.
 - 기존 원문 재분류는 `data_purpose_code='PRODUCTION'` 대상만 실행 이력에 고정한다. 미리보기는 source/evaluation을 변경하지 않으며, 적용은 고정한 원문 버전과 `classification_row_version`이 일치할 때만 새 evaluation을 append한다.
-- 원복은 적용 evaluation을 삭제하지 않고 current만 해제하며 이전 current 판정과 snapshot 호환 projection을 복원한다. 연결된 운영 공고의 상태는 적용·원복 모두 자동 변경하지 않는다.
+- 원복은 적용 evaluation을 삭제하지 않고 current만 해제하며 이전 current 판정과 snapshot 호환 projection을 복원한다. 단, V70에서 제목 제외 원문이 비식별 삭제된 항목은 `exclusion_id`로 감사 상태·hash만 보존하므로 해당 항목이 포함된 실행은 원복할 수 없다. 연결된 운영 공고의 상태는 적용·원복 모두 자동 변경하지 않는다.
