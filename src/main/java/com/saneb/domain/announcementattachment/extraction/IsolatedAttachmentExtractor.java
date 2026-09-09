@@ -69,10 +69,12 @@ public class IsolatedAttachmentExtractor {
         }
     }
 
-    static List<String> selectCommand(Path javaHome,Path library,Path input) {
+    static List<String> selectCommand(Path javaHome,Path library,Path input) throws IOException {
         var args = new ArrayList<>(List.of("/usr/bin/prlimit","--as=536870912","--cpu=30","--fsize=8388608","--",
                 "/usr/bin/bwrap","--die-with-parent","--new-session","--unshare-all","--cap-drop","ALL",
                 "--clearenv","--setenv","LANG","C.UTF-8","--setenv","HOME","/tmp",
+                // glibc의 thread별 arena 예약이 제한된 주소 공간을 소진하지 않도록 고정한다.
+                "--setenv","MALLOC_ARENA_MAX","1",
                 "--ro-bind",javaHome.toString(),"/jre","--ro-bind",library.toString(),"/extractor",
                 "--ro-bind",input.toString(),"/input.bin","--proc","/proc","--dev","/dev","--tmpfs","/tmp"));
         // Java 런타임에 필요한 시스템 공유 라이브러리만 읽기 전용으로 제공한다. /home, /var, 환경파일은 없음.
@@ -80,6 +82,13 @@ public class IsolatedAttachmentExtractor {
             if (Files.exists(Path.of(systemLib))) args.addAll(List.of("--ro-bind",systemLib,systemLib));
         }
         if (Files.exists(Path.of("/etc/ld.so.cache"))) args.addAll(List.of("--ro-bind","/etc/ld.so.cache","/etc/ld.so.cache"));
+        // Ubuntu JDK의 java.security는 /etc 아래의 파일을 가리킬 수 있다. 전체 /etc는 노출하지 않는다.
+        Path javaSecurity=javaHome.resolve("conf/security/java.security");
+        if (Files.isRegularFile(javaSecurity)) {
+            Path resolvedSecurity=javaSecurity.toRealPath();
+            if (!resolvedSecurity.startsWith(javaHome))
+                args.addAll(List.of("--ro-bind",resolvedSecurity.toString(),resolvedSecurity.toString()));
+        }
         // 512 MiB 주소 공간에는 heap 외 JVM·metaspace·공유 라이브러리 예약도 포함된다.
         // Ubuntu Java 21 실증에서 256 MiB heap은 VM 초기화에 실패하므로 128 MiB로 제한한다.
         args.addAll(List.of("--chdir","/tmp","--","/jre/bin/java","-Xms16m","-Xmx128m",

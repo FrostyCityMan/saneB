@@ -25,7 +25,12 @@ public final class AttachmentExtractorMain {
                     : "ENCRYPTED".equals(exception.getMessage()) ? "ENCRYPTED" : "CORRUPT";
             result = ExtractionResult.failure(code);
         }
-        ipc.print(new ObjectMapper().writeValueAsString(result));
+        saveResult(ipc, result);
+    }
+
+    static void saveResult(OutputStream ipc, ExtractionResult result) throws java.io.IOException {
+        // 격리 환경의 locale/PrintStream charset이 ASCII여도 한국어 IPC는 UTF-8로 보존한다.
+        ipc.write(new ObjectMapper().writeValueAsBytes(result));
         ipc.flush();
     }
 

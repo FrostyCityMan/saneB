@@ -99,6 +99,16 @@ class AttachmentExtractorTest {
         assertEquals("소상공인 지원금",result.text()); assertNull(result.pageCount());
         assertEquals("Section0:paragraph:1",result.blocks().getFirst().locator());
     }
+    @Test void cliJsonPreservesKoreanEvenWhenStdoutCharsetIsAscii() throws Exception {
+        var extracted=AttachmentExtractorMain.selectExtraction(selectHwp("소상공인 지원금 😀",0,false));
+        var bytes=new ByteArrayOutputStream();
+        try (var ascii=new java.io.PrintStream(bytes,false,StandardCharsets.US_ASCII)) {
+            AttachmentExtractorMain.saveResult(ascii,extracted);
+        }
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().readTree(bytes.toByteArray());
+        assertEquals("소상공인 지원금 😀",json.path("text").asText());
+        assertEquals("COMPLETE_TEXT",json.path("qualityCode").asText());
+    }
     @Test void hwpEncryptedFlagIsNotIgnored() throws Exception {
         assertEquals("ENCRYPTED",AttachmentExtractorMain.selectExtraction(selectHwp("내용",2,false)).qualityCode());
     }

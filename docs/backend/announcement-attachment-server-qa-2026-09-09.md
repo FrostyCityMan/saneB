@@ -64,3 +64,14 @@ QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성�
 - 원인은 Linux JVM 메모리 예약이다. 동일 bwrap 격리의 `java -version`으로 512 MiB 주소 공간/256 MiB heap에서 VM heap 예약 실패를 재현했다. 768 MiB 주소 공간에서는 시작됐으나 기존 512 MiB 상한을 유지하기 위해 채택하지 않았다. 512 MiB/192 MiB heap도 metaspace 예약에 실패했고 512 MiB/128 MiB heap은 성공했다.
 - 추출기 heap만 128 MiB로 낮춘다. 주소 공간 512 MiB, CPU 30초, 출력 8 MiB, PID/네트워크/파일시스템 격리는 유지한다. JVM 시작 성공과 실제 PDF/HWP/HWPX 추출 성공은 별도로 검증한다. 큰 문서의 메모리 부족 가능성은 남으며 이를 정상 추출로 취급하지 않는다.
 - 변경 후 로컬 `:test --tests '*IsolatedAttachmentExtractorTest' --tests '*AnnouncementAttachmentServerQaTest' bootJar --no-daemon --max-workers=1`: 성공(20초). 전체 suite 재실행은 GitHub 배포 workflow에서 수행하며 브라우저 검증은 사용자 정책상 생략한다.
+
+### DB 복구 완료와 두 번째 배포 진단
+
+- 23:00 KST 이전 서버 DB TCP 연결과 localhost `/actuator/health`의 HTTP 200/UP을 확인했다. 기존 앱이 정상 시작됐고 Flyway 로그의 당시 schema는 V71이었다. Aurora는 23:02 KST `available`로 확인했다. KMS·IAM 정책 변경 없이 승인된 시작 요청으로 복구했다.
+- `3380e6c`를 push하고 [첨부 QA 포함 재배포](https://github.com/FrostyCityMan/saneB/actions/runs/34360711846)를 실행했다. 전체 CI 테스트·빌드와 기존 `scripts/validate.sh`는 통과했으나 CodeDeploy `d-PE54XYKF8`의 첨부 QA hook이 실패했다. 자동 원복 `d-VIN2RLSPK`는 Succeeded다.
+- 실제 결과는 PDF 2개 FAILED, HWP/HWPX COMPLETE_TEXT였다. 다만 HWP/HWPX의 출력 한글이 손상되어 키워드 검증에 실패했다. CLI의 `PrintStream.print(String)`이 격리 환경의 ASCII stdout charset에 의존한 문제로, JSON UTF-8 byte 직접 출력으로 수정하고 ASCII PrintStream에서도 한국어·emoji가 보존되는 회귀 테스트를 추가했다.
+- PDF 실패를 표본 hash가 고정된 IP pin HTTPS 다운로드와 별도 격리 probe로 재현했다. 원문 대신 exception class·고정 상태만 출력했다. `java.lang.InternalError` / `java.security.Security.initialize`에서 JDK 보안 설정이 없는 것이 첫 원인이었다. Ubuntu JDK의 외부 symlink 대상 `java.security` 파일 하나만 동일 경로에 읽기 전용 연결한다. `/etc` 전체나 앱 환경파일은 노출하지 않는다.
+- 보안 설정을 연결한 뒤에는 glibc thread arena의 가상 주소 예약으로 native malloc 실패가 드러났다. `MALLOC_ARENA_MAX=1`을 격리 자식 환경에 고정하여 512 MiB 주소 공간/128 MiB heap을 그대로 유지한다. 이 조합으로 실제 PDF-SEMAS 표본의 추출이 PARTIAL_TEXT로 성공했고 진단 원본은 제거됐다. 최종 CLI의 전체 4개 표본 QA는 다음 배포에서 다시 검증한다.
+- 공개 IP의 8080 직접 접속은 timeout이었다. 이는 실제 서비스 ingress 주소를 확인한 외부 health 검증이 아니며 외부 정상으로 보고하지 않는다. localhost health만 직접 확인했다. 브라우저 검증은 하지 않았다.
+- 원복 앱의 23:03 KST 기동 로그에서 schema V72, migration 검증 69건, 정상 기동과 HTTP 200/UP을 확인했다. 앱 jar 원복은 DB schema 원복이 아니며 V72는 유지됐다.
+- 추가 수정의 로컬 대상 테스트·`bootJar`·추출기 배포본 생성은 성공(20초)했다. 추출기 테스트에는 ASCII stdout 한국어 보존을 추가했다. JDK symlink mount 테스트는 Linux 전용이므로 Windows에서는 skip이고, GitHub Linux CI에서 실행한다.
