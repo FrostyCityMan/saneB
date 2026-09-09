@@ -2,6 +2,12 @@ name: Deploy to AWS CodeDeploy
 
 on:
   workflow_dispatch:
+    inputs:
+      attachment_qa:
+        description: '배포 서버에서 공개 첨부 표본 4개를 다운로드·추출·분류 QA'
+        required: true
+        default: false
+        type: boolean
   push:
     branches:
       - master
@@ -61,10 +67,12 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x ./gradlew
-          ./gradlew clean test bootJar --no-daemon --console=plain --max-workers=1
+          ./gradlew clean test bootJar :attachment-extractor:test :attachment-extractor:installDist attachmentQaRuleSnapshot --no-daemon --console=plain --max-workers=1
 
       - name: Build CodeDeploy bundle
         shell: bash
+        env:
+          RUN_ATTACHMENT_QA: ${{ github.event_name == 'workflow_dispatch' && inputs.attachment_qa && 'true' || 'false' }}
         run: |
           set -euo pipefail
           bundle_dir="build/codedeploy"
@@ -80,13 +88,17 @@ jobs:
           cp "${jar_file}" "${bundle_dir}/app.jar"
           cp appspec.yml "${bundle_dir}/appspec.yml"
           cp scripts/backup.sh scripts/start.sh scripts/stop.sh scripts/validate.sh "${bundle_dir}/scripts/"
+          cp scripts/prepare-attachment-extractor.sh "${bundle_dir}/scripts/"
+          cp -r attachment-extractor/build/install/attachment-extractor "${bundle_dir}/attachment-extractor"
+          cp build/attachment-qa/rules.json "${bundle_dir}/attachment-extractor/qa-rules.json"
+          printf '%s\n' "${RUN_ATTACHMENT_QA}" > "${bundle_dir}/attachment-extractor/run-server-qa"
           cp scripts/operations/*.sh scripts/operations/*.sql "${bundle_dir}/scripts/operations/"
           chmod +x "${bundle_dir}/scripts/"*.sh
           chmod +x "${bundle_dir}/scripts/operations/"*.sh
 
           (
             cd "${bundle_dir}"
-            zip -r "../saneb-${GITHUB_SHA}.zip" app.jar appspec.yml scripts
+            zip -r "../saneb-${GITHUB_SHA}.zip" app.jar appspec.yml scripts attachment-extractor
           )
 
       - name: Configure AWS credentials

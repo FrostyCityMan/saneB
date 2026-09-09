@@ -7,7 +7,7 @@
 - [x] 루트 AGENTS 및 첨부 설계·QA 계획 확인
 - [~] A: V72 DB 확장·실제 PostgreSQL 검증 완료. DTO·Mapper 연결 대기
 - [~] B: IP 고정 다운로드 기반 추가. 프로필 발견·영속 worker·전역 예산 연결 대기
-- [~] C: 별도 추출 CLI·합성 fixture 검증 완료. 실제 기관 파일·Linux OS 격리 검증 차단
+- [~] C: 별도 추출 CLI·합성 fixture 및 공개 실파일 4개 Docker QA 완료. 운영 Linux bwrap/prlimit 검증 대기
 - [~] D: 순수 종합 분류기·DB 봉인 보호 검증 완료. 저장·검수 동시성 연결 대기
 - [ ] E: v2 API·기존 경로 보호·관리자 화면
 - [ ] F: 범위 고정 배치·미리보기·적용·조건부 원복
@@ -72,6 +72,8 @@ PowerShell에서 Java system property 인자는 따옴표로 감싸야 한다. �
 브라우저 검증은 사용자 정책에 따라 미실행이다. 최종 릴리스 판정은 `Not ready`다. AWS 인증뿐 아니라 위 미완료 구현/검증이 모두 남아 있어 운영 반영을 진행하지 않는다.
 
 ## 기술 근거
+
+2026-09-09 재부팅 후 추가 결과는 [실파일 QA 진행 기록](announcement-attachment-real-file-qa-2026-09-09.md)에 분리했다. Docker는 소켓 경로를 보존·재생성한 임시 기동 상태이며 지속 복구가 아니다. 실제 PDF 2개/HWP/HWPX 각 1개의 다운로드·격리 추출·단일 파일 판정을 확인했지만 운영 worker·저장·API·화면 연결 Gate는 변경되지 않았다. 위의 과거 Git/AWS 상태는 당시 확인 기록이며 현재 운영 상태로 재검증한 값이 아니다.
 
 - [PDFBox 공식 다운로드](https://pdfbox.apache.org/download.html), [보안 공지](https://pdfbox.apache.org/security.html): 3.0.8 선택 근거. 이 프로젝트의 안전한 운영을 증명하는 자료는 아니다.
 - [Apache POI 공식 배포](https://poi.apache.org/download.cgi): 5.5.1 OLE container reader와 Apache 2.0 라이선스 확인.
