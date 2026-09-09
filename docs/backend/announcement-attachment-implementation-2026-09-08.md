@@ -7,7 +7,7 @@
 - [x] 루트 AGENTS 및 첨부 설계·QA 계획 확인
 - [~] A: V72 DB 확장·실제 PostgreSQL 검증 완료. DTO·Mapper 연결 대기
 - [~] B: IP 고정 다운로드 기반 추가. 프로필 발견·영속 worker·전역 예산 연결 대기
-- [~] C: 별도 추출 CLI·합성 fixture 및 공개 실파일 4개 Docker QA 완료. 운영 Linux bwrap/prlimit 검증 대기
+- [~] C: 별도 추출 CLI·합성 fixture 및 공개 실파일 4개 Docker/서버 bwrap·prlimit 추출 QA 완료. worker 연결·전체 격리 부정 테스트 대기
 - [~] D: 순수 종합 분류기·DB 봉인 보호 검증 완료. 저장·검수 동시성 연결 대기
 - [ ] E: v2 API·기존 경로 보호·관리자 화면
 - [ ] F: 범위 고정 배치·미리보기·적용·조건부 원복
@@ -62,14 +62,14 @@ PowerShell에서 Java system property 인자는 따옴표로 감싸야 한다. �
 
 1. 출처별 실제 HTML/파일 QA를 근거로 시스템 profile을 등록한다. 현재 등록/배포된 첨부 profile은 없다. URL·파일명은 분류 입력에 넣지 않는다.
 2. DAO/Mapper와 짧은 transaction의 job 예약·lease·heartbeat·재시도·취소를 구현한다. source당/전역 동시성, 재시도 누적 bytes, 총 임시파일 1 GiB·24시간 청소를 DB/파일 수명주기에 연결한다. 현재 다운로드 helper만으로 이 전역 정책이 충족되지는 않는다.
-3. Linux 격리 실증: 네트워크·환경변수·다른 파일 차단, OOM/timeout 자식 프로세스 종료, JVM의 512 MiB 제한 내 시작, process-tree 전체 자원 상한을 검증한다. 현재는 command 구성/Windows fail-closed 단위 검증뿐이다. DNS 지연을 포함한 논리 다운로드 전체 deadline과 redirect 누적 시간도 추가 검증·보강해야 한다.
+3. Linux 격리 실증: 서버에서 512 MiB 주소 공간/128 MiB heap, glibc arena 1, 최소 JDK 보안 설정 파일 연결로 실제 4개 표본의 추출을 확인했다. 네트워크·환경변수·다른 파일 접근의 부정 테스트, OOM/timeout 자식 프로세스 종료, process-tree 전체 자원 상한은 별도 검증이 남았다. DNS 지연을 포함한 논리 다운로드 전체 deadline과 redirect 누적 시간도 추가 검증·보강해야 한다.
 4. 실제 PDF/HWP/HWPX 표본으로 한국어·표·부분 이미지·암호·손상·내장 개체를 확인한다. 현재 PDF의 페이지 text는 추출하되 `scopeReliable=false`이므로 첨부만의 자동 후보 근거로 사용하지 않고 검수로 남긴다. HWP/HWPX reader의 표준 문서 호환성과 ZIP 특수 entry 방어도 추가 QA가 필요하다.
 5. 불변 set/evaluation 저장, optimistic version·idempotency, 최신 base/rule/policy 일치, 원문 삭제와 worker 완료 경합을 검증한다.
 6. 기존 확정·전환·V69 재분류 경로에 ENFORCE 우회 방지 guard를 연결한 뒤 v2 조회·역할·확정·DRAFT 전환과 관리자 UI를 구현한다. 이 guard가 없는 현재 상태에서 정책 활성화 금지.
 7. 정책 DRAFT/검증/게시, 기존 데이터 scope 고정·수집·preview·apply·pause·rollback을 구현한다. 연결된 운영 공고를 자동 변경하지 않는다.
 8. CLI·OS 설정·rollback 보호를 배포 묶음에 연결하고 전체 QA Gate 후 제한된 COLLECT_ONLY canary부터 검증한다. 이후 신규 ENFORCE와 승인 범위의 기존 데이터 적용을 진행한다.
 
-브라우저 검증은 사용자 정책에 따라 미실행이다. 최종 릴리스 판정은 `Not ready`다. AWS 인증뿐 아니라 위 미완료 구현/검증이 모두 남아 있어 운영 반영을 진행하지 않는다.
+브라우저 검증은 사용자 정책에 따라 미실행이다. 전체 상시 첨부 수집 기능의 릴리스 판정은 `Not ready`다. 다만 2026-09-09 서버 복구 후 CLI 배포와 실제 표본 QA는 완료했으며, 이를 worker/API/UI/ENFORCE 구현 완료와 구분한다. 최신 근거는 [서버 배포·QA 기록](announcement-attachment-server-qa-2026-09-09.md)의 최종 결과를 따른다.
 
 ## 기술 근거
 

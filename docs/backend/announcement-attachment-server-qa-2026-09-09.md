@@ -23,15 +23,16 @@
 - [x] GitHub 저장 계정의 repository push 권한과 서울 리전 확인. 전역 활성 계정 변경 없음.
 - [x] 추가 변경의 컴파일·제한된 단위 테스트·DRAFT snapshot 생성.
 - [x] 한국어 commit, push, 첨부 QA 옵션을 포함한 명시적 배포 실행.
-- [!] CodeDeploy ValidateService의 기존 scripts/validate.sh 시간 초과. 서버 QA hook에는 도달하지 못함.
-- [!] GitHub 배포 역할의 ssm:SendCommand 권한 없음. 로컬 AWS 세션 재인증 필요.
-- [x] 로컬 Gradle/Node 종료 및 실제 배포 결과 기록. 서버 기동 상태는 직접 확인하지 못함.
+- [x] 기존 health 시간 초과의 직접 원인인 Aurora 중단 확인 및 승인된 시작 복구 완료.
+- [x] 로컬 AWS 재인증으로 SSM 진단 완료. GitHub 배포 역할 IAM은 변경하지 않음.
+- [x] 최종 CodeDeploy 및 첨부 표본 4개 서버 QA 성공. localhost health 200/UP, schema V72 확인.
+- [x] 로컬 Gradle/Node 종료 및 실제 배포 결과 기록. 브라우저 검증은 정책상 미실행.
 
 ## 상태 구분
 
 서버 배포와 표본 QA 성공은 상시 첨부 수집 기능 완성이 아니다. worker/lease/DB 영속 저장/관리자 API·화면/ENFORCE/기존 데이터 배치는 여전히 별도 구현 항목이다. 새 QA 실행 명령은 API endpoint나 scheduler를 제공하지 않는다.
 
-QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성공으로 처리하지 않는다. 이미지 PDF의 OCR_REQUIRED, 불완전/부정 문맥 검수는 예상 동작으로 검증한다. 서버 health 및 V72 실제 반영은 배포 후 별도로 확인할 때까지 미확인이다.
+QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성공으로 처리하지 않는다. 이미지 PDF의 OCR_REQUIRED, 불완전/부정 문맥 검수는 예상 동작으로 검증한다. 최종 배포 후 localhost health 및 Flyway 로그의 schema V72를 확인했다. 외부 ingress와 상시 첨부 수집 검증을 뜻하지 않는다.
 
 ## 검증 기록
 
@@ -75,3 +76,27 @@ QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성�
 - 공개 IP의 8080 직접 접속은 timeout이었다. 이는 실제 서비스 ingress 주소를 확인한 외부 health 검증이 아니며 외부 정상으로 보고하지 않는다. localhost health만 직접 확인했다. 브라우저 검증은 하지 않았다.
 - 원복 앱의 23:03 KST 기동 로그에서 schema V72, migration 검증 69건, 정상 기동과 HTTP 200/UP을 확인했다. 앱 jar 원복은 DB schema 원복이 아니며 V72는 유지됐다.
 - 추가 수정의 로컬 대상 테스트·`bootJar`·추출기 배포본 생성은 성공(20초)했다. 추출기 테스트에는 ASCII stdout 한국어 보존을 추가했다. JDK symlink mount 테스트는 Linux 전용이므로 Windows에서는 skip이고, GitHub Linux CI에서 실행한다.
+
+## 최종 서버 배포·QA 결과
+
+- 배포 commit: `69b7278a92b2de4e71c55ac35db0069f1d4fbecc`.
+- [GitHub Actions 최종 실행](https://github.com/FrostyCityMan/saneB/actions/runs/34362240298): success. 전체 테스트·bootJar·추출기 배포본·DRAFT snapshot 생성 및 S3 upload를 포함한다.
+- CodeDeploy `d-VHMRNZRPK`: 2026-09-09 23:16:59 KST Succeeded. `ValidateService`의 health와 첨부 QA hook 모두 통과했다.
+- 이후 SSM 확인: `saneb.service` active/running, NRestarts 0, localhost health HTTP 200/UP. 최신 기동 로그의 예외 없음, Flyway migration 69건 검증 및 schema V72 확인. 설치된 jar의 V72 포함도 확인했다.
+- 설치 app.jar SHA-256: `0c916a3856e78481bc97fab3267a2ad099e7a7310d5f29ef177a5d8d45989702`.
+- 최종 SSM 확인에서 설치 jar와 `d-VHMRNZRPK` archive의 jar hash가 일치했다. 서버 QA/진단 임시 디렉터리 0개, QA·추출 Java 프로세스 0개로 정리를 확인했다. 정상 웹 애플리케이션은 계속 실행한다.
+- 규칙은 운영 ACTIVE가 아닌 빌드 DRAFT `ASCR-000001`, 394개다. rule snapshot SHA-256은 `0514e8b4fcec106fd708c99d7615f7c8fad852a8bdf954368abe3c4143c7350c`이다.
+
+| 표본 | 추출 문자 수 | 품질 | 단일 파일 판정 | 일치 근거 수 |
+| --- | ---: | --- | --- | ---: |
+| PDF-SDM-2026 | 0 | OCR_REQUIRED | REVIEW_REQUIRED / ATTACHMENT_INCOMPLETE | 0 |
+| PDF-SEMAS-2026 | 31,498 | PARTIAL_TEXT | REVIEW_REQUIRED / ATTACHMENT_INCOMPLETE | 1,013 |
+| HWP-ANYANG-2026 | 565 | COMPLETE_TEXT | ACCEPTED / EXTENDED_TARGET_SUPPORT_CONFIRMED | 34 |
+| HWPX-SDM-2026 | 2,413 | COMPLETE_TEXT | REVIEW_REQUIRED / ATTACHMENT_CONTEXT_REVIEW | 92 |
+
+- 4개 모두 예상 동작 검증 통과, 실패 0. OCR_REQUIRED는 이미지 PDF를 텍스트 추출 성공으로 오판하지 않는지 검증한 결과이며 OCR 기능이 구현됐다는 뜻이 아니다.
+- 모든 표본의 원본 제거를 확인했고 QA DB 쓰기는 0이다. HWP의 ACCEPTED는 선택한 파일에 대한 후보 판정이며 공고 전체 첨부 검증·최종 선정·운영 활성화를 뜻하지 않는다.
+- 로컬 최종 대상 결과: root 5건 중 실행 통과 4/플랫폼 skip 1, extractor 13건 모두 통과. Linux 전용 symlink 테스트를 포함한 CI 전체 실행은 success다. 이전 실패 배포·진단을 위 기록에 보존했다.
+- API/기존 migration 수정, 규칙 게시, 재분류 배치, KMS·IAM·보안그룹 변경은 하지 않았다. V72 적용은 기존 additive migration을 통한 정상 배포 반영이다.
+- 외부 공개 IP 80/8080의 직접 HTTP 조회는 모두 timeout이므로 외부 서비스 정상은 미확인이다. 브라우저 QA는 사용자 정책상 생략했다. 로컬 Node 진단 프로세스 잔존 0을 확인했고 Gradle은 `--no-daemon`으로 종료했다. 이전 임시 진단 스크립트·공개 인증서 묶음은 삭제 정책에 막혀 남아 있으며 자격증명 원문은 저장하지 않았다.
+- 이번 서버 배포와 표본 QA는 완료다. 전체 첨부 수집 기능의 worker/DB 저장/API/UI/정책 ENFORCE/기존 데이터 처리는 여전히 미구현이며 이번 성공으로 완료 처리하지 않는다. KMS 접근 상실의 과거 세부 원인도 미확정이다.
