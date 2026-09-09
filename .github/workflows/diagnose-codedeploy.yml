@@ -12,6 +12,11 @@ on:
         required: true
         default: false
         type: boolean
+      ssm_attachment_qa_check:
+        description: "SSM으로 해당 배포의 첨부 QA 요약만 조회"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -181,3 +186,50 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Read attachment QA summary through SSM
+        if: ${{ inputs.ssm_attachment_qa_check }}
+        shell: bash
+        env:
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+        run: |
+          set -euo pipefail
+          [[ "${DEPLOYMENT_ID}" =~ ^d-[A-Z0-9]+$ ]]
+          instance_id="$(aws deploy list-deployment-instances --deployment-id "${DEPLOYMENT_ID}" --query 'instancesList[0]' --output text)"
+          [[ "${instance_id}" =~ ^i-[a-f0-9]+$ ]]
+          reader="$(cat <<'COMMAND'
+          python3 - <<'PY'
+          import glob, json, os, re
+          deployment_id = '__DEPLOYMENT_ID__'
+          paths = glob.glob('/opt/codedeploy-agent/deployment-root/*/' + deployment_id + '/logs/scripts.log')
+          keys = {'caseId','checkedAt','ruleSource','ruleHash','ruleReleaseCode','evaluationScope',
+                  'entireNoticeAttachmentSetVerified','productionWriteCount','passed','titleStage','bytes',
+                  'binarySha256','quality','format','characterCount','textSha256','blockCount',
+                  'containsSmallBusinessKeyword','status','reason','warningCodes','matchCount',
+                  'failedStage','errorType','originalFilesRemoved','samples','failures'}
+          found = 0
+          for path in paths:
+              if os.path.getsize(path) > 4 * 1024 * 1024:
+                  continue
+              with open(path, encoding='utf-8', errors='replace') as log:
+                  for line in log:
+                      match = re.search(r'ATTACHMENT_SERVER_QA(?:_SUMMARY)?=(\{[^\r\n]+\})', line)
+                      if not match:
+                          continue
+                      try:
+                          data = json.loads(match.group(1))
+                          safe = {k:v for k,v in data.items() if k in keys}
+                          print('ATTACHMENT_QA_RESULT=' + json.dumps(safe, ensure_ascii=True))
+                          found += 1
+                      except (ValueError, AttributeError):
+                          pass
+          if not found:
+              print('ATTACHMENT_QA_RESULT=NOT_FOUND')
+          PY
+          COMMAND
+          )"
+          reader="${reader/__DEPLOYMENT_ID__/${DEPLOYMENT_ID}}"
+          parameters="$(jq -cn --arg command "${reader}" '{commands:[$command],executionTimeout:["30"]}')"
+          command_id="$(aws ssm send-command --instance-ids "${instance_id}" --document-name AWS-RunShellScript --comment 'saneB attachment QA summary read only' --parameters "${parameters}" --query Command.CommandId --output text)"
+          aws ssm wait command-executed --command-id "${command_id}" --instance-id "${instance_id}"
+          aws ssm get-command-invocation --command-id "${command_id}" --instance-id "${instance_id}" --query StandardOutputContent --output text
