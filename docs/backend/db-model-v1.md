@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 첨부 확장 진행: [공고 첨부파일 수집·추출 DB 설계](announcement-attachment-collection-design-2026-09-08.md)의 V72 additive migration을 추가하고 로컬 PostgreSQL에서 빈 DB·V71 업그레이드를 검증했다. 운영 DB 반영 및 전체 기능 연결은 미완료다. 상세 상태는 [구현·출시 진행 기록](announcement-attachment-implementation-2026-09-08.md)을 따른다. 기존 V26 첨부 테이블의 실제 컬럼은 migration을 기준으로 확인한다.
+
 작성일: 2026-05-14
 
 ## 1. 기준 문서

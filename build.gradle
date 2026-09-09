@@ -33,6 +33,9 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    // Docker 없이도 loopback 전용 임시 PostgreSQL에서 additive migration을 검증한다.
+    testImplementation 'io.zonky.test:embedded-postgres:2.2.2'
+    testImplementation enforcedPlatform('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.15.0')
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     mockitoAgent('org.mockito:mockito-core') {
         transitive = false
@@ -41,6 +44,20 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('attachmentMigrationTest', Test) {
+    description = 'Verifies attachment migrations in isolated loopback PostgreSQL.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentMigrationTest.class'
+    environment 'SANEB_ATTACHMENT_MIGRATION_TEST', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentMigrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentMigrationTest')
 }
 
 tasks.withType(Test).configureEach {

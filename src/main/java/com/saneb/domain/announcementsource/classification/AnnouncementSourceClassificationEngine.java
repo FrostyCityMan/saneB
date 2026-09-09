@@ -221,11 +221,38 @@ public final class AnnouncementSourceClassificationEngine {
         return List.copyOf(compiled);
     }
 
+    /** 첨부의 검증된 단일 문단만 평가한다. 기존 제목·본문 입력과 결과의 의미는 바꾸지 않는다. */
+    public ScopeResult selectAttachmentScope(String text, String agencyName, List<String> agencyAliases,
+            AnnouncementSourceClassificationRuleSet ruleSet) {
+        var input = new AnnouncementSourceClassificationInput("ATTACHMENT", "", text, agencyName,
+                agencyAliases, AnnouncementSourceClassificationCodes.BodySourceCode.PROVIDER_FULL_TEXT,
+                BodyAvailabilityCode.AVAILABLE);
+        var evaluation = selectLocationEvaluation(input, normalizer.selectNormalizedText(text),
+                MatchLocationCode.BODY, selectCompiledTerms(ruleSet), 10000);
+        return new ScopeResult(evaluation.matches(), evaluation.targetStrengths().keySet().stream().sorted().toList(),
+                evaluation.supportStrengths().keySet().stream().sorted().toList(), evaluation.groupACodes(),
+                evaluation.groupBCodes(), evaluation.combinationMatched());
+    }
+
+    public record ScopeResult(List<AnnouncementSourceClassificationMatch> matches,
+            List<TargetCategoryCode> targets, List<SupportTypeCode> supports,
+            List<String> groupACodes, List<String> groupBCodes, boolean combinationMatched) { }
+
     private LocationEvaluation selectLocationEvaluation(
             AnnouncementSourceClassificationInput input,
             AnnouncementSourceNormalizedText text,
             MatchLocationCode locationCode,
             List<CompiledRuleTerm> compiledTerms
+    ) {
+        return selectLocationEvaluation(input,text,locationCode,compiledTerms,Integer.MAX_VALUE);
+    }
+
+    private LocationEvaluation selectLocationEvaluation(
+            AnnouncementSourceClassificationInput input,
+            AnnouncementSourceNormalizedText text,
+            MatchLocationCode locationCode,
+            List<CompiledRuleTerm> compiledTerms,
+            int maximumMatches
     ) {
         List<NormalizedSpan> protectedSpans = selectProtectedSpans(input, text, locationCode, compiledTerms);
         List<AnnouncementSourceClassificationMatch> matches = new ArrayList<>();
@@ -250,6 +277,7 @@ public final class AnnouncementSourceClassificationEngine {
                 AppliedActionCode actionCode = masked
                         ? AppliedActionCode.MASK_ONLY
                         : selectAppliedAction(compiledTerm.rule().groupKindCode(), locationCode);
+                if (matches.size() >= maximumMatches) throw new IllegalArgumentException("ATTACHMENT_MATCH_LIMIT");
                 matches.add(new AnnouncementSourceClassificationMatch(
                         compiledTerm.rule().ruleCode(),
                         compiledTerm.rule().groupCode(),
