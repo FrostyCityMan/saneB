@@ -74,7 +74,7 @@ jobs:
             aws deploy get-deployment-instance \
               --deployment-id "${DEPLOYMENT_ID}" \
               --instance-id "${instance_id}" \
-              --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode}}' \
+              --query 'instanceSummary.{Status:status,LifecycleEvents:lifecycleEvents[*].{Name:lifecycleEventName,Status:status,Code:diagnostics.errorCode,Script:diagnostics.scriptName}}' \
               --output json
 
             diagnostics_log_tail="$(
@@ -95,6 +95,12 @@ jobs:
             fi
 
             echo "DERIVED_FAILURE_REASON=${derived_reason}"
+            # CodeDeploy 실패 진단에서도 원문을 내보내지 않고 고정된 QA 상태만 식별한다.
+            for marker in ATTACHMENT_SERVER_QA_SETUP_FAILED ATTACHMENT_SERVER_QA_SUMMARY ATTACHMENT_SERVER_QA= QA_ENVIRONMENT_INVALID ISOLATION_UNAVAILABLE; do
+              if [[ "${diagnostics_log_tail}" == *"${marker}"* ]]; then
+                echo "ATTACHMENT_DIAGNOSTIC_MARKER=${marker}"
+              fi
+            done
             unset diagnostics_log_tail
           done
 
