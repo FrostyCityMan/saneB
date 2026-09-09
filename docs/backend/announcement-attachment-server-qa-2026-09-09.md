@@ -53,3 +53,14 @@ QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성�
 - [CodeDeploy 전용 재진단](https://github.com/FrostyCityMan/saneB/actions/runs/34343343903)은 성공했고 실패 스크립트 이름 및 자동 원복 실패를 확인했다. 진단용 workflow만 보강했으며 재배포 반복은 하지 않았다.
 - 로컬 bootJar manifest의 Start-Class는 기존 `com.saneb.SaneBApplication`으로 확인했다. QA main이 웹 애플리케이션 시작 클래스를 대체한 문제는 아니다.
 - 로컬 AWS는 만료 상태이고 GitHub 배포 역할로 SSM 실행은 불가하다. 사용자에게 `aws login --region ap-northeast-2` 재인증을 요청했다. 인증 후 실제 기동 로그·서비스 상태 확인, 시간 초과 원인 수정, 재배포 및 서버 QA를 이어간다. 원인이 확인되지 않은 상태에서 health 검증을 성공 처리하거나 임의의 DB 변경을 하지 않는다.
+
+## AWS 재인증 이후 복구·실파일 진단
+
+- 위 배포 실패 기록은 당시 상태다. 새 AWS 인증 후 로컬 Windows 신뢰 인증서 묶음으로 TLS 검증을 유지하면서 서울 리전 STS·SSM 접근을 확인했다. GitHub 배포 역할의 IAM 권한은 변경하지 않았다.
+- 애플리케이션 기동 로그의 직접 실패는 PostgreSQL `NoRouteToHostException`이었다. 서버 DB TCP 접속도 errno 113으로 실패했고 HTTP listener가 없었다. systemd의 active 상태만으로 정상 기동을 판정하지 않았다.
+- `saneb-dev-aurora`와 writer는 `inaccessible-encryption-credentials-recoverable`이었다. RDS 이벤트에 2026-09-07 11:59/12:09 KST 암호화 키 접근 실패 및 12:12 KST 중단이 기록됐다. 현재 AWS 관리형 `alias/aws/rds`는 Enabled이므로 과거 접근 상실의 세부 원인은 미확정이다.
+- 사용자 승인 후 2026-09-09 22:52 KST `start-db-cluster`를 실행했다. 상태가 `starting`으로 바뀌었으며, KMS/IAM/보안그룹/삭제 보호는 변경하지 않았고 직접 데이터 조작 명령은 실행하지 않았다. DB 정상화·재배포 성공은 후속 결과로 별도 기록한다.
+- DB 기동 대기 중 실패 배포 archive의 독립 CLI로 공개 표본 4개를 실제 서버에서 실행했다. 상세·첨부 다운로드 4개는 성공했으나 모두 `LINUX_EXTRACTION / FAILED`였다. 임시 원본은 모두 제거했고 QA의 운영 DB 쓰기는 0이다. 배포 hook 성공으로 표현하지 않는다.
+- 원인은 Linux JVM 메모리 예약이다. 동일 bwrap 격리의 `java -version`으로 512 MiB 주소 공간/256 MiB heap에서 VM heap 예약 실패를 재현했다. 768 MiB 주소 공간에서는 시작됐으나 기존 512 MiB 상한을 유지하기 위해 채택하지 않았다. 512 MiB/192 MiB heap도 metaspace 예약에 실패했고 512 MiB/128 MiB heap은 성공했다.
+- 추출기 heap만 128 MiB로 낮춘다. 주소 공간 512 MiB, CPU 30초, 출력 8 MiB, PID/네트워크/파일시스템 격리는 유지한다. JVM 시작 성공과 실제 PDF/HWP/HWPX 추출 성공은 별도로 검증한다. 큰 문서의 메모리 부족 가능성은 남으며 이를 정상 추출로 취급하지 않는다.
+- 변경 후 로컬 `:test --tests '*IsolatedAttachmentExtractorTest' --tests '*AnnouncementAttachmentServerQaTest' bootJar --no-daemon --max-workers=1`: 성공(20초). 전체 suite 재실행은 GitHub 배포 workflow에서 수행하며 브라우저 검증은 사용자 정책상 생략한다.

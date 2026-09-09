@@ -80,7 +80,9 @@ public class IsolatedAttachmentExtractor {
             if (Files.exists(Path.of(systemLib))) args.addAll(List.of("--ro-bind",systemLib,systemLib));
         }
         if (Files.exists(Path.of("/etc/ld.so.cache"))) args.addAll(List.of("--ro-bind","/etc/ld.so.cache","/etc/ld.so.cache"));
-        args.addAll(List.of("--chdir","/tmp","--","/jre/bin/java","-Xms16m","-Xmx256m",
+        // 512 MiB 주소 공간에는 heap 외 JVM·metaspace·공유 라이브러리 예약도 포함된다.
+        // Ubuntu Java 21 실증에서 256 MiB heap은 VM 초기화에 실패하므로 128 MiB로 제한한다.
+        args.addAll(List.of("--chdir","/tmp","--","/jre/bin/java","-Xms16m","-Xmx128m",
                 "-XX:MaxMetaspaceSize=64m","-XX:CompressedClassSpaceSize=16m","-XX:ReservedCodeCacheSize=32m",
                 "-Xss256k","-XX:ActiveProcessorCount=1","-XX:+UseSerialGC","-Djava.awt.headless=true",
                 "-cp","/extractor/*","com.saneb.extractor.AttachmentExtractorMain","/input.bin"));

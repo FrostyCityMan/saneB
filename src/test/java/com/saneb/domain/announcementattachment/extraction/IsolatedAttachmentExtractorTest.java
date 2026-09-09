@@ -12,7 +12,8 @@ class IsolatedAttachmentExtractorTest {
         var command=IsolatedAttachmentExtractor.selectCommand(Path.of("/trusted/jre"),Path.of("/trusted/lib"),Path.of("/owned/input.bin"));
         assertThat(command).contains("/usr/bin/prlimit","--as=536870912","--cpu=30","--fsize=8388608",
                 "/usr/bin/bwrap","--unshare-all","--clearenv","--die-with-parent","--cap-drop","ALL",
-                "-Xmx256m","com.saneb.extractor.AttachmentExtractorMain");
+                "-Xmx128m","com.saneb.extractor.AttachmentExtractorMain");
+        assertThat(command).doesNotContain("-Xmx256m");
         assertThat(command).doesNotContain("--share-net","--bind","/home","/var","/etc","sh","-c");
     }
     @Test @EnabledOnOs(OS.WINDOWS)
