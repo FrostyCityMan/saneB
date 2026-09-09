@@ -22,9 +22,10 @@
 - [x] 실사용 중단 위험에 대한 사용자 판단 반영. 사전 검증을 다시 승인 조건으로 요구하지 않음.
 - [x] GitHub 저장 계정의 repository push 권한과 서울 리전 확인. 전역 활성 계정 변경 없음.
 - [x] 추가 변경의 컴파일·제한된 단위 테스트·DRAFT snapshot 생성.
-- [ ] 한국어 commit, push, 첨부 QA 옵션을 포함한 명시적 배포 실행.
-- [ ] CodeDeploy migration/health 및 서버 실파일 결과 확인.
-- [ ] 임시 파일·실행 프로세스 정리 및 실제 결과 기록.
+- [x] 한국어 commit, push, 첨부 QA 옵션을 포함한 명시적 배포 실행.
+- [!] CodeDeploy ValidateService의 기존 scripts/validate.sh 시간 초과. 서버 QA hook에는 도달하지 못함.
+- [!] GitHub 배포 역할의 ssm:SendCommand 권한 없음. 로컬 AWS 세션 재인증 필요.
+- [x] 로컬 Gradle/Node 종료 및 실제 배포 결과 기록. 서버 기동 상태는 직접 확인하지 못함.
 
 ## 상태 구분
 
@@ -40,3 +41,15 @@ QA 실패는 품질 코드를 포함하여 보고하며 실패한 실행을 성�
 - 브라우저 제어/QA는 현재 요청에 명시되지 않아 사용자 정책상 미실행이다.
 - 정정 명령 `:test --tests '*AnnouncementAttachmentServerQaTest' --tests '*IsolatedAttachmentExtractorTest' --tests '*DockerAttachmentQaRunnerTest' attachmentQaRuleSnapshot bootJar :attachment-extractor:installDist`: 성공(25초). root 대상 테스트 6건 통과, snapshot round-trip 1건 통과. 이전 실행에서 완료된 root test/bootJar는 재사용했다.
 - 생성된 DRAFT snapshot은 394개 규칙이며 JSON 직렬화 round-trip을 확인했다. Windows에서 PropertiesLauncher가 QA main까지 진입하고 플랫폼 조건으로 종료함을 확인했다. 이 호출은 Linux 추출 성공의 근거가 아니다.
+
+## 실제 배포 결과
+
+- 구현 commit `7bf4f6415f8b1adf419dde56ac12b03aab3a5282`를 master로 push한 후 `attachment_qa=true`로 [배포 실행](https://github.com/FrostyCityMan/saneB/actions/runs/34342467397)을 즉시 시작했다. commit의 skip deploy 표시는 중복 push 배포만 방지하며 이 수동 실행은 실제 진행됐다.
+- GitHub Actions의 테스트·빌드, 배포 묶음 생성, OIDC 인증, S3 업로드는 성공했다.
+- CodeDeploy `d-R1YA1LOPK`: Failed / HEALTH_CONSTRAINTS. ApplicationStop, DownloadBundle, BeforeInstall, Install, AfterInstall, ApplicationStart는 Succeeded였다.
+- ValidateService는 ScriptTimedOut이며 실패 스크립트는 `scripts/validate.sh`다. 이 스크립트 다음 순서인 첨부 QA hook은 실행되지 않았다. Linux 실파일 추출·분류를 성공으로 보고하지 않는다.
+- 자동 원복 배포 `d-K39SY9OPK`도 Failed / HEALTH_CONSTRAINTS였다. 이전 버전 복구 성공 또는 현재 서비스 정상 여부를 단정하지 않는다. V72 적용 여부와 DB 상태도 직접 재조회하지 못했다.
+- [SSM 포함 진단](https://github.com/FrostyCityMan/saneB/actions/runs/34343151864)은 배포 정보 조회까지 성공했으나 ssm:SendCommand AccessDenied로 서버 로그를 읽지 못했다.
+- [CodeDeploy 전용 재진단](https://github.com/FrostyCityMan/saneB/actions/runs/34343343903)은 성공했고 실패 스크립트 이름 및 자동 원복 실패를 확인했다. 진단용 workflow만 보강했으며 재배포 반복은 하지 않았다.
+- 로컬 bootJar manifest의 Start-Class는 기존 `com.saneb.SaneBApplication`으로 확인했다. QA main이 웹 애플리케이션 시작 클래스를 대체한 문제는 아니다.
+- 로컬 AWS는 만료 상태이고 GitHub 배포 역할로 SSM 실행은 불가하다. 사용자에게 `aws login --region ap-northeast-2` 재인증을 요청했다. 인증 후 실제 기동 로그·서비스 상태 확인, 시간 초과 원인 수정, 재배포 및 서버 QA를 이어간다. 원인이 확인되지 않은 상태에서 health 검증을 성공 처리하거나 임의의 DB 변경을 하지 않는다.
