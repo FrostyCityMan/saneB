@@ -23,25 +23,67 @@ import com.saneb.domain.announcementsource.service.AnnouncementSourceRuleRelease
 import com.saneb.domain.auth.vo.AuthUserDetailsRow;
 import com.saneb.domain.auth.vo.AuthenticatedUserDetails;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 @EnabledIfEnvironmentVariable(named = "SANEB_FLYWAY_INTEGRATION", matches = "true")
 @SpringBootTest(properties = "spring.main.web-application-type=none")
+@Import(FlywayMigrationIntegrationTest.EphemeralDatabase.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FlywayMigrationIntegrationTest {
+
+    /** 명시 실행 모드만 별도 loopback DB를 소유한다. 기본 외부 DB 모드는 기존 계약을 보존한다. */
+    @TestConfiguration(proxyBeanMethods = false)
+    @ConditionalOnProperty(name = "saneb.flyway.ephemeral", havingValue = "true")
+    static class EphemeralDatabase {
+        @Bean(destroyMethod = "close")
+        EmbeddedPostgres selectEphemeralPostgresDetails() throws java.io.IOException {
+            return EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses", "127.0.0.1").start();
+        }
+        @Bean(name = "dataSource")
+        @org.springframework.boot.autoconfigure.flyway.FlywayDataSource
+        DataSource selectEphemeralDataSourceDetails(EmbeddedPostgres postgres) {
+            for (String key : List.of("DB_URL", "DB_USERNAME", "DB_PASSWORD", "SPRING_DATASOURCE_URL", "SPRING_DATASOURCE_USERNAME",
+                    "SPRING_DATASOURCE_PASSWORD", "SPRING_FLYWAY_URL", "SPRING_FLYWAY_USER", "SPRING_FLYWAY_PASSWORD")) {
+                String value = System.getenv(key);
+                if (value != null && !value.isEmpty()) throw new IllegalStateException("EPHEMERAL_DATABASE_ENVIRONMENT_NOT_CLEARED");
+            }
+            DataSource source = postgres.getPostgresDatabase();
+            // 기존 시험은 V63의 실제 legacy backfill도 요구한다. 최신 schema에 결과 행을 직접 만들지 않는다.
+            Flyway.configure().dataSource(source).locations("classpath:db/migration").target("62").load().migrate();
+            var sql = new JdbcTemplate(source);
+            for (String category : List.of("BUSINESS", "PERSONAL", "SPOUSE", "CHILD", "PARENT")) {
+                sql.update("""
+                        -- 임시 DB에만 V62 형태의 숨김 초안을 두고 실제 V63 이후 migration이 분류를 채우게 한다.
+                        INSERT INTO announcements (target_type_code, title, agency_name, manual_status_code, approval_status_code)
+                        VALUES (?, ?, '임시 migration 검증기관', 'HIDDEN', 'DRAFT')
+                        """, category, "임시 legacy 분류 " + category);
+            }
+            return source;
+        }
+    }
+
+    @Autowired(required = false)
+    private EmbeddedPostgres ephemeralPostgres;
 
     @Autowired
     private DataSource dataSource;
@@ -171,6 +213,22 @@ class FlywayMigrationIntegrationTest {
     void mvpMigrationsApplyToPostgreSql() throws SQLException {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
+            if (ephemeralPostgres != null) {
+                assertThat(selectLong(statement, "-- 연결한 DB가 이 시험 소유의 임시 PostgreSQL인지 확인한다.\nSELECT inet_server_port()"))
+                        .isEqualTo(ephemeralPostgres.getPort());
+                var current = Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+                current.validate();
+                assertThat(current.info().pending()).isEmpty();
+                assertThat(selectLong(statement, """
+                        -- 명시 임시 모드의 다섯 기존 카테고리가 모두 migration으로 보존됐는지 검증한다.
+                        SELECT count(1) FROM announcement_target_category_assignments
+                        WHERE is_primary AND assignment_source_code = 'LEGACY_BACKFILL'
+                        """)).isEqualTo(5);
+                assertThat(selectLong(statement, """
+                        -- 지원형태 근거는 구버전 공고에 없으므로 추정해서 채우지 않는다.
+                        SELECT count(1) FROM announcement_support_type_assignments
+                        """)).isZero();
+            }
             assertThat(selectLong(statement, """
                     select count(1)
                     from flyway_schema_history
@@ -707,23 +765,19 @@ class FlywayMigrationIntegrationTest {
      */
     @Test
     void v70MigrationBackfillsEvidenceAndDeletesExcludedPlaintext() throws SQLException {
-        String databaseUrl = System.getenv("DB_URL");
-        String databaseUsername = System.getenv("DB_USERNAME");
-        String databasePassword = System.getenv("DB_PASSWORD");
+        // 임시 모드에서 환경의 DB 자격증명을 읽거나 운영 DB로 연결하지 않는다.
+        DataSource migrationDataSource = ephemeralPostgres != null ? ephemeralPostgres.getPostgresDatabase()
+                : new DriverManagerDataSource(System.getenv("DB_URL"), System.getenv("DB_USERNAME"), System.getenv("DB_PASSWORD"));
         String schema = "v70_cleanup_" + UUID.randomUUID().toString().replace("-", "");
         try {
             Flyway.configure()
-                    .dataSource(databaseUrl, databaseUsername, databasePassword)
+                    .dataSource(migrationDataSource)
                     .schemas(schema)
                     .defaultSchema(schema)
                     .target("69")
                     .load()
                     .migrate();
-            try (Connection connection = DriverManager.getConnection(
-                    databaseUrl,
-                    databaseUsername,
-                    databasePassword
-            ); Statement statement = connection.createStatement()) {
+            try (Connection connection = migrationDataSource.getConnection(); Statement statement = connection.createStatement()) {
                 statement.execute("SET search_path TO " + schema);
                 statement.executeUpdate("""
                         INSERT INTO announcement_source_collection_requests (
@@ -999,17 +1053,13 @@ class FlywayMigrationIntegrationTest {
             }
 
             Flyway.configure()
-                    .dataSource(databaseUrl, databaseUsername, databasePassword)
+                    .dataSource(migrationDataSource)
                     .schemas(schema)
                     .defaultSchema(schema)
                     .load()
                     .migrate();
 
-            try (Connection connection = DriverManager.getConnection(
-                    databaseUrl,
-                    databaseUsername,
-                    databasePassword
-            ); Statement statement = connection.createStatement()) {
+            try (Connection connection = migrationDataSource.getConnection(); Statement statement = connection.createStatement()) {
                 statement.execute("SET search_path TO " + schema);
                 assertThat(selectLong(statement, """
                         SELECT count(*)
@@ -1059,11 +1109,7 @@ class FlywayMigrationIntegrationTest {
                         """)).isEqualTo(1);
             }
         } finally {
-            try (Connection connection = DriverManager.getConnection(
-                    databaseUrl,
-                    databaseUsername,
-                    databasePassword
-            ); Statement statement = connection.createStatement()) {
+            try (Connection connection = migrationDataSource.getConnection(); Statement statement = connection.createStatement()) {
                 statement.execute("DROP SCHEMA IF EXISTS " + schema + " CASCADE");
             }
         }

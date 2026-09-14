@@ -40,8 +40,9 @@ export function checkRequiredReports(root, startedAtMs) {
     ['attachmentRuntimeIntegrationTest', 'com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeGateIntegrationTest'],
     ['attachmentWorkerIntegrationTest', 'com.saneb.db.AnnouncementAttachmentWorkerIntegrationTest'],
     ['attachmentPolicyDbQaIntegrationTest', 'com.saneb.domain.announcementattachment.service.impl.AttachmentWorkerDbQaLinuxIntegrationTest'],
+    ['flywayIntegrationTest', 'com.saneb.db.FlywayMigrationIntegrationTest', 3],
   ];
-  return required.map(([task, name]) => {
+  return required.map(([task, name, minimumTests = 1]) => {
     let xml, modifiedAtMs;
     try {
       const path = resolve(root, 'build', 'test-results', task, `TEST-${name}.xml`);
@@ -50,7 +51,9 @@ export function checkRequiredReports(root, startedAtMs) {
     }
     catch { throw new Error(`${task}: 필수 보고서가 없습니다.`); }
     validateReportTime(modifiedAtMs, startedAtMs);
-    return validateSuite(xml, name);
+    const result = validateSuite(xml, name);
+    if (result.tests < minimumTests) throw new Error(`${task}: 필수 테스트 일부가 실행되지 않았습니다.`);
+    return result;
   });
 }
 

@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 — 필수 원래 Flyway3시험 실행·Linux 공식 접근 실패 구분
+
+- 직전 회차는 진단 구현·검증·커밋의 progress다. [Linux 실행31](https://github.com/FrostyCityMan/saneB/actions/runs/34904550080), `0625b13fb25ddf7001f5e5848cb46087ae01edfc`는 전체 failure로 끝났다. root2556=2298통과/258생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·독립221/221·정리2종·Node241/설치12는 통과했다. 공식 관측은 BODY 2회 TIMEOUT 뒤 DETAIL_DISCOVERY도 TRANSPORT_TIMEOUT이었다. 원문 정리true/운영 쓰기0이고 파일은 미실행이다.
+- Windows의 기존 BBS 본문3사례는 기본 Java 신뢰 설정에서 NETWORK_ERROR였으나 저장소의 Windows-ROOT 인자를 명시하면3/3 AVAILABLE·시도1·redirect0을 확인했다. 전체18초/HTTP시험2.088초다. 로컬 BODY를 Linux 전체 파일 성공으로 바꾸지 않는다. 같은 CI 공식 표본 즉시 반복을 중단하고 AWS 재인증 또는 외부 접근 상태 변화 뒤 재확인한다. catalog 참조18/기대값0을 유지한다.
+- 원래 goal Gate6의 `flywayIntegrationTest`3건이 첨부 migration17건과 별도임을 확인했다. 기존 테스트에 명시적 임시 PostgreSQL 모드를 추가하여 운영 DB 자격증명을 사용하지 않고 Spring Boot Flyway/Mapper/golden gate 및 V70 제외 원문 정리를 실행했다. 초기 DataSource 선택 오류와 빈 DB/legacy fixture 차이를 해결하고 실제 V62→5개 숨김 초안→현재 migration, primary5/지원형태 추정0/checksum·pending0을 검증했다. 이전 migration과 원래 assertion은 보존했다.
+- 전용3시험은41초/생략·실패0, Node 필수 보고서 검증10/10 통과다. 전체 회귀+Flyway 전용 task4분26초 성공: root2556=2299통과/257생략/실패0, 패키지20/20, Flyway3/3이다. 이후 부모 DB 환경 차단·fallback loopback·소유 port 확인을 포함한 최종 전용3시험도44초에 통과했다. extractor/bootJar/설치는 UP-TO-DATE며 production JAR hash `868e0aaaf9fc656985c5e9facd12435a7ec201ebb11d28f68c241ed16e4e769c`는 같다. Linux workflow에도 명령과3건 누락/생략/일부 실행 차단을 추가했으며 새 SHA Linux 검증은 남아 있다. 상세는 [원래 Flyway 임시 검증](announcement-full-flyway-ephemeral-qa-2026-09-15.md)이다. 변경은 시험/검증 설정/문서이며 production Java·DB/API/UI·V1~V83·운영 정책·데이터는 바꾸지 않았다.
+- AWS 재인증 응답 대기, 공식 파일 기대값/나머지 기관 모델·실제 worker 운영 배포·승인된 기존 데이터 전체 적용·운영 브라우저는 잔여다. 이번 운영 조회·변경·브라우저는 미실행이고 사용자 Word2개를 보존한다. P3 진행·전체 Gate **Not ready**, goal ACTIVE이며 이번 회차는 필수 검증 공백 해소의 **progress**다.
+
 ### 2026-09-15 — 실제 BODY 실패 분리·고정 전체 파일 실행기 연결 준비
 
 - 직전 역할1.0.2 증분의 [Linux 실행30](https://github.com/FrostyCityMan/saneB/actions/runs/34902614936), `72a78c89149267cdacffe2d0ce73c9a5035294b4`는 **전체 실패**다. root2550=2293통과/257조건부 생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2, 독립221/221와 정리2종, Node241/241·설치12/12는 통과했다. 새 FORM 표식의 실제 Linux worker→DB→v2 API 경로는 이 SHA에서 확인됐다.

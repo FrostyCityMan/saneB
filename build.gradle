@@ -366,6 +366,30 @@ tasks.register('flywayIntegrationTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include '**/FlywayMigrationIntegrationTest.class'
+    // 장기 goal 검증: 명시한 경우에만 기존 테스트를 소유한 임시 PostgreSQL에서 실행한다.
+    if (providers.gradleProperty('sanebFlywayEphemeral').orElse('false').get() == 'true') {
+        environment 'SANEB_FLYWAY_INTEGRATION', 'true'
+        // 부모 shell의 운영 DB 설정을 이 시험 JVM에 전달하지 않는다. 잘못된 fallback도 loopback에서 실패한다.
+        ['DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'SPRING_DATASOURCE_URL', 'SPRING_DATASOURCE_USERNAME',
+         'SPRING_DATASOURCE_PASSWORD', 'SPRING_FLYWAY_URL', 'SPRING_FLYWAY_USER', 'SPRING_FLYWAY_PASSWORD'].each {
+            key -> environment key, ''
+        }
+        systemProperty 'saneb.flyway.ephemeral', 'true'
+        systemProperty 'spring.datasource.url', 'jdbc:postgresql://127.0.0.1:1/disabled'
+        systemProperty 'spring.flyway.url', 'jdbc:postgresql://127.0.0.1:1/disabled'
+        systemProperty 'spring.flyway.connect-retries', '0'
+        systemProperty 'spring.flyway.enabled', 'true'
+        systemProperty 'spring.flyway.locations', 'classpath:db/migration'
+        systemProperty 'spring.sql.init.mode', 'never'
+        ['saneb.announcement-source.collection.batch.enabled', 'saneb.announcement-source.reclassification-worker.enabled',
+         'saneb.announcement-attachment.worker.enabled', 'saneb.announcement-attachment.rollback.enabled',
+         'saneb.announcement-attachment.policy-validation.enabled', 'saneb.announcement-attachment.provider-qa.enabled'].each {
+            key -> systemProperty key, 'false'
+        }
+        maxParallelForks = 1
+        maxHeapSize = '384m'
+        outputs.upToDateWhen { false }
+    }
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/flywayIntegrationTest')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/flywayIntegrationTest')
     shouldRunAfter test

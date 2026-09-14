@@ -33,3 +33,11 @@
 ## 실패 및 잔여 경계
 
 외부 원문/파일/역할 지문 변경, 누락, 미실행, 만료, 다운로드/추출/정리 실패는 실패 또는 미완료다. 기대값을 즉석에서 바꿔 성공으로 만들지 않는다. 고정 계약 PASS는 전체 기관·형식·worker·운영 배포·승인된 기존 데이터 처리·운영 브라우저 Gate 완료가 아니다.
+
+## 2026-09-15 후속 접근 결과
+
+[Run31](https://github.com/FrostyCityMan/saneB/actions/runs/34904550080), SHA `0625b13fb25ddf7001f5e5848cb46087ae01edfc`도 전체 실패다. `2026-09-14T22:45:25.818698755Z`의 TITLE 조합 통과 → BODY 2회 TIMEOUT/FETCH_FAILED → base REVIEW_REQUIRED/BODY_FETCH_FAILED 보존 → DETAIL_DISCOVERY의 TRANSPORT_TIMEOUT을 확인했다. 첨부 발견/다운로드/추출은 미실행이다. 상한 예약3요청/2MiB, 원본 정리true/운영 쓰기0, profile hash는 Run30과 같다.
+
+같은 회차 Windows의 기존 `attachmentProfileDiscoveryQa --tests '*StandardBbsBodyContentLiveQaTest.readsMeasuredOfficialBodyWithoutRequestingFiles'`는 기본 Java 신뢰 설정에서3건 NETWORK_ERROR였다. 저장소의 기존 Windows-ROOT/NUL 인자를 명시한 뒤에는 태백184816·횡성424078·영월157016 모두 AVAILABLE·시도1·redirect0으로3/3 통과(전체18초/HTTP 시험2.088초)했다. TLS 검증을 끄지 않았다. 이것은 로컬 BODY 접근 근거이며 Linux 접근·첨부·운영 성공 근거가 아니다.
+
+두 Linux 실행에서 본문과 별도 pinned 상세 요청이 모두 시간 초과했으므로 단순 parser 문제로 단정하지 않는다. 실행 환경별 네트워크/사이트 접근 차이는 추정이며 세부 원인은 아직 미확인이다. 같은 CI 공식 표본을 즉시 반복하지 않는다. 기존 서울 AWS 검증 환경의 재인증 또는 외부 접근 상태 변경 후 다시 확인한다. 원래 범위의 다른 구현·필수 테스트는 계속 진행하고, 현재 파일 기대값0과 전체 미완료 상태는 보존한다.

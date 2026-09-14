@@ -2,6 +2,14 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 본문 실패 후 상세 진단까지 실행·공식 접근 차단 지속
+
+[실행31 / 34904550080](https://github.com/FrostyCityMan/saneB/actions/runs/34904550080), SHA `0625b13fb25ddf7001f5e5848cb46087ae01edfc`는 **전체 failure**다. XML root2556=2298통과/258조건부 생략·실패0, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2가 생략/실패0이다. 독립221/221·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12다. 원래 `flywayIntegrationTest`3건은 이 실행에 포함되지 않았으며 아래 후속 임시 모드와 구분한다.
+
+공식 관측은 TITLE 통과·BODY 2회 TIMEOUT을 보존한 뒤 별도 DETAIL_DISCOVERY도 TRANSPORT_TIMEOUT으로 실패했다. 파일 단계 미실행/원본 정리true/운영 쓰기0이다. 일반 보고서는 ignored `build/qa-results/run-34904550080`, 공식 metadata/XML은 `build/qa-results/run-34904550080-bbs`다. 같은 Windows 본문3표본은 Windows-ROOT에서 통과했지만 Linux/실파일의 성공을 의미하지 않는다. 같은 CI 표본의 즉시 반복은 멈추고 접근 환경 차이를 차단 항목으로 남긴다.
+
+새 [전체 Flyway 임시 검증](announcement-full-flyway-ephemeral-qa-2026-09-15.md)은 원래3시험의 실행 경로이며 이 SHA 이후 증분이다. 전체 Provider/운영/브라우저 Gate는 Not ready다.
+
 ### 2026-09-15 — 양식1.0.2 계약 통과·공식 BODY 시간 초과로 전체 실행 실패
 
 [실행30 / 34902614936](https://github.com/FrostyCityMan/saneB/actions/runs/34902614936), SHA `72a78c89149267cdacffe2d0ce73c9a5035294b4`의 전체 결론은 **failure**다. 단위/DB 쪽 XML은 root2550=2293통과/257조건부 생략·실패0, 별도 extractor25·패키지20·실제 job192·migration17·worker12·runtime1·부모2가 생략/실패0이다. 신규 양식 표식→실제 격리 HWPX→worker/DB/API 시험은 worker12건에 포함된다. 독립221/221·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다.
