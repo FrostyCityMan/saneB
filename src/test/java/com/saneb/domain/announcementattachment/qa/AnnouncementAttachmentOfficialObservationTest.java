@@ -165,7 +165,69 @@ class AnnouncementAttachmentOfficialObservationTest {
                 "COMPLETE_TEXT", text, blocks, null, 0));
         observation.put("roleAssessment", assessment);
         observation.put("roleAssessmentHash", selectHash(assessment));
+        observation.put("roleStructureObservation", selectRoleStructureObservation(text, blocks));
         return observation;
+    }
+
+    private record StructureRule(String code, List<String> tokens) { }
+    private static final List<StructureRule> STRUCTURE_RULES = List.of(
+            new StructureRule("NOTICE_TERM", List.of("공고문", "모집공고", "공고")),
+            new StructureRule("GUIDE_TERM", List.of("안내문", "안내서", "사업안내", "신청안내")),
+            new StructureRule("FORM_TERM", List.of("신청서", "동의서", "확인서", "서약서", "신고서")),
+            new StructureRule("TARGET_LABEL", List.of("지원대상", "신청대상", "신청자격", "지원자격", "융자대상")),
+            new StructureRule("SUPPORT_LABEL", List.of("지원내용", "지원규모", "지원금액", "지원한도", "대출한도", "융자규모", "지원조건")),
+            new StructureRule("PERIOD_LABEL", List.of("신청기간", "접수기간", "접수일정", "신청접수기간")),
+            new StructureRule("METHOD_LABEL", List.of("신청방법", "접수방법", "신청절차")),
+            new StructureRule("APPLICANT_LABEL", List.of("신청인", "성명", "대표자")),
+            new StructureRule("BUSINESS_ID_LABEL", List.of("사업자등록번호", "사업자번호")),
+            new StructureRule("BUSINESS_NAME_LABEL", List.of("업체명", "기업명", "상호")),
+            new StructureRule("SIGNATURE_MARKER", List.of("(서명)", "(인)", "서명또는인", "서명또는날인", "날인")),
+            new StructureRule("STANDARD_REFERENCE", List.of("소기업규모기준", "평균매출액", "표준산업분류", "분류기호", "업종별")),
+            new StructureRule("EXCLUSION_REFERENCE", List.of("융자제외", "제외업종", "대상업종")),
+            new StructureRule("SUBMISSION_SECTION", List.of("제출서류", "구비서류", "제출자료")));
+
+    /** 고정 사전의 존재/위치만 관측한다. 원문·token 문자열·locator·역할 제안은 반환하지 않는다. */
+    private static Map<String,Object> selectRoleStructureObservation(String text, List<AttachmentSetEvidence.Block> blocks) {
+        var signals = new ArrayList<Map<String,Object>>();
+        var lines = java.util.regex.Pattern.compile("[^\\r\\n]+").matcher(text);
+        int nonblankLines = 0, matchCount = 0, utf16Cursor = 0, codePointCursor = 0, blockIndex = 0;
+        boolean lineLimitReached = false;
+        while (lines.find()) {
+            String line = lines.group().strip();
+            if (line.isEmpty()) continue;
+            if (nonblankLines == 20_000) { lineLimitReached = true; break; }
+            nonblankLines++;
+            int utf16Start = lines.start() + lines.group().indexOf(line);
+            int start = codePointCursor + text.codePointCount(utf16Cursor, utf16Start);
+            int end = start + line.codePointCount(0, line.length());
+            utf16Cursor = utf16Start + line.length(); codePointCursor = end;
+            String normalized = Normalizer.normalize(line, Normalizer.Form.NFKC).replaceAll("\\h", "");
+            while (blockIndex < blocks.size() && blocks.get(blockIndex).endOffset() <= start) blockIndex++;
+            var containing = blockIndex < blocks.size() ? blocks.get(blockIndex) : null;
+            if (containing != null && (start < containing.startOffset() || end > containing.endOffset())) containing = null;
+            for (var rule : STRUCTURE_RULES) {
+                var tokenIndexes = new ArrayList<Integer>();
+                for (int index = 0; index < rule.tokens().size(); index++)
+                    if (normalized.contains(rule.tokens().get(index))) tokenIndexes.add(index);
+                if (tokenIndexes.isEmpty()) continue;
+                matchCount++;
+                if (signals.size() == 128) continue;
+                var signal = new LinkedHashMap<String,Object>();
+                signal.put("code", rule.code()); signal.put("lineNumber", nonblankLines);
+                signal.put("tokenIndexes", tokenIndexes);
+                signal.put("startOffset", start); signal.put("endOffset", end);
+                signal.put("blockIndex", containing != null ? containing.index() : -1);
+                signal.put("isSingleReliableBlock", containing != null && containing.scopeReliable());
+                signal.put("isWithinInitialHeading", nonblankLines <= 3 && end <= 600);
+                signal.put("isWholeLineToken", tokenIndexes.stream().anyMatch(index -> normalized.equals(rule.tokens().get(index))));
+                signal.put("isLineEndingToken", tokenIndexes.stream().anyMatch(index -> normalized.endsWith(rule.tokens().get(index))));
+                signal.put("hasColon", line.contains(":") || line.contains("："));
+                signals.add(signal);
+            }
+        }
+        return Map.of("schemaVersion", 1, "scope", "FIXED_TOKEN_STRUCTURE_ONLY", "inspectedNonblankLineCount", nonblankLines,
+                "isLineLimitReached", lineLimitReached, "signalMatchCount", matchCount,
+                "isTruncated", lineLimitReached || matchCount > signals.size(), "signals", signals);
     }
     private static String selectNormalizedTitle(String value) { return Normalizer.normalize(value,Normalizer.Form.NFKC).replaceAll("\\s+"," ").strip(); }
     static String selectHash(Object value) throws Exception { return selectTextHash(JSON.writeValueAsString(JSON.convertValue(value,Object.class))); }
