@@ -97,7 +97,7 @@
     </resultMap>
     <select id="selectConversionLinkDetails" resultMap="LinkMap" useCache="false" flushCache="true">
         -- source 잠금 아래 기존 link와 최초 요청을 비교한다. 기존 공고 공개 상태는 변경하지 않는다.
-        SELECT l.announcement_id,a.announcement_code,l.attachment_confirmation_id,l.attachment_request_hash
+        SELECT l.announcement_id,a.public_code AS announcement_code,l.attachment_confirmation_id,l.attachment_request_hash
         FROM announcement_source_links l JOIN announcements a ON a.id=l.announcement_id WHERE l.source_id=#{sourceId}
     </select>
     <insert id="insertConversionLink">

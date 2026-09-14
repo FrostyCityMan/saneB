@@ -10,6 +10,8 @@
 - 현재 독립 계약 목록은 job190·migration2·backfill13·worker8=213건이고 additive migration은 V81까지다. 목록 확인은 실행 성공이 아니다. 이 단락 작성 시점의 원격 Linux 실행 결과는 미확인이다.
 - 변경한 workflow 구조 테스트 5건과 대기열/보고서 Node 28건은 로컬 통과했다. 이전 전체 로컬 결과 및 환경 생략은 최신 실증 결과와 분리한다. 운영 배포 판정은 계속 **Not ready**다.
 
+첫 원격 결과: [34824820039](https://github.com/FrostyCityMan/saneB/actions/runs/34824820039), SHA `bd148024611284b6c8ca2d6997e5ed2e87309721`, **실패**. 실제 PG job192건 중147통과/45실패/생략0이다. V81까지의 초기 migration은 수행됐지만 migration 전용 회귀·격리 runtime/worker·독립 산출물 실행은 이 실행에서 미실행이다. 컬럼 매핑39건과 시험 fixture6건을 수정 후 같은 범위로 다시 실행한다. 이후 Gradle `--continue`로 독립 task 실패도 함께 모으되 실패 종료 코드와 보고서 Gate를 유지한다.
+
 ### 이전 구현 기록
 
 09-12 후속: 독립 QA 산출물 `installAttachmentContractQa`에 실제 worker/격리 추출/DB 연결 8사례와 정부24 출처 정합성 1사례를 추가했다. 현재 고정 목록은 job168·migration2·backfill13·worker8=191건이며, Linux 실제 실행은 여전히 미확인이다. migration 검증은 V78까지 포함한다. HTTP는 고정 합성 입력이고 실제 사이트 수집이 아니다. 아래 과거159건은 당시 기록이다. 상세·명령·승인 경계는 [독립 worker·DB QA 산출물](announcement-attachment-contract-runtime-2026-09-12.md)을 따른다.

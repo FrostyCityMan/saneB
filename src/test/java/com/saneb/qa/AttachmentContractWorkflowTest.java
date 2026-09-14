@@ -42,7 +42,7 @@ class AttachmentContractWorkflowTest {
         var build=steps(job).stream().map(item -> (Map<?,?>)item)
                 .map(item -> String.valueOf(item.get("run"))).filter(run -> run.contains("bash ./gradlew")).findFirst().orElseThrow();
         assertThat(build).contains(":test ", ":attachment-extractor:test", "attachmentJobIntegrationTest", "attachmentMigrationTest",
-                "attachmentRuntimeIntegrationTest", "attachmentWorkerIntegrationTest", "bootJar", ":attachment-extractor:installDist", "--rerun-tasks", "--no-daemon", "--max-workers=1", "set -euo pipefail")
+                "attachmentRuntimeIntegrationTest", "attachmentWorkerIntegrationTest", "bootJar", ":attachment-extractor:installDist", "--rerun-tasks", "--no-daemon", "--max-workers=1", "--continue", "set -euo pipefail")
                 .doesNotContain("|| true", "-x ", "attachmentRealFileQa");
     }
     @Test void actualIsolationToolsAreRequiredWithoutRelaxingRunnerSecurity() throws Exception {

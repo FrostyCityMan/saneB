@@ -16,6 +16,12 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** XML/namespace/parameter type 검증이다. 실제 PostgreSQL SQL/trigger 실행 성공을 뜻하지 않는다. */
 class AnnouncementAttachmentMapperBindingTest {
+    @Test void conversionLinkUsesFlywayPublicCodeColumnWithoutChangingResponseAlias() {
+        var bound=configuration.getMappedStatement("com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentReviewDao.selectConversionLinkDetails")
+                .getBoundSql(Map.of("sourceId",UUID.randomUUID()));
+        assertThat(bound.getSql()).contains("a.public_code AS announcement_code").doesNotContain("a.announcement_code");
+        assertThat(bound.getParameterMappings()).extracting(p->p.getProperty()).containsExactly("sourceId");
+    }
     @Test void providerQaEvidenceSelectsLatestAttemptNotLatestSuccessAndPagesFullCases() {
         String prefix="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaEvidenceDao.";
         for(var method:com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaEvidenceDao.class.getDeclaredMethods())

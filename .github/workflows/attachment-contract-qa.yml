@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           printf 'ATTACHMENT_QA_STARTED_AT=%s\n' "$(date +%s%3N)" >> "$GITHUB_ENV"
-          bash ./gradlew :test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1
+          bash ./gradlew :test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1 --continue
 
       - name: 독립 산출물의 임시 namespace·PostgreSQL 실행
         run: bash build/install/attachment-contract-qa/bin/run-attachment-contract-qa.sh

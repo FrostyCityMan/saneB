@@ -815,8 +815,13 @@ class AnnouncementAttachmentJobIntegrationTest {
             var set=evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence(
                     noFiles?"NO_FILES":"FOUND",true,noFiles?List.of():List.of(file))).orElseThrow();
             var evaluation=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
-            if(kind.equals("EVIDENCE_STALE"))
-                sql.update("UPDATE announcement_source_attachment_evaluations SET is_current=false WHERE id=?",evaluation.evaluationId());
+            if(kind.equals("EVIDENCE_STALE")) {
+                // 현재 포인터와 평가 플래그는 같은 transaction에서 해제한다. DB 무결성 제약을 우회하지 않는다.
+                new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(status -> {
+                    sql.update("UPDATE announcement_source_snapshots SET current_attachment_evaluation_id=NULL WHERE id=?",request.sourceId());
+                    sql.update("UPDATE announcement_source_attachment_evaluations SET is_current=false WHERE id=?",evaluation.evaluationId());
+                });
+            }
             if(kind.equals("FINAL_REVIEW_CONFIRMED")) {
                 confirmedSource=request.sourceId();
                 sql.update("""
@@ -1034,7 +1039,9 @@ class AnnouncementAttachmentJobIntegrationTest {
         sql.update("UPDATE announcement_source_snapshots SET is_attachment_review_required=true,attachment_policy_id=? WHERE id=?",policy,request.sourceId());
         service.insertAttachmentJob(request);var job=service.saveNextJobClaim().orElseThrow();
         evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence("NO_FILES",true,List.of()));
-        sql.update("UPDATE announcement_source_snapshots SET provider_notice_id=provider_notice_id||'-changed' WHERE id=?",request.sourceId());
+        sql.update("UPDATE announcement_source_snapshots SET provider_notice_id=coalesce(provider_notice_id,'')||'-changed' WHERE id=?",request.sourceId());
+        assertThat(sql.queryForObject("SELECT reservation_locator_hash IS DISTINCT FROM attachment_source_locator_hash(source_id) FROM announcement_attachment_jobs WHERE id=?",
+                Boolean.class,job.jobId())).isTrue();
         assertThatThrownBy(()->context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken())).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(dao.selectSourceContextDetails(request.sourceId()).attachmentVersion()).isEqualTo(job.expectedAttachmentVersion());
         assertThat(dao.selectSourceContextDetails(request.sourceId()).currentAttachmentEvaluationId()).isNull();
@@ -1152,7 +1159,7 @@ class AnnouncementAttachmentJobIntegrationTest {
         var request=selectRequest();
         var before=dao.selectSourceContextDetails(request.sourceId());
         var intake=context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentIntakeService.class);
-        var intakeDao=context.getBean(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentIntakeDao.class);
+        var intakeDao=context.getBean(SqlSessionTemplate.class).getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentIntakeDao.class);
         var transaction=new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
         UUID selectedPolicy=transaction.execute(status -> intakeDao.selectUnmatchedEnforcePolicyId(release));
         assertThat(selectedPolicy).isEqualTo(oldPolicy);
@@ -1586,9 +1593,11 @@ class AnnouncementAttachmentJobIntegrationTest {
     private com.saneb.domain.announcementattachment.service.AnnouncementAttachmentCollectionService collectionService() {
         return context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentCollectionService.class);
     }
+    private long collectionLocatorSequence;
     private void insertCollectionLocator(UUID source) {
         // 이 클래스의 임시 DB 식별자다. 실제 공식 서버 요청은 하지 않는다.
-        sql.update("UPDATE announcement_source_snapshots SET provider_notice_id='PBLN_202600000000001' WHERE id=?",source);
+        String noticeId=String.format(java.util.Locale.ROOT,"PBLN_%015d",++collectionLocatorSequence);
+        sql.update("UPDATE announcement_source_snapshots SET provider_notice_id=? WHERE id=?",noticeId,source);
     }
     private com.saneb.domain.announcementattachment.dto.AttachmentCollectionRequests.Request selectCollectionRequest(UUID source) {
         var context=collectionService().selectCollectionContextDetails(reviewActor(),source);

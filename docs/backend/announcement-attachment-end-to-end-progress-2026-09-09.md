@@ -28,11 +28,20 @@
 | 3 분류·정책 | [~] | 09-14 전체 Provider 실행 근거 verifier→정책 QA→게시 재검증 연결 구현. 최신 실패/대기 우선·4단계 PASSED 때만 VERIFIED. 공식 참조9/실행 기대값0이므로 실제 정상 아님. 본문 전용 영역·문서 역할 자동 규칙·전체 기대값/Linux/Provider 잔여 |
 | 4 관리자 API·화면 | [~] | 게시·배치·원복 UI에 이어 09-14 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태 분리·URL 보존·늦은 응답 거부. 표적 Java/HTTP 및 Node 회귀 통과, 실제 PG/운영 역할·브라우저 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 UI 구현. 정부24 필터 코드 차이에 의한 후보 누락·고정 분할 충돌 수정 및 미지원 profile 안내 보존. 실제 PG 전체/경합·승인 범위 운영 실행/최종 대조는 필수 미완료 |
-| 6 자동·실파일 QA | [!] | 09-14 17시 root2059통과/239생략·Node152·독립 QA14 및 bootJar 성공. 추출기25는09-12 결과 재사용. 독립213건 INVENTORY_ONLY/실행0. 실제 PG 시도는 initdb/Code Integrity3077·3033으로 초기화 실패. Docker Linux pipe 부재·전체 Provider/Linux 미검증 |
-| 7 운영 배포·활성화 | [!] | 09-14 17시 회차 GitHub pull=true/push=false/admin=false, 서울 리전 AWS STS는 TLS 인증서 검증 실패. 최신 구현 배포/정책/데이터 적용 미실행. TLS·IAM 완화 없음 |
+| 6 자동·실파일 QA | [!] | 09-14 Linux Actions 첫 실행: 실제 임시 PG job192건/147통과/45실패/생략0. 존재하지 않는 컬럼 조회와 시험 fixture 오류를 수정 후 재검증 진행. root2058통과/240생략·extractor25·독립 QA14·Node152 통과. 이후 migration 전용/격리 worker·독립 실행/전체 Provider 검증은 미완료 |
+| 7 운영 배포·활성화 | [!] | 09-14 GitHub 소유 계정 pull/push/admin=true 확인 및 QA 전용 브랜치 푸시 완료, master/배포 불변. 서울 AWS STS의 최근 TLS 실패는 미해결. 최신 구현 배포/정책/데이터 적용 미실행. TLS·IAM 완화 없음 |
 | 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
 
 ## 최신 실행 기록
+
+### 2026-09-14 — 변경된 처리 흐름 유지·Linux 최초 실증과 실패 수정
+
+- 사용자 재강조에 따라 제목 1차 → 정제 본문 2차 → 공식 첨부 발견·실제 텍스트 3차 → 관리자 최종 검증을 기준으로 재개했다. 제목 제외 건 상세/첨부 요청 금지, 중간 A/B·본문 부족의 첨부 분석 지속, 기술 예외와 정상 후보 분리를 유지한다.
+- 기존 장기 goal 범위의 코드·계약·테스트467파일을 QA 전용 `codex/attachment-three-stage-linux-qa`에 `bd148024611284b6c8ca2d6997e5ed2e87309721`로 커밋·푸시했다. Word2파일은 제외·보존했다. 원격 master는 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로이며 배포 workflow는 실행하지 않았다.
+- [Actions 34824820039](https://github.com/FrostyCityMan/saneB/actions/runs/34824820039), 위 정확한 SHA의 Ubuntu22.04/Java21에서 실제 loopback PostgreSQL 초기화와 V81까지 migration 이후 job192건을 실행했다.147통과/45실패/생략0이다. root2058통과/240조건부 생략, extractor25통과, 별도 QA 실행기 테스트14통과, Node152통과다. 첫 DB 실패로 이후 전용 task와 독립 namespace 실행은 진행되지 않았으며 성공으로 계산하지 않는다.
+- 45실패: 실제 ReviewMapper가 없는 `a.announcement_code`를 읽은39건, 테스트의 동일 provider_notice_id 중복3건, 대기열 current 포인터/플래그를 별개 transaction으로 바꾼1건, 테스트 context에 Bean으로 등록되지 않은 IntakeDao 조회1건, NULL 문자열 결합으로 출처가 바뀌지 않은 fixture1건이다. 실제 컬럼 `public_code`에 기존 응답 alias를 유지하고, fixture/조회/transaction을 수정했다. 과거 migration·제약·assertion은 약화하지 않았다.
+- 새 분류 회귀5건으로 중간 A/B 상태에서도 첨부 근거가 생성되는지, 충분한 본문이어도 첨부 B를 검출하는지, 발견 실패가 NO_FILES로 둔갑하지 않는지 확인했다. 이 클래스19건 로컬 통과. 최초 추가시험2건의 제목=본문 fixture는 기존 BODY_UNAVAILABLE 정책에 맞춰 정상 본문으로 교정했으며 업무 코드의 규칙은 변경하지 않았다.
+- QA workflow에 정확한 QA 브랜치 push만 허용하고 대기열 Node18건을 포함했다. Gradle `--continue`는 독립 task의 추가 실패 수집용이며, 한 건의 실패도 전체 실패로 반환한다. 필수 보고서 누락/생략 차단과 운영 자격증명 미사용은 유지한다. 현재 기록은 재실행 전이며 Linux 전체 성공·전체 Gate 완료가 아니다.
 
 ### 2026-09-14 17:32 KST — 장기 goal 재개·3단계 최종 검증 대기열
 

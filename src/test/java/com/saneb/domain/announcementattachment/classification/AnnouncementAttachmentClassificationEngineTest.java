@@ -23,6 +23,42 @@ class AnnouncementAttachmentClassificationEngineTest {
         assertThat(result.reason()).isEqualTo("EXTENDED_TARGET_SUPPORT_CONFIRMED");
         assertThat(base.reasonCode()).isEqualTo(ReasonCode.BODY_UNAVAILABLE);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "소상공인 특허 지원금, 소상공인 지원금, TITLE_GROUP_A_MATCHED",
+            "소상공인 지원금, 소상공인 특허 지원금, BODY_GROUP_A_MATCHED",
+            "소상공인 지원금, 소상공인 수출 지원금, BODY_GROUP_B_MATCHED"
+    })
+    void intermediateReviewReasonStillCollectsAttachmentEvidenceBeforeFinalReview(String title, String body, String reason) {
+        var base = selectBase(title, body);
+        var file = selectFile("NOTICE", "소상공인 지원금", "COMPLETE_TEXT", true);
+        var result = engine.selectDecision(selectInput(base, List.of(file)));
+        assertThat(result.status()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(result.reason()).isEqualTo(reason);
+        assertThat(result.matches()).isNotEmpty().allMatch(match -> file.fileId().equals(match.fileId()));
+        assertThat(result.targetCodes()).contains("BUSINESS");
+        assertThat(result.supportCodes()).contains("GRANT_SUBSIDY");
+        assertThat(base.reasonCode().name()).isEqualTo(reason);
+    }
+    @Test void sufficientBodyDoesNotSkipAttachmentFilteringOrHideAttachmentExclusionEvidence() {
+        var base = selectBase("소상공인 지원금", "이 사업은 소상공인 대상 지원금 신청을 안내합니다.");
+        assertThat(base.semanticStatusCode()).isEqualTo(SemanticStatusCode.ACCEPTED);
+        var result = engine.selectDecision(selectInput(base,
+                List.of(selectFile("NOTICE", "소상공인 수출 지원금", "COMPLETE_TEXT", true))));
+        assertThat(result.status()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(result.reason()).isEqualTo("ATTACHMENT_GROUP_B_MATCHED");
+        assertThat(result.matches()).isNotEmpty();
+        assertThat(base.semanticStatusCode()).isEqualTo(SemanticStatusCode.ACCEPTED);
+    }
+    @Test void sufficientBodyCannotTurnFailedDiscoveryIntoVerifiedNoFiles() {
+        var base = selectBase("소상공인 지원금", "이 사업은 소상공인 대상 지원금 신청을 안내합니다.");
+        var failed = engine.selectDecision(new Input(base, rules, true, "FAILED", false, List.of(), null, List.of()));
+        var none = engine.selectDecision(new Input(base, rules, true, "NO_FILES", true, List.of(), null, List.of()));
+        assertThat(failed.status()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(failed.reason()).isEqualTo("ATTACHMENT_INCOMPLETE");
+        assertThat(none.status()).isEqualTo("ACCEPTED");
+        assertThat(base.semanticStatusCode()).isEqualTo(SemanticStatusCode.ACCEPTED);
+    }
     @Test void attachmentGroupBRequiresReviewNeverTitleExclusion() {
         var result=engine.selectDecision(selectInput(selectBase("소상공인 지원금",null),
                 List.of(selectFile("NOTICE","소상공인 수출 지원금 특허","COMPLETE_TEXT",true))));
