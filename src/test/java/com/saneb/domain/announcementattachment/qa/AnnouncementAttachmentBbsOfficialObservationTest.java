@@ -58,12 +58,11 @@ class AnnouncementAttachmentBbsOfficialObservationTest {
                     "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",SOURCE.sourceUrl()));
             report.put("bodyStatus",body.statusCode());report.put("bodyFailureCode",body.failureCode());
             report.put("bodyAttempts",body.attemptCount());report.put("bodyRedirects",body.redirectCount());
-            assertEquals(ProviderContentCodes.StatusCode.AVAILABLE,body.statusCode(),"BODY_UNAVAILABLE");
-            assertTrue(body.bodyText()!=null&&!body.bodyText().isBlank(),"BODY_EMPTY");
+            boolean bodyComplete=selectBodyComplete(body);report.put("bodyStageComplete",bodyComplete);
             stage="BODY_CLASSIFICATION";
-            var base=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",TITLE,body.bodyText(),null,List.of(),body.bodySourceCode(),body.bodyAvailabilityCode()),rules);
-            report.put("bodyHash",AnnouncementAttachmentOfficialObservationTest.selectHash(body.bodyText()));
-            report.put("bodyCharacterCount",body.bodyText().codePointCount(0,body.bodyText().length()));
+            var base=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",TITLE,bodyComplete?body.bodyText():null,null,List.of(),body.bodySourceCode(),body.bodyAvailabilityCode()),rules);
+            report.put("bodyHash",bodyComplete?AnnouncementAttachmentOfficialObservationTest.selectHash(body.bodyText()):null);
+            report.put("bodyCharacterCount",bodyComplete?body.bodyText().codePointCount(0,body.bodyText().length()):0);
             report.put("bodyDecision",base.semanticStatusCode());report.put("bodyReason",base.reasonCode());
             // 본문의 A/B/정보 부족은 여기서 첨부 요청을 끊는 조건이 아니다.
             assertTrue(selectTitleMayProceed(base),"TITLE_DECISION_CHANGED");
@@ -105,6 +104,8 @@ class AnnouncementAttachmentBbsOfficialObservationTest {
             report.put("requiresFinalAdminVerification",true);assertNotEquals("EXCLUDED",decision.status(),"ATTACHMENT_MUST_NOT_DELETE_TITLE");
             assertEquals(2,rows.size(),"OFFICIAL_FILE_LIST_CHANGED");
             assertTrue(rows.stream().noneMatch(r->Set.of("NOT_RUN","FAILED").contains(r.get("status"))),"WHOLE_SET_OBSERVATION_INCOMPLETE");
+            // 본문 실패가 첨부 진단 결과를 숨기지 않게 하되 전체 관측 성공으로 승격하지 않는다.
+            stage="BODY_COMPLETENESS";validateBodyComplete(body);
             report.put("status","OBSERVED_NOT_VALIDATED");
         } catch(Exception|AssertionError failure) {report.put("failedStage",stage);report.put("failureCode",AnnouncementAttachmentOfficialObservationTest.selectFailureCode(failure));throw new AssertionError(CASE+": "+stage+" / OBSERVATION_INCOMPLETE");}
         finally {
@@ -117,6 +118,10 @@ class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     static boolean selectTitleMayProceed(AnnouncementSourceClassificationResult result) {return result.semanticStatusCode()!=SemanticStatusCode.EXCLUDED
             &&Set.of(TitleStageCode.GROUP_A_MATCHED,TitleStageCode.COMBINATION_MATCHED).contains(result.titleStageCode());}
+    static boolean selectBodyComplete(ProviderContentResult body) {return body!=null&&body.statusCode()==ProviderContentCodes.StatusCode.AVAILABLE
+            &&body.bodyAvailabilityCode()==BodyAvailabilityCode.AVAILABLE&&body.bodySourceCode()==BodySourceCode.DETAIL_PAGE_TEXT
+            &&body.bodyText()!=null&&!body.bodyText().isBlank();}
+    static void validateBodyComplete(ProviderContentResult body) {assertTrue(selectBodyComplete(body),"BODY_OBSERVATION_INCOMPLETE");}
     static void validateTitle(org.jsoup.nodes.Document page,String expected) {
         var tables=page.select("table.bbs_default.view");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
         var labels=table.select("th").stream().filter(e->e.closest("table")==table&&"제목".equals(e.text().strip())).toList();assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");

@@ -7,6 +7,19 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void failedOrEmptyBodyCannotPassWholeObservationEvenWhenFilesWereObserved() {
+        var request=new com.saneb.domain.announcementsource.provider.content.ProviderContentRequest("LOCAL_GOV_NOTICE",java.util.UUID.randomUUID(),"https://example.go.kr/list","https://example.go.kr/detail");
+        var uri=java.net.URI.create(request.officialDetailUrl());
+        var complete=com.saneb.domain.announcementsource.provider.content.ProviderContentResult.available(request,"청년 지원",uri,200,1,0);
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectBodyComplete(complete)).isTrue();
+        for(var incomplete:List.of(com.saneb.domain.announcementsource.provider.content.ProviderContentResult.disabled(request),
+                com.saneb.domain.announcementsource.provider.content.ProviderContentResult.failure(request,
+                        com.saneb.domain.announcementsource.provider.content.ProviderContentCodes.FailureCode.TIMEOUT,uri,null,2,0),
+                com.saneb.domain.announcementsource.provider.content.ProviderContentResult.available(request,"  ",uri,200,1,0))) {
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectBodyComplete(incomplete)).isFalse();
+            assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateBodyComplete(incomplete)).isInstanceOf(AssertionError.class);
+        }
+    }
     @Test void currentDraftTitleMustPassBeforeAnyBodyOrAttachmentRequestAndBodyReviewDoesNotStopFiles() throws Exception {
         var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
         var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();

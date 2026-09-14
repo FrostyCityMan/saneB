@@ -314,6 +314,24 @@ tasks.register('attachmentBbsOfficialFileObservation', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsOfficialFileObservation')
 }
 
+tasks.register('attachmentBbsFixedCaseQa', Test) {
+    description = '사전 검토한 태백 전체 파일 기대값을 production 실행기로 비교합니다. 최대44요청/80MiB, 운영 쓰기는 없습니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentBbsFixedCaseQaTest.class'
+    environment 'SANEB_ATTACHMENT_BBS_FIXED_CASE_QA', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    systemProperty 'saneb.attachment-observation.extractor', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-bbs-fixed-case-qa').get().asFile.absolutePath
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBbsFixedCaseQa')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsFixedCaseQa')
+}
+
 tasks.register('attachmentRealFileQa', Test) {
     description = '제한된 일회성 Docker 컨테이너에서 공개 첨부 표본의 실파일 QA를 실행합니다.'
     group = 'verification'

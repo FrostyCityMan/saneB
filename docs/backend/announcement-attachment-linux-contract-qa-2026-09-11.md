@@ -2,6 +2,14 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 양식1.0.2 계약 통과·공식 BODY 시간 초과로 전체 실행 실패
+
+[실행30 / 34902614936](https://github.com/FrostyCityMan/saneB/actions/runs/34902614936), SHA `72a78c89149267cdacffe2d0ce73c9a5035294b4`의 전체 결론은 **failure**다. 단위/DB 쪽 XML은 root2550=2293통과/257조건부 생략·실패0, 별도 extractor25·패키지20·실제 job192·migration17·worker12·runtime1·부모2가 생략/실패0이다. 신규 양식 표식→실제 격리 HWPX→worker/DB/API 시험은 worker12건에 포함된다. 독립221/221·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다.
+
+실패 단계는 태백 실제 세 단계 관측이다. TITLE 조합 통과 뒤 BODY 2회 TIMEOUT/FETCH_FAILED로 파일 단계까지 가지 못했다. 공식 관측1건 실패·원본 정리true·운영 쓰기0다. 일반 XML은 ignored `build/qa-results/run-34902614936`, 공식 metadata/XML은 `build/qa-results/run-34902614936-bbs`에 받았다. DB 계약 통과를 전체 CI·공식 파일·운영 검증 성공으로 표현하지 않는다.
+
+후속은 본문 실패를 기록한 채 첨부 진단도 수집하되 마지막 전체 BODY 완전성 판정을 유지하는 시험 개선이다. catalog 기대값0은 보존하며 [고정 기대값 연결 설계](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)에 경계를 기록했다. 운영 데이터/정책은 변경하지 않았으며 전체 Gate는 Not ready다.
+
 ### 2026-09-15 — 보은군 모델·참조18건의 Linux 계약 검증
 
 [실행29 / 34901307963](https://github.com/FrostyCityMan/saneB/actions/runs/34901307963), SHA `69cf469e45ecb6e9339140fd080283fe1edf32e4`는 전체 성공이다. root2518=2262통과/256조건부 생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다. XML은 ignored `build/qa-results/run-34901307963`에 보존했다.

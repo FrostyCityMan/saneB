@@ -11,6 +11,10 @@ name: 첨부 DB·작업 계약 Linux QA
         description: '태백 고정 1공고 제목·본문·전체 첨부 관측 (44요청/80MiB, 운영 쓰기 없음)'
         type: boolean
         default: false
+      verify-bbs-fixed-case:
+        description: '태백의 사전 고정 전체 파일 기대값 비교 (44요청/80MiB, 운영 쓰기 없음)'
+        type: boolean
+        default: false
   # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
   push:
     branches:
@@ -35,6 +39,7 @@ jobs:
       SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED: 'false'
       SANEB_ATTACHMENT_OFFICIAL_OBSERVATION: 'false'
       SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION: 'false'
+      SANEB_ATTACHMENT_BBS_FIXED_CASE_QA: 'false'
     steps:
       - name: 소스 확인
         uses: actions/checkout@v4
@@ -113,6 +118,22 @@ jobs:
           path: |
             build/reports/attachment-bbs-official-observation/TAEBAEK-184816.json
             build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 사전 검토한 태백 전체 파일 기대값 재검증 — 운영 쓰기 없음
+        id: bbs-fixed-case-qa
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.verify-bbs-fixed-case == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[fixed-bbs-qa]'))) }}
+        run: bash ./gradlew attachmentBbsFixedCaseQa --no-daemon --console=plain --max-workers=1
+
+      - name: 태백 고정 전체 파일 검증 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.bbs-fixed-case-qa.outcome != 'skipped' && steps.bbs-fixed-case-qa.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-bbs-fixed-case-qa-${{ github.sha }}
+          path: |
+            build/reports/attachment-bbs-fixed-case-qa/TAEBAEK-184816-fixed-case.json
+            build/test-results/attachmentBbsFixedCaseQa/TEST-*.xml
           if-no-files-found: error
           retention-days: 7
 

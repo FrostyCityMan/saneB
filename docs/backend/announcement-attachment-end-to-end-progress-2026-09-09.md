@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 — 실제 BODY 실패 분리·고정 전체 파일 실행기 연결 준비
+
+- 직전 역할1.0.2 증분의 [Linux 실행30](https://github.com/FrostyCityMan/saneB/actions/runs/34902614936), `72a78c89149267cdacffe2d0ce73c9a5035294b4`는 **전체 실패**다. root2550=2293통과/257조건부 생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2, 독립221/221와 정리2종, Node241/241·설치12/12는 통과했다. 새 FORM 표식의 실제 Linux worker→DB→v2 API 경로는 이 SHA에서 확인됐다.
+- 공식 태백 관측은 제목 조합 통과 후 BODY가 2회 TIMEOUT/FETCH_FAILED로 중단됐다. 첨부 발견/다운로드/추출은 미실행이며 원본 정리true/운영 쓰기0이다. 이전 역할/프로필 관측을 현재 값으로 추정하여 catalog에 넣지 않았다. 참조18/실행 기대값0, 정상 공고/전체 coverage 미완료를 그대로 둔다.
+- 새 증분은 관측 시험의 BODY 실패를 보존하면서 남은 예산으로 첨부 진단을 수집하고 마지막 BODY 완전성에서 실패하는 구조다. TITLE 제외 후 요청 금지, BODY A/B가 첨부를 끊지 않음, UNKNOWN/혼합 검수·자동 활성화 금지를 유지한다. 운영 수집기/재시도/분류 규칙의 변경은 없다.
+- 별도 opt-in 고정 공고 시험에서 production `AttachmentProviderQaCaseExecutor`, 현재 runtime, catalog, 임시 PostgreSQL의 미삭제 seed 전체+전국2채널을 연결했다. 요청·용량·시간·단일 자원·정리를 제한하고 전체 정책 QA false를 고정한다. BODY 관측과 단건 첨부 계약의 범위를 분리하며, 기대값0인 현재 실제 고정 계약 실행은 켜지 않는다. 상세는 [고정 기대값 연결](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)이다.
+- 표적116건/생략0/37초 통과, 전체 회귀3분27초 성공이다. root2556=2299통과/257조건부 생략/실패0, QA 패키지20/20이며 extractor/bootJar/설치 task는 UP-TO-DATE다. production JAR SHA256 `868e0aaaf9fc656985c5e9facd12435a7ec201ebb11d28f68c241ed16e4e769c`는 그대로다. Node 검사로 catalog18참조/기대값0 보존을 확인했다. V1~V83·v1/API shape·UI·production Java·운영 DB·정책·기존 데이터를 변경하지 않았다. AWS 재인증 응답은 대기 상태이며 운영 조회/배포/브라우저는 이번 회차 미실행이다. 사용자 Word2개를 보존한다. P3 진행·전체 Gate **Not ready**, goal ACTIVE이며 이번 회차는 실패 분리와 검증 연결 구현의 **progress**다.
+
 ### 2026-09-15 07:07 KST — 실제 관측 기반 양식 역할 표식 보완
 
 - 직전 보은 증분은 구현·실파일 signature·커밋/푸시로 진전이었다. 이번에는 태백 실제 관측의 둘째 파일에서 확인한 양식 제목·독립 입력 표제·서명 표식과 기존 정규식의 차이를 분석했다. 첫 파일의 혼합 문서 UNKNOWN은 정당한 검수 사유로 보존한다.

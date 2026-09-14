@@ -9,6 +9,7 @@ import com.saneb.domain.announcementattachment.classification.AnnouncementAttach
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.Block;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.FileInput;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.Input;
+import com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Target;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput;
@@ -64,6 +65,15 @@ class AnnouncementAttachmentRealFileQaTest {
     }
 
     static AnnouncementSourceClassificationRuleSet selectDraftRuleSet() throws Exception {
+        return selectDraftQaContext().rules();
+    }
+
+    record DraftQaContext(AnnouncementSourceClassificationRuleSet rules, List<Target> targets) {
+        DraftQaContext { targets = List.copyOf(targets); }
+        @Override public String toString() { return "DraftQaContext[EPHEMERAL_SEED_ONLY]"; }
+    }
+
+    static DraftQaContext selectDraftQaContext() throws Exception {
         // 이 테스트가 생성한 별도 loopback DB에만 migration을 적용한다. 실제 DB 설정은 받지 않는다.
         try (var pg = EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses", "127.0.0.1").start()) {
             Flyway.configure().dataSource(pg.getPostgresDatabase()).locations("classpath:db/migration").load().migrate();
@@ -98,7 +108,13 @@ class AnnouncementAttachmentRealFileQaTest {
             var draft = new AnnouncementSourceActiveRuleServiceImpl(dao).selectActiveRuleSet().ruleSet();
             assertEquals(0, sql.queryForObject("-- QA 규칙 미활성 확인\nSELECT count(1) FROM announcement_source_classification_rule_releases WHERE release_status_code='ACTIVE'", Integer.class));
             assertEquals(0, sql.queryForObject("-- QA 첨부 정책 부재 확인\nSELECT count(1) FROM announcement_attachment_policies", Integer.class));
-            return draft;
+            var targets = sql.query("""
+                    -- 운영 상태가 아닌 저장소 seed 전체 범위다. 비활성/실패 기관을 표본 분모에서 빼지 않는다.
+                    SELECT id, public_code, parser_profile_code, notice_url
+                    FROM local_government_notice_sources WHERE deleted_at IS NULL ORDER BY public_code
+                    """, (rs, index) -> new Target(rs.getObject("id", UUID.class), rs.getString("public_code"),
+                    rs.getString("parser_profile_code"), rs.getString("notice_url"), "{}"));
+            return new DraftQaContext(draft, targets);
         }
     }
 
