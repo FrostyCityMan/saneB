@@ -38,6 +38,72 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    private static String bbsHtml(boolean compact, String body) {
+        return "<main><header>수출 특허 메뉴</header><p>스타트업 관련 공고</p>"
+                + (compact ? "<div class='p-wrap bbs bbs__view'><table class='p-table block'>" : "<table class='bbs_default view'>")
+                + (compact ? "<tr><td><span class='p-table__subject_text'>지원사업 제목</span></td></tr>" : "<tr><th>제목</th><td>지원사업 제목</td></tr>")
+                + "<tr><td title='내용'>" + body + "</td></tr>"
+                + "<tr><th>파일</th><td><span>수출 특허 자료.pdf</span><a href='/www/downloadBbsFile.do?atchmnflNo=1'>다운로드</a></td></tr>"
+                + "</table>" + (compact ? "</div>" : "") + "<footer>의회 감사 고시</footer></main>";
+    }
+
+    private ProviderContentResult bbsResult(String host, String suffix, String body) {
+        var transport = new StubTransport(); transport.enqueue(html(body));
+        var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest(
+                "LOCAL_GOV_NOTICE", SOURCE_ID, "https://" + host + "/www/selectBbsNttList.do",
+                "https://" + host + "/www/selectBbsNttView.do" + suffix));
+        assertThat(transport.callCount()).isEqualTo(1);
+        return result;
+    }
+
+    @Test void verifiedBbsModelsExtractOnlyOfficialBodyAndRetainActualExclusionContext() {
+        String[][] sites = {{"www.taebaek.go.kr", "25"}, {"www.hsg.go.kr", "65"}, {"www.yw.go.kr", "17"}};
+        for (var site : sites) {
+            var result = bbsResult(site[0], "?bbsNo=" + site[1] + "&nttNo=42", bbsHtml("65".equals(site[1]),
+                    "소상공인 지원금 <nav>투자유치 메뉴</nav> 수출기업 제외 <a href='/apply'>온라인 신청</a>"));
+            assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+            assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 온라인 신청");
+        }
+    }
+
+    @Test void verifiedBbsMissingOrAmbiguousStructureNeverFallsBackToPageText() {
+        String valid = bbsHtml(false, "소상공인 지원금");
+        for (String html : List.of("<main>소상공인 지원금</main>", valid + valid,
+                valid.replace("title='내용'", "title='변경'"), valid.replace("제목</th>", "변경</th>"),
+                valid.replace("<td title='내용'>", "<td title='내용'>중복</td><td title='내용'>"))) {
+            var result = bbsResult("www.taebaek.go.kr", "?bbsNo=25&nttNo=42", html);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyAvailabilityCode()).isEqualTo(BodyAvailabilityCode.FETCH_FAILED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void verifiedBbsEmptyBodyCannotUseAttachmentFilenameAsBody() {
+        var result = bbsResult("www.yw.go.kr", "?bbsNo=17&nttNo=42", bbsHtml(false, "<nav>메뉴</nav>"));
+        assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+        assertThat(result.bodyText()).isNull();
+    }
+
+    @Test void verifiedBbsDuplicateOrMissingBoardParameterCannotSelectGenericFallback() {
+        for (String query : List.of("?nttNo=42", "?bbsNo=25&bbsNo=99", "?bbsNo=25&%62bsNo=25", "?bbsNo", "?bbsNo=", "?bbsNo=25%20", "?bbsNo=025")) {
+            var result = bbsResult("www.taebaek.go.kr", query, bbsHtml(false, "본문"));
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
+
+    @Test void unmeasuredHostOrBoardRetainsExistingGenericContract() {
+        assertThat(bbsResult("another.example.go.kr", "?bbsNo=25", "<main>기존 본문</main>").bodyText()).isEqualTo("기존 본문");
+        assertThat(bbsResult("www.taebaek.go.kr", "?bbsNo=999", "<main>다른 게시판</main>").bodyText()).isEqualTo("다른 게시판");
+    }
+
+    @Test void observedHoengseongSessionPathStillRequiresUniqueOfficialBody() {
+        var result = bbsResult("www.hsg.go.kr", ";jsessionid=synthetic?bbsNo=65&nttNo=42", bbsHtml(true, "소상공인 지원금"));
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금");
+        var duplicate = bbsResult("www.hsg.go.kr", "?bbsNo=65&nttNo=42", bbsHtml(true, "본문")
+                .replace("</span>", "</span><span class='p-table__subject_text'></span>"));
+        assertThat(duplicate.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+    }
+
     @Test
     void selectContentDoesNothingWhileFeatureFlagIsOff() {
         AtomicInteger resolutionCount = new AtomicInteger();

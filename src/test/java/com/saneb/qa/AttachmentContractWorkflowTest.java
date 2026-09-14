@@ -71,4 +71,13 @@ class AttachmentContractWorkflowTest {
                 "--kill-after=5 600", "--clearenv", "--setenv SANEB_ATTACHMENT_JOB_TEST true", "--setenv SANEB_ATTACHMENT_MIGRATION_TEST true");
         assertThat(runner).doesNotContain("--share-net", "--privileged", "--ro-bind / /", "source /", "sudo ");
     }
+    @Test void parentDiagnosisRunsAfterArtifactSuccessEvenWhenStandaloneFailedButNeverAfterCancellation() throws Exception {
+        var all=steps(job(workflow())).stream().map(item -> (Map<?,?>)item).toList();
+        var build=all.stream().filter(item -> "contracts".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(String.valueOf(build.get("run"))).contains("installAttachmentContractQa", "--continue");
+        var parent=all.stream().filter(item -> String.valueOf(item.get("run")).contains("bash ./gradlew attachmentPolicyDbQaIntegrationTest"))
+                .findFirst().orElseThrow();
+        assertThat(parent.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' }}");
+        assertThat(parent.containsKey("continue-on-error")).isFalse();
+    }
 }

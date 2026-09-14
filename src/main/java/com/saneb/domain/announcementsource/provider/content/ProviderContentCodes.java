@@ -33,6 +33,7 @@ public final class ProviderContentCodes {
         NETWORK_ERROR,
         CHARSET_UNSUPPORTED,
         CONTENT_DECODE_FAILED,
+        BODY_SELECTOR_CHANGED,
         BODY_TEXT_EMPTY,
         INTERRUPTED
     }

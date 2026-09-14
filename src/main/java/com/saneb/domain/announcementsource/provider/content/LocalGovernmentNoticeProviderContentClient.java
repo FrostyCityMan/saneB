@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.http.HttpTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -415,7 +416,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         // 일반 링크·문장·기관명은 유지하며, 명시된 탐색 역할만 제거한다.
         document.select("nav, [role=navigation]").remove();
         deleteAttachmentLinkElements(document);
-        Element contentElement = selectContentElement(document);
+        Element contentElement = selectContentElement(document, sourceUri);
         String bodyText = contentElement.text()
                 .replace('\u00a0', ' ')
                 .replaceAll("\\s+", " ")
@@ -426,7 +427,31 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         return bodyText;
     }
 
-    private Element selectContentElement(Document document) {
+    private Element selectContentElement(Document document, URI sourceUri) {
+        // 실측된 세 기관의 정확한 게시판만 좁힌다. 다른 SPRING_BBS를 지원한다고 추정하지 않는다.
+        String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
+        String board = switch (host) {
+            case "www.taebaek.go.kr" -> "25";
+            case "www.hsg.go.kr" -> "65";
+            case "www.yw.go.kr" -> "17";
+            default -> null;
+        };
+        String path = sourceUri.getPath();
+        boolean detailPath = "/www/selectBbsNttView.do".equals(path)
+                || ("www.hsg.go.kr".equals(host) && path.matches("/www/selectBbsNttView\\.do;jsessionid=[A-Za-z0-9.-]{1,128}"));
+        if (board != null && detailPath && selectBoardParameter(sourceUri, board)) {
+            boolean compact = "www.hsg.go.kr".equals(host);
+            var tables = document.select(compact ? "div.p-wrap.bbs.bbs__view > table.p-table.block" : "table.bbs_default.view");
+            if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            Element table = tables.getFirst();
+            long titleCount = compact ? (table.select("span.p-table__subject_text").size() == 1
+                    && !table.select("span.p-table__subject_text").text().isBlank() ? 1 : 0)
+                    : table.select("th").stream().filter(e -> "제목".equals(e.text().trim()) && e.nextElementSibling() != null
+                            && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count();
+            var content = table.select("td[title=내용]");
+            if (titleCount != 1 || content.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            return content.getFirst();
+        }
         for (String selector : new String[]{"main", "[role=main]", "article"}) {
             Element candidate = document.selectFirst(selector);
             if (candidate != null) {
@@ -434,6 +459,21 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             }
         }
         return document.body();
+    }
+
+    private boolean selectBoardParameter(URI uri, String board) {
+        String found = null;
+        if (uri.getRawQuery() == null) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        try {
+            for (String pair : uri.getRawQuery().split("&")) {
+                String[] part = pair.split("=", 2);
+                if (!"bbsNo".equals(URLDecoder.decode(part[0], StandardCharsets.UTF_8))) continue;
+                if (found != null || part.length != 2) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+                found = URLDecoder.decode(part[1], StandardCharsets.UTF_8);
+            }
+        } catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        if (found == null || !found.matches("[1-9][0-9]{0,8}")) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return board.equals(found);
     }
 
     private void deleteAttachmentLinkElements(Document document) {
