@@ -33,7 +33,8 @@
 - [x] 실제 근거 재검증 코드에 합성 원장 연결·metadata 변조 차단, resource15건 기대값0 유지. 실제 운영 원장 검증 아님.
 - [x] catalog·근거 verifier·Service·MockMvc 권한/페이지·snapshot 표적156건 및 bootJar 통과(53초).
 - [x] 전체 로컬 단위/계약·bootJar/QA 설치 패키지 검증. root2484=2232통과/252조건부 생략/실패0, 별도 QA 패키지20/20,3분18초 성공. 추출기25건은 UP-TO-DATE이며 이번 재실행 통과로 세지 않는다.
-- [ ] 같은 SHA의 Linux 검증·실제 Provider/운영 검증. 직전 be45ddf 실행24의 성공을 이번 증분에 재사용하지 않는다.
+- [x] 같은 SHA `8db0c1072e9c1bb3a68cb9d6656ad13d6ad282f7`의 [Linux 실행25](https://github.com/FrostyCityMan/saneB/actions/runs/34892681344) 전체 성공. root2484=2231통과/253생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2 및 독립220/220·정리 통과. Node154/설치12 통과. be45ddf 실행24의 결과를 대신 사용하지 않았다.
+- [ ] 실제 전체 Provider/운영 검증. 공식 파일 관측은 위 실행에서 생략됐으며 현재 참조15/기대값0을 변경하지 않았다.
 
 성공은 위 계약 구현·검증 완료를 뜻한다. 실제 공식 기대값·운영 QA·정책 게시 성공을 뜻하지 않는다. 형식을 임의 N/A로 바꾸거나 실패/UNKNOWN을 정상 후보로 계산하면 실패다. 현재 전체 Gate/ATT는 Not ready이며 운영 활성화는 실행하지 않는다.
 

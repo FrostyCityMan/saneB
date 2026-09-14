@@ -44,7 +44,7 @@ jobs:
           cache: gradle
 
       - name: 관리자 화면 계약·상호작용·보고서 판정기 검증
-        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs
+        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs
 
       - name: 임시 runner 격리 도구 준비
         run: |

@@ -2918,9 +2918,11 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 
 원장/항목 응답에는 idempotency key·lease token·actor·requestHash·원문/추출문·증거 JSON을 노출하지 않는다. 과거 계획 없는 이력의 plan 필드는null이다. `isQaPassed`는 항상false이며 COMPLETED는 해당 분할 기대 동작 일치일 뿐이다. 새 예약이 OFF거나 실행 가능 분할이 없으면 isReservationEnabled=false다.
 
-서버의 기본 OFF 스케줄러는 현재 설치·전체 계획·저장된 분할/항목을 재대조하고 기존 실제 ExecutionService에 한 공고씩 연결한다. 관리 UI·전체 공식 기대값·정책 전체 verifier·실제 Linux/PG/운영은 미완료다. 상세는 DB11.26 및 `announcement-attachment-provider-qa-management-2026-09-12.md`를 따른다.
+서버의 기본 OFF 스케줄러는 현재 설치·전체 계획·저장된 분할/항목을 재대조하고 기존 실제 ExecutionService에 한 공고씩 연결한다. 전체 verifier·격리 Linux/PG 계약은 후속 구현·검증됐으나 전체 공식 기대값·운영 실행과 수집원 QA 예약/취소 관리 UI는 잔여다. 상세는 DB11.26 및 `announcement-attachment-provider-qa-management-2026-09-12.md`를 따른다.
 
 2026-09-15 catalog schema2 적용성은 `FIXED_SAMPLE_FORMATS_V2`다. 전체 필수 PDF/HWP/HWPX와 전체 누락 형식을 formatCoverage로, 대상별 기대 제공 형식·미관측 형식·정상 다중 첨부 수를 targets.items[].formatApplicability로 조회한다. `EXPECTATIONS_UNKNOWN`은 유효한 기대 파일 부재, `FIXED_SAMPLE_EXPECTATIONS`는 고정 기대 표본의 범위이며 실제 제공 여부/QA 통과 판정이 아니다. 미관측을 미지원/N/A로 표현하지 않는다. 발견된 OCR/부분 등 실패 형식은 해당 대상의 누락 분모에 남는다. 기존 schema1/구조적 provider-qa-plan/execution-plan/v1 shape는 변경하지 않으며 현재 참조15/실행 기대값0이다. 상세는 `announcement-provider-format-applicability-v2-2026-09-15.md`를 따른다.
+
+2026-09-15 관리자 읽기 전용 화면 `/app/admin/announcement-attachment-provider-coverage?policyId={UUID}&page={n}`을 추가했다. 정책 상세에서 진입하며24.30의 `/execution-plan/targets`만 size20으로 GET한다. 정책 ID·버전·지문·형식·정확한 페이지 분모를 대조하고 페이지 간 계획 변경을 차단한다. 실제 QA/예약/게시/기존 데이터 적용을 실행하지 않으며 기대 범위를 통과 근거로 표시하지 않는다. 상세는 `announcement-provider-coverage-ui-2026-09-15.md`다.
 
 ### 24.31 전체 Provider QA 근거 검증 — 내부 계약
 

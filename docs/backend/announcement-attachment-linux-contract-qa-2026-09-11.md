@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 형식 적용성 V2·전체 대상 조회 API의 Linux 검증
+
+[실행25 / 34892681344](https://github.com/FrostyCityMan/saneB/actions/runs/34892681344), SHA `8db0c1072e9c1bb3a68cb9d6656ad13d6ad282f7`는 전체 성공이다. XML root2484=2231통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node154/154·설치12/12를 확인했다. artifact는 ignored `build/qa-results/run-34892681344`에 보존했다.
+
+catalog schema2/형식 적용성/coverage API는 이 SHA 검증 범위에 포함된다. 이후 관리자 조회 화면은 포함하지 않는다. 공식 파일 관측 단계는 생략됐고 실제 전체 Provider/운영/브라우저 성공을 뜻하지 않는다. 전체 Gate는 Not ready다.
+
 ### 2026-09-15 — 제천 모델·참조15건의 Linux 계약 검증
 
 [실행24 / 34890992681](https://github.com/FrostyCityMan/saneB/actions/runs/34890992681), SHA `be45ddfa4d883c56527861f8e2c469237682f3f3`는 전체 성공이다. XML root2455=2202통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 독립/부모 자원 정리 SUCCEEDED, Node154/154·Linux 설치12/12를 확인했다. 보고서는 ignored `build/qa-results/run-34890992681`에 받았다.

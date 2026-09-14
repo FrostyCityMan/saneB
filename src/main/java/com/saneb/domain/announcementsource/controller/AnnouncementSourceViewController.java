@@ -137,6 +137,16 @@ public class AnnouncementSourceViewController {
         return "app/announcement-attachment-policies";
     }
 
+    @GetMapping("/app/admin/announcement-attachment-provider-coverage")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentProviderCoveragePage(Authentication authentication, Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "ATTACHMENT_POLICIES", "수집원별 첨부 검증 범위"));
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-provider-coverage";
+    }
+
     /**
      * 공고 분류 규칙 버전과 키워드를 조회하고 관리하는 화면을 조회합니다.
      *

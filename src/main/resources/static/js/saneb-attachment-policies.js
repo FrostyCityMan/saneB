@@ -60,6 +60,8 @@
             for(const r of rules.values())el(select,"option",`${r.releaseCode} / 개정 ${r.versionNo} · ${P.label(r.releaseStatusCode)}`).value=r.releaseId;
             if(selected&&!rules.has(selected)){const option=el(select,"option",`${selected} · ${retiredRules.has(selected)?"퇴역 규칙 · 저장 불가":"연결 규칙(저장 가능 여부는 서버 확인)"}`);option.value=selected;option.disabled=retiredRules.has(selected);}select.value=selected||"";}
         function showDetail(d,fill=true){P.requireValue(P.details(d));state.detail=d;creating=false;const box=clear("[data-detail]");policyMeta(box,d.policy);
+            const coverageLink=el(box,"a","수집원별 첨부 검증 범위 조회 (읽기 전용)","secondary-action");
+            coverageLink.href="/app/admin/announcement-attachment-provider-coverage?policyId="+d.policy.policyId;
             meta(box,[["공고별 누적 다운로드 한도",`${d.configuration.maximumSourceBytes.toLocaleString("ko-KR")}바이트`],["저장 시각",date(d.updatedAt)],
                 ["분류 엔진",d.configuration.engineVersion],["추출기",d.configuration.extractorVersion],["개정 원본",d.copiedFromPolicyId||"없음"],
                 ["텍스트 역할 규칙",d.configuration.roleRuleVersion||"연결 없음 · 자동 역할 판정 미적용"],

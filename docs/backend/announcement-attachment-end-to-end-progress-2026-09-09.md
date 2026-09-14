@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 05:47 KST — 수집원별 검증 범위 UI 연결·합성 브라우저 검증
+
+- 제목→정제 BODY→실제 첨부 텍스트→관리자 최종 검증 순서를 유지한 채 전체 target coverage API를 읽기 전용 관리자 화면에 연결했다. 정책 상세에서 선택한 정책으로 진입하며 기관별 연결 상태·참조/실행 기대값·정상3/다중 첨부1·관측/미관측/부족 형식을 구분한다. 계획 준비 완료도 실제 QA 통과가 아니며, 페이지 간 정책·표본·범위/계획 지문 변경은 결과를 섞지 않고 차단한다. 새 DDL·기존 migration·v1 API·분류 규칙·운영 데이터 변경은 없다.
+- Node 새46+기존 정책36=82건 표적 통과, SSR/권한/Provider API42건·bootJar37초 통과. 전체 Java2491=2239통과/252조건부 생략/실패0, QA 패키지20/20,3분19초 성공. extractor25건 및 마지막 bootJar는 UP-TO-DATE이며 새 실행으로 세지 않는다. 최종 Node 전체200건/생략0 통과다. 현재 bootJar SHA256 `c3fc4d4f1b7b2b5c95c066fefcf6dc96d174468704efd199365052fb9256406e`는 운영 JAR가 아니다.
+- 실제 SSR을 합성 fixture로 연 Chrome에서 320/360/375/768/1024/1440px 가로 넘침 없음, 페이지 이동·키보드 초점·계획 변경 차단·401/403/409/계약 오류/연결 종료 후 결과 제거·재조회 유지를 검증했다. 정상 콘솔 오류/경고0, fixture 변경 요청0/외부 요청0/운영 쓰기0. CSS 확대2/4배 모의에서는 넘침을 관측했으며 브라우저 기본200/400% 확대·보조공학 검증은 미실행으로 남긴다. 합성 화면 통과를 운영 브라우저 Gate로 계산하지 않는다.
+- 기존 Thymeleaf/layout/공통 CSS/정책 client를 재사용했다. 원문·URL/파일명·서버 임의 오류를 표시하지 않는다. 브라우저 세션과 Node 서버를 종료했고 생성 snapshot/로그는 ignored build 경로에 보존했다. 사용자 output의 Word2개119943/330388bytes는 보존했다. 상세 설계·한계는 [조회 화면 기록](announcement-provider-coverage-ui-2026-09-15.md)에 있다.
+- 직전 SHA `8db0c1072e9c1bb3a68cb9d6656ad13d6ad282f7`의 [Linux 실행25](https://github.com/FrostyCityMan/saneB/actions/runs/34892681344)는 성공했다. root2484=2231통과/253생략, extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220와 정리, Node154/설치12 통과다. 이번 UI 소스의 같은 SHA 검증은 아니며 공식 파일 관측은 생략됐다.
+- 현재 남은 핵심은 전체 공식 기대값(참조15/실행 기대값0)과 미구현 기관 모델·실파일/역할 검증, 수집원 QA 예약·취소 화면, 현재 SHA의 운영 배포/브라우저, 승인된 전체 기존 데이터 적용이다. AWS 재인증 응답은 대기 중이며 운영 조회를 반복하거나 활성화하지 않았다. 정책 게시·ENFORCE·기존 데이터 APPLY는 정확한 범위/예산/영향 승인이 필요하다. 전체 Gate/ATT **Not ready**, goal ACTIVE이며 이번 회차 분류는 **progress**다.
+
 ### 2026-09-15 05:22 KST — 형식 적용성 V2와 전체 대상 coverage API
 
 - 제천 증분은 QA 브랜치 `be45ddfa4d883c56527861f8e2c469237682f3f3`로 커밋/푸시하고 원격 SHA 일치를 확인했다. [Linux 실행24](https://github.com/FrostyCityMan/saneB/actions/runs/34890992681)는 전체 성공이다. root2455=2202통과/253생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 성공, Node154/설치12 통과다. 외부 파일 재추출/운영 배포는 하지 않았다.

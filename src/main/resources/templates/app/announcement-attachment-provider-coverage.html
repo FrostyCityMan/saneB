@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
+<main class="attachment-review-page" data-provider-coverage>
+    <a class="attachment-skip" href="#coverage-targets">수집원별 검증 범위로 건너뛰기</a>
+    <nav aria-label="현재 위치"><a th:href="@{/app/admin/announcement-attachment-policies}" data-policy-link>공고 첨부 정책 관리</a> / <span aria-current="page">수집원별 첨부 검증 범위</span></nav>
+    <section class="plain-panel" aria-labelledby="coverage-purpose">
+        <h2 id="coverage-purpose">실제 QA 전에 부족한 검증 범위를 확인합니다</h2>
+        <p>제목 1차 판정 → 정제 본문 2차 판정 → 실제 PDF·HWP·HWPX 텍스트 3차 판정 → 관리자 최종 검증 순서를 유지합니다. 제목 제외 공고는 본문·파일을 요청하지 않습니다.</p>
+        <p>이 화면은 고정 표본의 기대값과 시스템 연결을 조회할 뿐입니다. 실제 파일 다운로드·텍스트 추출·QA 예약·정책 게시·기존 데이터 적용은 실행하지 않으며, 공고도 자동 활성화하지 않습니다.</p>
+        <div class="attachment-actions"><button type="button" class="secondary-action" data-refresh disabled>최신 계획 첫 페이지 조회</button><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></div>
+        <p data-status role="status" aria-live="polite">정책을 확인한 뒤 검증 범위를 조회합니다.</p>
+        <p data-error class="attachment-error" role="alert" tabindex="-1" hidden></p>
+        <noscript>JavaScript를 활성화한 뒤 새로고침하세요. 이 화면에는 데이터 변경 기능이 없습니다.</noscript>
+    </section>
+    <section class="plain-panel" aria-labelledby="coverage-summary-title">
+        <h2 id="coverage-summary-title">전체 계획 (실제 QA 통과 아님)</h2>
+        <div data-summary>아직 전체 계획을 조회하지 않았습니다.</div>
+        <details><summary>용어와 판정 기준</summary>
+            <p>정상 공고 기대값은 본문·첨부 발견이 완전하고, 모든 파일이 완전 추출·역할 확인되며 공고문 또는 안내문이 있는 표본입니다. 단순 참조, 양식만 있는 공고, UNKNOWN·부분 추출·OCR 필요·오류는 정상 건수를 채우지 않습니다.</p>
+            <p>관측 기대 형식은 다운로드 가능한 모든 파일 기준입니다. 실패·부분 추출 파일의 형식도 분모에 남습니다. 미관측은 이 고정 표본에 기대값이 없다는 뜻이며 기관 미지원·첨부 없음·검증 면제를 뜻하지 않습니다.</p>
+            <p>대상마다 정상 공고 3건과 그중 정상 다중 첨부 공고 1건이 필요합니다. 다른 기관의 성공이 이 기관의 실패 형식을 상쇄하지 않습니다. 전체 계획에서는 PDF·HWP·HWPX 세 형식의 완전 추출 기대값이 모두 필요합니다.</p>
+            <p>기관·목록 파서 연결은 시스템이 관리합니다. 이 화면에서 파서를 선택하거나 형식을 제외할 수 없습니다. 실제 실패·처리 미완료 공고를 정상 후보로 표시하지 않습니다.</p>
+        </details>
+    </section>
+    <section class="plain-panel" id="coverage-targets" tabindex="-1" aria-labelledby="coverage-targets-title">
+        <h2 id="coverage-targets-title">수집원별 검증 범위</h2>
+        <p>전체 대상 수와 현재 페이지의 표시 수를 구분합니다. 지자체 명칭이 응답에 없는 경우 공개 기관 코드만 표시합니다.</p>
+        <p data-page-info></p><div data-targets>아직 수집원을 조회하지 않았습니다.</div>
+        <nav class="attachment-actions" aria-label="검증 대상 페이지"><button type="button" class="secondary-action" data-prev disabled>이전 페이지</button><button type="button" class="secondary-action" data-next disabled>다음 페이지</button></nav>
+    </section>
+    <script th:src="@{/js/saneb-attachment-policy-core.js}"></script>
+    <script th:src="@{/js/saneb-attachment-provider-coverage.js}"></script>
+</main>
+</html>
