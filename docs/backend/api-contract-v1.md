@@ -2900,7 +2900,7 @@ V79 원장과 `AnnouncementAttachmentProviderQaExecutionService.saveCase`는 시
 
 REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGED·SOURCE_BINDING_INVALID·OBSERVATION_EXPIRED·EXPECTATION_INVALID·DUPLICATE_DETAIL·TITLE_EXPECTATION_CHANGED를 실행 가능한 EXPECTED_INPUT_READY와 구분한다. 후자도 실제 실행/추출 성공은 아니다. 정상3공고와 PDF/HWP/HWPX 기대값 coverage, 전체 scope/분할은 보존하며 일부 표본으로 전체 준비/성공을 표시하지 않는다.
 
-현재 공식 참조9건/실행 기대값0이며, 실제 표본 검증과 관리자 예약/조회·scheduler·전체 정책 verifier·운영 검증은 미완료다. 상세는 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
+공식 참조는2026-09-15 원주·제천 추가 후15건/실행 기대값0이다. 참조 확장은 API shape 또는 운영 QA 성공을 뜻하지 않는다. 실제 표본/전체 정책 검증의 최신 경계는 `announcement-attachment-provider-qa-catalog-2026-09-12.md`와 장기 진행 기록을 따른다.
 
 ### 24.30 Provider QA 계획·예약·조회·취소 — V80
 

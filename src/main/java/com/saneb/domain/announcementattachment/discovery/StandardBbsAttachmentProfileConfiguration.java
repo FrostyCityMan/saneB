@@ -18,4 +18,7 @@ public class StandardBbsAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectWonjuProfileDetails() {
         return new StandardBbsAttachmentDiscoveryProfile("LOCAL_WONJU_BBS_V1", "LGS-000118", "www.wonju.go.kr", "140", "216", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_MENU_KEY, false, "HEURISTIC_NOTICE");
     }
+    @Bean public AttachmentDiscoveryProfile selectJecheonProfileDetails() {
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_JECHEON_BBS_V1", "LGS-000138", "www.jecheon.go.kr", "18", "5233", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_SVG, false, "HEURISTIC_NOTICE");
+    }
 }

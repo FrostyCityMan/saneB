@@ -20,7 +20,8 @@ class StandardBbsAttachmentDiscoveryProfileTest {
         return Stream.of(new Case(config.selectTaebaekProfileDetails(), "LGS-000121", "www.taebaek.go.kr", "25", "352"),
                 new Case(config.selectHoengseongProfileDetails(), "LGS-000125", "www.hsg.go.kr", "65", "821"),
                 new Case(config.selectYeongwolProfileDetails(), "LGS-000126", "www.yw.go.kr", "17", "273"),
-                new Case(config.selectWonjuProfileDetails(), "LGS-000118", "www.wonju.go.kr", "140", "216"));
+                new Case(config.selectWonjuProfileDetails(), "LGS-000118", "www.wonju.go.kr", "140", "216"),
+                new Case(config.selectJecheonProfileDetails(), "LGS-000138", "www.jecheon.go.kr", "18", "5233"));
     }
     static AttachmentDiscoveryProfile.Source selectSource(Case sample, String noticeId) {
         return selectSourceUrl(sample, "https://" + sample.host() + StandardBbsAttachmentDiscoveryProfile.DETAIL
@@ -29,16 +30,16 @@ class StandardBbsAttachmentDiscoveryProfileTest {
     static AttachmentDiscoveryProfile.Source selectSourceUrl(Case sample, String url) {
         var normalizer = new AnnouncementSourceIdentityNormalizer();
         return new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE", normalizer.hash(normalizer.canonicalizeUrl(url)),
-                url, sample.sourceCode(), sample.board().equals("140") ? "HEURISTIC_NOTICE" : "SPRING_BBS");
+                url, sample.sourceCode(), List.of("140", "18").contains(sample.board()) ? "HEURISTIC_NOTICE" : "SPRING_BBS");
     }
-    static boolean selectCompact(Case sample) { return sample.board().equals("65") || sample.board().equals("140"); }
+    static boolean selectCompact(Case sample) { return List.of("65", "140", "18").contains(sample.board()); }
     static String selectPage(Case sample, String items) {
         boolean compact = selectCompact(sample);
         boolean wonju = sample.board().equals("140");
         return (wonju ? "<div class='bbs_wrap'><div class='p-wrap bbs bbs__view'><table class='p-table'>"
                 : compact ? "<div class='p-wrap bbs bbs__view'><table class='p-table block'>" : "<table class='bbs_default view'>")
-                + "<tr><th>제목</th><td>" + (compact && !wonju ? "<span class='p-table__subject_text'>소상공인 지원 공고</span>" : "소상공인 지원 공고")
-                + "</td></tr><tr><td title='내용'>지원사업 안내</td></tr><tr><th scope='row'>파일</th><td>"
+                + "<tr><th>제목</th><td>" + (sample.board().equals("65") ? "<span class='p-table__subject_text'>소상공인 지원 공고</span>" : "소상공인 지원 공고")
+                + "</td></tr><tr><td title='내용'>지원사업 안내</td></tr><tr><th scope='row'>" + (sample.board().equals("18") ? "첨부파일" : "파일") + "</th><td>"
                 + "<ul class='" + (compact ? "p-attach" : "view_attach") + "'>" + items + "</ul></td></tr></table>" + (wonju ? "</div></div>" : compact ? "</div>" : "");
     }
     static String selectQuery(Case sample, String id) {
@@ -46,6 +47,9 @@ class StandardBbsAttachmentDiscoveryProfileTest {
     }
     static String selectItem(Case sample, String id, String name, boolean preview) {
         String download = "./downloadBbsFile.do?" + selectQuery(sample, id);
+        if (sample.board().equals("18")) return "<li class='p-attch__item'><a class='p-attach__link' href='" + download
+                + "'><span class='p-icon'>문서</span><span>" + name + "</span>" + selectSvg(true) + "</a>"
+                + (preview ? "<a class='p-attach__preview p-button' href='/previewBbs.do?atchmnflNo=" + id + "'>미리보기" + selectSvg(false) + "</a>" : "") + "</li>";
         if (selectCompact(sample)) return "<li class='p-attach__item'><a class='p-attach__link' href='" + download
                 + "'><span class='p-icon'>문서</span><span>" + name + "</span></a>"
                 + (preview ? "<a class='p-attach__preview' href='" + (sample.board().equals("140") ? "./previewUrl.do?key=216&" : "./previewBbsFile.do?")
@@ -55,6 +59,10 @@ class StandardBbsAttachmentDiscoveryProfileTest {
         return "<li><div class='down_view'><span><img src='/common/images/board/file/ico_pdf.gif' alt='문서'/>" + name
                 + "</span><a class='file_down' href='" + download + "'>다운로드<i></i></a>"
                 + (preview ? "<a class='file_view' href='" + href + "'>미리보기<i></i></a>" : "") + "</div></li>";
+    }
+    static String selectSvg(boolean download) {
+        return "<svg width='20' height='23' fill='#3b3e42' focusable='false'" + (download ? " class='margin_l_5'" : "")
+                + "><use xlink:href='/common/images/program/p-icon.svg#" + (download ? "arrow-circle-down' y='2'" : "search'") + "></use></svg>";
     }
     @ParameterizedTest @MethodSource("selectCases") void discoversAllSupportedAndUnsupportedWithoutInferringRole(Case sample) {
         String items = selectItem(sample, "1", "공고문.pdf", true) + selectItem(sample, "2", "신청.hwp", false)
@@ -129,6 +137,7 @@ class StandardBbsAttachmentDiscoveryProfileTest {
         String invalidPreview = item.replace("previewBbsFile.do?atchmnflNo=1", "previewBbsFile.do?atchmnflNo=2")
                 .replace("previewUrl.do?key=352&atchmnflNo=1", "previewUrl.do?key=352&atchmnflNo=2").replace("&nttNo=123&", "&nttNo=999&");
         invalidPreview = invalidPreview.replace("previewUrl.do?key=216&atchmnflNo=1", "previewUrl.do?key=216&atchmnflNo=2");
+        invalidPreview = invalidPreview.replace("previewBbs.do?atchmnflNo=1", "previewBbs.do?atchmnflNo=2");
         var partial = profile.selectDescriptors(selectSource(sample, "123"), selectPage(sample, invalidPreview));
         assertThat(partial.complete()).isFalse(); assertThat(partial.descriptors()).hasSize(1);
     }
@@ -185,10 +194,38 @@ class StandardBbsAttachmentDiscoveryProfileTest {
             assertThat(profile.selectDescriptors(source, altered).complete()).isFalse();
     }
 
-    @Test void registryHasFourDistinctImmutableProfiles() {
+    @Test void jecheonAcceptsOnlyBlankPresentationIdAfterActualCollectorCanonicalization() {
+        var sample = selectCases().toList().get(4); var profile = sample.profile();
+        var normalizer = new AnnouncementSourceIdentityNormalizer();
+        String raw = "https://www.jecheon.go.kr/www/selectBbsNttView.do?key=5233&id=&&bbsNo=18&nttNo=123&searchCtgry=&searchCnd=&searchKrwd=&pageIndex=1&integrDeptCode=";
+        String stored = normalizer.canonicalizeUrl(raw);
+        var source = new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE", normalizer.hash(stored), stored, "LGS-000138", "HEURISTIC_NOTICE");
+        assertThat(profile.selectDetailUri(source)).isEqualTo(profile.selectDetailUri(selectSource(sample, "123")));
+        assertThat(profile.selectApprovedRequest(URI.create(stored))).isFalse();
+        for (String suffix : List.of("&id=other", "&id=%20", "&id=&id=", "&id=&&", "&unknown="))
+            assertThatThrownBy(() -> profile.selectDetailUri(selectSourceUrl(sample, selectSource(sample, "123").sourceUrl() + suffix))).hasMessage("PROFILE_REQUIRED");
+        assertThatThrownBy(() -> selectCases().toList().get(1).profile().selectDetailUri(selectSourceUrl(selectCases().toList().get(1),
+                selectSource(selectCases().toList().get(1), "123").sourceUrl() + "&id="))).hasMessage("PROFILE_REQUIRED");
+    }
+
+    @Test void jecheonUnknownIconsAndNestedLinksRemainIncomplete() {
+        var sample = selectCases().toList().get(4); var profile = sample.profile(); var source = selectSource(sample, "123");
+        String valid = selectItem(sample, "1", "공고.hwpx", true);
+        for (String altered : List.of(valid.replace("p-attch__item", "p-attach__item"), valid.replace("xlink:href=", "href="),
+                valid.replace("#search", "#other"), valid.replace("#arrow-circle-down", "#other"),
+                valid.replace("/common/images/program/p-icon.svg", "https://unapproved.go.kr/icon.svg"),
+                valid.replace("<use ", "<use data-extra='1' "), valid.replace("</use>", "<a href='/other'>누락 파일</a></use>"),
+                valid.replace("<svg ", "<svg onclick='unknown()' "), valid.replace("<svg ", "<svg style='url(/unknown)' "),
+                valid.replace("</svg>", "</svg><svg></svg>"), valid.replace("focusable='false'", "focusable='true'"),
+                valid.replace("y='2'", "y='3'"), valid.replace("<span>공고.hwpx</span>", "<span><a href='/other'>공고.hwpx</a></span>")))
+            assertThat(profile.selectDescriptors(source, selectPage(sample, altered)).complete()).isFalse();
+        assertThat(profile.selectApprovedRequest(URI.create("https://www.jecheon.go.kr/previewBbs.do?atchmnflNo=1"))).isFalse();
+    }
+
+    @Test void registryHasFiveDistinctImmutableProfiles() {
         try (var context = new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(4);
+            assertThat(registry.selectProfileList()).hasSize(5);
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             registry.selectProfileList().forEach(profile -> {
                 assertThat(profile.selectProfileHash()).matches("[0-9a-f]{64}");
@@ -197,21 +234,22 @@ class StandardBbsAttachmentDiscoveryProfileTest {
             });
         }
     }
-    @Test void allThirteenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
+    @Test void allFourteenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
         try (var context = new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class,
                 LegalBoardAttachmentProfileConfiguration.class, SaeolGetAttachmentProfileConfiguration.class,
                 HwacheonPostAttachmentDiscoveryProfile.class, BizInfoAttachmentDiscoveryProfile.class,
                 SeoguSaeolAttachmentDiscoveryProfile.class, AttachmentDiscoveryProfileRegistry.class)) {
             var profiles = context.getBean(AttachmentDiscoveryProfileRegistry.class).selectProfileList();
-            assertThat(profiles).hasSize(13);
+            assertThat(profiles).hasSize(14);
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileCode).doesNotHaveDuplicates();
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             assertThat(profiles.stream().filter(p -> !(p instanceof StandardBbsAttachmentDiscoveryProfile)))
                     .allSatisfy(p -> assertThat(p.selectLegacyBinaryContentTypes()).isEmpty());
             selectCases().forEach(sample -> {
-                if (sample.board().equals("140")) {
-                    assertThat(sample.profile().selectLegacyBinaryContentTypes()).isEmpty();
-                    assertThat(sample.profile().selectUtf8DispositionOctets()).isTrue();
+                if (List.of("140", "18").contains(sample.board())) {
+                    if (sample.board().equals("140")) assertThat(sample.profile().selectLegacyBinaryContentTypes()).isEmpty();
+                    else assertThat(sample.profile().selectLegacyBinaryContentTypes()).containsExactly("application/x-msdownload");
+                    assertThat(sample.profile().selectUtf8DispositionOctets()).isEqualTo(sample.board().equals("140"));
                     return;
                 }
                 assertThat(sample.profile().selectLegacyBinaryContentTypes())

@@ -91,6 +91,42 @@ class LocalGovernmentNoticeProviderContentClientTest {
         return result;
     }
 
+    private static String jecheonHtml(String body) {
+        return wonjuHtml(body).replace("class='bbs_wrap'", "class='presentation'").replace("class='p-table'", "class='p-table block'");
+    }
+
+    @Test void jecheonBodyUsesOnlyMeasuredContentWithBlankPresentationId() {
+        var result = bbsResult("www.jecheon.go.kr", "?key=5233&bbsNo=18&nttNo=123&id=", jecheonHtml(
+                "소상공인 지원금 <nav>스타트업 메뉴</nav><table><tr><th>지원형태</th><td>보조금</td></tr></table>"
+                        + "수출기업 제외 <a href='/apply'>신청</a>"));
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 수출기업 제외 신청");
+    }
+
+    @Test void jecheonMissingOrNestedStructureDoesNotUsePageOrFileNames() {
+        String valid = jecheonHtml("지원사업 본문");
+        for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
+                valid.replace("제목</th>", "변경</th>"), valid.replace("title='내용'", "title='변경'"),
+                valid.replace("<td title='내용'>", "<td title='내용'>중복</td><td title='내용'>"),
+                valid.replace("<th>제목</th><td>사업자 지원 공고</td>", "<td><table><tr><th>제목</th><td>중첩 제목</td></tr></table></td>"))) {
+            var result = bbsResult("www.jecheon.go.kr", "?key=5233&bbsNo=18&nttNo=123", page);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+        assertThat(bbsResult("www.jecheon.go.kr", "?key=5233&bbsNo=18&nttNo=123", jecheonHtml("<nav>메뉴</nav>"))
+                .failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+    }
+
+    @Test void jecheonOnlyPermitsEmptyPresentationIdAndExactBoard() {
+        for (String suffix : List.of("&id=other", "&id=%20", "&id=&id=", "&id=&&", "&other=1", "&bbsNo=18"))
+            assertThat(bbsResult("www.jecheon.go.kr", "?key=5233&bbsNo=18&nttNo=123" + suffix, jecheonHtml("본문"))
+                    .failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        for (String query : List.of("?key=5233&bbsNo=18", "?key=5233&bbsNo=18&nttNo=0", "?key=5233&bbsNo=999&nttNo=123", "?key=999&bbsNo=18&nttNo=123"))
+            assertThat(bbsResult("www.jecheon.go.kr", query, jecheonHtml("본문")).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(bbsResult("www.wonju.go.kr", "?key=216&bbsNo=140&nttNo=123&id=", wonjuHtml("본문"))
+                .failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+    }
+
     @Test void verifiedBbsModelsExtractOnlyOfficialBodyAndRetainActualExclusionContext() {
         String[][] sites = {{"www.taebaek.go.kr", "25"}, {"www.hsg.go.kr", "65"}, {"www.yw.go.kr", "17"}};
         for (var site : sites) {

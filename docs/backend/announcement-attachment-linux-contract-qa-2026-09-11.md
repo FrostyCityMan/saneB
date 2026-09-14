@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 원주 모델의 Linux 계약 검증
+
+[실행23 / 34888428248](https://github.com/FrostyCityMan/saneB/actions/runs/34888428248), SHA `569553417c371f34ba911de452807c59aa1d3d6e`는 전체 성공이다. root2440=2189통과/251조건부 생략, extractor25·패키징20·job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 정리2종 SUCCEEDED, Node154/154·Linux 설치12/12를 확인했다. XML은 ignored `build/qa-results/run-34888428248`에 받았다.
+
+공식 외부 파일 관측은 실행하지 않았다. 따라서 원주 실제 HTTP 결과는 별도 로컬 표본 근거이고 Linux 텍스트 추출 성공이 아니다. 제천 모델과 catalog15참조 증분은 이 SHA 이후이다. 전체 Provider·역할/내용 기대값·동일 SHA 운영 배포/브라우저 Gate를 완료하지 않았으며 Not ready다.
+
 ### 2026-09-15 — 부산·강북·화천 본문 증분 Linux 계약 통과
 
 [실행22 / 34885874260](https://github.com/FrostyCityMan/saneB/actions/runs/34885874260), SHA `fb81eaa85e2ed0a8f0a9aa441b7866b02904992a`는 전체 성공이다. root2426=2177통과/249조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0이며 전용 시험 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 정리2종 SUCCEEDED, Node154/154 및 Linux 설치12/12를 확인했다.

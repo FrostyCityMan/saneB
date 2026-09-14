@@ -2,6 +2,8 @@
 
 ## 현재 단계
 
+2026-09-15 04:56 증분: [제천 모델](announcement-jecheon-bbs-profile-2026-09-15.md)을 추가하여 코드 등록14개(지자체13개)다. 제천은 저장소 V62 기준 HEURISTIC_NOTICE 결합이며 공식 BODY3/첨부4 signature 검증을 통과했다. 원주·제천 운영 결합은 재인증 전 미확인, catalog는 참조15/실행 기대값0이다. 아래 운영 snapshot과 각 이전 증분 수치를 최신 전체 완료 수치로 확대하지 않는다.
+
 2026-09-15 04:36 증분: [원주 고정 프로필](announcement-wonju-bbs-profile-2026-09-15.md)을 추가하여 코드 등록은13개(지자체12개)다. 원주 목록 parser 결합은 저장소 V62 기준 HEURISTIC_NOTICE이며 AWS 세션 만료로 현재 운영 재확인은 못 했다. 따라서 아래 운영 snapshot 대조11개/미결합212개를211개로 바꾸지 않는다. 원주 실파일6개 중5개 signature 통과·1개 형식 불일치이며 실제 텍스트/역할/정책 QA 성공으로 세지 않는다.
 
 2026-09-15 실제 운영 읽기 전용 조회: 활성 미삭제 지자체223개, 목록 파서41종이다. 이 수치는 첨부 엔진6종/등록 프로필12개 또는 정상 첨부 지원 수와 같지 않다. 기존 모든 대상의 분모를 유지하며 실제 연결·본문/첨부 영역·형식 적용성과 남은 기관을 확인해야 한다. [운영 근거](../deployment/attachment-runtime-baseline-2026-09-15.md)를 참조한다. 아래 초기 구현 시점 기록은 현재 전체 구현/운영 검증 완료를 뜻하지 않는다.
@@ -10,7 +12,7 @@
 
 Gate3 진행, 전체 Gate0~8 최종 통과0이다. 이 문서는 ATT-001~062와 실제 전체 Provider/운영 검증을 대체하지 않는다.
 
-- [x] 시스템 첨부 프로필13개의 기관/목록 parser 결합을 코드로 선언한다. 코드 선언과 현재 운영 결합 확인은 별개다.
+- [x] 시스템 첨부 프로필14개의 기관/목록 parser 결합을 코드로 선언한다. 코드 선언과 현재 운영 결합 확인은 별개다.
 - [x] 기업마당·정부24·현재 활성 미삭제 지자체 전체를 빠짐없이 요구 목록에 포함한다.
 - [x] 미구현·파서 불일치·중복 결합·단순 시스템 결합을 구분하고 읽기 전용 API로 조회한다.
 - [x] 내부 snapshot schema6에 전체 요구 목록과 catalog 계획을 고정하고 MISSING 단계에는 요구 목록 지문/요약을 저장한다.
@@ -34,7 +36,7 @@ Gate3 진행, 전체 Gate0~8 최종 통과0이다. 이 문서는 ATT-001~062와 
 - planHash는 **구조적 요구 목록**의 지문이다. URL/원문/실파일 현재성·정책 전체 snapshotHash·실행 성공을 대신하지 않는다. 전체 정책 snapshot은 기존 configurationHash와 설치 지문도 별도로 포함한다.
 - isPolicyManifestCurrent는 저장된 정책의 전체 프로필 manifest와 현재 등록 목록의 일치만 뜻한다. 실제 운영 정책 활성화나 QA 통과가 아니다.
 
-요구 목록 조회 자체는 추가 migration이 없다. 후속 V79 원장과 schemaVersion6의 providerQaPlan/providerQaCatalog가 전체 요구 목록·catalog 계획을 고정한다. 이전 schema1~5 이력은 수정하지 않으며 현재 입력과 달라 재사용할 수 없다. 기존 `/api/v1`과 기존 v2 요청/응답 shape는 유지한다. catalog9건은 REFERENCE_ONLY/실행 기대값0이며 세부 구현·전체 잔여는 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
+요구 목록 조회 자체는 추가 migration이 없다. 후속 V79 원장과 schemaVersion6의 providerQaPlan/providerQaCatalog가 전체 요구 목록·catalog 계획을 고정한다. 이전 schema1~5 이력은 수정하지 않으며 현재 입력과 달라 재사용할 수 없다. 기존 `/api/v1`과 기존 v2 요청/응답 shape는 유지한다. catalog15건은 REFERENCE_ONLY/실행 기대값0이며 세부 구현·전체 잔여는 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
 
 ## 대상·상태 정의
 

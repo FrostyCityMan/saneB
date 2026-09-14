@@ -15,7 +15,7 @@ import org.jsoup.nodes.Element;
 
 /** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
-    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY }
+    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
     private static final Set<String> SOURCE_PARAMETERS = Set.of("key", "bbsNo", "nttNo", "searchCtgry",
@@ -47,10 +47,11 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     @Override public String selectProfileCode() { return code; }
     @Override public String selectProfileHash() { return hash; }
     @Override public Set<String> selectApprovedHosts() { return Set.of(host); }
-    // 횡성·영월·원주는 실측한 UTF-8 header octet만 엄격 복원한다. 형식 불일치 검사는 완화하지 않는다.
-    @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp; }
+    // 기관별로 실측한 header octet만 복원한다. 제천은 실제 기본 검사 통과를 확인해 복원하지 않는다.
+    @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp && layout != Layout.COMPACT_SVG; }
     @Override public Set<String> selectLegacyBinaryContentTypes() {
         if (layout == Layout.COMPACT_MENU_KEY) return Set.of();
+        if (layout == Layout.COMPACT_SVG) return Set.of("application/x-msdownload");
         return Set.of(upgradeStoredHttp ? "application/x-msdownload" : "application/octer-stream");
     }
     @Override public URI selectDetailUri(String noticeId) { throw new IllegalArgumentException("PROFILE_REQUIRED"); }
@@ -68,6 +69,11 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
             // 횡성 목록의 익명 세션 경로는 원문 identity 검증에만 사용한다. 네트워크/locator에 전달하지 않는다.
             if (layout == Layout.COMPACT && path.matches(DETAIL.replace(".", "\\.") + ";jsessionid=[A-Za-z0-9.-]{1,128}")) path = DETAIL;
             Map<String, String> query = selectParameters(original.getRawQuery());
+            // 제천 목록의 빈 id는 collector가 정규화한 저장 URL에서만 제거한다. 새 요청에는 전송하지 않는다.
+            if (layout == Layout.COMPACT_SVG && "".equals(query.get("id"))) {
+                query = new LinkedHashMap<>(query);
+                query.remove("id");
+            }
             if (!DETAIL.equals(path) || !SOURCE_PARAMETERS.containsAll(query.keySet()) || !selectDetailParameters(query))
                 throw new IllegalArgumentException();
             return URI.create("https://" + host + DETAIL + "?key=" + menu + "&bbsNo=" + board + "&nttNo=" + query.get("nttNo"));
@@ -94,7 +100,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
                 : table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim()) && e.nextElementSibling() != null
                         && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count() == 1;
         if (!subject || table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).count() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
-        var labels = table.select("th").stream().filter(e -> e.closest("table") == table && "파일".equals(e.text().trim())).toList();
+        var labels = table.select("th").stream().filter(e -> e.closest("table") == table
+                && (layout == Layout.COMPACT_SVG ? "첨부파일" : "파일").equals(e.text().trim())).toList();
         if (labels.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element label = labels.getFirst(), cell = label.nextElementSibling();
         if (cell == null || !"td".equals(cell.tagName()) || !"tr".equals(label.parent().tagName()) || cell.nextElementSibling() != null)
@@ -127,7 +134,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
             Element residue = item.clone();
             residue.select(compactLayout ? "a.p-attach__link" : "div.down_view > span, a.file_down, a.file_down2").remove();
             var previews = item.select(compactLayout ? "a.p-attach__preview" : "a.file_view");
-            if (previews.size() > 1 || previews.stream().anyMatch(a -> !selectPreview(detail, a.attr("href"), attachmentId, noticeId))) unresolved = true;
+            if (previews.size() > 1 || previews.stream().anyMatch(a -> !selectPreview(detail, a.attr("href"), attachmentId, noticeId)
+                    || (layout == Layout.COMPACT_SVG && (a.parent() != item || a.childrenSize() != 1 || !selectSvgIcon(a.child(0), false))))) unresolved = true;
             else residue.select(compactLayout ? "a.p-attach__preview" : "a.file_view").remove();
             // 이름/다운로드/검증한 미리보기 외 요소를 숨겨 부분 발견을 완료로 만들지 않는다.
             if (!residue.text().isBlank() || !residue.select("*:not(li):not(div)").isEmpty()
@@ -158,7 +166,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectDownloadParameters(Map<String, String> query) {
         if (!selectId(query.get("atchmnflNo"))) return false;
-        if (layout == Layout.COMPACT) return query.keySet().equals(Set.of("atchmnflNo"));
+        if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG) return query.keySet().equals(Set.of("atchmnflNo"));
         return upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
                 : query.keySet().equals(Set.of("bbsNo", "atchmnflNo")) && board.equals(query.get("bbsNo"));
     }
@@ -166,6 +174,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         URI uri = selectResolved(detail, href);
         if (!selectOrigin(uri, false)) return false;
         Map<String, String> query = selectParameters(uri.getRawQuery());
+        if (layout == Layout.COMPACT_SVG) return "/previewBbs.do".equals(uri.getPath())
+                && query.equals(Map.of("atchmnflNo", attachmentId));
         if (layout == Layout.COMPACT) return "/www/previewBbsFile.do".equals(uri.getPath())
                 && query.equals(Map.of("atchmnflNo", attachmentId));
         if (upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY) return "/www/previewUrl.do".equals(uri.getPath())
@@ -204,6 +214,10 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectFileStructure(Element item, Element anchor, Element name) {
         if (!name.select("[href],[srcset]").isEmpty()) return false;
+        if (layout == Layout.COMPACT_SVG) return item.hasClass("p-attch__item") && anchor.parent() == item
+                && anchor.childrenSize() == 3 && anchor.child(0).hasClass("p-icon")
+                && "span".equals(anchor.child(0).tagName()) && anchor.child(0).children().isEmpty()
+                && anchor.child(1) == name && name.children().isEmpty() && selectSvgIcon(anchor.child(2), true);
         if (compactLayout) return item.hasClass("p-attach__item") && anchor.parent() == item
                 && anchor.children().size() == 2 && anchor.child(0).hasClass("p-icon")
                 && "span".equals(anchor.child(0).tagName()) && anchor.child(0).children().isEmpty()
@@ -214,6 +228,19 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
                     && e.attr("src").matches("/common/images/board/file/ico_[A-Za-z0-9]+\\.gif"))
                 && name.children().size() <= 1 && anchor.children().stream().allMatch(e -> "i".equals(e.tagName())
                     && e.attributes().size() == 0 && e.children().isEmpty() && e.text().isBlank());
+    }
+    private boolean selectSvgIcon(Element svg, boolean download) {
+        if (!"svg".equals(svg.tagName()) || svg.childrenSize() != 1 || !svg.ownText().isBlank()
+                || !Set.of("width", "height", "fill", "focusable", "class").containsAll(svg.attributes().asList().stream().map(a -> a.getKey()).toList())
+                || !svg.attr("width").matches("[1-9][0-9]{0,2}") || !svg.attr("height").matches("[1-9][0-9]{0,2}")
+                || !svg.attr("fill").matches("#[0-9A-Fa-f]{6}") || !"false".equals(svg.attr("focusable"))
+                || !(download ? "margin_l_5" : "").equals(svg.className())) return false;
+        Element use = svg.child(0);
+        return "use".equals(use.tagName()) && use.children().isEmpty() && use.text().isBlank()
+                && (download ? Set.of("xlink:href", "y") : Set.of("xlink:href"))
+                    .equals(Set.copyOf(use.attributes().asList().stream().map(a -> a.getKey()).toList()))
+                && ("/common/images/program/p-icon.svg#" + (download ? "arrow-circle-down" : "search")).equals(use.attr("xlink:href"))
+                && (!download || "2".equals(use.attr("y")));
     }
     private boolean selectId(String value) { return value != null && value.matches("[1-9][0-9]{0,14}"); }
     private boolean selectSafeName(String name) {

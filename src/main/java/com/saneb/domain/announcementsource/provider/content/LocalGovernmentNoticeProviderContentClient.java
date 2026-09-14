@@ -446,14 +446,17 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             return selectBusanContentElement(document, sourceUri);
         if ("child.gangbuk.go.kr".equals(host) && "/portal/bbs/B0000245/view.do".equals(sourceUri.getPath()))
             return selectGangbukContentElement(document, sourceUri);
-        if ("www.wonju.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {
+        if (("www.wonju.go.kr".equals(host) || "www.jecheon.go.kr".equals(host)) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {
+            boolean jecheon = "www.jecheon.go.kr".equals(host);
             var parameters = selectBodyDetailParameters(sourceUri);
-            if (!"140".equals(parameters.get("bbsNo")) || !"216".equals(parameters.get("key"))
+            if (jecheon && "".equals(parameters.get("id"))) parameters.remove("id");
+            if (!(jecheon ? "18" : "140").equals(parameters.get("bbsNo")) || !(jecheon ? "5233" : "216").equals(parameters.get("key"))
                     || !parameters.getOrDefault("nttNo", "").matches("[1-9][0-9]{0,14}")
                     || !java.util.Set.of("key", "bbsNo", "nttNo", "searchCtgry", "searchCnd", "searchKrwd", "pageIndex", "pageUnit", "integrDeptCode")
                         .containsAll(parameters.keySet()))
                 throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
-            var tables = document.select("div.bbs_wrap > div.p-wrap.bbs.bbs__view > table.p-table");
+            var tables = document.select(jecheon ? "div.p-wrap.bbs.bbs__view > table.p-table.block"
+                    : "div.bbs_wrap > div.p-wrap.bbs.bbs__view > table.p-table");
             if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
             var table = tables.getFirst();
             var titles = table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim())

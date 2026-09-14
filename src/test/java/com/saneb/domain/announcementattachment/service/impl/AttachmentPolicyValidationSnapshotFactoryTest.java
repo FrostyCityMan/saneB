@@ -61,7 +61,7 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThat(value.path("schemaVersion").asInt()).isEqualTo(6);
         assertThat(value.path("providerQaPlan").path("summary").path("targetCount").asInt()).isEqualTo(3);
         assertThat(value.path("providerQaCatalog").path("catalogHash").asText()).matches("[0-9a-f]{64}");
-        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(9);
+        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(15);
         assertThat(value.path("providerQaCatalog").path("executableCount").asInt()).isZero();
         assertThat(value.path("providerQaCatalog").path("isQaPassed").asBoolean()).isFalse();
         assertThat(value.path("installed").path("workerDbQa").path("caseIds").size()).isEqualTo(4);

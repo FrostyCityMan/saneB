@@ -41,10 +41,23 @@ class StandardBbsAttachmentProfileLiveQaTest {
     void discoversWonjuFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         discoversAllFilesAndChecksBoundedProductionTransport(sample);
     }
+    static Stream<Sample> selectJecheonCases() {
+        return Stream.of(new Sample(4, "403587", 1, List.of("HWPX")), new Sample(4, "403530", 1, List.of("HWPX")),
+                new Sample(4, "403490", 2, List.of("HWPX", "HWPX")));
+    }
+    @ParameterizedTest(name = "제천 공식 지원 관련 표본 {index}") @MethodSource("selectJecheonCases") @Timeout(150)
+    void discoversJecheonFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
+        discoversAllFilesAndChecksBoundedProductionTransport(sample);
+    }
     @ParameterizedTest(name = "BBS 공식 지원사업 표본 {index}") @MethodSource("selectCases") @Timeout(150)
     void discoversAllFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         var site = StandardBbsAttachmentDiscoveryProfileTest.selectCases().toList().get(sample.profileIndex());
         var profile = site.profile(); var source = StandardBbsAttachmentDiscoveryProfileTest.selectSource(site, sample.noticeId());
+        if (sample.profileIndex() == 4) {
+            var normalizer = new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+            String stored = normalizer.canonicalizeUrl(source.sourceUrl() + "&id=&&searchCtgry=&searchCnd=&searchKrwd=&pageIndex=1&integrDeptCode=");
+            source = new AttachmentDiscoveryProfile.Source(source.providerCode(), normalizer.hash(stored), stored, source.localSourceCode(), source.listParserProfileCode());
+        }
         Path detail = directory.resolve("detail.html"), binary = directory.resolve("attachment.bin");
         var report = new LinkedHashMap<String, Object>(); var files = new ArrayList<Map<String, Object>>();
         var requests = new AtomicLong(); var reserved = new AtomicLong();

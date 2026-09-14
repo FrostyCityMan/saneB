@@ -856,7 +856,7 @@ V1~V78은 변경하지 않는다. V78→V79/빈 DB migration과 실제 PostgreSQ
 
 2026-09-15 새 catalog의 COMPLETE_TEXT 입력에는 역할 규칙·역할/사유·텍스트/블록/전체 assessment 지문을 고정한다. V79 `evidence_json`의 파일 metadata에는 선택적 `roleAssessmentHash`만 추가한다. 기존32KiB 제한과 원장 불변·inputHash/codeHash 결합을 유지하며 기존 행/과거 누락 필드는 재작성하지 않는다. 새 역할 기대값 없는 완전 추출 입력은 실행 준비 불가다. 역할 근거 위치의 실제 값/원문은 QA 원장에 복제하지 않으며 DDL/migration 변경은 없다.
 
-schema1~5 이력은 수정하지 않는다. 현재 catalog/규칙/runtime/전체 scope·준비 상태가 다르면 snapshotHash가 달라져 이전 QA를 재사용할 수 없다. V79에 분할 실행을 예약하는 서비스·HTTP API/scheduler·전체 결과 verifier는 후속 필수 작업이며, 현재 catalog의 기대 coverage를 실제 QA PASSED로 저장하지 않는다. 공식 참조9/실행 기대값0과 정상3공고·세 형식/전체 기관 분모를 그대로 유지한다. 상세는 API24.29 및 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
+schema1~5 이력은 수정하지 않는다. 현재 catalog/규칙/runtime/전체 scope·준비 상태가 다르면 snapshotHash가 달라져 이전 QA를 재사용할 수 없다. V79 예약·서비스·검증기의 후속 구현/실행 상태는 장기 진행 기록을 따르며, catalog의 기대 coverage를 실제 QA PASSED로 저장하지 않는다. 공식 참조는2026-09-15 원주·제천 추가 후15/실행 기대값0이다. 정상3공고·전체 기관 분모와 실제 제공 형식/미확인 적용성을 구분한다. 참조 추가는 DDL·운영 데이터 변경이 아니다. 상세는 API24.29 및 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
 
 ### 11.26 Provider QA 승인 분할 계획 — V80
 

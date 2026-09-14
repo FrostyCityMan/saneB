@@ -25,13 +25,22 @@ class StandardBbsBodyContentLiveQaTest {
     void readsWonjuBodyWithoutRequestingFiles(Sample site) {
         readsMeasuredOfficialBodyWithoutRequestingFiles(site);
     }
+    static Stream<Sample> selectJecheonCases() {
+        return Stream.of(new Sample("www.jecheon.go.kr", "18", "5233", "403587"),
+                new Sample("www.jecheon.go.kr", "18", "5233", "403530"), new Sample("www.jecheon.go.kr", "18", "5233", "403490"));
+    }
+    @ParameterizedTest(name = "제천 본문 표본 {index}") @MethodSource("selectJecheonCases") @Timeout(30)
+    void readsJecheonBodyWithoutRequestingFiles(Sample site) {
+        readsMeasuredOfficialBodyWithoutRequestingFiles(site);
+    }
     @ParameterizedTest(name = "공식 BBS 본문 표본 {index}") @MethodSource("selectCases") @Timeout(30)
     void readsMeasuredOfficialBodyWithoutRequestingFiles(Sample site) {
         var client = new LocalGovernmentNoticeProviderContentClient(true, 3000, 7000, 2 * 1024 * 1024, 3, 1, "saneB-notice-collector/1.0");
         String base = "https://" + site.host() + "/www/";
         var result = client.selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE", UUID.fromString("77000000-0000-0000-0000-000000000001"),
                 base + "selectBbsNttList.do?bbsNo=" + site.board() + "&key=" + site.menu(),
-                base + "selectBbsNttView.do?bbsNo=" + site.board() + "&key=" + site.menu() + "&nttNo=" + site.notice()));
+                base + "selectBbsNttView.do?bbsNo=" + site.board() + "&key=" + site.menu() + "&nttNo=" + site.notice()
+                        + (site.host().equals("www.jecheon.go.kr") ? "&id=" : "")));
         // 실패 시 원문·URL을 assertion 보고서에 복사하지 않는다.
         assertTrue(result.statusCode() == ProviderContentCodes.StatusCode.AVAILABLE,
                 () -> "OFFICIAL_BODY_UNAVAILABLE:" + result.failureCode());
