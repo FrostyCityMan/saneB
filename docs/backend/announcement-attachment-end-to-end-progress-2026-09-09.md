@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-15 01:57 KST — 고정 기업마당 전체 첨부 관측 경로
+
+- 시작 HEAD/origin은 QA 브랜치 `456ab4cef7d6f20f278daa5416451044590ffd5b`다. 사용자 output/Word2개는 보존한다. 기존 goal과 제목→본문→실제 첨부 텍스트→최종 관리자 검증 순서를 유지한다.
+- 기존 실제 파일 시험은 선택한4파일·수동 QA 역할을 사용하므로 전체 공고/자동 역할 검증으로 확대할 수 없다. 새 `attachmentOfficialFileObservation`은 기존 공개 기업마당3공고(SEMAS/안양/서대문)의 공식 전체 descriptor를 사용한다. 고정 제목 선행 Gate·공식 상세 제목 일치→전체 발견→기존 pinned transport/signature→실제 Linux 격리 추출→텍스트 역할/위치 지문 관측이며 파일명으로 역할을 추정하지 않는다.
+- 관측은 승인된 기대값과 별개다. `OBSERVED_NOT_VALIDATED`, `isExpectationApproved=false`, `isPolicyQaPassed=false`를 유지한다. 본문/API 수집·DB worker·운영 연결을 실행하지 않으므로 `isBodyPipelineVerified=false`다. 관측 데이터를 catalog에 자동 등록하거나 UNKNOWN을 NOTICE로 바꾸지 않는다. 원본은 정리하고 코드·형식·품질·건수·지문·역할 근거 위치만 보관한다. 파일별 실패/미지원/미실행과 전체 분모를 보존한다.
+- 고정3공고 각각 파일최대10개·파일20MiB·전체예약80MiB·요청44회·420초 이내다. 운영 key/DB/계정/정책을 사용하지 않고 같은 migration을 적용한 임시 loopback DB의 DRAFT 규칙만 읽는다. 일반 test와 일반 QA push는 외부 호출 OFF이며 명시 수동 입력 또는 QA 커밋의 `[official-file-observation]` 표식에서만 실행한다. 기존 필수 DB 검사와 실패 차단을 유지한다.
+- 표적 `:test --tests '*AnnouncementAttachmentOfficialObservationContractTest' --tests '*AttachmentContractWorkflowTest' bootJar --no-daemon --max-workers=1`은21초 성공,3+8=11건/생략0이다. bootJar는 UP-TO-DATE이며 새 코드는 test/QA workflow 범위다. Node 보고서 판정기10건 통과. 전체 회귀와 실제 Linux 관측은 진행/대기 중이며 성공으로 세지 않는다.
+- 후속 전체 `test bootJar attachmentContractQaTest --no-daemon --max-workers=1`은3분10초 성공, root2394=2148통과/246조건부 생략/실패0 및 독립 실행기/패키지20건 통과다. 실제 공개 파일 관측은 일반 test에서 생략됐다. 추출기 시험/설치·bootJar는 UP-TO-DATE이며 이번 새 실행 통과로 세지 않는다.
+- [Linux34870322920](https://github.com/FrostyCityMan/saneB/actions/runs/34870322920),456ab4c는 주 검증이 통과했지만 독립 DB 실행이 실패했다. 부모 연결 검증은 진행 중이다. 이번에 추가한 고정 suite/case 진단 및 전체 XML로 원인을 특정해야 하며 지난219건 통과를 이번 실행 결과로 대체하지 않는다.
+- Release **Not ready**, goal ACTIVE. 이번 증분에 migration/API/정책/운영 데이터 변경은 없다. 실제 전체 Provider/형식 적용성/역할 기대값·실패 원인 해결·동일 SHA 운영 적용·승인된 데이터 처리·운영 브라우저 Gate가 남아 있다.
+
 ### 2026-09-15 01:36 KST — P4 역할 기대값 결합·공식 9공고 재확인
 
 - 역할 기대값 증분은 `397e59791d99bc161c0b6362759326c3781c14e9`로 로컬 커밋했다. 후속 부모 진단은 비정상 종료의 계약 JSON에서 고정4시험군의 일관된 건수와 최대32개 실패/생략/미실행 시험 지문만 선택한다. 원문 예외/SQL/URL/임의 클래스명은 전달하지 않으며 목록을 제한해도 전체 실패 수와 잘림 여부를 보존한다. 비정상 종료는 계속 실패이고 성공 보고서/위조 scope·지문·자료형·건수·중복 JSON을 진단으로 채택하지 않는다. 진단 보완은 자식 시험 실패의 해결 증거가 아니다.

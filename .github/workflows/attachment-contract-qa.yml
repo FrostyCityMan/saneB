@@ -2,6 +2,11 @@ name: 첨부 DB·작업 계약 Linux QA
 
 'on':
   workflow_dispatch:
+    inputs:
+      observe-official-files:
+        description: '고정 기업마당 3공고 전체 파일 관측 (기대값 승인·배포 없음)'
+        type: boolean
+        default: false
   # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
   push:
     branches:
@@ -24,6 +29,7 @@ jobs:
       SANEB_ATTACHMENT_RULE_EXPORT: 'false'
       SANEB_FLYWAY_INTEGRATION: 'false'
       SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED: 'false'
+      SANEB_ATTACHMENT_OFFICIAL_OBSERVATION: 'false'
     steps:
       - name: 소스 확인
         uses: actions/checkout@v4
@@ -66,6 +72,25 @@ jobs:
       - name: 필수 DB 테스트 누락·생략·실패 차단
         if: always()
         run: node scripts/qa/attachment-contract-report.mjs
+
+      - name: 명시한 공식 공고 전체 첨부 관측 — 정책 검증·배포 아님
+        id: official-observation
+        # 일반 push에서는 공개 사이트를 호출하지 않는다. QA 브랜치의 명시 표식 또는 수동 입력만 허용한다.
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.observe-official-files == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[official-file-observation]'))) }}
+        run: bash ./gradlew attachmentOfficialFileObservation --no-daemon --console=plain --max-workers=1
+
+      - name: 공식 파일 관측 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.official-observation.outcome != 'skipped' && steps.official-observation.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-official-observation-${{ github.sha }}
+          path: |
+            build/reports/attachment-official-observation/BIZINFO-SEMAS-2026.json
+            build/reports/attachment-official-observation/BIZINFO-ANYANG-2026.json
+            build/reports/attachment-official-observation/BIZINFO-SDM-2026.json
+            build/test-results/attachmentOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
 
       - name: 검증 결과 보관
         if: always()

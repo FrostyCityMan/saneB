@@ -236,6 +236,7 @@ tasks.named('test') {
     environment 'SANEB_ATTACHMENT_RULE_EXPORT', 'false'
     environment 'SANEB_ATTACHMENT_PROFILE_QA', 'false'
     environment 'SANEB_ATTACHMENT_WORKER_QA', 'false'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_OBSERVATION', 'false'
 }
 
 tasks.register('attachmentProfileDiscoveryQa', Test) {
@@ -274,6 +275,24 @@ tasks.register('attachmentQaRuleSnapshot', Test) {
     outputs.file(layout.buildDirectory.file('attachment-qa/rules.json'))
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentQaRuleSnapshot')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentQaRuleSnapshot')
+}
+
+tasks.register('attachmentOfficialFileObservation', Test) {
+    description = '고정 기업마당 3공고 전체 첨부를 Linux 격리 추출하여 비식별 관측값만 남깁니다. 기대값 승인·본문/DB·정책 QA 성공이 아닙니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialObservationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_OBSERVATION', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    systemProperty 'saneb.attachment-observation.extractor', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-official-observation').get().asFile.absolutePath
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentOfficialFileObservation')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentOfficialFileObservation')
 }
 
 tasks.register('attachmentRealFileQa', Test) {

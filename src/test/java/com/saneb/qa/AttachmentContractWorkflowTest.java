@@ -56,11 +56,28 @@ class AttachmentContractWorkflowTest {
         var report=steps.stream().filter(item -> "node scripts/qa/attachment-contract-report.mjs".equals(item.get("run"))).findFirst().orElseThrow();
         assertThat(report.get("if")).isEqualTo("always()");
         assertThat(report.containsKey("continue-on-error")).isFalse();
-        var artifact=steps.stream().filter(item -> "actions/upload-artifact@v4".equals(item.get("uses"))).findFirst().orElseThrow();
+        var artifact=steps.stream().filter(item -> "검증 결과 보관".equals(item.get("name"))).findFirst().orElseThrow();
         var options=(Map<?,?>)artifact.get("with");
         assertThat(options.get("if-no-files-found")).isEqualTo("error");
         assertThat(options.get("retention-days")).isEqualTo(7);
         assertThat(((String)options.get("path")).lines().toList()).allSatisfy(path -> assertThat(path).endsWith("/TEST-*.xml"));
+    }
+    @Test void officialObservationIsExplicitlyOptedInAndNeverInNormalTestsOrRawArtifactUploads() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(inputs.get("observe-official-files")).isEqualTo(Map.of("description","고정 기업마당 3공고 전체 파일 관측 (기대값 승인·배포 없음)","type","boolean","default",false));
+        var all=steps(job(flow)).stream().map(item -> (Map<?,?>)item).toList();
+        var observation=all.stream().filter(item -> "official-observation".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(observation.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.observe-official-files == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[official-file-observation]'))) }}");
+        assertThat(observation.get("run")).isEqualTo("bash ./gradlew attachmentOfficialFileObservation --no-daemon --console=plain --max-workers=1");
+        assertThat(((Map<?,?>)job(flow).get("env")).get("SANEB_ATTACHMENT_OFFICIAL_OBSERVATION")).isEqualTo("false");
+        var artifact=all.stream().filter(item -> "공식 파일 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-official-observation/BIZINFO-SEMAS-2026.json",
+                "build/reports/attachment-official-observation/BIZINFO-ANYANG-2026.json",
+                "build/reports/attachment-official-observation/BIZINFO-SDM-2026.json",
+                "build/test-results/attachmentOfficialFileObservation/TEST-*.xml");
+        assertThat(Files.readString(Path.of("build.gradle"))).contains("environment 'SANEB_ATTACHMENT_OFFICIAL_OBSERVATION', 'false'");
     }
     @Test void includesPolicyUiAndIndependentContractRuntimeInsteadOfOnlyPackaging() throws Exception {
         String raw=Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml"));
