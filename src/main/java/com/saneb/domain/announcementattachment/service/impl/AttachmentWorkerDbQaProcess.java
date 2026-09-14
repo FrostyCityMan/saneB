@@ -109,7 +109,7 @@ public final class AttachmentWorkerDbQaProcess {
             if(!allowed.getAsBoolean() || System.nanoTime()>=expires) throw new Failure("EXECUTION_STOPPED");
             byte[] bytes=output.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
             byte[] errors=error.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
-            if(process.exitValue()!=0) throw new Failure(selectChildFailureCode(bytes,errors));
+            if(process.exitValue()!=0) throw new Failure(selectChildFailureCode(bytes,errors),selectFailureDiagnostics(bytes,mapper));
             JsonNode report;
             try { report=mapper.readTree(bytes); }
             catch(com.fasterxml.jackson.core.JsonProcessingException exception) {
@@ -168,6 +168,60 @@ public final class AttachmentWorkerDbQaProcess {
         }
         return "QA_CHILD_FAILED";
     }
+    public record FailedCase(String caseIdHash,String status) { }
+    public record FailedSuite(String suiteCode,int discovered,int passed,int failed,int skipped,int notRun) { }
+    public record FailureDiagnostics(int discovered,int passed,int failed,int skipped,int notRun,int failedContainers,
+                                     List<FailedSuite> suites,List<FailedCase> cases,boolean casesTruncated) {
+        public FailureDiagnostics {suites=List.copyOf(suites);cases=List.copyOf(cases);}
+    }
+    /** 실패 원문을 저장하지 않고 고정 suite/시험 지문·건수만 CI 진단에 제공한다. 성공 증거로 사용하지 않는다. */
+    static FailureDiagnostics selectFailureDiagnostics(byte[] bytes,ObjectMapper mapper) {
+        try {
+            if(bytes==null || bytes.length>MAX_OUTPUT)return null;
+            var root=mapper.copy().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                    .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION).readTree(bytes);
+            if(root==null || !"SYNTHETIC_WORKER_DB_CONTRACTS_V2".equals(root.path("scope").textValue())
+                    || !root.path("reportSchemaVersion").isIntegralNumber() || !root.path("reportSchemaVersion").canConvertToInt()
+                    || root.path("reportSchemaVersion").intValue()!=2)return null;
+            var value=root.path("result");if(!"FAILED".equals(value.path("status").textValue()))return null;
+            int discovered=diagnosticCount(value,"discovered"),passed=diagnosticCount(value,"passed"),failed=diagnosticCount(value,"failed"),
+                    skipped=diagnosticCount(value,"skipped"),notRun=diagnosticCount(value,"notRun"),containers=diagnosticCount(value,"failedContainers");
+            if(discovered!=passed+failed+skipped+notRun || failed+skipped+notRun+containers==0)return null;
+            var required=Map.of("com.saneb.db.AnnouncementAttachmentJobIntegrationTest","JOB_CONTRACTS",
+                    "com.saneb.db.AnnouncementAttachmentMigrationTest","MIGRATION_CONTRACTS",
+                    "com.saneb.db.AnnouncementAttachmentBackfillIntegrationTest","BACKFILL_CONTRACTS",
+                    "com.saneb.db.AnnouncementAttachmentWorkerIntegrationTest","WORKER_CONTRACTS");
+            if(!value.path("suites").isArray() || value.path("suites").size()!=4 || !value.path("cases").isArray()
+                    || value.path("cases").size()!=discovered)return null;
+            var suites=new ArrayList<FailedSuite>();var seen=new HashSet<String>();
+            for(var suite:value.path("suites")) {
+                String code=required.get(suite.path("suite").textValue());if(code==null || !seen.add(code))return null;
+                var row=new FailedSuite(code,diagnosticCount(suite,"discovered"),diagnosticCount(suite,"passed"),
+                        diagnosticCount(suite,"failed"),diagnosticCount(suite,"skipped"),diagnosticCount(suite,"notRun"));
+                if(row.discovered()!=row.passed()+row.failed()+row.skipped()+row.notRun())return null;
+                suites.add(row);
+            }
+            if(suites.stream().mapToInt(FailedSuite::discovered).sum()!=discovered || suites.stream().mapToInt(FailedSuite::passed).sum()!=passed
+                    || suites.stream().mapToInt(FailedSuite::failed).sum()!=failed || suites.stream().mapToInt(FailedSuite::skipped).sum()!=skipped
+                    || suites.stream().mapToInt(FailedSuite::notRun).sum()!=notRun)return null;
+            var cases=new ArrayList<FailedCase>();var ids=new HashSet<String>();var counts=new HashMap<String,Integer>();
+            for(var item:value.path("cases")) {
+                String hash=item.path("caseIdHash").textValue(),status=item.path("status").textValue();
+                if(hash==null || !hash.matches("[0-9a-f]{64}") || !ids.add(hash)
+                        || status==null || !Set.of("PASSED","FAILED","SKIPPED","NOT_RUN").contains(status))return null;
+                counts.merge(status,1,Integer::sum);
+                if(!"PASSED".equals(status) && cases.size()<32)cases.add(new FailedCase(hash,status));
+            }
+            if(counts.getOrDefault("PASSED",0)!=passed || counts.getOrDefault("FAILED",0)!=failed
+                    || counts.getOrDefault("SKIPPED",0)!=skipped || counts.getOrDefault("NOT_RUN",0)!=notRun)return null;
+            return new FailureDiagnostics(discovered,passed,failed,skipped,notRun,containers,suites,cases,failed+skipped+notRun>32);
+        }catch(IOException|RuntimeException invalid){return null;}
+    }
+    private static int diagnosticCount(JsonNode node,String field) {
+        var value=node.path(field);
+        if(!value.isIntegralNumber() || !value.canConvertToInt() || value.intValue()<0 || value.intValue()>10000)throw new IllegalArgumentException();
+        return value.intValue();
+    }
     private static void deleteWork(Path work) {
         try {
             Path target=work.toAbsolutePath().normalize();
@@ -183,7 +237,10 @@ public final class AttachmentWorkerDbQaProcess {
     }
     public static final class Failure extends RuntimeException {
         private final String code;
-        public Failure(String code) {super(code);this.code=code;}
+        private final FailureDiagnostics diagnostics;
+        public Failure(String code) {this(code,null);}
+        private Failure(String code,FailureDiagnostics diagnostics) {super(code);this.code=code;this.diagnostics=diagnostics;}
         public String selectCode() {return code;}
+        public FailureDiagnostics selectDiagnostics() {return diagnostics;}
     }
 }

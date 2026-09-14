@@ -13,6 +13,8 @@
 
 ### 2026-09-15 01:36 KST — P4 역할 기대값 결합·공식 9공고 재확인
 
+- 역할 기대값 증분은 `397e59791d99bc161c0b6362759326c3781c14e9`로 로컬 커밋했다. 후속 부모 진단은 비정상 종료의 계약 JSON에서 고정4시험군의 일관된 건수와 최대32개 실패/생략/미실행 시험 지문만 선택한다. 원문 예외/SQL/URL/임의 클래스명은 전달하지 않으며 목록을 제한해도 전체 실패 수와 잘림 여부를 보존한다. 비정상 종료는 계속 실패이고 성공 보고서/위조 scope·지문·자료형·건수·중복 JSON을 진단으로 채택하지 않는다. 진단 보완은 자식 시험 실패의 해결 증거가 아니다.
+- 진단 후속 표적 `.\gradlew.bat :test --tests '*AttachmentWorkerDbQaProcessTest' --tests '*AttachmentWorkerDbQaGateTest' --tests '*AttachmentContractWorkflowTest' attachmentContractQaTest bootJar --no-daemon --max-workers=1`은43초 성공했다. 부모process20/gate10/workflow7 및 독립 실행기/패키지20건, 총57건 통과·생략0이다. bootJar 재생성 완료. 사용한 로컬 Java/Node 프로세스는 종료했다. 후속 원격에서 같은 SHA의 실제 실패 지점을 확인해야 한다.
 - 기준 QA HEAD/origin은 `657fd31abc5a0b89042a5e30721d09cab7484061`, origin/master는 `ae893b87348a9bd1cb0893763f6cad5047093a24`다. 새 증분은 catalog 고정 역할/사유/텍스트/위치/assessment 지문→실제 추출 역할 판정→V79 안전 metadata→원장 재검증이다. 기존 v1/v2 HTTP shape, 과거 누락 필드 hash, V1~V82 및 운영 데이터는 보존한다.
 - COMPLETE_TEXT인데 역할 기대값 없는 새 catalog 항목은 실행 준비 불가다. UNKNOWN 음성 결과나 양식/참고자료만 있는 공고는 정상3공고를 채우지 않는다. 실제 파일 관측·검토 없이 catalog 기대값을 자동 생성하거나 QA 통과로 바꾸지 않았다. 공식 참조9/실행 기대값0과 전체 형식 적용성·Provider UI는 잔여다.
 - 표적 Provider265건/생략0 및 bootJar 통과(55초). 첫 실행의 전체 근거 시험26건은 quality-only 합성 입력이 새 catalog 계약에서 거부되어 실패했으며, 검증 항목을 유지하고 역할 근거를 합성 fixture에 연결한 뒤 모두 통과했다.

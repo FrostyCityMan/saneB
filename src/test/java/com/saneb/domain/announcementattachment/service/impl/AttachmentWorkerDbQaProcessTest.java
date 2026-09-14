@@ -27,6 +27,67 @@ class AttachmentWorkerDbQaProcessTest {
     private AttachmentWorkerDbQaProcess.Result execute(Process child) {
         return AttachmentWorkerDbQaProcess.selectProcessResult(()->child,Instant.now().plusSeconds(3),30,()->true,mapper);
     }
+    private com.fasterxml.jackson.databind.node.ObjectNode failedReport() {
+        var root=mapper.createObjectNode().put("scope","SYNTHETIC_WORKER_DB_CONTRACTS_V2").put("reportSchemaVersion",2);
+        var result=root.putObject("result").put("status","FAILED").put("discovered",4).put("passed",3).put("failed",1)
+                .put("skipped",0).put("notRun",0).put("failedContainers",0);
+        var suites=result.putArray("suites");var cases=result.putArray("cases");int i=0;
+        for(String name:java.util.List.of("AnnouncementAttachmentJobIntegrationTest","AnnouncementAttachmentMigrationTest",
+                "AnnouncementAttachmentBackfillIntegrationTest","AnnouncementAttachmentWorkerIntegrationTest")) {
+            suites.addObject().put("suite","com.saneb.db."+name).put("discovered",1).put("passed",i==0?0:1)
+                    .put("failed",i==0?1:0).put("skipped",0).put("notRun",0);
+            cases.addObject().put("caseIdHash",Integer.toHexString(++i).repeat(64)).put("status",i==1?"FAILED":"PASSED");
+        }
+        return root;
+    }
+    @Test void failedContractReportKeepsOnlyFixedSuiteCountsAndCaseHashes() throws Exception {
+        var report=failedReport();report.put("privateException","PRIVATE_CANARY");
+        var child=child(mapper.writeValueAsBytes(report),true,1);
+        try {execute(child);fail("nonzero child must fail");}
+        catch(AttachmentWorkerDbQaProcess.Failure failure) {
+            assertThat(failure).hasMessage("QA_CHILD_FAILED").hasNoCause();
+            var safe=failure.selectDiagnostics();assertThat(safe).isNotNull();assertThat(safe.discovered()).isEqualTo(4);
+            assertThat(safe.failed()).isEqualTo(1);assertThat(safe.casesTruncated()).isFalse();
+            assertThat(safe.cases()).singleElement().satisfies(c->assertThat(c.caseIdHash()).isEqualTo("1".repeat(64)));
+            assertThat(safe.suites().getFirst().suiteCode()).isEqualTo("JOB_CONTRACTS");
+            assertThat(mapper.writeValueAsString(safe)).doesNotContain("PRIVATE_CANARY","privateException","com.saneb.db");
+        }
+        verify(child).waitFor(5,TimeUnit.SECONDS);
+    }
+    @Test void forgedCountsTypesScopesAndPrivateIdentifiersDoNotEnterDiagnostics() throws Exception {
+        for(String field:java.util.List.of("scope","version","floatVersion","overflowVersion","count","numericString","hash","status","suite","duplicate","countMismatch","trailing","duplicateJson")) {
+            var root=failedReport();var r=(com.fasterxml.jackson.databind.node.ObjectNode)root.path("result");
+            switch(field) {
+                case "scope" -> root.put("scope","PRIVATE_CANARY");case "version" -> root.put("reportSchemaVersion",1);
+                case "floatVersion" -> root.put("reportSchemaVersion",2.0);case "overflowVersion" -> root.put("reportSchemaVersion",4294967298L);
+                case "count" -> r.put("failed",10001);
+                case "numericString" -> r.put("failed","1");case "hash" -> ((com.fasterxml.jackson.databind.node.ObjectNode)r.path("cases").get(0)).put("caseIdHash","PRIVATE_CANARY");
+                case "status" -> ((com.fasterxml.jackson.databind.node.ObjectNode)r.path("cases").get(0)).put("status","PRIVATE_CANARY");
+                case "suite" -> ((com.fasterxml.jackson.databind.node.ObjectNode)r.path("suites").get(0)).put("suite","PRIVATE_CANARY");
+                case "duplicate" -> r.withArray("cases").set(1,r.path("cases").get(0).deepCopy());
+                case "countMismatch" -> ((com.fasterxml.jackson.databind.node.ObjectNode)r.path("cases").get(0)).put("status","PASSED");
+                default -> { }
+            }
+            String json=mapper.writeValueAsString(root);
+            if(field.equals("trailing"))json+=" {}";
+            if(field.equals("duplicateJson"))json=json.replaceFirst("\\{","{\"reportSchemaVersion\":2,");
+            assertThat(AttachmentWorkerDbQaProcess.selectFailureDiagnostics(json.getBytes(java.nio.charset.StandardCharsets.UTF_8),mapper)).as(field).isNull();
+        }
+    }
+    @Test void passedOrNonReportFailureCannotBecomeFailedContractEvidence() throws Exception {
+        var report=failedReport();report.withObject("result").put("status","PASSED");
+        for(byte[] bytes:java.util.List.of(mapper.writeValueAsBytes(report),"not-json PRIVATE_CANARY".getBytes(),new byte[AttachmentWorkerDbQaProcess.MAX_OUTPUT+1]))
+            assertThat(AttachmentWorkerDbQaProcess.selectFailureDiagnostics(bytes,mapper)).isNull();
+        assertThat(new AttachmentWorkerDbQaProcess.Failure("QA_CHILD_FAILED").selectDiagnostics()).isNull();
+    }
+    @Test void failedCaseDiagnosticsAreBoundedWithoutReducingTheFailureCount() throws Exception {
+        var root=failedReport();var r=root.withObject("result");r.put("discovered",40).put("passed",0).put("failed",40);
+        var cases=r.withArray("cases").removeAll();
+        for(int i=0;i<40;i++)cases.addObject().put("caseIdHash",String.format(java.util.Locale.ROOT,"%064x",i)).put("status","FAILED");
+        for(var item:r.withArray("suites"))((com.fasterxml.jackson.databind.node.ObjectNode)item).put("discovered",10).put("passed",0).put("failed",10);
+        var safe=AttachmentWorkerDbQaProcess.selectFailureDiagnostics(mapper.writeValueAsBytes(root),mapper);
+        assertThat(safe).isNotNull();assertThat(safe.failed()).isEqualTo(40);assertThat(safe.cases()).hasSize(32);assertThat(safe.casesTruncated()).isTrue();
+    }
     @Test void outputIsReadConcurrentlyAndSuccessIsNotYetMarkedAsFilesystemCleanup() throws Exception {
         var result=execute(child("{\"status\":\"PASSED\"}".getBytes(),true,0));
         assertThat(result.report().path("status").asText()).isEqualTo("PASSED");assertThat(result.originalRemoved()).isFalse();

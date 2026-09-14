@@ -50,8 +50,15 @@ public final class AttachmentPolicyDbQaCiMain {
             var ledger=new AttachmentContractQaMain.Ledger(plan,List.of(suite));
             session.getLauncher().execute(plan,ledger,new TestExecutionListener() {
                 @Override public void executionFinished(TestIdentifier test,TestExecutionResult result) {
-                    if(result.getStatus()==TestExecutionResult.Status.FAILED)
+                    if(result.getStatus()==TestExecutionResult.Status.FAILED) {
                         System.out.println("POLICY_DB_QA_FAILURE_CODE="+selectFailureCode(result.getThrowable().orElse(null)));
+                        Throwable failure=result.getThrowable().orElse(null);
+                        for(int depth=0;failure!=null && depth<10;depth++,failure=failure.getCause())
+                            if(failure instanceof com.saneb.domain.announcementattachment.service.impl.AttachmentWorkerDbQaProcess.Failure child
+                                    && child.selectDiagnostics()!=null) {
+                                System.out.println("POLICY_DB_QA_CHILD_DIAGNOSTIC="+new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(child.selectDiagnostics()));break;
+                            }
+                    }
                 }
             });
             return ledger.selectResult(false);
