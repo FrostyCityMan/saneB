@@ -9,6 +9,17 @@ import org.junit.jupiter.api.Test;
 class AnnouncementAttachmentOfficialObservationContractTest {
     private static final ObjectMapper JSON = new ObjectMapper();
 
+    @Test void officialEmptyTemplateTitleIsIgnoredButMissingConflictingOrChangedContentTitlesFail() {
+        var valid=org.jsoup.Jsoup.parse("<meta property='og:title' content='소상공인 지원 공고'><meta property='og:title' content=''>");
+        assertThatCode(()->AnnouncementAttachmentOfficialObservationTest.validateOfficialTitle(valid,"소상공인 지원 공고")).doesNotThrowAnyException();
+        for(String html:List.of("<meta property='og:title' content=''>",
+                "<meta property='og:title' content='소상공인 지원 공고'><meta property='og:title' content='다른 공고'>",
+                "<meta property='og:title' content='변경된 공고'>")) {
+            assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.validateOfficialTitle(org.jsoup.Jsoup.parse(html),"소상공인 지원 공고"))
+                    .isInstanceOf(AssertionError.class);
+        }
+    }
+
     @Test void completeActualTextRetainsRoleAndLocationProofWithoutRawDocumentContent() throws Exception {
         String text="소상공인 지원 공고\n지원대상\n지원내용\n신청기간\nPRIVATE_CANARY_DO_NOT_COPY";
         var input=JSON.valueToTree(Map.of("qualityCode","COMPLETE_TEXT","text",text,"blocks",List.of(

@@ -87,10 +87,10 @@ class AnnouncementAttachmentOfficialObservationTest {
             AttachmentDiscoveryProfile.Result discovered;
             try (var input = Files.newInputStream(detail)) {
                 var page = Jsoup.parse(input, null, uri.toASCIIString());
-                var headings = page.select("meta[property=og:title]");
-                assertEquals(1, headings.size(), "TITLE_STRUCTURE_CHANGED");
-                assertTrue(selectNormalizedTitle(sample.title()).equals(selectNormalizedTitle(headings.getFirst().attr("content"))), "TITLE_CHANGED");
+                stage = "TITLE_CONFIRMATION";
+                validateOfficialTitle(page, sample.title());
                 report.put("titleHash", selectHash(sample.title()));
+                stage = "DETAIL_DISCOVERY";
                 discovered = PROFILE.selectDescriptors(sample.notice(), page.outerHtml());
             } finally { Files.deleteIfExists(detail); }
             report.put("discoveryStatus", discovered.status()); report.put("discoveryComplete", discovered.complete());
@@ -143,6 +143,13 @@ class AnnouncementAttachmentOfficialObservationTest {
             report.put("requestReservations", budget.requests); report.put("reservedBytes", budget.bytes);
             JSON.writerWithDefaultPrettyPrinter().writeValue(reports.resolve(sample.code()+".json").toFile(), report);
         }
+    }
+
+    static void validateOfficialTitle(org.jsoup.nodes.Document page,String expected) {
+        // 실제 기업마당 템플릿은 내용 없는 og:title을 추가한다. 비어 있지 않은 제목의 중복/변경은 허용하지 않는다.
+        var headings=page.select("meta[property=og:title]").stream().map(node->node.attr("content")).filter(value->!value.isBlank()).toList();
+        assertEquals(1,headings.size(),"TITLE_STRUCTURE_CHANGED");
+        assertTrue(selectNormalizedTitle(expected).equals(selectNormalizedTitle(headings.getFirst())),"TITLE_CHANGED");
     }
 
     static Map<String,Object> selectTextObservation(JsonNode actual) throws Exception {
