@@ -102,7 +102,9 @@ public class AnnouncementAttachmentIntakeServiceImpl implements AnnouncementAtta
             var profile=matches.getFirst();
             var settings=mapper.readTree(policy.settingsJson());
             var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),
-                    settings.path("engineVersion").asText(),settings.path("extractorVersion").asText(),settings.path("extractorConfigHash").asText());
+                    settings.path("engineVersion").asText(),settings.path("extractorVersion").asText(),settings.path("extractorConfigHash").asText(),
+                    settings.path("roleRuleVersion").asText(null),settings.path("roleRulesHash").asText(null));
+            if(!execution.selectRoleRulesCurrent()) { intake.updateSourceIntakeStatus(sourceId,"PROFILE_REQUIRED"); return; }
             jobService.insertAttachmentJob(new AttachmentJobReservation(sourceId,policy.policyId(),source.baseEvaluationId(),
                     source.sourceVersion(),source.attachmentVersion(),key,execution,plan.runId(),newSource && "ENFORCE".equals(policy.modeCode())));
             intake.updateSourceIntakeStatus(sourceId,"QUEUED");

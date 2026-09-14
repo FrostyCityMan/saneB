@@ -89,14 +89,15 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         // 이 클래스가 직접 만든 임시 loopback DB만 초기화한다. 앞 사례 실패의 대기 job이 다음 사례를 점유하지 않게 한다.
         sql.update("DELETE FROM announcement_source_links");
         sql.update("DELETE FROM announcement_source_snapshots");
+        execution=new AttachmentExecutionSnapshot(PROFILE.selectProfileCode(),PROFILE.selectProfileHash(),execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash());
         policy = insertPolicy("ENFORCE");
         client = new FixtureClient(); extractor = new CountingExtractor(); worker = selectWorker();
     }
     private UUID insertPolicy(String mode) throws Exception {
         sql.update("UPDATE announcement_attachment_policies SET policy_status_code='RETIRED',row_version=row_version+1 WHERE policy_status_code='ACTIVE'");
         UUID id = UUID.randomUUID();
-        String settings = MAPPER.writeValueAsString(Map.of("engineVersion", execution.engineVersion(), "extractorVersion", execution.extractorVersion(),
-                "extractorConfigHash", execution.extractorConfigHash(), "maximumSourceBytes", 83886080));
+        String settings = MAPPER.writeValueAsString(new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),
+                execution.extractorConfigHash(),83886080L,execution.roleRuleVersion(),execution.roleRulesHash()));
         String manifest = MAPPER.writeValueAsString(List.of(Map.of("providerCode", "BIZINFO", "profileCode", PROFILE.selectProfileCode(), "profileHash", PROFILE.selectProfileHash())));
         sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE',?,?,repeat('d',64),CAST(? AS jsonb),CAST(? AS jsonb),?,now())",
                 id, id.toString(), mode, release, settings, manifest, actor);
@@ -265,6 +266,90 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         assertTemporaryEmpty();
     }
 
+    private void enableRoleRules() throws Exception {
+        execution=new AttachmentExecutionSnapshot(execution.profileCode(),execution.profileHash(),execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH);
+        policy=insertPolicy("ENFORCE");
+    }
+    @Test void textRoleRulesBindActualExtractionAndManualCopyPreservesOriginalAutomaticEvidence() throws Exception {
+        enableRoleRules();client.samples=List.of(new Sample("AR-006","arbitrary.hwpx"));client.roleDocument=selectRoleDocument();
+        var request=selectRequest();reserve(request);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var original=files(request.sourceId()).getFirst();
+        assertThat(original.documentRoleCode()).isEqualTo("NOTICE");assertThat(original.roleOriginCode()).isEqualTo("TEXT_RULE");
+        assertThat(original.roleExtractionId()).isEqualTo(original.extractionId());
+        assertThat(original.roleAssessment().evidence()).hasSize(4);
+        assertThat(sql.queryForObject("SELECT attachment_role_blocks_hash(blocks_json) FROM announcement_source_attachment_extractions WHERE id=?",String.class,original.extractionId()))
+                .isEqualTo(original.roleAssessment().blocksHash());
+        var http=MockMvcBuilders.standaloneSetup(new AnnouncementAttachmentController(bean(AnnouncementAttachmentReadService.class)))
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+        http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-sets/{set}/files",request.sourceId(),set(request.sourceId()).setId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.items[0].roleOriginCode").value("TEXT_RULE"))
+                .andExpect(jsonPath("$.data.items[0].roleAssessment.roleCode").value("NOTICE"))
+                .andExpect(jsonPath("$.data.items[0].roleExtractionId").value(original.extractionId().toString()));
+        var state=bean(AnnouncementAttachmentReviewService.class).selectReviewContextDetails(request.sourceId());
+        bean(AnnouncementAttachmentRoleService.class).insertRoleChange(auth(),request.sourceId(),UUID.randomUUID(),
+                new AttachmentRoleRequest(state.version(),set(request.sourceId()).setId(),List.of(new AttachmentRoleRequest.FileRole(original.fileId(),"REFERENCE")),"합성 문서의 관리자 역할 수정"));
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var copy=files(request.sourceId()).getFirst();
+        assertThat(copy.documentRoleCode()).isEqualTo("REFERENCE");assertThat(copy.roleOriginCode()).isEqualTo("MANUAL");
+        assertThat(copy.roleAssessment()).isEqualTo(original.roleAssessment());
+        assertThat(copy.roleExtractionId()).isEqualTo(copy.extractionId()).isNotEqualTo(original.extractionId());
+        assertThat(copy.reusedFromExtractionId()).isEqualTo(original.extractionId());
+        assertThat(client.requests).isEqualTo(2);assertThat(extractor.calls).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,request.sourceId())).isZero();
+        assertTemporaryEmpty();
+    }
+    @Test void restartedWorkerPreservesTextRoleCheckpointAndDoesNotInferSuccessFromIncompleteEvidence() throws Exception {
+        enableRoleRules();client.samples=List.of(new Sample("AR-003","first.hwp"),new Sample("AR-006","second.hwpx"));client.failureIndex=1;
+        var request=selectRequest();var job=reserve(request);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("HTTP_SERVER_ERROR");
+        client.failureIndex=-1;
+        sql.update("UPDATE announcement_attachment_jobs SET next_attempt_at=clock_timestamp()-interval '1 second' WHERE id=?",job.jobId());
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(extractor.calls).isEqualTo(2);
+        assertThat(files(request.sourceId())).allSatisfy(file->{
+            assertThat(file.roleOriginCode()).isEqualTo("TEXT_RULE");assertThat(file.documentRoleCode()).isEqualTo("UNKNOWN");
+            assertThat(file.roleAssessment()).isNotNull();assertThat(file.roleExtractionId()).isEqualTo(file.extractionId());
+        });
+        assertThat(sql.queryForObject("SELECT decision_status_code FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current",String.class,request.sourceId())).isEqualTo("REVIEW_REQUIRED");
+        assertTemporaryEmpty();
+    }
+    @Test void selectedPartialRetryInfersFreshRoleAndCopiesUnselectedAssessmentWithoutDownloadingAgain() throws Exception {
+        enableRoleRules();client.samples=List.of(new Sample("AR-006","first.hwpx"),new Sample("AR-007","second.hwpx"));
+        var request=selectRequest();reserve(request);assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var before=files(request.sourceId());assertThat(before.get(1).qualityCode()).isEqualTo("PARTIAL_TEXT");
+        assertThat(before.get(1).roleAssessment()).isNull();
+        var state=bean(AnnouncementAttachmentReviewService.class).selectReviewContextDetails(request.sourceId());
+        bean(AnnouncementAttachmentRetryService.class).insertFileRetry(auth(),request.sourceId(),UUID.randomUUID(),new AttachmentRetryRequest(
+                state.version(),set(request.sourceId()).setId(),List.of(before.get(1).fileId()),83886080L,"합성 부분 추출 파일만 재시도"));
+        client.roleDocument=selectRoleDocument();
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var after=files(request.sourceId());
+        assertThat(after.getFirst().roleAssessment()).isEqualTo(before.getFirst().roleAssessment());
+        assertThat(after.getFirst().reusedFromExtractionId()).isEqualTo(before.getFirst().extractionId());
+        assertThat(after.getFirst().roleExtractionId()).isEqualTo(after.getFirst().extractionId());
+        assertThat(after.get(1).documentRoleCode()).isEqualTo("NOTICE");assertThat(after.get(1).roleOriginCode()).isEqualTo("TEXT_RULE");
+        assertThat(after.get(1).roleAssessment().roleCode()).isEqualTo("NOTICE");assertThat(after.get(1).reusedFromExtractionId()).isNull();
+        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(client.fileRequests.get(1)).isEqualTo(2);assertThat(extractor.calls).isEqualTo(3);
+        assertTemporaryEmpty();
+    }
+    private static byte[] selectRoleDocument() throws IOException {
+        // 실제 HWPX 바이트를 격리 parser에 넣는다. 공식 사이트 파일 QA 증거와는 구분한다.
+        var bytes=new java.io.ByteArrayOutputStream();
+        try(var zip=new java.util.zip.ZipOutputStream(bytes)) {
+            String opening="<hs:sec xmlns:hs=\"http://www.hancom.co.kr/hwpml/2011/section\" xmlns:hp=\"http://www.hancom.co.kr/hwpml/2011/paragraph\">";
+            StringBuilder xml=new StringBuilder(opening);
+            for(String line:List.of("😀 지원사업 공고","지원대상: 소상공인","지원내용: 지원금","신청기간: 9월"))
+                xml.append("<hp:p><hp:run><hp:t>").append(line).append("</hp:t></hp:run></hp:p>");
+            for(var entry:Map.of("mimetype","application/hwp+zip","Contents/section0.xml",xml.append("</hs:sec>").toString()).entrySet()) {
+                var item=new java.util.zip.ZipEntry(entry.getKey());item.setTimeLocal(java.time.LocalDateTime.of(2020,1,1,0,0));
+                zip.putNextEntry(item);zip.write(entry.getValue().getBytes(StandardCharsets.UTF_8));zip.closeEntry();
+            }
+        }
+        return bytes.toByteArray();
+    }
     private Map<String,Object> selectBase(AttachmentJobReservation request) {
         return sql.queryForMap("SELECT id,content_version_id,body_source_code,body_availability_code,title_stage_code,body_stage_code,decision_status_code,reason_code,is_current FROM announcement_source_classification_evaluations WHERE id=?",
                 request.expectedBaseDecisionId());
@@ -281,7 +366,7 @@ class AnnouncementAttachmentWorkerIntegrationTest {
     }
     static final class FixtureClient extends AttachmentPinnedDownloadClient {
         List<Sample> samples = List.of(new Sample("AR-001", "notice.pdf"), new Sample("AR-003", "guide.hwp"), new Sample("AR-006", "form.hwpx"), new Sample(null, "unsupported.xlsx"));
-        int requests, failureIndex = -1;String failureCode = "ATTACHMENT_HTTP_503";
+        int requests, failureIndex = -1;String failureCode = "ATTACHMENT_HTTP_503";byte[] roleDocument;
         final Map<Integer,Integer> fileRequests = new HashMap<>();
         @Override public Download selectDownload(Request request, Set<String> hosts, Predicate<Request> approved, Path output, long maximum, ByteReservation bytes) throws IOException {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
@@ -295,7 +380,8 @@ class AnnouncementAttachmentWorkerIntegrationTest {
                 int index = Integer.parseInt(request.uri().getQuery().split("fileSn=")[1]);fileRequests.merge(index, 1, Integer::sum);
                 if (index == failureIndex) throw new IOException(failureCode);
                 var sample = samples.get(index);assertThat(sample.id()).isNotNull();
-                try (var input = AnnouncementAttachmentWorkerIntegrationTest.class.getResourceAsStream("/attachment-runtime-qa/" + sample.id() + ".bin")) {
+                if(roleDocument!=null) content=roleDocument;
+                else try (var input = AnnouncementAttachmentWorkerIntegrationTest.class.getResourceAsStream("/attachment-runtime-qa/" + sample.id() + ".bin")) {
                     if (input == null) throw new IOException("FIXTURE_MISSING");content = input.readAllBytes();
                 }
                 type = "application/octet-stream";

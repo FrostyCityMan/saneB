@@ -11,6 +11,53 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @EnabledIfEnvironmentVariable(named="SANEB_ATTACHMENT_MIGRATION_TEST",matches="true")
 class AnnouncementAttachmentMigrationTest {
+    @Test void textRoleEvidenceRejectsForgedHashesPositionsVersionsAndPreservesCodePointBinding() throws Exception {
+        try(var pg=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start()) {
+            var ds=pg.getPostgresDatabase();Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+            var sql=new org.springframework.jdbc.core.JdbcTemplate(ds);
+            var tx=new org.springframework.transaction.support.TransactionTemplate(new org.springframework.jdbc.datasource.DataSourceTransactionManager(ds));
+            var json=new com.fasterxml.jackson.databind.ObjectMapper();
+            UUID actor=UUID.randomUUID(),source=UUID.randomUUID(),content=UUID.randomUUID(),policy=UUID.randomUUID();
+            UUID release=sql.queryForObject("SELECT id FROM announcement_source_classification_rule_releases ORDER BY version_no LIMIT 1",UUID.class);
+            sql.update("INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,'role-probe','unused-fixture-hash','합성 역할 QA','ACTIVE',false)",actor);
+            sql.update("INSERT INTO announcement_source_snapshots(id,provider_code,title,raw_hash) VALUES (?,'BIZINFO','합성 역할 검증',repeat('a',64))",source);
+            sql.update("INSERT INTO announcement_source_content_versions(id,source_id,raw_hash,title,body_source_code,body_availability_code,collected_at) VALUES (?,?,repeat('a',64),'합성 역할 검증','NONE','UNAVAILABLE',now())",content,source);
+            String text="😀 지원사업 공고\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월";
+            var block=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Block(0,0,text.codePointCount(0,text.length()),"한글문단😀".repeat(15),true,"첫 페이지😀");
+            var extraction=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,java.util.List.of(block),1,1);
+            var assessment=new com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier().selectAssessment(extraction);
+            String settings=json.writeValueAsString(java.util.Map.of("roleRuleVersion",assessment.ruleVersion(),"roleRulesHash",assessment.rulesHash()));
+            sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,mode_code,rule_release_id,settings_json,profile_manifest_json,created_by) VALUES (?,'role-probe',1,'COLLECT_ONLY',?,CAST(? AS jsonb),'[]',?)",policy,release,settings,actor);
+            String blocks=json.writeValueAsString(extraction.blocks()),valid=json.writeValueAsString(assessment);
+            assertThat(sql.queryForObject("SELECT attachment_role_blocks_hash(CAST(? AS jsonb))",String.class,blocks)).isEqualTo(assessment.blocksHash());
+            UUID file=tx.execute(status->insertRoleProbe(sql,source,content,policy,text,blocks,valid));
+            assertThat(sql.queryForObject("SELECT role_origin_code FROM announcement_source_attachment_files WHERE id=?",String.class,file)).isEqualTo("TEXT_RULE");
+            assertThatThrownBy(()->sql.update("UPDATE announcement_source_attachment_files SET document_role_code='FORM' WHERE id=?",file))
+                    .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+            for(String key:java.util.List.of("textHash","blocksHash","rulesHash","ruleVersion")) {
+                var changed=(com.fasterxml.jackson.databind.node.ObjectNode)json.readTree(valid);
+                changed.put(key,key.equals("ruleVersion")?"other-version":"f".repeat(64));
+                assertThatThrownBy(()->tx.execute(status->insertRoleProbe(sql,source,content,policy,text,blocks,changed.toString())))
+                        .hasRootCauseInstanceOf(SQLException.class);
+            }
+            var wrongOffset=(com.fasterxml.jackson.databind.node.ObjectNode)json.readTree(valid);
+            ((com.fasterxml.jackson.databind.node.ObjectNode)wrongOffset.path("evidence").get(0)).put("endOffset",text.codePointCount(0,text.length())+1);
+            assertThatThrownBy(()->tx.execute(status->insertRoleProbe(sql,source,content,policy,text,blocks,wrongOffset.toString())))
+                    .hasRootCauseInstanceOf(SQLException.class);
+            var extra=(com.fasterxml.jackson.databind.node.ObjectNode)json.readTree(valid);extra.put("rawText","PRIVATE_CANARY");
+            assertThatThrownBy(()->tx.execute(status->insertRoleProbe(sql,source,content,policy,text,blocks,extra.toString())))
+                    .hasRootCauseInstanceOf(SQLException.class);
+            sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",source);
+            assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_files WHERE source_id=?",Integer.class,source)).isZero();
+        }
+    }
+    private static UUID insertRoleProbe(org.springframework.jdbc.core.JdbcTemplate sql,UUID source,UUID content,UUID policy,String text,String blocks,String assessment) {
+        UUID set=UUID.randomUUID(),file=UUID.randomUUID(),extraction=UUID.randomUUID();
+        sql.update("INSERT INTO announcement_source_attachment_sets(id,source_id,content_version_id,policy_id,data_purpose_code,profile_hash) VALUES (?,?,?,?,'PRODUCTION',repeat('b',64))",set,source,content,policy);
+        sql.update("INSERT INTO announcement_source_attachment_files(id,set_id,source_id,stable_locator_hash,safe_locator_json,sort_order,document_role_code,role_origin_code,download_status_code,downloaded_bytes,binary_hash,role_extraction_id,role_assessment_json) VALUES (?,?,?,repeat('c',64),'{}',0,'NOTICE','TEXT_RULE','SUCCEEDED',100,repeat('d',64),?,CAST(? AS jsonb))",file,set,source,extraction,assessment);
+        sql.update("INSERT INTO announcement_source_attachment_extractions(id,file_id,set_id,source_id,attempt_no,extractor_code,extractor_version,extractor_config_hash,quality_code,extracted_text,text_hash,blocks_json,character_count,duration_ms) VALUES (?,?,?,?,1,'HWPX','1.0.0',repeat('f',64),'COMPLETE_TEXT',?,encode(digest(?,'sha256'),'hex'),CAST(? AS jsonb),char_length(?),1)",extraction,file,set,source,text,text,blocks,text);
+        return file;
+    }
     @Test void immutableEvidenceRejectsMismatchedBindingsAndCascadesWithSource() throws Exception {
         try (var pg=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start()) {
             var dataSource=pg.getPostgresDatabase();
@@ -137,6 +184,12 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertThat(workerSql.queryForObject("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='ck_att_resource_owner' AND convalidated",String.class))
                     .contains("provider_qa_case_id","provider_qa_lease_token","job_id","policy_validation_id");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            var roleUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("82").load();
+            assertThat(roleUpgrade.migrate().migrationsExecuted).isEqualTo(1);roleUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.columns WHERE table_schema='public' AND table_name='announcement_source_attachment_files' AND column_name IN ('role_extraction_id','role_assessment_json')",Integer.class)).isEqualTo(2);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_constraint WHERE conname='fk_att_file_role_extract' AND convalidated AND condeferrable AND condeferred",Integer.class)).isEqualTo(1);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policies WHERE policy_status_code='ACTIVE'",Integer.class)).isZero();
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             Flyway.configure().dataSource(pg.getDatabase("postgres","attachment_fresh"))
                     .locations("classpath:db/migration").load().migrate();

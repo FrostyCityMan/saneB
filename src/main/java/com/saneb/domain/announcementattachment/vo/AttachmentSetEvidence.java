@@ -15,7 +15,14 @@ public record AttachmentSetEvidence(String discoveryStatus, boolean discoveryCom
     }
     public record File(Locator locator, String displayName, String detectedType, String role, String roleOrigin,
                        String downloadStatus, long downloadedBytes, String binaryHash,
-                       AttachmentFailureCode failureCode, Extraction extraction) { }
+                       AttachmentFailureCode failureCode, Extraction extraction,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+                       com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.Assessment roleAssessment) {
+        public File(Locator locator,String displayName,String detectedType,String role,String roleOrigin,String downloadStatus,
+                long downloadedBytes,String binaryHash,AttachmentFailureCode failureCode,Extraction extraction) {
+            this(locator,displayName,detectedType,role,roleOrigin,downloadStatus,downloadedBytes,binaryHash,failureCode,extraction,null);
+        }
+    }
     public record Extraction(String quality, String text, List<Block> blocks, Integer pageCount, int durationMs,
                              Long completedAtEpochMs) {
         public Extraction { blocks = List.copyOf(blocks); }

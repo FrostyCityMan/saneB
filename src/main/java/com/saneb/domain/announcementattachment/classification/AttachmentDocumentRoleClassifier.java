@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/** 단일 추출 텍스트의 역할 제안. DB/worker 연결 전에는 실제 파일 역할이나 분류 결과를 변경하지 않는다. */
+/** 단일 추출 텍스트의 역할 근거. 명시적으로 규칙이 고정된 정책에서만 worker가 미확정 역할에 적용한다. */
 public final class AttachmentDocumentRoleClassifier {
-    public static final String VERSION = "document-role-1.0.0";
+    public static final String VERSION = "document-role-1.0.1";
+    public static final String BLOCKS_HASH_VERSION = "attachment-role-blocks-v1";
     private static final int MAX_CHARACTERS = 1_000_000;
     private static final int MAX_LINES = 20_000;
     private static final int HEADER_CHARACTERS = 600;
@@ -36,7 +37,7 @@ public final class AttachmentDocumentRoleClassifier {
             new Rule("QUESTION_ITEM", null, "Q[.：:]\\h*.{1,160}", false),
             new Rule("ANSWER_ITEM", null, "A[.：:]\\h*.{1,160}", false));
     public static final String RULES_HASH = hash(json(List.of(VERSION, MAX_CHARACTERS, MAX_LINES,
-            HEADER_CHARACTERS, HEADER_LINES, RULES)));
+            HEADER_CHARACTERS, HEADER_LINES, BLOCKS_HASH_VERSION, RULES)));
 
     private record Rule(String code, String role, String expression, boolean heading) { }
     private record CompiledRule(Rule rule, Pattern pattern) { }
@@ -48,6 +49,10 @@ public final class AttachmentDocumentRoleClassifier {
         public Assessment { evidence = List.copyOf(evidence); }
     }
     private record Hit(Rule rule, Evidence evidence, boolean initialHeading) { }
+
+    public static boolean selectRulesCurrent(String version, String rulesHash) {
+        return (version == null && rulesHash == null) || (VERSION.equals(version) && RULES_HASH.equals(rulesHash));
+    }
 
     /** 파일명·URL·다른 파일·이전 수동 역할을 받지 않는다. 역할 적용 여부는 별도 저장 계약이 결정한다. */
     public Assessment selectAssessment(AttachmentSetEvidence.Extraction extraction) {
@@ -66,7 +71,7 @@ public final class AttachmentDocumentRoleClassifier {
             offset = next;
         }
         validateBlocks(text, count, extraction.blocks());
-        String textHash = hash(text), blocksHash = hash(json(extraction.blocks()));
+        String textHash = hash(text), blocksHash = selectBlocksHash(extraction.blocks());
         if (extraction.blocks().stream().anyMatch(block -> !block.scopeReliable()))
             return result(textHash, blocksHash, "UNKNOWN", "STRUCTURE_UNCERTAIN", List.of());
         var hits = new ArrayList<Hit>();
@@ -132,6 +137,16 @@ public final class AttachmentDocumentRoleClassifier {
     }
     private Assessment result(String textHash, String blocksHash, String role, String reason, List<Evidence> evidence) {
         return new Assessment(VERSION, RULES_HASH, textHash, blocksHash, role, reason, evidence);
+    }
+    /** PostgreSQL과 같은 정수/UTF-8 base64 표현이다. JSON key 순서나 공백에 의존하지 않는다. */
+    private String selectBlocksHash(List<AttachmentSetEvidence.Block> blocks) {
+        var canonical = new StringBuilder(BLOCKS_HASH_VERSION).append('\n');
+        var encoder = java.util.Base64.getEncoder();
+        for (var block : blocks) canonical.append(block.index()).append(':').append(block.startOffset()).append(':')
+                .append(block.endOffset()).append(':').append(encoder.encodeToString(block.evidenceScopeId().getBytes(StandardCharsets.UTF_8)))
+                .append(':').append(block.scopeReliable() ? '1' : '0').append(':')
+                .append(encoder.encodeToString(block.locator().getBytes(StandardCharsets.UTF_8))).append('\n');
+        return hash(canonical.toString());
     }
     private static String json(Object value) {
         try { return JSON.writeValueAsString(value); }

@@ -127,7 +127,10 @@ public class AnnouncementAttachmentRetryServiceImpl implements AnnouncementAttac
             boolean allowed=false;
             for(var profile:manifest) if(source.providerCode().equals(profile.path("providerCode").asText())
                     && execution.profileCode().equals(profile.path("profileCode").asText()) && execution.profileHash().equals(profile.path("profileHash").asText())) allowed=true;
-            if(!allowed || !AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
+            if(!allowed || !execution.selectRoleRulesCurrent()
+                    || !java.util.Objects.equals(execution.roleRuleVersion(),settings.path("roleRuleVersion").asText(null))
+                    || !java.util.Objects.equals(execution.roleRulesHash(),settings.path("roleRulesHash").asText(null))
+                    || !AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
                     || !execution.engineVersion().equals(settings.path("engineVersion").asText())
                     || !execution.extractorVersion().equals(settings.path("extractorVersion").asText())
                     || !execution.extractorConfigHash().equals(settings.path("extractorConfigHash").asText())

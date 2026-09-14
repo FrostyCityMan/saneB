@@ -35,10 +35,13 @@
         -- 새 set에 역할만 달리 복사한다. 원본 파일/실패/품질 이력은 UPDATE하지 않는다.
         INSERT INTO announcement_source_attachment_files
             (id,set_id,source_id,stable_locator_hash,safe_locator_json,display_name,detected_type_code,
-             document_role_code,role_origin_code,download_status_code,downloaded_bytes,binary_hash,sort_order,error_code)
+             document_role_code,role_origin_code,download_status_code,downloaded_bytes,binary_hash,sort_order,error_code,
+             role_extraction_id,role_assessment_json)
         SELECT #{newFileId},#{newSetId},original.source_id,original.stable_locator_hash,original.safe_locator_json,
                original.display_name,original.detected_type_code,#{role},#{roleOrigin},original.download_status_code,
-               original.downloaded_bytes,original.binary_hash,original.sort_order,original.error_code
+               original.downloaded_bytes,original.binary_hash,original.sort_order,original.error_code,
+               CASE WHEN original.role_assessment_json IS NOT NULL THEN #{newExtractionId,jdbcType=OTHER}::uuid ELSE NULL END,
+               original.role_assessment_json
         FROM announcement_source_attachment_files original
         JOIN announcement_source_attachment_sets source_set ON source_set.id=original.set_id AND source_set.source_id=original.source_id
         WHERE original.id=#{originalFileId} AND original.set_id=#{originalSetId} AND original.source_id=#{sourceId}

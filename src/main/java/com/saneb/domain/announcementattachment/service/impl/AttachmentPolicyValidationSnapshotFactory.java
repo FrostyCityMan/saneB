@@ -87,7 +87,9 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000)
                 throw conflict("정책 설정 크기가 유효하지 않습니다.");
             var settings=mapper.readValue(policy.settingsJson(), AttachmentPolicyResponses.Configuration.class);
-            if(settings==null || !AnnouncementAttachmentClassificationEngine.VERSION.equals(settings.engineVersion())
+            if(settings==null || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier
+                    .selectRulesCurrent(settings.roleRuleVersion(),settings.roleRulesHash())
+                    || !AnnouncementAttachmentClassificationEngine.VERSION.equals(settings.engineVersion())
                     || !AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(settings.extractorVersion()) || settings.maximumSourceBytes()==null
                     || settings.maximumSourceBytes()<1 || settings.maximumSourceBytes()>83886080
                     || (settings.extractorConfigHash()!=null && !settings.extractorConfigHash().equals(installed.runtimeHash())))

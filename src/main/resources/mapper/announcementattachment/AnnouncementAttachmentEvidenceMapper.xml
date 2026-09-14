@@ -88,6 +88,9 @@
             <arg column="extraction_error_code" javaType="java.lang.String"/>
             <arg column="extracted_at" javaType="java.time.OffsetDateTime"/>
             <arg column="reused_from_extraction_id" javaType="java.util.UUID"/>
+            <arg column="role_extraction_id" javaType="java.util.UUID"/>
+            <arg column="role_assessment_json" javaType="com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier$Assessment"
+                 typeHandler="com.saneb.domain.announcementattachment.dao.typehandler.AttachmentRoleAssessmentTypeHandler"/>
         </constructor>
     </resultMap>
     <select id="selectFileCount" resultType="long">
@@ -99,7 +102,8 @@
         SELECT f.id, f.set_id, f.display_name, f.detected_type_code, f.document_role_code, f.role_origin_code,
                f.download_status_code, f.downloaded_bytes, f.binary_hash, f.error_code AS download_error_code,
                x.id AS extraction_id, x.quality_code, x.character_count, x.page_count, x.duration_ms,
-               x.error_code AS extraction_error_code, x.created_at AS extracted_at,x.reused_from_extraction_id
+               x.error_code AS extraction_error_code, x.created_at AS extracted_at,x.reused_from_extraction_id,
+               f.role_extraction_id,f.role_assessment_json::text AS role_assessment_json
         FROM announcement_source_attachment_files f
         LEFT JOIN LATERAL (
             SELECT e.id, e.quality_code, e.character_count, e.page_count, e.duration_ms, e.error_code, e.created_at,e.reused_from_extraction_id
@@ -163,9 +167,11 @@
         -- 임시 URL/원본 binary 대신 안전한 locator와 검증된 처리 metadata를 저장한다.
         INSERT INTO announcement_source_attachment_files
             (id, set_id, source_id, stable_locator_hash, safe_locator_json, display_name, detected_type_code,
-             document_role_code, role_origin_code, download_status_code, downloaded_bytes, binary_hash, sort_order, error_code)
+             document_role_code, role_origin_code, download_status_code, downloaded_bytes, binary_hash, sort_order, error_code,
+             role_extraction_id,role_assessment_json)
         VALUES (#{fileId}, #{setId}, #{sourceId}, #{locatorHash}, CAST(#{locatorJson} AS jsonb), #{displayName}, #{detectedType},
-                #{role}, #{roleOrigin}, #{downloadStatus}, #{downloadedBytes}, #{binaryHash}, #{sortOrder}, #{errorCode})
+                #{role}, #{roleOrigin}, #{downloadStatus}, #{downloadedBytes}, #{binaryHash}, #{sortOrder}, #{errorCode},
+                #{roleExtractionId},CAST(#{roleAssessmentJson} AS jsonb))
     </insert>
     <insert id="insertExtraction">
         -- 추출 텍스트는 업무 근거 테이블에만 저장하고 감사 metadata에 복사하지 않는다.

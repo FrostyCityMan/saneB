@@ -2958,3 +2958,16 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 - 화면은 이전 비동기 응답/오류가 새 필터를 덮어쓰지 못하게 하고 서버 건수·페이지·행별 상태가 모순되면 오류로 분리한다. 401/403/시간 초과/계약 불일치를0건으로 표시하지 않는다. 원문 body/첨부 text를 목록에서 요청하지 않으며 조회만으로 재수집·분류·확인·DRAFT·정책 적용을 실행하지 않는다.
 
 DDL/migration·v1·운영 쓰기 없음. 실제 PostgreSQL/운영 브라우저 검증 여부는 진행 기록을 최종 근거로 한다.
+
+### 24.34 텍스트 역할 규칙·고정 근거 — v2 additive
+
+기존 v1은 변경하지 않는다. v2 `GET /admin/announcement-sources/{sourceId}/attachment-sets/{setId}/files`의 FileSummary에 nullable `roleExtractionId`, `roleAssessment`를 추가한다. 전체 실제 경로는 `/api/v2/admin/...`이며 기존 ApiResponse/PageResponse·no-store·읽기 권한·페이지 계약을 유지한다.
+
+- `roleOriginCode`: 기존 UNKNOWN/PROFILE/MANUAL에 TEXT_RULE을 추가한다. MANUAL은 현재 관리자 지정값이며 자동 제안의 역할과 다를 수 있다.
+- `roleAssessment`: `{ruleVersion,rulesHash,textHash,blocksHash,roleCode,reasonCode,evidence:[{ruleCode,blockIndex,startOffset,endOffset}]}`. 원문/파일 URL/파일 경로는 없다. 위치는 추출 전체의 Unicode 코드포인트·0부터·끝 제외다. 기존 blocks 조회에 `blockIndex+1` 페이지를 전달해 동일 추출 근거를 확인한다.
+- 과거/불완전/미적용 파일의 null 근거를 성공으로 보충하지 않는다. TEXT_RULE 결과는 정확한 COMPLETE_TEXT 추출과 고정 규칙에 연결된다. 관리자 수정 후에도 자동 제안은 보존하되 현재 역할과 구분한다. 잘못된 필드/지문/위치 구조는 임의 JSON으로 반환하지 않는다.
+- 정책 Details.configuration에 선택 `roleRuleVersion`, `roleRulesHash`를 쌍으로 추가한다. 새 초안 생성/수정 시 서버의 `document-role-1.0.1`과 고정 규칙 지문을 저장한다. 기존 값이 없는 정책이나 복사 초안은 자동으로 새 역할 규칙을 적용하지 않으며, 수정·QA·게시 절차가 필요하다. 요청 body에 임의 역할 정규식이나 규칙 지문을 받지 않는다.
+- worker는 현재 고정 규칙의 UNKNOWN/UNKNOWN·완전 추출 파일에만 적용한다. 실패 파일의 재시도와 checkpoint도 같은 버전·근거를 검증한다. MANUAL/PROFILE은 덮어쓰지 않는다. 역할이 UNKNOWN이면 미확정 사유를 그대로 남긴다.
+- 관리자 상세는 역할 출처/현재 역할/자동 제안/사유/버전, 펼침 영역의 지문·근거 문단 링크를 한글로 표시한다. 기존 native details·텍스트 렌더링·문단 강조를 재사용한다. 연결 불일치는 오류로 표시하고 강조하지 않는다. 정책 화면은 규칙 미연결과 새 규칙 연결을 구분하고, 조회만으로 게시/재처리를 실행하지 않는다.
+
+UI 적용 기준: ADMIN/OPERATOR/APPROVER가 근거를 읽는 R0 조회이며, 기존 관리자 역할 변경/게시의 권한·확인·사유·CAS는 그대로다. 실제 검수 비용은 잘못된 역할을 확정할 때 높으므로 미확정/오류/과거 제안을 명시한다. 작은 화면의 기존 메타데이터 줄바꿈·키보드 native controls를 유지하고 새 라이브러리·모션은 추가하지 않는다. 수용 기준은 같은 추출의 근거 조회, 수동 역할 보존, legacy null 표시, 자동 승인 오해 방지다. Node 계약 검증과 실제 운영 브라우저 결과는 구분한다.

@@ -17,6 +17,12 @@
         ATTACHMENT_DOWNLOAD_FORM_CHANGED: "다운로드 폼 변경 · 시스템 수집 방식 재검증 필요",
         ATTACHMENT_LINK_UNRESOLVED: "첨부 링크 확인 실패 · 원문 확인 필요", ATTACHMENT_FILE_LIMIT: "공고별 첨부 파일 수 한도 초과",
         NOTICE: "공고문", GUIDE: "안내문", FORM: "신청 양식 · 문맥 보조", REFERENCE: "참고자료 · 문맥 보조", UNKNOWN: "역할 미확정",
+        ROLE_TEXT_STRUCTURE_MATCHED: "문서 제목과 필수 본문 구조 확인", STRUCTURE_UNCERTAIN: "텍스트 문맥 범위 불확실 · 역할 미확정",
+        ROLE_ANALYSIS_LIMIT: "역할 분석 한도 초과 · 역할 미확정", MIXED_DOCUMENT_ROLES: "서로 다른 문서 역할 혼재 · 역할 미확정",
+        INITIAL_HEADING_REQUIRED: "문서 앞부분의 역할 제목 미확인", ROLE_STRUCTURE_INCOMPLETE: "역할 판정에 필요한 본문 구조 부족",
+        NOTICE_HEADING: "공고문 제목", GUIDE_HEADING: "안내문 제목", FORM_HEADING: "신청 양식 제목", REFERENCE_HEADING: "참고자료 제목",
+        TARGET_SECTION: "지원대상 항목", SUPPORT_SECTION: "지원내용 항목", APPLICATION_SECTION: "신청 항목",
+        APPLICANT_FIELD: "신청인 입력란", SIGNATURE_FIELD: "서명란", QUESTION_ITEM: "질문 항목", ANSWER_ITEM: "답변 항목",
         COMPLETE_TEXT: "텍스트 추출 완료", PARTIAL_TEXT: "일부 텍스트", OCR_REQUIRED: "스캔 문서 · 직접 확인 필요",
         NO_TEXT: "추출 텍스트 없음", ENCRYPTED: "암호화 문서", UNSUPPORTED_FORMAT: "지원하지 않는 형식",
         CURRENT_EFFECTIVE: "현재 적용 판정", CURRENT_PREVIEW: "현재 미리보기 · 적용 안 됨", NOT_CURRENT: "과거 판정 · 검수 기준 아님",
@@ -142,7 +148,22 @@
             get original() { return attempt && JSON.parse(attempt.body); }
         };
     };
-    const api = {targets, supports, label, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation};
+    // 자동 역할은 최종 승인과 다르다. 관리자 변경 뒤에도 원래 자동 제안과 고정 추출 좌표를 보존한다.
+    const roleOrigin = value => ({UNKNOWN:"역할 근거 없음", PROFILE:"시스템 수집 방식 지정", MANUAL:"관리자 지정", TEXT_RULE:"추출 텍스트 규칙 판정"}[value] || "역할 출처 확인 필요");
+    const validRoleAssessment = file => {
+        const a=file?.roleAssessment, hash=v=>typeof v==="string"&&/^[0-9a-f]{64}$/.test(v);
+        const id=v=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+        const rules=["NOTICE_HEADING","GUIDE_HEADING","FORM_HEADING","REFERENCE_HEADING","TARGET_SECTION","SUPPORT_SECTION","APPLICATION_SECTION","APPLICANT_FIELD","SIGNATURE_FIELD","QUESTION_ITEM","ANSWER_ITEM"];
+        const reasons=["STRUCTURE_UNCERTAIN","ROLE_ANALYSIS_LIMIT","MIXED_DOCUMENT_ROLES","INITIAL_HEADING_REQUIRED","ROLE_STRUCTURE_INCOMPLETE"];
+        return !!(a&&["TEXT_RULE","MANUAL"].includes(file.roleOriginCode)&&id(file.roleExtractionId)&&file.roleExtractionId===file.extractionId
+            &&file.qualityCode==="COMPLETE_TEXT"&&typeof a.ruleVersion==="string"&&/^[A-Za-z0-9_.-]{1,40}$/.test(a.ruleVersion)
+            &&[a.rulesHash,a.textHash,a.blocksHash].every(hash)&&["NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN"].includes(a.roleCode)
+            &&(file.roleOriginCode==="MANUAL"||file.documentRoleCode===a.roleCode)&&Array.isArray(a.evidence)&&a.evidence.length<=100
+            &&(a.roleCode==="UNKNOWN"?reasons.includes(a.reasonCode):a.reasonCode==="ROLE_TEXT_STRUCTURE_MATCHED"&&a.evidence.length>=3&&a.evidence.length<=4)
+            &&a.evidence.every(e=>e&&rules.includes(e.ruleCode)&&Number.isSafeInteger(e.blockIndex)&&e.blockIndex>=0&&e.blockIndex<20000
+                &&Number.isSafeInteger(e.startOffset)&&Number.isSafeInteger(e.endOffset)&&e.startOffset>=0&&e.endOffset>e.startOffset&&e.endOffset<=1000000));
+    };
+    const api = {targets, supports, label, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation};
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else root.SanebAttachmentReview = api;
 })(globalThis);

@@ -9,7 +9,13 @@ public final class AttachmentEvidenceCommands {
     public record FileInsert(UUID fileId, UUID setId, UUID sourceId, String locatorHash, String locatorJson,
                              String displayName, String detectedType, String role, String roleOrigin,
                              String downloadStatus, long downloadedBytes, String binaryHash,
-                             int sortOrder, String errorCode) { }
+                             int sortOrder, String errorCode, UUID roleExtractionId, String roleAssessmentJson) {
+        public FileInsert(UUID fileId,UUID setId,UUID sourceId,String locatorHash,String locatorJson,String displayName,
+                String detectedType,String role,String roleOrigin,String downloadStatus,long downloadedBytes,String binaryHash,int sortOrder,String errorCode) {
+            this(fileId,setId,sourceId,locatorHash,locatorJson,displayName,detectedType,role,roleOrigin,downloadStatus,downloadedBytes,binaryHash,
+                    sortOrder,errorCode,null,null);
+        }
+    }
     public record ExtractionInsert(UUID extractionId, UUID fileId, UUID setId, UUID sourceId,
                                    int attemptNo, String extractorCode, String extractorVersion,
                                    String extractorConfigHash, String quality, String text, String textHash,

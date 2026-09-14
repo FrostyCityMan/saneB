@@ -87,7 +87,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 ## 5. 장기 goal 실행 순서
 
-### P3 문서 역할 자동 식별의 연결 지점 (판정기 구현, 저장·worker 연결 잔여)
+### P3 문서 역할 자동 식별의 연결 지점 (DB/worker/API/UI 구현, 실제 환경 검증 진행)
 
 현재 코드 확인 결과, 분류기에 정규식만 추가해서는 전체 경로가 연결되지 않는다. 아래 순서로 한 증분을 완성해야 한다.
 
@@ -118,22 +118,24 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 이 규칙은 합성 양성/음성 회귀22건으로 검증한 초기 구현이며 공식 파일 정확도나 운영 적용 승인이 아니다. 파일에 없는 역할을 추정하지 않는 대신 다양한 제목/서식의 미인식은 남을 수 있다. 실제 공식 파일 기대값을 채우면서 범위를 검증해야 하며 그 전에는 활성화하지 않는다. 기존 종합 분류19건도 그대로 통과했다. 로컬 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar :attachment-extractor:installDist installAttachmentContractQa --no-daemon --max-workers=1`은3분18초 성공했고 root2342=2101통과/241조건부 생략, 독립 패키지16/16이다. 추출기 시험/설치는 변경 없어 UP-TO-DATE이며 이번 재실행 통과로 세지 않는다. 원격8cb55d1 검증은 이 역할 판정기 추가 전 SHA다.
 
-다음 DB 증분의 구체적 계약은 다음과 같다. 현재 V81까지는 변경하지 않았으며 신규 DDL은 아직 작성하지 않았다.
+다음 DB 증분은 V82로 작성했다. V1~V81은 변경하지 않았고 운영 DB에도 반영하지 않았다. 정확한 저장/복사 계약은 DB11.31, API24.34를 따른다.
 
 - 파일의 유래에 TEXT_RULE을 추가하고, extraction/file/set/source 복합 소속으로 연결한 불변 역할 assessment에 위 버전·지문·판정·위치만 저장한다. 추출 원문은 기존 extraction에만 존재한다.
 - TEXT_RULE 파일은 같은 추출의 assessment와 역할이 일치해야 봉인할 수 있다. 현재 set이 OPEN인 동안에만 신규 assessment를 넣으며 봉인 뒤 추가/수정은 금지한다. UNKNOWN 제안과 자동 적용된 역할을 구분한다.
 - 재사용은 원래 extraction/assessment와 동일 버전·지문·텍스트/위치 근거를 고정하고, 새 다운로드에는 과거 근거를 복사하지 않는다. MANUAL은 덮어쓰지 않는다. 기존 봉인 이력은 소급 작성하지 않는다.
 - 실행 snapshot에 역할 규칙 버전/지문을 고정하고 checkpoint·manifest에 포함한다. 기존 snapshot을 새 규칙으로 재해석하지 않는다. v2 파일 조회는 nullable assessment를 추가하고 v1은 변경하지 않는다.
-- 역할 제안기 단위 통과 → additive DB 제약/복사 검증 → worker checkpoint/재시도 연결 → v2/UI 근거 → 공식 파일 기대값/전체 QA 순으로 완료한다. 이 중 뒤 단계는 아직 잔여다.
+- 역할 제안기 단위 통과 → additive DB 제약/복사 검증 → worker checkpoint/재시도 연결 → v2/UI 근거 → 공식 파일 기대값/전체 QA 순으로 완료한다. 09-15 역할 규칙을 명시한 새 정책만 사용하는 DB/worker/v2/UI 경로를 구현했다. 실제 Linux/PG 실행과 공식 파일 기대값/전체 QA는 별도 잔여다.
+
+09-15 구현은 `document-role-1.0.1`이다. JSON 표현에 의존하던 block hash를 SQL/Java 공통 canonical 형식으로 고정했으므로 버전을 올렸다. 기존 1.0.0은 DB에 적용하지 않은 순수 제안기였다. 기존 정책/실행의 누락 필드를 새 규칙으로 해석하지 않으며, MANUAL/PROFILE 자동 덮어쓰기와 운영 활성화는 하지 않는다. 새 역할 규칙을 적용한 정책이 공식 정확도 검증을 마쳤다는 의미도 아니다.
 
 ### 실행 체크리스트
 
 - [x] P0 사용자 정책·기존 계약 충돌 분석과 이 상세 설계 작성.
 - [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 및 QA 브랜치 Linux 실제 PG 통과. 운영 UI 검증 잔여.
 - [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
-- [~] P3 명시적 탐색 영역 정제 및 실측 BBS3모델 본문 추출 구현. 텍스트 기반 문서 역할 제안기22건과 기존 분류19건·로컬 전체 시험/bootJar 통과. 역할 DB/worker/API 연결·공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
+- [~] P3 명시적 탐색 영역 정제·BBS3모델 본문 추출·텍스트 역할 판정기 및 V82/worker/checkpoint/재시도/v2/관리자 근거 연결 구현. 새 통합 경로의 Linux/PG 실행·공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
 - [ ] P4 전체 대상의 profile 매핑·누락 어댑터·실제 파일 기대값 및 Provider QA 화면 연결.
-- [~] P5 Linux 격리 추출12합성 파일+PG job192/migration2/분할13+worker→DB→API8건 및 독립215건 통과. 부모 연결2건은 같은UID158개가128 한도를 초과한 기동 실패이며, 부모 JVM9개로 축소해도 미해결이다. 임시 CI 전용 계정 분리가 다음 과제다. 전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여.
+- [~] P5 이전66d499c Linux 주 검증·독립215건·취소·정리는 통과했으나 정상 부모 연결은 QA_CHILD_PROCESS_LIMIT 실패(같은UID97/부모JVM9)다. V82/새 역할 경로는 별도 재검증 대상이다. 전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.
 - [ ] P7 정확한 대상·효과·복구 승인 후 COLLECT_ONLY→ENFORCE 및 기존 데이터 고정 분할 실행.
 - [ ] P8 실제 운영 브라우저에서 단계·실패·재시도·최종 확인·DRAFT·권한·반응형 검증 및 전체 집계.

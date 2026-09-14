@@ -8,6 +8,7 @@ import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvidenc
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentRetryDao;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentRoleDao;
+import com.saneb.domain.announcementattachment.classification.AttachmentFileRoleRules;
 import com.saneb.domain.announcementattachment.service.AnnouncementAttachmentEvidenceService;
 import com.saneb.domain.announcementattachment.vo.AttachmentEvidenceCommands;
 import com.saneb.domain.announcementattachment.vo.AttachmentExecutionSnapshot;
@@ -129,7 +130,9 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
             requireInserted(evidence.insertFile(new AttachmentEvidenceCommands.FileInsert(fileId, setId, job.sourceId(),
                     selectHash(locatorJson), locatorJson, file.displayName(), file.detectedType(), file.role(), file.roleOrigin(),
                     file.downloadStatus(), file.downloadedBytes(), file.binaryHash(), index,
-                    file.failureCode() == null ? null : file.failureCode().name())));
+                    file.failureCode() == null ? null : file.failureCode().name(),
+                    file.roleAssessment()==null?null:selectEvidenceId(jobId,index,"extraction"),
+                    file.roleAssessment()==null?null:selectJson(file.roleAssessment()))));
             if (file.extraction() == null) continue;
             var extraction = file.extraction();
             String text = extraction.text() == null || extraction.text().isEmpty() ? null : extraction.text();
@@ -193,8 +196,9 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
                     .orElseThrow(()->conflict("선택한 실패 파일 결과가 누락됐습니다."));
             String locatorJson=selectJson(file.locator());
             requireInserted(evidence.insertFile(new AttachmentEvidenceCommands.FileInsert(fileId,setId,job.sourceId(),selectHash(locatorJson),locatorJson,
-                    file.displayName(),file.detectedType(),item.role(),item.roleOrigin(),file.downloadStatus(),file.downloadedBytes(),file.binaryHash(),index,
-                    file.failureCode()==null?null:file.failureCode().name())));
+                    file.displayName(),file.detectedType(),file.role(),file.roleOrigin(),file.downloadStatus(),file.downloadedBytes(),file.binaryHash(),index,
+                    file.failureCode()==null?null:file.failureCode().name(),file.roleAssessment()==null?null:extractionId,
+                    file.roleAssessment()==null?null:selectJson(file.roleAssessment()))));
             if(file.extraction()!=null) {
                 var x=file.extraction();String text=x.text()==null || x.text().isEmpty()?null:x.text();
                 requireInserted(evidence.insertExtraction(new AttachmentEvidenceCommands.ExtractionInsert(extractionId,fileId,setId,job.sourceId(),job.attemptCount(),
@@ -214,7 +218,10 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
         String hash=selectHash(selectJson(file.locator()));
         var selected=plan.stream().filter(f->Boolean.TRUE.equals(f.selected()) && hash.equals(f.locatorHash())).findFirst()
                 .orElseThrow(()->conflict("승인된 재시도 파일 범위 밖의 근거는 저장할 수 없습니다."));
-        require(selected.role().equals(file.role()) && selected.roleOrigin().equals(file.roleOrigin()),"재시도는 기존 문서 역할을 바꾸지 않습니다. 역할 변경 API를 사용하세요.");
+        boolean automaticUnknown="UNKNOWN".equals(selected.role()) && "UNKNOWN".equals(selected.roleOrigin())
+                && "TEXT_RULE".equals(file.roleOrigin()) && file.roleAssessment()!=null;
+        require(automaticUnknown || (selected.role().equals(file.role()) && selected.roleOrigin().equals(file.roleOrigin())),
+                "재시도는 수동·프로필 지정 역할을 바꾸지 않습니다. 미확인 역할만 고정한 텍스트 규칙으로 판정할 수 있습니다.");
     }
 
     private boolean selectCurrentInput(AttachmentSourceContextRow source, AttachmentJobRow job) {
@@ -251,7 +258,7 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
                     "파일 표시명은 제어문자 없이 500자 이하여야 합니다.");
             require(file.detectedType() == null || selectAllowed(file.detectedType(), "PDF", "HWP", "HWPX"), "지원하지 않는 검출 파일 형식입니다.");
             require(selectAllowed(file.role(), "NOTICE", "GUIDE", "FORM", "REFERENCE", "UNKNOWN"), "지원하지 않는 문서 역할입니다.");
-            require(selectAllowed(file.roleOrigin(), "UNKNOWN", "PROFILE") || (preserveManualRole && "MANUAL".equals(file.roleOrigin())),
+            require(selectAllowed(file.roleOrigin(), "UNKNOWN", "PROFILE", "TEXT_RULE") || (preserveManualRole && "MANUAL".equals(file.roleOrigin())),
                     "최초 수집 결과에 관리자 수동 역할을 삽입할 수 없습니다.");
             require(selectAllowed(file.downloadStatus(), "SUCCEEDED", "FAILED", "BLOCKED", "CANCELLED"), "처리 중인 파일을 봉인할 수 없습니다.");
             require(file.downloadedBytes() >= 0 && file.downloadedBytes() <= 20L * 1024 * 1024, "파일 수신량은 20 MiB 이하여야 합니다.");
@@ -262,6 +269,8 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
                         "다운로드 성공에는 실제 수신량·파일 hash·추출 성공 또는 실패 근거가 필요합니다.");
             } else require(file.extraction() == null && file.failureCode() != null, "다운로드 실패에는 고정 실패 코드가 필요하며 추출 성공 근거를 연결할 수 없습니다.");
             if (file.extraction() != null) validateExtraction(file.extraction());
+            require(AttachmentFileRoleRules.selectAssessmentValid(file,execution),
+                    "문서 역할에는 현재 고정 규칙과 같은 완전 추출의 실제 위치 근거가 필요합니다. 이전 규칙이나 다른 파일의 결과를 재사용할 수 없습니다.");
         }
         require(received <= chargedBytes, "수신량이 작업에 예약된 다운로드 예산을 초과했습니다.");
     }
@@ -322,9 +331,9 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
                     file.downloadedBytes(), file.binaryHash(), file.detectedType(), file.failureCode() == null ? null : file.failureCode().name(),
                     extraction == null ? null : extraction.quality(),
                     extraction == null || extraction.text() == null || extraction.text().isEmpty() ? null : selectHash(extraction.text()),
-                    extraction == null ? null : selectHash(selectJson(extraction.blocks())), extraction == null ? null : extraction.pageCount()));
+                    extraction == null ? null : selectHash(selectJson(extraction.blocks())), extraction == null ? null : extraction.pageCount(),file.roleAssessment()));
         }
-        return selectHash(selectJson(new Manifest(1, selectEvidenceId(jobId, 0, "set"), execution,
+        return selectHash(selectJson(new Manifest(execution.roleRuleVersion()==null?1:2, selectEvidenceId(jobId, 0, "set"), execution,
                 result.discoveryStatus(), result.discoveryComplete(), result.warningCodes(), files)));
     }
 
@@ -335,7 +344,9 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
     private record Manifest(int schemaVersion, UUID selectedSetId, AttachmentExecutionSnapshot execution,
                             String discovery, boolean complete, List<String> warnings, List<Object> files) { }
     private record ManifestFile(UUID fileId, UUID extractionId, String locatorHash, String role, String roleOrigin, String download, long bytes,
-            String binaryHash, String format, String error, String quality, String textHash, String blocksHash, Integer pages) { }
+            String binaryHash, String format, String error, String quality, String textHash, String blocksHash, Integer pages,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.Assessment roleAssessment) { }
     private boolean selectAllowed(String value, String... allowed) { return value != null && List.of(allowed).contains(value); }
     private boolean selectAllowedWarning(String code) {
         if (Set.of("ATTACHMENT_DETAIL_UNAVAILABLE", "ATTACHMENT_SELECTOR_CHANGED", "ATTACHMENT_DOWNLOAD_FORM_CHANGED",

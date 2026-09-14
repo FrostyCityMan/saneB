@@ -893,3 +893,16 @@ V81은 `attachment_policy_publication_lock()`의 기존18테이블/순서를 유
 `processingFlowStatusCode`는 `#{processingFlowStatusCode}`로 바인딩하며 list/count의 `SearchWhere`를 공유한다. count의 분모는 페이지 내 행이 아닌 전체 검색 결과이고, 기존 제목 제외/QA 제외·provider·태그·기간 범위와 같은 transaction snapshot이다. 새 판정 상태를 DB에 중복 저장하거나 migration을 추가하지 않는다.
 
 검증은 API 입력·Mapper 바인딩·UI 계약과 실제 임시 PostgreSQL9상태/29행·5개 페이지 크기의 SQL/Java projection 대조를 구분한다. 테스트 작성 자체는 SQL 실행 성공이 아니다. 실제 실행 상태는 장기 진행 기록을 따른다.
+
+### 11.31 추출 텍스트 역할 근거 — V82 (로컬 구현, 운영 미반영)
+
+`announcement_source_attachment_files`에 nullable `role_extraction_id uuid`, `role_assessment_json jsonb`를 추가하고 `role_origin_code`에 TEXT_RULE을 허용한다. 기존 UNKNOWN/PROFILE/MANUAL·봉인 이력·V1~V81은 변경하지 않는다. assessment가 없는 과거 행은 자동 판정 성공으로 채우지 않는다.
+
+- 복합 FK `(role_extraction_id,id,set_id,source_id)`가 정확한 extraction/file/set/source를 묶는다. file→extraction 삽입 순서를 위해 DEFERRABLE INITIALLY DEFERRED다.
+- assessment는 최대32KiB·정확한7필드(ruleVersion/rulesHash/textHash/blocksHash/roleCode/reasonCode/evidence)이며 evidence는 고정 규칙 코드와 blockIndex/startOffset/endOffset만 최대100개다. 원문은 기존 extraction에만 저장한다.
+- commit 시 동일 정책의 역할 규칙 버전·SHA-256, 최신 COMPLETE_TEXT extraction, 실제 텍스트 지문, 전체 block 범위·중복·신뢰 좌표를 확인한다. block 지문은 UTF-8 메타데이터 Base64·코드포인트 정수·고정 구분자를 사용하는 `attachment-role-blocks-v1`이다. JSON 공백/키 순서에 의존하지 않는다.
+- TEXT_RULE의 적용 역할은 assessment와 같아야 한다. UNKNOWN은 역할 미확정이며 성공 후보로 승격하지 않는다. MANUAL로 수정한 새 파일은 재사용 추출의 원래 assessment를 그대로 보존하고 새 extraction ID를 참조한다. OPEN 상태도 이미 기록한 근거/역할을 덮어쓰지 못한다.
+- 새 정책 초안에만 `roleRuleVersion`/`roleRulesHash`를 서버가 고정한다. 기존 두 값 없는 정책·실행 snapshot은 자동 적용하지 않는다. 새 snapshot/checkpoint/manifest에 근거가 포함되며 과거 null 필드는 직렬화에서 생략해 기존 지문 형식을 유지한다. 규칙 불일치·오염된 checkpoint는 거절한다.
+- 최초 수집 및 선택 재시도는 실제 추출을 다시 판정한다. 비선택 재사용과 관리자 역할 변경은 원문을 다시 요청하지 않고 기존 동일 근거를 복사한다. 자동 판정으로 MANUAL/PROFILE을 덮어쓰지 않는다.
+
+검증 대상: 기존 checksum/빈 정책 유지, 실제 HWPX→worker→PG→v2, Unicode block 지문, 잘못된 버전/지문/좌표 거절, 재시작 checkpoint, 관리자 복제 근거 보존이다. 실행 결과는 장기 진행 기록을 따른다. migration 생성과 운영 적용은 별개이며 공식 파일 정확도·전체 Provider QA와 게시 승인은 남아 있다.

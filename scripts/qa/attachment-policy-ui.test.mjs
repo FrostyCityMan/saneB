@@ -20,6 +20,15 @@ test('strict details and impact distinguish counts, zero and absent data',()=>{
     for(const patch of [{matchingRule:{...counts(),boundSourceCount:-1}},{allRules:null},{matchingRule:{...counts(),boundSourceCount:1}},{currentHttpRequests:1},{requiresPublicationRevalidation:false},{blockingReasonCodes:[]},{maximumSourceBytes:1},{policy:summary({rowVersion:1})},{policy:summary({modeCode:'ENFORCE'})},{activePolicyForRule:summary({policyStatusCode:'ACTIVE',ruleReleaseId:id(7)})}])assert.equal(P.impact(impact(detail(),patch),detail()),false);
     assert.equal(P.details(detail({policy:summary({rowVersion:2147483648})})),false);assert.equal(P.details(detail({isEditable:true,policy:summary({policyStatusCode:'ACTIVE'})})),false);
 });
+test('role policy version and hash are paired while legacy policy remains valid without automatic upgrade',()=>{
+    const d=detail();assert.equal(P.details(d),true);
+    assert.equal(P.details({...d,configuration:{...d.configuration,roleRuleVersion:'document-role-1.0.1',roleRulesHash:hash}}),true);
+    for(const config of [{roleRuleVersion:'v1'},{roleRulesHash:hash},{roleRuleVersion:'v1',roleRulesHash:'invalid'},{roleRuleVersion:'<script>',roleRulesHash:hash}])
+        assert.equal(P.details({...d,configuration:{...d.configuration,...config}}),false);
+    const script=readFileSync(new URL('../../src/main/resources/static/js/saneb-attachment-policies.js',import.meta.url),'utf8');
+    assert.match(script,/기존 정책에는 새 역할 규칙을 자동 적용하지 않습니다/);
+    assert.match(script,/정책 게시·기존 데이터 재처리는 별도 승인 대상/);
+});
 test('policy profiles accept actual Gov24 and historical alias but never unknown provider codes',()=>{
     for(const providerCode of ['GOV24_PUBLIC_SERVICE','GOV24']) {
         assert.equal(P.details(detail({systemProfileBindings:[{providerCode,profileCode:'GOV24_TEST_ONLY',profileHash:hash}]})),true);

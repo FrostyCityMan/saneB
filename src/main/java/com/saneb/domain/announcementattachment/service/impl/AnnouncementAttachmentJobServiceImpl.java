@@ -221,7 +221,10 @@ public class AnnouncementAttachmentJobServiceImpl implements AnnouncementAttachm
                         && execution.profileHash().equals(profile.path("profileHash").asText())) allowed = true;
             }
             JsonNode settings = mapper.readTree(policy.settingsJson());
-            if (!allowed || !execution.engineVersion().equals(settings.path("engineVersion").asText())
+            if (!allowed || !execution.selectRoleRulesCurrent()
+                    || !Objects.equals(execution.roleRuleVersion(),settings.path("roleRuleVersion").asText(null))
+                    || !Objects.equals(execution.roleRulesHash(),settings.path("roleRulesHash").asText(null))
+                    || !execution.engineVersion().equals(settings.path("engineVersion").asText())
                     || !execution.extractorVersion().equals(settings.path("extractorVersion").asText())
                     || !execution.extractorConfigHash().equals(settings.path("extractorConfigHash").asText())) {
                 throw new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_PROFILE_REQUIRED, HttpStatus.CONFLICT,

@@ -11,6 +11,20 @@
 
 ## 기준선
 
+### 2026-09-15 P3 증분 — 역할 근거의 실제 처리 경로 연결
+
+- 기준 HEAD는 QA 브랜치 `66d499c33fb76d46fdd2fb6592a9b465bc5ddab6`다. V82를 additive로 작성하고 새 정책의 역할 규칙 버전/지문 → worker → checkpoint/재시도 → 불변 file/extraction 근거 → v2 파일 조회 → 한글 관리자 근거 화면을 연결했다. 기존 정책/snapshot과 V1~V81은 보존하며 운영 정책/데이터를 갱신하지 않았다.
+- `document-role-1.0.1`은 UNKNOWN/UNKNOWN·완전 추출에서만 동작한다. 기존 MANUAL/PROFILE을 덮어쓰지 않으며 내용 부족/혼합/문맥 불확실은 UNKNOWN과 이유를 남긴다. 자동 역할 확정은 공고 최종 승인·자동 활성화가 아니다. 제목→본문→첨부→최종 검증 순서와 기존 A/B 의무를 변경하지 않았다.
+- V82는 정확한 extraction/file/set/source 복합 FK와 정책 버전·텍스트/문단 지문·실제 코드포인트 좌표를 검증한다. 관리자 수정/비선택 재사용은 원래 근거를 보존하며 새로운 다운로드 결과에 과거 assessment를 복사하지 않는다. DTO는 고정 metadata만 반환하고 원문은 기존 추출 조회에서만 읽는다.
+- 로컬 `test bootJar :attachment-extractor:installDist --no-daemon --max-workers=1`은 3분10초 성공, root2355=2112통과/243조건부 생략/실패0이었다. 추출기 시험/설치는 UP-TO-DATE로 이번 재실행 통과가 아니다. 이후 추가된 DB migration 음성 사례와 선택 재시도 사례는 별도로 컴파일·Linux 실행해야 하며 이 전체 결과에 포함됐다고 하지 않는다.
+- 후속 표적 검증·`attachmentContractQaTest installAttachmentContractQa bootJar`는43초 성공했다. 역할 연결6/형식 검증2/MigrationContract92 및 독립 패키지16건 통과, 실제 PostgreSQL migration3/worker10건은 Windows 환경에서 조건부 생략이다. 최종 선택 재시도 사례로 worker 전용 시험은11건이 된다.
+- Node 관리자 화면/배치/보고서 계약154건 통과·생략0. 역할 근거의 같은 추출 ID/지문/좌표, 관리자 수정과 자동 제안의 구분, 미연결 정책 표시를 추가했다. 기존 UI와 native controls를 재사용했고 새 의존성/모션은 없다. 실제 브라우저 검증은 선행 Linux/운영 Gate 미충족으로 아직 실행하지 않았다.
+- 새 실제 통합 검증은 HWPX 바이트→격리 parser→worker→PG→v2→관리자 역할 복제, 재시작 checkpoint, 부분 파일 선택 재시도와 성공 파일 재사용, V82 Unicode/변조/불변/cascade 계약이다. 합성 파일이며 공식 Provider 전체 정확도 QA를 대체하지 않는다.
+- 이전 [Linux 실행34862376250](https://github.com/FrostyCityMan/saneB/actions/runs/34862376250)은 주 검증·독립215건·부모 취소·정리가 통과했지만 정상 부모 연결은 `QA_CHILD_PROCESS_LIMIT` 실패(같은UID97/부모JVM9)다. 이번 증분으로 그 실패가 해결됐다고 주장하지 않는다. 자원 제한128/2GiB·격리를 완화하지 않았다.
+- Release **Not ready**, goal ACTIVE. V82/새 역할 경로의 Linux 검증, 부모 실행 자원 문제, 공식 profile/문서 역할 기대값·Provider 화면, 동일 SHA 운영 배포·정확한 범위 승인·기존 데이터 처리·운영 브라우저 E2E가 남아 있다. 사용자 `output/` Word2개는 그대로 보존한다. 전체 Gate0~8의 완료 기준과 분모는 축소하지 않는다.
+
+### 최초 시작 시점 기준선
+
 - 작업 경로: `C:\PersonalProject\saneB`, 루트 AGENTS.md 완독.
 - 시작 HEAD: `ae893b87348a9bd1cb0893763f6cad5047093a24`, master, 작업 트리 clean.
 - origin URL: `https://github.com/FrostyCityMan/saneB.git`. Windows 신뢰 저장소를 명령 단위로 지정한 원격 실조회에서도 master가 시작 HEAD와 일치했다.
@@ -28,11 +42,20 @@
 | 3 분류·정책 | [~] | 전체 Provider QA·게시 재검증 연결 및 태백/횡성/영월 본문 전용3모델 구현·공식 본문3표본 확인. 공식 첨부 참조9/실행 기대값0은 미완료다. 나머지 본문 모델·문서 역할 자동 규칙·전체 기대값/Linux/Provider 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태/29행 실제 PG·Java/HTTP·Node 회귀 통과. 운영 역할·브라우저 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 09-14 여덟 번째: 주 DB/runtime/worker와 독립215/215 통과·정리 성공. 부모 JVM9개로 줄여도 같은UID158개가128 한도를 초과하여 부모2건 기동 실패. 임시 QA 전용 계정 분리 필요. 독립 대량 분할의 간헐 실패 및 전체 Provider 실제 기대값/전수 검증도 잔여 |
+| 6 자동·실파일 QA | [!] | 09-15 아홉 번째: 주 DB/runtime/worker·독립215/215 통과. 전용 계정 분리·정리 성공 및 부모 취소1건 통과, 정상 연결1건은 QA_PROCESS_FAILED로 실패. 준비/시험 수명 분리 후66d499c 원격 재검증 중. 간헐 분할 실패 원인·전체 Provider 기대값/전수 실증도 잔여 |
 | 7 운영 배포·활성화 | [!] | 09-14 GitHub 소유 계정 pull/push/admin=true 확인 및 QA 전용 브랜치 푸시 완료, master/배포 불변. 서울 AWS STS의 최근 TLS 실패는 미해결. 최신 구현 배포/정책/데이터 적용 미실행. TLS·IAM 완화 없음 |
 | 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
 
 ## 최신 실행 기록
+
+### 2026-09-15 00:30 KST — 전용 계정 실증 및 텍스트 문서 역할 제안기 증분
+
+- QA 브랜치 HEAD/origin `66d499c33fb76d46fdd2fb6592a9b465bc5ddab6`까지 한글 커밋·푸시했다. `8cb55d1` 전용 UID 격리, `5bdf715` 역할 제안기, `66d499c` 준비/시험 Gradle 수명 분리와 비식별 응답 오류 구분이다. master는 `ae893b87348a9bd1cb0893763f6cad5047093a24`이며 운영 배포/정책/기존 데이터/기존 migration은 변경하지 않았다.
+- [Linux 아홉 번째34860558789](https://github.com/FrostyCityMan/saneB/actions/runs/34860558789),8cb55d1은 전체 실패다. root2078통과/242조건부 생략·추출기25·패키지16·job192·migration/분할15·runtime12합성파일/1시험·worker8·Node152·bootJar 및 독립215/215는 통과했다. 부모 취소1건은 통과, 정상 연결1건은 inventory 처리 중 `QA_PROCESS_FAILED`다. 같은UID108/부모JVM9 관측과 전용 계정/임시 경로 정리 성공을 확인했다. 이 오류를 이전 자식 기동 오류와 동일한 원인으로 단정하지 않는다.
+- 역할 제안기는 COMPLETE_TEXT와 단일 파일의 텍스트 제목/항목/위치만 평가한다. 파일명/URL/다른 파일 키워드는 입력받지 않고 혼합·불완전·불명확은 UNKNOWN이다. 규칙/텍스트/위치 지문과 원문 없는 근거를 반환한다. 22개 합성 회귀와 기존 분류19건 통과. **DB/worker/API 연결 및 공식 파일 정확도는 미완료**이며 실제 역할을 변경하거나 정책을 활성화하지 않는다. 엔진6/등록profile12/형식추출3의 수를 늘린 사이트 모델이 아니다.
+- 역할 제안기 포함 로컬 전체 시험·bootJar는3분18초 성공(root2101통과/241조건부 생략, 패키지16). 추출기 시험/설치는 UP-TO-DATE였다. 이후 부모 오류/수명 보완의 표적 workflow7·process16·역할22=45건과 bootJar도28초 통과했다. 주 로컬/Node 명령의 자식 프로세스는 종료했고 사용자 Word2파일은 보존했다.
+- [열 번째 Linux34862376250](https://github.com/FrostyCityMan/saneB/actions/runs/34862376250),66d499c는 현재 실행 중이다. 원격 성공/부모 문제 해소/전체 Gate 완료로 보고하지 않는다. 원격 완료 후 suite·누락·생략·취소/정리와 동일 SHA를 확인해야 한다. AWS/운영 health/브라우저는 이번에 조회하지 않았고 선행 Gate 미충족이다.
+- 다음 실제 구현은 역할 assessment의 additive DB 제약과 checkpoint/재시도/수동 역할 보존 연결이다. 기존 제목→본문→실제 첨부→최종 관리자 검증을 유지하고, pure 판정기의 합성 통과만으로 역할 자동화나 전체 목표 완료를 선언하지 않는다.
 
 ### 2026-09-14 후속 최종 확인 — 본문3모델 반영 및 CI 공유 UID 자원 충돌 확정
 

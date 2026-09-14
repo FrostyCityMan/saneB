@@ -22,11 +22,13 @@ public final class AttachmentEvidenceResponses {
     public record FileSummary(UUID fileId, UUID setId, String displayName, String detectedTypeCode,
             String documentRoleCode, String roleOriginCode, String downloadStatusCode, long downloadedBytes,
             String binaryHash, String downloadErrorCode, UUID extractionId, String qualityCode, Integer characterCount,
-            Integer pageCount, Integer durationMs, String extractionErrorCode, OffsetDateTime extractedAt, UUID reusedFromExtractionId) {
+            Integer pageCount, Integer durationMs, String extractionErrorCode, OffsetDateTime extractedAt, UUID reusedFromExtractionId,
+            UUID roleExtractionId,com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.Assessment roleAssessment) {
         public static FileSummary from(AttachmentFileSummaryRow row) {
             return new FileSummary(row.fileId(), row.setId(), row.displayName(), row.detectedTypeCode(), row.documentRoleCode(),
                     row.roleOriginCode(), row.downloadStatusCode(), row.downloadedBytes(), row.binaryHash(), row.downloadErrorCode(),
-                    row.extractionId(), row.qualityCode(), row.characterCount(), row.pageCount(), row.durationMs(), row.extractionErrorCode(), row.extractedAt(),row.reusedFromExtractionId());
+                    row.extractionId(), row.qualityCode(), row.characterCount(), row.pageCount(), row.durationMs(), row.extractionErrorCode(), row.extractedAt(),
+                    row.reusedFromExtractionId(),row.roleExtractionId(),row.roleAssessment());
         }
     }
     public record Block(int blockIndex, int startOffset, int endOffset, String evidenceScopeId, boolean scopeReliable,

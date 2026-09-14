@@ -132,13 +132,31 @@
             const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
             text(item, "h3", file.displayName || "이름 미확인 파일");
             meta(item, [["집합", title], ["파일 ID", file.fileId], ["형식", file.detectedTypeCode || "미확인"],
-                ["문서 역할", C.label(file.documentRoleCode)], ["다운로드", C.label(file.downloadStatusCode)],
+                ["문서 역할", C.label(file.documentRoleCode)], ["역할 출처", C.roleOrigin(file.roleOriginCode)], ["다운로드", C.label(file.downloadStatusCode)],
                 ["다운로드 실패", file.downloadErrorCode ? C.label(file.downloadErrorCode) : "기록 없음"],
                 ["추출 품질", C.label(file.qualityCode)], ["추출 실패", file.extractionErrorCode ? C.label(file.extractionErrorCode) : "기록 없음"],
                 ["추출 글자 수", file.characterCount == null ? "미집계" : `${file.characterCount}자`], ["추출 시각", date(file.extractedAt)],
                 ["이전 추출 재사용", file.reusedFromExtractionId || "재사용 기록 없음"]]);
             action(item, "이 파일의 추출 텍스트 확인", () => showBlocks(file), !file.extractionId);
             if (!file.extractionId) text(item, "p", "추출 이력이 없어 텍스트를 조회할 수 없습니다.");
+            if (file.roleAssessment == null) {
+                text(item, "p", "텍스트 역할 판정 근거가 없습니다. 기존 정책·수동 지정 또는 미완료 추출일 수 있으며, 역할 자동 판정 완료로 간주하지 않습니다.");
+            } else if (!C.validRoleAssessment(file)) {
+                text(item, "p", "역할 근거와 추출 이력이 일치하지 않습니다. 자동 강조하지 않습니다. 최신 근거를 다시 조회하고 담당자에게 확인하세요.", "attachment-error").setAttribute("role", "alert");
+            } else {
+                const a=file.roleAssessment;
+                meta(item, [["텍스트 규칙 제안", C.label(a.roleCode)], ["역할 판정 사유", C.label(a.reasonCode)], ["역할 규칙 버전", a.ruleVersion]]);
+                text(item, "p", file.roleOriginCode === "MANUAL"
+                    ? "현재 역할은 관리자 지정값입니다. 아래 자동 제안은 변경 전 근거이며 관리자 지정값을 덮어쓰지 않습니다."
+                    : "문서 역할 판정입니다. 공고의 지원대상 확정이나 관리자 최종 검증 완료를 의미하지 않습니다.");
+                const details=document.createElement("details"); item.append(details); text(details, "summary", `역할 판정 근거 ${a.evidence.length}개와 지문 확인`);
+                meta(details, [["역할 근거 추출 ID", file.roleExtractionId], ["규칙 지문", a.rulesHash], ["텍스트 지문", a.textHash], ["문단 지문", a.blocksHash]]);
+                if (!a.evidence.length) text(details, "p", "확정할 수 있는 역할 구조 근거가 없습니다. 추출 품질과 판정 사유를 함께 확인하세요.");
+                a.evidence.forEach(e => {
+                    text(details, "p", `${C.label(e.ruleCode)} · 문단 ${e.blockIndex + 1} · ${e.startOffset}~${e.endOffset} (코드포인트·끝 제외)`);
+                    action(details, `${C.label(e.ruleCode)}의 추출 텍스트 확인`, () => showBlocks(file, {...e, extractionId:file.roleExtractionId}, e.blockIndex + 1));
+                });
+            }
         }, `파일 기록이 없습니다. 집합 ${title}의 발견 상태를 함께 확인하세요.`);
     };
     const showSets = () => paged(q("[data-sets]"), `${root}/attachment-sets`, (parent, set) => {

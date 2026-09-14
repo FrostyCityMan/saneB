@@ -6,6 +6,23 @@ const require = createRequire(import.meta.url);
 const C = require('../../src/main/resources/static/js/saneb-attachment-review-core.js');
 const id = '11111111-1111-4111-8111-111111111111';
 const path = `/api/v2/admin/announcement-sources/${id}`;
+test('role evidence binds exact extraction and preserves manual overrides without claiming approval', async () => {
+    const a={ruleVersion:'document-role-1.0.1',rulesHash:'a'.repeat(64),textHash:'b'.repeat(64),blocksHash:'c'.repeat(64),roleCode:'NOTICE',reasonCode:'ROLE_TEXT_STRUCTURE_MATCHED',
+        evidence:['NOTICE_HEADING','TARGET_SECTION','SUPPORT_SECTION','APPLICATION_SECTION'].map((ruleCode,i)=>({ruleCode,blockIndex:i,startOffset:i*10,endOffset:i*10+5}))};
+    const file={roleOriginCode:'TEXT_RULE',documentRoleCode:'NOTICE',roleExtractionId:id,extractionId:id,qualityCode:'COMPLETE_TEXT',roleAssessment:a};
+    assert.equal(C.validRoleAssessment(file),true);
+    assert.equal(C.validRoleAssessment({...file,roleOriginCode:'MANUAL',documentRoleCode:'REFERENCE'}),true);
+    for(const patch of [{extractionId:'different'},{roleAssessment:null},{roleOriginCode:'PROFILE'},{documentRoleCode:'FORM'},{qualityCode:'PARTIAL_TEXT'},
+        {roleAssessment:{...a,reasonCode:'ROLE_STRUCTURE_INCOMPLETE'}},{roleAssessment:{...a,rulesHash:'invalid'}},
+        {roleAssessment:{...a,evidence:[{ruleCode:'NOTICE_HEADING',blockIndex:-1,startOffset:0,endOffset:1}]}},
+        {roleAssessment:{...a,evidence:a.evidence.map(e=>({...e,startOffset:'0'}))}}])assert.equal(C.validRoleAssessment({...file,...patch}),false);
+    assert.equal(C.validRoleAssessment({...file,documentRoleCode:'UNKNOWN',roleAssessment:{...a,roleCode:'UNKNOWN',reasonCode:'INITIAL_HEADING_REQUIRED',evidence:[]}}),true);
+    assert.match(C.roleOrigin('TEXT_RULE'),/텍스트 규칙/);assert.match(C.roleOrigin('MANUAL'),/관리자 지정/);
+    for(const code of [a.reasonCode,...a.evidence.map(e=>e.ruleCode)])assert.equal(C.label(code).includes(code),false);
+    const script=await readFile(new URL('../../src/main/resources/static/js/saneb-announcement-attachment-review.js',import.meta.url),'utf8');
+    assert.match(script,/C\.validRoleAssessment\(file\)/);assert.match(script,/extractionId:file\.roleExtractionId/);
+    assert.match(script,/관리자 지정값을 덮어쓰지 않습니다/);assert.match(script,/최종 검증 완료를 의미하지 않습니다/);
+});
 const version = {expectedBaseDecisionId: 'base', expectedAttachmentDecisionId: 'attachment', expectedSourceVersion: 4, expectedAttachmentVersion: 7, expectedSetHash: 'a'.repeat(64)};
 const context = {sourceId: id, version};
 const source = {sourceId: id, isAttachmentReviewRequired: true, sourceVersion: 4, attachmentVersion: 7,

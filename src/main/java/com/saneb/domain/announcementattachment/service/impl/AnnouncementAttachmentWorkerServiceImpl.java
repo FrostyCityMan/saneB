@@ -3,6 +3,7 @@ package com.saneb.domain.announcementattachment.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
+import com.saneb.domain.announcementattachment.classification.AttachmentFileRoleRules;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
 import com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity;
@@ -78,7 +79,7 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
             AttachmentRuntimeIdentity.Identity installed;
             try { installed=runtime.selectIdentity(); }
             catch (IOException exception) { return saveFailure(job,AttachmentFailureCode.ISOLATION_UNAVAILABLE); }
-            if (!AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
+            if (!execution.selectRoleRulesCurrent() || !AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
                     || !installed.extractorVersion().equals(execution.extractorVersion())
                     || !installed.configHash().equals(execution.extractorConfigHash()))
                 return saveFailure(job, AttachmentFailureCode.PROFILE_REQUIRED);
@@ -135,8 +136,9 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                             : java.util.Optional.<AttachmentSetEvidence.File>empty();
                     if(checkpoint.isPresent()) {
                         var saved=checkpoint.get();
-                        if(!(fixed==null?descriptor.documentRole():fixed.role()).equals(saved.role())
-                                || (fixed!=null && !fixed.roleOrigin().equals(saved.roleOrigin()))
+                        String expectedRole=fixed==null?descriptor.documentRole():fixed.role();
+                        String expectedOrigin=fixed==null?("UNKNOWN".equals(expectedRole)?"UNKNOWN":"PROFILE"):fixed.roleOrigin();
+                        if(!AttachmentFileRoleRules.selectPreservedRoleMatches(expectedRole,expectedOrigin,saved,execution)
                                 || (descriptor.expectedFormat()!=null && !descriptor.expectedFormat().equals(saved.detectedType())))
                             throw new IllegalArgumentException("ATTACHMENT_CHECKPOINT_DESCRIPTOR_CHANGED");
                         files.add(saved);
@@ -145,6 +147,8 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                     var file = selectFile(job,profile,descriptor,workspace,requestStarted);
                     if(fixed!=null) file=new AttachmentSetEvidence.File(file.locator(),file.displayName(),file.detectedType(),fixed.role(),fixed.roleOrigin(),
                             file.downloadStatus(),file.downloadedBytes(),file.binaryHash(),file.failureCode(),file.extraction());
+                    try { file=AttachmentFileRoleRules.selectAssessedFile(file,execution); }
+                    catch(IllegalArgumentException exception) { throw new IllegalStateException("ATTACHMENT_ROLE_EVIDENCE_INVALID"); }
                     // selectFile의 finally에서 원본 삭제 후 저장한다. 재시도/재시작에도 성공 근거와 최초 추출 시각은 보존한다.
                     if(file.extraction()!=null && "COMPLETE_TEXT".equals(file.extraction().quality())
                             && !evidence.saveFileCheckpoint(job.jobId(),job.leaseToken(),file))

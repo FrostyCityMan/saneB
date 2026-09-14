@@ -31,6 +31,8 @@
         &&statuses.includes(p.ruleReleaseStatusCode)&&(p.policyHash===null||hash(p.policyHash))&&time(p.createdAt));
     const details=d=>!!(d&&summary(d.policy)&&integer(d.configuration?.maximumSourceBytes)&&d.configuration.maximumSourceBytes>=1
         &&d.configuration.maximumSourceBytes<=83886080&&typeof d.configuration.engineVersion==="string"&&typeof d.configuration.extractorVersion==="string"
+        &&((d.configuration.roleRuleVersion==null&&d.configuration.roleRulesHash==null)
+            ||typeof d.configuration.roleRuleVersion==="string"&&/^[A-Za-z0-9_.-]{1,40}$/.test(d.configuration.roleRuleVersion)&&hash(d.configuration.roleRulesHash))
         &&typeof d.isEditable==="boolean"&&typeof d.isDraftValidationRequired==="boolean"&&(!d.isEditable||d.policy.policyStatusCode==="DRAFT")
         &&(d.copiedFromPolicyId===null||uuid(d.copiedFromPolicyId))&&time(d.updatedAt)&&Array.isArray(d.systemProfileBindings)&&d.systemProfileBindings.length<=1000
         &&d.systemProfileBindings.every(p=>["BIZINFO","GOV24","GOV24_PUBLIC_SERVICE","LOCAL_GOV_NOTICE"].includes(p.providerCode)&&typeof p.profileCode==="string"&&hash(p.profileHash)));

@@ -61,7 +61,12 @@
             if(selected&&!rules.has(selected)){const option=el(select,"option",`${selected} · ${retiredRules.has(selected)?"퇴역 규칙 · 저장 불가":"연결 규칙(저장 가능 여부는 서버 확인)"}`);option.value=selected;option.disabled=retiredRules.has(selected);}select.value=selected||"";}
         function showDetail(d,fill=true){P.requireValue(P.details(d));state.detail=d;creating=false;const box=clear("[data-detail]");policyMeta(box,d.policy);
             meta(box,[["공고별 누적 다운로드 한도",`${d.configuration.maximumSourceBytes.toLocaleString("ko-KR")}바이트`],["저장 시각",date(d.updatedAt)],
-                ["분류 엔진",d.configuration.engineVersion],["추출기",d.configuration.extractorVersion],["개정 원본",d.copiedFromPolicyId||"없음"]]);
+                ["분류 엔진",d.configuration.engineVersion],["추출기",d.configuration.extractorVersion],["개정 원본",d.copiedFromPolicyId||"없음"],
+                ["텍스트 역할 규칙",d.configuration.roleRuleVersion||"연결 없음 · 자동 역할 판정 미적용"],
+                ["역할 규칙 지문",d.configuration.roleRulesHash||"연결 없음"]]);
+            el(box,"p",d.configuration.roleRuleVersion
+                ?"이 정책은 완전 추출된 역할 미확정 파일에 텍스트 규칙을 사용합니다. 관리자·시스템 지정 역할은 유지하며, 정책 게시·기존 데이터 재처리는 별도 승인 대상입니다."
+                :"기존 정책에는 새 역할 규칙을 자동 적용하지 않습니다. 새 초안 저장 후 QA와 게시 절차가 필요합니다.");
             el(box,"p",d.isEditable?"이 초안은 편집 가능합니다. 수정 후 이전 QA는 다시 검증해야 합니다.":"현재 계정·정책 상태에서는 직접 편집할 수 없습니다. 관리자는 개정 초안을 만들 수 있습니다.");
             const bindings=el(box,"details");el(bindings,"summary",`시스템 수집 방식 ${d.systemProfileBindings.length}개 · 관리자가 선택하지 않음`);
             for(const p of d.systemProfileBindings)el(bindings,"p",`${P.label(p.providerCode)} / ${p.profileCode} · 지문 ${p.profileHash}`);

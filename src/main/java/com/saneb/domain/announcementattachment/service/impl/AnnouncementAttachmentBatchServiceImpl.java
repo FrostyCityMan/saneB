@@ -276,7 +276,9 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
                 if(profile.isPresent()) try {profile.get().selectDetailUri(locator.selectDiscoverySource());matched.add(profile.get());} catch(IllegalArgumentException ignored) { }
             }
             if(matched.size()!=1)return null;var profile=matched.getFirst();
-            return new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),configuration.engineVersion(),configuration.extractorVersion(),configuration.extractorConfigHash());
+            var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),configuration.engineVersion(),
+                    configuration.extractorVersion(),configuration.extractorConfigHash(),configuration.roleRuleVersion(),configuration.roleRulesHash());
+            return execution.selectRoleRulesCurrent()?execution:null;
         } catch(Exception exception) {return null;}
     }
     private AttachmentBatchRequests.Scope normalize(AttachmentBatchRequests.Scope value) {

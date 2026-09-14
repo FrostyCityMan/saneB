@@ -111,7 +111,9 @@ public class AnnouncementAttachmentCollectionServiceImpl implements Announcement
                     || !settings.path("maximumSourceBytes").isIntegralNumber() || !settings.path("maximumSourceBytes").canConvertToLong()) throw profileRequired();
             long bytes=settings.path("maximumSourceBytes").asLong();if(bytes<1 || bytes>83886080) throw profileRequired();
             var execution=new AttachmentExecutionSnapshot(selected.getFirst().selectProfileCode(),selected.getFirst().selectProfileHash(),
-                    settings.path("engineVersion").asText(),settings.path("extractorVersion").asText(),settings.path("extractorConfigHash").asText());
+                    settings.path("engineVersion").asText(),settings.path("extractorVersion").asText(),settings.path("extractorConfigHash").asText(),
+                    settings.path("roleRuleVersion").asText(null),settings.path("roleRulesHash").asText(null));
+            if(!execution.selectRoleRulesCurrent()) throw profileRequired();
             if(!collections.selectManualRequestRateAllowed(source.sourceId())) throw new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_COLLECTION_RATE_LIMITED,HttpStatus.TOO_MANY_REQUESTS,
                     "전체 첨부 수집과 실패 파일 재시도는 합산하여 원문별 60초 간격, 최근 24시간 최대 3회입니다. 기존 작업 결과를 확인하세요.");
             return new Prepared(policy,execution,selectHash(selectJson(execution)),bytes);

@@ -120,7 +120,9 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
     }
     private AttachmentPolicyResponses.Configuration selectNewConfiguration(long maximumBytes) {
         // 설치 Linux 런타임 지문은 실제 검증 단계에서만 결합한다. Windows에서 추측하거나 임의 hash를 받지 않는다.
-        return new AttachmentPolicyResponses.Configuration(AnnouncementAttachmentClassificationEngine.VERSION,AttachmentRuntimeIdentity.EXTRACTOR_VERSION,null,maximumBytes);
+        return new AttachmentPolicyResponses.Configuration(AnnouncementAttachmentClassificationEngine.VERSION,AttachmentRuntimeIdentity.EXTRACTOR_VERSION,null,maximumBytes,
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH);
     }
     private List<AttachmentPolicyResponses.Profile> selectSystemBindings() {
         if(profiles.selectProfileList().size()>1000) throw conflict("등록된 시스템 첨부 profile 수가 한도를 초과했습니다.");
