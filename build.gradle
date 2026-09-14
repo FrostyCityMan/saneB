@@ -296,6 +296,24 @@ tasks.register('attachmentOfficialFileObservation', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentOfficialFileObservation')
 }
 
+tasks.register('attachmentBbsOfficialFileObservation', Test) {
+    description = '고정 태백 공고 1건의 제목·본문·전체 첨부를 Linux 격리 관측합니다. 운영 쓰기·기대값 승인은 없습니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentBbsOfficialObservationTest.class'
+    environment 'SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    systemProperty 'saneb.attachment-observation.extractor', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-bbs-official-observation').get().asFile.absolutePath
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBbsOfficialFileObservation')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsOfficialFileObservation')
+}
+
 tasks.register('attachmentRealFileQa', Test) {
     description = '제한된 일회성 Docker 컨테이너에서 공개 첨부 표본의 실파일 QA를 실행합니다.'
     group = 'verification'

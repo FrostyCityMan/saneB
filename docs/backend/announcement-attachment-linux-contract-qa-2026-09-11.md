@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 수집원 QA 예약·이력·취소 화면의 Linux 검증
+
+[실행27 / 34898209145](https://github.com/FrostyCityMan/saneB/actions/runs/34898209145), SHA `ad0e1307dd0ed1c8cbadb33468b2297ff5ece326`는 전체 성공이다. XML root2498=2245통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다. artifact는 ignored `build/qa-results/run-34898209145`에 보존했다.
+
+수집원 QA 관리 화면의 같은 SHA 근거다. 공식 파일 관측·운영 배포·운영 브라우저를 실행하지 않았다. 이후 태백 세 단계 관측 경로는 이 SHA에 포함되지 않으며 전체 Gate는 Not ready다.
+
 ### 2026-09-15 — 수집원별 검증 범위 화면의 Linux 검증
 
 [실행26 / 34895142129](https://github.com/FrostyCityMan/saneB/actions/runs/34895142129), SHA `1d4be1b5c4e4fbe86bb3b520f93d9f2f2c9ee328`는 전체 성공이다. XML root2491=2238통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node200/200·설치12/12를 확인했다. artifact는 ignored `build/qa-results/run-34895142129`에 보존했다.

@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 06:33 KST — 태백 고정 표본의 세 단계 실제 관측 경로
+
+- 직전 회차는 QA 관리 화면 구현·커밋·푸시로 진전이었다. 현재 로컬 Docker Linux engine pipe 연결 실패를 확인했다. 격리 추출을 Windows 비격리 실행으로 우회하지 않으며 이전 기업마당 관측 timeout3건을 해소한 것으로 보지 않는다.
+- 태백184816 공식 페이지의 제목·본문·첨부2개를 다시 확인하고, 기존 production 제목 분류→BODY client/정제·분류→공식 첨부 발견→전체 파일 Linux 격리 추출/역할 판정→종합 분류를 사용하는 고정 관측을 연결했다. 제목 제외 시 요청0, BODY A/B/정보 부족은 첨부로 진행, 파일 UNKNOWN/부분/실패는 전체 분모에 유지한다. 관리자 최종 검증·DB/API/UI/DRAFT 전환을 수행한 것으로 표시하지 않는다.
+- 전체44요청/80MiB/420초를 유지하고 BODY 최대2시도/redirect0/1MiB 응답의2요청/2MiB 상한을 먼저 예약했다. 파일20MiB·최대10개·기존 TLS/SSRF/pinned host/격리 요구는 그대로다. 원본은 finally 정리하며 artifact에는 비식별 metadata만 남긴다. 명시 표식/기본false 입력에서만 고정1공고를 실행하고 운영 쓰기·catalog 자동 승인은 없다.
+- 표적14건/44초, 전체 root2504=2251통과/253조건부 생략/실패0·QA 패키지20/20·3분16초 성공이다. 새 실제 관측은 로컬 Windows에서 미실행이며 일반 시험에서 생략했다. extractor/bootJar/설치 task는 UP-TO-DATE다. production JAR는 기존 `fd57b761ceb2dcd7cab381ae3e3db9cb2fb46aced6c927f59ed3a01b0b2402e1`로 유지되며 production Java/DB/API/UI/프로필/migration 변경은 없다.
+- [Linux 실행27](https://github.com/FrostyCityMan/saneB/actions/runs/34898209145), `ad0e1307dd0ed1c8cbadb33468b2297ff5ece326`은 전체 성공이다. root2498=2245통과/253생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 통과, Node241/241·설치12/12다. 이 근거는 직전 QA UI SHA이며 이번 태백 관측의 실행 근거가 아니다.
+- 상세는 `announcement-bbs-three-stage-observation-2026-09-15.md`다. 새 SHA의 실제 Linux 관측 결과를 받은 뒤 파일 목록/품질/역할·내용 기대값을 검토한다. catalog 참조15/실행 기대값0, 전체 대상 모델·공식 파일·운영 재인증/배포·승인된 전체 배치·운영 브라우저 Gate는 남아 있다. 브라우저/운영 조회·쓰기는 이번 회차에 실행하지 않았고 사용자 Word2개를 보존했다. 전체 Gate/ATT **Not ready**, goal ACTIVE다.
+
 ### 2026-09-15 06:18 KST — 수집원 QA 예약·이력·취소 화면 연결
 
 - 제목→정제 BODY→실제 PDF/HWP/HWPX 텍스트→관리자 최종 검증 순서를 유지했다. 새 관리자 업무 화면은 고정 QA 분할의 전체 공고 코드·요청/바이트/시간 예산·전체 기대값 미완료 여부를 확인하고 별도 동의 후 예약한다. 읽기 전용 coverage 화면과 분리하고 기존 Controller/Service/API/CSRF 계약을 재사용했다. 새 DDL·기존 migration·v1 계약·분류 규칙·운영 데이터 변경은 없다.
