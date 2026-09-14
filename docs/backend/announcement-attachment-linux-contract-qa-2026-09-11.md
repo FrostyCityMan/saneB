@@ -2,6 +2,14 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 구조 관측 재실행은 상세 전송 단계에서 실패
+
+[실행18 / 34879054554](https://github.com/FrostyCityMan/saneB/actions/runs/34879054554), SHA `9b95136d2b0ef0ffc17e97439cc3760cfd666471`는 전체 workflow 실패다. root2413건=2164통과/249조건부 생략, extractor25, 패키징20, 실제 job192·migration17·worker11·격리 runtime1·부모2건 및 독립220/220은 실패0이다. 전용 시험의 생략은0이며 독립/전용 계정 정리 모두 SUCCEEDED다.
+
+공식3공고는 제목 조합 조건 통과 후 모두 DETAIL_DISCOVERY에서 실패했다. 각 요청 예약1·예약 bytes0·발견/다운로드 파일0이며 원본 정리3/3, 운영 쓰기0이다. 이 보고서에는 구체적인 전송 오류 코드가 없어 DNS·연결/TLS·HTTP 실패 중 원인을 확정할 수 없다. 역할 구조 관측은 미실행이며 이전 실행16의 파일 결과로 대체하지 않는다.
+
+후속 로컬 PC의 같은 production pinned client로3개 상세만 읽기 전용 확인하여 모두 다운로드(102,038/76,060/83,465 bytes)와 즉시 정리를 확인했다. 이는 다른 시각·환경의 응답이고 Linux 실패를 성공으로 바꾸지 않는다. 다음 격리 관측은 전송기의 고정 오류 코드 또는 TLS/timeout/DNS 예외 유형만 기록한다. 외부 예외 문자열·URL·헤더·원문은 내보내지 않으며 시간/보안 한도·실패 assertion은 유지한다. 관측 계약9건·역할 분류22건 로컬 통과, 실제 Linux 재관측은 잔여다.
+
 ### 2026-09-15 — 남구·달성 본문 증분의 Linux 계약 검증 완료
 
 [실행17 / 34877758509](https://github.com/FrostyCityMan/saneB/actions/runs/34877758509), SHA `f47967a809d3430b61f601f9e1c16217eceae7c8`는 workflow 성공이다. root2409건=2160통과/249조건부 생략, extractor25, 패키징20, 실제 DB job192, migration17, worker11, 격리 runtime1시험 및 부모 연결/취소2건의 실패는0이다. 전용 DB/runtime/worker/부모 시험은 생략0이며 독립 namespace도220/220통과·실패/생략/미실행/container실패0이다. 독립 임시 경로와 부모 전용 계정 정리 모두 SUCCEEDED를 확인했다.

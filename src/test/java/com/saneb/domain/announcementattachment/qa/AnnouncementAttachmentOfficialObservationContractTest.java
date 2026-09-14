@@ -9,6 +9,28 @@ import org.junit.jupiter.api.Test;
 class AnnouncementAttachmentOfficialObservationContractTest {
     private static final ObjectMapper JSON = new ObjectMapper();
 
+    @Test void diagnosticFailureCodePreservesOnlyKnownCodesAndNeverExternalErrorText() {
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException("ATTACHMENT_DNS_TIMEOUT")))
+                .isEqualTo("ATTACHMENT_DNS_TIMEOUT");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException("ATTACHMENT_TOTAL_TIMEOUT")))
+                .isEqualTo("ATTACHMENT_TOTAL_TIMEOUT");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException("ATTACHMENT_HTTP_503")))
+                .isEqualTo("ATTACHMENT_HTTP_503");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new javax.net.ssl.SSLHandshakeException("PRIVATE_CANARY")))
+                .isEqualTo("TLS_FAILED");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.net.SocketTimeoutException("PRIVATE_CANARY")))
+                .isEqualTo("TRANSPORT_TIMEOUT");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.net.UnknownHostException("PRIVATE_CANARY")))
+                .isEqualTo("DNS_FAILED");
+        for (String message : List.of("ATTACHMENT_HTTP_503 PRIVATE_CANARY", "ATTACHMENT_DNS_TIMEOUT PRIVATE_CANARY", "PRIVATE_CANARY"))
+            assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException(message)))
+                    .isEqualTo("TRANSPORT_FAILED");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new AssertionError("PRIVATE_CANARY")))
+                .isEqualTo("OBSERVATION_ASSERTION_FAILED");
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new IllegalArgumentException("PRIVATE_CANARY")))
+                .isEqualTo("OBSERVATION_FAILED");
+    }
+
     @Test void officialEmptyTemplateTitleIsIgnoredButMissingConflictingOrChangedContentTitlesFail() {
         var valid=org.jsoup.Jsoup.parse("<meta property='og:title' content='소상공인 지원 공고'><meta property='og:title' content=''>");
         assertThatCode(()->AnnouncementAttachmentOfficialObservationTest.validateOfficialTitle(valid,"소상공인 지원 공고")).doesNotThrowAnyException();

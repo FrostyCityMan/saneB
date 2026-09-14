@@ -126,6 +126,7 @@ class AnnouncementAttachmentOfficialObservationTest {
                     row.put("status", "OBSERVED");
                 } catch (Exception | AssertionError failure) {
                     row.put("status", "FAILED"); row.put("failedStage", stage);
+                    row.put("failureCode", selectFailureCode(failure));
                     // 한 파일의 기술 실패도 숨기지 않되 나머지 공식 파일 관측은 계속한다.
                 } finally { Files.deleteIfExists(binary); }
             }
@@ -133,6 +134,7 @@ class AnnouncementAttachmentOfficialObservationTest {
             report.put("status", "OBSERVED_NOT_VALIDATED");
         } catch (Exception | AssertionError failure) {
             report.put("failedStage", stage);
+            report.put("failureCode", selectFailureCode(failure));
             // URL/헤더/문서 본문/예외 메시지를 JUnit 로그로 복제하지 않는다.
             throw new AssertionError(sample.code()+": "+stage+" / OBSERVATION_INCOMPLETE");
         } finally {
@@ -143,6 +145,25 @@ class AnnouncementAttachmentOfficialObservationTest {
             report.put("requestReservations", budget.requests); report.put("reservedBytes", budget.bytes);
             JSON.writerWithDefaultPrettyPrinter().writeValue(reports.resolve(sample.code()+".json").toFile(), report);
         }
+    }
+
+    /** 전송기의 고정 코드/예외 유형만 반환한다. 외부 오류 문자열과 원문은 보고서에 복사하지 않는다. */
+    static String selectFailureCode(Throwable failure) {
+        if (failure instanceof java.io.IOException) {
+            String code = failure.getMessage();
+            if (code != null && (code.matches("ATTACHMENT_HTTP_[1-5][0-9]{2}") || Set.of(
+                    "ATTACHMENT_HOST_NOT_APPROVED", "ATTACHMENT_PATH_NOT_APPROVED", "ATTACHMENT_URL_BLOCKED",
+                    "ATTACHMENT_DNS_BUSY", "ATTACHMENT_DNS_TIMEOUT", "ATTACHMENT_CANCELLED", "ATTACHMENT_TOTAL_TIMEOUT",
+                    "ATTACHMENT_REDIRECT_LIMIT", "ATTACHMENT_REDIRECT_INVALID", "ATTACHMENT_POST_REDIRECT_BLOCKED",
+                    "ATTACHMENT_BYTE_LIMIT", "SOURCE_BYTE_LIMIT", "ATTACHMENT_ENCODING_UNSUPPORTED", "ATTACHMENT_HEADER_LIMIT",
+                    "ATTACHMENT_EMPTY_FILE", "ATTACHMENT_TRUNCATED_FILE").contains(code))) return code;
+            if (failure instanceof javax.net.ssl.SSLException) return "TLS_FAILED";
+            if (failure instanceof java.net.SocketTimeoutException || failure instanceof java.net.http.HttpTimeoutException)
+                return "TRANSPORT_TIMEOUT";
+            if (failure instanceof java.net.UnknownHostException) return "DNS_FAILED";
+            return "TRANSPORT_FAILED";
+        }
+        return failure instanceof AssertionError ? "OBSERVATION_ASSERTION_FAILED" : "OBSERVATION_FAILED";
     }
 
     static void validateOfficialTitle(org.jsoup.nodes.Document page,String expected) {
