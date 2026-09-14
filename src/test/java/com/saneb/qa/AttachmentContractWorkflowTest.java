@@ -75,15 +75,28 @@ class AttachmentContractWorkflowTest {
         var all=steps(job(workflow())).stream().map(item -> (Map<?,?>)item).toList();
         var build=all.stream().filter(item -> "contracts".equals(item.get("id"))).findFirst().orElseThrow();
         assertThat(String.valueOf(build.get("run"))).contains("installAttachmentContractQa", "--continue");
-        var parent=all.stream().filter(item -> String.valueOf(item.get("run")).contains("bash ./gradlew attachmentPolicyDbQaIntegrationTest"))
+        var parent=all.stream().filter(item -> "bash scripts/qa/run-policy-db-qa-isolated-user.sh".equals(item.get("run")))
                 .findFirst().orElseThrow();
         assertThat(parent.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' }}");
         assertThat(parent.containsKey("continue-on-error")).isFalse();
-        assertThat(String.valueOf(parent.get("run"))).contains("-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC");
+        String runner=Files.readString(Path.of("scripts/qa/run-policy-db-qa-isolated-user.sh"));
+        assertThat(runner).contains("-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC");
         String buildScript=Files.readString(Path.of("build.gradle"));
         String parentTask=buildScript.substring(buildScript.indexOf("tasks.register('attachmentPolicyDbQaIntegrationTest'"),buildScript.indexOf("\ndependencies {"));
         assertThat(parentTask).contains("maxParallelForks = 1", "maxHeapSize = '256m'", "jvmArgs '-XX:ActiveProcessorCount=1', '-XX:+UseSerialGC'");
         assertThat(Files.readString(Path.of("src/main/java/com/saneb/domain/announcementattachment/service/impl/AttachmentWorkerDbQaProcess.java")))
                 .contains("--nproc=128", "--as=2147483648");
+    }
+    @Test void dedicatedUidUsesOnlyCommittedSourcesCleanEnvironmentAndOwnedCleanup() throws Exception {
+        String runner=Files.readString(Path.of("scripts/qa/run-policy-db-qa-isolated-user.sh"));
+        assertThat(runner).contains("${GITHUB_ACTIONS:-}", "${GITHUB_SHA:-}", "ACCOUNT_ALREADY_EXISTS",
+                "useradd --system --user-group --no-create-home --shell /usr/sbin/nologin",
+                "git archive --format=tar HEAD", "env -i PATH=", "--kill-after=5 900",
+                "pkill -TERM -u \"$qa_uid\"", "pkill -KILL -u \"$qa_uid\"",
+                "\"$qa_uid\" != \"$qa_runner_uid\"", "\"$resolved\" == \"$qa_work\"",
+                "saneb-policy-parent-qa.*", "userdel \"$qa_account\"", "POLICY_DB_QA_CLEANUP=SUCCEEDED",
+                "REQUIRED_REPORT_MISSING", "! sudo -n test -L \"$qa_report\"");
+        assertThat(runner).doesNotContain("--preserve-env", "sudo -E", "chmod -R", "chown -R",
+                "--nproc=", "DB_URL=", "GITHUB_TOKEN=", "cp -r", "userdel -r", "|| true");
     }
 }

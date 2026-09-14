@@ -36,6 +36,18 @@
 
 후속은 자식 `--nproc=128`·메모리·시간·namespace를 유지하고, 검증 task JVM을 ActiveProcessorCount1/SerialGC/heap256MiB로, 해당 task를 실행하는 Gradle daemon을 ActiveProcessorCount1/SerialGC/heap512MiB로 한정한다. Linux `RLIMIT_NPROC`는 같은 real UID의 스레드에도 적용되므로 부모의 불필요한 병렬 실행을 줄이는 조치다([Linux 매뉴얼](https://man7.org/linux/man-pages/man2/getrlimit.2.html)). 보안 한도를 확장하거나 실패를 허용하지 않는다. 부모 시험에서 UID/PID/명령/환경을 제외한 관측 스레드 집계만 기록하며 이 값 자체는 통과 근거가 아니다. 로컬 구조/프로세스19건·패키지16건이 통과했다. 실제 Linux 재검증과 운영 앱의 상위 JVM 자원 여유는 별도이며, 이번 조치를 운영 검증 통과로 보지 않는다.
 
+여덟 번째 [34834798383](https://github.com/FrostyCityMan/saneB/actions/runs/34834798383), SHA `d6d9bb0bfd431497adcbf1f83deda6fda7503a42`: 주 검증6분44초 통과(root2077통과/242조건부 생략·패키지16·job192·migration/분할15·worker8·Linux 합성12파일). 독립215/215는3분24초 통과·실패/생략/미실행0·정리 성공이다. 부모2건은0.485초에 같은 `QA_CHILD_PROCESS_LIMIT`로 실패했다. 관측은 `QA_PARENT_JVM_THREADS=9`, `QA_SAME_UID_THREADS_OBSERVED=158`이다. 부모 JVM 병렬성을 낮추어도 CI 공유 계정 전체가128 한도를 이미 초과하므로 그 조치만으로 해결되지 않았다. 서로 다른 UID의 작업을 같은 제한으로 셌다는 추측이 아니라 같은 real UID로 필터링한 집계다. 관측값과 실제 fork/스레드 생성 실패 및 Linux 자원 제한 의미가 일치한다.
+
+[!] 부모 시작 실패는 실제 실행5·7·8에서3번 확인했다. 실행6은 부모 미실행이므로 실패 시도로 세지 않는다. 이번 재개에서3회의 원격 실행 후 유한 반복 원칙에 따라 진단을 종료한다. 다음 조치는 **임시 CI runner의 전용 비관리자 QA 계정 분리**다. 새 계정에서 명시적으로 고른 소스/환경만 사용하고 같은128개 제한을 유지하며, 결과 XML만 회수하고 해당 계정이 소유한 프로세스·임시 디렉터리·계정을 정리하는 경로를 구현·검증해야 한다. 아직 구현하지 않았다. runner 공용 프로세스 종료·root 실행·격리 해제·추측성 한도 증가는 대안으로 사용하지 않는다. 운영 서비스의 실제 계정/스레드 여유는 별도 Gate이며 이번 관측으로 정상이라고 판단하지 않는다. 독립1,001건 분할의 실행6 간헐 실패 원인도 후속 profiling 대상이다.
+
+### 2026-09-15 — 임시 QA 전용 UID 분리 구현
+
+`scripts/qa/run-policy-db-qa-isolated-user.sh`는 임시 GitHub Linux runner의 비root 호출 및 현재 HEAD/GITHUB_SHA 일치를 확인하고, 기존 계정/그룹이 없는 경우에만 새 비관리자 QA 계정을 생성한다. `git archive HEAD`로 커밋된 소스만 전달하며 `.git`, 미추적 파일, 기존 build/cache와 runner 자격증명은 복사하지 않는다. `env -i`와 명시한 Java/PATH/새 HOME/Gradle cache로 부모 연결 시험을 실행한다. 자식128개/2GiB 한도와 namespace 및 시험 assertion은 변경하지 않는다.
+
+부모 단계 종료 후 지정 클래스의 일반 JUnit XML만 원래 작업 디렉터리로 회수한다. 생성한 UID만 종료하고, 검증한 `/tmp/saneb-policy-parent-qa.*` 경로와 생성한 계정/그룹을 정리한다. 시험 실패·보고서 부재·정리 실패는 모두 실패다. root QA 실행, 기존 runner 프로세스 종료, 운영 계정/DB 변경은 없다.
+
+로컬: workflow 계약7건·자식 process13건 및 Node152건 통과, Bash 구문/비CI 실행 거부 통과. 이는 실제 Linux 계정 분리·정리의 성공 증거가 아니다. 같은 QA 브랜치 원격 실행에서 부모 정상215건 연결과 취소 시험, 필수 XML 판정, 정리 결과를 확인해야 한다. 현재 **Not ready**이며 이전 실행6의 간헐 분할 실패와 전체 Provider/운영 Gate는 별도 잔여다.
+
 ### 이전 구현 기록
 
 
