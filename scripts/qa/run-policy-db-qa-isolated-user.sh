@@ -88,9 +88,20 @@ if sudo -n -u "$qa_account" env -i PATH="$qa_java_home/bin:/usr/bin:/bin" LANG=C
       set -euo pipefail
       cd -- "$1"
       options=(--no-daemon --console=plain --max-workers=1 "-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dfile.encoding=UTF-8")
-      # 새 소스의 산출물을 준비한 단일-use daemon은 종료시킨 뒤 다음 JVM에서 실제 시험한다.
-      /bin/bash ./gradlew attachmentContractQaTestClasses installAttachmentContractQa "${options[@]}"
-      exec /bin/bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun "${options[@]}"' \
+      # 준비 daemon 종료 뒤 Gradle/worker JVM을 다시 띄우지 않고 같은 JUnit suite만 직접 실행한다.
+      /bin/bash ./gradlew prepareAttachmentPolicyDbQaCi "${options[@]}"
+      # 단일-use daemon의 종료 신호와 실제 종료 사이의 짧은 간격도 기다린다. 이 UID는 이번 실행 전용이다.
+      for attempt in {1..50}; do
+        if pgrep -u "$(id -u)" -x java >/dev/null; then sleep 0.2
+        else [[ $? == 1 ]] || exit 1; break; fi
+      done
+      if pgrep -u "$(id -u)" -x java >/dev/null; then echo POLICY_DB_QA_BUILD_JVM_STILL_RUNNING >&2; exit 1
+      else [[ $? == 1 ]] || exit 1; fi
+      qa_classpath=$(< build/policy-db-qa-ci/classpath.txt)
+      [[ -n "$qa_classpath" ]]
+      export SANEB_ATTACHMENT_POLICY_DB_QA=true
+      exec "$JAVA_HOME/bin/java" -Xmx256m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC \
+        -cp "$qa_classpath" com.saneb.qa.AttachmentPolicyDbQaCiMain' \
     saneb-policy-db-qa "$qa_work/source"; then :; else qa_exit=$?; fi
 
 qa_report="$qa_work/source/build/test-results/attachmentPolicyDbQaIntegrationTest/$qa_report_name"

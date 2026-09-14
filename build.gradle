@@ -116,6 +116,20 @@ tasks.register('attachmentPolicyDbQaIntegrationTest', Test) {
     jvmArgs '-XX:ActiveProcessorCount=1', '-XX:+UseSerialGC'
 }
 
+// CI 부모 시험은 준비가 끝난 뒤 Gradle JVM 없이 실행한다. 운영/독립 QA JAR에 이 실행기를 넣지 않는다.
+tasks.register('prepareAttachmentPolicyDbQaCi') {
+    dependsOn 'attachmentContractQaTestClasses', 'installAttachmentContractQa'
+    def output = layout.buildDirectory.file('policy-db-qa-ci/classpath.txt')
+    outputs.file(output)
+    outputs.upToDateWhen { false }
+    doLast {
+        String classpath = sourceSets.attachmentContractQaTest.runtimeClasspath.asPath
+        if (classpath.contains('\n') || classpath.contains('\r')) throw new GradleException('QA classpath 형식이 올바르지 않습니다.')
+        output.get().asFile.parentFile.mkdirs()
+        output.get().asFile.setText(classpath, 'UTF-8')
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

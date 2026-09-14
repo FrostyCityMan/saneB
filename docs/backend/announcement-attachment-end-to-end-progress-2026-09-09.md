@@ -13,6 +13,11 @@
 
 ### 2026-09-15 P3 증분 — 역할 근거의 실제 처리 경로 연결
 
+- 후속 확인: 역할 연결은 `d56a7a8210aad6f9d5c7ead689b3e9ebea38553b`로 QA 브랜치에 커밋/푸시했고 원격 SHA 일치를 확인했다. [Linux 실행34866219185](https://github.com/FrostyCityMan/saneB/actions/runs/34866219185)의 V82·worker·artifact 주 검증 단계는01:11 KST 통과, 독립 namespace/부모 단계는 진행 중이다. XML 최종 집계와 전체 workflow 성공은 아직 확인 전이다. origin/master는 기존 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로다.
+- 부모 실행 자원 개선: 전용 UID의 준비 Gradle을 종료한 뒤 `AttachmentPolicyDbQaCiMain`이 동일 JUnit 부모2사례를 직접 실행하도록 변경했다. 기존 Ledger를 재사용해 실패/생략/미실행/container 실패를 차단하고 고정 클래스·case 지문만 XML로 기록한다. 임의 suite/파일/URL 인자는 받지 않으며 운영 JAR/독립 QA JAR에 포함하지 않는다. 준비용 classpath는 ignored build 아래에만 생성한다.
+- 기존128 thread/2GiB/namespace·비root·깨끗한 환경·소유 UID 정리/한도를 유지한다. CI 임시 계정에서 남은 준비 Java 종료를 최대10초 확인한 뒤 실제 시험을 시작하며 임의 프로세스를 종료하지 않는다. 이번 변경은 부모 자원 오류 해결 시도이지 해결 증거가 아니다.
+- 로컬 후속 `.\gradlew.bat :test --tests '*AttachmentContractWorkflowTest' attachmentContractQaTest prepareAttachmentPolicyDbQaCi bootJar --no-daemon --max-workers=1`은37초 성공. workflow7/독립 실행기·새 직접 실행기20건 전부 통과, Bash `-n` 통과다. bootJar는 UP-TO-DATE이며 후속 변경은 CI 전용이다. 실제 Linux 부모 결과 확인 전까지 Release Not ready를 유지한다.
+
 - 기준 HEAD는 QA 브랜치 `66d499c33fb76d46fdd2fb6592a9b465bc5ddab6`다. V82를 additive로 작성하고 새 정책의 역할 규칙 버전/지문 → worker → checkpoint/재시도 → 불변 file/extraction 근거 → v2 파일 조회 → 한글 관리자 근거 화면을 연결했다. 기존 정책/snapshot과 V1~V81은 보존하며 운영 정책/데이터를 갱신하지 않았다.
 - `document-role-1.0.1`은 UNKNOWN/UNKNOWN·완전 추출에서만 동작한다. 기존 MANUAL/PROFILE을 덮어쓰지 않으며 내용 부족/혼합/문맥 불확실은 UNKNOWN과 이유를 남긴다. 자동 역할 확정은 공고 최종 승인·자동 활성화가 아니다. 제목→본문→첨부→최종 검증 순서와 기존 A/B 의무를 변경하지 않았다.
 - V82는 정확한 extraction/file/set/source 복합 FK와 정책 버전·텍스트/문단 지문·실제 코드포인트 좌표를 검증한다. 관리자 수정/비선택 재사용은 원래 근거를 보존하며 새로운 다운로드 결과에 과거 assessment를 복사하지 않는다. DTO는 고정 metadata만 반환하고 원문은 기존 추출 조회에서만 읽는다.

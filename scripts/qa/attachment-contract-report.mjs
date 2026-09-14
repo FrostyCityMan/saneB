@@ -2,7 +2,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Gradle가 생성한 JUnit suite 헤더만 판정한다. 외부 문서·로그 원문은 출력하지 않는다.
+// Gradle 또는 고정 CI JUnit 실행기가 생성한 suite 헤더만 판정한다. 외부 문서·로그 원문은 출력하지 않는다.
 export function validateSuite(xml, expectedName) {
   const header = xml.match(/^\s*(?:<\?xml[^>]*>\s*)?<testsuite\b([^>]*)>/);
   if (!header) throw new Error('JUnit suite 헤더가 없거나 형식이 다릅니다.');

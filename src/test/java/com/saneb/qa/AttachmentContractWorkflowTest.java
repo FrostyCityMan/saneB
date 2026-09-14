@@ -97,9 +97,10 @@ class AttachmentContractWorkflowTest {
                 "saneb-policy-parent-qa.*", "userdel \"$qa_account\"", "POLICY_DB_QA_CLEANUP=SUCCEEDED",
                 "REQUIRED_REPORT_MISSING", "! sudo -n test -L \"$qa_report\"");
         assertThat(runner).contains("JAVA_OPTS='-XX:ActiveProcessorCount=1 -XX:+UseSerialGC'",
-                "attachmentContractQaTestClasses installAttachmentContractQa", "attachmentPolicyDbQaIntegrationTest --rerun \"${options[@]}\"");
-        assertThat(runner.indexOf("attachmentContractQaTestClasses installAttachmentContractQa"))
-                .isLessThan(runner.indexOf("attachmentPolicyDbQaIntegrationTest --rerun"));
+                "prepareAttachmentPolicyDbQaCi", "com.saneb.qa.AttachmentPolicyDbQaCiMain", "export SANEB_ATTACHMENT_POLICY_DB_QA=true",
+                "exec \"$JAVA_HOME/bin/java\" -Xmx256m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC");
+        assertThat(runner.indexOf("prepareAttachmentPolicyDbQaCi")).isLessThan(runner.indexOf("exec \"$JAVA_HOME/bin/java\""));
+        assertThat(runner).doesNotContain("exec /bin/bash ./gradlew");
         assertThat(runner).doesNotContain("--preserve-env", "sudo -E", "chmod -R", "chown -R",
                 "--nproc=", "DB_URL=", "GITHUB_TOKEN=", "cp -r", "userdel -r", "|| true");
     }
