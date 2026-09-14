@@ -111,6 +111,35 @@ class AnnouncementAttachmentProviderQaManagementServiceTest {
         assertThat(view.targetCount()).isEqualTo(2);assertThat(view.isExpectationCoverageComplete()).isFalse();assertThat(view.isQaPassed()).isFalse();
         assertThat(view.isReservationEnabled()).isTrue();assertThat(view.segments().items()).hasSize(1);verifyNoInteractions(ledger,audit);verify(dao,never()).insertPlan(any());
     }
+    @Test void targetCoveragePagesKeepFullDenominatorWithoutReservationOrNetwork() {
+        var view=service.selectTargetCoverageList(auth("APPROVER"),policyId,2,1);
+        assertThat(view.targets().totalCount()).isEqualTo(2);assertThat(view.targets().items()).singleElement()
+                .satisfies(t->assertThat(t.targetKey()).isEqualTo("GOV24_PUBLIC_SERVICE"));
+        assertThat(view.isExpectationCoverageComplete()).isFalse();assertThat(view.isQaPassed()).isFalse();assertThat(view.planHash()).matches("[0-9a-f]{64}");
+        assertThat(service.selectTargetCoverageList(auth("OPERATOR"),policyId,3,1).targets().items()).isEmpty();
+        verifyNoInteractions(ledger,audit,execution);verify(dao,never()).insertPlan(any());assertThat(txCount.get()).isZero();
+    }
+    @Test void targetCoverageUsesActualFrozenV2MetadataAndDoesNotInventPassedFormats() throws Exception {
+        var original=prepared.plan();var target=original.targets().getFirst();
+        var coverage=new AttachmentProviderQaCatalog.FormatCoverage("FIXED_SAMPLE_FORMATS_V2",List.of("HWP","HWPX","PDF"),List.of("HWP","HWPX","PDF"));
+        var applicability=new AttachmentProviderQaCatalog.FormatApplicability("EXPECTATIONS_UNKNOWN",List.of(),List.of("HWP","HWPX","PDF"),0);
+        var targets=List.of(new AttachmentProviderQaCatalog.TargetPlan(target.targetKey(),target.bindingStatusCode(),target.referenceCount(),target.executableCount(),0,3,List.of(),false,applicability),original.targets().get(1));
+        var plan=new AttachmentProviderQaCatalog.Plan(original.catalogVersion(),original.catalogHash(),original.scopeHash(),targets,original.cases(),original.segments(),original.executableCount(),false,false,coverage);
+        prepared=new AttachmentProviderQaCatalog.Prepared(plan,prepared.inputs());
+        var json=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(frozen.json());json.set("providerQaCatalog",mapper.valueToTree(plan));
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),mapper.writeValueAsString(json),frozen.rule(),runtime);
+        var view=service.selectTargetCoverageList(auth("ADMIN"),policyId,1,1);
+        assertThat(view.formatCoverage()).isEqualTo(coverage);assertThat(view.targets().items().getFirst().formatApplicability()).isEqualTo(applicability);
+        assertThat(view.isQaPassed()).isFalse();verifyNoInteractions(ledger,audit,execution);
+    }
+    @Test void targetCoverageValidatesPagingAndActorBeforeInstalledRuntime() {
+        for(int[] range:List.of(new int[]{0,20},new int[]{1,0},new int[]{1,101},new int[]{Integer.MAX_VALUE,100}))
+            assertThatThrownBy(()->service.selectTargetCoverageList(auth("ADMIN"),policyId,range[0],range[1])).isInstanceOf(ApiException.class);
+        for(String role:List.of("USER","PARTNER","REVIEWER"))
+            assertThatThrownBy(()->service.selectTargetCoverageList(auth(role),policyId,1,20)).isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->service.selectTargetCoverageList(auth("ADMIN","INACTIVE",false),policyId,1,20)).isInstanceOf(ApiException.class);
+        verify(snapshots,never()).selectRuntime();verifyNoInteractions(ledger,audit,execution);
+    }
     @Test void catalogWithoutExecutionExpectationsDisablesReservationAndNeverCreatesRun() throws Exception {
         var p=prepared.plan();var empty=new AttachmentProviderQaCatalog.Plan(p.catalogVersion(),p.catalogHash(),p.scopeHash(),p.targets(),
                 List.of(new AttachmentProviderQaCatalog.CasePlan("CASE-1","BIZINFO","REFERENCE_ONLY",null,null,false,List.of())),List.of(),0,false,false);

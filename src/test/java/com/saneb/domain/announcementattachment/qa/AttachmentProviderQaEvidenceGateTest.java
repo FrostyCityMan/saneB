@@ -47,6 +47,9 @@ class AttachmentProviderQaEvidenceGateTest {
     @BeforeEach void setup() throws Exception {configure(6);}
     @AfterEach void clearPublicationMarkers(){TransactionSynchronizationManager.setActualTransactionActive(false);TransactionSynchronizationManager.setCurrentTransactionReadOnly(false);}
     private void configure(int count) throws Exception {
+        configure(count,1,false);
+    }
+    private void configure(int count,int catalogSchema,boolean mixedFormats) throws Exception {
         runs.clear();items.clear();reset(dao,transactions);depth.set(0);
         when(transactions.getTransaction(any())).thenAnswer(c->{var definition=c.getArgument(0,TransactionDefinition.class);assertThat(definition.isReadOnly()).isTrue();
             assertThat(definition.getIsolationLevel()).isEqualTo(TransactionDefinition.ISOLATION_REPEATABLE_READ);depth.incrementAndGet();return new SimpleTransactionStatus();});
@@ -58,9 +61,15 @@ class AttachmentProviderQaEvidenceGateTest {
         var files=new ArrayList<ExpectedFile>();int f=1;for(String format:List.of("PDF","HWP","HWPX"))files.add(new ExpectedFile(Integer.toString(f++).repeat(64),true,format,"c".repeat(64),"COMPLETE_TEXT",10,1,List.of("지원"),role));
         var notices=new ArrayList<Notice>();
         for(int i=0;i<count;i++) {String provider=i%2==0?"BIZINFO":"GOV24_PUBLIC_SERVICE",code=i%2==0?"BIZ":"GOV";
+            List<ExpectedFile> noticeFiles=files;
+            if(mixedFormats) {
+                var pdf=files.getFirst();
+                noticeFiles=i%2==0?List.of(pdf,new ExpectedFile("4".repeat(64),true,"PDF",pdf.binaryHash(),pdf.quality(),pdf.minimumCharacters(),pdf.minimumBlocks(),pdf.requiredPhrases(),role))
+                        :List.of(files.get(1),files.get(2));
+            }
             notices.add(new Notice(code+"-"+String.format(Locale.ROOT,"%04d",i),code,new AttachmentDiscoveryProfile.Source(provider,Integer.toString(i),"https://example.go.kr/"+i,null,null),
-                    new Expectation(profileHash,"소상공인 지원금",now.minusSeconds(3600),"FOUND",true,files,new Limits(420,44,83886080))));}
-        var catalog=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(1,"TEST",notices));
+                    new Expectation(profileHash,"소상공인 지원금",now.minusSeconds(3600),"FOUND",true,noticeFiles,new Limits(420,44,83886080))));}
+        var catalog=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(catalogSchema,"TEST",notices));
         prepared=catalog.selectPrepared(scope,rules,runtimeHash,now);
         var json=mapper.createObjectNode().put("schemaVersion",6).put("policyId",policyId.toString()).put("policyVersion",0);json.set("targets",mapper.readTree(scopeJson));
         json.set("providerQaPlan",mapper.valueToTree(scope));json.set("providerQaCatalog",mapper.valueToTree(prepared.plan()));
@@ -75,8 +84,8 @@ class AttachmentProviderQaEvidenceGateTest {
                 var input=prepared.inputs().stream().filter(c->c.caseId().equals(code)).findFirst().orElseThrow();Instant start=now.minusSeconds(count*3L+300).plusSeconds(all++*3L);
                 var fileResults=input.files().stream().map(e->new AttachmentProviderQaCaseExecutor.FileResult(e.locatorHash(),"PASSED",null,e.format(),e.quality(),100,e.binaryHash(),"8".repeat(64),20,1,e.roleExpectation().assessmentHash())).toList();
                 var result=new AttachmentProviderQaCaseExecutor.Result("SINGLE_FIXED_NOTICE_PROVIDER_QA",code,verifier.hash(input),profileHash,runtimeHash,"PASSED","FIXED_NOTICE_EXPECTATIONS_MATCHED",
-                        "COMBINATION_MATCHED","FOUND",true,3,3,fileResults,4,400,true,true,false,start.plusMillis(100),start.plusSeconds(1));
-                rows.add(new Item(UUID.randomUUID(),id,rows.size()+1,code,verifier.hash(input),profileHash,3,420,44,83886080L,4,400L,"PASSED",4,start.atOffset(ZoneOffset.UTC),
+                        "COMBINATION_MATCHED","FOUND",true,input.files().size(),input.files().size(),fileResults,4,400,true,true,false,start.plusMillis(100),start.plusSeconds(1));
+                rows.add(new Item(UUID.randomUUID(),id,rows.size()+1,code,verifier.hash(input),profileHash,input.files().size(),420,44,83886080L,4,400L,"PASSED",4,start.atOffset(ZoneOffset.UTC),
                         start.plusSeconds(2).atOffset(ZoneOffset.UTC),null,mapper.writeValueAsString(result),verifier.hash(result)));
             }
             items.put(id,rows);var last=rows.getLast().completedAt();
@@ -130,6 +139,22 @@ class AttachmentProviderQaEvidenceGateTest {
         var result=assess();assertThat(result.status()).isEqualTo("PASSED");assertThat(result.evidence().targetCount()).isEqualTo(2);assertThat(result.evidence().caseCount()).isEqualTo(6);assertThat(result.evidence().fileCount()).isEqualTo(18);
         assertThat(result.evidence().segments()).hasSize(1);assertThat(depth.get()).isZero();String json=mapper.writeValueAsString(result.evidence());assertThat(json).doesNotContain("소상공인","https://","requiredPhrases","textHash","idempotencyKey");
         assertThat(verifier.hash(result.evidence())).isEqualTo(verifier.hash(assess().evidence()));
+    }
+    @Test void v2ReverifiesAllFilesWithDifferentObservedFormatsForEachProvider() throws Exception {
+        configure(6,2,true);var result=assess();assertThat(result.status()).isEqualTo("PASSED");
+        assertThat(result.evidence().targetCount()).isEqualTo(2);assertThat(result.evidence().caseCount()).isEqualTo(6);assertThat(result.evidence().fileCount()).isEqualTo(12);
+        assertThat(prepared.plan().targets().getFirst().formatApplicability().unobservedFormats()).containsExactly("HWP","HWPX");
+        verify(dao).selectEvidenceList(any());
+        changeCase("expectedFileCount",1);assertThat(assess().status()).isEqualTo("FAILED");
+    }
+    @ParameterizedTest @ValueSource(strings={"normalMultiFileNoticeCount","unobservedFormats","expectedProvidedFormats","formatCoverage"})
+    void v2AlteredFormatMetadataCannotReuseFrozenPolicyEvidence(String field) throws Exception {
+        configure(6,2,true);var json=(ObjectNode)mapper.readTree(frozen.json());var plan=(ObjectNode)json.path("providerQaCatalog");
+        if("formatCoverage".equals(field))((ObjectNode)plan.path(field)).put("modeCode","DISABLED");
+        else {var applicability=(ObjectNode)plan.path("targets").get(0).path("formatApplicability");
+            if("normalMultiFileNoticeCount".equals(field))applicability.put(field,0);else applicability.putArray(field);}
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),mapper.writeValueAsString(json),frozen.rule(),frozen.runtime());
+        assertThat(assess().reasonCode()).isEqualTo("CURRENT_CATALOG_CHANGED");verify(dao,never()).selectLatestRunList(any());
     }
     @Test void allPagesAndSegmentsAreVerifiedWithoutReducingDenominator() throws Exception {
         configure(176);var result=assess();assertThat(result.status()).isEqualTo("PASSED");assertThat(result.evidence().segments()).hasSize(2);assertThat(result.evidence().caseCount()).isEqualTo(176);

@@ -2909,6 +2909,7 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 | 메서드·하위 경로 | 역할 | 요청·결과 |
 |---|---|---|
 | GET `/execution-plan` | ADMIN/OPERATOR/APPROVER | page/size. 현재 policyVersion/snapshotHash/catalogHash/planHash, 전체 대상/catalog/실행 가능 수·기대 coverage와 분할 페이지. 설치 검증 불가409. 쓰기/HTTP 없음 |
+| GET `/execution-plan/targets` | ADMIN/OPERATOR/APPROVER | page/size. 동일 snapshot/catalog/plan 지문, 전체 기대 coverage·isQaPassed=false, formatCoverage 및 PageResponse<TargetPlan>. 기관별 정상3건/정상 다중 첨부 수·기대 제공/미관측/누락 형식을 구분. 설치 검증 불가409. 쓰기/HTTP/예약 없음 |
 | POST 기본 경로 | ADMIN | UUID Idempotency-Key, expectedVersion/expectedSnapshotHash/expectedCatalogHash/expectedPlanHash, segmentNo/expectedCaseCount/maximumRequests/maximumBytes/maximumSecondsIncludingMargin, acknowledgeScope/acknowledgeNetworkBudget/acknowledgeIncompleteCoverage, reason. 정확한 계획 대조 후202/원장 metadata |
 | GET 기본 경로·`/{runId}`·`/{runId}/cases` | ADMIN/OPERATOR/APPROVER | 정책 소속 검사와 실행/항목 페이지. OFF에서도 조회 가능. 실제 DB 버전 현재성은 코드/운영 실행 성공을 뜻하지 않음 |
 | PUT `/{runId}/cancellation` | ADMIN | expectedVersion/reason, CSRF. READY/RUNNING만 취소. 미실행 항목은 취소로 남기고 실행 중 소유자는 스스로 정리. OFF에서도 허용 |
@@ -2918,6 +2919,8 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 원장/항목 응답에는 idempotency key·lease token·actor·requestHash·원문/추출문·증거 JSON을 노출하지 않는다. 과거 계획 없는 이력의 plan 필드는null이다. `isQaPassed`는 항상false이며 COMPLETED는 해당 분할 기대 동작 일치일 뿐이다. 새 예약이 OFF거나 실행 가능 분할이 없으면 isReservationEnabled=false다.
 
 서버의 기본 OFF 스케줄러는 현재 설치·전체 계획·저장된 분할/항목을 재대조하고 기존 실제 ExecutionService에 한 공고씩 연결한다. 관리 UI·전체 공식 기대값·정책 전체 verifier·실제 Linux/PG/운영은 미완료다. 상세는 DB11.26 및 `announcement-attachment-provider-qa-management-2026-09-12.md`를 따른다.
+
+2026-09-15 catalog schema2 적용성은 `FIXED_SAMPLE_FORMATS_V2`다. 전체 필수 PDF/HWP/HWPX와 전체 누락 형식을 formatCoverage로, 대상별 기대 제공 형식·미관측 형식·정상 다중 첨부 수를 targets.items[].formatApplicability로 조회한다. `EXPECTATIONS_UNKNOWN`은 유효한 기대 파일 부재, `FIXED_SAMPLE_EXPECTATIONS`는 고정 기대 표본의 범위이며 실제 제공 여부/QA 통과 판정이 아니다. 미관측을 미지원/N/A로 표현하지 않는다. 발견된 OCR/부분 등 실패 형식은 해당 대상의 누락 분모에 남는다. 기존 schema1/구조적 provider-qa-plan/execution-plan/v1 shape는 변경하지 않으며 현재 참조15/실행 기대값0이다. 상세는 `announcement-provider-format-applicability-v2-2026-09-15.md`를 따른다.
 
 ### 24.31 전체 Provider QA 근거 검증 — 내부 계약
 

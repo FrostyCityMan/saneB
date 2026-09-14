@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 /** 서버 배포 catalog만 입력으로 사용한다. metadata 계획은 실행/추출/정책 성공 증거가 아니다. */
 @Component
 public final class AttachmentProviderQaCatalog {
+    private static final List<String> SUPPORTED_FORMATS=List.of("HWP","HWPX","PDF");
     private final ObjectMapper mapper;
     private final AttachmentDiscoveryProfileRegistry registry;
     private final Definition definition;
@@ -37,15 +38,32 @@ public final class AttachmentProviderQaCatalog {
         public CasePlan {formats=List.copyOf(formats);}
     }
     public record TargetPlan(String targetKey,String bindingStatusCode,int referenceCount,int executableCount,int normalNoticeCount,int requiredNormalNoticeCount,
-                             List<String> missingFormats,boolean isExpectationCoverageComplete) {
+                             List<String> missingFormats,boolean isExpectationCoverageComplete,
+                             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) FormatApplicability formatApplicability) {
         public TargetPlan {missingFormats=List.copyOf(missingFormats);}
+        public TargetPlan(String targetKey,String bindingStatusCode,int referenceCount,int executableCount,int normalNoticeCount,int requiredNormalNoticeCount,
+                          List<String> missingFormats,boolean isExpectationCoverageComplete) {
+            this(targetKey,bindingStatusCode,referenceCount,executableCount,normalNoticeCount,requiredNormalNoticeCount,missingFormats,isExpectationCoverageComplete,null);
+        }
+    }
+    /** 미관측은 미지원/없음이 아니다. 이 metadata는 실제 통과가 아닌 고정 표본의 기대값만 설명한다. */
+    public record FormatApplicability(String statusCode,List<String> expectedProvidedFormats,List<String> unobservedFormats,int normalMultiFileNoticeCount) {
+        public FormatApplicability {expectedProvidedFormats=List.copyOf(expectedProvidedFormats);unobservedFormats=List.copyOf(unobservedFormats);}
+    }
+    public record FormatCoverage(String modeCode,List<String> requiredFormats,List<String> missingFormats) {
+        public FormatCoverage {requiredFormats=List.copyOf(requiredFormats);missingFormats=List.copyOf(missingFormats);}
     }
     public record Segment(int ordinal,List<String> caseCodes,long maximumRequests,long maximumBytes,long maximumSecondsIncludingMargin) {
         public Segment {caseCodes=List.copyOf(caseCodes);}
     }
     public record Plan(String catalogVersion,String catalogHash,String scopeHash,List<TargetPlan> targets,List<CasePlan> cases,List<Segment> segments,
-                       int executableCount,boolean isExpectationCoverageComplete,boolean isQaPassed) {
+                       int executableCount,boolean isExpectationCoverageComplete,boolean isQaPassed,
+                       @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) FormatCoverage formatCoverage) {
         public Plan {targets=List.copyOf(targets);cases=List.copyOf(cases);segments=List.copyOf(segments);}
+        public Plan(String catalogVersion,String catalogHash,String scopeHash,List<TargetPlan> targets,List<CasePlan> cases,List<Segment> segments,
+                    int executableCount,boolean isExpectationCoverageComplete,boolean isQaPassed) {
+            this(catalogVersion,catalogHash,scopeHash,targets,cases,segments,executableCount,isExpectationCoverageComplete,isQaPassed,null);
+        }
     }
     public record Prepared(Plan plan,List<AttachmentProviderQaCase> inputs) {
         public Prepared {inputs=List.copyOf(inputs);}
@@ -60,7 +78,7 @@ public final class AttachmentProviderQaCatalog {
         this.registry=registry;this.definition=definition;validateDefinition();
     }
     private static Definition read(ObjectMapper mapper) {
-        try(var input=new ClassPathResource("announcement-attachment/provider-qa-catalog-v1.json").getInputStream()) {
+        try(var input=new ClassPathResource("announcement-attachment/provider-qa-catalog-v2.json").getInputStream()) {
             byte[] bytes=input.readNBytes(2097153);if(bytes.length>2097152)throw invalid("CATALOG_SIZE");
             return mapper.copy().enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                     .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
@@ -68,7 +86,7 @@ public final class AttachmentProviderQaCatalog {
         }catch(Exception failure){throw invalid("CATALOG_RESOURCE_INVALID");}
     }
     private void validateDefinition() {
-        if(definition==null || definition.schemaVersion()!=1 || definition.catalogVersion()==null || !definition.catalogVersion().matches("[A-Za-z0-9_.-]{1,60}")
+        if(definition==null || !Set.of(1,2).contains(definition.schemaVersion()) || definition.catalogVersion()==null || !definition.catalogVersion().matches("[A-Za-z0-9_.-]{1,60}")
                 || definition.notices().size()>10000)throw invalid("CATALOG_DEFINITION_INVALID");
         var codes=new HashSet<String>();var identities=new HashSet<String>();
         for(var notice:definition.notices()) {
@@ -133,18 +151,29 @@ public final class AttachmentProviderQaCatalog {
             cases.add(new CasePlan(notice.caseCode(),key,state,input==null?null:selectHash(input),expectedFiles,normal,formats));
             if(input!=null)inputs.add(input);
         }
+        boolean sampleFormats=definition.schemaVersion()==2;
         var targets=new ArrayList<TargetPlan>();
         for(var entry:required.entrySet()) {
             var found=cases.stream().filter(c->c.targetKey().equals(entry.getKey())).toList();var expected=found.stream().filter(c->"EXPECTED_INPUT_READY".equals(c.statusCode())).toList();
             var formats=expected.stream().flatMap(c->c.formats().stream()).collect(java.util.stream.Collectors.toSet());
-            var missing=entry.getValue().requiredFormats().stream().filter(f->!formats.contains(f)).sorted().toList();
+            // 실패 품질도 제공 형식 분모에 남긴다. 완전 추출만으로 요구 형식을 정하면 OCR/부분 파일이 사라진다.
+            var provided=inputs.stream().filter(i->target(i.source()).equals(entry.getKey())).flatMap(i->i.files().stream())
+                    .filter(ExpectedFile::downloadAllowed).map(ExpectedFile::format).distinct().sorted().toList();
+            var missing=(sampleFormats?provided:entry.getValue().requiredFormats()).stream().filter(f->!formats.contains(f)).sorted().toList();
             int normal=(int)expected.stream().filter(CasePlan::normalNotice).count();
+            int multi=(int)expected.stream().filter(c->c.normalNotice() && c.expectedFileCount()!=null && c.expectedFileCount()>1).count();
+            var applicability=sampleFormats?new FormatApplicability(provided.isEmpty()?"EXPECTATIONS_UNKNOWN":"FIXED_SAMPLE_EXPECTATIONS",provided,
+                    SUPPORTED_FORMATS.stream().filter(f->!provided.contains(f)).toList(),multi):null;
             targets.add(new TargetPlan(entry.getKey(),entry.getValue().statusCode(),found.size(),expected.size(),normal,entry.getValue().minimumNormalNoticeCount(),missing,
                     "SYSTEM_BINDING_MATCHED".equals(entry.getValue().statusCode()) && !found.isEmpty() && expected.size()==found.size()
-                            && normal>=entry.getValue().minimumNormalNoticeCount() && missing.isEmpty()));
+                            && normal>=entry.getValue().minimumNormalNoticeCount() && missing.isEmpty() && (!sampleFormats || multi>=1),applicability));
         }
+        var completeFormats=cases.stream().flatMap(c->c.formats().stream()).collect(java.util.stream.Collectors.toSet());
+        var formatCoverage=sampleFormats?new FormatCoverage("FIXED_SAMPLE_FORMATS_V2",SUPPORTED_FORMATS,
+                SUPPORTED_FORMATS.stream().filter(f->!completeFormats.contains(f)).toList()):null;
         var plan=new Plan(definition.catalogVersion(),selectHash(definition),selectHash(scope),targets,cases,segments(inputs),inputs.size(),
-                targets.stream().allMatch(TargetPlan::isExpectationCoverageComplete) && cases.stream().noneMatch(c->"TARGET_OUTSIDE_SCOPE".equals(c.statusCode())),false);
+                targets.stream().allMatch(TargetPlan::isExpectationCoverageComplete) && cases.stream().noneMatch(c->"TARGET_OUTSIDE_SCOPE".equals(c.statusCode()))
+                        && (!sampleFormats || formatCoverage.missingFormats().isEmpty()),false,formatCoverage);
         return new Prepared(plan,inputs);
     }
     private String selectState(Notice notice,Item target,Instant now) {

@@ -62,6 +62,25 @@ class AnnouncementAttachmentProviderQaManagementControllerSmokeTest {
         mvc.perform(put(ROOT+"/"+RUN+"/cancellation").with(user("qa").roles(role)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"expectedVersion\":1,\"reason\":\"취소\"}"))
                 .andExpect(status().isForbidden());verifyNoInteractions(service);
     }
+    @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
+    void targetCoverageIsPagedReadOnlyMetadataWithNoImplicitQaSuccess(String role) throws Exception {
+        var applicability=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.FormatApplicability("EXPECTATIONS_UNKNOWN",List.of(),List.of("HWP","HWPX","PDF"),0);
+        var target=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.TargetPlan("LOCAL_GOV_NOTICE:LGS-000138","SYSTEM_BINDING_MATCHED",3,0,0,3,List.of(),false,applicability);
+        var coverage=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.FormatCoverage("FIXED_SAMPLE_FORMATS_V2",List.of("HWP","HWPX","PDF"),List.of("HWP","HWPX","PDF"));
+        when(service.selectTargetCoverageList(any(),eq(POLICY),eq(2),eq(10))).thenReturn(new AttachmentProviderQaResponses.Coverage(POLICY,0,"a".repeat(64),"b".repeat(64),"c".repeat(64),false,false,coverage,PageResponse.of(List.of(target),2,10,225)));
+        mvc.perform(get(ROOT+"/execution-plan/targets").with(user("qa").roles(role)).param("page","2").param("size","10"))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.isQaPassed").value(false)).andExpect(jsonPath("$.data.targets.totalCount").value(225))
+                .andExpect(jsonPath("$.data.targets.items[0].formatApplicability.statusCode").value("EXPECTATIONS_UNKNOWN"))
+                .andExpect(jsonPath("$.data.targets.items[0].sourceUrl").doesNotExist()).andExpect(jsonPath("$.data.formatCoverage.missingFormats.length()").value(3));
+        verify(service).selectTargetCoverageList(any(),eq(POLICY),eq(2),eq(10));verifyNoMoreInteractions(service);
+    }
+    @Test void targetCoverageRejectsUnauthorizedOrMalformedAccessWithoutCallingService() throws Exception {
+        var route=ROOT+"/execution-plan/targets";mvc.perform(get(route)).andExpect(status().isUnauthorized());
+        for(String role:List.of("USER","PARTNER","REVIEWER"))mvc.perform(get(route).with(user("qa").roles(role))).andExpect(status().isForbidden());
+        mvc.perform(get(route).with(user("qa").roles("ADMIN")).param("page","bad")).andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
     @ParameterizedTest @ValueSource(strings={"passed","filePath","runtimeHash","targetIds","profileCode","statusCode"})
     void unknownExecutionInputOrSuccessCannotReachService(String field) throws Exception {
         String json=INPUT.strip();json=json.substring(0,json.length()-1)+",\""+field+"\":\"untrusted-provider-input\"}";

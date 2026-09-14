@@ -860,6 +860,8 @@ schema1~5 이력은 수정하지 않는다. 현재 catalog/규칙/runtime/전체
 
 ### 11.26 Provider QA 승인 분할 계획 — V80
 
+2026-09-15 새 catalog schema2의 전체 formatCoverage와 대상별 formatApplicability를 기존 snapshot6/plan 지문에 포함한다. 각 대상에서 모든 기대 파일의 제공 형식·미관측·정상 다중 첨부 수를 분리하며 전체3형식·기관별 정상3건·정상 다중 첨부1건을 검증한다. OCR/부분 실패 형식을 분모에서 지우거나 미관측을 미지원으로 판단하지 않는다. schema1 catalog 파일과 null 신규 필드의 직렬화/hash 표현, V1~V83/운영 행은 보존한다. 신규 DDL은 없고 설치 코드/리소스 및 catalog/plan 변경으로 과거 QA 재사용을 차단한다. 이 metadata는 기대값이며 실제 PASSED 원장을 생성하지 않는다. API는24.30의 새 `/execution-plan/targets`를 따른다.
+
 `announcement_attachment_provider_qa_run_plans`는 run에 1:1로 planHash, 분할 번호/전체 분할 수, 전체 catalog/실행 가능 case 수, 기대 coverage 여부, 여유 포함 시간 상한을 봉인한다. 기존 V79 run 컬럼·V1~V79 migration은 수정하지 않는다. 전체 분모>=실행 가능 분모>=선택 분할 case 수이며, 시간 상한은 모든 case의 maximum_seconds+60 합계와 정확히 같고23시간 이내여야 한다.
 
 V80 이후 run INSERT의 deferred constraint가 같은 생성 xid의 계획/전체 case/READY 원자성을 검사한다. 계획은 생성 이후 수정·삭제할 수 없다. 과거 V79 이력은 변경하지 않으며 LEFT JOIN 조회에서 계획 정보가 null인 이력을 보존한다. 계획 없는 과거 활성 run은 새 실행 근거로 쓰지 않는다.

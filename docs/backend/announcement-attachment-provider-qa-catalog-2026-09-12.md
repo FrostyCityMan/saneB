@@ -2,20 +2,20 @@
 
 ## 범위와 상태
 
-2026-09-15 최신 증분: [제천 모델·공개 참조 확장](announcement-jecheon-bbs-profile-2026-09-15.md)에서 원주·제천6공고를 추가했다. 현재 catalogVersion은 `2026-09-15-reference-v2`, 참조15/실행 기대값0이다. 아래 최초9건 기록은 이전 증분이며, 참조 추가를 실제 추출/전체 정책 QA 성공으로 계산하지 않는다.
+2026-09-15 최신 증분: [제천 모델·공개 참조 확장](announcement-jecheon-bbs-profile-2026-09-15.md)의 참조15/실행 기대값0을 유지한다. 현재 서버는 새 schema2 `2026-09-15-format-scope-v2`를 읽고, schema1 `2026-09-15-reference-v2` 파일과 기존 계약은 보존한다. [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)는 기관별 실제 기대 파일의 형식/미관측과 정상 다중 첨부를 구분하며, 전체3형식 검증·모든 기관/파일 분모는 유지한다. 아래 최초 구현 수량과 미연결 기록은 해당 증분 시점의 이력이다.
 
 Gate3 진행이다. 전체 ATT001~062/Gate0~8을 유지한다. 서버가 배포한 고정 표본을 V79 실행 원장에 연결하기 전에 전체 대상·누락·파일 기대값·시간/요청/byte 계획을 검증한다. 관리자가 URL·parser·정답 JSON을 입력하는 기능은 만들지 않는다.
 
 - [x] 고정 classpath JSON catalog와 엄격한 입력·전체 scope 대조를 구현했다.
 - [x] 참조 표본/실행 기대값/누락·형식 coverage·분할 계획을 분리했다. 현재 참조15/실행 기대값0이다.
-- [x] 기존 정책 QA snapshot schema6에 전체 catalog 지문·계획을 연결했다. 공개 API/운영 예약 연결은 아직 없다.
+- [x] 기존 정책 QA snapshot schema6에 전체 catalog 지문·계획을 연결했다. 후속 V80 관리 API/예약과 전체 근거 verifier 구현은 장기 진행 기록을 따른다.
 - [ ] 실제 공식 파일의 전체 목록·binary/추출 품질·기대 문구를 확인하여 catalog를 채운다.
-- [ ] 관리자 예약·취소/조회 API, scheduler 및 정책 전체 QA verifier를 연결한다.
+- [x] 관리자 예약·취소/조회 API, scheduler 및 정책 전체 QA verifier를 연결했다. 운영 실행은 별도 미완료다.
 - [ ] 실제 Linux/PG/전체 Provider·배포·운영 브라우저를 검증한다.
 
 ## 계약
 
-고정 리소스 `announcement-attachment/provider-qa-catalog-v1.json`만 읽는다. 경로/host/selector를 환경변수나 관리자 입력으로 대체하지 않는다. schema1·version·중복 case/기관 공고·원문 source 결합을 엄격히 검증한다. 잘못된 JSON/미지원 schema/unknown field/크기 초과는 빈 catalog로 대체하지 않는다.
+현재 고정 리소스 `announcement-attachment/provider-qa-catalog-v2.json`을 읽는다. 과거 v1 파일/해석은 보존하며 경로/host/selector를 환경변수나 관리자 입력으로 대체하지 않는다. schema1·2/version·중복 case/기관 공고·원문 source 결합을 엄격히 검증한다. 잘못된 JSON/미지원 schema/unknown field/크기 초과는 빈 catalog로 대체하지 않는다.
 
 각 notice에는 case code, 시스템 profile code, provider/기관/parser/source identity와 선택적 expectation을 둔다. expectation이 없는 항목은 REFERENCE_ONLY이며 실행 입력·정상 공고 coverage·예산에 포함하지 않는다. 기존 BBS 공개 표본9건은 이 상태로만 등록한다. 과거 다운로드 결과를 추출/현재성/정책 성공으로 가져오지 않는다.
 

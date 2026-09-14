@@ -63,6 +63,14 @@ public class AnnouncementAttachmentProviderQaManagementServiceImpl implements An
                 PageResponse.of(plan.segments().subList(from,to),page,size,plan.segments().size()));
     }
     @Override @Transactional(propagation=Propagation.NOT_SUPPORTED)
+    public AttachmentProviderQaResponses.Coverage selectTargetCoverageList(Authentication actor,UUID policyId,int page,int size) {
+        selectActor(actor,false);int offset=validatePage(page,size);
+        var prepared=selectPrepared(policyId);var plan=prepared.catalog().plan();
+        int from=Math.min(offset,plan.targets().size()),to=(int)Math.min((long)from+size,plan.targets().size());
+        return new AttachmentProviderQaResponses.Coverage(policyId,prepared.policy().rowVersion(),prepared.frozen().hash(),plan.catalogHash(),prepared.planHash(),
+                plan.isExpectationCoverageComplete(),false,plan.formatCoverage(),PageResponse.of(plan.targets().subList(from,to),page,size,plan.targets().size()));
+    }
+    @Override @Transactional(propagation=Propagation.NOT_SUPPORTED)
     public AttachmentProviderQaResponses.Run insertRun(Authentication authentication,UUID policyId,UUID key,Reservation request) {
         UUID actor=selectActor(authentication,true);validateRequest(request);
         if(policyId==null || key==null) throw invalid("정책 ID와 UUID 형식 Idempotency-Key가 필요합니다.");

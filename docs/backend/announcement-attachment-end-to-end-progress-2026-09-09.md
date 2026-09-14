@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 05:22 KST — 형식 적용성 V2와 전체 대상 coverage API
+
+- 제천 증분은 QA 브랜치 `be45ddfa4d883c56527861f8e2c469237682f3f3`로 커밋/푸시하고 원격 SHA 일치를 확인했다. [Linux 실행24](https://github.com/FrostyCityMan/saneB/actions/runs/34890992681)는 전체 성공이다. root2455=2202통과/253생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 성공, Node154/설치12 통과다. 외부 파일 재추출/운영 배포는 하지 않았다.
+- 이어 [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)를 구현했다. 모든 기관에 세 형식의 존재를 요구하는 schema1은 보존하고, 별도 schema2에서 각 기관의 전체 기대 파일에 등장한 지원 형식·미관측과 정상 다중 첨부 수를 구분한다. 전체3형식/기관별 정상3공고·정상 다중 첨부1건·전체 기관/파일 분모를 유지한다. 실패 PDF를 다른 기관의 성공으로 상쇄하거나 미관측을 미지원/N/A로 만들지 않는다.
+- 새 v2 GET `/provider-qa-runs/execution-plan/targets`는 ADMIN/OPERATOR/APPROVER에만 페이지/전체 지문/형식 기대 metadata를 반환한다. 기존 API 응답과 v1은 보존하며 조회의 DB 쓰기/HTTP/예약/정책 변경은0이다. 실제 metadata 화면 연결·브라우저는 후속 작업이다.
+- catalog·근거 재검증·Service·MockMvc·snapshot 표적156건은53초에 전부 통과했다. 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar installAttachmentContractQa --no-daemon --max-workers=1`은3분18초 성공: root2484=2232통과/252조건부 생략/실패0, QA 패키징20/20이다. 추출기 시험25는 UP-TO-DATE이며 새 실행 통과로 세지 않는다. 로컬 생략은 실제 DB/Linux 성공이 아니다.
+- 최종 bootJar SHA256은 `b1bdf80619b037c9678594204cffd371912db3ce8ea2644e7815a7dbc764c41a`다. Node 일회성 검사로 보존된 schema1과 새 schema2의15참조가 같고 실행 기대값0임을 확인했다. 과거 리소스·V1~V83/DDL/운영 행을 변경하지 않았다. 앞선 실행24는 이 형식 적용성 증분의 같은 SHA 증거가 아니다.
+- 현재 엔진6/프로필14(지자체13)/본문13기관이며 실제 전체223기관·공식 역할/내용 기대값·운영 배포와 승인 범위 배치·브라우저가 잔여다. AWS 재로그인 응답 대기, 운영 상태는 마지막 V72 snapshot 이후 미확인이다. 사용한 Node/Gradle은 종료했고 사용자 output/Word2개는 보존했다. P3 진행, 전체 Gate/ATT **Not ready**, goal ACTIVE다.
+
 ### 2026-09-15 05:04 KST — 제천 본문·첨부 모델, 실제 HWPX4파일 및 공개 참조15건
 
 - 제목→정제 본문→실제 첨부 텍스트→관리자 최종 검증 순서를 유지하면서 제천 고정 BBS 모델을 추가했다. 전용 본문13기관/첨부 엔진6/등록 프로필14(지자체13)/추출 형식3이다. 전체 활성 지자체223개를 지원 완료로 계산하거나 분모에서 제외하지 않는다.
@@ -117,12 +126,12 @@
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
 | 0 맥락·범위·검증 목록 | [~] | 09-15 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V72·코드 SourceBinding11개 일치. 원주/제천2개 현재 운영 결합과 재인증 후 현재값 확인이 남음 |
-| 1 DB·API 계약 | [~] | QA 브랜치 V83까지 실제 PG migration17건·3단계 projection/역할 근거·v2 계약 검증 통과. 기존 v1/과거 migration 보존. 기관별 제공 형식 적용성·전체 실제 catalog·운영 확인은 미완료 |
+| 1 DB·API 계약 | [~] | QA 브랜치 V83까지 실제 PG migration17건·3단계 projection/역할 근거·v2 계약 검증 통과. 형식 적용성 schema2/조회 API 로컬 검증 통과, 같은 SHA Linux·전체 실제 catalog·운영 확인은 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | worker/scheduler·총14개 첨부 profile·고정 예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 직전 SHA Linux worker11/실제 job192 통과. 이번 제천 증분은 로컬/공식 signature 검증까지이며 전체223기관·운영 연속 수집은 남음 |
-| 3 분류·정책 | [~] | 전용 BODY13기관·텍스트 역할 규칙/worker 근거 연결 구현. 공개 catalog 참조15/실행 기대값0이며 실제 역할·내용 기대값 검증과 기관별 형식 적용성, 전체 Provider QA/정책 게시가 잔여 |
+| 3 분류·정책 | [~] | 전용 BODY13기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조15/실행 기대값0이며 실제 역할·내용/제공 형식 검증, 전체 Provider QA/정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태/29행 실제 PG·Java/HTTP·Node 회귀 통과. 운영 역할·브라우저 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 실행23/5695534: migration17·worker11·독립220/220·부모2·정리 성공. 이번 로컬 root2203통과/252생략 및 제천 BODY3/파일4 signature 통과. 공식 기업마당 재추출은 실행20 DETAIL_DISCOVERY timeout에서 미해결이며 전체 Provider/형식/역할 기대값 잔여 |
+| 6 자동·실파일 QA | [!] | 실행24/be45ddf: migration17·worker11·독립220/220·부모2·정리 성공. 형식 적용성 최신 로컬 root2232통과/252생략. 제천 BODY3/파일4 signature는 별도 실제 표본이며 기업마당 재추출은 실행20 DETAIL_DISCOVERY timeout에서 미해결. 전체 Provider/형식/역할 기대값 잔여 |
 | 7 운영 배포·활성화 | [!] | 마지막 운영 실제 JAR/DB V72·새 worker/QA 패키지 미설치. QA 브랜치 커밋/푸시와 Linux 설치 계약 성공은 운영 배포가 아니다. TLS 검증을 유지한 조회 후 AWS 세션이 만료되어 재로그인 대기 중이며 게시/ENFORCE/기존 데이터는 정확한 범위 승인 필요 |
 | 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
 

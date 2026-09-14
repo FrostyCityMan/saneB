@@ -89,6 +89,14 @@ public final class AttachmentProviderQaEvidenceGate implements AttachmentPolicyA
             require(!plan.isQaPassed() && !plan.segments().isEmpty() && plan.executableCount()==prepared.inputs().size() && plan.cases().size()==prepared.inputs().size()
                     && plan.targets().size()==scope.items().size() && plan.targets().stream().allMatch(t->t.isExpectationCoverageComplete() && t.normalNoticeCount()>=3
                     && t.requiredNormalNoticeCount()==3 && t.missingFormats().isEmpty() && "SYSTEM_BINDING_MATCHED".equals(t.bindingStatusCode())),"FULL_EXPECTATION_SCOPE_INVALID");
+            if(plan.formatCoverage()!=null) {
+                require("FIXED_SAMPLE_FORMATS_V2".equals(plan.formatCoverage().modeCode())
+                        && plan.formatCoverage().requiredFormats().equals(List.of("HWP","HWPX","PDF")) && plan.formatCoverage().missingFormats().isEmpty()
+                        && plan.targets().stream().allMatch(t->t.formatApplicability()!=null
+                            && "FIXED_SAMPLE_EXPECTATIONS".equals(t.formatApplicability().statusCode())
+                            && !t.formatApplicability().expectedProvidedFormats().isEmpty() && t.formatApplicability().normalMultiFileNoticeCount()>=1),
+                        "FULL_FORMAT_EXPECTATION_SCOPE_INVALID");
+            }
             var inputs=new LinkedHashMap<String,AttachmentProviderQaCase>();var entries=new LinkedHashMap<String,AttachmentProviderQaCatalog.CasePlan>();
             for(var input:prepared.inputs()){AttachmentProviderQaCaseContract.validate(input);require(inputs.put(input.caseId(),input)==null,"DUPLICATE_CASE_INPUT");}
             for(var entry:plan.cases())require("EXPECTED_INPUT_READY".equals(entry.statusCode()) && entries.put(entry.caseCode(),entry)==null

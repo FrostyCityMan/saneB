@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 
 public interface AnnouncementAttachmentProviderQaManagementService {
     Preview selectExecutionPlan(Authentication actor,UUID policyId,int page,int size);
+    Coverage selectTargetCoverageList(Authentication actor,UUID policyId,int page,int size);
     Run insertRun(Authentication actor,UUID policyId,UUID key,AttachmentProviderQaRequests.Reservation request);
     PageResponse<Run> selectRunList(Authentication actor,UUID policyId,int page,int size);
     Run selectRunDetails(Authentication actor,UUID policyId,UUID runId);

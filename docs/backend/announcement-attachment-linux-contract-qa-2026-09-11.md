@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 제천 모델·참조15건의 Linux 계약 검증
+
+[실행24 / 34890992681](https://github.com/FrostyCityMan/saneB/actions/runs/34890992681), SHA `be45ddfa4d883c56527861f8e2c469237682f3f3`는 전체 성공이다. XML root2455=2202통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 독립/부모 자원 정리 SUCCEEDED, Node154/154·Linux 설치12/12를 확인했다. 보고서는 ignored `build/qa-results/run-34890992681`에 받았다.
+
+제천 실제 BODY/첨부 signature는 이전 로컬 공식 표본이고 이 CI는 외부 파일 관측을 실행하지 않았다. 형식 적용성 catalog schema2 및 대상 coverage API는 이 SHA 이후 증분이므로 이 실행의 통과 범위에 넣지 않는다. 운영 배포/전체 실제 Provider·역할 기대값/브라우저는 미완료이며 Not ready다.
+
 ### 2026-09-15 — 원주 모델의 Linux 계약 검증
 
 [실행23 / 34888428248](https://github.com/FrostyCityMan/saneB/actions/runs/34888428248), SHA `569553417c371f34ba911de452807c59aa1d3d6e`는 전체 성공이다. root2440=2189통과/251조건부 생략, extractor25·패키징20·job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 정리2종 SUCCEEDED, Node154/154·Linux 설치12/12를 확인했다. XML은 ignored `build/qa-results/run-34888428248`에 받았다.

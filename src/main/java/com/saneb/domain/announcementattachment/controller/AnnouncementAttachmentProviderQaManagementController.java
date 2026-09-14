@@ -33,6 +33,11 @@ public class AnnouncementAttachmentProviderQaManagementController {
             @RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="20") int size) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectRunList(actor,policyId,page,size)));
     }
+    @GetMapping("/execution-plan/targets") @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','APPROVER')")
+    public ResponseEntity<ApiResponse<Coverage>> selectTargetCoverageList(Authentication actor,@PathVariable UUID policyId,
+            @RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="20") int size) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectTargetCoverageList(actor,policyId,page,size)));
+    }
     @GetMapping("/{runId}") @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','APPROVER')")
     public ResponseEntity<ApiResponse<Run>> selectRunDetails(Authentication actor,@PathVariable UUID policyId,@PathVariable UUID runId) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectRunDetails(actor,policyId,runId)));

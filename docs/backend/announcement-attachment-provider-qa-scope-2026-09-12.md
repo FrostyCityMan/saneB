@@ -2,6 +2,8 @@
 
 ## 현재 단계
 
+2026-09-15 후속 [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)를 구현했다. 각 기관 고정 표본에서 등장한 모든 지원 형식(실패 품질 포함)을 요구량에 남기며 정상3공고·정상 다중 첨부1건/전체3형식 기대 coverage를 검사한다. 미관측은 미지원/없음/성공이 아니다. 구조적 요구 목록의 기존 schema1/requiredFormats는 유지하고 실제 catalog 적용성은 새 v2 `/provider-qa-runs/execution-plan/targets` 페이지로 조회한다. 전체 운영223기관 분모·현재 참조15/실행 기대값0은 변하지 않았다. 아래 최초 구현의 미연결 기록은 이력이며 최신 원장/관리 API/verifier 구현 상태는 장기 진행 기록을 따른다.
+
 2026-09-15 04:56 증분: [제천 모델](announcement-jecheon-bbs-profile-2026-09-15.md)을 추가하여 코드 등록14개(지자체13개)다. 제천은 저장소 V62 기준 HEURISTIC_NOTICE 결합이며 공식 BODY3/첨부4 signature 검증을 통과했다. 원주·제천 운영 결합은 재인증 전 미확인, catalog는 참조15/실행 기대값0이다. 아래 운영 snapshot과 각 이전 증분 수치를 최신 전체 완료 수치로 확대하지 않는다.
 
 2026-09-15 04:36 증분: [원주 고정 프로필](announcement-wonju-bbs-profile-2026-09-15.md)을 추가하여 코드 등록은13개(지자체12개)다. 원주 목록 parser 결합은 저장소 V62 기준 HEURISTIC_NOTICE이며 AWS 세션 만료로 현재 운영 재확인은 못 했다. 따라서 아래 운영 snapshot 대조11개/미결합212개를211개로 바꾸지 않는다. 원주 실파일6개 중5개 signature 통과·1개 형식 불일치이며 실제 텍스트/역할/정책 QA 성공으로 세지 않는다.

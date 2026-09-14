@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "2026-09-15-format-scope-v2",
+  "notices": [
+    {
+      "caseCode": "TAEBAEK-185101",
+      "profileCode": "LOCAL_TAEBAEK_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c1d89d1442b8041445d656f7279f1eee04a016ebf654e589169743ebc67f9e9a",
+        "sourceUrl": "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=185101",
+        "localSourceCode": "LGS-000121",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "TAEBAEK-184816",
+      "profileCode": "LOCAL_TAEBAEK_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
+        "sourceUrl": "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816",
+        "localSourceCode": "LGS-000121",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "TAEBAEK-184827",
+      "profileCode": "LOCAL_TAEBAEK_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "27716498f78443425787a89d9f34b0d9a93ef942c64a07169e742662a3509d12",
+        "sourceUrl": "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184827",
+        "localSourceCode": "LGS-000121",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "HOENGSEONG-424679",
+      "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "66bb1e558e4c3ec6c07c9debcfe9f899fdf38f853f77d75f29893907df0fba19",
+        "sourceUrl": "https://www.hsg.go.kr/www/selectBbsNttView.do?key=821&bbsNo=65&nttNo=424679",
+        "localSourceCode": "LGS-000125",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "HOENGSEONG-424078",
+      "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6c4c3f332831a6eb7e657a743559c200a59322d79d1465128bd221dd23819538",
+        "sourceUrl": "https://www.hsg.go.kr/www/selectBbsNttView.do?key=821&bbsNo=65&nttNo=424078",
+        "localSourceCode": "LGS-000125",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "HOENGSEONG-424077",
+      "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "d110852f88d3f6666416c714a15e31d7b3e71208a8a091be6b8c01c49332d772",
+        "sourceUrl": "https://www.hsg.go.kr/www/selectBbsNttView.do?key=821&bbsNo=65&nttNo=424077",
+        "localSourceCode": "LGS-000125",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGWOL-157529",
+      "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c335e7a455e147a98f577953367cd1092a05d2a275a80f33edec73cc96d857f0",
+        "sourceUrl": "https://www.yw.go.kr/www/selectBbsNttView.do?key=273&bbsNo=17&nttNo=157529",
+        "localSourceCode": "LGS-000126",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGWOL-157016",
+      "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a8479981848b7cbdc0b91cde8744b2b6c008b805536eaa37b7a21e765ffd18c3",
+        "sourceUrl": "https://www.yw.go.kr/www/selectBbsNttView.do?key=273&bbsNo=17&nttNo=157016",
+        "localSourceCode": "LGS-000126",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGWOL-156846",
+      "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2762cd5161f44acde9acb926ef1103c9869fe7a2b85aa0c73b29787444041b4c",
+        "sourceUrl": "https://www.yw.go.kr/www/selectBbsNttView.do?key=273&bbsNo=17&nttNo=156846",
+        "localSourceCode": "LGS-000126",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "WONJU-491704",
+      "profileCode": "LOCAL_WONJU_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6541c736c439eb843b57fa01e3e89bbeb77350add61b37d2433e0867f2991185",
+        "sourceUrl": "https://www.wonju.go.kr/www/selectBbsNttView.do?key=216&bbsNo=140&nttNo=491704",
+        "localSourceCode": "LGS-000118",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "WONJU-491507",
+      "profileCode": "LOCAL_WONJU_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1361d8159b5892f19d01f8bb24ed64a0d958e39b836011dc70c9384f71f6b4d6",
+        "sourceUrl": "https://www.wonju.go.kr/www/selectBbsNttView.do?key=216&bbsNo=140&nttNo=491507",
+        "localSourceCode": "LGS-000118",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "WONJU-491340",
+      "profileCode": "LOCAL_WONJU_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "58532e6b0284d918e7c583fe753b619fa74a411a8322a95d219f73a681a5a5dc",
+        "sourceUrl": "https://www.wonju.go.kr/www/selectBbsNttView.do?key=216&bbsNo=140&nttNo=491340",
+        "localSourceCode": "LGS-000118",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JECHEON-403587",
+      "profileCode": "LOCAL_JECHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fb92de76db2effbe5c8c13c78735b484e71df350141e2702310a130aa4372c6a",
+        "sourceUrl": "https://www.jecheon.go.kr/www/selectBbsNttView.do?key=5233&bbsNo=18&nttNo=403587",
+        "localSourceCode": "LGS-000138",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JECHEON-403530",
+      "profileCode": "LOCAL_JECHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2b6bb833b2a661d82f3074c3385045959cd5cc088a018dee49ab8272a141010f",
+        "sourceUrl": "https://www.jecheon.go.kr/www/selectBbsNttView.do?key=5233&bbsNo=18&nttNo=403530",
+        "localSourceCode": "LGS-000138",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JECHEON-403490",
+      "profileCode": "LOCAL_JECHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e1c6ac148175e7358729c6c0c6a8545a28891e9da89219360646f4d18ef94bbf",
+        "sourceUrl": "https://www.jecheon.go.kr/www/selectBbsNttView.do?key=5233&bbsNo=18&nttNo=403490",
+        "localSourceCode": "LGS-000138",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    }
+  ]
+}

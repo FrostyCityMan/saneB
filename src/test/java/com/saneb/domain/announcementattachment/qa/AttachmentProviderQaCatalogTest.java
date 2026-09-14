@@ -101,7 +101,7 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void duplicateCaseCodeAndUnsupportedSchemaFailClosed() {
         var n=notice("BIZINFO","BIZ","1");assertThatThrownBy(()->catalog(List.of(n,n))).hasMessage("CATALOG_NOTICE_INVALID");
-        assertThatThrownBy(()->new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(2,"TEST",List.of()))).hasMessage("CATALOG_DEFINITION_INVALID");
+        assertThatThrownBy(()->new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(99,"TEST",List.of()))).hasMessage("CATALOG_DEFINITION_INVALID");
     }
     @Test void outOfScopeReferencesStayVisibleAndCannotBeExecuted() {
         var n=notice("BIZINFO","BIZ","1");var source=new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE","id","https://example.go.kr/detail","LGS-000001","SPRING_BBS");
@@ -157,6 +157,107 @@ class AttachmentProviderQaCatalogTest {
         var result=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles)).selectPrepared(scope,rules,runtimeHash,now);
         assertThat(result.plan().targets()).hasSize(7);assertThat(result.plan().cases()).hasSize(15).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+        assertThat(result.plan().formatCoverage().missingFormats()).containsExactly("HWP","HWPX","PDF");
+        assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.formatApplicability().statusCode()).isEqualTo("EXPECTATIONS_UNKNOWN"));
+    }
+
+    Prepared prepareV2(List<Notice> notices) {
+        return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(2,"TEST-V2",notices))
+                .selectPrepared(scope,rules,runtimeHash,now);
+    }
+    Notice withFiles(Notice notice,List<ExpectedFile> files) {
+        var e=notice.expectation();return alter(notice,new Expectation(e.profileHash(),e.title(),e.observedAt(),e.discoveryStatus(),e.discoveryComplete(),files,e.limits()));
+    }
+    ExpectedFile otherLocator(ExpectedFile file) {
+        return new ExpectedFile("9".repeat(64),file.downloadAllowed(),file.format(),file.binaryHash(),file.quality(),file.minimumCharacters(),file.minimumBlocks(),file.requiredPhrases(),file.roleExpectation());
+    }
+    List<Notice> mixedProviderFormats() {
+        var result=new ArrayList<Notice>();
+        for(int i=1;i<=3;i++) {
+            result.add(withFiles(notice("BIZINFO","BIZ",""+i),List.of(file("PDF","COMPLETE_TEXT"),otherLocator(file("PDF","COMPLETE_TEXT")))));
+            result.add(withFiles(notice("GOV24_PUBLIC_SERVICE","GOV",""+i),List.of(file("HWP","COMPLETE_TEXT"),file("HWPX","COMPLETE_TEXT"))));
+        }
+        return result;
+    }
+    @Test void v2UsesEveryProvidedFormatPerTargetAndAllThreeAcrossFullScope() {
+        var result=prepareV2(mixedProviderFormats());assertThat(result.plan().isExpectationCoverageComplete()).isTrue();assertThat(result.plan().isQaPassed()).isFalse();
+        assertThat(result.inputs()).hasSize(6);assertThat(result.plan().targets()).hasSize(2);
+        var biz=result.plan().targets().getFirst();assertThat(biz.missingFormats()).isEmpty();
+        assertThat(biz.formatApplicability().expectedProvidedFormats()).containsExactly("PDF");
+        assertThat(biz.formatApplicability().unobservedFormats()).containsExactly("HWP","HWPX");
+        assertThat(biz.formatApplicability().normalMultiFileNoticeCount()).isEqualTo(3);
+        assertThat(result.plan().formatCoverage().requiredFormats()).containsExactly("HWP","HWPX","PDF");
+        assertThat(result.plan().formatCoverage().missingFormats()).isEmpty();
+        assertThat(result.plan().targets().get(1).formatApplicability().unobservedFormats()).containsExactly("PDF");
+    }
+    @Test void v1KeepsPerTargetThreeFormatsAndOriginalMetadataShape() throws Exception {
+        var v1=prepare(mixedProviderFormats());assertThat(v1.plan().isExpectationCoverageComplete()).isFalse();
+        assertThat(v1.plan().targets().getFirst().missingFormats()).containsExactly("HWP","HWPX");
+        assertThat(v1.plan().targets().get(1).missingFormats()).containsExactly("PDF");
+        assertThat(mapper.writeValueAsString(v1.plan())).doesNotContain("formatCoverage","formatApplicability");
+        assertThat(mapper.readValue(mapper.writeValueAsString(v1.plan()),Plan.class)).isEqualTo(v1.plan());
+        assertThat(prepareV2(mixedProviderFormats()).plan().catalogHash()).isNotEqualTo(v1.plan().catalogHash());
+    }
+    @Test void v2UnobservedFormatsAreNotDeclaredUnsupportedOrSuccessful() {
+        var result=prepareV2(List.of(alter(notice("BIZINFO","BIZ","1"),null)));
+        assertThat(result.plan().targets()).allSatisfy(t->{
+            assertThat(t.isExpectationCoverageComplete()).isFalse();assertThat(t.formatApplicability().statusCode()).isEqualTo("EXPECTATIONS_UNKNOWN");
+            assertThat(t.formatApplicability().expectedProvidedFormats()).isEmpty();assertThat(t.formatApplicability().unobservedFormats()).containsExactly("HWP","HWPX","PDF");
+        });
+        assertThat(result.plan().isExpectationCoverageComplete()).isFalse();assertThat(result.inputs()).isEmpty();
+    }
+    @Test void v2RequiresAllThreeFormatsSomewhereEvenWhenEveryTargetSampleHasOnlyPdf() {
+        var notices=mixedProviderFormats().stream().map(n->withFiles(n,List.of(file("PDF","COMPLETE_TEXT"),otherLocator(file("PDF","COMPLETE_TEXT"))))).toList();
+        var plan=prepareV2(notices).plan();assertThat(plan.targets()).allSatisfy(t->assertThat(t.isExpectationCoverageComplete()).isTrue());
+        assertThat(plan.formatCoverage().missingFormats()).containsExactly("HWP","HWPX");assertThat(plan.isExpectationCoverageComplete()).isFalse();
+    }
+    @Test void v2RequiresNormalMultiFileNoticeAndDoesNotConfuseSeveralSingleFileNotices() {
+        var notices=mixedProviderFormats().stream().map(n->"BIZINFO".equals(n.source().providerCode())?withFiles(n,List.of(file("PDF","COMPLETE_TEXT"))):n).toList();
+        var plan=prepareV2(notices).plan();assertThat(plan.targets().getFirst().normalNoticeCount()).isEqualTo(3);
+        assertThat(plan.targets().getFirst().formatApplicability().normalMultiFileNoticeCount()).isZero();assertThat(plan.isExpectationCoverageComplete()).isFalse();
+    }
+    @ParameterizedTest @ValueSource(strings={"PARTIAL_TEXT","OCR_REQUIRED","ENCRYPTED","CORRUPT","UNSUPPORTED","LIMIT_EXCEEDED"})
+    void v2AnotherProvidersSuccessCannotEraseTheTargetsFailedFormat(String quality) {
+        var notices=new ArrayList<>(mixedProviderFormats());notices.add(withFiles(notice("GOV24_PUBLIC_SERVICE","GOV","FAIL"),List.of(file("PDF",quality))));
+        var plan=prepareV2(notices).plan();assertThat(plan.targets().get(1).normalNoticeCount()).isEqualTo(3);
+        assertThat(plan.targets().get(1).formatApplicability().expectedProvidedFormats()).containsExactly("HWP","HWPX","PDF");
+        assertThat(plan.targets().get(1).missingFormats()).containsExactly("PDF");assertThat(plan.formatCoverage().missingFormats()).isEmpty();
+        assertThat(plan.cases()).hasSize(7);assertThat(plan.executableCount()).isEqualTo(7);assertThat(plan.isExpectationCoverageComplete()).isFalse();
+    }
+    @ParameterizedTest @ValueSource(strings={"UNKNOWN","FORM","REFERENCE"})
+    void v2NonNoticeRolesNeverSupplyNormalOrNormalMultiFileCoverage(String roleCode) {
+        var notices=mixedProviderFormats().stream().map(n->{
+            if(!"BIZINFO".equals(n.source().providerCode()))return n;
+            return withFiles(n,n.expectation().files().stream().map(f->{var r=f.roleExpectation();
+                return new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),
+                        new RoleExpectation(r.ruleVersion(),r.rulesHash(),roleCode,"UNKNOWN".equals(roleCode)?"INITIAL_HEADING_REQUIRED":r.reasonCode(),r.textHash(),r.blocksHash(),r.assessmentHash()));}).toList());
+        }).toList();
+        var plan=prepareV2(notices).plan();assertThat(plan.targets().getFirst().normalNoticeCount()).isZero();
+        assertThat(plan.targets().getFirst().formatApplicability().normalMultiFileNoticeCount()).isZero();assertThat(plan.isExpectationCoverageComplete()).isFalse();
+    }
+    @Test void v2UnsupportedExtraFileRemainsInDenominatorAndPreventsNormalNotice() {
+        var notices=mixedProviderFormats().stream().map(n->{if(!"BIZINFO".equals(n.source().providerCode()))return n;
+            var files=new ArrayList<>(n.expectation().files());files.add(new ExpectedFile("0".repeat(64),false,null,null,null,0,0,List.of()));return withFiles(n,files);}).toList();
+        var result=prepareV2(notices);assertThat(result.inputs()).hasSize(6);assertThat(result.plan().cases().getFirst().expectedFileCount()).isEqualTo(3);
+        assertThat(result.plan().targets().getFirst().normalNoticeCount()).isZero();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+    }
+    @Test void v2CannotHideStaleReferenceIncompleteDiscoveryOrReduceScope() throws Exception {
+        var notices=new ArrayList<>(mixedProviderFormats());var n=notices.getFirst();var e=n.expectation();
+        for(var changed:Arrays.asList((Expectation)null,new Expectation(e.profileHash(),e.title(),now.minusSeconds(604801),"FOUND",true,e.files(),e.limits()),
+                new Expectation(e.profileHash(),e.title(),e.observedAt(),"FOUND",false,e.files(),e.limits()))) {
+            notices.set(0,alter(n,changed));assertThat(prepareV2(notices).plan().isExpectationCoverageComplete()).isFalse();
+        }
+        var item=scope.items().getFirst();var reduced=new com.saneb.domain.announcementattachment.dto.AttachmentProviderQaPlanResponse.Item(item.providerCode(),null,null,null,
+                item.statusCode(),item.message(),item.profiles(),3,List.of("PDF"));
+        scope=new AttachmentProviderQaPlan.Plan(1,scope.summary(),List.of(reduced,scope.items().get(1)),List.of());
+        assertThatThrownBy(()->prepareV2(mixedProviderFormats())).hasMessage("CATALOG_SCOPE_INCOMPLETE");
+    }
+    @Test void v2ApplicabilityIsSafeFrozenMetadataAndChangesWithExpectedInventory() throws Exception {
+        var result=prepareV2(mixedProviderFormats());String json=mapper.writeValueAsString(result.plan());
+        assertThat(json).doesNotContain("https://","소상공인","sourceUrl","requiredPhrases","NOT_APPLICABLE","PASSED");
+        assertThat(mapper.readValue(json,Plan.class)).isEqualTo(result.plan());
+        var notices=new ArrayList<>(mixedProviderFormats());notices.set(0,withFiles(notices.getFirst(),List.of(file("HWPX","COMPLETE_TEXT"),file("PDF","COMPLETE_TEXT"))));
+        assertThat(prepareV2(notices).plan().catalogHash()).isNotEqualTo(result.plan().catalogHash());
     }
     Target target(String code){return new Target(UUID.randomUUID(),code,"SPRING_BBS","https://example.go.kr/list","{}");}
 }
