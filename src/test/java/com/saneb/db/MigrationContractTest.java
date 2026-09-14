@@ -20,6 +20,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void backfillMembershipUsesExactOrderedTuplesWithoutRemovingDeferredGuards() throws IOException {
+        var sql=new ClassPathResource("db/migration/V83__compare_backfill_batch_membership_as_ordered_sets.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("CREATE OR REPLACE FUNCTION check_attachment_backfill_segment_batch()", "ORDER BY j.source_id,j.content_version_id,j.base_evaluation_id,j.rule_release_id,j.frozen_provider_code",
+                "ORDER BY i.source_id,i.content_version_id,i.base_evaluation_id,i.rule_release_id,i.provider_code", "IS DISTINCT FROM",
+                "binding.scope_item_count+binding.deleted_before_reservation<>binding.item_count",
+                "binding.batch_deleted_count+binding.deleted_before_reservation<>binding.deleted_item_count",
+                "count(1) FROM announcement_attachment_jobs WHERE batch_id=batch_key", "batch_scope ? 'backfillRunId' OR batch_scope ? 'backfillSegmentNo'",
+                "backfill marked batch requires its atomic segment receipt", "backfill segment jobs and original deletion denominators must match exactly", "ERRCODE='23514'");
+        assertThat(sql).doesNotContain("DROP ","ALTER TABLE", "DISABLE TRIGGER", "SET CONSTRAINTS", "digest(", "DISTINCT j.", "DISTINCT i.", "NOT EXISTS");
+    }
     @Test void publicationLockIncludesAllProviderEvidenceWithoutChangingData() throws IOException {
         var sql=new ClassPathResource("db/migration/V81__lock_provider_qa_evidence_during_policy_publication.sql").getContentAsString(StandardCharsets.UTF_8);
         var previous=new ClassPathResource("db/migration/V77__add_attachment_policy_publication_receipt.sql").getContentAsString(StandardCharsets.UTF_8);

@@ -908,3 +908,11 @@ V81은 `attachment_policy_publication_lock()`의 기존18테이블/순서를 유
 - 최초 수집 및 선택 재시도는 실제 추출을 다시 판정한다. 비선택 재사용과 관리자 역할 변경은 원문을 다시 요청하지 않고 기존 동일 근거를 복사한다. 자동 판정으로 MANUAL/PROFILE을 덮어쓰지 않는다.
 
 검증 대상: 기존 checksum/빈 정책 유지, 실제 HWPX→worker→PG→v2, Unicode block 지문, 잘못된 버전/지문/좌표 거절, 재시작 checkpoint, 관리자 복제 근거 보존이다. 실행 결과는 장기 진행 기록을 따른다. migration 생성과 운영 적용은 별개이며 공식 파일 정확도·전체 Provider QA와 게시 승인은 남아 있다.
+
+### 11.32 전체 분할 소속 검증의 집합 대조 — V83 (검증 진행, 운영 미반영)
+
+1,001건 전체 분할 시험의 Linux 독립 실행 실패를 확인했고 같은 SHA의 주 시험은82초가 걸렸다. 실패 예외 종류 자체는 아직 미확정이다. V75의 지연 trigger가 각 job 행에서 전체 분할에 대한 양방향 상관 EXISTS를 반복하는 처리 비용을 줄이는 것이 목적이다. 시간/행 수 제한이나 무결성 검사를 완화하는 변경은 아니다.
+
+- 기존 `check_attachment_backfill_segment_batch()` 함수만 additive V83에서 교체한다. source/content/base/release/provider의 다섯 값으로 정렬한 실제 전체 tuple 배열을 직접 비교한다. 해시 비교가 아니며 중복·NULL·누락·다른 소속·입력 순서의 의미를 보존한다. 각 분할은 기존1~1000건 제한을 유지한다.
+- 기존 batch/receipt/job 지연 trigger, 삭제 전후 분모, 전체 job count, 표시된 batch의 필수 receipt, 기존 예외/SQLSTATE23514, source cascade 및 불변/잠금 규칙은 유지한다. 이력/데이터/기존 V1~V82를 수정하지 않는다.
+- 검증은 이전 양방향 EXISTS와 새 배열 비교의 양성/음성·순서/중복/NULL/5개 tuple 변경 동등성, V82→V83 함수 교체와 지연 trigger 유지, 기존1,001건 전수 예약·경합·삭제·원복 시험이다. 실제 Linux 시간을 확인하기 전 성능 개선율이나 실패 해결을 확정하지 않는다. API/UI 계약과 운영 승인 범위는 바뀌지 않는다.

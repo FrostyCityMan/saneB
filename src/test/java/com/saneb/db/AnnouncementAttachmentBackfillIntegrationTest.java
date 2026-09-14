@@ -229,7 +229,7 @@ class AnnouncementAttachmentBackfillIntegrationTest {
         return new AttachmentBatchRequests.Collection(batch.rowVersion(),batch.scopeHash(),batch.itemCount(),batch.deletedItemCount(),
                 ((Number)batch.frozenScope().get("maximumDownloadBytes")).longValue(),((Number)batch.frozenScope().get("maximumHttpRequests")).longValue(),"격리 DB 수집 승인 검증");
     }
-    // Linux 실측 71~75초인 1,001건 전수 계약이다. 독립 실행의 기본 60초 대신 이 사례만 120초로 제한한다.
+    // V83 이전 Linux 실측 71~82초인 1,001건 전수 계약이다. 독립 실행의 기본 60초 대신 이 사례만 120초로 제한한다.
     // 전체 namespace 600초와 각 transaction 30초, 전수 건수/중복/누락 검증은 유지한다.
     @Test @Timeout(120)
     void full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions() {
@@ -242,6 +242,51 @@ class AnnouncementAttachmentBackfillIntegrationTest {
         assertThat(summary.collectionCounts()).containsExactlyEntriesOf(Map.of("SCOPE_READY",1001L));
         assertThat(summary.applicationCounts()).containsExactlyEntriesOf(Map.of("NOT_REQUESTED",1001L));assertThat(summary.rollbackCounts()).containsExactlyEntriesOf(Map.of("NOT_REQUESTED",1001L));
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs j JOIN announcement_attachment_backfill_segment_batches l ON l.batch_id=j.batch_id WHERE l.run_id=? AND (j.attempt_count<>0 OR j.reserved_download_bytes<>0)",Long.class,run.runId())).isZero();
+    }
+    @Test void orderedMembershipComparisonMatchesPreviousGuardForWholeTuplesNullsDuplicatesAndOrder() throws Exception {
+        var a=new LinkedHashMap<String,String>();
+        for(String key:List.of("source_id","content_version_id","base_evaluation_id","rule_release_id"))a.put(key,UUID.randomUUID().toString());
+        a.put("provider_code","BIZINFO");
+        var b=new LinkedHashMap<>(a);b.put("source_id",UUID.randomUUID().toString());
+        var expected=List.<Map<String,String>>of(a,b);
+        var examples=new ArrayList<List<Map<String,String>>>();
+        examples.add(expected);examples.add(List.of(b,a));examples.add(List.of(a));examples.add(List.of(a,a));examples.add(List.of(a,b,b));examples.add(List.of());
+        for(String key:a.keySet()) {
+            var changed=new LinkedHashMap<>(a);changed.put(key,key.equals("provider_code")?"LOCAL_GOV_NOTICE":UUID.randomUUID().toString());
+            examples.add(List.of(changed,b));
+            var absent=new LinkedHashMap<>(a);absent.put(key,null);examples.add(List.of(absent,b));
+        }
+        var migration=new org.springframework.core.io.ClassPathResource("db/migration/V83__compare_backfill_batch_membership_as_ordered_sets.sql")
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        // 복사한 기대 로직이 아니라 실제 migration의 비교식을 이전 guard와 대조한다.
+        int comparisonStart=migration.indexOf("OR coalesce(")+3;
+        var comparison=migration.substring(comparisonStart,migration.indexOf(" THEN",comparisonStart))
+                .replace("announcement_attachment_jobs","qa_jobs").replace("announcement_attachment_backfill_items","qa_items")
+                .replace("WHERE j.batch_id=batch_key","").replace("WHERE i.run_id=binding.run_id AND i.segment_no=binding.segment_no","");
+        var query="""
+                -- 공개 원문 없는 합성 tuple로 이전 소속 규칙과 V83 비교식의 동등성을 검사한다.
+                WITH qa_jobs AS (
+                    SELECT j.source_id,j.content_version_id,j.base_evaluation_id,j.rule_release_id,j.provider_code AS frozen_provider_code
+                    FROM jsonb_to_recordset(CAST(? AS jsonb)) AS j(source_id uuid,content_version_id uuid,base_evaluation_id uuid,rule_release_id uuid,provider_code text)
+                ), qa_items AS (
+                    SELECT i.source_id,i.content_version_id,i.base_evaluation_id,i.rule_release_id,i.provider_code
+                    FROM jsonb_to_recordset(CAST(? AS jsonb)) AS i(source_id uuid,content_version_id uuid,base_evaluation_id uuid,rule_release_id uuid,provider_code text)
+                )
+                SELECT ((SELECT count(1) FROM qa_jobs)=(SELECT count(1) FROM qa_items)
+                    AND NOT EXISTS (SELECT 1 FROM qa_jobs j WHERE NOT EXISTS (SELECT 1 FROM qa_items i
+                        WHERE i.source_id=j.source_id AND i.content_version_id=j.content_version_id AND i.base_evaluation_id=j.base_evaluation_id
+                            AND i.rule_release_id=j.rule_release_id AND i.provider_code=j.frozen_provider_code))
+                    AND NOT EXISTS (SELECT 1 FROM qa_items i WHERE NOT EXISTS (SELECT 1 FROM qa_jobs j
+                        WHERE j.source_id=i.source_id AND j.content_version_id=i.content_version_id AND j.base_evaluation_id=i.base_evaluation_id AND j.rule_release_id=i.rule_release_id))) AS previous_matches,
+                NOT (
+                """+comparison+") AS revised_matches";
+        var json=new ObjectMapper();
+        for(var observed:examples) {
+            var result=sql.queryForMap(query,json.writeValueAsString(observed),json.writeValueAsString(expected));
+            assertThat(result.get("revised_matches")).isEqualTo(result.get("previous_matches"));
+        }
+        var empty=sql.queryForMap(query,"[]","[]");
+        assertThat(empty).containsEntry("previous_matches",true).containsEntry("revised_matches",true);
     }
     @Test void deletionsBeforeAndAfterReservationKeepWholeDenominatorAndDoNotAllowInitialCollection() {
         var ids=insertSources(3);var run=freeze(3);sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",ids.get(0));

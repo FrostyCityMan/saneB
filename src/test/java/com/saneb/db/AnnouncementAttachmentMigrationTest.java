@@ -191,6 +191,12 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_constraint WHERE conname='fk_att_file_role_extract' AND convalidated AND condeferrable AND condeferred",Integer.class)).isEqualTo(1);
             assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policies WHERE policy_status_code='ACTIVE'",Integer.class)).isZero();
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            var membershipUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("83").load();
+            assertThat(membershipUpgrade.migrate().migrationsExecuted).isEqualTo(1);membershipUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('check_attachment_backfill_segment_batch'::regproc)",String.class))
+                    .contains("jsonb_agg","IS DISTINCT FROM","frozen_provider_code");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('ct_att_backfill_segment_batch','ct_att_backfill_marked_batch','ct_att_backfill_fixed_job') AND tgdeferrable AND tginitdeferred AND tgenabled='O'",Integer.class)).isEqualTo(3);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             Flyway.configure().dataSource(pg.getDatabase("postgres","attachment_fresh"))
                     .locations("classpath:db/migration").load().migrate();
         }

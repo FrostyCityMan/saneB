@@ -11,6 +11,18 @@
 
 ## 기준선
 
+### 2026-09-15 02:15 KST — 실제 실패 특정·공식 템플릿 보완·V83 비교식
+
+- 고정 전체 공고 관측은 `c647628cff72839b85e540feb6ed97a401661e0a`로 QA 브랜치에 커밋/푸시했고 원격 SHA 일치를 확인했다. master는 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로다.
+- [Linux34870322920](https://github.com/FrostyCityMan/saneB/actions/runs/34870322920),456ab4c의 주 검증/부모 연결·취소2건/정리는 통과했으나 독립은219중218통과/1실패/생략0이었다. 실패 지문851f56bf…는 `full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions`와 정확히 일치한다. 같은 SHA 주 시험에서는82.087초 통과했다. 실패 예외 종류는 기존 보고서에 없어 확정하지 않는다.
+- [Linux34872159512](https://github.com/FrostyCityMan/saneB/actions/runs/34872159512),c647628은 주 검증·독립219/219/생략0·부모2건·정리가 통과했다. 같은1,001건 주 시험은63.932초다. 간헐 실패가 영구 해결됐다는 뜻은 아니다. 공식3공고 관측이 제목 확인 단계에서 실패해 전체 workflow는 실패다.
+- 공식 페이지3건의 실제 HTML에 비어 있지 않은 og:title과 빈 템플릿 og:title이 함께 존재함을 재확인했다. 첫 관측은 상세3회/첨부0회, 제목 Gate는 모두 COMBINATION_MATCHED, 원본 정리3/3이었다. 빈 제목만 제외하고 단일 실제 제목/고정 제목 일치 의무를 유지하도록 보완했고 빈 값만 존재·서로 다른 실제 제목 중복·제목 변경 음성 시험을 추가했다. 파일 추출/역할 성공은 아직0이다.
+- V83은 V75의 각 job→전체 분할 양방향 상관 탐색을 정렬된 source/content/base/release/provider5값의 실제 JSONB 배열 대조로 교체한다. 해시나 DISTINCT로 누락·중복을 감추지 않는다. 기존 지연 trigger3개/삭제 전후 분모/전체 job count/필수 receipt/23514·잠금·시간 한도는 보존한다. 기존 V1~V82와 운영 데이터는 수정하지 않는다. 성능·실패 해결은 실제 Linux 측정 전 미확정이다.
+- 새 검증은 실제 migration 비교식을 추출한17개 합성 tuple 동등성(정상/역순/누락/추가/중복/빈값/5필드 변경·NULL), V82→V83/빈DB/지연 trigger 유지, 기존1,001건 전수·경합/삭제 시험이다. 표적 MigrationContract93건·bootJar는23초 성공했다. 후속 전체 `test bootJar attachmentContractQaTest`는3분14초 성공(root2396=2149통과/247조건부 생략, QA20통과). 마지막 빈-title 보완/비교식 경계 정리 전의 전체 결과이며 해당 최종 수정은 표적 재검증한다. 추출기 시험/설치는 UP-TO-DATE다.
+- 최종 `:test --tests '*AnnouncementAttachmentOfficialObservationContractTest' --tests '*AttachmentContractWorkflowTest' --tests '*MigrationContractTest' bootJar --no-daemon --max-workers=1`은20초 성공,93+4+8=105건/생략0이다. 사용한 로컬 Java/Node 프로세스는 종료했다. V83 실제 DB와 공식 파일 텍스트 관측은 다음 같은 SHA의 원격 실행에서 확인한다.
+- Windows에서 해당1,001건만 `attachmentMigrationTest --tests '*AnnouncementAttachmentBackfillIntegrationTest.full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions'`로 안전한 대체 검증을 시도했으나17초에 임시 PostgreSQL initdb 기동 실패(시험 본문 미실행)였다. 운영 DB를 사용하거나 Docker/보안 설정을 변경하지 않았다. 이 실패를 Linux 계약 실패와 같은 원인으로 단정하지 않는다.
+- Release **Not ready**, goal ACTIVE. V83 실제 DB/시간 검증, 공식 전체 파일 관측·역할 기대값·전체 대상/형식 적용성, 같은 SHA 운영 배포와 승인 범위 데이터 처리, 운영 브라우저가 남아 있다. 사용자 output/Word2개는 보존한다.
+
 ### 2026-09-15 01:57 KST — 고정 기업마당 전체 첨부 관측 경로
 
 - 시작 HEAD/origin은 QA 브랜치 `456ab4cef7d6f20f278daa5416451044590ffd5b`다. 사용자 output/Word2개는 보존한다. 기존 goal과 제목→본문→실제 첨부 텍스트→최종 관리자 검증 순서를 유지한다.
@@ -71,7 +83,7 @@
 | 3 분류·정책 | [~] | 전체 Provider QA·게시 재검증 연결 및 태백/횡성/영월 본문 전용3모델 구현·공식 본문3표본 확인. 공식 첨부 참조9/실행 기대값0은 미완료다. 나머지 본문 모델·문서 역할 자동 규칙·전체 기대값/Linux/Provider 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태/29행 실제 PG·Java/HTTP·Node 회귀 통과. 운영 역할·브라우저 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 09-15 아홉 번째: 주 DB/runtime/worker·독립215/215 통과. 전용 계정 분리·정리 성공 및 부모 취소1건 통과, 정상 연결1건은 QA_PROCESS_FAILED로 실패. 준비/시험 수명 분리 후66d499c 원격 재검증 중. 간헐 분할 실패 원인·전체 Provider 기대값/전수 실증도 잔여 |
+| 6 자동·실파일 QA | [!] | 09-15 c647628: 주 DB/runtime/worker·독립219/219·부모 연결/취소2건·정리 통과. 공식3공고는 빈 템플릿 제목 중복을 처리하지 못해 첨부 다운로드 전 실패, 보완 후 재검증 필요. 1,001건 간헐 실패/V83 집합 비교 실증·전체 Provider/역할 기대값도 잔여 |
 | 7 운영 배포·활성화 | [!] | 09-14 GitHub 소유 계정 pull/push/admin=true 확인 및 QA 전용 브랜치 푸시 완료, master/배포 불변. 서울 AWS STS의 최근 TLS 실패는 미해결. 최신 구현 배포/정책/데이터 적용 미실행. TLS·IAM 완화 없음 |
 | 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
 
