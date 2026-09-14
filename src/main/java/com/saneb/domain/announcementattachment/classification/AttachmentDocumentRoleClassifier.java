@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 /** 단일 추출 텍스트의 역할 근거. 명시적으로 규칙이 고정된 정책에서만 worker가 미확정 역할에 적용한다. */
 public final class AttachmentDocumentRoleClassifier {
-    public static final String VERSION = "document-role-1.0.1";
+    public static final String VERSION = "document-role-1.0.2";
     public static final String BLOCKS_HASH_VERSION = "attachment-role-blocks-v1";
     private static final int MAX_CHARACTERS = 1_000_000;
     private static final int MAX_LINES = 20_000;
@@ -32,8 +32,9 @@ public final class AttachmentDocumentRoleClassifier {
             new Rule("TARGET_SECTION", null, ITEM + "(?:지원\\h*대상|신청\\h*자격)\\h*(?:[:：].{1,160})?", false),
             new Rule("SUPPORT_SECTION", null, ITEM + "(?:지원\\h*내용|지원\\h*규모)\\h*(?:[:：].{1,160})?", false),
             new Rule("APPLICATION_SECTION", null, ITEM + "(?:신청\\h*기간|접수\\h*기간)\\h*(?:[:：].{1,160})?", false),
-            new Rule("APPLICANT_FIELD", null, ITEM + "(?:신청인|사업자등록번호|성명)\\h*[:：].{0,160}", false),
-            new Rule("SIGNATURE_FIELD", null, ".{0,120}(?:\\(서명\\)|\\(인\\)|서명\\h*또는\\h*인)", false),
+            // 표의 입력 표제는 콜론이 없을 수 있다. 설명 문장/부분 단어가 아닌 한 줄 전체만 인정한다.
+            new Rule("APPLICANT_FIELD", null, ITEM + "(?:신청\\h*인|사업자\\h*등록\\h*번호|성\\h*명)\\h*(?:[:：].{0,160})?", false),
+            new Rule("SIGNATURE_FIELD", null, ".{0,120}(?:\\(서명\\)|\\(인\\)|서명\\h*또는\\h*인|\\(\\h*서명\\h*또는\\h*인\\h*\\))", false),
             new Rule("QUESTION_ITEM", null, "Q[.：:]\\h*.{1,160}", false),
             new Rule("ANSWER_ITEM", null, "A[.：:]\\h*.{1,160}", false));
     public static final String RULES_HASH = hash(json(List.of(VERSION, MAX_CHARACTERS, MAX_LINES,

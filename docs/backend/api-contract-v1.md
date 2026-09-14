@@ -2975,7 +2975,7 @@ DDL/migration·v1·운영 쓰기 없음. 실제 PostgreSQL/운영 브라우저 �
 - `roleOriginCode`: 기존 UNKNOWN/PROFILE/MANUAL에 TEXT_RULE을 추가한다. MANUAL은 현재 관리자 지정값이며 자동 제안의 역할과 다를 수 있다.
 - `roleAssessment`: `{ruleVersion,rulesHash,textHash,blocksHash,roleCode,reasonCode,evidence:[{ruleCode,blockIndex,startOffset,endOffset}]}`. 원문/파일 URL/파일 경로는 없다. 위치는 추출 전체의 Unicode 코드포인트·0부터·끝 제외다. 기존 blocks 조회에 `blockIndex+1` 페이지를 전달해 동일 추출 근거를 확인한다.
 - 과거/불완전/미적용 파일의 null 근거를 성공으로 보충하지 않는다. TEXT_RULE 결과는 정확한 COMPLETE_TEXT 추출과 고정 규칙에 연결된다. 관리자 수정 후에도 자동 제안은 보존하되 현재 역할과 구분한다. 잘못된 필드/지문/위치 구조는 임의 JSON으로 반환하지 않는다.
-- 정책 Details.configuration에 선택 `roleRuleVersion`, `roleRulesHash`를 쌍으로 추가한다. 새 초안 생성/수정 시 서버의 `document-role-1.0.1`과 고정 규칙 지문을 저장한다. 기존 값이 없는 정책이나 복사 초안은 자동으로 새 역할 규칙을 적용하지 않으며, 수정·QA·게시 절차가 필요하다. 요청 body에 임의 역할 정규식이나 규칙 지문을 받지 않는다.
+- 정책 Details.configuration에 선택 `roleRuleVersion`, `roleRulesHash`를 쌍으로 추가한다. 새 초안 생성/수정 시 서버의 `document-role-1.0.2`와 고정 규칙 지문을 저장한다. 양식의 콜론 없는 입력 표제/괄호형 서명 보완이며 [규칙 증분](announcement-form-role-markers-2026-09-15.md)을 따른다. 기존1.0.1·값이 없는 정책·복사 초안은 자동으로 새 역할 규칙을 적용하지 않으며, 수정·QA·게시 절차가 필요하다. 요청 body에 임의 역할 정규식이나 규칙 지문을 받지 않는다.
 - worker는 현재 고정 규칙의 UNKNOWN/UNKNOWN·완전 추출 파일에만 적용한다. 실패 파일의 재시도와 checkpoint도 같은 버전·근거를 검증한다. MANUAL/PROFILE은 덮어쓰지 않는다. 역할이 UNKNOWN이면 미확정 사유를 그대로 남긴다.
 - 관리자 상세는 역할 출처/현재 역할/자동 제안/사유/버전, 펼침 영역의 지문·근거 문단 링크를 한글로 표시한다. 기존 native details·텍스트 렌더링·문단 강조를 재사용한다. 연결 불일치는 오류로 표시하고 강조하지 않는다. 정책 화면은 규칙 미연결과 새 규칙 연결을 구분하고, 조회만으로 게시/재처리를 실행하지 않는다.
 

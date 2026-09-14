@@ -335,13 +335,40 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(client.fileRequests.get(1)).isEqualTo(2);assertThat(extractor.calls).isEqualTo(3);
         assertTemporaryEmpty();
     }
+    @Test void spacedFormMarkersPersistThroughWorkerDbAndApiWithoutBecomingPrimaryEvidence() throws Exception {
+        enableRoleRules();client.samples=List.of(new Sample("AR-006","공고.hwpx"));
+        client.roleDocument=selectRoleDocument(List.of("😀 지원 신청서", "성   명", "( 서명 또는 인 )", "소상공인 지원금"));
+        var request=selectRequest();var baseBefore=selectBase(request);reserve(request);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var file=files(request.sourceId()).getFirst();
+        assertThat(file.documentRoleCode()).isEqualTo("FORM");assertThat(file.roleOriginCode()).isEqualTo("TEXT_RULE");
+        assertThat(file.roleAssessment().ruleVersion()).isEqualTo("document-role-1.0.2");
+        assertThat(file.roleAssessment().evidence()).extracting(com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.Evidence::ruleCode)
+                .containsExactly("FORM_HEADING","APPLICANT_FIELD","SIGNATURE_FIELD");
+        assertThat(file.roleExtractionId()).isEqualTo(file.extractionId());
+        assertThat(sql.queryForObject("SELECT attachment_role_blocks_hash(blocks_json) FROM announcement_source_attachment_extractions WHERE id=?",String.class,file.extractionId()))
+                .isEqualTo(file.roleAssessment().blocksHash());
+        var http=MockMvcBuilders.standaloneSetup(new AnnouncementAttachmentController(bean(AnnouncementAttachmentReadService.class)))
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+        http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-sets/{set}/files",request.sourceId(),set(request.sourceId()).setId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.items[0].roleAssessment.roleCode").value("FORM"))
+                .andExpect(jsonPath("$.data.items[0].roleAssessment.ruleVersion").value("document-role-1.0.2"));
+        assertThat(sql.queryForObject("SELECT reason_code FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current",String.class,request.sourceId()))
+                .isEqualTo("EXTENDED_COMBINATION_NOT_CONFIRMED");
+        assertThat(selectBase(request)).isEqualTo(baseBefore);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,request.sourceId())).isZero();
+        assertThat(client.requests).isEqualTo(2);assertThat(extractor.calls).isEqualTo(1);assertTemporaryEmpty();
+    }
     private static byte[] selectRoleDocument() throws IOException {
+        return selectRoleDocument(List.of("😀 지원사업 공고","지원대상: 소상공인","지원내용: 지원금","신청기간: 9월"));
+    }
+    private static byte[] selectRoleDocument(List<String> lines) throws IOException {
         // 실제 HWPX 바이트를 격리 parser에 넣는다. 공식 사이트 파일 QA 증거와는 구분한다.
         var bytes=new java.io.ByteArrayOutputStream();
         try(var zip=new java.util.zip.ZipOutputStream(bytes)) {
             String opening="<hs:sec xmlns:hs=\"http://www.hancom.co.kr/hwpml/2011/section\" xmlns:hp=\"http://www.hancom.co.kr/hwpml/2011/paragraph\">";
             StringBuilder xml=new StringBuilder(opening);
-            for(String line:List.of("😀 지원사업 공고","지원대상: 소상공인","지원내용: 지원금","신청기간: 9월"))
+            for(String line:lines)
                 xml.append("<hp:p><hp:run><hp:t>").append(line).append("</hp:t></hp:run></hp:p>");
             for(var entry:Map.of("mimetype","application/hwp+zip","Contents/section0.xml",xml.append("</hs:sec>").toString()).entrySet()) {
                 var item=new java.util.zip.ZipEntry(entry.getKey());item.setTimeLocal(java.time.LocalDateTime.of(2020,1,1,0,0));

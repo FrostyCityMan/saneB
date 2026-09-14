@@ -69,7 +69,7 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test void structureSignalsShowStandaloneTableFieldsWithoutCopyingTextOrChangingRole() throws Exception {
+    @Test void structureSignalsKeepCurrentFormAssessmentWithoutCopyingText() throws Exception {
         String text = "😀 참여 신청서\n성명\nPRIVATE_PERSON_CANARY\n사업자등록번호\n(인)";
         var blocks = new java.util.ArrayList<Map<String,Object>>();
         int offset = 0;
@@ -81,7 +81,8 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         }
         var output=JSON.valueToTree(AnnouncementAttachmentOfficialObservationTest.selectTextObservation(JSON.valueToTree(
                 Map.of("qualityCode","COMPLETE_TEXT","text",text,"blocks",blocks))));
-        assertThat(output.path("roleAssessment").path("roleCode").asText()).isEqualTo("UNKNOWN");
+        assertThat(output.path("roleAssessment").path("roleCode").asText()).isEqualTo("FORM");
+        assertThat(output.path("roleAssessment").path("ruleVersion").asText()).isEqualTo("document-role-1.0.2");
         var observation=output.path("roleStructureObservation");
         assertThat(observation.path("isTruncated").asBoolean()).isFalse();
         assertThat(observation.path("signals").size()).isEqualTo(4);

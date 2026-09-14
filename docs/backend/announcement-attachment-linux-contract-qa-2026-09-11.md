@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 보은군 모델·참조18건의 Linux 계약 검증
+
+[실행29 / 34901307963](https://github.com/FrostyCityMan/saneB/actions/runs/34901307963), SHA `69cf469e45ecb6e9339140fd080283fe1edf32e4`는 전체 성공이다. root2518=2262통과/256조건부 생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다. XML은 ignored `build/qa-results/run-34901307963`에 보존했다.
+
+공식 파일 관측 단계는 생략됐다. 보은 실제 BODY/다운로드/signature는 이전 로컬 공식 표본 근거이며 Linux 텍스트 추출 성공이 아니다. 이번 이후 양식 역할 규칙1.0.2/새 worker FORM 통합 시험도 이 SHA에 포함되지 않는다. 전체 Provider/운영/브라우저 Gate는 Not ready다.
+
 ### 2026-09-15 — 태백 제목·본문·실제 전체 첨부 관측
 
 [실행28 / 34899577744](https://github.com/FrostyCityMan/saneB/actions/runs/34899577744), SHA `5c6ff8d47e46d16bec2a63ecbe7a53eafe412e0a`는 전체 성공이다. root2504=2250통과/254조건부 생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다.

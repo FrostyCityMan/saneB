@@ -73,4 +73,13 @@ class AttachmentFileRoleRulesTest {
         assertThat(AttachmentFileRoleRules.selectPreservedRoleMatches("UNKNOWN","UNKNOWN",invalid,execution(true))).isFalse();
         assertThat(AttachmentFileRoleRules.selectAssessmentValid(valid,execution(false))).isFalse();
     }
+    @Test void previousOfficialRuleVersionCannotBeReinterpretedAfterMarkerChange() {
+        var previous = new AttachmentExecutionSnapshot("BIZINFO_V1", HASH, "attachment-1.0.0", "extractor-1.0.0", HASH,
+                "document-role-1.0.1", "c2fb6ef607efe39539164dd75262b61cdf8037656718b730026a6c9b54fec026");
+        assertThat(AttachmentDocumentRoleClassifier.VERSION).isEqualTo("document-role-1.0.2");
+        assertThat(previous.selectRoleRulesCurrent()).isFalse();
+        assertThatThrownBy(() -> AttachmentFileRoleRules.selectAssessedFile(file("UNKNOWN", "UNKNOWN", "COMPLETE_TEXT"), previous))
+                .hasMessage("ATTACHMENT_ROLE_RULES_CHANGED");
+        assertThat(AttachmentFileRoleRules.selectAssessmentValid(file("UNKNOWN", "UNKNOWN", "COMPLETE_TEXT"), previous)).isFalse();
+    }
 }

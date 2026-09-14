@@ -900,6 +900,8 @@ V81은 `attachment_policy_publication_lock()`의 기존18테이블/순서를 유
 
 ### 11.31 추출 텍스트 역할 근거 — V82 (로컬 구현, 운영 미반영)
 
+2026-09-15 양식 표식 보완은 `document-role-1.0.2`다. 기존 APPLICANT_FIELD/SIGNATURE_FIELD 코드와3개 FORM 근거 shape를 재사용하므로 추가 DDL은 없다. 규칙 버전/지문은 새 정책의 검증 대상으로만 기록하고, 기존1.0.1 정책·파일·불변 assessment·checkpoint를 업데이트하거나 새 규칙으로 재해석하지 않는다. 상세는 [양식 역할 증분](announcement-form-role-markers-2026-09-15.md)을 따른다.
+
 `announcement_source_attachment_files`에 nullable `role_extraction_id uuid`, `role_assessment_json jsonb`를 추가하고 `role_origin_code`에 TEXT_RULE을 허용한다. 기존 UNKNOWN/PROFILE/MANUAL·봉인 이력·V1~V81은 변경하지 않는다. assessment가 없는 과거 행은 자동 판정 성공으로 채우지 않는다.
 
 - 복합 FK `(role_extraction_id,id,set_id,source_id)`가 정확한 extraction/file/set/source를 묶는다. file→extraction 삽입 순서를 위해 DEFERRABLE INITIALLY DEFERRED다.

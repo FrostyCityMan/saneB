@@ -31,6 +31,39 @@ class AttachmentDocumentRoleClassifierTest {
         assertThat(classifier.selectAssessment(extraction("지원사업 FAQ\nQ. 신청은 언제 합니까?")).roleCode()).isEqualTo("UNKNOWN");
         assertThat(classifier.selectAssessment(extraction("참고자료\n소상공인 지원금")).roleCode()).isEqualTo("UNKNOWN");
     }
+    @ParameterizedTest @ValueSource(strings = {"신청인", "신청 인", "사업자등록번호", "사업자 등록 번호", "성명", "성   명", "성 명：", "○ 성 명", "1. 신청 인"})
+    void formRecognizesWholeInputLabelWithoutRequiringColon(String label) {
+        var result = classifier.selectAssessment(extraction("지원 신청서\n" + label + "\n신청인: (서명 또는 인)"));
+        assertThat(result.roleCode()).isEqualTo("FORM");
+        assertThat(result.evidence()).extracting(AttachmentDocumentRoleClassifier.Evidence::ruleCode)
+                .containsExactly("FORM_HEADING", "APPLICANT_FIELD", "SIGNATURE_FIELD");
+        var evidence = result.evidence().get(1);
+        assertThat(evidence.endOffset() - evidence.startOffset()).isEqualTo(label.codePointCount(0, label.length()));
+    }
+    @ParameterizedTest @ValueSource(strings = {"(서명 또는 인)", "( 서명  또는  인 )", "신청인: (서명 또는 인)", "(서명)", "(인)", "서명 또는 인"})
+    void formRequiresSignatureMarkerAtEndOfItsOwnLine(String signature) {
+        assertThat(classifier.selectAssessment(extraction("지원 신청서\n성 명\n" + signature)).roleCode()).isEqualTo("FORM");
+    }
+    @ParameterizedTest @ValueSource(strings = {"성명을 입력하세요", "신청인에게 안내", "사업자등록번호 확인 방법", "대표자", "성명 생년월일", "성명확인", "신청인 여부", "성명 (필수)"})
+    void arbitraryApplicantMentionsCannotReplaceAWholeField(String label) {
+        var result = classifier.selectAssessment(extraction("지원 신청서\n" + label + "\n(서명 또는 인)"));
+        assertThat(result.roleCode()).isEqualTo("UNKNOWN");
+        assertThat(result.reasonCode()).isEqualTo("ROLE_STRUCTURE_INCOMPLETE");
+    }
+    @ParameterizedTest @ValueSource(strings = {"서명", "인", "(서명 또는 인)을 기재하세요", "(서명 또는 인) 제출", "서명 또는\n인", "(서명 또는 인]"})
+    void signatureMentionOrSplitMarkerDoesNotCompleteAForm(String signature) {
+        assertThat(classifier.selectAssessment(extraction("지원 신청서\n성 명\n" + signature)).roleCode()).isEqualTo("UNKNOWN");
+    }
+    @Test void markerImprovementDoesNotPromoteMissingHeadingMixedDocumentOrUncertainBlock() {
+        assertThat(classifier.selectAssessment(extraction("기타 안내\n성 명\n(서명 또는 인)")).roleCode()).isEqualTo("UNKNOWN");
+        assertThat(classifier.selectAssessment(extraction("지원사업 공고" + SECTIONS + "\n지원 신청서\n성 명\n(서명 또는 인)"))
+                .reasonCode()).isEqualTo("MIXED_DOCUMENT_ROLES");
+        String text = "지원 신청서\n성 명\n(서명 또는 인)";
+        int split = text.indexOf("또는");
+        var blocks = List.of(new AttachmentSetEvidence.Block(0, 0, split, "a", true, "a"),
+                new AttachmentSetEvidence.Block(1, split, text.length(), "b", true, "b"));
+        assertThat(classifier.selectAssessment(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT", text, blocks, 1, 1)).roleCode()).isEqualTo("UNKNOWN");
+    }
     @Test void mixedNoticeAndAttachedFormRemainUnknownEvenWithCompletePrimaryStructure() {
         var result = classifier.selectAssessment(extraction("소상공인 지원사업 공고" + SECTIONS + "\n경영지원 신청서\n신청인: \n(서명)"));
         assertThat(result.roleCode()).isEqualTo("UNKNOWN");

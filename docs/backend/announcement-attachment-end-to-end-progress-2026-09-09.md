@@ -11,6 +11,16 @@
 
 ## 기준선
 
+### 2026-09-15 07:07 KST — 실제 관측 기반 양식 역할 표식 보완
+
+- 직전 보은 증분은 구현·실파일 signature·커밋/푸시로 진전이었다. 이번에는 태백 실제 관측의 둘째 파일에서 확인한 양식 제목·독립 입력 표제·서명 표식과 기존 정규식의 차이를 분석했다. 첫 파일의 혼합 문서 UNKNOWN은 정당한 검수 사유로 보존한다.
+- `document-role-1.0.2`에 콜론 없는 신청인/사업자등록번호/성명 표제와 수평 공백, 괄호형 `(서명 또는 인)` 종료 표식을 추가했다. 초기 제목·입력·서명 전부와 같은 파일/유효 block/완전 추출을 요구한다. 설명 문장·부분 일치·줄/block 분리·누락·혼합·불완전/OCR은 자동 역할 확정으로 만들지 않는다. 제목→정제 BODY→실제 첨부 텍스트→최종 관리자 검증과 A/B 정책은 그대로다.
+- 이전1.0.1 정책/실행/근거를 재해석하지 않으며 null legacy·MANUAL/PROFILE 보존을 검증했다. V82의 기존 필드·규칙 코드/3개 FORM 근거를 재사용해 새 migration·v1/v2 shape·UI 변경은 없다. 새 정책 초안 수정·QA·게시/ENFORCE/기존 데이터 적용은 별도 승인 범위다.
+- 표적122건/생략0/49초 통과, 첫 전체 회귀는 옛 관측 시험의 UNKNOWN 기대값1건으로 실패했다. 새 명세의 FORM/버전 검증으로 고치고 원문/canary/locator 비노출과 위치 검증을 유지했다. 최종 전체4분6초 성공: root2550=2294통과/256조건부 생략/실패0, QA 패키지20/20. bootJar SHA256 `868e0aaaf9fc656985c5e9facd12435a7ec201ebb11d28f68c241ed16e4e769c`다. 마지막 bootJar/extractor시험은 UP-TO-DATE이며 이번 실제 재실행으로 합산하지 않는다.
+- 새 Linux worker 통합 시험은 합성 HWPX→실제 격리 parser→FORM 근거 DB→v2 API 경로를 추가했다. 파일명 공고/양식 내용 구분, 본문 없는 FORM 키워드의 주된 근거 승격 금지, base 보존/link0/정리를 검증한다. 로컬에서는 Linux 조건으로 생략됐으며 현재 같은 SHA 실제 실행 통과를 주장하지 않는다.
+- [Linux 실행29](https://github.com/FrostyCityMan/saneB/actions/runs/34901307963), `69cf469e45ecb6e9339140fd080283fe1edf32e4`는 root2518=2262통과/256생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 성공, Node241/241·설치12/12다. 공식 관측은 생략됐고 새1.0.2 규칙의 근거가 아니다.
+- 다음은 새 SHA의 Linux DB/worker 및 태백 같은1공고 전체2파일 재관측이다. FORM 개선 여부·첫 파일 혼합 검수 유지·원문 정리를 확인한 뒤 실제 기대값을 검토한다. 현재 profile15/전용 BODY14/엔진6/추출 형식3, catalog18참조/실행 기대값0이다. [설계·시험 상세](announcement-form-role-markers-2026-09-15.md)를 따른다. 운영/AWS 재인증/전체 Provider·형식 기대값/승인된 배치/운영 브라우저는 미완료이며 전체 Gate/ATT **Not ready**, goal ACTIVE, 이번 회차는 **progress**다.
+
 ### 2026-09-15 06:52 KST — 보은군 본문·첨부 모델 및 태백 Linux 세 단계 실증
 
 - 보은군 고정 `LGS-000139/HEURISTIC_NOTICE`에 전용 BODY 정제와 `LOCAL_BOEUN_BBS_V1`을 추가했다. 제목→본문→실제 첨부 텍스트→관리자 최종 검증 순서, 제목 제외·BODY A/B 후 첨부 진행·UNKNOWN·자동 ACTIVE 금지를 유지한다. 현재 코드 엔진6/등록 profile15(지자체14)/전용 BODY14기관/추출 형식3이다. 새 DB migration·v1 API·UI·운영 규칙 변경은 없다.
