@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.*;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
+import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public final class AttachmentWorkerDbQaProcess {
     static final int MAX_OUTPUT = 1048576;
+    static final int MAX_ERROR_OUTPUT = 65536;
     private static final Semaphore PROCESS_SLOT=new Semaphore(1);
     private final Path distribution;
     private final ObjectMapper mapper;
@@ -47,7 +49,7 @@ public final class AttachmentWorkerDbQaProcess {
             Files.createDirectory(work.resolve("tmp"));
             var builder=new ProcessBuilder(selectCommand(root,javaHome,work,inventory));
             builder.environment().clear();builder.environment().put("PATH","/usr/bin:/bin");builder.environment().put("LANG","C.UTF-8");
-            builder.directory(work.toFile());builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+            builder.directory(work.toFile());
             var result=selectProcessResult(builder::start,deadline,inventory?30:600,allowed,mapper);
             deleteWork(work); work=null;
             return new Result(result.report(),result.startedAt(),Instant.now(),true);
@@ -88,29 +90,24 @@ public final class AttachmentWorkerDbQaProcess {
         long remaining=deadline==null?0:Math.min(Duration.between(start,deadline).toMillis(),maximumSeconds*1000L);
         if(remaining<=0 || !allowed.getAsBoolean()) throw new Failure("EXECUTION_STOPPED");
         long expires=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(remaining);
-        Process process=null;ExecutorService readers=Executors.newVirtualThreadPerTaskExecutor();Future<byte[]> output=null;
+        Process process=null;ExecutorService readers=Executors.newVirtualThreadPerTaskExecutor();Future<byte[]> output=null,error=null;
         try {
             process=launcher.start();process.getOutputStream().close();
             Process owned=process;
-            output=readers.submit(()->{
-                try(var input=owned.getInputStream();var bytes=new ByteArrayOutputStream()) {
-                    byte[] buffer=new byte[8192];int count;
-                    while((count=input.read(buffer))!=-1) {
-                        if(bytes.size()+count>MAX_OUTPUT) throw new Failure("QA_OUTPUT_LIMIT");
-                        bytes.write(buffer,0,count);
-                    }
-                    return bytes.toByteArray();
-                }
-            });
+            output=readers.submit(()->selectBoundedOutput(owned.getInputStream(),MAX_OUTPUT));
+            // stderr도 동시에 소비하되 원문을 예외·로그·보고서에 남기지 않는다.
+            error=readers.submit(()->selectBoundedOutput(owned.getErrorStream(),MAX_ERROR_OUTPUT));
             while(true) {
                 if(Thread.currentThread().isInterrupted() || !allowed.getAsBoolean()) throw new Failure("EXECUTION_STOPPED");
                 if(System.nanoTime()>=expires) throw new Failure("QA_DEADLINE_EXCEEDED");
                 if(output.isDone()) output.get(); // 출력 초과/pipe 실패를 프로세스 종료까지 미루지 않는다.
+                if(error.isDone()) error.get();
                 if(process.waitFor(200,TimeUnit.MILLISECONDS)) break;
             }
             if(!allowed.getAsBoolean() || System.nanoTime()>=expires) throw new Failure("EXECUTION_STOPPED");
             byte[] bytes=output.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
-            if(process.exitValue()!=0) throw new Failure("QA_CHILD_FAILED");
+            byte[] errors=error.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
+            if(process.exitValue()!=0) throw new Failure(selectChildFailureCode(bytes,errors));
             JsonNode report=mapper.readTree(bytes);
             if(report==null || !report.isObject()) throw new Failure("QA_REPORT_INVALID");
             return new Result(report,start,Instant.now(),false);
@@ -131,8 +128,34 @@ public final class AttachmentWorkerDbQaProcess {
                 }
             } catch(InterruptedException exception) { interrupted=true;throw new Failure("QA_PROCESS_CLEANUP_FAILED"); }
             catch(IOException exception) { throw new Failure("QA_PROCESS_CLEANUP_FAILED"); }
-            finally {if(output!=null) output.cancel(true);readers.shutdownNow();if(interrupted) Thread.currentThread().interrupt();}
+            finally {if(output!=null) output.cancel(true);if(error!=null) error.cancel(true);readers.shutdownNow();if(interrupted) Thread.currentThread().interrupt();}
         }
+    }
+    private static byte[] selectBoundedOutput(InputStream stream,int maximum) throws IOException {
+        try(var input=stream;var bytes=new ByteArrayOutputStream()) {
+            byte[] buffer=new byte[8192];int count;
+            while((count=input.read(buffer))!=-1) {
+                if(bytes.size()+count>maximum) throw new Failure("QA_OUTPUT_LIMIT");
+                bytes.write(buffer,0,count);
+            }
+            return bytes.toByteArray();
+        }
+    }
+    private static String selectChildFailureCode(byte[] output,byte[] error) {
+        // 외부 출력에서 추출한 문자열·경로·값은 절대 반환하지 않는다. 어떤 코드도 성공 근거가 아니다.
+        String value=(new String(output,StandardCharsets.UTF_8)+"\n"+new String(error,StandardCharsets.UTF_8)).toLowerCase(Locale.ROOT);
+        if(value.contains("resource temporarily unavailable") || value.contains("unable to create native thread")
+                || value.contains("pthread_create failed")) return "QA_CHILD_PROCESS_LIMIT";
+        if(value.contains("could not reserve enough space") || value.contains("native memory allocation")
+                || value.contains("cannot allocate memory")) return "QA_CHILD_MEMORY_LIMIT";
+        if(value.contains("could not find or load main class") || value.contains("noclassdeffounderror")) return "QA_CHILD_CLASS_LOADING_FAILED";
+        if(value.contains("bwrap:")) {
+            if(value.contains("operation not permitted") || value.contains("permission denied")) return "QA_ISOLATION_PERMISSION_FAILED";
+            if(value.contains("no such file or directory") || value.contains("can't find source")
+                    || value.contains("mount")) return "QA_ISOLATION_MOUNT_FAILED";
+            return "QA_ISOLATION_START_FAILED";
+        }
+        return "QA_CHILD_FAILED";
     }
     private static void deleteWork(Path work) {
         try {

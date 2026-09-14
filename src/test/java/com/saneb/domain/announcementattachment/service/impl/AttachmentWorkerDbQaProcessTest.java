@@ -55,6 +55,36 @@ class AttachmentWorkerDbQaProcessTest {
         for(String value:new String[]{"[]","null","{} {}","{\"status\":1,\"status\":2}","not-json"})
             assertThatThrownBy(()->execute(child(value.getBytes(),true,0))).isInstanceOf(AttachmentWorkerDbQaProcess.Failure.class);
     }
+    @Test void childStartupDiagnosticsReturnOnlyFixedCodesNeverRawOutput() throws Exception {
+        String[][] cases={
+                {"bwrap: fork: Resource temporarily unavailable","QA_CHILD_PROCESS_LIMIT"},
+                {"Failed to start thread: pthread_create failed (EAGAIN)","QA_CHILD_PROCESS_LIMIT"},
+                {"Could not reserve enough space for object heap","QA_CHILD_MEMORY_LIMIT"},
+                {"Error: Could not find or load main class private.example.Main","QA_CHILD_CLASS_LOADING_FAILED"},
+                {"bwrap: Creating new namespace failed: Operation not permitted","QA_ISOLATION_PERMISSION_FAILED"},
+                {"bwrap: Can't find source path /private/example: No such file or directory","QA_ISOLATION_MOUNT_FAILED"},
+                {"bwrap: unknown failure","QA_ISOLATION_START_FAILED"},
+                {"unrecognized private diagnostic","QA_CHILD_FAILED"}
+        };
+        for(var entry:cases) {
+            var child=child("{}".getBytes(),true,1);
+            when(child.getErrorStream()).thenReturn(new ByteArrayInputStream((entry[0]+"\nprivate-marker-do-not-persist").getBytes()));
+            assertThatThrownBy(()->execute(child)).hasMessage(entry[1]).hasNoCause();
+        }
+        assertThatThrownBy(()->execute(child("pthread_create failed".getBytes(),true,1))).hasMessage("QA_CHILD_PROCESS_LIMIT");
+    }
+    @Test void oversizedStderrTerminatesWithoutWaitingForChildOrPersistingOutput() throws Exception {
+        var child=child("{}".getBytes(),false,0);
+        when(child.getErrorStream()).thenReturn(new ByteArrayInputStream(new byte[AttachmentWorkerDbQaProcess.MAX_ERROR_OUTPUT+1]));
+        assertThatThrownBy(()->execute(child)).hasMessage("QA_OUTPUT_LIMIT");verify(child).destroyForcibly();
+    }
+    @Test void stderrCannotTurnFailedChildIntoSuccessOrChangeValidSuccessReport() throws Exception {
+        var failed=child("{\"status\":\"PASSED\"}".getBytes(),true,1);
+        assertThatThrownBy(()->execute(failed)).hasMessage("QA_CHILD_FAILED");
+        var success=child("{\"status\":\"PASSED\"}".getBytes(),true,0);
+        when(success.getErrorStream()).thenReturn(new ByteArrayInputStream("private-marker-do-not-persist".getBytes()));
+        assertThat(execute(success).report().toString()).isEqualTo("{\"status\":\"PASSED\"}");
+    }
     @Test void inabilityToTerminateOwnedNamespaceOverridesChildSuccess() throws Exception {
         var child=child("{}".getBytes(),true,0);when(child.waitFor(5,TimeUnit.SECONDS)).thenReturn(false);
         assertThatThrownBy(()->execute(child)).hasMessage("QA_PROCESS_CLEANUP_FAILED");

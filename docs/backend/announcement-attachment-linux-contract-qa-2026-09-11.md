@@ -7,7 +7,7 @@
 - GitHub 저장소 소유 계정의 push 권한을 현재 API로 확인했다. 아래의 과거 접근 차단 기록은 현재 권한 상태가 아니다.
 - 기본 브랜치를 변경하거나 배포 workflow를 실행하지 않고 `codex/attachment-three-stage-linux-qa` 브랜치에 검증 범위를 게시한다. 이 정확한 브랜치의 push와 수동 실행만 QA trigger로 허용하며, 운영 자격증명·OIDC·정책 활성화는 사용하지 않는다.
 - 제목 제외 후 상세/첨부 요청 금지, 본문 판정 뒤 첨부 분석 지속, 기술 미완료와 최종 검증 후보 분리라는 [변경된 처리 설계](announcement-three-stage-filtering-workflow-2026-09-14.md)를 유지한다. 새 대기열 Node 18사례와 실제 DB 9상태·29행/전체 count 검증을 Linux 실행 범위에 포함한다.
-- 현재 독립 계약 목록은 job190·migration2·backfill13·worker8=213건이고 additive migration은 V81까지다. 목록 확인은 실행 성공이 아니다. 이 단락 작성 시점의 원격 Linux 실행 결과는 미확인이다.
+- 현재 독립 계약은 job192·migration2·backfill13·worker8=215건이고 additive migration은 V81까지다. 다섯 번째 실행에서 실제215건이 통과했으나 정책 부모 연결2건은 실패했다. 아래 첫 재개 당시213건 목록과 이전 실패를 현재 성공으로 혼동하지 않는다.
 - 변경한 workflow 구조 테스트 5건과 대기열/보고서 Node 28건은 로컬 통과했다. 이전 전체 로컬 결과 및 환경 생략은 최신 실증 결과와 분리한다. 운영 배포 판정은 계속 **Not ready**다.
 
 첫 원격 결과: [34824820039](https://github.com/FrostyCityMan/saneB/actions/runs/34824820039), SHA `bd148024611284b6c8ca2d6997e5ed2e87309721`, **실패**. 실제 PG job192건 중147통과/45실패/생략0이다. V81까지의 초기 migration은 수행됐지만 migration 전용 회귀·격리 runtime/worker·독립 산출물 실행은 이 실행에서 미실행이다. 컬럼 매핑39건과 시험 fixture6건을 수정 후 같은 범위로 다시 실행한다. 이후 Gradle `--continue`로 독립 task 실패도 함께 모으되 실패 종료 코드와 보고서 Gate를 유지한다.
@@ -20,7 +20,18 @@
 
 네 번째 [34827786609](https://github.com/FrostyCityMan/saneB/actions/runs/34827786609), SHA `bd92dff3068363b8a4c8a2795ce2609cfc3d523d`: 주 Gradle 검증은 통과했고 독립 namespace도 환경 검사를 통과하여215건을 모두 실행했다.214통과/1실패/생략·미실행·container 실패0, 임시 원본/DB 정리 성공이다. 실패 case hash를 고정 JUnit ID와 대조한 결과 `full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions`였다. 같은 SHA의 일반 실행은 이 시험이71.123초에 통과했으며, 독립 실행기의 기본 시험 제한은60초다. 이 시간 충돌을 원인으로 판단하여 해당 대량 시험만 명시적120초로 한정한다. 전체 namespace600초/정책 lease/DB transaction30초 및1,001건 전수 assertion은 유지한다. 수정 후 실제 독립 실행으로 확인해야 하며, 정책 부모 연결은 이번에도 미실행이다.
 
+다섯 번째 [34828914963](https://github.com/FrostyCityMan/saneB/actions/runs/34828914963), SHA `97bf0369d296ebf49661f38edd7518ffd448607c`: 본문 중첩 메뉴 정제를 포함한 주 Gradle 검증은6분50초 성공했다. root2067통과/241조건부 생략, extractor25·독립 패키지16·Node152, PG job192·migration2·분할13·worker8, Linux 합성12파일(1시험), bootJar/설치 산출물은 통과다. 독립 namespace는09:44:11~09:47:36 UTC에215/215통과/실패·생략·미실행·container실패0, 정리 성공이다. 다만 정책 부모의 `AttachmentWorkerDbQaLinuxIntegrationTest`2건은0.646초에 `QA_CHILD_FAILED`로 실패했다. inventory 실행부터 자식 비정상 종료이며, 취소 시험도 예정 취소 전에 같은 오류다. 자식 시작 단계의 원인은 미확정이고 전체 workflow는 실패다.
+
+다음 진단은 shell 독립 실행과 부모 `AttachmentWorkerDbQaProcess.selectCommand/selectProcessResult`의 실행 환경·경로·mount·자원 한도를 대조하고, 원문/secret을 출력하지 않는 시작 실패 정보를 확보하는 것이다. stderr 전체 노출·격리 해제·추측성 자원 한도 확장·반복 재실행으로 실패를 숨기지 않는다. 이번5회 Linux 진단은 여기서 종료하며 성공 범위와 연결 실패를 남긴다. 공식 Provider 전수/운영 정책/배포/브라우저 Gate는 통과하지 않았다.
+
+### 2026-09-14 후속 재개 — 부모 시작 실패 진단
+
+`AttachmentWorkerDbQaProcess`의 stderr를 64KiB 한도로 stdout과 동시에 소비하고, 비정상 종료에서만 고정된 시작 실패 코드로 분류한다. 원문/경로/외부 출력 값은 예외·로그·보고서에 복사하지 않는다. stdout 1MiB·namespace·환경 정리·기존 자원 제한·취소·소유 프로세스 정리와 성공 보고서 검증은 유지한다. 메모리/스레드/클래스 로딩/격리 권한/마운트의 구분은 진단 힌트이며 성공 근거가 아니다.
+
+표적 `AttachmentWorkerDbQaProcessTest` 13건은 Windows에서 통과했다. 실제 부모 시작 실패 원인을 확정하거나 Linux 통과로 간주하지 않는다. 같은 QA 브랜치에서 전체 검증을 재실행하여 고정 코드와 결과를 확인한다.
+
 ### 이전 구현 기록
+
 
 09-12 후속: 독립 QA 산출물 `installAttachmentContractQa`에 실제 worker/격리 추출/DB 연결 8사례와 정부24 출처 정합성 1사례를 추가했다. 현재 고정 목록은 job168·migration2·backfill13·worker8=191건이며, Linux 실제 실행은 여전히 미확인이다. migration 검증은 V78까지 포함한다. HTTP는 고정 합성 입력이고 실제 사이트 수집이 아니다. 아래 과거159건은 당시 기록이다. 상세·명령·승인 경계는 [독립 worker·DB QA 산출물](announcement-attachment-contract-runtime-2026-09-12.md)을 따른다.
 
@@ -38,7 +49,7 @@ Windows Code Integrity의 embedded PostgreSQL library 거부와 Docker 엔진 �
 - workflow: `.github/workflows/attachment-contract-qa.yml`, 이름 `첨부 DB·작업 계약 Linux QA`.
 - trigger: `workflow_dispatch`와 정확한 QA 브랜치 `codex/attachment-three-stage-linux-qa`의 push만 사용한다. 기본 브랜치 push 자동 실행, 배포, cron, AWS OIDC, 운영 secret 참조가 없다. 권한은 `contents: read`다.
 - Ubuntu 22.04/Java 21, 최대 30분, 동시 실행 1개, Gradle worker 1개로 실행한다.
-- 대상 task: `:test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1`. 이후 `run-attachment-contract-qa.sh`를 실행하며 실패를 무시하지 않는다. 실제 원격 실행 결과는 아직 없다.
+- 대상 task: `:test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1 --continue`. 이후 `run-attachment-contract-qa.sh`와 `attachmentPolicyDbQaIntegrationTest --rerun-tasks --no-daemon --console=plain --max-workers=1`을 순서대로 실행한다. 실패를 무시하지 않으며 현재 원격 결과는 위 다섯 번째 기록을 따른다.
 - 해당 임시 runner에서만 `bubblewrap`을 설치하고 `/usr/bin/bwrap`, `/usr/bin/prlimit`을 확인한다. 보안 정책/sysctl/AppArmor 해제나 privileged container를 사용하지 않는다. 도구 설치·실제 namespace 실행 실패는 실패로 남긴다.
 - `attachmentRuntimeIntegrationTest`는 설치된 distribution으로 12개 고정 합성 PDF/HWP/HWPX를 처리한다. 파일별 기대 품질·정확한 문자/좌표·원본 정리·전후 runtime 지문을 검사하며, 운영 URL/DB/임의 관리자 파일 입력을 사용하지 않는다. Windows에서 이 전용 task를 실행하면 격리 부재로 실패한다.
 - `attachmentJobIntegrationTest`와 `attachmentMigrationTest`가 각자의 환경 조건을 true로 설정하고 loopback 전용 임시 PostgreSQL을 생성·종료한다. DB URL/사용자/비밀번호를 입력받거나 운영 환경에서 가져오지 않는다.
@@ -48,7 +59,7 @@ Windows Code Integrity의 embedded PostgreSQL library 거부와 Docker 엔진 �
 
 ## 생략 방지와 증거
 
-- `scripts/qa/attachment-contract-report.mjs`는 네 전용 task(DB job, migration, 설치 runtime, worker)의 필수 5개 클래스 XML 헤더를 읽는다. 보고서 부재, 다른 클래스, 0건, 실패, 오류, 조건부 생략이 있으면 종료 코드 1이다. workflow가 Gradle 시작 전에 기록한 `ATTACHMENT_QA_STARTED_AT`보다 오래된 보고서 또는 시작 시각 누락도 거부한다. 과거 로컬 전용 task 결과를 최신 실행으로 재사용하지 않는다.
+- `scripts/qa/attachment-contract-report.mjs`는 다섯 전용 task(DB job, migration, 설치 runtime, worker, 정책 부모 연결)의 필수 6개 클래스 XML 헤더를 읽는다. 보고서 부재, 다른 클래스, 0건, 실패, 오류, 조건부 생략이 있으면 종료 코드 1이다. workflow가 Gradle 시작 전에 기록한 `ATTACHMENT_QA_STARTED_AT`보다 오래된 보고서 또는 시작 시각 누락도 거부한다. 과거 로컬 전용 task 결과를 최신 실행으로 재사용하지 않는다.
 - 판정기는 JUnit 보고서 집계의 검증 장치다. 테스트 내용을 보증하거나 전체 ATT-001~062/실파일/운영 E2E 완료를 판정하지 않는다. 다른 root test의 환경 조건 생략도 별도로 보고해야 한다.
 - `--rerun-tasks`와 새 runner checkout을 사용하여 이전 로컬 결과를 채택하지 않는다. XML은 해당 코드 SHA 이름의 Actions artifact로 7일 보관한다. 이 경로는 합성 테스트 데이터만 사용하며 운영 원문/자격증명/HAR를 artifact에 넣지 않는다.
 - 실행 증거에는 대상 commit SHA, Actions run URL, 각 suite의 실행/통과/실패/오류/생략 건수와 시각을 기록한다. DB 계약 통과는 설치 artifact·운영 migration 성공과 다르다.

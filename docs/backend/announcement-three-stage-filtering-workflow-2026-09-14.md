@@ -92,7 +92,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 - [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
 - [~] P3 명시적 탐색 영역의 본문 키워드 혼입 제거와 고정 회귀 구현. 사이트별 본문 전용 영역 및 문서 역할 자동 식별 규칙·예외·공식 QA 기대값 확정/구현은 잔여.
 - [ ] P4 전체 대상의 profile 매핑·누락 어댑터·실제 파일 기대값 및 Provider QA 화면 연결.
-- [~] P5 Linux 격리 추출12합성 파일+PG job192/migration2/분할13+worker→DB→API8건 통과. 독립 namespace 환경 계약 실패 수정·재실행 및 전체 Provider/ATT001~062·새 FLOW 전체 실증 잔여.
+- [~] P5 Linux 격리 추출12합성 파일+PG job192/migration2/분할13+worker→DB→API8건 및 독립215건 통과. 정책 부모 연결2건은 자식 시작 단계 실패. 전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.
 - [ ] P7 정확한 대상·효과·복구 승인 후 COLLECT_ONLY→ENFORCE 및 기존 데이터 고정 분할 실행.
 - [ ] P8 실제 운영 브라우저에서 단계·실패·재시도·최종 확인·DRAFT·권한·반응형 검증 및 전체 집계.
@@ -124,7 +124,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 - `AnnouncementAttachmentWorkerIntegrationTest.bodyFetchFailureStillCollectsAttachmentsAndPreservesBaseFailureEvidence`: 실제 Linux 추출·임시 PG 경로에서 본문 실패와 첨부 성공 근거를 분리한다. 해당 전용 task의 실행 통과가 필요하며 단위 대역 시험으로 대체하지 않는다.
 - `AnnouncementAttachmentJobIntegrationTest.processingQueueMatchesJavaProjectionForAllNineStatesAndFullPageCounts`: 9상태·29행의 SQL/Java·전체 count·페이지를 대조한다. 기술 예외와 정상 후보를 같은 상태로 합치지 않는다.
 
-09-14 로컬 추가 분류 시험은 기존 포함19건 통과했다. [Linux 세 번째 실행](https://github.com/FrostyCityMan/saneB/actions/runs/34826506160)에서 위 worker·대기열 실제 PG 시험을 포함한 주 검증이 통과했다. 독립 namespace 실행은 환경 계약 실패로 전체 workflow가 실패했으며 수정·재검증 중이다. 운영 수집이나 관리자 브라우저 성공으로 확대하지 않는다.
+09-14 로컬 추가 분류 시험은 기존 포함19건 통과했다. [Linux 다섯 번째 실행](https://github.com/FrostyCityMan/saneB/actions/runs/34828914963), SHA `97bf0369d296ebf49661f38edd7518ffd448607c`에서 중첩 메뉴 정제·worker·대기열 실제 PG 및 독립 namespace215건이 통과했다. 정책 부모 연결2건은 `QA_CHILD_FAILED`여서 전체 workflow는 실패다. 운영 수집이나 관리자 브라우저 성공으로 확대하지 않는다.
 
 효과 지표는 동일 기간·대상·규칙 버전 기준의 최종 검증 소요 시간(실사용 관측), 추가 판단 필요 비율, 수동 역할 지정 비율, 기술 실패율, 표본 오분류/누락률이다. 처리 건수와 기간을 함께 기록하며, 개인정보/원문/검수 메모를 분석 이벤트에 복사하지 않는다. 아직 baseline과 개선율을 측정하지 않았으므로 절감률을 약속하지 않는다.
 
