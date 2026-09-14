@@ -136,14 +136,26 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 신규 회귀5건은 정상 정제, 구조8변형, query6변형, 빈 본문, 다른 게시판을 검증한다. production transport 대신 기존 HTTP 대역을 사용하며 요청1회를 확인한다. 로컬 표적 테스트·bootJar가23초에 통과했다. 현재 본문 전용 정제는 BBS3기관에 서구1기관을 추가한 것이며, 첨부 엔진6/등록 모델12/추출기3의 수를 늘리지 않는다. 실제 운영 수집·전체 모델의 본문 정확도·운영 브라우저 Gate는 여전히 미완료다.
 
+### 새올 본문 정제 증분 — 2026-09-15
+
+부산 남구 `eminwon.bsnamgu.go.kr` 공고46034, 대구 달성군 `eminwon.dalseong.daegu.kr` 공고53932의 공식 상세 HTML을 확인했다. 기존 고정 새올 상세 경로와7개 query만 대상으로 하며 `form[name=form1][method=post]` 안의 표·제목·본문이 유일해야 한다. 남구는 `table.table_03`의 단일 제목 `th[colspan=4]`와 `td[colspan=4] > div.view01_con`, 달성군은 `table.bbsView`의 단일 `제목` label/인접 값과 `td[colspan=4].con.l`을 사용한다.
+
+다른 요청 action·중복/추가 query·누락/중복 form/table/title/body는 BODY_SELECTOR_CHANGED, 정제 후 빈 본문은 BODY_TEXT_EMPTY다. 기관 메타데이터·첨부명·페이지 주변 문구를 본문으로 대체하지 않는다. 두 페이지는 요청 공고번호를 별도 hidden 값으로 반환하지 않으므로 DOM 공고번호 동일성까지 검증했다고 주장하지 않는다. URL·공식 host·요청 action·현재 구조를 확인한 범위다. 대구 중구/함안 등 다른 새올 기관은 이 정제로 처리한다고 추정하지 않는다.
+
+신규 대역 회귀5건(기관별 정상/구조8변형/query7변형/빈 본문/미실측 host)을 추가하여 본문 수집기37+종합 분류19=56건·bootJar가26초에 통과했다. 기존 `attachmentProfileDiscoveryQa`에 `MeasuredBodyContentLiveQaTest`를 등록했고 명시적인 `--tests '*MeasuredBodyContentLiveQaTest'`로 남구·달성·서구3건만 실행했다. 실제 production pinned transport/URL 검증/본문 정제로 모두AVAILABLE·시도1·redirect0을 확인했고14초에 통과했다. 파일 요청·DB 저장·운영 설정 변경은 없다. 표본은 **본문 구조/HTTP smoke**이지 제목 통과 정상 공고·첨부 추출·정책 QA 기대값이 아니다. 원문·담당자·파일명은 fixture/결과에 기록하지 않았다.
+
+현재 전용 본문 정제는 BBS3기관·서구·남구·달성 총6기관이다. 첨부 엔진6/등록 모델12/추출기3은 변하지 않는다. 모든 출처의 BODY→ATTACHMENT→최종 검증 완료와 운영 브라우저 증거는 별도 필수다.
+
+최종 로컬 `test bootJar attachmentContractQaTest --no-daemon --max-workers=1`은3분17초 성공: root2409건=2161통과/248조건부 생략/실패0, 패키징20/20통과. extractor 시험/설치는 UP-TO-DATE로 이번 재실행 성공에 넣지 않는다. Node 보고서 판정기10/10·diff 검사를 통과했다. 실제 본문HTTP3건은 전용 task 결과이며 일반 root에서 생략된 외부/DB/Linux 시험을 성공으로 바꾸지 않는다. 신규 migration·운영 설정/데이터·브라우저 변경은 없고 사용자 Word2개는 보존했다.
+
 ### 실행 체크리스트
 
 - [x] P0 사용자 정책·기존 계약 충돌 분석과 이 상세 설계 작성.
 - [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 및 QA 브랜치 Linux 실제 PG 통과. 운영 UI 검증 잔여.
 - [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
-- [~] P3 명시적 탐색 영역 정제·BBS3기관+대전 서구 본문 추출·텍스트 역할 판정기 및 V82/worker/checkpoint/재시도/v2/관리자 근거 연결 구현. V82 통합 경로의 Linux/PG migration3·worker11건 통과. 서구 증분은 로컬 표적51건 통과이며 공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
+- [~] P3 명시적 탐색 영역 정제·BBS3기관+서구/남구/달성 본문 추출·텍스트 역할 판정기 및 V82/worker/checkpoint/재시도/v2/관리자 근거 연결 구현. V82 통합 경로의 Linux/PG migration3·worker11건 통과. 후속 본문 표적56건·실제 상세HTTP3건 통과이며 공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
 - [~] P4 실제 첨부의 역할·사유·텍스트/위치 근거 지문을 catalog→실행→원장 재검증에 연결했다. UNKNOWN/양식만 있는 음성 표본은 정상3공고로 세지 않는다. 전체 profile 매핑·누락 어댑터·실제 파일 기대값·형식 적용성 및 Provider QA 화면은 잔여.
-- [~] P5 8fe54d0의 Linux 주 검증·독립220/220·직접 부모 연결/취소2건·정리가 통과했다. V83 실제 migration/동등성 및1,001건 전체 분할20.636초 통과를 확인했다. 공식3공고/7파일의 발견·다운로드 후 헤더 검증 실패를 확인하여 기업마당 전용 UTF-8 복원을 적용 중이다. 격리 추출/역할 및 전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여다.
+- [~] P5 a314aa9의 Linux 주 검증·독립220/220·직접 부모 연결/취소2건·정리 및 공식3공고/7파일 격리 관측이 통과했다. 실제 품질은 완전5/부분1/OCR필요1, 완전5건도 역할UNKNOWN이다. 역할·기대값/완전PDF·전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여이며 workflow 성공을 전체 Gate 완료로 대체하지 않는다.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.
 - [ ] P7 정확한 대상·효과·복구 승인 후 COLLECT_ONLY→ENFORCE 및 기존 데이터 고정 분할 실행.
 - [ ] P8 실제 운영 브라우저에서 단계·실패·재시도·최종 확인·DRAFT·권한·반응형 검증 및 전체 집계.

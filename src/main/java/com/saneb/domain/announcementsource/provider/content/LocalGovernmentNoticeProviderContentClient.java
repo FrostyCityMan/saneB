@@ -434,6 +434,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do".equals(sourceUri.getPath())) {
             return selectSeoguContentElement(document, sourceUri);
         }
+        if (("eminwon.bsnamgu.go.kr".equals(host) || "eminwon.dalseong.daegu.kr".equals(host))
+                && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
+            return selectSaeolContentElement(document, sourceUri, "eminwon.bsnamgu.go.kr".equals(host));
+        }
         String board = switch (host) {
             case "www.taebaek.go.kr" -> "25";
             case "www.hsg.go.kr" -> "65";
@@ -478,6 +482,38 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         // 제목·공고번호·본문이 분리된 공식 카드만 사용한다. 담당자·첨부명·주변 메뉴는 포함하지 않는다.
         if (identifiers.size() != 1 || !query.substring("notAncmtMgtNo=".length()).equals(identifiers.getFirst().text().strip())
                 || titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return contents.getFirst();
+    }
+
+    private Element selectSaeolContentElement(Document document, URI sourceUri, boolean namgu) {
+        Map<String, String> required = Map.of("context", "NTIS", "homepage_pbs_yn", "Y", "jndinm", "OfrNotAncmtEJB",
+                "method", "selectOfrNotAncmt", "methodnm", "selectOfrNotAncmtRegst", "subCheck", "Y");
+        var parameters = new java.util.HashMap<String, String>();
+        String query = sourceUri.getRawQuery();
+        if (query == null || query.length() > 4096) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        try {
+            for (String pair : query.split("&", -1)) {
+                String[] parts = pair.split("=", -1);
+                if (parts.length != 2 || !parts[0].matches("[A-Za-z_]+")
+                        || parameters.putIfAbsent(parts[0], URLDecoder.decode(parts[1], StandardCharsets.UTF_8)) != null)
+                    throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            }
+        } catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        if (parameters.size() != 7 || !parameters.entrySet().containsAll(required.entrySet())
+                || !parameters.getOrDefault("not_ancmt_mgt_no", "").matches("[0-9]{1,15}"))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var forms = document.select("form[name=form1][method=post]");
+        if (forms.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var tables = forms.getFirst().select(namgu ? "table.table_03" : "table.bbsView");
+        if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element table = tables.getFirst();
+        var titles = namgu ? table.select("th[colspan=4]").stream().toList()
+                : table.select("th").stream().filter(e -> "제목".equals(e.text().strip())).toList();
+        if (titles.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element title = namgu ? titles.getFirst() : titles.getFirst().nextElementSibling();
+        var contents = table.select(namgu ? "td[colspan=4] > div.view01_con" : "td[colspan=4].con.l");
+        if (title == null || (!namgu && !"td".equals(title.tagName())) || title.text().isBlank() || contents.size() != 1)
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         return contents.getFirst();
     }

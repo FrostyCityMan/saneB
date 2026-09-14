@@ -249,6 +249,7 @@ tasks.register('attachmentProfileDiscoveryQa', Test) {
     include '**/LegalBoardAttachmentProfileLiveQaTest.class'
     include '**/StandardBbsAttachmentProfileLiveQaTest.class'
     include '**/StandardBbsBodyContentLiveQaTest.class'
+    include '**/MeasuredBodyContentLiveQaTest.class'
     environment 'SANEB_ATTACHMENT_PROFILE_QA', 'true'
     maxParallelForks = 1
     maxHeapSize = '256m'

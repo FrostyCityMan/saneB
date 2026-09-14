@@ -170,6 +170,80 @@ class LocalGovernmentNoticeProviderContentClientTest {
         assertThat(seoguResult("?notice=1", "<main>기존 본문</main>", false).bodyText()).isEqualTo("기존 본문");
     }
 
+    private static final String SAEOL_QUERY = "?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt"
+            + "&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=42&subCheck=Y";
+
+    private static String saeolHtml(boolean namgu, String body) {
+        return "<main><header>수출 특허 메뉴</header><form name='form1' method='post'><table class='"
+                + (namgu ? "table_03" : "bbsView") + "'>"
+                + (namgu ? "<tr><th colspan='4'>소상공인 지원사업</th></tr>" : "<tr><th>제목</th><td colspan='3'>소상공인 지원사업</td></tr>")
+                + "<tr><th>담당부서</th><td>기관 대역</td><th>연락처</th><td>연락처 대역</td></tr>"
+                + (namgu ? "<tr><td colspan='4'><div class='view01_con'>" : "<tr><td colspan='4' class='con l'>")
+                + body + (namgu ? "</div>" : "") + "</td></tr>"
+                + "<tr><th>첨부파일</th><td colspan='3'><a href='/FileDown.jsp'>수출 특허.hwp</a></td></tr>"
+                + "</table></form><footer>고시 의회 감사</footer></main>";
+    }
+
+    private ProviderContentResult saeolResult(String host, String query, String page) {
+        var transport = new StubTransport(); transport.enqueue(html(page));
+        String base = "https://" + host + "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do";
+        var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest(
+                "LOCAL_GOV_NOTICE", SOURCE_ID, base, base + query));
+        assertThat(transport.callCount()).isEqualTo(1);
+        return result;
+    }
+
+    @Test void observedSaeolModelsRetainOnlyBodyIncludingRealExclusionContextAndApplicationLink() {
+        for (boolean namgu : List.of(true, false)) {
+            String host = namgu ? "eminwon.bsnamgu.go.kr" : "eminwon.dalseong.daegu.kr";
+            var result = saeolResult(host, SAEOL_QUERY, saeolHtml(namgu,
+                    "소상공인 지원금 <nav>투자유치 메뉴</nav> 수출기업 제외 <a href='/apply'>신청</a>"));
+            assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+            assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        }
+    }
+
+    @Test void observedSaeolModelsRejectMissingDuplicateOrChangedStructures() {
+        for (boolean namgu : List.of(true, false)) {
+            String host = namgu ? "eminwon.bsnamgu.go.kr" : "eminwon.dalseong.daegu.kr";
+            String valid = saeolHtml(namgu, "소상공인 지원금");
+            for (String page : List.of("<main>다른 페이지</main>", valid + valid,
+                    valid.replace("name='form1'", "name='changed'"), valid.replace("method='post'", "method='get'"),
+                    valid.replace(namgu ? "table_03" : "bbsView", "changed"),
+                    valid.replace(namgu ? "view01_con" : "con l", "changed"),
+                    valid.replace("소상공인 지원사업", ""),
+                    valid.replace(namgu ? "<th colspan='4'>" : "<th>제목</th>", namgu
+                            ? "<th colspan='4'>중복</th><th colspan='4'>" : "<th>제목</th><td>중복</td><th>제목</th>"))) {
+                var result = saeolResult(host, SAEOL_QUERY, page);
+                assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+                assertThat(result.bodyText()).isNull();
+            }
+        }
+    }
+
+    @Test void observedSaeolModelsRejectDifferentActionsAndAmbiguousQueries() {
+        for (String host : List.of("eminwon.bsnamgu.go.kr", "eminwon.dalseong.daegu.kr"))
+            for (String query : List.of("", SAEOL_QUERY + "&not_ancmt_mgt_no=43", SAEOL_QUERY + "&extra=1",
+                    SAEOL_QUERY.replace("selectOfrNotAncmtRegst", "otherAction"), SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"),
+                    SAEOL_QUERY.replace("not_ancmt_mgt_no=42", "not_ancmt_mgt_no=x"), SAEOL_QUERY.replace("context=NTIS", "context=OTHER"))) {
+                var result = saeolResult(host, query, saeolHtml(host.contains("bsnamgu"), "본문"));
+                assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+                assertThat(result.bodyText()).isNull();
+            }
+    }
+
+    @Test void observedSaeolEmptyBodyDoesNotUseMetadataOrAttachmentName() {
+        for (String host : List.of("eminwon.bsnamgu.go.kr", "eminwon.dalseong.daegu.kr")) {
+            var result = saeolResult(host, SAEOL_QUERY, saeolHtml(host.contains("bsnamgu"), "<nav>메뉴</nav>"));
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void unmeasuredSaeolHostKeepsExistingBodyContract() {
+        assertThat(saeolResult("another.example.go.kr", SAEOL_QUERY, "<main>기존 본문</main>").bodyText()).isEqualTo("기존 본문");
+    }
+
     @Test
     void selectContentDoesNothingWhileFeatureFlagIsOff() {
         AtomicInteger resolutionCount = new AtomicInteger();

@@ -2,6 +2,28 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 공식7파일 격리 추출 관측 완료, 역할·정책 검증은 미완료
+
+[실행16 / 34876277622](https://github.com/FrostyCityMan/saneB/actions/runs/34876277622), SHA `a314aa9576f28db3376e2b828d7dc4789f70d20b`는 **workflow 성공**이다. 이는 전체 운영/정책 QA Gate 통과가 아니다.
+
+- 실제 DB job192, migration3+분할14, worker11, Linux 합성12파일(1시험), 부모 연결/취소2건은 생략0·실패0이다. 독립220/220 통과·미실행0·container실패0, 전용 계정 정리SUCCEEDED. V83 1,001건 분할11.593초, tuple동등성0.071초다. 속도는 해당 실행의 관측값이다.
+- root2403건=2155통과/248조건부 생략. 일반 root의 조건부 생략을 별도 전용 task 통과와 중복 합산하지 않는다. 새올2기관 본문 증분은 이 SHA 이후의 변경이므로 이 실행의 성공 범위에 포함하지 않는다.
+- 기업마당3공고는 모두 제목 조합 Gate 및 전체 첨부 발견을 통과했고,7파일 전부 실제 다운로드·형식 검증·Linux 격리 처리를 완료했다. 직전 FILE_SIGNATURE 차단은 해소됐다. 원본 정리3/3, 정책 승인/운영 쓰기0이다.
+
+| 공고/파일 순서 | 형식 | 실제 추출 품질 | 글자 수 | 역할 규칙 결과 |
+|---|---|---|---:|---|
+| SEMAS120120 / 1 | PDF | PARTIAL_TEXT | 31,498 | 미판정 — 완전 추출 아님 |
+| ANYANG117918 / 1 | HWP | COMPLETE_TEXT | 565 | UNKNOWN / ROLE_STRUCTURE_INCOMPLETE |
+| SDM124628 / 1 | HWPX | COMPLETE_TEXT | 1,407 | UNKNOWN / INITIAL_HEADING_REQUIRED |
+| SDM124628 / 2 | HWPX | COMPLETE_TEXT | 1,469 | UNKNOWN / INITIAL_HEADING_REQUIRED |
+| SDM124628 / 3 | HWPX | COMPLETE_TEXT | 3,230 | UNKNOWN / ROLE_STRUCTURE_INCOMPLETE |
+| SDM124628 / 4 | PDF | OCR_REQUIRED | 0 | 미판정 — OCR 미구현 범위 |
+| SDM124628 / 5 | HWPX | COMPLETE_TEXT | 2,413 | UNKNOWN / MIXED_DOCUMENT_ROLES |
+
+공식 관측3건의 결과는 모두 `OBSERVED_NOT_VALIDATED`이며 `isPolicyQaPassed/isExpectationApproved/isBodyPipelineVerified=false`다. 현재 완전 추출5/7이고 완전 PDF 표본은0이다. UNKNOWN5건을 NOTICE로 승격하거나 이3공고를 정상 후보3건으로 세지 않는다. catalog의 참조9/실행 기대값0도 그대로다. 실제 텍스트 구조와 역할 근거를 검토하여 양식·참고자료·공고문 구분을 보완하고, 별도 완전 PDF 및 전체 출처 기대값/형식 적용성을 확인해야 한다. OCR·부분 추출과 역할 미인식은 서로 다른 잔여다.
+
+metadata/XML은 `build/qa-results/run-34876277622`에 보관했다. 원문 파일·텍스트·파일명은 artifact에 없다. 같은 SHA의 운영 배포/정책 게시/ENFORCE/기존 데이터 APPLY/운영 브라우저 검증은 아직 없으며 **Not ready**를 유지한다.
+
 ### 2026-09-15 — V83 실제 DB 통과·공식 전체 파일 헤더 차단 확인
 
 [실행15 / 34873944066](https://github.com/FrostyCityMan/saneB/actions/runs/34873944066), SHA `8fe54d094970f9be4a2dbabf87903be28d6f7a1d`는 **전체 workflow 실패**다. 실패 단계는 공식 파일 관측이며 DB 계약 단계와 구분한다.
