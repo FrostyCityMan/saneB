@@ -65,6 +65,14 @@ class StandardBbsAttachmentProfileLiveQaTest {
     void discoversOkcheonFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         discoversAllFilesAndChecksBoundedProductionTransport(sample);
     }
+    static Stream<Sample> selectYangpyeongCases() {
+        return Stream.of(new Sample(7, "312241", 1, List.of("HWPX")),
+                new Sample(7, "311846", 2, Arrays.asList("PDF", null)), new Sample(7, "311507", 2, Arrays.asList(null, "PDF")));
+    }
+    @ParameterizedTest(name = "양평 공식 지원 관련 표본 {index}") @MethodSource("selectYangpyeongCases") @Timeout(150)
+    void discoversYangpyeongFilesWithoutHidingUnsupportedImages(Sample sample) throws Exception {
+        discoversAllFilesAndChecksBoundedProductionTransport(sample);
+    }
     @ParameterizedTest(name = "BBS 공식 지원사업 표본 {index}") @MethodSource("selectCases") @Timeout(150)
     void discoversAllFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         var site = StandardBbsAttachmentDiscoveryProfileTest.selectCases().toList().get(sample.profileIndex());
@@ -99,7 +107,13 @@ class StandardBbsAttachmentProfileLiveQaTest {
             assertEquals(sample.formats(), result.descriptors().stream().map(AttachmentDiscoveryProfile.Descriptor::expectedFormat).toList(), "FILE_FORMAT_CHANGED");
             stage = "DOWNLOAD_SIGNATURE";
             for (var descriptor : result.descriptors()) {
-                assertTrue(descriptor.downloadAllowed(), "FORMAT_SUPPORT_CHANGED"); assertEquals("UNKNOWN", descriptor.documentRole(), "AUTOMATIC_ROLE_FORBIDDEN");
+                assertEquals("UNKNOWN", descriptor.documentRole(), "AUTOMATIC_ROLE_FORBIDDEN");
+                if (descriptor.expectedFormat() == null) {
+                    assertFalse(descriptor.downloadAllowed(), "UNSUPPORTED_FORMAT_REQUEST_FORBIDDEN");
+                    files.add(Map.of("attachmentIdHash", descriptor.locator().identifiers().get("attachmentId"), "status", "UNSUPPORTED_FORMAT_NOT_DOWNLOADED"));
+                    continue;
+                }
+                assertTrue(descriptor.downloadAllowed(), "FORMAT_SUPPORT_CHANGED");
                 try {
                     var downloadedFile = client.selectDownload(descriptor.selectRequest(), profile.selectApprovedHosts(),
                             r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(r); }, binary, 20L * 1024 * 1024, budget);
@@ -119,8 +133,13 @@ class StandardBbsAttachmentProfileLiveQaTest {
                             "legacyMimeUsed", profile.selectLegacyBinaryContentTypes().contains(downloadedFile.contentType().split(";", 2)[0].trim().toLowerCase(Locale.ROOT))));
                 } finally { Files.deleteIfExists(binary); }
             }
-            assertEquals(1L + sample.fileCount(), requests.get(), "UNEXPECTED_REDIRECT_OR_PREVIEW_REQUEST");
-            report.put("status", sample.expectedRejection() == null ? "DISCOVERY_DOWNLOAD_SIGNATURE_PASSED" : "DOWNLOAD_REJECTED_AS_EXPECTED");
+            long supported = sample.formats().stream().filter(Objects::nonNull).count();
+            assertEquals(1L + supported, requests.get(), "UNEXPECTED_REDIRECT_PREVIEW_OR_UNSUPPORTED_REQUEST");
+            assertEquals(sample.fileCount(), files.size(), "INCOMPLETE_FILE_DENOMINATOR");
+            report.put("unsupportedCount", sample.fileCount() - supported);
+            report.put("allFilesDownloaded", supported == sample.fileCount() && sample.expectedRejection() == null);
+            report.put("status", sample.expectedRejection() != null ? "DOWNLOAD_REJECTED_AS_EXPECTED"
+                    : supported == sample.fileCount() ? "DISCOVERY_DOWNLOAD_SIGNATURE_PASSED" : "DISCOVERY_WITH_UNSUPPORTED_FILES");
         } catch (Exception | AssertionError failure) {
             String safe = failure.getMessage() != null && failure.getMessage().matches("[A-Z][A-Z0-9_]{1,79}") ? failure.getMessage() : failure.getClass().getSimpleName();
             report.put("failureCode", safe); report.put("failureStage", stage);

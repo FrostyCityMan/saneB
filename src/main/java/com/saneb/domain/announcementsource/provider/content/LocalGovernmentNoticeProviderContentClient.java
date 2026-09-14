@@ -450,6 +450,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             return selectCompactBbsContentElement(document, sourceUri, "66", "194");
         if ("www.oc.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
             return selectCompactBbsContentElement(document, sourceUri, "40", "236");
+        if ("www.yp21.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
+            return selectCompactBbsContentElement(document, sourceUri, "5", "1119", true);
         if (("www.wonju.go.kr".equals(host) || "www.jecheon.go.kr".equals(host)) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {
             boolean jecheon = "www.jecheon.go.kr".equals(host);
             var parameters = selectBodyDetailParameters(sourceUri);
@@ -502,6 +504,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     }
 
     private Element selectCompactBbsContentElement(Document document, URI sourceUri, String board, String menu) {
+        return selectCompactBbsContentElement(document, sourceUri, board, menu, false);
+    }
+
+    private Element selectCompactBbsContentElement(Document document, URI sourceUri, String board, String menu, boolean labelledContent) {
         var parameters = selectBodyDetailParameters(sourceUri);
         if (!board.equals(parameters.get("bbsNo")) || !menu.equals(parameters.get("key"))
                 || !parameters.getOrDefault("nttNo", "").matches("[1-9][0-9]{0,14}")
@@ -512,6 +518,17 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         var table = tables.getFirst();
         var titles = table.select("span.p-table__subject_text").stream().filter(e -> e.closest("table") == table).toList();
+        if (labelledContent) {
+            var labels = table.select("th").stream().filter(e -> e.closest("table") == table && "내용".equals(e.text().trim())).toList();
+            if (titles.size() != 1 || titles.getFirst().text().isBlank() || labels.size() != 1)
+                throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            var label = labels.getFirst(); var cell = label.nextElementSibling();
+            if (!"tr".equals(label.parent().tagName()) || cell == null || !"td".equals(cell.tagName())
+                    || !cell.hasClass("p-table__content") || cell.nextElementSibling() != null
+                    || table.select("td.p-table__content").stream().filter(e -> e.closest("table") == table).count() != 1)
+                throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            return cell;
+        }
         var contents = table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).toList();
         if (titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1)
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);

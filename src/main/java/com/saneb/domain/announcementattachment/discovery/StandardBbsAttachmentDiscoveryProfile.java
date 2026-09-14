@@ -15,7 +15,7 @@ import org.jsoup.nodes.Element;
 
 /** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
-    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG, COMPACT_BOARD_PREVIEW }
+    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG, COMPACT_BOARD_PREVIEW, COMPACT_LABELLED_CONTENT }
     enum FileHeaders { EXISTING_PROFILE, MS_DOWNLOAD_STANDARD_DISPOSITION }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
@@ -106,10 +106,11 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         if (tables.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element table = tables.getFirst();
         var ownSubjects = table.select("span.p-table__subject_text").stream().filter(e -> e.closest("table") == table).toList();
-        boolean subject = layout == Layout.COMPACT_BOARD_PREVIEW || layout == Layout.COMPACT ? ownSubjects.size() == 1 && !ownSubjects.getFirst().text().isBlank()
+        boolean subject = layout == Layout.COMPACT_BOARD_PREVIEW || layout == Layout.COMPACT || layout == Layout.COMPACT_LABELLED_CONTENT
+                ? ownSubjects.size() == 1 && !ownSubjects.getFirst().text().isBlank()
                 : table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim()) && e.nextElementSibling() != null
                         && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count() == 1;
-        if (!subject || table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).count() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
+        if (!subject || !selectContentMarker(table)) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         var labels = table.select("th").stream().filter(e -> e.closest("table") == table
                 && (layout == Layout.COMPACT_SVG ? "첨부파일" : "파일").equals(e.text().trim())).toList();
         if (labels.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
@@ -144,7 +145,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
             Element residue = item.clone();
             residue.select(compactLayout ? "a.p-attach__link" : "div.down_view > span, a.file_down, a.file_down2").remove();
             var previews = item.select(compactLayout ? "a.p-attach__preview" : "a.file_view");
-            if (previews.size() > 1 || previews.stream().anyMatch(a -> !selectPreview(detail, a.attr("href"), attachmentId, noticeId)
+            if (previews.size() > 1 || previews.stream().anyMatch(a -> !selectPreview(detail, a.attr("href"), attachmentId, noticeId, name)
                     || (layout == Layout.COMPACT_SVG && (a.parent() != item || a.childrenSize() != 1 || !selectSvgIcon(a.child(0), false))))) unresolved = true;
             else residue.select(compactLayout ? "a.p-attach__preview" : "a.file_view").remove();
             // 이름/다운로드/검증한 미리보기 외 요소를 숨겨 부분 발견을 완료로 만들지 않는다.
@@ -176,14 +177,24 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectDownloadParameters(Map<String, String> query) {
         if (!selectId(query.get("atchmnflNo"))) return false;
-        if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW) return query.keySet().equals(Set.of("atchmnflNo"));
+        if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW
+                || layout == Layout.COMPACT_LABELLED_CONTENT) return query.keySet().equals(Set.of("atchmnflNo"));
         return upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
                 : query.keySet().equals(Set.of("bbsNo", "atchmnflNo")) && board.equals(query.get("bbsNo"));
     }
-    private boolean selectPreview(URI detail, String href, String attachmentId, String noticeId) {
+    private boolean selectPreview(URI detail, String href, String attachmentId, String noticeId, String displayName) {
         URI uri = selectResolved(detail, href);
         if (!selectOrigin(uri, false)) return false;
         Map<String, String> query = selectParameters(uri.getRawQuery());
+        if (layout == Layout.COMPACT_LABELLED_CONTENT) {
+            String suffix = displayName.substring(displayName.lastIndexOf('.') + 1);
+            // 미리보기는 다운로드/파일 소유의 근거가 아니다. 표시 구조만 확인하며 요청은 승인하지 않는다.
+            return suffix.matches("[A-Za-z0-9]{1,10}") && "/common/program/synap.jsp".equals(uri.getPath())
+                    && query.keySet().equals(Set.of("fileName"))
+                    && query.get("fileName").matches("/DATA/bbs/" + board
+                        + "/[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}\\."
+                        + java.util.regex.Pattern.quote(suffix));
+        }
         if (layout == Layout.COMPACT_SVG) return "/previewBbs.do".equals(uri.getPath())
                 && query.equals(Map.of("atchmnflNo", attachmentId));
         if (layout == Layout.COMPACT_BOARD_PREVIEW) return "/www/previewBbsFile.do".equals(uri.getPath())
@@ -255,6 +266,16 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
                 && (!download || "2".equals(use.attr("y")));
     }
     private boolean selectId(String value) { return value != null && value.matches("[1-9][0-9]{0,14}"); }
+    private boolean selectContentMarker(Element table) {
+        if (layout != Layout.COMPACT_LABELLED_CONTENT)
+            return table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).count() == 1;
+        var labels = table.select("th").stream().filter(e -> e.closest("table") == table && "내용".equals(e.text().trim())).toList();
+        if (labels.size() != 1) return false;
+        var label = labels.getFirst(); var cell = label.nextElementSibling();
+        return "tr".equals(label.parent().tagName()) && cell != null && "td".equals(cell.tagName())
+                && cell.hasClass("p-table__content") && cell.nextElementSibling() == null
+                && table.select("td.p-table__content").stream().filter(e -> e.closest("table") == table).count() == 1;
+    }
     private boolean selectSafeName(String name) {
         return !name.isBlank() && name.length() <= 500 && !name.contains("/") && !name.contains("\\")
                 && !name.contains("..") && name.indexOf('\ufffd') < 0 && name.codePoints().noneMatch(Character::isISOControl);

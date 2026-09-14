@@ -135,6 +135,33 @@ class LocalGovernmentNoticeProviderContentClientTest {
         assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
     }
 
+    private static String yangpyeongHtml(String body) {
+        return bbsHtml(true, body).replace("<td title='내용'>", "<th scope='row'>내용</th><td class='p-table__content'>");
+    }
+
+    @Test void yangpyeongUsesOnlyOwnedLabelledBodyAndPreservesActualKeywordContext() {
+        String host = "www.yp21.go.kr", query = "?key=1119&bbsNo=5&nttNo=123";
+        var result = bbsResult(host, query, yangpyeongHtml("소상공인 지원금 <nav>스타트업 메뉴</nav>"
+                + "<table><tr><th>지원형태</th><td>보조금</td></tr></table>특허 보유 수출기업 제외 <a href='/apply'>신청</a>"));
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
+        String valid = yangpyeongHtml("지원사업 본문");
+        for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
+                valid.replace("p-table__subject_text", "changed"), valid.replace("내용</th>", "변경</th>"),
+                valid.replace("p-table__content", "changed"), valid.replace("지원사업 본문</td>", "지원사업 본문</td><td>잘못된 형제</td>"),
+                valid.replace("<th scope='row'>내용</th>", "<td><table><tr><th>내용</th></tr></table></td>"),
+                valid.replace("<td class='p-table__content'>지원사업 본문</td>", "<td><table><tr><td class='p-table__content'>중첩 본문</td></tr></table></td>"),
+                valid.replace("<span class='p-table__subject_text'>지원사업 제목</span>", "<table><tr><td><span class='p-table__subject_text'>중첩 제목</span></td></tr></table>"))) {
+            var failed = bbsResult(host, query, page); assertThat(failed.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(failed.bodyText()).isNull();
+        }
+        assertThat(bbsResult(host, query, yangpyeongHtml("<nav>메뉴</nav>")).failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+        for (String invalid : List.of("?key=1119&bbsNo=5", "?key=1119&bbsNo=5&nttNo=0", "?key=999&bbsNo=5&nttNo=123",
+                "?key=1119&bbsNo=999&nttNo=123", query + "&bbsNo=5", query + "&other=1"))
+            assertThat(bbsResult(host, invalid, valid).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(bbsResult("www.oc.go.kr", "?key=236&bbsNo=40&nttNo=123", valid).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+    }
+
     @Test void okcheonKeepsActualBodyContextAndRejectsAmbiguousOrChangedBoard() {
         String host = "www.oc.go.kr", query = "?key=236&bbsNo=40&nttNo=123";
         var result = bbsResult(host, query, bbsHtml(true,

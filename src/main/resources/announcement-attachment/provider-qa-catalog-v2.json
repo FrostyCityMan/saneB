@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-okcheon-reference-v2",
+  "catalogVersion": "2026-09-15-yangpyeong-reference-v2",
   "notices": [
+    {
+      "caseCode": "YANGPYEONG-312241",
+      "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9b6353577acabd579068a389244e774d40b5488eea86d1e15fb78e0eae9ccb9a",
+        "sourceUrl": "https://www.yp21.go.kr/www/selectBbsNttView.do?key=1119&bbsNo=5&nttNo=312241",
+        "localSourceCode": "LGS-000110",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YANGPYEONG-311846",
+      "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0fcd9b0bf381aebb5c18b80c5e5c1fd7355f9ce0d0ab130b64761de60cf56f96",
+        "sourceUrl": "https://www.yp21.go.kr/www/selectBbsNttView.do?key=1119&bbsNo=5&nttNo=311846",
+        "localSourceCode": "LGS-000110",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YANGPYEONG-311507",
+      "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
+        "sourceUrl": "https://www.yp21.go.kr/www/selectBbsNttView.do?key=1119&bbsNo=5&nttNo=311507",
+        "localSourceCode": "LGS-000110",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "OKCHEON-193369",
       "profileCode": "LOCAL_OKCHEON_BBS_V1",

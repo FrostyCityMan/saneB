@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 — 양평군 본문·첨부 연결 / 미지원 이미지 분모 보존
+
+- 직전 옥천 증분은 실제 구현·공개 검증·커밋/푸시로 진전이었다. [Linux 실행33](https://github.com/FrostyCityMan/saneB/actions/runs/34908203781), `5b24bb8958039c79fa96e0d907b76adef9403bef`는 success로 끝났다. root2568=2308통과/260조건부 생략/실패0, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·원래 Flyway3은 실패/생략0이다. 독립221/221·정리2종·Node241/설치12도 통과했다. 공식 외부 관측/운영 배포는 실행하지 않았으며 이번 양평 변경의 같은 SHA 증거가 아니다.
+- 양평 V61/V62의 고정 기관/게시판/parser에 BODY·첨부를 연결했다. 자체 `내용` 표제 옆 셀과 UUID/게시판/확장자 고정 미리보기 구조만 확인하고 미리보기는 요청하지 않는다. 제목→정제 본문→실제 첨부 텍스트→최종 관리자 검증을 유지한다. 첨부 엔진6/profile17(지자체16)/전용 BODY16기관/추출 형식3이며 미연결 기관도 분모에 남긴다.
+- 표적199건은43초에 전부 통과했다. 공식6시험은23초/생략·실패0이다. BODY3건 AVAILABLE/시도1/redirect0, 전체 발견5개 중 HWPX1/PDF2의 다운로드/signature/Content-Disposition을 확인하고 JPG/PNG2개는 다운로드하지 않은 미지원 상태로 보존했다. 혼합2공고는 DISCOVERY_WITH_UNSUPPORTED_FILES/allFilesDownloaded=false다. 첨부6요청/예약1,486,696bytes/원본 정리3/3/DB 쓰기0, BODY 별도3요청이다. 이미지 또는 실패를 분모에서 제거하지 않으며 실제 텍스트/역할·정상 다중첨부·worker/운영 성공으로 계산하지 않는다.
+- catalog schema2 참조24/기대값0/중복0을 확인했고 정책 QA 성공은 만들지 않았다. 기존 MIME/UTF-8 계약을 통과했으며 새 MIME 예외를 추가하지 않았다. 이전 BBS profile hash를 현재 실행에 재사용하지 않는다. 전체 회귀·임시 Flyway 검증은4분27초 성공: root2580=2319통과/261조건부 생략/실패0, 패키지20/20·Flyway3/3이다. extractor/bootJar는 UP-TO-DATE이며 production JAR SHA256은 `9a447b6adce7ce0372d318118af7717848991c8162822610d159946cff47c902`다. 사용한 Node/Gradle/임시 PostgreSQL은 종료했다. [양평 모델 기록](announcement-yangpyeong-bbs-profile-2026-09-15.md)에 설계·명령·표본·한계를 기록했다.
+- AWS 재인증 응답 대기, 공식 파일 기대값/미연결 기관·현 SHA 운영 배포·승인 범위 기존 데이터 적용·운영 브라우저가 남아 있다. 이번 운영 조회/쓰기/브라우저는 미실행이고 사용자 Word2개를 보존한다. 전체 Gate/ATT **Not ready**, goal ACTIVE이며 이번 회차는 실제 기관 모델 구현의 **progress**다.
+
 ### 2026-09-15 — 옥천군 본문·첨부 연결 / 원래 Flyway3건 Linux 통과
 
 - 직전 검증 연결 회차는 progress다. [Linux 실행32](https://github.com/FrostyCityMan/saneB/actions/runs/34906440965), `d18216ed5381f97cc1a8ebeeac209381e4c85ffb`는 success로 끝났다. root2556=2298통과/258조건부 생략/실패0, extractor25·패키지20·job192·migration17·worker12·runtime1·부모2 및 원래 `flywayIntegrationTest`3건은 각각 생략/실패0이다. 독립221/221·정리2종·Node241/설치12도 통과했다. 공식 외부 파일 관측/운영 배포는 실행하지 않았으며 이번 옥천 변경의 같은 SHA 증거가 아니다.
