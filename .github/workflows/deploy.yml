@@ -67,7 +67,8 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x ./gradlew
-          ./gradlew clean test bootJar :attachment-extractor:test :attachment-extractor:installDist attachmentQaRuleSnapshot --no-daemon --console=plain --max-workers=1
+          node --test scripts/qa/attachment-contract-release.test.mjs
+          ./gradlew clean test bootJar :attachment-extractor:test :attachment-extractor:installDist installAttachmentContractQa attachmentContractQaTest attachmentQaRuleSnapshot --no-daemon --console=plain --max-workers=1
 
       - name: Build CodeDeploy bundle
         shell: bash
@@ -79,17 +80,20 @@ jobs:
           rm -rf "${bundle_dir}"
           mkdir -p "${bundle_dir}/scripts/operations"
 
-          jar_file="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*plain.jar' | head -n 1)"
-          if [ -z "${jar_file}" ]; then
-            echo "No executable Spring Boot jar found under build/libs."
+          mapfile -t boot_jars < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*plain.jar' ! -name 'saneb-attachment-contract-qa-*.jar')
+          if [ "${#boot_jars[@]}" -ne 1 ]; then
+            echo "실행 가능한 애플리케이션 JAR이 정확히 1개여야 합니다."
             exit 1
           fi
+          jar_file="${boot_jars[0]}"
 
           cp "${jar_file}" "${bundle_dir}/app.jar"
           cp appspec.yml "${bundle_dir}/appspec.yml"
           cp scripts/backup.sh scripts/start.sh scripts/stop.sh scripts/validate.sh "${bundle_dir}/scripts/"
           cp scripts/prepare-attachment-extractor.sh "${bundle_dir}/scripts/"
+          cp scripts/install-attachment-contract-qa.sh scripts/attachment-contract-release.sh "${bundle_dir}/scripts/"
           cp -r attachment-extractor/build/install/attachment-extractor "${bundle_dir}/attachment-extractor"
+          cp -r build/install/attachment-contract-qa "${bundle_dir}/attachment-contract-qa"
           cp build/attachment-qa/rules.json "${bundle_dir}/attachment-extractor/qa-rules.json"
           printf '%s\n' "${RUN_ATTACHMENT_QA}" > "${bundle_dir}/attachment-extractor/run-server-qa"
           cp scripts/operations/*.sh scripts/operations/*.sql "${bundle_dir}/scripts/operations/"
@@ -98,7 +102,7 @@ jobs:
 
           (
             cd "${bundle_dir}"
-            zip -r "../saneb-${GITHUB_SHA}.zip" app.jar appspec.yml scripts attachment-extractor
+            zip -r "../saneb-${GITHUB_SHA}.zip" app.jar appspec.yml scripts attachment-extractor attachment-contract-qa
           )
 
       - name: Configure AWS credentials

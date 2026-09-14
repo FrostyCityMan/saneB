@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 03:50 KST — 운영 기준선 실측·누락된 QA 배포 경로 보완
+
+- 서울 AWS 인증의 TLS 검증을 유지한 읽기 전용 조회로 CodeDeploy/실행 JAR/DB를 대조했다. 운영 active·localhost health UP, 실제 JAR/DB V72, 새 상시 첨부 worker class와 정책 DB QA 패키지는 미설치다. 현재 QA 코드가 운영에서도 실행된다고 보지 않는다.
+- 활성 지자체223개/목록 파서41종, 저장 원문 LOCAL_GOV_NOTICE 2,945건을 확인했다. 첨부 엔진6종/등록 프로필12개와 다른 분모다. 2,945건은 적격 기존 데이터 배치의 승인 범위가 아니다. 실행 중 서비스의 기업마당/정부24 API key는 없었다. 원문/인증값·DB 접속값은 출력하지 않았고 데이터 쓰기0이다.
+- 배포에 빠져 있던 별도 QA distribution을 포함하고, 실제 JAR 지문별 불변 설치·launch/이전 JAR 복구 시 경로 선택을 구현했다. 웹 JAR 선택에서 새 QA JAR 혼입을 방지했다. migration/API/분류 정책/상시 플래그는 변경하지 않았다.
+- 로컬 Node/Git Bash10통과/2 Linux 전용 생략·Gradle workflow8/패키징20 통과다. 전체 root2417건=2169통과/248조건부 생략/실패0,3분8초 성공이다. Linux/실제 CodeDeploy 설치는 후속 검증이며 기존 DB·추출기의 전체 rollback 성공을 주장하지 않는다.
+- 공식 관측 실행20은 DETAIL_DISCOVERY/TRANSPORT_TIMEOUT3건으로 전체 실패다. 같은 SHA의 실제 DB job192/migration17/worker11·runtime1·부모2·독립220/220 및 정리는 통과했다. role 구조 관측은 여전히 미실행이며 이전7파일 관측으로 대체하지 않는다.
+- 자세한 운영 사실·명령 ID·설치/복구 경계는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md), 실행19/20 XML 건수는 [Linux 검증 기록](announcement-attachment-linux-contract-qa-2026-09-11.md)에 남긴다. 전체 Gate0~8/ATT001~062, 제목→본문→첨부→관리자 순서를 유지한다. 현재 **Not ready**다.
+
 ### 2026-09-15 02:15 KST — 실제 실패 특정·공식 템플릿 보완·V83 비교식
 
 - 고정 전체 공고 관측은 `c647628cff72839b85e540feb6ed97a401661e0a`로 QA 브랜치에 커밋/푸시했고 원격 SHA 일치를 확인했다. master는 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로다.

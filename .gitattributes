@@ -1,2 +1,5 @@
 # 독립 Linux QA 실행 스크립트의 Windows checkout 줄바꿈도 LF로 고정한다.
 scripts/qa/run-attachment-contract-qa.sh text eol=lf
+scripts/attachment-contract-release.sh text eol=lf
+scripts/install-attachment-contract-qa.sh text eol=lf
+scripts/start.sh text eol=lf

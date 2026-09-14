@@ -2,6 +2,16 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 최신 Linux 계약 통과와 공식 사이트 timeout 분리
+
+[실행20 / 34880672488](https://github.com/FrostyCityMan/saneB/actions/runs/34880672488), SHA `25e03d2bc65f61a5b063d370744b58e999c38b73`는 공식 관측3건 실패로 전체 workflow 실패다. root2417건=2168통과/249조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·격리 runtime1·부모2건은 실패/생략0(일반 root 생략 제외)이다. 독립220/220 통과·실패/생략/미실행/container 실패0, 독립/전용 계정 정리 SUCCEEDED다.
+
+공식3공고는 모두 제목 COMBINATION_MATCHED 후 `DETAIL_DISCOVERY / TRANSPORT_TIMEOUT`으로 종료됐다. 공고별 요청 예약1·예약 bytes0·파일0, 원본 정리3/3·운영 쓰기0이다. 전송 timeout 유형까지 확인했지만 TCP 연결/TLS 응답/읽기 중 정확한 구간이나 원격 차단 원인은 확정하지 않았다. 시간·TLS·SSRF 한도 또는 실패 assertion을 완화하지 않았다. 역할 구조 관측은 미실행이며 같은 실패를 새 실행으로 반복하지 않는다. 다음 실제 관측은 네트워크 조건을 확인하거나 다른 승인된 Linux 환경의 독립 근거로 구분해야 한다.
+
+[실행19 / 34880186554](https://github.com/FrostyCityMan/saneB/actions/runs/34880186554), SHA `86ad37121397cdf5f53c7675bc805fb564991061`는 workflow 성공이다. root2416건=2167통과/249조건부 생략, extractor25·패키징20·job192·migration17·worker11·runtime1·부모2 모두 실패0, 전용 시험 생략0. 독립220/220 및 정리2종 SUCCEEDED다. 공식 관측 표식이 없어 실제7파일 재검증은 실행하지 않았다. 이번 Linux 성공은 중구·함안 본문 변경을 포함하지만 새 배포 패키지 설치 증분은 이후 변경이다.
+
+XML/고정 metadata는 ignored `build/qa-results/run-34880186554`, `build/qa-results/run-34880672488`에 확인했다. [운영 읽기 전용 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)에서 실제 운영 V72·QA 패키지 미설치를 별도로 확인했다. **Not ready**와 전체 Gate/실파일 분모를 유지한다.
+
 ### 2026-09-15 — 구조 관측 재실행은 상세 전송 단계에서 실패
 
 [실행18 / 34879054554](https://github.com/FrostyCityMan/saneB/actions/runs/34879054554), SHA `9b95136d2b0ef0ffc17e97439cc3760cfd666471`는 전체 workflow 실패다. root2413건=2164통과/249조건부 생략, extractor25, 패키징20, 실제 job192·migration17·worker11·격리 runtime1·부모2건 및 독립220/220은 실패0이다. 전용 시험의 생략은0이며 독립/전용 계정 정리 모두 SUCCEEDED다.

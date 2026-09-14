@@ -21,6 +21,9 @@ hooks:
       timeout: 180
       runas: root
   AfterInstall:
+    - location: scripts/install-attachment-contract-qa.sh
+      timeout: 120
+      runas: root
     - location: scripts/start.sh
       timeout: 120
       runas: root
