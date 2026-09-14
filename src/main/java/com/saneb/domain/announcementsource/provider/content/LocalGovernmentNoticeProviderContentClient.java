@@ -411,6 +411,9 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         String html = selectDecodedText(body, charset);
         Document document = Jsoup.parse(html, sourceUri.toASCIIString());
         document.select("script, style, noscript, template, iframe, object, embed").remove();
+        // main 내부 또는 body 대체 경로에서도 메뉴의 키워드를 공고 본문 근거로 사용하지 않는다.
+        // 일반 링크·문장·기관명은 유지하며, 명시된 탐색 역할만 제거한다.
+        document.select("nav, [role=navigation]").remove();
         deleteAttachmentLinkElements(document);
         Element contentElement = selectContentElement(document);
         String bodyText = contentElement.text()

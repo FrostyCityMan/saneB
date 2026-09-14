@@ -79,7 +79,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 ## 4. 검수 감소를 막는 구현 과제
 
-1. 현재 지자체 본문 추출은 `main/[role=main]/article/body` 공통 탐색이다. 사이트별 실제 본문 영역과 메뉴 오염을 전수 확인해야 한다.
+1. 현재 지자체 본문 추출은 `main/[role=main]/article/body` 공통 탐색이다. 명시적인 `nav/[role=navigation]`는 선택 영역 안팎에서 제거하여 메뉴 키워드 혼입을 막는다. 일반 본문 문장과 신청 링크는 유지하며, 사이트별 실제 본문 영역과 나머지 메뉴/푸터 오염의 전수 확인은 여전히 필요하다.
 2. 첨부는 공통 구현 6종·등록 profile12개, 형식 추출기3종이다. 목록 파서 개수와 첨부 지원 개수를 혼동하지 않는다. 정부24와 남은 기관의 profile·실제 API 가용성 확인이 필요하다.
 3. 현재 발견 profile의 역할은 UNKNOWN이다. 모든 파일을 NOTICE로 바꾸거나 filename만으로 역할을 확정하지 않는다. 공고문/안내문/양식/참고자료의 검증된 영역·문서 텍스트 증거에 대한 시스템 규칙과 공식 QA 기대값을 먼저 정의한다. 조건 미충족은 UNKNOWN을 유지한다.
 4. 대상/형태 키워드의 부정·제외 문맥, 기관명 보호, 표 범위·문서 간 상충을 고정 사례로 검증한다. 의미를 임의 추론하는 AI·점수는 추가하지 않는다.
@@ -90,7 +90,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 - [x] P0 사용자 정책·기존 계약 충돌 분석과 이 상세 설계 작성.
 - [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 및 QA 브랜치 Linux 실제 PG 통과. 운영 UI 검증 잔여.
 - [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
-- [ ] P3 본문 전용 영역 및 문서 역할 자동 식별 규칙·예외·공식 QA 기대값 확정/구현.
+- [~] P3 명시적 탐색 영역의 본문 키워드 혼입 제거와 고정 회귀 구현. 사이트별 본문 전용 영역 및 문서 역할 자동 식별 규칙·예외·공식 QA 기대값 확정/구현은 잔여.
 - [ ] P4 전체 대상의 profile 매핑·누락 어댑터·실제 파일 기대값 및 Provider QA 화면 연결.
 - [~] P5 Linux 격리 추출12합성 파일+PG job192/migration2/분할13+worker→DB→API8건 통과. 독립 namespace 환경 계약 실패 수정·재실행 및 전체 Provider/ATT001~062·새 FLOW 전체 실증 잔여.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.
@@ -117,6 +117,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 ### 6.1 변경된 처리 순서를 지키는 고정 회귀
 
+- `LocalGovernmentNoticeProviderContentClientTest`의 중첩 탐색 영역/본문 대체 경로/메뉴만 있는 응답 3사례: 메뉴 키워드는 본문 근거에서 제외하되 실제 본문의 B·일반 문장·신청 링크는 보존한다. 상세 1회 외 추가 요청이 없어야 한다.
 - `AnnouncementSourceServiceImplTest.insertCollectionRunFetchesDetailBodyOnlyAfterTitleGateAllowsIt`: 제목 통과 이후에만 상세 본문을 요청한다.
 - `AnnouncementAttachmentClassificationEngineTest.intermediateReviewReasonStillCollectsAttachmentEvidenceBeforeFinalReview`: 제목 A·본문 A/B 각각 첨부 텍스트 근거를 생성한 뒤 최종 검수 사유를 유지한다.
 - 같은 클래스의 `sufficientBodyDoesNotSkipAttachmentFilteringOrHideAttachmentExclusionEvidence`와 `sufficientBodyCannotTurnFailedDiscoveryIntoVerifiedNoFiles`: 충분한 본문도 첨부 B·발견 실패를 숨기지 않는다.

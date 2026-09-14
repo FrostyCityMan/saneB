@@ -202,6 +202,57 @@ class LocalGovernmentNoticeProviderContentClientTest {
     }
 
     @Test
+    void selectContentExcludesNestedNavigationButKeepsActualNoticeTermsAndApplicationLinks() {
+        StubTransport transport = new StubTransport();
+        transport.enqueue(html("""
+                <main>
+                <nav><a href="/exports">수출바우처 메뉴</a></nav>
+                <div role="navigation"><a href="/patents">특허 메뉴</a></div>
+                <p>소상공인 지원금 본문</p>
+                <p>수출기업은 지원 대상에서 제외합니다.</p>
+                <a href="/apply?noticeId=42">온라인 신청</a>
+                </main>
+                """));
+
+        ProviderContentResult result = client(true, transport, publicValidator()).selectContent(request());
+
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문 수출기업은 지원 대상에서 제외합니다. 온라인 신청");
+        assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
+    }
+
+    @Test
+    void selectContentExcludesNavigationWhenOnlyBodyFallbackIsAvailable() {
+        StubTransport transport = new StubTransport();
+        transport.enqueue(html("""
+                <body>
+                <nav>수출바우처 메뉴</nav>
+                <div role="navigation">기술창업 메뉴</div>
+                <section role="note">소상공인 지원금 본문</section>
+                <p>탐색 메뉴 변경 안내도 본문 문장이면 보존합니다.</p>
+                </body>
+                """));
+
+        ProviderContentResult result = client(true, transport, publicValidator()).selectContent(request());
+
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문 탐색 메뉴 변경 안내도 본문 문장이면 보존합니다.");
+        assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
+    }
+
+    @Test
+    void selectContentDoesNotTreatNavigationOnlyPageAsAvailableBody() {
+        StubTransport transport = new StubTransport();
+        transport.enqueue(html("<main><nav>소상공인 지원금</nav><div role='navigation'>융자 지원</div></main>"));
+
+        ProviderContentResult result = client(true, transport, publicValidator()).selectContent(request());
+
+        assertThat(result.statusCode()).isEqualTo(StatusCode.FETCH_FAILED);
+        assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+        assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
+    }
+
+    @Test
     void selectContentDoesNotFallBackToNavigationWhenSemanticAreaIsEmpty() {
         StubTransport transport = new StubTransport();
         transport.enqueue(html(

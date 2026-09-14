@@ -34,6 +34,12 @@
 
 ## 최신 실행 기록
 
+### 2026-09-14 — 2차 본문에 중첩 메뉴 키워드가 섞이는 결함 수정
+
+- `main` 내부 또는 `body` 대체 경로의 `nav/[role=navigation]`를 정제 대상에 포함했다. 의미를 나타내는 명시적 HTML 영역만 제거하며, 일반 문장·실제 본문의 제외 조건·기관명·온라인 신청 링크는 보존한다. 파일명은 기존대로 본문 근거에서 분리하고 상세/첨부 요청 수를 늘리지 않는다.
+- 사이트별 공고 본문 전용 영역·문서 역할 자동 식별은 아직 구현 잔여다. 이 공통 정제 수정만으로 P3 전체나 모든 기관 지원을 완료 처리하지 않는다. 기존 DB/API 상태·과거 migration·수집 승인 정책과 자동 활성화 금지는 변경하지 않았다.
+- `:test --tests '*LocalGovernmentNoticeProviderContentClientTest' --tests '*AnnouncementSourceServiceImplTest' --tests '*AnnouncementAttachmentClassificationEngineTest' bootJar --no-daemon --max-workers=1`(명령 한정 Windows-ROOT)은29초 성공했다. 본문21·수집 Service21·첨부 분류19=61건 통과/실패·생략0이다. 현재 진행 중인 Linux `bd92dff` 실행은 이 본문 변경 전 SHA이므로 이 수정의 Linux 실증으로 사용하지 않는다.
+
 ### 2026-09-14 — 변경된 처리 흐름 유지·Linux 최초 실증과 실패 수정
 
 - 세 번째 [Actions 34826506160](https://github.com/FrostyCityMan/saneB/actions/runs/34826506160), SHA `6dc12e12073e6e46a9ab7566380949eb9cd48c42`: job192·migration2·분할13·worker8 및 Linux 합성12파일(1시험)이 모두 통과했다. root2305=2064통과/241조건부 생략·extractor25·독립 QA 패키지15·Node152와 bootJar/설치 패키지 생성도 성공했다. 독립 namespace가 `CLEAN_ENVIRONMENT_REQUIRED`로 차단되어 전체 실행은 실패다. 정리는 성공했으나 정책 부모 연결은 미실행이다.
