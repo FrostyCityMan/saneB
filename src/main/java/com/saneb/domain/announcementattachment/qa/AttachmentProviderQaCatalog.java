@@ -109,6 +109,10 @@ public final class AttachmentProviderQaCatalog {
                 var e=notice.expectation();input=new AttachmentProviderQaCase(notice.caseCode(),notice.profileCode(),e.profileHash(),notice.source(),e.title(),rules,runtimeHash,
                         e.discoveryStatus(),e.discoveryComplete(),e.files(),e.limits());
                 try {AttachmentProviderQaCaseContract.validate(input);}catch(IllegalArgumentException failure){state="EXPECTATION_INVALID";input=null;}
+                // 기존 quality-only 이력은 보존하지만 새 catalog 실행은 역할·위치 근거 없는 완전 추출을 승인하지 않는다.
+                if(input!=null && input.files().stream().anyMatch(f->"COMPLETE_TEXT".equals(f.quality()) && f.roleExpectation()==null)) {
+                    state="EXPECTATION_INVALID";input=null;
+                }
                 if(input!=null) {
                     var profile=registry.selectProfileDetails(input.source().providerCode(),input.profileCode(),input.profileHash()).orElseThrow(()->invalid("CATALOG_PROFILE_CHANGED"));
                     if(!details.add(key+":"+profile.selectDetailUri(input.source()).normalize().toASCIIString())){state="DUPLICATE_DETAIL";input=null;}
@@ -122,7 +126,9 @@ public final class AttachmentProviderQaCatalog {
                 }
             }
             boolean normal=input!=null && "FOUND".equals(input.discoveryStatus()) && input.discoveryComplete()
-                    && input.files().stream().allMatch(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality()));
+                    && input.files().stream().allMatch(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality())
+                        && f.roleExpectation()!=null && !"UNKNOWN".equals(f.roleExpectation().roleCode()))
+                    && input.files().stream().anyMatch(f->Set.of("NOTICE","GUIDE").contains(f.roleExpectation().roleCode()));
             List<String> formats=input==null?List.of():input.files().stream().filter(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality())).map(ExpectedFile::format).distinct().sorted().toList();
             cases.add(new CasePlan(notice.caseCode(),key,state,input==null?null:selectHash(input),expectedFiles,normal,formats));
             if(input!=null)inputs.add(input);

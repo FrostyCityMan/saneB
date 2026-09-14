@@ -33,6 +33,18 @@ public final class AttachmentProviderQaCaseContract {
                     if(file.minimumCharacters()<1 || file.minimumBlocks()<1 || file.requiredPhrases().isEmpty())throw invalid();
                 } else if(file.minimumCharacters()!=0 || file.minimumBlocks()!=0 || !file.requiredPhrases().isEmpty())throw invalid();
             } else if(file.binaryHash()!=null || file.quality()!=null || file.minimumCharacters()!=0 || file.minimumBlocks()!=0 || !file.requiredPhrases().isEmpty() || file.format()!=null)throw invalid();
+            var role=file.roleExpectation();
+            if(role!=null) {
+                if(!file.downloadAllowed() || !"COMPLETE_TEXT".equals(file.quality())
+                        || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.VERSION.equals(role.ruleVersion())
+                        || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH.equals(role.rulesHash())
+                        || !hash(role.textHash()) || !hash(role.blocksHash()) || !hash(role.assessmentHash())
+                        || role.roleCode()==null || !Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(role.roleCode())
+                        || role.reasonCode()==null)throw invalid();
+                if("UNKNOWN".equals(role.roleCode()) ? !Set.of("STRUCTURE_UNCERTAIN","ROLE_ANALYSIS_LIMIT","MIXED_DOCUMENT_ROLES",
+                        "INITIAL_HEADING_REQUIRED","ROLE_STRUCTURE_INCOMPLETE").contains(role.reasonCode())
+                        : !"ROLE_TEXT_STRUCTURE_MATCHED".equals(role.reasonCode()))throw invalid();
+            }
         }
     }
     private static boolean hash(String value){return value!=null && value.matches("[0-9a-f]{64}");}

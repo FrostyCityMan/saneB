@@ -2923,6 +2923,8 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 
 기존 HTTP API·v1/v2 응답은 변경하지 않는다. 관리자 URL·파일·성공 JSON 제출 API도 추가하지 않는다. 내부 `AttachmentProviderQaEvidenceGate`는 현재 snapshot6/전체 catalog와 DB 분할별 최신 시도·모든 case의 파일별 근거를 대조해 PASSED/MISSING/FAILED/CANCELLED 및 고정 사유 코드를 반환한다. 여기서 PASSED는 해당 전체 Provider 실행 근거의 검증 결과이며 정책 전체 VERIFIED/게시 완료가 아니다.
 
+2026-09-15 내부 파일 기대값에 선택적 `roleExpectation`(규칙 버전/지문, 역할/사유, textHash/blocksHash/assessmentHash), 실행 결과에 선택적 `roleAssessmentHash`를 추가한다. 기존 누락 필드의 직렬화/hash는 보존하지만 새 catalog의 COMPLETE_TEXT는 역할 기대값 필수다. 실제 추출의 역할·사유·텍스트·전체 위치 근거가 모두 일치해야 하며 저장된 결과도 같은 고정 입력/실제 textHash에 재결합한다. UNKNOWN 음성 사례와 양식/참고자료만 있는 공고는 정상3공고 요구량을 채우지 않는다. 원장 조회 HTTP 응답에 내부 기대값·증거 JSON·원문을 추가하지 않으며 공개 계약 변경과 DDL은 없다.
+
 전체 기대값 부재·분할 누락·최신 시도 미완료는 MISSING, 지문/순번/분모/시각/파일·예산 불일치 또는 DB 조회 실패는 FAILED, 소유 실행 중단은 CANCELLED다. 실패 원문/SQL/URL/파일 텍스트를 사유에 복사하지 않는다. 실제 실패/부분 품질을 정상 문서로 바꾸지 않으며 미실행 파일을 분모에서 제외하지 않는다.
 
 2026-09-14 정책 QA worker/게시 추가 검증기를 이 집계에 연결했다. PROVIDER_PROFILES의 실제 판정이 PASSED이고 나머지 세 단계도 저장된 PASSED일 때 VERIFIED, 누락 시 INCOMPLETE, 근거 불일치 시 FAILED, 취소 시 CANCELLED다. 기존 HTTP shape/v1은 보존한다. 정책 QA 완료는 자동 게시·ENFORCE·기존 데이터 적용을 뜻하지 않는다.

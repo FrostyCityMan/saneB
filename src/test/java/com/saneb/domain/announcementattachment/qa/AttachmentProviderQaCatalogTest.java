@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
 import com.saneb.domain.announcementattachment.service.impl.AttachmentProviderQaPlan;
 import com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Target;
 import com.saneb.domain.announcementsource.classification.*;
@@ -42,7 +43,9 @@ class AttachmentProviderQaCatalogTest {
     }
     ExpectedFile file(String format,String quality) {
         boolean text=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(quality);
-        return new ExpectedFile(Integer.toHexString(format.hashCode()).repeat(64).substring(0,64),true,format,"d".repeat(64),quality,text?1:0,text?1:0,text?List.of("지원"):List.of());
+        return new ExpectedFile(Integer.toHexString(format.hashCode()).repeat(64).substring(0,64),true,format,"d".repeat(64),quality,text?1:0,text?1:0,text?List.of("지원"):List.of(),
+                "COMPLETE_TEXT".equals(quality)?new RoleExpectation(AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
+                        "NOTICE","ROLE_TEXT_STRUCTURE_MATCHED","e".repeat(64),"f".repeat(64),"a".repeat(64)):null);
     }
     Notice notice(String provider,String code,String id) {
         return new Notice(code+"-"+id,code,new AttachmentDiscoveryProfile.Source(provider,id,"https://example.go.kr/detail/"+id,null,null),
@@ -63,6 +66,22 @@ class AttachmentProviderQaCatalogTest {
         assertThat(result.plan().cases()).allSatisfy(c->{assertThat(c.inputHash()).matches("[0-9a-f]{64}");assertThat(c.normalNotice()).isTrue();});
     }
     @Test void referenceIsNeverConvertedToAnExecutionInput() {var n=notice("BIZINFO","BIZ","1");var result=prepare(List.of(alter(n,null)));assertThat(result.inputs()).isEmpty();assertThat(result.plan().cases()).singleElement().satisfies(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.expectedFileCount()).isNull();});}
+    @Test void legacyCompleteTextWithoutRoleProofCannotEnterNewCatalogExecution() {
+        var n=notice("BIZINFO","BIZ","1");var e=n.expectation();var f=e.files().getFirst();
+        var legacy=new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases());
+        var result=prepare(List.of(alter(n,new Expectation(e.profileHash(),e.title(),e.observedAt(),"FOUND",true,List.of(legacy),e.limits()))));
+        assertThat(result.inputs()).isEmpty();assertThat(result.plan().cases().getFirst().statusCode()).isEqualTo("EXPECTATION_INVALID");
+        assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+    }
+    @ParameterizedTest @ValueSource(strings={"UNKNOWN","FORM","REFERENCE"})
+    void roleNegativeCaseOrFormsAloneCannotInflateNormalNoticeCoverage(String roleCode) {
+        var n=notice("BIZINFO","BIZ","1");var e=n.expectation();var f=e.files().getFirst();var r=f.roleExpectation();
+        var role=new RoleExpectation(r.ruleVersion(),r.rulesHash(),roleCode,"UNKNOWN".equals(roleCode)?"INITIAL_HEADING_REQUIRED":r.reasonCode(),r.textHash(),r.blocksHash(),r.assessmentHash());
+        var altered=new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),role);
+        var result=prepare(List.of(alter(n,new Expectation(e.profileHash(),e.title(),e.observedAt(),"FOUND",true,List.of(altered),e.limits()))));
+        assertThat(result.inputs()).hasSize(1);assertThat(result.plan().cases().getFirst().normalNotice()).isFalse();
+        assertThat(result.plan().targets().getFirst().normalNoticeCount()).isZero();assertThat(result.plan().isQaPassed()).isFalse();
+    }
     @Test void duplicateNoticeCannotCountAsThreeNormalNotices() {var n=notice("BIZINFO","BIZ","1");assertThatThrownBy(()->catalog(List.of(n,new Notice("OTHER",n.profileCode(),n.source(),n.expectation())))).hasMessage("CATALOG_DUPLICATE_NOTICE");}
     @Test void twoSourceIdsResolvingToTheSameDetailCannotInflateCoverage() {
         doReturn(URI.create("https://example.go.kr/same-detail")).when(profiles.getFirst()).selectDetailUri(any(AttachmentDiscoveryProfile.Source.class));

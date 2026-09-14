@@ -9,6 +9,7 @@ import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProvide
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
 import com.saneb.domain.announcementattachment.service.impl.*;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows.*;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaManagementRows.Run;
@@ -52,7 +53,9 @@ class AttachmentProviderQaEvidenceGateTest {
         doAnswer(c->{depth.decrementAndGet();return null;}).when(transactions).commit(any());doAnswer(c->{depth.decrementAndGet();return null;}).when(transactions).rollback(any());
         var rules=new AnnouncementSourceClassificationRuleSet("TEST",List.of(rule("T",RuleGroupKindCode.TARGET,"소상공인",TargetCategoryCode.BUSINESS,null),rule("S",RuleGroupKindCode.SUPPORT_TYPE,"지원금",null,SupportTypeCode.GRANT_SUBSIDY)));
         var profiles=List.of(profile("BIZINFO","BIZ"),profile("GOV24_PUBLIC_SERVICE","GOV"));var scope=AttachmentProviderQaPlan.selectPlan(profiles,List.of());
-        var files=new ArrayList<ExpectedFile>();int f=1;for(String format:List.of("PDF","HWP","HWPX"))files.add(new ExpectedFile(Integer.toString(f++).repeat(64),true,format,"c".repeat(64),"COMPLETE_TEXT",10,1,List.of("지원")));
+        var role=new RoleExpectation(AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
+                "NOTICE","ROLE_TEXT_STRUCTURE_MATCHED","8".repeat(64),"f".repeat(64),"9".repeat(64));
+        var files=new ArrayList<ExpectedFile>();int f=1;for(String format:List.of("PDF","HWP","HWPX"))files.add(new ExpectedFile(Integer.toString(f++).repeat(64),true,format,"c".repeat(64),"COMPLETE_TEXT",10,1,List.of("지원"),role));
         var notices=new ArrayList<Notice>();
         for(int i=0;i<count;i++) {String provider=i%2==0?"BIZINFO":"GOV24_PUBLIC_SERVICE",code=i%2==0?"BIZ":"GOV";
             notices.add(new Notice(code+"-"+String.format(Locale.ROOT,"%04d",i),code,new AttachmentDiscoveryProfile.Source(provider,Integer.toString(i),"https://example.go.kr/"+i,null,null),
@@ -70,7 +73,7 @@ class AttachmentProviderQaEvidenceGateTest {
             UUID id=UUID.randomUUID();var rows=new ArrayList<Item>();Instant begin=now.minusSeconds(count*3L+300).plusSeconds(all*3L);
             for(String code:segment.caseCodes()) {
                 var input=prepared.inputs().stream().filter(c->c.caseId().equals(code)).findFirst().orElseThrow();Instant start=now.minusSeconds(count*3L+300).plusSeconds(all++*3L);
-                var fileResults=input.files().stream().map(e->new AttachmentProviderQaCaseExecutor.FileResult(e.locatorHash(),"PASSED",null,e.format(),e.quality(),100,e.binaryHash(),"8".repeat(64),20,1)).toList();
+                var fileResults=input.files().stream().map(e->new AttachmentProviderQaCaseExecutor.FileResult(e.locatorHash(),"PASSED",null,e.format(),e.quality(),100,e.binaryHash(),"8".repeat(64),20,1,e.roleExpectation().assessmentHash())).toList();
                 var result=new AttachmentProviderQaCaseExecutor.Result("SINGLE_FIXED_NOTICE_PROVIDER_QA",code,verifier.hash(input),profileHash,runtimeHash,"PASSED","FIXED_NOTICE_EXPECTATIONS_MATCHED",
                         "COMBINATION_MATCHED","FOUND",true,3,3,fileResults,4,400,true,true,false,start.plusMillis(100),start.plusSeconds(1));
                 rows.add(new Item(UUID.randomUUID(),id,rows.size()+1,code,verifier.hash(input),profileHash,3,420,44,83886080L,4,400L,"PASSED",4,start.atOffset(ZoneOffset.UTC),

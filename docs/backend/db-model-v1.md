@@ -854,6 +854,8 @@ V1~V78은 변경하지 않는다. V78→V79/빈 DB migration과 실제 PostgreSQ
 
 정책 QA input JSON의 내부 schema6는 전체 요구 목록과 고정 catalog 계획을 함께 저장한다. catalogVersion/catalogHash/scopeHash, 모든 target의 결합 상태·정상 공고/형식 기대 coverage와 모든 case의 준비 상태·입력 지문·기대 파일 수, 전체 분할 목록/상한을 포함한다. 원문 URL/제목/추출문/기대 문구와 실행용 Prepared.inputs는 저장하지 않는다. 기대 파일 수 미확인은 null이며, 한도 초과나 준비 실패를0개로 바꾸지 않는다.
 
+2026-09-15 새 catalog의 COMPLETE_TEXT 입력에는 역할 규칙·역할/사유·텍스트/블록/전체 assessment 지문을 고정한다. V79 `evidence_json`의 파일 metadata에는 선택적 `roleAssessmentHash`만 추가한다. 기존32KiB 제한과 원장 불변·inputHash/codeHash 결합을 유지하며 기존 행/과거 누락 필드는 재작성하지 않는다. 새 역할 기대값 없는 완전 추출 입력은 실행 준비 불가다. 역할 근거 위치의 실제 값/원문은 QA 원장에 복제하지 않으며 DDL/migration 변경은 없다.
+
 schema1~5 이력은 수정하지 않는다. 현재 catalog/규칙/runtime/전체 scope·준비 상태가 다르면 snapshotHash가 달라져 이전 QA를 재사용할 수 없다. V79에 분할 실행을 예약하는 서비스·HTTP API/scheduler·전체 결과 verifier는 후속 필수 작업이며, 현재 catalog의 기대 coverage를 실제 QA PASSED로 저장하지 않는다. 공식 참조9/실행 기대값0과 정상3공고·세 형식/전체 기관 분모를 그대로 유지한다. 상세는 API24.29 및 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
 
 ### 11.26 Provider QA 승인 분할 계획 — V80

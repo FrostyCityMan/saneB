@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile.Source;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows.Item;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaManagementRows.Run;
 import com.saneb.domain.announcementsource.classification.*;
@@ -43,7 +44,8 @@ class AttachmentProviderQaStoredResultVerifierTest {
                 discovery,complete,files,new Limits(420,44,83886080));
         boolean blocked="TITLE_BLOCKED".equals(discovery);
         var results=files.stream().map(f->{boolean text=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(Objects.toString(f.quality(),""));return new AttachmentProviderQaCaseExecutor.FileResult(
-                f.locatorHash(),f.downloadAllowed()?"PASSED":"UNSUPPORTED_NOT_DOWNLOADED",null,f.format(),f.quality(),f.downloadAllowed()?100:0,f.binaryHash(),text?"e".repeat(64):null,text?20:0,text?1:0);}).toList();
+                f.locatorHash(),f.downloadAllowed()?"PASSED":"UNSUPPORTED_NOT_DOWNLOADED",null,f.format(),f.quality(),f.downloadAllowed()?100:0,f.binaryHash(),text?"e".repeat(64):null,text?20:0,text?1:0,
+                f.roleExpectation()==null?null:f.roleExpectation().assessmentHash());}).toList();
         boolean all="FOUND".equals(discovery) && complete && !files.isEmpty() && files.stream().allMatch(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality()));
         String titleStage=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput("BIZINFO",title,null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules).titleStageCode().name();
         var result=new AttachmentProviderQaCaseExecutor.Result("SINGLE_FIXED_NOTICE_PROVIDER_QA",input.caseId(),verifier.hash(input),input.profileHash(),input.runtimeHash(),"PASSED",
@@ -61,6 +63,27 @@ class AttachmentProviderQaStoredResultVerifierTest {
     private Item row() throws Exception{return row(mapper.writeValueAsString(evidence),verifier.hash(evidence));}
     private AttachmentProviderQaStoredResultVerifier.Verified verify() throws Exception{return verifier.selectVerifiedResult(row(),run,input,now.plusSeconds(20));}
     private void rejects(Consumer<ObjectNode> mutation) throws Exception {mutation.accept(evidence);assertThatThrownBy(this::verify).isInstanceOf(AttachmentProviderQaStoredResultVerifier.Failure.class);}
+    private void prepareRole() {
+        var f=file("PDF","COMPLETE_TEXT");var role=new RoleExpectation(AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
+                "NOTICE","ROLE_TEXT_STRUCTURE_MATCHED","e".repeat(64),"f".repeat(64),"9".repeat(64));
+        prepare("FOUND",true,"소상공인 지원금",List.of(new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),role)));
+    }
+    @Test void storedRoleProofBindsFrozenInputAndActualTextHashWithoutRawEvidence() throws Exception {
+        prepareRole();assertThat(verify().allTextComplete()).isTrue();
+        assertThat(evidence.path("files").get(0).path("roleAssessmentHash").asText()).isEqualTo(input.files().getFirst().roleExpectation().assessmentHash());
+        assertThat(evidence.toString()).doesNotContain("ROLE_TEXT_STRUCTURE_MATCHED","evidenceScopeId","지원");
+    }
+    @ParameterizedTest @ValueSource(strings={"missing","null","wrong","coerced","textChanged","unknownField"})
+    void rehashingStoredRoleProofCannotHideMutation(String kind) throws Exception {
+        prepareRole();rejects(n->{var file=(ObjectNode)n.path("files").get(0);switch(kind) {
+            case "missing" -> file.remove("roleAssessmentHash");case "null" -> file.putNull("roleAssessmentHash");
+            case "wrong" -> file.put("roleAssessmentHash","8".repeat(64));case "coerced" -> file.put("roleAssessmentHash",9);
+            case "textChanged" -> file.put("textHash","7".repeat(64));default -> file.put("roleOverride","NOTICE");
+        }});
+    }
+    @Test void legacyQualityOnlyResultCannotInventRoleProof() throws Exception {
+        assertThat(verify().allTextComplete()).isTrue();rejects(n->((ObjectNode)n.path("files").get(0)).put("roleAssessmentHash","9".repeat(64)));
+    }
     @ParameterizedTest @ValueSource(strings={"PDF","HWP","HWPX"})
     void validCompleteTextBindsAllFormatsAndMetadataWithoutOriginalText(String format) throws Exception {
         prepare("FOUND",true,"소상공인 지원금",List.of(file(format,"COMPLETE_TEXT")));var verified=verify();

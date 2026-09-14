@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.extraction.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.ExpectedFile;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence;
 import com.saneb.domain.announcementattachment.worker.AttachmentFileTypeValidator;
 import com.saneb.domain.announcementsource.classification.*;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
@@ -46,7 +48,14 @@ public final class AttachmentProviderQaCaseExecutor {
         boolean saveByteReservation(long bytes);
     }
     public record FileResult(String locatorHash, String status, String reasonCode, String format, String quality,
-            long bytes, String binaryHash, String textHash, int characterCount, int blockCount) { }
+            long bytes, String binaryHash, String textHash, int characterCount, int blockCount,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            String roleAssessmentHash) {
+        public FileResult(String locatorHash,String status,String reasonCode,String format,String quality,long bytes,
+                String binaryHash,String textHash,int characterCount,int blockCount) {
+            this(locatorHash,status,reasonCode,format,quality,bytes,binaryHash,textHash,characterCount,blockCount,null);
+        }
+    }
     public record Result(String scope, String caseId, String inputHash, String profileHash, String runtimeHash,
             String status, String reasonCode, String titleStage, String discoveryStatus, boolean discoveryComplete,
             int expectedFileCount, int discoveredFileCount, List<FileResult> files, long requestReservations,
@@ -189,8 +198,9 @@ public final class AttachmentProviderQaCaseExecutor {
                     || (!hasText && (!text.isEmpty() || !output.path("blocks").isEmpty()))) throw failure("EXTRACTION_OUTPUT_INVALID");
             if (hasText && (length<expected.minimumCharacters() || output.path("blocks").size()<expected.minimumBlocks()
                     || expected.requiredPhrases().stream().anyMatch(phrase->!text.contains(phrase)))) throw failure("EXTRACTION_TEXT_EXPECTATION_FAILED");
+            String roleHash=selectRoleAssessmentHash(expected,output,text);
             return new FileResult(expected.locatorHash(),"PASSED",null,format,quality,downloaded.bytes(),downloaded.sha256(),
-                    hasText?selectTextHash(text):null,length,output.path("blocks").size());
+                    hasText?selectTextHash(text):null,length,output.path("blocks").size(),roleHash);
         } catch (Stopped stopped) {
             if (Set.of("EXECUTION_STOPPED","CASE_DEADLINE","REQUEST_LIMIT","BYTE_LIMIT","RESOURCE_UNAVAILABLE","RESOURCE_RELEASE_FAILED","EXECUTION_CONTROL_FAILED").contains(stopped.code)) {
                 state.files.set(state.input.files().indexOf(expected),failedFile(expected,downloaded,stopped.code,actualQuality));
@@ -206,6 +216,29 @@ public final class AttachmentProviderQaCaseExecutor {
                 throw failure("TEMPORARY_CLEANUP_FAILED");
             }
         }
+    }
+    private String selectRoleAssessmentHash(ExpectedFile file,JsonNode output,String text) {
+        var expected=file.roleExpectation();if(expected==null)return null;
+        // 실제 extractor block만 사용한다. 파일명·본문·다른 첨부에서 역할 근거를 가져오지 않는다.
+        var blocks=new ArrayList<AttachmentSetEvidence.Block>();
+        for(var block:output.path("blocks")) {
+            if(!block.isObject() || block.size()!=6)throw failure("ROLE_EXTRACTION_STRUCTURE_INVALID");
+            for(String field:List.of("index","startOffset","endOffset"))
+                if(!block.path(field).isIntegralNumber() || !block.path(field).canConvertToInt())throw failure("ROLE_EXTRACTION_STRUCTURE_INVALID");
+            if(!block.path("scopeReliable").isBoolean() || !block.path("evidenceScopeId").isTextual() || !block.path("locator").isTextual())
+                throw failure("ROLE_EXTRACTION_STRUCTURE_INVALID");
+            blocks.add(new AttachmentSetEvidence.Block(block.path("index").intValue(),block.path("startOffset").intValue(),
+                    block.path("endOffset").intValue(),block.path("evidenceScopeId").textValue(),block.path("scopeReliable").booleanValue(),block.path("locator").textValue()));
+        }
+        AttachmentDocumentRoleClassifier.Assessment actual;
+        try {actual=new AttachmentDocumentRoleClassifier().selectAssessment(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,blocks,null,0));}
+        catch(IllegalArgumentException invalid){throw failure("ROLE_EXTRACTION_STRUCTURE_INVALID");}
+        String hash=selectHash(actual);
+        if(!expected.ruleVersion().equals(actual.ruleVersion()) || !expected.rulesHash().equals(actual.rulesHash())
+                || !expected.roleCode().equals(actual.roleCode()) || !expected.reasonCode().equals(actual.reasonCode())
+                || !expected.textHash().equals(actual.textHash()) || !expected.blocksHash().equals(actual.blocksHash())
+                || !expected.assessmentHash().equals(hash))throw failure("ROLE_EXPECTATION_CHANGED");
+        return hash;
     }
     private FileResult failedFile(ExpectedFile expected, AttachmentPinnedDownloadClient.Download download, String reason, String quality) {
         return new FileResult(expected.locatorHash(),"FAILED",reason,expected.format(),quality,

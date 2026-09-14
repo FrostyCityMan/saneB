@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.extraction.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence;
 import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Locator;
 import com.saneb.domain.announcementattachment.worker.AttachmentFileTypeValidator;
 import com.saneb.domain.announcementsource.classification.*;
@@ -121,6 +123,71 @@ class AttachmentProviderQaCaseExecutorTest {
     void cleaned() throws Exception {
         try(var paths=Files.walk(directory)) {assertThat(paths.filter(path->Set.of("detail.html","attachment.bin").contains(path.getFileName().toString())).toList()).isEmpty();}
         assertThat(control.activeDownloads).isZero(); assertThat(control.activeExtractions).isZero();
+    }
+    RoleExpectation roleExpectation(String text) {
+        var block=new AttachmentSetEvidence.Block(0,0,text.codePointCount(0,text.length()),"paragraph-1",true,"paragraph:1");
+        var assessment=new AttachmentDocumentRoleClassifier().selectAssessment(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,List.of(block),null,0));
+        return new RoleExpectation(assessment.ruleVersion(),assessment.rulesHash(),assessment.roleCode(),assessment.reasonCode(),
+                assessment.textHash(),assessment.blocksHash(),executor.selectHash(assessment));
+    }
+    AttachmentProviderQaCase withRole(AttachmentProviderQaCase base,RoleExpectation role) {
+        var files=base.files().stream().map(f->new ExpectedFile(f.locatorHash(),f.downloadAllowed(),f.format(),f.binaryHash(),f.quality(),
+                f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),role)).toList();
+        return change(base,base.title(),base.discoveryStatus(),base.discoveryComplete(),files,base.limits());
+    }
+    final String noticeText="소상공인 지원금 공고\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월";
+    @Test void actualExtractionRoleAndEveryEvidencePositionMustMatchFrozenExpectation() throws Exception {
+        when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",noticeText));
+        var role=roleExpectation(noticeText);assertThat(role.roleCode()).isEqualTo("NOTICE");
+        var result=executor.selectResult(withRole(input(descriptors),role),control);
+        assertThat(result.status()).isEqualTo("PASSED");
+        assertThat(result.files()).allSatisfy(f->assertThat(f.roleAssessmentHash()).isEqualTo(role.assessmentHash()));
+        assertThat(mapper.writeValueAsString(result)).doesNotContain("소상공인","신청기간","paragraph:1");cleaned();
+    }
+    @ParameterizedTest @ValueSource(strings={"role","reason","textHash","blocksHash","assessmentHash"})
+    void completeTextAndPhraseMatchCannotOverrideChangedRoleProof(String field) throws Exception {
+        when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",noticeText));var role=roleExpectation(noticeText);
+        var changed=new RoleExpectation(role.ruleVersion(),role.rulesHash(),field.equals("role")?"GUIDE":field.equals("reason")?"UNKNOWN":role.roleCode(),
+                field.equals("reason")?"ROLE_STRUCTURE_INCOMPLETE":role.reasonCode(),field.equals("textHash")?"e".repeat(64):role.textHash(),
+                field.equals("blocksHash")?"e".repeat(64):role.blocksHash(),field.equals("assessmentHash")?"e".repeat(64):role.assessmentHash());
+        var result=executor.selectResult(withRole(input(descriptors),changed),control);
+        assertThat(result.status()).isEqualTo("FAILED");assertThat(result.allTextComplete()).isFalse();
+        assertThat(result.files()).allSatisfy(f->{assertThat(f.reasonCode()).isEqualTo("ROLE_EXPECTATION_CHANGED");assertThat(f.roleAssessmentHash()).isNull();});cleaned();
+    }
+    @ParameterizedTest @ValueSource(strings={"numericString","fraction","missing","scopeType","hiddenText","outOfRange","extra"})
+    void malformedOrIncompleteEvidenceIsNotRoleProof(String field) throws Exception {
+        var extracted=(com.fasterxml.jackson.databind.node.ObjectNode)output("COMPLETE_TEXT",noticeText);
+        var block=(com.fasterxml.jackson.databind.node.ObjectNode)extracted.path("blocks").get(0);
+        switch(field) {
+            case "numericString" -> block.put("index","0");case "fraction" -> block.put("index",0.1);
+            case "missing" -> block.remove("scopeReliable");case "scopeType" -> block.put("scopeReliable","true");
+            case "hiddenText" -> block.put("startOffset",1);case "outOfRange" -> block.put("endOffset",999999);
+            default -> block.put("override",true);
+        }
+        when(extractor.selectExtraction(any())).thenReturn(extracted);
+        var result=executor.selectResult(withRole(input(descriptors),roleExpectation(noticeText)),control);
+        assertThat(result.status()).isEqualTo("FAILED");
+        assertThat(result.files()).allSatisfy(f->assertThat(f.reasonCode()).isEqualTo("ROLE_EXTRACTION_STRUCTURE_INVALID"));cleaned();
+    }
+    @Test void unknownExpectationRemainsUnknownAndDoesNotClaimPolicySuccess() throws Exception {
+        String text="소상공인 지원금 합성문서";var role=roleExpectation(text);assertThat(role.roleCode()).isEqualTo("UNKNOWN");
+        var result=executor.selectResult(withRole(input(descriptors),role),control);
+        assertThat(result.status()).isEqualTo("PASSED");assertThat(result.isPolicyQaPassed()).isFalse();
+        assertThat(result.files()).allSatisfy(f->assertThat(f.roleAssessmentHash()).isEqualTo(role.assessmentHash()));cleaned();
+    }
+    @Test void staleRoleRulesAndNonCompleteRoleExpectationsAreRejectedBeforeAnyIo() throws Exception {
+        var role=roleExpectation(noticeText);var base=input(descriptors);
+        var stale=new RoleExpectation("document-role-0.0.0",role.rulesHash(),role.roleCode(),role.reasonCode(),role.textHash(),role.blocksHash(),role.assessmentHash());
+        assertThatThrownBy(()->executor.selectResult(withRole(base,stale),control)).hasMessage("CASE_INPUT_INVALID");
+        var f=base.files().getFirst();var partial=new ExpectedFile(f.locatorHash(),true,"PDF",f.binaryHash(),"PARTIAL_TEXT",3,1,f.requiredPhrases(),role);
+        assertThatThrownBy(()->executor.selectResult(change(base,base.title(),"FOUND",true,List.of(partial),base.limits()),control)).hasMessage("CASE_INPUT_INVALID");
+        verifyNoInteractions(client,extractor,temporary,runtime);
+    }
+    @Test void legacyCaseAndResultSerializationDoesNotAddNullRoleProofOrChangeFrozenHash() throws Exception {
+        var base=input(descriptors);var before=executor.selectHash(base);var result=executor.selectResult(base,control);
+        assertThat(mapper.writeValueAsString(base)).doesNotContain("roleExpectation");
+        assertThat(mapper.writeValueAsString(result)).doesNotContain("roleAssessmentHash");
+        assertThat(executor.selectHash(mapper.readTree(mapper.writeValueAsString(base)))).isEqualTo(before);cleaned();
     }
     @Test void everyFrozenFileIsExtractedAndOnlyMetadataReturnsAfterCleanup() throws Exception {
         var input=input(descriptors); var result=executor.selectResult(input,control);

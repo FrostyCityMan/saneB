@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-15 01:36 KST — P4 역할 기대값 결합·공식 9공고 재확인
+
+- 기준 QA HEAD/origin은 `657fd31abc5a0b89042a5e30721d09cab7484061`, origin/master는 `ae893b87348a9bd1cb0893763f6cad5047093a24`다. 새 증분은 catalog 고정 역할/사유/텍스트/위치/assessment 지문→실제 추출 역할 판정→V79 안전 metadata→원장 재검증이다. 기존 v1/v2 HTTP shape, 과거 누락 필드 hash, V1~V82 및 운영 데이터는 보존한다.
+- COMPLETE_TEXT인데 역할 기대값 없는 새 catalog 항목은 실행 준비 불가다. UNKNOWN 음성 결과나 양식/참고자료만 있는 공고는 정상3공고를 채우지 않는다. 실제 파일 관측·검토 없이 catalog 기대값을 자동 생성하거나 QA 통과로 바꾸지 않았다. 공식 참조9/실행 기대값0과 전체 형식 적용성·Provider UI는 잔여다.
+- 표적 Provider265건/생략0 및 bootJar 통과(55초). 첫 실행의 전체 근거 시험26건은 quality-only 합성 입력이 새 catalog 계약에서 거부되어 실패했으며, 검증 항목을 유지하고 역할 근거를 합성 fixture에 연결한 뒤 모두 통과했다.
+- 전체 `.\gradlew.bat test bootJar attachmentContractQaTest --no-daemon --max-workers=1`은3분37초 성공. root2385=2140통과/245조건부 생략/실패0, 독립 실행기/패키지20건 통과다. bootJar는 직전 표적 명령에서 생성했고 전체 실행에서는 UP-TO-DATE다. Node 보고서 계약10건 통과·프로세스 종료. 로컬 Docker는 Linux engine pipe가 없어 사용할 수 없었으며 격리 추출 성공으로 표시하지 않았다.
+- `attachmentProfileDiscoveryQa --tests '*StandardBbsAttachmentProfileLiveQaTest'`를 Windows-ROOT trust store로 실행해 공식 태백/횡성/영월9공고14첨부를21초에 재확인했다.9건 생략 없이 통과, PDF2/HWPX12, 요청23회·예약2,662,537bytes·임시 원본 정리9/9다. TLS 검증을 해제하지 않았다. 이 결과는 상세/전체 첨부 발견·다운로드·signature만 증명하며 실제 텍스트 추출/역할 정확도/전체 사이트 지원·HWP 미제공을 뜻하지 않는다.
+- d56a7a8 [실행34866219185](https://github.com/FrostyCityMan/saneB/actions/runs/34866219185)의 V82 migration3·실제 worker11건은 통과했다. 부모 취소는 통과했지만 정상 연결은 QA_CHILD_PROCESS_LIMIT로 실패했다.
+- 657fd31 [실행34867265889](https://github.com/FrostyCityMan/saneB/actions/runs/34867265889)은 주 검증 및 독립219/219(생략0)가 통과했으나 전체 workflow는 실패다. 직접 부모 실행에서 같은UID14/부모JVM6으로 낮아졌고 자식 검증까지 진행했지만 QA_CHILD_FAILED가 반환됐다. 정리 POLICY_DB_QA_CLEANUP=SUCCEEDED다. 기존 기동 자원 문제와 다른 실패이며 원인은 아직 미확정이다. 원문 로그를 공개하지 않고 실패 suite/case 지문·건수만 안전하게 확인할 진단 연결이 다음 조치다. 제한 완화·실패 무시·맹목 재실행은 하지 않는다.
+- Release **Not ready**, goal ACTIVE. 운영 배포/게시/ENFORCE/기존 데이터 적용/운영 브라우저는 선행 Gate 미충족으로 미실행이다. 사용자 output/Word2개는 보존한다.
+
 ### 2026-09-15 P3 증분 — 역할 근거의 실제 처리 경로 연결
 
 - 후속 확인: 역할 연결은 `d56a7a8210aad6f9d5c7ead689b3e9ebea38553b`로 QA 브랜치에 커밋/푸시했고 원격 SHA 일치를 확인했다. [Linux 실행34866219185](https://github.com/FrostyCityMan/saneB/actions/runs/34866219185)의 V82·worker·artifact 주 검증 단계는01:11 KST 통과, 독립 namespace/부모 단계는 진행 중이다. XML 최종 집계와 전체 workflow 성공은 아직 확인 전이다. origin/master는 기존 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로다.

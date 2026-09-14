@@ -39,7 +39,13 @@ public final class AttachmentProviderQaStoredResultVerifier {
                     && Objects.equals(row.expectedFileCount(),input.files().size()) && Objects.equals(row.maximumSeconds(),input.limits().maximumSeconds())
                     && Objects.equals(row.maximumRequests(),input.limits().maximumRequestReservations()) && Objects.equals(row.maximumBytes(),input.limits().maximumReservedBytes()),"CASE_INPUT_CHANGED");
             require(row.evidenceJson()!=null && row.evidenceJson().getBytes(java.nio.charset.StandardCharsets.UTF_8).length<=32768 && isHash(row.evidenceHash()),"CASE_EVIDENCE_MISSING");
-            JsonNode tree=mapper.readTree(row.evidenceJson());fields(tree,ROOT);for(var file:tree.path("files"))fields(file,FILE);
+            JsonNode tree=mapper.readTree(row.evidenceJson());fields(tree,ROOT);
+            for(var file:tree.path("files")) {
+                var expectedFields=new HashSet<>(FILE);
+                if(file.has("roleAssessmentHash"))expectedFields.add("roleAssessmentHash");
+                fields(file,expectedFields);
+                if(file.has("roleAssessmentHash"))require(file.path("roleAssessmentHash").isTextual(),"EVIDENCE_TYPE_INVALID");
+            }
             for(String key:List.of("expectedFileCount","discoveredFileCount","requestReservations","reservedBytes"))integer(tree,key);
             for(String key:List.of("discoveryComplete","originalFilesRemoved","allTextComplete","isPolicyQaPassed"))require(tree.path(key).isBoolean(),"EVIDENCE_TYPE_INVALID");
             for(String key:List.of("scope","caseId","inputHash","profileHash","runtimeHash","status","reasonCode","titleStage","discoveryStatus","startedAt","completedAt"))
@@ -81,6 +87,10 @@ public final class AttachmentProviderQaStoredResultVerifier {
                 for(String key:List.of("locatorHash","status"))require(node.path(key).isTextual(),"EVIDENCE_TYPE_INVALID");
                 for(String key:List.of("reasonCode","format","quality","binaryHash","textHash"))require(node.path(key).isTextual() || node.path(key).isNull(),"EVIDENCE_TYPE_INVALID");
                 require(Objects.equals(expected.locatorHash(),actual.locatorHash()) && Objects.equals(expected.format(),actual.format()) && actual.reasonCode()==null,"FILE_BINDING_CHANGED");
+                var role=expected.roleExpectation();
+                require(role==null ? actual.roleAssessmentHash()==null
+                        : "COMPLETE_TEXT".equals(actual.quality()) && Objects.equals(role.textHash(),actual.textHash())
+                            && Objects.equals(role.assessmentHash(),actual.roleAssessmentHash()),"ROLE_EXPECTATION_CHANGED");
                 if(!expected.downloadAllowed()) {
                     require("UNSUPPORTED_NOT_DOWNLOADED".equals(actual.status()) && actual.bytes()==0 && actual.binaryHash()==null && actual.quality()==null
                             && actual.textHash()==null && actual.characterCount()==0 && actual.blockCount()==0,"UNSUPPORTED_FILE_DOWNLOADED");

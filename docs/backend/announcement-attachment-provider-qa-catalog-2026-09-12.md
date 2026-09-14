@@ -23,7 +23,17 @@ expectation은 관측 시각·profile 지문·실제 제목·발견 상태/완�
 
 같은 기관/공고 identity 중복은 catalog 오류이고, 서로 다른 identity가 같은 실제 상세 URI로 해석되면 DUPLICATE_DETAIL로 기록해 실행/정상 coverage에 중복 산입하지 않는다. 임의 축소된 최소 정상 수/형식 목록은 거부한다. 현재 규칙의 제목 선행 판정과 TITLE_BLOCKED/일반 발견 기대값이 다르면 TITLE_EXPECTATION_CHANGED이며 네트워크를 호출하지 않는다.
 
-정상 기대 공고는 FOUND+complete이고 모든 파일이 지원 형식/COMPLETE_TEXT 기대값을 가진 공고다. NO_FILES·TITLE_BLOCKED·부분·OCR·비지원 혼합 등 음성 사례는 개별 실행 대상일 수 있으나 정상3공고 요구량을 채우지 않는다. 형식 coverage도 COMPLETE_TEXT 기대 파일만 계산한다. 이 값은 **계획의 기대값 coverage**이며 실제 통과/추출 지원 판정이 아니다.
+정상 기대 공고는 FOUND+complete이고 모든 파일이 지원 형식/COMPLETE_TEXT 및 UNKNOWN이 아닌 역할 기대값을 가지며, 적어도 한 파일이 NOTICE/GUIDE인 공고다. NO_FILES·TITLE_BLOCKED·부분·OCR·비지원 혼합·UNKNOWN·양식/참고자료만 있는 음성 사례는 개별 실행 대상일 수 있으나 정상3공고 요구량을 채우지 않는다. 형식 coverage는 역할 기대값을 포함한 COMPLETE_TEXT 기대 파일의 추출 형식 범위이며 정상 후보 여부와 별개다. 이 값은 **계획의 기대값 coverage**이며 실제 통과/추출 지원 판정이 아니다.
+
+### 2026-09-15 역할 기대값 연결
+
+완전 추출 파일의 `roleExpectation`에 `ruleVersion`, `rulesHash`, `roleCode`, `reasonCode`, `textHash`, `blocksHash`, `assessmentHash`를 추가한다. 현재 `document-role-1.0.1` 규칙과 원문 없는 전체 Assessment의 canonical JSON SHA-256을 고정한다. Assessment에는 실제 block/code point 근거가 포함되므로 역할명만 일치해서는 통과하지 않는다. 기대값은 실제 파일을 검토하여 서버 catalog에 작성하며 실행 결과로 자동 승인·갱신하지 않는다.
+
+기존 quality-only case/결과의 누락 필드는 직렬화에 추가하지 않아 과거 입력/결과 hash를 보존한다. 다만 새 catalog 실행은 COMPLETE_TEXT에 역할 기대값이 없으면 EXPECTATION_INVALID이며 실행 입력으로 만들지 않는다. PARTIAL/OCR/미지원 파일에 역할 성공 기대값을 붙일 수 없다. 규칙/텍스트/위치 지문이 바뀌면 관측·기대값을 다시 검토해야 한다.
+
+CaseExecutor는 실제 추출 block의 자료형·전체 텍스트 범위·단일 위치를 검증한 후 worker와 같은 역할 판정기를 사용한다. 파일 결과에는 고정 `roleAssessmentHash`만 추가하여 기존32KiB 원장 한도와 원문 비노출을 유지한다. 실제 값이 고정 역할·사유·텍스트·block·Assessment 지문 중 하나라도 다르면 ROLE_EXPECTATION_CHANGED, 구조가 잘못되면 ROLE_EXTRACTION_STRUCTURE_INVALID다. 파일명/URL/본문/다른 첨부는 역할 입력이 아니다.
+
+이 구현으로 공식 기대값이 생긴 것은 아니다. 참조9/실행 기대값0이며 출처별 실제 제공 형식/미확인 적용성, 공식 파일 검토·실행은 계속 잔여다. 모든 출처에 세 형식을 강제하는 기존 적용성 문제를 이번 변경으로 해결했다고 보고하지 않는다.
 
 준비된 각 case는 현재 규칙/runtime을 별도로 결합한 입력 지문을 갖는다. 전체 실행 계획은 catalog와 전체 요구 목록의 지문, 모든 상태, 전체 정상/형식 누락을 보존한다. 분할은 순서가 고정된 실행 가능 항목만 대상으로 하며, 항목 최대시간+정리/DB 여유60초 합계를 각23시간 이내로 묶는다. V79 run의24시간을 늘리지 않으며 원장에 기록할 전체 요구 scope와 분할 case 분모는 구분한다. 최종 verifier는 모든 분할·누락을 다시 대조해야 한다.
 
