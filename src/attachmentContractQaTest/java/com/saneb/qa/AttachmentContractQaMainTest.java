@@ -82,11 +82,25 @@ class AttachmentContractQaMainTest {
     @Test void operatingCredentialsAndConditionBypassAreRejectedBeforeProcessInspection() {
         var properties = new Properties();properties.setProperty("os.name", "Linux");
         properties.setProperty("java.io.tmpdir", "/work/tmp");properties.setProperty("user.dir", "/work");
-        var env = new HashMap<>(Map.of("HOME", "/work", "TMPDIR", "/work/tmp", "SANEB_ATTACHMENT_JOB_TEST", "true", "SANEB_ATTACHMENT_MIGRATION_TEST", "true", "SANEB_ATTACHMENT_WORKER_QA", "true"));
+        var env = new HashMap<>(Map.of("HOME", "/work", "PWD", "/work", "TMPDIR", "/work/tmp", "SANEB_ATTACHMENT_JOB_TEST", "true", "SANEB_ATTACHMENT_MIGRATION_TEST", "true", "SANEB_ATTACHMENT_WORKER_QA", "true"));
         env.put("DB_URL", "PRIVATE_FIXTURE_MARKER");
         assertThatThrownBy(() -> AttachmentContractQaMain.validateEnvironment(env, properties)).hasMessage("CLEAN_ENVIRONMENT_REQUIRED");
         env.remove("DB_URL");properties.setProperty("junit.jupiter.conditions.deactivate", "*");
         assertThatThrownBy(() -> AttachmentContractQaMain.validateEnvironment(env, properties)).hasMessage("EXTERNAL_CONFIGURATION_NOT_ALLOWED");
+    }
+    @Test void bubblewrapWorkingDirectoryMustMatchTheIsolatedDirectoryExactly() {
+        var properties = new Properties();properties.setProperty("os.name", "Linux");
+        properties.setProperty("java.io.tmpdir", "/work/tmp");properties.setProperty("user.dir", "/work");
+        // 다음 검증에서 중단하여 Windows 단위 시험이 Linux /proc 성공을 주장하지 않게 한다.
+        properties.setProperty("junit.jupiter.conditions.deactivate", "*");
+        var env = new HashMap<>(Map.of("HOME", "/work", "PWD", "/work", "TMPDIR", "/work/tmp", "SANEB_ATTACHMENT_JOB_TEST", "true", "SANEB_ATTACHMENT_MIGRATION_TEST", "true", "SANEB_ATTACHMENT_WORKER_QA", "true"));
+        assertThatThrownBy(() -> AttachmentContractQaMain.validateEnvironment(env, properties)).hasMessage("EXTERNAL_CONFIGURATION_NOT_ALLOWED");
+        for (String invalid : List.of("/home/runner/work", "/work/tmp", "/work/../work", "")) {
+            env.put("PWD", invalid);
+            assertThatThrownBy(() -> AttachmentContractQaMain.validateEnvironment(env, properties)).hasMessage("CLEAN_ENVIRONMENT_REQUIRED");
+        }
+        env.remove("PWD");
+        assertThatThrownBy(() -> AttachmentContractQaMain.validateEnvironment(env, properties)).hasMessage("CLEAN_ENVIRONMENT_REQUIRED");
     }
 
     static class SuccessCases { @Test void one() { } @Test void two() { } }

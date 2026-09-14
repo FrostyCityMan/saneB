@@ -94,11 +94,13 @@ public final class AttachmentContractQaMain {
         if (!"Linux".equals(properties.getProperty("os.name"))) throw new QaFailure("LINUX_REQUIRED");
         if (!"/work/tmp".equals(properties.getProperty("java.io.tmpdir"))
                 || !"/work".equals(properties.getProperty("user.dir"))) throw new QaFailure("ISOLATED_WORK_DIRECTORY_REQUIRED");
-        Set<String> allowed = Set.of("PATH", "LANG", "HOME", "TMPDIR", "SANEB_ATTACHMENT_JOB_TEST", "SANEB_ATTACHMENT_MIGRATION_TEST", "SANEB_ATTACHMENT_WORKER_QA");
+        // bubblewrap은 --clearenv 뒤에도 --chdir에 맞춘 PWD를 생성한다. 호스트 경로는 허용하지 않는다.
+        Set<String> allowed = Set.of("PATH", "LANG", "HOME", "PWD", "TMPDIR", "SANEB_ATTACHMENT_JOB_TEST", "SANEB_ATTACHMENT_MIGRATION_TEST", "SANEB_ATTACHMENT_WORKER_QA");
         if (!allowed.containsAll(env.keySet()) || !"true".equals(env.get("SANEB_ATTACHMENT_JOB_TEST"))
                 || !"true".equals(env.get("SANEB_ATTACHMENT_MIGRATION_TEST"))
                 || !"true".equals(env.get("SANEB_ATTACHMENT_WORKER_QA"))
-                || !"/work".equals(env.get("HOME")) || !"/work/tmp".equals(env.get("TMPDIR")))
+                || !"/work".equals(env.get("HOME")) || !"/work".equals(env.get("PWD"))
+                || !"/work/tmp".equals(env.get("TMPDIR")))
             throw new QaFailure("CLEAN_ENVIRONMENT_REQUIRED");
         if (properties.stringPropertyNames().stream().anyMatch(name -> name.startsWith("spring.datasource.")
                 || name.startsWith("spring.config.") || name.startsWith("jdbc.") || name.startsWith("junit.jupiter.conditions.")

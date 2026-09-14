@@ -88,11 +88,11 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 ## 5. 장기 goal 실행 순서
 
 - [x] P0 사용자 정책·기존 계약 충돌 분석과 이 상세 설계 작성.
-- [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 통과. 실제 PG·운영 UI 검증 잔여.
-- [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 통과. 9상태/29행 실제 PG 시험은 Windows Code Integrity 초기화 차단으로 미실행.
+- [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 및 QA 브랜치 Linux 실제 PG 통과. 운영 UI 검증 잔여.
+- [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
 - [ ] P3 본문 전용 영역 및 문서 역할 자동 식별 규칙·예외·공식 QA 기대값 확정/구현.
 - [ ] P4 전체 대상의 profile 매핑·누락 어댑터·실제 파일 기대값 및 Provider QA 화면 연결.
-- [ ] P5 Linux 격리 추출+PostgreSQL+worker→DB→API 실증, ATT001~062 및 새 FLOW 사례 검증.
+- [~] P5 Linux 격리 추출12합성 파일+PG job192/migration2/분할13+worker→DB→API8건 통과. 독립 namespace 환경 계약 실패 수정·재실행 및 전체 Provider/ATT001~062·새 FLOW 전체 실증 잔여.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.
 - [ ] P7 정확한 대상·효과·복구 승인 후 COLLECT_ONLY→ENFORCE 및 기존 데이터 고정 분할 실행.
 - [ ] P8 실제 운영 브라우저에서 단계·실패·재시도·최종 확인·DRAFT·권한·반응형 검증 및 전체 집계.
@@ -123,7 +123,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 - `AnnouncementAttachmentWorkerIntegrationTest.bodyFetchFailureStillCollectsAttachmentsAndPreservesBaseFailureEvidence`: 실제 Linux 추출·임시 PG 경로에서 본문 실패와 첨부 성공 근거를 분리한다. 해당 전용 task의 실행 통과가 필요하며 단위 대역 시험으로 대체하지 않는다.
 - `AnnouncementAttachmentJobIntegrationTest.processingQueueMatchesJavaProjectionForAllNineStatesAndFullPageCounts`: 9상태·29행의 SQL/Java·전체 count·페이지를 대조한다. 기술 예외와 정상 후보를 같은 상태로 합치지 않는다.
 
-09-14 로컬 추가 분류 시험은 기존 포함19건 통과했다. Linux 첫 실행에서 실제 SQL/fixture 실패가 확인되어 수정·재검증 중이다. 운영 수집이나 관리자 브라우저 성공으로 확대하지 않는다.
+09-14 로컬 추가 분류 시험은 기존 포함19건 통과했다. [Linux 세 번째 실행](https://github.com/FrostyCityMan/saneB/actions/runs/34826506160)에서 위 worker·대기열 실제 PG 시험을 포함한 주 검증이 통과했다. 독립 namespace 실행은 환경 계약 실패로 전체 workflow가 실패했으며 수정·재검증 중이다. 운영 수집이나 관리자 브라우저 성공으로 확대하지 않는다.
 
 효과 지표는 동일 기간·대상·규칙 버전 기준의 최종 검증 소요 시간(실사용 관측), 추가 판단 필요 비율, 수동 역할 지정 비율, 기술 실패율, 표본 오분류/누락률이다. 처리 건수와 기간을 함께 기록하며, 개인정보/원문/검수 메모를 분석 이벤트에 복사하지 않는다. 아직 baseline과 개선율을 측정하지 않았으므로 절감률을 약속하지 않는다.
 

@@ -14,6 +14,10 @@
 
 두 번째 [34825668605](https://github.com/FrostyCityMan/saneB/actions/runs/34825668605), SHA `17243d54a132598d37e13753482eaef8fe6a9959`도 **실패**. job191/192, 첨부 migration2/2, 분할1/13, Linux 합성12파일 격리12/12, worker7/8통과를 확인했다. 분할의 GROUP BY parameter SQL 오류와 지연 제약/미지원 파일 상태의 시험 기대값을 수정 후 재검증한다. 독립 실행에 포함할 DB2개 parameterized 입력을 고정 @Test로 분리하여 사전 목록은215건으로 일치시켰다. 독립 namespace 전체 실행과 정책 부모 연결은 아직 미실행이다.
 
+세 번째 [34826506160](https://github.com/FrostyCityMan/saneB/actions/runs/34826506160), SHA `6dc12e12073e6e46a9ab7566380949eb9cd48c42`는 주 Gradle 검증을 통과했다. job192/192, migration2/2, 분할13/13, Linux 합성12파일 격리12/12, worker8/8, root2064통과/241조건부 생략, extractor25·독립 QA 패키지15·Node152통과 및 bootJar/설치 패키지 생성 성공이다. 그러나 독립 namespace 실행은 `CLEAN_ENVIRONMENT_REQUIRED`로 실패했고 임시 자원 정리는 성공했다. 이후 정책 부모 연결은 미실행이므로 workflow 전체는 실패다.
+
+원인: bubblewrap의 `--clearenv`는 `PWD`를 제거하지 않으며 `--chdir /work`에 맞춘 값을 유지한다([공식 v0.6.1 문서](https://github.com/containers/bubblewrap/blob/v0.6.1/bwrap.xml)). 실행기의 허용 목록에서 이 고정 값이 누락됐다. `PWD=/work`만 검증하도록 수정하고 누락·다른 경로·경로 정규화 표현과 외부 설정/DB 환경변수는 계속 거부한다. 보안 격리나 전체 시험 분모를 완화하지 않는다. 수정 뒤 전체 원격 검증을 다시 실행해야 한다.
+
 ### 이전 구현 기록
 
 09-12 후속: 독립 QA 산출물 `installAttachmentContractQa`에 실제 worker/격리 추출/DB 연결 8사례와 정부24 출처 정합성 1사례를 추가했다. 현재 고정 목록은 job168·migration2·backfill13·worker8=191건이며, Linux 실제 실행은 여전히 미확인이다. migration 검증은 V78까지 포함한다. HTTP는 고정 합성 입력이고 실제 사이트 수집이 아니다. 아래 과거159건은 당시 기록이다. 상세·명령·승인 경계는 [독립 worker·DB QA 산출물](announcement-attachment-contract-runtime-2026-09-12.md)을 따른다.
