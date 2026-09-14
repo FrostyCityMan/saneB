@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
+<main class="attachment-review-page" data-provider-qa th:attr="data-is-admin=${#lists.contains(page.auth.roles, 'ADMIN')}">
+    <a class="attachment-skip" href="#provider-qa-plan">실행 계획으로 건너뛰기</a>
+    <nav aria-label="현재 위치"><a th:href="@{/app/admin/announcement-attachment-policies}" data-policy-link>공고 첨부 정책 관리</a> / <span aria-current="page">수집원 실파일 QA 관리</span></nav>
+    <section class="plain-panel">
+        <h2>고정된 실파일 QA 분할을 확인하고 예약합니다</h2>
+        <p>제목 → 정제 본문 → 실제 PDF·HWP·HWPX 텍스트 → 관리자 최종 검증 흐름을 유지합니다. QA 예약은 승인한 표본의 외부 요청·다운로드·추출을 수행할 수 있습니다. 정책 게시·ENFORCE·기존 데이터 일괄 적용·공고 활성화는 실행하지 않습니다.</p>
+        <p>분할 실행 종료(COMPLETED)나 표본 기대 동작 일치(PASSED)는 전체 QA 통과 또는 정상 공고 판정이 아닙니다. 실패·부분 추출·OCR 필요·미실행 파일은 검증 분모에 남습니다.</p>
+        <p th:if="${not #lists.contains(page.auth.roles, 'ADMIN')}">현재 계정은 조회 전용입니다. 예약·취소는 비밀번호 변경을 완료한 활성 관리자만 실행합니다.</p>
+        <div class="attachment-actions"><a class="secondary-action" data-coverage-link th:href="@{/app/admin/announcement-attachment-policies}">수집원별 검증 범위 조회</a><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></div>
+        <p data-status role="status" aria-live="polite">계획과 실행 이력을 조회합니다.</p>
+        <p id="provider-qa-error" data-error class="attachment-error" role="alert" tabindex="-1" hidden></p>
+        <div data-uncertain hidden>
+            <p>이전 요청 결과가 미확정입니다. 새 예약을 만들지 마세요. 예약은 원래 키·입력으로만 재확인합니다. 이 탭을 닫거나 새로고침하면 사유와 요청 키가 사라집니다.</p>
+            <div class="attachment-actions"><button type="button" class="secondary-action" data-retry>원래 요청 그대로 재확인</button><button type="button" class="secondary-action" data-inspect disabled>취소 대상 최신 상태 조회</button></div>
+            <div data-inspection></div>
+            <label><input type="checkbox" data-reconcile-ack disabled> 원래 취소의 성공은 미확정이며, 조회한 현재 실행 상태만 새 검토 기준으로 채택합니다.</label>
+            <button type="button" class="secondary-action" data-reconcile disabled>조회 상태를 새 검토 기준으로 채택</button>
+        </div>
+        <noscript>JavaScript를 활성화하세요. 조회·예약·취소를 자동 실행하지 않습니다.</noscript>
+    </section>
+    <section class="plain-panel" id="provider-qa-plan" tabindex="-1">
+        <h2>1. 전체 계획과 이번 분할</h2>
+        <p>관리자가 파서·파일·URL을 지정하거나 예산을 임의로 낮추지 않습니다. 전체 기대값이 미완료여도 허용된 일부 분할 QA만 별도 확인 후 예약할 수 있습니다. 전체 Gate의 검증 의무는 그대로 남습니다.</p>
+        <button type="button" class="secondary-action" data-plan-refresh disabled>최신 계획 첫 페이지 조회</button>
+        <div data-plan>아직 계획을 조회하지 않았습니다.</div><div data-segments></div><div class="attachment-actions" data-plan-pages></div>
+        <p data-reservation-condition></p>
+    </section>
+    <section class="plain-panel">
+        <h2>2. 실행 이력</h2><p>서버 실행 설정이 꺼져 있거나 설치 확인이 실패해도 기존 이력 조회와 취소는 별도입니다. 자동 새로고침은 하지 않습니다.</p>
+        <button type="button" class="secondary-action" data-runs-refresh disabled>실행 이력 다시 조회</button>
+        <div data-runs></div><div class="attachment-actions" data-run-pages></div>
+    </section>
+    <section class="plain-panel" id="provider-qa-run" tabindex="-1">
+        <h2>3. 선택한 실행과 모든 항목</h2>
+        <div class="attachment-actions"><button type="button" class="secondary-action" data-run-refresh disabled>선택 실행·항목 다시 조회</button><button type="button" class="secondary-action" data-cancel disabled>선택 실행 취소 영향 확인</button></div>
+        <div data-run>아직 실행을 선택하지 않았습니다.</div><p data-cancel-condition></p>
+        <p>전체 항목 수와 현재 페이지 수를 구분합니다. 항목 상태는 조회 시점에 따라 달라질 수 있습니다. 기대 파일 수는 추출 성공 파일 수가 아닙니다.</p>
+        <div data-cases></div><div class="attachment-actions" data-case-pages></div>
+    </section>
+    <section class="plain-panel" data-approval hidden>
+        <h2 data-approval-title tabindex="-1">이번 QA 작업 확인</h2><div data-impact></div>
+        <form data-approval-form><fieldset data-approval-fields disabled><legend>사유와 개별 확인</legend>
+            <label for="provider-qa-reason">작업 사유 (필수, 1~1000자)</label><textarea id="provider-qa-reason" name="reason" rows="3" maxlength="1000" required aria-describedby="provider-qa-reason-help provider-qa-error"></textarea>
+            <p id="provider-qa-reason-help">비밀번호·인증 정보·개인정보는 입력하지 마세요. 미전송 입력과 재확인 요청은 이 탭에서만 보존합니다.</p>
+            <fieldset data-reserve-checks hidden disabled><legend>분할 예약 영향 확인</legend>
+                <label><input type="checkbox" name="acknowledgeScope" required> 위 분할의 전체 공고 코드와 건수를 확인했습니다.</label>
+                <label><input type="checkbox" name="acknowledgeNetworkBudget" required> 외부 요청 횟수·다운로드 용량·최대 시간을 확인했으며 이번 QA 분할의 실행을 승인합니다.</label>
+                <label data-incomplete-label><input type="checkbox" name="acknowledgeIncompleteCoverage"> 전체 기대값이 미완료인 일부 QA이며 전체 검증·정책 게시·기존 데이터 적용 승인이 아님을 확인했습니다.</label>
+            </fieldset>
+            <label data-cancel-check hidden><input type="checkbox" name="acknowledgeCancellation"> 대기 항목은 취소되고 실행 중 파일은 소유자의 정리가 필요하며, 이미 수행한 요청을 되돌리지는 않음을 확인했습니다.</label>
+        </fieldset><div class="attachment-actions"><button type="submit" class="primary-action" data-submit disabled>확인한 QA 작업 실행</button><button type="button" class="secondary-action" data-close>실행하지 않고 닫기</button></div></form>
+    </section>
+    <section class="plain-panel"><h2>확인한 작업 응답</h2><div data-receipt tabindex="-1">아직 변경 요청을 실행하지 않았습니다.</div></section>
+    <script th:src="@{/js/saneb-attachment-policy-core.js}"></script><script th:src="@{/js/saneb-attachment-provider-qa-core.js}"></script><script th:src="@{/js/saneb-attachment-provider-qa.js}"></script>
+</main>
+</html>

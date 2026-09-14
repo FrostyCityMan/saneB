@@ -115,6 +115,7 @@ test('policy workspace deep link shows QA incomplete and global impact without a
     assert.match(text(h.q('[data-impact]')),/정확한 대상 목록의 고정 지문이나 게시 승인 토큰이 아닙니다/);assert.equal(h.q('[data-save]').disabled,false);
     const coverage=h.q('[data-detail]').children.find(e=>e.tag==='a'&&e.textContent.includes('수집원별 첨부 검증 범위'));
     assert.equal(coverage.href,'/app/admin/announcement-attachment-provider-coverage?policyId='+id(1));
+    assert.equal(h.q('[data-detail]').children.find(e=>e.tag==='a'&&e.textContent==='수집원 실파일 QA 예약·이력·취소').href,'/app/admin/announcement-attachment-provider-qa?policyId='+id(1));
 });
 test('operator or approver cannot forge write actions even by firing disabled controls',async()=>{
     const h=harness({admin:false});await h.app.start();for(const kind of ['save','qa','cancel','revision']){h.app.arm(kind);h.ack.checked=true;await h.app.submit();}

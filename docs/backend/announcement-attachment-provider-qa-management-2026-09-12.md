@@ -2,6 +2,14 @@
 
 ## 범위와 Gate
 
+### 2026-09-15 현재 증분
+
+참조 catalog는15건/실행 기대값0이다. 전체 verifier와 격리 Linux/PostgreSQL 계약은 후속 구현·검증됐으며, 같은 SHA별 근거는 `announcement-attachment-linux-contract-qa-2026-09-11.md`를 따른다. 실제 공식 Provider 전체 성공 또는 운영 성공을 뜻하지 않는다.
+
+관리자 예약·이력·항목 조회·취소 화면을 `/app/admin/announcement-attachment-provider-qa`에 연결했다. 역할/CSRF/고정 예산/개별 확인/응답 유실 재확인과 합성 브라우저 결과는 `announcement-provider-qa-ui-2026-09-15.md`를 따른다. 정책 게시·ENFORCE·기존 데이터 적용을 호출하지 않는다. 전체 표본 기대값·대상 모델·운영 배포/E2E는 필수 잔여다.
+
+### 최초 구현 시점 기록 — 아래 미검증 표시는 당시 기준
+
 Gate1/3 진행이다. V79 내부 원장과 catalog/snapshot6를 관리자 업무 계약에 연결한다. 전체 ATT001~062와 운영 브라우저까지의 목표를 유지한다. 현재 catalog 참조9/실행 기대값0이므로 실제 예약·외부 요청 성공으로 보고하지 않는다.
 
 - [~] V80: 승인 계획/분할 metadata와 원자적 봉인 제약 구현. 실제 PostgreSQL 실행은 미검증.
@@ -42,4 +50,4 @@ V80 이후 새 run은 BUILDING 생성 transaction에서 계획 binding·모든 c
 
 Service·MockMvc·Mapper 바인딩·DDL 정적 시험과 실제 PostgreSQL 전용 계약 시험을 작성했다. 첫 컴파일 실패는 테스트의 페이지 이름(totalElements)을 기존 totalCount로 정정했다. 다음 표적 실패는 JSON long/정수 node 타입 차이를 실제 계획 변경으로 오인한 서비스 결함이었으며 동일 JSON 직렬화 후 값 비교로 수정했다. 실제 값/지문 변경 거부는 유지한다.
 
-전체 회귀 수와 실제 실행/생략 여부는 최신 진행 기록을 따른다. 실제 Linux/DB·전체 공식 표본 기대값·관리자 UI·정책 전체 verifier·운영 배포/E2E는 필수 잔여이며 본 문서의 로컬 검증으로 대체하지 않는다.
+전체 회귀 수와 실제 실행/생략 여부는 최신 진행 기록과 위 현재 증분을 따른다. 최초 구현 당시에는 실제 Linux/DB·전체 공식 표본 기대값·관리자 UI·정책 전체 verifier·운영 배포/E2E가 잔여였다. 후속 로컬·격리 Linux 검증을 운영·전체 공식 표본 성공으로 대체하지 않는다.
