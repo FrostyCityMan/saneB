@@ -25,6 +25,8 @@
 
 ## 조회 방법과 변경 경계
 
+2026-09-15 04시대 후속 조회는 AWS 세션 만료로 실패했다. 운영 정상 여부·신규 원주 SourceBinding 일치를 현재 시각 기준으로 재확인하지 못했다. 이 문서의 운영 사실은 위03:30~03:50 snapshot이며 최신 코드/운영 동기화를 의미하지 않는다. 이번 후속에서 운영 명령·DB 쓰기·배포는 실행되지 않았다.
+
 - GitHub repository variables → CodeDeploy deployment group/tag → 해당 EC2/SSM Online 순서로 대상을 확정했다.
 - SSM `4da5c4eb-d9d6-44f8-b444-8ff5b860d2bb`: JAR/서비스/localhost health/허용된 플래그 존재만 조회, Success.
 - SSM `2ab2fbef-01b1-402e-9493-eb0fc762e587`: 실행 중 서비스 환경에서 접속값을 원격 메모리로만 사용했다. `default_transaction_read_only=on`, statement timeout8초/lock timeout2초 아래 고정 SELECT로 migration/대상/건수를 조회, Success.

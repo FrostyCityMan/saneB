@@ -13,8 +13,9 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-/** 실측한 세 기관의 BBS만 지원한다. SPRING_BBS 전체를 지원한다고 간주하지 않는다. */
+/** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
+    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
     private static final Set<String> SOURCE_PARAMETERS = Set.of("key", "bbsNo", "nttNo", "searchCtgry",
@@ -25,27 +26,31 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     private final String board;
     private final String menu;
     private final boolean compactLayout;
+    private final Layout layout;
+    private final String listParser;
     private final boolean upgradeStoredHttp;
     private final String hash;
     private final AnnouncementSourceIdentityNormalizer normalizer = new AnnouncementSourceIdentityNormalizer();
 
     StandardBbsAttachmentDiscoveryProfile(String code, String sourceCode, String host, String board, String menu,
-                                          boolean compactLayout, boolean upgradeStoredHttp) {
+                                          Layout layout, boolean upgradeStoredHttp, String listParser) {
         this.code = code; this.sourceCode = sourceCode; this.host = host; this.board = board; this.menu = menu;
-        this.compactLayout = compactLayout; this.upgradeStoredHttp = upgradeStoredHttp;
-        this.hash = AttachmentProfileFingerprint.selectHash(String.join("|", "STANDARD_BBS:1", code, sourceCode,
-                host, board, menu, Boolean.toString(compactLayout), Boolean.toString(upgradeStoredHttp),
-                "SPRING_BBS|https443|session-free|exact-file-cell|unknown-role|limit10|no-preview-fetch"), getClass());
+        this.layout = layout; this.listParser = listParser;
+        this.compactLayout = layout != Layout.CLASSIC; this.upgradeStoredHttp = upgradeStoredHttp;
+        this.hash = AttachmentProfileFingerprint.selectHash(String.join("|", "STANDARD_BBS:2", code, sourceCode,
+                host, board, menu, layout.name(), Boolean.toString(upgradeStoredHttp), listParser,
+                "https443|session-free|exact-file-cell|unknown-role|limit10|no-preview-fetch"), getClass());
     }
 
     @Override public String selectProviderCode() { return "LOCAL_GOV_NOTICE"; }
-    @Override public List<SourceBinding> selectSourceBindings() { return List.of(new SourceBinding(sourceCode,"SPRING_BBS")); }
+    @Override public List<SourceBinding> selectSourceBindings() { return List.of(new SourceBinding(sourceCode, listParser)); }
     @Override public String selectProfileCode() { return code; }
     @Override public String selectProfileHash() { return hash; }
     @Override public Set<String> selectApprovedHosts() { return Set.of(host); }
-    // 횡성·영월은 실측한 UTF-8 header octet만 기존 엄격 복원기로 처리한다. 태백은 기본 검사를 유지한다.
+    // 횡성·영월·원주는 실측한 UTF-8 header octet만 엄격 복원한다. 형식 불일치 검사는 완화하지 않는다.
     @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp; }
     @Override public Set<String> selectLegacyBinaryContentTypes() {
+        if (layout == Layout.COMPACT_MENU_KEY) return Set.of();
         return Set.of(upgradeStoredHttp ? "application/x-msdownload" : "application/octer-stream");
     }
     @Override public URI selectDetailUri(String noticeId) { throw new IllegalArgumentException("PROFILE_REQUIRED"); }
@@ -54,14 +59,14 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     @Override public URI selectDetailUri(Source source) {
         try {
             if (source == null || !selectProviderCode().equals(source.providerCode()) || !sourceCode.equals(source.localSourceCode())
-                    || !"SPRING_BBS".equals(source.listParserProfileCode()) || source.sourceUrl() == null || source.sourceUrl().length() > 4096
+                    || !listParser.equals(source.listParserProfileCode()) || source.sourceUrl() == null || source.sourceUrl().length() > 4096
                     || !normalizer.hash(normalizer.canonicalizeUrl(source.sourceUrl())).equals(source.providerNoticeId()))
                 throw new IllegalArgumentException();
             URI original = URI.create(source.sourceUrl());
             if (!selectOrigin(original, upgradeStoredHttp)) throw new IllegalArgumentException();
             String path = original.getRawPath();
             // 횡성 목록의 익명 세션 경로는 원문 identity 검증에만 사용한다. 네트워크/locator에 전달하지 않는다.
-            if (compactLayout && path.matches(DETAIL.replace(".", "\\.") + ";jsessionid=[A-Za-z0-9.-]{1,128}")) path = DETAIL;
+            if (layout == Layout.COMPACT && path.matches(DETAIL.replace(".", "\\.") + ";jsessionid=[A-Za-z0-9.-]{1,128}")) path = DETAIL;
             Map<String, String> query = selectParameters(original.getRawQuery());
             if (!DETAIL.equals(path) || !SOURCE_PARAMETERS.containsAll(query.keySet()) || !selectDetailParameters(query))
                 throw new IllegalArgumentException();
@@ -80,15 +85,16 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         URI detail = selectDetailUri(source);
         if (html == null || html.length() > 1_000_000) return selectFailed("ATTACHMENT_DETAIL_UNAVAILABLE");
         var document = Jsoup.parse(html, detail.toASCIIString());
-        var tables = document.select(compactLayout ? "div.p-wrap.bbs.bbs__view > table.p-table.block" : "table.bbs_default.view");
+        var tables = document.select(layout == Layout.COMPACT_MENU_KEY ? "div.bbs_wrap > div.p-wrap.bbs.bbs__view > table.p-table"
+                : compactLayout ? "div.p-wrap.bbs.bbs__view > table.p-table.block" : "table.bbs_default.view");
         if (tables.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element table = tables.getFirst();
-        boolean subject = compactLayout ? table.select("span.p-table__subject_text").size() == 1
+        boolean subject = layout == Layout.COMPACT ? table.select("span.p-table__subject_text").size() == 1
                 && !table.select("span.p-table__subject_text").text().isBlank()
-                : table.select("th").stream().filter(e -> "제목".equals(e.text().trim()) && e.nextElementSibling() != null
+                : table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim()) && e.nextElementSibling() != null
                         && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count() == 1;
-        if (!subject || table.select("td[title=내용]").size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
-        var labels = table.select("th").stream().filter(e -> "파일".equals(e.text().trim())).toList();
+        if (!subject || table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).count() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
+        var labels = table.select("th").stream().filter(e -> e.closest("table") == table && "파일".equals(e.text().trim())).toList();
         if (labels.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element label = labels.getFirst(), cell = label.nextElementSibling();
         if (cell == null || !"td".equals(cell.tagName()) || !"tr".equals(label.parent().tagName()) || cell.nextElementSibling() != null)
@@ -152,17 +158,17 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectDownloadParameters(Map<String, String> query) {
         if (!selectId(query.get("atchmnflNo"))) return false;
-        if (compactLayout) return query.keySet().equals(Set.of("atchmnflNo"));
-        return upgradeStoredHttp ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
+        if (layout == Layout.COMPACT) return query.keySet().equals(Set.of("atchmnflNo"));
+        return upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
                 : query.keySet().equals(Set.of("bbsNo", "atchmnflNo")) && board.equals(query.get("bbsNo"));
     }
     private boolean selectPreview(URI detail, String href, String attachmentId, String noticeId) {
         URI uri = selectResolved(detail, href);
         if (!selectOrigin(uri, false)) return false;
         Map<String, String> query = selectParameters(uri.getRawQuery());
-        if (compactLayout) return "/www/previewBbsFile.do".equals(uri.getPath())
+        if (layout == Layout.COMPACT) return "/www/previewBbsFile.do".equals(uri.getPath())
                 && query.equals(Map.of("atchmnflNo", attachmentId));
-        if (upgradeStoredHttp) return "/www/previewUrl.do".equals(uri.getPath())
+        if (upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY) return "/www/previewUrl.do".equals(uri.getPath())
                 && query.equals(Map.of("key", menu, "atchmnflNo", attachmentId));
         return "/common/program/synap.jsp".equals(uri.getPath()) && query.keySet().equals(Set.of("fileName", "nttNo", "FileIndex"))
                 && noticeId.equals(query.get("nttNo")) && query.get("FileIndex").matches("[0-9]{1,3}")

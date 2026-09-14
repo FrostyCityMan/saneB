@@ -47,6 +47,41 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 + "</table>" + (compact ? "</div>" : "") + "<footer>의회 감사 고시</footer></main>";
     }
 
+    private static String wonjuHtml(String body) {
+        return "<main><header>스타트업 메뉴</header><div class='bbs_wrap'><div class='p-wrap bbs bbs__view'>"
+                + "<table class='p-table'><tr><th>제목</th><td>사업자 지원 공고</td></tr><tr><th>작성자</th><td>담당 부서</td></tr>"
+                + "<tr><td title='내용'>" + body + "</td></tr><tr><th>파일</th><td>특허자료.hwpx</td></tr>"
+                + "</table></div></div><footer>수출 관련 공고</footer></main>";
+    }
+
+    @Test void wonjuBodyKeepsOnlyMeasuredContentWithoutLosingNestedBusinessTable() {
+        var result = bbsResult("www.wonju.go.kr", "?key=216&bbsNo=140&nttNo=123", wonjuHtml(
+                "소상공인 지원금 <nav>메뉴</nav><table><tr><th>지원대상</th><td>사업자</td></tr></table>"
+                        + "수출기업 제외 <a href='/apply'>신청</a>"));
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원대상 사업자 수출기업 제외 신청");
+    }
+
+    @Test void wonjuMissingOrAmbiguousStructureNeverUsesPageText() {
+        String valid = wonjuHtml("지원사업 본문");
+        for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("bbs_wrap", "changed"),
+                valid.replace("class='p-table'", "class='changed'"), valid.replace("제목</th>", "변경</th>"),
+                valid.replace("title='내용'", "title='변경'"), valid.replace("<td title='내용'>", "<td title='내용'>중복</td><td title='내용'>"),
+                valid.replace("<th>제목</th><td>사업자 지원 공고</td>", "<td><table><tr><th>제목</th><td>가짜 제목</td></tr></table></td>"))) {
+            var result = bbsResult("www.wonju.go.kr", "?key=216&bbsNo=140&nttNo=123", page);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void wonjuQueryAndEmptyBodyRemainExplicitFailures() {
+        for (String query : List.of("?key=216&bbsNo=140", "?key=216&bbsNo=140&nttNo=0", "?key=999&bbsNo=140&nttNo=123",
+                "?key=216&bbsNo=999&nttNo=123", "?key=216&bbsNo=140&nttNo=123&bbsNo=140", "?key=216&bbsNo=140&nttNo=123&other=1"))
+            assertThat(bbsResult("www.wonju.go.kr", query, wonjuHtml("본문")).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(bbsResult("www.wonju.go.kr", "?key=216&bbsNo=140&nttNo=123", wonjuHtml("<nav>메뉴</nav>"))
+                .failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+    }
+
     private ProviderContentResult bbsResult(String host, String suffix, String body) {
         var transport = new StubTransport(); transport.enqueue(html(body));
         var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest(

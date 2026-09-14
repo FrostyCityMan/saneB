@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 부산·강북·화천 본문 증분 Linux 계약 통과
+
+[실행22 / 34885874260](https://github.com/FrostyCityMan/saneB/actions/runs/34885874260), SHA `fb81eaa85e2ed0a8f0a9aa441b7866b02904992a`는 전체 성공이다. root2426=2177통과/249조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0이며 전용 시험 생략0이다. 독립 namespace220/220·실패/생략/미실행/container 실패0, 정리2종 SUCCEEDED, Node154/154 및 Linux 설치12/12를 확인했다.
+
+XML은 ignored `build/qa-results/run-34885874260`에 받았다. 공식 관측 표식이 없어 실제 외부 파일 재추출은 실행하지 않았다. 이전 TRANSPORT_TIMEOUT·역할 미확정·운영 Gate를 해소한 것이 아니다. 원주 프로필/본문 증분은 이 SHA 이후이므로 실행22 통과 범위에 포함하지 않는다.
+
 ### 2026-09-15 — JAR별 QA 패키지 설치의 Linux 검증
 
 [실행21 / 34883813483](https://github.com/FrostyCityMan/saneB/actions/runs/34883813483), SHA `74cc12553c3ca4ac86eb2fd0c063fbac48abc2f5`는 전체 workflow 성공이다. 신규 설치 helper 시험12/12통과·실패/생략0으로 Linux 링크 거부·파일 권한·동일 release 불변·다른 JAR 거부·복사 실패 정리·이전 JAR 경로 선택을 확인했다. 실제 CodeDeploy/systemd/운영 설치 시험은 아니다.

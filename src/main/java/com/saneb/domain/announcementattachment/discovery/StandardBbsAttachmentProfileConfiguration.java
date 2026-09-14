@@ -7,12 +7,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class StandardBbsAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectTaebaekProfileDetails() {
-        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_TAEBAEK_BBS_V1", "LGS-000121", "www.taebaek.go.kr", "25", "352", false, true);
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_TAEBAEK_BBS_V1", "LGS-000121", "www.taebaek.go.kr", "25", "352", StandardBbsAttachmentDiscoveryProfile.Layout.CLASSIC, true, "SPRING_BBS");
     }
     @Bean public AttachmentDiscoveryProfile selectHoengseongProfileDetails() {
-        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_HOENGSEONG_BBS_V1", "LGS-000125", "www.hsg.go.kr", "65", "821", true, false);
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_HOENGSEONG_BBS_V1", "LGS-000125", "www.hsg.go.kr", "65", "821", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT, false, "SPRING_BBS");
     }
     @Bean public AttachmentDiscoveryProfile selectYeongwolProfileDetails() {
-        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_YEONGWOL_BBS_V1", "LGS-000126", "www.yw.go.kr", "17", "273", false, false);
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_YEONGWOL_BBS_V1", "LGS-000126", "www.yw.go.kr", "17", "273", StandardBbsAttachmentDiscoveryProfile.Layout.CLASSIC, false, "SPRING_BBS");
+    }
+    @Bean public AttachmentDiscoveryProfile selectWonjuProfileDetails() {
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_WONJU_BBS_V1", "LGS-000118", "www.wonju.go.kr", "140", "216", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_MENU_KEY, false, "HEURISTIC_NOTICE");
     }
 }

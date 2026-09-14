@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-15 04:40 KST — 원주 기관 모델·본문 연결 및 실제 형식 예외 확인
+
+- P3 구현·검증을 이어 원주 BBS의 고정 모델과 정제 BODY를 추가했다. 제목→본문→실제 첨부 텍스트→최종 관리자 검증 순서와 기존 제목 제외·A/B·UNKNOWN·자동 ACTIVE 금지 정책은 변경하지 않았다. 첨부 엔진6/등록 프로필13(지자체12)/전용 본문12기관으로 확장했으며 전체 대상223개를 축소하지 않는다.
+- 원주 공식 지원 관련3공고의 BODY는 AVAILABLE/시도1/redirect0이다. 첨부6개 전부를 발견·다운로드했고5개 HWPX signature 통과,1개 표시 HWPX/실제 OLE-HWP 불일치는 `ATTACHMENT_FORMAT_MISMATCH`로 거부했다.6시험 통과 중1시험은 명시적인 음성 검증이다. 정상 후보3개·텍스트 추출 성공으로 계산하지 않는다. 마지막 첨부 검증9요청/예약1,434,064bytes/원본 정리3/3, 본문 별도3요청이다.
+- 초기 파일 시험3실패를 실제 헤더·signature 관측으로 분리했다. 원주에만 기존 UTF-8 header octet 엄격 복원을 연결했고, legacy MIME 예외·형식 불일치 허용은 추가하지 않았다. BBS 공유 코드 지문이 바뀌므로 이전3기관의 정책/QA 근거를 새 코드에 재사용할 수 있다고 보지 않는다.
+- 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar installAttachmentContractQa --no-daemon --max-workers=1`은3분32초 성공, root2439=2189통과/250조건부 생략/실패0, 패키징20/20이다. 추출기 시험은 UP-TO-DATE이며 이번 새 실행 성공으로 세지 않는다. 이후 테스트 경계1건 추가·불필요한 진단 필드 제거에 대한 마지막 표적 재검증은 아래 후속 결과를 따른다. Node22건=20통과/2 Linux 전용 생략/실패0이다.
+- 마지막 `:test`의 BBS 프로필·BODY·Provider 계획3개 시험군94건은22초에 전부 통과/생략0이다. 최종 production bootJar SHA256은 `880d1e9e1db6ee5cc8ac49ea72bdf881a434a7e65d046913438855f454d28a76`이며 운영 JAR와 구분한다. 사용한 Node/Java 및 임시 조사 파일은 정리했고 다른 작업의 프로세스는 종료하지 않았다.
+- 직전 `fb81eaa85e2ed0a8f0a9aa441b7866b02904992a`의 [Linux 실행22](https://github.com/FrostyCityMan/saneB/actions/runs/34885874260)는 전체 성공이다. root2426=2177통과/249생략, 별도 extractor25·패키징20·job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 통과다. 원주 증분 이후의 CI 또는 공식 파일 재추출 근거는 아니다.
+- 서울 AWS 세션이 만료되어 현재 운영 조회는 차단됐다. 원주 목록 parser는 저장소 V62 기준 HEURISTIC_NOTICE이며 운영 일치는 미확인이다. 따라서 직전 운영 결합11/미결합212를 현재211로 바꾸지 않는다. 운영 배포/정책/플래그/데이터/브라우저 변경·검증은 이번 회차에 실행하지 않았다.
+- 상세 근거는 [원주 모델 증분](announcement-wonju-bbs-profile-2026-09-15.md)에 기록했다. 제천은 구조 차이만 확인했으며 미구현 상태로 남긴다. DB/API/UI/migration 변경은 없고 임시 조사 원문·소스는 삭제, 사용자 output/Word2개는 보존했다. 공식 역할 기대값·전체 기관 모델/형식 QA·같은 SHA 운영 적용·승인된 전체 데이터 배치·운영 브라우저가 남아 있으며 전체 Gate/ATT **Not ready**, goal ACTIVE다.
+
 ### 2026-09-15 04:12 KST — 등록 지자체의 본문 정제 연결 완료, 전체 대상 검증과 구분
 
 - 직전 회차의 QA 배포 패키지 보완은 [Linux 실행21](https://github.com/FrostyCityMan/saneB/actions/runs/34883813483), `74cc12553c3ca4ac86eb2fd0c063fbac48abc2f5`에서 전체 성공했다. 설치12/12, 실제 job192·migration17·worker11·격리 runtime1·부모2·독립220/220 및 정리 통과다. 공식 관측을 재실행하지 않아 이전 timeout은 미해결이다.

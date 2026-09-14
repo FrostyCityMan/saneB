@@ -20,13 +20,26 @@ import org.junit.jupiter.params.provider.MethodSource;
 @EnabledIfEnvironmentVariable(named = "SANEB_ATTACHMENT_PROFILE_QA", matches = "true")
 class StandardBbsAttachmentProfileLiveQaTest {
     @TempDir Path directory;
-    record Sample(int profileIndex, String noticeId, int fileCount, List<String> formats) { }
+    record Sample(int profileIndex, String noticeId, int fileCount, List<String> formats, String expectedRejection) {
+        Sample(int profileIndex, String noticeId, int fileCount, List<String> formats) {
+            this(profileIndex, noticeId, fileCount, formats, null);
+        }
+    }
     static Stream<Sample> selectCases() {
         return Stream.of(new Sample(0, "185101", 2, List.of("HWPX", "HWPX")),
                 new Sample(0, "184816", 2, List.of("HWPX", "HWPX")), new Sample(0, "184827", 1, List.of("HWPX")),
                 new Sample(1, "424679", 1, List.of("HWPX")), new Sample(1, "424078", 2, List.of("HWPX", "HWPX")),
                 new Sample(1, "424077", 2, List.of("HWPX", "HWPX")), new Sample(2, "157529", 2, List.of("PDF", "PDF")),
                 new Sample(2, "157016", 1, List.of("HWPX")), new Sample(2, "156846", 1, List.of("HWPX")));
+    }
+    static Stream<Sample> selectWonjuCases() {
+        return Stream.of(new Sample(3, "491704", 4, List.of("HWPX", "HWPX", "HWPX", "HWPX")),
+                new Sample(3, "491507", 1, List.of("HWPX"), "ATTACHMENT_FORMAT_MISMATCH"),
+                new Sample(3, "491340", 1, List.of("HWPX")));
+    }
+    @ParameterizedTest(name = "원주 공식 지원사업 표본 {index}") @MethodSource("selectWonjuCases") @Timeout(150)
+    void discoversWonjuFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
+        discoversAllFilesAndChecksBoundedProductionTransport(sample);
     }
     @ParameterizedTest(name = "BBS 공식 지원사업 표본 {index}") @MethodSource("selectCases") @Timeout(150)
     void discoversAllFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
@@ -38,6 +51,7 @@ class StandardBbsAttachmentProfileLiveQaTest {
         report.put("profileCode", profile.selectProfileCode()); report.put("profileHash", profile.selectProfileHash());
         report.put("caseId", profile.selectProfileCode() + "-" + sample.noticeId()); report.put("startedAt", Instant.now().toString());
         report.put("scope", "FIXED_PUBLIC_PAGE_DISCOVERY_DOWNLOAD_SIGNATURE_ONLY"); report.put("extractionExecuted", false);
+        report.put("policyQaPassed", false); report.put("expectedRejection", sample.expectedRejection());
         report.put("databaseWrites", 0); report.put("operatingActivation", false); report.put("status", "FAILED");
         String stage = "DETAIL";
         try (var client = new AttachmentPinnedDownloadClient()) {
@@ -60,6 +74,14 @@ class StandardBbsAttachmentProfileLiveQaTest {
                 try {
                     var downloadedFile = client.selectDownload(descriptor.selectRequest(), profile.selectApprovedHosts(),
                             r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(r); }, binary, 20L * 1024 * 1024, budget);
+                    if (sample.expectedRejection() != null) {
+                        assertEquals(1, sample.fileCount(), "NEGATIVE_SAMPLE_SCOPE_CHANGED");
+                        var rejected = assertThrows(java.io.IOException.class, () -> new AttachmentFileTypeValidator()
+                                .selectFormat(binary, downloadedFile, descriptor.expectedFormat(), profile.selectUtf8DispositionOctets(), profile.selectLegacyBinaryContentTypes()));
+                        assertEquals(sample.expectedRejection(), rejected.getMessage(), "OFFICIAL_REJECTION_CHANGED");
+                        files.add(Map.of("status", "REJECTED", "failureCode", sample.expectedRejection(), "bytes", downloadedFile.bytes(), "binaryHash", downloadedFile.sha256()));
+                        continue;
+                    }
                     String format = new AttachmentFileTypeValidator().selectFormat(binary, downloadedFile, descriptor.expectedFormat(),
                             profile.selectUtf8DispositionOctets(), profile.selectLegacyBinaryContentTypes());
                     assertTrue(downloadedFile.bytes() > 0, "EMPTY_BINARY");
@@ -69,7 +91,7 @@ class StandardBbsAttachmentProfileLiveQaTest {
                 } finally { Files.deleteIfExists(binary); }
             }
             assertEquals(1L + sample.fileCount(), requests.get(), "UNEXPECTED_REDIRECT_OR_PREVIEW_REQUEST");
-            report.put("status", "DISCOVERY_DOWNLOAD_SIGNATURE_PASSED");
+            report.put("status", sample.expectedRejection() == null ? "DISCOVERY_DOWNLOAD_SIGNATURE_PASSED" : "DOWNLOAD_REJECTED_AS_EXPECTED");
         } catch (Exception | AssertionError failure) {
             String safe = failure.getMessage() != null && failure.getMessage().matches("[A-Z][A-Z0-9_]{1,79}") ? failure.getMessage() : failure.getClass().getSimpleName();
             report.put("failureCode", safe); report.put("failureStage", stage);
