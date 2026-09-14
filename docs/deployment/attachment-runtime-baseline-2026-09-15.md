@@ -21,6 +21,8 @@
 
 실제 정책/job 테이블은 존재한다. 새 worker class가 없다는 이유로 해당 테이블도 없다고 추정하지 않는다. 동일 서비스 UID의 전체 thread는 한 시점에45개였으며, 새 QA 실행의 `nproc=128` 충족·성공을 보장하지 않는다.
 
+후속으로 같은 완료 SSM snapshot의 활성 대상과 현재 코드의 지자체 SourceBinding11개를 대조했다. 강북010·부산027·남구034·중구045·달성052·서구074·태백121·횡성125·영월126·화천130·함안233(LGS- 접두어/6자리 코드)은 각각1행이며 목록 parser도 모두 일치한다. 남은212개 활성 대상에는 현재 첨부 모델 결합이 없다. 11개 결합의 일치는 실제 첨부 텍스트 처리·운영 성공을 증명하지 않는다. 새 SQL을 실행한 것이 아니라03:30~03:50 snapshot을 현재 코드와 대조한 결과다.
+
 ## 조회 방법과 변경 경계
 
 - GitHub repository variables → CodeDeploy deployment group/tag → 해당 EC2/SSM Online 순서로 대상을 확정했다.
@@ -49,6 +51,7 @@
 - Gradle workflow 계약8건과 별도 패키징20건:46초 성공. bootJar/install은 UP-TO-DATE이며 새 operating build/실행으로 세지 않는다.
 - 최종 `test :attachment-extractor:test bootJar attachmentContractQaTest installAttachmentContractQa --no-daemon --max-workers=1`은3분8초 성공이다. root2417건=2169통과/248조건부 생략/실패0이다. extractor·패키징·JAR/설치는 UP-TO-DATE이므로 이 호출에서 다시 실행한 것으로 합산하지 않는다. Windows-ROOT 신뢰 설정을 명령 범위로 사용했고 TLS 검증을 끄지 않았다. 새 Node 구문 검사와 `git diff --check`도 통과했다.
 - Linux CI에 새 설치 시험을 연결했다. Linux 링크/권한·실제 CodeDeploy 설치·실제 systemd 복구는 별도 검증 대상이다.
+- 후속 [Linux 실행21](https://github.com/FrostyCityMan/saneB/actions/runs/34883813483), `74cc12553c3ca4ac86eb2fd0c063fbac48abc2f5`는 전체 성공이다. 설치 시험12/12·생략0, 실제 DB/독립220/부모2도 통과했다. Linux 링크/권한 검증은 완료했지만 운영 CodeDeploy 설치·systemd 복구와 동일 SHA 운영 브라우저는 미실행이다. 상세 건수는 [Linux 검증 기록](../backend/announcement-attachment-linux-contract-qa-2026-09-11.md)을 따른다.
 - 새 hook 설치 실패 시 CodeDeploy 전체 복구, 기존 추출기 경로의 복구, additive migration 이후 이전 JAR 호환성까지 전부 검증했다고 주장하지 않는다. 이 증분은 QA 패키지와 JAR의 경로 결합을 다룬다. 기존 hook의 JAR 복구만으로 DB/추출기를 완전 원복할 수는 없다.
 - 불변 release는 자동 삭제하지 않는다. 보관 용량·불필요한 과거 release 정리는 복구 대상이 확정된 후 승인된 별도 작업으로 수행한다.
 

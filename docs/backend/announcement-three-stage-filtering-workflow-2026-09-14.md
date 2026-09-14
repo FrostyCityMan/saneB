@@ -2,7 +2,7 @@
 
 - 기준일: 2026-09-14. 사용자 확정 방향을 기존 첨부 장기 goal에 통합한다.
 - 목적: 시스템이 텍스트를 먼저 선별·분류·대조하여 사람이 읽고 비교해야 하는 양을 줄인다.
-- 기준선: master / ae893b87348a9bd1cb0893763f6cad5047093a24, 로컬 최신 V81. 운영 적용 증거가 아니다.
+- 설계 시작 기준선: master / ae893b87348a9bd1cb0893763f6cad5047093a24, 당시 로컬 V81. 최신 구현·운영 근거는 아래 증분과 장기 진행 기록을 따른다.
 - 기존 [첨부 설계](announcement-attachment-collection-design-2026-09-08.md)의 처리 순서·화면 해석을 구체화한다. 기존 제목 제외, A/B 정책, v1, additive migration, 근거 불변·권한·배포 승인 경계는 유지한다.
 - 상태: 설계 확정 후 증분 구현 진행. 전체 Gate0~8 / ATT-001~062의 완료 범위를 줄이지 않는다.
 
@@ -79,7 +79,7 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 ## 4. 검수 감소를 막는 구현 과제
 
-1. 지자체 본문 추출은 실측한 태백25·횡성65·영월17 게시판에서 제목 표식과 단일 게시판 표의 `td[title=내용]`만 사용한다. 후속으로 서구·남구·달성·중구·함안의 전용 본문 영역을 추가했으며 상세 경계와 검증은 아래 증분 기록을 따른다. 구조 누락/중복은 `BODY_SELECTOR_CHANGED`이며 페이지 전체로 대체하지 않는다. 내부 결과는 기존 FETCH_FAILED로 전달되어 이후 첨부 분석을 막지 않는다. 나머지 대상은 기존 `main/[role=main]/article/body` 공통 탐색을 유지한다. 명시적인 `nav/[role=navigation]`는 선택 영역 안팎에서 제거하며 일반 본문 문장·실제 제외 조건·신청 링크는 보존한다. 전용8기관 외 본문 영역과 메뉴/푸터 오염의 전수 확인은 여전히 필요하다.
+1. 지자체 본문 추출은 실측한 태백25·횡성65·영월17 게시판에서 제목 표식과 단일 게시판 표의 `td[title=내용]`만 사용한다. 후속으로 서구·남구·달성·중구·함안·부산시·강북구·화천군의 전용 본문 영역을 추가했으며 상세 경계와 검증은 아래 증분 기록을 따른다. 구조 누락/중복은 `BODY_SELECTOR_CHANGED`이며 페이지 전체로 대체하지 않는다. 내부 결과는 기존 FETCH_FAILED로 전달되어 이후 첨부 분석을 막지 않는다. 나머지 대상은 기존 `main/[role=main]/article/body` 공통 탐색을 유지한다. 명시적인 `nav/[role=navigation]`는 선택 영역 안팎에서 제거하며 일반 본문 문장·실제 제외 조건·신청 링크는 보존한다. 전용11기관 외 본문 영역과 메뉴/푸터 오염의 전수 확인은 여전히 필요하다.
 2. 첨부는 공통 구현 6종·등록 profile12개, 형식 추출기3종이다. 목록 파서 개수와 첨부 지원 개수를 혼동하지 않는다. 정부24와 남은 기관의 profile·실제 API 가용성 확인이 필요하다.
 3. 현재 발견 profile의 역할은 UNKNOWN이다. 모든 파일을 NOTICE로 바꾸거나 filename만으로 역할을 확정하지 않는다. 공고문/안내문/양식/참고자료의 검증된 영역·문서 텍스트 증거에 대한 시스템 규칙과 공식 QA 기대값을 먼저 정의한다. 조건 미충족은 UNKNOWN을 유지한다.
 4. 대상/형태 키워드의 부정·제외 문맥, 기관명 보호, 표 범위·문서 간 상충을 고정 사례로 검증한다. 의미를 임의 추론하는 AI·점수는 추가하지 않는다.
@@ -158,12 +158,28 @@ style·제목·표·form 구조가 바뀌거나 중복되면 BODY_SELECTOR_CHANG
 
 최종 로컬 `:test :attachment-extractor:test attachmentContractQaTest bootJar --no-daemon --max-workers=1`은3분37초 성공했다. root2416건=2168통과/248조건부 생략/실패0, 패키징20/20통과다. 추출기 시험은 UP-TO-DATE이며 이번 실제 재실행으로 세지 않는다. Node 보고서10건·diff 검사 통과, 임시 HTML 진단 소스/프로세스 정리, 사용자 Word2개 보존을 확인했다. 이 증분의 Linux/운영 검증은 별도다.
 
+### 부산시·강북구·화천군 본문 정제 증분 — 2026-09-15
+
+각 기관2개 공식 상세에서 본문과 주변 정보의 DOM 경계를 읽기 전용으로 확인했다. 부산79571/79570은 `div.boardView`의 단일 `h4.form-data-subject`와 `dl.form-data-content`의 `내용` dt/인접 dd를 사용한다. 고정 `/nbgosi/view`, 숫자 sno, 실측 `gosiGbn=A`, 선택적 양수 curPage만 허용한다. 다른 gosiGbn은 현재 정제 범위를 넓혀 추정하지 않으며 BODY_SELECTOR_CHANGED로 남긴다.
+
+강북184761/184744는 `form#board`의 직접 자식 hidden `nttId`를 요청값과 대조하고, 직접 `div.bd-view`의 고유 `h3.bd-view__subject` 및 단일 직접 dl/dd만 사용한다. 고정 법정 공고 게시판/menuNo=200082가 필요하다. `table-dl`의 담당자·첨부 metadata와 `opentype`의 공공누리 안내를 본문으로 사용하지 않는다. 폼 밖/중첩 본문의 같은 이름 입력은 공고번호 근거가 아니다.
+
+화천33897/33895는 기존 새올 경로·7query에 subCheck=N을 요구한다. 단일 form1/post의 `table[width=100%][border=0][cellspacing=1][cellpadding=0]`, 같은 표의 제목 th와 인접 값, `word-break:break-all;`인 단일 colspan4 본문 셀을 사용한다. 첨부의 중첩 표(cellpadding1)와 장식 셀을 제외한다. 부산/화천에서 DOM 공고번호 대조까지 성공했다고 주장하지 않는다.
+
+누락·중복·구조/번호/action 변경은 BODY_SELECTOR_CHANGED, 정제 후 빈 본문은 BODY_TEXT_EMPTY다. 주변 메뉴·담당자·파일명으로 대체하지 않으며 실제 A/B 문구·신청 링크·본문 내부 표/목록은 보존한다. 다른 host/path의 기존 동작과 TITLE 선행 Gate·BODY 실패 후 ATTACHMENT 진행 정책은 바꾸지 않았다. 원문·개인정보·다운로드 폼 값을 fixture/로그/문서에 복제하지 않았다.
+
+본문 회귀49건(새9개 시험 메서드)이 통과했다. 최종 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar installAttachmentContractQa --no-daemon --max-workers=1`은3분40초 성공: root2426건=2178통과/248조건부 생략/실패0, 패키징20/20통과. 추출기 시험은 UP-TO-DATE로 이번 재실행 성공에 합산하지 않는다. JAR SHA256은 `8e814a78acbf11e27033f6669e2a306cf1105e2c301d64759e628c82f153507f`다.
+
+마지막 강북 필드 경계 보완 후 `attachmentProfileDiscoveryQa --tests '*MeasuredBodyContentLiveQaTest'`를 다시 실행하여24초 성공/11사례 전부 AVAILABLE·시도1·redirect0을 확인했다(실제 HTTP 시험4.744초). 기존5사례와 새6사례이며 원문 영구 저장·첨부 다운로드·DB 쓰기·운영 활성화는 없다. 이 표본은 본문 구조/HTTP smoke이지 제목 통과 정상 후보·첨부 추출·정책 QA 기대값이 아니다. Node 설치/보고서 시험22건=20통과/2 Linux 전용 생략, diff 검사 통과다. 이전 SHA `74cc125`의 Linux 설치12/12 통과와 이번 BODY 증분의 아직 미실행인 Linux 결과를 구분한다.
+
+전용 본문은11기관, 첨부 엔진6/등록 profile12/추출 형식3이다. 현재 지자체 결합11개는 운영 snapshot의 기관/목록 parser와 일치하지만212개 활성 지자체에는 첨부 결합이 없다. 모든223개 지원·공식 파일 역할 정확도·같은 SHA 운영 적용/브라우저 완료를 선언하지 않는다.
+
 ### 실행 체크리스트
 
 - [x] P0 사용자 정책·기존 계약 충돌 분석과 이 상세 설계 작성.
 - [~] P1 현재 DB 이력 기반 처리 흐름 DTO/상세 UI·상태 회귀 구현, 로컬 단위/HTTP/Node 및 QA 브랜치 Linux 실제 PG 통과. 운영 UI 검증 잔여.
 - [~] P2 목록의 최종 검증 대기열/기술 예외/자동 처리 필터와 SQL count·pagination 구현, 로컬 회귀 및 9상태/29행 Linux 실제 PG 통과. 운영 적용·브라우저 검증 잔여.
-- [~] P3 명시적 탐색 영역 정제·BBS3기관+서구/남구/달성/중구/함안 본문 추출·텍스트 역할 판정기 및 V82/worker/checkpoint/재시도/v2/관리자 근거 연결 구현. V82 통합 경로의 Linux/PG migration3·worker11건 통과. 최신 본문 회귀40건·실제 상세HTTP5건 통과이며 공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
+- [~] P3 명시적 탐색 영역 정제·BBS3기관+서구/남구/달성/중구/함안/부산시/강북구/화천군 본문 추출·텍스트 역할 판정기 및 V82/worker/checkpoint/재시도/v2/관리자 근거 연결 구현. V82 통합 경로의 Linux/PG migration3·worker11건 통과. 최신 본문 회귀49건·실제 상세HTTP11건 통과이며 공식 파일 정확도 및 나머지 본문 모델/전체 QA 기대값은 잔여.
 - [~] P4 실제 첨부의 역할·사유·텍스트/위치 근거 지문을 catalog→실행→원장 재검증에 연결했다. UNKNOWN/양식만 있는 음성 표본은 정상3공고로 세지 않는다. 전체 profile 매핑·누락 어댑터·실제 파일 기대값·형식 적용성 및 Provider QA 화면은 잔여.
 - [~] P5 a314aa9의 Linux 주 검증·독립220/220·직접 부모 연결/취소2건·정리 및 공식3공고/7파일 격리 관측이 통과했다. 실제 품질은 완전5/부분1/OCR필요1, 완전5건도 역할UNKNOWN이다. 역할·기대값/완전PDF·전체 Provider/ATT001~062·새 FLOW 전체 실증은 잔여이며 workflow 성공을 전체 Gate 완료로 대체하지 않는다.
 - [ ] P6 검증된 변경의 한글 커밋·푸시·동일 SHA 배포/health/권한 확인.

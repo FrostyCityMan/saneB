@@ -19,7 +19,13 @@ class MeasuredBodyContentLiveQaTest {
                 new Sample("DALSEONG-53932", "https://eminwon.dalseong.daegu.kr" + path + "53932"),
                 new Sample("JUNGGU-34295", "https://eminwon.jung.daegu.kr" + path + "34295"),
                 new Sample("HAMAN-43065", "https://eminwon.haman.go.kr" + path + "43065"),
-                new Sample("SEOGU-51668", "https://www.seogu.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=51668"));
+                new Sample("SEOGU-51668", "https://www.seogu.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=51668"),
+                new Sample("BUSAN-79571", "https://www.busan.go.kr/nbgosi/view?sno=79571&gosiGbn=A&curPage=1"),
+                new Sample("BUSAN-79570", "https://www.busan.go.kr/nbgosi/view?sno=79570&gosiGbn=A&curPage=1"),
+                new Sample("GANGBUK-184761", "https://child.gangbuk.go.kr/portal/bbs/B0000245/view.do?menuNo=200082&nttId=184761"),
+                new Sample("GANGBUK-184744", "https://child.gangbuk.go.kr/portal/bbs/B0000245/view.do?menuNo=200082&nttId=184744"),
+                new Sample("HWACHEON-33897", "https://eminwon.ihc.go.kr" + path.replace("subCheck=Y", "subCheck=N") + "33897"),
+                new Sample("HWACHEON-33895", "https://eminwon.ihc.go.kr" + path.replace("subCheck=Y", "subCheck=N") + "33895"));
     }
     @ParameterizedTest(name = "공식 본문 구조 {0}") @MethodSource("selectCases") @Timeout(30)
     void readsOnlyMeasuredBodyThroughProductionPinnedTransport(Sample sample) {

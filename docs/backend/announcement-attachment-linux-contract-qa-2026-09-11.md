@@ -2,6 +2,14 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — JAR별 QA 패키지 설치의 Linux 검증
+
+[실행21 / 34883813483](https://github.com/FrostyCityMan/saneB/actions/runs/34883813483), SHA `74cc12553c3ca4ac86eb2fd0c063fbac48abc2f5`는 전체 workflow 성공이다. 신규 설치 helper 시험12/12통과·실패/생략0으로 Linux 링크 거부·파일 권한·동일 release 불변·다른 JAR 거부·복사 실패 정리·이전 JAR 경로 선택을 확인했다. 실제 CodeDeploy/systemd/운영 설치 시험은 아니다.
+
+root2417건=2168통과/249조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·격리 runtime1·부모2건은 실패0이다. 전용 시험의 생략0, 독립 namespace220/220통과·실패/생략/미실행/container 실패0, 독립/전용 계정 정리 SUCCEEDED를 확인했다. XML은 ignored `build/qa-results/run-34883813483`에 받았다.
+
+공식 파일 관측 표식이 없어 외부7파일은 재실행하지 않았다. 이전 실행20의 TRANSPORT_TIMEOUT은 해소된 것으로 계산하지 않는다. 부산시·강북구·화천군 본문 정제는 이 SHA 이후 구현이므로 별도 검증해야 한다. 운영 배포·정책 게시·전체 Provider·기존 데이터·브라우저 Gate는 여전히 미완료다.
+
 ### 2026-09-15 — 최신 Linux 계약 통과와 공식 사이트 timeout 분리
 
 [실행20 / 34880672488](https://github.com/FrostyCityMan/saneB/actions/runs/34880672488), SHA `25e03d2bc65f61a5b063d370744b58e999c38b73`는 공식 관측3건 실패로 전체 workflow 실패다. root2417건=2168통과/249조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·격리 runtime1·부모2건은 실패/생략0(일반 root 생략 제외)이다. 독립220/220 통과·실패/생략/미실행/container 실패0, 독립/전용 계정 정리 SUCCEEDED다.

@@ -293,6 +293,134 @@ class LocalGovernmentNoticeProviderContentClientTest {
         }
     }
 
+    private static String busanBodyHtml(String body) {
+        return "<main><header>수출 특허 메뉴</header><div class='boardView'>"
+                + "<div class='form-group'><h4 class='form-data-subject'>소상공인 지원사업</h4></div>"
+                + "<div class='form-group'><dl class='form-data-info'><dt>담당자</dt><dd>기관 대역</dd></dl></div>"
+                + "<div class='form-group'><dl class='form-data-info'><dt>첨부파일</dt><dd><a href='/nbgosi/download?fileId=F123&seq=1'>특허.hwp</a></dd></dl></div>"
+                + "<div class='form-group'><dl class='form-data-content'><dt><span>내용</span></dt><dd>" + body
+                + "</dd></dl></div></div><footer>행정 공고</footer></main>";
+    }
+
+    private static String gangbukBodyHtml(String body) {
+        return "<main><header>수출 특허 메뉴</header><form id='board'><input type='hidden' name='nttId' value='42'>"
+                + "<div class='bd-view'><h3 class='bd-view__subject'>소상공인 지원사업</h3>"
+                + "<div class='table-dl'><dl><dt>담당자</dt><dd>기관 대역</dd></dl>"
+                + "<dl class='file-lists'><dt>첨부</dt><dd class='item'><a href='/FileDown.jsp'>특허.hwp</a></dd></dl></div>"
+                + "<dl><dd>" + body + "</dd></dl><div class='opentype'><dl><dd>공공누리 안내</dd></dl></div>"
+                + "</div></form><footer>행정 공고</footer></main>";
+    }
+
+    private ProviderContentResult legalBodyResult(boolean busan, String query, String page, boolean officialPath) {
+        var transport = new StubTransport(); transport.enqueue(html(page));
+        String host = busan ? "www.busan.go.kr" : "child.gangbuk.go.kr";
+        String path = officialPath ? (busan ? "/nbgosi/view" : "/portal/bbs/B0000245/view.do") : "/other/view.do";
+        var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest(
+                "LOCAL_GOV_NOTICE", SOURCE_ID, "https://" + host, "https://" + host + path + query));
+        assertThat(transport.callCount()).isEqualTo(1);
+        return result;
+    }
+
+    @Test void busanBodyUsesOnlyUniqueContentDefinitionAndRetainsRealExclusionContext() {
+        var result = legalBodyResult(true, "?sno=42&gosiGbn=A&curPage=1", busanBodyHtml(
+                "소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table><a href='/apply'>신청</a><nav>특허 메뉴</nav>"), true);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+    }
+
+    @Test void busanBodyRejectsMissingDuplicatedAndChangedDefinitions() {
+        String valid = busanBodyHtml("소상공인 지원금");
+        for (String page : List.of(valid.replace("class='boardView'", "class='changed'"),
+                valid.replace("class='form-data-subject'", "class='changed'"), valid.replace("class='form-data-content'", "class='changed'"),
+                valid.replace("<span>내용</span>", "<span>변경</span>"),
+                valid.replace("<dd>소상공인 지원금</dd>", "<dd>소상공인 지원금</dd><dd>추가</dd>"),
+                valid.replace("<h4 class='form-data-subject'>소상공인 지원사업</h4>", ""),
+                valid + valid, valid.replace("소상공인 지원사업", " "))) {
+            var result = legalBodyResult(true, "?sno=42&gosiGbn=A", page, true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void busanBodyRejectsUnmeasuredActionsAndAmbiguousQueryValues() {
+        for (String query : List.of("", "?sno=42", "?sno=42&gosiGbn=B", "?sno=x&gosiGbn=A", "?sno=42&sno=43&gosiGbn=A",
+                "?sno=42&gosiGbn=A&extra=1", "?sno=42&gosiGbn=A&curPage=0", "?sno=42&gosiGbn=A&curPage=1&curPage=2")) {
+            var result = legalBodyResult(true, query, busanBodyHtml("소상공인 지원금"), true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyAvailabilityCode()).isEqualTo(BodyAvailabilityCode.FETCH_FAILED);
+        }
+    }
+
+    @Test void gangbukBodyMatchesHiddenNoticeIdAndExcludesMetadataAndLicenceText() {
+        var result = legalBodyResult(false, "?menuNo=200082&nttId=42", gangbukBodyHtml(
+                "소상공인 지원금 <dl><dt>수출기업</dt><dd>제외</dd></dl><a href='/apply'>신청</a>"), true);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+    }
+
+    @Test void gangbukBodyRejectsNoticeMismatchAndMissingDuplicateOrNestedOnlyContainers() {
+        String valid = gangbukBodyHtml("소상공인 지원금");
+        for (String page : List.of(valid.replace("value='42'", "value='43'"), valid.replace("name='nttId'", "name='changed'"),
+                valid.replace("type='hidden'", "type='text'"),
+                valid.replace("<input type='hidden' name='nttId' value='42'>", "<div><input type='hidden' name='nttId' value='42'></div>"),
+                valid.replace("<div class='bd-view'>", "<input type='hidden' name='nttId' value='42'><div class='bd-view'>"),
+                valid.replace("class='bd-view__subject'", "class='changed'"), valid.replace("소상공인 지원사업", " "),
+                valid.replace("<dl><dd>소상공인 지원금</dd></dl>", ""),
+                valid.replace("<dl><dd>소상공인 지원금</dd></dl>", "<div><dl><dd>소상공인 지원금</dd></dl></div>"),
+                valid.replace("<dl><dd>소상공인 지원금</dd></dl>", "<dl><dd>소상공인 지원금</dd></dl><dl><dd>추가</dd></dl>"), valid + valid)) {
+            var result = legalBodyResult(false, "?menuNo=200082&nttId=42", page, true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void gangbukBodyRejectsDifferentBoardAndAmbiguousNoticeQueries() {
+        for (String query : List.of("", "?menuNo=200082", "?menuNo=200083&nttId=42", "?menuNo=200082&nttId=x",
+                "?menuNo=200082&nttId=42&nttId=43", "?menuNo=200082&nttId=42&extra=1")) {
+            var result = legalBodyResult(false, query, gangbukBodyHtml("소상공인 지원금"), true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyAvailabilityCode()).isEqualTo(BodyAvailabilityCode.FETCH_FAILED);
+        }
+    }
+
+    @Test void legalBoardEmptyBodiesCannotBecomeMetadataAndOtherPathsKeepExistingContract() {
+        for (boolean busan : List.of(true, false)) {
+            String query = busan ? "?sno=42&gosiGbn=A" : "?menuNo=200082&nttId=42";
+            String body = "<nav>메뉴</nav><a href='/FileDown.jsp'>지원사업.hwp</a>";
+            var result = legalBodyResult(busan, query, busan ? busanBodyHtml(body) : gangbukBodyHtml(body), true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            assertThat(result.bodyText()).isNull();
+            assertThat(legalBodyResult(busan, "?other=42", "<main>기존 다른 게시판 본문</main>", false).bodyText())
+                    .isEqualTo("기존 다른 게시판 본문");
+        }
+    }
+
+    private static String hwacheonBodyHtml(String body) {
+        return saeolPlainCellHtml(false, body).replace("<td>제목</td>", "<th>제목</th>");
+    }
+
+    @Test void hwacheonBodyUsesThLabelAndSubCheckNWithNoAttachmentTableContamination() {
+        var result = saeolResult("eminwon.ihc.go.kr", SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"), hwacheonBodyHtml(
+                "소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table><a href='/apply'>신청</a>"));
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+    }
+
+    @Test void hwacheonBodyRejectsOtherActionAndMissingDuplicatedOrChangedCells() {
+        String valid = hwacheonBodyHtml("소상공인 지원금");
+        for (String page : List.of(valid.replace("<th>제목</th>", "<td>제목</td>"), valid.replace("cellpadding='0'", "cellpadding='1'"),
+                valid.replace("word-break:break-all;", "color:red;"), valid.replace("name='form1'", "name='changed'"), valid + valid)) {
+            var result = saeolResult("eminwon.ihc.go.kr", SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"), page);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+        assertThat(saeolResult("eminwon.ihc.go.kr", SAEOL_QUERY, valid).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        var empty = saeolResult("eminwon.ihc.go.kr", SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"),
+                hwacheonBodyHtml("<nav>메뉴</nav><a href='/FileDown.jsp'>지원사업.hwp</a>"));
+        assertThat(empty.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+        assertThat(empty.bodyText()).isNull();
+    }
+
     @Test
     void selectContentDoesNothingWhileFeatureFlagIsOff() {
         AtomicInteger resolutionCount = new AtomicInteger();

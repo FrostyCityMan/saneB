@@ -438,10 +438,14 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolContentElement(document, sourceUri, "eminwon.bsnamgu.go.kr".equals(host));
         }
-        if (("eminwon.jung.daegu.kr".equals(host) || "eminwon.haman.go.kr".equals(host))
+        if (("eminwon.jung.daegu.kr".equals(host) || "eminwon.haman.go.kr".equals(host) || "eminwon.ihc.go.kr".equals(host))
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolPlainCellContentElement(document, sourceUri, "eminwon.jung.daegu.kr".equals(host));
         }
+        if ("www.busan.go.kr".equals(host) && "/nbgosi/view".equals(sourceUri.getPath()))
+            return selectBusanContentElement(document, sourceUri);
+        if ("child.gangbuk.go.kr".equals(host) && "/portal/bbs/B0000245/view.do".equals(sourceUri.getPath()))
+            return selectGangbukContentElement(document, sourceUri);
         String board = switch (host) {
             case "www.taebaek.go.kr" -> "25";
             case "www.hsg.go.kr" -> "65";
@@ -492,7 +496,18 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
 
     private Element selectSaeolForm(Document document, URI sourceUri) {
         Map<String, String> required = Map.of("context", "NTIS", "homepage_pbs_yn", "Y", "jndinm", "OfrNotAncmtEJB",
-                "method", "selectOfrNotAncmt", "methodnm", "selectOfrNotAncmtRegst", "subCheck", "Y");
+                "method", "selectOfrNotAncmt", "methodnm", "selectOfrNotAncmtRegst",
+                "subCheck", "eminwon.ihc.go.kr".equals(sourceUri.getHost()) ? "N" : "Y");
+        var parameters = selectBodyDetailParameters(sourceUri);
+        if (parameters.size() != 7 || !parameters.entrySet().containsAll(required.entrySet())
+                || !parameters.getOrDefault("not_ancmt_mgt_no", "").matches("[0-9]{1,15}"))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var forms = document.select("form[name=form1][method=post]");
+        if (forms.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return forms.getFirst();
+    }
+
+    private Map<String, String> selectBodyDetailParameters(URI sourceUri) {
         var parameters = new java.util.HashMap<String, String>();
         String query = sourceUri.getRawQuery();
         if (query == null || query.length() > 4096) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
@@ -504,12 +519,51 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
             }
         } catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
-        if (parameters.size() != 7 || !parameters.entrySet().containsAll(required.entrySet())
-                || !parameters.getOrDefault("not_ancmt_mgt_no", "").matches("[0-9]{1,15}"))
+        return parameters;
+    }
+
+    private Element selectBusanContentElement(Document document, URI sourceUri) {
+        var parameters = selectBodyDetailParameters(sourceUri);
+        if (!parameters.keySet().containsAll(java.util.Set.of("sno", "gosiGbn"))
+                || !java.util.Set.of("sno", "gosiGbn", "curPage").containsAll(parameters.keySet())
+                || !parameters.get("sno").matches("[0-9]{1,15}") || !"A".equals(parameters.get("gosiGbn"))
+                || (parameters.containsKey("curPage") && !parameters.get("curPage").matches("[1-9][0-9]{0,6}")))
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
-        var forms = document.select("form[name=form1][method=post]");
+        var views = document.select("div.boardView");
+        if (views.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element view = views.getFirst();
+        var titles = view.select("div.form-group > h4.form-data-subject");
+        var contents = view.select("div.form-group > dl.form-data-content");
+        if (titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element content = contents.getFirst();
+        if (content.childrenSize() != 2 || !"dt".equals(content.child(0).tagName())
+                || !"내용".equals(content.child(0).text().strip()) || !"dd".equals(content.child(1).tagName()))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return content.child(1);
+    }
+
+    private Element selectGangbukContentElement(Document document, URI sourceUri) {
+        var parameters = selectBodyDetailParameters(sourceUri);
+        if (!parameters.keySet().equals(java.util.Set.of("menuNo", "nttId")) || !"200082".equals(parameters.get("menuNo"))
+                || !parameters.getOrDefault("nttId", "").matches("[0-9]{1,15}"))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var forms = document.select("form#board");
         if (forms.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
-        return forms.getFirst();
+        Element form = forms.getFirst();
+        var ids = form.children().stream().filter(e -> "input".equals(e.tagName()) && "nttId".equals(e.attr("name"))).toList();
+        var views = form.children().stream().filter(e -> "div".equals(e.tagName()) && e.hasClass("bd-view")).toList();
+        if (ids.size() != 1 || !"hidden".equalsIgnoreCase(ids.getFirst().attr("type"))
+                || !parameters.get("nttId").equals(ids.getFirst().val()) || views.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element view = views.getFirst();
+        var titles = view.children().stream().filter(e -> "h3".equals(e.tagName()) && e.hasClass("bd-view__subject")).toList();
+        var contents = view.children().stream().filter(e -> "dl".equals(e.tagName())).toList();
+        if (titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1
+                || contents.getFirst().childrenSize() != 1 || !"dd".equals(contents.getFirst().child(0).tagName()))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        // 메타데이터 table-dl·첨부 목록·공공누리 opentype의 dd와 본문을 구분한다.
+        return contents.getFirst().child(0);
     }
 
     private Element selectSaeolContentElement(Document document, URI sourceUri, boolean namgu) {
@@ -531,11 +585,11 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 : "table[width=100%][border=0][cellspacing=1][cellpadding=0]");
         if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         Element table = tables.getFirst();
-        var titles = table.select(junggu ? "th" : "td").stream()
+        var titles = table.select(junggu || "eminwon.ihc.go.kr".equals(sourceUri.getHost()) ? "th" : "td").stream()
                 .filter(e -> e.closest("table") == table && "제목".equals(e.text().strip())).toList();
         if (titles.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         Element title = titles.getFirst().nextElementSibling();
-        // 두 기관의 실측 본문 셀은 같은 고유 style을 갖는다. 장식/첨부/중첩 표의 셀은 선택하지 않는다.
+        // 실측 본문 셀의 고유 style을 확인한다. 장식/첨부/중첩 표의 셀은 선택하지 않는다.
         var contents = table.select("td[colspan=4][style]").stream().filter(e -> e.closest("table") == table
                 && e.attr("style").matches("(?i)\\s*word-break\\s*:\\s*break-all\\s*;?\\s*")).toList();
         if (title == null || !"td".equals(title.tagName()) || title.text().isBlank() || contents.size() != 1)
