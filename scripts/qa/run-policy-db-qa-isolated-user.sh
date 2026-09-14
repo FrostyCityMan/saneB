@@ -83,7 +83,14 @@ qa_exit=0
 # 외부 자격증명이나 runner 환경을 상속하지 않는다. 공개 Gradle/Maven 의존성만 새로 받는다.
 if sudo -n -u "$qa_account" env -i PATH="$qa_java_home/bin:/usr/bin:/bin" LANG=C.UTF-8 \
     JAVA_HOME="$qa_java_home" HOME="$qa_work/home" GRADLE_USER_HOME="$qa_work/gradle" \
-    /usr/bin/timeout --kill-after=5 900 /bin/bash -c 'cd -- "$1" && exec /bin/bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun-tasks --no-daemon --console=plain --max-workers=1 "-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dfile.encoding=UTF-8"' \
+    JAVA_OPTS='-XX:ActiveProcessorCount=1 -XX:+UseSerialGC' \
+    /usr/bin/timeout --kill-after=5 900 /bin/bash -c '
+      set -euo pipefail
+      cd -- "$1"
+      options=(--no-daemon --console=plain --max-workers=1 "-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dfile.encoding=UTF-8")
+      # 새 소스의 산출물을 준비한 단일-use daemon은 종료시킨 뒤 다음 JVM에서 실제 시험한다.
+      /bin/bash ./gradlew attachmentContractQaTestClasses installAttachmentContractQa "${options[@]}"
+      exec /bin/bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun "${options[@]}"' \
     saneb-policy-db-qa "$qa_work/source"; then :; else qa_exit=$?; fi
 
 qa_report="$qa_work/source/build/test-results/attachmentPolicyDbQaIntegrationTest/$qa_report_name"

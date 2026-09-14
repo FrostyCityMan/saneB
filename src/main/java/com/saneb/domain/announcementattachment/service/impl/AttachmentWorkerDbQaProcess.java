@@ -92,7 +92,9 @@ public final class AttachmentWorkerDbQaProcess {
         long expires=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(remaining);
         Process process=null;ExecutorService readers=Executors.newVirtualThreadPerTaskExecutor();Future<byte[]> output=null,error=null;
         try {
-            process=launcher.start();process.getOutputStream().close();
+            try { process=launcher.start(); }
+            catch(IOException exception) { throw new Failure("QA_PROCESS_START_FAILED"); }
+            process.getOutputStream().close();
             Process owned=process;
             output=readers.submit(()->selectBoundedOutput(owned.getInputStream(),MAX_OUTPUT));
             // stderr도 동시에 소비하되 원문을 예외·로그·보고서에 남기지 않는다.
@@ -108,12 +110,21 @@ public final class AttachmentWorkerDbQaProcess {
             byte[] bytes=output.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
             byte[] errors=error.get(Math.max(1,Math.min(2000,TimeUnit.NANOSECONDS.toMillis(expires-System.nanoTime()))),TimeUnit.MILLISECONDS);
             if(process.exitValue()!=0) throw new Failure(selectChildFailureCode(bytes,errors));
-            JsonNode report=mapper.readTree(bytes);
+            JsonNode report;
+            try { report=mapper.readTree(bytes); }
+            catch(com.fasterxml.jackson.core.JsonProcessingException exception) {
+                // exit 0이어도 JVM 경고 등이 섞인 stdout은 JSON 증거가 아니다. 경고를 잘라내 성공시키지 않는다.
+                String diagnostic=selectChildFailureCode(bytes,errors);
+                throw new Failure("QA_CHILD_FAILED".equals(diagnostic)?"QA_REPORT_PARSE_FAILED":diagnostic);
+            }
             if(report==null || !report.isObject()) throw new Failure("QA_REPORT_INVALID");
             return new Result(report,start,Instant.now(),false);
         } catch(Failure failure) { throw failure; }
         catch(InterruptedException exception) { Thread.currentThread().interrupt();throw new Failure("EXECUTION_STOPPED"); }
         catch(ExecutionException exception) { throw exception.getCause() instanceof Failure failure?failure:new Failure("QA_OUTPUT_FAILED"); }
+        catch(TimeoutException exception) { throw new Failure("QA_OUTPUT_TIMEOUT"); }
+        catch(IOException exception) { throw new Failure("QA_PROCESS_IO_FAILED"); }
+        catch(SecurityException exception) { throw new Failure("QA_PROCESS_PERMISSION_FAILED"); }
         catch(Exception exception) { throw new Failure("QA_PROCESS_FAILED"); }
         finally {
             boolean interrupted=Thread.interrupted();

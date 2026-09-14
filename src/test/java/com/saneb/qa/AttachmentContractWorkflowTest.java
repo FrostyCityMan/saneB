@@ -96,6 +96,10 @@ class AttachmentContractWorkflowTest {
                 "\"$qa_uid\" != \"$qa_runner_uid\"", "\"$resolved\" == \"$qa_work\"",
                 "saneb-policy-parent-qa.*", "userdel \"$qa_account\"", "POLICY_DB_QA_CLEANUP=SUCCEEDED",
                 "REQUIRED_REPORT_MISSING", "! sudo -n test -L \"$qa_report\"");
+        assertThat(runner).contains("JAVA_OPTS='-XX:ActiveProcessorCount=1 -XX:+UseSerialGC'",
+                "attachmentContractQaTestClasses installAttachmentContractQa", "attachmentPolicyDbQaIntegrationTest --rerun \"${options[@]}\"");
+        assertThat(runner.indexOf("attachmentContractQaTestClasses installAttachmentContractQa"))
+                .isLessThan(runner.indexOf("attachmentPolicyDbQaIntegrationTest --rerun"));
         assertThat(runner).doesNotContain("--preserve-env", "sudo -E", "chmod -R", "chown -R",
                 "--nproc=", "DB_URL=", "GITHUB_TOKEN=", "cp -r", "userdel -r", "|| true");
     }

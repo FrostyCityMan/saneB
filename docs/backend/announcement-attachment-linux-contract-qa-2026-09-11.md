@@ -48,6 +48,10 @@
 
 로컬: workflow 계약7건·자식 process13건 및 Node152건 통과, Bash 구문/비CI 실행 거부 통과. 이는 실제 Linux 계정 분리·정리의 성공 증거가 아니다. 같은 QA 브랜치 원격 실행에서 부모 정상215건 연결과 취소 시험, 필수 XML 판정, 정리 결과를 확인해야 한다. 현재 **Not ready**이며 이전 실행6의 간헐 분할 실패와 전체 Provider/운영 Gate는 별도 잔여다.
 
+아홉 번째 [34860558789](https://github.com/FrostyCityMan/saneB/actions/runs/34860558789), SHA `8cb55d1aa6d2cba823f139f913269c20b6765428`: 주 검증 통과(root2078통과/242조건부 생략·추출기25·패키지16·job192·migration/분할15·runtime12합성파일/1시험·worker8·Node152·bootJar). 독립215/215·생략/실패/미실행0도 통과했다. 부모2건 중 취소1건은0.487초 통과, 정상 연결1건은1.809초에 inventory 처리 중 `QA_PROCESS_FAILED`다. 관측은 같은UID108·부모JVM9이며 새 전용 계정/임시 경로 정리는 `POLICY_DB_QA_CLEANUP=SUCCEEDED`다. 기존 공유 UID 기동 실패와 같은 오류라고 단정하지 않는다. 전체 workflow 및 보고서 Gate는 실패다.
+
+후속은 동일 전용 계정에서 준비 빌드와 실제 시험을 서로 다른 single-use Gradle 수명으로 분리하고, wrapper JVM에도 CPU1/SerialGC를 명시한다. 로컬 wrapper `help --task attachmentPolicyDbQaIntegrationTest`로 확인한 task 전용 `--rerun`을 사용하여 시험2건은 재실행하되 준비 산출물은 재빌드하지 않는다. 전체900초·자식128/2GiB·namespace·XML 엄격 검증은 유지한다. 부모 실행기는 기동/입출력/응답 대기/JSON 해석 실패를 고정 코드로 구분한다. exit0이어도 경고가 섞인 JSON을 잘라내 성공시키지 않는다. 표적 workflow7·process16·역할22=45건과 bootJar가 통과했다. 실제 원인은 다음 Linux 응답으로 확인하며 원문/경로/자격증명을 예외에 넣지 않는다.
+
 ### 이전 구현 기록
 
 

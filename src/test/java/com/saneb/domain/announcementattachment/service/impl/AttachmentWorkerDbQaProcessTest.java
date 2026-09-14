@@ -73,6 +73,24 @@ class AttachmentWorkerDbQaProcessTest {
         }
         assertThatThrownBy(()->execute(child("pthread_create failed".getBytes(),true,1))).hasMessage("QA_CHILD_PROCESS_LIMIT");
     }
+    @Test void malformedSuccessfulOutputIsStillRejectedWithoutStrippingJvmWarnings() throws Exception {
+        assertThatThrownBy(()->execute(child("not-json private-marker".getBytes(),true,0))).hasMessage("QA_REPORT_PARSE_FAILED").hasNoCause();
+        assertThatThrownBy(()->execute(child("[warning] pthread_create failed\n{}".getBytes(),true,0))).hasMessage("QA_CHILD_PROCESS_LIMIT").hasNoCause();
+        assertThatThrownBy(()->execute(child("{} {}".getBytes(),true,0))).hasMessage("QA_REPORT_PARSE_FAILED").hasNoCause();
+    }
+    @Test void startFailureDoesNotExposeCommandPathOrCause() {
+        assertThatThrownBy(()->AttachmentWorkerDbQaProcess.selectProcessResult(()->{throw new IOException("private-path-marker");},
+                Instant.now().plusSeconds(3),30,()->true,mapper)).hasMessage("QA_PROCESS_START_FAILED").hasNoCause();
+    }
+    @Test void pipeSetupFailureRemainsDifferentFromProcessStartFailure() throws Exception {
+        var child=child("{}".getBytes(),true,0);
+        when(child.getOutputStream()).thenReturn(new OutputStream() {
+            @Override public void write(int value) { }
+            @Override public void close() throws IOException { throw new IOException("private-pipe-marker"); }
+        });
+        assertThatThrownBy(()->execute(child)).hasMessage("QA_PROCESS_IO_FAILED").hasNoCause();
+        verify(child).waitFor(5,TimeUnit.SECONDS);
+    }
     @Test void oversizedStderrTerminatesWithoutWaitingForChildOrPersistingOutput() throws Exception {
         var child=child("{}".getBytes(),false,0);
         when(child.getErrorStream()).thenReturn(new ByteArrayInputStream(new byte[AttachmentWorkerDbQaProcess.MAX_ERROR_OUTPUT+1]));
