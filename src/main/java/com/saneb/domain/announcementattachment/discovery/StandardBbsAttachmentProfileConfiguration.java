@@ -24,4 +24,7 @@ public class StandardBbsAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectBoeunProfileDetails() {
         return new StandardBbsAttachmentDiscoveryProfile("LOCAL_BOEUN_BBS_V1", "LGS-000139", "www.boeun.go.kr", "66", "194", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_BOARD_PREVIEW, false, "HEURISTIC_NOTICE");
     }
+    @Bean public AttachmentDiscoveryProfile selectOkcheonProfileDetails() {
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_OKCHEON_BBS_V1", "LGS-000140", "www.oc.go.kr", "40", "236", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT, false, "HEURISTIC_NOTICE", StandardBbsAttachmentDiscoveryProfile.FileHeaders.MS_DOWNLOAD_STANDARD_DISPOSITION);
+    }
 }

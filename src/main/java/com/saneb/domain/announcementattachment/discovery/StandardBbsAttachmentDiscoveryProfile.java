@@ -16,6 +16,7 @@ import org.jsoup.nodes.Element;
 /** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
     enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG, COMPACT_BOARD_PREVIEW }
+    enum FileHeaders { EXISTING_PROFILE, MS_DOWNLOAD_STANDARD_DISPOSITION }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
     private static final Set<String> SOURCE_PARAMETERS = Set.of("key", "bbsNo", "nttNo", "searchCtgry",
@@ -29,16 +30,23 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     private final Layout layout;
     private final String listParser;
     private final boolean upgradeStoredHttp;
+    private final FileHeaders fileHeaders;
     private final String hash;
     private final AnnouncementSourceIdentityNormalizer normalizer = new AnnouncementSourceIdentityNormalizer();
 
     StandardBbsAttachmentDiscoveryProfile(String code, String sourceCode, String host, String board, String menu,
                                           Layout layout, boolean upgradeStoredHttp, String listParser) {
+        this(code, sourceCode, host, board, menu, layout, upgradeStoredHttp, listParser, FileHeaders.EXISTING_PROFILE);
+    }
+
+    StandardBbsAttachmentDiscoveryProfile(String code, String sourceCode, String host, String board, String menu,
+                                          Layout layout, boolean upgradeStoredHttp, String listParser, FileHeaders fileHeaders) {
         this.code = code; this.sourceCode = sourceCode; this.host = host; this.board = board; this.menu = menu;
         this.layout = layout; this.listParser = listParser;
+        this.fileHeaders = java.util.Objects.requireNonNull(fileHeaders);
         this.compactLayout = layout != Layout.CLASSIC; this.upgradeStoredHttp = upgradeStoredHttp;
         this.hash = AttachmentProfileFingerprint.selectHash(String.join("|", "STANDARD_BBS:2", code, sourceCode,
-                host, board, menu, layout.name(), Boolean.toString(upgradeStoredHttp), listParser,
+                host, board, menu, layout.name(), Boolean.toString(upgradeStoredHttp), listParser, fileHeaders.name(),
                 "https443|session-free|exact-file-cell|unknown-role|limit10|no-preview-fetch"), getClass());
     }
 
@@ -48,8 +56,9 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     @Override public String selectProfileHash() { return hash; }
     @Override public Set<String> selectApprovedHosts() { return Set.of(host); }
     // 기관별로 실측한 header octet만 복원한다. 제천은 실제 기본 검사 통과를 확인해 복원하지 않는다.
-    @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp && layout != Layout.COMPACT_SVG && layout != Layout.COMPACT_BOARD_PREVIEW; }
+    @Override public boolean selectUtf8DispositionOctets() { return fileHeaders == FileHeaders.EXISTING_PROFILE && !upgradeStoredHttp && layout != Layout.COMPACT_SVG && layout != Layout.COMPACT_BOARD_PREVIEW; }
     @Override public Set<String> selectLegacyBinaryContentTypes() {
+        if (fileHeaders == FileHeaders.MS_DOWNLOAD_STANDARD_DISPOSITION) return Set.of("application/x-msdownload");
         if (layout == Layout.COMPACT_MENU_KEY) return Set.of();
         if (layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW) return Set.of("application/x-msdownload");
         return Set.of(upgradeStoredHttp ? "application/x-msdownload" : "application/octer-stream");
@@ -67,7 +76,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
             if (!selectOrigin(original, upgradeStoredHttp)) throw new IllegalArgumentException();
             String path = original.getRawPath();
             // 횡성 목록의 익명 세션 경로는 원문 identity 검증에만 사용한다. 네트워크/locator에 전달하지 않는다.
-            if (layout == Layout.COMPACT && path.matches(DETAIL.replace(".", "\\.") + ";jsessionid=[A-Za-z0-9.-]{1,128}")) path = DETAIL;
+            if (layout == Layout.COMPACT && "www.hsg.go.kr".equals(host)
+                    && path.matches(DETAIL.replace(".", "\\.") + ";jsessionid=[A-Za-z0-9.-]{1,128}")) path = DETAIL;
             Map<String, String> query = selectParameters(original.getRawQuery());
             // 제천 목록의 빈 id는 collector가 정규화한 저장 URL에서만 제거한다. 새 요청에는 전송하지 않는다.
             if (layout == Layout.COMPACT_SVG && "".equals(query.get("id"))) {
@@ -96,9 +106,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         if (tables.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element table = tables.getFirst();
         var ownSubjects = table.select("span.p-table__subject_text").stream().filter(e -> e.closest("table") == table).toList();
-        boolean subject = layout == Layout.COMPACT_BOARD_PREVIEW ? ownSubjects.size() == 1 && !ownSubjects.getFirst().text().isBlank()
-                : layout == Layout.COMPACT ? table.select("span.p-table__subject_text").size() == 1
-                && !table.select("span.p-table__subject_text").text().isBlank()
+        boolean subject = layout == Layout.COMPACT_BOARD_PREVIEW || layout == Layout.COMPACT ? ownSubjects.size() == 1 && !ownSubjects.getFirst().text().isBlank()
                 : table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim()) && e.nextElementSibling() != null
                         && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count() == 1;
         if (!subject || table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).count() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");

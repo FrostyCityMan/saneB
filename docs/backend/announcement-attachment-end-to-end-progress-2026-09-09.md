@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 — 옥천군 본문·첨부 연결 / 원래 Flyway3건 Linux 통과
+
+- 직전 검증 연결 회차는 progress다. [Linux 실행32](https://github.com/FrostyCityMan/saneB/actions/runs/34906440965), `d18216ed5381f97cc1a8ebeeac209381e4c85ffb`는 success로 끝났다. root2556=2298통과/258조건부 생략/실패0, extractor25·패키지20·job192·migration17·worker12·runtime1·부모2 및 원래 `flywayIntegrationTest`3건은 각각 생략/실패0이다. 독립221/221·정리2종·Node241/설치12도 통과했다. 공식 외부 파일 관측/운영 배포는 실행하지 않았으며 이번 옥천 변경의 같은 SHA 증거가 아니다.
+- 제목→정제 본문→실제 첨부 텍스트→최종 관리자 검증을 유지하며 옥천군 V61/V62의 기관/게시판/parser 고정 모델을 추가했다. 기존 BBS 엔진을 재사용하여 첨부 엔진6/등록 profile16(지자체15)/전용 BODY15기관/추출 형식3이다. 전체 대상 분모와 미결합 기관을 유지한다.
+- 옥천 공식 지원 공고3건의 BODY는 AVAILABLE/시도1/redirect0이다. 전체 HWPX3파일 발견·다운로드·signature/Content-Disposition 검증, 임시 원본 정리3/3에 성공했다. 첨부 상세3+파일3=6요청/예약2,016,015bytes, BODY 별도3요청이며 DB 쓰기0이다. Linux 텍스트 추출·역할·worker·운영 후보 성공이 아니다. 세 공고 모두 단일 첨부여서 정상 다중첨부 증거도 남아 있다.
+- 기관 고정 헤더 설정과 중첩 제목 경계를 보완했다. 초기 표적177건의2실패 중 횡성 세션 예외가 옥천으로 전파되는 경계는 횡성 host에만 한정했고 기존 profile 건수도 갱신했다. 표적177/공식6건은 생략·실패0/47초 통과다. 기존 기관 MIME/UTF-8 설정은 보존하되 BBS 공유 코드 hash는 바뀌므로 이전 QA를 재사용하지 않는다. catalog는 참조21/기대값0이며 과거 schema1과 자동 활성화 금지를 유지한다.
+- 첫 전체 회귀3분29초는 오래된 snapshot 참조 건수18 assertion1건에서 실패했다. 기대값0·QA false 보호는 보존하고 실제21건만 반영한 재실행은4분23초 성공했다. root2568=2309통과/259조건부 생략/실패0, 패키지20/20, 원래 임시 Flyway3/3이다. extractor/bootJar는 UP-TO-DATE이며 JAR SHA256은 `e2acf6573847a4af2e183831b9b4f1c666e29bc56426faabeed77954e0956cdf`다. 로컬 생략을 실제 Linux/운영 통과로 세지 않는다. 단발 Node/Gradle/임시 PostgreSQL을 종료했다. 상세 근거·명령은 [옥천 모델 기록](announcement-okcheon-bbs-profile-2026-09-15.md)이다.
+- 운영 AWS 재인증 응답 대기, 공식 전체 파일 기대값/미연결 기관·현 SHA 운영 배포·승인 범위 기존 데이터 적용·운영 브라우저가 남아 있다. 운영 조회/쓰기/브라우저는 이번 회차 미실행이고 사용자 Word2개를 보존한다. 전체 Gate/ATT **Not ready**, goal ACTIVE이며 이번 회차는 실제 기관 모델 구현의 **progress**다.
+
 ### 2026-09-15 — 필수 원래 Flyway3시험 실행·Linux 공식 접근 실패 구분
 
 - 직전 회차는 진단 구현·검증·커밋의 progress다. [Linux 실행31](https://github.com/FrostyCityMan/saneB/actions/runs/34904550080), `0625b13fb25ddf7001f5e5848cb46087ae01edfc`는 전체 failure로 끝났다. root2556=2298통과/258생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·독립221/221·정리2종·Node241/설치12는 통과했다. 공식 관측은 BODY 2회 TIMEOUT 뒤 DETAIL_DISCOVERY도 TRANSPORT_TIMEOUT이었다. 원문 정리true/운영 쓰기0이고 파일은 미실행이다.

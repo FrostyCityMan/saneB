@@ -41,6 +41,14 @@ class StandardBbsBodyContentLiveQaTest {
     void readsBoeunBodyWithoutRequestingFiles(Sample site) {
         readsMeasuredOfficialBodyWithoutRequestingFiles(site);
     }
+    static Stream<Sample> selectOkcheonCases() {
+        return Stream.of(new Sample("www.oc.go.kr", "40", "236", "193369"),
+                new Sample("www.oc.go.kr", "40", "236", "193297"), new Sample("www.oc.go.kr", "40", "236", "193187"));
+    }
+    @ParameterizedTest(name = "옥천 본문 표본 {index}") @MethodSource("selectOkcheonCases") @Timeout(30)
+    void readsOkcheonBodyWithoutRequestingFiles(Sample site) {
+        readsMeasuredOfficialBodyWithoutRequestingFiles(site);
+    }
     @ParameterizedTest(name = "공식 BBS 본문 표본 {index}") @MethodSource("selectCases") @Timeout(30)
     void readsMeasuredOfficialBodyWithoutRequestingFiles(Sample site) {
         var client = new LocalGovernmentNoticeProviderContentClient(true, 3000, 7000, 2 * 1024 * 1024, 3, 1, "saneB-notice-collector/1.0");

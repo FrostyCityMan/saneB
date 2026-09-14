@@ -447,7 +447,9 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         if ("child.gangbuk.go.kr".equals(host) && "/portal/bbs/B0000245/view.do".equals(sourceUri.getPath()))
             return selectGangbukContentElement(document, sourceUri);
         if ("www.boeun.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
-            return selectBoeunContentElement(document, sourceUri);
+            return selectCompactBbsContentElement(document, sourceUri, "66", "194");
+        if ("www.oc.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
+            return selectCompactBbsContentElement(document, sourceUri, "40", "236");
         if (("www.wonju.go.kr".equals(host) || "www.jecheon.go.kr".equals(host)) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {
             boolean jecheon = "www.jecheon.go.kr".equals(host);
             var parameters = selectBodyDetailParameters(sourceUri);
@@ -499,9 +501,9 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         return document.body();
     }
 
-    private Element selectBoeunContentElement(Document document, URI sourceUri) {
+    private Element selectCompactBbsContentElement(Document document, URI sourceUri, String board, String menu) {
         var parameters = selectBodyDetailParameters(sourceUri);
-        if (!"66".equals(parameters.get("bbsNo")) || !"194".equals(parameters.get("key"))
+        if (!board.equals(parameters.get("bbsNo")) || !menu.equals(parameters.get("key"))
                 || !parameters.getOrDefault("nttNo", "").matches("[1-9][0-9]{0,14}")
                 || !java.util.Set.of("key", "bbsNo", "nttNo", "searchCtgry", "searchCnd", "searchKrwd", "pageIndex", "pageUnit", "integrDeptCode")
                     .containsAll(parameters.keySet()))

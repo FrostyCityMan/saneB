@@ -152,10 +152,10 @@ class AttachmentProviderQaCatalogTest {
         var second=new AnnouncementSourceClassificationRuleSet("SECOND",rules.rules());assertThat(cat.selectPrepared(scope,second,runtimeHash,now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
     }
     @Test void packagedPublicReferencesHaveValidProductionBindingsButNoExecutionExpectations() {
-        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails());
+        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails());
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         var result=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles)).selectPrepared(scope,rules,runtimeHash,now);
-        assertThat(result.plan().targets()).hasSize(8);assertThat(result.plan().cases()).hasSize(18).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+        assertThat(result.plan().targets()).hasSize(9);assertThat(result.plan().cases()).hasSize(21).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
         assertThat(result.plan().formatCoverage().missingFormats()).containsExactly("HWP","HWPX","PDF");
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.formatApplicability().statusCode()).isEqualTo("EXPECTATIONS_UNKNOWN"));

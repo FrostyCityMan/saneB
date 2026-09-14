@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-boeun-reference-v2",
+  "catalogVersion": "2026-09-15-okcheon-reference-v2",
   "notices": [
+    {
+      "caseCode": "OKCHEON-193369",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "d2b2187d50e00d1f9fce8f23e50f99c1f4843c28333319bf5c3eaf630074ad5b",
+        "sourceUrl": "https://www.oc.go.kr/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=193369",
+        "localSourceCode": "LGS-000140",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "OKCHEON-193297",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "981c253c8d72f9eefa097ff0ae62e92ef39b9777c63d75c8e11914a8c307b863",
+        "sourceUrl": "https://www.oc.go.kr/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=193297",
+        "localSourceCode": "LGS-000140",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "OKCHEON-193187",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b488da0a6b5bd3eab1969920d82915764af086115428325cc673c57d21110e1b",
+        "sourceUrl": "https://www.oc.go.kr/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=193187",
+        "localSourceCode": "LGS-000140",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "BOEUN-221499",
       "profileCode": "LOCAL_BOEUN_BBS_V1",

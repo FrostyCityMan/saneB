@@ -57,6 +57,14 @@ class StandardBbsAttachmentProfileLiveQaTest {
     void discoversBoeunFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         discoversAllFilesAndChecksBoundedProductionTransport(sample);
     }
+    static Stream<Sample> selectOkcheonCases() {
+        return Stream.of(new Sample(6, "193369", 1, List.of("HWPX")), new Sample(6, "193297", 1, List.of("HWPX")),
+                new Sample(6, "193187", 1, List.of("HWPX")));
+    }
+    @ParameterizedTest(name = "옥천 공식 지원사업 표본 {index}") @MethodSource("selectOkcheonCases") @Timeout(150)
+    void discoversOkcheonFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
+        discoversAllFilesAndChecksBoundedProductionTransport(sample);
+    }
     @ParameterizedTest(name = "BBS 공식 지원사업 표본 {index}") @MethodSource("selectCases") @Timeout(150)
     void discoversAllFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
         var site = StandardBbsAttachmentDiscoveryProfileTest.selectCases().toList().get(sample.profileIndex());
