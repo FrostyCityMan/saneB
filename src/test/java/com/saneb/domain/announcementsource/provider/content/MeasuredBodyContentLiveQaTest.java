@@ -17,6 +17,8 @@ class MeasuredBodyContentLiveQaTest {
                 + "&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&subCheck=Y&not_ancmt_mgt_no=";
         return Stream.of(new Sample("NAMGU-46034", "https://eminwon.bsnamgu.go.kr" + path + "46034"),
                 new Sample("DALSEONG-53932", "https://eminwon.dalseong.daegu.kr" + path + "53932"),
+                new Sample("JUNGGU-34295", "https://eminwon.jung.daegu.kr" + path + "34295"),
+                new Sample("HAMAN-43065", "https://eminwon.haman.go.kr" + path + "43065"),
                 new Sample("SEOGU-51668", "https://www.seogu.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=51668"));
     }
     @ParameterizedTest(name = "공식 본문 구조 {0}") @MethodSource("selectCases") @Timeout(30)

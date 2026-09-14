@@ -438,6 +438,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolContentElement(document, sourceUri, "eminwon.bsnamgu.go.kr".equals(host));
         }
+        if (("eminwon.jung.daegu.kr".equals(host) || "eminwon.haman.go.kr".equals(host))
+                && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
+            return selectSaeolPlainCellContentElement(document, sourceUri, "eminwon.jung.daegu.kr".equals(host));
+        }
         String board = switch (host) {
             case "www.taebaek.go.kr" -> "25";
             case "www.hsg.go.kr" -> "65";
@@ -486,7 +490,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         return contents.getFirst();
     }
 
-    private Element selectSaeolContentElement(Document document, URI sourceUri, boolean namgu) {
+    private Element selectSaeolForm(Document document, URI sourceUri) {
         Map<String, String> required = Map.of("context", "NTIS", "homepage_pbs_yn", "Y", "jndinm", "OfrNotAncmtEJB",
                 "method", "selectOfrNotAncmt", "methodnm", "selectOfrNotAncmtRegst", "subCheck", "Y");
         var parameters = new java.util.HashMap<String, String>();
@@ -505,7 +509,11 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         var forms = document.select("form[name=form1][method=post]");
         if (forms.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
-        var tables = forms.getFirst().select(namgu ? "table.table_03" : "table.bbsView");
+        return forms.getFirst();
+    }
+
+    private Element selectSaeolContentElement(Document document, URI sourceUri, boolean namgu) {
+        var tables = selectSaeolForm(document, sourceUri).select(namgu ? "table.table_03" : "table.bbsView");
         if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         Element table = tables.getFirst();
         var titles = namgu ? table.select("th[colspan=4]").stream().toList()
@@ -514,6 +522,23 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         Element title = namgu ? titles.getFirst() : titles.getFirst().nextElementSibling();
         var contents = table.select(namgu ? "td[colspan=4] > div.view01_con" : "td[colspan=4].con.l");
         if (title == null || (!namgu && !"td".equals(title.tagName())) || title.text().isBlank() || contents.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return contents.getFirst();
+    }
+
+    private Element selectSaeolPlainCellContentElement(Document document, URI sourceUri, boolean junggu) {
+        var tables = selectSaeolForm(document, sourceUri).select(junggu ? "table.boardView"
+                : "table[width=100%][border=0][cellspacing=1][cellpadding=0]");
+        if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element table = tables.getFirst();
+        var titles = table.select(junggu ? "th" : "td").stream()
+                .filter(e -> e.closest("table") == table && "제목".equals(e.text().strip())).toList();
+        if (titles.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        Element title = titles.getFirst().nextElementSibling();
+        // 두 기관의 실측 본문 셀은 같은 고유 style을 갖는다. 장식/첨부/중첩 표의 셀은 선택하지 않는다.
+        var contents = table.select("td[colspan=4][style]").stream().filter(e -> e.closest("table") == table
+                && e.attr("style").matches("(?i)\\s*word-break\\s*:\\s*break-all\\s*;?\\s*")).toList();
+        if (title == null || !"td".equals(title.tagName()) || title.text().isBlank() || contents.size() != 1)
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         return contents.getFirst();
     }

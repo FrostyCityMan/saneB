@@ -222,7 +222,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     }
 
     @Test void observedSaeolModelsRejectDifferentActionsAndAmbiguousQueries() {
-        for (String host : List.of("eminwon.bsnamgu.go.kr", "eminwon.dalseong.daegu.kr"))
+        for (String host : List.of("eminwon.bsnamgu.go.kr", "eminwon.dalseong.daegu.kr", "eminwon.jung.daegu.kr", "eminwon.haman.go.kr"))
             for (String query : List.of("", SAEOL_QUERY + "&not_ancmt_mgt_no=43", SAEOL_QUERY + "&extra=1",
                     SAEOL_QUERY.replace("selectOfrNotAncmtRegst", "otherAction"), SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"),
                     SAEOL_QUERY.replace("not_ancmt_mgt_no=42", "not_ancmt_mgt_no=x"), SAEOL_QUERY.replace("context=NTIS", "context=OTHER"))) {
@@ -242,6 +242,55 @@ class LocalGovernmentNoticeProviderContentClientTest {
 
     @Test void unmeasuredSaeolHostKeepsExistingBodyContract() {
         assertThat(saeolResult("another.example.go.kr", SAEOL_QUERY, "<main>기존 본문</main>").bodyText()).isEqualTo("기존 본문");
+    }
+
+    private static String saeolPlainCellHtml(boolean junggu, String body) {
+        String heading = junggu ? "th" : "td";
+        return "<main>수출 메뉴<form name='form1' method='post'><table "
+                + (junggu ? "class='boardView'" : "width='100%' border='0' cellspacing='1' cellpadding='0'") + ">"
+                + "<tr><"+heading+">제목</"+heading+"><td>지원사업 제목</td><"+heading+">담당부서</"+heading+"><td>기관 대역</td></tr>"
+                + "<tr><td colspan='4' height='1'></td></tr><tr><td colspan='4' style='word-break:break-all;'>"+body+"</td></tr>"
+                + "<tr><td colspan='4'><div class='tal'>첨부파일 <a href='/FileDown.jsp'>수출 특허.hwp</a></div></td></tr>"
+                + "</table></form><footer>고시 의회 감사</footer></main>";
+    }
+
+    @Test void measuredPlainCellsExcludeMetadataAndPreserveNestedBodyAndRealKeywordContext() {
+        for (boolean junggu : List.of(true,false)) {
+            String host = junggu ? "eminwon.jung.daegu.kr" : "eminwon.haman.go.kr";
+            var result = saeolResult(host,SAEOL_QUERY,saeolPlainCellHtml(junggu,
+                    "소상공인 지원금 <nav>수출 메뉴</nav><table><tr><td colspan='4' style='word-break:break-all;'>"
+                            + "수출기업 제외</td></tr></table><a href='/apply'>신청</a>"));
+            assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+            assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        }
+    }
+
+    @Test void measuredPlainCellsFailClosedForMissingDuplicatedOrChangedBodyMarkers() {
+        for (boolean junggu : List.of(true,false)) {
+            String host = junggu ? "eminwon.jung.daegu.kr" : "eminwon.haman.go.kr";
+            String valid = saeolPlainCellHtml(junggu,"소상공인 지원금");
+            String heading = junggu ? "th" : "td";
+            for (String page : List.of("<main>다른 화면</main>", valid+valid,
+                    valid.replace("name='form1'","name='changed'"), valid.replace("method='post'","method='get'"),
+                    valid.replace(junggu ? "class='boardView'" : "cellspacing='1'", junggu ? "class='changed'" : "cellspacing='2'"),
+                    valid.replace("style='word-break:break-all;'","style='word-break:normal;'"),
+                    valid.replace("style='word-break:break-all;'",""), valid.replace("지원사업 제목",""),
+                    valid.replace("<"+heading+">제목</"+heading+">", "<"+heading+">변경된 항목</"+heading+">"),
+                    valid.replace("<td colspan='4' height='1'></td>","<td colspan='4' style='word-break:break-all;'>중복 본문</td>"))) {
+                var result=saeolResult(host,SAEOL_QUERY,page);
+                assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+                assertThat(result.bodyText()).isNull();
+            }
+        }
+    }
+
+    @Test void measuredPlainCellEmptyBodyCannotFallBackToAttachmentsOrSurroundings() {
+        for (boolean junggu : List.of(true,false)) {
+            var result=saeolResult(junggu ? "eminwon.jung.daegu.kr" : "eminwon.haman.go.kr",SAEOL_QUERY,
+                    saeolPlainCellHtml(junggu,"<nav>메뉴</nav><a href='/FileDown.jsp'>첨부파일.hwp</a>"));
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            assertThat(result.bodyText()).isNull();
+        }
     }
 
     @Test

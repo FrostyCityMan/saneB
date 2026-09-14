@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 남구·달성 본문 증분의 Linux 계약 검증 완료
+
+[실행17 / 34877758509](https://github.com/FrostyCityMan/saneB/actions/runs/34877758509), SHA `f47967a809d3430b61f601f9e1c16217eceae7c8`는 workflow 성공이다. root2409건=2160통과/249조건부 생략, extractor25, 패키징20, 실제 DB job192, migration17, worker11, 격리 runtime1시험 및 부모 연결/취소2건의 실패는0이다. 전용 DB/runtime/worker/부모 시험은 생략0이며 독립 namespace도220/220통과·실패/생략/미실행/container실패0이다. 독립 임시 경로와 부모 전용 계정 정리 모두 SUCCEEDED를 확인했다.
+
+이 실행은 공식 파일 관측 표식이 없어 공개7파일을 재추출하지 않았다. 최신 공식 파일 품질/역할 근거는 아래 실행16이며, 새 구조 진단과 중구·함안 본문 수정은 이 SHA 이후라 실행17의 검증 범위에 포함하지 않는다. 전체 Provider·정책 활성화·동일 SHA 운영 배포/브라우저 Gate는 여전히 미완료다.
+
 ### 2026-09-15 — 미확정 역할의 고정 항목명·위치 관측 보완
 
 실행16의 완전 추출5건이 UNKNOWN인 원인을 구분하기 위해 기존 Linux 공식 파일 관측에 `roleStructureObservation`을 추가했다. 원문·파일명·개인정보·locator를 내보내지 않고, 고정 사전 코드와 token의 정수 index, 줄/블록 위치, 단독 항목명·줄 끝·콜론 유무만 기록한다. 최대20,000줄을 검사하고 최대128개 신호를 내보내며, 상한 초과는 `isTruncated/isLineLimitReached`로 구분한다. 블록 경계를 넘거나 위치가 불확실한 신호를 신뢰 가능한 단일 근거로 표시하지 않는다.
