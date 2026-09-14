@@ -15,7 +15,7 @@ import org.jsoup.nodes.Element;
 
 /** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
-    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG }
+    enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG, COMPACT_BOARD_PREVIEW }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
     private static final Set<String> SOURCE_PARAMETERS = Set.of("key", "bbsNo", "nttNo", "searchCtgry",
@@ -48,10 +48,10 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     @Override public String selectProfileHash() { return hash; }
     @Override public Set<String> selectApprovedHosts() { return Set.of(host); }
     // 기관별로 실측한 header octet만 복원한다. 제천은 실제 기본 검사 통과를 확인해 복원하지 않는다.
-    @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp && layout != Layout.COMPACT_SVG; }
+    @Override public boolean selectUtf8DispositionOctets() { return !upgradeStoredHttp && layout != Layout.COMPACT_SVG && layout != Layout.COMPACT_BOARD_PREVIEW; }
     @Override public Set<String> selectLegacyBinaryContentTypes() {
         if (layout == Layout.COMPACT_MENU_KEY) return Set.of();
-        if (layout == Layout.COMPACT_SVG) return Set.of("application/x-msdownload");
+        if (layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW) return Set.of("application/x-msdownload");
         return Set.of(upgradeStoredHttp ? "application/x-msdownload" : "application/octer-stream");
     }
     @Override public URI selectDetailUri(String noticeId) { throw new IllegalArgumentException("PROFILE_REQUIRED"); }
@@ -95,7 +95,9 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
                 : compactLayout ? "div.p-wrap.bbs.bbs__view > table.p-table.block" : "table.bbs_default.view");
         if (tables.size() != 1) return selectFailed("ATTACHMENT_SELECTOR_CHANGED");
         Element table = tables.getFirst();
-        boolean subject = layout == Layout.COMPACT ? table.select("span.p-table__subject_text").size() == 1
+        var ownSubjects = table.select("span.p-table__subject_text").stream().filter(e -> e.closest("table") == table).toList();
+        boolean subject = layout == Layout.COMPACT_BOARD_PREVIEW ? ownSubjects.size() == 1 && !ownSubjects.getFirst().text().isBlank()
+                : layout == Layout.COMPACT ? table.select("span.p-table__subject_text").size() == 1
                 && !table.select("span.p-table__subject_text").text().isBlank()
                 : table.select("th").stream().filter(e -> e.closest("table") == table && "제목".equals(e.text().trim()) && e.nextElementSibling() != null
                         && "td".equals(e.nextElementSibling().tagName()) && !e.nextElementSibling().text().isBlank()).count() == 1;
@@ -166,7 +168,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectDownloadParameters(Map<String, String> query) {
         if (!selectId(query.get("atchmnflNo"))) return false;
-        if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG) return query.keySet().equals(Set.of("atchmnflNo"));
+        if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW) return query.keySet().equals(Set.of("atchmnflNo"));
         return upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
                 : query.keySet().equals(Set.of("bbsNo", "atchmnflNo")) && board.equals(query.get("bbsNo"));
     }
@@ -176,6 +178,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         Map<String, String> query = selectParameters(uri.getRawQuery());
         if (layout == Layout.COMPACT_SVG) return "/previewBbs.do".equals(uri.getPath())
                 && query.equals(Map.of("atchmnflNo", attachmentId));
+        if (layout == Layout.COMPACT_BOARD_PREVIEW) return "/www/previewBbsFile.do".equals(uri.getPath())
+                && query.equals(Map.of("key", menu, "bbsNo", board, "atchmnflNo", attachmentId));
         if (layout == Layout.COMPACT) return "/www/previewBbsFile.do".equals(uri.getPath())
                 && query.equals(Map.of("atchmnflNo", attachmentId));
         if (upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY) return "/www/previewUrl.do".equals(uri.getPath())

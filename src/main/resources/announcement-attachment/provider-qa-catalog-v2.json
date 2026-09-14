@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-format-scope-v2",
+  "catalogVersion": "2026-09-15-boeun-reference-v2",
   "notices": [
+    {
+      "caseCode": "BOEUN-221499",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "166593cf70861fc32b330f644a8dd5ef2629f669d4585ef68529935880b765e3",
+        "sourceUrl": "https://www.boeun.go.kr/www/selectBbsNttView.do?key=194&bbsNo=66&nttNo=221499",
+        "localSourceCode": "LGS-000139",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BOEUN-221497",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c76d9c8a3e116d2c99a64de907a927dc763b8dd60a73b21054ed0d8b47ac32a0",
+        "sourceUrl": "https://www.boeun.go.kr/www/selectBbsNttView.do?key=194&bbsNo=66&nttNo=221497",
+        "localSourceCode": "LGS-000139",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BOEUN-218812",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6bb11c05a9490c96e73e97597ded625206075fe31f2fa6df72680a8fcf54a0f8",
+        "sourceUrl": "https://www.boeun.go.kr/www/selectBbsNttView.do?key=194&bbsNo=66&nttNo=218812",
+        "localSourceCode": "LGS-000139",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "TAEBAEK-185101",
       "profileCode": "LOCAL_TAEBAEK_BBS_V1",

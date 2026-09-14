@@ -21,4 +21,7 @@ public class StandardBbsAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectJecheonProfileDetails() {
         return new StandardBbsAttachmentDiscoveryProfile("LOCAL_JECHEON_BBS_V1", "LGS-000138", "www.jecheon.go.kr", "18", "5233", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_SVG, false, "HEURISTIC_NOTICE");
     }
+    @Bean public AttachmentDiscoveryProfile selectBoeunProfileDetails() {
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_BOEUN_BBS_V1", "LGS-000139", "www.boeun.go.kr", "66", "194", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_BOARD_PREVIEW, false, "HEURISTIC_NOTICE");
+    }
 }

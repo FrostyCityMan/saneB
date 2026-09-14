@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 06:52 KST — 보은군 본문·첨부 모델 및 태백 Linux 세 단계 실증
+
+- 보은군 고정 `LGS-000139/HEURISTIC_NOTICE`에 전용 BODY 정제와 `LOCAL_BOEUN_BBS_V1`을 추가했다. 제목→본문→실제 첨부 텍스트→관리자 최종 검증 순서, 제목 제외·BODY A/B 후 첨부 진행·UNKNOWN·자동 ACTIVE 금지를 유지한다. 현재 코드 엔진6/등록 profile15(지자체14)/전용 BODY14기관/추출 형식3이다. 새 DB migration·v1 API·UI·운영 규칙 변경은 없다.
+- 실제 보은3공고의 BODY3건은 AVAILABLE/시도1/redirect0, 전체 HWPX2/PDF1은 발견·다운로드·signature를 통과했다.6시험/생략0/실패0,28초다. 첨부 검증6요청/예약1,100,217bytes/원본 정리3/3, BODY는 별도3요청이다. 초기 MIME 오류와 실측 후 기관 한정 보완은 [보은 모델 기록](announcement-boeun-bbs-profile-2026-09-15.md)에 있다. 단일 첨부3표본이므로 정상 다중첨부 Gate 성공이 아니며 실제 텍스트/역할 검증도 아직 남아 있다.
+- schema2 catalog는 보은 REFERENCE_ONLY3건을 추가해18참조/실행 기대값0이다. 이전 schema1/V1~V83은 보존했다. 실행 기대값 없이 QA PASSED를 만들지 않는다. 기존 운영223개/결합11·미결합212 snapshot을 새 코드 등록 수로 갱신하지 않는다.
+- 초기 표적167건/30초 성공, MIME/catalog 이후 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar installAttachmentContractQa --no-daemon --max-workers=1`은3분32초 성공이다. root2518=2263통과/255조건부 생략/실패0, QA 패키지20/20이다. extractor시험은 UP-TO-DATE로 이번 실제 재실행 성공에 합산하지 않는다. bootJar SHA256 `4319896d5f07a5be5dfa0b860fbf404de99e016d8e6d776ca4f25a5fdbfd777e`는 운영 JAR가 아니다.
+- [Linux 실행28](https://github.com/FrostyCityMan/saneB/actions/runs/34899577744), `5c6ff8d47e46d16bec2a63ecbe7a53eafe412e0a`는 root2504=2250통과/254생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2·독립220/220 및 정리 성공, Node241/241·설치12/12다. 태백184816 실제 관측1건도 성공했다: 제목 조합→BODY431자→HWPX2개 COMPLETE_TEXT(2041/1994자)→종합 REVIEW_REQUIRED다. 역할 UNKNOWN은 혼합 역할/구조 부족 사유이며 정상 후보로 바꾸지 않았다. 원본 정리true/운영 쓰기0/원문 필드0이다. 이전 SHA 관측을 새 BBS 지문의 검증 근거로 재사용하지 않는다.
+- 다음 우선순위는 태백 실측의 역할 미확정 원인을 검토하고, 실제 텍스트 구조와 음성 사례로 검증 가능한 역할/내용 기대값을 마련하는 일이다. 모델 수 증가만으로 검수 감소를 입증하지 않는다. 전체 기관 모델/형식 QA·AWS 재인증·동일 SHA 배포·승인된 기존 데이터 배치·운영 브라우저가 남아 있다. 이번 브라우저/운영 조회·쓰기는 미실행이며 사용자 Word2개는 보존했다. 전체 Gate/ATT **Not ready**, goal ACTIVE, 이번 회차는 **progress**다.
+
 ### 2026-09-15 06:33 KST — 태백 고정 표본의 세 단계 실제 관측 경로
 
 - 직전 회차는 QA 관리 화면 구현·커밋·푸시로 진전이었다. 현재 로컬 Docker Linux engine pipe 연결 실패를 확인했다. 격리 추출을 Windows 비격리 실행으로 우회하지 않으며 이전 기업마당 관측 timeout3건을 해소한 것으로 보지 않는다.

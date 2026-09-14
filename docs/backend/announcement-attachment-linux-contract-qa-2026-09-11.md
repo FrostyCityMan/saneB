@@ -2,6 +2,12 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — 태백 제목·본문·실제 전체 첨부 관측
+
+[실행28 / 34899577744](https://github.com/FrostyCityMan/saneB/actions/runs/34899577744), SHA `5c6ff8d47e46d16bec2a63ecbe7a53eafe412e0a`는 전체 성공이다. root2504=2250통과/254조건부 생략, 별도 extractor25·패키지20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다.
+
+태백 고정 공식1공고 관측도 별도1시험/생략0으로 실행했다. 제목 조합 통과→정제 BODY431자→전체 HWPX2개 완전 추출→UNKNOWN2개 사유 보존/REVIEW_REQUIRED까지다. 원문 정리true/운영 쓰기0이며 metadata/XML은 ignored `build/qa-results/run-34899577744-bbs`, 일반 보고서는 `build/qa-results/run-34899577744`다. 세부 결과는 [관측 기록](announcement-bbs-three-stage-observation-2026-09-15.md)에 있다. 실제 역할·내용 기대값 승인/DB worker·운영 브라우저/전체 Gate 통과는 아니다. 이후 보은 증분은 이 SHA에 포함되지 않는다.
+
 ### 2026-09-15 — 수집원 QA 예약·이력·취소 화면의 Linux 검증
 
 [실행27 / 34898209145](https://github.com/FrostyCityMan/saneB/actions/runs/34898209145), SHA `ad0e1307dd0ed1c8cbadb33468b2297ff5ece326`는 전체 성공이다. XML root2498=2245통과/253조건부 생략, extractor25·패키징20·실제 job192·migration17·worker11·runtime1·부모2는 실패0/전용 생략0이다. 독립220/220·실패/생략/미실행/container 실패0, 독립/부모 정리 SUCCEEDED, Node241/241·설치12/12를 확인했다. artifact는 ignored `build/qa-results/run-34898209145`에 보존했다.

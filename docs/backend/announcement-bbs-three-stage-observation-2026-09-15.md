@@ -30,7 +30,8 @@
 - 기존 Linux QA workflow의 별도 기본false 입력 또는 QA 브랜치의 `[official-bbs-observation]` 명시 표식으로만 실행한다. 기업마당 관측과 별도이며 일반 push에서 외부 파일을 요청하지 않는다. 결과 JSON/XML만7일 artifact로 남긴다.
 - [x] 표적14건(신규5+기존 관측9) 통과·44초 성공. 고정 제목의 현재 DRAFT 규칙 통과, 제목B 차단, BODY B 검수 후 첨부 진행, source 제목 identity, 전체 예산, 실제 역할/위치 입력을 확인했다. 임시 PostgreSQL seed는 운영 DB가 아니다.
 - [x] 전체 회귀3분16초 성공: root2504=2251통과/253조건부 생략/실패0, QA 패키지20/20. 새 실제 관측1건은 일반 로컬 시험에서 생략했다. extractor/bootJar/설치 task는 UP-TO-DATE이며 새 실행으로 세지 않는다. 현재 production JAR SHA256은 이전과 같은 `fd57b761ceb2dcd7cab381ae3e3db9cb2fb46aced6c927f59ed3a01b0b2402e1`이다. 이번 변경은 test/검증 workflow·문서이며 production Java/DB/API/UI/프로필/migration 변경은 없다.
-- [ ] 같은 SHA의 실제 Linux BODY/전체 첨부 관측. 성공/실패·정리·원본 비노출을 확인한 후에만 기대값 검토로 이동한다.
+- [x] [Linux 실행28](https://github.com/FrostyCityMan/saneB/actions/runs/34899577744), SHA `5c6ff8d47e46d16bec2a63ecbe7a53eafe412e0a`에서 고정1공고 관측을 실행했다. 제목 COMBINATION_MATCHED → BODY431자 AVAILABLE/ACCEPTED → HWPX2개 COMPLETE_TEXT → 종합 REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW다. 파일은 각각2041자/62blocks,1994자/117blocks이며 역할은 MIXED_DOCUMENT_ROLES 및 ROLE_STRUCTURE_INCOMPLETE로 UNKNOWN이다. 이 결과를 정상 후보/역할 정확도 승인으로 바꾸지 않는다.
+- [x] 관측 요청예약5/바이트예약2,377,939는 BODY 상한을 포함한다. 원본 정리true, 운영 쓰기0, 관측 XML1건/생략0/실패0, artifact의 원문 필드 없음이 확인됐다. 보은 추가로 공유 BBS class 지문이 바뀌므로 이 이전 SHA 결과를 새 정책 기대값에 그대로 사용하지 않는다.
 - [ ] 검토된 실제 파일·내용·역할 기대값 작성과 독립 재실행. 관측 보고서를 catalog에 자동 복사하거나 기대값 승인으로 취급하지 않는다.
 
 catalog 참조15/실행 기대값0은 이 구현으로 바뀌지 않았다. PDF/HWP/HWPX 전체 형식, 모든 대상의 정상3공고/다중첨부, 운영 worker/DB/API/UI·전체 배치·배포·운영 브라우저는 장기 goal의 필수 잔여다.

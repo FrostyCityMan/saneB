@@ -446,6 +446,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             return selectBusanContentElement(document, sourceUri);
         if ("child.gangbuk.go.kr".equals(host) && "/portal/bbs/B0000245/view.do".equals(sourceUri.getPath()))
             return selectGangbukContentElement(document, sourceUri);
+        if ("www.boeun.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
+            return selectBoeunContentElement(document, sourceUri);
         if (("www.wonju.go.kr".equals(host) || "www.jecheon.go.kr".equals(host)) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {
             boolean jecheon = "www.jecheon.go.kr".equals(host);
             var parameters = selectBodyDetailParameters(sourceUri);
@@ -495,6 +497,23 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             }
         }
         return document.body();
+    }
+
+    private Element selectBoeunContentElement(Document document, URI sourceUri) {
+        var parameters = selectBodyDetailParameters(sourceUri);
+        if (!"66".equals(parameters.get("bbsNo")) || !"194".equals(parameters.get("key"))
+                || !parameters.getOrDefault("nttNo", "").matches("[1-9][0-9]{0,14}")
+                || !java.util.Set.of("key", "bbsNo", "nttNo", "searchCtgry", "searchCnd", "searchKrwd", "pageIndex", "pageUnit", "integrDeptCode")
+                    .containsAll(parameters.keySet()))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var tables = document.select("div.p-wrap.bbs.bbs__view > table.p-table.block");
+        if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var table = tables.getFirst();
+        var titles = table.select("span.p-table__subject_text").stream().filter(e -> e.closest("table") == table).toList();
+        var contents = table.select("td[title=내용]").stream().filter(e -> e.closest("table") == table).toList();
+        if (titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return contents.getFirst();
     }
 
     private Element selectSeoguContentElement(Document document, URI sourceUri) {

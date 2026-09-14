@@ -127,6 +127,36 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 .failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
     }
 
+    @Test void boeunKeepsBodyContextButNotMenusMetadataOrFileNames() {
+        var result = bbsResult("www.boeun.go.kr", "?key=194&bbsNo=66&nttNo=123", bbsHtml(true,
+                "소상공인 지원금 <nav>스타트업 메뉴</nav><table><tr><th>지원형태</th><td>보조금</td></tr></table>"
+                        + "특허 보유 수출기업 제외 <a href='/apply'>신청</a>"));
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
+    }
+
+    @Test void boeunMissingAmbiguousOrNestedMarkersNeverBecomeBodySuccess() {
+        String valid = bbsHtml(true, "지원사업 본문");
+        for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
+                valid.replace("p-table__subject_text", "changed"), valid.replace("title='내용'", "title='변경'"),
+                valid.replace("<td title='내용'>", "<td title='내용'>중복</td><td title='내용'>"),
+                valid.replace("</span></td>", "</span><span class='p-table__subject_text'></span></td>"),
+                valid.replace("<span class='p-table__subject_text'>지원사업 제목</span>",
+                        "<table><tr><td><span class='p-table__subject_text'>중첩 제목</span></td></tr></table>"))) {
+            var result = bbsResult("www.boeun.go.kr", "?key=194&bbsNo=66&nttNo=123", page);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+        assertThat(bbsResult("www.boeun.go.kr", "?key=194&bbsNo=66&nttNo=123", bbsHtml(true, "<nav>메뉴</nav>"))
+                .failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+    }
+
+    @Test void boeunRejectsChangedBoardMissingIdentityAndUnknownQuery() {
+        for (String query : List.of("?key=194&bbsNo=66", "?key=194&bbsNo=66&nttNo=0", "?key=999&bbsNo=66&nttNo=123",
+                "?key=194&bbsNo=999&nttNo=123", "?key=194&bbsNo=66&nttNo=123&bbsNo=66", "?key=194&bbsNo=66&nttNo=123&other=1"))
+            assertThat(bbsResult("www.boeun.go.kr", query, bbsHtml(true, "본문")).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+    }
+
     @Test void verifiedBbsModelsExtractOnlyOfficialBodyAndRetainActualExclusionContext() {
         String[][] sites = {{"www.taebaek.go.kr", "25"}, {"www.hsg.go.kr", "65"}, {"www.yw.go.kr", "17"}};
         for (var site : sites) {
