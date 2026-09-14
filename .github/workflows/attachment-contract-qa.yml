@@ -61,7 +61,7 @@ jobs:
       - name: 정책 부모의 실제 DB QA 연결·취소·정리 검증
         # 산출물 생성이 성공했으면 독립 실행의 실패와 별개로 연결 오류를 수집한다. 실패를 무시하지 않는다.
         if: ${{ !cancelled() && steps.contracts.outcome == 'success' }}
-        run: bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun-tasks --no-daemon --console=plain --max-workers=1
+        run: bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun-tasks --no-daemon --console=plain --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dfile.encoding=UTF-8'
 
       - name: 필수 DB 테스트 누락·생략·실패 차단
         if: always()

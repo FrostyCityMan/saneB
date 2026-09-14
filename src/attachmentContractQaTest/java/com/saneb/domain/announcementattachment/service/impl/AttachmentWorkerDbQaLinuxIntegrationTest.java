@@ -18,6 +18,24 @@ class AttachmentWorkerDbQaLinuxIntegrationTest {
     private final Path root=Path.of("build/install/attachment-contract-qa").toAbsolutePath();
     private final ObjectMapper mapper=new ObjectMapper();
     private final AttachmentWorkerDbQaProcess process=new AttachmentWorkerDbQaProcess(root.toString(),mapper);
+    @BeforeAll static void reportThreadBudgetWithoutProcessIdentities() throws Exception {
+        var self=Files.readAllLines(Path.of("/proc/self/status"));
+        String uid=self.stream().filter(line->line.startsWith("Uid:")).findFirst().orElseThrow().strip().split("\\s+")[1];
+        int observed=0;
+        try(var entries=Files.list(Path.of("/proc"))) {
+            for(var entry:entries.filter(path->path.getFileName().toString().matches("[0-9]+" )).limit(4096).toList()) {
+                try {
+                    var status=Files.readAllLines(entry.resolve("status"));
+                    String owner=status.stream().filter(line->line.startsWith("Uid:")).findFirst().orElse("").strip();
+                    if(!owner.isEmpty() && uid.equals(owner.split("\\s+")[1]))
+                        observed+=Integer.parseInt(status.stream().filter(line->line.startsWith("Threads:")).findFirst().orElseThrow().strip().split("\\s+")[1]);
+                } catch(java.io.IOException ignored) { /* 스냅샷 도중 종료된 프로세스는 집계할 수 없다. */ }
+            }
+        }
+        // 진단용 집계만 출력한다. UID/PID/명령/환경/경로는 출력하지 않으며 통과 근거로 사용하지 않는다.
+        System.out.println("QA_SAME_UID_THREADS_OBSERVED="+observed);
+        System.out.println("QA_PARENT_JVM_THREADS="+java.lang.management.ManagementFactory.getThreadMXBean().getThreadCount());
+    }
     private Set<String> workDirectories() throws Exception {
         try(var paths=Files.list(Path.of("/tmp"))) {
             return paths.map(p->p.getFileName().toString()).filter(p->p.startsWith("saneb-policy-db-qa-")).collect(java.util.stream.Collectors.toSet());

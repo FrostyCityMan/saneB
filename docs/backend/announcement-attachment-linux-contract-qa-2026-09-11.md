@@ -32,6 +32,10 @@
 
 여섯 번째 [34832431117](https://github.com/FrostyCityMan/saneB/actions/runs/34832431117), SHA `7267a30289563f0f77706ea615ef3c676f9054be`: 주 Gradle6분3초 통과. 독립 namespace는4분36초에214/215통과·실패1·생략/미실행0·정리 성공이지만, 다시1,001건 전수 분할 사례가 실패했다. 동일 SHA의 일반 실행에서 해당 사례는76.872초 통과했다. 독립 실패 원인은 현재 결과 hash만으로 확정할 수 없으며 추가로 시간 한도를 늘리지 않는다. 정책 부모는 앞선 단계 실패 때문에 미실행됐다. 이후 workflow는 주 산출물 생성이 성공하고 취소되지 않았다면 독립 실행 실패와 별개로 부모 연결을 검증한다. `continue-on-error` 없이 각각의 실패 종료와 전체 보고서 Gate를 유지한다.
 
+일곱 번째 [34833700369](https://github.com/FrostyCityMan/saneB/actions/runs/34833700369), SHA `2c3734506ff8a49cdef434979bef801be303abd3`: 주 검증5분46초 통과(root2077통과/242조건부 생략·패키지16·Node152·job192·migration/분할15·worker8·Linux 합성12파일). 독립215/215는2분56초 통과·생략/실패/미실행0·정리 성공이다. 그러나 부모2건은0.478초에 `QA_CHILD_PROCESS_LIMIT`로 실패하여 전체 workflow는 실패다. 자식 시작 시 프로세스/스레드 생성 자원 부족 계열임을 구분했으나 같은 UID의 정확한 동시 스레드 수는 이 실행에서 수집하지 않았다.
+
+후속은 자식 `--nproc=128`·메모리·시간·namespace를 유지하고, 검증 task JVM을 ActiveProcessorCount1/SerialGC/heap256MiB로, 해당 task를 실행하는 Gradle daemon을 ActiveProcessorCount1/SerialGC/heap512MiB로 한정한다. Linux `RLIMIT_NPROC`는 같은 real UID의 스레드에도 적용되므로 부모의 불필요한 병렬 실행을 줄이는 조치다([Linux 매뉴얼](https://man7.org/linux/man-pages/man2/getrlimit.2.html)). 보안 한도를 확장하거나 실패를 허용하지 않는다. 부모 시험에서 UID/PID/명령/환경을 제외한 관측 스레드 집계만 기록하며 이 값 자체는 통과 근거가 아니다. 로컬 구조/프로세스19건·패키지16건이 통과했다. 실제 Linux 재검증과 운영 앱의 상위 JVM 자원 여유는 별도이며, 이번 조치를 운영 검증 통과로 보지 않는다.
+
 ### 이전 구현 기록
 
 

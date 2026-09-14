@@ -79,5 +79,11 @@ class AttachmentContractWorkflowTest {
                 .findFirst().orElseThrow();
         assertThat(parent.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' }}");
         assertThat(parent.containsKey("continue-on-error")).isFalse();
+        assertThat(String.valueOf(parent.get("run"))).contains("-Dorg.gradle.jvmargs=-Xmx512m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC");
+        String buildScript=Files.readString(Path.of("build.gradle"));
+        String parentTask=buildScript.substring(buildScript.indexOf("tasks.register('attachmentPolicyDbQaIntegrationTest'"),buildScript.indexOf("\ndependencies {"));
+        assertThat(parentTask).contains("maxParallelForks = 1", "maxHeapSize = '256m'", "jvmArgs '-XX:ActiveProcessorCount=1', '-XX:+UseSerialGC'");
+        assertThat(Files.readString(Path.of("src/main/java/com/saneb/domain/announcementattachment/service/impl/AttachmentWorkerDbQaProcess.java")))
+                .contains("--nproc=128", "--as=2147483648");
     }
 }

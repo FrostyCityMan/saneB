@@ -112,6 +112,8 @@ tasks.register('attachmentPolicyDbQaIntegrationTest', Test) {
     environment 'SANEB_ATTACHMENT_POLICY_DB_QA', 'true'
     maxParallelForks = 1
     maxHeapSize = '256m'
+    // RLIMIT_NPROC는 자식만이 아니라 같은 UID의 thread에도 영향을 받는다. 격리 한도는 올리지 않는다.
+    jvmArgs '-XX:ActiveProcessorCount=1', '-XX:+UseSerialGC'
 }
 
 dependencies {
