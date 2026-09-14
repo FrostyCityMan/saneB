@@ -109,6 +109,19 @@ saneb:
         enabled: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_ENABLED:false}
         poll-delay-millis: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_POLL_DELAY_MILLIS:60000}
         initial-delay-millis: ${SANEB_LOCAL_GOV_NOTICE_SCHEDULE_INITIAL_DELAY_MILLIS:30000}
+  announcement-attachment:
+    rollback:
+      enabled: ${SANEB_ANNOUNCEMENT_ATTACHMENT_ROLLBACK_ENABLED:false}
+    extractor-root: ${SANEB_ANNOUNCEMENT_ATTACHMENT_EXTRACTOR_ROOT:/opt/saneb/attachment-extractor}
+    policy-validation:
+      enabled: ${SANEB_ANNOUNCEMENT_ATTACHMENT_POLICY_QA_ENABLED:false}
+      contract-qa-root: ${SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT:/opt/saneb/attachment-contract-qa}
+    provider-qa:
+      enabled: ${SANEB_ANNOUNCEMENT_ATTACHMENT_PROVIDER_QA_ENABLED:false}
+    worker:
+      enabled: ${SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED:false}
+      poll-delay-millis: ${SANEB_ANNOUNCEMENT_ATTACHMENT_POLL_DELAY_MILLIS:5000}
+      initial-delay-millis: ${SANEB_ANNOUNCEMENT_ATTACHMENT_INITIAL_DELAY_MILLIS:15000}
   ai:
     provider-code: ${SANEB_AI_PROVIDER_CODE:LOCAL_SAFE}
     model-code: ${SANEB_AI_MODEL_CODE:RULE_TEMPLATE_V1}

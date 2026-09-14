@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaEvidenceDao">
+    <resultMap id="EvidenceMap" type="com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows$Item">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="ordinal" javaType="java.lang.Integer"/>
+            <arg column="case_code" javaType="java.lang.String"/>
+            <arg column="input_hash" javaType="java.lang.String"/>
+            <arg column="profile_hash" javaType="java.lang.String"/>
+            <arg column="expected_file_count" javaType="java.lang.Integer"/>
+            <arg column="maximum_seconds" javaType="java.lang.Integer"/>
+            <arg column="maximum_requests" javaType="java.lang.Integer"/>
+            <arg column="maximum_bytes" javaType="java.lang.Long"/>
+            <arg column="request_reservations" javaType="java.lang.Integer"/>
+            <arg column="reserved_bytes" javaType="java.lang.Long"/>
+            <arg column="case_status_code" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="error_code" javaType="java.lang.String"/>
+            <arg column="evidence_json" javaType="java.lang.String"/>
+            <arg column="evidence_hash" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectLatestRunList" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaManagementDao.RunMap" useCache="false" flushCache="true">
+        -- 같은 전체 입력의 분할별 최신 시도다. 상태 필터로 최신 실패를 건너뛰지 않는다.
+        SELECT DISTINCT ON (b.segment_no)
+            <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaManagementDao.RunColumns"/>
+            <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaManagementDao.RunScope"/>
+        WHERE r.policy_id=#{policyId} AND r.snapshot_hash=#{snapshotHash} AND r.catalog_hash=#{catalogHash} AND b.plan_hash=#{planHash}
+        ORDER BY b.segment_no,r.created_at DESC,r.id DESC
+    </select>
+    <select id="selectEvidenceList" resultMap="EvidenceMap" useCache="false">
+        -- 내부 검증 전용이다. 공개 API에 원문이나 실행 소유권/증거 JSON을 전달하지 않는다.
+        SELECT id,run_id,ordinal,case_code,input_hash,profile_hash,expected_file_count,maximum_seconds,maximum_requests,maximum_bytes,
+            request_reservations,reserved_bytes,case_status_code,row_version,started_at,completed_at,error_code,evidence_json::text AS evidence_json,evidence_hash
+        FROM announcement_attachment_provider_qa_cases WHERE run_id=#{runId} ORDER BY ordinal LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectEvidenceCount" resultType="long" useCache="false">
+        -- 성공만 세지 않는다. 검증기는 이 전체 분모와 각 페이지/순번을 모두 대조해야 한다.
+        SELECT count(1) FROM announcement_attachment_provider_qa_cases WHERE run_id=#{runId}
+    </select>
+    <select id="selectRequiredScope" resultType="string" useCache="false">
+        -- 원장에 고정한 전체 요구 범위도 현재 snapshot과 대조한다.
+        SELECT required_scope_json::text FROM announcement_attachment_provider_qa_runs WHERE id=#{runId}
+    </select>
+</mapper>

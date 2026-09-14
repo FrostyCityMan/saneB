@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchHistoryDao">
+    <resultMap id="EntryMap" type="com.saneb.domain.announcementattachment.dto.AttachmentBatchHistoryResponses$Entry"><constructor>
+        <arg column="action_id" javaType="java.util.UUID"/><arg column="batch_id" javaType="java.util.UUID"/>
+        <arg column="action_kind" javaType="java.lang.String"/><arg column="action_code" javaType="java.lang.String"/>
+        <arg column="accepted_from_version" javaType="java.lang.Integer"/><arg column="preview_id" javaType="java.util.UUID"/>
+        <arg column="scope_item_count" javaType="java.lang.Integer"/><arg column="approved_target_count" javaType="java.lang.Integer"/>
+        <arg column="deleted_count_at_acceptance" javaType="java.lang.Integer"/><arg column="approved_eligible_count" javaType="java.lang.Integer"/>
+        <arg column="approved_base_reopen_count" javaType="java.lang.Integer"/><arg column="approved_confirmation_restore_count" javaType="java.lang.Integer"/>
+        <arg column="cancelled_pending_count" javaType="java.lang.Integer"/><arg column="accepted_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <sql id="Entries">
+        -- 불변 승인 metadata만 합친다. 삭제된 작업/원문과 조인하거나 당시 건수를 현재 성공으로 바꾸지 않는다.
+        SELECT a.id AS action_id,a.batch_id,'APPLICATION'::text AS action_kind,a.action_code,a.expected_version AS accepted_from_version,
+            a.preview_id,a.scope_item_count,a.selected_item_count AS approved_target_count,a.deleted_item_count AS deleted_count_at_acceptance,
+            NULL::integer AS approved_eligible_count,NULL::integer AS approved_base_reopen_count,NULL::integer AS approved_confirmation_restore_count,
+            NULL::integer AS cancelled_pending_count,a.created_at AS accepted_at
+        FROM announcement_attachment_batch_application_actions a WHERE a.batch_id=#{batchId} AND a.expected_version&lt;#{throughVersion}
+        UNION ALL
+        SELECT a.id AS action_id,a.batch_id,'ROLLBACK'::text AS action_kind,'START'::varchar AS action_code,a.expected_version AS accepted_from_version,
+            NULL::uuid AS preview_id,a.scope_count AS scope_item_count,a.target_count AS approved_target_count,a.deleted_count AS deleted_count_at_acceptance,
+            a.eligible_count AS approved_eligible_count,a.base_reopen_count AS approved_base_reopen_count,a.confirmation_restore_count AS approved_confirmation_restore_count,
+            a.cancel_pending_count AS cancelled_pending_count,a.created_at AS accepted_at
+        FROM announcement_attachment_batch_rollback_actions a WHERE a.batch_id=#{batchId} AND a.expected_version&lt;#{throughVersion}
+    </sql>
+    <select id="selectActionCount" resultType="long" useCache="false" flushCache="true">
+        -- 동일 REPEATABLE READ와 버전 상한으로 전체 승인 수를 센다. 페이지 제한을 전체 수에 적용하지 않는다.
+        SELECT count(1) FROM (<include refid="Entries"/>) history
+    </select>
+    <select id="selectActionList" resultMap="EntryMap" useCache="false" flushCache="true">
+        -- 버전 순서가 시계 변경보다 우선한다. 최초 조회 상한을 유지해 후속 승인으로 페이지가 밀리지 않게 한다.
+        SELECT action_id,batch_id,action_kind,action_code,accepted_from_version,preview_id,scope_item_count,approved_target_count,
+            deleted_count_at_acceptance,approved_eligible_count,approved_base_reopen_count,approved_confirmation_restore_count,cancelled_pending_count,accepted_at
+        FROM (<include refid="Entries"/>) history
+        ORDER BY accepted_from_version DESC,action_kind DESC,action_id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+</mapper>

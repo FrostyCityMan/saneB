@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -65,7 +66,10 @@ public class ApiAccessDeniedHandler implements AccessDeniedHandler {
         response.setCharacterEncoding("UTF-8");
         objectMapper.writeValue(
                 response.getWriter(),
-                ApiResponse.failure(ErrorResponse.of(ErrorCode.AUTH_FORBIDDEN), "권한이 없습니다.")
+                ApiResponse.failure(ErrorResponse.of(ErrorCode.AUTH_FORBIDDEN),
+                        accessDeniedException instanceof CsrfException
+                                ? "보안 확인 정보가 없거나 만료되었습니다. 입력 내용을 보존한 뒤 화면을 새로고침하고 다시 요청해 주세요."
+                                : "권한이 없습니다.")
         );
     }
 

@@ -17,6 +17,103 @@ configurations {
     mockitoAgent
 }
 
+// 수동 클래스 목록 대신 현재 애플리케이션 전체 클래스/리소스의 검증 목록을 생성한다.
+// 설치 시 실제 classpath 바이트와 대조하며 정책 QA의 코드 변경 감지에 사용한다.
+def attachmentQaCodeDirectory = layout.buildDirectory.dir('generated/attachment-qa-code')
+tasks.register('generateAttachmentQaCodeCatalog') {
+    dependsOn 'compileJava', 'processResources'
+    def roots = files(tasks.named('compileJava').flatMap { it.destinationDirectory },
+            tasks.named('processResources').map { it.destinationDir })
+    inputs.files(roots).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.file(attachmentQaCodeDirectory.map { it.file('attachment-qa-code/catalog.json') })
+    doLast {
+        def entries = new TreeMap<String, Map>()
+        roots.each { root ->
+            fileTree(root).files.findAll { it.isFile() }.each { file ->
+                String path = root.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+                if (entries.containsKey(path)) throw new GradleException('애플리케이션 QA 목록의 classpath 경로가 중복되었습니다.')
+                def digest = java.security.MessageDigest.getInstance('SHA-256')
+                file.withInputStream { stream ->
+                    byte[] buffer = new byte[65536]
+                    for (int count; (count = stream.read(buffer)) != -1;) digest.update(buffer, 0, count)
+                }
+                entries.put(path, [path: path, size: file.length(), sha256: digest.digest().encodeHex().toString()])
+            }
+        }
+        if (entries.isEmpty() || entries.size() > 10000) throw new GradleException('애플리케이션 QA 목록의 파일 수가 유효하지 않습니다.')
+        def output = attachmentQaCodeDirectory.get().file('attachment-qa-code/catalog.json').asFile
+        output.parentFile.mkdirs()
+        output.setText(groovy.json.JsonOutput.toJson([schemaVersion: 1, entries: entries.values().toList()]), 'UTF-8')
+    }
+}
+sourceSets.main.output.dir([builtBy: 'generateAttachmentQaCodeCatalog'], attachmentQaCodeDirectory)
+
+// 서버 JAR와 분리한 고정 DB QA 실행기. 운영 application classpath에는 JUnit/임시 DB를 넣지 않는다.
+sourceSets {
+    attachmentContractQa {
+        compileClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+    }
+    attachmentContractQaTest {
+        compileClasspath += sourceSets.attachmentContractQa.output + sourceSets.test.runtimeClasspath
+        runtimeClasspath += sourceSets.attachmentContractQa.output + sourceSets.test.runtimeClasspath
+    }
+}
+
+def attachmentContractClasses = [
+        'AnnouncementAttachmentJobIntegrationTest',
+        'AnnouncementAttachmentMigrationTest',
+        'AnnouncementAttachmentBackfillIntegrationTest',
+        'AnnouncementAttachmentWorkerIntegrationTest'
+]
+tasks.register('attachmentContractQaJar', Jar) {
+    dependsOn 'attachmentContractQaClasses', 'testClasses'
+    archiveBaseName = 'saneb-attachment-contract-qa'
+    from(sourceSets.attachmentContractQa.output)
+    from(sourceSets.main.output)
+    from(sourceSets.test.output.classesDirs) { testFiles ->
+        attachmentContractClasses.each { name -> testFiles.include "com/saneb/db/${name}*.class" }
+    }
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+tasks.register('installAttachmentContractQa', Sync) {
+    group = 'distribution'
+    description = '운영 DB 접속값 없이 고정 계약 suite를 실행하는 별도 Linux QA 산출물을 만듭니다. 실행·배포는 하지 않습니다.'
+    dependsOn 'attachmentContractQaJar', ':attachment-extractor:installDist'
+    into layout.buildDirectory.dir('install/attachment-contract-qa')
+    from(tasks.named('attachmentContractQaJar')) { into 'lib' }
+    from(configurations.testRuntimeClasspath) { into 'lib' }
+    from('scripts/qa/run-attachment-contract-qa.sh') { into 'bin'; filePermissions { unix('rwxr-xr-x') } }
+    from('src/attachmentContractQa/config') { into 'config' }
+    from(project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor')) { into 'extractor' }
+}
+tasks.register('attachmentContractQaTest', Test) {
+    group = 'verification'
+    description = '고정 QA 실행기의 누락·실패·생략·중단·출력 보호 판정을 검증합니다. 실제 PostgreSQL 실행과 구분합니다.'
+    dependsOn 'attachmentContractQaTestClasses', 'installAttachmentContractQa', 'bootJar'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.attachmentContractQaTest.output.classesDirs
+    classpath = sourceSets.attachmentContractQaTest.runtimeClasspath
+    // 내부의 의도적 실패/생략 fixture는 상위 테스트가 Launcher로 실행·판정한다.
+    exclude '**/*$*'
+    exclude '**/AttachmentWorkerDbQaLinuxIntegrationTest.class'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+}
+tasks.register('attachmentPolicyDbQaIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Linux에서 실제 정책 부모의 namespace·PG 계약 전체 실행과 취소·정리를 검증합니다. 운영 DB는 사용하지 않습니다.'
+    dependsOn 'attachmentContractQaTestClasses', 'installAttachmentContractQa'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.attachmentContractQaTest.output.classesDirs
+    classpath = sourceSets.attachmentContractQaTest.runtimeClasspath
+    include '**/AttachmentWorkerDbQaLinuxIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_POLICY_DB_QA', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -44,6 +141,31 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // 역할별 HTTP 테스트의 독립 Spring 컨텍스트가 512 MiB 테스트 힙을 채우지 않도록 캐시만 제한한다.
+    // 테스트·assertion·DB 조건은 생략하지 않으며 동시에 실행하는 JVM 수도 늘리지 않는다.
+    systemProperty 'spring.test.context.cache.maxSize', '4'
+}
+
+tasks.named('processResources') {
+    dependsOn ':attachment-extractor:generateRuntimeQaFixtures'
+    from(project(':attachment-extractor').layout.buildDirectory.dir('generated/runtime-qa'))
+}
+
+tasks.register('attachmentRuntimeIntegrationTest', Test) {
+    description = '설치된 Linux 격리 추출기에 고정 합성 PDF/HWP/HWPX를 전달하고 품질·근거·원본 정리를 검사합니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AttachmentRuntimeGateIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_RUNTIME_QA', 'true'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentRuntimeIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentRuntimeIntegrationTest')
 }
 
 tasks.register('attachmentMigrationTest', Test) {
@@ -53,6 +175,7 @@ tasks.register('attachmentMigrationTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include '**/AnnouncementAttachmentMigrationTest.class'
+    include '**/AnnouncementAttachmentBackfillIntegrationTest.class'
     environment 'SANEB_ATTACHMENT_MIGRATION_TEST', 'true'
     maxParallelForks = 1
     maxHeapSize = '256m'
@@ -60,10 +183,64 @@ tasks.register('attachmentMigrationTest', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentMigrationTest')
 }
 
+tasks.register('attachmentJobIntegrationTest', Test) {
+    description = '검증 전용 PostgreSQL에서 첨부 작업 예약/lease/전역 자원/멱등성 계약을 검증합니다.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentJobIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_JOB_TEST', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentJobIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentJobIntegrationTest')
+}
+
+tasks.register('attachmentWorkerIntegrationTest', Test) {
+    description = '합성 HTTP·실제 Linux 격리 추출·임시 PostgreSQL에서 worker 저장/검수/DRAFT/재시작을 연결 검증합니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentWorkerIntegrationTest')
+}
+
 // 명시적으로 실행한 격리 QA에서만 고정된 공개 첨부 표본을 요청한다. 운영 수집과 무관하다.
 tasks.named('test') {
     environment 'SANEB_ATTACHMENT_REAL_FILE_QA', 'false'
     environment 'SANEB_ATTACHMENT_RULE_EXPORT', 'false'
+    environment 'SANEB_ATTACHMENT_PROFILE_QA', 'false'
+    environment 'SANEB_ATTACHMENT_WORKER_QA', 'false'
+}
+
+tasks.register('attachmentProfileDiscoveryQa', Test) {
+    description = '고정된 공식 새올·법정·BBS 게시판 표본의 첨부 전체를 발견하고 지원 파일을 다운로드·signature 검사 후 삭제합니다. 추출/운영 DB 변경은 없습니다.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/SaeolAttachmentProfileLiveQaTest.class'
+    include '**/LegalBoardAttachmentProfileLiveQaTest.class'
+    include '**/StandardBbsAttachmentProfileLiveQaTest.class'
+    environment 'SANEB_ATTACHMENT_PROFILE_QA', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    systemProperty 'saneb.attachment-profile-qa.report', layout.buildDirectory.dir('reports/attachment-profile-discovery-qa').get().asFile.absolutePath
+    ['javax.net.ssl.trustStoreType', 'javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key) != null) systemProperty key, System.getProperty(key)
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentProfileDiscoveryQa')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentProfileDiscoveryQa')
 }
 
 tasks.register('attachmentQaRuleSnapshot', Test) {
@@ -105,6 +282,7 @@ tasks.register('attachmentRealFileQa', Test) {
 
 tasks.withType(Test).configureEach {
     environment 'SANEB_INACTIVITY_REMINDER_ENABLED', 'false'
+    environment 'SANEB_ANNOUNCEMENT_ATTACHMENT_POLICY_QA_ENABLED', 'false'
     jvmArgs "-javaagent:${configurations.mockitoAgent.asPath}"
 }
 

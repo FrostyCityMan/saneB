@@ -1,0 +1,82 @@
+name: 첨부 DB·작업 계약 Linux QA
+
+'on':
+  workflow_dispatch:
+  # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
+  push:
+    branches:
+      - codex/attachment-three-stage-linux-qa
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saneb-attachment-contract-qa
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    name: 격리 PostgreSQL 계약 검증 — 배포 없음
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      SANEB_ATTACHMENT_REAL_FILE_QA: 'false'
+      SANEB_ATTACHMENT_RULE_EXPORT: 'false'
+      SANEB_FLYWAY_INTEGRATION: 'false'
+      SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED: 'false'
+    steps:
+      - name: 소스 확인
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Java 21 준비
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: 관리자 화면 계약·상호작용·보고서 판정기 검증
+        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs
+
+      - name: 임시 runner 격리 도구 준비
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y bubblewrap
+          test -x /usr/bin/bwrap
+          test -x /usr/bin/prlimit
+
+      - name: 단위·HTTP·실제 임시 DB·migration·artifact 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'ATTACHMENT_QA_STARTED_AT=%s\n' "$(date +%s%3N)" >> "$GITHUB_ENV"
+          bash ./gradlew :test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1
+
+      - name: 독립 산출물의 임시 namespace·PostgreSQL 실행
+        run: bash build/install/attachment-contract-qa/bin/run-attachment-contract-qa.sh
+
+      - name: 정책 부모의 실제 DB QA 연결·취소·정리 검증
+        run: bash ./gradlew attachmentPolicyDbQaIntegrationTest --rerun-tasks --no-daemon --console=plain --max-workers=1
+
+      - name: 필수 DB 테스트 누락·생략·실패 차단
+        if: always()
+        run: node scripts/qa/attachment-contract-report.mjs
+
+      - name: 검증 결과 보관
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-contract-qa-${{ github.sha }}
+          path: |
+            build/test-results/test/TEST-*.xml
+            build/test-results/attachmentJobIntegrationTest/TEST-*.xml
+            build/test-results/attachmentMigrationTest/TEST-*.xml
+            build/test-results/attachmentRuntimeIntegrationTest/TEST-*.xml
+            build/test-results/attachmentWorkerIntegrationTest/TEST-*.xml
+            build/test-results/attachmentContractQaTest/TEST-*.xml
+            build/test-results/attachmentPolicyDbQaIntegrationTest/TEST-*.xml
+            attachment-extractor/build/test-results/test/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7

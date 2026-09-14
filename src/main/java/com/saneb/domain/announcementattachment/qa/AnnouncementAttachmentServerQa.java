@@ -87,8 +87,7 @@ public final class AnnouncementAttachmentServerQa {
         report.put("productionWriteCount", 0);
         report.put("passed", false);
         String stage = "DETAIL_DOWNLOAD";
-        try {
-            var download = new AttachmentPinnedDownloadClient();
+        try (var download = new AttachmentPinnedDownloadClient()) {
             Path detail = work.resolve("detail.bin");
             download.selectDownload(URI.create(HOST + "/sii/siia/selectSIIA200Detail.do?pblancId=" + sample.noticeId()),
                     Set.of("www.bizinfo.go.kr"), detail, 1024 * 1024);

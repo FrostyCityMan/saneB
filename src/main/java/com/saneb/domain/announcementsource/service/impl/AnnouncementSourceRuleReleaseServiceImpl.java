@@ -448,6 +448,16 @@ public class AnnouncementSourceRuleReleaseServiceImpl implements AnnouncementSou
     }
 
     @Override
+    @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ,timeout=10)
+    public com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleValidationDetails selectRuleValidationDetails(UUID releaseId) {
+        var release=selectReleaseDetails(releaseId);
+        var rows=ruleReleaseDao.selectRuleTermList(releaseId);
+        if(rows.stream().anyMatch(row->!releaseId.equals(row.releaseId()))) throw invalidRule("규칙 검증 데이터가 요청한 release와 일치하지 않습니다.");
+        return new com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleValidationDetails(releaseId,release.rowVersion(),release.releaseStatusCode(),
+                release.ruleSnapshotHash(),selectSnapshotHash(rows),selectRuleSet(releaseId,rows));
+    }
+
+    @Override
     public AnnouncementSourceClassificationRuleSet selectActiveRuleSet(UUID releaseId) {
         AnnouncementSourceRuleReleaseRow release = selectReleaseDetails(releaseId);
         if (!"ACTIVE".equals(release.releaseStatusCode())) {

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvaluationDao">
+    <select id="selectPolicyHash" resultType="string">
+        -- 이미 예약된 작업은 고정된 게시/퇴역 정책을 사용한다. 초안이나 다른 release는 거부한다.
+        SELECT policy_hash FROM announcement_attachment_policies
+        WHERE id=#{policyId} AND rule_release_id=#{releaseId} AND policy_status_code IN ('ACTIVE','RETIRED')
+    </select>
+    <resultMap id="BaseMap" type="com.saneb.domain.announcementattachment.vo.AttachmentEvaluationRows$Base">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="content_version_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="release_code" javaType="java.lang.String"/>
+            <arg column="rule_snapshot_hash" javaType="java.lang.String"/><arg column="raw_hash" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/><arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="decision_status_code" javaType="java.lang.String"/><arg column="reason_code" javaType="java.lang.String"/>
+            <arg column="title_stage_code" javaType="java.lang.String"/><arg column="body_stage_code" javaType="java.lang.String"/>
+            <arg column="body_source_code" javaType="java.lang.String"/><arg column="body_availability_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectBaseDetails" resultMap="BaseMap" flushCache="true" useCache="false">
+        -- 현재 source와 정확한 base/content/release만 연결한다. 본문 원문은 이 단계에 필요하지 않다.
+        SELECT e.id,e.content_version_id,e.rule_release_id,r.release_code,r.rule_snapshot_hash,c.raw_hash,
+               s.provider_code,s.agency_name,e.decision_status_code,e.reason_code,e.title_stage_code,e.body_stage_code,
+               e.body_source_code,e.body_availability_code
+        FROM announcement_source_classification_evaluations e
+        JOIN announcement_source_snapshots s ON s.id=e.source_id
+        JOIN announcement_source_content_versions c ON c.id=e.content_version_id AND c.source_id=e.source_id
+        JOIN announcement_source_classification_rule_releases r ON r.id=e.rule_release_id
+        WHERE e.id=#{evaluationId} AND e.source_id=#{sourceId} AND e.is_current
+    </select>
+    <select id="selectBaseTargetList" resultType="string">
+        -- 현재 조회 시점이 아닌 지정한 불변 base 평가의 자동 태그를 읽는다.
+        SELECT c.category_code FROM announcement_source_classification_target_matches m
+        JOIN announcement_target_categories c ON c.id=m.target_category_id
+        WHERE m.evaluation_id=#{evaluationId} ORDER BY c.category_code
+    </select>
+    <select id="selectBaseSupportList" resultType="string">
+        -- base 입력에 사용된 지원형태를 고정한다.
+        SELECT c.support_type_code FROM announcement_source_classification_support_matches m
+        JOIN announcement_support_types c ON c.id=m.support_type_id
+        WHERE m.evaluation_id=#{evaluationId} ORDER BY c.support_type_code
+    </select>
+    <resultMap id="FileInputMap" type="com.saneb.domain.announcementattachment.vo.AttachmentEvaluationRows$File">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="extraction_id" javaType="java.util.UUID"/>
+            <arg column="document_role_code" javaType="java.lang.String"/><arg column="download_status_code" javaType="java.lang.String"/>
+            <arg column="quality_code" javaType="java.lang.String"/><arg column="extracted_text" javaType="java.lang.String"/>
+            <arg column="blocks_json" javaType="java.lang.String"/><arg column="error_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectFileInputList" resultMap="FileInputMap">
+        -- 봉인된 동일 source/set의 최대 10개 파일만 내부 분류기에 전달한다. 표시명은 분류 입력이 아니다.
+        SELECT f.id,x.id AS extraction_id,f.document_role_code,f.download_status_code,x.quality_code,
+               x.extracted_text,x.blocks_json::text AS blocks_json,coalesce(f.error_code,x.error_code) AS error_code
+        FROM announcement_source_attachment_files f
+        JOIN announcement_source_attachment_sets s ON s.id=f.set_id AND s.source_id=f.source_id AND s.set_status_code='SEALED'
+        LEFT JOIN LATERAL (
+            SELECT e.id,e.quality_code,e.extracted_text,e.blocks_json,e.error_code
+            FROM announcement_source_attachment_extractions e WHERE e.file_id=f.id AND e.set_id=f.set_id AND e.source_id=f.source_id
+            ORDER BY e.attempt_no DESC,e.id DESC LIMIT 1
+        ) x ON true
+        WHERE f.source_id=#{sourceId} AND f.set_id=#{setId} ORDER BY f.sort_order,f.id LIMIT 11
+    </select>
+    <resultMap id="EvaluationMap" type="com.saneb.domain.announcementattachment.vo.AttachmentEvaluationRows$Evaluation">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="base_evaluation_id" javaType="java.util.UUID"/><arg column="set_id" javaType="java.util.UUID"/>
+            <arg column="policy_id" javaType="java.util.UUID"/><arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="engine_version" javaType="java.lang.String"/><arg column="input_hash" javaType="java.lang.String"/>
+            <arg column="decision_hash" javaType="java.lang.String"/><arg column="decision_status_code" javaType="java.lang.String"/>
+            <arg column="reason_code" javaType="java.lang.String"/><arg column="warning_codes_json" javaType="java.lang.String"/>
+            <arg column="is_current" javaType="java.lang.Boolean"/><arg column="evaluated_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <sql id="EvaluationColumns">
+        e.id,e.source_id,e.base_evaluation_id,e.set_id,e.policy_id,e.rule_release_id,e.engine_version,
+        e.input_hash,e.decision_hash,e.decision_status_code,e.reason_code,e.warning_codes_json::text AS warning_codes_json,
+        e.is_current,e.evaluated_at
+    </sql>
+    <select id="selectEvaluationDetails" resultMap="EvaluationMap" flushCache="true" useCache="false">
+        -- 다른 source의 판정은 반환하지 않는다.
+        SELECT <include refid="EvaluationColumns"/> FROM announcement_source_attachment_evaluations e
+        WHERE e.id=#{evaluationId} AND e.source_id=#{sourceId}
+    </select>
+    <select id="selectInputEvaluationDetails" resultMap="EvaluationMap" flushCache="true" useCache="false">
+        -- 같은 입력과 엔진의 재저장은 불변 판정을 재사용한다.
+        SELECT <include refid="EvaluationColumns"/> FROM announcement_source_attachment_evaluations e
+        WHERE e.source_id=#{sourceId} AND e.input_hash=#{inputHash} AND e.engine_version=#{engineVersion}
+    </select>
+    <select id="selectJobEvaluationDetails" resultMap="EvaluationMap" flushCache="true" useCache="false">
+        -- 완료한 동일 소유자의 재호출만 멱등 응답하며 구 lease 결과는 반환하지 않는다.
+        SELECT <include refid="EvaluationColumns"/> FROM announcement_attachment_jobs j
+        JOIN announcement_source_attachment_evaluations e ON e.id=j.preview_evaluation_id AND e.source_id=j.source_id
+        WHERE j.id=#{jobId} AND j.lease_token=#{leaseToken} AND j.job_status_code IN ('SUCCEEDED','PARTIAL_FAILED')
+    </select>
+    <insert id="insertEvaluation">
+        -- 판정은 우선 비현재 이력으로 저장한 후 source CAS와 함께 current로 전환한다.
+        INSERT INTO announcement_source_attachment_evaluations
+            (id,source_id,content_version_id,base_evaluation_id,set_id,policy_id,rule_release_id,
+             engine_version,input_hash,decision_hash,decision_status_code,reason_code,warning_codes_json,is_current)
+        VALUES (#{id},#{sourceId},#{contentVersionId},#{baseEvaluationId},#{setId},#{policyId},#{ruleReleaseId},
+                #{engineVersion},#{inputHash},#{decisionHash},#{status},#{reason},CAST(#{warningsJson} AS jsonb),false)
+    </insert>
+    <insert id="insertInput">
+        -- 실패 파일도 평가 입력에서 빠뜨리지 않는다.
+        INSERT INTO announcement_source_attachment_evaluation_inputs
+            (evaluation_id,source_id,set_id,file_id,extraction_id,document_role_code,input_status_code)
+        VALUES (#{evaluationId},#{sourceId},#{setId},#{fileId},#{extractionId},#{role},#{inputStatus})
+    </insert>
+    <insert id="insertMatch">
+        -- 저장된 release/group/rule/term을 정확히 해석한다. 일치 원문은 감사 테이블에 복사하지 않는다.
+        INSERT INTO announcement_source_attachment_matches
+            (evaluation_id,source_id,set_id,file_id,extraction_id,rule_release_id,keyword_group_id,keyword_rule_id,keyword_term_id,
+             block_index,start_offset,end_offset,applied_action_code)
+        SELECT #{evaluationId},#{sourceId},#{setId},#{fileId},#{extractionId},g.release_id,g.id,r.id,t.id,
+               #{blockIndex},#{startOffset},#{endOffset},#{action}
+        FROM announcement_source_classification_rule_groups g
+        JOIN announcement_source_classification_keyword_rules r ON r.group_id=g.id
+        JOIN announcement_source_classification_keyword_terms t ON t.keyword_rule_id=r.id AND t.group_id=g.id
+        WHERE g.release_id=#{releaseId} AND g.group_code=#{groupCode} AND r.rule_code=#{ruleCode} AND t.term_text=#{termText}
+    </insert>
+    <insert id="insertTargetTag">
+        -- 비활성 카탈로그를 신규 자동 태그에 사용하지 않는다.
+        INSERT INTO announcement_source_attachment_tags(evaluation_id,target_category_id,origin_code)
+        SELECT #{evaluationId},id,'AUTO' FROM announcement_target_categories WHERE category_code=#{code} AND is_enabled
+    </insert>
+    <insert id="insertSupportTag">
+        -- 복수 지원형태를 자동 근거로 분리 저장한다.
+        INSERT INTO announcement_source_attachment_tags(evaluation_id,support_type_id,origin_code)
+        SELECT #{evaluationId},id,'AUTO' FROM announcement_support_types WHERE support_type_code=#{code} AND is_enabled
+    </insert>
+    <update id="updatePreviousEvaluationsStale">
+        -- source 잠금 아래 current 유일성을 유지한다.
+        UPDATE announcement_source_attachment_evaluations SET is_current=false WHERE source_id=#{sourceId} AND is_current
+    </update>
+    <update id="updatePreviousConfirmationsStale">
+        -- 새 판정에는 이전 검수 확인을 승계하지 않는다.
+        UPDATE announcement_source_attachment_confirmations SET is_current=false WHERE source_id=#{sourceId} AND is_current
+    </update>
+    <update id="updateEvaluationCurrent">
+        -- source 포인터와 같은 transaction에서 current를 변경한다.
+        UPDATE announcement_source_attachment_evaluations SET is_current=true WHERE id=#{evaluationId} AND source_id=#{sourceId}
+    </update>
+    <update id="updateSourceEvaluation">
+        -- base/검수 요구/정책은 바꾸지 않는다. COLLECT_ONLY에서도 별도 첨부 preview 포인터만 갱신한다.
+        UPDATE announcement_source_snapshots SET current_attachment_evaluation_id=#{evaluationId},
+            attachment_row_version=attachment_row_version+1
+        WHERE id=#{sourceId} AND classification_row_version=#{sourceVersion} AND attachment_row_version=#{attachmentVersion}
+    </update>
+    <update id="updateJobCompleted">
+        -- 마지막 lease fence가 실패하면 근거 판정 쓰기 전체가 rollback된다. token은 멱등 응답용으로만 남긴다.
+        UPDATE announcement_attachment_jobs SET job_status_code=#{jobStatus},preview_evaluation_id=#{evaluationId},
+            preview_hash=#{previewHash},lease_expires_at=NULL,next_attempt_at=NULL,error_code=NULL,
+            applied_evaluation_id=CASE WHEN batch_id IS NULL AND application_status_code='PENDING' THEN #{evaluationId} ELSE applied_evaluation_id END,
+            applied_attachment_version=CASE WHEN batch_id IS NULL AND application_status_code='PENDING' THEN expected_attachment_version+1 ELSE applied_attachment_version END,
+            applied_source_version=CASE WHEN batch_id IS NULL AND application_status_code='PENDING' THEN expected_source_version ELSE applied_source_version END,
+            applied_input_hash=CASE WHEN batch_id IS NULL AND application_status_code='PENDING'
+                THEN attachment_normal_job_application_hash(id,#{evaluationId}) ELSE applied_input_hash END,
+            application_status_code=CASE WHEN batch_id IS NULL AND application_status_code='PENDING' THEN 'APPLIED' ELSE application_status_code END,
+            row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND lease_token=#{leaseToken} AND job_status_code='RUNNING' AND lease_expires_at>clock_timestamp()
+    </update>
+</mapper>

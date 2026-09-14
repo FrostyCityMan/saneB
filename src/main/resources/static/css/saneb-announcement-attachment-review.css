@@ -1,0 +1,34 @@
+/* 이 stylesheet는 첨부 검수 화면에서만 로드한다. 320px 뷰포트의 스크롤바 폭도 허용한다. */
+html { min-width: 0; }
+.attachment-review-page { display: grid; gap: 1.25rem; min-width: 0; overflow-wrap: anywhere; }
+.attachment-review-page [hidden] { display: none !important; }
+.attachment-review-page .plain-panel { min-width: 0; padding: clamp(1rem, 2vw, 1.6rem); }
+.attachment-review-page .attachment-workspace-title { font-size: clamp(1.35rem, 3vw, 1.8rem); }
+.attachment-review-page h2 { font-size: 1.15rem; margin-bottom: 1rem; }
+.attachment-review-page h3 { font-size: 1rem; margin-top: 1rem; }
+.attachment-review-page p, .attachment-review-page dd, .attachment-review-page li { overflow-wrap: anywhere; }
+.attachment-review-page fieldset { border: 1px solid #bac3cd; border-radius: .5rem; padding: .9rem; margin: 1rem 0; min-width: 0; }
+.attachment-review-page legend { float: none; width: auto; font-size: 1rem; font-weight: 650; padding: 0 .3rem; }
+.attachment-review-page select, .attachment-review-page textarea, .attachment-review-page input[type="number"] { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: .55rem; border: 1px solid #727e8e; border-radius: .35rem; font: inherit; }
+.attachment-review-page textarea { resize: vertical; }
+.attachment-review-page input[type="date"], .attachment-review-page input[type="datetime-local"] { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: .55rem; border: 1px solid #727e8e; border-radius: .35rem; font: inherit; }
+.attachment-review-page pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; background: #f4f6f8; color: #202b3b; padding: 1rem; }
+.attachment-review-page summary { cursor: pointer; min-height: 44px; padding: .6rem 0; font-weight: 650; }
+.attachment-review-page button, .attachment-review-page a.secondary-action { min-height: 44px; white-space: normal; text-align: start; }
+.attachment-review-page button:disabled { cursor: not-allowed; }
+.attachment-review-page :focus-visible,
+.saneb-main .attachment-review-page :focus-visible { outline: 3px solid #174cba; outline-offset: 3px; }
+.attachment-review-page [tabindex="-1"] { scroll-margin-top: 6rem; }
+.attachment-actions, .attachment-choices { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; }
+.attachment-check { display: flex; gap: .6rem; align-items: start; padding: .65rem 0; min-height: 44px; overflow-wrap: anywhere; }
+.attachment-check input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: .1rem; }
+.attachment-error { color: #9b1c20; border-left: 3px solid currentColor; padding: .75rem; background: #fff3f3; }
+.attachment-meta { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr); gap: .4rem 1rem; }
+.attachment-meta dd { margin: 0; }
+.attachment-evidence-item { border-top: 1px solid #c6cdd6; padding: .9rem 0; }
+.attachment-queue-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.attachment-review-page .attachment-queue-filters input[type="search"] { width: 100%; min-width: 0; min-height: 44px; padding: .55rem; border: 1px solid #727e8e; border-radius: .35rem; font: inherit; }
+.attachment-skip { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+.attachment-skip:focus { position: static; width: auto; height: auto; }
+@media (max-width: 575px) { .attachment-meta { grid-template-columns: 1fr; gap: .2rem; } .attachment-meta dd { margin-bottom: .65rem; } .attachment-actions > * { width: 100%; } }
+@media (forced-colors: active) { .attachment-review-page :focus-visible, .saneb-main .attachment-review-page :focus-visible { outline-color: Highlight; } }

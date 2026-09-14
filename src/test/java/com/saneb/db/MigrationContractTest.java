@@ -20,6 +20,246 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void publicationLockIncludesAllProviderEvidenceWithoutChangingData() throws IOException {
+        var sql=new ClassPathResource("db/migration/V81__lock_provider_qa_evidence_during_policy_publication.sql").getContentAsString(StandardCharsets.UTF_8);
+        var previous=new ClassPathResource("db/migration/V77__add_attachment_policy_publication_receipt.sql").getContentAsString(StandardCharsets.UTF_8);
+        String originalTables=previous.substring(previous.indexOf("LOCK TABLE ")+11,previous.indexOf(" IN EXCLUSIVE MODE NOWAIT"));
+        String expandedTables=sql.substring(sql.indexOf("LOCK TABLE ")+11,sql.indexOf(" IN EXCLUSIVE MODE NOWAIT"));
+        assertThat(expandedTables).startsWith(originalTables).endsWith("announcement_attachment_provider_qa_run_plans");
+        assertThat(expandedTables.split(",")).hasSize(21);
+        assertThat(sql).contains("CREATE OR REPLACE FUNCTION attachment_policy_publication_lock()", "announcement_attachment_provider_qa_runs,announcement_attachment_provider_qa_cases");
+        assertThat(sql).doesNotContain("INSERT INTO", "UPDATE ", "DELETE FROM", "DROP TABLE", "DISABLE TRIGGER");
+    }
+    @Test void providerQaApprovedSegmentPlanIsImmutableAndRequiredOnlyForNewRuns() throws IOException {
+        var sql=new ClassPathResource("db/migration/V80__bind_provider_qa_approved_segment_plan.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("CREATE TABLE announcement_attachment_provider_qa_run_plans","provider QA approved plan is immutable",
+                "p.created_xid=r.created_xid","r.expected_case_count<=NEW.executable_case_count","sum(c.maximum_seconds+60)",
+                "maximum_seconds_including_margin BETWEEN 61 AND 82800","DEFERRABLE INITIALLY DEFERRED","AFTER INSERT ON announcement_attachment_provider_qa_runs");
+        assertThat(sql).doesNotContain("ALTER TABLE announcement_attachment_provider_qa_runs","UPDATE announcement_","DELETE FROM", "SELECT *","DISABLE TRIGGER");
+    }
+    @Test void providerQaLedgerPreservesScopeBudgetsOwnershipAndCompletedIsNotPolicyPublication() throws IOException {
+        var sql=new ClassPathResource("db/migration/V79__add_provider_qa_execution_ledger.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("CREATE TABLE announcement_attachment_provider_qa_runs", "CREATE TABLE announcement_attachment_provider_qa_cases",
+                "maximum_seconds BETWEEN 1 AND 420","maximum_requests BETWEEN 1 AND 44","maximum_bytes BETWEEN 1 AND 83886080",
+                "provider QA preparation must seal in the same transaction","DEFERRABLE INITIALLY DEFERRED","UNIQUE(run_id,ordinal)","UNIQUE(run_id,case_code)",
+                "provider QA cannot hide unfinished cases","provider QA final usage must equal all case usage",
+                "provider QA lease cannot extend or accept a late response","originalFilesRemoved","isPolicyQaPassed",
+                "provider_qa_case_id IS NULL AND provider_qa_lease_token IS NULL","NEW.lease_expires_at>clock_timestamp()+interval '8 minutes'");
+        assertThat(sql).doesNotContain("SELECT *","r.*","source_url","body_text","extracted_text","UPDATE announcement_source_snapshots",
+                "INSERT INTO announcement_attachment_jobs","UPDATE announcement_attachment_policies","DISABLE TRIGGER","NOT VALID");
+    }
+    @Test void gov24AttachmentConstraintsAddActualProviderWithoutRewritingHistory() throws IOException {
+        var sql=new ClassPathResource("db/migration/V78__align_attachment_gov24_provider_code.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("ALTER TABLE announcement_attachment_jobs", "announcement_attachment_jobs_frozen_provider_code_check",
+                "ALTER TABLE announcement_attachment_backfill_items", "announcement_attachment_backfill_items_provider_code_check",
+                "CHECK (frozen_provider_code IN ('BIZINFO','GOV24','GOV24_PUBLIC_SERVICE','LOCAL_GOV_NOTICE'))",
+                "CHECK (provider_code IN ('BIZINFO','GOV24','GOV24_PUBLIC_SERVICE','LOCAL_GOV_NOTICE'))");
+        assertThat(sql).doesNotContain("UPDATE ","DELETE FROM ","INSERT INTO ","DISABLE TRIGGER","DROP TABLE","NOT VALID");
+    }
+    @Test void publicationReceiptRequiresVerifiedExactScopeAndAtomicPolicyReplacement() throws IOException {
+        var sql=new ClassPathResource("db/migration/V77__add_attachment_policy_publication_receipt.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("IN EXCLUSIVE MODE NOWAIT","policy publication receipt is immutable","v.run_status_code='VERIFIED'",
+                "s.requested_by=NEW.published_by","NEW.policy_hash<>approved.qa_snapshot_hash","EXCEPT (SELECT i.entity_type_code","EXCEPT (SELECT m.entity_type_code",
+                "NEW.runtime_hash IS DISTINCT FROM approved.runtime_hash","p.settings_json->>'extractorConfigHash'=NEW.runtime_hash",
+                "previous_policy_row_version+1","DEFERRABLE INITIALLY DEFERRED","publication and previous policy retirement must commit atomically");
+        assertThat(sql).doesNotContain("UPDATE announcement_source_snapshots","INSERT INTO announcement_attachment_jobs","SELECT *");
+    }
+    @Test void publicationScopeSealsExactImmutableMembershipWithoutPublishing() throws IOException {
+        var sql=new ClassPathResource("db/migration/V76__add_attachment_policy_publication_scope.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("PRIMARY KEY (scope_id,entity_type_code,entity_id)","idempotency_key uuid NOT NULL UNIQUE",
+                "FOREIGN KEY (qa_run_id,policy_id)","ix_att_publication_scope_rule","ix_att_publication_scope_qa","r.rule_snapshot_hash",
+                "expires_at<=created_at+interval '15 minutes'", "created_xid<>pg_current_xact_id()",
+                "publication scope history is immutable", "publication scope members are immutable", "DEFERRABLE INITIALLY DEFERRED",
+                "p.row_version=scope_row.policy_row_version", "r.row_version=scope_row.rule_row_version", "EXCEPT (SELECT i.entity_type_code",
+                "EXCEPT (SELECT m.entity_type_code", "'POLICY'::varchar", "'SOURCE'::varchar", "'JOB'::varchar", "'COLLECTION_PLAN'::varchar", "'COLLECTOR'::varchar");
+        assertThat(sql).doesNotContain("UPDATE announcement_source_snapshots", "UPDATE announcement_attachment_policies", "INSERT INTO announcement_attachment_jobs", "SELECT *", "LIMIT ");
+    }
+    @Test void linkedBackfillBatchesRequireAtomicExactMembershipAndKeepExistingExecutionGuards() throws IOException {
+        var sql=new ClassPathResource("db/migration/V75__link_attachment_backfill_segments_to_batches.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("PRIMARY KEY (run_id,segment_no)","batch_id uuid NOT NULL UNIQUE", "backfill segment reservation receipt is immutable",
+                "backfill marked batch requires its atomic segment receipt", "binding.scope_item_count+binding.deleted_before_reservation<>binding.item_count",
+                "binding.batch_deleted_count+binding.deleted_before_reservation<>binding.deleted_item_count", "ct_att_backfill_fixed_job",
+                "ct_att_backfill_segment_batch", "attachment_backfill_batch_input_unchanged(j.id)", "previous_confirmation_id",
+                "previous_is_review_required", "NOT EXISTS (SELECT 1 FROM announcement_source_links", "i.input_hash=attachment_backfill_input_hash(i.source_id)");
+        assertThat(sql).doesNotContain("UPDATE announcement_source_snapshots", "SET batch_status_code=", "CREATE TABLE users", "SELECT *");
+    }
+    @Test void fullBackfillInventoryHasImmutableMembershipCascadeDenominatorsAndNoExecutionSideEffects() throws IOException {
+        var sql=new ClassPathResource("db/migration/V74__add_attachment_backfill_inventory.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("candidate_count bigint", "segment_count=(candidate_count-1)/segment_size+1", "PRIMARY KEY (run_id,source_id)",
+                "UNIQUE (run_id,ordinal)", "FOREIGN KEY (base_evaluation_id,source_id,content_version_id,rule_release_id)",
+                "ON DELETE CASCADE", "inventory.created_xid<>pg_current_xact_id()", "NEW.segment_no<>(NEW.ordinal-1)/inventory.segment_size+1",
+                "backfill item removal requires source or base cascade", "deleted_item_count=deleted_item_count+1,row_version=row_version+1",
+                "ct_att_backfill_inventory_complete", "DEFERRABLE INITIALLY DEFERRED", "actual_count<>NEW.candidate_count OR actual_hash<>NEW.candidate_hash",
+                "backfill inventory must contain every frozen candidate exactly once", "pg_trigger_depth()<2", "attachment_normal_reservation_context_hash(s.id,e.id)");
+        assertThat(sql).doesNotContain("INSERT INTO announcement_attachment_jobs", "UPDATE announcement_source_snapshots", "ALTER TABLE announcement_source_snapshots", "SELECT *", "body_text", "extracted_text");
+        assertThat(countOccurrences(sql,"CREATE CONSTRAINT TRIGGER ct_att_backfill_inventory_complete")).isEqualTo(1);
+    }
+    @Test void normalRollbackRequiresAtomicApprovalForAppliedAndFailedReservationWithoutFabricatingApplication() throws IOException {
+        var sql=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("announcement_attachment_normal_rollback_actions", "mode_code IN ('APPLIED','FAILED_RESERVATION')",
+                "attachment_normal_job_recovery_state", "normal rollback requires unchanged preview and explicit effects", "ct_att_normal_rollback_complete",
+                "normal rollback must restore source evaluation confirmation and receipt atomically", "normal rollback approval is immutable",
+                "attachment recovered normal execution cannot be restarted", "j.reservation_context_hash=attachment_normal_reservation_context_hash",
+                "j.application_status_code='PENDING' AND j.job_status_code IN ('FAILED','CONFLICT','CANCELLED')", "j.normal_rollback_action_id=a.id AND j.rollback_status_code='ROLLED_BACK'");
+        assertThat(countOccurrences(sql,"CREATE TABLE announcement_attachment_normal_rollback_actions (")).isEqualTo(1);
+    }
+    @Test void normalJobsFreezeReservationBeforeInvalidationAndKeepAppliedEvidenceImmutable() throws IOException {
+        var sql=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("capture_attachment_normal_reservation", "NEW.batch_id IS NOT NULL OR NEW.execution_snapshot_json IS NULL",
+                "reservation_attachment_version", "is_reservation_previous_evaluation_current", "is_reservation_confirmation_valid",
+                "coalesce(r.attachment_version,c.confirmed_attachment_version)=s.attachment_row_version", "s.attachment_row_version>2147483645", "aset.manifest_hash=c.set_hash",
+                "attachment normal previous bindings are immutable", "attachment normal applied evidence is immutable",
+                "NEW.reservation_attachment_version::bigint+2", "attachment normal rollback requires a dedicated approval contract");
+        assertThat(countOccurrences(sql,"CREATE FUNCTION attachment_normal_job_application_hash(")).isEqualTo(1);
+    }
+    @Test void normalApplicationFingerprintContainsOnlyVersionedIdentifiersAndHashes() throws IOException {
+        var sql=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        String hash=sql.substring(sql.indexOf("CREATE FUNCTION attachment_normal_job_application_hash("),sql.indexOf("CREATE FUNCTION protect_attachment_normal_job_evidence("));
+        assertThat(hash).contains("j.execution_snapshot_json", "j.reservation_attachment_version", "s.attachment_row_version",
+                "base.decision_status_code", "e.input_hash", "e.decision_hash", "aset.manifest_hash", "p.policy_hash", "r.rule_snapshot_hash", "to_jsonb(s.agency_name)::text",
+                "announcement_source_links", "announcement_source_attachment_confirmations", "other.id<>j.id", "aset.set_status_code='SEALED'")
+                .doesNotContain("extracted_text", "display_name", "s.source_url", "s.title", "policy_status_code", "release_status_code", "attempt_count", "UPDATE ", "INSERT ");
+    }
+    @Test void rollbackRequiresFullImmutableApprovalAndSeparatesApplicationFromRecovery() throws IOException {
+        var sql=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("CREATE TABLE announcement_attachment_batch_rollback_actions","CREATE TABLE announcement_attachment_batch_rollback_items",
+                "ct_att_batch_rollback_action_complete","rollback_attempt_count BETWEEN 0 AND 3","APPLICATION_CANCELLED_BY_ROLLBACK",
+                "attachment rollback terminal result is immutable","attachment rollback job requires approved scope","attachment rollback result does not match restored source");
+        assertThat(countOccurrences(sql,"ADD CONSTRAINT uq_att_job_source ")).isEqualTo(1);
+    }
+    @Test void restoredConfirmationKeepsImmutableReceiptAndRequiresAtomicVersionBoundEvidence() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE TABLE announcement_attachment_confirmation_restorations",
+                "FOREIGN KEY(job_id,source_id)","FOREIGN KEY(confirmation_id,source_id)","UNIQUE(source_id,attachment_version)",
+                "attachment_confirmation_restored_binding", "j.rollback_status_code='ROLLED_BACK'",
+                "j.applied_attachment_version::bigint+1=r.attachment_version", "ct_att_confirmation_restoration_complete",
+                "stale or unversioned prior confirmation cannot be revalidated by restoration",
+                "attachment restoration evidence is immutable", "stale confirmation requires matching restoration evidence");
+    }
+    @Test void batchApplicationRequiresImmutableApprovalAndCapturesRecoveryVersions() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE TABLE announcement_attachment_batch_application_actions", "application_approval_id uuid",
+                "FOREIGN KEY(application_preview_id,batch_id)", "application_attempt_count BETWEEN 0 AND 3", "applied_source_version integer", "applied_input_hash varchar(64)",
+                "attachment approved preview binding is immutable", "attachment application requires an approved selected item", "attachment terminal application result is immutable",
+                "attachment applied result and current binding mismatch", "attachment pause or resume requires matching action");
+    }
+    @Test void batchPreviewHistoryHasExactSelectionAndSourceCascadeWithoutLegacyHashConstraint() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE TABLE announcement_attachment_batch_previews", "CREATE TABLE announcement_attachment_batch_preview_items",
+                "FOREIGN KEY(job_id,batch_id) REFERENCES announcement_attachment_jobs(id,batch_id) ON DELETE CASCADE",
+                "FOREIGN KEY(current_preview_id,id)", "attachment batch preview history is immutable", "attachment preview items cannot be appended to old history",
+                "ct_att_batch_preview_complete", "ct_att_batch_current_selection", "ct_att_job_current_selection",
+                "is_eligible=(readiness_code='READY')", "NOT is_selected OR is_eligible", "scope_item_count=remaining_item_count+deleted_item_count")
+                .doesNotContain("FOREIGN KEY(id,preview_hash) REFERENCES announcement_attachment_batch_previews");
+    }
+
+    @Test void batchCollectionRequiresApprovalAndFrozenLocatorAndReviewBindings() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("ck_att_batch_collection_approval", "collection_started_at IS NOT NULL AND collection_approval_hash IS NOT NULL",
+                "OLD.collection_started_at IS NOT NULL", "NEW.approved_by,NEW.collection_started_at,NEW.collection_approval_hash",
+                "CREATE FUNCTION attachment_source_locator_hash", "CREATE FUNCTION attachment_batch_job_input_unchanged",
+                "j.frozen_locator_hash=attachment_source_locator_hash(j.source_id)", "NEW.frozen_locator_hash", "OLD.frozen_locator_hash",
+                "attachment batch previous bindings are immutable", "batch_state NOT IN ('SCOPE_READY','CANCELLED') AND job_status_code='SCOPE_READY'");
+    }
+
+    @Test void backfillScopeMaterializesJobsPreservesHistoryAndCountsDeletedSources() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("ADD COLUMN scope_item_count integer", "scope_item_count<=maximum_count", "fk_att_job_batch_policy",
+                "REFERENCES announcement_attachment_batches(id,policy_id)", "managed attachment batch history cannot be deleted",
+                "NEW.scope_fixed_at,NEW.reason_hash,NEW.idempotency_key,NEW.request_hash,NEW.created_at,NEW.scope_item_count,NEW.policy_snapshot_json",
+                "deleted_item_count=deleted_item_count+1", "expected<>(SELECT count(1) FROM announcement_attachment_jobs WHERE batch_id=batch_key)+deleted",
+                "batch_state='SCOPE_READY' AND job_status_code<>'SCOPE_READY'", "batch_state='CANCELLED' AND job_status_code<>'CANCELLED'",
+                "CREATE CONSTRAINT TRIGGER ct_att_batch_scope_count", "CREATE CONSTRAINT TRIGGER ct_att_batch_job_count",
+                "NEW.frozen_provider_code", "OLD.frozen_provider_code");
+    }
+
+    @Test void policyQaHistoryPinsInputsAndFencesLifecycleAndPartialEvidence() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE TABLE announcement_attachment_policy_validation_runs",
+                "CREATE TABLE announcement_attachment_policy_validation_steps", "uq_att_validation_active",
+                "'CLASSIFICATION_GOLDEN','INSTALLED_RUNTIME','PROVIDER_PROFILES','WORKER_DB_RECOVERY'",
+                "NEW.input_snapshot_json,NEW.requested_by,NEW.idempotency_key,NEW.request_hash,NEW.created_at",
+                "BEFORE INSERT OR UPDATE OR DELETE ON announcement_attachment_policy_validation_runs",
+                "BEFORE INSERT OR UPDATE OR DELETE ON announcement_attachment_policy_validation_steps",
+                "NEW.started_at IS DISTINCT FROM OLD.started_at", "NEW.lease_token,NEW.lease_expires_at",
+                "NEW.error_code IS NOT DISTINCT FROM 'LEASE_EXPIRED'", "WHERE run_id=NEW.id AND status_code='PASSED')<>4",
+                "run_status_code='RUNNING' AND lease_expires_at>clock_timestamp() FOR UPDATE",
+                "validation evidence requires its owned extraction slot");
+    }
+    @Test void policyQaAndWorkerResourceOwnersAreMutuallyExclusive() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("ck_att_resource_owner", "job_id IS NOT NULL AND job_lease_token IS NOT NULL AND policy_validation_id IS NULL",
+                "job_id IS NULL AND job_lease_token IS NULL AND policy_validation_id IS NOT NULL AND policy_validation_lease_token IS NOT NULL",
+                "resource_code='EXTRACTION' AND resource_key='GLOBAL' AND slot_no=1",
+                "l.policy_validation_id=v.id AND l.policy_validation_lease_token=v.lease_token");
+    }
+    @Test void policyClassificationChecksAreImmutableAndVersionBoundWithoutPublicationState() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE TABLE announcement_attachment_policy_checks","CHECK (check_type_code='CLASSIFICATION_GOLDEN')",
+                "r.row_version=NEW.rule_row_version","p.row_version=NEW.policy_row_version","CREATE TRIGGER tr_att_policy_check_immutable BEFORE UPDATE",
+                "CREATE INDEX ix_att_policy_check_history","CREATE INDEX ix_att_policy_check_rule","CREATE INDEX ix_att_policy_check_actor");
+    }
+
+    @Test void policyDraftIdentityAndCreationRequestsAreAdditiveAndImmutable() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("ADD COLUMN creation_idempotency_key uuid UNIQUE","ADD CONSTRAINT ck_att_policy_creation",
+                "creation_operation_code='CREATE' AND copied_from_policy_id IS NULL",
+                "creation_operation_code='REVISION' AND copied_from_policy_id IS NOT NULL AND copied_from_policy_id<>id",
+                "CREATE INDEX ix_att_policy_parent","CREATE INDEX ix_att_policy_list",
+                "CREATE TRIGGER tr_att_policy_revision_parent BEFORE INSERT ON announcement_attachment_policies",
+                "parent.id=NEW.copied_from_policy_id AND parent.policy_code=NEW.policy_code",
+                "parent.version_no<NEW.version_no",
+                "CREATE TRIGGER tr_att_policy_draft_identity BEFORE UPDATE ON announcement_attachment_policies",
+                "NEW.creation_idempotency_key,NEW.creation_request_hash,NEW.creation_operation_code,NEW.copied_from_policy_id",
+                "NEW.row_version<>OLD.row_version+1","managed attachment policy version must advance once");
+        assertThat(migration).doesNotContain("DROP TRIGGER tr_att_policy_immutable","INSERT INTO announcement_attachment_policies");
+    }
+
+    @Test void attachmentHistoryHasStableSourceScopedPaginationIndex() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE INDEX ix_att_eval_source_history ON announcement_source_attachment_evaluations(source_id,evaluated_at DESC,id DESC)");
+    }
+    @Test void manualNetworkRequestsHaveOneSharedWindowIndex() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CREATE INDEX ix_att_job_manual_network_window ON announcement_attachment_jobs(source_id,created_at DESC)",
+                "WHERE requested_by IS NOT NULL AND operation_code IN ('COLLECT','RETRY_FILES')");
+    }
+
+    @Test void manualRetryScopeUsesImmutableSourceAndFileBindings() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("fk_att_retry_job FOREIGN KEY (job_id,source_id,reference_set_id)",
+                "fk_att_retry_file FOREIGN KEY (file_id,reference_set_id,source_id)","tr_att_retry_scope_present",
+                "tr_att_retry_scope_immutable","attachment retry scope must select failed files only","attachment retry sealed set is immutable");
+        String mapper=new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentRetryMapper.xml").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(mapper).contains("interval '60 seconds'","interval '24 hours'","j.lease_token=#{leaseToken}","f.set_id=j.reference_set_id");
+    }
+
+    @Test void retryCheckpointIsBoundedJobScopedAndNeverAVisibleAttachmentSet() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("fk_att_checkpoint_job FOREIGN KEY (job_id,source_id)","octet_length(file_result_json::text)<=16777216",
+                "tr_att_checkpoint_immutable","tr_att_checkpoint_finished","attachment checkpoint file limit exceeded");
+        String mapper=new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentEvidenceMapper.xml").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(mapper).contains("j.lease_token=#{leaseToken}","j.operation_code IN ('COLLECT','RETRY_FILES') AND j.set_id IS NULL",
+                "e.id=j.base_evaluation_id","e.is_current","completedAt,javaType=java.time.OffsetDateTime,jdbcType=TIMESTAMP_WITH_TIMEZONE");
+        assertThat(mapper.substring(mapper.indexOf("<select id=\"selectSetList\""),mapper.indexOf("<select id=\"selectFileList\"")))
+                .doesNotContain("file_checkpoints");
+    }
+
+    @Test void attachmentCurrentProjectionUsesFlywayJobSetColumn() throws IOException {
+        String migration=new ClassPathResource("db/migration/V72__add_announcement_attachment_evidence.sql").getContentAsString(StandardCharsets.UTF_8);
+        String mapper=new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentCurrentMapper.xml").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("CONSTRAINT fk_att_job_set FOREIGN KEY (set_id,source_id,content_version_id,policy_id)");
+        assertThat(mapper).contains("q.set_id", "jset.id=j.set_id").doesNotContain("last_set_id");
+    }
+    @Test void roleChangesPreserveSameSourceExtractionAndDisallowExternalExecution() throws IOException {
+        String migration=new ClassPathResource("db/migration/V73__add_attachment_worker_execution_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(migration).contains("fk_att_job_reference_set", "reserved_download_bytes=0", "fk_att_extraction_reused",
+                "tr_att_extraction_reuse", "tr_att_role_job_sets", "attachment role job sealed set is immutable");
+        String mapper=new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentJobMapper.xml").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(mapper).contains("j.operation_code IN ('COLLECT','RETRY_FILES') AND EXISTS");
+        String copies=new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentRoleMapper.xml").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(copies).contains("original.created_at,original.id", "original.source_id=#{sourceId}").doesNotContain("UPDATE announcement_source_attachment_files");
+    }
 
     /**
      * 업무 처리를 수행합니다.

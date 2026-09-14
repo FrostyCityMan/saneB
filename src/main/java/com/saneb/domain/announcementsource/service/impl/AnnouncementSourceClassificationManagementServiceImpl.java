@@ -10,6 +10,7 @@ package com.saneb.domain.announcementsource.service.impl;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
+import com.saneb.domain.announcementattachment.service.AttachmentLegacyPathGuard;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceClassificationDetailsResponse;
@@ -115,6 +116,8 @@ public class AnnouncementSourceClassificationManagementServiceImpl
             AnnouncementSourceConfirmedClassificationSaveRequest request
     ) {
         UUID actorUserId = selectActorUserId(authentication);
+        AttachmentLegacyPathGuard.validate(
+                announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         AnnouncementSourceClassificationStateRow state = classificationDao.selectClassificationStateDetails(sourceId);
         if (state == null || state.decisionId() == null) {
             throw new ApiException(

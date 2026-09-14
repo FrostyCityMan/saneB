@@ -1,11 +1,15 @@
 package com.saneb.domain.announcementsource.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao;
+import com.saneb.common.error.ApiException;
+import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceConfirmedClassificationSaveRequest;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
@@ -47,6 +51,17 @@ class AnnouncementSourceClassificationManagementServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AnnouncementSourceClassificationManagementServiceImpl(classificationDao, sourceDao);
+    }
+
+    @Test
+    void rejectsLegacyConfirmationForAttachmentBoundSourceBeforeTagWrites() {
+        when(sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+        assertThatThrownBy(() -> service.saveConfirmedClassification(authentication(), SOURCE_ID, null))
+                .isInstanceOfSatisfying(ApiException.class, exception -> {
+                    assertThat(exception.httpStatus().value()).isEqualTo(409);
+                    assertThat(exception.errorCode()).isEqualTo(ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE);
+                });
+        verifyNoInteractions(classificationDao);
     }
 
     @Test

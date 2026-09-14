@@ -24,6 +24,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -55,7 +59,16 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/v1/**", "/api/v2/**", "/actuator/**")
+                        // 기존 API 계약은 유지하되 신규 첨부 변경 경로는 session CSRF 검증을 필수로 한다.
+                        .ignoringRequestMatchers(
+                                new AntPathRequestMatcher("/api/v1/**"),
+                                new AntPathRequestMatcher("/actuator/**"),
+                                new AndRequestMatcher(new AntPathRequestMatcher("/api/v2/**"),
+                                        new NegatedRequestMatcher(new OrRequestMatcher(
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-sources/*/attachment-*/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-policies/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-backfills/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-batches/**")))))
                 )
                 .securityContext(securityContext -> securityContext
                         .securityContextRepository(securityContextRepository)

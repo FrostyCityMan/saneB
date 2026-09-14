@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao">
+    <resultMap id="SourceContextMap" type="com.saneb.domain.announcementattachment.vo.AttachmentSourceContextRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="data_purpose_code" javaType="java.lang.String"/>
+            <arg column="semantic_status_code" javaType="java.lang.String"/>
+            <arg column="base_evaluation_id" javaType="java.util.UUID"/>
+            <arg column="content_version_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="title_stage_code" javaType="java.lang.String"/>
+            <arg column="source_version" javaType="java.lang.Integer"/>
+            <arg column="attachment_version" javaType="java.lang.Integer"/>
+            <arg column="is_attachment_review_required" javaType="java.lang.Boolean"/>
+            <arg column="attachment_policy_id" javaType="java.util.UUID"/>
+            <arg column="current_attachment_evaluation_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="PolicyMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyRow">
+        <constructor>
+            <arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="policy_status_code" javaType="java.lang.String"/>
+            <arg column="mode_code" javaType="java.lang.String"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="release_status_code" javaType="java.lang.String"/>
+            <arg column="policy_hash" javaType="java.lang.String"/>
+            <arg column="settings_json" javaType="java.lang.String"/>
+            <arg column="profile_manifest_json" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="JobMap" type="com.saneb.domain.announcementattachment.vo.AttachmentJobRow">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="content_version_id" javaType="java.util.UUID"/>
+            <arg column="base_evaluation_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="batch_id" javaType="java.util.UUID"/>
+            <arg column="set_id" javaType="java.util.UUID"/>
+            <arg column="generation" javaType="java.lang.Integer"/>
+            <arg column="expected_source_version" javaType="java.lang.Integer"/>
+            <arg column="expected_attachment_version" javaType="java.lang.Integer"/>
+            <arg column="job_status_code" javaType="java.lang.String"/>
+            <arg column="attempt_count" javaType="java.lang.Integer"/>
+            <arg column="next_attempt_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="lease_token" javaType="java.util.UUID"/>
+            <arg column="lease_expires_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="error_code" javaType="java.lang.String"/>
+            <arg column="idempotency_key" javaType="java.util.UUID"/>
+            <arg column="request_hash" javaType="java.lang.String"/>
+            <arg column="execution_snapshot_json" javaType="java.lang.String"/>
+            <arg column="download_budget_bytes" javaType="java.lang.Long"/>
+            <arg column="reserved_download_bytes" javaType="java.lang.Long"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="operation_code" javaType="java.lang.String"/>
+            <arg column="reference_set_id" javaType="java.util.UUID"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+    <sql id="JobColumns">
+        j.id, j.source_id, j.content_version_id, j.base_evaluation_id,
+        j.rule_release_id, j.policy_id, j.batch_id, j.set_id, j.generation,
+        j.expected_source_version, j.expected_attachment_version, j.job_status_code,
+        j.attempt_count, j.next_attempt_at, j.lease_token, j.lease_expires_at,
+        j.error_code, j.idempotency_key, j.request_hash,
+        j.execution_snapshot_json::text AS execution_snapshot_json,
+        j.download_budget_bytes, j.reserved_download_bytes, j.row_version,
+        j.operation_code,j.reference_set_id,j.requested_by
+    </sql>
+
+    <sql id="SourceContextColumnsAndJoin">
+        SELECT s.id AS source_id, s.provider_code, s.data_purpose_code, s.semantic_status_code,
+               e.id AS base_evaluation_id, e.content_version_id, e.rule_release_id, e.title_stage_code,
+               s.classification_row_version AS source_version, s.attachment_row_version AS attachment_version,
+               s.is_attachment_review_required, s.attachment_policy_id, s.current_attachment_evaluation_id
+        FROM announcement_source_snapshots s
+        LEFT JOIN announcement_source_classification_evaluations e ON e.source_id = s.id AND e.is_current
+        WHERE s.id = #{sourceId}
+    </sql>
+    <resultMap id="WorkerSourceMap" type="com.saneb.domain.announcementattachment.vo.AttachmentWorkerSourceRow">
+        <constructor>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="provider_notice_id" javaType="java.lang.String"/>
+            <arg column="source_url" javaType="java.lang.String"/>
+            <arg column="local_source_code" javaType="java.lang.String"/>
+            <arg column="parser_profile_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectWorkerSourceDetails" resultMap="WorkerSourceMap" flushCache="true" useCache="false">
+        -- 외부 요청 전에 source/base/lease를 검증한다. 원문 title/body 또는 인증값은 읽지 않는다.
+        SELECT s.provider_code,s.provider_notice_id,s.source_url,l.public_code AS local_source_code,l.parser_profile_code
+        FROM announcement_attachment_jobs j
+        JOIN announcement_source_snapshots s ON s.id=j.source_id
+            AND s.classification_row_version=j.expected_source_version AND s.attachment_row_version=j.expected_attachment_version
+        JOIN announcement_source_classification_evaluations e ON e.id=j.base_evaluation_id AND e.source_id=s.id
+            AND e.content_version_id=j.content_version_id AND e.rule_release_id=j.rule_release_id AND e.is_current
+        LEFT JOIN local_government_notice_sources l ON l.id=s.local_government_source_id
+        WHERE j.id=#{jobId} AND j.lease_token=#{leaseToken} AND j.job_status_code='RUNNING'
+            AND j.lease_expires_at&gt;clock_timestamp() AND s.data_purpose_code='PRODUCTION'
+            AND s.semantic_status_code&lt;&gt;'EXCLUDED' AND e.decision_status_code&lt;&gt;'EXCLUDED'
+            AND e.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED')
+            AND (s.provider_code&lt;&gt;'LOCAL_GOV_NOTICE' OR (l.is_enabled AND l.deleted_at IS NULL))
+            AND (j.batch_id IS NULL OR attachment_batch_job_input_unchanged(j.id))
+    </select>
+    <sql id="ExternalExecutionConditions">
+        -- 작업은 게시 당시 정책을 유지한다. 현재 ACTIVE 규칙의 OFF 정책/배치 중지는 추가 요청을 막는다.
+        j.operation_code IN ('COLLECT','RETRY_FILES') AND EXISTS (SELECT 1 FROM announcement_attachment_policies p
+                WHERE p.id=j.policy_id AND p.policy_status_code IN ('ACTIVE','RETIRED') AND p.mode_code&lt;&gt;'OFF')
+        AND NOT EXISTS (SELECT 1 FROM announcement_attachment_policies control
+                JOIN announcement_source_classification_rule_releases active_rule ON active_rule.id=control.rule_release_id
+                WHERE control.policy_status_code='ACTIVE' AND control.mode_code='OFF' AND active_rule.release_status_code='ACTIVE')
+        AND (j.batch_id IS NULL OR EXISTS (SELECT 1 FROM announcement_attachment_batches b
+                WHERE b.id=j.batch_id AND b.batch_status_code IN ('COLLECTION_PENDING','COLLECTING')
+                    AND (b.scope_item_count IS NULL OR (b.collection_started_at IS NOT NULL AND b.collection_approval_hash IS NOT NULL
+                        AND attachment_batch_job_input_unchanged(j.id)))))
+        AND EXISTS (SELECT 1 FROM announcement_source_snapshots s
+                JOIN announcement_source_classification_evaluations e ON e.id=j.base_evaluation_id
+                    AND e.source_id=s.id AND e.is_current AND e.content_version_id=j.content_version_id
+                    AND e.rule_release_id=j.rule_release_id
+                LEFT JOIN local_government_notice_sources l ON l.id=s.local_government_source_id
+                WHERE s.id=j.source_id AND s.data_purpose_code='PRODUCTION' AND s.semantic_status_code&lt;&gt;'EXCLUDED'
+                    AND e.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED') AND e.decision_status_code&lt;&gt;'EXCLUDED'
+                    AND s.classification_row_version=j.expected_source_version
+                    AND s.attachment_row_version=j.expected_attachment_version
+                    AND (s.provider_code&lt;&gt;'LOCAL_GOV_NOTICE' OR (l.is_enabled AND l.deleted_at IS NULL)))
+    </sql>
+    <select id="selectExternalExecutionAllowed" resultType="boolean" flushCache="true" useCache="false">
+        -- lease와 실행 조건을 매 요청 직전에 재확인한다. HTTP 동안 잠금을 유지하지 않는다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_jobs j
+            WHERE j.id=#{jobId} AND j.lease_token=#{leaseToken} AND j.job_status_code='RUNNING'
+              AND j.lease_expires_at&gt;clock_timestamp() AND <include refid="ExternalExecutionConditions"/>)
+    </select>
+    <select id="selectBatchExecutionUnchanged" resultType="boolean" flushCache="true" useCache="false">
+        -- 변경된 출처/검수를 무한 재대기하지 않고 claim 시 CONFLICT로 집계한다.
+        SELECT attachment_batch_job_input_unchanged(#{jobId})
+    </select>
+    <update id="updateJobFrozenInputConflict">
+        -- source version이 그대로여도 출처 연결/기존 검수가 달라졌다면 정확한 충돌 사유로 종료한다.
+        UPDATE announcement_attachment_jobs SET job_status_code='CONFLICT',error_code='FROZEN_INPUT_CHANGED',lease_token=NULL,
+            lease_expires_at=NULL,next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND lease_token=#{leaseToken} AND job_status_code='RUNNING' AND batch_id IS NOT NULL
+            AND lease_expires_at&gt;clock_timestamp()
+    </update>
+    <update id="updateJobDeferred">
+        -- 자원 경합만으로 시도를 소진하지 않는다. 이미 통신한 시도와 누적 byte는 되돌리지 않는다.
+        UPDATE announcement_attachment_jobs
+        SET job_status_code=CASE WHEN #{requestStarted} AND attempt_count&gt;=3 THEN 'FAILED' ELSE 'RETRY_WAIT' END,
+            error_code='EXECUTION_DEFERRED', lease_token=NULL, lease_expires_at=NULL,
+            attempt_count=CASE WHEN #{requestStarted} THEN attempt_count ELSE GREATEST(attempt_count-1,0) END,
+            next_attempt_at=CASE WHEN #{requestStarted} AND attempt_count&gt;=3 THEN NULL
+                ELSE clock_timestamp()+interval '10 seconds' END,
+            row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND lease_token=#{leaseToken} AND job_status_code='RUNNING'
+            AND lease_expires_at&gt;clock_timestamp()
+    </update>
+    <select id="selectOwnedJobDetailsForUpdate" resultMap="JobMap" flushCache="true" useCache="false">
+        -- source 잠금 이후 호출한다. 만료된 lease의 결과 저장은 허용하지 않는다.
+        SELECT <include refid="JobColumns"/> FROM announcement_attachment_jobs j
+        WHERE j.id = #{jobId} AND j.lease_token = #{leaseToken}
+          AND j.job_status_code = 'RUNNING' AND j.lease_expires_at &gt; clock_timestamp()
+        FOR UPDATE OF j
+    </select>
+    <select id="selectSourceContextDetailsForUpdate" resultMap="SourceContextMap" flushCache="true" useCache="false">
+        -- 예약은 source부터 잠근다. 기존 source 변경 경로와 잠금 순서를 유지한다.
+        <include refid="SourceContextColumnsAndJoin"/>
+        FOR UPDATE OF s
+    </select>
+    <select id="selectSourceContextDetails" resultMap="SourceContextMap" flushCache="true" useCache="false">
+        -- claim은 job을 잠근 상태이므로 source를 다시 잠그지 않아 역순 교착을 피한다.
+        <include refid="SourceContextColumnsAndJoin"/>
+    </select>
+    <select id="selectPolicyDetails" resultMap="PolicyMap">
+        -- 예약 transaction 중 게시/퇴역과 경합하지 않도록 공유 잠금을 유지한다.
+        SELECT p.id AS policy_id, p.policy_status_code, p.mode_code, p.rule_release_id,
+               r.release_status_code, p.policy_hash, p.settings_json::text AS settings_json,
+               p.profile_manifest_json::text AS profile_manifest_json, p.row_version
+        FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id = p.rule_release_id
+        WHERE p.id = #{policyId}
+        FOR SHARE OF p, r
+    </select>
+    <select id="selectFrozenRunPolicyMatches" resultType="boolean">
+        -- 임의 퇴역 정책 예약은 금지한다. 수집 시작 때 DB에 고정된 계획만 예외다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_collection_plans
+            WHERE run_id=#{runId} AND policy_id=#{policyId} AND rule_release_id=#{ruleReleaseId} AND plan_status_code='FROZEN')
+    </select>
+    <select id="selectNewSourceBindingAllowed" resultType="boolean">
+        -- 새 원문의 최초 base와 동일 run이어야 한다. 기존/연결 원문에는 자동 ENFORCE를 적용하지 않는다.
+        SELECT EXISTS (SELECT 1 FROM announcement_source_snapshots s
+            JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+            WHERE s.id=#{sourceId} AND e.run_id=#{runId} AND s.classification_row_version=0
+                AND s.attachment_row_version=0 AND NOT s.is_attachment_review_required
+                AND s.current_attachment_evaluation_id IS NULL AND s.attachment_policy_id IS NULL
+                AND NOT EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id))
+    </select>
+    <select id="selectCurrentConfirmationId" resultType="java.util.UUID">
+        -- 예약 직전 확정 ID만 복구 근거로 보관한다. 검수 원문을 복사하지 않는다.
+        SELECT id FROM announcement_source_attachment_confirmations WHERE source_id=#{sourceId} AND is_current
+    </select>
+    <update id="updateNewSourceBinding">
+        -- 같은 source transaction 안에서 pending 검수 보호를 연결한다. 자동 활성화하지 않는다.
+        UPDATE announcement_source_snapshots SET attachment_policy_id=#{policyId},is_attachment_review_required=true
+        WHERE id=#{sourceId} AND attachment_row_version=#{attachmentVersion}
+            AND NOT is_attachment_review_required AND attachment_policy_id IS NULL
+    </update>
+    <select id="selectIdempotentJobDetails" resultMap="JobMap" flushCache="true" useCache="false">
+        -- 동일 요청만 재사용하며 다른 source의 응답은 service에서 반환하지 않는다.
+        SELECT <include refid="JobColumns"/>
+        FROM announcement_attachment_jobs j WHERE j.idempotency_key = #{idempotencyKey}
+    </select>
+    <select id="selectJobDetails" resultMap="JobMap">
+        -- 내부 worker의 고정 작업 식별자를 조회한다. API 노출에는 source/권한 확인이 별도 필요하다.
+        SELECT <include refid="JobColumns"/>
+        FROM announcement_attachment_jobs j WHERE j.id = #{jobId}
+    </select>
+    <select id="selectNextGeneration" resultType="int">
+        -- source lock 아래에서만 호출하여 같은 입력의 generation을 직렬 증가시킨다.
+        SELECT COALESCE(MAX(j.generation), 0) + 1
+        FROM announcement_attachment_jobs j
+        WHERE j.source_id = #{sourceId} AND j.content_version_id = #{contentVersionId} AND j.policy_id = #{policyId}
+    </select>
+    <insert id="insertAttachmentJob">
+        -- 중복키 충돌은 원래 작업을 보존하며, 반환 건수를 검사하여 암묵적 범위 축소를 막는다.
+        INSERT INTO announcement_attachment_jobs (
+            id, source_id, content_version_id, base_evaluation_id, rule_release_id, policy_id,
+            generation, expected_source_version, expected_attachment_version, job_status_code,
+            idempotency_key, request_hash, execution_snapshot_json, download_budget_bytes,collection_run_id,
+            previous_attachment_evaluation_id,previous_confirmation_id,previous_policy_id,previous_is_review_required,
+            application_status_code,applied_attachment_version,operation_code,reference_set_id,requested_by,set_id
+        ) VALUES (
+            #{jobId}, #{sourceId}, #{contentVersionId}, #{baseEvaluationId}, #{ruleReleaseId}, #{policyId},
+            #{generation}, #{expectedSourceVersion}, #{expectedAttachmentVersion}, 'PENDING',
+            #{idempotencyKey}, #{requestHash}, CAST(#{executionSnapshotJson} AS jsonb), #{downloadBudgetBytes},#{collectionRunId},
+            #{previousEvaluationId},#{previousConfirmationId},#{previousPolicyId},#{previousReviewRequired},
+            CASE WHEN #{applyToSource} THEN 'PENDING' ELSE 'NOT_REQUESTED' END,
+            CASE WHEN #{applyToSource} THEN #{expectedAttachmentVersion} ELSE NULL END,
+            #{operationCode},#{referenceSetId},#{requestedBy},#{readySetId}
+        ) ON CONFLICT DO NOTHING
+    </insert>
+    <update id="updateAttachmentSourceVersion">
+        -- 새 세대 예약부터 이전 첨부 판정을 현재 결과로 노출하지 않는다. base와 그 확정 태그는 유지한다.
+        UPDATE announcement_source_snapshots
+        SET attachment_row_version = attachment_row_version + 1, current_attachment_evaluation_id = NULL,
+            updated_at = clock_timestamp()
+        WHERE id = #{sourceId} AND attachment_row_version = #{expectedVersion}
+    </update>
+    <update id="updateAttachmentEvaluationsStale">
+        -- source 잠금과 같은 transaction에서 포인터/current를 함께 해제하고 과거 판정은 보존한다.
+        UPDATE announcement_source_attachment_evaluations SET is_current = false
+        WHERE source_id = #{sourceId} AND is_current
+    </update>
+    <update id="updateAttachmentConfirmationsStale">
+        -- 새 첨부 세대는 이전 첨부 확인을 승계하지 않는다. base 확인에는 영향을 주지 않는다.
+        UPDATE announcement_source_attachment_confirmations c SET is_current = false
+        WHERE c.source_id = #{sourceId} AND c.is_current
+    </update>
+    <select id="updateNextJobLease" resultMap="JobMap" affectData="true" flushCache="true">
+        -- 잠긴 후보는 건너뛰고 한 작업만 claim한다. scope preview/paused batch는 실행하지 않는다.
+        WITH candidate AS (
+            SELECT q.id FROM announcement_attachment_jobs q
+            JOIN announcement_attachment_policies p ON p.id=q.policy_id
+            JOIN announcement_source_classification_rule_releases r ON r.id=q.rule_release_id
+            LEFT JOIN announcement_attachment_batches b ON b.id = q.batch_id
+            WHERE q.job_status_code IN ('PENDING', 'RETRY_WAIT') AND q.attempt_count &lt; 3
+              AND (q.next_attempt_at IS NULL OR q.next_attempt_at &lt;= clock_timestamp())
+              AND q.execution_snapshot_json IS NOT NULL
+              AND (q.set_id IS NOT NULL OR (p.policy_status_code IN ('ACTIVE','RETIRED') AND p.mode_code&lt;&gt;'OFF'
+                AND NOT EXISTS (SELECT 1 FROM announcement_attachment_policies control
+                    JOIN announcement_source_classification_rule_releases active_rule ON active_rule.id=control.rule_release_id
+                    WHERE control.policy_status_code='ACTIVE' AND control.mode_code='OFF' AND active_rule.release_status_code='ACTIVE')))
+              AND (q.batch_id IS NULL OR b.batch_status_code IN ('COLLECTION_PENDING', 'COLLECTING'))
+            ORDER BY q.created_at, q.id
+            FOR UPDATE OF q SKIP LOCKED LIMIT 1
+        )
+        UPDATE announcement_attachment_jobs j
+        SET job_status_code = 'RUNNING', attempt_count = j.attempt_count + 1,
+            lease_token = #{leaseToken}, lease_expires_at = clock_timestamp() + #{leaseSeconds} * interval '1 second',
+            heartbeat_at = clock_timestamp(), next_attempt_at = NULL,
+            row_version = j.row_version + 1, updated_at = clock_timestamp()
+        FROM candidate c WHERE j.id = c.id
+        RETURNING <include refid="JobColumns"/>
+    </select>
+    <update id="updateExpiredJobLeases">
+        -- 만료 회수는 최대 100개 단위로 처리하며 누적 예산과 불변 실행 입력은 유지한다.
+        WITH expired AS (
+            SELECT id FROM announcement_attachment_jobs
+            WHERE job_status_code = 'RUNNING' AND lease_expires_at &lt;= clock_timestamp()
+            ORDER BY lease_expires_at, id FOR UPDATE SKIP LOCKED LIMIT 100
+        )
+        UPDATE announcement_attachment_jobs j
+        SET job_status_code = CASE WHEN j.attempt_count &lt; 3 THEN 'RETRY_WAIT' ELSE 'FAILED' END,
+            error_code = 'WORKER_LEASE_EXPIRED', lease_token = NULL, lease_expires_at = NULL,
+            next_attempt_at = CASE WHEN j.attempt_count &lt; 3 THEN clock_timestamp()
+                + (CASE WHEN j.attempt_count = 1 THEN 60 ELSE 300 END) * interval '1 second' ELSE NULL END,
+            row_version = j.row_version + 1, updated_at = clock_timestamp()
+        FROM expired e WHERE j.id = e.id
+    </update>
+    <update id="updateJobConflict">
+        -- 변경된 원문/검수 위에 오래된 작업 결과를 덮어쓰지 않는다.
+        UPDATE announcement_attachment_jobs
+        SET job_status_code = 'CONFLICT', error_code = 'SOURCE_VERSION_CHANGED',
+            lease_token = NULL, lease_expires_at = NULL, next_attempt_at = NULL,
+            row_version = row_version + 1, updated_at = clock_timestamp()
+        WHERE id = #{jobId} AND lease_token = #{leaseToken} AND job_status_code = 'RUNNING'
+          AND lease_expires_at &gt; clock_timestamp()
+    </update>
+    <update id="updateJobHeartbeat">
+        -- 만료된 lease를 heartbeat로 부활시키지 않는다.
+        UPDATE announcement_attachment_jobs
+        SET heartbeat_at = clock_timestamp(), lease_expires_at = clock_timestamp() + #{leaseSeconds} * interval '1 second',
+            row_version = row_version + 1, updated_at = clock_timestamp()
+        WHERE id = #{jobId} AND lease_token = #{leaseToken} AND job_status_code = 'RUNNING'
+          AND lease_expires_at &gt; clock_timestamp()
+    </update>
+    <update id="updateJobFailure">
+        -- 현재 소유자만 고정 실패코드를 확정한다. 세 번째 시도 뒤에는 재예약하지 않는다.
+        UPDATE announcement_attachment_jobs
+        SET job_status_code = CASE WHEN #{retryable} AND attempt_count &lt; 3 THEN 'RETRY_WAIT' ELSE 'FAILED' END,
+            error_code = #{errorCode}, lease_token = NULL, lease_expires_at = NULL,
+            next_attempt_at = CASE WHEN #{retryable} AND attempt_count &lt; 3 THEN clock_timestamp()
+                + ((CASE WHEN attempt_count = 1 THEN 60 ELSE 300 END) + #{jitterSeconds}) * interval '1 second' ELSE NULL END,
+            row_version = row_version + 1, updated_at = clock_timestamp()
+        WHERE id = #{jobId} AND lease_token = #{leaseToken} AND job_status_code = 'RUNNING'
+          AND lease_expires_at &gt; clock_timestamp()
+    </update>
+    <update id="updateJobDownloadBudget">
+        -- 요청마다 실제 소비할 byte를 단조 증가시켜 재시도로 예산을 초기화하지 못하게 한다.
+        UPDATE announcement_attachment_jobs j
+        SET reserved_download_bytes = reserved_download_bytes + #{bytes}, updated_at = clock_timestamp()
+        WHERE id = #{jobId} AND lease_token = #{leaseToken} AND job_status_code = 'RUNNING'
+          AND lease_expires_at &gt; clock_timestamp() AND #{bytes} &gt; 0
+          AND #{bytes} &lt;= download_budget_bytes - reserved_download_bytes
+          AND <include refid="ExternalExecutionConditions"/>
+    </update>
+    <insert id="insertResourceLease">
+        -- 전역/host 슬롯은 만료 후에만 재할당하며 job 소유권보다 오래 임대하지 않는다.
+        INSERT INTO announcement_attachment_resource_leases (
+            resource_code, resource_key, slot_no, job_id, job_lease_token, resource_lease_token, lease_expires_at
+        ) SELECT #{resourceCode}, #{resourceKey}, #{slotNo}, j.id, j.lease_token, #{resourceLeaseToken},
+                 clock_timestamp() + #{leaseSeconds} * interval '1 second'
+          FROM announcement_attachment_jobs j
+          WHERE j.id = #{jobId} AND j.lease_token = #{jobLeaseToken} AND j.job_status_code = 'RUNNING'
+            AND j.lease_expires_at &gt; clock_timestamp() + #{leaseSeconds} * interval '1 second'
+            AND <include refid="ExternalExecutionConditions"/>
+        ON CONFLICT (resource_code, resource_key, slot_no) DO UPDATE
+        SET job_id = EXCLUDED.job_id, job_lease_token = EXCLUDED.job_lease_token,
+            policy_validation_id=NULL, policy_validation_lease_token=NULL,
+            provider_qa_case_id=NULL, provider_qa_lease_token=NULL,
+            resource_lease_token = EXCLUDED.resource_lease_token, lease_expires_at = EXCLUDED.lease_expires_at,
+            updated_at = clock_timestamp()
+        WHERE announcement_attachment_resource_leases.lease_expires_at &lt;= clock_timestamp()
+    </insert>
+    <delete id="deleteResourceLease">
+        -- 오래된 worker가 새 소유자의 슬롯을 해제하지 못하도록 세 token을 모두 검사한다.
+        DELETE FROM announcement_attachment_resource_leases
+        WHERE resource_lease_token = #{resourceLeaseToken} AND job_id = #{jobId} AND job_lease_token = #{jobLeaseToken}
+    </delete>
+</mapper>

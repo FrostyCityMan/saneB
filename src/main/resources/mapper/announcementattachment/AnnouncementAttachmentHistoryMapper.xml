@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentHistoryDao">
+    <select id="selectEvaluationCount" resultType="long">
+        -- 같은 source의 불변 판정 전체를 센다. 현재 effective 여부는 별도 projection을 사용한다.
+        SELECT count(1) FROM announcement_source_attachment_evaluations e WHERE e.source_id=#{sourceId}
+    </select>
+    <select id="selectEvaluationList" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvaluationDao.EvaluationMap">
+        -- 시각이 같은 판정도 ID 보조 정렬로 페이지가 결정된다. 최신 정책/기본 판정으로 과거 참조를 교체하지 않는다.
+        SELECT <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvaluationDao.EvaluationColumns"/>
+        FROM announcement_source_attachment_evaluations e WHERE e.source_id=#{sourceId}
+        ORDER BY e.evaluated_at DESC,e.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectAutoTargetList" resultType="string">
+        -- 당시 자동 태그만 반환하며 별도의 관리자 확정 태그와 혼합하지 않는다.
+        SELECT c.category_code FROM announcement_source_attachment_tags t
+        JOIN announcement_source_attachment_evaluations e ON e.id=t.evaluation_id
+        JOIN announcement_target_categories c ON c.id=t.target_category_id
+        WHERE e.source_id=#{sourceId} AND e.id=#{evaluationId} AND t.origin_code='AUTO' ORDER BY c.category_code
+    </select>
+    <select id="selectAutoSupportList" resultType="string">
+        -- 과거 정책의 비활성 카탈로그도 당시 자동 판정 근거로 보존한다.
+        SELECT c.support_type_code FROM announcement_source_attachment_tags t
+        JOIN announcement_source_attachment_evaluations e ON e.id=t.evaluation_id
+        JOIN announcement_support_types c ON c.id=t.support_type_id
+        WHERE e.source_id=#{sourceId} AND e.id=#{evaluationId} AND t.origin_code='AUTO' ORDER BY c.support_type_code
+    </select>
+    <select id="selectInputExists" resultType="boolean">
+        -- 같은 source이더라도 다른 판정의 파일을 현재 필터로 사용하지 못한다.
+        SELECT EXISTS (SELECT 1 FROM announcement_source_attachment_evaluation_inputs
+            WHERE source_id=#{sourceId} AND evaluation_id=#{evaluationId} AND file_id=#{fileId})
+    </select>
+    <sql id="InputScope">
+        FROM announcement_source_attachment_evaluation_inputs i
+        JOIN announcement_source_attachment_evaluations e ON e.id=i.evaluation_id AND e.source_id=i.source_id AND e.set_id=i.set_id
+        JOIN announcement_source_attachment_files f ON f.id=i.file_id AND f.source_id=i.source_id AND f.set_id=i.set_id
+        LEFT JOIN announcement_source_attachment_extractions x ON x.id=i.extraction_id AND x.file_id=i.file_id AND x.source_id=i.source_id AND x.set_id=i.set_id
+        WHERE i.source_id=#{sourceId} AND i.evaluation_id=#{evaluationId}
+    </sql>
+    <select id="selectInputCount" resultType="long">
+        -- 추출 없는 실패 파일도 입력 count에서 제외하지 않는다.
+        SELECT count(1) <include refid="InputScope"/>
+    </select>
+    <resultMap id="InputMap" type="com.saneb.domain.announcementattachment.vo.AttachmentHistoryRows$Input">
+        <constructor>
+            <arg column="file_id" javaType="java.util.UUID"/><arg column="extraction_id" javaType="java.util.UUID"/>
+            <arg column="document_role_code" javaType="java.lang.String"/><arg column="input_status_code" javaType="java.lang.String"/>
+            <arg column="download_status_code" javaType="java.lang.String"/><arg column="download_error_code" javaType="java.lang.String"/>
+            <arg column="quality_code" javaType="java.lang.String"/><arg column="extraction_error_code" javaType="java.lang.String"/>
+            <arg column="extracted_at" javaType="java.time.OffsetDateTime"/><arg column="reused_from_extraction_id" javaType="java.util.UUID"/>
+        </constructor>
+    </resultMap>
+    <select id="selectInputList" resultMap="InputMap">
+        -- 당시 입력의 exact extraction ID를 사용한다. 최신 attempt/다른 set의 결과로 대체하지 않는다.
+        SELECT i.file_id,i.extraction_id,i.document_role_code,i.input_status_code,f.download_status_code,
+               f.error_code AS download_error_code,x.quality_code,x.error_code AS extraction_error_code,
+               x.created_at AS extracted_at,x.reused_from_extraction_id
+        <include refid="InputScope"/> ORDER BY f.sort_order,i.file_id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <sql id="MatchScope">
+        FROM announcement_source_attachment_matches m
+        JOIN announcement_source_attachment_evaluations e ON e.id=m.evaluation_id AND e.source_id=m.source_id AND e.set_id=m.set_id AND e.rule_release_id=m.rule_release_id
+        JOIN announcement_source_attachment_evaluation_inputs i ON i.evaluation_id=m.evaluation_id AND i.source_id=m.source_id AND i.set_id=m.set_id AND i.file_id=m.file_id AND i.extraction_id=m.extraction_id
+        JOIN announcement_source_classification_rule_groups g ON g.id=m.keyword_group_id AND g.release_id=m.rule_release_id
+        JOIN announcement_source_classification_keyword_rules r ON r.id=m.keyword_rule_id AND r.group_id=g.id
+        JOIN announcement_source_classification_keyword_terms t ON t.id=m.keyword_term_id AND t.keyword_rule_id=r.id
+        WHERE m.source_id=#{sourceId} AND m.evaluation_id=#{evaluationId}
+        <if test="fileId != null">AND m.file_id=#{fileId}</if>
+    </sql>
+    <select id="selectMatchCount" resultType="long">
+        -- 목록과 같은 source/evaluation/file scope를 사용한다.
+        SELECT count(1) <include refid="MatchScope"/>
+    </select>
+    <resultMap id="MatchMap" type="com.saneb.domain.announcementattachment.vo.AttachmentHistoryRows$Match">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="file_id" javaType="java.util.UUID"/>
+            <arg column="extraction_id" javaType="java.util.UUID"/><arg column="document_role_code" javaType="java.lang.String"/>
+            <arg column="keyword_group_id" javaType="java.util.UUID"/><arg column="group_code" javaType="java.lang.String"/>
+            <arg column="keyword_rule_id" javaType="java.util.UUID"/><arg column="rule_code" javaType="java.lang.String"/>
+            <arg column="keyword_term_id" javaType="java.util.UUID"/><arg column="term_text" javaType="java.lang.String"/>
+            <arg column="applied_action_code" javaType="java.lang.String"/><arg column="block_index" javaType="java.lang.Integer"/>
+            <arg column="start_offset" javaType="java.lang.Integer"/><arg column="end_offset" javaType="java.lang.Integer"/>
+        </constructor>
+    </resultMap>
+    <select id="selectMatchList" resultMap="MatchMap">
+        -- 전체 추출 텍스트/URL을 조회하지 않는다. 좌표를 기존 제한된 block 조회에 연결한다.
+        SELECT m.id,m.file_id,m.extraction_id,i.document_role_code,m.keyword_group_id,g.group_code,
+               m.keyword_rule_id,r.rule_code,m.keyword_term_id,t.term_text,m.applied_action_code,m.block_index,m.start_offset,m.end_offset
+        <include refid="MatchScope"/> ORDER BY m.file_id,m.block_index,m.start_offset,m.end_offset,m.id LIMIT #{size} OFFSET #{offset}
+    </select>
+</mapper>

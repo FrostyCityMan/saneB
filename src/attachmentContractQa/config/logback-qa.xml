@@ -1,0 +1,4 @@
+<configuration>
+    <!-- 합성 DB 계약 결과는 고정 JSON만 출력한다. SQL/예외 원문은 출력하지 않는다. -->
+    <root level="OFF"/>
+</configuration>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyPublicationImpactDao">
+    <resultMap id="CountsMap" type="com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationImpact$Counts"><constructor>
+        <arg column="bound_source_count" javaType="java.lang.Long"/><arg column="review_required_source_count" javaType="java.lang.Long"/>
+        <arg column="effective_attachment_source_count" javaType="java.lang.Long"/><arg column="linked_source_count" javaType="java.lang.Long"/>
+        <arg column="frozen_collection_job_count" javaType="java.lang.Long"/><arg column="running_collection_job_count" javaType="java.lang.Long"/>
+        <arg column="application_pending_job_count" javaType="java.lang.Long"/><arg column="rollback_pending_job_count" javaType="java.lang.Long"/>
+        <arg column="frozen_collection_plan_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <select id="selectCounts" resultMap="CountsMap" useCache="false" flushCache="true">
+        -- 운영 목적 전체를 집계한다. source/job/plan은 별도 분모이며 join 증식·페이지 제한·성공 추정이 없다.
+        WITH sources AS (
+            SELECT count(1) AS bound_source_count,count(1) FILTER (WHERE s.is_attachment_review_required) AS review_required_source_count,
+                count(1) FILTER (WHERE s.current_attachment_evaluation_id IS NOT NULL) AS effective_attachment_source_count,
+                count(1) FILTER (WHERE EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id)) AS linked_source_count
+            FROM announcement_source_snapshots s JOIN announcement_attachment_policies p ON p.id=s.attachment_policy_id
+            WHERE s.data_purpose_code='PRODUCTION' <if test="ruleReleaseId!=null">AND p.rule_release_id=#{ruleReleaseId}</if>
+        ), jobs AS (
+            SELECT count(1) FILTER (WHERE j.operation_code IN ('COLLECT','RETRY_FILES') AND j.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS frozen_collection_job_count,
+                count(1) FILTER (WHERE j.operation_code IN ('COLLECT','RETRY_FILES') AND j.job_status_code='RUNNING') AS running_collection_job_count,
+                count(1) FILTER (WHERE j.application_status_code='PENDING') AS application_pending_job_count,
+                count(1) FILTER (WHERE j.rollback_action_id IS NOT NULL AND j.rollback_status_code='NOT_REQUESTED') AS rollback_pending_job_count
+            FROM announcement_attachment_jobs j JOIN announcement_source_snapshots s ON s.id=j.source_id
+            WHERE s.data_purpose_code='PRODUCTION' <if test="ruleReleaseId!=null">AND j.rule_release_id=#{ruleReleaseId}</if>
+        ), plans AS (
+            -- FROZEN 계획은 누적 이력이다. 현재 실행 중인 run 수나 향후 HTTP 요청 수가 아니다.
+            SELECT count(1) AS frozen_collection_plan_count FROM announcement_attachment_collection_plans p
+            JOIN announcement_source_collection_runs r ON r.id=p.run_id
+            JOIN announcement_source_collection_requests q ON q.id=r.request_id
+            WHERE p.plan_status_code='FROZEN' AND q.data_purpose_code='PRODUCTION' <if test="ruleReleaseId!=null">AND p.rule_release_id=#{ruleReleaseId}</if>
+        )
+        SELECT sources.bound_source_count,sources.review_required_source_count,sources.effective_attachment_source_count,sources.linked_source_count,
+            jobs.frozen_collection_job_count,jobs.running_collection_job_count,jobs.application_pending_job_count,jobs.rollback_pending_job_count,
+            plans.frozen_collection_plan_count FROM sources CROSS JOIN jobs CROSS JOIN plans
+    </select>
+</mapper>

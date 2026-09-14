@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao">
+    <resultMap id="DigestMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows$Digest"><constructor>
+        <arg column="candidate_count" javaType="java.lang.Long"/><arg column="candidate_hash" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <resultMap id="RunMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows$Run"><constructor>
+        <arg column="run_id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+        <arg column="scope_json" javaType="java.lang.String"/><arg column="policy_snapshot_json" javaType="java.lang.String"/>
+        <arg column="scope_hash" javaType="java.lang.String"/><arg column="candidate_hash" javaType="java.lang.String"/>
+        <arg column="candidate_count" javaType="java.lang.Long"/><arg column="segment_size" javaType="java.lang.Integer"/>
+        <arg column="segment_count" javaType="java.lang.Long"/><arg column="deleted_item_count" javaType="java.lang.Long"/>
+        <arg column="row_version" javaType="java.lang.Long"/><arg column="requested_by" javaType="java.util.UUID"/>
+        <arg column="idempotency_key" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+        <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="TotalsMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows$Totals"><constructor>
+        <arg column="remaining_item_count" javaType="java.lang.Long"/><arg column="segment_count" javaType="java.lang.Long"/>
+        <arg column="initial_segment_item_count" javaType="java.lang.Long"/><arg column="deleted_segment_item_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <resultMap id="SegmentMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows$Segment"><constructor>
+        <arg column="run_id" javaType="java.util.UUID"/><arg column="segment_no" javaType="java.lang.Long"/>
+        <arg column="item_count" javaType="java.lang.Integer"/><arg column="deleted_item_count" javaType="java.lang.Integer"/>
+        <arg column="remaining_item_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows$Item"><constructor>
+        <arg column="ordinal" javaType="java.lang.Long"/><arg column="source_id" javaType="java.util.UUID"/>
+        <arg column="content_version_id" javaType="java.util.UUID"/><arg column="base_evaluation_id" javaType="java.util.UUID"/>
+        <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="provider_code" javaType="java.lang.String"/>
+        <arg column="input_hash" javaType="java.lang.String"/><arg column="current_input_matches" javaType="java.lang.Boolean"/>
+    </constructor></resultMap>
+    <sql id="FullCandidates">
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            row_number() OVER (ORDER BY s.collected_at,s.id) AS ordinal,attachment_backfill_input_hash(s.id) AS input_hash
+        FROM announcement_source_snapshots s JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        WHERE s.data_purpose_code='PRODUCTION' AND s.provider_code IN
+        <foreach collection="scope.providerCodes" item="provider" open="(" separator="," close=")">
+            CASE WHEN #{provider}='GOV24' THEN 'GOV24_PUBLIC_SERVICE' ELSE #{provider} END
+        </foreach>
+        AND s.collected_at&gt;=#{scope.collectedFrom} AND s.collected_at&lt;#{scope.collectedBefore}
+        <if test="scope.deadlineFrom != null">AND s.application_end_date&gt;=#{scope.deadlineFrom}</if>
+        <if test="scope.deadlineThrough != null">AND s.application_end_date&lt;=#{scope.deadlineThrough}</if>
+        AND <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchDao.Eligible"/>
+    </sql>
+    <select id="selectScopeDigest" resultMap="DigestMap" useCache="false" flushCache="true">
+        -- 전체 집합을 지문으로 반환한다. 분할 크기를 전체 LIMIT로 적용하지 않으며 HTTP 요청도 없다.
+        WITH candidates AS MATERIALIZED (<include refid="FullCandidates"/>)
+        SELECT count(1) AS candidate_count,encode(digest(coalesce(string_agg(
+            encode(digest(jsonb_build_array(source_id,ordinal,input_hash,provider_code)::text,'sha256'),'hex'),'' ORDER BY ordinal),''),'sha256'),'hex') AS candidate_hash
+        FROM candidates
+    </select>
+    <select id="selectRequestLock" resultType="boolean">
+        -- REPEATABLE READ에서 대기 후 오래된 snapshot을 사용하는 대신 처리 중인 동일 요청에 재조회 안내를 반환한다.
+        SELECT pg_try_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),74001))
+    </select>
+    <sql id="RunColumns">id AS run_id,policy_id,scope_json::text AS scope_json,policy_snapshot_json::text AS policy_snapshot_json,
+        scope_hash,candidate_hash,candidate_count,segment_size,segment_count,deleted_item_count,row_version,requested_by,idempotency_key,request_hash,created_at</sql>
+    <select id="selectRequestDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 최초 입력으로만 같은 전체 목록을 재조회한다.
+        SELECT <include refid="RunColumns"/> FROM announcement_attachment_backfill_runs WHERE idempotency_key=#{key}
+    </select>
+    <select id="selectRunDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 원문을 제외한 고정 관리 기록.
+        SELECT <include refid="RunColumns"/> FROM announcement_attachment_backfill_runs WHERE id=#{runId}
+    </select>
+    <select id="selectRunList" resultMap="RunMap" useCache="false">
+        -- 페이지 제한은 고정 run 목록 조회에만 적용한다.
+        SELECT <include refid="RunColumns"/> FROM announcement_attachment_backfill_runs ORDER BY created_at DESC,id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectRunCount" resultType="long">-- 고정 run 전체 수.
+        SELECT count(1) FROM announcement_attachment_backfill_runs
+    </select>
+    <select id="selectRunTotals" resultMap="TotalsMap" useCache="false" flushCache="true">
+        -- 최초 분모·분할·삭제·실제 잔여 목록을 독립 대조한다.
+        SELECT (SELECT count(1) FROM announcement_attachment_backfill_items WHERE run_id=#{runId}) AS remaining_item_count,
+            count(1) AS segment_count,coalesce(sum(item_count),0)::bigint AS initial_segment_item_count,
+            coalesce(sum(deleted_item_count),0)::bigint AS deleted_segment_item_count
+        FROM announcement_attachment_backfill_segments WHERE run_id=#{runId}
+    </select>
+    <sql id="SegmentColumns">s.run_id,s.segment_no,s.item_count,s.deleted_item_count,
+        (SELECT count(1) FROM announcement_attachment_backfill_items i WHERE i.run_id=s.run_id AND i.segment_no=s.segment_no) AS remaining_item_count</sql>
+    <select id="selectSegmentList" resultMap="SegmentMap" useCache="false" flushCache="true">
+        -- 전체 최초 분할을 고정 순서로 읽는다. 완전 삭제된 분할도 숨기지 않는다.
+        SELECT <include refid="SegmentColumns"/> FROM announcement_attachment_backfill_segments s
+        WHERE s.run_id=#{runId} ORDER BY s.segment_no LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectSegmentDetails" resultMap="SegmentMap" useCache="false" flushCache="true">
+        -- run 소유 관계를 확인한다.
+        SELECT <include refid="SegmentColumns"/> FROM announcement_attachment_backfill_segments s WHERE s.run_id=#{runId} AND s.segment_no=#{segmentNo}
+    </select>
+    <select id="selectItemList" resultMap="ItemMap" useCache="false" flushCache="true">
+        -- 고정 item만 조회한다. 변경·제외된 입력은 false로 표시하고 새 후보로 대체하지 않는다.
+        SELECT ordinal,source_id,content_version_id,base_evaluation_id,rule_release_id,provider_code,input_hash,
+            coalesce(input_hash=attachment_backfill_input_hash(source_id),false) AS current_input_matches
+        FROM announcement_attachment_backfill_items WHERE run_id=#{runId} AND segment_no=#{segmentNo}
+        ORDER BY ordinal LIMIT #{size} OFFSET #{offset}
+    </select>
+    <insert id="insertRun">
+        -- 목록 고정은 job 생성/외부 수집/현재 판정 적용이 아니다.
+        INSERT INTO announcement_attachment_backfill_runs(id,policy_id,scope_json,policy_snapshot_json,scope_hash,candidate_hash,
+            candidate_count,segment_size,segment_count,requested_by,idempotency_key,request_hash,reason_hash)
+        VALUES (#{runId},#{policyId},CAST(#{scopeJson} AS jsonb),CAST(#{policySnapshotJson} AS jsonb),#{scopeHash},#{candidateHash},
+            #{candidateCount},#{segmentSize},#{segmentCount},#{requestedBy},#{idempotencyKey},#{requestHash},#{reasonHash})
+    </insert>
+    <select id="insertSegments" resultType="long" affectData="true" flushCache="true" useCache="false">
+        -- 동일 snapshot의 전체 순번으로 분할을 만든다. count를 bigint로 받아 JDBC update count 상한과 구분한다.
+        WITH candidates AS MATERIALIZED (<include refid="FullCandidates"/>), inserted AS (
+            INSERT INTO announcement_attachment_backfill_segments(run_id,segment_no,item_count)
+            SELECT #{runId},(ordinal-1)/#{scope.segmentSize}+1,count(1)::integer FROM candidates
+            GROUP BY (ordinal-1)/#{scope.segmentSize}+1 RETURNING run_id)
+        SELECT count(1) FROM inserted
+    </select>
+    <select id="insertItems" resultType="long" affectData="true" flushCache="true" useCache="false">
+        -- scope-preview와 같은 전체 집합. source/content/base/rule은 삭제 cascade 가능한 관계로만 보관한다.
+        WITH candidates AS MATERIALIZED (<include refid="FullCandidates"/>), inserted AS (
+            INSERT INTO announcement_attachment_backfill_items(run_id,segment_no,ordinal,source_id,content_version_id,base_evaluation_id,rule_release_id,provider_code,input_hash)
+            SELECT #{runId},(ordinal-1)/#{scope.segmentSize}+1,ordinal,source_id,content_version_id,base_evaluation_id,rule_release_id,provider_code,input_hash
+            FROM candidates RETURNING run_id)
+        SELECT count(1) FROM inserted
+    </select>
+</mapper>

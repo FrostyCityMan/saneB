@@ -1,6 +1,6 @@
 # saneB Backend API Contract v1
 
-> 설계 예정 확장(미구현): [공고 첨부파일 수집·추출 API 설계](announcement-attachment-collection-design-2026-09-08.md). 첨부를 포함한 종합 판정은 신규 v2 리소스로 제안하며 기존 v1 제목·본문 조회 계약을 유지한다. 향후 첨부 적용 source의 기존 전환 경로에 추가될 409 검수 조건은 해당 설계 9절을 따른다. 아직 API가 추가되거나 운영 동작이 변경된 상태는 아니다.
+> 첨부 V2 확장: [공고 첨부파일 수집·추출 API 설계](announcement-attachment-collection-design-2026-09-08.md)를 바탕으로 24절에 로컬 구현 계약을 기록한다. 기존 v1 제목·본문 조회 계약을 유지하며 첨부 적용 원문의 전환/검수 조건을 서버에서 확인한다. 로컬 코드·테스트 진척은 운영 반영이나 전체 E2E 완료를 뜻하지 않는다. 최신 실행 증거와 잔여 Gate는 [진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 작성일: 2026-05-14
 
@@ -2322,7 +2322,638 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 - 제목의 그룹 B는 자동 제외, 제목의 그룹 A는 관리자 검수, 본문의 그룹 B는 관리자 검수로 처리한다.
 - 상세본문 기능은 별도 flag 기본 `false`이며 공식 등록 host 일치, URL·DNS 검증, redirect·시간·크기·동시성 제한을 통과한 HTML만 입력으로 사용한다.
 - 신규 수집은 provider 응답의 첨부 URL·파일명 필드를 원문 저장 전에 제거하고 attachment 행을 생성하지 않는다. 지자체 상세 HTML에서도 첨부 링크와 표시명을 본문 추출 전에 제거한다.
-- PDF·HWP 등 첨부파일을 다운로드·추출·분류하지 않는다. 기존 V1 첨부 이력은 호환 조회만 유지한다.
+- 기존 TITLE/BODY 분류 경로는 PDF·HWP 등을 다운로드·추출·분류하지 않는다. 이후 승인된 첨부 처리는 별도 V72/V73 작업자·근거·V2 계약을 사용하며, V1 첨부 이력은 호환 조회만 유지한다.
 - 관리자 검수·유효 후보는 원문 버전과 일치 규칙 근거를 저장한다. 제목 자동 제외는 원문 없이 SHA-256 identity, 사유·단계, rule·term FK와 run 건수만 저장한다.
 - `data_purpose_code`가 명시적으로 `QA`인 원문·요청만 QA 정리 대상이다. 일반 애플리케이션 수집은 `PRODUCTION`만 생성하며, DB에 쓰는 격리 QA 경로는 운영 QA 승인 시 별도 확정한다.
 - 상세본문 기능을 운영에서 켜기 전 DNS 재바인딩을 포함한 private-range egress 차단 또는 연결 IP 고정 검증을 완료한다.
+
+## 24. 첨부 근거 V2 조회 (2026-09-10 로컬 구현)
+
+기존 TITLE/BODY 및 `/api/v1` 응답에 첨부를 혼합하지 않는다. 아래 별도 조회는 `ADMIN`, `OPERATOR`, `APPROVER`만 허용하며 `USER`, `PARTNER`, `REVIEWER`는 거부한다. 운영 배포 완료 기록이 아니다.
+
+prefix: `/api/v2/admin/announcement-sources/{sourceId}`
+
+| method | suffix | 응답 |
+|---|---|---|
+| GET | `/attachment-sets` | 발견/봉인 상태, `warningCodes` 고정 경고 배열, 건수, hash, 생성·발견·봉인 시각 |
+| GET | `/attachment-sets/{setId}/files` | 파일 역할, 다운로드 결과, 최신 추출 ID/품질/글자 수/오류 |
+| GET | `/attachment-extractions/{extractionId}/blocks` | code point 위치·locator·범위 신뢰도와 제한된 본문 구간 |
+
+- 모든 목록은 `ApiResponse<PageResponse<...>>`다. `page` 기본 1, 범위 1~1000000. 집합/파일 `size` 기본 20, 최대 100. block `size` 기본 10, 최대 20.
+- block 추가 파라미터: `textOffset`(각 block 내부 code point 위치, 기본 0, 최대 1000000), `textLimit`(기본 2000, 최대 4000). 큰 문단은 block 페이지를 고정하고 `textOffset`을 이동해 이어 읽는다. `startOffset/endOffset`은 전체 block 경계, `textStartOffset/textEndOffset`은 이번 응답 구간, `hasMoreText`는 남은 구간 유무다.
+- 집합·파일·block 응답은 모두 `Cache-Control: no-store`다. 전체 원본 binary 다운로드 API가 아니며 fetch URL, 로컬 경로, lease token, safe locator JSON을 반환하지 않는다.
+- 발견 `warningCodes`는 원문 없는 고정 코드다. `ATTACHMENT_DETAIL_UNAVAILABLE`(상세 확인 실패), `ATTACHMENT_SELECTOR_CHANGED`(첨부 영역 변경), `ATTACHMENT_DOWNLOAD_FORM_CHANGED`(다운로드 폼 변경), `ATTACHMENT_LINK_UNRESOLVED`(링크 확인 실패), `ATTACHMENT_FILE_LIMIT`(파일 수 한도)와 정의된 전송 실패 코드를 구분한다. 폼 변경은 FAILED/발견 미완료로 저장하며 NO_FILES로 표시하지 않는다. 폼 원문 인자는 반환하지 않는다.
+- 제목 통과 기본 판정이 있는 PRODUCTION 원문만 조회한다. 원문 행이 잔존하더라도 제목 제외·QA·기본/제목 판정 미완료이면 집합·파일·텍스트를 반환하지 않는다. 다른 source에 속한 set/extraction ID는 404 wrapper다. 잘못된 페이지·본문 한도는 구체적인 한국어 400 wrapper를 반환한다.
+- 신규 첨부 변경 namespace(`attachment-*`, 첨부 policies/batches)는 session CSRF 검증을 요구한다. 기존 V1 및 기존 V2 변경 경로의 CSRF 계약은 이번 단계에서 바꾸지 않았다. 누락/만료 시 403과 새로고침 안내를 반환한다.
+- 첨부 필수 source는 기존 V1/V2 전환·기본 분류 확정·재분류·롤백으로 우회할 수 없다. `ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE` 409를 반환한다. 기존 link가 이미 있는 전환 재요청은 쓰기 없이 기존 link를 반환한다.
+- 새 수집의 내부 자동 예약, 종합 조회·확인·DRAFT 전환, 역할 변경/작업 조회, 실패 파일 재시도 및 24.7의 초기/전체 수동 수집 API를 로컬 구현했다. 정책 게시·배치 API와 관리자 UI는 남은 구현 범위다. CSRF 경로 보호만으로 변경 API의 구현 완료를 주장하지 않는다.
+
+### 24.1 현재 분류 목록·상세
+
+동일한 READ 역할, `ApiResponse`/목록 `PageResponse`, `Cache-Control: no-store`를 사용한다.
+
+| method | endpoint | 응답 |
+|---|---|---|
+| GET | `/api/v2/admin/announcement-sources` | source 요약 및 base/effective/preview, 첨부 진행 상태·버전·확인 상태 |
+| GET | `/api/v2/admin/announcement-sources/{sourceId}` | `source`(목록과 같은 요약), `content`(본문·문의·신청 방식·공개 원문 URL·완전성) |
+| GET | `/api/v2/admin/announcement-sources/{sourceId}/attachment-classification` | 본문 없는 현재 요약; pending은 판정 ID가 없는 진행 projection |
+
+- 목록 필터: `providerCode`, `effectiveStatusCode`(ACCEPTED/REVIEW_REQUIRED), `jobStatusCode`, `targetCategoryCode`, `supportTypeCode`, `keyword`(100자 이하 제목/기관명 리터럴 부분 검색), `collectedFrom`, `collectedTo`(서울 날짜, 양끝 포함), `page`(1~1000000), `size`(기본 20/최대 100).
+- 목록과 count는 같은 SQL 범위/상태/태그 식을 사용하고 하나의 읽기 전용 REPEATABLE_READ snapshot에서 읽는다. 상세도 같은 판정 join을 사용한다.
+- PRODUCTION만 반환한다. TITLE 제외·기본 제외 원문은 목록에 포함하지 않고 단건은 404다. 기존 V1 계약이나 tombstone을 원문으로 복원하지 않는다.
+- 미적용 source의 `effectiveClassification`은 base이며, 첨부 결과는 `previewClassification`으로만 제공한다. ENFORCE source는 유효한 현재 첨부 판정 또는 `REVIEW_REQUIRED/ATTACHMENT_PENDING` 등 진행 사유를 사용한다. 모드 OFF만으로 base에 복귀하지 않는다.
+- 새 세대 예약 시 이전 첨부 current pointer/confirmation을 같은 transaction에서 해제한다. 진행 중 effective `decisionId`, `setId`, `setHash`, `inputHash`는 null이며 이전 첨부 태그를 승계하지 않는다. 과거 근거는 별도 이력 조회로 보존한다.
+- 현재 판정은 source/base/content/release, 정책 binding, SEALED set을 검증한다. 현재 confirmation이 있으면 그 확인의 태그, 없으면 해당 판정의 AUTO 태그를 사용한다. 목록 태그 필터에도 같은 기준을 사용한다.
+- `attachmentSummary`: `jobId`, `jobStatusCode`, 고정 `errorCode`, `intakeStatusCode`, `isStale`, `discoveryStatusCode`, `isDiscoveryComplete`, `totalCount`, `processedCount`. 미발견 상태의 건수는 null이다. `processedCount`는 성공 파일 수가 아니며 실패 근거를 포함한다.
+- `intakeStatusCode=RECHECK_NOT_DUE`는 24시간 자동 재확인 간격이 지나지 않았다는 예약 결과다. 기존 유효한 판정/확인/버전은 유지한다. `jobStatusCode` 및 발견 완료 상태와 동일한 의미가 아니다. 최근 일반 작업은 source의 단조 증가 `expected_attachment_version` 순으로 선택하며 batch preview로 대체하지 않는다.
+- `confirmationStatusCode`는 `NONE/CURRENT/STALE`다. 자동 ACCEPTED나 SUCCEEDED는 관리자 검수 확정·자격 확정·운영 활성화를 뜻하지 않는다.
+- 실행 snapshot/lease/다운로드 locator/원본 payload를 반환하지 않는다. API·서비스 단위 검증은 통과했으나 새 목록 SQL의 실제 PostgreSQL 회귀는 로컬 Code Integrity 차단으로 Linux 환경에서 추가 검증해야 한다.
+
+### 24.2 첨부 검수 확인과 DRAFT 전환
+
+2026-09-10 로컬 추가. 기본 경로는 `/api/v2/admin/announcement-sources/{sourceId}/attachment-classification`이다. 기존 V1/V2 전환 guard를 제거하지 않는다.
+
+| method | suffix | 역할 / 계약 |
+|---|---|---|
+| GET | `/review-context` | ADMIN/OPERATOR/APPROVER. 현재 버전, 판정 상태·사유, `manualSourceCheckRequired`, `requiredAcknowledgementCodes` |
+| POST | `/confirmations` | ADMIN/OPERATOR. CSRF와 UUID `Idempotency-Key` 필수. 특정 현재 판정의 관리자 확인과 확정 태그 저장 |
+| POST | `/announcements` | ADMIN/OPERATOR. CSRF 필수. 현재 확인의 저장된 태그로 DRAFT만 생성 |
+
+모든 응답은 `ApiResponse` 및 `Cache-Control: no-store`를 사용한다. service도 활성 운영 계정·권한·비밀번호 변경 완료를 확인한다. 읽기 전용 APPROVER는 두 POST를 호출할 수 없다.
+
+2026-09-11 additive 조회 필드:
+
+- `confirmedClassification`: 현재 source/evaluation/set hash 및 유효 sourceVersion/attachmentVersion에 일치하는 확인이 있고 공고에 아직 연결되지 않았을 때만 제공한다. `confirmation`은 원래 검수 시점·버전을 보존하는 기존 확인 응답이고 `targetCategoryCodes`/`supportTypeCodes`는 해당 확인에 저장된 정규화 분류다. 불일치/확인 없음/이미 연결이면 null이다. 브라우저 새로고침 후 자동 후보 태그를 수동 확정값으로 오인하지 않도록 분리한다.
+- `confirmedClassification.binding`: `{restorationId, confirmationId, sourceId, sourceVersion, attachmentVersion}`. 최초 확인이면 `restorationId=null`이고 버전은 원래 confirmation과 같다. 완료된 원복 근거가 있으면 해당 복구 ID와 증가한 유효 첨부 버전을 사용한다. 원래 confirmation ID·confirmedAt·버전·태그를 덮어쓰지 않는다. 검수 화면과 DRAFT 전환은 이 유효 버전 및 현재 판정/set hash를 함께 검증한다. 복구 근거가 다른 원문/확인, 잘못된 버전 또는 미완료 상태이면 허용하지 않는다. 이 additive 조회 필드가 원복 실행 API의 구현 완료를 의미하지 않는다.
+- `linkedAnnouncement`: 기존 공고 연결의 `announcementId`, `announcementCode`; 연결이 없으면 null. 현재 승인·활성 상태를 뜻하지 않는다. 확인 메모·actor·멱등키·request hash를 반환하지 않는다.
+- 읽기는 기존 REPEATABLE_READ 조회 트랜잭션 안에서 수행하며 확인/태그/원문 버전/공고를 수정하지 않는다.
+- 전용 화면 `/app/admin/collected-announcements/{sourceId}/attachments`는 동일 조회 역할과 no-store를 적용한다. 화면은 요약과 review-context의 버전 일치 후에만 쓰기를 열며 서버 검증을 대체하지 않는다.
+- 이 화면의 별도 첨부 복구 영역은 아래 24장의 기존 전체 수집·실패 파일 재시도·역할 변경·작업 상태 API를 사용한다. 복구용 현재 파일 집합과 과거 근거 탐색은 분리하며, 작업 접수와 처리 성공은 구분한다. 정책 게시/ENFORCE/기존 데이터 일괄 적용을 이 단건 화면에서 실행하지 않는다.
+
+검수·전환 요청의 `version` 객체는 다음 필드를 모두 포함한다. ID는 UUID, 버전은 0 이상 정수, set hash는 SHA-256 소문자 64자리다.
+
+```text
+version.expectedBaseDecisionId
+version.expectedAttachmentDecisionId
+version.expectedSourceVersion
+version.expectedAttachmentVersion
+version.expectedSetHash
+```
+
+확인 요청의 나머지 필드:
+
+- `targetCategoryCodes`: 중복 없는 1~5개 지원대상. BUSINESS/PERSONAL/SPOUSE/CHILD/PARENT. PERSONAL의 화면명은 본인(개인)이다.
+- `supportTypeCodes`: 중복 없는 1~7개 지원형태. GENERAL_SUPPORT/GRANT_SUBSIDY/POLICY_FINANCE/GUARANTEE/INTEREST_SUPPORT/VOUCHER_BENEFIT/REFUND_REDUCTION.
+- `reviewMethodCode`: EXTRACTED_TEXT 또는 MANUAL_SOURCE_CHECK.
+- `acknowledgedErrorCodes`: review-context가 반환한 현재 필수 사유의 정확한 집합. 누락·추가·중복을 허용하지 않는다. 최대 100개, 코드별 80자.
+- `reviewNote`: 직접 확인한 내용과 사유 1~1000자. 확인 테이블에만 저장한다. 응답/감사에는 메모 원문을 반환하지 않고 감사에는 hash를 기록한다.
+
+확인은 PRODUCTION·제목 통과·첨부 검수 binding·현재 SEALED 판정에 한정된다. COLLECT_ONLY preview를 확인 API로 ENFORCE 전환할 수 없다. 현재 일반 작업이 진행 중이면 확인할 수 없다. batch preview는 기존 확인을 차단하는 일반 작업으로 세지 않는다. 다른 source의 판정·확인 식별자는 404, 오래된 버전·set hash·연결 변경은 409다.
+
+발견 실패, 다운로드 실패, COMPLETE_TEXT 아닌 품질, 미확인 역할, 불확실한 문맥 또는 경고가 있으면 전체 원문을 직접 확인하는 MANUAL_SOURCE_CHECK와 모든 해당 사유 확인을 요구한다. 첫 정상 첨부로 뒤의 실패를 숨기지 않는다. A/B 검수 사유는 자동 판정을 ACCEPTED로 바꾸지 않고 별도 확인으로 처리한다. OFF/퇴역 정책만으로 이미 적용된 확인 의무가 없어지거나 현재 근거의 수동 검수가 차단되지는 않는다.
+
+확인 응답은 source/confirmation/evaluation ID, set hash, 확인 직후 `sourceVersion`/`attachmentVersion`, 방법, `isCurrent`, 시각이다. 확인은 첨부 버전을 1 증가시키며 이전 확인을 STALE로 남긴다. 기본 판정과 첨부 자동 판정·실패 상태는 변경하지 않는다. 같은 Idempotency-Key와 동일한 정규화 요청/actor는 최초 확인을 반환하며 새 확인이나 태그를 만들지 않는다. 다른 원문·actor·요청으로 재사용하면 409다. 이후 STALE가 된 확인 재조회는 `isCurrent=false`로 반환될 수 있다.
+
+전환 요청은 `version`, `expectedConfirmationId`, 현재 확정 대상에 포함된 `primaryTargetCategoryCode`, 선택 `incomeJudgementCode`다. 소득 판단 방식 생략 시 기존 V2와 같은 VAT_TAX_BASE_ONLY를 사용하며 이 값은 자격 판정 완료를 뜻하지 않는다. 확인 이후 최신 버전은 review-context에서 다시 읽는다.
+
+- 확인 ID·판정·set hash·현재 유효 확인 버전·활성 카탈로그를 재검증한다. 완료된 원복 이후에도 과거 confirmation의 원래 버전으로 요청할 수 없으며 최신 review-context.version을 사용해야 한다. 요청 배열 대신 DB의 해당 CONFIRMED 태그를 복사한다.
+- 미검수 중복/유사 후보가 있으면 409다. 기존 공고에 연결된 source의 새 확인·다른 전환 요청도 409로 보호한다.
+- source 잠금→현재 조건 검증→DRAFT/다중 배정→source UNIQUE link→버전 증가/감사 전체가 하나의 transaction이다. 생성 직후 승인 상태가 DRAFT가 아니면 rollback한다. 승인 요청·활성화는 하지 않는다.
+- 같은 source의 최초 전환과 같은 확인/정규화 요청 hash는 기존 link를 반환한다. 다른 요청이나 첨부 전환 메타데이터가 없는 legacy link를 새 전환 성공으로 반환하지 않는다. 최초 요청 hash에는 actor를 포함하지 않아 다른 허용 운영자가 동일 전환을 재시도해도 중복 공고를 만들지 않는다.
+- 연결 후 확인 자체는 같은 근거의 CURRENT로 유지하되, 새 확인으로 기존 DRAFT 태그를 덮어쓰지 않는다. 내용·역할·판정 변경 흐름은 기존 확인을 STALE로 처리해야 한다.
+
+오류 코드: `ANNOUNCEMENT_ATTACHMENT_VERSION_CONFLICT`(409), `ANNOUNCEMENT_ATTACHMENT_NOT_READY`(409), `ANNOUNCEMENT_ATTACHMENT_REVIEW_REQUIRED`(409), `ANNOUNCEMENT_ATTACHMENT_ACTION_FORBIDDEN`(403), `RESOURCE_NOT_FOUND`(404), `VALIDATION_FAILED`(400). 중복 후보는 기존 `ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE`(409)을 사용한다. UI는 409에서 입력을 보존하고 원인/다시 확인할 버전을 안내해야 한다. 해당 UI와 최신 PostgreSQL 실행·운영 E2E는 아직 완료되지 않았다.
+
+### 24.3 첨부 역할 변경과 비동기 작업 조회
+
+2026-09-10 로컬 구현. prefix는 `/api/v2/admin/announcement-sources/{sourceId}`다.
+
+| method | suffix | 역할 / 계약 |
+|---|---|---|
+| PUT | `/attachment-roles` | ADMIN/OPERATOR, CSRF·UUID Idempotency-Key 필수. 새 SEALED 근거와 재평가 작업을 생성하고 202 반환 |
+| GET | `/attachment-jobs/{jobId}` | ADMIN/OPERATOR/APPROVER. 해당 원문에 속한 작업 상태 조회 |
+
+- 요청: 24.2와 같은 `version`, `expectedSetId`, `fileRoles`(현재 첨부 전체 1~10개를 중복 없이 `{fileId, documentRoleCode}`로 제출), `reason`(1~1000자). 역할은 NOTICE/GUIDE/FORM/REFERENCE/UNKNOWN이며, 하나 이상 실제로 변경해야 한다. 일부 파일 생략·잘못된 역할·동일 역할만 제출하면 400이다. 다른 source의 파일/set/job은 404다.
+- 원문→작업 잠금 아래 현재 base/content/첨부 판정·버전·set hash·고정 정책/엔진/추출 버전을 확인한다. 아직 일반 작업이 진행 중이거나 미봉인 상태이면 409다. 이미 운영 공고에 연결된 source는 보호하여 변경하지 않는다.
+- 새 set/file/extraction ID로 복사하며 원래 역할/성공·실패/텍스트 근거를 수정하지 않는다. 바뀐 역할만 MANUAL로 기록한다. 실제 추출 시각과 결과는 보존하고 파일 조회에 `reusedFromExtractionId`를 추가하여 원래 extraction을 식별한다.
+- `operationCode=ROLE_CHANGE`의 작업은 기존 고정 입력으로 비동기 평가만 실행하며 다운로드/추출을 하지 않는다. 예약 시 current 판정과 확인을 STALE로 만들고 첨부 버전을 1 증가시킨다. 재평가 완료 후 최신 분류와 review-context를 다시 읽어야 한다.
+- OFF 모드는 새 HTTP를 중지한다. 기존 봉인 근거의 역할 재평가까지 막지 않으며 검수 의무를 해제하지 않는다. COLLECT_ONLY의 역할 변경은 preview만 갱신하고 ENFORCE를 암묵적으로 활성화하지 않는다.
+- 같은 key·actor·정규화 요청은 최초 작업을 반환한다. 다른 actor/원문/입력으로 key를 재사용하면 409다. 잘못된 역할 입력은 `ANNOUNCEMENT_ATTACHMENT_ROLE_INVALID`(400), 나머지 버전·권한 오류는 24.2와 같은 wrapper다.
+- 응답 `ApiResponse<AttachmentJobResponse>`: `sourceId`, `jobId`, `setId`, `operationCode`, `jobStatusCode`, `sourceVersionAtReservation`, `attachmentVersionAtReservation`, `generation`, `errorCode`. 예약 버전은 작업 완료 이후의 현재 버전이 아니다. lease token·execution snapshot·내부 request hash를 반환하지 않으며 `Cache-Control: no-store`다.
+- 이 API의 로컬 서비스·HTTP 검증과 실제 PostgreSQL·운영 브라우저 검증은 별도다. 수동 실패 재시도는 24.5를 따르며 관리자 화면은 아직 구현하지 않았다.
+
+### 24.4 내부 자동 재시도의 성공 파일 중간 저장
+
+- 같은 COLLECT 또는 RETRY_FILES job의 일시 네트워크 재시도에서 완전 추출 성공 파일을 중간 저장해 재사용한다. 발견 HTML은 다시 확인하여 안정 locator에 맞는 새 요청을 만들지만, 성공 파일의 binary/추출은 반복하지 않는다. 실패/부분 추출/OCR_REQUIRED를 완료 checkpoint로 승격하지 않는다. RETRY_FILES는 최초 선택 파일과 고정 역할에 해당하는 근거만 중간 저장한다.
+- checkpoint는 사용자 조회 API나 최종 set/현재 판정에 포함하지 않는다. 모든 첨부의 최종 결과를 봉인한 후에만 기존 API로 제공한다. 새 job/generation은 같은 URL이어도 binary를 다시 확인한다.
+- 중간 저장 원문은 내부 접근 제한 DB 테이블에만 두며 원본 binary는 저장 전에 삭제한다. 최초 추출 완료 시각을 최종 근거에 보존한다. 봉인/종료/충돌/취소 또는 source 삭제 시 임시 중복 텍스트를 정리한다.
+- 이는 작업 내부의 자동 재시도 보강이다. 아래 수동 재시도와 구분하며, 관리자 화면의 완료 증거는 아니다.
+
+### 24.5 봉인된 부분 실패 집합의 수동 파일 재시도
+
+2026-09-10 로컬 구현. `POST /api/v2/admin/announcement-sources/{sourceId}/attachment-jobs`는 **실패 파일 선택 재시도만** 받는다. 초기 첨부 발견/전체 재수집은 기존 요청 의미를 보존하기 위해 24.7의 별도 `/attachment-jobs/collection`으로 요청한다.
+
+- ADMIN/OPERATOR, CSRF, UUID `Idempotency-Key`를 요구한다. 성공은 202 `ApiResponse<AttachmentJobResponse>`, `Cache-Control: no-store`다. 작업 조회는 24.3의 GET을 사용한다.
+- 요청: 24.2와 같은 `version`, `expectedSetId`, 중복 없는 `fileIds` 1~10개, `maximumDownloadBytes` 1~83,886,080 byte, `reason` 1~1000자. 요청에는 URL·provider/profile 선택·추출기 실행 옵션이 없다. reason 원문은 응답·감사에 노출하지 않고 감사에는 hash를 기록한다.
+- 대상은 제목을 통과한 PRODUCTION 원문의 현재 SEALED·FOUND·발견 완료 집합이다. 전체 발견/처리/저장 파일 건수가 일치해야 한다. 발견 실패나 빈 집합은 이 경로로 성공 처리하지 않으며 전체 재수집이 필요하다.
+- 다운로드 FAILED/CANCELLED 또는 다운로드 SUCCEEDED이면서 PARTIAL_TEXT/CORRUPT/LIMIT_EXCEEDED/TIMEOUT/FAILED/ISOLATION_UNAVAILABLE인 파일만 선택할 수 있다. COMPLETE_TEXT·BLOCKED·OCR_REQUIRED·ENCRYPTED·UNSUPPORTED는 자동 재요청 대상이 아니며 해당 수동 확인 안내를 따른다. 형식/권한/정책 변경을 재시도로 우회하지 않는다.
+- 현재 기본/첨부 판정·source/attachment 버전·set hash·source/content/policy 연결을 확인한다. 동일 ACTIVE 기본 규칙의 게시 ACTIVE 첨부 정책과 설치된 profile/엔진/추출기 hash가 필요하다. OFF/퇴역 정책 또는 설정 불일치는 새 네트워크 예약을 차단한다.
+- 연결된 운영 공고 및 실행 중 일반 작업은 보호한다. 다른 source의 파일/집합은 404, 오래된 버전·연결·정책은 409다. 409 응답은 선택 입력을 유지하고 최신 근거를 다시 확인하도록 안내한다.
+- 새 `RETRY_FILES` generation과 불변 선택 범위를 같은 transaction에서 예약한다. 예약 즉시 첨부 버전 +1, 기존 첨부 현재 판정/확인 STALE를 적용한다. 동일 key·actor·정규화 요청은 최초 작업을 반환하고 횟수 제한을 다시 소비하지 않는다. 다른 요청에 같은 key를 쓰면 409다.
+- 초기 구현 제한은 전체 수동 수집과 실패 파일 재시도를 합산하여 원문별 60초 간격, 최근 24시간 최대 3회다. 이는 초기 안전 상한이며 고객이 확정한 수치로 표현하지 않는다. 자동 수집·무HTTP 역할 변경은 이 수동 요청 횟수에 합산하지 않는다. 초과 시 `ANNOUNCEMENT_ATTACHMENT_RETRY_RATE_LIMITED`(429)와 제한 조건을 반환한다.
+- worker는 상세를 다시 확인하되 원래 전체 안정 locator 집합이 동일할 때만 선택 파일을 다운로드한다. 발견 실패/집합 변경 시 새 파일로 범위를 넓히지 않고 binary 요청 없이 선택 실패 근거를 보존한다. `DISCOVERY_FAILED`/`DISCOVERY_CHANGED` 및 발견 미완료 상태로 검수 사유를 남긴다.
+- 새 set에는 선택 파일의 새 결과와 선택하지 않은 **모든** 원래 파일의 성공/실패 근거를 함께 넣는다. 수동 역할과 역할 출처, 기존 추출의 실제 시각·provenance를 보존하고 과거 set은 수정하지 않는다. 실패 파일 일부가 성공해도 다른 실패를 숨기지 않는다.
+- 선택 파일에서 이번 job이 새로 받은 bytes만 누적 예산에 합산한다. 보존 근거의 과거 bytes는 재요청으로 세지 않는다. 감사의 요청량 상한은 총 3시도 × (상세 1 + 선택 파일 수) × GET 최대 4 hop이며 POST redirect는 허용하지 않는다. 중간 성공 재사용으로 실제 요청량은 이보다 적을 수 있다.
+- 기존 첨부 검수 binding만 유지하고 COLLECT_ONLY를 암묵적으로 ENFORCE로 바꾸지 않는다. base 판정·연결된 공고·활성 상태는 변경하지 않는다. 재시도 완료 뒤 최신 판정과 검수 기준을 다시 조회해야 한다.
+- 입력 오류는 `ANNOUNCEMENT_ATTACHMENT_RETRY_INVALID`(400) 또는 `VALIDATION_FAILED`(400), 나머지 권한/404/409는 기존 wrapper를 유지한다. 최신 PostgreSQL 무결성·동시성 및 운영·브라우저 검증은 별도 미완료 Gate다.
+
+### 24.6 종합 판정 이력·당시 입력·키워드 근거
+
+2026-09-10 로컬 구현. prefix는 `/api/v2/admin/announcement-sources/{sourceId}/attachment-classification`이며 READ는 ADMIN/OPERATOR/APPROVER다. 모든 응답은 `ApiResponse` wrapper와 `Cache-Control: no-store`를 유지한다.
+
+| method | suffix | 계약 |
+|---|---|---|
+| GET | `/history` | 불변 판정 이력 페이지. evaluatedAt 내림차순, 동일 시각은 evaluation ID 내림차순 |
+| GET | `/{evaluationId}` | 당시 종합 판정 요약·자동 다중 태그·입력/일치 건수·현재 원문/첨부 버전 |
+| GET | `/{evaluationId}/inputs` | 당시 평가에 사용한 모든 파일의 ID·역할·입력/다운로드/추출 상태·오류·실제 추출 시각·재사용 참조 |
+| GET | `/{evaluationId}/matches` | 당시 release/group/rule/term과 적용 action, file/extraction ID, block/offset. 선택 `fileId` 필터 |
+
+- 목록은 `PageResponse`, `page` 기본 1/1~1000000, `size` 기본 20/1~100이다. 목록/count는 동일한 source/evaluation/file 범위와 REPEATABLE_READ snapshot을 사용한다.
+- 요약은 evaluation/source/base/set/policy/ruleRelease ID, 엔진 버전, input/decision hash, 자동 semanticStatus/reason/warnings, 평가 시각과 `usageCode`를 반환한다.
+- `CURRENT_EFFECTIVE`는 현재 projection이 같은 첨부 판정을 가리키고 검수 binding이 있는 경우다. `CURRENT_PREVIEW`는 같은 현재 포인터여도 COLLECT_ONLY/미적용 source의 미리보기다. `NOT_CURRENT`는 과거 판정 또는 아직 현재로 적용되지 않은 배치 미리보기 등을 포함한다. 단순 DB `is_current`만으로 effective 판정으로 올리지 않는다.
+- 상세의 `autoTargetCategoryCodes`/`autoSupportTypeCodes`는 **당시 AUTO 태그만** 반환한다. CONFIRMED 태그는 기존 현재 조회·검수 기준 API에서 확인한다. 현재 카탈로그 비활성이나 규칙 퇴역을 이유로 과거 근거를 숨기지 않는다.
+- 상세의 `currentSourceVersion`/`currentAttachmentVersion`은 조회 시점의 값이다. 과거 평가의 확인/수정 허가를 뜻하지 않으며 쓰기에는 최신 review-context의 전체 기대 버전이 필요하다.
+- 입력 목록은 평가 입력의 exact extraction ID를 사용한다. 최신 attempt나 새 set의 추출 결과로 바꾸지 않으며 extraction 없는 다운로드 실패도 목록/count에서 빠뜨리지 않는다.
+- matches는 keyword term과 근거 위치만 반환하며 전체 추출 텍스트·원문 URL·binary·lease·검수 메모를 조회/반환하지 않는다. 원문 구간은 해당 extraction의 제한된 block API로 별도 조회한다. `startOffset/endOffset`은 전체 추출문 기준 code point의 반개구간이며 `blockIndex`는 저장된 block의 index다. 화면에서는 문자열을 escape해서 표시해야 하며 현재 브라우저 검증 완료를 뜻하지 않는다.
+- `fileId`는 같은 원문이더라도 해당 evaluation의 입력 파일이어야 한다. 잘못된 source/evaluation/file 연결은 404이며 필터 결과 0건 성공으로 숨기지 않는다. 해당 입력에 실제 일치가 없는 경우만 빈 페이지다.
+- 제목 제외·QA·현재 제목 판정이 없는 원문은 과거 판정이 남아 있어도 이 API로 조회할 수 없다. 조회는 source/current/confirmation/정책을 수정하거나 네트워크 다운로드를 실행하지 않는다. pending이면 과거 이력은 읽을 수 있어도 현재 사용 상태로 표시하지 않는다.
+- 로컬 서비스/HTTP/XML binding 검증과 실제 PostgreSQL·운영 화면 검증은 구분한다. 신규 PG 테스트는 환경 차단 때문에 아직 실행 통과로 계산하지 않는다.
+
+### 24.7 초기·전체 첨부 수집 조건 조회와 예약
+
+2026-09-10 로컬 구현. 기존 실패 파일 선택 재시도의 요청 구조를 보존하기 위해 별도 collection action을 추가한다. 상세 설계 9.2의 제안된 단건 수집 기능을 같은 job 리소스의 하위 경로로 구체화한 것이며 기존 `/api/v1` 의미를 변경하지 않는다.
+
+prefix: `/api/v2/admin/announcement-sources/{sourceId}`
+
+| method | suffix | 역할 / 계약 |
+|---|---|---|
+| GET | `/attachment-collection-context` | ADMIN/OPERATOR/APPROVER. 현재 수집 조건과 영향/상한 조회. 작업 생성·첨부 발견·다운로드 없음 |
+| POST | `/attachment-jobs/collection` | ADMIN/OPERATOR. CSRF·UUID Idempotency-Key 필수. 새 전체 COLLECT job 예약, 202 |
+
+모든 응답은 `ApiResponse`와 `Cache-Control: no-store`다. 예약 후에는 기존 GET `/attachment-jobs/{jobId}`로 처리 상태를 조회한다. 202는 처리 완료/다운로드 성공이 아니다.
+
+조건 조회 응답:
+
+- `version`: `expectedBaseDecisionId`, nullable `expectedAttachmentDecisionId`, `expectedSourceVersion`, `expectedAttachmentVersion`. 초기 수집·실패 후 현재 첨부 판정이 없으면 null을 그대로 반환하며 예약에서도 null을 조회 당시 값으로 비교한다.
+- `policyId`, `policyHash`, `executionHash`, `modeCode`: 같은 ACTIVE 기본 규칙의 게시 ACTIVE 정책과 서버가 선택한 정확한 시스템 profile/엔진/추출 설정의 지문이다. 호출자가 parser/profile/URL을 선택하는 필드는 없다.
+- `maximumDownloadBytes`: 정책 상한(최대 83,886,080 byte). `maximumFileCount=10`, `maximumAttempts=3`, `maximumHttpRequests=132`다. HTTP 상한은 총 3시도 × (상세 1 + 파일 최대 10) × 각 처리의 전체 HTTP 최대 4회다. 중간 페이지/게재기간 조회/최종 POST도 GET redirect와 이 상한을 공유한다. POST redirect는 차단하며 실제 요청 수는 더 적을 수 있다.
+- `isAttachmentReviewRequired`, `effectCode`: 기존 검수 binding이 있으면 `PRESERVE_ENFORCE_AND_STALE_CONFIRMATION`, 없으면 정책 mode가 ENFORCE여도 `COLLECT_PREVIEW_ONLY`다. 조건 조회는 실제 격리 추출기가 정상 실행됐다는 증거가 아니며 worker가 외부 요청 전 설치된 런타임 hash/격리를 다시 확인한다.
+
+예약 요청은 조건 조회의 `version`, `expectedPolicyId`(조회 policyId), `expectedPolicyHash`(조회 policyHash), `expectedExecutionHash`(조회 executionHash), 1바이트 이상·조회 상한 이하 `maximumDownloadBytes`, `reason` 1~1000자를 제출한다. 조건 조회 후 정책·profile·기본/첨부 판정·버전이 달라졌으면 409이며 입력을 보존하고 새 조건을 확인해야 한다.
+
+- 제목 통과 PRODUCTION 원문만 대상이다. 연결된 운영 공고, 진행 중 첨부 작업, worker 비활성, OFF/퇴역/ACTIVE 규칙 불일치, 기존 검수 정책과 다른 정책, profile 없음/중복/불일치, 잘못된 실행/예산 설정은 예약하지 않는다. 각 경우에 원인과 후속 행동이 포함된 한국어 오류를 반환한다.
+- 조건 조회는 REPEATABLE_READ·read-only이며 정책에 FOR SHARE를 실행하지 않는다. 실제 예약에서만 source 잠금 뒤 정책/규칙 공유 잠금을 잡고 멱등·버전·영향도를 다시 검증한다. 네트워크/디스크 추출 작업은 이 transaction에 포함하지 않는다.
+- 새 job은 `operationCode=COLLECT`, `requested_by=운영자`로 자동 수집과 구분한다. 새 세대/미봉인 set에서 전체 첨부를 재발견·처리한다. 기존 일부 실패 집합이 없어도 예약할 수 있어 최초 수집, 발견 실패 후 재발견, NO_FILES 뒤 재확인에 사용한다.
+- 전체 재수집은 선택 재시도와 달리 새 발견 목록과 profile 역할로 **모든** 파일 근거를 새로 만든다. 이전 수동 역할/추출/실패는 과거 set/이력으로 보존하며 새 set에 암묵적으로 복사하지 않는다. 이전 확인은 STALE이므로 새 전체 근거로 재검수해야 한다. 성공 파일·수동 역할을 고정해 실패 파일만 처리하려면 24.5를 사용한다.
+- 예약은 첨부 버전 +1, 현재 첨부 판정/확인 STALE, intake QUEUED를 원자적으로 기록한다. 기존 검수 binding·정책·base 판정·운영 공고 상태는 바꾸지 않는다. 기존 미적용 source에 새 ENFORCE binding을 만들지 않는다.
+- 같은 source·actor·정규화 요청의 같은 Idempotency-Key는 최초 작업을 반환한다. 그 뒤 버전/worker 상태가 바뀌어도 새 작업·요청 횟수를 만들지 않는다. 다른 원문/운영자/입력에 키를 재사용하면 409다.
+- 전체 수집과 24.5 선택 재시도는 source별 60초/최근 24시간 3회 초기 한도를 공유한다. 한도 초과는 `ANNOUNCEMENT_ATTACHMENT_COLLECTION_RATE_LIMITED`(429), 입력 오류는 `ANNOUNCEMENT_ATTACHMENT_COLLECTION_INVALID` 또는 `VALIDATION_FAILED`(400), 잘못된 원문은 404, 상태/정책 충돌은 기존 첨부 409 wrapper다.
+- 감사에는 job/policy ID·요청량 상한·사유 hash만 저장한다. 사유 원문/URL/본문/첨부 내용은 넣지 않는다. 단건 예약은 운영 정책 게시·ENFORCE 활성화·기존 데이터 일괄 적용 승인을 대신하지 않는다.
+- 관리 화면과 실제 PostgreSQL/운영 worker/브라우저 검증은 별도 미완료 Gate다.
+
+### 24.8 수집 시작 시 키워드 규칙·첨부 정책 불일치
+
+- worker 연동이 활성인 수집 실행은 기존 목록 Provider 호출 **전**에 첨부 계획을 확정한다. 현재 ACTIVE 키워드 규칙에 맞는 ACTIVE 첨부 정책이 없고, 다른 규칙 또는 이미 퇴역한 규칙에 연결된 ACTIVE ENFORCE 정책이 남아 있으면 실행을 차단한다. 키워드 분류 context가 없는 경우에도 해당 ENFORCE 의도를 암묵적으로 OFF로 해석하지 않는다.
+- 내부 service 오류는 `ANNOUNCEMENT_ATTACHMENT_RULE_POLICY_MISMATCH`/409다. 기존 수집 실행 API는 예외를 수집 결과로 기록하는 v1 계약을 유지하므로 HTTP 409로 바꾸지 않는다. 해당 run은 `FAILED`, `totalCount=0`, `failedCount=1`이며 고정된 한국어 `errorMessage`로 현재 ACTIVE 키워드 규칙의 첨부 정책 검증·게시 후 새 실행이 필요함을 안내한다. 실패 1은 외부 공고 1건 실패가 아니라 실행 준비 실패다.
+- 차단된 run은 목록·상세·첨부 HTTP 요청과 source/job/첨부 판정 저장을 하지 않는다. 요청/run 실패 metadata만 남기며 예외 원문·URL·인증정보를 응답 또는 해당 차단 로그에 복사하지 않는다.
+- 일치하는 ACTIVE 정책이 있으면 그 정책의 OFF/COLLECT_ONLY/ENFORCE를 따른다. 이미 저장된 FROZEN/OFF run은 이후 정책 변경을 중간에 채택하지 않는다. 기존 NO_POLICY run은 덮어쓰지 않지만 재개 시 미일치 ENFORCE가 발견되면 차단한다. 최초 설치처럼 ENFORCE 정책 자체가 없으면 기존 NO_POLICY 동작을 유지한다.
+- 이 방어는 정책 게시, 기존 source 재분류, 검수 의무 원복, ENFORCE 활성화를 수행하지 않는다. worker 연동 비활성 시의 기존 동작도 변경하지 않는다. 신규 정책의 검증·게시 및 운영 설정 변경은 별도 경로/승인 대상이다.
+- service/SQL binding/수집 orchestration 회귀를 추가했고, 규칙 퇴역 경합을 포함한 실제 PostgreSQL 검증은 별도 Linux Gate로 관리한다.
+
+### 24.9 첨부 정책 초안·개정 관리
+
+2026-09-11 로컬 구현. 상세 설계의 정책 관리 중 **초안 생성/조회/수정/개정** 계약이다. 초안 저장은 QA 통과, 정책 게시 또는 ENFORCE 적용이 아니다. `/validation`, `/publication`, 관리자 화면과 배치 처리는 아직 미구현이다.
+
+prefix: `/api/v2/admin/announcement-attachment-policies`. 모든 정상 응답은 `ApiResponse`, 목록 data는 `PageResponse`, 응답 캐시는 `no-store`다.
+
+| method | suffix | 권한 / 계약 |
+|---|---|---|
+| GET | 빈 경로 | ADMIN/OPERATOR/APPROVER. `status`(DRAFT/ACTIVE/RETIRED), `ruleReleaseId` 선택 필터. page 기본 1, size 기본 20·최대 100. 생성 시각 내림차순/id 내림차순 |
+| GET | `/{policyId}` | 동일 READ 3역할. 설정과 시스템 profile binding, 개정 원본, 편집/검증 필요 여부 |
+| POST | 빈 경로 | ADMIN만. CSRF·UUID Idempotency-Key 필수. versionNo=1 DRAFT 생성, 201 |
+| PUT | `/{policyId}` | ADMIN만. CSRF·expectedVersion 필수. DRAFT만 CAS 수정, 200 |
+| POST | `/{policyId}/revisions` | ADMIN만. CSRF·UUID Idempotency-Key·expectedVersion 필수. 새 DRAFT 개정, 201 |
+
+직접 service 호출도 활성 계정·비밀번호 변경 완료·권한을 다시 확인한다. OPERATOR는 첨부 재시도 권한이 있어도 정책 변경은 할 수 없다.
+
+입력:
+
+- 생성: `ruleReleaseId`, `modeCode`(OFF/COLLECT_ONLY/ENFORCE), `maximumSourceBytes`(1~83,886,080 byte), `reason`(공백 아닌 1~1000자).
+- 수정: 생성 필드와 `expectedVersion`(조회 rowVersion, 0~2,147,483,646). 시스템 엔진/추출기 버전·profile binding을 다시 고정하고 런타임 설정 지문과 게시 hash를 미검증 상태로 초기화한다.
+- 개정: 원본의 `expectedVersion`(0 이상), `reason`. 코드 family를 유지하고 현재 최대 versionNo+1을 배정한다. DRAFT/ACTIVE/RETIRED 원본을 허용하며 설정/profile snapshot을 복사하되 게시 hash/시각과 QA 성공은 복사하지 않는다. 퇴역 규칙을 복사한 초안은 현재 DRAFT/ACTIVE 규칙으로 수정 후 별도 검증해야 한다.
+- 정의하지 않은 필드는 모두 400으로 거부한다. URL·parser·profile 목록·임의 settings JSON·실행 명령·extractorConfigHash·게시/QA 성공값을 요청에서 지정할 수 없다. 오류 응답에 그 입력 원문을 복사하지 않는다.
+
+응답:
+
+- `policy`: 식별자/code/versionNo/rowVersion, 정책 상태/mode, 연결 규칙 ID/현재 상태, policyHash, 생성/게시 시각.
+- `configuration`: engineVersion, extractorVersion, extractorConfigHash, maximumSourceBytes. 생성/수정 직후 extractorConfigHash=null은 **실제 설치 Linux 런타임 검증 전**이라는 뜻이다. 복사된 기존 hash가 있어도 QA 통과를 뜻하지 않는다.
+- `systemProfileBindings`: 서버 registry의 providerCode/profileCode/profileHash. 관리자 선택 입력이 아니며 등록된 일부 profile만 존재하는 현재 범위를 전체 지원으로 표시하면 안 된다.
+- 2026-09-12 시스템 registry는 기업마당·대전 서구·새올 GET4기관·화천 POST·부산광역시·서울 강북구의 9개 프로필이다. 일반 첨부 영역의 파일명으로 역할을 확정하지 않으며 `UNKNOWN`으로 발견하고 관리자가 확정한 역할을 유지한다. 강북의 고정 3단계 요청은 게재기간을 확인하고, 부산의 실측 한글 헤더 호환은 해당 프로필에만 적용한다. 공통 고정 호출·다운로드 flow/gateway·타입 검사 코드도 지문에 포함하며 profile 목록/실행 hash 변경 후 초안 저장·전체 QA가 필요하다. 기존 정책/데이터는 자동 갱신하지 않는다. 상세 계약과 실제 다운로드 검증 범위는 `announcement-attachment-saeol-get-profiles-2026-09-12.md`, `announcement-attachment-hwacheon-post-profile-2026-09-12.md`, `announcement-attachment-legal-board-profiles-2026-09-12.md`를 따른다. 전체 profile/격리 추출·DB QA 완료는 아니다.
+- `copiedFromPolicyId`, `isEditable`, `isDraftValidationRequired`, updatedAt. isEditable은 현재 ADMIN이 DRAFT를 조회할 때만 true다. DRAFT는 역할과 관계없이 검증 필요 상태다. runtime command/path, 감사 사유 원문, 생성 요청 hash/멱등 키는 반환하지 않는다.
+
+동시성/불변성:
+
+- 같은 actor·정규화 요청·operation·key는 같은 정책 ID를 반환한다. 이후 편집됐으면 그 정책의 **현재 상태**를 반환하며 최초 응답 snapshot을 재현하는 계약은 아니다. 다른 actor/입력/생성-개정 operation에 같은 key를 사용하면 409다.
+- 생성 요청 key 잠금, 정책 family 잠금, 변경 대상 행 잠금과 rowVersion CAS를 분리한다. 다른 과거 버전에서 동시에 개정해도 family versionNo는 중복되지 않는다. GET은 행 잠금을 하지 않는 REPEATABLE_READ 조회다.
+- 게시/퇴역 행의 수정은 `ANNOUNCEMENT_ATTACHMENT_POLICY_NOT_DRAFT`/409다. 조회 버전·멱등성·시스템 등록 충돌은 `ANNOUNCEMENT_ATTACHMENT_VERSION_CONFLICT`/409이며 입력을 보존하고 최신 상태를 확인하도록 안내한다. 규칙/정책 미존재는 404, 입력 위반은 400이다.
+- 새 초안에 연결할 규칙은 DRAFT/ACTIVE만 허용한다. 키워드 규칙을 자동 게시하지 않는다. source/job/검수 binding·기존 ACTIVE 정책과 운영 공고를 변경하지 않고 네트워크/추출을 실행하지 않는다.
+- 감사 로그는 actor/정책 ID/action/버전·설정 hash/사유 hash만 기록하며 사유 원문·설정 JSON·본문은 복사하지 않는다.
+
+검증은 서비스 단위, 실제 Spring HTTP 권한/CSRF/요청 파싱, XML binding과 PostgreSQL 통합 fixture로 구분한다. 실제 PostgreSQL 실행 및 정책 검증·게시 경로가 남아 있으므로 정책 수명주기 전체 완료로 표현하지 않는다.
+
+### 24.10 정책 분류 정답 세트 실행·이력
+
+prefix: `/api/v2/admin/announcement-attachment-policies/{policyId}/classification-checks`.
+
+- GET: ADMIN/OPERATOR/APPROVER, page 기본 1/size 기본 20·최대 100. 생성 시각/id 내림차순 `PageResponse`를 `ApiResponse`로 감싼다.
+- POST: ADMIN만. CSRF·UUID Idempotency-Key 필수. `{expectedVersion, reason}`만 받는다. reason은 공백 아닌 1~1000자다. 성공한 분류 이력 201, `Cache-Control: no-store`. 클라이언트 `passed`, 사례 수, 규칙·파서·실행 지문·URL은 400으로 거부한다.
+- 응답은 checkId, policyId/policyVersion/policySnapshotHash, ruleReleaseId/ruleVersion/ruleSnapshotHash/ruleContentHash, `checkTypeCode=CLASSIFICATION_GOLDEN`, suiteVersion/engineVersion/resultHash/caseCount/caseIds, isCurrent, createdAt이다. 본문·일치 원문·사유·actor·멱등 키를 반환하지 않는다.
+- 서버가 현재 DB 규칙으로 AG-001~030을 실행한다. 입력 읽기와 최종 저장만 짧은 transaction을 사용하며 분류 실행은 transaction 밖이다. 저장 직전 정책·규칙 버전/내용 hash를 다시 확인한다.
+- 게시 ACTIVE 규칙의 저장 hash와 현재 내용으로 계산한 hash가 다르면 무결성 오류 409다. 새 실행은 DRAFT 정책과 DRAFT/ACTIVE 규칙만 허용한다. 키워드 규칙 자동 게시 없음.
+- 분류 실패는 `ANNOUNCEMENT_ATTACHMENT_POLICY_QA_FAILED`/409, 변경 충돌은 `ANNOUNCEMENT_ATTACHMENT_VERSION_CONFLICT`/409, 게시·퇴역 정책 새 실행은 `ANNOUNCEMENT_ATTACHMENT_POLICY_NOT_DRAFT`/409다. case ID와 고정 한국어 원인만 안내하고 외부 예외/입력 원문은 복사하지 않는다.
+- 같은 actor·정책·정규화 요청/key는 같은 이력을 반환한다. 이력 이후 수정됐어도 과거 결과를 덮어쓰지 않고 isCurrent=false를 반환한다. 다른 actor/정책/입력의 키 재사용은 409다. GET도 현재 입력 버전 일치 여부를 다시 계산한다.
+- 이 분류 성공은 전체 `/validation` 또는 `/publication` 성공이 아니다. isCurrent는 정책·규칙 입력 버전의 일치일 뿐, runtime/profile/운영 검증 여부가 아니다. policyHash·extractorConfigHash·DRAFT 상태·rowVersion·기존 source/job/검수 binding은 바꾸지 않는다.
+
+전체 QA·게시의 남은 요구는 [정책 검증·게시 실행 계약](announcement-attachment-policy-validation-2026-09-11.md)을 따른다.
+
+### 24.11 비동기 정책 QA 예약·취소·단계 이력
+
+prefix: `/api/v2/admin/announcement-attachment-policies/{policyId}/validation-runs`.
+
+| Method/path | 권한·응답 | 입력 |
+|---|---|---|
+| GET prefix | ADMIN/OPERATOR/APPROVER, 200 `ApiResponse<PageResponse>` | page 기본 1, size 기본 20·최대 100 |
+| GET `/{runId}` | 동일 읽기 권한, 200 `ApiResponse` | 정책과 실행 ID 범위 일치 필수 |
+| POST prefix | 활성 ADMIN, 202 예약(완료 아님), `ApiResponse` | CSRF·UUID Idempotency-Key, `{expectedVersion, reason}` |
+| PUT `/{runId}/cancellation` | 활성 ADMIN, 200 `ApiResponse` | CSRF, `{expectedVersion, reason}` |
+
+- `expectedVersion`은 예약 시 **정책 rowVersion**, 취소 시 **run rowVersion**이다. 0 이상이며 reason은 공백 아닌 1~1000자다. 미정의 필드·URL·임의 파일 경로·profile·실행 성공값/hash를 모두 400으로 거부한다. 응답은 `no-store`다.
+- 응답: runId, policyId/policyVersion, ruleReleaseId/ruleVersion, snapshotHash, statusCode/rowVersion, inputVersionsCurrent, errorCode, createdAt/startedAt/completedAt, steps. 각 단계는 stepCode/statusCode/evidence/evidenceHash를 반환한다. 서버 생성 case ID/품질·hash·정리 결과만 포함하며 원문 snapshot/설치 경로/URL/사유·actor/key/token은 반환하지 않는다.
+- `inputVersionsCurrent`는 정책·규칙의 현재 DB 버전 일치 여부일 뿐 전체 QA, 실제 설치 환경, 현재 profile, 게시 가능 상태를 뜻하지 않는다.
+- 상태: PENDING/RUNNING/CANCEL_REQUESTED/CANCELLED/INCOMPLETE/FAILED/CONFLICT/VERIFIED. 단계: CLASSIFICATION_GOLDEN/INSTALLED_RUNTIME/PROVIDER_PROFILES/WORKER_DB_RECOVERY. 미실행 단계는 NOT_RUN, 저장 단계는 PASSED/FAILED/MISSING이다.
+- 현재 서버는 분류30건·고정 합성 runtime12건과 독립 Linux worker DB 계약 실행 경로를 제공한다. WORKER_DB_RECOVERY는 실제 자식의 전체 suite/case·설치 지문·취소/정리 검증 후 PASSED 또는 FAILED로 저장한다. PROVIDER_PROFILES는 MISSING이므로 VERIFIED 생성은 아직 불가하다. 정책 게시 API는 후속 절에 구현됐으나 전체 QA 조건을 우회하지 않는다. 과거 분류 이력/클라이언트 제출 결과를 전체 성공으로 수용하지 않는다.
+- 신규 예약은 `SANEB_ANNOUNCEMENT_ATTACHMENT_POLICY_QA_ENABLED=true`와 실제 Linux 설치 identity가 필요하다. 기본값 false. 전역 대기/실행 1개, 같은 정책 60초 간격·최근 24시간 최대 3회(실패·취소 포함). 현재 외부 공고 HTTP 요청 0회이며 수집 job/운영 공고/정책 모드 쓰기 없음.
+- 같은 actor·정책·정규화 입력/key는 같은 실행을 반환한다. worker 비활성화·입력 버전 변경 후에도 기존 이력은 재실행하지 않는다. 다른 actor/정책/입력의 같은 key는 409다.
+- DRAFT 정책·DRAFT/ACTIVE 규칙을 고정하고 claim은 추출 슬롯 확보와 같은 transaction이다. 실행 lease 8분, 매 파일 시작 시 잔여 40초 확인, parser 실행은 DB transaction 밖이다. PENDING 취소는 즉시 CANCELLED, RUNNING 취소는 CANCEL_REQUESTED 후 현재 파일 정리 뒤 CANCELLED다. 만료는 FAILED/LEASE_EXPIRED이며 새 예약으로 재검증한다.
+- 정책/실행 미존재·다른 정책의 run은 404, 권한 부족은 403, 입력은 400. 구버전·한도·비활성 worker·변경된 입력은 `ANNOUNCEMENT_ATTACHMENT_VERSION_CONFLICT`/409, 설치 identity 부재는 `ANNOUNCEMENT_ATTACHMENT_POLICY_QA_FAILED`/409다. 비동기 실행 실패는 HTTP 예약 성공과 구분하여 조회의 상태/오류/단계 증거로 확인한다.
+
+실제 PostgreSQL trigger/lease 동시성·Linux runtime·모든 운영 profile·정책 UI·게시·운영 브라우저 검증은 필수 미완료이며 별도 Gate를 따른다.
+
+### 24.12 기존 데이터 배치 범위 미리보기·고정·취소
+
+prefix: `/api/v2/admin/announcement-attachment-batches`.
+
+| Method/path | 권한·응답 | 동작 |
+|---|---|---|
+| POST `/scope-preview` | ADMIN/OPERATOR/APPROVER, CSRF, 200 | 필터 JSON의 순수 DB 조회, HTTP/다운로드/쓰기 0 |
+| POST prefix | ADMIN, CSRF·UUID Idempotency-Key, 201 | `{scope,expectedScopeHash,reason}` → SCOPE_READY batch/jobs 고정 |
+| GET prefix | 읽기 3역할, 200 | page 기본 1/size 기본 20·최대 100 |
+| GET `/{batchId}` | 읽기 3역할, 200 | 고정 범위와 현재 jobs/삭제 건수 |
+| GET `/{batchId}/items` | 읽기 3역할, 200 | 고정된 남은 항목 pagination, 필터 재실행 없음 |
+| PUT `/{batchId}/scope-cancellation` | ADMIN, CSRF, 200 | `{expectedVersion,reason}` → 수집 전 SCOPE_READY만 CANCELLED |
+
+모든 응답은 ApiResponse, 목록은 PageResponse를 포함하며 no-store다. scope 필드는 policyId, providerCodes, collectedFrom/collectedBefore(시작 포함·끝 제외 ISO offset 시각), 선택 deadlineFrom/deadlineThrough(양끝 포함), maximumCount(1~1000)다. provider는 BIZINFO/GOV24/LOCAL_GOV_NOTICE만, 중복 불가다. 최초 운영 실행은 설계대로 100건 이하부터 승인받는다.
+
+범위 응답은 전체 provider/제외 사유별 counts, candidateCount/selectedCount/remainingCount, 선택 IDs와 readinessCode, scopeHash, 정책·규칙 ID/hash, 최대 bytes/HTTP와 currentHttpRequests=0을 구분한다. 선택한 source가 준비 불가여도 다음 후보로 대체하지 않고 canReserve=false다. 파일 개수나 최종 판정 변경 건수를 추정 성공값으로 반환하지 않는다. 미등록 출처 PROFILE_REQUIRED, 규칙 불일치 BASE_RECLASSIFICATION_REQUIRED, 진행 작업 ACTIVE_JOB, 버전 상한 VERSION_LIMIT는 항목별 사유다.
+
+고정 순서는 수집 시각 오름차순·UUID며 maximumCount 초과분은 이번 배치가 아니다. QA/삭제 원문은 조회하지 않고, 제목/기본 판정 부적격·연결된 운영 공고는 건수로 구분하여 제외한다. API에 sourceIds·임의 URL/파서/profile·연결 공고 포함·성공값·요청량 변경을 추가 입력하면 400이다. reason은 공백 아닌 1~1000자, scope hash는 64자리 SHA-256이다.
+
+예약은 source/current/검수/운영 공고를 변경하거나 worker를 실행하지 않는다. SCOPE_READY는 같은 원문의 다른 수집 예약과 충돌할 수 있다. 같은 actor·필터·지문·사유/key는 최초 batch 현재 상태를 반환하고 재실행하지 않는다. 다른 입력/key 재사용, 범위/정책/출처/버전 변화, 준비 불가, 구버전 취소는 409다. 미존재 404/권한 403/인증 401/잘못된 입력 400 wrapper를 유지한다.
+
+상세는 batchId/policyId/statusCode/scopeHash/rowVersion, itemCount/remainingItemCount/deletedItemCount, jobCounts, frozenScope, createdAt이다. 원문 제목/URL/사유·요청자/멱등 키/실행 설정 원문은 반환하지 않는다. 원문 삭제 시 ID를 되살리지 않고 삭제 건수를 보존하며 새 source를 자동 보충하지 않는다.
+
+수집 시작/중지/재개는 아래 24.13을 따른다. 배치 분류 preview 확정·적용·적용 pause/resume·rollback·배치 화면은 미완료다. 수집 전 취소는 적용 후 원복을 뜻하지 않는다. 전체 범위와 후속 조건은 [배치 실행 계약](announcement-attachment-batch-execution-2026-09-11.md)을 따른다.
+
+### 24.13 고정 배치 수집 시작·중지·재개
+
+prefix는 24.12와 같다. 모두 PUT/활성 ADMIN/CSRF/200 ApiResponse/no-store다. 기존 v1과 범위 POST의 멱등 계약은 변경하지 않는다.
+
+| 경로 | 요청 | 효과 |
+|---|---|---|
+| `/{batchId}/collection` | Collection 확인 입력 | SCOPE_READY → COLLECTION_PENDING; 고정 jobs만 PENDING |
+| `/{batchId}/collection-pause` | `{expectedVersion,reason}` | 수집 대기/진행 → COLLECTION_PAUSED |
+| `/{batchId}/collection-resume` | Collection 확인 입력 | COLLECTION_PAUSED → COLLECTING; job 예산·시도·terminal 유지 |
+
+Collection: `{expectedVersion,expectedScopeHash,expectedItemCount,expectedDeletedItemCount,expectedMaximumDownloadBytes,expectedMaximumHttpRequests,reason}`. scopeHash 64자리, itemCount 1~1000, 버전/삭제 건수 0 이상, 최대 bytes/HTTP 1 이상, 사유 공백 아닌 1~1000자다. 모든 값은 조회된 고정 범위/최초 상한과 정확히 일치해야 한다. 임의 cap·대상/URL/profile·성공값 입력은 허용하지 않는다.
+
+상태/버전/범위·삭제 건수/상한 불일치, 퇴역·변경된 정책/규칙, 변경된 고정 source/base/첨부/current/검수/정책 binding/출처 지문은 409다. 최초 시작 전에 삭제된 항목은 예약 취소·새 범위 고정이 필요하다. 재개 시 terminal 항목은 재시도하지 않으며 미완료 항목만 재검증한다. 응답 손실/409 때 GET으로 상태를 확인하며 동일 과거 버전 요청은 중복 시작하지 않는다.
+
+중지는 새 claim/HTTP를 막지만 이미 전송 중인 요청/정리는 끝날 수 있다. worker 설정/정책 게시/현재 판정·확인·운영 공고를 변경하지 않는다. 저장된 승인 지문은 최초 실행만 기록하고 재개 시 덮어쓰지 않는다. job의 FROZEN_INPUT_CHANGED는 버전 외 출처/이전 검수/보호 연결 변경으로 인한 종료다.
+
+worker 활성 시 DB 집계는 COLLECTION_PENDING → COLLECTING → COLLECTED/COLLECTION_PARTIAL_FAILED를 반영한다. 고정 건수 전체가 terminal이고 삭제 0·모든 SUCCEEDED/SEALED set/preview evaluation/hash를 만족해야 COLLECTED다. 중지 상태 자동 해제/적용/확인/활성화는 없다. GET jobCounts/삭제 수와 batch 상태의 주기 차이를 구분한다. 실제 PG·Linux·운영 브라우저 검증은 미완료다.
+
+### 24.14 봉인 결과 미리보기·선택 이력
+
+prefix: `/api/v2/admin/announcement-attachment-batches/{batchId}/classification-preview`. 기존 v1 계약은 변경하지 않는다.
+
+| Method/path | 권한·응답 | 입력/효과 |
+|---|---|---|
+| POST prefix | ADMIN·CSRF·UUID Idempotency-Key, 201 | `{expectedVersion,expectedScopeHash,reason}` → 새 미리보기, 선택 0건 |
+| PUT `/selection` | ADMIN·CSRF·UUID Idempotency-Key, 200 | `{expectedVersion,expectedPreviewHash,selectedJobIds,reason}` → 새 선택 snapshot |
+| GET prefix | ADMIN/OPERATOR/APPROVER, 200 | 정확한 current preview pointer/hash 조회 |
+| GET `/{previewId}` | 읽기 3역할, 200 | 같은 batch의 과거 snapshot 및 현재 유효 여부 |
+| GET `/{previewId}/items` | 읽기 3역할, 200 | snapshot 항목 pagination, page1/size20 기본·size최대100 |
+
+모든 응답 ApiResponse/no-store, 목록 PageResponse다. 사유는 공백 아닌1~1000자, 버전0~2147483645, 지문은 소문자16진수64자리다. selectedJobIds는 중복 없는 UUID 최대1000개, 빈 배열은 전체 선택 해제이며 null은400이다. sourceIds/URL/파일/profile/정책 변경/성공값 등 미정의 필드는400이다. 없는 batch/다른 batch의 preview는404, 권한403/인증401이다.
+
+생성은 수집 종료 또는 PREVIEW_READY 계열에서만 가능하다. 선택은 현재 preview와 같은 batchVersion/previewHash/inputHash여야 하며 입력 변경·구버전·퇴역/변경 정책·READY 아닌 항목 또는 다른 batch 선택은409다. 동일 actor/배치/정규화 입력/키 재요청은 원래 이력을 반환하고 현재 선택을 되돌리지 않는다. 다른 입력의 키 재사용은409다. 새 미리보기 생성은 선택을 자동 승계하지 않고0건으로 만든다.
+
+요약: previewId, batchId, statusCode, scopeHash/inputHash/previewHash, snapshotBatchVersion/currentBatchVersion, itemCount, snapshotRemainingItemCount/snapshotDeletedItemCount, availableItemCount/currentDeletedItemCount, eligibleItemCount/selectedItemCount, currentPreview/inputsCurrent, currentHttpRequests=0, createdAt. statusCode와 eligible/selected 수는 저장 당시 값이다. inputsCurrent=false인 과거 PREVIEW_READY를 현재 적용 가능 상태로 해석하지 않는다.
+
+항목: jobId/sourceId/providerCode, readinessCode, eligible/selected, evidence. evidence는 base/이전 첨부/제안 판정, 기본 검수 상태·기존 확인 유무, 규칙 ID/version/hash, 발견·파일·실패·추출·역할 metadata, exact extraction ID, base AUTO/이전 AUTO/CONFIRMED/제안 AUTO 태그와 추가·제거 차이를 분리한다. 원문/첨부 텍스트·URL·파일 표시명·사유/actor/key·실행 입력 JSON은 반환하지 않는다.
+
+READY는 성공적으로 수집된 완전한 SEALED set/evaluation 근거와 현재 고정 입력이 일치함을 뜻한다. 제안 REVIEW_REQUIRED도 포함될 수 있으나 최종 승인이나 관리자 확인 완료가 아니다. 기타 readinessCode는 COLLECTION_NOT_SUCCESSFUL/EVIDENCE_INCOMPLETE/PROTECTED_LINK/ACTIVE_JOB/SOURCE_CHANGED다. 삭제 건수까지 전체 분모를 유지하고 한 항목이라도 준비 불가면 PREVIEW_PARTIAL_FAILED다.
+
+이 작업은 저장된 근거만 읽고 새 HTTP/다운로드/추출을 실행하지 않는다. 한 transaction에서 PREVIEW_RUNNING을 거쳐 새 전체 snapshot/선택/current pointer/hash를 저장하며 batch version은2 증가한다. 기존 current 평가·확인·정책 binding·운영 공고는 변경하지 않는다. 적용과 원복은 아래 별도 API다. 관리자 배치 화면·PG/운영 E2E는 미완료다.
+
+### 24.15 배치 적용 승인·중지·재개·결과 조회
+
+기준 경로 `/api/v2/admin/announcement-attachment-batches/{batchId}/application`. 기존 v1 변경 없이 ApiResponse/PageResponse와 no-store를 사용한다.
+
+- POST 기본/`pause`/`resume`: 활성 ADMIN, CSRF, UUID Idempotency-Key. expectedVersion/expectedPreviewId/expectedPreviewHash/expectedItemCount/expectedSelectedCount/expectedDeletedCount/acknowledgeReviewReset=true/reason을 엄격히 검증한다. 202는 접수이며 적용 완료가 아니다. 다른 키 입력·버전·범위·정책 충돌409, 유효하지 않은 입력400, 권한403, 미인증401이다.
+- GET `/actions/{actionId}`: ADMIN/OPERATOR/APPROVER, 동일 batch의 영수증+현재 집계. 다른 배치/없는 내역404. 최초 actionId/previewId/actionCode/acceptedFromVersion/acceptedAt, 승인 scopeItemCount/approvedSelectedCount와 현재 currentStatusCode/currentVersion/remainingItemCount/deletedItemCount/selectedRemainingCount/pendingCount/appliedCount/conflictCount/failedCount/currentHttpRequests=0을 분리한다.
+- GET `/items?page=1&size=20`: 동일 읽기 역할, size1~100. 남은 전체 job의 jobId/sourceId/collectionStatusCode/selected/applicationStatusCode/applicationErrorCode/applicationAttemptCount/nextAttemptAt/appliedEvaluationId/appliedSourceVersion/appliedAttachmentVersion/rollbackStatusCode를 반환한다. 삭제 원문이나 URL·제목·본문·검수 메모를 반환하지 않는다.
+- START는 현재 고정 ACTIVE ENFORCE policy/rule과 전체 미리보기 지문/선택 수를 source·정책·batch 잠금 아래 대조하고 선택 성공 항목만 PENDING으로 만든다. COLLECT_ONLY/새 정책으로 자동 승격하지 않는다. 같은 키 재요청은 최초 영수증만 반환하며 현재 상태를 재시작하지 않는다.
+- 항목별 worker는 exact item 해시와 source CAS 후 이전 confirmation을 STALE로 만들고 첨부 current/binding/검수 요구 및 첨부 버전을 갱신한다. 운영 공고/DRAFT 자동 생성·수집 HTTP는 없다. 전체 고정 범위의 미선택/실패/삭제를 숨기지 않는다. 중지는 다음 항목부터 효력이 있고 완료 항목의 원복이 아니다.
+- 현재 적용 코드/로컬 검증과 실제 운영 적용은 별개다. 조건부 batch rollback은 24.16에 추가했으며 전체 배치 UI, 최신 PostgreSQL/운영 E2E는 미완료다. 상세 전이·실패 코드·backoff는 [배치 실행 계약](announcement-attachment-batch-execution-2026-09-11.md)을 따른다.
+
+### 24.16 고정 배치 원복 영향·승인·결과
+
+prefix: `/api/v2/admin/announcement-attachment-batches/{batchId}/rollback`. 기존 v1은 변경하지 않는다. ApiResponse/PageResponse·no-store를 유지하며 쓰기에는 ADMIN·CSRF·UUID Idempotency-Key가 필요하다. Service도 활성 계정·권한·비밀번호 변경 완료를 검사한다.
+
+- GET `/preview`: ADMIN/OPERATOR/APPROVER. APPLIED/APPLY_PARTIAL_FAILED/APPLY_PAUSED에서만 미리본다. 현재 version/statusCode/previewHash, 최초 scopeCount와 남은/삭제 수, 적용 완료분 전체 targetCount·eligibleCount·conflictCount, baseReopenCount·confirmationRestoreCount·staleConfirmationCount·cancelPendingCount 및 currentHttpRequests=0이다. HTTP/DB 쓰기 없이 현재 입력으로 계산하며, 일부 적격 항목만 전체 대상으로 축소하지 않는다.
+- GET `/items?page=1&size=20`: 같은 조회 역할, size1~100. 남은 전체 job의 jobId/sourceId/providerCode/applicationStatusCode/rollbackStatusCode/readinessCode, target/eligible/baseReopens/confirmationRestores/staleConfirmationRemains, errorCode/attemptCount/nextAttemptAt를 반환한다. 완료 뒤의 READY 여부는 새로운 원복 허가가 아니며 과거 승인 집계는 영수증에서 조회한다.
+- POST prefix: `{expectedVersion,expectedPreviewHash,expectedScopeCount,expectedTargetCount,expectedDeletedCount,expectedBaseReopenCount,expectedConfirmationRestoreCount,expectedCancelPendingCount,acknowledgeBindingRestoration:true,reason}`. 정확한 현재 미리보기와 1~1000 scope/대상, 0~1000 영향 수, 사유1~1000자를 검증한다. force/직접 source 목록·정책 변경·임의 결과 필드는 거부한다. 적격0이면409다. 수집 완료나 원복 성공이 아니라 **202 접수 영수증**을 반환한다.
+- GET `/actions/{actionId}`: 같은 조회 역할. 최초 actionId/batchId/acceptedFromVersion/acceptedAt 및 scopeCount/approvedTargetCount/approvedEligibleCount/approvedBaseReopenCount/approvedConfirmationRestoreCount/cancelledPendingCount를 보존하고, 현재 statusCode/currentVersion/remainingTargetCount/deletedCount/pendingCount/rolledBackCount/conflictCount/failedCount/currentHttpRequests=0을 별도 제공한다. 교차 batch 식별자는404다.
+
+승인은 source UUID 순서 잠금→batch 잠금 후 전체 해시/범위를 다시 확인한다. 적용 완료분 전부를 고정하고 초기 충돌 항목도 이력에 남긴다. APPLY_PAUSED의 남은 적용 PENDING은 `CONFLICT/APPLICATION_CANCELLED_BY_ROLLBACK`으로 종료하며 재개하지 않는다. 같은 멱등 키·actor·payload는 최초 영수증만 반환한다.
+
+원복 worker는 별도 `SANEB_ANNOUNCEMENT_ATTACHMENT_ROLLBACK_ENABLED=true`에서 실행된다(기본 false). 다운로드 worker나 ACTIVE 정책 상태에 종속되지 않지만 승인된 ROLLING_BACK 항목만 DB에서 처리한다. 이후 current/버전/전체 입력 지문/후속 검수·역할·link·활성 작업 변경은 충돌로 끝난다. 이전 pointer·정책/review binding을 복원하고 첨부 버전을 +1한다. 이전에 유효했던 확인만 복구 근거를 기록하여 재사용하며, 이미 무효였던 확인은 STALE로 유지한다. 운영 공고·원문·첨부 이력 삭제/자동 활성화·다운로드·재분류는 없다.
+
+예상치 못한 실패는 항목 transaction 전체 rollback 뒤 별도 실패 횟수를 저장한다. 30초 간격 최대3회, 마지막은 FAILED/ROLLBACK_TRANSACTION_FAILED다. 전체 최초 scope가 모두 원복되고 삭제0일 때만 ROLLED_BACK이다. 미적용/취소/실패/삭제가 있으면 ROLLBACK_PARTIAL_FAILED이며 승인 대상의 부분 결과와 구분한다. 일반 job 원복은24.17로 분리했다. 전체 화면·실제 DB/운영 E2E는 후속 필수 Gate다.
+
+### 24.17 일반 작업 원복 영향·동기 승인·영수증
+
+prefix: `/api/v2/admin/announcement-sources/{sourceId}/attachment-jobs/{jobId}/rollback`. 기존 v1 응답/의미는 변경하지 않는다. ApiResponse/no-store를 유지한다. source/job/batch 소유 범위를 서버에서 검증하며 batch 작업은 이 API로 복구하지 않는다.
+
+| 요청 | 권한·응답 | 의미 |
+|---|---|---|
+| GET `/preview` | 활성 ADMIN/OPERATOR/APPROVER, 200 | 원문 한 건의 복구 모드·현재 버전·영향·지문·차단 사유 조회 |
+| POST prefix | 활성 ADMIN·CSRF·UUID Idempotency-Key, 200 | 명시적 영향 승인과 원복을 동일 transaction에서 완료한 영수증 |
+| GET `/actions/{actionId}` | 활성 ADMIN/OPERATOR/APPROVER, 200 | 동일 source/job/action의 불변 영수증 |
+
+Preview 필드: sourceId/jobId, modeCode(`APPLIED`/`FAILED_RESERVATION`/`UNAVAILABLE`), jobStatusCode/applicationStatusCode/rollbackStatusCode, readinessCode, sourceVersion/attachmentVersion/previewHash, baseReopens/confirmationRestores/staleConfirmationRemains, targetCount=1/currentHttpRequests=0. 원문·파일·검수 메모·actor/key·내부 execution JSON은 반환하지 않는다.
+
+readinessCode: READY, CURRENT_BINDING_CHANGED, PREVIOUS_BINDING_INVALID, JOB_NOT_TERMINAL, RECOVERY_EVIDENCE_MISSING, ALREADY_RECOVERED. READY도 자동 승인 또는 파일 처리 성공이 아니다. 완료된 일반 적용과 실패로 종료된 검수 예약만 대상이며 진행 중/재시도 대기/과거 근거 없는 작업은 차단한다.
+
+POST body는 `{expectedSourceVersion,expectedAttachmentVersion,expectedPreviewHash,expectedBaseReopen,expectedConfirmationRestore,acknowledgeBindingRestoration:true,reason}`이다. 원문 버전0이상, 첨부 버전0~2147483646, 지문 소문자16진수64자리, effect boolean 두 값 필수, 사유1~1000자다. force/임의 source 목록·정책 변경·결과 override는400으로 거부한다. 비로그인401/권한403/다른 source·job·action404/기존 입력·버전·효과 변경 및 안전 조건 불충족409다. Service에서도 활성 계정·비밀번호 변경 완료·ADMIN을 검사한다.
+
+원복은 source→job 잠금 뒤 preview를 재검증한다. 후속 검수·DRAFT link·다른 활성 job·본문/출처/기관 입력 변경을 덮어쓰지 않는다. 원래 실패와 APPLIED 근거를 보존하고 이전 pointer/policy/review/확인 연결을 새 첨부 버전에서 복구한다. 이전 확인이 이미 무효라면 STALE로 유지한다. 이전 상태도 검수 대기였다면 그 의무까지 제거하지 않는다. 다운로드/추출/원문 삭제/운영 공고 자동 활성화는 없다.
+
+Receipt: actionId/sourceId/jobId/modeCode/statusCode=ROLLED_BACK, restoredSourceVersion/restoredAttachmentVersion, baseReopened/confirmationRestored, targetCount=1/currentHttpRequests=0, recordedAt. recordedAt은 영수증 기록 시각이며 이후 source의 현재 상태나 DB commit 시각을 뜻하지 않는다. 같은 actor/source/job/key/payload의 재요청은 최초 영수증만 반환한다. 새로운 키로 재복구하거나 다른 actor/payload로 키를 재사용할 수 없다. 200은 transaction 완료 응답이며 batch의202 대기 응답과 구분한다. 응답 유실/5xx는 성공을 추정하지 말고 같은 키·본문으로 재조회/재요청한다.
+
+일반 작업 탐색: GET `/api/v2/admin/announcement-sources/{sourceId}/attachment-recovery-jobs?page=1&size=10`을 추가한다. 활성 ADMIN/OPERATOR/APPROVER만 조회하며 ApiResponse<PageResponse<JobSummary>>/no-store다. page는1~1000000, size는1~100이다. 목록과 count 모두 같은 PRODUCTION·비제외 원문의 batch_id IS NULL 작업만 대상으로 하고 created_at DESC,id DESC로 정렬한다. 실패·미적용·이미 복구된 작업을 숨기지 않는다. 존재하지 않거나 QA/제외 원문은404, 유효 원문의 일반 작업0건은 정상 빈 페이지다.
+
+JobSummary 필드: sourceId/jobId/operationCode/jobStatusCode/applicationStatusCode/rollbackStatusCode/actionId(nullable)/createdAt. actionId는 해당 job의 normal_rollback_action_id이며 새로고침 뒤에도 기존 영수증을 찾는 용도다. 목록은 READY 판정이나 원복 승인이 아니다. readiness와 현재 영향은 개별 preview를 조회한다. raw 내용·URL·사유/사유 지문·멱등 키·actor·execution snapshot은 목록에 포함하지 않는다. 조회로 정책/worker/source를 변경하지 않는다.
+
+일반 원복 UI는 기존 `/app/admin/collected-announcements/{sourceId}/attachments`에 별도 영역으로 연결했다. ADMIN만 승인하며 영향 조회와 동의는 매번 분리한다. 200이라도 영수증 식별자·모드·버전·영향이 승인과 다르면 성공으로 표시하지 않는다. 응답 유실 후 재시도의401/403/409도 최초 요청이 실패했다는 증거가 아니므로 동일 키/본문을 보존하고 새 변경을 잠근다. 상세 UI 계약은 `announcement-attachment-recovery-ui-2026-09-11.md`를 따른다.
+
+코드·로컬 검증과 실제 운영 원복은 별개다. 운영 실행, 최신 PostgreSQL migration/원자성, 배치 화면의 실제 검증 및 역할별 실제 브라우저 E2E는 아직 필수 미완료다.
+
+### 24.18 기존 데이터 첨부 배치 관리자 화면
+
+`/app/admin/announcement-attachment-batches`는 ADMIN/OPERATOR/APPROVER용 no-store SSR 화면이다. ADMIN만 변경 요청을 하며 Service/API의 기존 활성 계정·역할·CSRF 검증을 그대로 따른다. `수집 공고 검수 → 첨부 배치 작업`으로 진입한다. 기존 v1/v2 JSON 계약을 바꾸거나 새 정책 게시/worker 설정 변경 API를 추가하지 않는다.
+
+- 목록/정책은 페이지 조회, 범위는 read-only `scope-preview` POST로 조회한다. 배치 API의 정부24 입력 코드는 `GOV24`이며 단건 UI의 별도 표기 코드를 혼용하지 않는다. 관리자에게 URL·파서·profile 선택을 요구하지 않는다.
+- 범위의 전체 후보/선택/잔여, 보호 제외·준비 불가 사유와 HTTP/bytes 상한을 표시한다. 범위 고정 예약은 HTTP0이며 수집 시작과 별도로 동의한다. 한 배치는 전체 기존 데이터 처리 결과가 아니다.
+- collection/start·pause·resume는 기존 버전 CAS를 사용한다. 응답 유실 뒤 같은 요청 재확인 또는 명시적 최신 상태 조회/새 기준 동의로 복구한다. 새 기준 사용은 최초 요청 성공 판정이 아니다.
+- classification-preview의 전체 페이지(100개씩, 최대1000개)를 읽고 마지막에 현재 미리보기의 ID/hash/버전/입력을 재검증한다. 화면 페이지는10개씩 보여주되 다른 페이지의 선택을 보존한다. 미저장 선택이 있으면 다른 배치 이동/새 예약을 막고 저장 또는 명시적 선택 복원을 요구한다.
+- 저장된 선택·현재 preview만 적용 승인에 사용한다. COLLECT_ONLY를 ENFORCE로 자동 승격하지 않는다. 입력/범위/선택 변경은 실행 동의를 해제한다. 적용 후 이전 확인 STALE·재검수 필요를 안내한다.
+- 원복은 적용 완료분 전체의 적격/충돌·기본 경로 재개·이전 확인 복구·남은 적용 대기 취소를 표시하고 승인한다. ROLLING_BACK/종료 후에는 새 원복 preview를 요청하지 않고 항목/기존 영수증을 읽는다.
+- 멱등 변경의 응답 유실/5xx/잘못된 영수증 후에는 원래 key/body만 재요청한다. 이어진401/403/409를 최초 요청 실패로 간주해 새 키를 만들지 않는다. 202는 접수이며 실제 적용·원복 상태/건수와 구분한다. 접수 후 목록 갱신이 실패해도 배치·접수 URL과 확인한 응답을 보존한다.
+- 사유·키·본문은 탭 메모리만 사용하고 이탈 경고를 제공한다. 비민감 배치/페이지/action ID만 URL로 복원한다. 모든 문자열은 textContent로 렌더링한다. 본문·파일 근거는 기존 단건 검수 화면으로 연결한다.
+
+상세 설계/검증 범위는 `announcement-attachment-batch-ui-2026-09-11.md`다. Node 모의 API 흐름은 서버 DB transaction 또는 실제 브라우저 검증이 아니다. 정책 관리 화면·1000건 초과 전체 분할 ledger·실제 Linux/PG·운영 승인 범위 적용·역할별 브라우저 E2E는 별도 필수 잔여다.
+
+### 24.19 기존 데이터 전체 후보 고정·분할 목록
+
+`/api/v2/admin/announcement-attachment-backfills`에 전체 목록 고정 API를 추가한다. 기존 배치 API의 `maximumCount`와 의미가 다르며 기존 v1/v2 계약은 변경하지 않는다. 원문/제목/본문/URL·멱등 키·actor·원문 사유는 응답하지 않는다. ApiResponse/PageResponse와 no-store를 유지한다.
+
+| 메서드/경로 | 권한 | 결과 |
+|---|---|---|
+| POST `/scope-preview` | 활성 ADMIN/OPERATOR/APPROVER·CSRF | 전체 배타 집계, candidateCount/candidateHash/scopeHash, 예상 segmentCount, previewHttpRequests=0, canInventory |
+| POST prefix | 활성 ADMIN·CSRF·UUID Idempotency-Key | 201, 전체 고정 목록. 수집/적용 승인이 아니며 job을 생성하지 않음 |
+| GET prefix, `/{runId}` | 읽기 3역할 | 전체 목록 페이지/상세, statusCode=INVENTORIED |
+| GET `/{runId}/segments` | 읽기 3역할 | 최초 분할 번호/건수, 현재 잔여/삭제 건수 |
+| GET `/{runId}/segments/{segmentNo}/items` | 읽기 3역할 | 고정 source/content/base/rule 식별자·순번·입력 지문·currentInputMatches, 현재 필터를 다시 실행하지 않음 |
+
+Scope: `{policyId,providerCodes,collectedFrom,collectedBefore,deadlineFrom?,deadlineThrough?,segmentSize}`. 지원 출처는 BIZINFO/GOV24/LOCAL_GOV_NOTICE 중 중복 없는 1~3개이며 수집 시작 포함/종료 미포함, 마감일 양끝 포함, UTC 정규화다. segmentSize 1~1000은 한 분할 크기이며 전체 후보 상한이 아니다. 전체 집계/고정 SQL에는 LIMIT가 없다.
+
+목록 고정 body는 `{scope,expectedScopeHash,expectedCandidateCount,reason}`. 지문은 소문자 16진수64자리, 확인한 전체 후보 수1이상, 사유1~1000자다. maximumCount/sourceIds/URL/profile/성공값 등 정의하지 않은 필드는400이다. 같은 actor/key/내용은 최초 run을 재조회하며 다른 actor/내용 또는 진행 중 동일 요청은409다. 처리 중이면 입력을 바꾸지 말고 같은 키로 재확인한다. 대기 후 오래된 REPEATABLE READ snapshot을 사용하지 않도록 advisory try-lock을 쓴다.
+
+응답은 candidateCount(불변 최초 분모), remainingItemCount, deletedItemCount, segmentSize, segmentCount, rowVersion, frozenScope, createdAt을 구분한다. `INVENTORIED`는 처리 완료가 아니다. 원문 삭제 후 빈 분할도 유지하고 잔여0을 수집/적용 성공으로 표현하지 않는다. 입력 변경은 고정 항목을 숨기는 대신 currentInputMatches=false로 표시한다.
+
+page1이상/size1~100. 고정 전체 목록의 후보 합·분할 합·잔여·삭제가 어긋나면409이며 일부 건수로 성공 응답하지 않는다. 기존 PageResponse 정수 페이지 범위를 초과하면 명시적409로 거부한다. scope 고정 transaction의 시간 상한은30초이며 timeout/경합은 전체 rollback이지 첫 N건 저장이 아니다.
+
+V74와 `announcement-attachment-backfill-ledger-2026-09-12.md`를 따른다. 고정 분할→기존 batch 예약 연결과 전체 집계의 로컬 구현은 아래24.20, 관리자 분할 UI는24.21에 추가했다. **실제 PostgreSQL/운영 실행·최종 결과 대조와 브라우저 검증은 필수 미완료**다. 목록 고정만으로 전체 기존 데이터 처리를 완료했다고 보고하지 않는다.
+
+### 24.20 고정 분할 예약·전체 결과 집계 — V75
+
+24.19의 고정 run/segment를 기존 batch 실행 경로와 연결하는 API다. 원래 필터를 재실행하거나 sourceIds를 HTTP 요청으로 받지 않는다. 기존 일반 배치의 지문/수집 승인/삭제 차단 규칙은 유지한다. 모든 응답은 ApiResponse/no-store다.
+
+| 메서드·경로 | 권한 | 응답/의미 |
+|---|---|---|
+| GET `/api/v2/admin/announcement-attachment-backfills/{runId}/segments/{segmentNo}/reservation-preview` | 활성 읽기3역할 | 최초/잔여/삭제 건수, runVersion/segmentHash/readinessCode/canReserve, 기존 batchId 또는 고정 소속의 batchPreview |
+| POST 같은 prefix `/reservation` | 활성 ADMIN·CSRF·UUID Idempotency-Key | 201, 최초 분할과 새 SCOPE_READY batch의 일대일 예약 영수증. 수집 시작 아님 |
+| GET `/api/v2/admin/announcement-attachment-backfills/{runId}/summary` | 활성 읽기3역할 | 전체 candidateCount/remainingItemCount/deletedItemCount, segmentCount/reservedSegmentCount, reservedRemainingItemCount/unreservedItemCount/unreservedInputChangedCount, collectionCounts/applicationCounts/rollbackCounts |
+
+예약 body는 `{expectedRunVersion,expectedSegmentHash,expectedRemainingItemCount,expectedDeletedItemCount,reason}`다. 목록 버전0이상, 지문 소문자16진수64자리, 잔여1~1000/삭제0~999, 사유1~1000자다. sourceIds/URL/profile/batchId/force/승인 또는 성공값 override는400이다. 입력·정책·고정 소속·준비 상태 변경, 이미 연결된 분할, 다른 actor/payload의 키 재사용은409, 다른/없는 run·분할은404다.
+
+readinessCode는 READY, ALREADY_RESERVED, ALL_ITEMS_DELETED, INPUT_CHANGED, POLICY_CHANGED, BATCH_NOT_READY다. READY만 예약 가능하며 BATCH_NOT_READY는 기존 batchPreview.items의 구체적인 사유를 확인한다. 이미 예약된 분할은 정책 퇴역 뒤에도 과거 batchId를 반환하고 자동 교체하지 않는다.
+
+영수증 필드: runId/segmentNo/batchId, inventoryVersionAtReservation, originalItemCount/reservedItemCount/deletedBeforeReservation, segmentHash/currentBatchStatusCode/reservedAt. 최초 분모와 예약 전 삭제 수를 보존한다. reservedAt은 기록 시각이며 완료 시각이 아니다. 동일 키·입력 재요청은 최초 연결을 반환하며 현재 원문을 다시 예약하지 않는다. 응답 유실 시 입력을 보존하고 같은 키/본문으로 재확인한다.
+
+분할 최초 수=예약 배치 최초 수+예약 전 삭제 수, 분할 현재 삭제 수=예약 전 삭제 수+배치 삭제 수다. 예약 이후 삭제된 batch의 최초 수집 시작은 기존처럼 거부한다. 취소/실패 배치는 연결을 보존하며 다른 키로 덮어쓰지 않는다. 재처리가 필요하면 남은 대상을 새 전체 범위로 명시적으로 고정·승인하고 원래 결과는 취소/실패/삭제로 대조한다.
+
+summary는 전체 잔여 목록을 기준으로 세 차원을 독립 집계한다. 각 map의 합은 remainingItemCount이고 UNRESERVED는 미예약이다. 삭제는 별도 deletedItemCount이며 성공으로 가산하지 않는다. APPLIED 이력과 ROLLED_BACK 결과를 합산하지 않는다. 배치가 연결됐는데 job이 누락되거나 전체 분모가 다르면409이며 부분 집계를 성공으로 반환하지 않는다. summary에 전체 처리 완료를 뜻하는 boolean/status는 없다.
+
+V75/상세 ledger 문서가 로컬 계약의 기준이다. 실제 PostgreSQL 경합/삭제/1001건 예약, 운영 승인 범위 실행·최종 대조와 역할별 브라우저 E2E는 필수 잔여다.
+
+### 24.21 전체 목록·분할 관리 화면 연결
+
+SSR `/app/admin/announcement-attachment-backfills`는24.19~24.20을 소비한다. ADMIN/OPERATOR/APPROVER 조회·no-store, ADMIN만 목록 고정/예약을 제공한다. 화면에서 정책 게시·ENFORCE 전환·수집 시작·판정 적용·원복을 자동 호출하지 않는다.
+
+전체 후보 수와 분할 크기를 구분하고 삭제/미예약/입력 변경 및 수집·적용·원복 각각의 집계를 표시한다. 선택 분할 예약 후에는 반환된 batchId의 기존 배치 화면으로 이동해 수집/적용/복구를 별도 승인한다. batch의 고정 scope에 backfillRunId/backfillSegmentNo가 있을 때만 원래 전체 목록으로 돌아가는 링크를 표시한다.
+
+목록/분할/항목 페이지와 비민감 ID를 URL로 탐색하며, 미저장 사유/요청 키는 탭 메모리에만 보관한다. 응답 유실 후 같은 키·본문 재확인, 후속 조회 실패 뒤 영수증 보존, 서버 건수·지문 대조와 초기 비활성/동의 해제를 적용한다. 상세 상태·검증·예외는 `announcement-attachment-backfill-ui-2026-09-12.md`를 따른다. Node 모의 API/SSR 시험을 실제 DB·운영 브라우저 완료로 계산하지 않는다.
+
+### 24.22 배치 적용·원복 승인 전체 이력
+
+GET `/api/v2/admin/announcement-attachment-batches/{batchId}/action-history`는 활성 ADMIN/OPERATOR/APPROVER 전용 읽기 API다. ApiResponse<History>/no-store, page기본1(1~2147483647), size기본20(1~100), throughVersion생략시 현재 배치 버전이다. 상한은0~현재 버전이고 미래 버전409, 잘못된 UUID/숫자/범위400, 없는 배치404, 비로그인401/권한403이다.
+
+History는 batchId/throughVersion/currentBatchVersion/history(PageResponse)/currentHttpRequests=0이다. Entry는 actionId/batchId/actionKind/actionCode/acceptedFromVersion/previewId/scopeItemCount/approvedTargetCount/deletedCountAtAcceptance/approvedEligibleCount/approvedBaseReopenCount/approvedConfirmationRestoreCount/cancelledPendingCount/acceptedAt을 반환한다. APPLICATION의 START/PAUSE/RESUME는 previewId가 있고 원복 영향4필드는null이다. ROLLBACK의 START는 previewId=null이며 당시 적격/기본 경로 재개/이전 확인 복구/대기 취소 수를 반환한다. 승인 시각은 기록 시각이지 완료 시각이 아니다.
+
+기존 V73의 두 불변 승인 테이블만 읽고 원문/job과 조인하지 않는다. 적용 approvedTargetCount는 당시 선택 수, 원복은 당시 대상 수다. 삭제 후에도 당시 수를 보존하며 현재 성공/실패/삭제 수는 기존 개별 application/rollback 영수증 GET으로 읽는다. actor/사유·지문/멱등 키/원문/URL/실행 snapshot은 목록에 없다.
+
+REPEATABLE READ/readOnly에서 배치·count·페이지를 조회하고 승인 전 버전 `< throughVersion`을 적용한다. 정렬은 acceptedFromVersion DESC/actionKind DESC/actionId DESC다. 다음 페이지에 첫 응답 throughVersion을 전달하면 새 승인으로 기존 페이지가 밀리지 않는다. 최신 목록으로 갱신하려면 상한 없이1페이지를 다시 조회한다. 버전/소속/종류별 필드/합계가 모순되면409로 거부한다.
+
+기존 배치 화면에 전체 승인 탐색과 정확한 영수증 연결을 추가했다. 사유/선택 보존, 상한·페이지 URL 복원, 배치 이동 시 이전 결과 해제, 유실된 변경 요청 중 조회 잠금을 유지한다. 일반 감사 로그 전체나 수집 제어 이력이 아니며 조회로 정책/worker/판정·운영 공고를 변경하지 않는다. 상세 계약과 실제 검증 경계는 `announcement-attachment-batch-history-2026-09-12.md`를 따른다.
+
+### 24.23 첨부 정책 게시 전 영향 관측
+
+GET `/api/v2/admin/announcement-attachment-policies/{policyId}/publication-impact`: 활성 ADMIN/OPERATOR/APPROVER의 읽기 전용 ApiResponse/no-store다. 정책 ID는UUID, 비로그인401/권한403/잘못된ID400/없는정책404/정책·QA·집계 모순409다. 이 경로의 POST는405이며 게시·QA 실행·원문 변경을 하지 않는다.
+
+응답은 policy(Summary), activePolicyForRule(nullable Summary), matchingRule/allRules(Counts), maximumSourceBytes, wouldStopNewExternalRequests/wouldLiftGlobalOffStop, latestQa(nullable), blockingReasonCodes, requiresPublicationRevalidation=true, observedImpactHash/observedAt/currentHttpRequests=0이다. 두 범위는 포함 관계이며 합산하지 않는다. Counts의 source/job은 PRODUCTION, 계획은 PRODUCTION 수집 request만 포함한다.
+
+Counts: boundSourceCount/reviewRequiredSourceCount/effectiveAttachmentSourceCount/linkedSourceCount, frozenCollectionJobCount/runningCollectionJobCount, applicationPendingJobCount/rollbackPendingJobCount/frozenCollectionPlanCount. 수집 job은 COLLECT/RETRY_FILES의 SCOPE_READY/PENDING/RUNNING/RETRY_WAIT/PAUSED다. RUNNING은 전송 중 HTTP 수가 아니며 FROZEN 계획은 누적 이력이다. 검수/적용/원복 차원도 중복 합산하지 않는다.
+
+현재 ACTIVE 규칙의 OFF 정책은 다른 규칙의 고정 작업까지 새 외부 요청을 막으므로 matchingRule과 allRules를 분리한다. 두 would 필드는 그 상태로 게시한다고 가정한 중지/중지조건 해제 영향이며 실행·worker 활성화·profile 허용을 뜻하지 않는다. 공고별 bytes 상한을 전체 다운로드 예측으로 곱하지 않는다.
+
+latestQa는 runId/statusCode/rowVersion/policyVersion/ruleVersion/inputVersionsCurrent/snapshotHash/steps(stepCode/statusCode/evidenceHash)/completedAt만 반환한다. source ID/원문/URL/actor/사유/key/QA evidence·input JSON은 없다. 최신 실패·미완료를 숨기고 과거 성공을 선택하지 않는다. 단계가 없으면NOT_RUN, 모순·중복이면409다.
+
+차단 코드: POLICY_NOT_DRAFT, KEYWORD_RULE_NOT_ACTIVE, QA_NOT_REQUESTED, QA_NOT_VERIFIED, QA_INPUT_VERSIONS_CHANGED, QA_REQUIRED_STEPS_NOT_PASSED, PUBLICATION_REVALIDATION_REQUIRED. 마지막은 항상 포함하며4단계 PASSED metadata도 최종 게시 검증·동의를 대신하지 않는다. canPublish/승인 토큰은 반환하지 않는다.
+
+observedImpactHash는 시각을 제외한 관측 metadata의 지문이다. source ID/개별 버전 전체를 고정하지 않으므로 같은 건수의 대상 교체는 감지하지 못할 수 있다. 정확한 게시 scope hash/CAS로 사용할 수 없으며 최종 QA/런타임·승인 대상/영향 재검증은 후속 게시 transaction의 필수 조건이다. 상세 집계·검증 계약은 `announcement-attachment-policy-publication-impact-2026-09-12.md`를 따른다.
+
+### 24.24 첨부 정책 초안·QA 관리 화면
+
+`/app/admin/announcement-attachment-policies`는 ADMIN/OPERATOR/APPROVER용 Thymeleaf/no-store 화면이다. 기존 policies·validation-runs·publication-impact API와 v1 키워드 규칙 목록 GET을 사용하며 기존 응답/DB 계약을 변경하지 않는다. ADMIN만 초안 생성/수정/개정·QA 예약/취소를 준비하고 실행할 수 있다. 권한·CSRF·버전·사유 검증은 기존 서버 API가 최종 책임진다.
+
+상태 필터/페이지/정책/QA ID는 URL로 탐색한다. 초안 저장은 운영 모드 전환이 아니다. 정책 게시 준비·실행·영수증은 후속 게시 계약과 UI에 연결됐으나 전체 실제 QA 검증 전에는 게시할 수 없다. QA 단계 PASSED/MISSING/NOT_RUN/FAILED와 실행 INCOMPLETE/VERIFIED를 구별하고 전체 검증 부족·게시 재검증을 명시한다. 관측 범위/원문·작업·누적 계획의 집계는 더하지 않는다.
+
+생성/개정/QA 예약 응답 유실은 원래 키·본문으로 재확인한다. 수정/취소는 expectedVersion 기반이며 유실 후409를 최초 실패로 단정하지 않는다. 정확한 현재 정책/실행을 별도로 조회하고 동의 후 새 검토 기준으로만 채택할 수 있다. 과거 요청의 성공 여부를 확정하지 않으며 입력을 보존한다. 확인한 응답은 후속 조회 실패로 지우지 않는다. 상세 상태·합성 브라우저/실제 운영 검증 경계는 `announcement-attachment-policy-ui-2026-09-12.md`를 따른다.
+
+### 24.25 첨부 정책 게시 준비 범위 — V76
+
+`/api/v2/admin/announcement-attachment-policies/{policyId}/publication-scopes`에 POST 준비와 GET 이력, `/{scopeId}` 상세, `/{scopeId}/items` 항목 페이지를 추가한다. POST는 활성 ADMIN·비밀번호 변경 완료·CSRF·UUID Idempotency-Key, 읽기는 활성 ADMIN/OPERATOR/APPROVER다. ApiResponse/PageResponse와 no-store를 유지한다.
+
+준비 입력은 expectedVersion(0 이상), reason(공백 아닌 1~1000자)만 허용한다. sourceIds/maximumCount/scopeHash/observedImpactHash/QA 성공 등 추가 입력은400이다. DB에서 전체 POLICY/SOURCE/JOB/COLLECTION_PLAN/COLLECTOR의 ID와 상태 hash를 고정한다. 항목 페이지 size1~100은 조회용이며 전체 고정 범위를 줄이지 않는다.
+
+POST201/GET상세의 data는 scope(Summary), isExpired, isScopeCurrent, isApproval=false, requiresPublicationRevalidation=true, currentHttpRequests=0이다. Summary는 scopeId/policyId/policyVersion/ruleReleaseId/ruleVersion/modeCode/qaRunId/qaSnapshotHash/itemCount/scopeHash/createdAt/expiresAt이다. 항목은 entityTypeCode/entityId/stateHash만 반환한다. actor·요청 키·사유/요청 hash·원문·URL은 공개 DTO에 없다.
+
+10분 유효기간이며 만료 후에도 원래 이력은 보존한다. 동일 key·actor·정책·입력은 원래 scope를 반환하고 새로운 범위로 자동 재고정하지 않는다. 다른 입력의 key 재사용409, 소속/미존재404, 버전/저장 계약 모순409다. 현재성은 조회 snapshot의 DB 범위 일치만 의미하며 QA/설치/전체 profile 최신성이나 게시 승인이 아니다. itemCount는 여러 종류 원장의 행 수이지 공고 수/HTTP 수가 아니다.
+
+준비 원장은 정책/worker/원문/운영 공고를 변경하지 않는다. 후속 실제 게시 서버 경로는24.26이며 전체 QA와 게시 UI/운영 검증은 미완료다. 준비 계약은 `announcement-attachment-policy-publication-scope-2026-09-12.md`를 따른다.
+
+### 24.26 첨부 정책 게시·불변 영수증 — V77
+
+POST `/api/v2/admin/announcement-attachment-policies/{policyId}/publication`: 활성 ADMIN·비밀번호 변경 완료·CSRF·UUID Idempotency-Key가 필요하다. 입력은 scopeId, scopeHash, expectedVersion, acknowledgeNewCollectionBehavior=true, acknowledgeExistingJobsUnchanged=true, acknowledgeNoBackfill=true, reason(1~1000자)다. 임의 QA 성공/설정/모드/hash를 입력하지 않는다. scope는 현재 관리자가 준비한 원장이며 동의 항목은 신규 수집 조건·기존 고정 작업·별도 기존 데이터 승인 배치를 구분한다.
+
+설치·전체 애플리케이션 코드 지문 읽기 → 짧은 읽기 transaction에서 현재 입력/QA 준비 → transaction 밖 네 단계 근거 검증·설치/코드 지문 재확인 → READ COMMITTED/15초의18개 관련 테이블 EXCLUSIVE NOWAIT → 현재 범위/정책/최신 QA/단계/입력과 검증 당시 값의 일치 재확인 → 영수증/이전 ACTIVE 퇴역/새 정책 ACTIVE/감사 원자적 저장 순서다. 파일 읽기/QA CPU 검증은 쓰기 잠금 안에서 하지 않는다. 일반 SELECT는 허용하며 진행 중인 writer나 row-lock 업무가 있으면409로 반환한다. 자동 대기/재게시하지 않는다. 잠금 밖 검증 중 같은 요청이 먼저 게시됐다면 입력 지문을 확인하고 원래 영수증을 반환한다.
+
+게시할 policyHash는 검증된 QA snapshot hash다. 초안 설정의 null extractorConfigHash는 QA의 installed.runtimeHash로만 고정한다. 그 외 설정·모드·규칙·profile은 변경하지 않는다. 원문/기존 job/운영 공고를 일괄 변경하지 않고 worker flag도 켜지 않는다.
+
+POST201/GET200의 data는 publication(영수증), existingDataApplied=false, workerEnabledByRequest=false, currentHttpRequests=0이다. 영수증 필드는 publicationId/policyId/publishedPolicyVersion/policyHash/previousPolicyId/previousPolicyVersion(교체 직전)/scopeId/scopeHash/qaRunId/modeCode/publishedAt이다. GET 같은 경로는 ADMIN/OPERATOR/APPROVER의 정책별 단건 이력이며 이후 퇴역해도 당시 결과를 반환한다. 동일 게시 키/actor/정책/입력은 준비 만료 이후에도 같은 영수증이며, 다른 입력 재사용은409다. ApiResponse/no-store를 유지한다.
+
+현재 WORKER_DB_RECOVERY 실행·근거 검증기는 연결했지만 실제 Linux 성공은 미확인이며 PROVIDER_PROFILES 전체 실행·검증기는 미연결이다. 실제 전체 QA→게시 성공은 미완료다. 네 단계 PASSED metadata나 과거 CLI를 성공으로 변환하지 않는다. 분류 정답을 현재 규칙으로 재계산하고 설치 runtime 결과는 현재12개 fixture와 소속 시각/지문/정리 여부를 대조한다. 관리자 게시 준비·실행·영수증 UI는 후속 연결했으나 실제 PG·운영 검증은 남는다. 서버 계약은 `announcement-attachment-policy-publication-2026-09-12.md`, 화면 계약과 합성 검증 경계는 `announcement-attachment-policy-publication-ui-2026-09-12.md`를 따른다.
+
+09-12 정책 QA 내부 snapshot schema5: 수집원 publicCode·전체 코드 지문·독립 QA artifact/전체 suite/case/추출기 지문과 전체 Provider 요구 목록(providerQaPlan)을 고정한다. 설치 경로는 `SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT`, 기본 `/opt/saneb/attachment-contract-qa`다. 성공 JSON 업로드 기능은 없다. 기존 schema1~4 이력은 재작성하지 않으며 현재 입력과 다른 과거 QA는 게시 근거로 재사용하지 않는다. 실행은 기존8분 lease 안에서60초 저장/정리 여유를 남기고 취소/슬롯을 반복 확인한다. 상세는 `announcement-attachment-policy-qa-bridge-2026-09-12.md`다.
+
+### 전체 Provider QA 요구 목록 조회 — 2026-09-12
+
+GET `/api/v2/admin/announcement-attachment-policies/{policyId}/provider-qa-plan?page=1&size=20`: 활성 ADMIN/OPERATOR/APPROVER 전용 읽기이며 no-store·ApiResponse를 사용한다. data는 planHash, isPolicyManifestCurrent, summary, targets(PageResponse)다. size1~100이며 runtime/QA worker 활성화 없이 현재 DB 수집원과 시스템 프로필 결합을 조회한다. 외부 HTTP/QA 예약/정책 변경은0이다.
+
+기업마당·정부24·모든 활성 미삭제 지자체를 포함한다. SYSTEM_BINDING_MATCHED/PROFILE_MISSING/LIST_PARSER_MISMATCH/PROFILE_AMBIGUOUS를 구분하며 결합된 기관도 실제 QA 통과로 표시하지 않는다. targets의 sourceId는 `local_government_notice_sources.id`이며 수집된 `announcement_sources.id`가 아니다. URL·설정 JSON 원문·비밀값은 반환하지 않는다. 최소 정상 공고 수와 PDF/HWP/HWPX는 요구량이며 발견·추출 성공 수가 아니다. isExecutionPlanComplete/isQaPassed/isSingleLeaseCoverageGuaranteed는 false, currentHttpRequests는0이다. planHash는 요구 목록만의 지문이며 전체 정책 snapshotHash/실파일 현재성을 대신하지 않는다. 상세는 `announcement-attachment-provider-qa-scope-2026-09-12.md`다.
+
+### 24.27 첨부 정부24 출처 코드 경계 — V78
+
+기존 `/api/v1` 및 단건 첨부 API의 실제 출처는 `GOV24_PUBLIC_SERVICE`다. 배치·전체 목록의 `providerCodes` 필터는 기존 계약인 `GOV24` 별칭을 유지한다. 이는 서로 다른 수집 채널이 아니다.
+
+| 위치 | 정부24 코드 |
+|---|---|
+| 배치/전체 목록 입력·정규화된 scope·범위 counts | GOV24 |
+| 원문·후보 items·고정 항목·작업 providerCode | GOV24_PUBLIC_SERVICE |
+| 시스템 profile 바인딩·QA 대상 snapshot | GOV24_PUBLIC_SERVICE |
+
+서버는 Mapper 필터 바인딩에서 별칭을 실제 코드로 변환하며, 범위 counts의 출력만 별칭으로 맞춘다. 고정 분할 소속 비교도 이 경계를 따른다. 원문 ID·내용·Provider 자체는 변환하지 않는다. 기존 요청의 정규화/멱등 키 지문 형식과 최초 결과 재조회는 유지한다. 수정 전 정부24 0건 미리보기는 최신 실제 후보 지문으로 다시 확인해야 하며, 이미 고정된 이력에 대상을 추가하지 않는다.
+
+시스템 첨부 profile이 없는 정부24 원문은 0건으로 숨기지 않고 `PROFILE_REQUIRED` 후보로 반환하며 예약을 차단한다. 관리자 화면은 실제 코드와 과거 이력 별칭을 모두 `정부24`로 표시하되 profile 입력을 허용하거나 준비 성공을 추정하지 않는다. V78은 두 첨부 CHECK 제약에 실제 코드를 추가하고 이전 이력은 수정하지 않는다. 정부24 실제 API/첨부 지원 및 운영 성공은 별도 미완료다. 상세는 `announcement-attachment-gov24-provider-contract-2026-09-12.md`를 따른다.
+
+### 24.28 Provider QA 내부 실행 계약 — HTTP 예약 API 미제공
+
+V79 원장과 `AnnouncementAttachmentProviderQaExecutionService.saveCase`는 시스템 소유 고정 입력을 실행하는 내부 계약이다. 기존 `/api/v1`과 공개 v2 계약은 변경하지 않는다. 새 Controller/예약·조회 API/scheduler는 아직 연결하지 않았으며 관리자 URL·파일·성공 JSON 업로드를 허용하지 않는다.
+
+- 기본 설정 `SANEB_ANNOUNCEMENT_ATTACHMENT_PROVIDER_QA_ENABLED=false`. OFF에서는 원장 조회·코드 지문 계산·HTTP·추출을 실행하지 않는다. ON만으로 작업이 예약되거나 정책이 활성화되지 않는다.
+- PENDING 항목의 입력/profile/runtime/전체 코드 지문과 DB 정책/규칙 버전을 대조하고, 짧은 transaction에서 부모→항목 순서로 소유권을 획득한다. 기존 RUNNING/terminal 항목은 다시 실행하지 않는다.
+- 실제 HTTP/격리 추출은 transaction 밖에서 수행한다. 실행 중 소유권 확인, 공유 자원 임대/반환, 요청·byte 예약만 짧은 transaction을 사용한다. 전역 슬롯 부족·호스트 충돌은 무제한 재시도로 숨기지 않는다.
+- 원본 정리 후 실제 결과와 DB 누적 예산을 재대조한다. 취소/입력 변경/lease 유실이면 성공으로 확정하지 않는다. 자원 반환은 해당 case/소유 token/permit만 대상으로 한다. 응답 유실 후 같은 항목을 자동 재실행하지 않는다.
+- 결과는 고정 공고 단위 검증이며 `isPolicyQaPassed=false`다. 전체 공개 표본 catalog·분할 예약/취소·조회와 전체 정책 QA 연계는 별도 필수 작업이다. API나 운영 UI에서 사용할 최종 실행 기능이 완료됐다는 뜻이 아니다.
+
+내부 Service35건·실행기42건·Mapper/DDL 표적 검증은 통과했다. 실제 PostgreSQL·Linux·운영 실행은 미검증이다. DB11.24 및 `announcement-attachment-provider-qa-ledger-2026-09-12.md`에 범위와 잔여 검증을 기록한다.
+
+### 24.29 Provider QA catalog 계획 — 내부 snapshot6
+
+고정 classpath catalog와 현재 전체 Provider 요구 범위·규칙/runtime을 대조해 전체 target/case 상태와 실행 가능 입력·분할 상한을 계산한다. 이 단계에 새 공개 HTTP 예약 API는 없으며 기존 v1/v2 응답 shape는 변경하지 않는다. 관리자 URL/파일/정답 업로드를 받지 않는다.
+
+기존 정책 QA 예약의 서버 snapshot schema6에는 `providerQaCatalog`의 catalogVersion/catalogHash/scopeHash, 전체 target/case metadata와 분할별 case code·요청/byte/시간 상한을 추가한다. 원문 URL·제목·기대 문구·Prepared.inputs는 포함하지 않는다. catalog 또는 준비 상태가 바뀌면 기존 snapshot과 달라 이전 QA를 재사용할 수 없다. 실제 Provider 전체 QA는 계속 MISSING이다.
+
+REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGED·SOURCE_BINDING_INVALID·OBSERVATION_EXPIRED·EXPECTATION_INVALID·DUPLICATE_DETAIL·TITLE_EXPECTATION_CHANGED를 실행 가능한 EXPECTED_INPUT_READY와 구분한다. 후자도 실제 실행/추출 성공은 아니다. 정상3공고와 PDF/HWP/HWPX 기대값 coverage, 전체 scope/분할은 보존하며 일부 표본으로 전체 준비/성공을 표시하지 않는다.
+
+현재 공식 참조9건/실행 기대값0이며, 실제 표본 검증과 관리자 예약/조회·scheduler·전체 정책 verifier·운영 검증은 미완료다. 상세는 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
+
+### 24.30 Provider QA 계획·예약·조회·취소 — V80
+
+새 기준 경로는 `/api/v2/admin/announcement-attachment-policies/{policyId}/provider-qa-runs`다. 기존 v1/구조적 provider-qa-plan/정책 validation-runs 계약은 보존한다. 모든 응답은 ApiResponse이며 목록은 PageResponse(items/page/size/totalCount/totalPages), no-store다. 페이지는1 이상/크기1~100이다.
+
+| 메서드·하위 경로 | 역할 | 요청·결과 |
+|---|---|---|
+| GET `/execution-plan` | ADMIN/OPERATOR/APPROVER | page/size. 현재 policyVersion/snapshotHash/catalogHash/planHash, 전체 대상/catalog/실행 가능 수·기대 coverage와 분할 페이지. 설치 검증 불가409. 쓰기/HTTP 없음 |
+| POST 기본 경로 | ADMIN | UUID Idempotency-Key, expectedVersion/expectedSnapshotHash/expectedCatalogHash/expectedPlanHash, segmentNo/expectedCaseCount/maximumRequests/maximumBytes/maximumSecondsIncludingMargin, acknowledgeScope/acknowledgeNetworkBudget/acknowledgeIncompleteCoverage, reason. 정확한 계획 대조 후202/원장 metadata |
+| GET 기본 경로·`/{runId}`·`/{runId}/cases` | ADMIN/OPERATOR/APPROVER | 정책 소속 검사와 실행/항목 페이지. OFF에서도 조회 가능. 실제 DB 버전 현재성은 코드/운영 실행 성공을 뜻하지 않음 |
+| PUT `/{runId}/cancellation` | ADMIN | expectedVersion/reason, CSRF. READY/RUNNING만 취소. 미실행 항목은 취소로 남기고 실행 중 소유자는 스스로 정리. OFF에서도 허용 |
+
+모든 관리 계정은 활성·필수 비밀번호 변경 완료 상태여야 한다. 임의 URL·파일 경로·source/profile/실행 옵션·성공 결과 입력은400, 다른 입력의 같은 멱등 키·현재성/정확한 예산 불일치는409다. scope/network 확인은true 필수이고 전체 기대값이 미완료이면 별도 인지 확인도true여야 한다. 이 확인은 일부 QA 분할 승인이지 전체 정책 게시/ENFORCE/기존 데이터 적용 승인이 아니다.
+
+원장/항목 응답에는 idempotency key·lease token·actor·requestHash·원문/추출문·증거 JSON을 노출하지 않는다. 과거 계획 없는 이력의 plan 필드는null이다. `isQaPassed`는 항상false이며 COMPLETED는 해당 분할 기대 동작 일치일 뿐이다. 새 예약이 OFF거나 실행 가능 분할이 없으면 isReservationEnabled=false다.
+
+서버의 기본 OFF 스케줄러는 현재 설치·전체 계획·저장된 분할/항목을 재대조하고 기존 실제 ExecutionService에 한 공고씩 연결한다. 관리 UI·전체 공식 기대값·정책 전체 verifier·실제 Linux/PG/운영은 미완료다. 상세는 DB11.26 및 `announcement-attachment-provider-qa-management-2026-09-12.md`를 따른다.
+
+### 24.31 전체 Provider QA 근거 검증 — 내부 계약
+
+기존 HTTP API·v1/v2 응답은 변경하지 않는다. 관리자 URL·파일·성공 JSON 제출 API도 추가하지 않는다. 내부 `AttachmentProviderQaEvidenceGate`는 현재 snapshot6/전체 catalog와 DB 분할별 최신 시도·모든 case의 파일별 근거를 대조해 PASSED/MISSING/FAILED/CANCELLED 및 고정 사유 코드를 반환한다. 여기서 PASSED는 해당 전체 Provider 실행 근거의 검증 결과이며 정책 전체 VERIFIED/게시 완료가 아니다.
+
+전체 기대값 부재·분할 누락·최신 시도 미완료는 MISSING, 지문/순번/분모/시각/파일·예산 불일치 또는 DB 조회 실패는 FAILED, 소유 실행 중단은 CANCELLED다. 실패 원문/SQL/URL/파일 텍스트를 사유에 복사하지 않는다. 실제 실패/부분 품질을 정상 문서로 바꾸지 않으며 미실행 파일을 분모에서 제외하지 않는다.
+
+2026-09-14 정책 QA worker/게시 추가 검증기를 이 집계에 연결했다. PROVIDER_PROFILES의 실제 판정이 PASSED이고 나머지 세 단계도 저장된 PASSED일 때 VERIFIED, 누락 시 INCOMPLETE, 근거 불일치 시 FAILED, 취소 시 CANCELLED다. 기존 HTTP shape/v1은 보존한다. 정책 QA 완료는 자동 게시·ENFORCE·기존 데이터 적용을 뜻하지 않는다.
+
+게시 API는 잠금 밖 전체 재검증 후 V81 게시 잠금 안에서 최신 Provider 분할 시도도 재확인한다. 변경되면409와 재확인 안내를 반환하며 정책·영수증 쓰기를 하지 않는다. 같은 키로 이미 완료한 게시 요청의 재조회는 보존한다. 실제 Linux/PG/전체 Provider 실행, 형식 적용성 계약·표본 기대값/관리자 QA 화면은 필수 잔여다. DB11.27~11.28 및 `announcement-attachment-provider-qa-evidence-2026-09-12.md`를 따른다.
+
+### 24.32 3단계 자동 분석 흐름 — v2 additive 조회
+
+`GET /api/v2/admin/announcement-sources`의 items, `GET /{sourceId}`의 source, `GET /{sourceId}/attachment-classification`의 Summary에 `processingFlow`를 추가한다. 기존 ApiResponse/PageResponse·no-store·조회 역할·v1·base/effective/preview·판정 코드·태그·필터 의미는 보존한다. 자동 분석 완료와 관리자 확인은 별개다.
+
+```json
+{"processingFlow":{"statusCode":"AUTOMATIC_PROCESSING","isAutomaticAnalysisComplete":false,"isFinalReviewAvailable":false}}
+```
+
+- 상태 코드는 NOT_APPLIED, CLASSIFICATION_PENDING, CONFIGURATION_REQUIRED, AUTOMATIC_PROCESSING, EVIDENCE_STALE, TECHNICAL_EXCEPTION, READY_FOR_FINAL_REVIEW, FINAL_REVIEW_EXCEPTION, FINAL_REVIEW_CONFIRMED다. 의미·진행 계획은 [3단계 설계](announcement-three-stage-filtering-workflow-2026-09-14.md)를 따른다.
+- 정상 완료는 현재 SEALED 평가/파일 수/발견 완료·정상 상태/알려진 판정 이유/종료 작업으로 확인한다. UNKNOWN 문서 역할·A/B·문맥 쟁점은 분석 종료 후에도 최종 예외 검증 대상이다. 추출 실패·부분/스캔·누락은 기술 미완료다. 수동 원문 확인이 저장되어도 자동 분석 완료로 바꾸지 않는다.
+- `isFinalReviewAvailable`은 입력 안내용 조회 힌트이며 권한·전환 승인이 아니다. 일반 작업의 SCOPE_READY/PENDING/RUNNING/RETRY_WAIT/PAUSED가 하나라도 있으면 false다. 배치 미리보기는 기존 현재 판정 검수를 막지 않는다. 기존 source lock/CAS/currentness/필수 확인/서버 권한 검증은 쓰기 시 재실행한다.
+- 기술 예외라도 현재 봉인 근거가 있고 활성 일반 작업이 없으면 기존 명시적 수동 원문 확인 절차를 요청할 수 있다. 근거 결합·작업/판정 상태가 미확인이면 잠근다. 확인 완료를 ACTIVE·최종 선정·자동 처리 성공으로 해석하지 않는다.
+- 상세 화면은 대기/진행 상태에서 review-context를 요청하지 않으며 판정 이력을 중간 근거로 표시한다. 목록 처리 흐름 필터는 아래24.33을 따른다. 기존 effectiveStatusCode의 REVIEW_REQUIRED 건수에는 대기/예외도 포함되므로 최종 검증 대기 건수로 쓰면 안 된다.
+
+이 단계에는 새로운 DDL·운영 적용·외부 수집 실행이 없다. 단위/HTTP/Node 결과와 실제 PostgreSQL/운영 브라우저 결과는 진행 기록에서 구분한다.
+
+### 24.33 3단계 처리 상태별 검증 대기열 — v2 additive 필터
+
+`GET /api/v2/admin/announcement-sources`에 선택 query `processingFlowStatusCode`를 추가한다. 허용값은24.32의9개 코드이며 공백은 필터 없음, 미지 값은 허용 목록이 포함된400이다. 기존 provider/effectiveStatus/job/태그/검색어/기간/page/size 조건과 AND 결합한다. 미지 값을 무시하거나 전체 조회로 바꾸지 않는다.
+
+예: `?processingFlowStatusCode=READY_FOR_FINAL_REVIEW&providerCode=BIZINFO&page=1&size=20`.
+
+- 기본 API 호출은 필터 없음으로 기존 목록 의미를 보존한다. Java의 기존10인자 조회 조건 생성자도 유지한다.
+- ApiResponse<PageResponse<Summary>>·no-store·ADMIN/OPERATOR/APPROVER 읽기 권한은 변경하지 않는다. totalCount/totalPages는 같은 REPEATABLE_READ와 같은 SQL CASE·SearchWhere로 LIMIT 이전 전체 검색 범위를 계산한다.
+- 현재 평가/봉인 set/정책/확인 복구 결합과 전체 활성 일반 작업 검사를 그대로 사용한다. 준비 완료 조건에는 대기·이전 근거·기술 미완료가 포함되지 않는다. 관리자 확인 완료는 자동 분석 완전성 boolean과 별개다.
+- `/app/admin/announcement-attachment-queue`는 해당 API의 읽기 전용 화면이며 기본 선택은 최종 검증 대기다. 전체/9개 상태·수집처·제목/기관명 검색과 페이지를 URL에 유지한다. 기존 v1 제목·본문 목록을 대체하거나 기존 집계 의미를 변경하지 않는다.
+- 화면은 이전 비동기 응답/오류가 새 필터를 덮어쓰지 못하게 하고 서버 건수·페이지·행별 상태가 모순되면 오류로 분리한다. 401/403/시간 초과/계약 불일치를0건으로 표시하지 않는다. 원문 body/첨부 text를 목록에서 요청하지 않으며 조회만으로 재수집·분류·확인·DRAFT·정책 적용을 실행하지 않는다.
+
+DDL/migration·v1·운영 쓰기 없음. 실제 PostgreSQL/운영 브라우저 검증 여부는 진행 기록을 최종 근거로 한다.

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentCollectionDao">
+    <select id="selectActivePolicyDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.PolicyMap" useCache="false" flushCache="true">
+        -- GET 조건 조회는 read-only다. 실제 예약만 source 잠금 뒤 정책/규칙 공유 잠금으로 게시 변경과 직렬화한다.
+        SELECT p.id AS policy_id,p.policy_status_code,p.mode_code,p.rule_release_id,r.release_status_code,
+               p.policy_hash,p.settings_json::text AS settings_json,p.profile_manifest_json::text AS profile_manifest_json,p.row_version
+        FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        WHERE p.rule_release_id=#{ruleReleaseId} AND p.policy_status_code='ACTIVE' AND r.release_status_code='ACTIVE'
+        <if test="lock">FOR SHARE OF p,r</if>
+    </select>
+    <select id="selectManualRequestRateAllowed" resultType="boolean">
+        -- 실패 파일 재시도와 전체 재수집을 합산해 다른 API로 수동 요청 한도를 우회하지 못한다.
+        SELECT count(1)&lt;3 AND count(1) FILTER (WHERE created_at>clock_timestamp()-interval '60 seconds')=0
+        <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentRetryDao.ManualRequestScope"/>
+    </select>
+</mapper>

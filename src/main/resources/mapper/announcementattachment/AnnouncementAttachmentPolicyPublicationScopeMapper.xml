@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyPublicationScopeDao">
+    <resultMap id="SummaryMap" type="com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope$Summary"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+        <arg column="policy_row_version" javaType="java.lang.Integer"/><arg column="rule_release_id" javaType="java.util.UUID"/>
+        <arg column="rule_row_version" javaType="java.lang.Integer"/><arg column="mode_code" javaType="java.lang.String"/>
+        <arg column="qa_run_id" javaType="java.util.UUID"/><arg column="qa_snapshot_hash" javaType="java.lang.String"/>
+        <arg column="item_count" javaType="java.lang.Long"/><arg column="scope_hash" javaType="java.lang.String"/>
+        <arg column="created_at" javaType="java.time.OffsetDateTime"/><arg column="expires_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="RequestMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyPublicationScopeRows$Request"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+        <arg column="requested_by" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope$Item"><constructor>
+        <arg column="entity_type_code" javaType="java.lang.String"/><arg column="entity_id" javaType="java.util.UUID"/>
+        <arg column="state_hash" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <sql id="Columns">id,policy_id,policy_row_version,rule_release_id,rule_row_version,mode_code,qa_run_id,qa_snapshot_hash,item_count,scope_hash,created_at,expires_at</sql>
+    <select id="selectRequestDetails" resultMap="RequestMap" useCache="false" flushCache="true">
+        -- 요청 재전송은 원래 준비 원장을 반환한다. 사유·요청 키는 공개 DTO에 포함하지 않는다.
+        SELECT id,policy_id,requested_by,request_hash FROM announcement_attachment_policy_publication_scopes WHERE idempotency_key=#{key}
+    </select>
+    <insert id="insertScope">
+        -- DRAFT/ACTIVE 규칙만 준비한다. QA가 최신 동일 입력의 VERIFIED metadata가 아니면 연결하지 않는다.
+        -- 연결 자체는 실제 증거 재검증이나 게시 승인 완료가 아니다.
+        INSERT INTO announcement_attachment_policy_publication_scopes(id,policy_id,policy_row_version,rule_release_id,rule_row_version,
+            mode_code,qa_run_id,qa_snapshot_hash,requested_by,idempotency_key,request_hash,reason_hash,expires_at)
+        SELECT #{scopeId},p.id,p.row_version,p.rule_release_id,r.row_version,p.mode_code,
+            CASE WHEN v.run_status_code='VERIFIED' AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.id END,
+            CASE WHEN v.run_status_code='VERIFIED' AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.snapshot_hash END,
+            #{actorId},#{key},#{requestHash},#{reasonHash},clock_timestamp()+interval '10 minutes'
+        FROM announcement_attachment_policies p JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        LEFT JOIN LATERAL (SELECT q.id,q.run_status_code,q.policy_row_version,q.rule_row_version,q.snapshot_hash
+            FROM announcement_attachment_policy_validation_runs q WHERE q.policy_id=p.id AND q.rule_release_id=p.rule_release_id
+            ORDER BY q.created_at DESC,q.id DESC LIMIT 1) v ON true
+        WHERE p.id=#{policyId} AND p.row_version=#{expectedVersion} AND p.policy_status_code='DRAFT' AND r.release_status_code='ACTIVE'
+    </insert>
+    <insert id="insertScopeMembers">
+        -- DB 안에서 전체 범위를 복사한다. 클라이언트의 ID 목록·최대 건수·관측 hash를 받지 않는다.
+        INSERT INTO announcement_attachment_policy_publication_scope_items(scope_id,entity_type_code,entity_id,state_hash)
+        SELECT #{scopeId},m.entity_type_code,m.entity_id,m.state_hash FROM attachment_policy_publication_members(#{policyId}) m
+    </insert>
+    <update id="updateScopeSealed">
+        -- 생성 transaction에서만 정확한 전체 항목을 한 번 봉인한다. 정책/worker/source는 수정하지 않는다.
+        UPDATE announcement_attachment_policy_publication_scopes SET scope_status_code='SEALED',
+            item_count=(SELECT count(1) FROM announcement_attachment_policy_publication_scope_items WHERE scope_id=#{scopeId}),
+            scope_hash=attachment_policy_publication_scope_hash(#{scopeId})
+        WHERE id=#{scopeId} AND scope_status_code='OPEN' AND created_xid=pg_current_xact_id()
+    </update>
+    <select id="selectScopeDetails" resultMap="SummaryMap" useCache="false" flushCache="true">
+        -- 정책 소속을 고정하여 다른 정책의 준비 원장을 조회하지 않는다.
+        SELECT <include refid="Columns"/> FROM announcement_attachment_policy_publication_scopes
+        WHERE id=#{scopeId} AND policy_id=#{policyId} AND scope_status_code='SEALED'
+    </select>
+    <select id="selectScopeCurrent" resultType="boolean" useCache="false" flushCache="true">
+        -- 조회 snapshot 현재성만 확인한다. QA/런타임 최신성·승인·게시 가능 여부를 반환하는 쿼리가 아니다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_policy_publication_scopes s
+            JOIN announcement_attachment_policies p ON p.id=s.policy_id
+            JOIN announcement_source_classification_rule_releases r ON r.id=s.rule_release_id
+            WHERE s.id=#{scopeId} AND s.scope_status_code='SEALED' AND s.expires_at>clock_timestamp()
+                AND p.policy_status_code='DRAFT' AND p.row_version=s.policy_row_version AND p.mode_code=s.mode_code
+                AND p.rule_release_id=s.rule_release_id AND r.row_version=s.rule_row_version AND r.release_status_code='ACTIVE'
+                AND NOT EXISTS ((SELECT m.entity_type_code,m.entity_id,m.state_hash FROM attachment_policy_publication_members(s.policy_id) m)
+                    EXCEPT (SELECT i.entity_type_code,i.entity_id,i.state_hash FROM announcement_attachment_policy_publication_scope_items i WHERE i.scope_id=s.id))
+                AND NOT EXISTS ((SELECT i.entity_type_code,i.entity_id,i.state_hash FROM announcement_attachment_policy_publication_scope_items i WHERE i.scope_id=s.id)
+                    EXCEPT (SELECT m.entity_type_code,m.entity_id,m.state_hash FROM attachment_policy_publication_members(s.policy_id) m)))
+    </select>
+    <select id="selectScopeList" resultMap="SummaryMap" useCache="false" flushCache="true">
+        -- 준비 이력의 탐색 페이지다. 원래 고정된 영향 범위를 이 페이지로 축소하지 않는다.
+        SELECT <include refid="Columns"/> FROM announcement_attachment_policy_publication_scopes
+        WHERE policy_id=#{policyId} AND scope_status_code='SEALED' ORDER BY created_at DESC,id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectScopeCount" resultType="long" useCache="false" flushCache="true">
+        -- 목록과 같은 소속/봉인 조건의 원래 이력 수다.
+        SELECT count(1) FROM announcement_attachment_policy_publication_scopes WHERE policy_id=#{policyId} AND scope_status_code='SEALED'
+    </select>
+    <select id="selectItemList" resultMap="ItemMap" useCache="false" flushCache="true">
+        -- 개별 ID와 상태 hash만 반환한다. source 내용·actor·요청 키·경로는 반환하지 않는다.
+        SELECT i.entity_type_code,i.entity_id,i.state_hash FROM announcement_attachment_policy_publication_scope_items i
+        JOIN announcement_attachment_policy_publication_scopes s ON s.id=i.scope_id
+        WHERE s.policy_id=#{policyId} AND i.scope_id=#{scopeId} AND s.scope_status_code='SEALED'
+        ORDER BY i.entity_type_code COLLATE "C",i.entity_id LIMIT #{size} OFFSET #{offset}
+    </select>
+</mapper>

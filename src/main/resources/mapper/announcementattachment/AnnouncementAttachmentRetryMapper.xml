@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentRetryDao">
+    <select id="selectRetryControlAllowed" resultType="boolean">
+        -- 현재 ACTIVE 규칙에 OFF 제어가 있으면 새 네트워크 재시도를 예약하지 않는다.
+        SELECT NOT EXISTS (SELECT 1 FROM announcement_attachment_policies p
+            JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+            WHERE p.policy_status_code='ACTIVE' AND p.mode_code='OFF' AND r.release_status_code='ACTIVE')
+    </select>
+    <sql id="ManualRequestScope">
+        FROM announcement_attachment_jobs
+        WHERE source_id=#{sourceId} AND requested_by IS NOT NULL AND operation_code IN ('COLLECT','RETRY_FILES')
+          AND created_at>clock_timestamp()-interval '24 hours'
+    </sql>
+    <select id="selectRetryRateAllowed" resultType="boolean">
+        -- source 잠금 아래 60초 간격/최근 24시간 최대 3회 수동 재시도를 확인한다. 같은 멱등 요청은 이 검사를 반복하지 않는다.
+        SELECT count(1)&lt;3 AND count(1) FILTER (WHERE created_at>clock_timestamp()-interval '60 seconds')=0
+        <include refid="ManualRequestScope"/>
+    </select>
+    <insert id="insertRetryFile">
+        -- 사용자가 선택한 source/set의 실제 파일 ID만 고정한다. URL/profile을 요청으로 받지 않는다.
+        INSERT INTO announcement_attachment_retry_files(job_id,source_id,reference_set_id,file_id)
+        VALUES (#{jobId},#{sourceId},#{setId},#{fileId})
+    </insert>
+    <resultMap id="RetryFileMap" type="com.saneb.domain.announcementattachment.vo.AttachmentRetryFileRow">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="safe_locator_json" javaType="java.lang.String"/>
+            <arg column="stable_locator_hash" javaType="java.lang.String"/><arg column="display_name" javaType="java.lang.String"/>
+            <arg column="document_role_code" javaType="java.lang.String"/><arg column="role_origin_code" javaType="java.lang.String"/>
+            <arg column="detected_type_code" javaType="java.lang.String"/><arg column="is_selected" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+    <select id="selectRetryFileList" resultMap="RetryFileMap" flushCache="true" useCache="false">
+        -- 유효 lease의 고정 원래 목록만 반환한다. 원본 extraction 텍스트는 DB 복제 경로에 남긴다.
+        SELECT f.id,f.safe_locator_json::text,f.stable_locator_hash,f.display_name,f.document_role_code,f.role_origin_code,
+               f.detected_type_code,(scope.file_id IS NOT NULL) AS is_selected
+        FROM announcement_attachment_jobs j
+        JOIN announcement_source_attachment_files f ON f.source_id=j.source_id AND f.set_id=j.reference_set_id
+        LEFT JOIN announcement_attachment_retry_files scope ON scope.job_id=j.id AND scope.file_id=f.id
+        WHERE j.id=#{jobId} AND j.lease_token=#{leaseToken} AND j.job_status_code='RUNNING'
+          AND j.lease_expires_at>clock_timestamp() AND j.operation_code='RETRY_FILES' AND j.set_id IS NULL
+        ORDER BY f.sort_order,f.id LIMIT 11
+    </select>
+</mapper>

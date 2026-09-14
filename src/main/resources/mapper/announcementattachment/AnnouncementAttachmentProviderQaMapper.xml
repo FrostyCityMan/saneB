@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaDao">
+    <resultMap id="CaseMap" type="com.saneb.domain.announcementattachment.vo.AttachmentProviderQaRows$CaseRow">
+        <constructor>
+            <arg column="case_id" javaType="java.util.UUID"/>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="case_code" javaType="java.lang.String"/>
+            <arg column="input_hash" javaType="java.lang.String"/>
+            <arg column="profile_hash" javaType="java.lang.String"/>
+            <arg column="expected_file_count" javaType="java.lang.Integer"/>
+            <arg column="maximum_seconds" javaType="java.lang.Integer"/>
+            <arg column="maximum_requests" javaType="java.lang.Integer"/>
+            <arg column="maximum_bytes" javaType="java.lang.Long"/>
+            <arg column="request_reservations" javaType="java.lang.Integer"/>
+            <arg column="reserved_bytes" javaType="java.lang.Long"/>
+            <arg column="case_status_code" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="lease_token" javaType="java.util.UUID"/>
+            <arg column="lease_expires_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="run_status_code" javaType="java.lang.String"/>
+            <arg column="execution_code_hash" javaType="java.lang.String"/>
+            <arg column="runtime_hash" javaType="java.lang.String"/>
+            <arg column="input_versions_current" javaType="java.lang.Boolean"/>
+            <arg column="evidence_json" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <sql id="CurrentInputs">p.policy_status_code='DRAFT' AND p.row_version=r.policy_row_version AND p.rule_release_id=r.rule_release_id
+        AND t.row_version=r.rule_row_version AND t.release_status_code IN ('DRAFT','ACTIVE')</sql>
+    <sql id="Scope">FROM announcement_attachment_provider_qa_cases c JOIN announcement_attachment_provider_qa_runs r ON r.id=c.run_id
+        JOIN announcement_attachment_policies p ON p.id=r.policy_id JOIN announcement_source_classification_rule_releases t ON t.id=r.rule_release_id</sql>
+    <sql id="CaseColumns">c.id AS case_id,c.run_id,c.case_code,c.input_hash,c.profile_hash,c.expected_file_count,c.maximum_seconds,c.maximum_requests,c.maximum_bytes,
+        c.request_reservations,c.reserved_bytes,c.case_status_code,c.row_version,c.lease_token,c.lease_expires_at,r.run_status_code,
+        r.execution_code_hash,r.runtime_hash,(<include refid="CurrentInputs"/>) AS input_versions_current,c.evidence_json::text AS evidence_json</sql>
+    <sql id="Allowed">c.id=#{caseId} AND c.lease_token=#{leaseToken} AND c.case_status_code='RUNNING' AND r.run_status_code='RUNNING'
+        AND c.lease_expires_at>clock_timestamp()+interval '40 seconds' AND r.expires_at>clock_timestamp()+interval '40 seconds'
+        AND <include refid="CurrentInputs"/></sql>
+    <select id="selectQueueLock" resultType="string">
+        -- 짧은 원장 변경만 직렬화한다. HTTP/추출은 transaction 밖에서 실행한다.
+        SELECT pg_advisory_xact_lock(79101)::text
+    </select>
+    <select id="selectRunLock" resultType="string" useCache="false" flushCache="true">
+        -- 모든 변경은 부모 run 다음 case 순서로 잠근다.
+        SELECT id::text FROM announcement_attachment_provider_qa_runs WHERE id=#{runId} FOR UPDATE
+    </select>
+    <select id="selectRunId" resultType="java.util.UUID" useCache="false">
+        -- 잠금 순서를 결정하는 불변 관계만 읽는다.
+        SELECT run_id FROM announcement_attachment_provider_qa_cases WHERE id=#{caseId}
+    </select>
+    <select id="selectCaseDetails" resultMap="CaseMap" useCache="false" flushCache="true">
+        -- 원문 입력 없이 고정 지문/예산/소유권을 조회한다.
+        SELECT <include refid="CaseColumns"/> <include refid="Scope"/> WHERE c.id=#{caseId}
+    </select>
+    <select id="selectCaseList" resultMap="CaseMap" useCache="false">
+        -- 내부 실행 원장의 전체 분모. 외부 목록 API는 별도 pagination projection을 사용해야 한다.
+        SELECT <include refid="CaseColumns"/> <include refid="Scope"/> WHERE c.run_id=#{runId} ORDER BY c.ordinal
+    </select>
+    <insert id="insertRun">
+        -- 서버 catalog 작성 경로만 호출한다. 같은 transaction 안에서 모든 case와 READY를 저장한다.
+        INSERT INTO announcement_attachment_provider_qa_runs(id,policy_id,policy_row_version,rule_release_id,rule_row_version,snapshot_hash,
+            catalog_hash,execution_code_hash,runtime_hash,required_scope_json,expected_case_count,maximum_requests,maximum_bytes,requested_by,idempotency_key,request_hash)
+        VALUES(#{runId},#{policyId},#{policyVersion},#{ruleReleaseId},#{ruleVersion},#{snapshotHash},#{catalogHash},#{executionCodeHash},#{runtimeHash},
+            CAST(#{requiredScopeJson} AS jsonb),#{expectedCaseCount},#{maximumRequests},#{maximumBytes},#{requestedBy},#{idempotencyKey},#{requestHash})
+    </insert>
+    <insert id="insertCase">
+        -- 원본/URL/제목 대신 서버 고정 입력 지문만 저장한다.
+        INSERT INTO announcement_attachment_provider_qa_cases(id,run_id,ordinal,case_code,input_hash,profile_hash,expected_file_count,maximum_seconds,maximum_requests,maximum_bytes)
+        VALUES(#{caseId},#{runId},#{ordinal},#{caseCode},#{inputHash},#{profileHash},#{expectedFileCount},#{maximumSeconds},#{maximumRequests},#{maximumBytes})
+    </insert>
+    <update id="updateReady">
+        -- DB trigger가 전체 case 개수/연속 순번/정확한 예산 합계를 확인한다.
+        UPDATE announcement_attachment_provider_qa_runs SET run_status_code='READY',row_version=row_version+1 WHERE id=#{runId} AND run_status_code='BUILDING'
+    </update>
+    <update id="updateRunStarted">
+        -- 현재 정책/규칙과 유효기간을 확인한 run만 실행한다.
+        UPDATE announcement_attachment_provider_qa_runs r SET run_status_code='RUNNING',row_version=r.row_version+1
+        FROM announcement_attachment_policies p,announcement_source_classification_rule_releases t
+        WHERE r.id=#{runId} AND r.run_status_code='READY' AND r.expires_at>clock_timestamp()
+          AND p.id=r.policy_id AND t.id=r.rule_release_id AND <include refid="CurrentInputs"/>
+    </update>
+    <update id="updateClaim">
+        -- 고정 8분보다 길게 임대하지 않으며 동일 case의 재claim/연장은 없다.
+        UPDATE announcement_attachment_provider_qa_cases c SET case_status_code='RUNNING',row_version=c.row_version+1,
+            lease_token=#{leaseToken},started_at=clock_timestamp(),lease_expires_at=LEAST(clock_timestamp()+interval '8 minutes',r.expires_at)
+        FROM announcement_attachment_provider_qa_runs r,announcement_attachment_policies p,announcement_source_classification_rule_releases t
+        WHERE c.id=#{caseId} AND c.case_status_code='PENDING' AND r.id=c.run_id AND r.run_status_code='RUNNING'
+          AND r.expires_at>clock_timestamp()+interval '40 seconds' AND p.id=r.policy_id AND t.id=r.rule_release_id AND <include refid="CurrentInputs"/>
+          AND NOT EXISTS(SELECT 1 FROM announcement_attachment_provider_qa_cases active_case WHERE active_case.case_status_code='RUNNING')
+    </update>
+    <select id="selectExecutionAllowed" resultType="boolean" useCache="false" flushCache="true">
+        -- 취소/만료/현재 정책 버전이 달라지면 다음 요청과 byte 예약을 차단한다.
+        SELECT EXISTS(SELECT 1 <include refid="Scope"/> WHERE <include refid="Allowed"/>)
+    </select>
+    <update id="updateUsage">
+        -- 부모 lock 아래 case/run 사용량을 같은 statement에서 증가시킨다. 예산을 환급하지 않는다.
+        WITH candidate AS (
+            SELECT c.id,c.run_id <include refid="Scope"/> WHERE <include refid="Allowed"/>
+              AND ((#{requests}=1 AND #{bytes}=0) OR (#{requests}=0 AND #{bytes}>0))
+              AND c.request_reservations+#{requests}&lt;=c.maximum_requests AND r.request_reservations+#{requests}&lt;=r.maximum_requests
+              AND c.reserved_bytes+#{bytes}&lt;=c.maximum_bytes AND r.reserved_bytes+#{bytes}&lt;=r.maximum_bytes
+              AND EXISTS(SELECT 1 FROM announcement_attachment_resource_leases l WHERE l.provider_qa_case_id=c.id
+                  AND l.provider_qa_lease_token=c.lease_token AND l.resource_code='DOWNLOAD' AND l.lease_expires_at>clock_timestamp())
+              AND EXISTS(SELECT 1 FROM announcement_attachment_resource_leases l WHERE l.provider_qa_case_id=c.id
+                  AND l.provider_qa_lease_token=c.lease_token AND l.resource_code='HOST' AND l.lease_expires_at>clock_timestamp())
+            FOR UPDATE OF c
+        ), changed AS (
+            UPDATE announcement_attachment_provider_qa_cases c SET request_reservations=c.request_reservations+#{requests},
+                reserved_bytes=c.reserved_bytes+#{bytes},row_version=c.row_version+1 FROM candidate d WHERE c.id=d.id RETURNING c.run_id
+        )
+        UPDATE announcement_attachment_provider_qa_runs r SET request_reservations=r.request_reservations+#{requests},
+            reserved_bytes=r.reserved_bytes+#{bytes},row_version=r.row_version+1 WHERE r.id IN (SELECT run_id FROM changed)
+    </update>
+    <insert id="insertResource">
+        -- 기존 전역 slot을 공유한다. 살아 있는 job/정책 QA/Provider QA 소유자는 덮어쓰지 않는다.
+        INSERT INTO announcement_attachment_resource_leases(resource_code,resource_key,slot_no,provider_qa_case_id,provider_qa_lease_token,resource_lease_token,lease_expires_at)
+        SELECT #{resourceCode},#{resourceKey},#{slotNo},c.id,c.lease_token,#{resourceToken},clock_timestamp()+interval '40 seconds'
+        <include refid="Scope"/> WHERE <include refid="Allowed"/>
+        ON CONFLICT(resource_code,resource_key,slot_no) DO UPDATE SET job_id=NULL,job_lease_token=NULL,policy_validation_id=NULL,policy_validation_lease_token=NULL,
+            provider_qa_case_id=EXCLUDED.provider_qa_case_id,provider_qa_lease_token=EXCLUDED.provider_qa_lease_token,
+            resource_lease_token=EXCLUDED.resource_lease_token,lease_expires_at=EXCLUDED.lease_expires_at,updated_at=clock_timestamp()
+        WHERE announcement_attachment_resource_leases.lease_expires_at&lt;=clock_timestamp()
+    </insert>
+    <delete id="deleteResource">
+        -- 같은 case/token/permit만 반환한다. 다른 owner가 만료 slot을 인수했으면 삭제하지 않는다.
+        DELETE FROM announcement_attachment_resource_leases WHERE provider_qa_case_id=#{caseId} AND provider_qa_lease_token=#{leaseToken} AND resource_lease_token=#{resourceToken}
+    </delete>
+    <delete id="deleteCaseResources">
+        -- 종료 또는 실패한 실행이 아직 소유한 임대만 반환한다.
+        DELETE FROM announcement_attachment_resource_leases WHERE provider_qa_case_id=#{caseId} AND provider_qa_lease_token=#{leaseToken}
+    </delete>
+    <update id="updateFinished">
+        -- 원본 정리 이후 live 소유 token으로만 저장한다. 취소/입력 변경은 성공보다 우선한다.
+        UPDATE announcement_attachment_provider_qa_cases c SET
+            case_status_code=CASE WHEN r.run_status_code='CANCEL_REQUESTED' THEN 'CANCELLED'
+                WHEN NOT (<include refid="CurrentInputs"/>) THEN 'FAILED' ELSE #{statusCode} END,
+            error_code=CASE WHEN r.run_status_code='CANCEL_REQUESTED' THEN 'EXECUTION_STOPPED'
+                WHEN NOT (<include refid="CurrentInputs"/>) THEN 'INPUT_CHANGED' ELSE #{errorCode} END,
+            evidence_json=CAST(#{evidenceJson} AS jsonb),evidence_hash=#{evidenceHash},lease_token=NULL,lease_expires_at=NULL,completed_at=clock_timestamp(),row_version=c.row_version+1
+        FROM announcement_attachment_provider_qa_runs r,announcement_attachment_policies p,announcement_source_classification_rule_releases t
+        WHERE c.id=#{caseId} AND c.lease_token=#{leaseToken} AND c.case_status_code='RUNNING' AND c.lease_expires_at>clock_timestamp()
+          AND r.id=c.run_id AND r.run_status_code IN ('RUNNING','CANCEL_REQUESTED') AND p.id=r.policy_id AND t.id=r.rule_release_id
+    </update>
+    <update id="updateCancellation">
+        -- 운영 예약 API에서 actor/버전 검증 후 호출할 내부 변경 계약이다.
+        UPDATE announcement_attachment_provider_qa_runs SET run_status_code='CANCEL_REQUESTED',row_version=row_version+1
+        WHERE id=#{runId} AND row_version=#{expectedVersion} AND run_status_code IN ('READY','RUNNING')
+    </update>
+    <update id="updateUnstartedCancelled">
+        -- 이미 실행 중인 case는 자기 소유자가 정리하고 끝낸다. 미실행 분모는 취소 상태로 보존한다.
+        UPDATE announcement_attachment_provider_qa_cases c SET case_status_code='CANCELLED',error_code='EXECUTION_STOPPED',completed_at=clock_timestamp(),row_version=c.row_version+1
+        FROM announcement_attachment_provider_qa_runs r WHERE r.id=c.run_id AND r.id=#{runId} AND r.run_status_code='CANCEL_REQUESTED' AND c.case_status_code='PENDING'
+    </update>
+    <update id="updateExpiredCases">
+        -- 만료된 소유자의 늦은 응답은 저장하지 않는다. 재시도는 새 승인 계획에서만 가능하다.
+        UPDATE announcement_attachment_provider_qa_cases c SET case_status_code='FAILED',error_code='LEASE_EXPIRED',
+            lease_token=NULL,lease_expires_at=NULL,completed_at=clock_timestamp(),row_version=c.row_version+1
+        FROM announcement_attachment_provider_qa_runs r WHERE r.id=c.run_id AND r.id=#{runId}
+          AND ((c.case_status_code='RUNNING' AND c.lease_expires_at&lt;=clock_timestamp()) OR (c.case_status_code='PENDING' AND r.expires_at&lt;=clock_timestamp()))
+    </update>
+    <update id="updateRunFinished">
+        -- COMPLETED는 예약 case 전체 기대값 일치다. 전체 Provider/정책 VERIFIED는 별도 검증이며 여기서 변경하지 않는다.
+        UPDATE announcement_attachment_provider_qa_runs r SET run_status_code=CASE WHEN r.run_status_code='CANCEL_REQUESTED' THEN 'CANCELLED'
+            WHEN EXISTS(SELECT 1 FROM announcement_attachment_provider_qa_cases c WHERE c.run_id=r.id AND c.case_status_code&lt;>'PASSED') THEN 'FAILED' ELSE 'COMPLETED' END,
+            completed_at=clock_timestamp(),row_version=r.row_version+1
+        WHERE r.id=#{runId} AND r.run_status_code IN ('READY','RUNNING','CANCEL_REQUESTED')
+          AND NOT EXISTS(SELECT 1 FROM announcement_attachment_provider_qa_cases c WHERE c.run_id=r.id AND c.case_status_code IN ('PENDING','RUNNING'))
+    </update>
+</mapper>

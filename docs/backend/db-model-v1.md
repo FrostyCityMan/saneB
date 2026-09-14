@@ -559,8 +559,337 @@ dev seed:
 - 현재 판정은 `is_current=true` 한 건만 유지하되 과거 evaluation은 삭제하지 않는다.
 - 자동 태그와 관리자가 확정한 태그를 분리하고, 재분류 시 기존 확정값은 `STALE`로 전환한다.
 - 기존 `announcements.target_type_code`와 V1 단일 입력 계약은 유지한다. V1 저장은 대표 태그만 갱신하고 추가 태그를 임의 삭제하지 않으며, 복수 저장은 `/api/v2`가 담당한다.
-- 기존 V1 첨부 행과 조회 응답은 호환을 위해 보존한다. 신규 수집은 첨부 URL·파일명을 provider 원문에서 제거하고 attachment 행을 생성하지 않으며, 다운로드·본문 추출·분류 근거 사용을 금지한다.
+- 기존 V1 첨부 행과 조회 응답은 호환을 위해 보존한다. TITLE/BODY 기본 분류는 첨부 URL·파일명을 입력에서 계속 제거한다. 이후 승인된 첨부 수집은 아래 V72/V73 별도 근거 계약을 사용하며 기존 attachment 행에 다시 섞지 않는다.
 - 일반 애플리케이션 수집 write는 `data_purpose_code='PRODUCTION'`만 생성한다. QA 원문을 DB에 쓰는 내부 경로는 운영 격리 QA 승인 시 별도 확정하며, QA 정리는 명시적으로 `QA`인 행만 대상으로 한다.
 - V56 판정 이력과 과거 snapshot을 migration에서 자동 재분류하지 않는다.
 - 기존 원문 재분류는 `data_purpose_code='PRODUCTION'` 대상만 실행 이력에 고정한다. 미리보기는 source/evaluation을 변경하지 않으며, 적용은 고정한 원문 버전과 `classification_row_version`이 일치할 때만 새 evaluation을 append한다.
 - 원복은 적용 evaluation을 삭제하지 않고 current만 해제하며 이전 current 판정과 snapshot 호환 projection을 복원한다. 단, V70에서 제목 제외 원문이 비식별 삭제된 항목은 `exclusion_id`로 감사 상태·hash만 보존하므로 해당 항목이 포함된 실행은 원복할 수 없다. 연결된 운영 공고의 상태는 적용·원복 모두 자동 변경하지 않는다.
+
+## 11. Additive Migration: 첨부 근거와 worker 실행 (`V72`~`V73`)
+
+2026-09-10 로컬 구현 기준. 같은 날 운영 읽기 전용 조회로 V72를 재확인했다. 이번 구현의 V73 운영 적용을 뜻하지 않는다.
+
+- V72는 정책, 배치, 작업, 불변 근거 묶음·파일·추출·종합 판정·입력·일치 근거·확정·태그를 기본 판정과 분리한다. 세부 DDL이 최종 계약이다.
+- V73은 job에 nullable `execution_snapshot_json`, `download_budget_bytes`(최대 80 MiB), `reserved_download_bytes`를 추가한다. 이전 미고정 job의 실행 버전을 추측해 채우지 않는다.
+- V73의 `announcement_attachment_collection_plans`는 목록 수집 run의 keyword release와 첨부 정책을 FROZEN/OFF/NO_POLICY로 불변 고정한다. job의 nullable `collection_run_id`와 `(run,policy,rule)` composite FK가 같은 실행의 정책을 검증한다. run 중 게시된 정책으로 대상을 암묵적으로 확장하지 않는다.
+- `announcement_source_snapshots.attachment_intake_status_code`는 NOT_REQUESTED/QUEUED/PROFILE_REQUIRED/BASE_RECLASSIFICATION_REQUIRED/POLICY_BINDING_CHANGED/PROTECTED_LINK/RECHECK_NOT_DUE로 자동 예약·차단 원인을 구분한다. profile 미연결은 첨부 없음이나 성공이 아니다. 자동 재확인은 source마다 최소 24시간이며, 최근 일반 job이 있으면 기존 current/confirmation/version을 변경하지 않고 RECHECK_NOT_DUE만 기록한다. 명시적 재시도는 별도 한도 계약이다.
+- 신규 ENFORCE binding은 같은 run에서 생성한 미연결 source만 허용하고 원문 저장 transaction에 포함한다. 이미 저장된 미적용 source는 ENFORCE 정책 아래 수집하더라도 preview만 생성한다. 신규 binding job에도 이전 pointer/policy/confirmation과 적용 후 version을 기록한다.
+- 실행 snapshot은 시스템 profile code/hash, 종합 엔진 버전, 추출기 버전/config hash다. 예약 후 바꾸지 않으며 재시도 예산은 감소할 수 없다.
+- V73의 `announcement_source_attachment_sets.discovery_warning_codes_json`은 최대 20개의 고정 발견 경고 코드다. 불변 manifest에 포함하며 외부 오류 메시지·URL·파일명 원문을 경고 코드에 넣지 않는다.
+- `announcement_attachment_resource_leases`는 전체 다운로드 2, host별 1, 전체 추출 1 슬롯을 DB에서 공유한다. job/lease token과 만료 시각으로 늦은 worker의 갱신·해제를 차단한다.
+- source의 `classification_row_version` 변경 시 진행 중 첨부 작업을 CONFLICT로 만료시키고 기존 첨부 current pointer·확정을 해제한다. 첨부 버전은 증가하고 정책/검수 필수 flag와 과거 근거는 보존한다. OFF만으로 검수 guard가 사라지지 않는다.
+- 일반 첨부 재수집 예약은 version 증가와 함께 이전 첨부 current pointer/평가 current flag/confirmation을 해제한다. 새 작업 완료 전 이전 성공 판정을 현재로 반환하지 않으며, 기본 판정과 기본 확정 태그는 변경하지 않는다. 이전 이력은 삭제하지 않는다. 배치 미리보기는 이 일반 예약 경로로 current를 변경하면 안 된다.
+- 근거 저장은 source→job 잠금과 마지막 lease CAS 아래 OPEN→SEALED로 처리한다. 성공 파일의 추출 실패도 근거이며, 발견 실패는 NO_FILES로 바꾸지 않는다. 봉인은 종합 판정 완료나 운영 공고 활성화를 뜻하지 않는다.
+- 봉인된 근거의 종합 평가는 snapshot 조회→transaction 밖의 규칙 계산→source/job 최종 CAS로 저장한다. 파일별 입력(실패 포함), release에 속한 키워드 위치, 자동 다중 태그가 별도 행이다. 동일 작업 재완료는 멱등이고, 새 작업 세대의 set/file/extraction 선택 ID를 manifest에 포함하여 과거 입력을 혼합하지 않는다.
+- 배치 job의 평가는 preview만 저장한다. 일반 job은 첨부 current pointer·attachment version만 갱신하며 기존 base 판정, 검수 필수 flag, 연결 정책, 운영 공고는 수정하지 않는다. COLLECT_ONLY effective 기준은 base로 유지한다.
+- 작업에 예약된 bytes보다 큰 수신량을 저장할 수 없다. safe locator는 시스템 상대 경로·허용된 비기밀 식별자만 저장한다. 임시 fetch URL, 인증정보, 로컬 binary 경로는 저장 DTO에 없다.
+- 이 migration은 정책 게시·ENFORCE·기존 데이터 재분류·운영 공고 활성화를 실행하지 않는다. 전체 상시 수집 연결은 진행 기록의 남은 Gate를 따른다.
+
+### 11.1 관리자 확인·DRAFT 연결의 V73 추가 계약
+
+- `announcement_source_attachment_confirmations.confirmed_source_version`, `confirmed_attachment_version`를 nullable integer로 추가한다. 두 값은 함께 null이거나 함께 0 이상이며 기존 확인의 버전을 추측해서 backfill하지 않는다. 새 API는 확인 직후의 원문/첨부 버전을 저장한다.
+- 확인 행은 `is_current`만 바꿀 수 있다. 평가/메모/방법/버전/idempotency hash를 UPDATE로 수정할 수 없는 trigger를 둔다. 재확인은 새 행과 새 CONFIRMED 태그를 생성하고 이전 행을 STALE로 남긴다.
+- 현재 확인 projection은 current evaluation/set hash뿐 아니라 원문 버전과 첨부 버전을 확인한다. 버전 없는 legacy 확인은 CURRENT로 표시하지 않는다. DRAFT 전환이 동일 확인으로 link를 만들며 첨부 버전을 1 증가시킨 경우에만 그 차이를 허용한다. 일반 재수집의 이전 확인은 승계하지 않는다.
+- `announcement_source_links.attachment_confirmation_id`, `attachment_request_hash`를 nullable로 추가한다. 두 값은 함께 존재해야 하며 confirmation/source composite FK로 다른 source의 확인 연결을 거부한다. source UNIQUE와 기존 V1 입력은 보존한다.
+- 첨부 확인에 연결된 link의 source/announcement/confirmation/request hash는 UPDATE로 바꿀 수 없다. 동일 전환 재시도는 최초 정규화 요청 hash를 비교하고 다른 요청은 409다.
+- confirmation/전환 쓰기는 source 행 잠금과 기대 버전 CAS를 사용한다. 각 단계는 첨부 버전만 증가시키고 base/자동 판정/검수 guard를 변경하지 않는다. 카탈로그의 enabled 상태도 정렬된 FOR SHARE 잠금 아래 검증한다.
+- 새 service/Mapper의 PostgreSQL 동시성·멱등성·DRAFT·불변 이력 테스트는 추가했으나 최신 실행은 Windows Code Integrity 차단 때문에 미검증이다. 위 계약은 로컬 구현 상태이며 운영 V73 적용 증거가 아니다.
+
+### 11.2 역할 변경과 성공 파일 중간 저장의 V73 추가 계약
+
+- `announcement_attachment_jobs.operation_code`는 COLLECT/ROLE_CHANGE/RETRY_FILES다. 역할 변경은 `reference_set_id`, `requested_by`가 필수이며 원래 set과 새 set은 같은 source/content/policy/profile의 서로 다른 SEALED set이어야 한다. ROLE_CHANGE job의 set 연결은 불변이고 예약 다운로드 bytes는 0으로 고정한다. RETRY_FILES의 선택 범위는 11.3을 따른다.
+- `announcement_source_attachment_extractions.reused_from_extraction_id`는 같은 source의 원래 extraction을 가리킨다. DB trigger는 원래/새 파일 binary hash, 추출기 버전·config, 품질·텍스트·hash·block·페이지·소요시간·실제 추출 시각의 동일성을 확인한다. 역할 변경이 재다운로드/재추출처럼 기록되지 않는다.
+- `announcement_attachment_file_checkpoints`는 `(job_id,stable_locator_hash)` PK 및 `(job_id,source_id)` composite FK의 내부 중간 근거다. 다른 job/generation에서 재사용하지 않으며 API/최종 첨부 set과 구분한다. UPDATE를 금지하고 유효 RUNNING COLLECT/RETRY_FILES job에만 INSERT한다. RETRY_FILES의 service 검증은 선택 locator·고정 역할과 일치하는 파일만 허용한다.
+- checkpoint JSON은 검증된 안전 locator·성공 파일 metadata·COMPLETE_TEXT 추출/근거/최초 완료 epoch 시각으로 구성한다. 파일당 16 MiB, 정상 목록 10개 × 최대 3시도 중 목록 변경까지 30개 상한을 둔다. 바이너리·fetch URL·인증값·감사 metadata는 저장하지 않는다.
+- source→job 잠금과 lease 확인 후 중간 저장한다. 최종 봉인/종료/충돌/취소 시 trigger와 봉인 transaction에서 중간 텍스트를 제거하며 source/job 삭제도 cascade된다. RETRY_WAIT/일시 중지는 재사용을 위해 유지한다. 공개 원문의 재확인 주기가 지난 새 세대는 중간 저장을 승계하지 않는다.
+- 최종 extraction의 기존 `created_at`에는 추출 완료 epoch 시각을 timestamptz로 변환해 저장한다. 재사용 중간 근거의 시각을 봉인 시점으로 갱신하지 않는다. 완료 시각 없는 기존 내부 입력은 호환 기본값을 유지하며 운영 이력을 backfill하지 않는다.
+- CurrentMapper의 실제 job 컬럼은 V72의 `set_id`다. 잘못 참조했던 `last_set_id`를 수정했으며 새 오프라인 XML/parameter 검증과 실제 PostgreSQL 회귀를 별도 Gate로 관리한다.
+- 최신 V73은 아직 운영 미적용이다. 위 trigger·FK·timestamp/동시성 계약은 Linux PostgreSQL에서 실제 실행 검증이 필요하다.
+
+### 11.3 실패 파일 선택 재시도의 V73 추가 계약
+
+- `RETRY_FILES` job은 `reference_set_id`/`requested_by`를 필수로 갖는다. 예약 시 `set_id`는 null이며 최종 결과는 원래 reference와 다른 SEALED set이다. 같은 source/content/policy/profile을 DB trigger로 확인하며 한 번 연결된 최종 set을 교체하지 않는다.
+- `announcement_attachment_retry_files`의 PK는 `(job_id,file_id)`다. `(job_id,source_id,reference_set_id)` → jobs와 `(file_id,reference_set_id,source_id)` → files의 composite FK로 다른 원문/집합 혼합을 차단한다.
+- 선택 범위는 PENDING·미봉인 RETRY_FILES job에만 최대 10개 INSERT할 수 있다. 다운로드 FAILED/CANCELLED 또는 허용된 불완전 추출 품질만 선택할 수 있다. deferred constraint trigger는 transaction 완료 전에 한 개 이상 선택됐는지 확인한다.
+- 선택 행 UPDATE 및 살아 있는 source/job 아래의 직접 DELETE를 금지한다. 승인된 상위 source/job 삭제의 FK cascade 정리는 허용한다. 서비스는 source 잠금 아래 현재 버전·정책·집합·진행 중 작업과 동일 멱등 키를 먼저 검증한다.
+- 새 근거는 기존 전체 파일 수를 유지한다. 비선택 파일/extraction은 DB 복제와 `reused_from_extraction_id`로 원래 품질·실패·시각을 보존하고 선택 파일만 새 근거를 저장한다. MANUAL을 포함한 문서 역할/출처는 고정하며 파일 역할 변경 API와 혼합하지 않는다.
+- 새 상세의 전체 locator 집합이 달라지거나 발견에 실패하면 선택 파일의 새 binary를 요청하지 않고 발견 미완료/실패를 저장한다. 실패 발견을 NO_FILES로 변환하거나 새 파일을 선택 범위에 추가하지 않는다.
+- 새 선택 결과 bytes만 job의 누적 다운로드 예산과 비교한다. 이번 job 내부 중간 성공은 11.2의 checkpoint로 재사용할 수 있다. 일반 COLLECT 전체 저장 API로 RETRY_FILES 범위를 우회할 수 없다.
+- 기본 수동 제한은 전체 COLLECT 수동 요청과 RETRY_FILES를 합산하여 source별 60초/최근 24시간 3회이며 같은 멱등 요청은 추가 예약으로 계산하지 않는다. 현재 값은 초기 구현 상한이다. 이 migration은 실제 재시도 예약·운영 정책 활성화·기존 데이터 변경을 실행하지 않는다.
+
+### 11.4 불변 판정 이력의 조회 계약
+
+- V73의 `ix_att_eval_source_history(source_id,evaluated_at DESC,id DESC)`는 source별 이력 pagination을 지원한다. 기존 current partial UNIQUE와 별개이며 V72 데이터/판정을 변경하지 않는다.
+- 이력은 당시 base/set/policy/release와 자동 태그를 조회한다. 현재 카탈로그·정책·확정 태그로 과거 자동 결과를 덮어쓰지 않는다.
+- 입력 조회는 `evaluation_inputs`의 exact file/extraction/set/source 관계를 따른다. 추출 없는 실패 입력은 LEFT JOIN으로 보존하고 최신 extraction 재선택을 하지 않는다.
+- matches 목록과 count는 같은 evaluation/source/file 및 frozen release/group/rule/term JOIN을 공유한다. 전체 추출문·safe locator JSON·fetch URL·감사 메모를 읽지 않고 제한된 block 조회로 연결할 좌표만 제공한다.
+- 현재 사용 여부는 동일 REPEATABLE_READ transaction의 현재 source projection을 기준으로 CURRENT_EFFECTIVE/CURRENT_PREVIEW/NOT_CURRENT를 구분한다. 이력 조회 자체는 판정·확인·버전·정책을 변경하지 않는다. 제목 제외/QA 원문은 과거 근거가 잔존해도 외부 조회 service에서 차단한다.
+
+### 11.5 초기·전체 수동 수집 예약
+
+- 기존 COLLECT operation에 nullable `requested_by`를 사용한다. 자동 예약은 null, 수동 전체 수집은 운영자 ID다. 기존 불변 실행 trigger가 actor/operation/request hash/실행 snapshot/예산을 예약 후 변경하지 못하게 한다.
+- V73의 `ix_att_job_manual_network_window(source_id,created_at DESC)`는 `requested_by IS NOT NULL AND operation_code IN ('COLLECT','RETRY_FILES')` partial index다. 두 API는 같은 SQL scope로 요청 횟수를 합산하며 source 잠금 아래 재검증한다.
+- read-only 조건 조회는 정책 공유 잠금을 사용하지 않는다. 예약은 source 행 잠금→기존 멱등 조회/버전 검증→동일 ACTIVE 규칙의 ACTIVE 정책 공유 잠금→profile/예산/한도 검증→job/버전/STALE/intake/감사를 같은 transaction에서 저장한다.
+- 최초 source에는 현재 첨부 evaluation ID가 null이다. 이 null도 요청 기대값으로 비교한다. 요청된 전체 수집은 과거 set을 직접 수정하거나 선택 파일 scope를 만들지 않으며 일반 COLLECT worker를 그대로 사용한다.
+- 미적용 기존 source는 ENFORCE 정책으로 수집해도 preview만 저장하고 검수 binding을 새로 만들지 않는다. 이미 binding이 있는 source만 그 의무/동일 정책을 보존한다. 정책 교체·기존 데이터 적용은 별도 승인된 경로의 계약이다.
+- 최신 DB 테스트는 초기 read-only 조회, 미적용 ENFORCE preview, 공유 수동 한도, 같은 key 동시 예약, 조건 변경 충돌을 추가했으나 실제 Linux PostgreSQL 실행은 아직 남아 있다. V73은 운영 미적용 상태다.
+
+### 11.6 키워드 규칙 교체 중 첨부 계획 보호
+
+- 새 schema 변경 없이 `announcement_attachment_policies`와 keyword release 상태를 읽어 수집 실행 준비 단계에서 불일치를 거부한다. 일치 정책 조회는 ACTIVE keyword release를 요구한다. 불일치 ENFORCE 조회는 정책이 ACTIVE인지만 확인하고, keyword release가 다르거나 이미 퇴역한 경우도 포함한다. 과거 keyword release를 ACTIVE inner join으로 먼저 제거하면 교체 공백을 숨기므로 그렇게 조회하지 않는다.
+- 후보 정책은 공유 잠금으로 조회하며 외부 요청은 transaction 종료 뒤에만 진행한다. 계획 작성 전 차단되면 collection plan/source/job/첨부 근거를 쓰지 않는다. 기존 NO_POLICY 계획은 변경하지 않고 재시작 차단 여부만 확인한다.
+- PostgreSQL fixture는 퇴역 규칙의 ACTIVE ENFORCE, 일치 COLLECT_ONLY/OFF 우선, NO_POLICY 재개, context 조회 이후 규칙 퇴역을 검증하도록 추가했다. fixture는 테스트 소유 임시 DB에만 작성하며 운영 데이터와 연결하지 않는다. 실제 실행하지 않은 SQL/잠금 검증은 성공으로 보고하지 않는다.
+
+### 11.7 정책 초안 멱등성·개정 계보
+
+운영 미적용 V73에 다음 additive 계약을 추가했다. 기존 V1~V72 파일은 수정하지 않는다.
+
+- `announcement_attachment_policies`의 `creation_idempotency_key uuid UNIQUE`, `creation_request_hash varchar(64)`, `creation_operation_code varchar(20)`, `copied_from_policy_id uuid`(self FK). 기존 행은 모두 NULL로 보존한다.
+- `ck_att_policy_creation`은 네 필드 전체 NULL인 기존 행 또는 key/hash/operation이 완성된 관리 초안만 허용한다. CREATE의 parent는 NULL, REVISION의 parent는 다른 정책 ID다. 요청 hash는 actor/operation/정규화 입력에 결합하며 응답에 노출하지 않는다.
+- `ix_att_policy_parent`, `ix_att_policy_list(created_at DESC,id DESC)`를 추가한다. V72의 family/version UNIQUE와 rule별 ACTIVE UNIQUE를 보존한다.
+- `tr_att_policy_revision_parent`는 개정 INSERT가 원본과 같은 family이고 더 큰 versionNo인지 확인한다. 원본 family/version은 별도 불변 trigger로 유지된다.
+- `tr_att_policy_draft_identity`는 DRAFT도 id/code/versionNo/생성자/생성 시각/최초 요청/개정 parent를 바꾸지 못하게 한다. 관리 초안(key 존재)의 변경은 rowVersion을 정확히 1 증가시켜야 한다. V72 게시 불변 trigger는 그대로 유지한다.
+- 서로 다른 생성·개정 경로의 동일 key를 transaction advisory lock namespace 73101로 직렬화한다. 개정 family는 namespace 73102로 직렬화한 뒤 최대 versionNo+1을 배정한다. 부모 조회 버전과 DRAFT 수정 CAS를 재검증한다. 일반 GET에는 FOR UPDATE/FOR SHARE를 사용하지 않는다.
+- CREATE/REVISION INSERT는 SQL에서 DRAFT를 고정하고 policy_hash/published_at을 복사하지 않는다. 수정은 DRAFT·조회 버전 조건 아래 설정·system profile snapshot을 바꾸고 policy_hash=NULL과 rowVersion+1을 기록한다. 기존 source/job/확인·ACTIVE 정책을 수정하지 않는다.
+- 새 초안/수정의 `settings_json`은 engineVersion/extractorVersion/extractorConfigHash(null)/maximumSourceBytes만 저장한다. 관리자 임의 JSON/URL/parser/실행 설정은 받지 않는다. Linux runtime 지문과 QA 증거의 검증·게시 계약은 아직 미완료다.
+- 실제 PostgreSQL fixture 7건은 생성/수정/현재 상태 멱등 재조회·감사 분리, 동일 key 동시 생성, 다른 parent 동시 개정, 동시 CAS, DB 불변 trigger, 다른 actor/operation 키 재사용, 게시/퇴역 수정 거부와 개정을 다룬다. 최신 Linux 실행 전까지 컴파일/정적 검증만으로 SQL·잠금 성공을 선언하지 않는다.
+
+### 11.8 정책 분류 검증 이력
+
+운영 미적용 V73에 `announcement_attachment_policy_checks`를 추가했다. 이 테이블은 `CLASSIFICATION_GOLDEN`만 기록하며 전체 QA/게시 가능 상태를 저장하지 않는다.
+
+- 정책 ID/rowVersion/입력 hash, 규칙 ID/rowVersion/계산 snapshot hash/실제 RuleSet 내용 hash, check type, suite/엔진 버전, 결과 hash, 사례 수/ID JSON, 요청자, 멱등 키/요청 hash, 실행 시각을 저장한다. source/job이나 원문을 복사하지 않는다.
+- 정책·규칙·user FK, key UNIQUE, SHA-256 형식, case_count(1~1000)/JSON 배열 길이 일치 CHECK, 정책별 이력/규칙/요청자 인덱스를 둔다. 정책 삭제는 검증 이력 FK가 보호한다.
+- INSERT trigger는 현재 DRAFT 정책·정확한 정책/규칙 버전과 DRAFT/ACTIVE 규칙 연결만 허용한다. UPDATE는 항상 거부한다. 이후 정책/규칙 수정은 이력을 덮어쓰지 않고 조회에서 is_current=false가 된다.
+- 성공 이력 저장 직전에 key advisory lock namespace 73103, 규칙 공유 잠금, 정책 행 잠금과 snapshot 대조를 수행한다. 같은 key의 동시 실행이 계산을 각각 수행해도 INSERT/감사 기록은 한 번만 남긴다.
+- `AnnouncementSourceRuleReleaseService.selectRuleValidationDetails`는 read-only REPEATABLE_READ로 현재 행의 snapshot을 계산하며 저장된 게시 hash와 구분한다. 기존 v1 API와 게시 계약은 변경하지 않는다.
+- 테스트 소유 PostgreSQL fixture에 실제 seed 규칙 분류/미게시 유지, 같은 key 동시 저장, 수정 후 STALE·이력 불변·잘못된 버전 거부 3건을 추가했다. 실제 Linux 실행 전까지 SQL/잠금 성공으로 계산하지 않는다.
+
+### 11.9 비동기 정책 QA 실행·증거·공유 자원
+
+운영 미적용 V73의 additive 계약이며 V1~V72는 변경하지 않는다.
+
+- `announcement_attachment_policy_validation_runs`: 정책·규칙 FK/rowVersion, snapshot hash/JSON, run 상태/rowVersion, actor FK, UUID 멱등 키 UNIQUE/요청 hash, lease token/만료, 고정 오류 코드, 생성/시작/종료 시각. 입력 JSON object 최대 2 MiB DB 제한(서비스 직렬화는 1.5 MB), hash 형식과 상태별 lease/시각 조합 CHECK를 둔다.
+- 전역 PENDING/RUNNING/CANCEL_REQUESTED 1건 unique partial index, 정책별 이력·규칙·actor index. 예약/claim/취소는 advisory lock 73104로 짧게 직렬화한다. 정책 rowVersion과 실행 rowVersion은 별도 CAS다.
+- `announcement_attachment_policy_validation_steps`: run FK + stepCode PK, PASSED/FAILED/MISSING, 서버 생성 metadata JSON object 최대 32 KiB, evidence hash/시각. 단계는 CLASSIFICATION_GOLDEN, INSTALLED_RUNTIME, PROVIDER_PROFILES, WORKER_DB_RECOVERY 4개로 제한한다.
+- run trigger는 현재 DRAFT 정책/정확한 정책·규칙 버전으로 PENDING INSERT만 허용한다. 입력·요청 identity 불변, update rowVersion 정확히 +1, 상태 전이 제한, terminal UPDATE/모든 DELETE 금지. 취소는 기존 token/만료/시작 시각을 유지하며, 만료된 실행의 종료는 FAILED/LEASE_EXPIRED만 허용한다.
+- step trigger는 RUNNING·유효 lease의 부모 행을 잠그고 자기 전역 추출 슬롯의 유효 소유권을 검사한다. UPDATE/DELETE·종료/취소 이후 INSERT는 거부한다. VERIFIED는 네 단계 PASSED와 현재 정책·규칙 버전이 모두 필요하다. 현재 worker는 실제 두 scope가 부족하여 INCOMPLETE를 기록하며 VERIFIED를 만들지 않는다.
+- `announcement_attachment_resource_leases`에 policy_validation_id FK/token을 추가하고 기존 job owner 필드의 NOT NULL을 완화하되 `ck_att_resource_owner`로 정확히 한 종류의 owner만 허용한다. QA owner는 EXTRACTION/GLOBAL/slot 1만 사용할 수 있다. 정상 job이 만료 QA 슬롯을 얻을 때 QA 필드를 NULL로, QA가 만료 job 슬롯을 얻을 때 job 필드를 NULL로 바꾼다. 살아 있는 다른 owner는 덮어쓰지 않는다.
+- RUNNING claim과 공유 슬롯 획득은 같은 transaction이며 슬롯 실패 시 claim 전체 rollback. 만료 8분, 매 파일 실행 전 run/resource 모두 잔여 40초 이상 확인. 근거/완료/슬롯 해제는 run/token 조건으로 늦은 소유자를 차단한다. 파일 실행 중 긴 DB transaction은 없다.
+- snapshot의 활성 지자체 대상 목록은 최근 수집 FAILED/QA 보류를 이유로 누락하지 않는다. 입력에는 URL/목록 profile 설정 원문 대신 hash만 저장한다. 이력 목록은 입력 JSON을 읽지 않으며 GET의 현재성 값은 DB 정책·규칙 버전 비교만 의미한다.
+- 테스트 소유 PostgreSQL fixture는 queue/공유 슬롯/claim rollback/불변성/취소/다른 token/목록 범위/동시 claim/만료 회수/현재 버전 완료를 다룬다. 직접 작성한 네 단계 proof 행은 DB 제약 fixture이며 실제 네 가지 QA 실행 성공 증거가 아니다. 최신 Linux 실행 전까지 SQL·잠금 검증은 미실행이다.
+
+### 11.10 기존 데이터 배치 고정 범위
+
+V73(운영 미적용)의 additive 변경이다. V72의 batches/jobs를 사용하며 별도 원문 복사 테이블을 만들지 않는다.
+
+- batches에 scope_item_count(1~1000, maximum_count 이하)·policy_snapshot_json(object/최대 512 KiB)을 추가한다. 기존 행은 모두 NULL로 보존하며 관리 API는 고정 metadata가 있는 행만 대상으로 한다. CANCELLED 상태를 additive CHECK에 포함하고 `(id,policy_id)` UNIQUE를 추가한다.
+- jobs에는 frozen_provider_code를 추가하고 `(batch_id,policy_id)` composite FK로 배치와 정책을 일치시킨다. 이 필드는 기존 불변 실행 trigger에 포함한다. 기존 일반 jobs의 NULL은 유지한다.
+- 범위는 jobs로 물질화하며 SCOPE_READY에서 HTTP/worker 실행은 없다. `scope_json`에는 필터·provider/제외 집계·선택/잔여 수·상한/정책 hash만 저장한다. source/content/base/current/confirmation ID는 source 삭제 cascade되는 jobs에만 저장하며 URL·본문은 복사하지 않는다.
+- source를 UUID 순서로 잠근 뒤 정책/규칙 공유 잠금과 scopeHash를 재검증한다. 생성 key advisory lock namespace 73105를 사용한다. 불일치/이미 존재한 활성 source job으로 일부 항목만 예약하지 않는다. 검수/current/source 버전은 유지한다.
+- 관리 배치 identity·scope·정책 snapshot·최초 요청 불변, rowVersion +1, 삭제 건수 감소 금지, CANCELLED 되돌림 금지. 관리 batch DELETE는 거부한다.
+- job 삭제 trigger가 deleted_item_count와 batch rowVersion만 증가시킨다. deferred constraint trigger는 `고정 건수=남은 jobs+삭제 건수`, SCOPE_READY/CANCELLED batch와 같은 jobs 상태, provider/실행 snapshot 존재를 검사한다. 삭제 원문을 새 항목으로 채우거나 일부 jobs만 저장할 수 없다.
+- 기존 active job UNIQUE에는 SCOPE_READY가 포함된다. 수집 전 취소는 jobs를 CANCELLED로 바꿔 예약을 해제하며 source 데이터·기존 검수·이력을 삭제하지 않는다. 수집 제어는 11.11을 따르며 적용/rollback은 후속 필수 작업이다.
+- 테스트 소유 PostgreSQL에 고정 대상·신규 원문 미포함·claim 금지/검수 유지, 취소/예약 해제/삭제 금지, 원문 cascade 건수, 동일 키 동시 생성, 버전/불변/미완료 상태 차단 5건을 추가했다. 해당 임시 DB의 fixture 초기화는 TRUNCATE로 수행하며 운영 DB를 입력받지 않는다. 최신 실제 PostgreSQL 실행은 차단 상태다.
+
+### 11.11 고정 배치 수집 승인·중지·재개와 진행 집계
+
+V73 미적용 변경이다. batch에 collection_started_at/collection_approval_hash를 추가하고 기존 approved_by와 묶는다. 관리 batch의 SCOPE_READY/CANCELLED에서는 모두 NULL, 실행 이후에는 모두 필수다. 최초 SCOPE_READY → COLLECTION_PENDING만 허용하고 승인 identity를 덮어쓰거나 SCOPE_READY로 되돌릴 수 없다. 최초 실행은 삭제 0·정확한 scope/전체 상한·정책 snapshot/고정 입력 검증 및 jobs PENDING 전환과 원자적이다.
+
+jobs.frozen_locator_hash와 `attachment_source_locator_hash(uuid)`는 현재 provider/notice/URL/local-source/parser 연결의 정규화 hash를 고정한다. URL을 jobs에 복사하지 않는다. 관리 jobs에는 이 hash가 필수이며 실행/기존 previous-evaluation/confirmation/policy/review binding은 불변이다. `attachment_batch_job_input_unchanged(uuid)`는 매 HTTP/claim에서 지문·이전 binding·보호 연결을 확인한다. 변경된 입력의 claim은 CONFLICT/FROZEN_INPUT_CHANGED로 끝나고 version 불일치의 기존 SOURCE_VERSION_CHANGED와 구분한다.
+
+시작/재개 잠금 순서는 source UUID → 정책/규칙 SHARE → batch UPDATE다. 수집 중지는 batch만 잠그며 COLLECTION_PAUSED로 새 claim/HTTP를 막는다. 진행 중 요청/정리는 끝날 수 있다. 재개는 고정 최초 상한/현재 삭제 수와 미완료 jobs를 재검증하고 시도·예산·lease·checkpoint·terminal 결과를 초기화하지 않는다. 기존 source current/검수/정책 binding/운영 공고는 수정하지 않는다.
+
+worker enabled일 때 DB 전용 집계가 15초 간격·변경 가능한 최대 100 batch/SKIP LOCKED로 진행한다. 처음 100개의 단순 대기가 나머지 완료 집계를 막지 않는다. 모든 고정 항목이 terminal이고 삭제 0·각 SUCCEEDED/SEALED set/preview evaluation/hash일 때만 COLLECTED, 나머지는 COLLECTION_PARTIAL_FAILED다. 중지/적용/rollback 단계는 자동 전환하지 않는다. 삭제된 원문은 건수만 보존하고 새 원문으로 채우지 않는다.
+
+실제 PostgreSQL용 테스트 6건(고정 수집/저장·평가 분리, 중지/재개 예산·승인 보존, 입력/승인 우회 거부, claim 충돌 종료, 중지 중 삭제 집계, 동시 시작 1회)을 추가했다. 실행 환경 차단으로 아직 실제 PG 통과 증거가 아니다. 배치 preview/선택은11.12를 따르며 apply/rollback/전체 분할 ledger는 별도 미완료다.
+
+### 11.12 봉인 결과의 불변 미리보기·명시적 선택
+
+V73 운영 미적용 additive 변경이다. preview/선택을 현재 source 데이터와 분리하며 V1~V72를 수정하지 않는다.
+
+- `announcement_attachment_batch_previews`: batch FK, PREVIEW_READY/PREVIEW_PARTIAL_FAILED, scope/input/preview hash, 확정 후 batch version, 고정 전체/남은/삭제/선택 가능/선택 수, actor FK·UUID 멱등 키 UNIQUE/요청·사유 hash, 생성 시각. 고정 수=남은+삭제, 선택≤선택 가능≤남은, 전체가 준비된 경우에만 PREVIEW_READY CHECK를 둔다.
+- `announcement_attachment_batch_preview_items`: `(preview_id,job_id)` PK, preview/batch composite FK, job/batch composite FK ON DELETE CASCADE, readiness/eligible/selected, 개별 input hash, 근거 metadata JSON object 최대64KiB. source ID 목록/원문/URL을 상위 batch 또는 preview 요약에 복사하지 않는다. item은 source 삭제 cascade되는 job에 종속된다.
+- batches에 nullable current_preview_id를 추가하고 `(current_preview_id,id)`를 preview `(id,batch_id)`에 deferred FK로 연결한다. legacy V72 preview_hash에는 직접 FK를 걸지 않아 과거 행을 보존한다. 관리 PREVIEW_READY 계열에는 pointer/hash가 필수다.
+- BEFORE trigger는 PREVIEW_RUNNING transaction과 정확한 다음 batch version에서만 preview/item INSERT를 허용한다. 모든 preview UPDATE/DELETE, 독립 item UPDATE/DELETE, 이전 preview에 item 추가를 거부한다. job 삭제 cascade일 때만 해당 item metadata DELETE를 허용한다.
+- deferred trigger는 생성 transaction의 전체 항목 수·선택 가능/선택 수·batch pointer/hash/status/version을 검사한다. 새 snapshot 없는 job 선택 변경은 거부하고 current preview의 선택과 남은 전체 jobs의 선택을 대조한다.
+- 생성/선택은 멱등 키73106 → source UUID 잠금 → 정책/규칙 SHARE → batch 잠금 순서다. 수집된 정확한 SEALED set/evaluation/extraction metadata를 읽고 새 파일/HTTP/추출 job을 만들지 않는다. 선택 변경에도 새 불변 preview와 hash를 만들고 batch version은2 증가한다.
+- 근거에는 AUTO(base/이전 첨부/제안)와 CONFIRMED 태그를 분리한다. 기존 source/current/confirmation/정책 binding은 바꾸지 않는다. 삭제 뒤 snapshot 당시 수는 유지하고 현재 남은 수·버전 차이로 오래된 상태를 표시하며 식별자를 복원하지 않는다.
+- 단위/HTTP/XML/정적 migration 계약과 PG용6건(생성/선택·기존 current 보존, 입력 변화, cascade, 불변/우회 거부, 동시 같은 키, 실패 항목 선택 거부)을 추가했다. 실제 PG 실행은 환경 차단으로 미확인이다. preview 이력은 실제 적용/원복 완료가 아니다.
+
+### 11.13 배치 적용 승인·항목 CAS·복구 근거
+
+- V73에 `announcement_attachment_batch_application_actions`를 추가했다. START/PAUSE/RESUME, same-batch preview FK, expected_version·scope/selected/deleted 수, actor·UUID key/requestHash/reasonHash를 불변 이력으로 남긴다. (batch,expected_version) unique 및 batch별 START unique, actor/preview FK 인덱스를 둔다. 기존 데이터에는 승인이나 새 scope를 소급 생성하지 않는다.
+- batch.application_approval_id는 최초 START를 가리키며 승인 preview/hash를 이후 교체하지 않는다. 승인 없는 관리 배치 적용 상태는 CHECK로 거부한다. 접수와 전체 선택 PENDING/상태 전이는 deferred action-complete 검증으로 같은 transaction에 묶인다. 중지/재개도 해당 버전 명령 이력이 필요하다.
+- jobs.application_preview_id, applied_source_version/applied_input_hash, application_error_code/application_attempt_count/application_next_attempt_at를 추가했다. 기존 applied_evaluation_id/applied_attachment_version·previous binding/confirmation을 함께 사용한다. 승인된 적격·선택 item만 적용 가능하고 terminal 결과/적용 근거는 불변이다. 수집 실패 코드와 적용 실패 코드를 분리한다.
+- source/규칙·정책/batch 잠금 후 itemInputHash/CAS를 재검증한다. source current 첨부 평가·정책·검수 요구를 갱신하고 attachment_row_version만 증가시킨다. 이전 confirmation/current evaluation은 STALE지만 원문/확정 태그는 보존한다. 새 종합 확인 없이 이전 확인으로 전환할 수 없다. V1 계약·base 판정·운영 공고는 변경하지 않는다.
+- 각 항목 transaction이 실패하면 전체 source 변경이 rollback되며 별도 transaction에서 30초 backoff·최대3회 적용 실패를 기록한다. 전체 고정 scope 중 비선택/실패/삭제가 있으면 배치 전체 APPLIED로 표시하지 않는다. 같은 키/동시 worker/중지/삭제와 후속 DRAFT 보호의 PG8사례를 추가했지만 실제 DB 실행은 미확인이다.
+- 원복의 확인 유효성은11.14, 배치 승인·항목별 실행은11.15, 일반 작업 동기 복구는11.17에 정의했다. 실제 PostgreSQL·운영 검증이 남아 있으므로 적용 metadata나 로컬 테스트만으로 운영 원복 완료라고 판단하지 않는다.
+
+### 11.14 원복 후 기존 검수 확인의 유효 버전
+
+V73 로컬 미적용 변경이다. `announcement_attachment_confirmation_restorations`는 job/source/confirmation과 복구 후 source_version/attachment_version, 적용 지문, 복구 actor·멱등 키·요청 hash·시각을 보존한다. 원래 confirmation의 버전/검수 시각/메모/태그를 재작성하지 않는다. source/job·source/confirmation composite FK는 원문 삭제에 cascade되며, job UNIQUE·source/attachmentVersion UNIQUE 및 actor/lookup 인덱스가 있다. 이력의 UPDATE·단독 DELETE는 금지한다.
+
+- INSERT는 현재 적용된 batch job, 아직 NOT_REQUESTED인 rollback, 정확한 적용 후 source/첨부 버전·정책/current evaluation 및 이전 확인 binding을 확인한다. 원문→job 잠금, 후속 current 확인·보호 link·활성 다른 job 차단을 수행한다.
+- 이전 확인의 원래 버전 또는 **이전에 완료한** 복구 버전이 job의 적용 전 기대 버전과 일치해야 한다. 무버전/이미 만료된 확인을 유효하게 승격하지 않는다. 이전 평가의 같은 base/content/rule/정책/SEALED set hash도 확인한다.
+- 복구 버전은 base 버전 유지·첨부 버전 `applied_attachment_version+1`이다. deferred constraint가 이전 evaluation/current pointer·정책/review binding·confirmation current·job ROLLED_BACK의 동일 transaction 완료를 요구한다. 적용 후 전체 입력 지문과 관리자 승인은 11.15의 서비스에서 별도 검증한다.
+- `attachment_confirmation_restored_binding(sourceId,confirmationId)`는 완료된 원복 근거의 최대 버전만 반환한다. CurrentMapper와 검수 조회·DRAFT Service가 동일 근거를 사용하며, 원래 검수 응답 필드는 그대로 유지한다. 첨부 버전이 다시 바뀌면 이전 복구 근거만으로 전환할 수 없다.
+- 기존 확인의 false→true 전환은 현재 source 버전과 일치하는 복구 근거가 있어야 한다. 새 확인 INSERT/기존 확인의 STALE 전환/원래 확인 응답 멱등성은 유지한다. `is_current=true`만 바꾸는 것은 원복이 아니다.
+- 복구 근거 생성은 11.15의 승인된 batch worker로 연결했다. 일반 job의 예약·적용 근거는11.16, 동기 원복 승인·실행은11.17에서 추가했다. 실제 PostgreSQL 실행 없이 DDL/트리거 통과로 표시하지 않는다.
+
+### 11.15 배치 원복의 불변 승인·대상·원자적 복구
+
+V73 미적용 증분이다. `announcement_attachment_batch_rollback_actions`에 batch당 하나의 승인과 최초 scope/적용 대상/적격/삭제/base 재개/확인 복구/취소 대기 수, expectedVersion·previewHash·actor·UUID key·request/reason hash를 저장한다. `announcement_attachment_batch_rollback_items`는 승인/같은 batch/job composite FK와 항목별 전체 inputHash·적격 사유·영향 flag를 고정하며 source 삭제 시 job과 함께 cascade된다. 승인/대상 수정·단독 삭제·승인 후 대상 추가는 금지한다.
+
+batch.rollback_approval_id와 jobs.rollback_action_id가 실행을 연결한다. 승인 없는 원복 상태·범위 축소·terminal 결과 초기화를 거부한다. deferred approval-complete 검증은 승인 집계/전체 대상 예약/batch 버전+1/기존 PENDING 적용 취소를 같은 transaction에 묶는다. 기존 application_approval/current preview와 적용 결과 APPLIED는 보존하며 원복 결과로 바꾸지 않는다.
+
+jobs의 rollback_error_code/rollback_attempt_count(0~3)/rollback_next_attempt_at와 restored_source_version/restored_attachment_version/restored_confirmation_id를 추가했다. 항목 worker는 source→batch 잠금, 승인 inputHash와 적용 직후 전체 live 지문 재검증, source CAS, 이전 evaluation/current 및 필요 시 confirmation 복구를 하나의 transaction으로 수행한다. 확인 없는 source는 base 경로로 복구 가능하고, 이전 확인이 이미 무효였다면 current 확인으로 되살리지 않는다. source 버전은 유지하고 첨부 버전은 applied+1이며 DB trigger가 최종 pointer/정책/review/confirmation/버전을 검사한다.
+
+원복 실패 후 최대3회/30초 backoff를 별도 transaction에 기록한다. 전체 scope 대비 일부 복원·취소·미적용·삭제는 부분 결과다. 일반 ENFORCE job에는 managed batch 원복을 적용하지 않는다. 중복 `uq_att_job_source` ADD 선언1건을 제거하고 정확히 한 번 선언되는지 정적 회귀를 추가했다. 실제 PostgreSQL 실행이 생략된 상태에서는 그 정적 확인이 migration 성공을 뜻하지 않는다.
+
+### 11.16 일반 ENFORCE 작업의 예약 전·적용 후 복구 근거
+
+V73 로컬 미적용 변경이다. 일반 작업은 배치와 달리 예약 시 이미 이전 current/confirmation을 STALE로 만들고 첨부 버전을 증가시킨다. 따라서 기존 `expected_attachment_version`을 예약 전 버전으로 간주해서는 안 된다.
+
+| 시점 | 원문 버전 | 첨부 버전 | 기록 |
+|---|---|---|---|
+| 예약 직전 | S | A | reservation_source_version / reservation_attachment_version |
+| 예약 완료 | S | A+1 | expected_source_version / expected_attachment_version |
+| ENFORCE 판정 저장 | S | A+2 | applied_source_version / applied_attachment_version / applied_input_hash |
+| 정상 적용 원복 | S 유지 | A+3 | 일반 원복 승인/복구 transaction; 11.17 |
+| 실패 예약 복구 | S 유지 | A+2 | 실패로 종료된 A+1 예약만 복구; 적용 성공으로 변경하지 않음 |
+
+- `capture_attachment_normal_reservation` BEFORE INSERT가 원문 잠금 아래 직전 pointer/policy/review/confirmation과 요청을 대조하고 예약 버전·출처 locator 지문·이전 evaluation의 current 여부·이전 confirmation binding의 유효 여부를 고정한다. `COLLECT`, `RETRY_FILES`, `ROLE_CHANGE` 모두 같은 Job Mapper INSERT를 사용한다. 이미 어긋난 확인을 유효하게 승격하지 않고 원래 확인의 버전 또는 완료된 복구 버전, 같은 base/content/rule/policy/SEALED set hash를 대조한다. 이 flag만으로 전체 검수 또는 원복 가능성을 보증하지 않는다.
+- `attachment_normal_job_application_hash(jobId,evaluationId)`는 불변 작업 입력·예약 전 연결·적용 시점 current/버전·출처/기관 metadata 지문·base/evaluation/set/policy/rule hash·current 확인·보호 link·다른 활성 작업 존재를 묶는다. 본문·첨부 텍스트·URL·검수 메모는 이력에 복사하지 않는다. 정책 ACTIVE/OFF/퇴역과 실행 횟수는 지문에 넣지 않으며 OFF 전환을 원복으로 간주하지 않는다.
+- `updateJobCompleted`가 동일 lease-fenced transaction에서 일반 적용의 원문 버전과 지문까지 저장한다. BEFORE UPDATE는 실제 current/source/policy/버전/SEALED 근거·출처 locator·후속 확인/link 부재와 완료 lease를 대조한다. PENDING 작업에 판정만 채우거나 COLLECT_ONLY preview를 APPLIED로 승격할 수 없다. PARTIAL_FAILED에서 검수 의무가 적용돼도 파일 성공으로 표현하지 않는다.
+- 예약 근거·이전 binding·APPLIED 근거와 set/preview는 수정할 수 없다. V72 과거 행에는 근거를 추정해 소급 생성하지 않는다. 정수 첨부 버전에 예약+완료 두 단계의 여유가 없는 경우 신규 예약을 거부한다.
+- 일반 원복은11.17의 별도 승인으로만 가능하다. batch 승인 ID나 `rollback_status_code=ROLLED_BACK` 직접 변경은 거부한다. 실제 PostgreSQL migration/trigger 실행은 환경 차단으로 미검증이다.
+
+### 11.17 일반 작업 원복·실패 예약 해소의 원자적 승인
+
+V73 미적용 증분이다. `announcement_attachment_normal_rollback_actions`는 job당 하나의 불변 승인·복구 영수증이다. job/source composite FK·source 삭제 cascade, (id,job) unique, actor/source 인덱스, UUID idempotency key/request/reason hash를 둔다. 원문 사유는 감사 metadata에 복사하지 않는다. `normal_rollback_action_id`는 batch의 rollback_action_id와 서로 다르며 batch job에 연결할 수 없다.
+
+- 모드 `APPLIED`: SUCCEEDED/PARTIAL_FAILED로 종료됐고 적용 근거가 현재와 일치하는 일반 작업이다. 원래 application_status_code/APPLIED와 applied_* 이력을 유지한다.
+- 모드 `FAILED_RESERVATION`: application_status_code=PENDING인 FAILED/CONFLICT/CANCELLED 일반 예약이다. 현재 pointer 없음·예약 후 버전 일치·후속 작업 없음이 필요하다. job 실패/미적용 이력을 성공이나 APPLIED로 바꾸지 않고 rollback 결과만 별도 기록한다. 진행 중/재시도 대기/과거 근거 없는 작업은 복구하지 않는다.
+- reservation_context_hash는 예약 당시 base/content/rule/current와 출처 locator·기관 metadata의 지문이다. 실패 예약도 본문 버전 숫자가 그대로인 기관 정보 변경을 감지한다. 원복 가능성 함수 `attachment_normal_job_recovery_state`를 API preview와 DB 승인 INSERT에서 공통 사용한다. mode/원문·첨부 버전/job version·지문·현재 binding·이전 평가/확인 유효성·base 경로 재개/확인 복원 여부를 고정한다.
+- ADMIN 확인, 멱등 키73109 → source → job 잠금 후 다시 조회하고 승인 INSERT·source CAS·이전 evaluation current·필요한 confirmation current·job ROLLED_BACK·감사 기록을 하나의 transaction으로 처리한다. 승인 당시 모든 효과와 previewHash가 맞아야 하며 후속 검수/link/다른 활성 job·입력 변경은 거부한다. 현재 ACTIVE/OFF 여부로 이전 보호를 자동 해제하지 않는다.
+- deferred complete trigger가 source 버전 유지·첨부 버전+1·이전 pointer/policy/review·evaluation/확인·영수증 연결을 대조한다. 승인만 저장하거나 부분 복원으로 끝낼 수 없다. 실패 시 전체 transaction을 취소하고 같은 요청 재시도가 가능하다. 원복 뒤 옛 job 재시작·영수증 수정/단독 삭제·복구 버전 변경은 거부한다.
+- 일반 확인 복구는 별도 batch restoration 행을 위조하지 않는다. 완료된 normal action도 `attachment_confirmation_restored_binding`의 공통 결과에 포함한다. 원래 confirmation ID/버전/시각/태그는 보존하며 Current/Review/DRAFT가 증가한 유효 버전을 사용한다. 이미 무효인 이전 확인은 STALE이고, 이전 상태가 미확인 검수 대기였다면 그 보호를 유지한다.
+- 단위/HTTP/Mapper 정적 검증과 PG12건을 추가했다. 실제 Linux/PostgreSQL·API 운영 실행·원복 화면 검증은 아직 없으므로 운영 복구 완료가 아니다. 원문/파일 이력·운영 공고·사용자 신청을 삭제하거나 자동 활성화하지 않는다.
+
+### 11.18 전체 후보 목록 고정·분할 소속 — V74
+
+V74는 로컬 additive migration이며 V1~V73을 수정하지 않는다. `announcement_attachment_backfill_runs`에 전체 필터/정책 snapshot, scope/candidate 지문, 최초 후보 수(bigint), 분할 크기(1~1000)/수(bigint), 삭제 수/버전, actor/멱등 키/요청·사유 지문을 둔다. 생성 transaction ID는 DB 내부 guard용이며 API에 반환하지 않는다. 정책 변경·수집/적용 승인·job 생성은 하지 않는다.
+
+`announcement_attachment_backfill_segments`의 PK는(run_id,segment_no), `announcement_attachment_backfill_items`의 PK는(run_id,source_id), UNIQUE는(run_id,ordinal)이다. 순번은 collected_at/source UUID 순이며 분할=(ordinal-1)/segmentSize+1이다. 전체 후보 materialize SQL에는 LIMIT가 없고 원문/URL을 이력에 복사하지 않는다. 입력 지문에는 원문·첨부 버전, base/content/rule·current/검수 binding, 출처 지문, 시각/마감일이 포함된다.
+
+item의(base_evaluation_id,source_id,content_version_id,rule_release_id) composite FK는 기존 base 평가를 참조하며 ON DELETE CASCADE다. 원문/base 삭제 뒤 식별자 tombstone 없이 item을 제거하고 segment/run 삭제 수·run 버전만 증가한다. run/segment 최초 분모·필터·지문은 불변이다. 직접 item 삭제, 입력·분할 이동, 최초 transaction 이후 추가 삽입, 관리 이력 삭제와 직접 삭제 카운터 조작은 거부한다.
+
+최초 run INSERT에 deferred constraint를 한 번 실행해 전체 item 수·후보 지문·순번 유일성/범위·분할별 최초 건수·분할 수를 대조한다. 부분 materialize를 commit할 수 없다. 이후 삭제 카운터는 cascade trigger 안에서만 증가하여 최초 분모를 유지한다. API 조회도 실제 item 합과 run/segment 수를 대조한다. candidateCount=remainingItemCount+deletedItemCount이고 전체 삭제는 처리 성공이 아니다.
+
+source/base FK·run 목록·분할별 순번 인덱스를 둔다. 한 REPEATABLE READ transaction의 고정/분할/item 생성은 실패 시 전체 rollback한다. 실제 SQL·Flyway·원자성 검증은 `AnnouncementAttachmentBackfillIntegrationTest`와 최신 migration upgrade 시험 대상이다. 단위/HTTP/Mapper 정적 통과와 실제 PostgreSQL 실행은 구분한다. 고정 분할→batch 연결과 전체 상태 집계의 로컬 계약은11.19에 추가했다. 실제 전체 범위 실행·최종 결과 대조는 필수 잔여다.
+
+### 11.19 고정 분할과 batch 일대일 연결 — V75
+
+`announcement_attachment_backfill_segment_batches`는(run_id,segment_no) PK와 composite FK, batch_id UNIQUE/FK, UUID 멱등 키 UNIQUE를 갖는다. 예약 전 삭제 수·확인한 목록 버전·분할 지문·actor/요청·사유 지문·생성 시각을 불변 영수증으로 보관한다. 원문/URL이나 source ID 복사 목록을 만들지 않는다. V1~V74는 수정하지 않는다.
+
+- INSERT guard는 고정 run/segment의 버전·삭제 수와 새 SCOPE_READY batch의 정책 snapshot·actor/key·scope_json의 backfillRunId/backfillSegmentNo를 확인한다. 이미 생성된 일반 batch를 임의로 연결하거나 실패/취소 연결을 교체·삭제하지 못한다.
+- batch 최초 대상 수+예약 전 삭제 수=분할 최초 수, batch 삭제 수+예약 전 삭제 수=분할 삭제 수를 대조한다. item↔job의 source/content/base/rule/provider 소속을 양방향 확인한다. 일부를 빠뜨리거나 다른 원문으로 채운 동일 건수 배치도 거부한다.
+- marked batch와 연결 영수증이 같은 transaction에 있어야 한다. batch/job/link의 deferred constraint가 cascade 완료 후 현재 잔여 소속과 건수를 검증한다. 먼저 job이 삭제되거나 먼저 ledger item이 삭제되는 중간 순서를 완료 상태로 판정하지 않는다.
+- 삭제 카운터 갱신은 source→run→segment 순서를 유지하도록 V75에서 함수를 교체한다. V74의 최초 분모/입력 불변·삭제 수 증가 제약은 유지한다. 예약은 요청 키75001→기존 batch 키73105→source→정책→run→segment→신규 batch/job/link 순서다.
+- `attachment_backfill_batch_input_unchanged`는 linked job의 고정 inventory 입력을 검사한다. 기존 `attachment_batch_job_input_unchanged`의 출처·이전 pointer/policy/review/confirmation·운영 link 보호를 모두 유지하면서 이 검사를 추가한다. 기존 claim/매 HTTP guard와 수집 시작·재개의 실행 입력 조회에 연결한다.
+- 전체 요약은 고정 item LEFT JOIN link/job으로 잔여·미예약·누락을 구분한다. collection/application/rollback 각각의 전체 분모를 확인하고 source 삭제 수는 별도 유지한다. 새 status로 성공을 합성하거나 source·운영 공고·정책을 자동 변경하지 않는다.
+
+최신 migration/실제 PG 검증은 V74→V75 upgrade와 `AnnouncementAttachmentBackfillIntegrationTest`의 1001건 분할 예약·전후 삭제·입력 변경·불변 연결·경합을 포함한다. 작성된 시험의 조건부 생략은 통과가 아니며 실제 승인 범위 적용과 운영 브라우저 검증은 별도 필수다.
+
+### 11.20 정책 게시 전 영향 관측 — DDL 변경 없음
+
+V72의 규칙별 ACTIVE unique 계약과 정책 binding/job, V73의 고정 collection plan/QA 이력을 읽는다. REPEATABLE READ/readOnly의 단일 관측에서 같은 규칙 ACTIVE0~1건·해당 규칙/전체 규칙 집계·최신 QA를 대조한다. source/job/plan을 별도 집계하여 join 증식을 방지하고 원문/job은PRODUCTION, plan은 원래 collection request의PRODUCTION만 포함한다.
+
+현재 ACTIVE 규칙의 OFF 정책은 다른 규칙의 고정 작업까지 새 외부 요청을 막는다. 따라서 matchingRule과 allRules는 별도 포함 관계로 표시한다. 원문 바인딩/검수 요구/현재 첨부 pointer/운영 link, 수집 예약·RUNNING/적용 대기/원복 대기, FROZEN 계획 누적 이력을 구분한다. link는EXISTS, 상태 집계는FILTER를 사용하며 count에는LIMIT가 없다. 일부 집계를 전체로 반환하거나 QA를 운영 수에 섞지 않는다.
+
+관측 지문은 source ID/개별 버전 전체의 scope 고정이 아니다. source membership 변경이 같은 집계 수로 남을 수 있어 게시 CAS/승인 토큰으로 사용할 수 없다. 최신 QA의 단계 상태·hash를 표시하되 실제 evidence/코드·설치·전체profile 재검증이나 게시 transaction을 실행하지 않는다. 상세 계약은 `announcement-attachment-policy-publication-impact-2026-09-12.md`와 API24.23을 따른다. 실제 PG3사례와 운영 규모 실행계획/시간 검증은 미완료다.
+
+### 11.21 게시 준비 범위의 불변 원장 — V76
+
+`announcement_attachment_policy_publication_scopes`는 정책·규칙 ID/버전/모드와 선택적 QA ID/hash, 봉인 상태·전체 수/hash, actor·멱등 키·사유/요청 지문, 생성/만료 시각을 보관한다. `announcement_attachment_policy_publication_scope_items`는 scopeId/type/entityId 복합 PK와 stateHash다. V1~V75는 이 증분에서 변경하지 않는다.
+
+POLICY(선택 DRAFT·모든 ACTIVE/RETIRED), SOURCE(정책 binding PRODUCTION), JOB(수집/적용/배치 원복 대기 PRODUCTION), COLLECTION_PLAN(PRODUCTION FROZEN 누적), COLLECTOR(활성 지자체 시스템 설정)를 DB 함수로 모두 고정한다. 서로 다른 차원의 합계는 공고 수나 예상 HTTP 수가 아니다. entityId에 원문 FK를 걸지 않아 원문 삭제 이후에도 비식별 ID/hash 감사 이력이 남는다. 원문·첨부 텍스트·URL·개인정보는 복사하지 않는다.
+
+OPEN→전체 INSERT→SEALED는 같은 생성 xid만 허용한다. root/항목은 이후 수정·삭제 불가다. deferred constraint가 commit 전 정책·규칙 버전/모드, 실제 count/hash와 양방향 EXCEPT를 검사한다. 누락·추가·동일 수 다른 ID/상태를 거부한다. scope hash는 정렬한 모든 항목과 정책/규칙/QA binding을 포함하며 관측 집계 hash와 구분한다. 유효시간 API10분/DB최대15분이다.
+
+준비는 REPEATABLE READ 단일 snapshot이며 전역 게시 잠금을 대신하지 않는다. 최종 게시에서 최신 QA/설치/전체 profile·동시 쓰기·승인 범위를 재검증해야 한다. 정책 게시·기존 데이터 적용은 수행하지 않는다. 실제 PG6사례 및 V75→V76/빈 DB migration 실행은 별도 Gate이며 상세 계약은 `announcement-attachment-policy-publication-scope-2026-09-12.md`에 있다.
+
+### 11.22 정책 게시 영수증과 원자적 교체 — V77
+
+`announcement_attachment_policy_publications`에 게시 ID, scopeId UNIQUE/FK, policyId UNIQUE/FK, 게시 버전/hash·검증된 runtimeHash, 이전 정책 ID/교체 전 버전, QA ID/evidenceHash, actor/멱등 키/요청·사유 hash, 생성 xid·게시 시각을 불변 저장한다. 입력 원문·URL·비밀번호를 저장하지 않는다. V1~V76는 이 증분에서 변경하지 않는다.
+
+INSERT trigger가 동일 관리자 준비·만료·DRAFT/ACTIVE 규칙·최신 VERIFIED QA/네 단계 PASSED metadata·양방향 전체 범위 차집합을 검사한다. 이 DB metadata 검사는 Java의 실제 근거 재검증을 대신하지 않는다. 이전 ACTIVE ID/버전과 새 게시 버전/hash/runtimeHash도 준비·QA에 일치해야 한다. 이후 UPDATE/DELETE는 거부한다.
+
+서비스는18개 관련 테이블 EXCLUSIVE NOWAIT와 READ COMMITTED/15초 안에서 영수증 → 이전 ACTIVE 퇴역/버전+1 → DRAFT ACTIVE/버전+1 → 감사 metadata를 저장한다. policyHash는 승인된 QA snapshot hash이며, settings_json.extractorConfigHash에 QA 설치 지문만 고정한다. deferred constraint는 새 ACTIVE/이전 RETIRED·정확한 버전/hash/게시 시각·runtime 및 그 외 QA 설정 불변을 검사하여 부분 commit을 막는다. source/job/배치/운영 공고의 상태를 자동 변경하지 않는다.
+
+09-12 코드·기관·독립 QA 지문 보강은 schema migration 없이 QA input JSON의 내부 schemaVersion5·installed.executionCodeHash·installed.workerDbQa·providerQaPlan과 지자체 target의 publicCode를 사용한다. workerDbQa는 독립 QA artifact/code/runtime 지문·네 suite별 수·정렬한 전체 case ID hash 목록이다. providerQaPlan은 기업마당/정부24/활성 지자체 전체의 기관·목록 parser·첨부 프로필 결합/미구현/불일치/중복 및 최소 검증 요구량이다. URL/설정 원문을 넣거나 실제 성공으로 표시하지 않는다. 누락/중복 기관 identity는 거부하고 같은 UUID의 기관 코드 변경도 과거 QA를 무효화한다. 전체 main class/resource 실제 바이트·독립 inventory 검증과 실제 QA 실행은 DB transaction 밖에서 수행한다. 게시 잠금 안에서는 정책/scope/최신 QA run/단계와 입력 snapshot이 검증 당시와 같음을 재확인한다. 과거 schema1~4 QA는 재작성하거나 새 코드의 성공 근거로 재사용하지 않는다. WORKER_DB_RECOVERY 연결 코드는 완료했지만 실제 Linux/PG 성공과 전체 Provider QA는 미확인이다. 상세는 `announcement-attachment-policy-qa-bridge-2026-09-12.md` 및 `announcement-attachment-provider-qa-scope-2026-09-12.md`를 따른다.
+
+정책별 게시 영수증은 하나이며 후속 개정은 새 정책을 사용한다. 잠금은 일반 SELECT를 허용하되 DML/row-lock 업무와 충돌하며 사용 중이면 게시가 즉시 실패한다. 실제 규모 성능/경합과 PG4사례·V76→V77/빈DB 시험, 전체 QA 구현·운영은 필수 잔여다. 상세는 `announcement-attachment-policy-publication-2026-09-12.md`와 API24.26을 따른다.
+
+### 11.23 정부24 첨부 저장 코드 정합성 — V78
+
+원문·기존 Provider·제외 tombstone의 실제 코드는 `GOV24_PUBLIC_SERVICE`다. V78은 `announcement_attachment_jobs.frozen_provider_code`와 `announcement_attachment_backfill_items.provider_code`의 CHECK 허용 목록에 이 코드를 추가한다. 기존 `GOV24` 이력 값의 허용은 유지하며 데이터·FK·불변 trigger·기존 migration은 변경하지 않는다.
+
+배치/전체 목록 필터의 API 별칭 `GOV24`는 Mapper 바인딩에서만 실제 코드로 변환한다. 저장되는 후보/항목/job, 정책 registry 및 QA 대상은 실제 코드를 유지한다. 원문 컬럼 변환이나 전체 데이터 UPDATE는 없다. 이전 요청/고정 이력은 재작성하지 않고 신규 미리보기부터 대상/지문을 재검증한다. V77→V78 및 빈 DB·실제 정부24 전체 목록 materialize 시험을 작성했으나 실제 PostgreSQL 실행 성공은 별도 Gate다. 상세는 API24.27 및 `announcement-attachment-gov24-provider-contract-2026-09-12.md`를 따른다.
+
+### 11.24 Provider QA 분할 실행 원장 — V79
+
+`announcement_attachment_provider_qa_runs`는 현재 DRAFT 정책/규칙 버전과 snapshot/catalog/전체 업무 코드/runtime 지문, 전체 요구 범위, 예상 항목 수와 합산 요청/byte 상한을 고정한다. `announcement_attachment_provider_qa_cases`는 순번·공고별 입력/profile 지문·예상 파일 수·상한과 소유 lease, 누적 사용량·안전한 결과 metadata를 저장한다. 제목/URL/파일 원문/추출문/기대 문구는 이 두 실행 원장에 저장하지 않는다.
+
+- run BUILDING 생성→전체 case 입력→READY 봉인은 같은 transaction으로 완료해야 한다. 순번·개수·요청/byte 합계가 다르면 봉인할 수 없다. 단독 BUILDING commit, 항목 추가·삭제, 고정 입력 변경은 금지한다.
+- 전체 활성 run은1개, RUNNING case도1개다. case lease는 최초 최대8분/부모24시간 유효기간 이내이며 연장·재claim하지 않는다. 만료는 FAILED/LEASE_EXPIRED로 남기고 늦은 응답을 거부한다. 재시도는 새 고정 계획이 필요하다.
+- 요청/byte 예약은 부모 lock 아래 case/run에 원자적으로 누적하며 환급하지 않는다. 살아 있는 DOWNLOAD와 HOST 소유권이 필요하다. 기존 resource lease에 Provider case 소유자 두 컬럼을 추가하고 일반 job/정책 QA와 다운로드2·호스트1·추출1 슬롯을 공유한다. 만료 슬롯 인수 시 다른 종류의 이전 소유자 필드를 비운다.
+- 원본 정리·입력/profile/runtime 지문·파일 분모·누적 사용량이 맞는 결과만 PASSED가 가능하다. 취소·현재 정책/규칙 변경·만료는 성공보다 우선한다. 모든 case가 끝나기 전 run을 종료하거나 분모를 줄일 수 없다.
+- COMPLETED는 고정 case 전체의 기대 동작 일치다. 전체 수집원 QA, 정책 VERIFIED/게시, ENFORCE, 원문/운영 공고 갱신을 뜻하지 않는다. 전체 catalog/예약 API/정책 verifier 연계는 잔여 작업이다.
+
+V1~V78은 변경하지 않는다. V78→V79/빈 DB migration과 실제 PostgreSQL14사례를 작성했으나 이 PC에서는 아직 실행하지 못했다. 상세 계약·검증은 `announcement-attachment-provider-qa-ledger-2026-09-12.md` 및 API24.28을 따른다.
+
+### 11.25 Provider QA catalog snapshot — DDL 변경 없음
+
+정책 QA input JSON의 내부 schema6는 전체 요구 목록과 고정 catalog 계획을 함께 저장한다. catalogVersion/catalogHash/scopeHash, 모든 target의 결합 상태·정상 공고/형식 기대 coverage와 모든 case의 준비 상태·입력 지문·기대 파일 수, 전체 분할 목록/상한을 포함한다. 원문 URL/제목/추출문/기대 문구와 실행용 Prepared.inputs는 저장하지 않는다. 기대 파일 수 미확인은 null이며, 한도 초과나 준비 실패를0개로 바꾸지 않는다.
+
+schema1~5 이력은 수정하지 않는다. 현재 catalog/규칙/runtime/전체 scope·준비 상태가 다르면 snapshotHash가 달라져 이전 QA를 재사용할 수 없다. V79에 분할 실행을 예약하는 서비스·HTTP API/scheduler·전체 결과 verifier는 후속 필수 작업이며, 현재 catalog의 기대 coverage를 실제 QA PASSED로 저장하지 않는다. 공식 참조9/실행 기대값0과 정상3공고·세 형식/전체 기관 분모를 그대로 유지한다. 상세는 API24.29 및 `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.
+
+### 11.26 Provider QA 승인 분할 계획 — V80
+
+`announcement_attachment_provider_qa_run_plans`는 run에 1:1로 planHash, 분할 번호/전체 분할 수, 전체 catalog/실행 가능 case 수, 기대 coverage 여부, 여유 포함 시간 상한을 봉인한다. 기존 V79 run 컬럼·V1~V79 migration은 수정하지 않는다. 전체 분모>=실행 가능 분모>=선택 분할 case 수이며, 시간 상한은 모든 case의 maximum_seconds+60 합계와 정확히 같고23시간 이내여야 한다.
+
+V80 이후 run INSERT의 deferred constraint가 같은 생성 xid의 계획/전체 case/READY 원자성을 검사한다. 계획은 생성 이후 수정·삭제할 수 없다. 과거 V79 이력은 변경하지 않으며 LEFT JOIN 조회에서 계획 정보가 null인 이력을 보존한다. 계획 없는 과거 활성 run은 새 실행 근거로 쓰지 않는다.
+
+관리 Service가 현재 DRAFT 정책·규칙·snapshot/catalog/계획과 관리자의 정확한 분할/예산 확인을 대조하고, 짧은 queue→규칙/정책 잠금 아래 원장·계획·case·READY·감사 metadata를 함께 저장한다. 같은 actor/정책/입력/멱등 키는 OFF/간격 검사 전에 이력을 반환한다. 새 예약은 같은 정책에서60초 간격이며 전체 분할 실행을 하루3회로 축소하지 않는다.
+
+기본 OFF 스케줄러는 승인된 분할 전체를 현재 catalog에서 재구성하고 전체 case 순서·입력/파일/상한을 대조한 후 한 case씩 실행한다. 변경·취소·만료와 원본/자원 정리를 기존 원장 계약에 연결하며 정책 VERIFIED/게시·source/job/운영 공고 활성화를 대신하지 않는다. 실제 PG3사례·V79→V80/빈DB 검증은 작성했으나 미실행이다. 관리 API와 잔여 검증은 API24.30 및 `announcement-attachment-provider-qa-management-2026-09-12.md`를 따른다.
+
+### 11.27 Provider QA 전체 실행 근거 조회 — DDL 변경 없음
+
+새 내부 Evidence DAO/Mapper는 같은 정책/snapshot/catalog/승인 plan의 분할별 최신 시도를 전체 상태에서 선택한다. COMPLETED만 미리 필터링해 최신 실패를 건너뛰지 않는다. 각 run의 required_scope_json과 전체 case count/100개 페이지를 읽어 현재 전체 계획·순번·파일 분모와 대조한다. 응답 API에는 이 증거 JSON을 노출하지 않는다.
+
+파일별 재검증기는 불변 case/run·현재 고정 입력과 실제 출력 metadata/hash/품질·요청/byte 합계·원본 정리·소유 시간의 일치를 요구한다. 전체 집계는 모든 분할·target·case/file 수와 정렬된 ID/digest를 보존한다. 실제 실행 순서와 분할 번호순을 구분하고, 정책 QA 이후 새로 완료된 증거로 과거 정책 QA를 소급 통과시키지 않는다.
+
+실제 PostgreSQL2사례(최신 대기/실패 우선, case 전체 페이지/실제 시각/hash/미실행 보존)를 작성했으나 미실행이다. 정책 단계/게시 연결과 잠금 확장은 아래11.28을 따른다. 상세는 API24.31 및 `announcement-attachment-provider-qa-evidence-2026-09-12.md`를 따른다.
+
+### 11.28 Provider QA 정책 연결·게시 경합 잠금 — V81
+
+V81은 `attachment_policy_publication_lock()`의 기존18테이블/순서를 유지하고 `announcement_attachment_provider_qa_runs`, `announcement_attachment_provider_qa_cases`, `announcement_attachment_provider_qa_run_plans`를 EXCLUSIVE NOWAIT 잠금에 추가한다. 일반 SELECT는 허용하며 DML/행 잠금과 충돌하면 즉시 거부한다. 기존 V1~V80/이력은 수정하지 않으며 정책·운영 데이터 쓰기는 없다.
+
+정책 QA는 전체 Provider 근거와 세 나머지 단계가 모두 저장된 PASSED일 때만 VERIFIED를 기록한다. 게시 전 전체 재검증은 잠금 밖에서, 최신 run 소속·버전·상태 대조는 기존 게시 transaction 잠금 안에서 수행한다. 새 시도/실패/대기가 생기면 이전 성공으로 게시하지 않는다. V80→V81 및 새 DB 검증·읽기 허용/쓰기 차단/역방향 NOWAIT 경합 시험을 추가했으나 실제 PostgreSQL 실행은 별도 필수다.
+
+### 11.29 3단계 자동 분석 상태 조회 — DDL 변경 없음
+
+`AnnouncementAttachmentCurrentMapper`의 기존 현재 base/evaluation/SEALED set·확인 복구 binding·최신 일반 job projection에 `active_normal_job`을 추가한다. source별 일반 작업 전체의 SCOPE_READY/PENDING/RUNNING/RETRY_WAIT/PAUSED 존재 여부이며 batch_id가 있는 미리보기는 제외한다. 최신 종료 작업만 조회해 다른 활성 작업을 놓치지 않도록 기존 검수 쓰기 guard와 동일한 조건을 사용한다.
+
+`AttachmentProcessingFlow`는 같은 REPEATABLE_READ 조회 결과에서 처리 흐름을 계산한다. source/판정/확인 이력·원본·운영 공고를 수정하거나 중복 상태를 저장하지 않는다. 현재 결합 누락·이전 근거·기술 실패·수동 확인·미리보기를 분리하며 새 migration은 필요하지 않다. v2의 additive `processingFlow` 계약은 API24.32를 따른다. 후속 대기열 필터는 아래11.30을 따른다.
+
+### 11.30 최종 검증 대기열 검색 — DDL 변경 없음
+
+현재 Mapper의 `ProcessingFlowStatus` CASE가 `AttachmentProcessingFlow`의9상태/우선순위를 SQL 검색으로 표현한다. `ActiveNormalJob`와 `AttachmentStale` fragment를 projection/필터에서 공유한다. 현재 source/base/rule/policy/SEALED set/복구된 confirmation 결합은 변경하지 않는다.
+
+`processingFlowStatusCode`는 `#{processingFlowStatusCode}`로 바인딩하며 list/count의 `SearchWhere`를 공유한다. count의 분모는 페이지 내 행이 아닌 전체 검색 결과이고, 기존 제목 제외/QA 제외·provider·태그·기간 범위와 같은 transaction snapshot이다. 새 판정 상태를 DB에 중복 저장하거나 migration을 추가하지 않는다.
+
+검증은 API 입력·Mapper 바인딩·UI 계약과 실제 임시 PostgreSQL9상태/29행·5개 페이지 크기의 SQL/Java projection 대조를 구분한다. 테스트 작성 자체는 SQL 실행 성공이 아니다. 실제 실행 상태는 장기 진행 기록을 따른다.

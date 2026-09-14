@@ -87,6 +87,37 @@ class AnnouncementSourceReclassificationRunServiceImplTest {
     }
 
     @Test
+    void rejectsAttachmentBoundRollbackWithoutRestoringOldBaseProjection() {
+        AnnouncementSourceReclassificationRunItemRow item =
+                itemRow("APPLIED", "d".repeat(64), UUID.randomUUID(), UUID.randomUUID());
+        when(runDao.selectNextRunnableRunDetails()).thenReturn(runRow("ROLLBACK_RUNNING", 1, 3));
+        when(runDao.selectRunItemList(RUN_ID, "APPLIED", 50)).thenReturn(List.of(item));
+        when(sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+
+        service.insertNextRunBatch();
+
+        verify(runDao).updateItemFailure(eq(item.itemId()), eq("APPLIED"), eq("ROLLBACK_CONFLICT"),
+                eq("ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE"), anyString());
+        verify(runDao, never()).updateAppliedEvaluationNotCurrent(any(), any());
+        verify(runDao, never()).updatePreviousEvaluationCurrent(any(), any());
+    }
+
+    @Test
+    void rejectsAttachmentBoundPreviewWithoutComputingLegacyPrediction() {
+        AnnouncementSourceReclassificationRunItemRow item = itemRow("PENDING", null, null, null);
+        when(runDao.selectNextRunnableRunDetails()).thenReturn(runRow("PREVIEW_RUNNING", 1, 1));
+        when(runDao.selectRunItemList(RUN_ID, "PENDING", 50)).thenReturn(List.of(item));
+        when(ruleReleaseService.selectPublishedRuleSet(RELEASE_ID)).thenReturn(ruleSet());
+        when(sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+
+        service.insertNextRunBatch();
+
+        verify(runDao).updateItemFailure(eq(item.itemId()), eq("PENDING"), eq("PREVIEW_CONFLICT"),
+                eq("ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE"), anyString());
+        verify(runDao, never()).updateItemPreviewed(any(), anyString(), anyString(), anyString());
+    }
+
+    @Test
     void createsPreviewScopeWithoutPersistingPlainChangeReason() {
         AnnouncementSourceReclassificationRunPreviewRequest request =
                 new AnnouncementSourceReclassificationRunPreviewRequest(

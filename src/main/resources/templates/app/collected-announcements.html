@@ -11,16 +11,18 @@
             <div>
                 <span class="section-label">수집 공고 검수</span>
                 <h2>분류 판정과 수집 상태를 나누어 확인합니다</h2>
-                <p>자동 제외도 원문과 판정 근거를 보존합니다. 유효 후보는 최종 확정 공고가 아니며, 운영자 검수와 조건 입력 후에만 운영 공고로 전환합니다.</p>
+                <p>제목에서 제외된 공고의 원문은 제공하지 않습니다. 유효 후보는 최종 확정 공고가 아니며, 운영자 검수와 조건 입력이 필요합니다.</p>
             </div>
             <div class="summary-actions">
                 <a class="secondary-action" th:href="@{/app/admin/announcement-sources}">수집 관리</a>
                 <a class="secondary-action" th:href="@{/app/admin/announcement-keywords}">키워드 관리</a>
+                <a class="secondary-action" th:href="@{/app/admin/announcement-attachment-queue}">3단계 처리·최종 검증 대기열</a>
+                <a class="secondary-action" th:href="@{/app/admin/announcement-attachment-batches}">첨부 배치 작업</a>
             </div>
         </div>
         <div class="classification-scope-notice" role="note">
-            <strong>첨부파일 판정 제외</strong>
-            <span>PDF·HWP 등 첨부파일은 신규 V2 수집·다운로드·본문 추출·분류에서 제외합니다. 기존 이력의 링크만 원문 확인용으로 표시합니다.</span>
+            <strong>제목·본문 기준 목록</strong>
+            <span>첨부 처리 여부는 공고별 ‘본문·첨부 근거와 검수’에서 확인하세요. 첨부 미리보기와 현재 적용 판정은 다르며, 이 목록은 첨부 상시 수집의 성공을 보장하지 않습니다.</span>
         </div>
     </section>
 
@@ -38,7 +40,7 @@
         <article class="top-summary-card is-excluded">
             <span>자동 제외</span>
             <strong data-collected-excluded-count aria-live="polite">0건</strong>
-            <p>삭제하지 않고 근거와 함께 보존</p>
+            <p>제목 제외 원문은 조회 대상에서 제외</p>
         </article>
         <article class="top-summary-card">
             <span>현재 조회</span>

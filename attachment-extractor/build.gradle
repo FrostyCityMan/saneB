@@ -16,3 +16,25 @@ dependencies {
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('test') { useJUnitPlatform(); maxHeapSize = '256m'; maxParallelForks = 1 }
 tasks.named('jar') { manifest { attributes 'Implementation-Version': project.version } }
+
+// 신뢰한 합성 입력만 빌드 시 생성한다. 파서 의존성을 Spring 서버 classpath에 추가하지 않는다.
+sourceSets {
+    qaFixtures {
+        compileClasspath += sourceSets.main.runtimeClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+tasks.register('generateRuntimeQaFixtures', JavaExec) {
+    dependsOn tasks.named('qaFixturesClasses')
+    classpath = sourceSets.qaFixtures.runtimeClasspath
+    mainClass = 'com.saneb.extractor.qa.AttachmentRuntimeFixtureGenerator'
+    def destination = layout.buildDirectory.dir('generated/runtime-qa/attachment-runtime-qa')
+    args destination.get().asFile.absolutePath
+    inputs.files(sourceSets.qaFixtures.output, configurations.runtimeClasspath)
+    outputs.dir(destination)
+    maxHeapSize = '128m'
+}
+tasks.named('processTestResources') {
+    dependsOn 'generateRuntimeQaFixtures'
+    from(layout.buildDirectory.dir('generated/runtime-qa'))
+}

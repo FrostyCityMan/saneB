@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchApplicationDao">
+    <resultMap id="ActionMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchApplicationRows$Action"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="batch_id" javaType="java.util.UUID"/><arg column="preview_id" javaType="java.util.UUID"/>
+        <arg column="action_code" javaType="java.lang.String"/><arg column="expected_version" javaType="java.lang.Integer"/>
+        <arg column="scope_item_count" javaType="java.lang.Integer"/><arg column="selected_item_count" javaType="java.lang.Integer"/><arg column="deleted_item_count" javaType="java.lang.Integer"/>
+        <arg column="actor_id" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+        <arg column="reason_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="CountsMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchApplicationRows$Counts"><constructor>
+        <arg column="remaining" javaType="java.lang.Integer"/><arg column="pending" javaType="java.lang.Integer"/><arg column="applied" javaType="java.lang.Integer"/>
+        <arg column="conflicts" javaType="java.lang.Integer"/><arg column="failed" javaType="java.lang.Integer"/><arg column="selected_remaining" javaType="java.lang.Integer"/>
+    </constructor></resultMap>
+    <resultMap id="WorkMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchApplicationRows$Work"><constructor>
+        <arg column="batch_id" javaType="java.util.UUID"/><arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/>
+        <arg column="policy_id" javaType="java.util.UUID"/><arg column="preview_evaluation_id" javaType="java.util.UUID"/><arg column="preview_id" javaType="java.util.UUID"/>
+        <arg column="input_hash" javaType="java.lang.String"/><arg column="actor_id" javaType="java.util.UUID"/>
+    </constructor></resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchApplicationRows$Item"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/><arg column="job_status_code" javaType="java.lang.String"/>
+        <arg column="is_selected_for_application" javaType="java.lang.Boolean"/><arg column="application_status_code" javaType="java.lang.String"/>
+        <arg column="application_error_code" javaType="java.lang.String"/><arg column="application_attempt_count" javaType="java.lang.Integer"/>
+        <arg column="application_next_attempt_at" javaType="java.time.OffsetDateTime"/><arg column="applied_evaluation_id" javaType="java.util.UUID"/>
+        <arg column="applied_source_version" javaType="java.lang.Integer"/><arg column="applied_attachment_version" javaType="java.lang.Integer"/><arg column="rollback_status_code" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <select id="selectItemList" resultMap="ItemMap" useCache="false" flushCache="true">
+        -- 수집 성공과 적용 실패를 구분한다. 삭제된 원문을 복원하거나 원문/검수 메모를 반환하지 않는다.
+        SELECT id,source_id,job_status_code,is_selected_for_application,application_status_code,application_error_code,
+            application_attempt_count,application_next_attempt_at,applied_evaluation_id,applied_source_version,applied_attachment_version,rollback_status_code
+        FROM announcement_attachment_jobs WHERE batch_id=#{batchId} ORDER BY source_id,id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <sql id="ActionColumns">a.id,a.batch_id,a.preview_id,a.action_code,a.expected_version,a.scope_item_count,a.selected_item_count,a.deleted_item_count,
+        a.actor_id,a.idempotency_key,a.request_hash,a.reason_hash,a.created_at</sql>
+    <select id="selectRequestLock" resultType="string">
+        -- 실행 요청 키를 직렬화하며 같은 키로 두 번 적용 대기를 만들지 않는다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73107))::text
+    </select>
+    <select id="selectRequestDetails" resultMap="ActionMap" useCache="false" flushCache="true">
+        -- 당시 접수 영수증만 읽는다. 완료/중지 상태를 재실행하지 않는다.
+        SELECT <include refid="ActionColumns"/> FROM announcement_attachment_batch_application_actions a WHERE a.idempotency_key=#{key}
+    </select>
+    <select id="selectActionDetails" resultMap="ActionMap" useCache="false" flushCache="true">
+        -- 다른 배치의 명령 식별자를 조회할 수 없다.
+        SELECT <include refid="ActionColumns"/> FROM announcement_attachment_batch_application_actions a WHERE a.batch_id=#{batchId} AND a.id=#{actionId}
+    </select>
+    <insert id="insertAction">
+        -- 사유 원문은 저장하지 않는다. 승인 범위와 재검수 확인 계약의 지문을 이력으로 보존한다.
+        INSERT INTO announcement_attachment_batch_application_actions(id,batch_id,preview_id,action_code,expected_version,scope_item_count,
+            selected_item_count,deleted_item_count,actor_id,idempotency_key,request_hash,reason_hash)
+        VALUES (#{id},#{batchId},#{previewId},#{actionCode},#{expectedVersion},#{itemCount},#{selectedCount},#{deletedCount},#{actorId},#{key},#{requestHash},#{reasonHash})
+    </insert>
+    <sql id="CountColumns">
+        count(1)::integer AS remaining,count(1) FILTER (WHERE application_status_code='PENDING')::integer AS pending,
+        count(1) FILTER (WHERE application_status_code='APPLIED')::integer AS applied,
+        count(1) FILTER (WHERE application_status_code='CONFLICT')::integer AS conflicts,
+        count(1) FILTER (WHERE application_status_code='FAILED')::integer AS failed,
+        count(1) FILTER (WHERE is_selected_for_application)::integer AS selected_remaining
+    </sql>
+    <select id="selectCounts" resultMap="CountsMap" useCache="false" flushCache="true">
+        -- 비선택/실패를 원래 전체 분모에서 숨기지 않는다. 삭제 건수는 batch에서 별도 조회한다.
+        SELECT <include refid="CountColumns"/> FROM announcement_attachment_jobs WHERE batch_id=#{batchId}
+    </select>
+    <update id="updateStart">
+        -- 처음 승인된 불변 preview를 실행에 고정한다. 이후 명령은 승인 근거를 교체하지 않는다.
+        UPDATE announcement_attachment_batches SET batch_status_code='APPLYING',application_approval_id=#{actionId},row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{version} AND batch_status_code IN ('PREVIEW_READY','PREVIEW_PARTIAL_FAILED') AND application_approval_id IS NULL
+    </update>
+    <update id="updateJobsPending">
+        -- 정확한 현재 이력에서 선택·적격인 작업만 대기시킨다. 실패 작업/다른 배치/비선택은 그대로 남는다.
+        UPDATE announcement_attachment_jobs j SET application_status_code='PENDING',application_preview_id=#{previewId},row_version=row_version+1,updated_at=clock_timestamp()
+        FROM announcement_attachment_batch_preview_items i
+        WHERE j.batch_id=#{batchId} AND i.preview_id=#{previewId} AND i.batch_id=j.batch_id AND i.job_id=j.id
+          AND i.is_selected AND i.is_eligible AND i.readiness_code='READY' AND j.is_selected_for_application
+          AND j.job_status_code='SUCCEEDED' AND j.application_status_code='NOT_REQUESTED'
+    </update>
+    <update id="updatePause">
+        -- source 작업 transaction과 batch 잠금으로 직렬화한다. 이미 완료된 적용을 취소하지 않는다.
+        UPDATE announcement_attachment_batches SET batch_status_code='APPLY_PAUSED',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{version} AND batch_status_code='APPLYING' AND application_approval_id IS NOT NULL
+    </update>
+    <update id="updateResume">
+        -- 완료/충돌/실패를 재시도하거나 preview를 교체하지 않는다. 남은 PENDING 항목은 다시 CAS한다.
+        UPDATE announcement_attachment_batches SET batch_status_code='APPLYING',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{version} AND batch_status_code='APPLY_PAUSED' AND application_approval_id IS NOT NULL
+    </update>
+    <sql id="WorkQuery">
+        SELECT j.batch_id,j.id AS job_id,j.source_id,j.policy_id,j.preview_evaluation_id,i.preview_id,i.input_hash,a.actor_id
+        FROM announcement_attachment_jobs j
+        JOIN announcement_attachment_batches b ON b.id=j.batch_id AND b.batch_status_code='APPLYING'
+        JOIN announcement_attachment_batch_application_actions a ON a.id=b.application_approval_id AND a.batch_id=b.id AND a.action_code='START'
+        JOIN announcement_attachment_batch_preview_items i ON i.preview_id=a.preview_id AND i.preview_id=j.application_preview_id AND i.batch_id=b.id AND i.job_id=j.id
+        WHERE j.application_status_code='PENDING' AND j.is_selected_for_application AND i.is_selected AND i.is_eligible
+          AND b.current_preview_id=a.preview_id AND j.application_attempt_count&lt;3
+          AND (j.application_next_attempt_at IS NULL OR j.application_next_attempt_at&lt;=clock_timestamp())
+    </sql>
+    <select id="selectNextWorkDetails" resultMap="WorkMap" useCache="false" flushCache="true">
+        -- 선택만 한다. source→정책→batch 잠금 후 같은 항목을 재검증하므로 여러 scheduler도 중복 적용하지 않는다.
+        <include refid="WorkQuery"/> ORDER BY b.updated_at,b.id,j.source_id,j.id LIMIT 1
+    </select>
+    <select id="selectWorkDetails" resultMap="WorkMap" useCache="false" flushCache="true">
+        -- 기다리는 동안 중지/다른 worker 완료/다른 preview로 바뀌면 반환하지 않는다.
+        <include refid="WorkQuery"/> AND j.batch_id=#{batchId} AND j.id=#{jobId}
+    </select>
+    <update id="updateSourceApplication">
+        -- 현재 source와 이전 binding이 같은 경우만 종합 근거로 전환한다. base/기존 운영 공고는 변경하지 않는다.
+        UPDATE announcement_source_snapshots s SET current_attachment_evaluation_id=j.preview_evaluation_id,attachment_policy_id=j.policy_id,
+            is_attachment_review_required=true,attachment_row_version=s.attachment_row_version+1,updated_at=clock_timestamp()
+        FROM announcement_attachment_jobs j
+        WHERE j.id=#{jobId} AND j.source_id=s.id AND j.application_status_code='PENDING' AND j.is_selected_for_application
+          AND s.classification_row_version=j.expected_source_version AND s.attachment_row_version=j.expected_attachment_version
+          AND s.attachment_row_version&lt;2147483647 AND attachment_batch_job_input_unchanged(j.id)
+    </update>
+    <update id="updateApplied">
+        -- 적용 이후 정확한 버전/지문은 조건부 원복의 근거다. 수집 결과/이전 검수 binding은 바꾸지 않는다.
+        UPDATE announcement_attachment_jobs SET application_status_code='APPLIED',applied_evaluation_id=preview_evaluation_id,
+            applied_source_version=expected_source_version,applied_attachment_version=expected_attachment_version+1,applied_input_hash=#{inputHash},
+            application_error_code=NULL,application_next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND application_status_code='PENDING'
+    </update>
+    <update id="updateConflict">
+        -- 입력 충돌은 자동 재분류/강제 적용하지 않는 terminal 결과다. 수집 오류와 분리한다.
+        UPDATE announcement_attachment_jobs SET application_status_code='CONFLICT',application_error_code=#{errorCode},application_next_attempt_at=NULL,
+            row_version=row_version+1,updated_at=clock_timestamp() WHERE id=#{jobId} AND application_status_code='PENDING'
+    </update>
+    <update id="updateFailure">
+        -- 실패한 source transaction 밖에서 최대 3회와 30초 backoff를 기록한다. 원문 예외는 저장하지 않는다.
+        UPDATE announcement_attachment_jobs SET application_attempt_count=application_attempt_count+1,
+            application_status_code=CASE WHEN application_attempt_count+1&gt;=3 THEN 'FAILED' ELSE 'PENDING' END,
+            application_next_attempt_at=CASE WHEN application_attempt_count+1&gt;=3 THEN NULL ELSE clock_timestamp()+interval '30 seconds' END,
+            application_error_code='APPLICATION_TRANSACTION_FAILED',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND application_status_code='PENDING' AND application_attempt_count&lt;3
+    </update>
+    <sql id="ProgressStatus">
+        CASE WHEN EXISTS(SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.application_status_code='PENDING') THEN 'APPLYING'
+            WHEN b.deleted_item_count=0 AND (SELECT count(1) FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.application_status_code='APPLIED')=b.scope_item_count
+                THEN 'APPLIED' ELSE 'APPLY_PARTIAL_FAILED' END
+    </sql>
+    <update id="updateProgress">
+        -- 전체 고정 범위가 성공했을 때만 APPLIED다. 비선택/실패/삭제가 있으면 부분 결과를 유지한다.
+        UPDATE announcement_attachment_batches b SET batch_status_code=<include refid="ProgressStatus"/>,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE b.id=#{batchId} AND b.batch_status_code='APPLYING' AND b.row_version&lt;2147483647
+    </update>
+    <update id="updateEmptyProgress">
+        -- 삭제로 모든 대기가 사라진 배치도 종료 집계한다. 중지 배치는 자동 재개하지 않는다.
+        WITH ready AS (SELECT b.id FROM announcement_attachment_batches b WHERE b.batch_status_code='APPLYING' AND b.application_approval_id IS NOT NULL
+            AND NOT EXISTS(SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.application_status_code='PENDING')
+            ORDER BY b.updated_at,b.id LIMIT 100 FOR UPDATE SKIP LOCKED)
+        UPDATE announcement_attachment_batches b SET batch_status_code=<include refid="ProgressStatus"/>,row_version=row_version+1,updated_at=clock_timestamp()
+        FROM ready WHERE b.id=ready.id AND b.row_version&lt;2147483647
+    </update>
+</mapper>

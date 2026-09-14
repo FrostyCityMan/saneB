@@ -2,6 +2,7 @@ package com.saneb.domain.announcementsource.service.impl;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
+import com.saneb.domain.announcementattachment.service.AttachmentLegacyPathGuard;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine;
@@ -421,6 +422,8 @@ public class AnnouncementSourceReclassificationRunServiceImpl
     }
 
     private void insertRollbackItem(AnnouncementSourceReclassificationRunItemRow item) {
+        AttachmentLegacyPathGuard.validate(
+                sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(item.sourceId()));
         AnnouncementSourceClassificationStateRow state =
                 classificationDao.selectClassificationStateDetails(item.sourceId());
         if (state == null
@@ -454,6 +457,8 @@ public class AnnouncementSourceReclassificationRunServiceImpl
     }
 
     private SourceContext selectCurrentSourceContext(AnnouncementSourceReclassificationRunItemRow item) {
+        AttachmentLegacyPathGuard.validate(
+                sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(item.sourceId()));
         AnnouncementSourceSnapshotRow source = sourceDao.selectSourceDetails(item.sourceId());
         AnnouncementSourceContentVersionRow content =
                 classificationDao.selectLatestContentVersionDetails(item.sourceId());
@@ -650,7 +655,8 @@ public class AnnouncementSourceReclassificationRunServiceImpl
 
     private boolean isConflict(RuntimeException exception) {
         return exception instanceof ApiException apiException
-                && apiException.errorCode() == ErrorCode.ANNOUNCEMENT_SOURCE_VERSION_CONFLICT;
+                && (apiException.errorCode() == ErrorCode.ANNOUNCEMENT_SOURCE_VERSION_CONFLICT
+                    || apiException.errorCode() == ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE);
     }
 
     private String selectErrorCode(RuntimeException exception) {

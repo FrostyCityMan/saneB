@@ -78,6 +78,20 @@ class AnnouncementSourceV2ConversionServiceImplTest {
     }
 
     @Test
+    void rejectsAttachmentBoundSourceBeforeLegacyDraftWrites() {
+        when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());
+        when(announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.insertOperationalAnnouncement(authentication(), SOURCE_ID, request()))
+                .isInstanceOfSatisfying(ApiException.class, exception -> {
+                    assertThat(exception.httpStatus().value()).isEqualTo(409);
+                    assertThat(exception.errorCode()).isEqualTo(ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE);
+                });
+        verifyNoInteractions(classificationDao, announcementDao);
+        verify(announcementSourceDao, never()).insertSourceLink(any());
+    }
+
+    @Test
     void insertOperationalAnnouncementReturnsExistingLinkWithoutAnyWrite() {
         UUID announcementId = UUID.fromString("94000000-0000-0000-0000-000000000003");
         when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());
@@ -95,6 +109,7 @@ class AnnouncementSourceV2ConversionServiceImplTest {
         readOrder.verify(announcementSourceDao).selectSourceDetailsForUpdate(SOURCE_ID);
         readOrder.verify(announcementSourceDao).selectLinkedAnnouncementDetails(SOURCE_ID);
         verifyNoInteractions(classificationDao, announcementDao);
+        verify(announcementSourceDao, never()).selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID);
         verify(announcementSourceDao, never()).insertSourceLink(any());
         verify(announcementSourceDao, never()).updateSourceReviewStatus(any());
         verify(announcementSourceDao, never()).insertSourceReviewHistory(any());

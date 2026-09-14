@@ -6,10 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
 
 import com.saneb.common.error.ApiException;
+import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.MatchModeCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.RuleGroupKindCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.StrengthCode;
@@ -72,6 +74,17 @@ class AnnouncementSourceReclassificationServiceImplTest {
                 managementService,
                 operationDao
         );
+    }
+
+    @Test
+    void rejectsLegacyReclassificationForAttachmentBoundSourceBeforeBaseWrites() {
+        when(sourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+        assertThatThrownBy(() -> service.insertReclassification(authentication(), SOURCE_ID, null))
+                .isInstanceOfSatisfying(ApiException.class, exception -> {
+                    assertThat(exception.httpStatus().value()).isEqualTo(409);
+                    assertThat(exception.errorCode()).isEqualTo(ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE);
+                });
+        verifyNoInteractions(classificationDao, persistenceService, ruleReleaseService, managementService, operationDao);
     }
 
     @Test

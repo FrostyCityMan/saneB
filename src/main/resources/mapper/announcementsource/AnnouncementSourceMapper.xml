@@ -4,6 +4,15 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceDao">
 
+    <select id="selectAttachmentReviewRequiredDetailsForUpdate" resultType="java.lang.Boolean"
+            flushCache="true" useCache="false">
+        -- Lock even an unbound source so attachment binding cannot race a legacy mutation.
+        SELECT is_attachment_review_required
+        FROM announcement_source_snapshots
+        WHERE id = #{sourceId}
+        FOR UPDATE
+    </select>
+
     <insert id="insertAuditLog">
         -- Record announcement-source operator changes without source content or secrets.
         INSERT INTO audit_logs (actor_user_id, action_code, resource_type, resource_id, result_code, metadata_json)

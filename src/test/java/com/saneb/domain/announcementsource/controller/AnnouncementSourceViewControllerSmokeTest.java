@@ -115,7 +115,7 @@ class AnnouncementSourceViewControllerSmokeTest {
                 .andExpect(content().string(containsString("분류 판정과 수집 상태를 나누어 확인합니다")))
                 .andExpect(content().string(containsString("data-collected-view=\"ACTION_REQUIRED\"")))
                 .andExpect(content().string(containsString("data-collected-view=\"EXCLUDED\"")))
-                .andExpect(content().string(containsString("첨부파일 판정 제외")))
+                .andExpect(content().string(containsString("첨부 처리 여부는 공고별")))
                 .andExpect(content().string(containsString("name=\"targetCategoryCode\"")))
                 .andExpect(content().string(containsString("name=\"supportTypeCode\"")))
                 .andExpect(content().string(containsString("name=\"matchedGroupKindCode\"")))

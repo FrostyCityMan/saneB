@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
+<main class="attachment-review-page" data-attachment-policies th:attr="data-is-admin=${#lists.contains(page.auth.roles, 'ADMIN')}">
+    <a class="attachment-skip" href="#policy-work">정책 편집·QA로 건너뛰기</a>
+    <nav aria-label="현재 위치"><a th:href="@{/app/admin/collected-announcements}">수집 공고 검수</a> / <span aria-current="page">공고 첨부 정책 관리</span></nav>
+    <section class="plain-panel">
+        <h2>첨부 정책 초안 → QA → 범위 고정 → 게시</h2>
+        <p>초안 저장, QA 통과, 실제 게시는 서로 다른 단계입니다. 전체 QA·설치·정확한 대상 범위의 최종 재검증과 관리자의 개별 영향 확인 후에만 게시합니다.</p>
+        <p>ENFORCE를 초안에 저장해도 운영에 활성화되지 않습니다. 기존 공고 일괄 처리와 외부 공고 자동 활성화도 하지 않습니다.</p>
+        <p th:if="${not #lists.contains(page.auth.roles, 'ADMIN')}">운영자·승인자는 조회만 가능합니다. 초안 저장·개정·QA 예약·취소·게시 준비·실제 게시는 비밀번호 변경을 완료한 활성 관리자만 실행합니다.</p>
+        <div class="attachment-actions"><a class="secondary-action" th:href="@{/app/admin/announcement-keywords}">키워드 규칙 관리</a><a class="secondary-action" th:href="@{/app/admin/announcement-attachment-batches}">첨부 배치 작업</a><a class="secondary-action" th:href="@{/app/admin/announcement-attachment-backfills}">기존 공고 전체 분할 관리</a><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></div>
+        <p data-status role="status" aria-live="polite">정책을 조회합니다.</p>
+        <p id="policy-error" data-error class="attachment-error" role="alert" tabindex="-1" hidden></p>
+        <div data-uncertain hidden>
+            <p>이전 요청의 결과가 미확정입니다. 초안 생성·개정·QA 예약·게시 준비·실제 게시는 원래 요청 키와 입력 그대로 재확인합니다. 새 키로 다시 게시하지 마세요. 정책 수정·QA 취소의 버전 충돌은 현재 상태를 따로 확인할 수 있습니다.</p>
+            <div class="attachment-actions"><button type="button" class="secondary-action" data-retry>원래 요청 그대로 재확인</button><button type="button" class="secondary-action" data-inspect disabled>버전 기반 요청의 현재 상태 조회</button></div>
+            <div data-reconcile-result></div>
+            <label class="attachment-check"><input type="checkbox" data-reconcile-ack disabled> 원래 요청의 성공은 확정되지 않았으며, 조회한 현재 상태를 새 검토 기준으로만 채택합니다.</label>
+            <button type="button" class="secondary-action" data-reconcile disabled>현재 상태 확인 후 재검토로 복귀</button>
+        </div>
+        <noscript>JavaScript를 활성화한 뒤 새로고침하세요. 정책 저장·QA 예약·게시가 자동 실행되지는 않습니다.</noscript>
+    </section>
+    <section class="plain-panel" aria-labelledby="policy-list-title">
+        <h2 id="policy-list-title">1. 정책 목록</h2>
+        <form data-filter><label for="policy-filter-status">정책 상태</label><select id="policy-filter-status" data-filter-status><option value="">전체 상태</option><option value="DRAFT">초안</option><option value="ACTIVE">게시 중</option><option value="RETIRED">퇴역</option></select><button type="submit" class="secondary-action" data-filter-submit>상태 필터 적용</button></form>
+        <div class="attachment-actions"><button type="button" class="secondary-action" data-list-refresh>목록 다시 조회</button><button type="button" class="secondary-action" data-new disabled>새 정책 초안 입력</button></div>
+        <div data-list></div><div class="attachment-actions" data-list-pages></div>
+    </section>
+    <section class="plain-panel" id="policy-work" tabindex="-1" aria-labelledby="policy-detail-title">
+        <h2 id="policy-detail-title">2. 선택한 정책과 초안 편집</h2>
+        <button type="button" class="secondary-action" data-refresh disabled>선택 정책·QA·영향 다시 조회</button>
+        <div data-detail>정책을 선택하거나 새 초안을 입력하세요.</div>
+        <details><summary>연결할 키워드 규칙 목록</summary><button type="button" class="secondary-action" data-rule-refresh>키워드 규칙 다시 조회</button><div data-rules></div><div class="attachment-actions" data-rule-pages></div></details>
+        <form data-editor><fieldset data-editor-fields disabled><legend>초안 설정 (게시·활성화 아님)</legend>
+            <label class="field-block" for="policy-rule">키워드 규칙 (필수)</label><select id="policy-rule" name="ruleReleaseId" required aria-describedby="policy-rule-help policy-error"><option value="">키워드 규칙 선택</option></select>
+            <p id="policy-rule-help">규칙 목록의 다음 페이지도 확인할 수 있습니다. 파서·수집 방식은 시스템이 고정하며 관리자가 선택하지 않습니다.</p>
+            <label class="field-block" for="policy-mode">초안 모드 (필수)</label><select id="policy-mode" name="modeCode" required aria-describedby="policy-mode-help policy-error"><option value="OFF">새 수집 중지 (OFF)</option><option value="COLLECT_ONLY">수집·미리보기만 (COLLECT_ONLY)</option><option value="ENFORCE">첨부 판정 적용 정책 (ENFORCE)</option></select>
+            <p id="policy-mode-help">초안 모드만 저장합니다. 현재 운영 정책의 변경은 게시 재검증·영향 승인 후 별도로 수행해야 합니다.</p>
+            <label class="field-block" for="policy-bytes">공고별 누적 다운로드 한도 (바이트, 필수)</label><input id="policy-bytes" name="maximumSourceBytes" type="number" min="1" max="83886080" step="1" value="83886080" required aria-describedby="policy-bytes-help policy-error">
+            <p id="policy-bytes-help">1~83,886,080바이트(80 MiB). 파일·시도별 한도와 작업자 전체 자원 제한도 별도로 적용됩니다.</p>
+        </fieldset><p data-input-state role="status"></p><div class="attachment-actions"><button type="submit" class="primary-action" data-save disabled>초안 저장 내용 확인</button><button type="button" class="secondary-action" data-reset>입력 복원·사유 지우기</button><button type="button" class="secondary-action" data-revision disabled>새 개정 초안 내용 확인</button></div></form>
+    </section>
+    <section class="plain-panel" aria-labelledby="policy-qa-title">
+        <h2 id="policy-qa-title">3. QA 예약·이력·취소</h2>
+        <p>현재 QA는 분류 정답 세트와 설치된 격리 추출기의 합성 표본을 실행합니다. 전체 수집 방식·실파일 및 작업 DB 증거가 없으면 필수 증거 부족(INCOMPLETE)이며 게시할 수 없습니다.</p>
+        <p>QA 작업자 활성 설정과 Linux 격리 환경이 필요합니다. 이 화면에서 서버 설정을 켜지 않습니다. 전역 1개, 같은 정책은 60초 간격·24시간 최대 3회입니다. 현재 외부 공고 요청은 0회입니다.</p>
+        <button type="button" class="secondary-action" data-qa disabled>저장된 초안의 QA 예약 영향 확인</button><div data-qa-list></div><div class="attachment-actions" data-qa-pages></div>
+        <h3>선택한 QA의 단계별 결과</h3><div data-run>아직 QA를 조회하지 않았습니다.</div><button type="button" class="secondary-action" data-cancel-qa disabled>선택 QA 취소 영향 확인</button>
+    </section>
+    <section class="plain-panel" aria-labelledby="policy-impact-title">
+        <h2 id="policy-impact-title">4. 게시 전 영향 관측</h2>
+        <p>관측 결과는 게시 승인이나 고정 대상 목록이 아닙니다. 아래에서 별도로 준비 범위를 고정하고 실제 게시 직전 재검증합니다.</p>
+        <div data-impact>정책을 선택하면 해당 규칙·전체 규칙의 영향을 조회합니다.</div>
+    </section>
+    <section class="plain-panel" aria-labelledby="policy-scope-title">
+        <h2 id="policy-scope-title">5. 게시 준비 범위와 실제 게시</h2>
+        <p>준비는 현재 전체 보호 대상의 ID·상태를 10분 동안 고정하는 이력입니다. 공고·작업·정책·계획·수집원이 섞인 항목 수를 공고 건수로 해석하지 마세요. 준비만으로 게시하거나 외부 수집을 실행하지 않습니다.</p>
+        <p>현재 전체 수집 방식·실파일 및 작업 DB QA 연결은 미완료입니다. 누락된 QA를 관리자 확인으로 대체할 수 없으며 서버가 실제 게시를 차단합니다.</p>
+        <div class="attachment-actions"><button type="button" class="secondary-action" data-prepare disabled>게시 준비 범위 고정 내용 확인</button></div>
+        <details><summary>게시 준비 이력</summary><div data-scope-list></div><div class="attachment-actions" data-scope-pages></div></details>
+        <div data-scope>아직 준비 범위를 조회하지 않았습니다.</div>
+        <details><summary>선택 범위의 전체 고정 항목 (페이지별 조회)</summary><div data-scope-items></div><div class="attachment-actions" data-scope-item-pages></div></details>
+        <p id="policy-publication-condition" data-publication-condition role="status"></p>
+        <button type="button" class="secondary-action" data-publish disabled aria-describedby="policy-publication-condition">실제 정책 게시 영향 확인</button>
+    </section>
+    <section class="plain-panel" aria-labelledby="policy-publication-title"><h2 id="policy-publication-title">6. 불변 게시 영수증</h2><div data-publication-receipt>아직 게시 영수증을 조회하지 않았습니다.</div></section>
+    <section class="plain-panel" data-approval hidden aria-labelledby="policy-approval-title">
+        <h2 id="policy-approval-title" data-approval-title tabindex="-1">실행 내용 확인</h2><div data-action-impact></div>
+        <form data-approval-form><fieldset data-approval-fields disabled><legend>선택한 정책 작업 확인</legend>
+            <label class="field-block" for="policy-reason">작업 사유 (필수, 1~1000자)</label><textarea id="policy-reason" name="reason" rows="3" maxlength="1000" required aria-describedby="policy-reason-help policy-error"></textarea>
+            <p id="policy-reason-help">비밀번호·인증 정보·개인정보를 입력하지 마세요. 미저장 입력과 요청 키는 이 탭에만 보관하며 페이지 이동·종료 시 사라집니다. 오류 시에는 이 탭을 유지하세요.</p>
+            <label class="attachment-check"><input name="acknowledged" type="checkbox" required> 위 작업의 대상·버전·설정·효과를 확인했습니다. 초안·QA·준비는 게시가 아니며 기존 데이터 일괄 적용은 별도임을 이해했습니다.</label>
+            <fieldset data-publication-consents hidden disabled><legend>실제 게시 영향 개별 확인 (세 항목 모두 필수)</legend>
+                <label class="attachment-check"><input name="acknowledgeNewCollectionBehavior" type="checkbox" required> 고정 범위·게시 모드의 신규 수집 영향을 확인했습니다. OFF 전역 중지 또는 해제와 향후 작업자의 외부 요청에 영향을 줄 수 있습니다.</label>
+                <label class="attachment-check"><input name="acknowledgeExistingJobsUnchanged" type="checkbox" required> 기존 고정 작업의 정책은 그대로 유지합니다. OFF는 다른 규칙 작업의 새 외부 요청도 중지할 수 있음을 확인했습니다.</label>
+                <label class="attachment-check"><input name="acknowledgeNoBackfill" type="checkbox" required> 게시만으로 기존 데이터를 일괄 적용하거나 공고를 활성화하지 않습니다. 기존 데이터 처리·복구는 별도 승인 작업입니다.</label>
+            </fieldset>
+        </fieldset><div class="attachment-actions"><button type="submit" class="primary-action" data-approve disabled>확인한 초안·QA 작업 실행</button><button type="button" class="secondary-action" data-close-approval>실행하지 않고 닫기</button></div></form>
+    </section>
+    <section class="plain-panel"><h2>확인한 요청 응답</h2><div data-receipt tabindex="-1">아직 변경 요청을 실행하지 않았습니다.</div></section>
+    <script th:src="@{/js/saneb-attachment-policy-core.js}"></script><script th:src="@{/js/saneb-attachment-policies.js}"></script>
+</main>
+</html>

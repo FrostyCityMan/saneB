@@ -20,6 +20,8 @@ import org.springframework.security.core.Authentication;
 /** 공고 분류 규칙 release 관리 계약입니다. */
 public interface AnnouncementSourceRuleReleaseService {
 
+    com.saneb.domain.announcementsource.vo.AnnouncementSourceRuleValidationDetails selectRuleValidationDetails(UUID releaseId);
+
     PageResponse<AnnouncementSourceRuleReleaseSummaryResponse> selectRuleReleaseList(
             String releaseStatusCode,
             int page,

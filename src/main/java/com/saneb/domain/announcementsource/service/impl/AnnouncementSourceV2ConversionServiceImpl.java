@@ -10,6 +10,7 @@ package com.saneb.domain.announcementsource.service.impl;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
+import com.saneb.domain.announcementattachment.service.AttachmentLegacyPathGuard;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
 import com.saneb.domain.announcement.vo.AnnouncementSaveCommand;
@@ -90,6 +91,8 @@ public class AnnouncementSourceV2ConversionServiceImpl implements AnnouncementSo
                     linkedAnnouncement.announcementCode()
             );
         }
+        AttachmentLegacyPathGuard.validate(
+                announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         AnnouncementSourceClassificationStateRow state = classificationDao.selectClassificationStateDetails(sourceId);
         validateState(source, state, request);
 

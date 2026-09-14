@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyCheckDao">
+    <resultMap id="CheckMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyCheckRows$Row">
+        <constructor>
+            <arg column="check_id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="policy_row_version" javaType="java.lang.Integer"/><arg column="policy_snapshot_hash" javaType="java.lang.String"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="rule_row_version" javaType="java.lang.Integer"/>
+            <arg column="rule_snapshot_hash" javaType="java.lang.String"/><arg column="rule_content_hash" javaType="java.lang.String"/>
+            <arg column="check_type_code" javaType="java.lang.String"/><arg column="suite_version" javaType="java.lang.String"/>
+            <arg column="engine_version" javaType="java.lang.String"/><arg column="result_hash" javaType="java.lang.String"/>
+            <arg column="case_count" javaType="java.lang.Integer"/><arg column="case_ids_json" javaType="java.lang.String"/>
+            <arg column="requested_by" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/>
+            <arg column="request_hash" javaType="java.lang.String"/><arg column="is_current" javaType="java.lang.Boolean"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <sql id="Columns">c.id AS check_id,c.policy_id,c.policy_row_version,c.policy_snapshot_hash,c.rule_release_id,c.rule_row_version,
+        c.rule_snapshot_hash,c.rule_content_hash,c.check_type_code,c.suite_version,c.engine_version,c.result_hash,c.case_count,
+        c.case_ids_json::text AS case_ids_json,c.requested_by,c.idempotency_key,c.request_hash,c.created_at,
+        (p.policy_status_code='DRAFT' AND p.row_version=c.policy_row_version AND p.rule_release_id=c.rule_release_id
+          AND r.row_version=c.rule_row_version AND r.release_status_code IN ('DRAFT','ACTIVE')) AS is_current</sql>
+    <sql id="Scope">FROM announcement_attachment_policy_checks c
+        JOIN announcement_attachment_policies p ON p.id=c.policy_id
+        JOIN announcement_source_classification_rule_releases r ON r.id=c.rule_release_id</sql>
+    <select id="selectCheckList" resultMap="CheckMap" useCache="false">
+        -- 과거 성공도 현재 버전과 다르면 is_current=false다. 본문·설정·사유는 반환하지 않는다.
+        SELECT <include refid="Columns"/> <include refid="Scope"/> WHERE c.policy_id=#{policyId}
+        ORDER BY c.created_at DESC,c.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectCheckCount" resultType="long" useCache="false">
+        -- 목록과 같은 정책 범위를 집계한다.
+        SELECT count(1) <include refid="Scope"/> WHERE c.policy_id=#{policyId}
+    </select>
+    <select id="selectCheckDetails" resultMap="CheckMap" useCache="false" flushCache="true">
+        -- 같은 요청의 기존 이력을 조회한다. 현재성은 과거 응답을 복사하지 않고 재계산한다.
+        SELECT <include refid="Columns"/> <include refid="Scope"/> WHERE c.idempotency_key=#{key}
+    </select>
+    <select id="selectRequestLock" resultType="string">
+        -- 최종 저장 transaction에서만 같은 검증 요청을 직렬화한다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73103))::text
+    </select>
+    <insert id="insertCheck">
+        -- 서버가 직접 실행한 분류 정답 세트만 저장한다. 게시·QA 전체 성공 상태는 없다.
+        INSERT INTO announcement_attachment_policy_checks(id,policy_id,policy_row_version,policy_snapshot_hash,rule_release_id,rule_row_version,
+            rule_snapshot_hash,rule_content_hash,check_type_code,suite_version,engine_version,result_hash,case_count,case_ids_json,
+            requested_by,idempotency_key,request_hash)
+        VALUES (#{checkId},#{policyId},#{policyVersion},#{policySnapshotHash},#{ruleReleaseId},#{ruleVersion},#{ruleSnapshotHash},#{ruleContentHash},
+            'CLASSIFICATION_GOLDEN',#{suiteVersion},#{engineVersion},#{resultHash},#{caseCount},CAST(#{caseIdsJson} AS jsonb),#{requestedBy},#{idempotencyKey},#{requestHash})
+    </insert>
+</mapper>

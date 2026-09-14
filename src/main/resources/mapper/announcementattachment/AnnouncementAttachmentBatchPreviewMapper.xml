@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchPreviewDao">
+    <resultMap id="PreviewMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchPreviewRows$Preview"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="batch_id" javaType="java.util.UUID"/><arg column="preview_status_code" javaType="java.lang.String"/>
+        <arg column="scope_hash" javaType="java.lang.String"/><arg column="input_hash" javaType="java.lang.String"/><arg column="preview_hash" javaType="java.lang.String"/>
+        <arg column="batch_version" javaType="java.lang.Integer"/><arg column="scope_item_count" javaType="java.lang.Integer"/><arg column="remaining_item_count" javaType="java.lang.Integer"/>
+        <arg column="deleted_item_count" javaType="java.lang.Integer"/><arg column="eligible_item_count" javaType="java.lang.Integer"/><arg column="selected_item_count" javaType="java.lang.Integer"/>
+        <arg column="actor_id" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+        <arg column="reason_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="LiveMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchPreviewRows$LiveItem"><constructor>
+        <arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/><arg column="provider_code" javaType="java.lang.String"/>
+        <arg column="job_status_code" javaType="java.lang.String"/><arg column="error_code" javaType="java.lang.String"/><arg column="evidence_complete" javaType="java.lang.Boolean"/>
+        <arg column="frozen_source_current" javaType="java.lang.Boolean"/><arg column="protected_link" javaType="java.lang.Boolean"/><arg column="active_other_job" javaType="java.lang.Boolean"/>
+        <arg column="input_json" javaType="java.lang.String"/><arg column="evidence_json" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchPreviewRows$Item"><constructor>
+        <arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/><arg column="provider_code" javaType="java.lang.String"/>
+        <arg column="readiness_code" javaType="java.lang.String"/><arg column="is_eligible" javaType="java.lang.Boolean"/><arg column="is_selected" javaType="java.lang.Boolean"/>
+        <arg column="input_hash" javaType="java.lang.String"/><arg column="evidence_json" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <sql id="PreviewColumns">p.id,p.batch_id,p.preview_status_code,p.scope_hash,p.input_hash,p.preview_hash,p.batch_version,p.scope_item_count,
+        p.remaining_item_count,p.deleted_item_count,p.eligible_item_count,p.selected_item_count,p.actor_id,p.idempotency_key,p.request_hash,p.reason_hash,p.created_at</sql>
+    <select id="selectRequestLock" resultType="string">
+        -- 생성/선택 변경의 동일 키를 짧게 직렬화한다. 외부 호출을 하지 않는다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73106))::text
+    </select>
+    <select id="selectRequestDetails" resultMap="PreviewMap" useCache="false" flushCache="true">
+        -- 재요청은 기존 snapshot을 반환하며 현재 선택을 되돌리지 않는다.
+        SELECT <include refid="PreviewColumns"/> FROM announcement_attachment_batch_previews p WHERE p.idempotency_key=#{key}
+    </select>
+    <select id="selectPreviewDetails" resultMap="PreviewMap" useCache="false" flushCache="true">
+        -- 다른 배치의 이력을 가져올 수 없다.
+        SELECT <include refid="PreviewColumns"/> FROM announcement_attachment_batch_previews p WHERE p.batch_id=#{batchId} AND p.id=#{previewId}
+    </select>
+    <select id="selectCurrentPreviewDetails" resultMap="PreviewMap" useCache="false" flushCache="true">
+        -- 최신 시각 추측 대신 batch가 가리키는 정확한 지문을 사용한다.
+        SELECT <include refid="PreviewColumns"/> FROM announcement_attachment_batch_previews p
+        JOIN announcement_attachment_batches b ON b.id=p.batch_id AND b.current_preview_id=p.id AND b.preview_hash=p.preview_hash WHERE b.id=#{batchId}
+    </select>
+    <sql id="LiveItemQuery">
+        -- 고정 jobs 전체와 불변 봉인 metadata만 조회한다. 원문/추출 텍스트·URL·파일 표시명·최신 재추출을 섞지 않는다.
+        SELECT j.id AS job_id,j.source_id,j.frozen_provider_code AS provider_code,j.job_status_code,j.error_code,
+            (sealed.set_status_code='SEALED' AND sealed.is_discovery_complete AND sealed.processed_count=sealed.discovered_count
+                AND sealed.discovered_count=files.file_count AND files.file_count&lt;=10 AND files.input_count=files.file_count
+                AND files.download_failed_count=0 AND files.incomplete_count=0
+                AND e.id IS NOT NULL AND j.preview_hash IS NOT NULL) AS evidence_complete,
+            (s.data_purpose_code='PRODUCTION' AND s.semantic_status_code&lt;&gt;'EXCLUDED' AND base.is_current
+                AND base.decision_status_code&lt;&gt;'EXCLUDED' AND base.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED')
+                AND s.classification_row_version=j.expected_source_version AND s.attachment_row_version=j.expected_attachment_version
+                AND attachment_batch_job_input_unchanged(j.id)) AS frozen_source_current,
+            EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=j.source_id) AS protected_link,
+            EXISTS (SELECT 1 FROM announcement_attachment_jobs other WHERE other.source_id=j.source_id AND other.id&lt;&gt;j.id
+                AND other.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_other_job,
+            jsonb_build_object('baseId',j.base_evaluation_id,'contentId',j.content_version_id,'ruleId',j.rule_release_id,'policyId',j.policy_id,
+                'setId',j.set_id,'evaluationId',j.preview_evaluation_id,'jobPreviewHash',j.preview_hash,'jobRequestHash',j.request_hash,
+                'expectedSourceVersion',j.expected_source_version,'expectedAttachmentVersion',j.expected_attachment_version,
+                'sourceVersion',s.classification_row_version,'attachmentVersion',s.attachment_row_version,'baseCurrent',base.is_current,
+                'currentEvaluationId',s.current_attachment_evaluation_id,'currentPolicyId',s.attachment_policy_id,'reviewRequired',s.is_attachment_review_required,'baseReviewStatus',s.review_status_code,
+                'currentConfirmationId',(SELECT c.id FROM announcement_source_attachment_confirmations c WHERE c.source_id=j.source_id AND c.is_current),
+                'locatorHash',attachment_source_locator_hash(j.source_id),'manifestHash',sealed.manifest_hash,
+                'evaluationInputHash',e.input_hash,'evaluationDecisionHash',e.decision_hash)::text AS input_json,
+            jsonb_build_object('baseEvaluationId',j.base_evaluation_id,'setId',sealed.id,'evaluationId',e.id,
+                'ruleReleaseId',j.rule_release_id,'ruleVersion',r.version_no,'ruleHash',r.rule_snapshot_hash,'policyMode',policy.mode_code,
+                'baseStatus',base.decision_status_code,'baseReviewStatus',s.review_status_code,'previousAttachmentStatus',previous.decision_status_code,
+                'previousReviewRequired',j.previous_is_review_required,'hasPreviousConfirmation',j.previous_confirmation_id IS NOT NULL,
+                'proposedStatus',e.decision_status_code,'reasonCode',e.reason_code,'warningCodes',coalesce(e.warning_codes_json,'[]'::jsonb),
+                'discoveryStatus',sealed.discovery_status_code,'discoveryComplete',sealed.is_discovery_complete,'fileCount',files.file_count,
+                'discoveredCount',sealed.discovered_count,'processedCount',sealed.processed_count,
+                'downloadFailedCount',files.download_failed_count,'incompleteExtractionCount',files.incomplete_count,'unknownRoleCount',files.unknown_count,
+                'files',files.file_json,
+                'baseTargetCodes',coalesce((SELECT jsonb_agg(c.category_code ORDER BY c.category_code) FROM announcement_source_classification_target_matches m JOIN announcement_target_categories c ON c.id=m.target_category_id WHERE m.evaluation_id=j.base_evaluation_id),'[]'::jsonb),
+                'baseSupportCodes',coalesce((SELECT jsonb_agg(c.support_type_code ORDER BY c.support_type_code) FROM announcement_source_classification_support_matches m JOIN announcement_support_types c ON c.id=m.support_type_id WHERE m.evaluation_id=j.base_evaluation_id),'[]'::jsonb),
+                'previousTargetCodes',coalesce((SELECT jsonb_agg(c.category_code ORDER BY c.category_code) FROM announcement_source_attachment_tags t JOIN announcement_target_categories c ON c.id=t.target_category_id WHERE t.evaluation_id=j.previous_attachment_evaluation_id AND t.origin_code='AUTO'),'[]'::jsonb),
+                'previousSupportCodes',coalesce((SELECT jsonb_agg(c.support_type_code ORDER BY c.support_type_code) FROM announcement_source_attachment_tags t JOIN announcement_support_types c ON c.id=t.support_type_id WHERE t.evaluation_id=j.previous_attachment_evaluation_id AND t.origin_code='AUTO'),'[]'::jsonb),
+                'confirmedTargetCodes',coalesce((SELECT jsonb_agg(c.category_code ORDER BY c.category_code) FROM announcement_source_attachment_tags t JOIN announcement_target_categories c ON c.id=t.target_category_id WHERE t.confirmation_id=j.previous_confirmation_id AND t.origin_code='CONFIRMED'),'[]'::jsonb),
+                'confirmedSupportCodes',coalesce((SELECT jsonb_agg(c.support_type_code ORDER BY c.support_type_code) FROM announcement_source_attachment_tags t JOIN announcement_support_types c ON c.id=t.support_type_id WHERE t.confirmation_id=j.previous_confirmation_id AND t.origin_code='CONFIRMED'),'[]'::jsonb),
+                'proposedTargetCodes',coalesce((SELECT jsonb_agg(c.category_code ORDER BY c.category_code) FROM announcement_source_attachment_tags t JOIN announcement_target_categories c ON c.id=t.target_category_id WHERE t.evaluation_id=j.preview_evaluation_id AND t.origin_code='AUTO'),'[]'::jsonb),
+                'proposedSupportCodes',coalesce((SELECT jsonb_agg(c.support_type_code ORDER BY c.support_type_code) FROM announcement_source_attachment_tags t JOIN announcement_support_types c ON c.id=t.support_type_id WHERE t.evaluation_id=j.preview_evaluation_id AND t.origin_code='AUTO'),'[]'::jsonb))::text AS evidence_json
+        FROM announcement_attachment_jobs j JOIN announcement_source_snapshots s ON s.id=j.source_id
+        JOIN announcement_source_classification_evaluations base ON base.id=j.base_evaluation_id AND base.source_id=j.source_id
+        JOIN announcement_source_classification_rule_releases r ON r.id=j.rule_release_id
+        JOIN announcement_attachment_policies policy ON policy.id=j.policy_id
+        LEFT JOIN announcement_source_attachment_evaluations previous ON previous.id=j.previous_attachment_evaluation_id AND previous.source_id=j.source_id
+        LEFT JOIN announcement_source_attachment_sets sealed ON sealed.id=j.set_id AND sealed.source_id=j.source_id AND sealed.content_version_id=j.content_version_id AND sealed.policy_id=j.policy_id AND sealed.set_status_code='SEALED'
+        LEFT JOIN announcement_source_attachment_evaluations e ON e.id=j.preview_evaluation_id AND e.source_id=j.source_id AND e.set_id=sealed.id
+            AND e.base_evaluation_id=j.base_evaluation_id AND e.content_version_id=j.content_version_id AND e.rule_release_id=j.rule_release_id AND e.policy_id=j.policy_id
+        LEFT JOIN LATERAL (
+            SELECT count(f.id) AS file_count,count(i.file_id) AS input_count,
+                count(f.id) FILTER (WHERE f.download_status_code&lt;&gt;'SUCCEEDED') AS download_failed_count,
+                count(f.id) FILTER (WHERE x.quality_code IS DISTINCT FROM 'COMPLETE_TEXT') AS incomplete_count,
+                count(f.id) FILTER (WHERE f.document_role_code='UNKNOWN') AS unknown_count,
+                coalesce(jsonb_agg(jsonb_build_object('fileId',f.id,'extractionId',i.extraction_id,'format',f.detected_type_code,
+                    'role',f.document_role_code,'downloadStatus',f.download_status_code,'quality',x.quality_code,
+                    'downloadErrorCode',f.error_code,'extractionErrorCode',x.error_code) ORDER BY f.sort_order,f.id),'[]'::jsonb) AS file_json
+            FROM (SELECT original.id,original.set_id,original.source_id,original.sort_order,original.detected_type_code,
+                    original.document_role_code,original.download_status_code,original.error_code
+                FROM announcement_source_attachment_files original WHERE original.set_id=sealed.id AND original.source_id=j.source_id
+                ORDER BY original.sort_order,original.id LIMIT 11) f
+            LEFT JOIN announcement_source_attachment_evaluation_inputs i ON i.evaluation_id=j.preview_evaluation_id AND i.source_id=f.source_id AND i.set_id=f.set_id AND i.file_id=f.id
+            LEFT JOIN announcement_source_attachment_extractions x ON x.id=i.extraction_id AND x.source_id=f.source_id AND x.set_id=f.set_id AND x.file_id=f.id
+            WHERE f.set_id=sealed.id AND f.source_id=j.source_id
+        ) files ON true
+        WHERE j.batch_id=#{batchId}
+    </sql>
+    <select id="selectLiveItemList" resultMap="LiveMap" useCache="false" flushCache="true">
+        <include refid="LiveItemQuery"/> ORDER BY j.source_id,j.id LIMIT 1001
+    </select>
+    <select id="selectLiveItemDetails" resultMap="LiveMap" useCache="false" flushCache="true">
+        <include refid="LiveItemQuery"/> AND j.id=#{jobId}
+    </select>
+    <select id="selectItemList" resultMap="ItemMap" useCache="false" flushCache="true">
+        -- 저장 당시 metadata/선택을 그대로 반환한다. 삭제된 job/source의 ID를 복원하지 않는다.
+        SELECT i.job_id,j.source_id,j.frozen_provider_code AS provider_code,i.readiness_code,i.is_eligible,i.is_selected,i.input_hash,i.evidence_json::text AS evidence_json
+        FROM announcement_attachment_batch_preview_items i JOIN announcement_attachment_jobs j ON j.id=i.job_id AND j.batch_id=i.batch_id
+        WHERE i.preview_id=#{previewId} ORDER BY j.source_id,i.job_id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectItemCount" resultType="long">
+        -- 과거 snapshot 당시 수와 현재 남은 항목 수를 구분한다.
+        SELECT count(1) FROM announcement_attachment_batch_preview_items WHERE preview_id=#{previewId}
+    </select>
+    <update id="updatePreviewRunning">
+        -- 하나의 짧은 transaction에서만 선택/새 이력을 작성한다. 미완료 수집은 preview로 넘기지 않는다.
+        UPDATE announcement_attachment_batches SET batch_status_code='PREVIEW_RUNNING',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code IN ('COLLECTED','COLLECTION_PARTIAL_FAILED','PREVIEW_READY','PREVIEW_PARTIAL_FAILED')
+    </update>
+    <insert id="insertPreview">
+        -- 새 선택도 append-only 승인 근거다. 기존 preview를 덮어쓰지 않는다.
+        INSERT INTO announcement_attachment_batch_previews(id,batch_id,preview_status_code,scope_hash,input_hash,preview_hash,batch_version,
+            scope_item_count,remaining_item_count,deleted_item_count,eligible_item_count,selected_item_count,actor_id,idempotency_key,request_hash,reason_hash)
+        VALUES (#{previewId},#{batchId},#{statusCode},#{scopeHash},#{inputHash},#{previewHash},#{batchVersion},
+            #{itemCount},#{remainingItemCount},#{deletedItemCount},#{eligibleItemCount},#{selectedItemCount},#{actorId},#{idempotencyKey},#{requestHash},#{reasonHash})
+    </insert>
+    <insert id="insertItem">
+        -- source identity는 삭제 cascade되는 job FK로만 연결한다. 근거 텍스트/주소는 복사하지 않는다.
+        INSERT INTO announcement_attachment_batch_preview_items(preview_id,batch_id,job_id,readiness_code,is_eligible,is_selected,input_hash,evidence_json)
+        VALUES (#{previewId},#{batchId},#{jobId},#{readinessCode},#{eligible},#{selected},#{inputHash},CAST(#{evidenceJson} AS jsonb))
+    </insert>
+    <update id="updateJobSelection">
+        -- 명시적으로 선택한 성공 항목만 표시한다. 비선택/실패 항목도 jobs와 preview 이력에 남긴다.
+        UPDATE announcement_attachment_jobs SET is_selected_for_application=
+            <choose><when test="selectedJobIds != null and !selectedJobIds.isEmpty()">id IN <foreach collection="selectedJobIds" item="id" open="(" separator="," close=")">#{id}</foreach></when><otherwise>false</otherwise></choose>,
+            row_version=row_version+1,updated_at=clock_timestamp() WHERE batch_id=#{batchId}
+    </update>
+    <update id="updatePreviewReady">
+        -- preview 확정이지 현재 판정 적용이 아니다. pointer와 선택 지문을 함께 고정한다.
+        UPDATE announcement_attachment_batches SET batch_status_code=#{statusCode},preview_hash=#{previewHash},current_preview_id=#{previewId},row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code='PREVIEW_RUNNING'
+    </update>
+</mapper>

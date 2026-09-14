@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyDao">
+    <resultMap id="SummaryMap" type="com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses$Summary">
+        <constructor>
+            <arg column="policy_id" javaType="java.util.UUID"/><arg column="policy_code" javaType="java.lang.String"/>
+            <arg column="version_no" javaType="java.lang.Integer"/><arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="policy_status_code" javaType="java.lang.String"/><arg column="mode_code" javaType="java.lang.String"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="rule_release_status_code" javaType="java.lang.String"/>
+            <arg column="policy_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="published_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="RowMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyManagementRows$Row">
+        <constructor>
+            <arg column="policy_id" javaType="java.util.UUID"/><arg column="policy_code" javaType="java.lang.String"/>
+            <arg column="version_no" javaType="java.lang.Integer"/><arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="policy_status_code" javaType="java.lang.String"/><arg column="mode_code" javaType="java.lang.String"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="rule_release_status_code" javaType="java.lang.String"/>
+            <arg column="policy_hash" javaType="java.lang.String"/><arg column="settings_json" javaType="java.lang.String"/>
+            <arg column="profile_manifest_json" javaType="java.lang.String"/><arg column="created_by" javaType="java.util.UUID"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/><arg column="updated_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="published_at" javaType="java.time.OffsetDateTime"/><arg column="copied_from_policy_id" javaType="java.util.UUID"/>
+            <arg column="creation_idempotency_key" javaType="java.util.UUID"/><arg column="creation_request_hash" javaType="java.lang.String"/>
+            <arg column="creation_operation_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <sql id="SummaryColumns">p.id AS policy_id,p.policy_code,p.version_no,p.row_version,p.policy_status_code,p.mode_code,
+        p.rule_release_id,r.release_status_code AS rule_release_status_code,p.policy_hash,p.created_at,p.published_at</sql>
+    <sql id="RowColumns"><include refid="SummaryColumns"/>,p.settings_json::text AS settings_json,
+        p.profile_manifest_json::text AS profile_manifest_json,p.created_by,p.updated_at,p.copied_from_policy_id,
+        p.creation_idempotency_key,p.creation_request_hash,p.creation_operation_code</sql>
+    <sql id="SearchScope">FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        <where>
+            <if test="policyStatusCode!=null">p.policy_status_code=#{policyStatusCode}</if>
+            <if test="ruleReleaseId!=null">AND p.rule_release_id=#{ruleReleaseId}</if>
+        </where>
+    </sql>
+    <select id="selectPolicyList" resultMap="SummaryMap" useCache="false">
+        -- 큰 설정 JSON과 실행 경로는 목록에 포함하지 않는다. count와 같은 범위를 조회한다.
+        SELECT <include refid="SummaryColumns"/> <include refid="SearchScope"/>
+        ORDER BY p.created_at DESC,p.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectPolicyCount" resultType="long" useCache="false">
+        -- 목록과 같은 정책 상태/규칙 조건을 사용한다.
+        SELECT count(1) <include refid="SearchScope"/>
+    </select>
+    <select id="selectPolicyDetails" resultMap="RowMap" useCache="false" flushCache="true">
+        -- GET은 읽기 전용이다. 초안 변경/개정만 policy 행 잠금을 사용한다.
+        SELECT <include refid="RowColumns"/> FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        WHERE p.id=#{policyId} <if test="lock">FOR UPDATE OF p</if>
+    </select>
+    <select id="selectCreationDetails" resultMap="RowMap" useCache="false" flushCache="true">
+        -- 생성 후 편집됐어도 최초 actor/key/hash가 같은 정책 ID를 돌려준다.
+        SELECT <include refid="RowColumns"/> FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        WHERE p.creation_idempotency_key=#{key}
+    </select>
+    <select id="selectCreationLock" resultType="string">
+        -- 전용 namespace의 transaction lock으로 서로 다른 생성/개정 경로의 같은 key를 직렬화한다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73101))::text
+    </select>
+    <select id="selectFamilyLock" resultType="string">
+        -- 서로 다른 과거 버전에서 개정해도 정책 family의 새 version 번호는 중복되지 않는다.
+        SELECT pg_advisory_xact_lock(hashtextextended(#{policyCode},73102))::text
+    </select>
+    <select id="selectLatestVersion" resultType="int" useCache="false" flushCache="true">
+        -- family lock 아래에서만 호출한다. int 최대값은 service에서 거부한다.
+        SELECT coalesce(max(version_no),0) FROM announcement_attachment_policies WHERE policy_code=#{policyCode}
+    </select>
+    <select id="selectRuleStatus" resultType="string" useCache="false" flushCache="true">
+        -- 초안에는 DRAFT 또는 ACTIVE 규칙을 연결할 수 있다. 규칙 게시 자체는 하지 않는다.
+        SELECT release_status_code FROM announcement_source_classification_rule_releases WHERE id=#{ruleReleaseId} FOR SHARE
+    </select>
+    <insert id="insertPolicy">
+        -- 새 정책과 개정은 무조건 DRAFT다. policy hash/게시 시각을 이어받지 않는다.
+        INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,
+            settings_json,profile_manifest_json,created_by,copied_from_policy_id,creation_idempotency_key,creation_request_hash,creation_operation_code)
+        VALUES (#{policyId},#{policyCode},#{versionNo},'DRAFT',#{modeCode},#{ruleReleaseId},CAST(#{settingsJson} AS jsonb),
+            CAST(#{profileManifestJson} AS jsonb),#{actorId},#{copiedFromPolicyId},#{idempotencyKey},#{requestHash},#{operationCode})
+    </insert>
+    <update id="updatePolicyDraft">
+        -- CAS로 초안만 수정한다. 실행 hash는 재검증 전까지 NULL이고 기존 source/작업/ACTIVE 정책을 변경하지 않는다.
+        UPDATE announcement_attachment_policies SET mode_code=#{modeCode},rule_release_id=#{ruleReleaseId},
+            settings_json=CAST(#{settingsJson} AS jsonb),profile_manifest_json=CAST(#{profileManifestJson} AS jsonb),
+            policy_hash=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{policyId} AND policy_status_code='DRAFT' AND row_version=#{expectedVersion}
+    </update>
+</mapper>

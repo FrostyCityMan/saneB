@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentProviderQaManagementDao">
+    <resultMap id="RunMap" type="com.saneb.domain.announcementattachment.vo.AttachmentProviderQaManagementRows$Run">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="policy_row_version" javaType="java.lang.Integer"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="rule_row_version" javaType="java.lang.Integer"/>
+            <arg column="snapshot_hash" javaType="java.lang.String"/>
+            <arg column="catalog_hash" javaType="java.lang.String"/>
+            <arg column="execution_code_hash" javaType="java.lang.String"/>
+            <arg column="runtime_hash" javaType="java.lang.String"/>
+            <arg column="expected_case_count" javaType="java.lang.Integer"/>
+            <arg column="maximum_requests" javaType="java.lang.Long"/>
+            <arg column="maximum_bytes" javaType="java.lang.Long"/>
+            <arg column="request_reservations" javaType="java.lang.Long"/>
+            <arg column="reserved_bytes" javaType="java.lang.Long"/>
+            <arg column="run_status_code" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="idempotency_key" javaType="java.util.UUID"/>
+            <arg column="request_hash" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="expires_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="plan_hash" javaType="java.lang.String"/>
+            <arg column="segment_no" javaType="java.lang.Integer"/>
+            <arg column="segment_count" javaType="java.lang.Integer"/>
+            <arg column="catalog_case_count" javaType="java.lang.Integer"/>
+            <arg column="executable_case_count" javaType="java.lang.Integer"/>
+            <arg column="is_expectation_coverage_complete" javaType="java.lang.Boolean"/>
+            <arg column="maximum_seconds_including_margin" javaType="java.lang.Integer"/>
+            <arg column="input_versions_current" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentProviderQaManagementRows$Item">
+        <constructor>
+            <arg column="case_id" javaType="java.util.UUID"/>
+            <arg column="ordinal" javaType="java.lang.Integer"/>
+            <arg column="case_code" javaType="java.lang.String"/>
+            <arg column="input_hash" javaType="java.lang.String"/>
+            <arg column="profile_hash" javaType="java.lang.String"/>
+            <arg column="expected_file_count" javaType="java.lang.Integer"/>
+            <arg column="case_status_code" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/>
+            <arg column="request_reservations" javaType="java.lang.Integer"/>
+            <arg column="reserved_bytes" javaType="java.lang.Long"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="error_code" javaType="java.lang.String"/>
+            <arg column="evidence_hash" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <sql id="RunColumns">r.id AS run_id,r.policy_id,r.policy_row_version,r.rule_release_id,r.rule_row_version,r.snapshot_hash,r.catalog_hash,
+        r.execution_code_hash,r.runtime_hash,r.expected_case_count,r.maximum_requests,r.maximum_bytes,r.request_reservations,r.reserved_bytes,
+        r.run_status_code,r.row_version,r.requested_by,r.idempotency_key,r.request_hash,r.created_at,r.expires_at,r.completed_at,
+        b.plan_hash,b.segment_no,b.segment_count,b.catalog_case_count,b.executable_case_count,b.is_expectation_coverage_complete,b.maximum_seconds_including_margin,
+        (p.policy_status_code='DRAFT' AND p.row_version=r.policy_row_version AND p.rule_release_id=r.rule_release_id
+          AND t.row_version=r.rule_row_version AND t.release_status_code IN ('DRAFT','ACTIVE')) AS input_versions_current</sql>
+    <sql id="RunScope">FROM announcement_attachment_provider_qa_runs r
+        JOIN announcement_attachment_policies p ON p.id=r.policy_id
+        JOIN announcement_source_classification_rule_releases t ON t.id=r.rule_release_id
+        LEFT JOIN announcement_attachment_provider_qa_run_plans b ON b.run_id=r.id</sql>
+    <insert id="insertPlan">
+        -- 승인한 서버 계획을 run/case/READY와 같은 transaction에 봉인한다.
+        INSERT INTO announcement_attachment_provider_qa_run_plans(run_id,plan_hash,segment_no,segment_count,catalog_case_count,
+            executable_case_count,is_expectation_coverage_complete,maximum_seconds_including_margin)
+        VALUES(#{runId},#{planHash},#{segmentNo},#{segmentCount},#{catalogCaseCount},#{executableCaseCount},#{expectationCoverageComplete},#{maximumSecondsIncludingMargin})
+    </insert>
+    <select id="selectRunDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 이전 V79 이력도 보존한다. 인증 정보는 Service의 안전한 응답 DTO로 제한한다.
+        SELECT <include refid="RunColumns"/> <include refid="RunScope"/> WHERE r.id=#{runId}
+    </select>
+    <select id="selectRequestDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 같은 키의 actor/정책/입력을 검사하며 네트워크 재실행은 하지 않는다.
+        SELECT <include refid="RunColumns"/> <include refid="RunScope"/> WHERE r.idempotency_key=#{key}
+    </select>
+    <select id="selectRunList" resultMap="RunMap" useCache="false">
+        -- 전체 건수와 페이지 범위를 분리한다.
+        SELECT <include refid="RunColumns"/> <include refid="RunScope"/> WHERE r.policy_id=#{policyId}
+        ORDER BY r.created_at DESC,r.id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectRunCount" resultType="long" useCache="false">
+        -- 정책에 속한 전체 실행 분모다.
+        SELECT count(1) FROM announcement_attachment_provider_qa_runs WHERE policy_id=#{policyId}
+    </select>
+    <select id="selectCaseList" resultMap="ItemMap" useCache="false">
+        -- 원문/증거 JSON/lease token을 조회 응답에 포함하지 않는다.
+        SELECT id AS case_id,ordinal,case_code,input_hash,profile_hash,expected_file_count,case_status_code,row_version,
+            request_reservations,reserved_bytes,started_at,completed_at,error_code,evidence_hash
+        FROM announcement_attachment_provider_qa_cases WHERE run_id=#{runId} ORDER BY ordinal LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectCaseCount" resultType="long" useCache="false">
+        -- 성공 항목만 세지 않고 미실행/실패를 포함한 전체 분모를 반환한다.
+        SELECT count(1) FROM announcement_attachment_provider_qa_cases WHERE run_id=#{runId}
+    </select>
+    <select id="selectActiveRunIds" resultType="java.util.UUID" useCache="false" flushCache="true">
+        -- 전역 활성 원장 1개 제약과 같은 범위다. queue lock 아래 정리/예약에 사용한다.
+        SELECT id FROM announcement_attachment_provider_qa_runs WHERE run_status_code IN ('BUILDING','READY','RUNNING','CANCEL_REQUESTED') ORDER BY created_at,id
+    </select>
+    <select id="selectCoolingDown" resultType="boolean" useCache="false" flushCache="true">
+        -- 같은 키 재조회는 이 검사보다 먼저 처리한다. 실패/취소도 새 예약 간격에 포함한다.
+        SELECT EXISTS(SELECT 1 FROM announcement_attachment_provider_qa_runs WHERE policy_id=#{policyId} AND created_at>clock_timestamp()-interval '60 seconds')
+    </select>
+    <select id="selectNextCaseId" resultType="java.util.UUID" useCache="false" flushCache="true">
+        -- 이미 실행한 항목은 재claim하지 않는다.
+        SELECT id FROM announcement_attachment_provider_qa_cases WHERE run_id=#{runId} AND case_status_code='PENDING' ORDER BY ordinal LIMIT 1
+    </select>
+    <update id="updatePendingInputChanged">
+        -- 현재 입력과 불일치한 미실행 항목만 종료한다. 실행 중인 소유자의 자원은 건드리지 않는다.
+        UPDATE announcement_attachment_provider_qa_cases c SET case_status_code='FAILED',error_code='INPUT_CHANGED',completed_at=clock_timestamp(),row_version=c.row_version+1
+        FROM announcement_attachment_provider_qa_runs r WHERE r.id=c.run_id AND r.id=#{runId} AND r.run_status_code IN ('READY','RUNNING') AND c.case_status_code='PENDING'
+    </update>
+</mapper>

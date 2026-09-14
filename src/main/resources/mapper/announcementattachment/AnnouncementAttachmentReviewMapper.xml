@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentReviewDao">
+    <resultMap id="ConfirmationMap" type="com.saneb.domain.announcementattachment.vo.AttachmentReviewRows$Confirmation">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="evaluation_id" javaType="java.util.UUID"/><arg column="set_hash" javaType="java.lang.String"/>
+            <arg column="request_hash" javaType="java.lang.String"/><arg column="review_method_code" javaType="java.lang.String"/>
+            <arg column="is_current" javaType="java.lang.Boolean"/><arg column="confirmed_source_version" javaType="java.lang.Integer"/>
+            <arg column="confirmed_attachment_version" javaType="java.lang.Integer"/><arg column="confirmed_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <sql id="ConfirmationColumns">
+        id,source_id,evaluation_id,set_hash,request_hash,review_method_code,is_current,
+        confirmed_source_version,confirmed_attachment_version,confirmed_at
+    </sql>
+    <resultMap id="RestoredBindingMap" type="com.saneb.domain.announcementattachment.vo.AttachmentReviewRows$RestoredBinding"><constructor>
+        <arg column="restoration_id" javaType="java.util.UUID"/><arg column="confirmation_id" javaType="java.util.UUID"/>
+        <arg column="source_id" javaType="java.util.UUID"/><arg column="source_version" javaType="java.lang.Integer"/>
+        <arg column="attachment_version" javaType="java.lang.Integer"/>
+    </constructor></resultMap>
+    <select id="selectRestoredBindingDetails" resultMap="RestoredBindingMap" useCache="false" flushCache="true">
+        -- 완료된 원복 근거만 읽는다. 원래 확인 버전/작성자/메모는 변경하거나 다시 노출하지 않는다.
+        SELECT r.restoration_id,r.confirmation_id,r.source_id,r.source_version,r.attachment_version
+        FROM attachment_confirmation_restored_binding(#{sourceId},#{confirmationId}) r
+    </select>
+    <select id="selectIdempotentConfirmationDetails" resultMap="ConfirmationMap" useCache="false" flushCache="true">
+        -- 반환 전 service에서 source와 actor를 포함한 요청 hash를 검증한다. 검수 원문은 읽지 않는다.
+        SELECT <include refid="ConfirmationColumns"/> FROM announcement_source_attachment_confirmations WHERE idempotency_key=#{key}
+    </select>
+    <select id="selectConfirmationDetails" resultMap="ConfirmationMap" useCache="false" flushCache="true">
+        -- 교차 source 확인 식별자는 존재하더라도 조회하지 않는다.
+        SELECT <include refid="ConfirmationColumns"/> FROM announcement_source_attachment_confirmations
+        WHERE id=#{confirmationId} AND source_id=#{sourceId}
+    </select>
+    <select id="selectActiveNormalJobExists" resultType="boolean">
+        -- batch preview는 기존 현재 판정의 검수를 막거나 바꾸지 않는다. 일반 재수집만 확인을 차단한다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_jobs WHERE source_id=#{sourceId} AND batch_id IS NULL
+            AND job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED'))
+    </select>
+    <select id="selectEnabledTargetCodeList" resultType="string">
+        -- 확인/전환 transaction 동안 카탈로그 비활성화와 경합하지 않도록 일정 순서로 잠근다.
+        SELECT category_code FROM announcement_target_categories WHERE is_enabled AND category_code IN
+        <foreach collection="codes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        ORDER BY category_code FOR SHARE
+    </select>
+    <select id="selectEnabledSupportCodeList" resultType="string">
+        -- 지원형태도 enabled 상태와 같은 transaction에 묶는다.
+        SELECT support_type_code FROM announcement_support_types WHERE is_enabled AND support_type_code IN
+        <foreach collection="codes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        ORDER BY support_type_code FOR SHARE
+    </select>
+    <update id="updateConfirmationsStale">
+        -- 이전 확인과 그 태그는 이력으로 남기고 새 확인을 생성한다.
+        UPDATE announcement_source_attachment_confirmations SET is_current=false WHERE source_id=#{sourceId} AND is_current
+    </update>
+    <update id="updateSourceVersion">
+        -- confirmation/전환은 첨부 버전만 단조 증가시킨다. 기본 판정과 첨부 자동 판정은 유지한다.
+        UPDATE announcement_source_snapshots SET attachment_row_version=attachment_row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{sourceId} AND classification_row_version=#{sourceVersion} AND attachment_row_version=#{attachmentVersion}
+          AND current_attachment_evaluation_id=#{evaluationId} AND is_attachment_review_required
+    </update>
+    <insert id="insertConfirmation">
+        -- 검수 메모는 제한된 확인 테이블에만 저장하며 audit에는 hash/ID/건수만 기록한다.
+        INSERT INTO announcement_source_attachment_confirmations
+            (id,source_id,evaluation_id,set_hash,confirmed_by,review_method_code,acknowledged_error_codes_json,
+             review_note,idempotency_key,request_hash,confirmed_source_version,confirmed_attachment_version)
+        VALUES (#{id},#{sourceId},#{evaluationId},#{setHash},#{actorId},#{method},CAST(#{acknowledgementJson} AS jsonb),
+                #{reviewNote},#{idempotencyKey},#{requestHash},#{sourceVersion},#{attachmentVersion})
+        ON CONFLICT (idempotency_key) DO NOTHING
+    </insert>
+    <insert id="insertConfirmedTarget">
+        -- 자동 태그를 수정하지 않고 특정 confirmation의 확정 태그를 분리한다.
+        INSERT INTO announcement_source_attachment_tags(evaluation_id,confirmation_id,target_category_id,origin_code)
+        SELECT #{evaluationId},#{confirmationId},id,'CONFIRMED' FROM announcement_target_categories WHERE category_code=#{code} AND is_enabled
+    </insert>
+    <insert id="insertConfirmedSupport">
+        -- 한 확인에 여러 지원형태를 명시적으로 저장한다.
+        INSERT INTO announcement_source_attachment_tags(evaluation_id,confirmation_id,support_type_id,origin_code)
+        SELECT #{evaluationId},#{confirmationId},id,'CONFIRMED' FROM announcement_support_types WHERE support_type_code=#{code} AND is_enabled
+    </insert>
+    <select id="selectConfirmedTargetCodeList" resultType="string">
+        -- 요청 배열이 아니라 현재 확인의 저장된 태그를 DRAFT 입력으로 사용한다.
+        SELECT c.category_code FROM announcement_source_attachment_tags t JOIN announcement_target_categories c ON c.id=t.target_category_id
+        WHERE t.confirmation_id=#{confirmationId} AND t.origin_code='CONFIRMED' ORDER BY c.category_code
+    </select>
+    <select id="selectConfirmedSupportCodeList" resultType="string">
+        -- 이력 확인의 태그는 service의 current 확인 검증을 통과하기 전에는 전환하지 않는다.
+        SELECT c.support_type_code FROM announcement_source_attachment_tags t JOIN announcement_support_types c ON c.id=t.support_type_id
+        WHERE t.confirmation_id=#{confirmationId} AND t.origin_code='CONFIRMED' ORDER BY c.support_type_code
+    </select>
+    <resultMap id="LinkMap" type="com.saneb.domain.announcementattachment.vo.AttachmentReviewRows$Link">
+        <constructor>
+            <arg column="announcement_id" javaType="java.util.UUID"/><arg column="announcement_code" javaType="java.lang.String"/>
+            <arg column="attachment_confirmation_id" javaType="java.util.UUID"/><arg column="attachment_request_hash" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectConversionLinkDetails" resultMap="LinkMap" useCache="false" flushCache="true">
+        -- source 잠금 아래 기존 link와 최초 요청을 비교한다. 기존 공고 공개 상태는 변경하지 않는다.
+        SELECT l.announcement_id,a.announcement_code,l.attachment_confirmation_id,l.attachment_request_hash
+        FROM announcement_source_links l JOIN announcements a ON a.id=l.announcement_id WHERE l.source_id=#{sourceId}
+    </select>
+    <insert id="insertConversionLink">
+        -- source UNIQUE가 중복 DRAFT transaction을 거부한다. 다른 요청을 같은 성공으로 간주하지 않는다.
+        INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by,attachment_confirmation_id,attachment_request_hash)
+        VALUES (#{id},#{sourceId},#{announcementId},#{actorId},#{confirmationId},#{requestHash})
+    </insert>
+</mapper>

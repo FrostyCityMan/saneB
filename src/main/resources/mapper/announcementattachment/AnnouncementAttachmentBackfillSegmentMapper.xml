@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillSegmentDao">
+    <resultMap id="LinkMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillSegmentRows$Link"><constructor>
+        <arg column="run_id" javaType="java.util.UUID"/><arg column="segment_no" javaType="java.lang.Long"/>
+        <arg column="batch_id" javaType="java.util.UUID"/><arg column="deleted_before_reservation" javaType="java.lang.Integer"/>
+        <arg column="expected_run_version" javaType="java.lang.Long"/><arg column="segment_hash" javaType="java.lang.String"/>
+        <arg column="requested_by" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/>
+        <arg column="request_hash" javaType="java.lang.String"/><arg column="original_item_count" javaType="java.lang.Integer"/>
+        <arg column="reserved_item_count" javaType="java.lang.Integer"/><arg column="current_batch_status_code" javaType="java.lang.String"/>
+        <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="TotalsMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillSegmentRows$Totals"><constructor>
+        <arg column="remaining_item_count" javaType="java.lang.Long"/><arg column="reserved_segment_count" javaType="java.lang.Long"/>
+        <arg column="reserved_remaining_item_count" javaType="java.lang.Long"/><arg column="unreserved_item_count" javaType="java.lang.Long"/>
+        <arg column="unreserved_input_changed_count" javaType="java.lang.Long"/><arg column="missing_job_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <resultMap id="OutcomeMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBackfillSegmentRows$Outcome"><constructor>
+        <arg column="dimension_code" javaType="java.lang.String"/><arg column="status_code" javaType="java.lang.String"/>
+        <arg column="item_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <select id="selectRequestLock" resultType="string">
+        -- READ COMMITTED 변경 transaction에서 같은 분할 예약 요청을 직렬화한다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),75001))::text
+    </select>
+    <select id="selectRunDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao.RunMap" useCache="false" flushCache="true">
+        -- source/policy 이후에만 전체 목록을 잠근다. 일반 조회는 잠금이 없다.
+        SELECT <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao.RunColumns"/>
+        FROM announcement_attachment_backfill_runs WHERE id=#{runId} <if test="lock">FOR UPDATE</if>
+    </select>
+    <select id="selectSegmentDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao.SegmentMap" useCache="false" flushCache="true">
+        -- 고정 분할 하나만 잠그고 삭제 카운터와 잔여 실제 목록을 대조한다.
+        SELECT <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao.SegmentColumns"/>
+        FROM announcement_attachment_backfill_segments s WHERE s.run_id=#{runId} AND s.segment_no=#{segmentNo} <if test="lock">FOR UPDATE OF s</if>
+    </select>
+    <select id="selectFixedItemList" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBackfillDao.ItemMap" useCache="false" flushCache="true">
+        -- DB에서1~1000건으로 고정된 한 분할 전체. 원래 범위 조건이나 LIMIT를 반복하지 않는다.
+        SELECT ordinal,source_id,content_version_id,base_evaluation_id,rule_release_id,provider_code,input_hash,
+            coalesce(input_hash=attachment_backfill_input_hash(source_id),false) AS current_input_matches
+        FROM announcement_attachment_backfill_items WHERE run_id=#{runId} AND segment_no=#{segmentNo} ORDER BY ordinal
+    </select>
+    <sql id="LinkColumns">l.run_id,l.segment_no,l.batch_id,l.deleted_before_reservation,l.expected_run_version,l.segment_hash,
+        l.requested_by,l.idempotency_key,l.request_hash,s.item_count AS original_item_count,b.scope_item_count AS reserved_item_count,
+        b.batch_status_code AS current_batch_status_code,l.created_at</sql>
+    <sql id="LinkFrom">announcement_attachment_backfill_segment_batches l JOIN announcement_attachment_backfill_segments s ON s.run_id=l.run_id AND s.segment_no=l.segment_no
+        JOIN announcement_attachment_batches b ON b.id=l.batch_id</sql>
+    <select id="selectLinkDetails" resultMap="LinkMap" useCache="false" flushCache="true">
+        -- 실패·취소·원복된 배치 연결도 보존하며 다른 배치로 바꾸지 않는다.
+        SELECT <include refid="LinkColumns"/> FROM <include refid="LinkFrom"/> WHERE l.run_id=#{runId} AND l.segment_no=#{segmentNo}
+    </select>
+    <select id="selectRequestDetails" resultMap="LinkMap" useCache="false" flushCache="true">
+        -- 현재 원문/정책이 달라져도 최초 요청 영수증의 동일 입력 재조회는 가능하다.
+        SELECT <include refid="LinkColumns"/> FROM <include refid="LinkFrom"/> WHERE l.idempotency_key=#{key}
+    </select>
+    <insert id="insertLink">
+        -- 고정 대상의 SCOPE_READY job 예약과 같은 transaction에서 일대일 연결한다.
+        INSERT INTO announcement_attachment_backfill_segment_batches(run_id,segment_no,batch_id,deleted_before_reservation,expected_run_version,
+            segment_hash,requested_by,idempotency_key,request_hash,reason_hash)
+        VALUES (#{runId},#{segmentNo},#{batchId},#{deletedBeforeReservation},#{expectedRunVersion},#{segmentHash},#{requestedBy},#{idempotencyKey},#{requestHash},#{reasonHash})
+    </insert>
+    <sql id="CurrentItems">
+        SELECT i.source_id,l.batch_id,j.id AS job_id,j.job_status_code,j.application_status_code,j.rollback_status_code,
+            CASE WHEN l.batch_id IS NULL THEN coalesce(i.input_hash=attachment_backfill_input_hash(i.source_id),false) ELSE true END AS input_matches
+        FROM announcement_attachment_backfill_items i
+        LEFT JOIN announcement_attachment_backfill_segment_batches l ON l.run_id=i.run_id AND l.segment_no=i.segment_no
+        LEFT JOIN announcement_attachment_jobs j ON j.batch_id=l.batch_id AND j.source_id=i.source_id
+            AND j.content_version_id=i.content_version_id AND j.base_evaluation_id=i.base_evaluation_id AND j.rule_release_id=i.rule_release_id
+        WHERE i.run_id=#{runId}
+    </sql>
+    <select id="selectTotals" resultMap="TotalsMap" useCache="false" flushCache="true">
+        -- 전체 잔여 item을 집계한다. 삭제·미예약·job 누락을 성공으로 바꾸지 않는다.
+        WITH current_items AS MATERIALIZED (<include refid="CurrentItems"/>)
+        SELECT count(1) AS remaining_item_count,
+            (SELECT count(1) FROM announcement_attachment_backfill_segment_batches WHERE run_id=#{runId}) AS reserved_segment_count,
+            count(1) FILTER (WHERE batch_id IS NOT NULL) AS reserved_remaining_item_count,
+            count(1) FILTER (WHERE batch_id IS NULL) AS unreserved_item_count,
+            count(1) FILTER (WHERE batch_id IS NULL AND NOT input_matches) AS unreserved_input_changed_count,
+            count(1) FILTER (WHERE batch_id IS NOT NULL AND job_id IS NULL) AS missing_job_count FROM current_items
+    </select>
+    <select id="selectOutcomeCounts" resultMap="OutcomeMap" useCache="false" flushCache="true">
+        -- 세 차원의 분모는 각각 전체 잔여 수다. APPLIED 이력을 ROLLED_BACK과 합산해 이중 성공으로 세지 않는다.
+        WITH current_items AS MATERIALIZED (<include refid="CurrentItems"/>)
+        SELECT d.dimension_code,CASE WHEN c.batch_id IS NULL THEN 'UNRESERVED' WHEN c.job_id IS NULL THEN 'MISSING_JOB' ELSE d.status_code END AS status_code,
+            count(1) AS item_count FROM current_items c
+        CROSS JOIN LATERAL (VALUES ('COLLECTION',c.job_status_code),('APPLICATION',c.application_status_code),('ROLLBACK',c.rollback_status_code)) d(dimension_code,status_code)
+        GROUP BY d.dimension_code,CASE WHEN c.batch_id IS NULL THEN 'UNRESERVED' WHEN c.job_id IS NULL THEN 'MISSING_JOB' ELSE d.status_code END
+        ORDER BY d.dimension_code,status_code
+    </select>
+</mapper>

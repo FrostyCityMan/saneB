@@ -20,6 +20,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.UUID;
 
 @Controller
 public class AnnouncementSourceViewController {
@@ -80,6 +83,58 @@ public class AnnouncementSourceViewController {
         ));
         model.addAttribute("classificationV2Enabled", classificationV2Enabled);
         return "app/collected-announcements";
+    }
+
+    @GetMapping("/app/admin/announcement-attachment-queue")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentQueuePage(Authentication authentication, Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "COLLECTED_ANNOUNCEMENTS", "공고 최종 검증 대기열"));
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-queue";
+    }
+
+    @GetMapping("/app/admin/collected-announcements/{sourceId}/attachments")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentReviewPage(Authentication authentication, @PathVariable UUID sourceId,
+            Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "COLLECTED_ANNOUNCEMENTS", "공고 첨부 검수"));
+        model.addAttribute("sourceId", sourceId);
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-review";
+    }
+
+    @GetMapping("/app/admin/announcement-attachment-batches")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentBatchPage(Authentication authentication, Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "COLLECTED_ANNOUNCEMENTS", "공고 첨부 배치"));
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-batches";
+    }
+
+    @GetMapping("/app/admin/announcement-attachment-backfills")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentBackfillPage(Authentication authentication, Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "COLLECTED_ANNOUNCEMENTS", "공고 첨부 전체 분할 관리"));
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-backfills";
+    }
+
+    @GetMapping("/app/admin/announcement-attachment-policies")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
+    public String selectAttachmentPolicyPage(Authentication authentication, Model model, HttpServletResponse response) {
+        var authMe = authService.selectAuthMe(authentication);
+        model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "ATTACHMENT_POLICIES", "공고 첨부 정책 관리"));
+        model.addAttribute("attachmentWorkspace", true);
+        response.setHeader("Cache-Control", "no-store");
+        return "app/announcement-attachment-policies";
     }
 
     /**

@@ -503,6 +503,13 @@
 
         const actions = document.createElement("div");
         actions.className = "source-detail-actions collected-primary-actions";
+        if (semanticStatus !== "EXCLUDED") {
+            const attachmentLink = document.createElement("a");
+            attachmentLink.className = "secondary-action small-action";
+            attachmentLink.href = `/app/admin/collected-announcements/${encodeURIComponent(data.sourceId)}/attachments`;
+            attachmentLink.textContent = "본문·첨부 근거와 검수";
+            actions.append(attachmentLink);
+        }
         if (canManage) {
             [["CONDITION_INPUT_REQUIRED", "조건 입력 필요"], ["REVIEW_COMPLETED", "검수완료"], ["ARCHIVED", "보관"]].forEach(([statusCode, text]) => {
                 if (data.reviewStatusCode !== statusCode) appendActionButton(actions, text, "secondary-action small-action", () => updateSourceStatus(data.sourceId, statusCode));

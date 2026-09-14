@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentIntakeDao">
+    <resultMap id="PlanMap" type="com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="plan_status_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectCollectionPlanDetails" resultMap="PlanMap" useCache="false" flushCache="true">
+        -- 정책 선택은 재시작/재시도에서도 같은 run의 값을 사용한다.
+        SELECT run_id,rule_release_id,policy_id,plan_status_code FROM announcement_attachment_collection_plans WHERE run_id=#{runId}
+    </select>
+    <select id="selectActivePolicyId" resultType="java.util.UUID">
+        -- run의 제목 규칙과 일치하는 ACTIVE 정책만 선택하고 게시/퇴역 중에는 기다린다.
+        SELECT p.id FROM announcement_attachment_policies p
+        JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        WHERE p.rule_release_id=#{ruleReleaseId} AND p.policy_status_code='ACTIVE' AND r.release_status_code='ACTIVE'
+        FOR SHARE OF p,r
+    </select>
+    <insert id="insertCollectionPlan">
+        -- 동일 run의 먼저 확정된 계획을 덮어쓰지 않는다.
+        INSERT INTO announcement_attachment_collection_plans(run_id,rule_release_id,policy_id,plan_status_code)
+        VALUES (#{runId},#{ruleReleaseId},#{policyId},#{statusCode}) ON CONFLICT (run_id) DO NOTHING
+    </insert>
+    <select id="selectUnmatchedEnforcePolicyId" resultType="java.util.UUID" useCache="false" flushCache="true">
+        -- 규칙 퇴역만으로 이전 ACTIVE ENFORCE 의도를 OFF로 해석하지 않는다. 새 일치 정책이 없을 때만 호출한다.
+        SELECT p.id FROM announcement_attachment_policies p
+        WHERE p.policy_status_code='ACTIVE' AND p.mode_code='ENFORCE'
+            AND (p.rule_release_id IS DISTINCT FROM #{ruleReleaseId,jdbcType=OTHER}
+                OR NOT EXISTS (SELECT 1 FROM announcement_source_classification_rule_releases r
+                    WHERE r.id=p.rule_release_id AND r.release_status_code='ACTIVE'))
+        ORDER BY p.id LIMIT 1 FOR SHARE OF p
+    </select>
+    <select id="selectSourceLocatorDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.WorkerSourceMap">
+        -- source 잠금 아래 시스템 출처 연결만 조회한다. 제목/본문은 가져오지 않는다.
+        SELECT s.provider_code,s.provider_notice_id,s.source_url,l.public_code AS local_source_code,l.parser_profile_code
+        FROM announcement_source_snapshots s LEFT JOIN local_government_notice_sources l ON l.id=s.local_government_source_id
+        WHERE s.id=#{sourceId} AND (s.provider_code&lt;&gt;'LOCAL_GOV_NOTICE' OR (l.is_enabled AND l.deleted_at IS NULL))
+    </select>
+    <select id="selectProtectedLinkExists" resultType="boolean">
+        -- 연결된 운영 공고는 자동 첨부 갱신 범위에서 보호한다.
+        SELECT EXISTS (SELECT 1 FROM announcement_source_links WHERE source_id=#{sourceId})
+    </select>
+    <select id="selectActiveJobId" resultType="java.util.UUID">
+        -- source 단위 활성 job unique index와 같은 상태 집합을 사용한다.
+        SELECT id FROM announcement_attachment_jobs WHERE source_id=#{sourceId}
+            AND job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')
+    </select>
+    <select id="selectRecentCheckExists" resultType="boolean">
+        -- 자동 재확인은 source마다 최소 24시간 간격이다. 명시적 재시도 API의 별도 한도와 혼합하지 않는다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_jobs
+            WHERE source_id=#{sourceId} AND batch_id IS NULL AND created_at&gt;clock_timestamp()-interval '24 hours')
+    </select>
+    <update id="updateSourceIntakeStatus">
+        -- 수집 예약 상태 metadata만 기록한다. 기존 판정/정책/원문/연결 공고는 변경하지 않는다.
+        UPDATE announcement_source_snapshots SET attachment_intake_status_code=#{statusCode} WHERE id=#{sourceId}
+    </update>
+</mapper>

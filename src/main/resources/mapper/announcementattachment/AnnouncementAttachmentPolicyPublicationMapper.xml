@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyPublicationDao">
+    <resultMap id="RequestMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyPublicationRows$Request"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+        <arg column="published_by" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <resultMap id="ReceiptMap" type="com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublication$Receipt"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+        <arg column="policy_row_version" javaType="java.lang.Integer"/><arg column="policy_hash" javaType="java.lang.String"/>
+        <arg column="previous_policy_id" javaType="java.util.UUID"/><arg column="previous_policy_row_version" javaType="java.lang.Integer"/>
+        <arg column="scope_id" javaType="java.util.UUID"/><arg column="scope_hash" javaType="java.lang.String"/>
+        <arg column="qa_run_id" javaType="java.util.UUID"/><arg column="mode_code" javaType="java.lang.String"/>
+        <arg column="published_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <select id="selectRequestDetails" resultMap="RequestMap" useCache="false" flushCache="true">
+        -- 재전송은 만료/이후 정책 교체와 무관하게 원래 게시 영수증을 찾는다.
+        SELECT id,policy_id,published_by,request_hash FROM announcement_attachment_policy_publications WHERE idempotency_key=#{key}
+    </select>
+    <select id="selectPublicationLock" resultType="string">
+        -- NOWAIT 전역 쓰기 경계. 외부 파일 추출/네트워크 실행을 이 잠금 안에서 수행하지 않는다.
+        SELECT attachment_policy_publication_lock()::text
+    </select>
+    <insert id="insertPublication">
+        -- 준비 scope와 QA를 다시 확인한 서비스만 호출한다. trigger가 현재성/전체 집합/소속도 검사한다.
+        INSERT INTO announcement_attachment_policy_publications(id,scope_id,policy_id,policy_row_version,policy_hash,
+            previous_policy_id,previous_policy_row_version,qa_run_id,evidence_hash,runtime_hash,published_by,idempotency_key,request_hash,reason_hash)
+        SELECT #{publicationId},s.id,s.policy_id,s.policy_row_version+1,s.qa_snapshot_hash,p.id,p.row_version,s.qa_run_id,
+            #{evidenceHash},#{runtimeHash},#{actorId},#{key},#{requestHash},#{reasonHash}
+        FROM announcement_attachment_policy_publication_scopes s
+        LEFT JOIN announcement_attachment_policies p ON p.rule_release_id=s.rule_release_id AND p.policy_status_code='ACTIVE'
+        WHERE s.id=#{scopeId} AND s.policy_id=#{policyId} AND s.requested_by=#{actorId}
+    </insert>
+    <update id="updatePreviousPolicyRetired">
+        -- 같은 규칙의 당시 ACTIVE 한 행만 퇴역한다. 기존 job/source binding은 보존한다.
+        UPDATE announcement_attachment_policies p SET policy_status_code='RETIRED',row_version=p.row_version+1,updated_at=clock_timestamp()
+        FROM announcement_attachment_policy_publications x WHERE x.id=#{publicationId} AND x.created_xid=pg_current_xact_id()
+            AND p.id=x.previous_policy_id AND p.policy_status_code='ACTIVE' AND p.row_version=x.previous_policy_row_version
+    </update>
+    <update id="updatePolicyActive">
+        -- 검증된 QA snapshot hash와 설치 runtime을 고정한다. 초안의 null runtime 필드만 해소하며 나머지 설정은 그대로다.
+        UPDATE announcement_attachment_policies p SET policy_status_code='ACTIVE',policy_hash=x.policy_hash,published_at=x.published_at,
+            settings_json=jsonb_set(p.settings_json,'{extractorConfigHash}',to_jsonb(x.runtime_hash),true),
+            row_version=x.policy_row_version,updated_at=clock_timestamp()
+        FROM announcement_attachment_policy_publications x WHERE x.id=#{publicationId} AND x.created_xid=pg_current_xact_id()
+            AND p.id=x.policy_id AND p.policy_status_code='DRAFT' AND p.row_version=x.policy_row_version-1
+    </update>
+    <select id="selectReceiptDetails" resultMap="ReceiptMap" useCache="false" flushCache="true">
+        -- 정책마다 게시 영수증은 하나다. 이후 RETIRED 상태가 되어도 당시 게시 결과를 보존한다.
+        SELECT x.id,x.policy_id,x.policy_row_version,x.policy_hash,x.previous_policy_id,x.previous_policy_row_version,
+            x.scope_id,s.scope_hash,x.qa_run_id,s.mode_code,x.published_at
+        FROM announcement_attachment_policy_publications x JOIN announcement_attachment_policy_publication_scopes s ON s.id=x.scope_id
+        WHERE x.policy_id=#{policyId}
+    </select>
+</mapper>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentCurrentDao">
+    <resultMap id="SourceMap" type="com.saneb.domain.announcementattachment.vo.AttachmentCurrentSourceRow">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="public_code" javaType="java.lang.String"/>
+            <arg column="provider_code" javaType="java.lang.String"/>
+            <arg column="title" javaType="java.lang.String"/>
+            <arg column="agency_name" javaType="java.lang.String"/>
+            <arg column="application_end_date" javaType="java.time.LocalDate"/>
+            <arg column="collected_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="review_status_code" javaType="java.lang.String"/>
+            <arg column="base_decision_id" javaType="java.util.UUID"/>
+            <arg column="base_status" javaType="java.lang.String"/>
+            <arg column="base_reason" javaType="java.lang.String"/>
+            <arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="base_target_codes" javaType="java.lang.String"/>
+            <arg column="base_support_codes" javaType="java.lang.String"/>
+            <arg column="attachment_decision_id" javaType="java.util.UUID"/>
+            <arg column="attachment_status" javaType="java.lang.String"/>
+            <arg column="attachment_reason" javaType="java.lang.String"/>
+            <arg column="set_id" javaType="java.util.UUID"/>
+            <arg column="set_hash" javaType="java.lang.String"/>
+            <arg column="input_hash" javaType="java.lang.String"/>
+            <arg column="attachment_target_codes" javaType="java.lang.String"/>
+            <arg column="attachment_support_codes" javaType="java.lang.String"/>
+            <arg column="effective_status" javaType="java.lang.String"/>
+            <arg column="effective_reason" javaType="java.lang.String"/>
+            <arg column="review_required" javaType="java.lang.Boolean"/>
+            <arg column="attachment_stale" javaType="java.lang.Boolean"/>
+            <arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="confirmation_id" javaType="java.util.UUID"/>
+            <arg column="confirmation_status" javaType="java.lang.String"/>
+            <arg column="source_version" javaType="java.lang.Integer"/>
+            <arg column="attachment_version" javaType="java.lang.Integer"/>
+            <arg column="job_id" javaType="java.util.UUID"/>
+            <arg column="job_status" javaType="java.lang.String"/>
+            <arg column="job_error" javaType="java.lang.String"/>
+            <arg column="intake_status" javaType="java.lang.String"/>
+            <arg column="discovery_status" javaType="java.lang.String"/>
+            <arg column="discovery_complete" javaType="java.lang.Boolean"/>
+            <arg column="discovered_count" javaType="java.lang.Integer"/>
+            <arg column="processed_count" javaType="java.lang.Integer"/>
+            <arg column="active_normal_job" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+    <sql id="EffectiveStatus">
+        CASE WHEN s.is_attachment_review_required THEN coalesce(a.decision_status_code,'REVIEW_REQUIRED')
+             ELSE coalesce(b.decision_status_code,s.semantic_status_code,'REVIEW_REQUIRED') END
+    </sql>
+    <sql id="EffectiveReason">
+        CASE WHEN NOT s.is_attachment_review_required THEN coalesce(b.reason_code,s.semantic_reason_code,'BASE_CLASSIFICATION_REQUIRED')
+             WHEN a.id IS NOT NULL THEN a.reason_code
+             WHEN s.attachment_intake_status_code IN ('PROFILE_REQUIRED','BASE_RECLASSIFICATION_REQUIRED','POLICY_BINDING_CHANGED')
+                THEN s.attachment_intake_status_code
+             WHEN j.base_evaluation_id IS DISTINCT FROM b.id AND j.id IS NOT NULL THEN 'ATTACHMENT_STALE'
+             WHEN j.job_status_code IN ('FAILED','CANCELLED','CONFLICT') THEN 'ATTACHMENT_PROCESSING_FAILED'
+             ELSE 'ATTACHMENT_PENDING' END
+    </sql>
+    <sql id="BaseTargetCodes">
+        coalesce(
+            (SELECT string_agg(c.category_code,',' ORDER BY c.category_code)
+             FROM announcement_source_confirmed_target_categories t
+             JOIN announcement_target_categories c ON c.id=t.target_category_id
+             WHERE t.source_id=s.id AND t.based_on_evaluation_id=b.id AND t.confirmation_status_code='CURRENT'),
+            (SELECT string_agg(c.category_code,',' ORDER BY c.category_code)
+             FROM announcement_source_classification_target_matches t
+             JOIN announcement_target_categories c ON c.id=t.target_category_id WHERE t.evaluation_id=b.id))
+    </sql>
+    <sql id="BaseSupportCodes">
+        coalesce(
+            (SELECT string_agg(c.support_type_code,',' ORDER BY c.support_type_code)
+             FROM announcement_source_confirmed_support_types t
+             JOIN announcement_support_types c ON c.id=t.support_type_id
+             WHERE t.source_id=s.id AND t.based_on_evaluation_id=b.id AND t.confirmation_status_code='CURRENT'),
+            (SELECT string_agg(c.support_type_code,',' ORDER BY c.support_type_code)
+             FROM announcement_source_classification_support_matches t
+             JOIN announcement_support_types c ON c.id=t.support_type_id WHERE t.evaluation_id=b.id))
+    </sql>
+    <sql id="AttachmentTargetCodes">
+        (SELECT string_agg(c.category_code,',' ORDER BY c.category_code)
+         FROM announcement_source_attachment_tags t JOIN announcement_target_categories c ON c.id=t.target_category_id
+         WHERE t.evaluation_id=a.id
+           AND ((cf.id IS NOT NULL AND t.confirmation_id=cf.id AND t.origin_code='CONFIRMED')
+             OR (cf.id IS NULL AND t.origin_code='AUTO')))
+    </sql>
+    <sql id="AttachmentSupportCodes">
+        (SELECT string_agg(c.support_type_code,',' ORDER BY c.support_type_code)
+         FROM announcement_source_attachment_tags t JOIN announcement_support_types c ON c.id=t.support_type_id
+         WHERE t.evaluation_id=a.id
+           AND ((cf.id IS NOT NULL AND t.confirmation_id=cf.id AND t.origin_code='CONFIRMED')
+             OR (cf.id IS NULL AND t.origin_code='AUTO')))
+    </sql>
+    <sql id="SourceJoins">
+        FROM announcement_source_snapshots s
+        LEFT JOIN announcement_source_classification_evaluations b ON b.source_id=s.id AND b.is_current
+        LEFT JOIN announcement_source_attachment_evaluations a
+          ON a.id=s.current_attachment_evaluation_id AND a.source_id=s.id AND a.is_current
+         AND a.base_evaluation_id=b.id AND a.content_version_id=b.content_version_id AND a.rule_release_id=b.rule_release_id
+         AND (NOT s.is_attachment_review_required OR a.policy_id=s.attachment_policy_id)
+         AND EXISTS (SELECT 1 FROM announcement_source_attachment_sets sealed
+                     WHERE sealed.id=a.set_id AND sealed.source_id=s.id AND sealed.set_status_code='SEALED')
+        LEFT JOIN announcement_source_attachment_sets aset ON aset.id=a.set_id AND aset.source_id=s.id
+        LEFT JOIN LATERAL (
+            SELECT c.id,c.source_id,c.evaluation_id,c.set_hash,
+                coalesce(r.source_version,c.confirmed_source_version) AS effective_source_version,
+                coalesce(r.attachment_version,c.confirmed_attachment_version) AS effective_attachment_version
+            FROM announcement_source_attachment_confirmations c
+            LEFT JOIN LATERAL attachment_confirmation_restored_binding(c.source_id,c.id) r ON true
+            WHERE c.source_id=s.id AND c.is_current
+        ) cf ON cf.evaluation_id=a.id AND cf.set_hash=aset.manifest_hash
+         AND cf.effective_source_version=s.classification_row_version
+         AND (cf.effective_attachment_version=s.attachment_row_version OR
+              (cf.effective_attachment_version=s.attachment_row_version-1 AND EXISTS (
+                  SELECT 1 FROM announcement_source_links confirmed_link
+                  WHERE confirmed_link.source_id=s.id AND confirmed_link.attachment_confirmation_id=cf.id)))
+        LEFT JOIN LATERAL (
+            SELECT q.id,q.base_evaluation_id,q.content_version_id,q.set_id,q.job_status_code,q.error_code
+            FROM announcement_attachment_jobs q WHERE q.source_id=s.id AND q.batch_id IS NULL
+            ORDER BY q.expected_attachment_version DESC,q.created_at DESC,q.id DESC LIMIT 1
+        ) j ON true
+        LEFT JOIN announcement_source_attachment_sets jset
+          ON jset.id=j.set_id AND jset.source_id=s.id
+         AND j.base_evaluation_id=b.id AND j.content_version_id=b.content_version_id
+    </sql>
+    <sql id="SourceScope">
+        s.data_purpose_code='PRODUCTION' AND s.semantic_status_code&lt;&gt;'EXCLUDED'
+        AND (b.id IS NULL OR (b.decision_status_code&lt;&gt;'EXCLUDED'
+             AND b.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED')))
+    </sql>
+    <sql id="ActiveNormalJob">
+        EXISTS (SELECT 1 FROM announcement_attachment_jobs active_job WHERE active_job.source_id=s.id
+                AND active_job.batch_id IS NULL
+                AND active_job.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED'))
+    </sql>
+    <sql id="AttachmentStale">
+        (a.id IS NULL AND EXISTS (SELECT 1 FROM announcement_source_attachment_evaluations old WHERE old.source_id=s.id))
+    </sql>
+    <sql id="ProcessingFlowStatus">
+        -- AttachmentProcessingFlow와 같은 우선순위. NULL/미지 코드/실패를 준비 완료로 승격하지 않는다.
+        CASE WHEN s.is_attachment_review_required IS NOT TRUE THEN 'NOT_APPLIED'
+             WHEN b.id IS NULL THEN 'CLASSIFICATION_PENDING'
+             WHEN s.attachment_intake_status_code IN ('PROFILE_REQUIRED','BASE_RECLASSIFICATION_REQUIRED','POLICY_BINDING_CHANGED')
+                THEN 'CONFIGURATION_REQUIRED'
+             WHEN (<include refid="EffectiveReason"/>)='ATTACHMENT_STALE' THEN 'EVIDENCE_STALE'
+             WHEN <include refid="ActiveNormalJob"/>
+               OR coalesce(j.job_status_code,'NOT_REQUESTED') IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')
+                THEN 'AUTOMATIC_PROCESSING'
+             WHEN <include refid="AttachmentStale"/> THEN 'EVIDENCE_STALE'
+             WHEN a.id IS NULL THEN CASE WHEN coalesce(j.job_status_code,'NOT_REQUESTED')='NOT_REQUESTED'
+                THEN 'AUTOMATIC_PROCESSING' ELSE 'TECHNICAL_EXCEPTION' END
+             WHEN a.set_id IS NULL OR (aset.manifest_hash ~ '^[0-9a-f]{64}$') IS NOT TRUE
+               OR (coalesce(j.job_status_code,'NOT_REQUESTED') IN ('NOT_REQUESTED','SUCCEEDED','FAILED','PARTIAL_FAILED','CANCELLED','CONFLICT')) IS NOT TRUE
+               OR (a.decision_status_code IN ('ACCEPTED','REVIEW_REQUIRED')) IS NOT TRUE THEN 'TECHNICAL_EXCEPTION'
+             WHEN cf.id IS NOT NULL THEN 'FINAL_REVIEW_CONFIRMED'
+             WHEN (aset.is_discovery_complete IS TRUE AND aset.discovered_count=aset.processed_count
+               AND ((aset.discovery_status_code='NO_FILES' AND aset.discovered_count=0)
+                 OR (aset.discovery_status_code='FOUND' AND aset.discovered_count BETWEEN 1 AND 10))
+               AND a.reason_code IN ('TARGET_SUPPORT_CONFIRMED','EXTENDED_TARGET_SUPPORT_CONFIRMED',
+                    'TITLE_GROUP_A_MATCHED','BODY_GROUP_A_MATCHED','BODY_GROUP_B_MATCHED','ATTACHMENT_GROUP_A_MATCHED',
+                    'ATTACHMENT_GROUP_B_MATCHED','ATTACHMENT_CONTEXT_REVIEW','EXTENDED_COMBINATION_NOT_CONFIRMED',
+                    'BODY_COMBINATION_NOT_CONFIRMED')
+               AND coalesce(j.job_status_code,'NOT_REQUESTED') IN ('SUCCEEDED','NOT_REQUESTED')) IS NOT TRUE
+                THEN 'TECHNICAL_EXCEPTION'
+             WHEN a.decision_status_code='ACCEPTED' THEN 'READY_FOR_FINAL_REVIEW'
+             ELSE 'FINAL_REVIEW_EXCEPTION' END
+    </sql>
+    <sql id="SearchWhere">
+        WHERE <include refid="SourceScope"/>
+        <if test="providerCode != null">AND s.provider_code=#{providerCode}</if>
+        <if test="effectiveStatusCode != null">AND (<include refid="EffectiveStatus"/>)=#{effectiveStatusCode}</if>
+        <if test="jobStatusCode != null">AND coalesce(j.job_status_code,'NOT_REQUESTED')=#{jobStatusCode}</if>
+        <if test="processingFlowStatusCode != null">AND (<include refid="ProcessingFlowStatus"/>)=#{processingFlowStatusCode}</if>
+        <if test="targetCategoryCode != null">
+            AND #{targetCategoryCode}=ANY(string_to_array(
+                CASE WHEN s.is_attachment_review_required THEN <include refid="AttachmentTargetCodes"/>
+                     ELSE <include refid="BaseTargetCodes"/> END,','))
+        </if>
+        <if test="supportTypeCode != null">
+            AND #{supportTypeCode}=ANY(string_to_array(
+                CASE WHEN s.is_attachment_review_required THEN <include refid="AttachmentSupportCodes"/>
+                     ELSE <include refid="BaseSupportCodes"/> END,','))
+        </if>
+        <if test="keyword != null">
+            AND (position(lower(#{keyword}) IN lower(s.title))&gt;0 OR position(lower(#{keyword}) IN lower(s.agency_name))&gt;0)
+        </if>
+        <if test="collectedFrom != null">AND s.collected_at&gt;=(CAST(#{collectedFrom} AS date)::timestamp AT TIME ZONE 'Asia/Seoul')</if>
+        <if test="collectedTo != null">AND s.collected_at&lt;((CAST(#{collectedTo} AS date)+1)::timestamp AT TIME ZONE 'Asia/Seoul')</if>
+    </sql>
+    <sql id="SourceColumns">
+        s.id AS source_id,s.public_code,s.provider_code,s.title,s.agency_name,s.application_end_date,s.collected_at,s.review_status_code,
+        b.id AS base_decision_id,coalesce(b.decision_status_code,s.semantic_status_code,'REVIEW_REQUIRED') AS base_status,
+        coalesce(b.reason_code,s.semantic_reason_code,'BASE_CLASSIFICATION_REQUIRED') AS base_reason,b.rule_release_id,
+        <include refid="BaseTargetCodes"/> AS base_target_codes,<include refid="BaseSupportCodes"/> AS base_support_codes,
+        a.id AS attachment_decision_id,a.decision_status_code AS attachment_status,a.reason_code AS attachment_reason,
+        a.set_id,aset.manifest_hash AS set_hash,a.input_hash,
+        <include refid="AttachmentTargetCodes"/> AS attachment_target_codes,
+        <include refid="AttachmentSupportCodes"/> AS attachment_support_codes,
+        <include refid="EffectiveStatus"/> AS effective_status,<include refid="EffectiveReason"/> AS effective_reason,
+        s.is_attachment_review_required AS review_required,
+        <include refid="AttachmentStale"/> AS attachment_stale,
+        s.attachment_policy_id AS policy_id,cf.id AS confirmation_id,
+        CASE WHEN cf.id IS NOT NULL THEN 'CURRENT'
+             WHEN EXISTS (SELECT 1 FROM announcement_source_attachment_confirmations old WHERE old.source_id=s.id) THEN 'STALE'
+             ELSE 'NONE' END AS confirmation_status,
+        s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+        j.id AS job_id,coalesce(j.job_status_code,'NOT_REQUESTED') AS job_status,j.error_code AS job_error,
+        s.attachment_intake_status_code AS intake_status,
+        coalesce(aset.discovery_status_code,jset.discovery_status_code) AS discovery_status,
+        coalesce(aset.is_discovery_complete,jset.is_discovery_complete) AS discovery_complete,
+        coalesce(aset.discovered_count,jset.discovered_count) AS discovered_count,
+        coalesce(aset.processed_count,jset.processed_count) AS processed_count,
+        <include refid="ActiveNormalJob"/> AS active_normal_job
+    </sql>
+    <select id="selectSourceList" resultMap="SourceMap">
+        -- base/effective/preview를 분리하며 아래 count와 정확히 같은 권한 범위·상태·태그 필터를 사용한다.
+        SELECT <include refid="SourceColumns"/> <include refid="SourceJoins"/> <include refid="SearchWhere"/>
+        ORDER BY s.collected_at DESC,s.id DESC LIMIT #{size} OFFSET ((#{page}-1)*#{size})
+    </select>
+    <select id="selectSourceCount" resultType="long">
+        -- COLLECT_ONLY preview를 유효 후보 건수에 합산하지 않는다.
+        SELECT count(1) <include refid="SourceJoins"/> <include refid="SearchWhere"/>
+    </select>
+    <select id="selectSourceDetails" resultMap="SourceMap">
+        -- TITLE 제외 원문과 QA 데이터는 이 운영 목록/단건 계약에서 반환하지 않는다.
+        SELECT <include refid="SourceColumns"/> <include refid="SourceJoins"/>
+        WHERE <include refid="SourceScope"/> AND s.id=#{sourceId}
+    </select>
+</mapper>

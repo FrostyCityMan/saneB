@@ -14,6 +14,7 @@ package com.saneb.domain.announcementsource.service.impl;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
+import com.saneb.domain.announcementattachment.service.AttachmentLegacyPathGuard;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.announcement.dao.AnnouncementDao;
 import com.saneb.domain.announcement.vo.AnnouncementDetailsRow;
@@ -129,6 +130,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private final AnnouncementDao announcementDao;
     private final AnnouncementSourceHighlightService highlightService;
     private final AnnouncementSourceClassificationCoordinator classificationCoordinator;
+    private final com.saneb.domain.announcementattachment.service.AnnouncementAttachmentIntakeService attachmentIntake;
     private final TransactionTemplate itemTransactionTemplate;
     private final Map<String, AnnouncementSourceProviderClient> providerClients;
     private final Map<String, ProviderContentClient> providerContentClients;
@@ -166,7 +168,6 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         );
     }
 
-    @Autowired
     public AnnouncementSourceServiceImpl(
             AnnouncementSourceDao announcementSourceDao,
             LocalGovernmentNoticeDao localGovernmentNoticeDao,
@@ -177,11 +178,24 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceClassificationCoordinator classificationCoordinator,
             PlatformTransactionManager transactionManager
     ) {
+        this(announcementSourceDao,localGovernmentNoticeDao,announcementDao,highlightService,providerClients,providerContentClients,
+                classificationCoordinator,transactionManager,null);
+    }
+
+    @Autowired
+    public AnnouncementSourceServiceImpl(
+            AnnouncementSourceDao announcementSourceDao,LocalGovernmentNoticeDao localGovernmentNoticeDao,
+            AnnouncementDao announcementDao,AnnouncementSourceHighlightService highlightService,
+            List<AnnouncementSourceProviderClient> providerClients,List<ProviderContentClient> providerContentClients,
+            AnnouncementSourceClassificationCoordinator classificationCoordinator,PlatformTransactionManager transactionManager,
+            com.saneb.domain.announcementattachment.service.AnnouncementAttachmentIntakeService attachmentIntake
+    ) {
         this.announcementSourceDao = announcementSourceDao;
         this.localGovernmentNoticeDao = localGovernmentNoticeDao;
         this.announcementDao = announcementDao;
         this.highlightService = highlightService;
         this.classificationCoordinator = classificationCoordinator;
+        this.attachmentIntake = attachmentIntake;
         this.itemTransactionTemplate = transactionManager == null ? null : new TransactionTemplate(transactionManager);
         this.providerClients = providerClients.stream()
                 .collect(Collectors.toUnmodifiableMap(AnnouncementSourceProviderClient::selectProviderCode, Function.identity()));
@@ -453,6 +467,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                     classificationCoordinator == null
                             ? AnnouncementSourceClassificationCoordinator.RunContext.disabled()
                             : classificationCoordinator.selectRunContext(runId, request.providerCode());
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan = attachmentIntake==null ? null
+                    : attachmentIntake.saveCollectionPlan(runId,classificationRunContext.enabled() ? classificationRunContext.ruleReleaseId() : null);
             AnnouncementSourceProviderBatch batch = selectProviderBatch(
                     request,
                     runId,
@@ -464,7 +480,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             errorMessage = batch.errorMessage();
             for (AnnouncementSourceProviderItem item : batch.items()) {
                 try {
-                    counter.apply(handleProviderItem(runId, item, classificationRunContext));
+                    counter.apply(handleProviderItem(runId, item, classificationRunContext, attachmentPlan));
                 } catch (RuntimeException exception) {
                     counter.failedCount++;
                     String itemErrorMessage = "일부 공고 원문을 저장하지 못했습니다. 관리자 로그를 확인하세요.";
@@ -486,14 +502,21 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             }
         } catch (RuntimeException exception) {
             counter.failedCount++;
-            errorMessage = "수집 실행을 처리하는 중 내부 오류가 발생했습니다. 관리자 로그를 확인하세요.";
-            log.error(
-                    "외부 공고 수집 실행에 실패했습니다. runId={}, requestId={}, exceptionType={}",
-                    runId,
-                    requestId,
-                    exception.getClass().getSimpleName(),
-                    exception
-            );
+            if (exception instanceof ApiException apiException
+                    && apiException.errorCode() == ErrorCode.ANNOUNCEMENT_ATTACHMENT_RULE_POLICY_MISMATCH) {
+                errorMessage = "현재 키워드 규칙과 일치하는 첨부 정책이 없어 외부 요청 전에 수집을 중지했습니다. 관리자에서 현재 ACTIVE 키워드 규칙의 첨부 정책을 검증·게시한 뒤 새 수집을 실행하세요.";
+                log.warn("외부 요청 전 첨부 규칙·정책 불일치로 수집을 중지했습니다. runId={}, requestId={}, errorCode={}",
+                        runId,requestId,apiException.errorCode());
+            } else {
+                errorMessage = "수집 실행을 처리하는 중 내부 오류가 발생했습니다. 관리자 로그를 확인하세요.";
+                log.error(
+                        "외부 공고 수집 실행에 실패했습니다. runId={}, requestId={}, exceptionType={}",
+                        runId,
+                        requestId,
+                        exception.getClass().getSimpleName(),
+                        exception
+                );
+            }
         }
 
         String runStatusCode = selectRunStatusCode(counter, errorMessage);
@@ -590,7 +613,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private ItemSaveOutcome handleProviderItem(
             UUID runId,
             AnnouncementSourceProviderItem originalItem,
-            AnnouncementSourceClassificationCoordinator.RunContext classificationRunContext
+            AnnouncementSourceClassificationCoordinator.RunContext classificationRunContext,
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan
     ) {
         PreparedProviderContent providerContent = selectProviderContent(classificationRunContext, originalItem);
         AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification =
@@ -604,11 +628,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                         );
         AnnouncementSourceProviderItem item = preparedClassification.item();
         if (itemTransactionTemplate == null) {
-            return saveProviderItem(runId, item, preparedClassification);
+            return saveProviderItem(runId, item, preparedClassification, attachmentPlan);
         }
         return Objects.requireNonNull(
                 itemTransactionTemplate.execute(ignored ->
-                        saveProviderItem(runId, item, preparedClassification)
+                        saveProviderItem(runId, item, preparedClassification, attachmentPlan)
                 ),
                 "item transaction result is required"
         );
@@ -666,7 +690,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private ItemSaveOutcome saveProviderItem(
             UUID runId,
             AnnouncementSourceProviderItem item,
-            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
+            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification,
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan
     ) {
         if ("EXCLUDED".equals(item.semanticStatusCode())) {
             return saveExcludedProviderItem(runId, item, preparedClassification);
@@ -689,9 +714,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                         runId,
                         duplicate,
                         item,
-                        preparedClassification
+                        preparedClassification,
+                        attachmentPlan
                 );
             }
+            saveAttachmentIntake(duplicate.sourceId(),attachmentPlan,false);
             insertRunItem(runId, duplicate.sourceId(), item, "DUPLICATE", null);
             updateProviderItemResult(runId, item, "DUPLICATE");
             return ItemSaveOutcome.DUPLICATE;
@@ -753,6 +780,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                     reviewStatusCode
             );
         }
+        saveAttachmentIntake(sourceId,attachmentPlan,true);
         if (exactDuplicate != null) {
             insertCrossProviderDuplicate(sourceId, exactDuplicate, "EXACT_DUPLICATE", "AUTO_CONFIRMED");
             insertRunItem(runId, sourceId, item, "DUPLICATE", null);
@@ -840,7 +868,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             UUID runId,
             AnnouncementSourceSnapshotRow existingSource,
             AnnouncementSourceProviderItem item,
-            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification
+            AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification,
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan
     ) {
         if (existingSource.classificationRowVersion() == null) {
             throw new IllegalStateException("기존 공고 원문의 분류 버전을 확인할 수 없습니다.");
@@ -895,6 +924,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 reviewStatusCode,
                 existingSource.classificationRowVersion()
         );
+        saveAttachmentIntake(existingSource.sourceId(),attachmentPlan,false);
 
         String itemStatusCode = "EXCLUDED".equals(item.semanticStatusCode())
                 ? "EXCLUDED"
@@ -904,6 +934,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         return "EXCLUDED".equals(itemStatusCode)
                 ? ItemSaveOutcome.EXCLUDED
                 : ItemSaveOutcome.COLLECTED;
+    }
+
+    private void saveAttachmentIntake(UUID sourceId,
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan plan,boolean newSource) {
+        if (attachmentIntake!=null && plan!=null) attachmentIntake.saveCollectedSource(sourceId,plan,newSource);
     }
 
     private String selectChangedSourceReviewStatus(
@@ -1099,6 +1134,10 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         UUID actorUserId = selectActorUserId(authentication);
         AnnouncementSourceSnapshotRow source = selectSourceRow(sourceId);
         String nextStatusCode = normalizeRequiredCode("reviewStatusCode", request.reviewStatusCode(), REVIEW_STATUS_CODES);
+        if (Set.of("REVIEW_COMPLETED", "ACTIVATED").contains(nextStatusCode)) {
+            AttachmentLegacyPathGuard.validate(
+                    announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
+        }
         validateReviewStatusTransition(source, nextStatusCode);
         int updated = announcementSourceDao.updateSourceReviewStatus(new AnnouncementSourceReviewStatusCommand(sourceId, nextStatusCode));
         if (updated == 0) {
@@ -1161,6 +1200,10 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             }
         } else {
             source = selectSourceRow(sourceId);
+        }
+        if ("UPDATE_EXISTING".equals(actionCode)) {
+            AttachmentLegacyPathGuard.validate(
+                    announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         }
         AnnouncementSourceDuplicateCandidateRow candidate = selectDuplicateCandidateRow(sourceId, candidateId);
 
@@ -1274,6 +1317,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                     linkedAnnouncement.announcementCode()
             );
         }
+        AttachmentLegacyPathGuard.validate(
+                announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         if ("EXCLUDED".equals(source.semanticStatusCode())) {
             throw new ApiException(
                     ErrorCode.INVALID_STATUS_TRANSITION,

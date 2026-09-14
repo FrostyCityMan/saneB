@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchRollbackDao">
+    <resultMap id="CandidateMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRollbackRows$Candidate"><constructor>
+        <arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/><arg column="frozen_provider_code" javaType="java.lang.String"/>
+        <arg column="application_status_code" javaType="java.lang.String"/><arg column="rollback_status_code" javaType="java.lang.String"/>
+        <arg column="previous_attachment_evaluation_id" javaType="java.util.UUID"/><arg column="previous_confirmation_id" javaType="java.util.UUID"/>
+        <arg column="previous_is_review_required" javaType="java.lang.Boolean"/><arg column="current_binding_matches" javaType="java.lang.Boolean"/>
+        <arg column="previous_binding_valid" javaType="java.lang.Boolean"/><arg column="previous_confirmation_valid" javaType="java.lang.Boolean"/>
+        <arg column="applied_input_hash" javaType="java.lang.String"/><arg column="rollback_error_code" javaType="java.lang.String"/>
+        <arg column="rollback_attempt_count" javaType="java.lang.Integer"/><arg column="rollback_next_attempt_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="ActionMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRollbackRows$Action"><constructor>
+        <arg column="id" javaType="java.util.UUID"/><arg column="batch_id" javaType="java.util.UUID"/><arg column="expected_version" javaType="java.lang.Integer"/>
+        <arg column="preview_hash" javaType="java.lang.String"/><arg column="scope_count" javaType="java.lang.Integer"/><arg column="target_count" javaType="java.lang.Integer"/>
+        <arg column="eligible_count" javaType="java.lang.Integer"/><arg column="deleted_count" javaType="java.lang.Integer"/><arg column="base_reopen_count" javaType="java.lang.Integer"/>
+        <arg column="confirmation_restore_count" javaType="java.lang.Integer"/><arg column="cancel_pending_count" javaType="java.lang.Integer"/>
+        <arg column="actor_id" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+        <arg column="reason_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="WorkMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRollbackRows$Work"><constructor>
+        <arg column="action_id" javaType="java.util.UUID"/><arg column="batch_id" javaType="java.util.UUID"/><arg column="job_id" javaType="java.util.UUID"/>
+        <arg column="source_id" javaType="java.util.UUID"/><arg column="actor_id" javaType="java.util.UUID"/><arg column="input_hash" javaType="java.lang.String"/>
+        <arg column="readiness_code" javaType="java.lang.String"/><arg column="is_eligible" javaType="java.lang.Boolean"/><arg column="is_confirmation_restored" javaType="java.lang.Boolean"/>
+    </constructor></resultMap>
+    <resultMap id="CountsMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRollbackRows$Counts"><constructor>
+        <arg column="remaining" javaType="java.lang.Integer"/><arg column="pending" javaType="java.lang.Integer"/><arg column="rolled_back" javaType="java.lang.Integer"/>
+        <arg column="conflicts" javaType="java.lang.Integer"/><arg column="failed" javaType="java.lang.Integer"/>
+    </constructor></resultMap>
+    <sql id="CandidateQuery">
+        -- 비교와 영향 계산에 필요한 불변 식별자/상태만 읽는다. 원문·검수 메모·URL은 반환하지 않는다.
+        SELECT j.id AS job_id,j.source_id,j.frozen_provider_code,j.application_status_code,j.rollback_status_code,
+            j.previous_attachment_evaluation_id,j.previous_confirmation_id,j.previous_is_review_required,
+            (s.classification_row_version=j.applied_source_version AND s.attachment_row_version=j.applied_attachment_version
+                AND s.attachment_row_version&lt;2147483647 AND s.current_attachment_evaluation_id=j.applied_evaluation_id
+                AND s.attachment_policy_id=j.policy_id AND s.is_attachment_review_required AND applied.is_current
+                AND s.data_purpose_code='PRODUCTION' AND s.semantic_status_code&lt;&gt;'EXCLUDED' AND base.is_current
+                AND base.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED') AND base.decision_status_code&lt;&gt;'EXCLUDED'
+                AND NOT EXISTS(SELECT 1 FROM announcement_source_attachment_confirmations c WHERE c.source_id=s.id AND c.is_current)
+                AND NOT EXISTS(SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id)) AS current_binding_matches,
+            (j.previous_is_review_required IS NOT NULL AND ((j.previous_attachment_evaluation_id IS NULL AND NOT j.previous_is_review_required AND j.previous_confirmation_id IS NULL)
+                OR (previous.id IS NOT NULL AND previous.base_evaluation_id=j.base_evaluation_id AND previous.content_version_id=j.content_version_id
+                    AND previous.rule_release_id=j.rule_release_id AND previous_set.set_status_code='SEALED'
+                    AND (NOT j.previous_is_review_required OR previous.policy_id=j.previous_policy_id)))) AS previous_binding_valid,
+            (j.previous_is_review_required AND previous_confirmation.id IS NOT NULL AND previous_confirmation.evaluation_id=previous.id
+                AND previous_confirmation.set_hash=previous_set.manifest_hash
+                AND coalesce(restored.source_version,previous_confirmation.confirmed_source_version)=j.expected_source_version
+                AND coalesce(restored.attachment_version,previous_confirmation.confirmed_attachment_version)=j.expected_attachment_version) AS previous_confirmation_valid,
+            j.applied_input_hash,j.rollback_error_code,j.rollback_attempt_count,j.rollback_next_attempt_at
+        FROM announcement_attachment_jobs j JOIN announcement_source_snapshots s ON s.id=j.source_id
+        JOIN announcement_source_classification_evaluations base ON base.id=j.base_evaluation_id AND base.source_id=j.source_id
+        LEFT JOIN announcement_source_attachment_evaluations applied ON applied.id=j.applied_evaluation_id AND applied.source_id=j.source_id
+        LEFT JOIN announcement_source_attachment_evaluations previous ON previous.id=j.previous_attachment_evaluation_id AND previous.source_id=j.source_id
+        LEFT JOIN announcement_source_attachment_sets previous_set ON previous_set.id=previous.set_id AND previous_set.source_id=j.source_id
+        LEFT JOIN announcement_source_attachment_confirmations previous_confirmation ON previous_confirmation.id=j.previous_confirmation_id AND previous_confirmation.source_id=j.source_id
+        LEFT JOIN LATERAL attachment_confirmation_restored_binding(j.source_id,j.previous_confirmation_id) restored ON true
+        WHERE j.batch_id=#{batchId}
+    </sql>
+    <select id="selectCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true"><include refid="CandidateQuery"/> ORDER BY j.source_id,j.id LIMIT 1001</select>
+    <select id="selectCandidateDetails" resultMap="CandidateMap" useCache="false" flushCache="true"><include refid="CandidateQuery"/> AND j.id=#{jobId}</select>
+    <sql id="ActionColumns">id,batch_id,expected_version,preview_hash,scope_count,target_count,eligible_count,deleted_count,base_reopen_count,
+        confirmation_restore_count,cancel_pending_count,actor_id,idempotency_key,request_hash,reason_hash,created_at</sql>
+    <select id="selectRequestLock" resultType="string">
+        -- 승인 키의 요청을 직렬화하며 반복 요청으로 다시 원복하지 않는다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73108))::text
+    </select>
+    <select id="selectRequestDetails" resultMap="ActionMap" useCache="false" flushCache="true">
+        -- 최초 승인 영수증 조회. source나 이력을 변경하지 않는다.
+        SELECT <include refid="ActionColumns"/> FROM announcement_attachment_batch_rollback_actions WHERE idempotency_key=#{key}
+    </select>
+    <select id="selectActionDetails" resultMap="ActionMap" useCache="false" flushCache="true">
+        -- 다른 배치의 승인 식별자는 조회하지 않는다.
+        SELECT <include refid="ActionColumns"/> FROM announcement_attachment_batch_rollback_actions WHERE batch_id=#{batchId} AND id=#{actionId}
+    </select>
+    <insert id="insertAction">
+        -- 원문 사유 대신 지문과 명시적 전체 범위/영향 수를 보존한다.
+        INSERT INTO announcement_attachment_batch_rollback_actions(id,batch_id,expected_version,preview_hash,scope_count,target_count,eligible_count,
+            deleted_count,base_reopen_count,confirmation_restore_count,cancel_pending_count,actor_id,idempotency_key,request_hash,reason_hash)
+        VALUES(#{id},#{batchId},#{expectedVersion},#{previewHash},#{scopeCount},#{targetCount},#{eligibleCount},#{deletedCount},#{baseReopenCount},#{confirmationRestoreCount},#{cancelPendingCount},#{actorId},#{key},#{requestHash},#{reasonHash})
+    </insert>
+    <insert id="insertTarget">
+        -- 적용 완료분 전체를 고정한다. 변경된 항목도 충돌 대상 이력에서 숨기지 않는다.
+        INSERT INTO announcement_attachment_batch_rollback_items(action_id,batch_id,job_id,input_hash,readiness_code,is_eligible,is_base_reopened,is_confirmation_restored)
+        VALUES(#{actionId},#{batchId},#{jobId},#{inputHash},#{readinessCode},#{eligible},#{baseReopens},#{confirmationRestores})
+    </insert>
+    <update id="updateStart">
+        -- 원복 승인과 상태 전이를 하나의 transaction에 기록한다.
+        UPDATE announcement_attachment_batches SET rollback_approval_id=#{actionId},batch_status_code='ROLLING_BACK',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{version} AND rollback_approval_id IS NULL AND batch_status_code IN ('APPLIED','APPLY_PARTIAL_FAILED','APPLY_PAUSED')
+    </update>
+    <update id="updateJobsPending">
+        -- NOT_REQUESTED+승인 연결이 원복 대기다. 기존 V72 상태 코드를 바꾸지 않는다.
+        UPDATE announcement_attachment_jobs j SET rollback_action_id=#{actionId},row_version=row_version+1,updated_at=clock_timestamp()
+        FROM announcement_attachment_batch_rollback_items i WHERE i.action_id=#{actionId} AND i.batch_id=#{batchId} AND i.job_id=j.id
+            AND j.batch_id=i.batch_id AND j.application_status_code='APPLIED' AND j.rollback_status_code='NOT_REQUESTED' AND j.rollback_action_id IS NULL
+    </update>
+    <update id="updateCancelApplication">
+        -- 중지된 배치의 남은 적용은 명시적 원복 승인 시 취소하며 나중에 자동 재개하지 않는다.
+        UPDATE announcement_attachment_jobs SET application_status_code='CONFLICT',application_error_code='APPLICATION_CANCELLED_BY_ROLLBACK',
+            application_next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE batch_id=#{batchId} AND application_status_code='PENDING'
+    </update>
+    <sql id="WorkQuery">
+        SELECT i.action_id,i.batch_id,j.id AS job_id,j.source_id,a.actor_id,i.input_hash,i.readiness_code,i.is_eligible,i.is_confirmation_restored
+        FROM announcement_attachment_jobs j JOIN announcement_attachment_batch_rollback_items i ON i.job_id=j.id AND i.batch_id=j.batch_id AND i.action_id=j.rollback_action_id
+        JOIN announcement_attachment_batches b ON b.id=j.batch_id AND b.rollback_approval_id=i.action_id AND b.batch_status_code='ROLLING_BACK'
+        JOIN announcement_attachment_batch_rollback_actions a ON a.id=i.action_id AND a.batch_id=b.id
+        WHERE j.rollback_status_code='NOT_REQUESTED' AND j.application_status_code='APPLIED' AND j.rollback_attempt_count&lt;3
+            AND (j.rollback_next_attempt_at IS NULL OR j.rollback_next_attempt_at&lt;=clock_timestamp())
+    </sql>
+    <select id="selectNextWorkDetails" resultMap="WorkMap" useCache="false" flushCache="true">
+        -- source→batch 잠금 뒤 재조회한다. 후보 조회만으로 실행 권한을 얻지 않는다.
+        <include refid="WorkQuery"/> ORDER BY b.updated_at,b.id,j.source_id,j.id LIMIT 1
+    </select>
+    <select id="selectWorkDetails" resultMap="WorkMap" useCache="false" flushCache="true">
+        -- 다른 worker가 완료했거나 삭제/중지된 경우 중복 실행하지 않는다.
+        <include refid="WorkQuery"/> AND j.batch_id=#{batchId} AND j.id=#{jobId}
+    </select>
+    <insert id="insertConfirmationRestoration">
+        -- 원래 유효했던 확인만 새 버전 근거를 기록한다. 원복 완료는 deferred 검증으로 묶인다.
+        INSERT INTO announcement_attachment_confirmation_restorations(id,job_id,source_id,confirmation_id,source_version,attachment_version,applied_input_hash,restored_by,idempotency_key,request_hash)
+        SELECT #{id},j.id,j.source_id,j.previous_confirmation_id,j.applied_source_version,j.applied_attachment_version+1,j.applied_input_hash,#{actorId},#{key},#{requestHash}
+        FROM announcement_attachment_jobs j WHERE j.id=#{jobId} AND j.rollback_status_code='NOT_REQUESTED' AND j.rollback_action_id IS NOT NULL
+    </insert>
+    <update id="updateSourceRestoration">
+        -- 기본 판정 버전을 유지하고 첨부 버전만 증가한다. 원문/운영 공고/지원 진행은 변경하지 않는다.
+        UPDATE announcement_source_snapshots s SET current_attachment_evaluation_id=j.previous_attachment_evaluation_id,attachment_policy_id=j.previous_policy_id,
+            is_attachment_review_required=j.previous_is_review_required,attachment_row_version=s.attachment_row_version+1,updated_at=clock_timestamp()
+        FROM announcement_attachment_jobs j WHERE j.id=#{jobId} AND j.source_id=s.id AND j.rollback_action_id IS NOT NULL AND j.rollback_status_code='NOT_REQUESTED'
+            AND j.application_status_code='APPLIED' AND s.classification_row_version=j.applied_source_version AND s.attachment_row_version=j.applied_attachment_version
+            AND s.attachment_row_version&lt;2147483647 AND s.current_attachment_evaluation_id=j.applied_evaluation_id AND s.attachment_policy_id=j.policy_id AND s.is_attachment_review_required
+            AND NOT EXISTS(SELECT 1 FROM announcement_source_links WHERE source_id=s.id)
+            AND NOT EXISTS(SELECT 1 FROM announcement_source_attachment_confirmations WHERE source_id=s.id AND is_current)
+    </update>
+    <update id="updateConfirmationCurrent">
+        -- 불변 확인 내용/태그는 변경하지 않으며 복구 근거가 false→true 전이를 검증한다.
+        UPDATE announcement_source_attachment_confirmations c SET is_current=true FROM announcement_attachment_jobs j
+        WHERE j.id=#{jobId} AND c.id=j.previous_confirmation_id AND c.source_id=j.source_id AND NOT c.is_current
+    </update>
+    <update id="updateRolledBack">
+        -- 적용 이력은 APPLIED로 보존하며 원복 결과와 새 버전은 별도로 남긴다.
+        UPDATE announcement_attachment_jobs SET rollback_status_code='ROLLED_BACK',restored_source_version=applied_source_version,restored_attachment_version=applied_attachment_version+1,
+            restored_confirmation_id=CASE WHEN #{confirmationRestored} THEN previous_confirmation_id ELSE NULL END,
+            rollback_error_code=NULL,rollback_next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND rollback_action_id IS NOT NULL AND rollback_status_code='NOT_REQUESTED'
+    </update>
+    <update id="updateConflict">
+        -- 입력 변경은 강제 복구하지 않고 terminal 충돌로 기록한다.
+        UPDATE announcement_attachment_jobs SET rollback_status_code='CONFLICT',rollback_error_code=#{errorCode},rollback_next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND rollback_action_id IS NOT NULL AND rollback_status_code='NOT_REQUESTED'
+    </update>
+    <update id="updateFailure">
+        -- 실패 transaction 전체 취소 뒤 별도로 최대3회/30초 backoff만 저장한다.
+        UPDATE announcement_attachment_jobs SET rollback_attempt_count=rollback_attempt_count+1,rollback_error_code='ROLLBACK_TRANSACTION_FAILED',
+            rollback_status_code=CASE WHEN rollback_attempt_count+1&gt;=3 THEN 'FAILED' ELSE 'NOT_REQUESTED' END,
+            rollback_next_attempt_at=CASE WHEN rollback_attempt_count+1&gt;=3 THEN NULL ELSE clock_timestamp()+interval '30 seconds' END,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND rollback_action_id IS NOT NULL AND rollback_status_code='NOT_REQUESTED' AND rollback_attempt_count&lt;3
+    </update>
+    <select id="selectCounts" resultMap="CountsMap" useCache="false" flushCache="true">
+        -- 승인 당시 전체 대상 수와 현재 남은 결과 수를 구분한다. 삭제 원문을 재생성하지 않는다.
+        SELECT count(1)::integer AS remaining,count(1) FILTER(WHERE j.rollback_status_code='NOT_REQUESTED')::integer AS pending,
+            count(1) FILTER(WHERE j.rollback_status_code='ROLLED_BACK')::integer AS rolled_back,count(1) FILTER(WHERE j.rollback_status_code='CONFLICT')::integer AS conflicts,
+            count(1) FILTER(WHERE j.rollback_status_code='FAILED')::integer AS failed
+        FROM announcement_attachment_batch_rollback_items i JOIN announcement_attachment_jobs j ON j.id=i.job_id AND j.batch_id=i.batch_id WHERE i.action_id=#{actionId}
+    </select>
+    <sql id="ProgressStatus">
+        CASE WHEN EXISTS(SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.rollback_action_id=b.rollback_approval_id AND j.rollback_status_code='NOT_REQUESTED') THEN 'ROLLING_BACK'
+            WHEN b.deleted_item_count=0 AND (SELECT count(1) FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.rollback_status_code='ROLLED_BACK')=b.scope_item_count THEN 'ROLLED_BACK'
+            ELSE 'ROLLBACK_PARTIAL_FAILED' END
+    </sql>
+    <update id="updateProgress">
+        -- 전체 고정 원문 중 미적용/실패/삭제가 있으면 일부 원복을 전체 성공으로 표현하지 않는다.
+        UPDATE announcement_attachment_batches b SET batch_status_code=<include refid="ProgressStatus"/>,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE b.id=#{batchId} AND b.batch_status_code='ROLLING_BACK' AND b.row_version&lt;2147483647
+    </update>
+    <update id="updateEmptyProgress">
+        -- 삭제로 대기가 사라진 배치도 집계한다. scope/승인 당시 집계는 줄이지 않는다.
+        WITH ready AS (SELECT b.id FROM announcement_attachment_batches b WHERE b.batch_status_code='ROLLING_BACK' AND b.rollback_approval_id IS NOT NULL
+            AND NOT EXISTS(SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.rollback_action_id=b.rollback_approval_id AND j.rollback_status_code='NOT_REQUESTED')
+            ORDER BY b.updated_at,b.id LIMIT 100 FOR UPDATE SKIP LOCKED)
+        UPDATE announcement_attachment_batches b SET batch_status_code=<include refid="ProgressStatus"/>,row_version=row_version+1,updated_at=clock_timestamp()
+        FROM ready WHERE b.id=ready.id AND b.row_version&lt;2147483647
+    </update>
+</mapper>

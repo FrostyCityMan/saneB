@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentBatchDao">
+    <resultMap id="BucketMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRows$Bucket"><constructor>
+        <arg column="provider_code" javaType="java.lang.String"/><arg column="reason_code" javaType="java.lang.String"/><arg column="item_count" javaType="java.lang.Long"/>
+    </constructor></resultMap>
+    <resultMap id="CandidateMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRows$Candidate"><constructor>
+        <arg column="source_id" javaType="java.util.UUID"/><arg column="provider_code" javaType="java.lang.String"/>
+        <arg column="content_version_id" javaType="java.util.UUID"/><arg column="base_evaluation_id" javaType="java.util.UUID"/>
+        <arg column="rule_release_id" javaType="java.util.UUID"/><arg column="source_version" javaType="java.lang.Integer"/>
+        <arg column="attachment_version" javaType="java.lang.Integer"/><arg column="current_evaluation_id" javaType="java.util.UUID"/>
+        <arg column="current_policy_id" javaType="java.util.UUID"/><arg column="confirmation_id" javaType="java.util.UUID"/>
+        <arg column="review_required" javaType="java.lang.Boolean"/><arg column="active_job_id" javaType="java.util.UUID"/>
+    </constructor></resultMap>
+    <resultMap id="BatchMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRows$Row"><constructor>
+        <arg column="batch_id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/><arg column="batch_status_code" javaType="java.lang.String"/>
+        <arg column="scope_hash" javaType="java.lang.String"/><arg column="maximum_count" javaType="java.lang.Integer"/><arg column="scope_item_count" javaType="java.lang.Integer"/>
+        <arg column="deleted_item_count" javaType="java.lang.Integer"/><arg column="row_version" javaType="java.lang.Integer"/><arg column="scope_json" javaType="java.lang.String"/>
+        <arg column="policy_snapshot_json" javaType="java.lang.String"/><arg column="requested_by" javaType="java.util.UUID"/><arg column="idempotency_key" javaType="java.util.UUID"/>
+        <arg column="request_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+    </constructor></resultMap>
+    <resultMap id="ItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRows$Item"><constructor>
+        <arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/><arg column="provider_code" javaType="java.lang.String"/>
+        <arg column="job_status_code" javaType="java.lang.String"/><arg column="source_version" javaType="java.lang.Integer"/><arg column="attachment_version" javaType="java.lang.Integer"/>
+        <arg column="error_code" javaType="java.lang.String"/><arg column="application_status_code" javaType="java.lang.String"/><arg column="rollback_status_code" javaType="java.lang.String"/>
+    </constructor></resultMap>
+    <resultMap id="ExecutionItemMap" type="com.saneb.domain.announcementattachment.vo.AttachmentBatchRows$ExecutionItem"><constructor>
+        <arg column="job_id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/>
+        <arg column="provider_code" javaType="java.lang.String"/><arg column="job_status_code" javaType="java.lang.String"/>
+        <arg column="request_hash" javaType="java.lang.String"/><arg column="execution_snapshot_json" javaType="java.lang.String"/>
+        <arg column="download_budget_bytes" javaType="java.lang.Long"/><arg column="locator_unchanged" javaType="java.lang.Boolean"/>
+    </constructor></resultMap>
+    <select id="selectPolicyDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.PolicyMap" useCache="false" flushCache="true">
+        -- 순수 범위 조회는 잠금/네트워크가 없다. 예약 시만 source 이후 게시 정책을 잠근다.
+        SELECT p.id AS policy_id,p.policy_status_code,p.mode_code,p.rule_release_id,r.release_status_code,p.policy_hash,
+            p.settings_json::text AS settings_json,p.profile_manifest_json::text AS profile_manifest_json,p.row_version
+        FROM announcement_attachment_policies p JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
+        WHERE p.id=#{policyId} <if test="lock">FOR SHARE OF p,r</if>
+    </select>
+    <sql id="ScopeWhere">
+        s.data_purpose_code='PRODUCTION' AND s.provider_code IN
+        <foreach collection="providerCodes" item="provider" open="(" separator="," close=")">
+            CASE WHEN #{provider}='GOV24' THEN 'GOV24_PUBLIC_SERVICE' ELSE #{provider} END
+        </foreach>
+        AND s.collected_at&gt;=#{collectedFrom} AND s.collected_at&lt;#{collectedBefore}
+        <if test="deadlineFrom != null">AND s.application_end_date&gt;=#{deadlineFrom}</if>
+        <if test="deadlineThrough != null">AND s.application_end_date&lt;=#{deadlineThrough}</if>
+    </sql>
+    <sql id="Eligible">
+        s.semantic_status_code&lt;&gt;'EXCLUDED' AND e.id IS NOT NULL AND e.decision_status_code&lt;&gt;'EXCLUDED'
+        AND e.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED')
+        AND NOT EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id)
+    </sql>
+    <select id="selectScopeCounts" resultMap="BucketMap" useCache="false" flushCache="true">
+        -- 서로 배타적인 전체 범위 집계. QA/삭제 원문을 역조회하지 않으며 보호 제외도 숨기지 않는다.
+        SELECT provider_code,reason_code,count(1) AS item_count FROM (
+            SELECT s.provider_code,CASE
+                WHEN s.semantic_status_code='EXCLUDED' OR e.id IS NULL OR e.decision_status_code='EXCLUDED'
+                    OR e.title_stage_code IS NULL OR e.title_stage_code NOT IN ('GROUP_A_MATCHED','COMBINATION_MATCHED') THEN 'TITLE_OR_BASE_NOT_ELIGIBLE'
+                WHEN EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id) THEN 'LINKED_PROTECTED'
+                ELSE 'CANDIDATE' END AS reason_code
+            FROM announcement_source_snapshots s LEFT JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+            WHERE <include refid="ScopeWhere"/>) scoped
+        GROUP BY provider_code,reason_code ORDER BY provider_code,reason_code
+    </select>
+    <select id="selectCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
+        -- 최대 건수는 명시된 부분 범위다. 준비 실패/규칙 불일치를 자동 제외하여 다음 원문으로 채우지 않는다.
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+            s.current_attachment_evaluation_id AS current_evaluation_id,s.attachment_policy_id AS current_policy_id,
+            c.id AS confirmation_id,s.is_attachment_review_required AS review_required,
+            (SELECT j.id FROM announcement_attachment_jobs j WHERE j.source_id=s.id AND j.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_job_id
+        FROM announcement_source_snapshots s JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        LEFT JOIN announcement_source_attachment_confirmations c ON c.source_id=s.id AND c.is_current
+        WHERE <include refid="ScopeWhere"/> AND <include refid="Eligible"/>
+        ORDER BY s.collected_at,s.id LIMIT #{maximumCount}
+    </select>
+    <select id="selectSourceLocks" resultType="java.util.UUID" useCache="false" flushCache="true">
+        -- source부터 UUID 순서로 잠근 뒤 정책/batch/job을 처리한다.
+        SELECT id FROM announcement_source_snapshots WHERE id IN
+        <foreach collection="sourceIds" item="source" open="(" separator="," close=")">#{source}</foreach>
+        ORDER BY id FOR UPDATE
+    </select>
+    <select id="selectFixedSourceCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
+        -- 전체 관리 기록에서 정해진 ID만 확인한다. 원래 필터/LIMIT를 반복하거나 준비 실패분을 채우지 않는다.
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+            s.current_attachment_evaluation_id AS current_evaluation_id,s.attachment_policy_id AS current_policy_id,
+            c.id AS confirmation_id,s.is_attachment_review_required AS review_required,
+            (SELECT j.id FROM announcement_attachment_jobs j WHERE j.source_id=s.id AND j.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_job_id
+        FROM announcement_source_snapshots s JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        LEFT JOIN announcement_source_attachment_confirmations c ON c.source_id=s.id AND c.is_current
+        WHERE s.id IN <foreach collection="sourceIds" item="source" open="(" separator="," close=")">#{source}</foreach>
+            AND s.data_purpose_code='PRODUCTION' AND <include refid="Eligible"/>
+        ORDER BY s.id
+    </select>
+    <select id="selectRequestLock" resultType="string">
+        -- 동일 actor/입력의 배치 생성은 한 번만 기록한다.
+        SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73105))::text
+    </select>
+    <sql id="BatchColumns">id AS batch_id,policy_id,batch_status_code,scope_hash,maximum_count,scope_item_count,deleted_item_count,
+        row_version,scope_json::text AS scope_json,policy_snapshot_json::text AS policy_snapshot_json,requested_by,idempotency_key,request_hash,created_at</sql>
+    <select id="selectRequestDetails" resultMap="BatchMap" useCache="false" flushCache="true">
+        -- 조건이 바뀌어도 같은 멱등 키의 최초 배치를 반환한다.
+        SELECT <include refid="BatchColumns"/> FROM announcement_attachment_batches WHERE idempotency_key=#{key}
+    </select>
+    <select id="selectBatchDetails" resultMap="BatchMap" useCache="false" flushCache="true">
+        -- 관리 배치만 조회한다. 상태 변경에서만 행 잠금을 사용한다.
+        SELECT <include refid="BatchColumns"/> FROM announcement_attachment_batches WHERE id=#{batchId} AND scope_item_count IS NOT NULL
+        <if test="lock">FOR UPDATE</if>
+    </select>
+    <select id="selectBatchList" resultMap="BatchMap" useCache="false">
+        -- 목록과 집계는 같은 관리 범위를 사용한다.
+        SELECT <include refid="BatchColumns"/> FROM announcement_attachment_batches WHERE scope_item_count IS NOT NULL
+        ORDER BY created_at DESC,id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectBatchCount" resultType="long">
+        -- 범위가 고정된 관리 배치 수.
+        SELECT count(1) FROM announcement_attachment_batches WHERE scope_item_count IS NOT NULL
+    </select>
+    <select id="selectItemList" resultMap="ItemMap" useCache="false" flushCache="true">
+        -- 고정된 jobs만 페이지 조회하며 필터를 재실행하지 않는다. 원문 제목/주소는 포함하지 않는다.
+        SELECT id AS job_id,source_id,frozen_provider_code AS provider_code,job_status_code,
+            expected_source_version AS source_version,expected_attachment_version AS attachment_version,
+            error_code,application_status_code,rollback_status_code
+        FROM announcement_attachment_jobs WHERE batch_id=#{batchId} ORDER BY source_id,id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectJobCounts" resultMap="BucketMap" useCache="false" flushCache="true">
+        -- 캐시 성공 건수 대신 실제 전체 job 상태를 집계한다. 삭제 건수는 batch 별도 metadata다.
+        SELECT frozen_provider_code AS provider_code,job_status_code AS reason_code,count(1) AS item_count
+        FROM announcement_attachment_jobs WHERE batch_id=#{batchId} GROUP BY frozen_provider_code,job_status_code ORDER BY frozen_provider_code,job_status_code
+    </select>
+    <insert id="insertBatch">
+        -- 범위 확정은 외부 수집/적용 승인이 아니다.
+        INSERT INTO announcement_attachment_batches(id,batch_type_code,policy_id,batch_status_code,scope_json,scope_hash,maximum_count,
+            requested_by,reason_hash,idempotency_key,request_hash,scope_item_count,policy_snapshot_json)
+        VALUES (#{batchId},'BACKFILL',#{policyId},'SCOPE_READY',CAST(#{scopeJson} AS jsonb),#{scopeHash},#{maximumCount},
+            #{requestedBy},#{reasonHash},#{idempotencyKey},#{requestHash},#{itemCount},CAST(#{policySnapshotJson} AS jsonb))
+    </insert>
+    <insert id="insertScopeJob">
+        -- SCOPE_READY는 worker claim 대상이 아니다. source pointer/version/확인은 바꾸지 않는다.
+        INSERT INTO announcement_attachment_jobs(id,source_id,content_version_id,base_evaluation_id,rule_release_id,policy_id,batch_id,
+            generation,expected_source_version,expected_attachment_version,job_status_code,idempotency_key,request_hash,
+            execution_snapshot_json,download_budget_bytes,previous_attachment_evaluation_id,previous_confirmation_id,
+            previous_policy_id,previous_is_review_required,operation_code,requested_by,frozen_provider_code,frozen_locator_hash)
+        VALUES (#{job.jobId},#{job.sourceId},#{job.contentVersionId},#{job.baseEvaluationId},#{job.ruleReleaseId},#{job.policyId},#{batchId},
+            #{job.generation},#{job.expectedSourceVersion},#{job.expectedAttachmentVersion},'SCOPE_READY',#{job.idempotencyKey},#{job.requestHash},
+            CAST(#{job.executionSnapshotJson} AS jsonb),#{job.downloadBudgetBytes},#{job.previousEvaluationId},#{job.previousConfirmationId},
+            #{job.previousPolicyId},#{job.previousReviewRequired},'COLLECT',#{job.requestedBy},#{providerCode},attachment_source_locator_hash(#{job.sourceId}))
+    </insert>
+    <update id="updateScopeCancellation">
+        -- 수집 시작 전 취소만 허용한다. 실행 중 중지/원복과 구분한다.
+        UPDATE announcement_attachment_batches SET batch_status_code='CANCELLED',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code='SCOPE_READY'
+    </update>
+    <update id="updateScopeJobsCancelled">
+        -- 예약 취소는 삭제가 아니다. active job 제약을 해제하면서 고정 이력을 유지한다.
+        UPDATE announcement_attachment_jobs SET job_status_code='CANCELLED',error_code='SCOPE_CANCELLED',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE batch_id=#{batchId} AND job_status_code='SCOPE_READY'
+    </update>
+    <select id="selectExecutionItemList" resultMap="ExecutionItemMap" useCache="false" flushCache="true">
+        -- 출처는 지문만 비교하고 API에 반환하지 않는다. 고정 jobs 외 대상을 추가하지 않는다.
+        SELECT id AS job_id,source_id,frozen_provider_code AS provider_code,job_status_code,request_hash,
+            execution_snapshot_json::text AS execution_snapshot_json,download_budget_bytes,
+            frozen_locator_hash=attachment_source_locator_hash(source_id) AND attachment_backfill_batch_input_unchanged(id) AS locator_unchanged
+        FROM announcement_attachment_jobs WHERE batch_id=#{batchId} ORDER BY source_id,id
+    </select>
+    <select id="selectFixedCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
+        -- 최초 필터를 재실행하지 않고 고정 source의 최신 보호/확인/판정만 대조한다. 자신의 예약은 충돌이 아니다.
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+            s.current_attachment_evaluation_id AS current_evaluation_id,s.attachment_policy_id AS current_policy_id,
+            c.id AS confirmation_id,s.is_attachment_review_required AS review_required,
+            (SELECT other.id FROM announcement_attachment_jobs other WHERE other.source_id=s.id AND other.id&lt;&gt;j.id
+                AND other.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_job_id
+        FROM announcement_attachment_jobs j JOIN announcement_source_snapshots s ON s.id=j.source_id
+        JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        LEFT JOIN announcement_source_attachment_confirmations c ON c.source_id=s.id AND c.is_current
+        WHERE j.batch_id=#{batchId} AND s.data_purpose_code='PRODUCTION' AND <include refid="Eligible"/>
+        ORDER BY s.id
+    </select>
+    <update id="updateCollectionStart">
+        -- ADMIN이 고정 범위와 상한을 확인한 최초 실행만 기록한다. 현재 판정/정책 binding은 바꾸지 않는다.
+        UPDATE announcement_attachment_batches SET batch_status_code='COLLECTION_PENDING',approved_by=#{actorId},
+            collection_started_at=clock_timestamp(),collection_approval_hash=#{approvalHash},row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code='SCOPE_READY' AND deleted_item_count=0
+    </update>
+    <update id="updateCollectionJobsPending">
+        -- 고정 예약만 worker에 공개한다. 새 job/시도/예산/원문 version을 만들지 않는다.
+        UPDATE announcement_attachment_jobs SET job_status_code='PENDING',next_attempt_at=clock_timestamp(),row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE batch_id=#{batchId} AND job_status_code='SCOPE_READY'
+    </update>
+    <update id="updateCollectionPause">
+        -- 이미 전송 중인 요청은 정리될 수 있다. 새 claim/HTTP는 batch gate로 차단하며 job 예산과 checkpoint를 유지한다.
+        UPDATE announcement_attachment_batches SET batch_status_code='COLLECTION_PAUSED',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code IN ('COLLECTION_PENDING','COLLECTING')
+    </update>
+    <update id="updateCollectionResume">
+        -- 최초 승인과 고정 범위는 보존한다. 완료/실패한 항목을 재시도하거나 예산을 환급하지 않는다.
+        UPDATE announcement_attachment_batches SET batch_status_code='COLLECTING',row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{batchId} AND row_version=#{expectedVersion} AND batch_status_code='COLLECTION_PAUSED'
+    </update>
+    <update id="updateCollectionProgress">
+        -- 실제 전체 jobs와 삭제 건수로 집계한다. 중지 상태는 자동 해제하지 않고 적용/분류 preview 상태로 넘기지 않는다.
+        WITH locked AS MATERIALIZED (
+            SELECT b.id,b.batch_status_code,b.scope_item_count,b.deleted_item_count FROM announcement_attachment_batches b
+            WHERE b.scope_item_count IS NOT NULL AND b.batch_status_code IN ('COLLECTION_PENDING','COLLECTING')
+                AND ((b.batch_status_code='COLLECTION_PENDING' AND EXISTS (SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.attempt_count&gt;0))
+                    OR NOT EXISTS (SELECT 1 FROM announcement_attachment_jobs j WHERE j.batch_id=b.id AND j.job_status_code NOT IN ('SUCCEEDED','PARTIAL_FAILED','FAILED','CONFLICT','CANCELLED')))
+            ORDER BY b.updated_at,b.id FOR UPDATE SKIP LOCKED LIMIT 100
+        ), counts AS (
+            SELECT b.id,b.batch_status_code,b.scope_item_count,b.deleted_item_count,count(j.id) AS remaining,
+                count(j.id) FILTER (WHERE j.job_status_code IN ('SUCCEEDED','PARTIAL_FAILED','FAILED','CONFLICT','CANCELLED')) AS terminal,
+                count(j.id) FILTER (WHERE j.job_status_code='SUCCEEDED' AND j.preview_evaluation_id IS NOT NULL
+                    AND j.preview_hash IS NOT NULL AND EXISTS (SELECT 1 FROM announcement_source_attachment_sets sealed WHERE sealed.id=j.set_id AND sealed.set_status_code='SEALED')) AS succeeded,
+                count(j.id) FILTER (WHERE j.attempt_count&gt;0) AS attempted
+            FROM locked b LEFT JOIN announcement_attachment_jobs j ON j.batch_id=b.id
+            GROUP BY b.id,b.batch_status_code,b.scope_item_count,b.deleted_item_count
+        ), progress AS (
+            SELECT id,CASE WHEN terminal=remaining THEN CASE WHEN succeeded=scope_item_count AND deleted_item_count=0 THEN 'COLLECTED' ELSE 'COLLECTION_PARTIAL_FAILED' END
+                WHEN attempted&gt;0 THEN 'COLLECTING' ELSE batch_status_code END AS next_status
+            FROM counts WHERE remaining+deleted_item_count=scope_item_count
+        )
+        UPDATE announcement_attachment_batches b SET batch_status_code=p.next_status,row_version=b.row_version+1,updated_at=clock_timestamp()
+        FROM progress p WHERE b.id=p.id AND b.batch_status_code&lt;&gt;p.next_status
+    </update>
+</mapper>

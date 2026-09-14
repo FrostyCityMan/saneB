@@ -2,6 +2,7 @@ package com.saneb.domain.announcementsource.service.impl;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
+import com.saneb.domain.announcementattachment.service.AttachmentLegacyPathGuard;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine;
@@ -72,6 +73,8 @@ public class AnnouncementSourceReclassificationServiceImpl
             AnnouncementSourceReclassificationRequest request
     ) {
         UUID actorUserId = selectActorUserId(authentication);
+        AttachmentLegacyPathGuard.validate(
+                announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         AnnouncementSourceClassificationStateRow state =
                 classificationDao.selectClassificationStateDetails(sourceId);
         if (state == null || state.decisionId() == null) {

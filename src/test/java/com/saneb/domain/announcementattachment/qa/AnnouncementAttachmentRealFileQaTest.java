@@ -128,8 +128,7 @@ class AnnouncementAttachmentRealFileQaTest {
         report.put("entireNoticeAttachmentSetVerified", false);
         report.put("passed", false);
         String stage = "DETAIL_FETCH";
-        try {
-            var download = new AttachmentPinnedDownloadClient();
+        try (var download = new AttachmentPinnedDownloadClient()) {
             Path html = temporary.resolve(UUID.randomUUID() + ".bin");
             String detailUrl = HOST + "/sii/siia/selectSIIA200Detail.do?pblancId=" + sample.noticeId();
             download.selectDownload(URI.create(detailUrl), Set.of("www.bizinfo.go.kr"), html, 1024 * 1024);

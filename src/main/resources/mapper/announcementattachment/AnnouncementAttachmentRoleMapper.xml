@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentRoleDao">
+    <select id="selectSetJobDetails" resultMap="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.JobMap">
+        -- 현재 판정의 실제 실행 snapshot을 재사용한다. 관리자 입력으로 profile/추출기를 선택하지 않는다.
+        SELECT <include refid="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.JobColumns"/>
+        FROM announcement_attachment_jobs j
+        WHERE j.source_id=#{sourceId} AND j.set_id=#{setId} AND j.preview_evaluation_id=#{evaluationId}
+          AND j.job_status_code IN ('SUCCEEDED','PARTIAL_FAILED')
+        ORDER BY j.generation DESC,j.id DESC LIMIT 1
+    </select>
+    <resultMap id="FileCopyMap" type="com.saneb.domain.announcementattachment.vo.AttachmentRoleRows$File">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="extraction_id" javaType="java.util.UUID"/>
+            <arg column="document_role_code" javaType="java.lang.String"/><arg column="role_origin_code" javaType="java.lang.String"/>
+            <arg column="stable_locator_hash" javaType="java.lang.String"/><arg column="binary_hash" javaType="java.lang.String"/>
+            <arg column="download_status_code" javaType="java.lang.String"/><arg column="sort_order" javaType="java.lang.Integer"/>
+            <arg column="extractor_version" javaType="java.lang.String"/><arg column="extractor_config_hash" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectFileCopyList" resultMap="FileCopyMap">
+        -- 봉인된 원문의 정확한 파일/선택 extraction ID를 고정한다. 추출 원문과 locator JSON은 반환하지 않는다.
+        SELECT f.id,x.id AS extraction_id,f.document_role_code,f.role_origin_code,f.stable_locator_hash,
+               f.binary_hash,f.download_status_code,f.sort_order,x.extractor_version,x.extractor_config_hash
+        FROM announcement_source_attachment_files f
+        LEFT JOIN LATERAL (
+            SELECT original.id,original.extractor_version,original.extractor_config_hash
+            FROM announcement_source_attachment_extractions original
+            WHERE original.file_id=f.id AND original.source_id=f.source_id AND original.set_id=f.set_id
+            ORDER BY original.attempt_no DESC,original.id DESC LIMIT 1
+        ) x ON true
+        WHERE f.source_id=#{sourceId} AND f.set_id=#{setId} ORDER BY f.sort_order,f.id LIMIT 11
+    </select>
+    <insert id="insertFileCopy">
+        -- 새 set에 역할만 달리 복사한다. 원본 파일/실패/품질 이력은 UPDATE하지 않는다.
+        INSERT INTO announcement_source_attachment_files
+            (id,set_id,source_id,stable_locator_hash,safe_locator_json,display_name,detected_type_code,
+             document_role_code,role_origin_code,download_status_code,downloaded_bytes,binary_hash,sort_order,error_code)
+        SELECT #{newFileId},#{newSetId},original.source_id,original.stable_locator_hash,original.safe_locator_json,
+               original.display_name,original.detected_type_code,#{role},#{roleOrigin},original.download_status_code,
+               original.downloaded_bytes,original.binary_hash,original.sort_order,original.error_code
+        FROM announcement_source_attachment_files original
+        JOIN announcement_source_attachment_sets source_set ON source_set.id=original.set_id AND source_set.source_id=original.source_id
+        WHERE original.id=#{originalFileId} AND original.set_id=#{originalSetId} AND original.source_id=#{sourceId}
+          AND source_set.set_status_code='SEALED'
+    </insert>
+    <insert id="insertExtractionCopy">
+        -- 다운로드/추출을 다시 수행한 것처럼 시각을 갱신하지 않는다. 재사용 provenance와 결과 동일성은 DB trigger로 검증한다.
+        INSERT INTO announcement_source_attachment_extractions
+            (id,file_id,set_id,source_id,attempt_no,extractor_code,extractor_version,extractor_config_hash,
+             quality_code,extracted_text,text_hash,blocks_json,character_count,page_count,duration_ms,error_code,created_at,reused_from_extraction_id)
+        SELECT #{newExtractionId},#{newFileId},#{newSetId},original.source_id,original.attempt_no,original.extractor_code,
+               original.extractor_version,original.extractor_config_hash,original.quality_code,original.extracted_text,
+               original.text_hash,original.blocks_json,original.character_count,original.page_count,original.duration_ms,
+               original.error_code,original.created_at,original.id
+        FROM announcement_source_attachment_extractions original
+        WHERE original.id=#{originalExtractionId} AND original.file_id=#{originalFileId}
+          AND original.set_id=#{originalSetId} AND original.source_id=#{sourceId}
+    </insert>
+</mapper>

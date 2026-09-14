@@ -186,6 +186,73 @@ class AnnouncementSourceServiceImplTest {
     }
 
     @Test
+    void attachmentPlanIsFrozenBeforeProviderAndNewAndUnchangedSourcesBothReachIntake() {
+        var intake=mock(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentIntakeService.class);
+        var coordinator=mock(AnnouncementSourceClassificationCoordinator.class);
+        var transactions=mock(PlatformTransactionManager.class);
+        when(transactions.getTransaction(any())).thenAnswer(call -> new SimpleTransactionStatus());
+        UUID release=UUID.randomUUID(),policy=UUID.randomUUID();
+        var runContext=new AnnouncementSourceClassificationCoordinator.RunContext(true,release,null,null);
+        service=new AnnouncementSourceServiceImpl(announcementSourceDao,localGovernmentNoticeDao,announcementDao,highlightService,
+                List.of(providerClient),List.of(),coordinator,transactions,intake);
+        var added=providerItem("BIZ-NEW",LocalDate.now().plusDays(10));
+        var duplicate=providerItem("BIZ-DUP",LocalDate.now().plusDays(10));
+        when(announcementSourceDao.selectCollectionRequestDetails(REQUEST_ID)).thenReturn(collectionRequest("APPROVED"));
+        when(coordinator.selectRunContext(any(),eq("BIZINFO"))).thenReturn(runContext);
+        when(intake.saveCollectionPlan(any(),eq(release))).thenAnswer(call ->
+                new com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan(call.getArgument(0),release,policy,"FROZEN"));
+        when(providerClient.selectSourceItemList(any())).thenReturn(List.of(added,duplicate));
+        when(coordinator.selectClassification(eq(runContext),any(),any(),any())).thenAnswer(call ->
+                new AnnouncementSourceClassificationCoordinator.PreparedClassification(true,release,call.getArgument(1),null));
+        when(announcementSourceDao.selectSourceByProviderNoticeId("BIZINFO","BIZ-NEW")).thenReturn(null);
+        when(announcementSourceDao.selectSourceByProviderNoticeId("BIZINFO","BIZ-DUP")).thenReturn(sourceRow());
+        when(announcementSourceDao.selectCollectionRunDetails(any())).thenAnswer(call -> collectionRun(call.getArgument(0),"COMPLETED",2,1,0,1,0));
+        var response=service.insertCollectionRun(REQUEST_ID);
+        assertThat(response.collectedCount()).isEqualTo(1);
+        var snapshot=ArgumentCaptor.forClass(AnnouncementSourceSnapshotCommand.class);
+        verify(announcementSourceDao).insertSourceSnapshot(snapshot.capture());
+        var order=org.mockito.Mockito.inOrder(intake,providerClient,coordinator,transactions);
+        order.verify(coordinator).selectRunContext(any(),eq("BIZINFO"));
+        order.verify(intake).saveCollectionPlan(any(),eq(release));
+        order.verify(providerClient).selectSourceItemList(any());
+        order.verify(transactions).getTransaction(any());
+        order.verify(coordinator).saveClassification(eq(snapshot.getValue().sourceId()),any(),any(),any());
+        order.verify(intake).saveCollectedSource(eq(snapshot.getValue().sourceId()),any(),eq(true));
+        order.verify(transactions).commit(any());
+        order.verify(transactions).getTransaction(any());
+        order.verify(intake).saveCollectedSource(eq(SOURCE_ID),any(),eq(false));
+        order.verify(transactions).commit(any());
+    }
+
+    @Test
+    void attachmentPolicyMismatchStopsBeforeExternalListAndRecordsActionableFailureWithoutSourceWrites() {
+        var intake=mock(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentIntakeService.class);
+        var coordinator=mock(AnnouncementSourceClassificationCoordinator.class);
+        var contentClient=mock(ProviderContentClient.class);
+        when(contentClient.selectProviderCode()).thenReturn("LOCAL_GOV_NOTICE");
+        UUID release=UUID.randomUUID();
+        service=new AnnouncementSourceServiceImpl(announcementSourceDao,localGovernmentNoticeDao,announcementDao,highlightService,
+                List.of(providerClient),List.of(contentClient),coordinator,null,intake);
+        when(announcementSourceDao.selectCollectionRequestDetails(REQUEST_ID)).thenReturn(collectionRequest("APPROVED"));
+        when(coordinator.selectRunContext(any(),eq("BIZINFO"))).thenReturn(new AnnouncementSourceClassificationCoordinator.RunContext(true,release,null,null));
+        when(intake.saveCollectionPlan(any(),eq(release))).thenThrow(new ApiException(
+                ErrorCode.ANNOUNCEMENT_ATTACHMENT_RULE_POLICY_MISMATCH,org.springframework.http.HttpStatus.CONFLICT,"discard this untrusted detail"));
+        when(announcementSourceDao.selectCollectionRunDetails(any())).thenAnswer(call -> collectionRun(call.getArgument(0),"FAILED",0,0,0,0,1));
+        assertThat(service.insertCollectionRun(REQUEST_ID).runStatusCode()).isEqualTo("FAILED");
+        var result=ArgumentCaptor.forClass(AnnouncementSourceCollectionRunCommand.class);
+        verify(announcementSourceDao).updateCollectionRunResult(result.capture());
+        assertThat(result.getValue().runStatusCode()).isEqualTo("FAILED");
+        assertThat(result.getValue().totalCount()).isZero();
+        assertThat(result.getValue().failedCount()).isEqualTo(1);
+        assertThat(result.getValue().errorMessage()).contains("외부 요청 전에", "검증·게시", "새 수집").doesNotContain("discard this");
+        verify(providerClient,never()).selectSourceItemList(any());
+        verify(contentClient,never()).selectContent(any());
+        verify(announcementSourceDao,never()).insertSourceSnapshot(any());
+        verify(announcementSourceDao,never()).insertCollectionRunItem(any());
+        verify(intake,never()).saveCollectedSource(any(),any(),org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
+    @Test
     void insertCollectionRunAppendsChangedExistingSourceContent() {
         AnnouncementSourceProviderItem changedItem = providerItem(
                 "BIZ-DUP",
@@ -756,6 +823,46 @@ class AnnouncementSourceServiceImplTest {
      * 보류 중복/유사 후보가 있으면 신규 DRAFT 생성을 차단합니다.
      */
     @Test
+    void rejectsLegacyReviewCompletionForAttachmentBoundSource() {
+        when(announcementSourceDao.selectSourceDetails(SOURCE_ID)).thenReturn(sourceRow());
+        when(announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+        assertThatThrownBy(() -> service.updateSourceReviewStatus(authentication(), SOURCE_ID,
+                new com.saneb.domain.announcementsource.dto.AnnouncementSourceReviewStatusUpdateRequest("REVIEW_COMPLETED", "검수")))
+                .isInstanceOfSatisfying(ApiException.class, exception -> assertThat(exception.httpStatus().value()).isEqualTo(409));
+        verify(announcementSourceDao, never()).updateSourceReviewStatus(any());
+        verifyNoInteractions(announcementDao);
+    }
+
+    @Test
+    void rejectsAttachmentBoundSourceBeforeLegacyV1DraftWrites() {
+        when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());
+        when(announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+        assertThatThrownBy(() -> service.insertOperationalAnnouncement(
+                authentication(), SOURCE_ID, new AnnouncementSourceToAnnouncementRequest("BUSINESS", "VAT_TAX_BASE_ONLY")))
+                .isInstanceOfSatisfying(ApiException.class, exception -> {
+                    assertThat(exception.httpStatus().value()).isEqualTo(409);
+                    assertThat(exception.errorCode()).isEqualTo(ErrorCode.ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE);
+                });
+        verifyNoInteractions(announcementDao);
+        verify(announcementSourceDao, never()).insertSourceLink(any());
+    }
+
+    @Test
+    void rejectsAttachmentBoundSourceBeforeLegacyExistingAnnouncementUpdate() {
+        UUID candidateId = UUID.randomUUID();
+        when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());
+        when(announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID)).thenReturn(true);
+        assertThatThrownBy(() -> service.updateDuplicateCandidateDecision(
+                authentication(), SOURCE_ID, candidateId,
+                new AnnouncementSourceDuplicateDecisionRequest("UPDATE_EXISTING", "BUSINESS", "VAT_TAX_BASE_ONLY", "검수")))
+                .isInstanceOfSatisfying(ApiException.class, exception ->
+                        assertThat(exception.httpStatus().value()).isEqualTo(409));
+        verifyNoInteractions(announcementDao);
+        verify(announcementSourceDao, never()).selectDuplicateCandidateDetails(SOURCE_ID, candidateId);
+        verify(announcementSourceDao, never()).updateDuplicateCandidateDecision(any());
+    }
+
+    @Test
     void insertOperationalAnnouncementRejectsPendingDuplicateCandidates() {
         when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());
         when(announcementSourceDao.selectPendingDuplicateCandidateCount(SOURCE_ID)).thenReturn(1L);
@@ -795,6 +902,7 @@ class AnnouncementSourceServiceImplTest {
         ));
         verify(announcementDao, never()).insertAnnouncement(any());
         verify(announcementSourceDao, never()).insertSourceLink(any());
+        verify(announcementSourceDao, never()).selectAttachmentReviewRequiredDetailsForUpdate(SOURCE_ID);
         verify(announcementSourceDao, never()).updateSourceReviewStatus(any());
         verify(announcementSourceDao, never()).insertSourceReviewHistory(any());
         verify(announcementSourceDao, never()).insertAuditLog(any());

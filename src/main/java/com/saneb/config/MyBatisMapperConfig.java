@@ -39,7 +39,8 @@ import org.springframework.context.annotation.Configuration;
         "com.saneb.domain.adminreport.dao",
         "com.saneb.domain.aiassist.dao",
         "com.saneb.domain.standardcode.dao",
-        "com.saneb.domain.announcementsource.dao"
+        "com.saneb.domain.announcementsource.dao",
+        "com.saneb.domain.announcementattachment.dao"
 })
 public class MyBatisMapperConfig {
 }

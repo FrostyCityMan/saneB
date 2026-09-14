@@ -6,6 +6,7 @@
 - 적용 제품: 사내비 / 내부 프로젝트: saneB
 - 요청 범위: PDF·HWP 등 첨부파일 수집·다운로드·텍스트 추출의 설계. 이번 작업은 Markdown 문서만 변경한다.
 - 관련 기준: [기존 분류 V2 설계](announcement-classification-v2-design-2026-08-11.md), [DB 계약](db-model-v1.md), [API 계약](api-contract-v1.md), [검증 계획](announcement-attachment-qa-plan-2026-09-08.md)
+- 2026-09-14 후속 확정: [제목·본문·첨부 3단계 자동 필터링과 최종 관리자 검증](announcement-three-stage-filtering-workflow-2026-09-14.md). 이 문서 상단의 날짜·승인/Gate는 최초 설계 시점 기록이다. 현재 구현/검증 상태는 [장기 진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 ## 1. 단계와 Gate
 

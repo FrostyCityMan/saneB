@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyValidationDao">
+    <resultMap id="RunMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows$Run">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/><arg column="policy_id" javaType="java.util.UUID"/>
+            <arg column="policy_row_version" javaType="java.lang.Integer"/><arg column="rule_release_id" javaType="java.util.UUID"/>
+            <arg column="rule_row_version" javaType="java.lang.Integer"/><arg column="snapshot_hash" javaType="java.lang.String"/>
+            <arg column="input_snapshot_json" javaType="java.lang.String"/><arg column="run_status_code" javaType="java.lang.String"/>
+            <arg column="row_version" javaType="java.lang.Integer"/><arg column="requested_by" javaType="java.util.UUID"/>
+            <arg column="idempotency_key" javaType="java.util.UUID"/><arg column="request_hash" javaType="java.lang.String"/>
+            <arg column="lease_token" javaType="java.util.UUID"/><arg column="lease_expires_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="error_code" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="started_at" javaType="java.time.OffsetDateTime"/><arg column="completed_at" javaType="java.time.OffsetDateTime"/>
+            <arg column="input_versions_current" javaType="java.lang.Boolean"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="StepMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows$Step">
+        <constructor>
+            <arg column="run_id" javaType="java.util.UUID"/><arg column="step_code" javaType="java.lang.String"/>
+            <arg column="status_code" javaType="java.lang.String"/><arg column="evidence_json" javaType="java.lang.String"/>
+            <arg column="evidence_hash" javaType="java.lang.String"/><arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <resultMap id="TargetMap" type="com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows$Target">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/><arg column="public_code" javaType="java.lang.String"/>
+            <arg column="parser_profile_code" javaType="java.lang.String"/><arg column="notice_url" javaType="java.lang.String"/>
+            <arg column="profile_configuration_json" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <sql id="MetadataColumns">v.id AS run_id,v.policy_id,v.policy_row_version,v.rule_release_id,v.rule_row_version,v.snapshot_hash,
+        v.run_status_code,v.row_version,v.requested_by,v.idempotency_key,v.request_hash,
+        v.lease_token,v.lease_expires_at,v.error_code,v.created_at,v.started_at,v.completed_at,
+        (p.policy_status_code='DRAFT' AND p.row_version=v.policy_row_version AND p.rule_release_id=v.rule_release_id
+         AND r.row_version=v.rule_row_version AND r.release_status_code IN ('DRAFT','ACTIVE')) AS input_versions_current</sql>
+    <sql id="Columns"><include refid="MetadataColumns"/>,v.input_snapshot_json::text AS input_snapshot_json</sql>
+    <sql id="Scope">FROM announcement_attachment_policy_validation_runs v
+        JOIN announcement_attachment_policies p ON p.id=v.policy_id
+        JOIN announcement_source_classification_rule_releases r ON r.id=v.rule_release_id</sql>
+    <select id="selectQueueLock" resultType="string">
+        -- 짧은 예약/claim/취소만 직렬화한다. 파일 실행 중 transaction lock은 유지하지 않는다.
+        SELECT pg_advisory_xact_lock(73104)::text
+    </select>
+    <select id="selectRunDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- service가 policy/run 범위를 함께 확인한다. runtime 현재성은 DB 버전 표시와 구분한다.
+        SELECT <include refid="Columns"/> <include refid="Scope"/> WHERE v.id=#{runId} <if test="lock">FOR UPDATE OF v</if>
+    </select>
+    <select id="selectRequestDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 최초 요청 키는 결과/버전이 바뀌어도 같은 run을 찾는다.
+        SELECT <include refid="Columns"/> <include refid="Scope"/> WHERE v.idempotency_key=#{key}
+    </select>
+    <select id="selectPendingDetails" resultMap="RunMap" useCache="false" flushCache="true">
+        -- 전역 큐 잠금 아래 하나의 예약만 claim한다.
+        SELECT <include refid="Columns"/> <include refid="Scope"/>
+        WHERE v.run_status_code='PENDING' ORDER BY v.created_at,v.id LIMIT 1 FOR UPDATE OF v
+    </select>
+    <select id="selectRunCount" resultType="long">
+        -- 목록과 동일한 정책 범위 집계.
+        SELECT count(1) FROM announcement_attachment_policy_validation_runs WHERE policy_id=#{policyId}
+    </select>
+    <select id="selectRunList" resultMap="RunMap" useCache="false">
+        -- 관리자에게 snapshot 원문을 직렬화하지 않고 response projection만 반환한다.
+        SELECT <include refid="MetadataColumns"/>,NULL::text AS input_snapshot_json <include refid="Scope"/> WHERE v.policy_id=#{policyId}
+        ORDER BY v.created_at DESC,v.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="selectStepList" resultMap="StepMap" useCache="false">
+        -- 단계별 서버 실행 증거 이력은 불변이다.
+        SELECT run_id,step_code,status_code,evidence_json::text AS evidence_json,evidence_hash,created_at
+        FROM announcement_attachment_policy_validation_steps WHERE run_id=#{runId} ORDER BY created_at,step_code
+    </select>
+    <select id="selectTargetList" resultMap="TargetMap" useCache="false" flushCache="true">
+        -- 운영 대상은 활성·미삭제 수집원 전부다. 실패한 source도 범위에서 빼지 않는다.
+        -- 시스템 profile의 설정 변화만 hash에 포함한다. 수집 시각/actor 등 업무 metadata는 제외한다.
+        SELECT s.id AS source_id,s.public_code,s.parser_profile_code,s.notice_url,
+            (to_jsonb(p)-'created_at'-'updated_at'-'created_by'-'updated_by')::text AS profile_configuration_json
+        FROM local_government_notice_sources s
+        LEFT JOIN local_government_notice_parser_profiles p ON p.profile_code=s.parser_profile_code
+        WHERE s.is_enabled AND s.deleted_at IS NULL ORDER BY s.id LIMIT 1001
+    </select>
+    <select id="selectActiveCount" resultType="int" useCache="false" flushCache="true">
+        -- 여러 정책 QA의 CPU/디스크 폭주를 막는다.
+        SELECT count(1) FROM announcement_attachment_policy_validation_runs WHERE run_status_code IN ('PENDING','RUNNING','CANCEL_REQUESTED')
+    </select>
+    <select id="selectRecentCount" resultType="int" useCache="false">
+        -- 실패/취소도 실행 요청 한도를 소비한다.
+        SELECT count(1) FROM announcement_attachment_policy_validation_runs WHERE policy_id=#{policyId} AND created_at>clock_timestamp()-interval '24 hours'
+    </select>
+    <select id="selectCoolingDown" resultType="boolean" useCache="false">
+        -- 동일 정책 연속 예약은 60초 간격이다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_policy_validation_runs WHERE policy_id=#{policyId} AND created_at>clock_timestamp()-interval '60 seconds')
+    </select>
+    <insert id="insertRun">
+        -- 예약은 성공이 아니다. 사용자는 snapshot/결과/lease를 제출할 수 없다.
+        INSERT INTO announcement_attachment_policy_validation_runs(id,policy_id,policy_row_version,rule_release_id,rule_row_version,
+            snapshot_hash,input_snapshot_json,requested_by,idempotency_key,request_hash)
+        VALUES (#{runId},#{policyId},#{policyVersion},#{ruleReleaseId},#{ruleVersion},#{snapshotHash},CAST(#{inputSnapshotJson} AS jsonb),#{requestedBy},#{idempotencyKey},#{requestHash})
+    </insert>
+    <update id="updateClaim">
+        -- 12개 파일의 제한된 실행보다 긴 8분 lease. 실행 중 DB transaction을 유지하지 않는다.
+        UPDATE announcement_attachment_policy_validation_runs SET run_status_code='RUNNING',row_version=row_version+1,
+            lease_token=#{leaseToken},lease_expires_at=clock_timestamp()+interval '8 minutes',started_at=clock_timestamp()
+        WHERE id=#{runId} AND run_status_code='PENDING'
+    </update>
+    <insert id="insertExtractionLease">
+        -- 수집 worker와 같은 전역 slot이다. 살아 있는 소유자를 덮어쓰지 않는다.
+        INSERT INTO announcement_attachment_resource_leases(resource_code,resource_key,slot_no,policy_validation_id,
+            policy_validation_lease_token,resource_lease_token,lease_expires_at)
+        SELECT 'EXTRACTION','GLOBAL',1,id,lease_token,lease_token,lease_expires_at
+        FROM announcement_attachment_policy_validation_runs WHERE id=#{runId} AND lease_token=#{leaseToken} AND run_status_code='RUNNING'
+        ON CONFLICT (resource_code,resource_key,slot_no) DO UPDATE SET job_id=NULL,job_lease_token=NULL,
+            provider_qa_case_id=NULL,provider_qa_lease_token=NULL,
+            policy_validation_id=EXCLUDED.policy_validation_id,policy_validation_lease_token=EXCLUDED.policy_validation_lease_token,
+            resource_lease_token=EXCLUDED.resource_lease_token,lease_expires_at=EXCLUDED.lease_expires_at,updated_at=clock_timestamp()
+        WHERE announcement_attachment_resource_leases.lease_expires_at&lt;=clock_timestamp()
+    </insert>
+    <select id="selectExecutionAllowed" resultType="boolean" useCache="false" flushCache="true">
+        -- 취소/만료/슬롯 상실이면 다음 파일을 실행하지 않는다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_policy_validation_runs v
+            JOIN announcement_attachment_resource_leases l ON l.policy_validation_id=v.id AND l.policy_validation_lease_token=v.lease_token
+            WHERE v.id=#{runId} AND v.lease_token=#{leaseToken} AND v.run_status_code='RUNNING'
+              AND v.lease_expires_at>clock_timestamp()+interval '40 seconds' AND l.lease_expires_at>clock_timestamp()+interval '40 seconds')
+    </select>
+    <insert id="insertStep">
+        -- 같은 live run에서 서버가 실행한 단계만 기록한다. 늦은 owner는 기록할 수 없다.
+        INSERT INTO announcement_attachment_policy_validation_steps(run_id,step_code,status_code,evidence_json,evidence_hash)
+        SELECT id,#{stepCode},#{statusCode},CAST(#{evidenceJson} AS jsonb),#{evidenceHash}
+        FROM announcement_attachment_policy_validation_runs WHERE id=#{runId} AND lease_token=#{leaseToken}
+            AND run_status_code='RUNNING' AND lease_expires_at>clock_timestamp()
+    </insert>
+    <update id="updateFinished">
+        -- 취소 요청은 성공/부분 성공으로 덮어쓰지 않는다. 만료 owner는 완료를 확정하지 못한다.
+        UPDATE announcement_attachment_policy_validation_runs SET run_status_code=CASE WHEN run_status_code='CANCEL_REQUESTED' THEN 'CANCELLED' ELSE #{statusCode} END,
+            error_code=CASE WHEN run_status_code='CANCEL_REQUESTED' THEN 'CANCELLED_BY_ADMIN' ELSE #{errorCode} END,
+            row_version=row_version+1,lease_token=NULL,lease_expires_at=NULL,completed_at=clock_timestamp()
+        WHERE id=#{runId} AND lease_token=#{leaseToken} AND run_status_code IN ('RUNNING','CANCEL_REQUESTED') AND lease_expires_at>clock_timestamp()
+    </update>
+    <update id="updateCancellation">
+        -- PENDING은 즉시 취소, 실행 중이면 현재 파일 정리 후 취소한다.
+        UPDATE announcement_attachment_policy_validation_runs SET run_status_code=CASE WHEN run_status_code='PENDING' THEN 'CANCELLED' ELSE 'CANCEL_REQUESTED' END,
+            row_version=row_version+1,error_code='CANCELLED_BY_ADMIN',
+            completed_at=CASE WHEN run_status_code='PENDING' THEN clock_timestamp() ELSE NULL END
+        WHERE id=#{runId} AND row_version=#{expectedVersion} AND run_status_code IN ('PENDING','RUNNING')
+    </update>
+    <update id="updateExpired">
+        -- 사라진 프로세스를 재실행했다고 추정하지 않는다. 만료 실행은 실패로 남기고 새 예약에서 재검증한다.
+        UPDATE announcement_attachment_policy_validation_runs SET run_status_code='FAILED',error_code='LEASE_EXPIRED',
+            row_version=row_version+1,lease_token=NULL,lease_expires_at=NULL,completed_at=clock_timestamp()
+        WHERE run_status_code IN ('RUNNING','CANCEL_REQUESTED') AND lease_expires_at&lt;=clock_timestamp()
+    </update>
+    <delete id="deleteExtractionLease">
+        -- 완료/취소된 자기 실행의 슬롯만 정리한다. 재할당된 슬롯은 보존한다.
+        DELETE FROM announcement_attachment_resource_leases WHERE policy_validation_id=#{runId} AND policy_validation_lease_token=#{leaseToken}
+    </delete>
+</mapper>

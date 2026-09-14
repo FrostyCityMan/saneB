@@ -64,7 +64,7 @@ class AnnouncementAttachmentMigrationTest {
             try (Connection connection=dataSource.getConnection(); var statement=connection.createStatement()) {
                 statement.execute("CREATE TABLE prior_checksums AS SELECT version,checksum FROM flyway_schema_history WHERE success");
             }
-            var upgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+            var upgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("72").load();
             assertThat(upgrade.migrate().migrationsExecuted).isEqualTo(1);
             upgrade.validate();
             try (Connection connection=dataSource.getConnection(); var statement=connection.createStatement()) {
@@ -79,6 +79,65 @@ class AnnouncementAttachmentMigrationTest {
                 }
                 statement.execute("CREATE DATABASE attachment_fresh");
             }
+            var workerUpgrade = Flyway.configure().dataSource(dataSource)
+                    .locations("classpath:db/migration").target("73").load();
+            assertThat(workerUpgrade.migrate().migrationsExecuted).isEqualTo(1);
+            workerUpgrade.validate();
+            var workerSql = new org.springframework.jdbc.core.JdbcTemplate(dataSource);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_resource_leases", Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.columns WHERE table_schema='public' AND table_name='announcement_source_attachment_confirmations' AND column_name IN ('confirmed_source_version','confirmed_attachment_version')",Integer.class)).isEqualTo(2);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.columns WHERE table_schema='public' AND table_name='announcement_source_links' AND column_name IN ('attachment_confirmation_id','attachment_request_hash')",Integer.class)).isEqualTo(2);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('tr_att_confirmation_immutable','tr_att_link_request_immutable') AND NOT tgisinternal",Integer.class)).isEqualTo(2);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policies WHERE policy_status_code='ACTIVE'", Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum", Integer.class)).isZero();
+            var inventoryUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("74").load();
+            assertThat(inventoryUpgrade.migrate().migrationsExecuted).isEqualTo(1);
+            inventoryUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('announcement_attachment_backfill_runs','announcement_attachment_backfill_segments','announcement_attachment_backfill_items')",Integer.class)).isEqualTo(3);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_backfill_runs",Integer.class)).isZero();
+            var linkUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("75").load();
+            assertThat(linkUpgrade.migrate().migrationsExecuted).isEqualTo(1);linkUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_backfill_segment_batches",Integer.class)).isZero();
+            var scopeUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("76").load();
+            assertThat(scopeUpgrade.migrate().migrationsExecuted).isEqualTo(1);scopeUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policy_publication_scopes",Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policy_publication_scope_items",Integer.class)).isZero();
+            var publicationUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("77").load();
+            assertThat(publicationUpgrade.migrate().migrationsExecuted).isEqualTo(1);publicationUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policy_publications",Integer.class)).isZero();
+            workerSql.execute("CREATE TABLE prior_attachment_checksums AS SELECT version,checksum FROM flyway_schema_history WHERE success");
+            var providerUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("78").load();
+            assertThat(providerUpgrade.migrate().migrationsExecuted).isEqualTo(1);providerUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_attachment_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            for(String constraint:java.util.List.of("announcement_attachment_jobs_frozen_provider_code_check","announcement_attachment_backfill_items_provider_code_check")) {
+                var definition=workerSql.queryForObject("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname=? AND convalidated",String.class,constraint);
+                assertThat(definition).contains("GOV24_PUBLIC_SERVICE", "GOV24");
+                String column=constraint.startsWith("announcement_attachment_jobs_")?"frozen_provider_code":"provider_code";
+                // 각 JdbcTemplate 호출은 별도 연결이다. 이 격리 테스트 DB의 probe만 생성/삭제한다.
+                workerSql.execute("CREATE TABLE gov24_provider_probe ("+column+" varchar(30), "+definition+")");
+                for(String code:java.util.List.of("BIZINFO","GOV24","GOV24_PUBLIC_SERVICE","LOCAL_GOV_NOTICE"))
+                    assertThat(workerSql.update("INSERT INTO gov24_provider_probe VALUES (?)",code)).isEqualTo(1);
+                assertThatThrownBy(()->workerSql.update("INSERT INTO gov24_provider_probe VALUES ('UNKNOWN')"))
+                        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+                workerSql.execute("DROP TABLE gov24_provider_probe");
+            }
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_policies WHERE policy_status_code='ACTIVE'",Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            var providerLedgerUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("79").load();
+            assertThat(providerLedgerUpgrade.migrate().migrationsExecuted).isEqualTo(1);providerLedgerUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_provider_qa_runs",Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_provider_qa_cases",Integer.class)).isZero();
+            var providerPlanUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("80").load();
+            assertThat(providerPlanUpgrade.migrate().migrationsExecuted).isEqualTo(1);providerPlanUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_provider_qa_run_plans",Integer.class)).isZero();
+            var providerLockUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("81").load();
+            assertThat(providerLockUpgrade.migrate().migrationsExecuted).isEqualTo(1);providerLockUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('attachment_policy_publication_lock'::regproc)",String.class))
+                    .contains("announcement_attachment_provider_qa_runs","announcement_attachment_provider_qa_cases","announcement_attachment_provider_qa_run_plans");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            assertThat(workerSql.queryForObject("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='ck_att_resource_owner' AND convalidated",String.class))
+                    .contains("provider_qa_case_id","provider_qa_lease_token","job_id","policy_validation_id");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             Flyway.configure().dataSource(pg.getDatabase("postgres","attachment_fresh"))
                     .locations("classpath:db/migration").load().migrate();
         }
