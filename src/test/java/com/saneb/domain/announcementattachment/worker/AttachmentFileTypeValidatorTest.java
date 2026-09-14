@@ -94,4 +94,22 @@ class AttachmentFileTypeValidatorTest {
         String mismatch=new String("attachment; filename=\"공고.exe\"".getBytes(java.nio.charset.StandardCharsets.UTF_8),java.nio.charset.StandardCharsets.ISO_8859_1);
         assertThatThrownBy(()->validator.selectFormat(file,selectResponse("application/pdf",mismatch),"PDF",true)).hasMessage("ATTACHMENT_DISPOSITION_MISMATCH");
     }
+
+    @Test void bizInfoProfileUsesStrictUtf8HeaderRecoveryForAllThreeSignatures() throws Exception {
+        var profile = new com.saneb.domain.announcementattachment.discovery.BizInfoAttachmentDiscoveryProfile();
+        assertThat(profile.selectUtf8DispositionOctets()).isTrue();
+        assertThat(profile.selectLegacyBinaryContentTypes()).isEmpty();
+        var signatures = java.util.Map.of("PDF", "%PDF-1.6".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                "HWP", new byte[]{(byte)0xd0,(byte)0xcf,0x11,(byte)0xe0,(byte)0xa1,(byte)0xb1,0x1a,(byte)0xe1},
+                "HWPX", new byte[]{'P','K',3,4,20,0,0,0});
+        for (var entry : signatures.entrySet()) {
+            var file = selectBinary(entry.getValue());
+            String header = new String(("attachment; filename=\"지원공고." + entry.getKey().toLowerCase(java.util.Locale.ROOT) + "\"")
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8), java.nio.charset.StandardCharsets.ISO_8859_1);
+            var response = selectResponse("application/octet-stream", header);
+            assertThatThrownBy(() -> validator.selectFormat(file, response, entry.getKey())).hasMessage("ATTACHMENT_DISPOSITION_INVALID");
+            assertThat(validator.selectFormat(file, response, entry.getKey(), profile.selectUtf8DispositionOctets(),
+                    profile.selectLegacyBinaryContentTypes())).isEqualTo(entry.getKey());
+        }
+    }
 }

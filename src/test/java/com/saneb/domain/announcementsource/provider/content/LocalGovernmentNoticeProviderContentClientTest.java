@@ -104,6 +104,72 @@ class LocalGovernmentNoticeProviderContentClientTest {
         assertThat(duplicate.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
     }
 
+    private static String seoguHtml(String body) {
+        return "<main><header>수출 특허 메뉴</header><div class='card mb-4 program--view'>"
+                + "<h2 class='card-header h2'>상세정보</h2><div class='card-body prog bucket-form'>"
+                + "<span id='notAncmtMgtNo'>51668</span><span id='notAncmtSj'>소상공인 지원사업</span>"
+                + "<span id='depNm'>기관정보</span><span id='chrNm'>담당자 대역</span><span id='telno'>연락처 대역</span>"
+                + "<span id='notAncmtCn'>" + body + "</span>"
+                + "<div class='bbs--view--file'><span>수출 특허 신청서.hwp</span><a href='/file/download'>다운로드</a></div>"
+                + "</div></div><footer>의회 감사 고시</footer></main>";
+    }
+
+    private ProviderContentResult seoguResult(String pathAndQuery, String page) {
+        var transport = new StubTransport(); transport.enqueue(html(page));
+        var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest(
+                "LOCAL_GOV_NOTICE", SOURCE_ID, "https://www.seogu.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/list.do",
+                "https://www.seogu.go.kr" + pathAndQuery));
+        assertThat(transport.callCount()).isEqualTo(1);
+        return result;
+    }
+
+    private ProviderContentResult seoguResult(String query, String page, boolean officialPath) {
+        return seoguResult((officialPath ? "/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do" : "/another/view.do") + query, page);
+    }
+
+    @Test void observedSeoguCardExcludesStaffMenusAndFileNamesButPreservesBodyContext() {
+        var result = seoguResult("?notAncmtMgtNo=51668", seoguHtml(
+                "소상공인 지원금 <nav>투자유치 메뉴</nav> <span role='navigation'>특허 메뉴</span>"
+                        + "수출기업 제외 <a href='/apply'>온라인 신청</a>"), true);
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 온라인 신청");
+    }
+
+    @Test void observedSeoguMissingAmbiguousOrChangedCardNeverUsesWholePageFallback() {
+        String valid = seoguHtml("소상공인 지원금");
+        for (String page : List.of("<main>소상공인 지원금</main>", valid + valid,
+                valid.replace("id='notAncmtCn'", "id='changed'"),
+                valid.replace("<span id='notAncmtCn'>", "<span id='notAncmtCn'>중복</span><span id='notAncmtCn'>"),
+                valid.replace("<span id='notAncmtSj'>소상공인 지원사업</span>", "<span id='notAncmtSj'></span>"),
+                valid.replace("<span id='notAncmtSj'>", "<span id='notAncmtSj'>중복</span><span id='notAncmtSj'>"),
+                valid.replace("<span id='notAncmtMgtNo'>", "<span id='notAncmtMgtNo'>51668</span><span id='notAncmtMgtNo'>"),
+                valid.replace("id='notAncmtMgtNo'>51668", "id='notAncmtMgtNo'>99999"))) {
+            var result = seoguResult("?notAncmtMgtNo=51668", page, true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyAvailabilityCode()).isEqualTo(BodyAvailabilityCode.FETCH_FAILED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void observedSeoguInvalidIdentityQueryCannotFallBackToPageText() {
+        for (String query : List.of("", "?notAncmtMgtNo=", "?notAncmtMgtNo=51668&notAncmtMgtNo=51668",
+                "?notAncmtMgtNo=51668&other=1", "?notAncmtMgtNo=51668%20", "?notAncmtMgtNo=99999")) {
+            var result = seoguResult(query, seoguHtml("소상공인 지원금"), true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void observedSeoguEmptyBodyCannotBecomeStaffOrAttachmentText() {
+        var result = seoguResult("?notAncmtMgtNo=51668", seoguHtml("<nav>메뉴</nav>"), true);
+        assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+        assertThat(result.bodyText()).isNull();
+    }
+
+    @Test void otherSeoguBoardKeepsExistingContract() {
+        assertThat(seoguResult("?notice=1", "<main>기존 본문</main>", false).bodyText()).isEqualTo("기존 본문");
+    }
+
     @Test
     void selectContentDoesNothingWhileFeatureFlagIsOff() {
         AtomicInteger resolutionCount = new AtomicInteger();

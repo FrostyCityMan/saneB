@@ -428,8 +428,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     }
 
     private Element selectContentElement(Document document, URI sourceUri) {
-        // 실측된 세 기관의 정확한 게시판만 좁힌다. 다른 SPRING_BBS를 지원한다고 추정하지 않는다.
+        // 실측된 기관의 정확한 게시판만 좁힌다. 같은 parser의 다른 기관까지 지원한다고 추정하지 않는다.
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
+        if ("www.seogu.go.kr".equals(host)
+                && "/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do".equals(sourceUri.getPath())) {
+            return selectSeoguContentElement(document, sourceUri);
+        }
         String board = switch (host) {
             case "www.taebaek.go.kr" -> "25";
             case "www.hsg.go.kr" -> "65";
@@ -459,6 +463,23 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             }
         }
         return document.body();
+    }
+
+    private Element selectSeoguContentElement(Document document, URI sourceUri) {
+        String query = sourceUri.getRawQuery();
+        if (query == null || !query.matches("notAncmtMgtNo=[0-9]{1,15}"))
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var cards = document.select("div.card.program--view");
+        if (cards.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        var card = cards.getFirst();
+        var identifiers = card.select("span#notAncmtMgtNo");
+        var titles = card.select("span#notAncmtSj");
+        var contents = card.select("span#notAncmtCn");
+        // 제목·공고번호·본문이 분리된 공식 카드만 사용한다. 담당자·첨부명·주변 메뉴는 포함하지 않는다.
+        if (identifiers.size() != 1 || !query.substring("notAncmtMgtNo=".length()).equals(identifiers.getFirst().text().strip())
+                || titles.size() != 1 || titles.getFirst().text().isBlank() || contents.size() != 1)
+            throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+        return contents.getFirst();
     }
 
     private boolean selectBoardParameter(URI uri, String board) {

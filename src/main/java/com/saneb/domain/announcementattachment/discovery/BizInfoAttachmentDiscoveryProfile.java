@@ -27,7 +27,7 @@ public final class BizInfoAttachmentDiscoveryProfile implements AttachmentDiscov
             + "detail:/sii/siia/selectSIIA200Detail.do:pblancId=PBLN_[0-9]{15}|"
             + "download:/cmm/fms/fileDown.do:atchFileId=FILE_[0-9]{15},fileSn=[0-9]{1,3}|"
             + "meta[property=og:title]|.attached_file_list:exactly1>ul|li>.file_name|a[href]|"
-            + "roles:unknown-requires-evidence|formats:pdf-hwp-hwpx-unknown|limit10|no-script-no-base";
+            + "roles:unknown-requires-evidence|formats:pdf-hwp-hwpx-unknown|limit10|no-script-no-base|strict-utf8-disposition-octets";
     private static final String HASH = selectImplementationHash();
 
     @Override public String selectProviderCode() { return "BIZINFO"; }
@@ -35,6 +35,8 @@ public final class BizInfoAttachmentDiscoveryProfile implements AttachmentDiscov
     @Override public String selectProfileCode() { return CODE; }
     @Override public String selectProfileHash() { return HASH; }
     @Override public Set<String> selectApprovedHosts() { return Set.of(HOST); }
+    // 공식 PDF/HWP/HWPX 응답에서 실측한 UTF-8 header octet만 복원한다. 공통 검증의 기본값은 바꾸지 않는다.
+    @Override public boolean selectUtf8DispositionOctets() { return true; }
     @Override public URI selectDetailUri(String providerNoticeId) {
         if (providerNoticeId == null || !providerNoticeId.matches("PBLN_[0-9]{15}"))
             throw new IllegalArgumentException("PROFILE_REQUIRED");

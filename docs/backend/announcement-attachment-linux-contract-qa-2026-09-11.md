@@ -2,6 +2,23 @@
 
 ## 범위와 현재 상태
 
+### 2026-09-15 — V83 실제 DB 통과·공식 전체 파일 헤더 차단 확인
+
+[실행15 / 34873944066](https://github.com/FrostyCityMan/saneB/actions/runs/34873944066), SHA `8fe54d094970f9be4a2dbabf87903be28d6f7a1d`는 **전체 workflow 실패**다. 실패 단계는 공식 파일 관측이며 DB 계약 단계와 구분한다.
+
+- [x] root2397건=2149통과/248조건부 생략, extractor25, 패키징20, 실제 job192, migration3+분할14, worker11, Linux 합성12파일(1시험) 및 bootJar/설치 생성 통과. 전용 DB/runtime/worker 시험은 생략0이다.
+- [x] 독립 namespace 실제 계약220/220 통과·실패/생략/미실행/container실패0. 부모 실제 연결·취소2/2 통과, 전용 계정 정리 SUCCEEDED(동일 UID14 thread/부모 JVM6 thread 관측).
+- [x] V83 fresh/upgrade/기존 checksum·deferred trigger 유지와17개 tuple 동등성 비교가 실제 PostgreSQL에서 통과했다. 1,001건 전수 시험20.636초, 직전 실행14의63.932초보다 짧았다. runner 실행 조건 차이가 있으므로 이를 고정 성능 보장 또는 모든 간헐 실패 원인의 확정으로 해석하지 않는다.
+- [!] 공식3공고의 빈 템플릿 제목 처리 수정은 통과했고 발견7/다운로드7개(PDF2/HWP1/HWPX4)를 확인했다. 그러나7개 모두 FILE_SIGNATURE 단계 실패로 격리 추출은 실행하지 못했다. 원본 정리3/3, 운영 쓰기0, 기대값 자동 승인0이다.
+
+고정 metadata artifact는 `build/qa-results/run-34873944066`에 받았다. 파일명·원문·응답 헤더·다운로드 폼을 보고서에 넣지 않았다. XML의 root 조건부 생략과 별도 실제 DB task 실행을 중복 성공으로 합산하지 않는다.
+
+추가 읽기 전용 진단에서 최신 공식 상세가 제공하는7개 파일 URL에 GET 응답 헤더와8-byte prefix만 확인했다. 모두 HTTP200/application/octet-stream이며 PDF/HWP/ZIP signature 및 표시 확장자가 일치했다. 각 Content-Disposition에는 Latin-1로 읽힌 UTF-8 octet의 C1 문자가5~22개 있었고, 엄격한 UTF-8 복원 후 제어문자는0이었다. 따라서 기존 엄격한 복원 기능을 기업마당 프로필에만 명시 적용한다. 공통 기본 거부·경로 이탈/제어문자/형식 불일치 검사는 유지하며 profile hash는 변경된다. 최초 보관 URL을 이용한 HEAD403/GET500은 성공 진단으로 사용하지 않았다.
+
+수정 후 실제 Linux 격리 추출·역할 관측은 재실행해야 한다. 이7개의 다운로드/헤더 확인을 텍스트 판정·정상 후보·Provider QA 통과로 계산하지 않는다. 운영 정책 게시/ENFORCE/기존 데이터 적용·동일 SHA 배포/운영 브라우저는 미실행이며 **Not ready**다.
+
+후속 기업마당 헤더/대전 서구 본문 증분의 로컬 표적53건·bootJar는28초에 통과했다. 전체 `test bootJar attachmentContractQaTest --no-daemon --max-workers=1`은3분11초 성공: root2403건=2156통과/247조건부 생략/실패0, 독립 패키징20/20통과. extractor 시험은 변경 없이 UP-TO-DATE이며 이번 실제 재실행으로 세지 않는다. Node 보고서 판정기10/10도 통과했다. 기존 Windows native initdb 실패를 해소한 것이 아니며247건의 조건부 생략을 실제 통과로 세지 않는다. 이번 소스의 Linux/공식 파일 재검증은 별도 SHA에서 수행한다.
+
 ### 2026-09-14 — 변경된 3단계 흐름의 Linux QA 재개
 
 - GitHub 저장소 소유 계정의 push 권한을 현재 API로 확인했다. 아래의 과거 접근 차단 기록은 현재 권한 상태가 아니다.
