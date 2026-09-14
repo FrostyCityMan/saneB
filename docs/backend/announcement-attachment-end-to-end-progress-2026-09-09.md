@@ -28,13 +28,17 @@
 | 3 분류·정책 | [~] | 09-14 전체 Provider 실행 근거 verifier→정책 QA→게시 재검증 연결 구현. 최신 실패/대기 우선·4단계 PASSED 때만 VERIFIED. 공식 참조9/실행 기대값0이므로 실제 정상 아님. 본문 전용 영역·문서 역할 자동 규칙·전체 기대값/Linux/Provider 잔여 |
 | 4 관리자 API·화면 | [~] | 게시·배치·원복 UI에 이어 09-14 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태 분리·URL 보존·늦은 응답 거부. 표적 Java/HTTP 및 Node 회귀 통과, 실제 PG/운영 역할·브라우저 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 UI 구현. 정부24 필터 코드 차이에 의한 후보 누락·고정 분할 충돌 수정 및 미지원 profile 안내 보존. 실제 PG 전체/경합·승인 범위 운영 실행/최종 대조는 필수 미완료 |
-| 6 자동·실파일 QA | [!] | 09-14 Linux Actions 첫 실행: 실제 임시 PG job192건/147통과/45실패/생략0. 존재하지 않는 컬럼 조회와 시험 fixture 오류를 수정 후 재검증 진행. root2058통과/240생략·extractor25·독립 QA14·Node152 통과. 이후 migration 전용/격리 worker·독립 실행/전체 Provider 검증은 미완료 |
+| 6 자동·실파일 QA | [!] | 09-14 Linux 두 번째 실행: PG job191/192통과, 첨부 migration2통과, 분할1/13통과, Linux 합성12파일 격리 추출 통과, worker7/8통과. SQL 분할 오류·시험 기대값을 수정 후 재검증 진행. root2064통과/240생략·extractor25·Node152. 독립 namespace 전체 실행/전체 Provider는 미완료 |
 | 7 운영 배포·활성화 | [!] | 09-14 GitHub 소유 계정 pull/push/admin=true 확인 및 QA 전용 브랜치 푸시 완료, master/배포 불변. 서울 AWS STS의 최근 TLS 실패는 미해결. 최신 구현 배포/정책/데이터 적용 미실행. TLS·IAM 완화 없음 |
 | 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
 
 ## 최신 실행 기록
 
 ### 2026-09-14 — 변경된 처리 흐름 유지·Linux 최초 실증과 실패 수정
+
+- 두 번째 [Actions 34825668605](https://github.com/FrostyCityMan/saneB/actions/runs/34825668605), SHA `17243d54a132598d37e13753482eaef8fe6a9959`도 전체 실패다. PG job192건 중191통과/1실패, 첨부 migration2통과, 분할13건 중1통과/12실패, 설치된 Linux 격리 추출12합성 사례(1시험) 통과, worker8건 중7통과/1실패를 확인했다. 전용 task는 모두 생략0이고 root2304=2064통과/240생략·extractor25·독립 QA14·Node152는 통과다.
+- 남은 원인: 분할 SELECT/GROUP BY의 같은 값이 다른 JDBC parameter로 바인딩되어 PostgreSQL이 같은 식으로 인정하지 않은 실제 Mapper 오류, commit 시 지연 제약 예외 wrapper에 대한 시험 기대값, 미지원 파일을 포함한 worker 전체 상태를 SUCCEEDED로 기대한 시험 오류다. 분할은 한 번 계산한 segment_no alias로 group하고, 제약 거부는 PostgreSQL SQLState23514와 실제 rollback을 검사한다. worker는 실패 파일을 숨기지 않는 PARTIAL_FAILED를 기대한다. 계약·검수 조건·migration을 약화하지 않는다.
+- 독립 실행기의 고정 목록이 parameterized DB2건을 사전 집계하지 못하는 문제도 확인했다. 두 입력을 이름이 고정된 @Test2건으로 분리하고 동적 시험 누락을 패키징 Gate에서 차단했다. 현재 inventory215=job192/migration2/backfill13/worker8, 실행0/INVENTORY_ONLY이며 실제215건 통과가 아니다. 로컬 패키지 시험15건 통과. 이후 원격 재실행이 필요하다.
 
 - 사용자 재강조에 따라 제목 1차 → 정제 본문 2차 → 공식 첨부 발견·실제 텍스트 3차 → 관리자 최종 검증을 기준으로 재개했다. 제목 제외 건 상세/첨부 요청 금지, 중간 A/B·본문 부족의 첨부 분석 지속, 기술 예외와 정상 후보 분리를 유지한다.
 - 기존 장기 goal 범위의 코드·계약·테스트467파일을 QA 전용 `codex/attachment-three-stage-linux-qa`에 `bd148024611284b6c8ca2d6997e5ed2e87309721`로 커밋·푸시했다. Word2파일은 제외·보존했다. 원격 master는 `ae893b87348a9bd1cb0893763f6cad5047093a24` 그대로이며 배포 workflow는 실행하지 않았다.

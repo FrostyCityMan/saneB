@@ -66,6 +66,17 @@ class AttachmentContractQaPackageTest {
             }
         }
     }
+    @Test void fixedSuiteInventoryCannotOmitDynamicallyRegisteredTestCases() throws Exception {
+        for (String suite : AttachmentContractQaMain.SUITES) {
+            for (var method : Class.forName(suite).getDeclaredMethods()) {
+                for (var annotation : method.getDeclaredAnnotations()) {
+                    assertThat(annotation.annotationType().getName()).as(suite + "." + method.getName())
+                            .isNotIn("org.junit.jupiter.params.ParameterizedTest", "org.junit.jupiter.api.TestFactory",
+                                    "org.junit.jupiter.api.TestTemplate", "org.junit.jupiter.api.RepeatedTest");
+                }
+            }
+        }
+    }
     @Test void onlyFixedDatabaseSuitesArePackagedAndStandaloneLauncherIsPresent() throws Exception {
         try (var jar = new JarFile(selectJar().toFile())) {
             var entries = jar.stream().map(java.util.zip.ZipEntry::getName).filter(name -> name.endsWith(".class")).toList();

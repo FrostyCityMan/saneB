@@ -147,7 +147,8 @@ class AnnouncementAttachmentWorkerIntegrationTest {
     @Test void actualWorkerStoresAllThreeFormatsAndUnsupportedFileThenHttpReadsExactEvidence() throws Exception {
         var request = selectRequest(); var job = reserve(request);
         assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
-        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("SUCCEEDED");
+        // 미지원 파일도 처리 분모에 남는다. PDF/HWP/HWPX 추출 성공이 전체 작업 성공은 아니다.
+        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
         var stored = set(request.sourceId());
         assertThat(stored.setStatusCode()).isEqualTo("SEALED");assertThat(stored.discoveredCount()).isEqualTo(4);assertThat(stored.processedCount()).isEqualTo(4);
         assertThat(files(request.sourceId())).extracting(AttachmentEvidenceResponses.FileSummary::qualityCode).containsExactly("COMPLETE_TEXT", "COMPLETE_TEXT", "COMPLETE_TEXT", null);

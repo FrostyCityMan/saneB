@@ -106,8 +106,8 @@
         -- 동일 snapshot의 전체 순번으로 분할을 만든다. count를 bigint로 받아 JDBC update count 상한과 구분한다.
         WITH candidates AS MATERIALIZED (<include refid="FullCandidates"/>), inserted AS (
             INSERT INTO announcement_attachment_backfill_segments(run_id,segment_no,item_count)
-            SELECT #{runId},(ordinal-1)/#{scope.segmentSize}+1,count(1)::integer FROM candidates
-            GROUP BY (ordinal-1)/#{scope.segmentSize}+1 RETURNING run_id)
+            SELECT #{runId},(ordinal-1)/#{scope.segmentSize}+1 AS segment_no,count(1)::integer FROM candidates
+            GROUP BY segment_no RETURNING run_id)
         SELECT count(1) FROM inserted
     </select>
     <select id="insertItems" resultType="long" affectData="true" flushCache="true" useCache="false">

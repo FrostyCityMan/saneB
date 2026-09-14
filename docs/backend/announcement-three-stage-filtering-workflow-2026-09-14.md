@@ -115,6 +115,16 @@ Design Read: 자동 분석이 끝난 공고의 분류와 남은 쟁점을 한 �
 
 단위/Mapper 계약/HTTP/Node 회귀→기본 테스트·bootJar→실제 Linux/PG/Provider→운영 브라우저 순으로 증거를 분리한다. 생략/미실행은 성공이 아니다.
 
+### 6.1 변경된 처리 순서를 지키는 고정 회귀
+
+- `AnnouncementSourceServiceImplTest.insertCollectionRunFetchesDetailBodyOnlyAfterTitleGateAllowsIt`: 제목 통과 이후에만 상세 본문을 요청한다.
+- `AnnouncementAttachmentClassificationEngineTest.intermediateReviewReasonStillCollectsAttachmentEvidenceBeforeFinalReview`: 제목 A·본문 A/B 각각 첨부 텍스트 근거를 생성한 뒤 최종 검수 사유를 유지한다.
+- 같은 클래스의 `sufficientBodyDoesNotSkipAttachmentFilteringOrHideAttachmentExclusionEvidence`와 `sufficientBodyCannotTurnFailedDiscoveryIntoVerifiedNoFiles`: 충분한 본문도 첨부 B·발견 실패를 숨기지 않는다.
+- `AnnouncementAttachmentWorkerIntegrationTest.bodyFetchFailureStillCollectsAttachmentsAndPreservesBaseFailureEvidence`: 실제 Linux 추출·임시 PG 경로에서 본문 실패와 첨부 성공 근거를 분리한다. 해당 전용 task의 실행 통과가 필요하며 단위 대역 시험으로 대체하지 않는다.
+- `AnnouncementAttachmentJobIntegrationTest.processingQueueMatchesJavaProjectionForAllNineStatesAndFullPageCounts`: 9상태·29행의 SQL/Java·전체 count·페이지를 대조한다. 기술 예외와 정상 후보를 같은 상태로 합치지 않는다.
+
+09-14 로컬 추가 분류 시험은 기존 포함19건 통과했다. Linux 첫 실행에서 실제 SQL/fixture 실패가 확인되어 수정·재검증 중이다. 운영 수집이나 관리자 브라우저 성공으로 확대하지 않는다.
+
 효과 지표는 동일 기간·대상·규칙 버전 기준의 최종 검증 소요 시간(실사용 관측), 추가 판단 필요 비율, 수동 역할 지정 비율, 기술 실패율, 표본 오분류/누락률이다. 처리 건수와 기간을 함께 기록하며, 개인정보/원문/검수 메모를 분석 이벤트에 복사하지 않는다. 아직 baseline과 개선율을 측정하지 않았으므로 절감률을 약속하지 않는다.
 
 실패 기준: 첨부 다운로드만으로 필터링 완료 선언, 미해결 실패 숨김, 모든 UNKNOWN을 자동 공고문으로 승격, v1 의미 변경, 과거 migration 편집, 승인 없는 운영 적용, 일부 profile 성공을 전체 완료로 확대.

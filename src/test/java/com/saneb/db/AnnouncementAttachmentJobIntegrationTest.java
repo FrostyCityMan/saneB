@@ -930,9 +930,13 @@ class AnnouncementAttachmentJobIntegrationTest {
             """,off,off.toString(),policy);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"ATTACHMENT_SELECTOR_CHANGED", "ATTACHMENT_DOWNLOAD_FORM_CHANGED"})
-    void att013DiscoveryWarningIsBoundToImmutableManifestAndReadApi(String warning) {
+    @Test void att013SelectorWarningIsBoundToImmutableManifestAndReadApi() {
+        assertDiscoveryWarningBoundToImmutableManifestAndReadApi("ATTACHMENT_SELECTOR_CHANGED");
+    }
+    @Test void att013DownloadFormWarningIsBoundToImmutableManifestAndReadApi() {
+        assertDiscoveryWarningBoundToImmutableManifestAndReadApi("ATTACHMENT_DOWNLOAD_FORM_CHANGED");
+    }
+    private void assertDiscoveryWarningBoundToImmutableManifestAndReadApi(String warning) {
         service.insertAttachmentJob(selectRequest());
         var job=service.saveNextJobClaim().orElseThrow();
         var set=evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence("FAILED",false,List.of(),
@@ -3059,8 +3063,12 @@ class AnnouncementAttachmentJobIntegrationTest {
         var f=normalRecoveryFixture(false,false);var p=normalRollback().selectPreviewDetails(reviewActor(),f.source(),f.job());var before=dao.selectSourceContextDetails(f.source());
         var action=new com.saneb.domain.announcementattachment.vo.AttachmentNormalRollbackRows.Action(UUID.randomUUID(),f.job(),f.source(),p.modeCode(),p.sourceVersion(),p.attachmentVersion(),p.previewHash(),p.baseReopens(),p.confirmationRestores(),actor,UUID.randomUUID(),"1".repeat(64),"2".repeat(64),null);
         var normalDao=context.getBean(SqlSessionTemplate.class).getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentNormalRollbackDao.class);
-        assertThatThrownBy(()->new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(status->normalDao.insertAction(action))).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(()->new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(status->normalDao.insertAction(action)))
+                .isInstanceOf(org.springframework.transaction.TransactionSystemException.class)
+                .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class)
+                .satisfies(error -> assertThat(((org.postgresql.util.PSQLException)org.springframework.core.NestedExceptionUtils.getMostSpecificCause(error)).getSQLState()).isEqualTo("23514"));
         assertThat(dao.selectSourceContextDetails(f.source())).isEqualTo(before);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_normal_rollback_actions WHERE id=?",Integer.class,action.id())).isZero();
     }
     @Test void normalReceiptAndRecoveryResultAreImmutableButSourceCascadeIsAllowed() {
         var f=normalRecoveryFixture(false,false);var p=normalRollback().selectPreviewDetails(reviewActor(),f.source(),f.job());var r=normalRollback().insertRollback(reviewActor(),f.source(),f.job(),UUID.randomUUID(),normalRequest(p));

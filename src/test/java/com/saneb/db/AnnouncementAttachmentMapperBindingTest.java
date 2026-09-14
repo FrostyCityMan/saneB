@@ -142,6 +142,10 @@ class AnnouncementAttachmentMapperBindingTest {
                     "NOT EXISTS (SELECT 1 FROM announcement_source_links", "attachment_backfill_input_hash(s.id)")
                     .doesNotContain("LIMIT ","SELECT *","source_url","body_text","extracted_text","SKIP LOCKED");
             assertThat(bound.getParameterMappings()).allSatisfy(parameter->assertThat(parameter.getTypeHandler()).isNotNull());
+            if(statement.equals("insertSegments")) {
+                assertThat(bound.getSql()).contains("AS segment_no", "GROUP BY segment_no");
+                assertThat(bound.getParameterMappings()).filteredOn(parameter->parameter.getProperty().equals("scope.segmentSize")).hasSize(1);
+            }
         }
         var page=configuration.getMappedStatement(prefix+"selectItemList").getBoundSql(new com.saneb.domain.announcementattachment.vo.AttachmentBackfillRows.Search(UUID.randomUUID(),2L,100,0));
         assertThat(page.getSql()).contains("WHERE run_id=? AND segment_no=?","ORDER BY ordinal LIMIT ? OFFSET ?","coalesce(input_hash=attachment_backfill_input_hash(source_id),false)")
