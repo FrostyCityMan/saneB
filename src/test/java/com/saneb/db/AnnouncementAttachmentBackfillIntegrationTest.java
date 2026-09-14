@@ -229,7 +229,10 @@ class AnnouncementAttachmentBackfillIntegrationTest {
         return new AttachmentBatchRequests.Collection(batch.rowVersion(),batch.scopeHash(),batch.itemCount(),batch.deletedItemCount(),
                 ((Number)batch.frozenScope().get("maximumDownloadBytes")).longValue(),((Number)batch.frozenScope().get("maximumHttpRequests")).longValue(),"격리 DB 수집 승인 검증");
     }
-    @Test void full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions() {
+    // Linux 실측 71~75초인 1,001건 전수 계약이다. 독립 실행의 기본 60초 대신 이 사례만 120초로 제한한다.
+    // 전체 namespace 600초와 각 transaction 30초, 전수 건수/중복/누락 검증은 유지한다.
+    @Test @Timeout(120)
+    void full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions() {
         var sources=insertSources(1001);var run=freeze(1000);insertSources(1);
         var first=reserve(run.runId(),1);var second=reserve(run.runId(),2);
         assertThat(first.reservedItemCount()).isEqualTo(1000);assertThat(second.reservedItemCount()).isEqualTo(1);

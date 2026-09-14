@@ -18,6 +18,8 @@
 
 원인: bubblewrap의 `--clearenv`는 `PWD`를 제거하지 않으며 `--chdir /work`에 맞춘 값을 유지한다([공식 v0.6.1 문서](https://github.com/containers/bubblewrap/blob/v0.6.1/bwrap.xml)). 실행기의 허용 목록에서 이 고정 값이 누락됐다. `PWD=/work`만 검증하도록 수정하고 누락·다른 경로·경로 정규화 표현과 외부 설정/DB 환경변수는 계속 거부한다. 보안 격리나 전체 시험 분모를 완화하지 않는다. 수정 뒤 전체 원격 검증을 다시 실행해야 한다.
 
+네 번째 [34827786609](https://github.com/FrostyCityMan/saneB/actions/runs/34827786609), SHA `bd92dff3068363b8a4c8a2795ce2609cfc3d523d`: 주 Gradle 검증은 통과했고 독립 namespace도 환경 검사를 통과하여215건을 모두 실행했다.214통과/1실패/생략·미실행·container 실패0, 임시 원본/DB 정리 성공이다. 실패 case hash를 고정 JUnit ID와 대조한 결과 `full1001InventoryReservesBothSegmentsWithoutDuplicateOrNewArrivalAndAccountsAllDimensions`였다. 같은 SHA의 일반 실행은 이 시험이71.123초에 통과했으며, 독립 실행기의 기본 시험 제한은60초다. 이 시간 충돌을 원인으로 판단하여 해당 대량 시험만 명시적120초로 한정한다. 전체 namespace600초/정책 lease/DB transaction30초 및1,001건 전수 assertion은 유지한다. 수정 후 실제 독립 실행으로 확인해야 하며, 정책 부모 연결은 이번에도 미실행이다.
+
 ### 이전 구현 기록
 
 09-12 후속: 독립 QA 산출물 `installAttachmentContractQa`에 실제 worker/격리 추출/DB 연결 8사례와 정부24 출처 정합성 1사례를 추가했다. 현재 고정 목록은 job168·migration2·backfill13·worker8=191건이며, Linux 실제 실행은 여전히 미확인이다. migration 검증은 V78까지 포함한다. HTTP는 고정 합성 입력이고 실제 사이트 수집이 아니다. 아래 과거159건은 당시 기록이다. 상세·명령·승인 경계는 [독립 worker·DB QA 산출물](announcement-attachment-contract-runtime-2026-09-12.md)을 따른다.
