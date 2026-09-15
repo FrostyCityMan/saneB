@@ -4,7 +4,23 @@
 
 P3 진행, 전체 Gate0~8 / ATT-001~062는 **Not ready**다. 변경된 `제목 1차 → 정제 본문 2차 → 실제 첨부 텍스트 3차 → 관리자 최종 검증` 순서를 보존한다. 이번 변경은 시험·실행 설정·기록이며 production Java/API/UI/schema를 변경하지 않는다. 기존 공식 파일 관측과 별도로 실제 worker 저장·조회 경로를 검증하도록 확장했다.
 
-## 2026-09-15 후속 — 설치 runtime의 고정 공식 시험
+## 2026-09-15 11:58 KST — 추출기1.0.1 실제 worker 재검증
+
+SSM **`adee6e78-7976-4046-94e3-c06c6d2941e6` Success**, 고정 양평3건 **3통과/실패·생략·중단·container 실패0**이다. 배포 revision `2bde2161328c9f876eaaddaba374889c9dedf825`, 설치 웹 JAR SHA256 `b31a27aa1267310e9e71401c66c2666c0fc9f82dbe95a6eacbd284244e575ece`, probe SHA256 `40874d4d810564f3930969af94e8d03d5798f05519ca150beeadeaf1286e4242`, 업무 코드 catalog hash `4d7dab7848cb8001d7c18d84b1676e6a8c0d33b9f4422cb4e3682034169eba1f`, 실제 추출기1.0.1/runtime hash `c0b21f3dd591d80acfa2bf7b314cded2178579b413a0e79f4e01a17c51323ba6`다.
+
+| 고정 공고 | 1.0.1에서 직접 확인 | 이전1.0.0 대비 / 남은 쟁점 |
+|---|---|---|
+| YANGPYEONG-312241 | BODY AVAILABLE/1시도, 전체 HWPX1파일/116740bytes/11398자. COMPLETE_TEXT, 분할 문단 블록1·불확실 블록0, DB/API 일치, job SUCCEEDED | PARTIAL_TEXT→COMPLETE_TEXT, TECHNICAL_EXCEPTION→FINAL_REVIEW_EXCEPTION. 본문·전체 첨부 텍스트 완전성은 true지만 TEXT_RULE 역할 UNKNOWN/ATTACHMENT_CONTEXT_REVIEW로 관리자 검수 필요. 역할 실패의 구체적 원인은 아직 수집하지 않았으므로 추측하지 않음 |
+| YANGPYEONG-311846 | BODY AVAILABLE/1시도, PDF237822bytes/4195자 PARTIAL_TEXT·불확실 블록5, JPG BLOCKED/UNSUPPORTED_FORMAT·다운로드0bytes. 전체2파일 분모/DB/API 일치 | job PARTIAL_FAILED, TECHNICAL_EXCEPTION/ATTACHMENT_INCOMPLETE 유지. PDF 이미지·Form 등 어떤 개별 요소가 원인인지 이 보고서만으로 확정하지 않음 |
+| YANGPYEONG-311507 | TITLE_COMBINATION_NOT_MATCHED, TITLE_EXCLUDED_NOT_FETCHED, 원문/작업 저장 및 BODY·첨부 요청0 | 제목 제외 정책 유지. 파일 추출 성공으로 합산하지 않음 |
+
+지원2파일의 binary/text hash와 글자 수는 직전1.0.0 관측과 동일하다. HWPX는 연속 문단 구간의 품질·scope 보완 효과가 실제 파일에 반영됐으며, 이 표본에서 텍스트 순서 변경이 발생했다고 주장하지 않는다. 전체 텍스트 완전성, 자동 문서 역할, 최종 관리자 검증은 각각 다른 상태다. 부분/미지원/UNKNOWN을 정상 후보나 정책 QA 통과로 승격하지 않았다.
+
+요청 예약/bytes 상한 사용은 HWPX4회/2533380bytes, PDF 공고4회/2654462bytes, 제목 제외0이다. 사전 한도는 전체132요청/240MiB다. 운영 DB 미사용/쓰기0, 자동 confirmation/link0, lease0, 원본·소유 임시 PostgreSQL namespace·전송 패키지 정리 성공, 설치 웹 JAR 불변을 확인했다. 사용자 관리자 세션은 재배포 후 만료되어 재로그인 대기이며 이 시험은 인증/브라우저 E2E 증거가 아니다.
+
+다음은 UNKNOWN 역할의 구체적인 텍스트 규칙 사유·근거 확인, 실제 HWP 공고 전체 worker 경로와 전체 기관/형식의 사전 기대값이다. 운영 게시·ENFORCE·기존 데이터 적용 승인과 업무 브라우저 검증은 계속 남아 있다. 아래1.0.0 표의 HWPX 부분 추출을 최신 상태로 사용하지 않는다.
+
+## 2026-09-15 이전 — 추출기1.0.0 설치 runtime의 고정 공식 시험
 
 최종 SSM **`31cf27d7-cf0c-49f7-badd-10ffc1eeefcb` Success**, 고정3건 **3통과/실패·생략·중단·container 실패0**이다. 웹 JAR SHA256 `16a1bb74a13e7d88c180fe6f3eb98e97c105c8362592f9c96de572890523f437`, 별도 probe SHA256 `d41a1de17eac91dd9e8aae04fd17bc61ce6358d5800db44ec83bf7cd59e9e01f`, 전체 업무 코드 지문 `ad55e33ab0a04fae4cf76e607ce5bb0db39b1406e3452ba0579ae4b3be35b2bb`다.
 

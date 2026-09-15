@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 11:58 KST — 추출기1.0.1 운영 배포·실파일 worker 개선 확인
+
+- 이번 회차는 동일 SHA CI·운영 배포·실파일 연결 검증을 완료한 **progress**다. 전체9Gate/ATT62는 **Not ready**, goal ACTIVE다. 제목→정제 본문→실제 첨부 텍스트→관리자 최종 검증 목표를 유지한다.
+- `2bde2161328c9f876eaaddaba374889c9dedf825`의 [Linux34922098905](https://github.com/FrostyCityMan/saneB/actions/runs/34922098905) success, root2636=2373통과/263조건부 생략, extractor36·패키지20·job192·migration17·worker12·runtime1·부모2·Flyway3은 실패/생략0이다. 공식 사이트 opt-in은 CI에서 미실행이며 서버 실증과 구분한다.
+- 같은 SHA의 [배포34922807546](https://github.com/FrostyCityMan/saneB/actions/runs/34922807546)/CodeDeploy `d-Q1K7M8ETK` success. 실제 JAR `b31a27aa1267310e9e71401c66c2666c0fc9f82dbe95a6eacbd284244e575ece`, DB/JAR V83·migration 실패0·health UP·추출기1.0.1만 설치·운영/불변 QA 라이브러리 일치를 확인했다. API/migration/정책·worker 활성화/기존 데이터 적용은 변경하지 않았다.
+- 고정 파일4건 진단 통과 후 공식 양평 worker SSM `adee6e78-7976-4046-94e3-c06c6d2941e6`가3/3통과했다. HWPX11398자는 PARTIAL_TEXT→COMPLETE_TEXT/job SUCCEEDED, 분할 블록1·불확실 블록0이며 BODY/전체 첨부 텍스트 완전성 true다. 다만 역할 UNKNOWN/FINAL_REVIEW_EXCEPTION·관리자 검수 필요가 남는다. PDF4195자 부분/JPG미지원은 TECHNICAL_EXCEPTION 유지, 제목 제외는 원문/작업 저장·후속 요청0이다. 운영 DB 쓰기0·원본/lease/임시PG/전송 정리 성공·설치 JAR 불변이다.
+- 운영 첨부 정책/ACTIVE/set/file/extraction/job/batch 모두0, 첨부 worker/정책QA/ProviderQA 비활성이다. 지자체223·목록parser41·원문2945, 외부 API key2종 없음이다. 새 배포 후 관리자 세션 만료→인증 차단 안내→로그인 화면 이동을 실제 브라우저로 확인하고 사용자 재로그인을 요청했다. 새 SHA 관리자 업무 E2E는 미완료다.
+- 다음은 UNKNOWN 문서 역할의 구체적 사유·근거 확인, 전체 기관 모델/공식 기대값·정책 QA, 승인 범위 활성화/기존 데이터, 운영 검수·DRAFT·복구 브라우저 검증이다. 엔진6/profile17/본문16기관/형식3/catalog참조24·기대값0을 전체 지원 완료로 보지 않는다. 상세는 [추출기 기록](announcement-extractor-text-order-v1.0.1-2026-09-15.md)과 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)이다.
+
 ### 2026-09-15 11:39 KST — 추출기1.0.1 텍스트 순서·품질 보완
 
 - P3 진행, 전체9Gate/ATT62 **Not ready**다. PDF 미사용 XObject의 과도한 PARTIAL_TEXT, 인라인 이미지/누락된 그리기 대상의 COMPLETE_TEXT 오판, HWPX 중첩 부모/자식 텍스트의 순서 역전을 재현하고 수정했다. HWPX는 실제 연속 구간을 각각 독립 근거로 보존하므로 중첩 자체를 누락으로 보지 않는다. 이미지/OLE/수식·미지원·UNKNOWN을 일괄 정상 처리하지 않는다. [상세 변경·검증](announcement-extractor-text-order-v1.0.1-2026-09-15.md)을 따른다.
@@ -257,14 +266,14 @@
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
-| 1 DB·API 계약 | [~] | 동일 SHA476c8f7 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0, 서버 격리 합성221/221 및 공식 양평3건 DB/API 연결 통과. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
+| 1 DB·API 계약 | [~] | 동일 SHA2bde216 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0 및 공식 양평3건 DB/API 연결 통과. 이전476c8f7 서버 합성221/221과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 공통 엔진6·첨부 profile17·worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현 및 설치. 전체223기관 적용성과 운영 상시 수집은 미완료/worker 비활성 |
 | 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조24/실행 기대값0. 실제 역할·내용/형식 기대값, 전체 Provider QA/정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 동일 SHA Linux/서버 합성221건·단일 공개 파일4건 진단·공식 양평3건 worker/DB/API 통과. JCE 정책 mount와 시험 JSON 비교 오류 해결. 실제 지원2파일은 PARTIAL_TEXT로 완전 분석이 아니며 전체 Provider/형식/역할 기대값은 잔여 |
-| 7 운영 배포·활성화 | [~] | Actions34916976535/CodeDeploy d-CTAGI7DTK 성공, V83·새 worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
-| 8 운영 브라우저 E2E | [~] | 사용자 HTTP 진행 승인·관리자 로그인·읽기 전용 목록·비로그인 차단 확인. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
+| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기 통과·단일 공개 파일4건 진단·공식 양평3건 worker/DB/API 통과. HWPX는 완전 텍스트로 개선됐지만 역할 UNKNOWN, PDF는 부분/JPG미지원. 전체 Provider/형식/역할 기대값은 잔여 |
+| 7 운영 배포·활성화 | [~] | Actions34922807546/CodeDeploy d-Q1K7M8ETK 성공, V83·추출기1.0.1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
+| 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록 확인. 새2bde216 배포 후 인증 만료 차단→로그인 화면 확인/사용자 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 
 ## 최신 실행 기록
 

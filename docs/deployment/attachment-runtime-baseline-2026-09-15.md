@@ -1,5 +1,26 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 최신 확인 — 2026-09-15 11:55~11:58 KST / 추출기1.0.1
+
+전체 출시 판정은 **Not ready**다. 설치 배포는 성공했지만 첨부 상시 worker·정책·기존 데이터 적용은 활성화하지 않았다. 아래10시대/03시대 기록은 각각 이전 운영 snapshot이다.
+
+| 경계 | 실제 확인 결과 |
+|---|---|
+| 동일 SHA Linux | [34922098905](https://github.com/FrostyCityMan/saneB/actions/runs/34922098905) success, `2bde2161328c9f876eaaddaba374889c9dedf825`. root2636=2373통과/263조건부 생략, extractor36·패키지20·job192·migration17·worker12·runtime1·부모2·Flyway3은 실패/생략0. 공식 사이트 opt-in 시험은 미실행 |
+| 배포 | [34922807546](https://github.com/FrostyCityMan/saneB/actions/runs/34922807546) success, CodeDeploy `d-Q1K7M8ETK` Succeeded, revision `2bde2161328c9f876eaaddaba374889c9dedf825` |
+| 설치 웹 JAR | SHA256 `b31a27aa1267310e9e71401c66c2666c0fc9f82dbe95a6eacbd284244e575ece`; 업무 코드 catalog hash `4d7dab7848cb8001d7c18d84b1676e6a8c0d33b9f4422cb4e3682034169eba1f` |
+| 설치 추출기 | `attachment-extractor-1.0.1.jar`1개, SHA256 `9cb30102fbfb5d1695da8365a56614a6cd4ec5bdc281a4fe4632836b0e9a59e8`. 글로벌 lib와 해당 웹 JAR의 불변 QA lib가 동일하며 구버전 추출기 JAR 잔존 없음 |
+| 가동·DB | systemd active, localhost health UP, JAR/DB V83, migration 실패0. 이 증분의 기존 migration 변경0 |
+| 정책·데이터 | 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0. 첨부 worker·정책 QA·Provider QA 플래그 미설정/코드 기본false 유지 |
+| 기존 수집 | 지자체 schedule·본문·분류V2 true 유지. 지자체223/목록 parser41/저장 원문2945. 전체 원문 수는 재처리 적격·승인 건수가 아님 |
+| 외부 설정 | 기업마당·정부24 API key는 실행 환경에 없음. 자격증명 원문은 조회 출력하지 않음 |
+| 고정 파일4건 | PDF OCR_REQUIRED/0자·PARTIAL_TEXT/31498자, HWP COMPLETE_TEXT/565자, HWPX COMPLETE_TEXT/2413자. 진단4/4·원본 정리4/4·운영 DB 쓰기0. 단일 선택 파일/DRAFT 규칙/고정 역할 진단이며 공고 전체·정책 QA·자동 역할 성공은 아님 |
+| 브라우저 | 새 배포 뒤 기존 관리자 세션이 만료되어 인증 차단 안내→로그인 화면 이동을 확인. 사용자 재로그인 요청. 새 SHA의 인증 관리자 업무 E2E는 아직 미완료 |
+
+배포 전 runtime SSM `709a979c-57a3-496a-88b1-bc273d344005`, 배포 후 runtime `7775c427-7b1c-4aab-9bcd-8f8a2c10db8e`, DB `44b378b2-a982-4f6d-a2d6-ef091111f888`, 공개 파일 metadata `5eecb1b0-d569-4e8c-9c48-b3b8250a1dde`는 Success다. DB는 READ ONLY/ROLLBACK/쓰기0이다. 서울 리전/default root의 계정·배포 대상 일치를 확인했고 기존 신뢰 루트를 프로세스 범위에서 사용한 임시 CA 파일을 정리했다. TLS/IAM/보안그룹/운영 정책은 변경하지 않았다.
+
+공식 worker 양평3건 재관측은 새 설치 JAR 지문에 고정하여 별도 실행한다. 해당 결과는 [공식 worker 기록](../backend/announcement-official-worker-db-api-qa-2026-09-15.md)을 따른다. CodeDeploy의 성공을 전체 파일 분석 완료로 바꾸지 않는다. 자동 rollback 설정은 존재하지만 실제 원복은 실행하지 않았고, start/health 실패 시 로컬 fallback은 웹 JAR 중심이므로 전체 추출기 복원까지 검증했다고 주장하지 않는다.
+
 ## 최신 확인 — 2026-09-15 10시대
 
 전체 출시 판정은 **Not ready**다. 아래03시대 V72 관측은 과거 기준선이며 현재 설치 버전이 아니다.

@@ -29,7 +29,14 @@
 
 ## 잔여
 
-현재 양평 PDF/HWPX의 PARTIAL_TEXT가 전부 해소됐다고 주장하지 않는다. 실제 이미지/OLE/수식 등 누락 사유가 남으면 그 사유의 검수는 필요하다. PDF Form 내부의 텍스트 완전성·표/다단의 신뢰 범위, 공식 기대값·전체 수집처 적용성, 정책 활성화·기존 데이터·운영 업무 E2E는 계속 장기 goal 범위다.
+11:58 KST 실제 worker 재검증에서 양평 HWPX1파일은 COMPLETE_TEXT로 개선됐지만 PDF는 PARTIAL_TEXT를 유지했다. HWPX도 TEXT_RULE 역할 UNKNOWN으로 관리자 검수 예외다. 실제 이미지/OLE/수식 등 누락 사유가 남으면 그 사유의 검수는 필요하다. PDF Form 내부의 텍스트 완전성·표/다단의 신뢰 범위, 공식 기대값·전체 수집처 적용성, 정책 활성화·기존 데이터·운영 업무 E2E는 계속 장기 goal 범위다.
+
+## Linux·운영 실행 기록 — 2026-09-15 11:58 KST
+
+- `2bde2161328c9f876eaaddaba374889c9dedf825`의 [Linux34922098905](https://github.com/FrostyCityMan/saneB/actions/runs/34922098905)는 success다. artifact 기준 root2636=2373통과/263조건부 생략, extractor36·패키지20·job192·migration17·worker12·runtime1·부모2·Flyway3은 실패/생략0이다. 외부 공식 opt-in 시험은 이 CI에서 실행하지 않았다.
+- 같은 SHA의 [배포34922807546](https://github.com/FrostyCityMan/saneB/actions/runs/34922807546)/CodeDeploy `d-Q1K7M8ETK`가 성공했다. 실제 JAR hash `b31a27aa1267310e9e71401c66c2666c0fc9f82dbe95a6eacbd284244e575ece`, V83/health UP, 추출기1.0.1 단일 JAR·운영/QA 라이브러리 일치를 확인했다. 첨부 worker·정책·기존 데이터는 비활성/미적용 상태를 유지한다.
+- 고정 공개 파일4건 진단과 별도 공식 worker 양평3건이 모두 실행됐다. 양평 HWPX는11398자/분할 블록1·불확실 블록0, COMPLETE_TEXT/job SUCCEEDED다. 실제 binary/text hash는 이전과 같으며 이 표본에서 내용 순서가 달라졌다고 추정하지 않는다. 역할 UNKNOWN은 남고 PDF 부분/JPG 미지원·제목 제외 후속 요청0도 유지한다.
+- 공식 worker SSM `adee6e78-7976-4046-94e3-c06c6d2941e6` Success,3/3·생략0·운영 DB 쓰기0·원본/lease/임시 PG/전송 자원 정리·설치 JAR 불변이다. [실제 결과](announcement-official-worker-db-api-qa-2026-09-15.md), [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)을 따른다. 새 배포 이후 브라우저 인증 차단 안내는 확인했고 사용자 재로그인·관리자 업무 E2E는 미완료다.
 
 ## 로컬 실행 기록
 
