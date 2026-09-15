@@ -13,6 +13,33 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void taebaekHwpWorkerHasFixedManualScopeWithoutChangingYangpyeongDefaults() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(inputs.get("verify-taebaek-hwp-worker")).isEqualTo(Map.of("description",
+                "태백 고정 HWP1건 최신 추출기·worker·임시 DB·API 검증 (44요청/80MiB, 배포·운영 쓰기 없음)","type","boolean","default",false));
+        var all=steps(job(flow)).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"taebaek-hwp-worker-qa".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-taebaek-hwp-worker == true }}");
+        assertThat(String.valueOf(run.get("run"))).contains("set -euo pipefail", "export TAEBAEK_HWP_QA_STARTED_AT=",
+                "bash ./gradlew attachmentTaebaekHwpWorkerIntegrationTest --no-daemon --console=plain --max-workers=1",
+                "node scripts/qa/attachment-taebaek-hwp-report.mjs").doesNotContain("|| true");
+        var artifact=all.stream().filter(item->"태백 HWP worker metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-taebaek-hwp-worker/TAEBAEK-176153.json",
+                "build/test-results/attachmentTaebaekHwpWorkerIntegrationTest/TEST-*.xml");
+        String build=Files.readString(Path.of("build.gradle"));
+        String task=build.substring(build.indexOf("tasks.register('attachmentTaebaekHwpWorkerIntegrationTest'"),
+                build.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"));
+        assertThat(task).contains("include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'",
+                "systemProperty 'saneb.attachment-official-worker.group', 'TAEBAEK_HWP'",
+                "dependsOn ':attachment-extractor:installDist'", "systemProperty 'logback.configurationFile'",
+                "maxParallelForks = 1", "maxHeapSize = '384m'", "outputs.upToDateWhen { false }");
+        assertThat(task).doesNotContain("gradleProperty", "DB_URL", "environment 'SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED'");
+        String previous=build.substring(build.indexOf("tasks.register('attachmentOfficialWorkerIntegrationTest'"),
+                build.indexOf("tasks.register('attachmentTaebaekHwpWorkerIntegrationTest'"));
+        assertThat(previous).doesNotContain("saneb.attachment-official-worker.group");
+    }
     @Test void officialWorkerUsesManualOptInAndNeverUploadsDatabaseOrActualText() throws Exception {
         var flow=workflow();
         var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");

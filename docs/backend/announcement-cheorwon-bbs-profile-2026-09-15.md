@@ -35,6 +35,12 @@ V61 `correct_general_notice_sources_to_official_legal_boards`와 V62 `apply_corr
 
 ## 검증과 다음 Gate
 
+### 2026-09-15 후속 접속 확인
+
+TLS 검증을 유지한 10초 상한 HEAD 요청은 HTTP200을 반환했다. 이 상태 변화 후 실제 본문 수집을 재검증했으나 고정3건 모두 TIMEOUT(6.474/6.022/6.024초)으로 실패했다. HTTP200을 본문 성공으로 계산하지 않으며 파일 다운로드로 확대하지 않았다. 같은 조건의 후속 재시도는 중단했다. 응답의 구조·차단 원인은 여전히 미확인이다.
+
+처음에는 일반 `:test`에 환경변수를 주었지만 이 프로젝트는 일반 test에서 외부 QA를 false로 고정하므로 대상 시험이 실행되지 않았다(`No tests found`, 외부 요청0). 이후 실제 전용 task인 `attachmentProfileDiscoveryQa --tests '*StandardBbsBodyContentLiveQaTest.readsCheorwonBodyWithoutRequestingFiles'`와 Windows 신뢰 저장소를 사용했다. 이 전용 실행의 JUnit은3실행/3실패/생략0이다. 환경변수나 타임아웃을 바꿔 성공으로 위장하지 않았다.
+
 - [x] 표적 회귀: 기관/hash/게시판 경계, 본문 정제, 전체 첨부 분모, 공고 소속, redirect 파일 소속, 미지원·변경·중복·상한 검증. 최초 표적 실행 54초 성공.
 - [x] catalog 참조·기존 기관/공통 다운로드 전체 회귀와 패키지 검증. 첫 전체 회귀에서 QA 실행기 mock의 새 승인 overload 미연결47건과 태백 구지문의 무효화4건을 확인했다. mock은 실제 기본 메서드를 호출하도록 연결했다. 배포 catalog의 태백 지문은 보존하고 `PROFILE_CHANGED`/실행0을 별도 시험한다. 기간·제목 규칙·파일 계약의 양성 시험은 명시적인 메모리 전용 fixture로 유지하며 배포 catalog를 변경하지 않는다. 표적202건/생략0 통과 후 최종 전체2675건=2411통과/264조건부 생략/실패0, 패키지20통과/생략0이다. 추출기88건·웹 JAR·probe는 기존 산출물 재사용(UP-TO-DATE)이며 새 실파일 검증이 아니다.
 - [ ] 공식 3개 공고의 전용 BODY 응답 및 전체 파일 다운로드/signature.

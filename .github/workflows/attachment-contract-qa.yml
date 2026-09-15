@@ -23,6 +23,10 @@ name: 첨부 DB·작업 계약 Linux QA
         description: '양평 고정3건 실제 worker·임시 DB·API 검증 (132요청/240MiB, 운영 쓰기 없음)'
         type: boolean
         default: false
+      verify-taebaek-hwp-worker:
+        description: '태백 고정 HWP1건 최신 추출기·worker·임시 DB·API 검증 (44요청/80MiB, 배포·운영 쓰기 없음)'
+        type: boolean
+        default: false
   # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
   push:
     branches:
@@ -63,7 +67,7 @@ jobs:
           cache: gradle
 
       - name: 관리자 화면 계약·상호작용·보고서 판정기 검증
-        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-provider-qa-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs
+        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-provider-qa-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs scripts/qa/attachment-taebaek-hwp-report.test.mjs
 
       - name: 임시 runner 격리 도구 준비
         run: |
@@ -162,6 +166,26 @@ jobs:
             build/reports/attachment-official-worker/YANGPYEONG-311846.json
             build/reports/attachment-official-worker/YANGPYEONG-311507.json
             build/test-results/attachmentOfficialWorkerIntegrationTest/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 태백 HWP 실제 worker·임시 DB·API 검증 — 배포 없음
+        id: taebaek-hwp-worker-qa
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-taebaek-hwp-worker == true }}
+        run: |
+          set -euo pipefail
+          export TAEBAEK_HWP_QA_STARTED_AT="$(date +%s)000"
+          bash ./gradlew attachmentTaebaekHwpWorkerIntegrationTest --no-daemon --console=plain --max-workers=1
+          node scripts/qa/attachment-taebaek-hwp-report.mjs
+
+      - name: 태백 HWP worker metadata 보관 — 원문 없음
+        if: ${{ always() && steps.taebaek-hwp-worker-qa.outcome != 'skipped' && steps.taebaek-hwp-worker-qa.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-taebaek-hwp-worker-${{ github.sha }}
+          path: |
+            build/reports/attachment-taebaek-hwp-worker/TAEBAEK-176153.json
+            build/test-results/attachmentTaebaekHwpWorkerIntegrationTest/TEST-*.xml
           if-no-files-found: error
           retention-days: 7
 
