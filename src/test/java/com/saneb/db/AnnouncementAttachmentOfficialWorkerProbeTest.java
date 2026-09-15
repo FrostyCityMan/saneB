@@ -4,6 +4,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void replacementCharacterDiagnosticCountsOnlyLossMarkersAndPreservesMissingText() throws Exception {
+        assertNull(AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount(null));
+        assertEquals(0L,AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount(""));
+        assertEquals(0L,AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount("한글 😀 정상"));
+        var count=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount("private fixture \ufffd 😀 \ufffd");
+        assertEquals(2L,count);
+        var output=new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(java.util.Map.of("replacementCharacterCount",count));
+        assertEquals("{\"replacementCharacterCount\":2}",output);
+    }
     @Test void hwpNoticeUsesExistingTaebaekProfileAndAnIndependentSingleCaseDenominator() {
         var sample=com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("TAEBAEK_HWP").toList();
         assertEquals(1,sample.size());assertEquals("TAEBAEK-176153",sample.getFirst().code());assertEquals(1,sample.getFirst().listedFileCount());

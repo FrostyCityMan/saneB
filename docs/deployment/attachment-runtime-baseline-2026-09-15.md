@@ -1,5 +1,18 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 최신 확인 — 2026-09-15 13:12~13:14 KST / 고정 기대값 catalog 설치
+
+전체 출시 판정은 **Not ready**다. 새 catalog 설치와 실제 기대값 비교·상시 수집 활성화는 서로 다른 단계다.
+
+- 동일 SHA `787c594e6ce33ad6b2ffbff994929d1faeb24dac`의 [Linux34926361587](https://github.com/FrostyCityMan/saneB/actions/runs/34926361587) success 및 artifact XML을 확인했다. root2648=2385통과/263조건부 생략, extractor36·패키지20·job192·migration17·worker12·runtime1·정책 부모2·Flyway3은 실패/생략0이다. 공식 사이트 opt-in은 CI 통과에 포함하지 않는다.
+- [배포34927650269](https://github.com/FrostyCityMan/saneB/actions/runs/34927650269)/CodeDeploy `d-MWENRAGTK` Succeeded. 설치 웹 JAR SHA256 `d8696e85c2d7c5415b8a39ea9ccb33f596f264feb5a7add966a62610b3751d74`, 업무 코드 hash `d6e98d08cd6f6f23c059bd15fd7a0f0a7513b13fbc07a7b7efbf235b3ecf9f3c`다.
+- 설치 JAR 안의 catalog는 schema2/`2026-09-15-taebaek-reviewed-v2`, 참조24/기대값1이다. 추출기1.0.1 JAR은1개이며 hash `77e0b90b99ca55904fb2f088a42d79cb893a9df0e39ff29c3cb4e03fd1eb2910`, 글로벌/불변 QA library set hash `be2ba81c8e5a7fb0e4a5ea1a2849fc07fd41b4e81420eb949e3d6badbe737728`로 일치한다. 동일 버전 재빌드의 artifact 지문을 이전 설치 값과 혼용하지 않는다.
+- systemd active·health UP·JAR/DB V83·migration 실패0. 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0, worker/정책QA/ProviderQA는 UNSET→기본false다. 기존 지자체 schedule·BODY·분류V2/source batch true, 지자체223/목록parser41/원문2945, 외부 API key2종 없음은 유지됐다. DB 조회는 READ ONLY/ROLLBACK/쓰기0이다.
+- 배포 중 고정 파일4건 진단은4/4통과·원본 정리4/4·운영 DB 쓰기0이다. PDF OCR_REQUIRED/0자·PARTIAL_TEXT/31498자, HWP COMPLETE_TEXT/565자, HWPX COMPLETE_TEXT/2413자다. 단일 선택 파일의 진단이며 전체 공고·정책 QA·운영 활성화 성공이 아니다.
+- Runtime SSM `8bc17be0-a2aa-4b02-8475-b7f5237822ec`, DB `f2e6125e-d9a8-4de4-8df7-ab5344eeff99`, 배포 metadata `3058e200-bb95-4580-ae76-26e7dbb7d58b` 모두 Success다. 임시 CA 파일을 정리했고 자격증명 값은 출력하지 않았다. 관리자 탭은 로그인 화면으로 확인했으며 새 SHA 업무 브라우저 E2E는 미완료다.
+
+태백 전체 파일의 사전 기대값 비교와 HWP 전체 worker 재확인은 [공식 worker 기록](../backend/announcement-official-worker-db-api-qa-2026-09-15.md)의 후속 결과를 따른다. 정책 게시·ENFORCE·기존 데이터는 실행하지 않았다. 아래 기록은 이전 배포 이력이다.
+
 ## 최신 확인 — 2026-09-15 11:55~11:58 KST / 추출기1.0.1
 
 전체 출시 판정은 **Not ready**다. 설치 배포는 성공했지만 첨부 상시 worker·정책·기존 데이터 적용은 활성화하지 않았다. 아래10시대/03시대 기록은 각각 이전 운영 snapshot이다.

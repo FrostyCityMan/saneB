@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 13:16 KST — 새 catalog 배포·첫 고정 기대값 실증
+
+- 직전 회차는 특정 CI34925971820/34926361587의 **검증된 대기**였고 이번은 배포·실제 기대값 비교를 완료한 **progress**다. 전체9Gate/ATT62 Not ready·goal ACTIVE이며 원래 범위와 제목→본문→실제 첨부→관리자 검증 순서를 유지한다.
+- `787c594` Linux34926361587 success/artifact 확인: root2648=2385통과/263조건부 생략, extractor36·패키지20·job192·migration17·worker12·runtime1·정책부모2·Flyway3 실패/생략0. 배포34927650269/CodeDeploy `d-MWENRAGTK` success, 실제 JAR `d8696e85…`/DB V83·실패0·health UP·catalog24/기대값1·추출기/불변 QA 일치를 확인했다. [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)에 지문·SSM 근거를 기록했다.
+- 태백184816 SSM `fe2aac98-5851-4bd8-9171-4abe962cf7b7`1/1통과·생략0. BODY/HWPX2파일/worker/임시 DB/API 후 production CaseExecutor의 **사전 기대값 실제 재비교2/2 PASSED**다. 전체8요청/2658726bytes, 원본/lease/임시PG/전송 정리·운영 DB 쓰기0·설치 JAR 불변. 혼합UNKNOWN/FORM·FINAL_REVIEW_EXCEPTION 유지, 정상 공고0/전체 기대 coverage false/정책 QA false다. [고정 비교 기록](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)을 따른다.
+- 태백HWP SSM `b7289058-6eba-4d99-aed6-f33c4c780574`1/1통과·생략0. 새 설치 runtime에서9743자/480블록 PARTIAL_TEXT·TECHNICAL_EXCEPTION 재확인, 문자 대체 표시0으로 구조 레코드 경로를 다음 조사 대상으로 좁혔다. 개별 구조·누락 내용은 미확인이다.4요청/2354176bytes·원본/임시자원 정리·운영 쓰기0. 원문 비노출 진단 로컬14건/생략0·Node5건 통과, 운영 추출기 판정은 바꾸지 않았다.
+- 첨부 정책/작업/파일/배치는 모두0·worker/정책QA/ProviderQA 비활성, 기존 지자체223/목록parser41/원문2945·외부 API key2종 없음이다. 관리자 탭은 로그인 화면이며 업무 E2E는 재로그인 대기다. 게시·ENFORCE·기존 데이터 적용과 전체 수집처 검증은 계속 남는다. 사용자 output을 보존한다.
+
 ### 2026-09-15 12:45 KST — 실제 HWP 전체 worker 경로 관측
 
 - P3 **progress**, 전체9Gate/ATT62 Not ready다. 기존 태백 모델에 고정 공고176153의 독립 시험 그룹만 추가했다. 엔진6/profile17/본문16/추출형식3과 production code/catalog1기대값은 변하지 않았다.
@@ -293,12 +301,12 @@
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
 | 1 DB·API 계약 | [~] | 동일 SHA2bde216 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0 및 공식 양평3건 DB/API 연결 통과. 이전476c8f7 서버 합성221/221과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 공통 엔진6·첨부 profile17·worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현 및 설치. 전체223기관 적용성과 운영 상시 수집은 미완료/worker 비활성 |
-| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 총24/실행 기대값1(태백 전체2파일, 정상공고0). 새 기대값 실제 재비교·나머지 역할/형식/전체 Provider QA·정책 게시가 잔여 |
+| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 총24/실행 기대값1(태백 전체2파일, 정상공고0). 787c594 설치에서 사전 기대값2/2 실제 재비교 PASSED. 나머지 역할/형식/전체 Provider QA·정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기·단일 파일4건 진단·공식 양평3건/태백HWPX1건/HWP1건 worker·DB·API 통과. HWP9743자 부분 추출/검수 전환, 태백 FORM·혼합 UNKNOWN 확인. 새 catalog 고정 재비교·완전HWP/전체 Provider/형식/사전 기대값은 잔여 |
-| 7 운영 배포·활성화 | [~] | Actions34922807546/CodeDeploy d-Q1K7M8ETK 성공, V83·추출기1.0.1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
-| 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록 확인. 새2bde216 배포 후 인증 만료 차단→로그인 화면 확인/사용자 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
+| 6 자동·실파일 QA | [!] | 787c594 Linux 필수 DB/추출기·단일 파일4건 진단·태백HWPX/HWP worker·DB·API 재확인. 태백 catalog 고정2파일 재비교 PASSED. HWP9743자 부분 추출/검수 전환 유지. 완전HWP 전체경로/전체 Provider/형식/나머지 사전 기대값은 잔여 |
+| 7 운영 배포·활성화 | [~] | Actions34927650269/CodeDeploy d-MWENRAGTK 성공, 787c594·V83·추출기1.0.1·catalog24/기대값1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
+| 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 
 ## 최신 실행 기록
 

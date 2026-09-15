@@ -2,6 +2,23 @@
 
 ## 현재 단계 / Gate
 
+### 2026-09-15 13:14~13:16 KST — 새 설치 코드의 고정 비교·HWP 재검증
+
+배포 `787c594`/CodeDeploy `d-MWENRAGTK`, 설치 웹 JAR `d8696e85c2d7c5415b8a39ea9ccb33f596f264feb5a7add966a62610b3751d74`, 업무 코드 hash `d6e98d08cd6f6f23c059bd15fd7a0f0a7513b13fbc07a7b7efbf235b3ecf9f3c`, 추출기1.0.1/runtime `c5e4e1efe9cdad5e2443e045024cad0c4dc78d007eae6e70c60066638e94ccd6`를 확인했다. 별도 probe hash는 `cc6fbe1b592b83f522c4772054e7f2b0e86165cfc4b70bd8aecf750150ac6032`다. 설치 불변 QA 패키지를 덮어쓰지 않았다.
+
+| 검증 | 실제 결과 | 잔여 경계 |
+|---|---|---|
+| 태백184816 | SSM `fe2aac98-5851-4bd8-9171-4abe962cf7b7` Success/1통과·생략0. BODY→HWPX2개 COMPLETE_TEXT→worker→임시 DB/API 후 production CaseExecutor로2파일 재다운로드·재추출, PASSED/FIXED_NOTICE_EXPECTATIONS_MATCHED | UNKNOWN 혼합/FORM 유지, FINAL_REVIEW_EXCEPTION·REVIEW_REQUIRED. 정상 공고/정책 QA 성공이 아님 |
+| 태백176153 HWP | SSM `b7289058-6eba-4d99-aed6-f33c4c780574` Success/1통과·생략0. BODY AVAILABLE→실제HWP1개/125952bytes/9743자/480블록→worker→DB/API, binary/text hash는12:45 기록과 동일 | PARTIAL_TEXT/UNKNOWN·PARTIAL_FAILED·TECHNICAL_EXCEPTION/ATTACHMENT_INCOMPLETE 유지. 사전 HWP 기대값 비교는 아님 |
+
+태백184816의 비교 입력은 실행 전에 고정한 전체2파일이다. 입력 hash `7233c7f2c36ea291a6a7105beeef9720a59ba695b0318432c36e89691de7aeec`, catalog hash `eb8aa9795d7e3ae83986b05defd16f1d5c042450fb92bb8a70acef3915eeef65`이며 locator/binary/text/block/업무 문구/역할 Assessment를 모두 대조했다. 시험 scope의 전체 seed+전국채널246대상·실행 가능1·정상 공고0·전체 coverage false를 보존했다. 운영 활성 기관 수로 사용하지 않는다. [고정 기대값 기록](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)을 따른다.
+
+합산 요청/bytes는 태백HWPX8회/2658726bytes(고정 재비교 자체3회/280787bytes), HWP4회/2354176bytes다. 각44회/80MiB/420초 이내이며 두 실행 모두 원본/lease/임시PG/전송 정리 성공·운영 DB 쓰기0·설치 JAR 불변이다. 자동 confirmation/link0과 관리자 최종 검증 요구를 유지했다.
+
+시험 보고서에 원문 비노출 `replacementCharacterCount`를 추가했다. HWPX2파일/HWP1파일 모두0이다. HWP 코드의 PARTIAL 경로는 U+FFFD 또는 tag76~88이며, 이번 HWP는 문자 대체 표시가 아닌 후자의 경로로 조사 범위를 좁혔다. 개별 tag와 실제 누락 내용은 아직 미확인이고0건을 완전 추출로 바꾸지 않는다. [한컴 HWP5 명세 표57·74~79](https://cdn.hancom.com/link/docs/%ED%95%9C%EA%B8%80%EB%AC%B8%EC%84%9C%ED%8C%8C%EC%9D%BC%ED%98%95%EC%8B%9D_5.0_revision1.3.pdf)와 대조하면 이 범위에 표와 도형·그림·OLE·수식이 포함되므로 단순 조건 제거가 아닌 구조별 검증이 다음 작업이다. 문자 집계가 null을0으로 바꾸지 않고 원문을 직렬화하지 않는 로컬14건/생략0·Node launcher5건이 통과했다. production 추출기/IPC/DB/API 판정은 이번 진단으로 변경하지 않았다.
+
+전체9Gate/ATT62는 **Not ready**다. 실제 비교1건은 진전이지만 전체 Provider/정상 다중 첨부·형식 QA, 승인된 정책 게시·상시 수집·기존 데이터, 관리자 업무 브라우저 E2E는 남는다. 관리자 탭의 로그인 위치만 확인했고 인증 업무 검증은 실행하지 못했다.
+
 ### 2026-09-15 12:45 KST — 실제 HWP 전체 공고 경로
 
 별도 고정 그룹 `TAEBAEK_HWP`에서 [태백176153 공식 공고](https://www.taebaek.go.kr/www/selectBbsNttView.do?bbsNo=25&key=352&nttNo=176153)를 기존 태백 BODY/profile/worker로 처리했다. 양평3건과 태백184816의 분모·기대값 재비교는 그대로다. 임의 URL/ALL을 허용하거나 새 수집 모델을 추가하지 않았다.

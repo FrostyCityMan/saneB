@@ -184,6 +184,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         assertTrue(Objects.equals(expectedText,storedText),"PERSISTED_TEXT_MISMATCH");
                         row.put("textHash",storedText==null?null:hash(storedText));
                         row.put("blockCount",actual.path("blocks").size());
+                        row.put("replacementCharacterCount",selectReplacementCharacterCount(storedText));
                         row.put("reviewPhrasePresence",selectReviewPhrasePresence(storedText));
                         if("COMPLETE_TEXT".equals(file.qualityCode()))assertNotNull(file.roleAssessment(),"TEXT_ROLE_ASSESSMENT_MISSING");
                         if(file.roleAssessment()!=null) {
@@ -343,6 +344,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         var result=new LinkedHashMap<String,Boolean>();
         for(String phrase:List.of("청년농업인","취업농","신청서","서명"))result.put(phrase,text!=null&&text.contains(phrase));
         return result;
+    }
+    /** 원문 없이 문자 해석 손실 징후만 센다. 미추출(null)을 손실 0건으로 바꾸지 않는다. */
+    static Long selectReplacementCharacterCount(String text) {
+        return text==null?null:text.codePoints().filter(value->value==0xfffd).count();
     }
     /** 원문·파일명·URL·위치 원문 없이 실제 저장된 역할 판정의 고정 코드만 진단한다. */
     static Map<String,Object> selectRoleDiagnostic(AttachmentDocumentRoleClassifier.Assessment assessment) {

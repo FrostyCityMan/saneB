@@ -1,5 +1,17 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 최신 검증 — 2026-09-15 13:14 KST / 첫 사전 기대값 실제 비교 통과
+
+- [x] 동일 SHA `787c594` Linux34926361587·배포34927650269/CodeDeploy `d-MWENRAGTK` success. 설치 JAR/case catalog와 DB V83 확인은 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)을 따른다.
+- [x] SSM `fe2aac98-5851-4bd8-9171-4abe962cf7b7` Success, 태백184816의 BODY→전체 HWPX2파일→worker→임시 DB/API를 검증하고 production `AttachmentProviderQaCaseExecutor`로 전체2파일을 별도 재다운로드·재추출했다. JUnit1/1통과·실패/생략/중단/container 실패0이다.
+- [x] 고정 비교 `PASSED/FIXED_NOTICE_EXPECTATIONS_MATCHED`, 파일2/2 PASSED. 사전 locator/binary/text/block/문구/역할 Assessment hash가 모두 일치한다. 첫 파일 UNKNOWN/MIXED_DOCUMENT_ROLES, 둘째 FORM을 유지한다. 실행 결과로 catalog를 덮어쓰지 않았다.
+- [x] 고정 비교 자체3요청/280,787bytes, BODY+worker+비교 합산8요청/2,658,726bytes. 상한44요청/80MiB/420초 이내, 원본/lease/소유 임시 PG/전송 정리 성공·운영 DB 쓰기0·설치 JAR 불변이다.
+- [~] 전체 seed+전국채널의 시험 계획246대상은 보존됐다. 이는 운영 활성 기관 수가 아니다. catalog 실행 가능1·정상 공고0·전체 기대 coverage false·정책 QA false다. 공고 처리 상태도 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED로 관리자 검증이 필요하다.
+
+관측 `2026-09-15T04:14:28.998937685Z`, 비교 종료 `2026-09-15T04:14:42.544450020Z`다. probe SHA256 `cc6fbe1b592b83f522c4772054e7f2b0e86165cfc4b70bd8aecf750150ac6032`, catalog hash `eb8aa9795d7e3ae83986b05defd16f1d5c042450fb92bb8a70acef3915eeef65`, 현재 runtime hash `c5e4e1efe9cdad5e2443e045024cad0c4dc78d007eae6e70c60066638e94ccd6`, 고정 입력 hash `7233c7f2c36ea291a6a7105beeef9720a59ba695b0318432c36e89691de7aeec`다.
+
+이제 이1건의 사전 기대값 실제 재비교는 완료다. 전체 Provider/정상 공고/형식 QA·정책 게시·상시 활성화·기존 데이터·관리자 업무 E2E는 여전히 미완료이며 전체9Gate/ATT62는 **Not ready**다. 아래12:28의 “새 배포/재비교 미실행”은 당시 기록이다.
+
 ## 최신 증분 — 2026-09-15 12:28 KST 관측과 사전 기대값 등록
 
 - [x] 서울 서버의 설치 코드 `2bde216`/추출기1.0.1에서 태백1건을 다시 관측했다. SSM `97f6ed09-0bf2-42c5-8b13-97aa408efa1b` Success, JUnit1통과/실패·생략0이다. probe SHA256은 `94694704b2f1e04e35388d7383439fd85335050d0b94586992c5a70ef0cba72d`다.
@@ -18,11 +30,11 @@
 
 관측 시각 `2026-09-15T03:28:40.008199613Z`, profile hash `9aea97d1281dd778ba6d6f331fd7dd147fef2a05f6de7132ccd90c28b28a58e5`, 역할 `document-role-1.0.2` 및 전체 binary/text/blocks/assessment 지문을 catalog에 고정했다. `locatorHash`는 QA 실행기의 canonical JSON 해시이며 worker 저장용 직렬화 해시와 혼동하지 않는다. 실행기와 canonical hash 일치 회귀를 추가했다. 원문·담당자·연락처·원본 파일은 문서/로그에 저장하지 않는다.
 
-이 증분은 정책 게시·ENFORCE·worker 활성화·기존 데이터 적용 승인이 아니다. HWP 공고 전체 경로, 나머지 기관·정상 다중 첨부/형식 기대값과 운영 업무 E2E는 남아 있다. 아래 Run30/31의 기대값0은 당시 상태다.
+이 증분은 정책 게시·ENFORCE·worker 활성화·기존 데이터 적용 승인이 아니다. HWP 공고 전체 경로의 부분 추출 관측은 아래12:45 후속 기록을 따른다. 완전 텍스트 HWP, 나머지 기관·정상 다중 첨부/형식 기대값과 운영 업무 E2E는 남아 있다. 아래 Run30/31의 기대값0은 당시 상태다.
 
 최종 로컬 전체 회귀는4분39초 성공이다. root2647=2385통과/262조건부 생략/실패0, 패키지20/20, Node25통과/2 Linux 전용 생략이다. 추출기/bootJar/probe는 UP-TO-DATE이며 이 호출에서 새로 실행한 시험으로 합산하지 않는다. 별도 앞선 bootJar 생성은 성공했고 로컬 웹 JAR 지문은 `2dd20b2b3004f7716bf864123c3bed421b0fe05d70d786b277b0c6f4aad56474`다. 새 Linux·실제 배포 지문은 아직 확인 전이다.
 
-HWP 다음 조사 대상은 [태백176153 공식 공고](https://www.taebaek.go.kr/www/selectBbsNttView.do?bbsNo=25&key=352&nttNo=176153)다. 공식 페이지의 2026년 소상공인 특례보증·이차보전 지원 공고 HWP 표시는 확인했으나 바이너리 signature/전체 첨부/실제 추출·worker 검증은 미실행이다. BIZINFO API key를 대신하여 임의 HTML을 본문으로 주입하지 않고 기존 태백 BODY/profile을 재사용할 수 있는지 확인한다.
+12:45 KST 후속: [태백176153 공식 공고](https://www.taebaek.go.kr/www/selectBbsNttView.do?bbsNo=25&key=352&nttNo=176153)는 기존 태백 BODY/profile로 실제 HWP signature·전체1파일·worker·임시 DB·API를 확인했다. 125,952bytes/9,743자/480블록이며 PARTIAL_TEXT·UNKNOWN·TECHNICAL_EXCEPTION·REVIEW_REQUIRED다. SSM `f066eadd-753f-498b-b0e4-b863c1efec24`는1건 통과/생략0, 운영 DB 쓰기0이다. 완전 추출이나 사전 기대값 비교 통과는 아니며 HWP 기대값도 아직 등록하지 않았다. [공식 worker 기록](announcement-official-worker-db-api-qa-2026-09-15.md)의 원본·임시 자원 정리와 실행 경계를 따른다.
 
 ## 범위와 합격 기준
 
