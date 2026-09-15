@@ -74,13 +74,15 @@ public final class AttachmentProviderQaCatalog {
         this(mapper,registry,read(mapper));
     }
     AttachmentProviderQaCatalog(ObjectMapper mapper,AttachmentDiscoveryProfileRegistry registry,Definition definition) {
-        this.mapper=mapper.copy().enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.mapper=mapper.copy().registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+                .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.registry=registry;this.definition=definition;validateDefinition();
     }
     private static Definition read(ObjectMapper mapper) {
         try(var input=new ClassPathResource("announcement-attachment/provider-qa-catalog-v2.json").getInputStream()) {
             byte[] bytes=input.readNBytes(2097153);if(bytes.length>2097152)throw invalid("CATALOG_SIZE");
-            return mapper.copy().enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            return mapper.copy().registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+                    .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                     .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
                     .readValue(bytes,Definition.class);
         }catch(Exception failure){throw invalid("CATALOG_RESOURCE_INVALID");}

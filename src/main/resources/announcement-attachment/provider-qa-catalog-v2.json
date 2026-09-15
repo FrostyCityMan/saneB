@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-yangpyeong-reference-v2",
+  "catalogVersion": "2026-09-15-taebaek-reviewed-v2",
   "notices": [
     {
       "caseCode": "YANGPYEONG-312241",
@@ -132,7 +132,58 @@
         "localSourceCode": "LGS-000121",
         "listParserProfileCode": "SPRING_BBS"
       },
-      "expectation": null
+      "expectation": {
+        "profileHash": "9aea97d1281dd778ba6d6f331fd7dd147fef2a05f6de7132ccd90c28b28a58e5",
+        "title": "2026년 청년농업인 육성지원(취업농) 신청자 모집 공고",
+        "observedAt": "2026-09-15T03:28:40.008199613Z",
+        "discoveryStatus": "FOUND",
+        "discoveryComplete": true,
+        "files": [
+          {
+            "locatorHash": "be96b0849a50582169ac919ff4af7d684502c9e9175a5f587f5d2ff98109a252",
+            "downloadAllowed": true,
+            "format": "HWPX",
+            "binaryHash": "424bde05e7a87baaab4a7261bb2266e2ebde4d9d733c9986596507e79f14220a",
+            "quality": "COMPLETE_TEXT",
+            "minimumCharacters": 2041,
+            "minimumBlocks": 62,
+            "requiredPhrases": ["청년농업인", "취업농", "신청서"],
+            "roleExpectation": {
+              "ruleVersion": "document-role-1.0.2",
+              "rulesHash": "64f2b87552384a1f786226e12179016dff00b6555f55dce27af50ad279853357",
+              "roleCode": "UNKNOWN",
+              "reasonCode": "MIXED_DOCUMENT_ROLES",
+              "textHash": "f6f4a7f6f03bc62b2355bfb9fa3dec8c52bdb5bc4adfa58eea8e79029fe592b9",
+              "blocksHash": "7bccbe59f068669cb6e160d237f94fe22667b922652a376ed1b1dc0d9acaab00",
+              "assessmentHash": "eb66a7d5e62404efa4a7240591c90fb63b031ae08d083a919af6acedd2de082c"
+            }
+          },
+          {
+            "locatorHash": "ac8f5575835027f35fa8e26e79c4278ec9a91c2a5ab6a205216b1d39f80dd490",
+            "downloadAllowed": true,
+            "format": "HWPX",
+            "binaryHash": "67dfc0af4cf21d0e9363132cc663154086aa5fc18625f443f43021704703247a",
+            "quality": "COMPLETE_TEXT",
+            "minimumCharacters": 1994,
+            "minimumBlocks": 117,
+            "requiredPhrases": ["청년농업인", "취업농", "신청서", "서명"],
+            "roleExpectation": {
+              "ruleVersion": "document-role-1.0.2",
+              "rulesHash": "64f2b87552384a1f786226e12179016dff00b6555f55dce27af50ad279853357",
+              "roleCode": "FORM",
+              "reasonCode": "ROLE_TEXT_STRUCTURE_MATCHED",
+              "textHash": "86c38de9af01e936cd478c907559df14664e342f75afbf2765533e75f4862fc5",
+              "blocksHash": "63407f80183837ed778c2f82fee9111cb38ceb10b47cf663bce81c4845ab06a4",
+              "assessmentHash": "0e7c2d02d359996cd0f7215c0af08e309ab7e37876b998f83da94228be70b3e7"
+            }
+          }
+        ],
+        "limits": {
+          "maximumSeconds": 420,
+          "maximumRequestReservations": 44,
+          "maximumReservedBytes": 83886080
+        }
+      }
     },
     {
       "caseCode": "TAEBAEK-184827",

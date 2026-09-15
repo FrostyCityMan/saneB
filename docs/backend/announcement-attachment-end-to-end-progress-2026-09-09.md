@@ -11,6 +11,16 @@
 
 ## 기준선
 
+### 2026-09-15 12:28 KST 이후 — 첫 공식 전체 파일 기대값 연결
+
+- 직전 회차는 상태 확인이며 구현 진척은 없었다. 이번은 공식 기대값0의 공백을 줄인 **progress**다. 전체 ATT62/9Gate는 Not ready, goal ACTIVE다. 제목→정제 본문→전체 첨부 텍스트→관리자 최종 검증을 유지한다.
+- SSM `97f6ed09-0bf2-42c5-8b13-97aa408efa1b` Success/태백1건 통과·실패/생략0. BODY AVAILABLE·HWPX2개 완전 추출/DB/API와 혼합UNKNOWN·양식FORM 사유를 재확인했다. 원본/lease/임시PG/전송 정리·설치 JAR 불변·운영 DB 쓰기0,5요청/2,377,939bytes다.
+- 실제 파일/본문과 독립적으로 확인한 고정 업무 문구·구조를 검토하여 catalog v2에 전체2파일의 역할/품질/locator/binary/text/block/assessment 기대값을 고정했다. 총24참조/실행 기대값1/정상 공고0이다. snapshot 시각 처리 문제를12건 실패로 재현하고 catalog 소유 JavaTimeModule로 보완했다. 최종 표적137건/생략0·Node launcher5건 통과다. 전체 회귀·새 SHA Linux/배포/고정 기대값 재실행은 후속 결과를 따른다.
+- 태백 probe에 production 단건 실행기의 사전 기대값 재비교를 연결했고 기존44요청/80MiB·420초 합산 상한을 보존했다. 기대값을 실행 결과로 자동 덮어쓰거나 UNKNOWN을 정상 처리하지 않는다. 상세는 [태백 기대값](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)이다.
+- 이전 커밋 b7eaf33의 Linux34924308859는 success이며 artifact XML을 확인했다. root2639=2376통과/263조건부 생략/실패0, extractor36·패키지20·job192·migration17·worker12·runtime1·부모2·Flyway3 실패/생략0이다. 새 catalog 변경의 동일 SHA 검증은 아니다.
+- 운영은 직전2bde216/DB V83/worker·정책QA 비활성이고 이번 정책/설정/기존 데이터 변경·브라우저 검증은 없다. 전체 기관/정상 다중첨부/형식 기대값·HWP 전체 worker·외부 API key·승인된 활성화/기존 데이터·관리자 업무 E2E는 계속 남는다. 사용자 output을 보존한다.
+- 최종 전체 회귀4분39초 성공: root2647=2385통과/262조건부 생략/실패0, 패키지20/20·Node25통과/2 Linux 전용 생략이다. 추출기/bootJar/probe는 UP-TO-DATE이며 앞선 웹 JAR 생성 지문은2dd20b2b…다. 사용한 단발 Node/Gradle과 소유 임시PG/전송 자원을 정리했다. 새 SHA의 CI·운영 배포/고정 기대값 비교는 별도 확인한다.
+
 ### 2026-09-15 12:10 KST — 실제 혼합 역할 사유·태백 양식 인식 확인
 
 - P3의 실제 파일 근거를 추가한 **progress**다. 전체9Gate/ATT62 **Not ready**, goal ACTIVE를 유지한다. 직전 배포2bde216의 운영 JAR/추출기1.0.1/역할1.0.2/DB/API/정책은 변경하지 않았다.
@@ -277,7 +287,7 @@
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
 | 1 DB·API 계약 | [~] | 동일 SHA2bde216 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0 및 공식 양평3건 DB/API 연결 통과. 이전476c8f7 서버 합성221/221과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 공통 엔진6·첨부 profile17·worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현 및 설치. 전체223기관 적용성과 운영 상시 수집은 미완료/worker 비활성 |
-| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조24/실행 기대값0. 실제 역할·내용/형식 기대값, 전체 Provider QA/정책 게시가 잔여 |
+| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 총24/실행 기대값1(태백 전체2파일, 정상공고0). 새 기대값 실제 재비교·나머지 역할/형식/전체 Provider QA·정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
 | 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기·단일 파일4건 진단·공식 양평3건/태백1건 worker·DB·API 통과. 태백 양식 FORM 실제 자동 식별, 혼합 문서 UNKNOWN 사유 확인. PDF 부분/JPG미지원·전체 Provider/형식/사전 기대값은 잔여 |

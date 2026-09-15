@@ -2,6 +2,8 @@
 
 ## 범위와 상태
 
+최신(2026-09-15 12:28 관측 후): `2026-09-15-taebaek-reviewed-v2`에 태백184816 전체2파일의 사전 기대값을 고정했다. 총24항목 중 참조전용23/실행 기대값1, 정상 공고0·전체 coverage/정책 QA false다. 혼합 UNKNOWN과 신청서 FORM을 유지한다. 아래 기대값0/이전 역할 버전은 과거 기록이며 [태백 고정 기대값](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)의 관측·검토·새 실행 경계를 따른다. catalog 자체 JavaTimeModule로 실제 관측 시각을 처리하며 호출자의 mapper 설정과 strict JSON 검증은 보존한다.
+
 2026-09-15 최신 증분: [제천 모델·공개 참조 확장](announcement-jecheon-bbs-profile-2026-09-15.md)의 참조15/실행 기대값0을 유지한다. 현재 서버는 새 schema2 `2026-09-15-format-scope-v2`를 읽고, schema1 `2026-09-15-reference-v2` 파일과 기존 계약은 보존한다. [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)는 기관별 실제 기대 파일의 형식/미관측과 정상 다중 첨부를 구분하며, 전체3형식 검증·모든 기관/파일 분모는 유지한다. 아래 최초 구현 수량과 미연결 기록은 해당 증분 시점의 이력이다.
 
 Gate3 진행이다. 전체 ATT001~062/Gate0~8을 유지한다. 서버가 배포한 고정 표본을 V79 실행 원장에 연결하기 전에 전체 대상·누락·파일 기대값·시간/요청/byte 계획을 검증한다. 관리자가 URL·parser·정답 JSON을 입력하는 기능은 만들지 않는다.

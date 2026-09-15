@@ -151,14 +151,62 @@ class AttachmentProviderQaCatalogTest {
         assertThat(cat.selectPrepared(scope,rules,"c".repeat(64),now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
         var second=new AnnouncementSourceClassificationRuleSet("SECOND",rules.rules());assertThat(cat.selectPrepared(scope,second,runtimeHash,now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
     }
-    @Test void packagedPublicReferencesHaveValidProductionBindingsButNoExecutionExpectations() {
+    private AttachmentProviderQaCatalog packagedCatalog() {
         var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails());
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
-        var result=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles)).selectPrepared(scope,rules,runtimeHash,now);
-        assertThat(result.plan().targets()).hasSize(10);assertThat(result.plan().cases()).hasSize(24).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
-        assertThat(result.inputs()).isEmpty();assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
-        assertThat(result.plan().formatCoverage().missingFormats()).containsExactly("HWP","HWPX","PDF");
-        assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.formatApplicability().statusCode()).isEqualTo("EXPECTATIONS_UNKNOWN"));
+        // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
+        rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
+                rule("SUPPORT",RuleGroupKindCode.SUPPORT_TYPE,"육성지원",null,SupportTypeCode.GRANT_SUBSIDY)));
+        return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles));
+    }
+    private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-15T03:28:40.008199613Z");
+    @Test void packagedReviewedExceptionKeepsAllReferencesAndCannotFillNormalCoverage() {
+        var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
+        assertThat(result.plan().targets()).hasSize(10);assertThat(result.plan().cases()).hasSize(24);
+        assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
+                .hasSize(23).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+        assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
+            assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
+        });
+        assertThat(result.inputs()).hasSize(1);assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+        assertThat(result.plan().formatCoverage().missingFormats()).containsExactly("HWP","PDF");
+        assertThat(result.plan().targets()).allSatisfy(t->{assertThat(t.normalNoticeCount()).isZero();assertThat(t.isExpectationCoverageComplete()).isFalse();});
+        var target=result.plan().targets().stream().filter(t->t.targetKey().equals("LOCAL_GOV_NOTICE:LGS-000121")).findFirst().orElseThrow();
+        assertThat(target.formatApplicability().expectedProvidedFormats()).containsExactly("HWPX");
+        assertThat(target.formatApplicability().normalMultiFileNoticeCount()).isZero();
+        var files=result.inputs().getFirst().files();assertThat(files).hasSize(2);
+        assertThat(files).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
+        assertThat(files).extracting(f->f.roleExpectation().reasonCode()).containsExactly("MIXED_DOCUMENT_ROLES","ROLE_TEXT_STRUCTURE_MATCHED");
+        assertThat(files).extracting(ExpectedFile::minimumCharacters).containsExactly(2041,1994);
+        assertThat(files).extracting(ExpectedFile::minimumBlocks).containsExactly(62,117);
+        assertThat(files).extracting(ExpectedFile::binaryHash).containsExactly(
+                "424bde05e7a87baaab4a7261bb2266e2ebde4d9d733c9986596507e79f14220a",
+                "67dfc0af4cf21d0e9363132cc663154086aa5fc18625f443f43021704703247a");
+        assertThat(result.inputs().getFirst().limits()).isEqualTo(new Limits(420,44,83886080));
+    }
+    @ParameterizedTest @ValueSource(longs={-1,604801})
+    void packagedReviewedCaseCannotRunBeforeObservationOrAfterSevenDays(long elapsed) {
+        var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED.plusSeconds(elapsed));
+        assertThat(result.inputs()).isEmpty();assertThat(result.plan().segments()).isEmpty();
+        assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
+                .satisfies(c->assertThat(c.statusCode()).isEqualTo("OBSERVATION_EXPIRED"));
+        assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+    }
+    @Test void catalogOwnsInstantCodecWithoutMutatingTheCallerMapper() {
+        var configured=packagedCatalog().selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
+        var caller=new ObjectMapper();var before=Set.copyOf(caller.getRegisteredModuleIds());
+        var plain=new AttachmentProviderQaCatalog(caller,new AttachmentDiscoveryProfileRegistry(profiles))
+                .selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
+        assertThat(plain.plan()).isEqualTo(configured.plan());assertThat(plain.inputs()).isEqualTo(configured.inputs());
+        assertThat(caller.getRegisteredModuleIds()).isEqualTo(before);
+    }
+    @Test void packagedReviewedCaseDoesNotBypassChangedTitleRules() {
+        var catalog=packagedCatalog();var changed=new ArrayList<>(rules.rules());
+        changed.add(rule("B",RuleGroupKindCode.AUTO_EXCLUDE_B,"취업농",null,null));
+        var result=catalog.selectPrepared(scope,new AnnouncementSourceClassificationRuleSet("CHANGED",changed),runtimeHash,TAEBAEK_OBSERVED);
+        assertThat(result.inputs()).isEmpty();assertThat(result.plan().segments()).isEmpty();
+        assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
+                .satisfies(c->assertThat(c.statusCode()).isEqualTo("TITLE_EXPECTATION_CHANGED"));
     }
 
     Prepared prepareV2(List<Notice> notices) {

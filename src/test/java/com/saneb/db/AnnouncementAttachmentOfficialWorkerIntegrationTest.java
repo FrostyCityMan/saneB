@@ -166,6 +166,9 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     row.put("bytes",file.downloadedBytes());row.put("binaryHash",file.binaryHash());row.put("quality",file.qualityCode());row.put("characterCount",file.characterCount());
                     row.put("roleCode",file.documentRoleCode());row.put("roleOrigin",file.roleOriginCode());
                     row.put("roleDiagnostic",selectRoleDiagnostic(file.roleAssessment()));
+                    row.put("workerLocatorHash",sql.queryForObject("SELECT stable_locator_hash FROM announcement_source_attachment_files WHERE id=?",String.class,file.fileId()));
+                    var safeLocator=JSON.readTree(sql.queryForObject("SELECT safe_locator_json::text FROM announcement_source_attachment_files WHERE id=?",String.class,file.fileId()));
+                    row.put("locatorHash",selectCanonicalHash(safeLocator));
                     assertTrue(selectWireTree(file).equals(fileJson.path("items").get(i)),"API_FILE_PROJECTION_MISMATCH");
                     if(file.extractionId()!=null) {
                         var actual=extractor.byBinaryHash.get(file.binaryHash());assertNotNull(actual,"ACTUAL_EXTRACTION_MISSING");
@@ -180,8 +183,11 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         String expectedText=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(file.qualityCode())?actual.path("text").asText():null;
                         assertTrue(Objects.equals(expectedText,storedText),"PERSISTED_TEXT_MISMATCH");
                         row.put("textHash",storedText==null?null:hash(storedText));
+                        row.put("blockCount",actual.path("blocks").size());
+                        row.put("reviewPhrasePresence",selectReviewPhrasePresence(storedText));
                         if("COMPLETE_TEXT".equals(file.qualityCode()))assertNotNull(file.roleAssessment(),"TEXT_ROLE_ASSESSMENT_MISSING");
                         if(file.roleAssessment()!=null) {
+                            row.put("roleFingerprint",selectRoleFingerprint(file.roleAssessment()));
                             assertEquals(file.extractionId(),file.roleExtractionId());
                             assertEquals(execution.roleRuleVersion(),file.roleAssessment().ruleVersion());
                             assertEquals(sql.queryForObject("SELECT attachment_role_blocks_hash(blocks_json) FROM announcement_source_attachment_extractions WHERE id=?",String.class,file.extractionId()),file.roleAssessment().blocksHash());
@@ -210,6 +216,11 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 report.put("isWholeTextAnalysisComplete",whole);
                 if(!whole)assertFalse(summary.processingFlow().isAutomaticAnalysisComplete(),"INCOMPLETE_MUST_NOT_BE_READY");
                 stage="BODY_COMPLETENESS";assertTrue(bodyComplete,"BODY_OBSERVATION_INCOMPLETE");
+                if("TAEBAEK-184816".equals(sample.code())) {
+                    stage="FIXED_EXPECTATION_RECHECK";
+                    var fixedReport=new LinkedHashMap<String,Object>();report.put("fixedExpectationQa",fixedReport);
+                    saveFixedExpectationResult(sample,client,extractor,fixedReport);
+                }
                 report.put("status","WORKER_DB_API_OBSERVED_NOT_APPROVED");
             } catch(Exception|AssertionError failure) {
                 report.put("failedStage",stage);report.put("failureCode","OFFICIAL_WORKER_INCOMPLETE");
@@ -243,6 +254,59 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     }
     static AnnouncementSourceClassificationRuleSet selectRules(){return bean(AnnouncementSourceRuleReleaseService.class).selectPublishedRuleSet(release);}
     static <T>T selectService(Class<T> type){return bean(type);}
+    private static void saveFixedExpectationResult(ObservationCase sample,OfficialClient client,ActualExtractor extractor,Map<String,Object> report) throws Exception {
+        try(var profilesContext=new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class,
+                SaeolGetAttachmentProfileConfiguration.class,LegalBoardAttachmentProfileConfiguration.class,
+                BizInfoAttachmentDiscoveryProfile.class,SeoguSaeolAttachmentDiscoveryProfile.class,HwacheonPostAttachmentDiscoveryProfile.class)) {
+            var profiles=List.copyOf(profilesContext.getBeansOfType(AttachmentDiscoveryProfile.class).values());
+            var registry=new AttachmentDiscoveryProfileRegistry(profiles);
+            var targets=sql.query("""
+                    -- 운영 대상이 아닌 이 시험의 전체 미삭제 seed다. 비활성/미구현 기관을 분모에서 빼지 않는다.
+                    SELECT id,public_code,parser_profile_code,notice_url
+                    FROM local_government_notice_sources WHERE deleted_at IS NULL ORDER BY public_code
+                    """,(rs,index)->new AttachmentPolicyValidationRows.Target(rs.getObject("id",UUID.class),rs.getString("public_code"),
+                            rs.getString("parser_profile_code"),rs.getString("notice_url"),"{}"));
+            var scope=com.saneb.domain.announcementattachment.service.impl.AttachmentProviderQaPlan.selectPlan(profiles,targets);
+            var prepared=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog(JSON,registry)
+                    .selectPrepared(scope,selectRules(),runtime.selectIdentity().configHash(),Instant.now());
+            report.put("scopeSource","EPHEMERAL_ALL_UNDELETED_SEEDS_AND_NATIONAL_PROVIDERS");report.put("targetCount",targets.size()+2);
+            report.put("catalogHash",prepared.plan().catalogHash());report.put("executableCount",prepared.plan().executableCount());
+            report.put("isExpectationCoverageComplete",prepared.plan().isExpectationCoverageComplete());
+            assertEquals(targets.size()+2,prepared.plan().targets().size());
+            assertFalse(prepared.plan().isExpectationCoverageComplete());assertFalse(prepared.plan().isQaPassed());
+            var plan=prepared.plan().cases().stream().filter(c->sample.code().equals(c.caseCode())).findFirst().orElseThrow();
+            report.put("caseState",plan.statusCode());report.put("normalNotice",plan.normalNotice());
+            assertEquals("EXPECTED_INPUT_READY",plan.statusCode(),"FIXED_EXPECTATION_NOT_READY");assertFalse(plan.normalNotice());
+            var input=prepared.inputs().stream().filter(c->sample.code().equals(c.caseId())).findFirst().orElseThrow();
+            assertEquals(2,input.files().size());
+            assertEquals(List.of("UNKNOWN","FORM"),input.files().stream().map(f->f.roleExpectation().roleCode()).toList());
+            var control=new FixedCaseControl(System::nanoTime);
+            int before=extractor.calls;
+            var executor=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCaseExecutor(registry,client,
+                    new AttachmentTemporaryStorage(System.getProperty("java.io.tmpdir")+"/fixed-expectation"),runtime,extractor,new AttachmentFileTypeValidator(),JSON);
+            var result=executor.selectResult(input,control);
+            report.put("result",result);
+            assertEquals("PASSED",result.status(),"FIXED_EXPECTATION_RECHECK_FAILED");
+            assertEquals("FIXED_NOTICE_EXPECTATIONS_MATCHED",result.reasonCode());
+            assertEquals(2,result.discoveredFileCount());assertTrue(result.discoveryComplete());assertTrue(result.allTextComplete());
+            assertTrue(result.originalFilesRemoved());assertFalse(result.isPolicyQaPassed());assertFalse(control.inUse.get());
+            assertEquals(2,extractor.calls-before);assertEquals(control.requests,result.requestReservations());assertEquals(control.bytes,result.reservedBytes());
+        }
+    }
+    /** 단일 시험 자원. 외부 요청은 OfficialClient의 본문+worker+재검증 통합44회/80MiB 상한도 적용한다. */
+    static final class FixedCaseControl implements com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCaseExecutor.ExecutionControl {
+        final java.util.function.LongSupplier clock;final long started;long requests,bytes;
+        final java.util.concurrent.atomic.AtomicBoolean inUse=new java.util.concurrent.atomic.AtomicBoolean();
+        FixedCaseControl(java.util.function.LongSupplier clock){this.clock=clock;started=clock.getAsLong();}
+        public boolean selectExecutionAllowed(){return !Thread.currentThread().isInterrupted()&&clock.getAsLong()-started<420_000_000_000L;}
+        public AutoCloseable selectDownloadPermit(String host){return host!=null&&host.matches("[0-9a-f]{64}")?selectExtractionPermit():null;}
+        public AutoCloseable selectExtractionPermit(){
+            if(!selectExecutionAllowed()||!inUse.compareAndSet(false,true))return null;
+            var closed=new java.util.concurrent.atomic.AtomicBoolean();return ()->{if(closed.compareAndSet(false,true))inUse.set(false);};
+        }
+        public boolean saveRequestReservation(){if(!selectExecutionAllowed()||requests>=44)return false;requests++;return true;}
+        public boolean saveByteReservation(long size){if(!selectExecutionAllowed()||size<=0||size>80*MIB-bytes)return false;bytes+=size;return true;}
+    }
     private static UUID insertPolicy(AttachmentExecutionSnapshot execution) throws Exception {
         UUID id=UUID.randomUUID();
         String settings=JSON.writeValueAsString(new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),80*MIB,execution.roleRuleVersion(),execution.roleRulesHash()));
@@ -257,6 +321,29 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     // DTO의 LongNode와 HTTP JSON을 읽은 IntNode는 값이 같아도 equals가 false다.
     // 기대값도 실제 wire serialization을 거쳐 비교하며 필드·값·배열 순서 검증은 유지한다.
     static JsonNode selectWireTree(Object value) throws Exception {return JSON.readTree(JSON.writeValueAsBytes(value));}
+    /** 사전 검토용 지문만 반환한다. catalog 생성·승인·갱신은 수행하지 않는다. */
+    static Map<String,Object> selectRoleFingerprint(AttachmentDocumentRoleClassifier.Assessment assessment) throws Exception {
+        selectRoleDiagnostic(assessment);
+        if(assessment==null || !AttachmentDocumentRoleClassifier.VERSION.equals(assessment.ruleVersion())
+                || !AttachmentDocumentRoleClassifier.RULES_HASH.equals(assessment.rulesHash())
+                || assessment.textHash()==null || !assessment.textHash().matches("[0-9a-f]{64}")
+                || assessment.blocksHash()==null || !assessment.blocksHash().matches("[0-9a-f]{64}")
+                || !Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(assessment.roleCode()))
+            throw new IllegalArgumentException("ROLE_FINGERPRINT_INVALID");
+        return Map.of("ruleVersion",assessment.ruleVersion(),"rulesHash",assessment.rulesHash(),
+                "roleCode",assessment.roleCode(),"reasonCode",assessment.reasonCode(),
+                "textHash",assessment.textHash(),"blocksHash",assessment.blocksHash(),"assessmentHash",selectCanonicalHash(assessment));
+    }
+    static String selectCanonicalHash(Object value) throws Exception {
+        var canonical=JSON.copy().enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        return hash(canonical.writeValueAsString(canonical.convertValue(value,Object.class)));
+    }
+    /** 공개 표본의 고정 업무 문구 존재 여부만 확인하며 원문/담당자/연락처를 반환하지 않는다. */
+    static Map<String,Boolean> selectReviewPhrasePresence(String text) {
+        var result=new LinkedHashMap<String,Boolean>();
+        for(String phrase:List.of("청년농업인","취업농","신청서","서명"))result.put(phrase,text!=null&&text.contains(phrase));
+        return result;
+    }
     /** 원문·파일명·URL·위치 원문 없이 실제 저장된 역할 판정의 고정 코드만 진단한다. */
     static Map<String,Object> selectRoleDiagnostic(AttachmentDocumentRoleClassifier.Assessment assessment) {
         if(assessment==null)return Map.of("assessmentPresent",false);
