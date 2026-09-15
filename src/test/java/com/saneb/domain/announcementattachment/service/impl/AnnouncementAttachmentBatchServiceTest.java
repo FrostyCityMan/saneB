@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity;
 import com.saneb.common.error.ApiException;
 import com.saneb.domain.announcementattachment.dao.*;
 import com.saneb.domain.announcementattachment.discovery.*;
@@ -107,7 +108,7 @@ class AnnouncementAttachmentBatchServiceTest {
     private final List<AttachmentBatchRows.ItemInsert> items=new ArrayList<>();
     @BeforeEach void setup() throws Exception {
         policyRow=new AttachmentPolicyRow(policy,"ACTIVE","COLLECT_ONLY",rule,"ACTIVE","a".repeat(64),mapper.writeValueAsString(Map.of(
-                "engineVersion","attachment-1.0.0","extractorVersion","1.0.0","extractorConfigHash","b".repeat(64),"maximumSourceBytes",83886080)),
+                "engineVersion","attachment-1.0.0","extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION,"extractorConfigHash","b".repeat(64),"maximumSourceBytes",83886080)),
                 mapper.writeValueAsString(List.of(Map.of("providerCode","BIZINFO","profileCode",profile.selectProfileCode(),"profileHash",profile.selectProfileHash()))),0);
         when(dao.selectPolicyDetails(eq(policy),anyBoolean())).thenAnswer(c->policyRow);
         candidate=new AttachmentBatchRows.Candidate(source,"BIZINFO",UUID.randomUUID(),UUID.randomUUID(),rule,2,3,UUID.randomUUID(),policy,UUID.randomUUID(),true,null);

@@ -168,6 +168,12 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     if(file.extractionId()!=null) {
                         var actual=extractor.byBinaryHash.get(file.binaryHash());assertNotNull(actual,"ACTUAL_EXTRACTION_MISSING");
                         assertEquals(actual.path("qualityCode").asText(),file.qualityCode());
+                        long segmented=0,unreliable=0;
+                        for (var block:actual.path("blocks")) {
+                            if(block.path("locator").asText().contains(":segment:"))segmented++;
+                            if(!block.path("scopeReliable").asBoolean())unreliable++;
+                        }
+                        row.put("segmentedParagraphBlockCount",segmented);row.put("unreliableBlockCount",unreliable);
                         String storedText=sql.queryForObject("SELECT extracted_text FROM announcement_source_attachment_extractions WHERE id=?",String.class,file.extractionId());
                         String expectedText=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(file.qualityCode())?actual.path("text").asText():null;
                         assertTrue(Objects.equals(expectedText,storedText),"PERSISTED_TEXT_MISMATCH");

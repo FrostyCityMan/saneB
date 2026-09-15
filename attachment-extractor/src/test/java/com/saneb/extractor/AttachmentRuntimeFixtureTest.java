@@ -34,6 +34,7 @@ class AttachmentRuntimeFixtureTest {
         }
         var result = new ObjectMapper().readTree(bytes.toByteArray());
         assertEquals(quality, result.path("qualityCode").asText());
+        assertEquals(ExtractionResult.VERSION,result.path("extractorVersion").asText());
         assertEquals("NONE".equals(format) ? "" : format, result.path("format").asText(""));
         assertEquals(blocks, result.path("blocks").size());
         if (id.equals("AR-003") || id.equals("AR-006") || id.equals("AR-007"))

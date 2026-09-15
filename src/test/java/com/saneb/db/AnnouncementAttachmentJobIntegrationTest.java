@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity;
 import com.saneb.common.error.ApiException;
 import com.saneb.config.typehandler.UuidTypeHandler;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao;
@@ -81,7 +82,7 @@ class AnnouncementAttachmentJobIntegrationTest {
     private static final String PROFILE_HASH = PROFILE.selectProfileHash();
     private static final String CONFIG_HASH = "b".repeat(64);
     private static final AttachmentExecutionSnapshot EXECUTION = new AttachmentExecutionSnapshot(
-            PROFILE.selectProfileCode(), PROFILE_HASH, "attachment-1.0.0", "1.0.0", CONFIG_HASH);
+            PROFILE.selectProfileCode(), PROFILE_HASH, "attachment-1.0.0", AttachmentRuntimeIdentity.EXTRACTOR_VERSION, CONFIG_HASH);
 
     @BeforeAll static void startIsolatedDatabase() throws Exception {
         postgres = EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses", "127.0.0.1").start();

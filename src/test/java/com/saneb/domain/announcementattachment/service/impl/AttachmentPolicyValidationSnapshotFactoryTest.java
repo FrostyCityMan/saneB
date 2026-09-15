@@ -39,7 +39,7 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         rule=new AnnouncementSourceRuleValidationDetails(ruleId,0,"DRAFT",null,"c".repeat(64),new AnnouncementSourceClassificationRuleSet("QA",List.of(keyword)));
         when(rules.selectRuleValidationDetails(ruleId)).thenAnswer(c->rule);
         when(dao.selectTargetList()).thenReturn(List.of(target("https://public.example/notice","{\"parser\":\"fixture\"}")));
-        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity("1.0.0","a".repeat(64),1,10));when(gate.selectSuiteHash()).thenReturn("b".repeat(64));
+        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION,"a".repeat(64),1,10));when(gate.selectSuiteHash()).thenReturn("b".repeat(64));
         when(workerDb.selectIdentity(anyString(),anyString())).thenAnswer(c->AttachmentWorkerDbQaGateTest.identity(c.getArgument(0),c.getArgument(1)));
         var registry=new AttachmentDiscoveryProfileRegistry(List.of(profile));
         factory=new AttachmentPolicyValidationSnapshotFactory(rules,dao,registry,runtime,gate,workerDb,mapper,
@@ -50,7 +50,7 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         var now=OffsetDateTime.parse("2026-09-11T14:00:00+09:00");
         return new AttachmentPolicyManagementRows.Row(policyId,"ATT-QA",1,0,"DRAFT","ENFORCE",ruleId,"DRAFT",null,settings,manifest,UUID.randomUUID(),now,now,null,null,null,null,null);
     }
-    private String settings() throws Exception {return mapper.writeValueAsString(new AttachmentPolicyResponses.Configuration("attachment-1.0.0","1.0.0",null,83886080L));}
+    private String settings() throws Exception {return mapper.writeValueAsString(new AttachmentPolicyResponses.Configuration("attachment-1.0.0",AttachmentRuntimeIdentity.EXTRACTOR_VERSION,null,83886080L));}
     private String manifest() throws Exception {return mapper.writeValueAsString(List.of(new AttachmentPolicyResponses.Profile("BIZINFO",profile.selectProfileCode(),profile.selectProfileHash())));}
     private AttachmentPolicyManagementRows.Row policy() throws Exception {return policy(settings(),manifest());}
     @Test void freezesEveryTargetAndRuleWithoutSavingPublicUrlOrCallerSuccess() throws Exception {

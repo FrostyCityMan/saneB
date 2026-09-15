@@ -31,7 +31,7 @@ class AttachmentRuntimeGateTest {
     private Consumer<ObjectNode> alterFirst = result -> { };
     private AttachmentRuntimeGate gate;
     @BeforeEach void setup() throws Exception {
-        when(identity.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity("1.0.0", "a".repeat(64), 5, 100));
+        when(identity.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION, "a".repeat(64), 5, 100));
         when(extractor.selectExtraction(any())).thenAnswer(call -> {
             Path path = call.getArgument(0); originals.add(path);
             assertThat(Files.size(path)).isBetween(1L, 1024L * 1024);
@@ -53,7 +53,7 @@ class AttachmentRuntimeGateTest {
             case 6 -> "소상공인 지원금 😀\n지원 한도\n100만원"; default -> "";
         };
         ObjectNode result = mapper.createObjectNode().put("qualityCode", quality).put("format", format)
-                .put("extractorVersion", "1.0.0").put("text", text);
+                .put("extractorVersion", AttachmentRuntimeIdentity.EXTRACTOR_VERSION).put("text", text);
         if (index == 1 || index == 2) result.put("pageCount", 1); else result.putNull("pageCount");
         if (format == null) result.put("errorCode", quality); else result.putNull("errorCode");
         var blocks = result.putArray("blocks"); int offset = 0, blockIndex = 0;
@@ -110,9 +110,15 @@ class AttachmentRuntimeGateTest {
         assertThat(calls.get()).isEqualTo(1); assertClean();
     }
     @Test void runtimeChangeAfterExecutionCannotBecomeSuccess() throws Exception {
-        when(identity.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity("1.0.0", "a".repeat(64), 5, 100),
-                new AttachmentRuntimeIdentity.Identity("1.0.0", "b".repeat(64), 5, 100));
+        when(identity.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION, "a".repeat(64), 5, 100),
+                new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION, "b".repeat(64), 5, 100));
         assertThatThrownBy(() -> gate.selectValidatedResult()).hasMessage("FINALIZE:RUNTIME_OR_SUITE_CHANGED"); assertClean();
+    }
+    @Test void previousExtractorVersionIsNotAcceptedAsCurrentEvidence() throws Exception {
+        alterFirst = result -> result.put("extractorVersion","1.0.0");
+        assertThatThrownBy(() -> gate.selectValidatedResult()).isInstanceOf(AttachmentRuntimeGate.GateFailure.class)
+                .hasMessageStartingWith("AR-001:");
+        assertThat(calls.get()).isEqualTo(1); assertClean();
     }
     @Test void unavailableIdentityMakesNoTemporaryFileOrParserCallAndDoesNotLeakException() throws Exception {
         when(identity.selectIdentity()).thenThrow(new IOException("sensitive-internal-path"));

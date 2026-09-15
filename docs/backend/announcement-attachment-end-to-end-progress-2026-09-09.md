@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-15 11:39 KST — 추출기1.0.1 텍스트 순서·품질 보완
+
+- P3 진행, 전체9Gate/ATT62 **Not ready**다. PDF 미사용 XObject의 과도한 PARTIAL_TEXT, 인라인 이미지/누락된 그리기 대상의 COMPLETE_TEXT 오판, HWPX 중첩 부모/자식 텍스트의 순서 역전을 재현하고 수정했다. HWPX는 실제 연속 구간을 각각 독립 근거로 보존하므로 중첩 자체를 누락으로 보지 않는다. 이미지/OLE/수식·미지원·UNKNOWN을 일괄 정상 처리하지 않는다. [상세 변경·검증](announcement-extractor-text-order-v1.0.1-2026-09-15.md)을 따른다.
+- 추출기/JAR/IPC/서버 실행 버전1.0.1, 새 코드·런타임 지문을 요구한다. 과거 추출/QA 근거·정책은 재사용하지 않는다. 기존 v1/v2 필드·V1~V83/DB/정책·운영 데이터는 변경하지 않았다. 새 엔진·기관 모델 추가는 아니며6엔진/17프로필/전용본문16기관/추출3형식, catalog참조24/기대값0이다.
+- 버전 고정 fixture95실패를 수정한 뒤 root2636=2374통과/262조건부 생략/실패0이다. 중간 HWPX source/class 시각 불일치2건은 최종 재컴파일로 해소했다. 최종42초 build 성공: extractor36/36·패키징20/20, root/bootJar/probe UP-TO-DATE. Node24통과/2 Linux 생략, 사용한 단발 Node/JVM 종료·사용자 output 보존이다.
+- 직전0b8aff1 Linux34920332435는 success이며 새 변경의 동일 SHA 증거가 아니다. 이번 운영 배포/실파일 재검증/브라우저/활성화/기존 데이터 적용은 미실행이다. 양평의 PARTIAL_TEXT가 전부 해소됐다고 주장하지 않는다. 다음은 새 SHA Linux→운영 설치 확인→공식 worker/DB/API 효과 대조다. 전체 수집처·정책 기대값·승인된 활성화/기존 데이터/업무 E2E도 계속 남아 있다.
+
 ### 2026-09-15 11시대 — 서버 공식 worker 경로와 운영 읽기 전용 화면
 
 - 최종 SSM `31cf27d7-cf0c-49f7-badd-10ffc1eeefcb` Success, 양평 고정3건/3통과·생략0이다. BODY2건 AVAILABLE, HWPX11,398자/PDF4,195자 실제 추출→worker→임시 DB 텍스트→API 전체 필드/블록/종합 상태를 대조했다. JPG미지원 분모 보존·TITLE 제외 요청0·자동 confirmation/link0·lease/원본/DB/전송 자원 정리·운영 DB 쓰기0·설치 JAR 불변이다. 두 문서는 PARTIAL_TEXT/UNKNOWN, TECHNICAL_EXCEPTION·REVIEW_REQUIRED이므로 정상 분석 완료로 승격하지 않는다. 전체 Provider/정책 기대값/활성화/기존 데이터/업무 E2E는 남아 있다.

@@ -94,7 +94,8 @@ class AttachmentContractQaPackageTest {
         assertThat(Files.readAllBytes(root.resolve("bin/run-attachment-contract-qa.sh"))).doesNotContain((byte)'\r');
         assertThat(root.resolve("config/logback-qa.xml")).isRegularFile();
         assertThat(Files.readString(root.resolve("config/hosts")).strip()).isEqualTo("127.0.0.1 localhost");
-        assertThat(root.resolve("extractor/lib/attachment-extractor-1.0.0.jar")).isRegularFile();
+        assertThat(root.resolve("extractor/lib/attachment-extractor-"
+                +com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity.EXTRACTOR_VERSION+".jar")).isRegularFile();
         try (var files = Files.list(root.resolve("lib"))) {
             assertThat(files.map(path -> path.getFileName().toString()).toList()).anyMatch(name -> name.startsWith("junit-platform-launcher-"))
                     .anyMatch(name -> name.startsWith("embedded-postgres-binaries-linux-amd64-"));

@@ -25,7 +25,7 @@ final class TextEvidence {
     }
     void updatePartial() { partial = true; }
     ExtractionResult selectResult(String format, Integer pages) {
-        return new ExtractionResult(format, "1.0.0", text.isEmpty() ? "OCR_REQUIRED"
+        return new ExtractionResult(format, ExtractionResult.VERSION, text.isEmpty() ? "OCR_REQUIRED"
                 : partial ? "PARTIAL_TEXT" : "COMPLETE_TEXT", text.toString(), blocks, pages, null);
     }
 }

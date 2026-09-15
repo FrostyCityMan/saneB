@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
@@ -56,7 +57,7 @@ class AnnouncementAttachmentCollectionServiceTest {
     @BeforeEach void configure() throws Exception {
         source(false,null);
         policy("COLLECT_ONLY","ACTIVE",mapper.writeValueAsString(Map.of("engineVersion",AnnouncementAttachmentClassificationEngine.VERSION,
-                "extractorVersion","1.0.0","extractorConfigHash",hash,"maximumSourceBytes",100)),mapper.writeValueAsString(List.of(Map.of(
+                "extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION,"extractorConfigHash",hash,"maximumSourceBytes",100)),mapper.writeValueAsString(List.of(Map.of(
                 "providerCode","BIZINFO","profileCode",profile.selectProfileCode(),"profileHash",profile.selectProfileHash()))));
         when(intake.selectSourceLocatorDetails(source)).thenReturn(new AttachmentWorkerSourceRow("BIZINFO","PBLN_202600000000001",null,null,null));
         when(retries.selectRetryControlAllowed()).thenReturn(true);when(collections.selectManualRequestRateAllowed(source)).thenReturn(true);
@@ -197,7 +198,7 @@ class AnnouncementAttachmentCollectionServiceTest {
         when(jobs.selectSourceContextDetailsForUpdate(source)).thenReturn(new AttachmentSourceContextRow(source,"BIZINFO","PRODUCTION","REVIEW_REQUIRED",
                 base,content,release,null,4,3,false,null,null));
         var core=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentJobServiceImpl(jobs,mapper);
-        var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),AnnouncementAttachmentClassificationEngine.VERSION,"1.0.0",hash);
+        var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),AnnouncementAttachmentClassificationEngine.VERSION,AttachmentRuntimeIdentity.EXTRACTOR_VERSION,hash);
         assertThatThrownBy(()->core.insertAttachmentJob(new AttachmentJobReservation(source,policy,base,4,3,key,execution)))
                 .isInstanceOf(ApiException.class).hasMessageContaining("제목 수집 기준");
         verify(jobs,never()).selectPolicyDetails(any());verify(jobs,never()).insertAttachmentJob(any());

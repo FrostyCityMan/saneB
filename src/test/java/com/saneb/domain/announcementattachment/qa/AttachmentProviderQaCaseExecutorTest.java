@@ -60,7 +60,7 @@ class AttachmentProviderQaCaseExecutorTest {
         when(profile.selectApprovedRequest(any(AttachmentPinnedDownloadClient.Request.class))).thenReturn(true);
         when(profile.selectLegacyBinaryContentTypes()).thenReturn(Set.of());
         when(profile.selectDetailUri(any(AttachmentDiscoveryProfile.Source.class))).thenReturn(URI.create("https://www.example.go.kr/detail"));
-        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity("1.0.0",runtimeHash,1,10));
+        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION,runtimeHash,1,10));
         when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT","소상공인 지원금 합성문서"));
         descriptors=List.of(descriptor("1",true),descriptor("2",true));
         when(profile.selectDescriptors(any(AttachmentDiscoveryProfile.Source.class),anyString()))
@@ -386,8 +386,8 @@ class AttachmentProviderQaCaseExecutorTest {
         assertThat(result.files().get(1).status()).isEqualTo("NOT_RUN"); cleaned();
     }
     @Test void runtimeChangeAtEndInvalidatesOtherwiseSuccessfulFiles() throws Exception {
-        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity("1.0.0",runtimeHash,1,10),
-                new AttachmentRuntimeIdentity.Identity("1.0.0","c".repeat(64),1,10));
+        when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION,runtimeHash,1,10),
+                new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION,"c".repeat(64),1,10));
         var result=executor.selectResult(input(descriptors),control);
         assertThat(result.reasonCode()).isEqualTo("RUNTIME_CHANGED"); assertThat(result.files()).allSatisfy(f->assertThat(f.status()).isEqualTo("PASSED"));
         assertThat(result.allTextComplete()).isFalse(); cleaned();

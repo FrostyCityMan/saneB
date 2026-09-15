@@ -74,7 +74,12 @@ final class HwpxDocumentTextExtractor {
                                 if (HP.equals(xml.getNamespaceURI())) {
                                     String name = xml.getLocalName();
                                     if ("p".equals(name)) {
-                                        if (!paragraphs.isEmpty()) paragraphs.peek().hasNestedParagraph=true;
+                                        if (!paragraphs.isEmpty()) {
+                                            Paragraph parent = paragraphs.peek();
+                                            parent.hasNestedParagraph=true;
+                                            // 자식 셀/문단을 읽기 전에 앞부분을 기록하여 원문 순서를 보존한다.
+                                            parent.saveSegment(evidence,section);
+                                        }
                                         paragraphs.push(new Paragraph(++index));
                                     }
                                     if ("t".equals(name)) textDepth++;
@@ -88,8 +93,7 @@ final class HwpxDocumentTextExtractor {
                                     if ("t".equals(xml.getLocalName())) textDepth--;
                                     if ("p".equals(xml.getLocalName())) {
                                         Paragraph paragraph = paragraphs.pop();
-                                        evidence.insertBlock(paragraph.text.toString(), section + ":paragraph:" + paragraph.index,!paragraph.hasNestedParagraph);
-                                        if (paragraph.hasNestedParagraph && !paragraph.text.toString().isBlank()) evidence.updatePartial();
+                                        paragraph.saveSegment(evidence,section);
                                     }
                                 }
                                 depth--;
@@ -106,6 +110,19 @@ final class HwpxDocumentTextExtractor {
         final int index;
         final StringBuilder text = new StringBuilder();
         boolean hasNestedParagraph;
+        int segment;
         Paragraph(int index) { this.index = index; }
+        void saveSegment(TextEvidence evidence,String section) throws IOException {
+            if (text.toString().isBlank()) { text.setLength(0); return; }
+            String locator = section + ":paragraph:" + index;
+            // 중첩 전후를 하나의 AND 문맥으로 합치거나 표의 의미를 추정하지 않는다.
+            if (hasNestedParagraph) {
+                locator += ":segment:" + (++segment);
+            }
+            // 이 구간은 실제 한 문단의 연속된 텍스트다. 구조를 분리해 누락·재결합 없이
+            // 읽었으므로 중첩 자체를 부분 추출로 보지 않는다. pic/OLE/수식은 별도 차단한다.
+            evidence.insertBlock(text.toString(),locator,true);
+            text.setLength(0);
+        }
     }
 }

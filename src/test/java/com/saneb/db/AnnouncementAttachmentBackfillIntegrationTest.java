@@ -2,6 +2,7 @@ package com.saneb.db;
 
 import static org.assertj.core.api.Assertions.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity;
 import com.saneb.common.error.ApiException;
 import com.saneb.config.typehandler.UuidTypeHandler;
 import com.saneb.domain.announcementattachment.dao.*;
@@ -67,7 +68,7 @@ class AnnouncementAttachmentBackfillIntegrationTest {
             sql.update("INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,?,?,'목록 검증','ACTIVE',false)",actor,"backfill-fixture","unused-fixture-hash");
             release=sql.queryForObject("SELECT id FROM announcement_source_classification_rule_releases ORDER BY version_no LIMIT 1",UUID.class);
             sql.update("UPDATE announcement_source_classification_rule_releases SET release_status_code='ACTIVE',activated_at=now(),rule_snapshot_hash=repeat('c',64) WHERE id=?",release);
-            var settings=objectMapper.writeValueAsString(Map.of("engineVersion","attachment-1.0.0","extractorVersion","1.0.0","extractorConfigHash","b".repeat(64),"maximumSourceBytes",83886080L));
+            var settings=objectMapper.writeValueAsString(Map.of("engineVersion","attachment-1.0.0","extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION,"extractorConfigHash","b".repeat(64),"maximumSourceBytes",83886080L));
             var manifest=objectMapper.writeValueAsString(List.of(Map.of("providerCode","BIZINFO","profileCode",profile.selectProfileCode(),"profileHash",profile.selectProfileHash())));
             sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?, ?,1,'ACTIVE','COLLECT_ONLY',?,repeat('d',64),CAST(? AS jsonb),CAST(? AS jsonb),?,now())",policy,policy.toString(),release,settings,manifest,actor);
         } catch(Exception exception) {postgres.close();postgres=null;throw exception;}
