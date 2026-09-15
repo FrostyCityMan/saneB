@@ -3122,6 +3122,7 @@ class AnnouncementAttachmentJobIntegrationTest {
                     new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentEvidenceMapper.xml"),
                     new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentEvaluationMapper.xml"),
                     new ClassPathResource("mapper/announcementsource/AnnouncementSourceRuleReleaseMapper.xml"),
+                    new ClassPathResource("mapper/announcementsource/AnnouncementSourceClassificationMapper.xml"),
                     new ClassPathResource("mapper/announcementsource/AnnouncementSourceMapper.xml"));
             return new SqlSessionTemplate(factory.getObject());
         }

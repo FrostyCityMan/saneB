@@ -1,0 +1,281 @@
+package com.saneb.db;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.saneb.common.error.GlobalExceptionHandler;
+import com.saneb.domain.announcementattachment.controller.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao;
+import com.saneb.domain.announcementattachment.discovery.*;
+import com.saneb.domain.announcementattachment.dto.*;
+import com.saneb.domain.announcementattachment.extraction.*;
+import com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest;
+import com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase;
+import com.saneb.domain.announcementattachment.service.*;
+import com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentWorkerServiceImpl;
+import com.saneb.domain.announcementattachment.vo.*;
+import com.saneb.domain.announcementattachment.worker.*;
+import com.saneb.domain.announcementsource.classification.*;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
+import com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao;
+import com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem;
+import com.saneb.domain.announcementsource.provider.content.*;
+import com.saneb.domain.announcementsource.service.*;
+import com.saneb.domain.announcementsource.service.impl.AnnouncementSourceClassificationPersistenceServiceImpl;
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.sql.DataSource;
+import org.jsoup.Jsoup;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.flywaydb.core.Flyway;
+
+/** 공식 파일 → 실제 worker/격리 추출기/임시 DB/API. 정책 승인·운영·인증·브라우저 E2E 증거가 아니다. */
+@EnabledIfEnvironmentVariable(named="SANEB_ATTACHMENT_OFFICIAL_WORKER_QA",matches="true")
+class AnnouncementAttachmentOfficialWorkerIntegrationTest {
+    private static final ObjectMapper JSON=new ObjectMapper().findAndRegisterModules().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private static final long MIB=1024L*1024;
+    private static EmbeddedPostgres postgres;
+    private static AnnotationConfigApplicationContext context;
+    private static JdbcTemplate sql;
+    private static UUID actor,release;
+    private static String distribution;
+    private static AttachmentRuntimeIdentity runtime;
+    @TempDir Path temporary;
+
+    static Stream<ObservationCase> selectCases() {
+        // 제목 제외 표본도 유지한다. 임의 URL·전체 기관 실행 모드는 제공하지 않는다.
+        return AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG");
+    }
+    @BeforeAll static void start() throws Exception {
+        distribution=System.getProperty("saneb.attachment-qa.extractor-root");
+        assertNotNull(distribution,"INSTALLED_EXTRACTOR_REQUIRED");
+        runtime=new AttachmentRuntimeIdentity(distribution);runtime.selectIdentity();
+        startDatabase();
+    }
+    static void startDatabase() throws Exception {
+        postgres=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start();
+        try {
+            DataSource data=postgres.getPostgresDatabase();
+            Flyway.configure().dataSource(data).locations("classpath:db/migration").load().migrate();
+            sql=new JdbcTemplate(data);context=new AnnotationConfigApplicationContext();
+            context.registerBean(DataSource.class,()->data);
+            context.register(AnnouncementAttachmentJobIntegrationTest.TestConfiguration.class);
+            context.registerBean(AnnouncementSourceClassificationPersistenceService.class,()->
+                    new AnnouncementSourceClassificationPersistenceServiceImpl(context.getBean(SqlSessionTemplate.class).getMapper(AnnouncementSourceClassificationDao.class)));
+            context.refresh();actor=UUID.randomUUID();
+            sql.update("INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,?,?,'공식 파일 임시 QA','ACTIVE',false)",
+                    actor,"official-worker-fixture","unused-fixture-hash");
+            release=sql.queryForObject("SELECT id FROM announcement_source_classification_rule_releases ORDER BY version_no LIMIT 1",UUID.class);
+            var validation=bean(AnnouncementSourceRuleReleaseService.class).selectRuleValidationDetails(release);
+            // 직접 소유한 임시 DB의 실행용 fixture다. 게시 QA 통과나 운영 규칙 활성화를 만들지 않는다.
+            sql.update("UPDATE announcement_source_classification_rule_releases SET release_status_code='ACTIVE',activated_at=now(),rule_snapshot_hash=? WHERE id=?",
+                    validation.calculatedSnapshotHash(),release);
+        } catch(Exception failure) {stop();throw failure;}
+    }
+    @AfterAll static void stop() throws Exception {
+        try {if(context!=null)context.close();} finally {if(postgres!=null)postgres.close();}
+    }
+    @BeforeEach void isolateCase() {
+        // 외부 접속 정보를 받지 않고 이 클래스가 직접 생성한 loopback DB만 정리한다.
+        sql.update("DELETE FROM announcement_source_links");sql.update("DELETE FROM announcement_source_snapshots");
+        sql.update("UPDATE announcement_attachment_policies SET policy_status_code='RETIRED',row_version=row_version+1 WHERE policy_status_code='ACTIVE'");
+    }
+    private static <T>T bean(Class<T> type){return context.getBean(type);}
+
+    @ParameterizedTest(name="{0}") @MethodSource("selectCases") @Timeout(420)
+    void officialFilesPassThroughWorkerDatabaseAndApi(ObservationCase sample) throws Exception {
+        var report=new LinkedHashMap<String,Object>();var rows=new ArrayList<Map<String,Object>>();
+        report.put("scope","OFFICIAL_WORKER_EPHEMERAL_DB_API_V1");report.put("caseCode",sample.code());report.put("observedAt",Instant.now().toString());
+        report.put("status","INCOMPLETE");report.put("titleInputSource","FIXED_OFFICIAL_SAMPLE");report.put("policySource","EPHEMERAL_DB_FIXTURE");
+        report.put("productionWriteCount",0);report.put("isPolicyQaPassed",false);report.put("isExpectationApproved",false);report.put("files",rows);
+        report.put("isWholeTextAnalysisComplete",false);report.put("isAuthenticatedBrowserE2e",false);
+        String stage="TITLE_GATE";boolean cleanup=false;
+        try(var client=new OfficialClient(sample)) {
+            try {
+                var rules=bean(AnnouncementSourceRuleReleaseService.class).selectPublishedRuleSet(release);
+                var engine=new AnnouncementSourceClassificationEngine();
+                var title=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
+                report.put("titleStage",title.titleStageCode());report.put("titleReason",title.reasonCode());
+                if(title.semanticStatusCode()==SemanticStatusCode.EXCLUDED) {
+                    assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_snapshots",Integer.class));
+                    assertEquals(0,client.requests);report.put("status","TITLE_EXCLUDED_NOT_FETCHED");return;
+                }
+                assertTrue(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title),"TITLE_NOT_ELIGIBLE");
+                stage="BODY_COLLECTION";client.reserveBody();
+                UUID localSource=sql.queryForObject("SELECT id FROM local_government_notice_sources WHERE public_code=?",UUID.class,sample.source().localSourceCode());
+                var body=new LocalGovernmentNoticeProviderContentClient(true,3000,7000,(int)MIB,0,1,"saneB-notice-collector/1.0")
+                        .selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",localSource,sample.listUrl(),sample.source().sourceUrl()));
+                boolean bodyComplete=AnnouncementAttachmentBbsOfficialObservationTest.selectBodyComplete(body);
+                report.put("bodyStatus",body.statusCode());report.put("bodyFailureCode",body.failureCode());report.put("bodyAttempts",body.attemptCount());
+                report.put("bodyStageComplete",bodyComplete);
+                var base=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),bodyComplete?body.bodyText():null,null,List.of(),body.bodySourceCode(),body.bodyAvailabilityCode()),rules);
+                report.put("bodyDecision",base.semanticStatusCode());report.put("bodyReason",base.reasonCode());
+                // BODY의 A/B/부족/실패 결과로 첨부를 끊지 않는다. 실제 결과를 저장해 worker의 입력으로 사용한다.
+                assertTrue(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(base),"TITLE_DECISION_CHANGED");
+                stage="BASE_PERSISTENCE";var installed=runtime.selectIdentity();var profile=sample.profile();
+                var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),"attachment-1.0.0",installed.extractorVersion(),installed.configHash(),
+                        AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH);
+                var request=insertSourceRequest(sample,bodyComplete?body.bodyText():null,base,execution);
+                UUID source=request.sourceId();
+                var job=bean(AnnouncementAttachmentJobService.class).insertAttachmentJob(request);
+                var extractor=new ActualExtractor();
+                var worker=new AnnouncementAttachmentWorkerServiceImpl(bean(AnnouncementAttachmentJobService.class),bean(AnnouncementAttachmentEvidenceService.class),
+                        bean(AnnouncementAttachmentEvaluationService.class),bean(AnnouncementAttachmentRetryService.class),new AttachmentDiscoveryProfileRegistry(List.of(profile)),runtime,
+                        new AttachmentTemporaryStorage(temporary.toString()),new AttachmentDownloadGateway(bean(AnnouncementAttachmentJobService.class),client),new AttachmentFileTypeValidator(),extractor,JSON);
+                report.put("profileCode",profile.selectProfileCode());report.put("profileHash",profile.selectProfileHash());
+                report.put("extractorVersion",execution.extractorVersion());report.put("extractorConfigHash",execution.extractorConfigHash());report.put("roleRuleVersion",execution.roleRuleVersion());
+                stage="ACTUAL_WORKER";var outcome=worker.saveNextAttachmentJob();report.put("workerStatus",outcome.statusCode());
+                report.put("jobStatus",bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode());
+                assertEquals("EVALUATED",outcome.statusCode(),"WORKER_NOT_EVALUATED");
+                stage="DATABASE_API";var read=bean(AnnouncementAttachmentReadService.class);
+                var set=read.selectAttachmentSetList(source,1,20).items().getFirst();
+                var files=read.selectAttachmentFileList(source,set.setId(),1,20).items();
+                report.put("discoveryComplete",set.discoveryComplete());report.put("discoveredFileCount",set.discoveredCount());report.put("processedFileCount",set.processedCount());
+                assertTrue(set.discoveryComplete());assertEquals("SEALED",set.setStatusCode());
+                assertEquals(sample.listedFileCount(),set.discoveredCount());assertEquals(set.discoveredCount(),set.processedCount());
+                assertEquals(sample.listedFileCount(),files.size());
+                var http=MockMvcBuilders.standaloneSetup(new AnnouncementAttachmentController(read),new AnnouncementAttachmentCurrentController(bean(AnnouncementAttachmentCurrentService.class)))
+                        .setControllerAdvice(new GlobalExceptionHandler()).build();
+                var fileJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-sets/"+set.setId()+"/files");
+                assertEquals(files.size(),fileJson.path("totalCount").asInt());
+                for(int i=0;i<files.size();i++) {
+                    var file=files.get(i);var row=new LinkedHashMap<String,Object>();rows.add(row);
+                    row.put("format",file.detectedTypeCode());row.put("downloadStatus",file.downloadStatusCode());row.put("downloadErrorCode",file.downloadErrorCode());
+                    row.put("bytes",file.downloadedBytes());row.put("binaryHash",file.binaryHash());row.put("quality",file.qualityCode());row.put("characterCount",file.characterCount());
+                    row.put("roleCode",file.documentRoleCode());row.put("roleOrigin",file.roleOriginCode());
+                    assertTrue(JSON.valueToTree(file).equals(fileJson.path("items").get(i)),"API_FILE_PROJECTION_MISMATCH");
+                    if(file.extractionId()!=null) {
+                        var actual=extractor.byBinaryHash.get(file.binaryHash());assertNotNull(actual,"ACTUAL_EXTRACTION_MISSING");
+                        assertEquals(actual.path("qualityCode").asText(),file.qualityCode());
+                        String storedText=sql.queryForObject("SELECT extracted_text FROM announcement_source_attachment_extractions WHERE id=?",String.class,file.extractionId());
+                        String expectedText=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(file.qualityCode())?actual.path("text").asText():null;
+                        assertTrue(Objects.equals(expectedText,storedText),"PERSISTED_TEXT_MISMATCH");
+                        row.put("textHash",storedText==null?null:hash(storedText));
+                        if("COMPLETE_TEXT".equals(file.qualityCode()))assertNotNull(file.roleAssessment(),"TEXT_ROLE_ASSESSMENT_MISSING");
+                        if(file.roleAssessment()!=null) {
+                            assertEquals(file.extractionId(),file.roleExtractionId());
+                            assertEquals(execution.roleRuleVersion(),file.roleAssessment().ruleVersion());
+                            assertEquals(sql.queryForObject("SELECT attachment_role_blocks_hash(blocks_json) FROM announcement_source_attachment_extractions WHERE id=?",String.class,file.extractionId()),file.roleAssessment().blocksHash());
+                        }
+                        var blocks=read.selectAttachmentBlockList(source,file.extractionId(),1,10,0,2000);
+                        var blockJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/blocks?page=1&size=10&textOffset=0&textLimit=2000");
+                        assertTrue(JSON.valueToTree(blocks).equals(blockJson),"API_BLOCK_PROJECTION_MISMATCH");
+                        var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/blocks",UUID.randomUUID(),file.extractionId())).andReturn();
+                        assertEquals(404,wrong.getResponse().getStatus());
+                    } else {
+                        assertEquals("BLOCKED",file.downloadStatusCode(),"SUPPORTED_FILE_INCOMPLETE");
+                        assertEquals("UNSUPPORTED_FORMAT",file.downloadErrorCode(),"SUPPORTED_FILE_INCOMPLETE");
+                    }
+                }
+                assertEquals(1,extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
+                var summary=bean(AnnouncementAttachmentCurrentService.class).selectClassificationDetails(source);
+                var summaryJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-classification");
+                assertTrue(JSON.valueToTree(summary).equals(summaryJson),"API_CLASSIFICATION_PROJECTION_MISMATCH");
+                report.put("processingStatus",summary.processingFlow().statusCode());report.put("decisionStatus",summary.effectiveClassification().semanticStatusCode());
+                report.put("decisionReason",summary.effectiveClassification().reasonCode());report.put("extractorCalls",extractor.calls);
+                assertNotEquals("EXCLUDED",summary.effectiveClassification().semanticStatusCode());
+                assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,source));
+                assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,source));
+                report.put("requiresFinalAdminVerification",true);
+                boolean whole=bodyComplete&&files.stream().allMatch(f->"COMPLETE_TEXT".equals(f.qualityCode()));
+                report.put("isWholeTextAnalysisComplete",whole);
+                if(!whole)assertFalse(summary.processingFlow().isAutomaticAnalysisComplete(),"INCOMPLETE_MUST_NOT_BE_READY");
+                stage="BODY_COMPLETENESS";assertTrue(bodyComplete,"BODY_OBSERVATION_INCOMPLETE");
+                report.put("status","WORKER_DB_API_OBSERVED_NOT_APPROVED");
+            } catch(Exception|AssertionError failure) {
+                report.put("failedStage",stage);report.put("failureCode","OFFICIAL_WORKER_INCOMPLETE");
+                // JDBC/HTTP/JSON assertion의 cause에는 실제 원문이 포함될 수 있어 로그·JUnit으로 전달하지 않는다.
+                throw new AssertionError(sample.code()+": "+stage+" / OFFICIAL_WORKER_INCOMPLETE");
+            } finally {
+                try(var paths=Files.walk(temporary)) {
+                    cleanup=paths.filter(Files::isRegularFile).allMatch(p->Set.of(".owner",".quota.lock").contains(p.getFileName().toString()));
+                }
+                report.put("originalFilesRemoved",cleanup);report.put("remainingResourceLeases",sql.queryForObject("SELECT count(1) FROM announcement_attachment_resource_leases",Integer.class));
+                report.put("maximumRequestReservations",44);report.put("maximumReservedBytes",80*MIB);
+                report.put("requestReservationsIncludingBodyUpperBound",client.requests);report.put("reservedBytesIncludingBodyUpperBound",client.bytes);
+                Path output=Path.of(System.getProperty("saneb.attachment-official-worker.report"));Files.createDirectories(output);
+                JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
+                assertTrue(cleanup,"ORIGINAL_FILE_CLEANUP_INCOMPLETE");assertEquals(0,report.get("remainingResourceLeases"));
+            }
+        }
+    }
+    static AttachmentJobReservation insertSourceRequest(ObservationCase sample,String text,AnnouncementSourceClassificationResult base,AttachmentExecutionSnapshot execution) throws Exception {
+        UUID policy=insertPolicy(execution),source=UUID.randomUUID();
+        UUID localSource=sql.queryForObject("SELECT id FROM local_government_notice_sources WHERE public_code=?",UUID.class,sample.source().localSourceCode());
+        sql.update("UPDATE local_government_notice_sources SET is_enabled=true WHERE id=?",localSource);
+        sql.update("INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,raw_hash,source_url,body_text,local_government_source_id,semantic_status_code,is_attachment_review_required,attachment_policy_id) VALUES (?,'LOCAL_GOV_NOTICE',?,?,repeat('a',64),?,?,?,'REVIEW_REQUIRED',true,?)",
+                source,sample.source().providerNoticeId(),sample.title(),sample.source().sourceUrl(),text,localSource,policy);
+        var item=new AnnouncementSourceProviderItem("LOCAL_GOV_NOTICE",sample.source().providerNoticeId(),sample.title(),null,null,null,null,null,
+                sample.source().sourceUrl(),text,null,null,"PARTIAL","[]","{}","a".repeat(64),List.of(),localSource);
+        UUID baseId=bean(AnnouncementSourceClassificationPersistenceService.class).saveNewContentEvaluation(source,null,release,item,base,"REVIEW_PENDING");
+        var current=bean(AnnouncementAttachmentJobDao.class).selectSourceContextDetails(source);
+        assertEquals(baseId,current.baseEvaluationId());
+        return new AttachmentJobReservation(source,policy,baseId,current.sourceVersion(),current.attachmentVersion(),UUID.randomUUID(),execution);
+    }
+    static AnnouncementSourceClassificationRuleSet selectRules(){return bean(AnnouncementSourceRuleReleaseService.class).selectPublishedRuleSet(release);}
+    static <T>T selectService(Class<T> type){return bean(type);}
+    private static UUID insertPolicy(AttachmentExecutionSnapshot execution) throws Exception {
+        UUID id=UUID.randomUUID();
+        String settings=JSON.writeValueAsString(new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),80*MIB,execution.roleRuleVersion(),execution.roleRulesHash()));
+        String manifest=JSON.writeValueAsString(List.of(Map.of("providerCode","LOCAL_GOV_NOTICE","profileCode",execution.profileCode(),"profileHash",execution.profileHash())));
+        sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE','ENFORCE',?,repeat('d',64),CAST(? AS jsonb),CAST(? AS jsonb),?,now())",id,id.toString(),release,settings,manifest,actor);
+        return id;
+    }
+    private static JsonNode selectApi(MockMvc http,String path) throws Exception {
+        var response=http.perform(get(path)).andReturn().getResponse();assertEquals(200,response.getStatus());assertEquals("no-store",response.getHeader("Cache-Control"));
+        var json=JSON.readTree(response.getContentAsByteArray());assertTrue(json.path("success").asBoolean());return json.path("data");
+    }
+    private static String hash(String text) throws Exception {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
+    private static final class ActualExtractor extends IsolatedAttachmentExtractor {
+        int calls;final Map<String,JsonNode> byBinaryHash=new HashMap<>();
+        ActualExtractor(){super(JSON,distribution);}
+        @Override public JsonNode selectExtraction(Path input) throws IOException {
+            assertFalse(TransactionSynchronizationManager.isActualTransactionActive());calls++;
+            var result=super.selectExtraction(input);
+            try {byBinaryHash.put(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(input))),result);}
+            catch(java.security.NoSuchAlgorithmException failure){throw new IOException("HASH_UNAVAILABLE");}
+            return result;
+        }
+    }
+    private static final class OfficialClient extends AttachmentPinnedDownloadClient {
+        final ObservationCase sample;long requests,bytes;
+        OfficialClient(ObservationCase sample){this.sample=sample;}
+        void reserveBody(){requests=2;bytes=2*MIB;}
+        @Override public Download selectDownload(Request request,Set<String> hosts,Predicate<Request> approved,Path output,long maximum,ByteReservation reservation) throws IOException {
+            assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+            var downloaded=super.selectDownload(request,hosts,r->{
+                if(requests>=44||Thread.currentThread().isInterrupted()||!sample.profile().selectApprovedRequest(r)||!approved.test(r))return false;
+                requests++;return true;
+            },output,maximum,count->{
+                if(count<0||bytes>80*MIB-count||Thread.currentThread().isInterrupted()||!reservation.reserve(count))return false;
+                bytes+=count;return true;
+            });
+            if(request.uri().equals(sample.profile().selectDetailUri(sample.source()))) {
+                try(var input=Files.newInputStream(output)) {
+                    AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(input,null,request.uri().toASCIIString()),sample.title(),sample.compactTitle());
+                }
+            }
+            return downloaded;
+        }
+    }
+}

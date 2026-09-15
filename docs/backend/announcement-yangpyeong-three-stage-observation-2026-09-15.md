@@ -34,7 +34,7 @@ P3 실제 파일 검증을 위한 실행 경로다. 기존 태백1건 관측 코
 - [x] 표적20건은42초에 전부 통과했다. 그룹 allowlist/프로필 identity/제목 소속·중복/미지원·부분 파일 완전성/기관·preview 예산 거부/기존 태백 계약/CI 명시 실행과 metadata 전용 보관을 확인했다.
 - [x] 별도 임시 PostgreSQL의 현재 DRAFT seed로 위 제목 판정을 확인했다. 운영 DB에는 접속하지 않았다.
 - [x] 전체 로컬 회귀3분59초 성공: root2628=2367통과/261조건부 생략/실패0, 별도 패키지20/20·임시 Flyway3/3이다. 이후 JUnit factory 이름의 오버로드 가능성을 제거하고 factory 유일성 검사를 추가한 최종 표적20건이39초에 전부 통과했다. production JAR/추출기/독립 패키지는 UP-TO-DATE이며 새 바이너리 실행 성공으로 세지 않는다. JAR SHA256은 `19b1d2fb08bde9e29a9523e41e2a8352a3ad8e68bbf5e98b0a55826867f90d40`로 정부24 커밋과 같다. Node20통과/2 Linux 전용 생략, 사용한 프로세스는 종료했다.
-- [ ] 현재 SHA의 실제 Linux BODY·HWPX/PDF·JPG 미지원 상태 관측. 아직 텍스트 추출 성공으로 보고하지 않는다.
+- [!] 실제 Linux 관측 실행36은 양평2건의 BODY2회 TIMEOUT 뒤 DETAIL_DISCOVERY/TRANSPORT_TIMEOUT으로 실패했다. 해당 파일 다운로드/추출은 미실행이다. 제목 제외1건은 후속 요청0/원본 정리true를 확인했다. [공식 worker 후속 기록](announcement-official-worker-db-api-qa-2026-09-15.md)에 차단과 검증 경로를 구분했다. 같은 접근 조건에서 즉시 반복하지 않는다.
 - [!] 정책 QA 기대값 승인·실 운영 ACTIVE 필터링·실제 worker/DB/API/UI·운영 배포·브라우저는 미완료다. 승인 없는 정책 게시/ENFORCE·기존 데이터 적용은 하지 않는다.
 
 09-15 재확인한 로컬 Docker Linux engine pipe는 없어서 연결에 실패했다. 외부 파일을 Windows에서 비격리 추출하지 않는다. 직전 정부24 SHA `cda8c7ae56a54b545990f9fe891b716997bd27f1`의 [Linux 실행35](https://github.com/FrostyCityMan/saneB/actions/runs/34911583782)는 성공했지만 이번 양평 관측 코드는 포함하지 않는다. 이번 그룹의 현재 SHA/실파일 결과는 별도 실행으로 확인한다.

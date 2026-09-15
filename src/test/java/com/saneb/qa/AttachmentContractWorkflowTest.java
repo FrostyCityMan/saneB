@@ -13,6 +13,23 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void officialWorkerUsesManualOptInAndNeverUploadsDatabaseOrActualText() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(((Map<?,?>)inputs.get("verify-official-worker")).get("default")).isEqualTo(false);
+        var all=steps(job(flow)).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"official-worker-qa".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-official-worker == true }}");
+        assertThat(run.get("run")).isEqualTo("bash ./gradlew attachmentOfficialWorkerIntegrationTest --no-daemon --console=plain --max-workers=1");
+        var artifact=all.stream().filter(item->"공식 worker DB·API metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-official-worker/YANGPYEONG-312241.json",
+                "build/reports/attachment-official-worker/YANGPYEONG-311846.json",
+                "build/reports/attachment-official-worker/YANGPYEONG-311507.json",
+                "build/test-results/attachmentOfficialWorkerIntegrationTest/TEST-*.xml");
+        String build=Files.readString(Path.of("build.gradle"));
+        assertThat(build).contains("environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'false'", "systemProperty 'logback.configurationFile'");
+    }
     @Test void yangpyeongObservationIsOptInBoundedAndUploadsOnlyNamedMetadata() throws Exception {
         var flow=workflow();
         var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");

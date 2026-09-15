@@ -156,6 +156,7 @@ dependencies {
 }
 
 tasks.named('test') {
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'false'
     useJUnitPlatform()
     // 역할별 HTTP 테스트의 독립 Spring 컨텍스트가 512 MiB 테스트 힙을 채우지 않도록 캐시만 제한한다.
     // 테스트·assertion·DB 조건은 생략하지 않으며 동시에 실행하는 JVM 수도 늘리지 않는다.
@@ -313,6 +314,26 @@ tasks.register('attachmentBbsOfficialFileObservation', Test) {
     outputs.upToDateWhen { false }
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBbsOfficialFileObservation')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsOfficialFileObservation')
+}
+
+tasks.register('attachmentOfficialWorkerIntegrationTest', Test) {
+    description = '고정 양평3건의 제목·실제 본문·첨부를 worker/임시 PostgreSQL/API까지 검증합니다. 전체132요청/240MiB, 운영 쓰기·정책 승인은 없습니다.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-official-worker.report', layout.buildDirectory.dir('reports/attachment-official-worker').get().asFile.absolutePath
+    // 공개 본문·추출 텍스트가 JDBC/HTTP 로그로 출력되지 않도록 이 opt-in JVM에서만 차단한다.
+    systemProperty 'logback.configurationFile', layout.projectDirectory.file('src/attachmentContractQa/config/logback-qa.xml').asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentOfficialWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentOfficialWorkerIntegrationTest')
 }
 
 tasks.register('attachmentBbsFixedCaseQa', Test) {

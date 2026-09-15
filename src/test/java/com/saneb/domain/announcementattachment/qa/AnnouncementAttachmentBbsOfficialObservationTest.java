@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /** 고정 공식 표본의 세 단계 실제 관측. 기대값 자동 승인·원문 보관·DB/운영 쓰기는 없다. */
 @EnabledIfEnvironmentVariable(named="SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", matches="true")
-class AnnouncementAttachmentBbsOfficialObservationTest {
+public class AnnouncementAttachmentBbsOfficialObservationTest {
     static final String CASE="TAEBAEK-184816";
     static final String TITLE="2026년 청년농업인 육성지원(취업농) 신청자 모집 공고";
     private static final long MIB=1024L*1024;
@@ -35,14 +35,14 @@ class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
+    public record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
                            AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,boolean compactTitle) {
         @Override public String toString(){return code;}
     }
     static Stream<ObservationCase> selectConfiguredCases() {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
-    static Stream<ObservationCase> selectCases(String group) {
+    public static Stream<ObservationCase> selectCases(String group) {
         if("TAEBAEK".equals(group)) return Stream.of(new ObservationCase(CASE,TITLE,SOURCE,PROFILE,
                 "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,false));
         if(!"YANGPYEONG".equals(group)) throw new IllegalArgumentException("UNKNOWN_OBSERVATION_GROUP");
@@ -154,16 +154,16 @@ class AnnouncementAttachmentBbsOfficialObservationTest {
             JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
         }
     }
-    static boolean selectTitleMayProceed(AnnouncementSourceClassificationResult result) {return result.semanticStatusCode()!=SemanticStatusCode.EXCLUDED
+    public static boolean selectTitleMayProceed(AnnouncementSourceClassificationResult result) {return result.semanticStatusCode()!=SemanticStatusCode.EXCLUDED
             &&Set.of(TitleStageCode.GROUP_A_MATCHED,TitleStageCode.COMBINATION_MATCHED).contains(result.titleStageCode());}
-    static boolean selectBodyComplete(ProviderContentResult body) {return body!=null&&body.statusCode()==ProviderContentCodes.StatusCode.AVAILABLE
+    public static boolean selectBodyComplete(ProviderContentResult body) {return body!=null&&body.statusCode()==ProviderContentCodes.StatusCode.AVAILABLE
             &&body.bodyAvailabilityCode()==BodyAvailabilityCode.AVAILABLE&&body.bodySourceCode()==BodySourceCode.DETAIL_PAGE_TEXT
             &&body.bodyText()!=null&&!body.bodyText().isBlank();}
     static void validateBodyComplete(ProviderContentResult body) {assertTrue(selectBodyComplete(body),"BODY_OBSERVATION_INCOMPLETE");}
     static void validateTitle(org.jsoup.nodes.Document page,String expected) {
         validateTitle(page,expected,false);
     }
-    static void validateTitle(org.jsoup.nodes.Document page,String expected,boolean compact) {
+    public static void validateTitle(org.jsoup.nodes.Document page,String expected,boolean compact) {
         var tables=page.select(compact?"div.p-wrap.bbs.bbs__view > table.p-table.block":"table.bbs_default.view");
         assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
         if(compact) {

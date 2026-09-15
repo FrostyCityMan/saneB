@@ -19,6 +19,10 @@ name: 첨부 DB·작업 계약 Linux QA
         description: '태백의 사전 고정 전체 파일 기대값 비교 (44요청/80MiB, 운영 쓰기 없음)'
         type: boolean
         default: false
+      verify-official-worker:
+        description: '양평 고정3건 실제 worker·임시 DB·API 검증 (132요청/240MiB, 운영 쓰기 없음)'
+        type: boolean
+        default: false
   # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
   push:
     branches:
@@ -44,6 +48,7 @@ jobs:
       SANEB_ATTACHMENT_OFFICIAL_OBSERVATION: 'false'
       SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION: 'false'
       SANEB_ATTACHMENT_BBS_FIXED_CASE_QA: 'false'
+      SANEB_ATTACHMENT_OFFICIAL_WORKER_QA: 'false'
     steps:
       - name: 소스 확인
         uses: actions/checkout@v4
@@ -138,6 +143,25 @@ jobs:
           path: |
             build/reports/attachment-bbs-fixed-case-qa/TAEBAEK-184816-fixed-case.json
             build/test-results/attachmentBbsFixedCaseQa/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 양평 실제 worker·임시 DB·API 검증 — 운영 쓰기 없음
+        id: official-worker-qa
+        # CI에서 반복된 공식 사이트 시간 초과는 자동 재실행하지 않는다. 접근 상태 변화 후 수동으로만 실행한다.
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-official-worker == true }}
+        run: bash ./gradlew attachmentOfficialWorkerIntegrationTest --no-daemon --console=plain --max-workers=1
+
+      - name: 공식 worker DB·API metadata 보관 — 원문 없음
+        if: ${{ always() && steps.official-worker-qa.outcome != 'skipped' && steps.official-worker-qa.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-official-worker-${{ github.sha }}
+          path: |
+            build/reports/attachment-official-worker/YANGPYEONG-312241.json
+            build/reports/attachment-official-worker/YANGPYEONG-311846.json
+            build/reports/attachment-official-worker/YANGPYEONG-311507.json
+            build/test-results/attachmentOfficialWorkerIntegrationTest/TEST-*.xml
           if-no-files-found: error
           retention-days: 7
 

@@ -11,6 +11,16 @@
 
 ## 기준선
 
+### 2026-09-15 09:45 KST — 공식 파일 worker·DB·API 검증 경로 / CI 외부 접근 차단
+
+- P3 진행, 전체 Gate0~8/ATT-001~062는 **Not ready**, goal ACTIVE다. `제목 1차 → 정제 본문 2차 → 실제 첨부 텍스트 3차 → 최종 관리자 검증`을 유지한다. 이번 회차는 검증 연결 구현의 progress이며 운영 완료가 아니다.
+- [Linux 실행36](https://github.com/FrostyCityMan/saneB/actions/runs/34912804386), `0f34f9eeaf805ac604ca4218ee89c68a6caee159`는 공식 관측 failure다. root2628=2366통과/262조건부 생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·원래 Flyway3은 실패/생략0이다. 독립221/221, Node241/설치12, 부모 정리도 통과했지만 공식 파일 성공으로 계산하지 않는다.
+- 양평312241/311846은 각각 BODY2시도 TIMEOUT 뒤 DETAIL_DISCOVERY/TRANSPORT_TIMEOUT이다. 각각 요청 예약3/원본 정리true, 다운로드/추출 미실행이다. 제목 제외311507은 TITLE_EXCLUDED_NOT_FETCHED/후속 요청0이다. 태백 실행30/31 뒤 양평에서도 CI 접근 실패가 반복되어 동일 조건 즉시 재시도는 중단했다. 네트워크/리전/원격 차단 중 실제 원인은 미확정이다. WSL에는 docker-desktop만 있고 별도 개발 Linux 배포판은 없다.
+- 새 공식 worker 시험은 실제 BODY·분류 persistence→현재 버전 job 예약→실제 worker/profile/download gateway/Linux 격리 추출/역할1.0.2→임시 PG→API/근거 블록을 연결한다. TITLE 제외 원문/요청0, BODY A/B/실패 후 첨부 계속, 미지원 분모/자동 검수·공고 link 금지, 원본/lease 정리를 확인한다. 공개 텍스트/파일명/URL/원격 예외는 로그·artifact에 남기지 않는다. 운영 규칙/ENFORCE가 아닌 소유 임시 DB fixture임을 구분한다. [설계·실행 기록](announcement-official-worker-db-api-qa-2026-09-15.md)을 따른다.
+- 최초 컴파일은 추출기 패키지 import 누락에 따른 오류3건으로 실패했고 수정 후 준비 계약·기존 관측 계약·workflow 표적 검증은52초 성공했다. 합성 BODY의 실제 분류 저장→현재 버전 job 예약이 검증되었다. 공식 파일 worker 자체 실행은 외부 접근 차단으로 미실행이며 새 CI 단계는 수동 opt-in/defaultfalse다. 일반 push에서 같은 공식 사이트를 재요청하지 않는다.
+- 전체 로컬 회귀·job192·원래 Flyway3·bootJar/패키지 검증은16분3초에 성공했다. root2631=2369통과/262조건부 생략/실패0, 별도 job192/192·패키지20/20·Flyway3/3이다. 새 DB 준비1건과 workflow10건도 root 실행에서 통과했다. Node20통과/2 Linux 전용 생략/실패0이며 사용한 Node/JVM/임시 PG는 종료했다. production Java/API/UI/migration은 바꾸지 않았고 bootJar/추출기 시험은 UP-TO-DATE다. JAR hash `19b1d2fb08bde9e29a9523e41e2a8352a3ad8e68bbf5e98b0a55826867f90d40`, V83/엔진6/profile17/전용 BODY16기관/형식3/catalog 참조24·기대값0을 유지한다. 현재 변경의 Linux 실행은 다음 SHA에서 별도 확인한다.
+- AWS 재인증 응답, 공식 파일·정책 기대값·미연결 기관, 현 SHA 운영 배포·승인된 기존 데이터 전체 적용·운영 브라우저가 남았다. 이번 운영 접속/쓰기/배포/브라우저 검증은 미실행이며 사용자 Word2개를 보존했다.
+
 ### 2026-09-15 09:20 KST — 양평 실파일 세 단계 관측 연결 / 제목 제외 표본 보존
 
 - P3에서 기존 태백1건에 고정된 관측기를 재사용해 명시적인 양평3건 그룹을 연결했다. 실제 공식 제목3개를 확인하고 임시 DB DRAFT로 사전 판정했다.312241·311846은 COMBINATION_MATCHED,311507은 TITLE_COMBINATION_NOT_MATCHED다. 마지막 표본은 본문/첨부 예산 예약 전에 TITLE_EXCLUDED_NOT_FETCHED로 끝내며 외부 요청0이다. 과거 BODY/파일 발견 성공3건을 실제 필터 통과3건으로 세지 않는다.
