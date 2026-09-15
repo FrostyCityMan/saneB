@@ -11,6 +11,12 @@
 
 ## 기준선
 
+### 2026-09-15 12:45 KST — 실제 HWP 전체 worker 경로 관측
+
+- P3 **progress**, 전체9Gate/ATT62 Not ready다. 기존 태백 모델에 고정 공고176153의 독립 시험 그룹만 추가했다. 엔진6/profile17/본문16/추출형식3과 production code/catalog1기대값은 변하지 않았다.
+- SSM `f066eadd-753f-498b-b0e4-b863c1efec24` Success/1통과·실패/생략0, BODY AVAILABLE와 HWP125,952bytes/9,743자/480블록의 실제 다운로드·격리 추출→worker→임시 DB→API를 확인했다. PARTIAL_TEXT/UNKNOWN·PARTIAL_FAILED/TECHNICAL_EXCEPTION·REVIEW_REQUIRED를 유지하며 완전 추출로 계산하지 않는다.
+- 총4요청/2,354,176bytes·원본/lease/임시 PG/전송 정리 성공·운영 DB 쓰기0·설치2bde216 JAR 불변이다. 로컬23건/생략0·Node5건 통과. [공식 worker 기록](announcement-official-worker-db-api-qa-2026-09-15.md)에 지문·경계를 남겼다. 새 catalog7e1c2de의 Linux34925971820는 현재 진행 중이며 새 SHA 배포/고정 기대값 재검증은 아직 성공이 아니다.
+
 ### 2026-09-15 12:28 KST 이후 — 첫 공식 전체 파일 기대값 연결
 
 - 직전 회차는 상태 확인이며 구현 진척은 없었다. 이번은 공식 기대값0의 공백을 줄인 **progress**다. 전체 ATT62/9Gate는 Not ready, goal ACTIVE다. 제목→정제 본문→전체 첨부 텍스트→관리자 최종 검증을 유지한다.
@@ -290,7 +296,7 @@
 | 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 총24/실행 기대값1(태백 전체2파일, 정상공고0). 새 기대값 실제 재비교·나머지 역할/형식/전체 Provider QA·정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기·단일 파일4건 진단·공식 양평3건/태백1건 worker·DB·API 통과. 태백 양식 FORM 실제 자동 식별, 혼합 문서 UNKNOWN 사유 확인. PDF 부분/JPG미지원·전체 Provider/형식/사전 기대값은 잔여 |
+| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기·단일 파일4건 진단·공식 양평3건/태백HWPX1건/HWP1건 worker·DB·API 통과. HWP9743자 부분 추출/검수 전환, 태백 FORM·혼합 UNKNOWN 확인. 새 catalog 고정 재비교·완전HWP/전체 Provider/형식/사전 기대값은 잔여 |
 | 7 운영 배포·활성화 | [~] | Actions34922807546/CodeDeploy d-Q1K7M8ETK 성공, V83·추출기1.0.1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록 확인. 새2bde216 배포 후 인증 만료 차단→로그인 화면 확인/사용자 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

@@ -24,6 +24,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
         return switch(group) {
             case "YANGPYEONG" -> CASES;
             case "TAEBAEK" -> List.of("TAEBAEK-184816");
+            case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }

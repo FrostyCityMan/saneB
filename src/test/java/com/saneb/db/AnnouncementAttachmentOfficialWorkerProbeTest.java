@@ -4,6 +4,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void hwpNoticeUsesExistingTaebaekProfileAndAnIndependentSingleCaseDenominator() {
+        var sample=com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("TAEBAEK_HWP").toList();
+        assertEquals(1,sample.size());assertEquals("TAEBAEK-176153",sample.getFirst().code());assertEquals(1,sample.getFirst().listedFileCount());
+        assertEquals("LOCAL_TAEBAEK_BBS_V1",sample.getFirst().profile().selectProfileCode());
+        assertTrue(sample.getFirst().profile().selectApprovedRequest(sample.getFirst().profile().selectDetailUri(sample.getFirst().source())));
+        assertEquals(java.util.List.of("TAEBAEK-176153"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("TAEBAEK_HWP"));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("TAEBAEK_HWP",1,1,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("TAEBAEK_HWP",1,0,0,1,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("TAEBAEK_HWP",2,2,0,0,0,0));
+    }
     @Test void fixedCaseSharesBoundedRequestsAndIdempotentResourceOwnership() throws Exception {
         var nano=new java.util.concurrent.atomic.AtomicLong();
         var control=new AnnouncementAttachmentOfficialWorkerIntegrationTest.FixedCaseControl(nano::get);

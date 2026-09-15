@@ -18,9 +18,9 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
 });
-test('공식 그룹은 양평 기본값과 명시한 태백만 허용하고 임의 입력을 거부한다', () => {
+test('공식 그룹은 양평 기본값과 고정 태백 HWPX·HWP 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('"$case_group" == YANGPYEONG || "$case_group" == TAEBAEK'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
 });

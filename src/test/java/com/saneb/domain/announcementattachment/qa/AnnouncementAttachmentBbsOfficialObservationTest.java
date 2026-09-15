@@ -45,6 +45,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     public static Stream<ObservationCase> selectCases(String group) {
         if("TAEBAEK".equals(group)) return Stream.of(new ObservationCase(CASE,TITLE,SOURCE,PROFILE,
                 "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,false));
+        if("TAEBAEK_HWP".equals(group)) {
+            String url="https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=176153";
+            var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+            return Stream.of(new ObservationCase("TAEBAEK-176153","2026년 태백시 소상공인 특례보증 및 이차보전 지원계획 공고",
+                    new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000121","SPRING_BBS"),
+                    PROFILE,"https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",1,false));
+        }
         if(!"YANGPYEONG".equals(group)) throw new IllegalArgumentException("UNKNOWN_OBSERVATION_GROUP");
         return Stream.of(
                 selectYangpyeongCase("312241","9b6353577acabd579068a389244e774d40b5488eea86d1e15fb78e0eae9ccb9a",

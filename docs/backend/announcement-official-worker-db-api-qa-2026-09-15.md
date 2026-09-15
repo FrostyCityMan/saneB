@@ -2,6 +2,19 @@
 
 ## 현재 단계 / Gate
 
+### 2026-09-15 12:45 KST — 실제 HWP 전체 공고 경로
+
+별도 고정 그룹 `TAEBAEK_HWP`에서 [태백176153 공식 공고](https://www.taebaek.go.kr/www/selectBbsNttView.do?bbsNo=25&key=352&nttNo=176153)를 기존 태백 BODY/profile/worker로 처리했다. 양평3건과 태백184816의 분모·기대값 재비교는 그대로다. 임의 URL/ALL을 허용하거나 새 수집 모델을 추가하지 않았다.
+
+- SSM `f066eadd-753f-498b-b0e4-b863c1efec24` Success, JUnit1/1통과·실패/생략/중단/container 실패0이다. 설치 코드는2bde216/추출기1.0.1이며 새 catalog7e1c2de의 배포/정책 QA 성공이 아니다.
+- BODY AVAILABLE/1시도, TITLE COMBINATION_MATCHED→BODY ACCEPTED→실제 전체 HWP1개 발견/다운로드125,952bytes/9,743자/480블록→worker→임시 DB→v2 API를 대조했다. HWP signature를 확인했으며 확장자 표시만으로 성공 처리하지 않았다.
+- 품질 PARTIAL_TEXT, 역할 UNKNOWN/자동 역할 근거 없음, job PARTIAL_FAILED, processing TECHNICAL_EXCEPTION, effective REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE다. 전체 텍스트 완전성false·관리자 최종 검수 필요를 유지했다. 완전 HWP/정상 후보/최종 승인 성공으로 계산하지 않는다.
+- binary hash `a424fffd308588d07a985076d379c4aedfe25c8b4576821065dbffac2c16c1d9`, text hash `730bd283fd4dc93d4f9a271883c35f037182b840b51168a1d190297cafa6f497`, QA locator hash `7a513eb3b13920e81932465c4f23f250b51c9d613e306dab508b9bf17a2ffde9`다. 정책 실행 기대값은 아직 등록하지 않았다.
+- 4요청/2,354,176bytes, 상한44요청/80MiB/420초다. 운영 DB 쓰기0·자동 confirmation/link0·lease0·원본/소유 임시 PG/전송 정리 성공·설치 JAR 불변이다. probe hash `d7eebb0d2c9375d5fe049371da5ac5b53ce7f4502982152667e326877dcc95f9`다.
+- 새 그룹/정확한1건 분모/기존 profile/임의 입력 거부와 관측 계약의 로컬23건은43초 통과·생략0, Node launcher5건 통과다. production Java/DB/API/catalog/엔진 수는 이 HWP 증분에서 바꾸지 않았다. 직전7e1c2de 전체 회귀2385통과/262조건부 생략과 구분한다.
+
+이 결과로 **실제 HWP의 전체 worker·DB·API 경로와 부분 추출의 검수 전환**을 관측했다. 완전 텍스트 HWP의 같은 경로, 전체 Provider/형식의 사전 기대값, 새 catalog 배포/고정 비교, 승인된 상시 수집·기존 데이터·운영 브라우저 E2E는 남아 있다. 관측한 공식 페이지는 공개 지원계획이며 담당자·전화·원문을 보고서에 복사하지 않았다.
+
 P3 진행, 전체 Gate0~8 / ATT-001~062는 **Not ready**다. 변경된 `제목 1차 → 정제 본문 2차 → 실제 첨부 텍스트 3차 → 관리자 최종 검증` 순서를 보존한다. 이번 변경은 시험·실행 설정·기록이며 production Java/API/UI/schema를 변경하지 않는다. 기존 공식 파일 관측과 별도로 실제 worker 저장·조회 경로를 검증하도록 확장했다.
 
 ## 2026-09-15 12:06~12:10 KST — 혼합 역할 사유 확정·태백 양식 자동 식별
