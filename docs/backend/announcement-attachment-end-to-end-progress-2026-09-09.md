@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-15 13:40 KST — HWP 구조 진단·미해석 레코드 품질 보완
+
+- 직전 회차는 상태 보고와 실행 중 표적 시험 결과 회수(103통과/실패0/Linux1생략)였다. 이번은 추출기1.0.2의 전체 회귀·문서화 **progress**다. 전체 ATT62/9Gate Not ready와 제목→정제 본문→실제 첨부→관리자 최종 검증 범위를 유지한다.
+- HWP의 기존76~88 밖 미해석 레코드가 COMPLETE_TEXT가 될 수 있는 공백을 보완했다. 원문 없는 section/record/level/tag 숫자 진단과 부모 IPC의 엄격한 계약 검증을 추가했다. 표를 완전히 지원한 것이 아니며 HWP 실제 누락 구조는 새 설치 후 확인한다. DB/API/UI/V1~V83은 변경하지 않았다. [상세 계약](announcement-hwp-structure-diagnostic-2026-09-15.md)에 범위·호환성·남은 검증을 기록했다.
+- 전체 로컬 시험5분4초 성공: root2653=2391통과/262조건부 생략·실패0, 패키지20통과/생략0, 추출기58건은 앞선 표적 실행의 결과를 재사용(UP-TO-DATE). Node 배포/공식 probe15통과·Linux2생략, bootJar/probe 생성과 diff 검증 완료. 새 SHA Linux·실제 설치·공식 HWP/HWPX 재검증은 아직 미실행이다.
+- 배포 전 Runtime SSM `3b1a2852-a8be-42f3-90d9-5aeafbd7818b` Success: 운영787c594/추출기1.0.1/JAR V83/health UP/추출기-불변 QA 일치·첨부 worker/QA 비활성·외부 API key2종 없음 재확인. 정책 게시·ENFORCE·기존 데이터는 실행하지 않았다. Java/Node·임시 CA 정리, 사용자 output 보존. 관리자 업무 브라우저 E2E는 여전히 남는다.
+
 ### 2026-09-15 13:16 KST — 새 catalog 배포·첫 고정 기대값 실증
 
 - 직전 회차는 특정 CI34925971820/34926361587의 **검증된 대기**였고 이번은 배포·실제 기대값 비교를 완료한 **progress**다. 전체9Gate/ATT62 Not ready·goal ACTIVE이며 원래 범위와 제목→본문→실제 첨부→관리자 검증 순서를 유지한다.

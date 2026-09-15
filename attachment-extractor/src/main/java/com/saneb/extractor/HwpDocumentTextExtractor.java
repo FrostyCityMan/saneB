@@ -17,6 +17,8 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 final class HwpDocumentTextExtractor {
     ExtractionResult selectExtraction(Path file) throws IOException {
         TextEvidence evidence = new TextEvidence();
+        int sectionCount = 0, recordCount = 0, maximumLevel = 0;
+        int[] recordTypes = new int[1024];
         try (POIFSFileSystem ole = new POIFSFileSystem(file.toFile(), true)) {
             DirectoryNode root = ole.getRoot();
             if (!root.hasEntry("FileHeader")) return ExtractionResult.failure("UNSUPPORTED");
@@ -32,6 +34,7 @@ final class HwpDocumentTextExtractor {
             body.forEach(entry -> { if (entry.getName().matches("Section[0-9]+")) sections.add(entry.getName()); });
             sections.sort(Comparator.comparingInt(name -> Integer.parseInt(name.substring(7))));
             if (sections.isEmpty()) return ExtractionResult.failure("CORRUPT");
+            sectionCount = sections.size();
             long remaining = 128L * 1024 * 1024;
             for (String section : sections) {
                 long compressedSize=((org.apache.poi.poifs.filesystem.DocumentEntry)body.getEntry(section)).getSize();
@@ -60,14 +63,24 @@ final class HwpDocumentTextExtractor {
                         remaining -= size;
                         if ((flags & 1) != 0 && sectionBudget-remaining>Math.max(1L,compressedSize)*100L)
                             throw new IOException("LIMIT_EXCEEDED");
+                        recordCount++;
+                        recordTypes[tag]++;
+                        maximumLevel = Math.max(maximumLevel, (record >>> 10) & 1023);
                         if (tag == 67) evidence.insertBlock(selectParagraph(data), section + ":paragraph:" + (++paragraph), true);
-                        // 도형·그림·OLE·수식에는 이 경로가 해석하지 않는 근거가 있을 수 있다.
-                        if (tag >= 76 && tag <= 88) evidence.updatePartial();
+                        // 문단/레이아웃 metadata(66~75) 외 구조는 별도 지원 검증이 필요하다.
+                        // 글맵시/양식/차트/미래 tag를 76~88 범위 밖이라는 이유로 완전 추출 처리하지 않는다.
+                        if (tag < 66 || tag > 75) evidence.updatePartial();
                     }
                 } finally { inflater.end(); }
             }
         }
-        return evidence.selectResult("HWP", null);
+        var types = new ArrayList<ExtractionResult.RecordType>();
+        for (int tag = 0; tag < recordTypes.length; tag++)
+            if (recordTypes[tag] > 0) types.add(new ExtractionResult.RecordType(tag, recordTypes[tag]));
+        var result = evidence.selectResult("HWP", null);
+        return new ExtractionResult(result.format(), result.extractorVersion(), result.qualityCode(),
+                result.text(), result.blocks(), result.pageCount(), result.errorCode(),
+                new ExtractionResult.HwpStructure(sectionCount, recordCount, maximumLevel, types));
     }
     private String selectParagraph(byte[] bytes) throws IOException {
         if (bytes.length % 2 != 0) throw new IOException("CORRUPT");

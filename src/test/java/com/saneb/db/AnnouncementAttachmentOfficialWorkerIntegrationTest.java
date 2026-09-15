@@ -185,6 +185,9 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         row.put("textHash",storedText==null?null:hash(storedText));
                         row.put("blockCount",actual.path("blocks").size());
                         row.put("replacementCharacterCount",selectReplacementCharacterCount(storedText));
+                        var hwpStructure=IsolatedAttachmentExtractor.selectHwpStructureDetails(actual);
+                        if("HWP".equals(file.detectedTypeCode()))assertNotNull(hwpStructure,"HWP_STRUCTURE_DIAGNOSTIC_MISSING");
+                        if(hwpStructure!=null)row.put("hwpStructure",hwpStructure);
                         row.put("reviewPhrasePresence",selectReviewPhrasePresence(storedText));
                         if("COMPLETE_TEXT".equals(file.qualityCode()))assertNotNull(file.roleAssessment(),"TEXT_ROLE_ASSESSMENT_MISSING");
                         if(file.roleAssessment()!=null) {

@@ -114,6 +114,39 @@ public class IsolatedAttachmentExtractor {
         }
         if ("COMPLETE_TEXT".equals(result.path("qualityCode").asText()) && (text.isBlank() || result.path("blocks").isEmpty()))
             throw new IOException("INVALID_EXTRACTOR_RESULT");
+        selectHwpStructureDetails(result);
+    }
+    /** 격리 IPC의 수치 진단만 허용한다. 원문·가변 코드·미지 필드는 외부 보고로 전달하지 않는다. */
+    public static JsonNode selectHwpStructureDetails(JsonNode result) throws IOException {
+        if (result == null || !result.has("hwpStructure")) return null;
+        JsonNode value = result.path("hwpStructure");
+        if (!"HWP".equals(result.path("format").asText()) || !value.isObject() || value.size() != 4
+                || !value.has("sectionCount") || !value.has("recordCount")
+                || !value.has("maximumLevel") || !value.has("recordTypes"))
+            throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        selectBoundedDiagnosticInt(value.path("sectionCount"), 1, 33_554_432);
+        int count = selectBoundedDiagnosticInt(value.path("recordCount"), 0, 33_554_432);
+        int level = selectBoundedDiagnosticInt(value.path("maximumLevel"), 0, 1023);
+        JsonNode types = value.path("recordTypes");
+        if (!types.isArray() || types.size() > 1024 || (count == 0 && level != 0))
+            throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        long sum = 0;
+        int previousTag = -1;
+        for (JsonNode type : types) {
+            if (!type.isObject() || type.size() != 2 || !type.has("tagId") || !type.has("count"))
+                throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+            int tag = selectBoundedDiagnosticInt(type.path("tagId"), 0, 1023);
+            if (tag <= previousTag) throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+            previousTag = tag;
+            sum += selectBoundedDiagnosticInt(type.path("count"), 1, 33_554_432);
+        }
+        if (sum != count) throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        return value.deepCopy();
+    }
+    private static int selectBoundedDiagnosticInt(JsonNode value, int minimum, int maximum) throws IOException {
+        if (!value.isIntegralNumber() || !value.canConvertToInt() || value.intValue() < minimum || value.intValue() > maximum)
+            throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        return value.intValue();
     }
     private JsonNode selectFailure(String code) { return mapper.createObjectNode().put("qualityCode",code).put("errorCode",code); }
     private static void deleteProcessTree(Process process) {
