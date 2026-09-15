@@ -7,7 +7,7 @@ public record ExtractionResult(String format, String extractorVersion, String qu
         String text, List<Block> blocks, Integer pageCount, String errorCode,
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
         HwpStructure hwpStructure) {
-    public static final String VERSION = "1.0.2";
+    public static final String VERSION = "1.0.3";
     public record Block(int index, int startOffset, int endOffset, String locator,
             String evidenceScopeId, boolean scopeReliable) { }
     /** 수치만 있는 격리 IPC 진단이다. 원문/파일명/컨트롤 payload를 포함하지 않는다. */

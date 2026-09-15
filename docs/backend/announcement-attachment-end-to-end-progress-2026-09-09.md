@@ -11,6 +11,20 @@
 
 ## 기준선
 
+### 2026-09-15 15:14 KST — HWP 표·셀 순서 처리1.0.3 로컬 구현
+
+- 직전 회차는 현황 보고로 구현 진척이 없었다. 이번은 **progress**다. 공개 작성/읽기 형식의 실제 셀 헤더8바이트 기본 영역과 레코드 깊이를 대조하여 표 앞 문장→셀별 문단/중첩 표→표 뒤 문장의 순서를 구현했다. 행·열/span·전체 격자·문단 수/종료 플래그/문자 수를 검증하고 각 셀/문단/연속 구간의 scope를 분리한다. 단순 TABLE tag 차단 해제가 아니다.
+- 추출기/서버 기대 버전1.0.3. 불일치·앵커 누락·미지원 구조는 부분 추출로 남고 노드/깊이/격자 예산을 추가했다. DB/API/UI/V1~V83·정책·운영 데이터는 변경하지 않았다. 엔진6/첨부 profile17/전용 BODY16/형식3은 동일하다. [계약과 한계](announcement-hwp-table-text-v1.0.3-2026-09-15.md)를 따른다.
+- 최종35초 로컬 성공: root2653=2391통과/262조건부 생략(앞선 전체 실행 결과 재사용), 추출기88(신규30)·패키지20 실패/생략0, bootJar/probe UP-TO-DATE. 검증 중 source/class 컴파일 시점 불일치로 새 테스트1건이 실패했으나 최종 소스 재컴파일 후 전부 통과했다. Node15통과/Linux2생략·JAR/class2종 hash 일치·Java0·사용자 output 보존이다.
+- 새 SHA Linux/실제 HWP/HWPX/운영 설치/브라우저 검증은 아직 없다. 취소된 배포의 재실행 확인과 관리자 재로그인/API key 등록은 대기다. 기존 실제 HWP9743자의 부분 추출 해소를 주장하지 않는다. 전체 기관 대응·공식 기대값·승인된 게시/ENFORCE/기존 데이터·업무 E2E까지 ATT62/9Gate는 계속 Not ready, goal ACTIVE다.
+
+### 2026-09-15 14:45 KST — HWP 보완 커밋·Linux 성공, 배포 취소 확인
+
+- `a860bbdf820f13bb6ed151020089f616447fb08f`를 한글 커밋·푸시했고 HEAD/origin 일치를 확인했다. Linux [34929791026](https://github.com/FrostyCityMan/saneB/actions/runs/34929791026) success의 보관 XML을 내려받아 검토했다: root2653=2390통과/263조건부 생략, 추출기58·패키지20·job192·migration17·worker12·runtime1·정책 부모2·Flyway3은 실패/생략0이다. 로컬 watch는 네트워크 오류로 종료됐으나 원격 작업은 재조회로 성공을 확인했으며 중복 시작하지 않았다.
+- 새 배포 [34933705970](https://github.com/FrostyCityMan/saneB/actions/runs/34933705970)는 14:42 테스트·빌드 도중 cancelled다. 번들·AWS 인증·S3·CodeDeploy 모두 skipped이며 새 운영 설치는 없다. 제공 annotation만으로 취소 주체/원인을 특정하지 못해 자동 재실행하지 않고 사용자에게 재배포 여부를 확인한다. [HWP 상세 기록](announcement-hwp-structure-diagnostic-2026-09-15.md)을 따른다.
+- 14:44 AWS inventory는 기존 `d-MWENRAGTK`/`787c594` Succeeded·서울/default root 대상 일치·SSM Online을 확인했다. 추출기1.0.2의 실제 HWP 구조 관측과 HWPX 사전 기대값 재비교는 미실행이다. 정책 게시·ENFORCE·기존 데이터·새 운영 DB 변경도 없다.
+- 승인된 운영 브라우저 탭은 로그인 화면임을 metadata로 확인하고 handoff로 유지했다. 비밀번호/입력값·쿠키를 읽지 않았으며 로그인·업무 E2E·새 스크린샷/반응형 성공으로 계산하지 않는다. 기업마당·정부24 키의 운영 환경 직접 등록 가능 여부를 한 번 요청했다. Java0·소유 Node/gh/임시 CA 종료·사용자 output 보존. 전체 ATT62/9Gate Not ready·goal ACTIVE다.
+
 ### 2026-09-15 13:40 KST — HWP 구조 진단·미해석 레코드 품질 보완
 
 - 직전 회차는 상태 보고와 실행 중 표적 시험 결과 회수(103통과/실패0/Linux1생략)였다. 이번은 추출기1.0.2의 전체 회귀·문서화 **progress**다. 전체 ATT62/9Gate Not ready와 제목→정제 본문→실제 첨부→관리자 최종 검증 범위를 유지한다.
