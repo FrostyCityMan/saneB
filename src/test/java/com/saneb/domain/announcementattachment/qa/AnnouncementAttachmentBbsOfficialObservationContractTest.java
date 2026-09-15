@@ -7,6 +7,65 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void onlyFixedGroupsAndExactProfileSourcesAreSelectable() throws Exception {
+        var observation=AnnouncementAttachmentBbsOfficialObservationTest.class.getDeclaredMethod(
+                "observesTitleBodyAndWholeAttachmentSetWithoutPublication",AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase.class);
+        String factory=observation.getAnnotation(org.junit.jupiter.params.provider.MethodSource.class).value()[0];
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.class.getDeclaredMethod(factory).getParameterCount()).isZero();
+        assertThat(java.util.Arrays.stream(AnnouncementAttachmentBbsOfficialObservationTest.class.getDeclaredMethods())
+                .filter(method->method.getName().equals(factory)).count()).isEqualTo(1);
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("YANGPYEONG-312241","YANGPYEONG-311846","YANGPYEONG-311507");
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::listedFileCount).containsExactly(1,2,2);
+        for(var sample:cases) {
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_YANGPYEONG_BBS_V1");
+            assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("www.yp21.go.kr");
+            assertThat(sample.toString()).doesNotContain("https:",sample.title());
+        }
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases("TAEBAEK")).hasSize(1);
+        for(String invalid:List.of("ALL","YANGPYEONG,TAEBAEK","https://example.com","../YANGPYEONG",""))
+            assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectCases(invalid)).isInstanceOf(IllegalArgumentException.class);
+    }
+    @Test void compactTitleMustBelongToSingleOfficialTableAndMatchObservedIdentity() {
+        var page=org.jsoup.Jsoup.parse("<div class='p-wrap bbs bbs__view'><table class='p-table block'><tr><td><span class='p-table__subject_text'>공식 지원 공고</span></td></tr><tr><td><table><tr><td><span class='p-table__subject_text'>다른 중첩 제목</span></td></tr></table></td></tr></table></div>");
+        assertThatCode(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"공식 지원 공고",true)).doesNotThrowAnyException();
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"변경된 제목",true)).isInstanceOf(AssertionError.class);
+        page.select("table.p-table > tbody > tr > td").first().append("<span class='p-table__subject_text'>공식 지원 공고</span>");
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"공식 지원 공고",true)).isInstanceOf(AssertionError.class);
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(org.jsoup.Jsoup.parse("<span class='p-table__subject_text'>공식 지원 공고</span>"),"공식 지원 공고",true)).isInstanceOf(AssertionError.class);
+    }
+    @Test void unsupportedPartialOrUnrunFilesCannotBecomeCompleteTextAnalysis() {
+        var complete=Map.<String,Object>of("status","OBSERVED","quality","COMPLETE_TEXT");
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectWholeTextAnalysisComplete(true,List.of(complete))).isTrue();
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectWholeTextAnalysisComplete(false,List.of(complete))).isFalse();
+        for(var incomplete:List.of(Map.of("status","UNSUPPORTED_NOT_DOWNLOADED"),Map.of("status","NOT_RUN"),
+                Map.of("status","FAILED"),Map.of("status","OBSERVED","quality","PARTIAL_TEXT"),Map.of("status","OBSERVED","quality","OCR_REQUIRED")))
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectWholeTextAnalysisComplete(true,List.of(complete,incomplete))).isFalse();
+    }
+    @Test void budgetCannotBorrowAnotherInstitutionOrFetchPreview() {
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG").findFirst().orElseThrow();
+        var b=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile());b.reserveBody();
+        var request=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(sample.profile().selectDetailUri(sample.source()));
+        assertThat(b.selectRequestAllowed(request)).isTrue();
+        for(String url:List.of("https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816",
+                "https://www.yp21.go.kr/common/program/synap.jsp?fileName=test.pdf"))
+            assertThat(b.selectRequestAllowed(com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(java.net.URI.create(url)))).isFalse();
+        assertThat(b.requests).isEqualTo(3);
+    }
+    @Test void yangpyeongTitlePreflightUsesCurrentDraftWithoutPromotingExcludedExamples() throws Exception {
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG").toList()) {
+            var result=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",
+                    sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            System.out.println("FIXED_TITLE_PREFLIGHT "+sample.code()+" "+result.titleStageCode()+" "+result.reasonCode());
+            assertThat(result.titleStageCode()).isNotNull();
+            if(sample.code().equals("YANGPYEONG-312241")) assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(result)).isTrue();
+        }
+    }
     @Test void failedOrEmptyBodyCannotPassWholeObservationEvenWhenFilesWereObserved() {
         var request=new com.saneb.domain.announcementsource.provider.content.ProviderContentRequest("LOCAL_GOV_NOTICE",java.util.UUID.randomUUID(),"https://example.go.kr/list","https://example.go.kr/detail");
         var uri=java.net.URI.create(request.officialDetailUrl());

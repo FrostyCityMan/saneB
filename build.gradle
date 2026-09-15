@@ -297,7 +297,7 @@ tasks.register('attachmentOfficialFileObservation', Test) {
 }
 
 tasks.register('attachmentBbsOfficialFileObservation', Test) {
-    description = '고정 태백 공고 1건의 제목·본문·전체 첨부를 Linux 격리 관측합니다. 운영 쓰기·기대값 승인은 없습니다.'
+    description = '태백1건 또는 명시한 양평3건의 제목·본문·전체 첨부를 Linux 격리 관측합니다. 운영 쓰기·기대값 승인은 없습니다.'
     group = 'verification'
     dependsOn ':attachment-extractor:installDist'
     useJUnitPlatform()
@@ -309,6 +309,7 @@ tasks.register('attachmentBbsOfficialFileObservation', Test) {
     maxHeapSize = '384m'
     systemProperty 'saneb.attachment-observation.extractor', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
     systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-bbs-official-observation').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-observation.group', providers.gradleProperty('sanebBbsObservationGroup').getOrElse('TAEBAEK')
     outputs.upToDateWhen { false }
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBbsOfficialFileObservation')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsOfficialFileObservation')

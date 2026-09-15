@@ -13,6 +13,22 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void yangpyeongObservationIsOptInBoundedAndUploadsOnlyNamedMetadata() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(((Map<?,?>)inputs.get("observe-yangpyeong-official-files")).get("default")).isEqualTo(false);
+        var all=steps(job(flow)).stream().map(item->(Map<?,?>)item).toList();
+        var observation=all.stream().filter(item->"yangpyeong-official-observation".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(observation.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.observe-yangpyeong-official-files == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[yangpyeong-observation]'))) }}");
+        assertThat(observation.get("run")).isEqualTo("bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=YANGPYEONG --no-daemon --console=plain --max-workers=1");
+        var artifact=all.stream().filter(item->"양평 세 단계 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-bbs-official-observation/YANGPYEONG-312241.json",
+                "build/reports/attachment-bbs-official-observation/YANGPYEONG-311846.json",
+                "build/reports/attachment-bbs-official-observation/YANGPYEONG-311507.json",
+                "build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml");
+        assertThat(Files.readString(Path.of("build.gradle"))).contains("providers.gradleProperty('sanebBbsObservationGroup').getOrElse('TAEBAEK')");
+    }
     private Map<?,?> workflow() throws IOException {
         return new Yaml(new SafeConstructor(new LoaderOptions())).load(
                 Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml")));

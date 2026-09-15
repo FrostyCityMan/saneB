@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 09:20 KST — 양평 실파일 세 단계 관측 연결 / 제목 제외 표본 보존
+
+- P3에서 기존 태백1건에 고정된 관측기를 재사용해 명시적인 양평3건 그룹을 연결했다. 실제 공식 제목3개를 확인하고 임시 DB DRAFT로 사전 판정했다.312241·311846은 COMBINATION_MATCHED,311507은 TITLE_COMBINATION_NOT_MATCHED다. 마지막 표본은 본문/첨부 예산 예약 전에 TITLE_EXCLUDED_NOT_FETCHED로 끝내며 외부 요청0이다. 과거 BODY/파일 발견 성공3건을 실제 필터 통과3건으로 세지 않는다.
+- 기존 profile·strict TLS/요청 허용·격리 추출기를 유지하며 새 엔진/seed/DDL/API/UI/운영 정책을 추가하지 않는다. 선택3건 상한132요청/240MiB, 실제 요청량은 metadata에서 별도 대조한다. 제목 입력은 고정 공식 표본, 규칙은 임시 DB DRAFT임을 명시한다. 본문 A/B·부족 후에도 첨부 분석을 계속하고, JPG·부분/OCR·실패·미실행은 전체 텍스트 완전성 false로 남긴다. UNKNOWN 역할이나 관측 성공을 정책 QA로 승격하지 않는다.
+- 표적20건42초 통과 후 전체 회귀3분59초 성공: root2628=2367통과/261조건부 생략/실패0, 별도 패키지20/20·원래 임시 Flyway3/3이다. 이후 JUnit source factory의 오버로드 혼동을 없앤 최종 표적20건이39초에 다시 통과했다. Node20통과/2 Linux 전용 생략, production JAR/추출기/독립 패키지 UP-TO-DATE를 분리한다. 최종 웹 JAR SHA256 `19b1d2fb08bde9e29a9523e41e2a8352a3ad8e68bbf5e98b0a55826867f90d40`는 직전 커밋과 동일하다. 직접 사용한 프로세스는 종료했고 사용자 output Word2개를 보존했다.
+- 직전 정부24 SHA `cda8c7ae56a54b545990f9fe891b716997bd27f1`의 [Linux 실행35](https://github.com/FrostyCityMan/saneB/actions/runs/34911583782)는 success다. root2622=2360통과/262조건부 생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·원래 Flyway3은 실패/생략0이다. 독립221/221, Node241/설치12와 정책 부모 정리를 확인했다. 해당 artifact는 `build/qa-results/run-34911583782`에 있다. 양평 실제 파일의 새 관측/운영 배포 성공은 아니다.
+- 현재 Docker Linux pipe 없음이 재확인됐으며 로컬 비격리 추출은 하지 않았다. [새 양평 관측 설계·명령·대상](announcement-yangpyeong-three-stage-observation-2026-09-15.md)에 현재 범위와 한계를 기록했다. 다음은 명시한 Linux 실행의 실제 BODY/HWPX/PDF/미지원/제목 제외 결과 확인이다. 운영 AWS 재인증·정부24 API·나머지 기관·전체 기대값·운영 적용/기존 데이터/브라우저는 계속 미완료다. 첨부6엔진/17profile/전용BODY16기관/3형식·catalog24참조/기대값0, V83를 유지한다. 전체 Gate/ATT **Not ready**, goal ACTIVE다.
+
 ### 2026-09-15 09:03 KST — 정부24 공식 목록 요청 계약 보완 / 첨부 미지원 유지
 
 - P3에서 정부24 공식 목록 API의 페이지/검색 규격과 기존 코드 불일치를 확인하고 보완했다. 공식 호스트의 고정 목록 경로, JSON 기본 응답, page/perPage/서비스명 LIKE를 사용한다. 고정 검색 계획의 대상·지원형태를 별도 전달하되, 어댑터는 대상 검색 후보를 조합 조건으로 미리 버리지 않는다. TITLE A 예외를 보존하고 조합·A/B 판정은 기존 공통 분류기가 원문 저장 전에 처리한다. 기존 제공자의 조합 문자열·라운드로빈 계약은 유지한다. [설계·검증·외부 근거](announcement-gov24-official-list-contract-2026-09-15.md)에 요청 상한과 첫 페이지 밖 누락 가능성을 명시했다.
