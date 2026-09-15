@@ -1,5 +1,17 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 최신 읽기 전용 재확인 — 2026-09-15 16시대
+
+전체 출시 판정은 **Not ready**다. 재배포 승인 대기 중 Runtime SSM `d291efb8-5107-485f-9cae-6f66def58921`와 Database SSM `7547e95d-562f-4bef-baa8-15659ed0c8c6`를 실행했고 모두 Success다. 서울/default root·저장소 대상 계정 일치·운영 인스턴스1/SSM Online을 확인했다. 상태를 읽었을 뿐 배포·정책·운영 환경값은 변경하지 않았다.
+
+- 운영 revision은 `787c594`/CodeDeploy `d-MWENRAGTK` Succeeded, 설치 JAR `d8696e85…`·추출기1.0.1이다. systemd active/health UP·JAR/실제 DB V83·migration 실패0이며 글로벌/불변 QA 추출기 library set이 일치한다.
+- 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch는 전부0이다. 첨부 worker/정책 QA/Provider QA는 UNSET→기본false, 기존 지자체 schedule/BODY/분류V2/source batch true다.
+- 지자체223/목록parser41/저장원문2945이며 재처리 승인 건수가 아니다. 기업마당·정부24 API key는 실행 환경에 없다. 자격증명 값은 출력하지 않았다.
+- DB는 READ ONLY·statement8초/lock2초 상한·ROLLBACK·쓰기0이다. 소유 임시 CA/전송 파일을 정리했다. 브라우저는 이번 재확인에서 조작하지 않았다.
+- 최신cc79d59/1.0.3의 HWP/HWPX CI 성공은 위 운영 설치와 다르다. 취소된 배포의 재개 확인과 승인된 정책/기존 데이터·관리자 업무 E2E가 남는다.
+
+추가로 JAR만 복원하던 기존 fallback에서 기본 worker 추출기도 같은 불변 release를 선택하도록 [로컬 배포 경로 보완](attachment-extractor-release-binding-2026-09-15.md)을 구현 중이다. 아직 운영 설치·실제 rollback 성공의 증거가 아니다.
+
 ## 최신 확인 — 2026-09-15 13:12~13:14 KST / 고정 기대값 catalog 설치
 
 전체 출시 판정은 **Not ready**다. 새 catalog 설치와 실제 기대값 비교·상시 수집 활성화는 서로 다른 단계다.

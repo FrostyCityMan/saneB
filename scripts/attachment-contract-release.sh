@@ -63,3 +63,36 @@ select_attachment_contract_release() (
   [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || return 1
   printf '%s/%s' "$root" "$digest"
 )
+
+# 웹 JAR 복구 시 worker도 같은 불변 release의 추출기를 선택한다. 공용 설치를 덮거나 지우지 않는다.
+select_attachment_extractor_release() (
+  set -euo pipefail
+  local root="$1" jar="$2" release extractor
+  [[ -d "$root" && ! -L "$root" ]] || return 1
+  root="$(realpath -e -- "$root")"
+  [[ "$root" != / ]] || return 1
+  release="$(select_attachment_contract_release "$root" "$jar")" || return 1
+  extractor="$release/extractor"
+  [[ -d "$release" && ! -L "$release" && -d "$extractor" && ! -L "$extractor"
+     && -d "$extractor/bin" && ! -L "$extractor/bin" && -d "$extractor/lib" && ! -L "$extractor/lib"
+     && -f "$extractor/bin/attachment-extractor" && ! -L "$extractor/bin/attachment-extractor" ]] || return 1
+  [[ -z "$(find "$extractor" ! -type f ! -type d -print -quit)" ]] || return 1
+  local jars=("$extractor"/lib/attachment-extractor-[0-9]*.jar)
+  [[ ${#jars[@]} -eq 1 && -f "${jars[0]}" ]] || return 1
+  printf '%s' "$extractor"
+)
+
+# 명시된 설정은 독립적으로 보존한다. 기본 추출기는 별도 QA 경로 override를 따라가지 않는다.
+# 두 경로가 모두 준비된 다음에만 export하며 app.env/운영 플래그/파일은 변경하지 않는다.
+configure_attachment_release_environment() {
+  local root="$1" jar="$2" qa_root="${SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT:-}"
+  local extractor_root="${SANEB_ANNOUNCEMENT_ATTACHMENT_EXTRACTOR_ROOT:-}"
+  if [[ -z "$qa_root" ]]; then
+    qa_root="$(select_attachment_contract_release "$root" "$jar")" || return 1
+  fi
+  if [[ -z "$extractor_root" ]]; then
+    extractor_root="$(select_attachment_extractor_release "$root" "$jar")" || return 1
+  fi
+  export SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT="$qa_root"
+  export SANEB_ANNOUNCEMENT_ATTACHMENT_EXTRACTOR_ROOT="$extractor_root"
+}

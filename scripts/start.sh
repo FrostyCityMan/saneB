@@ -156,14 +156,12 @@ elif [ -z "${DB_PASSWORD:-}" ]; then
   fail "DB_PASSWORD or DB_SECRET_ARN is required."
 fi
 
-# 동일 JAR의 불변 QA 패키지를 선택한다. app.env를 수정하거나 실행 플래그를 켜지 않는다.
-# 명시적으로 설정한 기존 경로는 보존하며, 정책 QA의 코드 지문 검증이 별도로 일치 여부를 판정한다.
-if [ -z "${SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT:-}" ]; then
-  source /opt/saneb/attachment-contract-release.sh
-  SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT="$(select_attachment_contract_release \
-    /opt/saneb/attachment-contract-qa-releases /home/ubuntu/app/app.jar)"
-  export SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT
-fi
+# 동일 JAR의 불변 QA·추출기 패키지를 선택한다. app.env/실행 플래그/공용 설치는 변경하지 않는다.
+# 명시된 경로는 각각 보존하며 정책 QA가 해당 설치 지문을 별도로 검증한다.
+# 이전 웹 JAR 복구 후 재시작하면 기본 worker 추출기도 이전 release로 함께 돌아간다.
+source /opt/saneb/attachment-contract-release.sh
+configure_attachment_release_environment \
+  /opt/saneb/attachment-contract-qa-releases /home/ubuntu/app/app.jar
 exec /usr/bin/java ${JAVA_OPTS:-} -jar /home/ubuntu/app/app.jar
 LAUNCH
 

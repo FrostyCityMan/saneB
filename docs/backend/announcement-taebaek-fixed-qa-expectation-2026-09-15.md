@@ -1,5 +1,16 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 최신 재관측 — 2026-09-15 16:33 KST / 구기대값 내용 보존
+
+- `cc79d597ed34c3549f380e90162383f86b570093`의 [Linux34941434590](https://github.com/FrostyCityMan/saneB/actions/runs/34941434590)는 성공이다. 보관 XML은 root2676=2411통과/265조건부 생략/실패0, 추출기88·패키지20·job192·migration17·worker12·runtime1·정책 부모2·Flyway3 실패/생략0이다. 공식 태백 관측은 별도1건/실패·오류·생략0이다.
+- 관측 시각 `2026-09-15T07:33:03.129802080Z`, BODY AVAILABLE/완전성true, 전체 HWPX2개/COMPLETE_TEXT를 확인했다. 첫 파일2041자/62블록·UNKNOWN/MIXED_DOCUMENT_ROLES, 둘째1994자/117블록·FORM/ROLE_TEXT_STRUCTURE_MATCHED다. 최종 REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW로 관리자 검증을 유지한다.5요청/2377939bytes·원본 정리true·운영 DB 쓰기0이다.
+- 구catalog의 전체2파일과 locator/binary/quality/최소 문자·블록/역할 규칙/텍스트/전체 블록/assessment hash를 대조해 변경0을 확인했다. requiredPhrases도 기대값에서 그대로 보존했다. 같은 전체 텍스트 hash가 일치한다는 근거이지 원문을 새 로그·문서에 저장한 것이 아니다.
+- `787c594..cc79d59`의 소스를 직접 검토했다. 공통 최초 요청 승인 overload와 철원 전용 모드가 추가돼 지문은 바뀌었지만 태백의 기존 모드·헤더/다운로드 규칙과 HWPX 추출·역할 분류 코드는 변경되지 않았다. 최신 실제 태백 HWP worker/DB/API 검증과 별도로 이번 전체 HWPX 관측을 수행했다.
+- 검토 후 catalogVersion을 `2026-09-15-taebaek-revalidated-v2`로 갱신하고 태백 expectation의 profileHash를 `8a93cf41a20e0b3ae3a93c441d4db196762fbe972a71fb15e87136fe69d90044`, observedAt을 위 시각으로 변경했다. **파일 기대값/역할/문구/전체 참조/상한은 한 항목도 바꾸지 않았다.** Node 구조 대조에서 허용한 metadata3필드 외 변경0을 확인했다.
+- 구9aea97d… 지문의 거부 회귀는 역사적 fixture로 유지했다. 새 packaged catalog는 전체27참조/실행 가능1/정상 공고0·전체 coverage false·정책 QA false를 검증한다. 관측 성공을 새 catalog의 production CaseExecutor 통과로 대체하지 않는다. 새 SHA에서 `verify-bbs-fixed-case=true`를 별도 실행해 같은 고정 기대값을 다시 비교해야 한다.
+
+자료는 `build/qa-results/run-34941434590-contracts/`와 `build/qa-results/run-34941434590-bbs/`의 metadata/JUnit이다. 운영 설치는 별도이며 정책 게시·ENFORCE·worker 활성화·기존 데이터 적용은 없다. 아래13:14의 운영 고정 비교는 과거1.0.1 코드의 증거다.
+
 ## 최신 검증 — 2026-09-15 13:14 KST / 첫 사전 기대값 실제 비교 통과
 
 - [x] 동일 SHA `787c594` Linux34926361587·배포34927650269/CodeDeploy `d-MWENRAGTK` success. 설치 JAR/case catalog와 DB V83 확인은 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)을 따른다.

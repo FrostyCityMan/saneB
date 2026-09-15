@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-cheorwon-reference-v2",
+  "catalogVersion": "2026-09-15-taebaek-revalidated-v2",
   "notices": [
     {
       "caseCode": "CHEORWON-288915",
@@ -169,9 +169,9 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": {
-        "profileHash": "9aea97d1281dd778ba6d6f331fd7dd147fef2a05f6de7132ccd90c28b28a58e5",
+        "profileHash": "8a93cf41a20e0b3ae3a93c441d4db196762fbe972a71fb15e87136fe69d90044",
         "title": "2026년 청년농업인 육성지원(취업농) 신청자 모집 공고",
-        "observedAt": "2026-09-15T03:28:40.008199613Z",
+        "observedAt": "2026-09-15T07:33:03.129802080Z",
         "discoveryStatus": "FOUND",
         "discoveryComplete": true,
         "files": [

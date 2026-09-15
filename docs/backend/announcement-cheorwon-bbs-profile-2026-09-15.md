@@ -6,7 +6,7 @@
 
 - 공통 첨부 엔진은 6종 그대로다. 등록 첨부 모델은 17→18개, 전용 본문 연결은 16→17개다. **철원 신규 연결의 실제 수집 성공까지 확인한 수량이 아니다.**
 - DB/API/UI/기존 Flyway V1~V83 변경 없음. 외부 공고 자동 ACTIVE, 운영 정책 게시·ENFORCE·기존 데이터 실행 없음.
-- 공식 참조 catalog는 24→27개, 보관된 기대값은 기존 태백 1개 그대로다. 새 BBS 코드에서는 그 지문이 달라 `PROFILE_CHANGED`이며 **현재 실행 가능한 기대값은 0개**다. 철원 3개는 `expectation: null`/`REFERENCE_ONLY`다. 정상 공고·전체 Provider QA 통과로 계산하지 않는다.
+- 공식 참조 catalog는 24→27개, 보관된 기대값은 기존 태백 1개 그대로다. 최초 철원 추가 시에는 새 BBS 지문으로 `PROFILE_CHANGED`/실행0이었다. 이후16:33 태백 실제2파일 재관측·코드 검토 후 내용은 보존한 채 지문을 갱신해 실행 가능1을 복원했다. [태백 재검토 기록](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)을 따른다. 철원3개는 여전히 `expectation: null`/`REFERENCE_ONLY`다. 정상 공고·전체 Provider QA 통과로 계산하지 않는다.
 
 ## 기관 및 관측 근거
 
@@ -40,6 +40,15 @@ V61 `correct_general_notice_sources_to_official_legal_boards`와 V62 `apply_corr
 TLS 검증을 유지한 10초 상한 HEAD 요청은 HTTP200을 반환했다. 이 상태 변화 후 실제 본문 수집을 재검증했으나 고정3건 모두 TIMEOUT(6.474/6.022/6.024초)으로 실패했다. HTTP200을 본문 성공으로 계산하지 않으며 파일 다운로드로 확대하지 않았다. 같은 조건의 후속 재시도는 중단했다. 응답의 구조·차단 원인은 여전히 미확인이다.
 
 처음에는 일반 `:test`에 환경변수를 주었지만 이 프로젝트는 일반 test에서 외부 QA를 false로 고정하므로 대상 시험이 실행되지 않았다(`No tests found`, 외부 요청0). 이후 실제 전용 task인 `attachmentProfileDiscoveryQa --tests '*StandardBbsBodyContentLiveQaTest.readsCheorwonBodyWithoutRequestingFiles'`와 Windows 신뢰 저장소를 사용했다. 이 전용 실행의 JUnit은3실행/3실패/생략0이다. 환경변수나 타임아웃을 바꿔 성공으로 위장하지 않았다.
+
+### 2026-09-15 16시대 — 연결 단계 진단
+
+실제 수집기는 연결3초·응답7초 상한이며 `MAX_TRANSPORT_ATTEMPTS=2`다. 앞선 약6초 실패는 연결3초의 두 시도와 양립하지만, 이 시간만으로 과거 요청의 실패 단계를 확정하지 않는다. 같은 공고288915에 네이티브 curl GET을 별도로1회 실행해 Java/본문 선택자 이전의 연결 경로를 비교했다. 연결3초·전체10초·응답2MiB·재시도0, 기존 User-Agent/Accept/Accept-Encoding을 사용하고 응답은 저장하지 않았다.
+
+- DNS 관측: IPv4 1개·IPv6 0개, HTTP/HTTPS/ALL_PROXY 환경변수 없음. OS의 모든 프록시 설정을 조사한 결과는 아니다.
+- curl 결과: 종료28, DNS0.296초·TCP0·TLS0·HTTP000·수신0바이트·총3.014초. 이번 요청은 TCP 연결이 성립하지 않은 시간 초과다. TLS 검증 실패나 HTML 구조 오류로 분류하지 않는다. `ssl_verify_result=0`도 핸드셰이크 전이므로 인증서 검증 성공 근거가 아니다.
+- 직접 원인(서버 가용성·경로·접근 제한)은 아직 미확인이다. 동일 조건의 추가 요청, 파일 요청, timeout 증가, TLS/주소 검증 우회는 실행하지 않았다.
+- 다음 실제 BODY 검증은 접속 상태 변화나 다른 승인된 실행 환경의 연결 근거를 먼저 확인한 뒤 재개한다. HEAD 성공만으로 BODY 성공을 주장하지 않으며, BODY가 확보되면 엄격한 marker와 전체 첨부를 차례로 확인한다.
 
 - [x] 표적 회귀: 기관/hash/게시판 경계, 본문 정제, 전체 첨부 분모, 공고 소속, redirect 파일 소속, 미지원·변경·중복·상한 검증. 최초 표적 실행 54초 성공.
 - [x] catalog 참조·기존 기관/공통 다운로드 전체 회귀와 패키지 검증. 첫 전체 회귀에서 QA 실행기 mock의 새 승인 overload 미연결47건과 태백 구지문의 무효화4건을 확인했다. mock은 실제 기본 메서드를 호출하도록 연결했다. 배포 catalog의 태백 지문은 보존하고 `PROFILE_CHANGED`/실행0을 별도 시험한다. 기간·제목 규칙·파일 계약의 양성 시험은 명시적인 메모리 전용 fixture로 유지하며 배포 catalog를 변경하지 않는다. 표적202건/생략0 통과 후 최종 전체2675건=2411통과/264조건부 생략/실패0, 패키지20통과/생략0이다. 추출기88건·웹 JAR·probe는 기존 산출물 재사용(UP-TO-DATE)이며 새 실파일 검증이 아니다.
