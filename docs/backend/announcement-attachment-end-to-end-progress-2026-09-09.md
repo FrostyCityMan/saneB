@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-15 12:10 KST — 실제 혼합 역할 사유·태백 양식 인식 확인
+
+- P3의 실제 파일 근거를 추가한 **progress**다. 전체9Gate/ATT62 **Not ready**, goal ACTIVE를 유지한다. 직전 배포2bde216의 운영 JAR/추출기1.0.1/역할1.0.2/DB/API/정책은 변경하지 않았다.
+- probe metadata에 저장된 역할 판정의 고정 사유/일치 규칙/개수만 추가했다. 양평 재검증 SSM `48b5d034-a632-4c49-bf02-7cd5ab0ee8df` Success/3통과·생략0, HWPX11398자의 UNKNOWN은 NOTICE/FORM 제목 근거11개/11블록이 공존한 MIXED_DOCUMENT_ROLES로 확정했다. 명세에 따른 예외이며 원문 미확인 상태에서 규칙을 완화하지 않는다.
+- 기존 양평3건 기본 동작과 필수 분모를 보존한 채 이미 관측한 태백184816 고정1건의 worker/DB/API 그룹을 추가했다. 임의 URL/ALL/임의 입력은 거부한다.44요청/80MiB 한도, 실제5요청/2377939bytes다. 태백 SSM `d6fe5871-496b-4412-a073-bccbdddae699` Success/1통과·생략0, BODY AVAILABLE/1시도와 HWPX2개 완전 추출·worker job SUCCEEDED/텍스트·역할·v2 API 일치를 확인했다.
+- 태백 첫 파일2041자는 혼합 역할 UNKNOWN, 둘째1994자는 FORM/ROLE_TEXT_STRUCTURE_MATCHED/3근거로 자동 식별됐다. 앞선1.0.1 역할 관측의 구조 부족이 실제 파일에서 개선된 증거다. 전체 텍스트 완전성true지만 혼합 파일 때문에 FINAL_REVIEW_EXCEPTION·관리자 검수는 남는다. 정상 공고3개/정책 QA/전체 기관 성공으로 합산하지 않는다.
+- 두 관측 모두 운영 DB 쓰기0·자동 confirmation/link0·lease0·원본/임시PG/전송 정리 성공·설치 JAR 불변이다. 사용자 관리자 재로그인은 아직 대기 중이며 브라우저를 다시 조작하지 않았다. 상세는 [공식 worker 기록](announcement-official-worker-db-api-qa-2026-09-15.md)과 [양식 역할 보완](announcement-form-role-markers-2026-09-15.md)이다. 로컬 표적60건/생략0과 Node5건은 통과했고 전체 회귀 결과는 후속 검증 기록을 따른다.
+- 최종 전체 회귀4분28초 성공: root2639=2377통과/262조건부 생략/실패0, 패키지20/20. 추출기/bootJar/probe는 UP-TO-DATE이며 웹 JAR 지문은 직전과 동일하다. Node25통과/2 Linux 전용 생략·diff 검사 통과, 사용한 단발 Node/JVM 종료·소유 임시PG/전송 정리·사용자 output 보존이다. 새 검증 코드 CI와 운영 코드 재배포를 혼용하지 않는다. 브라우저 탭 metadata는 로그인 화면으로 확인했고 입력 필드는 읽지 않았다.
+
 ### 2026-09-15 11:58 KST — 추출기1.0.1 운영 배포·실파일 worker 개선 확인
 
 - 이번 회차는 동일 SHA CI·운영 배포·실파일 연결 검증을 완료한 **progress**다. 전체9Gate/ATT62는 **Not ready**, goal ACTIVE다. 제목→정제 본문→실제 첨부 텍스트→관리자 최종 검증 목표를 유지한다.
@@ -271,7 +280,7 @@
 | 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조24/실행 기대값0. 실제 역할·내용/형식 기대값, 전체 Provider QA/정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기 통과·단일 공개 파일4건 진단·공식 양평3건 worker/DB/API 통과. HWPX는 완전 텍스트로 개선됐지만 역할 UNKNOWN, PDF는 부분/JPG미지원. 전체 Provider/형식/역할 기대값은 잔여 |
+| 6 자동·실파일 QA | [!] | 2bde216 Linux 필수 DB/추출기·단일 파일4건 진단·공식 양평3건/태백1건 worker·DB·API 통과. 태백 양식 FORM 실제 자동 식별, 혼합 문서 UNKNOWN 사유 확인. PDF 부분/JPG미지원·전체 Provider/형식/사전 기대값은 잔여 |
 | 7 운영 배포·활성화 | [~] | Actions34922807546/CodeDeploy d-Q1K7M8ETK 성공, V83·추출기1.0.1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록 확인. 새2bde216 배포 후 인증 만료 차단→로그인 화면 확인/사용자 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

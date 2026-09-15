@@ -20,8 +20,19 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     private static final Set<String> ENV=Set.of("PATH","LANG","HOME","TMPDIR","PWD","SANEB_ATTACHMENT_OFFICIAL_WORKER_QA");
     private AnnouncementAttachmentOfficialWorkerProbe() {}
 
+    static List<String> selectCaseCodes(String group) {
+        return switch(group) {
+            case "YANGPYEONG" -> CASES;
+            case "TAEBAEK" -> List.of("TAEBAEK-184816");
+            default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
+        };
+    }
     static boolean selectComplete(long found,long succeeded,long failed,long skipped,long aborted,long containersFailed) {
-        return found==3&&succeeded==3&&failed==0&&skipped==0&&aborted==0&&containersFailed==0;
+        return selectComplete("YANGPYEONG",found,succeeded,failed,skipped,aborted,containersFailed);
+    }
+    static boolean selectComplete(String group,long found,long succeeded,long failed,long skipped,long aborted,long containersFailed) {
+        int required=selectCaseCodes(group).size();
+        return found==required&&succeeded==required&&failed==0&&skipped==0&&aborted==0&&containersFailed==0;
     }
     static List<Object> selectFailureTrace(Throwable failure) {
         var trace=new java.util.ArrayList<Object>();
@@ -42,12 +53,15 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
         result.put("isPolicyQaPassed",false);result.put("isAuthenticatedBrowserE2e",false);
         boolean passed=false;String stage="BOUNDARY";
         try {
-            if(args.length!=1||!args[0].matches("[0-9a-f]{64}")
+            if((args.length!=1&&args.length!=2)||!args[0].matches("[0-9a-f]{64}")
                     ||!"Linux".equals(System.getProperty("os.name"))||"root".equals(System.getProperty("user.name"))
                     ||!"/work".equals(Path.of("").toAbsolutePath().toString())
                     ||!"/work/tmp".equals(System.getProperty("java.io.tmpdir"))
                     ||!"true".equals(System.getenv("SANEB_ATTACHMENT_OFFICIAL_WORKER_QA"))
                     ||!ENV.containsAll(System.getenv().keySet())) throw new IllegalStateException();
+            String group=args.length==2?args[1]:"YANGPYEONG";
+            List<String> caseCodes=selectCaseCodes(group);
+            result.put("caseGroup",group);
             var json=new ObjectMapper();
             stage="CODE_IDENTITY";
             String codeHash=new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash();
@@ -59,6 +73,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             javax.net.ssl.SSLContext.getDefault();
             System.setProperty("saneb.attachment-qa.extractor-root","/qa/extractor");
             System.setProperty("saneb.attachment-official-worker.report","/work/reports");
+            System.setProperty("saneb.attachment-official-worker.group",group);
             stage="JUNIT_EXECUTION";
             var listener=new SummaryGeneratingListener();
             var request=LauncherDiscoveryRequestBuilder.request()
@@ -75,21 +90,21 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             result.put("failureSites",summary.getFailures().stream().limit(3).map(f->selectFailureTrace(f.getException())).toList());
             stage="REPORTS";
             var reports=new java.util.ArrayList<Object>();boolean reportsComplete=true;
-            for(String code:CASES) {
+            for(String code:caseCodes) {
                 Path path=Path.of("/work/reports",code+".json");
                 if(!Files.isRegularFile(path)||Files.size(path)>65536){reportsComplete=false;continue;}
                 var report=json.readTree(Files.readAllBytes(path));
                 if(!code.equals(report.path("caseCode").asText())
                         ||!"OFFICIAL_WORKER_EPHEMERAL_DB_API_V1".equals(report.path("scope").asText()))throw new IllegalStateException();
                 reports.add(report);
-                String expected=code.equals(CASES.getLast())?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
+                String expected=code.equals("YANGPYEONG-311507")?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
                 reportsComplete&=expected.equals(report.path("status").asText())
                         &&report.path("originalFilesRemoved").asBoolean(false)&&report.path("remainingResourceLeases").asInt(-1)==0;
             }
             result.put("cases",reports);
             stage="FINAL_IDENTITY";
             if(!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash()))throw new IllegalStateException();
-            passed=reportsComplete&&selectComplete(summary.getTestsFoundCount(),summary.getTestsSucceededCount(),
+            passed=reportsComplete&&selectComplete(group,summary.getTestsFoundCount(),summary.getTestsSucceededCount(),
                     summary.getTestsFailedCount(),summary.getTestsSkippedCount(),summary.getTestsAbortedCount(),summary.getContainersFailedCount());
         } catch(Exception|LinkageError|AssertionError failure) {
             result.put("failedStage",stage);result.put("failureCode","OFFICIAL_WORKER_PROBE_INCOMPLETE");

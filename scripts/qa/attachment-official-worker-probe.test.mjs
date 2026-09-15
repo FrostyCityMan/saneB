@@ -18,6 +18,12 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
 });
+test('공식 그룹은 양평 기본값과 명시한 태백만 허용하고 임의 입력을 거부한다', () => {
+  assert(source.includes('case_group="${5:-YANGPYEONG}"'));
+  assert(source.includes('"$case_group" == YANGPYEONG || "$case_group" == TAEBAEK'));
+  assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
+  assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
+});
 test('공개 요청 QA도 비root·깨끗한 환경·PID 격리와 원본 정리를 유지한다', () => {
   for (const value of ['"$(id -u)" != 0', '--unshare-pid', '--unshare-ipc', '--clearenv',
     '--die-with-parent', '--cap-drop ALL', '--nproc=128', '--as=2147483648',

@@ -4,6 +4,31 @@
 
 P3 진행, 전체 Gate0~8 / ATT-001~062는 **Not ready**다. 변경된 `제목 1차 → 정제 본문 2차 → 실제 첨부 텍스트 3차 → 관리자 최종 검증` 순서를 보존한다. 이번 변경은 시험·실행 설정·기록이며 production Java/API/UI/schema를 변경하지 않는다. 기존 공식 파일 관측과 별도로 실제 worker 저장·조회 경로를 검증하도록 확장했다.
 
+## 2026-09-15 12:06~12:10 KST — 혼합 역할 사유 확정·태백 양식 자동 식별
+
+운영 웹 JAR/업무 코드/추출기/역할 규칙은 아래11:58 기록과 동일한2bde216·추출기1.0.1·document-role-1.0.2다. 별도 probe에만 고정 역할 사유/일치 규칙 코드/근거 개수를 추가했다. 허용한 코드 외 값은 원문을 반사하지 않고 거부한다. 저장된 assessment를 읽으며 실제 텍스트·파일명·URL·자격증명을 출력하지 않는다. 임시 probe 변경을 운영 애플리케이션 재배포로 표현하지 않는다.
+
+- 양평 SSM `48b5d034-a632-4c49-bf02-7cd5ab0ee8df` Success/3통과·생략0. probe SHA256 `4ce3f68d0c5f3b4603671f042c4fedc935af36f754146d01418150ebb18099d4`다.312241 HWPX의 UNKNOWN은 `MIXED_DOCUMENT_ROLES`이며 NOTICE_HEADING/FORM_HEADING 근거가 서로 다른11블록에11개 저장돼 있다. 현재 명세에 따른 혼합 역할 예외다. PDF 부분/미지원 JPG에는 역할 assessment가 없고, 제목 제외 요청0은 유지한다. 단순 추출 실패나 미확인 버그로 보고하지 않는다.
+- 기존 양평3건 기본값은 유지하고 `TAEBAEK` 명시 그룹은 이미 관측한184816 공고1건/HWPX2파일만 실행한다. Java/Bash 양쪽의 고정 그룹 허용, 그룹별 필수 건수·제목 제외 기대 결과·보고서 검증을 적용했다. ALL/임의 URL/새 입력 파일을 받지 않는다. 양평의1건 통과를3건 성공으로 바꿀 수 없다. 원래4인자 Bash/1인자 Java 호출의 양평 기본 동작은 유지한다.
+- 태백 한도는44요청/80MiB, 실제 예약 사용은5요청/2377939bytes였다. SSM **`d6fe5871-496b-4412-a073-bccbdddae699` Success**,1/1·실패/생략/중단/container 실패0이다. probe SHA256 `dba3c806a87a857945cb200ce6223bdfdd3c6f4459524c6a2a845d2ff33e7b51`다.
+
+| 태백184816 파일 | 실제 추출·역할·저장 | 의미 |
+|---|---|---|
+| HWPX1 | 82695bytes/2041자, COMPLETE_TEXT, UNKNOWN/MIXED_DOCUMENT_ROLES, NOTICE/GUIDE/FORM 제목 근거4개·4블록 | 공고/안내/양식 역할이 섞인 문서로 검수 사유 유지 |
+| HWPX2 | 67020bytes/1994자, COMPLETE_TEXT, FORM/ROLE_TEXT_STRUCTURE_MATCHED, FORM_HEADING/APPLICANT_FIELD/SIGNATURE_FIELD 근거3개·3블록 | 콜론 없는 입력·괄호형 서명 보완의 실제 파일→자동 역할→DB→API 효과 확인 |
+
+태백 BODY AVAILABLE/1시도, 전체 발견2/처리2, extractor2회, worker EVALUATED/job SUCCEEDED, 본문·전체 첨부 텍스트 완전성true다. 모든 block 신뢰/텍스트 저장·v2 조회·역할 근거 hash 연결을 대조했다. 혼합 파일이 있으므로 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED·ATTACHMENT_CONTEXT_REVIEW는 남는다. FORM 파일을 공고 본체로 간주하거나 정상 공고3개 충족으로 합산하지 않는다.
+
+두 실행 모두 운영 DB 미사용/쓰기0·자동 confirmation/link0·lease0·원본/소유 임시 PostgreSQL namespace/전송 패키지 정리 성공·설치 JAR 불변이다. 이 두 관측으로 catalog 기대값을 자동 작성하거나 정책 QA를 통과시키지 않았다. HWP 전체 공고 worker, 나머지 기관·형식·사전 기대값, 관리자 재로그인/업무 E2E, 승인된 활성화·기존 데이터 적용은 남아 있다.
+
+태백 그룹 재현은 기존 launcher에 마지막 고정 인자만 추가한다. 사용자 환경변수·운영 접속값을 상속하지 않는다.
+
+```bash
+bash scripts/qa/run-attachment-official-worker-probe.sh "$QA_DISTRIBUTION" "$PROBE_JAR" "$PROBE_SHA256" "$APPLICATION_CODE_HASH" TAEBAEK
+```
+
+로컬 표적60건/생략0은36초에 통과했다. 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar attachmentOfficialWorkerProbeJar --no-daemon --console=plain --max-workers=1`은4분28초 성공, root2639=2377통과/262조건부 생략/실패0·패키징20/20이다. 추출기/bootJar/probe는 UP-TO-DATE로 새 실행 성공에 합산하지 않는다. Node25통과/2 Linux 전용 생략/실패0, `git diff --check` 통과다. 단발 Node/JVM/소유 임시PG/전송 자원은 종료·정리했고 사용자 output은 보존했다. 로컬 웹 JAR SHA256 `25a83f2dfb5534b3ca05ae5d137a49ee04e578df402794d376d90b5106d0ffa7`는 직전과 같으며 Linux 운영 JAR 지문과 구분한다. 이번 검증 코드의 CI는 별도이며 운영 웹 재배포·정책 활성화·기존 데이터·브라우저 업무 검증은 실행하지 않았다.
+
 ## 2026-09-15 11:58 KST — 추출기1.0.1 실제 worker 재검증
 
 SSM **`adee6e78-7976-4046-94e3-c06c6d2941e6` Success**, 고정 양평3건 **3통과/실패·생략·중단·container 실패0**이다. 배포 revision `2bde2161328c9f876eaaddaba374889c9dedf825`, 설치 웹 JAR SHA256 `b31a27aa1267310e9e71401c66c2666c0fc9f82dbe95a6eacbd284244e575ece`, probe SHA256 `40874d4d810564f3930969af94e8d03d5798f05519ca150beeadeaf1286e4242`, 업무 코드 catalog hash `4d7dab7848cb8001d7c18d84b1676e6a8c0d33b9f4422cb4e3682034169eba1f`, 실제 추출기1.0.1/runtime hash `c0b21f3dd591d80acfa2bf7b314cded2178579b413a0e79f4e01a17c51323ba6`다.

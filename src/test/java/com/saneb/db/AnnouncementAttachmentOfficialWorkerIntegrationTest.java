@@ -64,7 +64,8 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
 
     static Stream<ObservationCase> selectCases() {
         // 제목 제외 표본도 유지한다. 임의 URL·전체 기관 실행 모드는 제공하지 않는다.
-        return AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG");
+        return AnnouncementAttachmentBbsOfficialObservationTest.selectCases(
+                System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG"));
     }
     @BeforeAll static void start() throws Exception {
         distribution=System.getProperty("saneb.attachment-qa.extractor-root");
@@ -164,6 +165,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     row.put("format",file.detectedTypeCode());row.put("downloadStatus",file.downloadStatusCode());row.put("downloadErrorCode",file.downloadErrorCode());
                     row.put("bytes",file.downloadedBytes());row.put("binaryHash",file.binaryHash());row.put("quality",file.qualityCode());row.put("characterCount",file.characterCount());
                     row.put("roleCode",file.documentRoleCode());row.put("roleOrigin",file.roleOriginCode());
+                    row.put("roleDiagnostic",selectRoleDiagnostic(file.roleAssessment()));
                     assertTrue(selectWireTree(file).equals(fileJson.path("items").get(i)),"API_FILE_PROJECTION_MISMATCH");
                     if(file.extractionId()!=null) {
                         var actual=extractor.byBinaryHash.get(file.binaryHash());assertNotNull(actual,"ACTUAL_EXTRACTION_MISSING");
@@ -194,7 +196,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         assertEquals("UNSUPPORTED_FORMAT",file.downloadErrorCode(),"SUPPORTED_FILE_INCOMPLETE");
                     }
                 }
-                assertEquals(1,extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
+                assertEquals("TAEBAEK-184816".equals(sample.code())?2:1,extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
                 var summary=bean(AnnouncementAttachmentCurrentService.class).selectClassificationDetails(source);
                 var summaryJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-classification");
                 assertTrue(selectWireTree(summary).equals(summaryJson),"API_CLASSIFICATION_PROJECTION_MISMATCH");
@@ -255,6 +257,20 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     // DTO의 LongNode와 HTTP JSON을 읽은 IntNode는 값이 같아도 equals가 false다.
     // 기대값도 실제 wire serialization을 거쳐 비교하며 필드·값·배열 순서 검증은 유지한다.
     static JsonNode selectWireTree(Object value) throws Exception {return JSON.readTree(JSON.writeValueAsBytes(value));}
+    /** 원문·파일명·URL·위치 원문 없이 실제 저장된 역할 판정의 고정 코드만 진단한다. */
+    static Map<String,Object> selectRoleDiagnostic(AttachmentDocumentRoleClassifier.Assessment assessment) {
+        if(assessment==null)return Map.of("assessmentPresent",false);
+        Set<String> reasons=Set.of("COMPLETE_TEXT_REQUIRED","STRUCTURE_UNCERTAIN","ROLE_ANALYSIS_LIMIT",
+                "MIXED_DOCUMENT_ROLES","INITIAL_HEADING_REQUIRED","ROLE_STRUCTURE_INCOMPLETE","ROLE_TEXT_STRUCTURE_MATCHED");
+        Set<String> rules=Set.of("NOTICE_HEADING","GUIDE_HEADING","FORM_HEADING","REFERENCE_HEADING",
+                "TARGET_SECTION","SUPPORT_SECTION","APPLICATION_SECTION","APPLICANT_FIELD","SIGNATURE_FIELD","QUESTION_ITEM","ANSWER_ITEM");
+        if(!reasons.contains(assessment.reasonCode()) || assessment.evidence().stream().anyMatch(e->!rules.contains(e.ruleCode())))
+            throw new IllegalArgumentException("ROLE_DIAGNOSTIC_CODE_INVALID");
+        return Map.of("assessmentPresent",true,"reasonCode",assessment.reasonCode(),
+                "matchedRuleCodes",assessment.evidence().stream().map(AttachmentDocumentRoleClassifier.Evidence::ruleCode).distinct().sorted().toList(),
+                "evidenceCount",assessment.evidence().size(),
+                "evidenceBlockCount",assessment.evidence().stream().map(AttachmentDocumentRoleClassifier.Evidence::blockIndex).distinct().count());
+    }
     private static String hash(String text) throws Exception {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
     private static final class ActualExtractor extends IsolatedAttachmentExtractor {
         int calls;final Map<String,JsonNode> byBinaryHash=new HashMap<>();

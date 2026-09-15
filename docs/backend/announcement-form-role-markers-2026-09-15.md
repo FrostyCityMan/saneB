@@ -1,5 +1,11 @@
 # 양식 역할의 입력·서명 표식 보완
 
+## 실제 효과 확인 — 2026-09-15 12:10 KST
+
+운영 설치2bde216의 추출기1.0.1/역할document-role-1.0.2를 사용한 고정 태백184816 worker 시험이 SSM `d6fe5871-496b-4412-a073-bccbdddae699` Success로 완료됐다. BODY AVAILABLE/1시도, 실제 HWPX2개 완전 추출 후 DB/v2 API·역할 근거 연결을 대조했다. 둘째 파일1994자는 FORM/ROLE_TEXT_STRUCTURE_MATCHED와 FORM_HEADING/APPLICANT_FIELD/SIGNATURE_FIELD3근거를 갖는다. 앞선 역할1.0.1 관측의 UNKNOWN/ROLE_STRUCTURE_INCOMPLETE에서 개선된 실제 결과다.
+
+첫 파일2041자는 NOTICE/GUIDE/FORM 제목 근거가 혼재하여 UNKNOWN/MIXED_DOCUMENT_ROLES다. 원문 전체를 NOTICE로 승격하거나 자동 관리자 확인을 만들지 않는다. job SUCCEEDED·전체 텍스트 완전성true이지만 최종 상태는 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED다. 운영 DB 쓰기0·lease0·원본/임시PG/전송 자원 정리 성공·설치 JAR 불변이다. 이 성공은 사전 기대값 승인/전체 기관/정책 QA/운영 상시 수집/브라우저 E2E 완료가 아니다. [공식 worker 근거](announcement-official-worker-db-api-qa-2026-09-15.md)를 따른다.
+
 ## 단계 / 근거
 
 P3 실제 첨부 판정 개선이며 전체 Gate0~8/ATT001~062는 Not ready다. 태백184816의 Linux 관측(실행28, SHA5c6ff8d)은 HWPX2개 모두 COMPLETE_TEXT였지만 첫 파일은 MIXED_DOCUMENT_ROLES, 둘째 파일은 ROLE_STRUCTURE_INCOMPLETE였다. 관측 metadata는 둘째 파일의 초기 FORM 제목, 단일 신뢰 block 안의 콜론 없는 전체 줄 `성명` 표식(공백 정규화 기준), 괄호 주변을 포함할 가능성이 있는 `서명또는인` 표식을 보여준다. 원문을 읽은 것처럼 단정하지 않는다.
@@ -23,7 +29,7 @@ V82는 규칙 버전/지문을 문자열·SHA로 고정하며 기존 APPLICANT_F
 - [x] 양식 표제의 공백/콜론 유무, 괄호형 서명 양성·문장/부분 일치/누락 음성을 검증했다. 역할52·저장 규칙7·종합 분류19·관측 계약5·정책27·snapshot12, 총122건/생략0이49초에 통과했다.
 - [x] 실제 code point/block 근거와 경계 분리·혼합/불완전/수동 역할·과거 버전 보존의 로컬 회귀를 통과했다. 새 worker→DB→v2 API FORM 시험은 구현했으며 실제 Linux/PG 실행 통과와 구분한다.
 - [x] 전체 로컬 회귀4분6초 성공: root2550=2294통과/256조건부 생략/실패0, QA 패키지20/20. 초기 표적 실행에서 bootJar를 생성했고 마지막 전체 실행의 bootJar/extractor시험은 UP-TO-DATE다. 실제 Linux/공식 파일 시험의 로컬 생략은 통과로 계산하지 않는다.
-- [ ] 같은 SHA의 Linux DB/worker와 태백 전체 첨부를 재관측한다. 둘째 파일 FORM 여부는 실행 결과로만 확정한다.
+- [x] 실제 설치2bde216의 Linux DB/worker와 태백 전체 첨부2개를 재관측했다. 둘째 파일 FORM 자동 식별과 저장·조회 일치를 확인했다. 서버 임시 DB 시험이며 운영 데이터 적용은 아니다.
 - [ ] 실제 파일 기대값을 검토한다. 한 양식의 역할 인식 개선은 전체 공고 자동 검수 완료/검수 감소율의 증거가 아니다.
 
 새 worker 통합 시험은 합성 HWPX의 실제 격리 parser 출력을 사용한다. 파일명 `공고.hwpx`와 무관하게 FORM3근거를 DB에 저장하고 v2로 조회하며, 본문 없는 상황에서 양식 키워드를 공고 후보의 주된 근거로 승격하지 않아야 한다. 기존 base·원문 link0·요청/추출 횟수·임시 정리를 확인한다. 실제 공식 파일 검증으로 세지 않는다.
