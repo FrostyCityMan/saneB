@@ -450,6 +450,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             return selectCompactBbsContentElement(document, sourceUri, "66", "194");
         if ("www.oc.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
             return selectCompactBbsContentElement(document, sourceUri, "40", "236");
+        if ("www.cwg.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
+            return selectCompactBbsContentElement(document, sourceUri, "25", "1226");
         if ("www.yp21.go.kr".equals(host) && "/www/selectBbsNttView.do".equals(sourceUri.getPath()))
             return selectCompactBbsContentElement(document, sourceUri, "5", "1119", true);
         if (("www.wonju.go.kr".equals(host) || "www.jecheon.go.kr".equals(host)) && "/www/selectBbsNttView.do".equals(sourceUri.getPath())) {

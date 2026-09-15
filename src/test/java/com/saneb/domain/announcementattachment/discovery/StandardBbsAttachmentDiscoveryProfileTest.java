@@ -284,10 +284,10 @@ class StandardBbsAttachmentDiscoveryProfileTest {
         assertThat(profile.selectApprovedRequest(URI.create("https://www.yp21.go.kr/common/program/synap.jsp?fileName=/DATA/bbs/5/00000000-0000-0000-0000-000000000001.pdf"))).isFalse();
     }
 
-    @Test void registryHasEightDistinctImmutableProfiles() {
+    @Test void registryHasNineDistinctImmutableProfiles() {
         try (var context = new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(8);
+            assertThat(registry.selectProfileList()).hasSize(9);
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             registry.selectProfileList().forEach(profile -> {
                 assertThat(profile.selectProfileHash()).matches("[0-9a-f]{64}");
@@ -296,13 +296,13 @@ class StandardBbsAttachmentDiscoveryProfileTest {
             });
         }
     }
-    @Test void allSeventeenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
+    @Test void allEighteenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
         try (var context = new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class,
                 LegalBoardAttachmentProfileConfiguration.class, SaeolGetAttachmentProfileConfiguration.class,
                 HwacheonPostAttachmentDiscoveryProfile.class, BizInfoAttachmentDiscoveryProfile.class,
                 SeoguSaeolAttachmentDiscoveryProfile.class, AttachmentDiscoveryProfileRegistry.class)) {
             var profiles = context.getBean(AttachmentDiscoveryProfileRegistry.class).selectProfileList();
-            assertThat(profiles).hasSize(17);
+            assertThat(profiles).hasSize(18);
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileCode).doesNotHaveDuplicates();
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             assertThat(profiles.stream().filter(p -> !(p instanceof StandardBbsAttachmentDiscoveryProfile)))

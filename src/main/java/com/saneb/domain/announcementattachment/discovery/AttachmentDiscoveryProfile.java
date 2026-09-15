@@ -25,6 +25,10 @@ public interface AttachmentDiscoveryProfile {
     default boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request request) {
         return request != null && "GET".equals(request.method()) && selectApprovedRequest(request.uri());
     }
+    /** 최초 요청에 결합된 기관은 redirect에서도 공고/파일 소속을 보존한다. 기존 기관의 계약은 유지한다. */
+    default boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request initial, AttachmentPinnedDownloadClient.Request request) {
+        return selectApprovedRequest(request);
+    }
     Result selectDescriptors(String providerNoticeId, String html);
 
     /** URL hash를 notice ID로 쓰는 지자체는 시스템 source 연결과 실제 상세 주소를 함께 검증한다. */

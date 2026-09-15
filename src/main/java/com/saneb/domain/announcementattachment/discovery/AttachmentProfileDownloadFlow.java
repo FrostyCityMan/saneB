@@ -18,9 +18,9 @@ public final class AttachmentProfileDownloadFlow {
         int[] count={0};
         int[] httpCount={0};
         java.util.function.Predicate<AttachmentPinnedDownloadClient.Request> approved=request->
-                ++httpCount[0]<=4 && profile.selectApprovedRequest(request);
+                ++httpCount[0]<=4 && profile.selectApprovedRequest(initial,request);
         AttachmentDownloadFlowProfile.Operation bounded=(request,limit)->{
-            if(++count[0]>4 || limit<1 || limit>maximumBytes || !profile.selectApprovedRequest(request)) throw new IOException("ATTACHMENT_DOWNLOAD_BLOCKED");
+            if(++count[0]>4 || limit<1 || limit>maximumBytes || !profile.selectApprovedRequest(initial,request)) throw new IOException("ATTACHMENT_DOWNLOAD_BLOCKED");
             return transport.selectDownload(request,limit,approved);
         };
         try {

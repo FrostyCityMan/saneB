@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-taebaek-reviewed-v2",
+  "catalogVersion": "2026-09-15-cheorwon-reference-v2",
   "notices": [
+    {
+      "caseCode": "CHEORWON-288915",
+      "profileCode": "LOCAL_CHEORWON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "44649bf755d1baaf4319809d502a2b82fcc66189b2659c2cdc0d6fef5cd7d8d1",
+        "sourceUrl": "https://www.cwg.go.kr/www/selectBbsNttView.do?key=1226&bbsNo=25&nttNo=288915",
+        "localSourceCode": "LGS-000129",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHEORWON-291529",
+      "profileCode": "LOCAL_CHEORWON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7816f5014ef443bb57a835ebe7c8b50810b31d0406067563da41dd91fa3e19f9",
+        "sourceUrl": "https://www.cwg.go.kr/www/selectBbsNttView.do?key=1226&bbsNo=25&nttNo=291529",
+        "localSourceCode": "LGS-000129",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHEORWON-291245",
+      "profileCode": "LOCAL_CHEORWON_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7f86c0cb6f9af67df47dfb8e341fcdae836f04a1bbcc981843f679c08d25587a",
+        "sourceUrl": "https://www.cwg.go.kr/www/selectBbsNttView.do?key=1226&bbsNo=25&nttNo=291245",
+        "localSourceCode": "LGS-000129",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "YANGPYEONG-312241",
       "profileCode": "LOCAL_YANGPYEONG_BBS_V1",

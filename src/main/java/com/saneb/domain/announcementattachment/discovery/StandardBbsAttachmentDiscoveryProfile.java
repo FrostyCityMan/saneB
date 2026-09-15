@@ -2,6 +2,7 @@ package com.saneb.domain.announcementattachment.discovery;
 
 import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence;
 import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer;
+import com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,8 @@ import org.jsoup.nodes.Element;
 /** 실측한 기관별 BBS만 지원한다. 목록 parser가 같다는 이유로 다른 기관을 지원하지 않는다. */
 public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
     enum Layout { CLASSIC, COMPACT, COMPACT_MENU_KEY, COMPACT_SVG, COMPACT_BOARD_PREVIEW, COMPACT_LABELLED_CONTENT }
-    enum FileHeaders { EXISTING_PROFILE, MS_DOWNLOAD_STANDARD_DISPOSITION }
+    enum FileHeaders { EXISTING_PROFILE, MS_DOWNLOAD_STANDARD_DISPOSITION, STRICT }
+    enum DownloadParameters { EXISTING_PROFILE, NOTICE_BOUND }
     static final String DETAIL = "/www/selectBbsNttView.do";
     static final String DOWNLOAD = "/www/downloadBbsFile.do";
     private static final Set<String> SOURCE_PARAMETERS = Set.of("key", "bbsNo", "nttNo", "searchCtgry",
@@ -31,6 +33,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     private final String listParser;
     private final boolean upgradeStoredHttp;
     private final FileHeaders fileHeaders;
+    private final DownloadParameters downloadParameters;
     private final String hash;
     private final AnnouncementSourceIdentityNormalizer normalizer = new AnnouncementSourceIdentityNormalizer();
 
@@ -41,12 +44,19 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
 
     StandardBbsAttachmentDiscoveryProfile(String code, String sourceCode, String host, String board, String menu,
                                           Layout layout, boolean upgradeStoredHttp, String listParser, FileHeaders fileHeaders) {
+        this(code, sourceCode, host, board, menu, layout, upgradeStoredHttp, listParser, fileHeaders, DownloadParameters.EXISTING_PROFILE);
+    }
+
+    StandardBbsAttachmentDiscoveryProfile(String code, String sourceCode, String host, String board, String menu,
+                                          Layout layout, boolean upgradeStoredHttp, String listParser, FileHeaders fileHeaders,
+                                          DownloadParameters downloadParameters) {
         this.code = code; this.sourceCode = sourceCode; this.host = host; this.board = board; this.menu = menu;
         this.layout = layout; this.listParser = listParser;
         this.fileHeaders = java.util.Objects.requireNonNull(fileHeaders);
+        this.downloadParameters = java.util.Objects.requireNonNull(downloadParameters);
         this.compactLayout = layout != Layout.CLASSIC; this.upgradeStoredHttp = upgradeStoredHttp;
         this.hash = AttachmentProfileFingerprint.selectHash(String.join("|", "STANDARD_BBS:2", code, sourceCode,
-                host, board, menu, layout.name(), Boolean.toString(upgradeStoredHttp), listParser, fileHeaders.name(),
+                host, board, menu, layout.name(), Boolean.toString(upgradeStoredHttp), listParser, fileHeaders.name(), downloadParameters.name(),
                 "https443|session-free|exact-file-cell|unknown-role|limit10|no-preview-fetch"), getClass());
     }
 
@@ -58,6 +68,7 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     // 기관별로 실측한 header octet만 복원한다. 제천은 실제 기본 검사 통과를 확인해 복원하지 않는다.
     @Override public boolean selectUtf8DispositionOctets() { return fileHeaders == FileHeaders.EXISTING_PROFILE && !upgradeStoredHttp && layout != Layout.COMPACT_SVG && layout != Layout.COMPACT_BOARD_PREVIEW; }
     @Override public Set<String> selectLegacyBinaryContentTypes() {
+        if (fileHeaders == FileHeaders.STRICT) return Set.of();
         if (fileHeaders == FileHeaders.MS_DOWNLOAD_STANDARD_DISPOSITION) return Set.of("application/x-msdownload");
         if (layout == Layout.COMPACT_MENU_KEY) return Set.of();
         if (layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW) return Set.of("application/x-msdownload");
@@ -95,6 +106,13 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
         Map<String, String> query = selectParameters(uri.getRawQuery());
         if (DETAIL.equals(uri.getPath())) return query.keySet().equals(Set.of("key", "bbsNo", "nttNo")) && selectDetailParameters(query);
         return DOWNLOAD.equals(uri.getPath()) && selectDownloadParameters(query);
+    }
+
+    @Override public boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request initial, AttachmentPinnedDownloadClient.Request request) {
+        if (downloadParameters != DownloadParameters.NOTICE_BOUND) return selectApprovedRequest(request);
+        return selectApprovedRequest(initial) && selectApprovedRequest(request)
+                && initial.uri().getPath().equals(request.uri().getPath())
+                && selectParameters(initial.uri().getRawQuery()).equals(selectParameters(request.uri().getRawQuery()));
     }
 
     @Override public Result selectDescriptors(Source source, String html) {
@@ -136,6 +154,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
             Element anchor = downloads.getFirst();
             URI fetch = selectResolved(detail, anchor.attr("href"));
             if (fetch == null || !DOWNLOAD.equals(fetch.getPath()) || !selectApprovedRequest(fetch)) { unresolved = true; continue; }
+            if (downloadParameters == DownloadParameters.NOTICE_BOUND
+                    && !noticeId.equals(selectParameters(fetch.getRawQuery()).get("nttNo"))) { unresolved = true; continue; }
             var names = compactLayout ? anchor.select("span:not(.p-icon)") : item.select("div.down_view > span");
             if (names.size() != 1) { unresolved = true; continue; }
             Element nameElement = names.getFirst();
@@ -177,12 +197,17 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
     private boolean selectDownloadParameters(Map<String, String> query) {
         if (!selectId(query.get("atchmnflNo"))) return false;
+        if (downloadParameters == DownloadParameters.NOTICE_BOUND)
+            return query.keySet().equals(Set.of("atchmnflNo", "bbsNo", "nttNo"))
+                    && board.equals(query.get("bbsNo")) && selectId(query.get("nttNo"));
         if (layout == Layout.COMPACT || layout == Layout.COMPACT_SVG || layout == Layout.COMPACT_BOARD_PREVIEW
                 || layout == Layout.COMPACT_LABELLED_CONTENT) return query.keySet().equals(Set.of("atchmnflNo"));
         return upgradeStoredHttp || layout == Layout.COMPACT_MENU_KEY ? query.keySet().equals(Set.of("key", "atchmnflNo")) && menu.equals(query.get("key"))
                 : query.keySet().equals(Set.of("bbsNo", "atchmnflNo")) && board.equals(query.get("bbsNo"));
     }
     private boolean selectPreview(URI detail, String href, String attachmentId, String noticeId, String displayName) {
+        // 철원에서 관측한 첨부 영역에는 미리보기가 없었다. 확인하지 않은 경로를 다른 기관에서 차용하지 않는다.
+        if (downloadParameters == DownloadParameters.NOTICE_BOUND) return false;
         URI uri = selectResolved(detail, href);
         if (!selectOrigin(uri, false)) return false;
         Map<String, String> query = selectParameters(uri.getRawQuery());

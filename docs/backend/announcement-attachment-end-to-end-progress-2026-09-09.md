@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-15 15:45 KST — 철원군 모델·공고 소속 검증과 HWP Linux 증거
+
+- 직전 회차는 상태 보고 중 ee72b97 Linux 성공을 새로 확인한 검증 진척이다. 이번은 **progress**로 철원군 LGS-000129/게시판25·메뉴1226의 전용 본문·첨부 모델을 추가했다. 공통 엔진6/첨부 연결18/전용 본문 연결17이나 철원 실사이트 성공 수량은 아니다. 직접 상세 HTML1회 뒤 후속3회 시간 초과로 동일 조건 재시도를 중단했으며, 정확한 본문 marker/파일 MIME·signature·추출은 미확인이다. [기관 계약·한계](announcement-cheorwon-bbs-profile-2026-09-15.md)를 따른다.
+- 파일/게시판/현재 공고번호3개 query를 필수로 하고 redirect에서도 최초 공고·파일 소속을 유지한다. 다른 기관의 MIME/헤더·HTTP·미리보기 예외를 차용하지 않는다. 불명확한 발견/미지원/부분 파일을 정상 후보로 승격하지 않는다. DB/API/UI/V1~V83/운영 정책·기존 데이터는 변경하지 않았다.
+- catalog는27참조/보관 기대값1이다. 기존 태백 기대값은 내용과 구profileHash를 보존하므로 새 코드에서는 PROFILE_CHANGED/현재 실행0이다. 참조 추가와 합성 fixture를 공식 정확도나 정책 QA 통과로 계산하지 않는다. 첫 전체 회귀51실패의 mock 기본 overload 연결과 구지문 무효화 시험을 보완했고, 표적202/생략0을 통과했다. 최종15:49 전체5분11초 성공: root2675=2411통과/264조건부 생략·실패0, 패키지20통과/생략0. 추출기88·웹 JAR/probe는 UP-TO-DATE다. Node15통과/Linux2생략·diff/자격증명 패턴 검사 통과·Java0·단발 Node 종료·사용자 output 보존이다.
+- ee72b97 [Linux34936106328](https://github.com/FrostyCityMan/saneB/actions/runs/34936106328) success 보관 XML 확인: root2653=2390통과/263조건부 생략, 추출기88·패키지20·job192·migration17·worker12·runtime1·정책부모2·Flyway3 실패/생략0. 현재 철원 변경 SHA의 검증은 아니며 공식 사이트 opt-in/운영 배포도 미실행이다.
+- 마지막 직접 운영 근거는787c594/추출기1.0.1/DB V83/첨부 worker 비활성이다. 취소된 배포의 재개 확인, API key 직접 설정 및 관리자 재로그인은 대기다. 현재 회차는 AWS/브라우저를 다시 조작하지 않았다. 제목→본문→실제 첨부→최종 관리자 검증, ATT62/9Gate 전체 범위를 유지하고 goal ACTIVE다.
+
 ### 2026-09-15 15:14 KST — HWP 표·셀 순서 처리1.0.3 로컬 구현
 
 - 직전 회차는 현황 보고로 구현 진척이 없었다. 이번은 **progress**다. 공개 작성/읽기 형식의 실제 셀 헤더8바이트 기본 영역과 레코드 깊이를 대조하여 표 앞 문장→셀별 문단/중첩 표→표 뒤 문장의 순서를 구현했다. 행·열/span·전체 격자·문단 수/종료 플래그/문자 수를 검증하고 각 셀/문단/연속 구간의 scope를 분리한다. 단순 TABLE tag 차단 해제가 아니다.
@@ -320,12 +328,12 @@
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
-| 1 DB·API 계약 | [~] | 동일 SHA2bde216 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0 및 공식 양평3건 DB/API 연결 통과. 이전476c8f7 서버 합성221/221과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
-| 2 상시 worker·Provider | [~] | 공통 엔진6·첨부 profile17·worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현 및 설치. 전체223기관 적용성과 운영 상시 수집은 미완료/worker 비활성 |
-| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 총24/실행 기대값1(태백 전체2파일, 정상공고0). 787c594 설치에서 사전 기대값2/2 실제 재비교 PASSED. 나머지 역할/형식/전체 Provider QA·정책 게시가 잔여 |
+| 1 DB·API 계약 | [~] | ee72b97 Linux migration17·worker12·job192·Flyway3 실패/생략0. 운영 V83/실패0 및 공식 양평3건 DB/API 연결의 이전 실증과 구분. 철원 증분은 DB/API/migration 변경 없음. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
+| 2 상시 worker·Provider | [~] | 로컬 엔진6·첨부 profile18(철원 추가, 실제 접속 QA 미완료). 마지막 운영 설치는 profile17/worker 비활성. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
+| 3 분류·정책 | [~] | 로컬 전용 BODY 연결17(철원 실제 marker 재확인 필요). catalog27참조/보관 기대값1, 새 BBS 지문에서 기존 태백은 PROFILE_CHANGED/현재 실행0. 과거787c594의 태백2파일 재비교 PASSED와 구분. 역할/형식/전체 Provider QA·정책 게시가 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 787c594 Linux 필수 DB/추출기·단일 파일4건 진단·태백HWPX/HWP worker·DB·API 재확인. 태백 catalog 고정2파일 재비교 PASSED. HWP9743자 부분 추출/검수 전환 유지. 완전HWP 전체경로/전체 Provider/형식/나머지 사전 기대값은 잔여 |
+| 6 자동·실파일 QA | [!] | ee72b97/추출기1.0.3 Linux 필수 DB·추출기 검증 성공. 과거787c594/1.0.1에서 태백2파일 기대값 비교와 HWP9743자 부분 추출/검수 전환 확인. 새 추출기 실파일·새 BBS 지문 재검증/철원 접속 회복/전체 Provider·형식 기대값은 잔여 |
 | 7 운영 배포·활성화 | [~] | Actions34927650269/CodeDeploy d-MWENRAGTK 성공, 787c594·V83·추출기1.0.1·catalog24/기대값1·worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

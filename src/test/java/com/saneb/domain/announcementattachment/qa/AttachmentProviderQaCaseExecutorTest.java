@@ -58,6 +58,7 @@ class AttachmentProviderQaCaseExecutorTest {
         when(profile.selectSourceBindings()).thenReturn(List.of(new AttachmentDiscoveryProfile.SourceBinding(null,null)));
         when(profile.selectApprovedHosts()).thenReturn(Set.of("www.example.go.kr"));
         when(profile.selectApprovedRequest(any(AttachmentPinnedDownloadClient.Request.class))).thenReturn(true);
+        when(profile.selectApprovedRequest(any(AttachmentPinnedDownloadClient.Request.class),any(AttachmentPinnedDownloadClient.Request.class))).thenCallRealMethod();
         when(profile.selectLegacyBinaryContentTypes()).thenReturn(Set.of());
         when(profile.selectDetailUri(any(AttachmentDiscoveryProfile.Source.class))).thenReturn(URI.create("https://www.example.go.kr/detail"));
         when(runtime.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION,runtimeHash,1,10));
@@ -268,6 +269,7 @@ class AttachmentProviderQaCaseExecutorTest {
         when(flowProfile.selectApprovedHosts()).thenReturn(Set.of("www.example.go.kr"));
         when(flowProfile.selectLegacyBinaryContentTypes()).thenReturn(Set.of());
         when(flowProfile.selectApprovedRequest(any(AttachmentPinnedDownloadClient.Request.class))).thenReturn(true);
+        when(flowProfile.selectApprovedRequest(any(AttachmentPinnedDownloadClient.Request.class),any(AttachmentPinnedDownloadClient.Request.class))).thenCallRealMethod();
         when(flowProfile.selectDescriptors(any(AttachmentDiscoveryProfile.Source.class),anyString()))
                 .thenAnswer(call->new AttachmentDiscoveryProfile.Result("FOUND",true,descriptors,List.of()));
         when(((AttachmentDownloadFlowProfile)flowProfile).selectDownload(any(),any(),anyLong(),any())).thenAnswer(call->{

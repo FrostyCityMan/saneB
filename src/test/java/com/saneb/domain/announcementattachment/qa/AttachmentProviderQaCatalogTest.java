@@ -152,7 +152,7 @@ class AttachmentProviderQaCatalogTest {
         var second=new AnnouncementSourceClassificationRuleSet("SECOND",rules.rules());assertThat(cat.selectPrepared(scope,second,runtimeHash,now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
     }
     private AttachmentProviderQaCatalog packagedCatalog() {
-        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails());
+        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails());
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
         rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
@@ -160,11 +160,39 @@ class AttachmentProviderQaCatalogTest {
         return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles));
     }
     private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-15T03:28:40.008199613Z");
-    @Test void packagedReviewedExceptionKeepsAllReferencesAndCannotFillNormalCoverage() {
+    private Definition packagedDefinition() throws Exception {
+        try(var input=new org.springframework.core.io.ClassPathResource("announcement-attachment/provider-qa-catalog-v2.json").getInputStream()) {
+            return mapper.readValue(input,Definition.class);
+        }
+    }
+    /** 계약 시험용 메모리 fixture만 지문을 맞춘다. 배포 catalog/공식 기대값 파일을 수정하거나 실행하지 않는다. */
+    private AttachmentProviderQaCatalog matchingProfileFixture() throws Exception {
+        packagedCatalog();var definition=packagedDefinition();
+        var notices=definition.notices().stream().map(n->{
+            if(n.expectation()==null)return n;
+            var current=profiles.stream().filter(p->p.selectProfileCode().equals(n.profileCode())).findFirst().orElseThrow();var e=n.expectation();
+            return new Notice(n.caseCode(),n.profileCode(),n.source(),new Expectation(current.selectProfileHash(),e.title(),e.observedAt(),e.discoveryStatus(),e.discoveryComplete(),e.files(),e.limits()));
+        }).toList();
+        return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(2,"TEST-REVIEWED-FIXTURE",notices));
+    }
+    @Test void packagedHistoricalExpectationIsNotReboundToChangedBbsCode() throws Exception {
         var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(10);assertThat(result.plan().cases()).hasSize(24);
+        var historical=packagedDefinition().notices().stream().filter(n->"TAEBAEK-184816".equals(n.caseCode())).findFirst().orElseThrow();
+        assertThat(historical.expectation().profileHash()).isEqualTo("9aea97d1281dd778ba6d6f331fd7dd147fef2a05f6de7132ccd90c28b28a58e5");
+        assertThat(historical.expectation().profileHash()).isNotEqualTo(profiles.getFirst().selectProfileHash());
+        assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
+                .satisfies(c->assertThat(c.statusCode()).isEqualTo("PROFILE_CHANGED"));
+        assertThat(result.plan().cases().stream().filter(c->c.caseCode().startsWith("CHEORWON-"))).hasSize(3)
+                .allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.expectedFileCount()).isNull();assertThat(c.normalNotice()).isFalse();});
+        assertThat(result.inputs()).isEmpty();assertThat(result.plan().segments()).isEmpty();
+        assertThat(result.plan().executableCount()).isZero();assertThat(result.plan().isQaPassed()).isFalse();
+        assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+    }
+    @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
+        var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
+        assertThat(result.plan().targets()).hasSize(11);assertThat(result.plan().cases()).hasSize(27);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(23).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(26).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });
@@ -185,8 +213,8 @@ class AttachmentProviderQaCatalogTest {
         assertThat(result.inputs().getFirst().limits()).isEqualTo(new Limits(420,44,83886080));
     }
     @ParameterizedTest @ValueSource(longs={-1,604801})
-    void packagedReviewedCaseCannotRunBeforeObservationOrAfterSevenDays(long elapsed) {
-        var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED.plusSeconds(elapsed));
+    void reviewedFixtureCannotRunBeforeObservationOrAfterSevenDays(long elapsed) throws Exception {
+        var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED.plusSeconds(elapsed));
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().segments()).isEmpty();
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->assertThat(c.statusCode()).isEqualTo("OBSERVATION_EXPIRED"));
@@ -200,8 +228,8 @@ class AttachmentProviderQaCatalogTest {
         assertThat(plain.plan()).isEqualTo(configured.plan());assertThat(plain.inputs()).isEqualTo(configured.inputs());
         assertThat(caller.getRegisteredModuleIds()).isEqualTo(before);
     }
-    @Test void packagedReviewedCaseDoesNotBypassChangedTitleRules() {
-        var catalog=packagedCatalog();var changed=new ArrayList<>(rules.rules());
+    @Test void reviewedFixtureDoesNotBypassChangedTitleRules() throws Exception {
+        var catalog=matchingProfileFixture();var changed=new ArrayList<>(rules.rules());
         changed.add(rule("B",RuleGroupKindCode.AUTO_EXCLUDE_B,"취업농",null,null));
         var result=catalog.selectPrepared(scope,new AnnouncementSourceClassificationRuleSet("CHANGED",changed),runtimeHash,TAEBAEK_OBSERVED);
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().segments()).isEmpty();

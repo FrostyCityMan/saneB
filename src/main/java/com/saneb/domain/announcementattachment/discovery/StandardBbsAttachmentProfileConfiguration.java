@@ -30,4 +30,9 @@ public class StandardBbsAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectYangpyeongProfileDetails() {
         return new StandardBbsAttachmentDiscoveryProfile("LOCAL_YANGPYEONG_BBS_V1", "LGS-000110", "www.yp21.go.kr", "5", "1119", StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT_LABELLED_CONTENT, false, "HEURISTIC_NOTICE");
     }
+    @Bean public AttachmentDiscoveryProfile selectCheorwonProfileDetails() {
+        return new StandardBbsAttachmentDiscoveryProfile("LOCAL_CHEORWON_BBS_V1", "LGS-000129", "www.cwg.go.kr", "25", "1226",
+                StandardBbsAttachmentDiscoveryProfile.Layout.COMPACT, false, "SAEOL_GOSI",
+                StandardBbsAttachmentDiscoveryProfile.FileHeaders.STRICT, StandardBbsAttachmentDiscoveryProfile.DownloadParameters.NOTICE_BOUND);
+    }
 }

@@ -73,10 +73,23 @@ class StandardBbsAttachmentProfileLiveQaTest {
     void discoversYangpyeongFilesWithoutHidingUnsupportedImages(Sample sample) throws Exception {
         discoversAllFilesAndChecksBoundedProductionTransport(sample);
     }
+    static Stream<Sample> selectCheorwonCases() {
+        return Stream.of(new Sample(8, "288915", 3, List.of("HWPX", "HWPX", "HWPX")),
+                new Sample(8, "291529", 1, List.of("HWPX")), new Sample(8, "291245", 1, List.of("HWPX")));
+    }
+    @ParameterizedTest(name = "철원 공식 지원사업 표본 {index}") @MethodSource("selectCheorwonCases") @Timeout(150)
+    void discoversCheorwonFilesBoundToTheCurrentNotice(Sample sample) throws Exception {
+        discoversAllFilesAndChecksBoundedProductionTransport(sample);
+    }
     @ParameterizedTest(name = "BBS 공식 지원사업 표본 {index}") @MethodSource("selectCases") @Timeout(150)
     void discoversAllFilesAndChecksBoundedProductionTransport(Sample sample) throws Exception {
-        var site = StandardBbsAttachmentDiscoveryProfileTest.selectCases().toList().get(sample.profileIndex());
-        var profile = site.profile(); var source = StandardBbsAttachmentDiscoveryProfileTest.selectSource(site, sample.noticeId());
+        var site = sample.profileIndex() == 8
+                ? new StandardBbsAttachmentDiscoveryProfileTest.Case(new StandardBbsAttachmentProfileConfiguration().selectCheorwonProfileDetails(),
+                    "LGS-000129", "www.cwg.go.kr", "25", "1226")
+                : StandardBbsAttachmentDiscoveryProfileTest.selectCases().toList().get(sample.profileIndex());
+        var profile = site.profile();
+        var source = sample.profileIndex() == 8 ? CheorwonAttachmentDiscoveryProfileTest.selectSource(sample.noticeId())
+                : StandardBbsAttachmentDiscoveryProfileTest.selectSource(site, sample.noticeId());
         if (sample.profileIndex() == 4) {
             var normalizer = new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
             String stored = normalizer.canonicalizeUrl(source.sourceUrl() + "&id=&&searchCtgry=&searchCnd=&searchKrwd=&pageIndex=1&integrDeptCode=");
@@ -93,8 +106,9 @@ class StandardBbsAttachmentProfileLiveQaTest {
         String stage = "DETAIL";
         try (var client = new AttachmentPinnedDownloadClient()) {
             AttachmentPinnedDownloadClient.ByteReservation budget = bytes -> reserved.addAndGet(bytes) <= 50L * 1024 * 1024;
-            var downloaded = client.selectDownload(AttachmentPinnedDownloadClient.Request.selectGet(profile.selectDetailUri(source)),
-                    profile.selectApprovedHosts(), r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(r); }, detail, 1024L * 1024, budget);
+            var detailRequest = AttachmentPinnedDownloadClient.Request.selectGet(profile.selectDetailUri(source));
+            var downloaded = client.selectDownload(detailRequest,
+                    profile.selectApprovedHosts(), r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(detailRequest, r); }, detail, 1024L * 1024, budget);
             assertTrue(downloaded.contentType() != null && downloaded.contentType().toLowerCase(Locale.ROOT).startsWith("text/html"), "DETAIL_CONTENT_TYPE_CHANGED");
             report.put("detailHash", downloaded.sha256()); AttachmentDiscoveryProfile.Result result;
             try (var input = Files.newInputStream(detail)) {
@@ -115,8 +129,9 @@ class StandardBbsAttachmentProfileLiveQaTest {
                 }
                 assertTrue(descriptor.downloadAllowed(), "FORMAT_SUPPORT_CHANGED");
                 try {
-                    var downloadedFile = client.selectDownload(descriptor.selectRequest(), profile.selectApprovedHosts(),
-                            r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(r); }, binary, 20L * 1024 * 1024, budget);
+                    var fileRequest = descriptor.selectRequest();
+                    var downloadedFile = client.selectDownload(fileRequest, profile.selectApprovedHosts(),
+                            r -> { requests.incrementAndGet(); return profile.selectApprovedRequest(fileRequest, r); }, binary, 20L * 1024 * 1024, budget);
                     if (sample.expectedRejection() != null) {
                         assertEquals(1, sample.fileCount(), "NEGATIVE_SAMPLE_SCOPE_CHANGED");
                         var rejected = assertThrows(java.io.IOException.class, () -> new AttachmentFileTypeValidator()
