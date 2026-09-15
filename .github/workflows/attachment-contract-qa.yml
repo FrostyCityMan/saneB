@@ -73,7 +73,7 @@ jobs:
           test -x /usr/bin/prlimit
 
       - name: 배포 QA 패키지 불변 설치·JAR 원복 경로 검증
-        run: node --test scripts/qa/attachment-contract-release.test.mjs
+        run: node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs
 
       - name: 단위·HTTP·실제 임시 DB·migration·artifact 검증
         id: contracts

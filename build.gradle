@@ -150,6 +150,8 @@ dependencies {
     testImplementation 'io.zonky.test:embedded-postgres:2.2.2'
     testImplementation enforcedPlatform('io.zonky.test.postgres:embedded-postgres-binaries-bom:16.15.0')
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // 공식 worker 일회성 실행기도 기존 JUnit lifecycle/timeout을 사용한다. 운영 의존성은 아니다.
+    testCompileOnly 'org.junit.platform:junit-platform-launcher'
     mockitoAgent('org.mockito:mockito-core') {
         transitive = false
     }
@@ -334,6 +336,23 @@ tasks.register('attachmentOfficialWorkerIntegrationTest', Test) {
     outputs.upToDateWhen { false }
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentOfficialWorkerIntegrationTest')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentOfficialWorkerIntegrationTest')
+}
+
+// 이미 설치된 동일 코드 QA runtime에 고정 공식 시험만 전달한다. 웹/합성 QA JAR는 바꾸지 않는다.
+tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
+    group = 'verification'
+    description = '고정 양평3건 JUnit 시험의 별도 실행 패키지입니다. 생성만 하며 외부 요청은 하지 않습니다.'
+    dependsOn 'testClasses'
+    archiveFileName = 'official-worker-probe.jar'
+    destinationDirectory = layout.buildDirectory.dir('official-worker-probe')
+    from(sourceSets.test.output.classesDirs) {
+        include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerIntegrationTest*.class'
+        include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerProbe.class'
+        include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsOfficialObservationTest*.class'
+        include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentOfficialObservationTest*.class'
+    }
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
 }
 
 tasks.register('attachmentBbsFixedCaseQa', Test) {

@@ -155,7 +155,8 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertEquals(sample.listedFileCount(),set.discoveredCount());assertEquals(set.discoveredCount(),set.processedCount());
                 assertEquals(sample.listedFileCount(),files.size());
                 var http=MockMvcBuilders.standaloneSetup(new AnnouncementAttachmentController(read),new AnnouncementAttachmentCurrentController(bean(AnnouncementAttachmentCurrentService.class)))
-                        .setControllerAdvice(new GlobalExceptionHandler()).build();
+                        .setControllerAdvice(new GlobalExceptionHandler())
+                        .setMessageConverters(new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(JSON)).build();
                 var fileJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-sets/"+set.setId()+"/files");
                 assertEquals(files.size(),fileJson.path("totalCount").asInt());
                 for(int i=0;i<files.size();i++) {
@@ -163,7 +164,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     row.put("format",file.detectedTypeCode());row.put("downloadStatus",file.downloadStatusCode());row.put("downloadErrorCode",file.downloadErrorCode());
                     row.put("bytes",file.downloadedBytes());row.put("binaryHash",file.binaryHash());row.put("quality",file.qualityCode());row.put("characterCount",file.characterCount());
                     row.put("roleCode",file.documentRoleCode());row.put("roleOrigin",file.roleOriginCode());
-                    assertTrue(JSON.valueToTree(file).equals(fileJson.path("items").get(i)),"API_FILE_PROJECTION_MISMATCH");
+                    assertTrue(selectWireTree(file).equals(fileJson.path("items").get(i)),"API_FILE_PROJECTION_MISMATCH");
                     if(file.extractionId()!=null) {
                         var actual=extractor.byBinaryHash.get(file.binaryHash());assertNotNull(actual,"ACTUAL_EXTRACTION_MISSING");
                         assertEquals(actual.path("qualityCode").asText(),file.qualityCode());
@@ -179,7 +180,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         }
                         var blocks=read.selectAttachmentBlockList(source,file.extractionId(),1,10,0,2000);
                         var blockJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/blocks?page=1&size=10&textOffset=0&textLimit=2000");
-                        assertTrue(JSON.valueToTree(blocks).equals(blockJson),"API_BLOCK_PROJECTION_MISMATCH");
+                        assertTrue(selectWireTree(blocks).equals(blockJson),"API_BLOCK_PROJECTION_MISMATCH");
                         var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/blocks",UUID.randomUUID(),file.extractionId())).andReturn();
                         assertEquals(404,wrong.getResponse().getStatus());
                     } else {
@@ -190,7 +191,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertEquals(1,extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
                 var summary=bean(AnnouncementAttachmentCurrentService.class).selectClassificationDetails(source);
                 var summaryJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-classification");
-                assertTrue(JSON.valueToTree(summary).equals(summaryJson),"API_CLASSIFICATION_PROJECTION_MISMATCH");
+                assertTrue(selectWireTree(summary).equals(summaryJson),"API_CLASSIFICATION_PROJECTION_MISMATCH");
                 report.put("processingStatus",summary.processingFlow().statusCode());report.put("decisionStatus",summary.effectiveClassification().semanticStatusCode());
                 report.put("decisionReason",summary.effectiveClassification().reasonCode());report.put("extractorCalls",extractor.calls);
                 assertNotEquals("EXCLUDED",summary.effectiveClassification().semanticStatusCode());
@@ -245,6 +246,9 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         var response=http.perform(get(path)).andReturn().getResponse();assertEquals(200,response.getStatus());assertEquals("no-store",response.getHeader("Cache-Control"));
         var json=JSON.readTree(response.getContentAsByteArray());assertTrue(json.path("success").asBoolean());return json.path("data");
     }
+    // DTO의 LongNode와 HTTP JSON을 읽은 IntNode는 값이 같아도 equals가 false다.
+    // 기대값도 실제 wire serialization을 거쳐 비교하며 필드·값·배열 순서 검증은 유지한다.
+    static JsonNode selectWireTree(Object value) throws Exception {return JSON.readTree(JSON.writeValueAsBytes(value));}
     private static String hash(String text) throws Exception {return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));}
     private static final class ActualExtractor extends IsolatedAttachmentExtractor {
         int calls;final Map<String,JsonNode> byBinaryHash=new HashMap<>();

@@ -1,5 +1,34 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 최신 확인 — 2026-09-15 10시대
+
+전체 출시 판정은 **Not ready**다. 아래03시대 V72 관측은 과거 기준선이며 현재 설치 버전이 아니다.
+
+| 경계 | 현재 직접 확인 |
+|---|---|
+| AWS 인증 | 사용자 승인 root, 실제 계정=저장소 배포 대상, ap-northeast-2. ARN/인증값은 기록하지 않음 |
+| 배포 | [Actions34916976535](https://github.com/FrostyCityMan/saneB/actions/runs/34916976535) success, `d-CTAGI7DTK` Succeeded |
+| revision | `476c8f722e30464ff7c903b5519d86a4be1ad4c8` |
+| 실제 JAR SHA256 | `16a1bb74a13e7d88c180fe6f3eb98e97c105c8362592f9c96de572890523f437` |
+| schema / 가동 | JAR V83, 실제 DB V83/실패0, systemd active, localhost health UP |
+| worker / QA 설치 | 새 worker class 있음. JAR 지문별 QA release/내장 추출기 설치, 실행 환경의 QA root 일치 |
+| 활성화 | 첨부 worker·정책 QA·Provider QA 변수 미설정/코드 기본false. 운영 첨부 정책0, ACTIVE0 |
+| 첨부 데이터 | set/file/extraction/job/active job/batch 모두0건. 일괄 재처리·ENFORCE 미실행 |
+| 기존 원문 / 대상 | LOCAL_GOV_NOTICE2,945건, 활성 지자체223/목록 parser41종. 재처리 적격 건수 아님 |
+| API key | 기업마당·정부24 실행 환경에서 모두 없음 |
+| 공개 파일 QA | 단일 파일4건 예상 동작 통과/원본 정리4. PDF OCR/부분, HWP/HWPX 완전 텍스트. 공고 전체·worker 저장 성공 아님 |
+| 운영 서버 독립 DB QA | SSM `d10887c4-488e-47e0-a6d7-e3413a9e3d23` Success. 합성 worker/DB 계약221건 통과·실패/생략/미실행/container 실패0, 정리 성공·운영 DB 미사용·설치 JAR 불변 |
+| 공식 worker/DB/API | SSM `31cf27d7-cf0c-49f7-badd-10ffc1eeefcb` Success. 고정 양평3건 통과, BODY2/실제HWPX·PDF→worker→임시DB→API. 지원2파일은 PARTIAL_TEXT로 예외/검수 상태, JPG미지원·제목 제외 요청0. 운영 DB 미사용/정리 성공 |
+| 브라우저 | 사용자 HTTP 진행 승인 후 관리자 로그인·대기열 조회 확인. 최종 검증 준비0건/전체2,945건·1/148페이지, 표시20건 모두3단계 미적용. 검수·DRAFT·역할별 E2E는 미완료 |
+
+고정 읽기 전용 SSM 근거: 배포 전 runtime `b27e1306-0838-495d-8ca3-373814830ab4`, DB `a04fbb67-015a-408c-ae88-584129b2a10c`; 배포 후 runtime `cb6687b0-1361-4169-85b0-157bc2cb0a88`, DB `c8b4deb5-005e-4230-a345-81bd393fe8c9`, QA metadata `344622fa-f4ae-48d2-b262-6c0be53c9389`, ingress `2aac8108-3f76-4b4d-a81c-139de1926efa`는 Success다. DB 조회는 READ ONLY/statement8초·lock2초/ROLLBACK이며 원문·자격증명을 반환하지 않았다. 최초 runtime 진단1회는 Python3.10에서 지원하지 않는 로컬 진단용 hash 함수 사용으로 실패했고 이식 가능한 streaming hash로 수정 후 성공했다. 서비스 코드 오류로 계산하지 않는다.
+
+V73~V83은 새 additive migration11개이며 배포 SHA와 이전 revision 사이 V1~V72 변경0을 확인했다. 동일 SHA Linux migration 순차 시험17건·원래 Flyway3건 통과 후 승인된 기존 환경 배포를 수행했다. 배포 후 스키마 downgrade/DB 복원/이전 JAR 실제 복구 시험을 수행한 것은 아니다. 자동 CodeDeploy rollback은 DEPLOYMENT_FAILURE에 설정되어 있으나 이번 성공 배포에서 실행되지 않았다.
+
+최초 격리 DB 요청은 Windows 한글 포함 JSON 파일 전송 단계에서 실패했지만, ASCII escape 적용 후 실제 SSM 요청이 접수되고221건이 통과했다. 기존 미실행 기록을 현재 상태로 사용하지 않는다. 이 성공은 합성 계약 시험이며 공식 공고 전체 파일→worker 성공이나 정책 게시 승인 증거가 아니다.
+
+설치 완료와 기능 활성화는 별개다. 공식 전체 파일/역할 기대값, 정책 QA·게시 승인, 전체 기존 데이터의 정확한 승인 범위·적용·복구 증거와 관리자 업무 E2E는 남아 있다. 비밀정보·운영 원문은 문서/로그에 추가하지 않았고 IAM/보안그룹/포트/정책 설정은 변경하지 않았다.
+
 ## 판정
 
 2026-09-15 03:30~03:50 KST 읽기 전용 관측. **Not ready**다. 서비스 가동과 새 첨부 파이프라인 가동을 구분한다. 제목 1차 → 정제 본문 2차 → 실제 PDF/HWP/HWPX 텍스트 3차 → 관리자 최종 검증 순서, 실패/UNKNOWN 분리, 자동 ACTIVE 금지는 유지한다.

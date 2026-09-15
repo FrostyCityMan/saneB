@@ -11,6 +11,25 @@
 
 ## 기준선
 
+### 2026-09-15 11시대 — 서버 공식 worker 경로와 운영 읽기 전용 화면
+
+- 최종 SSM `31cf27d7-cf0c-49f7-badd-10ffc1eeefcb` Success, 양평 고정3건/3통과·생략0이다. BODY2건 AVAILABLE, HWPX11,398자/PDF4,195자 실제 추출→worker→임시 DB 텍스트→API 전체 필드/블록/종합 상태를 대조했다. JPG미지원 분모 보존·TITLE 제외 요청0·자동 confirmation/link0·lease/원본/DB/전송 자원 정리·운영 DB 쓰기0·설치 JAR 불변이다. 두 문서는 PARTIAL_TEXT/UNKNOWN, TECHNICAL_EXCEPTION·REVIEW_REQUIRED이므로 정상 분석 완료로 승격하지 않는다. 전체 Provider/정책 기대값/활성화/기존 데이터/업무 E2E는 남아 있다.
+- 고정 공식3건 JUnit을 별도 probe JAR로 실행하는 경로를 추가했다. 설치 웹 JAR와 app 전체 코드 지문을 대조하고 기존 runtime/JUnit lifecycle/timeout/실제 추출기를 재사용한다. 웹/불변 합성 QA JAR/DB/migration/API는 변경하지 않는다. 상세는 [공식 worker 검증](announcement-official-worker-db-api-qa-2026-09-15.md)이다.
+- 운영 관리자 실제 브라우저: 전체2945건/페이지20건에서 다음 페이지 후 browser back으로 전체 상태·page1이 복원됐다. 보은 원문1건 첨부 상세는 기록 없음≠첨부 없음 안내, worker 비활성 사유, 수집 예약/검수 확인/DRAFT 버튼 차단을 표시했다. 해당 경로 콘솔 오류·경고0, 확인한360px 구간 clientWidth=scrollWidth345로 가로 넘침0, 렌더링 캡처 후 viewport를 복원했다. 실제 수집/확인/DRAFT write는 실행하지 않았다. 전체 디바이스·역할/업무 E2E 완료가 아니다.
+- 로컬 전체 `:test :attachment-extractor:test attachmentContractQaTest bootJar attachmentOfficialWorkerProbeJar --no-daemon --console=plain --max-workers=1`은4분38초 성공. root2633=2371통과/262조건부 생략/실패0, 독립 실행기·패키지20건 통과. extractor/bootJar는 UP-TO-DATE이며 신규 실제 실행 성공으로 합산하지 않는다. 후속 예외 metadata 진단 표적 검증은 별도다.
+
+### 2026-09-15 10시대 — root 인증 복구 / V83 실제 배포 / 운영 파일 QA
+
+- 전체 Gate0~8/ATT-001~062는 **Not ready**, goal ACTIVE다. 이번 회차는 운영 반영의 progress다. 제목→정제 본문→실제 첨부 텍스트→관리자 최종 검증을 유지하며, 배포 성공을 상시 수집·전체 파일·정책·기존 데이터 완료로 바꾸지 않는다.
+- 사용자 요청에 따라 서울 리전의 default root 세션을 재인증했고 실제 STS 계정과 저장소 배포 대상의 일치를 확인했다. Windows의 현재 유효 신뢰 루트를 프로세스 범위에만 전달하여 TLS 검증을 유지했다. IAM/보안그룹/공개 포트는 변경하지 않았다. GitHub OIDC 진단34915789676의 SSM SendCommand 권한 거부와 root 진단 성공을 구분한다.
+- 동일 SHA `476c8f722e30464ff7c903b5519d86a4be1ad4c8`의 [Linux 실행37](https://github.com/FrostyCityMan/saneB/actions/runs/34915271732)은 success다. root2631=2368통과/263조건부 생략, 별도 extractor25·패키지20·job192·migration17·worker12·runtime1·부모2·원래 Flyway3은 실패/생략0이다. 독립221/221·Node241/설치12도 통과했다. 공식 파일 관측과 공식 worker 시험은 opt-in 생략이며 성공으로 계산하지 않는다.
+- [운영 배포](https://github.com/FrostyCityMan/saneB/actions/runs/34916976535), CodeDeploy `d-CTAGI7DTK`는 success다. 실제 설치 JAR SHA256 `16a1bb74a13e7d88c180fe6f3eb98e97c105c8362592f9c96de572890523f437`, JAR/DB V83, migration 실패0, 새 worker class·같은 JAR 지문의 QA 패키지/추출기·실행 경로 일치, systemd active/localhost health UP을 SSM으로 확인했다. Windows 로컬 JAR 지문과 Linux 배포 JAR 지문은 서로 다르므로 혼용하지 않는다.
+- 공개 파일 진단4건은 예상 동작을 통과했다. PDF는 OCR_REQUIRED/0자와 PARTIAL_TEXT/31,498자, HWP는 COMPLETE_TEXT/565자, HWPX는 COMPLETE_TEXT/2,413자다. 앞의 PDF2건은 자동 분석 완료가 아니다. BUILD_MACHINE_DRAFT_SNAPSHOT·단일 선택 파일 진단이고 공고 전체 첨부/본문/자동 역할/worker 영속 저장 검증이 아니다. 원본 정리4/4·해당 QA의 운영 DB 쓰기0이다.
+- 배포 전후 첨부 정책/ACTIVE 정책/set/file/extraction/job/batch는 모두0건이다. 첨부 worker·정책 QA·Provider QA 환경변수는 미설정(코드 기본false)이며 게시/ENFORCE/기존 데이터 재처리를 실행하지 않았다. 기존 지자체 활성 대상223/목록 parser41종/저장 원문2,945건을 확인했고 API key2종은 여전히 실행 환경에 없다. 원문 전체 건수는 재처리 승인 범위가 아니다.
+- 운영 서버 독립 임시 DB 계약은 Windows JSON ASCII escape 수정 후 SSM `d10887c4-488e-47e0-a6d7-e3413a9e3d23` Success로 완료했다. 합성221/221·실패/생략/미실행/container 실패0, 정리 성공, 운영 DB 미사용·설치 JAR 불변이다. 최초 요청 단계 실패와 구분하며 운영 DB나 격리 한도를 변경하지 않았다.
+- HTTP 진행 승인 후 관리자 로그인·첨부 대기열 실제 조회를 확인했다. 준비0건/전체2,945건·1/148페이지, 표시20건 모두3단계 미적용이고 콘솔 경고/오류0건이었다. 비로그인 진입 차단도 확인했다. 실제 검수·DRAFT·역할별 E2E/반응형은 미완료다. 서비스 ingress에는 Nginx/ALB가 없고8080만 열려 있으며 네트워크를 변경하지 않았다.
+- 상세 운영 근거는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)에 추가했다. 브랜치/원격은476c8f7이며 output Word2개를 보존했다. 공식 기대값·나머지 모델/형식·정책 QA·승인된 전체 기존 데이터·운영 관리자 E2E를 계속 진행해야 한다.
+
 ### 2026-09-15 09:45 KST — 공식 파일 worker·DB·API 검증 경로 / CI 외부 접근 차단
 
 - P3 진행, 전체 Gate0~8/ATT-001~062는 **Not ready**, goal ACTIVE다. `제목 1차 → 정제 본문 2차 → 실제 첨부 텍스트 3차 → 최종 관리자 검증`을 유지한다. 이번 회차는 검증 연결 구현의 progress이며 운영 완료가 아니다.
@@ -230,15 +249,15 @@
 
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
-| 0 맥락·범위·검증 목록 | [~] | 09-15 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V72·코드 SourceBinding11개 일치. 원주/제천2개 현재 운영 결합과 재인증 후 현재값 확인이 남음 |
-| 1 DB·API 계약 | [~] | QA 브랜치 V83까지 실제 PG migration17건·3단계 projection/역할 근거·v2 계약 검증 통과. 형식 적용성 schema2/조회 API 로컬 검증 통과, 같은 SHA Linux·전체 실제 catalog·운영 확인은 미완료. v1/과거 migration 보존 |
-| 2 상시 worker·Provider | [~] | worker/scheduler·총14개 첨부 profile·고정 예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 직전 SHA Linux worker11/실제 job192 통과. 이번 제천 증분은 로컬/공식 signature 검증까지이며 전체223기관·운영 연속 수집은 남음 |
-| 3 분류·정책 | [~] | 전용 BODY13기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조15/실행 기대값0이며 실제 역할·내용/제공 형식 검증, 전체 Provider QA/정책 게시가 잔여 |
-| 4 관리자 API·화면 | [~] | 처리 흐름 상세와 읽기 전용 최종 검증 대기열 구현. SQL 전체 count/페이지·9상태/29행 실제 PG·Java/HTTP·Node 회귀 통과. 운영 역할·브라우저 E2E는 미완료 |
+| 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
+| 1 DB·API 계약 | [~] | 동일 SHA476c8f7 Linux migration17·worker12·job192, 실제 운영 DB V83/실패0, 서버 격리 합성221/221 및 공식 양평3건 DB/API 연결 통과. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
+| 2 상시 worker·Provider | [~] | 공통 엔진6·첨부 profile17·worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현 및 설치. 전체223기관 적용성과 운영 상시 수집은 미완료/worker 비활성 |
+| 3 분류·정책 | [~] | 전용 BODY16기관·텍스트 역할 규칙/worker 근거·기관별 형식 적용성 구현. 공개 catalog 참조24/실행 기대값0. 실제 역할·내용/형식 기대값, 전체 Provider QA/정책 게시가 잔여 |
+| 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 실행24/be45ddf: migration17·worker11·독립220/220·부모2·정리 성공. 형식 적용성 최신 로컬 root2232통과/252생략. 제천 BODY3/파일4 signature는 별도 실제 표본이며 기업마당 재추출은 실행20 DETAIL_DISCOVERY timeout에서 미해결. 전체 Provider/형식/역할 기대값 잔여 |
-| 7 운영 배포·활성화 | [!] | 마지막 운영 실제 JAR/DB V72·새 worker/QA 패키지 미설치. QA 브랜치 커밋/푸시와 Linux 설치 계약 성공은 운영 배포가 아니다. TLS 검증을 유지한 조회 후 AWS 세션이 만료되어 재로그인 대기 중이며 게시/ENFORCE/기존 데이터는 정확한 범위 승인 필요 |
-| 8 운영 브라우저 E2E | [ ] | 사용자 명시 승인 있음. 합성 API 브라우저 결과는 별도 로컬 증거이며 운영 역할/업무/오류/반응형 검증을 대신하지 않음 |
+| 6 자동·실파일 QA | [!] | 동일 SHA Linux/서버 합성221건·단일 공개 파일4건 진단·공식 양평3건 worker/DB/API 통과. JCE 정책 mount와 시험 JSON 비교 오류 해결. 실제 지원2파일은 PARTIAL_TEXT로 완전 분석이 아니며 전체 Provider/형식/역할 기대값은 잔여 |
+| 7 운영 배포·활성화 | [~] | Actions34916976535/CodeDeploy d-CTAGI7DTK 성공, V83·새 worker/QA 설치·health UP 확인. 첨부 정책0/worker 비활성/외부API key2종 없음. 게시/ENFORCE/기존 데이터는 정확한 범위 승인 후 실행 |
+| 8 운영 브라우저 E2E | [~] | 사용자 HTTP 진행 승인·관리자 로그인·읽기 전용 목록·비로그인 차단 확인. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 
 ## 최신 실행 기록
 
