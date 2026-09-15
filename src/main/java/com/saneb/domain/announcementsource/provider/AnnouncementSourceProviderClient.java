@@ -13,6 +13,7 @@
 package com.saneb.domain.announcementsource.provider;
 
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow;
+import com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlan.SearchQuery;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +43,14 @@ public interface AnnouncementSourceProviderClient {
      * @return 처리 결과
      */
     List<AnnouncementSourceProviderItem> selectSourceItemList(AnnouncementSourceCollectionRequestRow request);
+
+    /** 고정 검색 계획의 대상·지원형태를 전달하며, 기존 제공자의 검색 계약은 유지합니다. */
+    default List<AnnouncementSourceProviderItem> selectSearchPlanItemList(
+            AnnouncementSourceCollectionRequestRow request,
+            SearchQuery query
+    ) {
+        return selectSourceItemList(request.withSearchKeyword(query.keyword()));
+    }
 
     /**
      * 실행 식별자가 필요한 provider를 포함해 수집 배치를 조회합니다.

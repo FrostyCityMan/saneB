@@ -1,5 +1,7 @@
 # 정부24 첨부 출처 코드 정합성
 
+후속 목록 API 계약은 [2026-09-15 공식 목록 증분](announcement-gov24-official-list-contract-2026-09-15.md)을 따른다. 아래 V78 출처/별칭 계약은 유지하며, 공식 목록 요청 규격 보완을 정부24 첨부 profile·운영 수집 성공으로 해석하지 않는다.
+
 ## 범위와 근거
 
 - 기존 수집 Provider·원문·V70 제외 tombstone의 정부24 코드는 `GOV24_PUBLIC_SERVICE`다.

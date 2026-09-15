@@ -61,6 +61,7 @@ import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunCom
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunItemCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRunRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow;
+import com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateCommand;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceDuplicateCandidateRow;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceExclusionRuleMatchCommand;
@@ -80,6 +81,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -183,6 +186,28 @@ class AnnouncementSourceServiceImplTest {
         verify(announcementSourceDao, never()).insertSourceSnapshot(any());
         verify(announcementSourceDao, never()).updateSourceSnapshotContent(any());
         verify(announcementSourceDao).insertCollectionRunItem(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GOV24_PUBLIC_SERVICE", "BIZINFO"})
+    void generatedApiBatchDoesNotInventGov24ApplicationPeriod(String providerCode) {
+        when(announcementSourceDao.selectCollectionRequestDetails(any()))
+                .thenReturn(collectionRequest("APPROVAL_PENDING"));
+        service.insertBatchCollectionRequest(providerCode, 100);
+        ArgumentCaptor<AnnouncementSourceCollectionRequestCommand> command =
+                ArgumentCaptor.forClass(AnnouncementSourceCollectionRequestCommand.class);
+        verify(announcementSourceDao).insertCollectionRequest(command.capture());
+        assertThat(command.getValue().providerCode()).isEqualTo(providerCode);
+        if ("GOV24_PUBLIC_SERVICE".equals(providerCode)) {
+            assertThat(command.getValue().startDate()).isNull();
+            assertThat(command.getValue().endDate()).isNull();
+        } else {
+            assertThat(command.getValue().startDate()).isEqualTo(LocalDate.now());
+            assertThat(command.getValue().endDate()).isEqualTo(LocalDate.now().plusMonths(3));
+        }
+        assertThat(command.getValue().searchRegionCode()).isNull();
+        assertThat(command.getValue().searchCategoryCode()).isNull();
+        assertThat(command.getValue().maxCount()).isEqualTo(100);
     }
 
     @Test
@@ -588,6 +613,7 @@ class AnnouncementSourceServiceImplTest {
 
     @Test
     void insertCollectionRunMergesSearchPlanResultsInRoundRobinOrder() {
+        when(providerClient.selectSearchPlanItemList(any(), any())).thenCallRealMethod();
         AnnouncementSourceClassificationCoordinator coordinator =
                 mock(AnnouncementSourceClassificationCoordinator.class);
         AnnouncementSourceClassificationCoordinator.RunContext runContext = searchPlanRunContext();
@@ -638,6 +664,9 @@ class AnnouncementSourceServiceImplTest {
         AnnouncementSourceCollectionRunResponse response = service.insertCollectionRun(REQUEST_ID);
 
         assertThat(response.collectedCount()).isEqualTo(5);
+        for (AnnouncementSourceSearchPlan.SearchQuery query : runContext.searchPlan().queries()) {
+            verify(providerClient).selectSearchPlanItemList(any(), eq(query));
+        }
         ArgumentCaptor<AnnouncementSourceSnapshotCommand> snapshotCaptor =
                 ArgumentCaptor.forClass(AnnouncementSourceSnapshotCommand.class);
         verify(announcementSourceDao, times(5)).insertSourceSnapshot(snapshotCaptor.capture());

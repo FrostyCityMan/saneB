@@ -2868,6 +2868,8 @@ GET `/api/v2/admin/announcement-attachment-policies/{policyId}/provider-qa-plan?
 
 ### 24.27 첨부 정부24 출처 코드 경계 — V78
 
+2026-09-15 [공식 목록 API 계약 보완](announcement-gov24-official-list-contract-2026-09-15.md)은 외부 `api.odcloud.kr` 어댑터의 페이지/검색 규격을 정합화한다. 공식 목록에서 지원하지 않는 지역·내부 카테고리·신청기간은 구체적인 오류로 거부하며, 새 정부24 자동 배치 요청의 `startDate/endDate`는 null이다. 이미 승인된 요청은 변경하지 않는다. 기존 중계 API·Controller/DTO·출처 별칭·첨부 profile 미지원 계약은 유지한다. 실제 API/첨부/운영 성공은 별도 검증 대상이다.
+
 기존 `/api/v1` 및 단건 첨부 API의 실제 출처는 `GOV24_PUBLIC_SERVICE`다. 배치·전체 목록의 `providerCodes` 필터는 기존 계약인 `GOV24` 별칭을 유지한다. 이는 서로 다른 수집 채널이 아니다.
 
 | 위치 | 정부24 코드 |

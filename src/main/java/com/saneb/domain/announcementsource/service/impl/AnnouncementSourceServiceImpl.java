@@ -283,8 +283,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 null,
                 null,
                 null,
-                LocalDate.now(),
-                LocalDate.now().plusMonths(3),
+                "GOV24_PUBLIC_SERVICE".equals(normalizedProviderCode) ? null : LocalDate.now(),
+                "GOV24_PUBLIC_SERVICE".equals(normalizedProviderCode) ? null : LocalDate.now().plusMonths(3),
                 maxCount,
                 "자동 배치가 생성한 외부 공고 수집 승인 요청입니다.",
                 null,
@@ -555,8 +555,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         List<List<AnnouncementSourceProviderItem>> queryItemLists = new ArrayList<>();
         for (com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlan.SearchQuery query
                 : classificationRunContext.searchPlan().queries()) {
-            AnnouncementSourceCollectionRequestRow plannedRequest = request.withSearchKeyword(query.keyword());
-            queryItemLists.add(providerClient.selectSourceItemList(plannedRequest));
+            queryItemLists.add(providerClient.selectSearchPlanItemList(request, query));
         }
         int maximumCount = request.maxCount() == null ? 100 : request.maxCount();
         return AnnouncementSourceProviderBatch.success(selectRoundRobinItemList(queryItemLists, maximumCount));
