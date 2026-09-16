@@ -13,6 +13,18 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void boundedDnsDiagnosisRequiresExactOptInAndCannotFetchNotices() throws Exception {
+        var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"provider-dns-diagnostic".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[boeun-dns-diagnostic]') }}");
+        assertThat(run.get("timeout-minutes")).isEqualTo(3);
+        assertThat(run.get("run")).isEqualTo("node scripts/qa/attachment-dns-diagnostic.mjs");
+        assertThat(run.get("env")).isEqualTo(Map.of("SANEB_ATTACHMENT_DNS_DIAGNOSTIC","true"));
+        var artifact=all.stream().filter(item->"고정 DNS 비교 metadata 보관 — 주소 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((Map<?,?>)artifact.get("with")).get("path")).isEqualTo("build/reports/attachment-dns-diagnostic/result.json");
+        assertThat(((Map<?,?>)artifact.get("with")).get("if-no-files-found")).isEqualTo("error");
+        assertThat(all.stream().map(item->String.valueOf(item.get("run")))).contains("node --test scripts/qa/attachment-dns-diagnostic.test.mjs");
+    }
     @Test void jecheonWorkerKeepsEveryFixedNoticeAndRequiresManualOptIn() throws Exception {
         var flow=workflow();
         var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");

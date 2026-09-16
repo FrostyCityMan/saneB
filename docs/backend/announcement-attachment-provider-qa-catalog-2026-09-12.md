@@ -2,18 +2,19 @@
 
 ## 범위와 상태
 
-최신(2026-09-15 12:28 관측 후): `2026-09-15-taebaek-reviewed-v2`에 태백184816 전체2파일의 사전 기대값을 고정했다. 총24항목 중 참조전용23/실행 기대값1, 정상 공고0·전체 coverage/정책 QA false다. 혼합 UNKNOWN과 신청서 FORM을 유지한다. 아래 기대값0/이전 역할 버전은 과거 기록이며 [태백 고정 기대값](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)의 관측·검토·새 실행 경계를 따른다. catalog 자체 JavaTimeModule로 실제 관측 시각을 처리하며 호출자의 mapper 설정과 strict JSON 검증은 보존한다.
+현재 기준(2026-09-16): classpath의 `2026-09-16-chungju-references-v2`는 총30항목 중 참조전용29/실행 기대값1, 정상 공고0·전체 coverage/정책 QA false다. 태백184816의 전체2파일에만 사전 기대값이 있으며 혼합 UNKNOWN과 신청서 FORM을 유지한다. 현재 역할 규칙은 `document-role-1.0.2`다. [태백 고정 기대값](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)의 관측·검토·새 실행 경계를 따른다. catalog 자체 JavaTimeModule로 실제 관측 시각을 처리하며 호출자의 mapper 설정과 strict JSON 검증은 보존한다.
 
-2026-09-15 최신 증분: [제천 모델·공개 참조 확장](announcement-jecheon-bbs-profile-2026-09-15.md)의 참조15/실행 기대값0을 유지한다. 현재 서버는 새 schema2 `2026-09-15-format-scope-v2`를 읽고, schema1 `2026-09-15-reference-v2` 파일과 기존 계약은 보존한다. [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)는 기관별 실제 기대 파일의 형식/미관측과 정상 다중 첨부를 구분하며, 전체3형식 검증·모든 기관/파일 분모는 유지한다. 아래 최초 구현 수량과 미연결 기록은 해당 증분 시점의 이력이다.
+최신 코드의 schema2 리소스와 운영에 설치된 catalog는 구분한다. schema1 파일·해석은 보존하며 [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)는 기관별 기대 파일의 형식/미관측과 정상 다중 첨부를 구분한다. 전체3형식·모든 기관/파일 분모는 유지한다. 제천의 실제 worker·DB/API 검증이 통과했어도 그 결과를 자동으로 catalog 기대값에 등록하지 않았다. 아래 최초 구현 수량은 당시 기록이며 최신 검증·운영 경계는 [계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)와 [장기 진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 Gate3 진행이다. 전체 ATT001~062/Gate0~8을 유지한다. 서버가 배포한 고정 표본을 V79 실행 원장에 연결하기 전에 전체 대상·누락·파일 기대값·시간/요청/byte 계획을 검증한다. 관리자가 URL·parser·정답 JSON을 입력하는 기능은 만들지 않는다.
 
 - [x] 고정 classpath JSON catalog와 엄격한 입력·전체 scope 대조를 구현했다.
-- [x] 참조 표본/실행 기대값/누락·형식 coverage·분할 계획을 분리했다. 현재 참조15/실행 기대값0이다.
+- [x] 참조 표본/실행 기대값/누락·형식 coverage·분할 계획을 분리했다. 현재 전체30/실행 기대값1·정상0이다.
 - [x] 기존 정책 QA snapshot schema6에 전체 catalog 지문·계획을 연결했다. 후속 V80 관리 API/예약과 전체 근거 verifier 구현은 장기 진행 기록을 따른다.
 - [ ] 실제 공식 파일의 전체 목록·binary/추출 품질·기대 문구를 확인하여 catalog를 채운다.
 - [x] 관리자 예약·취소/조회 API, scheduler 및 정책 전체 QA verifier를 연결했다. 운영 실행은 별도 미완료다.
-- [ ] 실제 Linux/PG/전체 Provider·배포·운영 브라우저를 검증한다.
+- [x] Linux 임시 PostgreSQL의 원장·계획·게시 잠금과 정책 부모 연결 계약은 실제 실행했다. 운영 DB 쓰기나 전체 공식 Provider QA 성공은 아니다.
+- [ ] 전체 Provider·공식 기대값·승인된 운영 적용·운영 브라우저를 검증한다.
 
 ## 계약
 
@@ -47,7 +48,7 @@ catalog에서 실행 가능한 항목이 있다는 이유로 HTTP를 호출하�
 
 `AttachmentProviderQaCatalog`가 classpath 리소스와 전체 계획을 관리한다. `AttachmentProviderQaCaseContract`로 기존 실행기의 syntax/파일 기대값/한도 검증을 공유하여 계획과 실행의 조건이 갈라지지 않게 했다. 이 분리는 기존 TITLE 제외·420초/44회/80MiB·파일10개·품질/문구 검증을 완화하지 않는다.
 
-`AttachmentPolicyValidationSnapshotFactory` schema6의 providerQaCatalog에는 catalogVersion/catalogHash/scopeHash·전체 target/case metadata·분할별 case code/상한을 저장한다. URL·제목·텍스트·기대 문구나 Prepared.inputs는 snapshot/audit에 복사하지 않는다. 이전 schema1~5 이력을 수정하지 않으며 현재 snapshot과 달라 재사용하지 않는다. PROVIDER_PROFILES 단계는 계속 MISSING이고 최종 정책 verifier는 아직 이 catalog의 실제 실행 근거를 완성하지 못했다.
+`AttachmentPolicyValidationSnapshotFactory` schema6의 providerQaCatalog에는 catalogVersion/catalogHash/scopeHash·전체 target/case metadata·분할별 case code/상한을 저장한다. URL·제목·텍스트·기대 문구나 Prepared.inputs는 snapshot/audit에 복사하지 않는다. 이전 schema1~5 이력을 수정하지 않으며 현재 snapshot과 달라 재사용하지 않는다. PROVIDER_PROFILES 실행 원장·최신 근거 검증기·정책 연결은 구현되어 있다. 다만 전체 대상의 실제 기대값·실행 근거가 부족하므로 정책 QA 통과·게시 가능 상태를 주장하지 않는다.
 
 참조9건은 앞선 공식 다운로드 실측의 공고 식별자만 이관했다. 원본 재다운로드·추출 기대값 추정·과거 JSON 성공 업로드는 하지 않았다. 기존 normalizer와 현재 production BBS profile을 사용한 오프라인 검증은 정확한 source hash/host/게시판/기관/parser 결합을 확인한다. 현재 운영 대상이223개라는 과거 수치를 이번 실행 수로 간주하지 않는다.
 

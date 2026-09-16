@@ -98,6 +98,26 @@ jobs:
       - name: 보은 worker 판정기 단위 검증
         run: node --test scripts/qa/attachment-boeun-worker-report.test.mjs
 
+      - name: 고정 DNS 진단기 단위 검증 — 외부 조회 없음
+        run: node --test scripts/qa/attachment-dns-diagnostic.test.mjs
+
+      - name: 명시한 보은·제천 DNS 비교 — 공고 요청·운영 쓰기 없음
+        id: provider-dns-diagnostic
+        if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[boeun-dns-diagnostic]') }}
+        timeout-minutes: 3
+        env:
+          SANEB_ATTACHMENT_DNS_DIAGNOSTIC: 'true'
+        run: node scripts/qa/attachment-dns-diagnostic.mjs
+
+      - name: 고정 DNS 비교 metadata 보관 — 주소 원문 없음
+        if: ${{ always() && steps.provider-dns-diagnostic.outcome != 'skipped' && steps.provider-dns-diagnostic.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-dns-diagnostic-${{ github.sha }}
+          path: build/reports/attachment-dns-diagnostic/result.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: 배포 QA 패키지 불변 설치·JAR 원복 경로 검증
         run: node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs
 

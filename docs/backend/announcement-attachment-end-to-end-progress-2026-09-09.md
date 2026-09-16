@@ -11,6 +11,21 @@
 
 ## 기준선
 
+### 2026-09-16 보은 DNS 비교 진단 구현
+
+- 직전 회차는 최신 Git/CI/보관 결과를 읽은 현황 재확인으로 새 구현 진척이 없었다. 이번에는 실패의 다음 행동을 구분하기 위해 고정 보은·제천 OS/JVM/Node DNS 비교기를 추가한 **progress**다. 전체 ATT62/9Gate·제목→본문→첨부→관리자 검증을 유지한다.
+- 진단은 QA 브랜치의 명시 표식만 실행하며8논리 조회·최대80초와 기동 여유/단계3분으로 제한한다. HTTP/파일 다운로드/DB 쓰기0, DNS/IP/TLS/SSRF 설정 변경0, 주소/예외/환경 원문 비보관이다. 결과는 수집 성공이 아닌 OBSERVED_NOT_COLLECTION_QA다. [보은 진단 계약](announcement-boeun-worker-db-api-qa-2026-09-16.md)을 따른다.
+- Node68건/생략0 통과, Java helper의 임의 대상 거부를 확인했다. 새 workflow 테스트의 첫 컴파일 타입 오류를 수정한 후 표적Java21건(워크플로16·URL 검증5)이21초 성공/실패·생략0이다. production Java·DB/API/UI·migration과 엔진7/첨부19/본문18/형식3·catalog30/기대값1/정상0은 불변이다. 실제 새 Linux 진단은 후속 실행에서 판정한다.
+- Git 기본 TLS backend 조회가 인증서 체인 오류로 실패했으나 명령 범위의 Windows schannel backend로 같은 원격 SHA를 확인했다. 인증서 검증을 끄거나 전역 Git 설정을 변경하지 않았다. 운영 재인증·취소 배포 재개 확인·정확한 게시/ENFORCE/기존 데이터 범위 승인·운영 업무 E2E는 여전히 남는다. 사용자 output을 보존한다.
+
+### 2026-09-16 보은 Linux 결과 — 계약 성공·공식 수집 DNS 차단
+
+- 직전 회차는36cd7fd의 보은 실제 worker 경로·로컬 검증·커밋/푸시와 Linux 실행을 시작한 **progress**다. 이번은 동일35053587664를 terminal까지 확인하고 보관 XML/metadata 및 로컬·공용 DNS를 대조한 **progress**다. 전체 ATT62/9Gate와 제목→본문→첨부→최종 관리자 순서를 유지한다.
+- [Linux35053587664](https://github.com/FrostyCityMan/saneB/actions/runs/35053587664)는 전체 failure다. 계약 단계와 독립 PG·정책 부모 연결/취소/정리는 success, XML root2721=2455통과/266조건부 생략/실패0이며 별도 추출기88·패키징20·job192·migration17·runtime1·worker12·부모2·Flyway3 실패/생략0이다. 이 성공을 공식 보은 파일 성공으로 합치지 않는다.
+- 보은3공고는 제목 통과 후 BODY DNS_LOOKUP_FAILED/시도0, worker EVALUATED이지만 job PARTIAL_FAILED·발견 불완전·파일0/추출 미실행이었다. 전체3건 JUnit 실패, 예약9요청/6,291,456bytes·원본 정리true·lease0·운영 쓰기0이다. 로컬 Windows와 공용 DNS의 A 조회는 정상이라 Linux/사이트의 근본 원인을 확정하지 않는다. [실패와 다음 진단 경계](announcement-boeun-worker-db-api-qa-2026-09-16.md)를 따른다.
+- catalog 문서의 오래된24/15개 참조·검증기 미연결 설명을 현재30/기대값1/정상0·구현된 검증 연결에 맞췄다. 실제 Provider QA·정책 승인으로 승격하지 않는다. 코드/migration/키워드/정책/운영 데이터는 이번에 변경하지 않았다. 동일 실행과 파일 요청을 재시작하지 않았으며 gh 감시 프로세스는 terminal exit1로 종료했다.
+- 엔진7/첨부 모델19/전용 BODY18/형식3·Gate8진행/1차단·Not ready·goal ACTIVE다. 보은 Linux DNS, 충주/철원 접속·전체 정상/형식 표본, AWS 재인증·취소 배포 재개 확인·정확한 정책/기존 데이터 범위 승인·운영 업무 E2E가 남는다. 사용자 output은 보존한다.
+
 ### 2026-09-16 후속 — 계약 기록 확정·보은 HWPX/PDF worker 검증 연결
 
 - 직전 회차는 현황 재확인으로 새 구현 진척이 없었다. 이번에는 계약·ATT 기록의 실제 검증 상태를035a356으로 커밋·푸시하고 보은 실제 worker 경로를 추가한 **progress**다. 전체 ATT62/9Gate와 제목→본문→첨부→관리자 최종 검증을 유지한다.
@@ -414,7 +429,7 @@
 | 3 분류·정책 | [~] | 로컬 전용 BODY 연결18(철원 실제 marker 재확인 필요). catalog30참조/보관 기대값1/정상0. 태백 고정 HWPX2파일 PASSED 및9fe892c의 제천 HWPX3개 완전 추출·UNKNOWN/검수 상태의 worker/DB/API 일치 확인. 충주 격리 제목 음성2/양성1·HWP signature와 Linux 접속 실패를 분리한다. 전체 Provider/형식 QA·정책 게시는 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 9fe892c Linux 계약·제천 worker3/3 성공, HWPX3파일 COMPLETE_TEXT/UNKNOWN/검수 유지. 충주의 선행 Linux 관측2통과/1실패(BODY·DETAIL 시간 초과/파일·추출0)는 미해결이다. 태백 HWP 부분 추출·HWPX2파일 고정 비교와 구분. 전체 Provider·정상 공고·형식 기대값은 잔여 |
+| 6 자동·실파일 QA | [!] | 36cd7fd Linux 계약·독립 PG·정책 부모는 성공, 보은3건은 BODY DNS 실패·발견/파일0·JUnit3실패다. 제천 선행 worker3/3·HWPX3파일 COMPLETE_TEXT/UNKNOWN/검수 유지, 충주 시간 초과·철원 접속 차단과 구분한다. 태백 HWP 부분 추출·HWPX2파일 고정 비교를 포함해 전체 Provider·정상 공고·형식 기대값은 잔여 |
 | 7 운영 배포·활성화 | [~] | 16시대 SSM으로787c594·실제DB V83·추출기1.0.1·catalog24/기대값1·health UP·첨부 count0/worker 비활성/외부키2종 없음 재확인. JAR와 기본 추출기 버전 연결은 로컬 보완/미배포. 재배포 재개 확인과 게시/ENFORCE/기존 데이터의 정확한 범위 승인이 필요 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 
