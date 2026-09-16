@@ -300,7 +300,7 @@ tasks.register('attachmentOfficialFileObservation', Test) {
 }
 
 tasks.register('attachmentBbsOfficialFileObservation', Test) {
-    description = '태백1건 또는 명시한 양평3건의 제목·본문·전체 첨부를 Linux 격리 관측합니다. 운영 쓰기·기대값 승인은 없습니다.'
+    description = '태백1건 또는 명시한 양평/제천3건의 제목·본문·전체 첨부를 Linux 격리 관측합니다. 운영 쓰기·기대값 승인은 없습니다.'
     group = 'verification'
     dependsOn ':attachment-extractor:installDist'
     useJUnitPlatform()

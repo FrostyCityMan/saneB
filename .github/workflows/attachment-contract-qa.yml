@@ -15,6 +15,10 @@ name: 첨부 DB·작업 계약 Linux QA
         description: '양평 고정 3공고의 제목·본문·전체 첨부 관측 (전체132요청/240MiB, 운영 쓰기 없음)'
         type: boolean
         default: false
+      observe-jecheon-official-files:
+        description: '제천 고정 3공고의 제목 판정과 통과 공고 전체 첨부 관측 (최대132요청/240MiB, 운영 쓰기 없음)'
+        type: boolean
+        default: false
       verify-bbs-fixed-case:
         description: '태백의 사전 고정 전체 파일 기대값 비교 (44요청/80MiB, 운영 쓰기 없음)'
         type: boolean
@@ -67,7 +71,7 @@ jobs:
           cache: gradle
 
       - name: 관리자 화면 계약·상호작용·보고서 판정기 검증
-        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-provider-qa-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs scripts/qa/attachment-taebaek-hwp-report.test.mjs
+        run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-provider-qa-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs scripts/qa/attachment-taebaek-hwp-report.test.mjs scripts/qa/attachment-jecheon-observation-report.test.mjs
 
       - name: 임시 runner 격리 도구 준비
         run: |
@@ -203,6 +207,28 @@ jobs:
             build/reports/attachment-bbs-official-observation/YANGPYEONG-312241.json
             build/reports/attachment-bbs-official-observation/YANGPYEONG-311846.json
             build/reports/attachment-bbs-official-observation/YANGPYEONG-311507.json
+            build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 제천 고정 공고 제목·본문·전체 첨부 관측 — 운영 쓰기 없음
+        id: jecheon-official-observation
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.observe-jecheon-official-files == true }}
+        run: |
+          set -euo pipefail
+          export JECHEON_OBSERVATION_STARTED_AT="$(date +%s)000"
+          bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=JECHEON --no-daemon --console=plain --max-workers=1
+          node scripts/qa/attachment-jecheon-observation-report.mjs
+
+      - name: 제천 세 단계 관측 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.jecheon-official-observation.outcome != 'skipped' && steps.jecheon-official-observation.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-jecheon-official-observation-${{ github.sha }}
+          path: |
+            build/reports/attachment-bbs-official-observation/JECHEON-403587.json
+            build/reports/attachment-bbs-official-observation/JECHEON-403530.json
+            build/reports/attachment-bbs-official-observation/JECHEON-403490.json
             build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
           if-no-files-found: error
           retention-days: 7

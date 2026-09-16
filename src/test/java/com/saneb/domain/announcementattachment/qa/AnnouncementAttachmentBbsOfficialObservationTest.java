@@ -35,8 +35,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL }
     public record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
-                           AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,boolean compactTitle) {
+                           AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,TitleLayout titleLayout,
+                           TitleStageCode expectedTitleStopStage) {
+        public ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
+                               AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,TitleLayout titleLayout) {
+            this(code,title,source,profile,listUrl,listedFileCount,titleLayout,null);
+        }
         @Override public String toString(){return code;}
     }
     static Stream<ObservationCase> selectConfiguredCases() {
@@ -44,14 +50,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static Stream<ObservationCase> selectCases(String group) {
         if("TAEBAEK".equals(group)) return Stream.of(new ObservationCase(CASE,TITLE,SOURCE,PROFILE,
-                "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,false));
+                "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,TitleLayout.CLASSIC_LABEL));
         if("TAEBAEK_HWP".equals(group)) {
             String url="https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=176153";
             var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
             return Stream.of(new ObservationCase("TAEBAEK-176153","2026년 태백시 소상공인 특례보증 및 이차보전 지원계획 공고",
                     new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000121","SPRING_BBS"),
-                    PROFILE,"https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",1,false));
+                    PROFILE,"https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",1,TitleLayout.CLASSIC_LABEL));
         }
+        if("JECHEON".equals(group)) return Stream.of(
+                selectJecheonCase("403587","2026년 신백동 농지이용관리지원사업 농지전수조사 조사원 추가 모집 공고",1),
+                selectJecheonCase("403530","2026년 제천시 청년 주택자금 대출이자 지원사업 신청자 모집 변경공고",1),
+                selectJecheonCase("403490","- 2026년 제천 온(溫) 통합돌봄 특화사업 - 제천 온(溫) 방문운동 지원사업 제공기관 모집 재공고",2));
         if(!"YANGPYEONG".equals(group)) throw new IllegalArgumentException("UNKNOWN_OBSERVATION_GROUP");
         return Stream.of(
                 selectYangpyeongCase("312241","9b6353577acabd579068a389244e774d40b5488eea86d1e15fb78e0eae9ccb9a",
@@ -65,7 +75,16 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return new ObservationCase("YANGPYEONG-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",identity,
                 "https://www.yp21.go.kr/www/selectBbsNttView.do?key=1119&bbsNo=5&nttNo="+id,"LGS-000110","HEURISTIC_NOTICE"),
                 new StandardBbsAttachmentProfileConfiguration().selectYangpyeongProfileDetails(),
-                "https://www.yp21.go.kr/www/selectBbsNttList.do?bbsNo=5&key=1119",count,true);
+                "https://www.yp21.go.kr/www/selectBbsNttList.do?bbsNo=5&key=1119",count,TitleLayout.COMPACT_SUBJECT);
+    }
+    private static ObservationCase selectJecheonCase(String id,String title,int count) {
+        String url="https://www.jecheon.go.kr/www/selectBbsNttView.do?key=5233&bbsNo=18&nttNo="+id;
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("JECHEON-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000138","HEURISTIC_NOTICE"),
+                new StandardBbsAttachmentProfileConfiguration().selectJecheonProfileDetails(),
+                "https://www.jecheon.go.kr/www/selectBbsNttList.do?bbsNo=18&key=5233",count,TitleLayout.COMPACT_LABEL,
+                "403587".equals(id)?TitleStageCode.COMBINATION_NOT_MATCHED:null);
     }
 
     @ParameterizedTest(name="{0}") @MethodSource("selectConfiguredCases") @Timeout(420)
@@ -89,6 +108,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             var title=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
             report.put("titleStage",title.titleStageCode());
             report.put("titleReason",title.reasonCode());
+            if(selectPlannedTitleStop(sample,title)) {
+                // 사전 확인한 음성 표본도 보고서 분모에 남긴다. 현재 규칙의 판정이 바뀌면 실패한다.
+                report.put("status","TITLE_NOT_ELIGIBLE_NOT_FETCHED");report.put("requiresFinalAdminVerification",false);return;
+            }
             if(CASE.equals(sample.code())) assertTrue(selectTitleMayProceed(title),"TITLE_NOT_ELIGIBLE");
             if(title.semanticStatusCode()==SemanticStatusCode.EXCLUDED) {
                 // 고정 표본이라도 현재 DRAFT 제목 규칙을 우회하여 본문/파일을 요청하지 않는다.
@@ -117,7 +140,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             assertTrue(Set.of("text/html","application/xhtml+xml").contains(download.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT)),"DETAIL_CONTENT_TYPE_CHANGED");
             AttachmentDiscoveryProfile.Result discovered;
             try(var input=Files.newInputStream(detail)) {
-                var page=Jsoup.parse(input,null,uri.toASCIIString());stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.compactTitle());
+                var page=Jsoup.parse(input,null,uri.toASCIIString());stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.titleLayout());
                 stage="DETAIL_DISCOVERY";discovered=profile.selectDescriptors(source,page.outerHtml());
             } finally {Files.deleteIfExists(detail);}
             report.put("discoveryStatus",discovered.status());report.put("discoveryComplete",discovered.complete());report.put("discoveredFileCount",discovered.descriptors().size());
@@ -163,6 +186,11 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static boolean selectTitleMayProceed(AnnouncementSourceClassificationResult result) {return result.semanticStatusCode()!=SemanticStatusCode.EXCLUDED
             &&Set.of(TitleStageCode.GROUP_A_MATCHED,TitleStageCode.COMBINATION_MATCHED).contains(result.titleStageCode());}
+    static boolean selectPlannedTitleStop(ObservationCase sample,AnnouncementSourceClassificationResult result) {
+        if(sample.expectedTitleStopStage()==null)return false;
+        assertEquals(sample.expectedTitleStopStage(),result.titleStageCode(),"FIXED_TITLE_STOP_CHANGED");
+        assertFalse(selectTitleMayProceed(result),"FIXED_TITLE_STOP_BECAME_ELIGIBLE");return true;
+    }
     public static boolean selectBodyComplete(ProviderContentResult body) {return body!=null&&body.statusCode()==ProviderContentCodes.StatusCode.AVAILABLE
             &&body.bodyAvailabilityCode()==BodyAvailabilityCode.AVAILABLE&&body.bodySourceCode()==BodySourceCode.DETAIL_PAGE_TEXT
             &&body.bodyText()!=null&&!body.bodyText().isBlank();}
@@ -171,9 +199,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,false);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,boolean compact) {
-        var tables=page.select(compact?"div.p-wrap.bbs.bbs__view > table.p-table.block":"table.bbs_default.view");
+        validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
+    }
+    public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        Objects.requireNonNull(layout);
+        var tables=page.select(layout==TitleLayout.CLASSIC_LABEL?"table.bbs_default.view":"div.p-wrap.bbs.bbs__view > table.p-table.block");
         assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
-        if(compact) {
+        if(layout==TitleLayout.COMPACT_SUBJECT) {
             var subjects=table.select("span.p-table__subject_text").stream().filter(e->e.closest("table")==table).toList();
             assertEquals(1,subjects.size(),"TITLE_STRUCTURE_CHANGED");
             assertTrue(normalized(expected).equals(normalized(subjects.getFirst().text())),"TITLE_CHANGED");return;

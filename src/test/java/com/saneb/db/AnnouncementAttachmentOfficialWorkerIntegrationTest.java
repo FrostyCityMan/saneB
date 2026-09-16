@@ -393,7 +393,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
             });
             if(request.uri().equals(sample.profile().selectDetailUri(sample.source()))) {
                 try(var input=Files.newInputStream(output)) {
-                    AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(input,null,request.uri().toASCIIString()),sample.title(),sample.compactTitle());
+                    AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(input,null,request.uri().toASCIIString()),sample.title(),sample.titleLayout());
                 }
             }
             return downloaded;

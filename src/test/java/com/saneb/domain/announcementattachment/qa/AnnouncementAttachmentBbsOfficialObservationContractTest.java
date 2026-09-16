@@ -7,6 +7,51 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void jecheonFixedReferencesKeepTheirFullFileCountsAndTitleGate() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("JECHEON").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("JECHEON-403587","JECHEON-403530","JECHEON-403490");
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::listedFileCount).containsExactly(1,1,2);
+        var json=new ObjectMapper();
+        com.fasterxml.jackson.databind.JsonNode notices;
+        try(var input=getClass().getResourceAsStream("/announcement-attachment/provider-qa-catalog-v2.json")) {
+            notices=json.readTree(input).path("notices");
+        }
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:cases) {
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_JECHEON_BBS_V1");
+            assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("www.jecheon.go.kr");
+            var reference=java.util.stream.StreamSupport.stream(notices.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(json.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            var result=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",
+                    sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            System.out.println("FIXED_TITLE_PREFLIGHT "+sample.code()+" "+result.titleStageCode()+" "+result.reasonCode());
+            boolean negative=sample.code().equals("JECHEON-403587");
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(result)).isEqualTo(!negative);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,result)).isEqualTo(negative);
+            if(negative) {
+                var eligible=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",
+                        "청년 주택자금 대출이자 지원",null,null,List.of(),
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+                assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,eligible)).isInstanceOf(AssertionError.class);
+            }
+        }
+    }
+    @Test void compactLabelTitleDoesNotBorrowNestedOrNeighbouringCells() {
+        var layout=AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.COMPACT_LABEL;
+        var page=org.jsoup.Jsoup.parse("<div class='p-wrap bbs bbs__view'><table class='p-table block'><tr><th>제목</th><td>공식 지원 공고</td></tr><tr><td><table><tr><th>제목</th><td>중첩 제목</td></tr></table></td></tr></table></div>");
+        assertThatCode(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"공식 지원 공고",layout)).doesNotThrowAnyException();
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"중첩 제목",layout)).isInstanceOf(AssertionError.class);
+        page.select("table.p-table > tbody").first().append("<tr><th>제목</th><td>공식 지원 공고</td></tr>");
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,"공식 지원 공고",layout)).isInstanceOf(AssertionError.class);
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(org.jsoup.Jsoup.parse("<table class='p-table block'><tr><th>제목</th><td>공식 지원 공고</td></tr></table>"),"공식 지원 공고",layout)).isInstanceOf(AssertionError.class);
+    }
     @Test void onlyFixedGroupsAndExactProfileSourcesAreSelectable() throws Exception {
         var observation=AnnouncementAttachmentBbsOfficialObservationTest.class.getDeclaredMethod(
                 "observesTitleBodyAndWholeAttachmentSetWithoutPublication",AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase.class);

@@ -1,5 +1,9 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 후속 고정 비교 확인 — 2026-09-16
+
+`f7b7396`의 [Linux34944248951](https://github.com/FrostyCityMan/saneB/actions/runs/34944248951)는 success이며 보관 JUnit의 고정 비교1건/실패·오류·생략0을 확인했다. production CaseExecutor 결과는 `PASSED/FIXED_NOTICE_EXPECTATIONS_MATCHED`, 전체 HWPX2개 모두 COMPLETE_TEXT/기대값 일치다. 전체3요청 예약/280787bytes·원본 정리true·운영 쓰기0이다. catalog27참조/실행 가능1/정상0·전체 coverage false·정책 QA false와 관리자 검수 상태를 유지한다. 아래16:33의 “새 SHA 재비교 필요”는 이 실행으로 해당1공고에 한해 해소됐다. 전체 Provider/운영 배포·업무 E2E를 완료한 것은 아니다.
+
 ## 최신 재관측 — 2026-09-15 16:33 KST / 구기대값 내용 보존
 
 - `cc79d597ed34c3549f380e90162383f86b570093`의 [Linux34941434590](https://github.com/FrostyCityMan/saneB/actions/runs/34941434590)는 성공이다. 보관 XML은 root2676=2411통과/265조건부 생략/실패0, 추출기88·패키지20·job192·migration17·worker12·runtime1·정책 부모2·Flyway3 실패/생략0이다. 공식 태백 관측은 별도1건/실패·오류·생략0이다.

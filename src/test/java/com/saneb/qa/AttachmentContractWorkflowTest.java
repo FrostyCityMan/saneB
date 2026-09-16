@@ -13,6 +13,25 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void jecheonObservationKeepsAllReferencesWithManualOptInAndMetadataOnly() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(inputs.get("observe-jecheon-official-files")).isEqualTo(Map.of("description",
+                "제천 고정 3공고의 제목 판정과 통과 공고 전체 첨부 관측 (최대132요청/240MiB, 운영 쓰기 없음)","type","boolean","default",false));
+        var all=steps(job(flow)).stream().map(item->(Map<?,?>)item).toList();
+        var observation=all.stream().filter(item->"jecheon-official-observation".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(observation.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.observe-jecheon-official-files == true }}");
+        assertThat(String.valueOf(observation.get("run"))).contains("set -euo pipefail", "export JECHEON_OBSERVATION_STARTED_AT=",
+                "bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=JECHEON --no-daemon --console=plain --max-workers=1",
+                "node scripts/qa/attachment-jecheon-observation-report.mjs").doesNotContain("|| true");
+        assertThat(Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml"))).contains("scripts/qa/attachment-jecheon-observation-report.test.mjs");
+        var artifact=all.stream().filter(item->"제천 세 단계 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-bbs-official-observation/JECHEON-403587.json",
+                "build/reports/attachment-bbs-official-observation/JECHEON-403530.json",
+                "build/reports/attachment-bbs-official-observation/JECHEON-403490.json",
+                "build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml");
+    }
     @Test void taebaekHwpWorkerHasFixedManualScopeWithoutChangingYangpyeongDefaults() throws Exception {
         var flow=workflow();
         var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
