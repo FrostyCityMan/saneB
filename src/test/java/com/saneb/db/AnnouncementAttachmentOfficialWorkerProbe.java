@@ -26,14 +26,20 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "TAEBAEK" -> List.of("TAEBAEK-184816");
             case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
             case "CHUNGJU" -> List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
+            case "JECHEON" -> List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
     static boolean selectTitleStopExpected(String code) {
-        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU")
+        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON")
                 .flatMap(group->selectCaseCodes(group).stream()).anyMatch(code::equals);
         if(!known)throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
-        return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039").contains(code);
+        return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039","JECHEON-403587").contains(code);
+    }
+    static int selectExpectedExtractionCount(String code) {
+        if(selectTitleStopExpected(code))return 0;
+        // 양평의 미지원 이미지도 발견 분모에 남지만 추출 호출 수에는 넣지 않는다.
+        return Set.of("TAEBAEK-184816","JECHEON-403490").contains(code)?2:1;
     }
     static boolean selectComplete(long found,long succeeded,long failed,long skipped,long aborted,long containersFailed) {
         return selectComplete("YANGPYEONG",found,succeeded,failed,skipped,aborted,containersFailed);

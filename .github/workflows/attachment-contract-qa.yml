@@ -35,6 +35,10 @@ name: 첨부 DB·작업 계약 Linux QA
         description: '태백 고정 HWP1건 최신 추출기·worker·임시 DB·API 검증 (44요청/80MiB, 배포·운영 쓰기 없음)'
         type: boolean
         default: false
+      verify-jecheon-worker:
+        description: '제천 고정3건 실제 worker·임시 DB·API 검증 (132요청/240MiB, 배포·운영 쓰기 없음)'
+        type: boolean
+        default: false
   # 기본 브랜치·운영 배포와 분리한 장기 goal 검증 브랜치만 자동 실행한다.
   push:
     branches:
@@ -83,6 +87,9 @@ jobs:
           sudo apt-get install --no-install-recommends -y bubblewrap
           test -x /usr/bin/bwrap
           test -x /usr/bin/prlimit
+
+      - name: 제천 worker 전체 보고서 판정기 검증
+        run: node --test scripts/qa/attachment-jecheon-worker-report.test.mjs
 
       - name: 배포 QA 패키지 불변 설치·JAR 원복 경로 검증
         run: node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs
@@ -194,6 +201,28 @@ jobs:
           path: |
             build/reports/attachment-taebaek-hwp-worker/TAEBAEK-176153.json
             build/test-results/attachmentTaebaekHwpWorkerIntegrationTest/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 제천 실제 worker·임시 DB·API 검증 — 배포 없음
+        id: jecheon-worker-qa
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-jecheon-worker == true }}
+        run: |
+          set -euo pipefail
+          export JECHEON_WORKER_QA_STARTED_AT="$(date +%s)000"
+          bash ./gradlew attachmentJecheonWorkerIntegrationTest --no-daemon --console=plain --max-workers=1
+          node scripts/qa/attachment-jecheon-worker-report.mjs
+
+      - name: 제천 worker metadata 보관 — 원문 없음
+        if: ${{ always() && steps.jecheon-worker-qa.outcome != 'skipped' && steps.jecheon-worker-qa.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-jecheon-worker-${{ github.sha }}
+          path: |
+            build/reports/attachment-jecheon-worker/JECHEON-403587.json
+            build/reports/attachment-jecheon-worker/JECHEON-403530.json
+            build/reports/attachment-jecheon-worker/JECHEON-403490.json
+            build/test-results/attachmentJecheonWorkerIntegrationTest/TEST-*.xml
           if-no-files-found: error
           retention-days: 7
 

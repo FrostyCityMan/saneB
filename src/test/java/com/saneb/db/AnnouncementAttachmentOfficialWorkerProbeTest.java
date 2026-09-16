@@ -4,6 +4,27 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void jecheonKeepsTitleNegativeAndEveryFileInBothPositiveNotices() {
+        var expected=java.util.List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
+        assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("JECHEON"));
+        assertEquals(expected,com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest
+                .selectCases("JECHEON").map(c->c.code()).toList());
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(0)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(1)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(2)));
+        assertEquals(java.util.List.of(0,1,2),expected.stream().map(AnnouncementAttachmentOfficialWorkerProbe::selectExpectedExtractionCount).toList());
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("JECHEON",3,3,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("JECHEON",2,2,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("JECHEON",3,2,0,1,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("JECHEON",3,3,0,0,0,1));
+    }
+    @Test void extractionDenominatorRejectsUnknownAndPreservesUnsupportedAndTitleStops() {
+        assertEquals(2,AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("TAEBAEK-184816"));
+        assertEquals(1,AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("YANGPYEONG-311846"));
+        assertEquals(0,AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("CHUNGJU-72625"));
+        assertEquals(1,AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("CHUNGJU-70852"));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("UNKNOWN"));
+    }
     @Test void chungjuHasTwoFixedTitleStopsAndOneActualWorkerCandidate() {
         var expected=java.util.List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
         assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("CHUNGJU"));

@@ -209,7 +209,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         assertEquals("UNSUPPORTED_FORMAT",file.downloadErrorCode(),"SUPPORTED_FILE_INCOMPLETE");
                     }
                 }
-                assertEquals("TAEBAEK-184816".equals(sample.code())?2:1,extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
+                assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount(sample.code()),extractor.calls,"EXPECTED_SUPPORTED_FILE_NOT_EXTRACTED");
                 var summary=bean(AnnouncementAttachmentCurrentService.class).selectClassificationDetails(source);
                 var summaryJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-classification");
                 assertTrue(selectWireTree(summary).equals(summaryJson),"API_CLASSIFICATION_PROJECTION_MISMATCH");

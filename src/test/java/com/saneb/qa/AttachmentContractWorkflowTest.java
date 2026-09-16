@@ -13,6 +13,33 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void jecheonWorkerKeepsEveryFixedNoticeAndRequiresManualOptIn() throws Exception {
+        var flow=workflow();
+        var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
+        assertThat(inputs.get("verify-jecheon-worker")).isEqualTo(Map.of("description",
+                "제천 고정3건 실제 worker·임시 DB·API 검증 (132요청/240MiB, 배포·운영 쓰기 없음)","type","boolean","default",false));
+        var all=steps(job(flow)).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"jecheon-worker-qa".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.verify-jecheon-worker == true }}");
+        assertThat(String.valueOf(run.get("run"))).contains("set -euo pipefail", "export JECHEON_WORKER_QA_STARTED_AT=",
+                "bash ./gradlew attachmentJecheonWorkerIntegrationTest --no-daemon --console=plain --max-workers=1",
+                "node scripts/qa/attachment-jecheon-worker-report.mjs").doesNotContain("|| true");
+        var artifact=all.stream().filter(item->"제천 worker metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-jecheon-worker/JECHEON-403587.json",
+                "build/reports/attachment-jecheon-worker/JECHEON-403530.json",
+                "build/reports/attachment-jecheon-worker/JECHEON-403490.json",
+                "build/test-results/attachmentJecheonWorkerIntegrationTest/TEST-*.xml");
+        String build=Files.readString(Path.of("build.gradle"));
+        String task=build.substring(build.indexOf("tasks.register('attachmentJecheonWorkerIntegrationTest'"),
+                build.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"));
+        assertThat(task).contains("systemProperty 'saneb.attachment-official-worker.group', 'JECHEON'",
+                "dependsOn ':attachment-extractor:installDist'", "systemProperty 'logback.configurationFile'",
+                "maxParallelForks = 1", "maxHeapSize = '384m'", "outputs.upToDateWhen { false }");
+        assertThat(task).doesNotContain("gradleProperty", "DB_URL", "environment 'SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED'");
+        assertThat(Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml")))
+                .contains("node --test scripts/qa/attachment-jecheon-worker-report.test.mjs");
+    }
     @Test void chungjuObservationRequiresManualFixedScopeAndCurrentReportValidation() throws Exception {
         var flow=workflow();
         var inputs=(Map<?,?>)((Map<?,?>)((Map<?,?>)flow.get("on")).get("workflow_dispatch")).get("inputs");
