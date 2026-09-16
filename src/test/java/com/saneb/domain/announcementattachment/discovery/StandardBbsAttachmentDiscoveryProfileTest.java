@@ -296,13 +296,13 @@ class StandardBbsAttachmentDiscoveryProfileTest {
             });
         }
     }
-    @Test void allEighteenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
+    @Test void allNineteenProfilesCoexistAndLegacyMimeDoesNotLeakToExistingProviders() {
         try (var context = new AnnotationConfigApplicationContext(StandardBbsAttachmentProfileConfiguration.class,
                 LegalBoardAttachmentProfileConfiguration.class, SaeolGetAttachmentProfileConfiguration.class,
                 HwacheonPostAttachmentDiscoveryProfile.class, BizInfoAttachmentDiscoveryProfile.class,
-                SeoguSaeolAttachmentDiscoveryProfile.class, AttachmentDiscoveryProfileRegistry.class)) {
+                SeoguSaeolAttachmentDiscoveryProfile.class, ChungjuEminwonAttachmentDiscoveryProfile.class, AttachmentDiscoveryProfileRegistry.class)) {
             var profiles = context.getBean(AttachmentDiscoveryProfileRegistry.class).selectProfileList();
-            assertThat(profiles).hasSize(18);
+            assertThat(profiles).hasSize(19);
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileCode).doesNotHaveDuplicates();
             assertThat(profiles).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             assertThat(profiles.stream().filter(p -> !(p instanceof StandardBbsAttachmentDiscoveryProfile)))

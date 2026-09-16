@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-15-taebaek-revalidated-v2",
+  "catalogVersion": "2026-09-16-chungju-references-v2",
   "notices": [
+    {
+      "caseCode": "CHUNGJU-72625",
+      "profileCode": "LOCAL_CHUNGJU_EMINWON_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "bb3be69e528569ed301013406fe7078cb6282f285593a7deab356f459a2db809",
+        "sourceUrl": "https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no=72625",
+        "localSourceCode": "LGS-000137",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHUNGJU-72039",
+      "profileCode": "LOCAL_CHUNGJU_EMINWON_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b2913674a32387c0949c738ad5086d771aaab5390b6037ed176d8b3e21c2c1b6",
+        "sourceUrl": "https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no=72039",
+        "localSourceCode": "LGS-000137",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHUNGJU-70852",
+      "profileCode": "LOCAL_CHUNGJU_EMINWON_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8f43aea864bf72cd56a16981068402a70505990caa873cfbd72f959af1f23907",
+        "sourceUrl": "https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no=70852",
+        "localSourceCode": "LGS-000137",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "CHEORWON-288915",
       "profileCode": "LOCAL_CHEORWON_BBS_V1",

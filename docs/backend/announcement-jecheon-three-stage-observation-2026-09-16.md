@@ -33,7 +33,8 @@ HTML 진단은 총7요청, 각 요청 연결3초/전체12초/응답1MiB/redirect
 - [x] 태백 HWPX 고정 비교2/2 PASSED·전체 완전성true. HWP1건은9734자/495블록·PARTIAL_TEXT·TECHNICAL_EXCEPTION·검수이며 정상 공고로 세지 않는다. 두 실행 모두 운영 쓰기0/원본 정리true다.
 - [~] 첫 로컬 표적13건 중12통과/1실패: Windows 애플리케이션 제어의 initdb.exe 실행 차단(CreateProcess4551). 보안 완화·차단 해제·운영 DB 대체는 하지 않았다. 후속 표적44건=43통과/Linux전용1생략, 최종 전체 회귀는 통과했으나 OS 차단의 영구 해소를 주장하지 않는다.
 - [x] 최종 로컬 전체 회귀5분4초 성공: root2680=2416통과/264조건부 생략/실패0, 패키지20/20. 추출기88·bootJar는 UP-TO-DATE로 선행 결과를 재사용했고 probe JAR는 다시 생성했다. Node 보고서 판정기63건/생략·실패0 및 구문/diff 검사 통과. production JAR SHA256은 직전f7b7396과 같은917d743ee8634d8af6cf736102f9fa198cf71aa29fb205d7787abe5fe8b09905다. Java/임시PG·단발 Node는 종료됐고 사용자 output은 보존했다.
-- [ ] 새 SHA의 Linux 전체 계약과 제천3건 실제 관측을 실행하여 metadata를 검토한다. 실제 파일 관측 전에는 정상 공고 수·역할·품질·coverage를 갱신하지 않는다.
+- [x] `f5d06e4` [Linux35044622501](https://github.com/FrostyCityMan/saneB/actions/runs/35044622501) 성공 및 보관 metadata/JUnit을 회수·대조했다. root2680=2415통과/265조건부 생략/실패0이며 추출기88·패키지20·job192·migration17·worker12·runtime1·정책 부모2·Flyway3은 실패/생략0이다. 제천 별도3/3도 통과했다.
+- [x] 제목 음성1건은 요청0, 양성2건은 BODY AVAILABLE와 전체 HWPX3개 COMPLETE_TEXT다. 403530은11645자/562블록·MIXED_DOCUMENT_ROLES, 403490의 두 파일은4692자/207블록·MIXED_DOCUMENT_ROLES 및4792자/304블록·INITIAL_HEADING_REQUIRED다. 역할은 모두UNKNOWN/최종REVIEW_REQUIRED이며 정상 공고/정책 QA로 승격하지 않았다. 예약9요청/5,069,800bytes·원본 정리true·운영 쓰기0이다.
 - [ ] 전체 수집처의 정상3공고/정상 다중 첨부·형식 검증, 정책 QA와 승인 범위 운영 적용·업무 브라우저 E2E가 남는다. 취소된 배포는 자동 재개하지 않는다.
 
 실행 명령:

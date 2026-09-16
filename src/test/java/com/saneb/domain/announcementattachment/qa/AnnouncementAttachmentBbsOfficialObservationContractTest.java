@@ -7,6 +7,41 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void chungjuRetainsTwoTitleNegativesAndOneHwpCandidateWithCatalogIdentity() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("CHUNGJU").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
+        var mapper=new com.fasterxml.jackson.databind.ObjectMapper();
+        var catalog=mapper.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:cases) {
+            assertThat(sample.listedFileCount()).isEqualTo(1);
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_CHUNGJU_EMINWON_V1");
+            var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(mapper.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            boolean stopped=!"CHUNGJU-70852".equals(sample.code());
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).isEqualTo(!stopped);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,title)).isEqualTo(stopped);
+        }
+    }
+    @Test void observationBudgetUsesInitialRequestBindingBeforeCountingRedirect() {
+        var profile=new com.saneb.domain.announcementattachment.discovery.ChungjuEminwonAttachmentDiscoveryProfile();
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(profile);
+        var first=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(
+                java.net.URI.create("https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no=70852"));
+        var other=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(
+                java.net.URI.create("https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no=72039"));
+        assertThat(budget.selectRequestAllowed(first,first)).isTrue();
+        assertThat(budget.selectRequestAllowed(first,other)).isFalse();
+        assertThat(budget.requests).isEqualTo(1);
+    }
     @Test void jecheonFixedReferencesKeepTheirFullFileCountsAndTitleGate() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("JECHEON").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

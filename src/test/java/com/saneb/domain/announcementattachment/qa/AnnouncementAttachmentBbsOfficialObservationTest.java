@@ -49,6 +49,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("CHUNGJU".equals(group)) return ChungjuEminwonProfileLiveQaTest.selectCases().map(sample -> {
+            String url="https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no="+sample.id();
+            var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+            return new ObservationCase("CHUNGJU-"+sample.id(),sample.title(),new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                    n.hash(n.canonicalizeUrl(url)),url,"LGS-000137","SAEOL_GOSI"),new ChungjuEminwonAttachmentDiscoveryProfile(),
+                    "https://www.chungju.go.kr/www/selectEminwonList.do?key=510",1,TitleLayout.CLASSIC_LABEL,
+                    "70852".equals(sample.id())?null:TitleStageCode.COMBINATION_NOT_MATCHED);
+        });
         if("TAEBAEK".equals(group)) return Stream.of(new ObservationCase(CASE,TITLE,SOURCE,PROFILE,
                 "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,TitleLayout.CLASSIC_LABEL));
         if("TAEBAEK_HWP".equals(group)) {
@@ -135,8 +143,9 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             assertTrue(selectTitleMayProceed(base),"TITLE_DECISION_CHANGED");
             temporary=Files.createTempDirectory("saneb-bbs-observation-");Path detail=temporary.resolve("detail.bin");
             stage="DETAIL_DISCOVERY";var uri=profile.selectDetailUri(source);
-            var download=client.selectDownload(AttachmentPinnedDownloadClient.Request.selectGet(uri),profile.selectApprovedHosts(),
-                    budget::selectRequestAllowed,detail,MIB,budget::saveBytes);
+            var detailRequest=AttachmentPinnedDownloadClient.Request.selectGet(uri);
+            var download=client.selectDownload(detailRequest,profile.selectApprovedHosts(),
+                    r->budget.selectRequestAllowed(detailRequest,r),detail,MIB,budget::saveBytes);
             assertTrue(Set.of("text/html","application/xhtml+xml").contains(download.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT)),"DETAIL_CONTENT_TYPE_CHANGED");
             AttachmentDiscoveryProfile.Result discovered;
             try(var input=Files.newInputStream(detail)) {
@@ -152,7 +161,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 var descriptor=discovered.descriptors().get(i);var row=rows.get(i);Path binary=temporary.resolve(UUID.randomUUID()+".bin");
                 if(!descriptor.downloadAllowed()) {row.put("status","UNSUPPORTED_NOT_DOWNLOADED");files.add(incompleteFile("UNSUPPORTED"));continue;}
                 try {
-                    stage="FILE_DOWNLOAD";var bytes=client.selectDownload(descriptor.selectRequest(),profile.selectApprovedHosts(),budget::selectRequestAllowed,binary,20*MIB,budget::saveBytes);
+                    stage="FILE_DOWNLOAD";var fileRequest=descriptor.selectRequest();
+                    var bytes=client.selectDownload(fileRequest,profile.selectApprovedHosts(),r->budget.selectRequestAllowed(fileRequest,r),binary,20*MIB,budget::saveBytes);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
                     String format=new AttachmentFileTypeValidator().selectFormat(binary,bytes,descriptor.expectedFormat(),profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
                     row.put("format",format);stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
@@ -230,6 +240,9 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=44||Thread.currentThread().isInterrupted())return false;requests++;return true;}
+        boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request initial,AttachmentPinnedDownloadClient.Request r){
+            return profile.selectApprovedRequest(initial,r)&&selectRequestAllowed(r);
+        }
         boolean saveBytes(long count){if(count<0||bytes>80*MIB-count||Thread.currentThread().isInterrupted())return false;bytes+=count;return true;}
     }
 }

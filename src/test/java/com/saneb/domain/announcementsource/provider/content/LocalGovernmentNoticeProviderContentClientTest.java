@@ -38,6 +38,40 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    private ProviderContentResult chungjuResult(String query, String html) {
+        var transport = new StubTransport(); transport.enqueue(html(html));
+        var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE", SOURCE_ID,
+                "https://www.chungju.go.kr/www/selectEminwonList.do?key=510", "https://www.chungju.go.kr/www/selectEminwonView.do" + query));
+        assertThat(transport.callCount()).isEqualTo(1); return result;
+    }
+    private String chungjuHtml(String body) {
+        return "<main><nav>수출 메뉴</nav><table class='bbs_default view'><tr><th>제목</th><td>중소기업 지원 공고</td></tr>"
+                + "<tr><th>담당부서</th><td>메타데이터</td></tr><tr><th>내용</th><td title='내용' class='bbs_content'>" + body
+                + "</td></tr><tr><th>파일</th><td>스타트업 신청서</td></tr></table><footer>기관 푸터</footer></main>";
+    }
+    @Test void chungjuUsesOnlyOwnBodyAndPreservesBusinessTablesAndExclusionContext() {
+        var result = chungjuResult("?key=510&ancmt_mgt_no=72039&pageIndex=1&method=", chungjuHtml(
+                "소상공인 지원금 <table><tr><th>지원대상</th><td>사업자</td></tr></table><nav>메뉴</nav>수출기업 제외 <a href='/apply'>신청</a>"));
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원대상 사업자 수출기업 제외 신청");
+    }
+    @Test void chungjuNeverSubstitutesMissingDuplicateOrNestedSelectorsWithPageText() {
+        String valid = chungjuHtml("본문");
+        for (String html : List.of("<main>본문</main>", valid + valid, valid.replace("bbs_default view", "changed"),
+                valid.replace("bbs_content", "changed"), valid.replace("<th>내용</th>", "<th>변경</th>"),
+                valid.replace("<th>제목</th><td>중소기업 지원 공고</td>", "<td><table><tr><th>제목</th><td>가짜 제목</td></tr></table></td>"))) {
+            var result = chungjuResult("?key=510&ancmt_mgt_no=72039", html);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED); assertThat(result.bodyText()).isNull();
+        }
+    }
+    @Test void chungjuOtherMenuAmbiguousQueryAndEmptyContentAreExplicitFailures() {
+        for (String query : List.of("?key=509&ancmt_mgt_no=1", "?key=510&ancmt_mgt_no=0", "?key=510&ancmt_mgt_no=1&key=510",
+                "?key=510&ancmt_mgt_no=1&unknown=1", "?key=510", "?key=510&ancmt_mgt_no=1&ancmt_sj=%0A"))
+            assertThat(chungjuResult(query, chungjuHtml("본문")).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(chungjuResult("?key=510&ancmt_mgt_no=72039", chungjuHtml("<nav>메뉴</nav>"))
+                .failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+    }
+
     private static String bbsHtml(boolean compact, String body) {
         return "<main><header>수출 특허 메뉴</header><p>스타트업 관련 공고</p>"
                 + (compact ? "<div class='p-wrap bbs bbs__view'><table class='p-table block'>" : "<table class='bbs_default view'>")
