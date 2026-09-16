@@ -4,18 +4,22 @@ import { fileURLToPath } from 'node:url';
 import { validateSuite, validateReportTime } from './attachment-contract-report.mjs';
 
 const suiteName = 'com.saneb.db.AnnouncementAttachmentOfficialWorkerIntegrationTest';
-const cases = [['JECHEON-403587', 0], ['JECHEON-403530', 1], ['JECHEON-403490', 2]];
+const cases = [['JECHEON-403587', 0, 'HWPX'], ['JECHEON-403530', 1, 'HWPX'], ['JECHEON-403490', 2, 'HWPX']];
 const bounded = (value, min, max) => Number.isSafeInteger(value) && value >= min && value <= max;
 const hash = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
 
 // 연결 성공과 후보 판정을 분리한다. 원문·파일명·경로·예외 메시지는 결과에 복사하지 않는다.
 export function validateJecheonWorkerReport(xml, reports, startedAtMs) {
+  return validateFixedWorkerReport(xml, reports, startedAtMs, cases, 'LOCAL_JECHEON_BBS_V1');
+}
+
+export function validateFixedWorkerReport(xml, reports, startedAtMs, fixedCases, profileCode) {
   validateReportTime(startedAtMs, startedAtMs);
   const suite = validateSuite(xml, suiteName);
   if (suite.tests !== 3 || !Array.isArray(reports) || reports.length !== 3
-      || new Set(reports.map(r => r?.caseCode)).size !== 3) throw new Error('제천 고정 3공고 전체 실행 증거가 필요합니다.');
+      || new Set(reports.map(r => r?.caseCode)).size !== 3) throw new Error('고정 3공고 전체 실행 증거가 필요합니다.');
   const summaries = [];
-  for (const [code, count] of cases) {
+  for (const [code, count, format] of fixedCases) {
     const r = reports.find(value => value?.caseCode === code);
     const observed = Date.parse(r?.observedAt);
     if (!r || r.scope !== 'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1' || !Number.isFinite(observed)
@@ -26,7 +30,7 @@ export function validateJecheonWorkerReport(xml, reports, startedAtMs) {
         || r.maximumRequestReservations !== 44 || r.maximumReservedBytes !== 83886080
         || !bounded(r.requestReservationsIncludingBodyUpperBound, 0, 44)
         || !bounded(r.reservedBytesIncludingBodyUpperBound, 0, 83886080) || !Array.isArray(r.files))
-      throw new Error('제천 worker 시각·실행 범위·자원 정리·요청 상한 근거가 불완전합니다.');
+      throw new Error('worker 시각·실행 범위·자원 정리·요청 상한 근거가 불완전합니다.');
     if (count === 0) {
       if (r.status !== 'TITLE_EXCLUDED_NOT_FETCHED' || r.titleStage !== 'COMBINATION_NOT_MATCHED'
           || r.titleReason !== 'TITLE_COMBINATION_NOT_MATCHED' || r.files.length !== 0
@@ -38,7 +42,7 @@ export function validateJecheonWorkerReport(xml, reports, startedAtMs) {
       continue;
     }
     if (r.status !== 'WORKER_DB_API_OBSERVED_NOT_APPROVED' || r.titleStage !== 'COMBINATION_MATCHED'
-        || r.bodyStatus !== 'AVAILABLE' || r.bodyStageComplete !== true || r.profileCode !== 'LOCAL_JECHEON_BBS_V1'
+        || r.bodyStatus !== 'AVAILABLE' || r.bodyStageComplete !== true || r.profileCode !== profileCode
         || !hash(r.profileHash) || !hash(r.extractorConfigHash) || typeof r.extractorVersion !== 'string'
         || r.workerStatus !== 'EVALUATED' || r.jobStatus !== 'SUCCEEDED' || r.requiresFinalAdminVerification !== true
         || r.discoveryComplete !== true || r.discoveredFileCount !== count || r.processedFileCount !== count
@@ -46,7 +50,7 @@ export function validateJecheonWorkerReport(xml, reports, startedAtMs) {
         || r.reservedBytesIncludingBodyUpperBound < 1 || !['ACCEPTED', 'REVIEW_REQUIRED'].includes(r.decisionStatus))
       throw new Error('본문·전체 첨부·실제 worker·DB/API 처리 증거가 일치하지 않습니다.');
     for (const f of r.files) {
-      if (f?.format !== 'HWPX' || f.downloadStatus !== 'SUCCEEDED' || f.downloadErrorCode != null
+      if (f?.format !== format || f.downloadStatus !== 'SUCCEEDED' || f.downloadErrorCode != null
           || !bounded(f.bytes, 1, 20971520) || !hash(f.binaryHash) || !hash(f.locatorHash)
           || !['COMPLETE_TEXT', 'PARTIAL_TEXT', 'OCR_REQUIRED', 'ENCRYPTED', 'CORRUPT', 'UNSUPPORTED', 'LIMIT_EXCEEDED'].includes(f.quality))
         throw new Error('지원 파일 전체의 다운로드·추출 결과가 필요합니다.');
@@ -73,7 +77,9 @@ export function validateJecheonWorkerReport(xml, reports, startedAtMs) {
       qualities: r.files.map(f => f.quality), roles: r.files.map(f => f.roleCode),
       isWholeTextAnalysisComplete: complete, processingStatus: r.processingStatus, requiresFinalAdminVerification: true });
   }
-  return { tests: suite.tests, titleStoppedCount: 1, observedNoticeCount: 2, processedFileCount: 3,
+  const stoppedCount = fixedCases.filter(([, count]) => count === 0).length;
+  return { tests: suite.tests, titleStoppedCount: stoppedCount, observedNoticeCount: fixedCases.length - stoppedCount,
+    processedFileCount: fixedCases.reduce((sum, [, count]) => sum + count, 0),
     cases: summaries, productionWriteCount: 0, isPolicyQaPassed: false, isExpectationApproved: false, isAuthenticatedBrowserE2e: false };
 }
 

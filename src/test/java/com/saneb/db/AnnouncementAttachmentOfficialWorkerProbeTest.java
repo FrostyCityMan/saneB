@@ -4,6 +4,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void boeunPreservesThreePositiveNoticesWithOneFileEach() {
+        var expected=java.util.List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
+        assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"));
+        assertEquals(expected,com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest
+                .selectCases("BOEUN").map(c->c.code()).toList());
+        assertEquals(java.util.List.of(1,1,1),expected.stream().map(AnnouncementAttachmentOfficialWorkerProbe::selectExpectedExtractionCount).toList());
+        for(var code:expected)assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(code));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN",3,3,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN",2,2,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN",3,2,0,1,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN",3,3,0,0,0,1));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectExpectedExtractionCount("BOEUN-UNKNOWN"));
+    }
     @Test void jecheonKeepsTitleNegativeAndEveryFileInBothPositiveNotices() {
         var expected=java.util.List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
         assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("JECHEON"));

@@ -49,6 +49,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("BOEUN".equals(group)) return Stream.of(
+                selectBoeunCase("221499","2026년 청년 월세 지원사업(취업자, 농업인 주거비 지원) 참여자 모집공고(3분기)"),
+                selectBoeunCase("221497","2026년 청년 소상공인 점포 임차료 지원사업 참여자 모집 공고(3분기)"),
+                selectBoeunCase("218812","2026년 소상공인 출산 지원사업 참여자 모집 공고"));
         if("CHUNGJU".equals(group)) return Stream.of(
                 selectChungjuCase("72625","2026년 교통약자 차량용 보조기기 설치 추가지원 사업 공고(3차)"),
                 selectChungjuCase("72039","2026년 충주시 중소기업육성기금 지원계획 변경 공고"),
@@ -74,6 +78,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectBoeunCase(String id,String title) {
+        String url="https://www.boeun.go.kr/www/selectBbsNttView.do?key=194&bbsNo=66&nttNo="+id;
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("BOEUN-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000139","HEURISTIC_NOTICE"),
+                new StandardBbsAttachmentProfileConfiguration().selectBoeunProfileDetails(),
+                "https://www.boeun.go.kr/www/selectBbsNttList.do?bbsNo=66&key=194",1,TitleLayout.COMPACT_SUBJECT);
     }
     private static ObservationCase selectChungjuCase(String id,String title) {
         String url="https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no="+id;

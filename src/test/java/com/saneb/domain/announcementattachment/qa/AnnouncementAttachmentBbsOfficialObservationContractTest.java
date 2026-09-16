@@ -7,6 +7,31 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void boeunHasThreeTitleEligibleSingleFileReferencesWithoutExpectationApproval() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("BOEUN-221499","BOEUN-221497","BOEUN-218812");
+        var mapper=new ObjectMapper();
+        var catalog=mapper.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:cases) {
+            assertThat(sample.listedFileCount()).isEqualTo(1);
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_BOEUN_BBS_V1");
+            assertThat(sample.titleLayout()).isEqualTo(AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.COMPACT_SUBJECT);
+            assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("www.boeun.go.kr");
+            var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(mapper.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            assertThat(title.titleStageCode()).isEqualTo(com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.TitleStageCode.COMBINATION_MATCHED);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,title)).isFalse();
+        }
+    }
     @Test void chungjuRetainsTwoTitleNegativesAndOneHwpCandidateWithCatalogIdentity() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("CHUNGJU").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

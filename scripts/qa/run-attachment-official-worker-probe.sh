@@ -4,7 +4,7 @@ set -euo pipefail
 # 명시한 설치 QA와 별도 시험 JAR만 사용한다. 기존 합성 QA의 네트워크 격리는 변경하지 않는다.
 [[ ( $# -eq 4 || $# -eq 5 ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
 case_group="${5:-YANGPYEONG}"
-[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON ]] || exit 1
+[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN ]] || exit 1
 qa_distribution="$(realpath -- "$1")"
 probe_jar="$(realpath -- "$2")"
 [[ "$3" =~ ^[a-f0-9]{64}$ && "$4" =~ ^[a-f0-9]{64}$ ]] || exit 1

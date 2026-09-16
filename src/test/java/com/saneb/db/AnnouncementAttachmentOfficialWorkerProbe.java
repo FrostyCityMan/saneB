@@ -27,11 +27,12 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
             case "CHUNGJU" -> List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
             case "JECHEON" -> List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
+            case "BOEUN" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
     static boolean selectTitleStopExpected(String code) {
-        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON")
+        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON","BOEUN")
                 .flatMap(group->selectCaseCodes(group).stream()).anyMatch(code::equals);
         if(!known)throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
         return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039","JECHEON-403587").contains(code);
