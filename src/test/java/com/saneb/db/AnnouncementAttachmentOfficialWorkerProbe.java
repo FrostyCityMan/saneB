@@ -25,8 +25,15 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "YANGPYEONG" -> CASES;
             case "TAEBAEK" -> List.of("TAEBAEK-184816");
             case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
+            case "CHUNGJU" -> List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
+    }
+    static boolean selectTitleStopExpected(String code) {
+        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU")
+                .flatMap(group->selectCaseCodes(group).stream()).anyMatch(code::equals);
+        if(!known)throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
+        return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039").contains(code);
     }
     static boolean selectComplete(long found,long succeeded,long failed,long skipped,long aborted,long containersFailed) {
         return selectComplete("YANGPYEONG",found,succeeded,failed,skipped,aborted,containersFailed);
@@ -98,7 +105,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 if(!code.equals(report.path("caseCode").asText())
                         ||!"OFFICIAL_WORKER_EPHEMERAL_DB_API_V1".equals(report.path("scope").asText()))throw new IllegalStateException();
                 reports.add(report);
-                String expected=code.equals("YANGPYEONG-311507")?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
+                String expected=selectTitleStopExpected(code)?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
                 reportsComplete&=expected.equals(report.path("status").asText())
                         &&report.path("originalFilesRemoved").asBoolean(false)&&report.path("remainingResourceLeases").asInt(-1)==0;
             }

@@ -28,9 +28,10 @@ class ChungjuEminwonProfileLiveQaTest {
     private static AnnouncementSourceClassificationRuleSet rules;
     record Sample(String id, String title, String format) { @Override public String toString() { return id; } }
     static Stream<Sample> selectCases() {
-        return Stream.of(new Sample("72625", "2026년 교통약자 차량용 보조기기 설치 추가지원 사업 공고(3차)", "HWPX"),
-                new Sample("72039", "2026년 충주시 중소기업육성기금 지원계획 변경 공고", "HWPX"),
-                new Sample("70852", "2026년 결혼·출산가정 대출이자 지원사업 공고", "HWP"));
+        // 순수 표본 정의는 독립 probe에도 포함되는 관측 클래스가 소유한다. DB/외부 시험 클래스에 역의존하지 않는다.
+        return AnnouncementAttachmentBbsOfficialObservationTest.selectCases("CHUNGJU")
+                .map(sample -> new Sample(sample.code().substring("CHUNGJU-".length()), sample.title(),
+                        sample.code().equals("CHUNGJU-70852") ? "HWP" : "HWPX"));
     }
     @BeforeAll static void selectDraftRules() throws Exception { rules = AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet(); }
     @ParameterizedTest(name="충주 고정 지원사업 {0}") @MethodSource("selectCases") @Timeout(150)

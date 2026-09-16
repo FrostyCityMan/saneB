@@ -18,9 +18,9 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
 });
-test('공식 그룹은 양평 기본값과 고정 태백 HWPX·HWP 표본만 허용한다', () => {
+test('공식 그룹은 양평 기본값과 고정 태백·충주 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP ]] || exit 1'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
 });
@@ -46,4 +46,16 @@ test('별도 probe JAR는 운영 코드·설정·JUnit 의존성을 포함하지
   assert(!task.includes('sourceSets.main.output'));
   assert(!task.includes('testRuntimeClasspath'));
   assert(!task.includes('resources'));
+});
+
+test('충주 worker 검증은 기본 양평과 별도 task·보고서이며 자동 외부 호출하지 않는다', () => {
+  const gradle = readFileSync('build.gradle', 'utf8');
+  const task = gradle.slice(gradle.indexOf("tasks.register('attachmentChungjuWorkerIntegrationTest'"), gradle.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"));
+  assert(task.includes("systemProperty 'saneb.attachment-official-worker.group', 'CHUNGJU'"));
+  assert(task.includes("reports/attachment-chungju-worker"));
+  assert(task.includes("test-results/attachmentChungjuWorkerIntegrationTest"));
+  assert(task.includes('maxParallelForks = 1'));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8').includes('attachmentChungjuWorkerIntegrationTest'));
+  const definition = readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsOfficialObservationTest.java', 'utf8');
+  assert(!definition.includes('ChungjuEminwonProfileLiveQaTest'));
 });

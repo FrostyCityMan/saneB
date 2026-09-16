@@ -360,10 +360,31 @@ tasks.register('attachmentTaebaekHwpWorkerIntegrationTest', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentTaebaekHwpWorkerIntegrationTest')
 }
 
+// 별도 이름의 명시 실행만 허용한다. 알려진 CI 접속 실패를 일반 push에서 재시도하지 않는다.
+tasks.register('attachmentChungjuWorkerIntegrationTest', Test) {
+    description = '충주 고정3건의 제목·본문·전체 첨부를 worker/임시 PostgreSQL/API로 검증합니다. 최대132요청/240MiB, 운영 쓰기 없음.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-official-worker.group', 'CHUNGJU'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-official-worker.report', layout.buildDirectory.dir('reports/attachment-chungju-worker').get().asFile.absolutePath
+    systemProperty 'logback.configurationFile', layout.projectDirectory.file('src/attachmentContractQa/config/logback-qa.xml').asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentChungjuWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentChungjuWorkerIntegrationTest')
+}
+
 // 이미 설치된 동일 코드 QA runtime에 고정 공식 시험만 전달한다. 웹/합성 QA JAR는 바꾸지 않는다.
 tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
     group = 'verification'
-    description = '고정 양평3건 JUnit 시험의 별도 실행 패키지입니다. 생성만 하며 외부 요청은 하지 않습니다.'
+    description = '고정 양평·태백·충주 JUnit 시험의 별도 실행 패키지입니다. 생성만 하며 외부 요청은 하지 않습니다.'
     dependsOn 'testClasses'
     archiveFileName = 'official-worker-probe.jar'
     destinationDirectory = layout.buildDirectory.dir('official-worker-probe')

@@ -4,6 +4,40 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void chungjuHasTwoFixedTitleStopsAndOneActualWorkerCandidate() {
+        var expected=java.util.List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
+        assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("CHUNGJU"));
+        assertEquals(expected,com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest
+                .selectCases("CHUNGJU").map(c->c.code()).toList());
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(0)));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(1)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(expected.get(2)));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("CHUNGJU",3,3,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("CHUNGJU",1,1,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("CHUNGJU",3,2,0,1,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("CHUNGJU",3,3,0,0,0,1));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected("CHUNGJU-UNKNOWN"));
+    }
+    @Test void chungjuCaseDefinitionLoadsWithoutTheUnpackagedLiveQaClass() throws Exception {
+        String definition="com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest";
+        var location=getClass().getProtectionDomain().getCodeSource().getLocation();
+        try(var loader=new java.net.URLClassLoader(new java.net.URL[]{location},getClass().getClassLoader()) {
+            @Override protected Class<?> loadClass(String name,boolean resolve) throws ClassNotFoundException {
+                synchronized(getClassLoadingLock(name)) {
+                    if(name.startsWith("com.saneb.domain.announcementattachment.qa.ChungjuEminwonProfileLiveQaTest"))throw new ClassNotFoundException("LIVE_QA_NOT_PACKAGED");
+                    if(name.equals(definition)||name.startsWith(definition+"$")) {
+                        Class<?> type=findLoadedClass(name);if(type==null)type=findClass(name);if(resolve)resolveClass(type);return type;
+                    }
+                    return super.loadClass(name,resolve);
+                }
+            }
+        }) {
+            var type=Class.forName(definition,true,loader);
+            try(var samples=(java.util.stream.Stream<?>)type.getMethod("selectCases",String.class).invoke(null,"CHUNGJU")) {
+                assertEquals(3,samples.count());
+            }
+        }
+    }
     @Test void replacementCharacterDiagnosticCountsOnlyLossMarkersAndPreservesMissingText() throws Exception {
         assertNull(AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount(null));
         assertEquals(0L,AnnouncementAttachmentOfficialWorkerIntegrationTest.selectReplacementCharacterCount(""));

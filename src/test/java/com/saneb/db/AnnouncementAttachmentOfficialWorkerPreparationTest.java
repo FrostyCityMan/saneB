@@ -9,14 +9,34 @@ import com.saneb.domain.announcementattachment.vo.AttachmentExecutionSnapshot;
 import com.saneb.domain.announcementsource.classification.*;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** 합성 본문으로 공개 worker 시험의 실제 DB 준비 경로만 검증한다. HTTP/추출 성공 증거가 아니다. */
 class AnnouncementAttachmentOfficialWorkerPreparationTest {
-    @Test void realClassificationPersistenceProducesReservableVersionedLocalSource() throws Exception {
+    @ParameterizedTest @ValueSource(strings={"YANGPYEONG","CHUNGJU"})
+    void realClassificationPersistenceProducesReservableVersionedLocalSource(String group) throws Exception {
         try {
             AnnouncementAttachmentOfficialWorkerIntegrationTest.startDatabase();
-            var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("YANGPYEONG").findFirst().orElseThrow();
+            var engine=new AnnouncementSourceClassificationEngine();
+            var rules=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectRules();
+            var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).toList();
+            for(var candidate:samples) {
+                var title=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",candidate.title(),
+                        null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
+                assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(candidate.code()),
+                        AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPlannedTitleStop(candidate,title));
+            }
+            var sample=samples.stream().filter(s->!AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(s.code())).findFirst().orElseThrow();
+            var unexpectedStop=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE","청년 수출 지원",
+                    null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
+            assertThrows(AssertionError.class,()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPlannedTitleStop(sample,unexpectedStop));
+            var expectedCandidate=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),
+                    null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
+            for(var negative:samples.stream().filter(s->AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(s.code())).toList()) {
+                assertThrows(AssertionError.class,()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPlannedTitleStop(negative,expectedCandidate));
+                assertThrows(AssertionError.class,()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPlannedTitleStop(negative,unexpectedStop));
+            }
             var base=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),
                     "지원대상: 소상공인. 지원내용: 지원금. 수출기업 포함 여부는 관리자 검수 필요.",null,List.of(),BodySourceCode.DETAIL_PAGE_TEXT,BodyAvailabilityCode.AVAILABLE),
                     AnnouncementAttachmentOfficialWorkerIntegrationTest.selectRules());

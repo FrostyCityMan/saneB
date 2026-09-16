@@ -49,14 +49,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
-        if("CHUNGJU".equals(group)) return ChungjuEminwonProfileLiveQaTest.selectCases().map(sample -> {
-            String url="https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no="+sample.id();
-            var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
-            return new ObservationCase("CHUNGJU-"+sample.id(),sample.title(),new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
-                    n.hash(n.canonicalizeUrl(url)),url,"LGS-000137","SAEOL_GOSI"),new ChungjuEminwonAttachmentDiscoveryProfile(),
-                    "https://www.chungju.go.kr/www/selectEminwonList.do?key=510",1,TitleLayout.CLASSIC_LABEL,
-                    "70852".equals(sample.id())?null:TitleStageCode.COMBINATION_NOT_MATCHED);
-        });
+        if("CHUNGJU".equals(group)) return Stream.of(
+                selectChungjuCase("72625","2026년 교통약자 차량용 보조기기 설치 추가지원 사업 공고(3차)"),
+                selectChungjuCase("72039","2026년 충주시 중소기업육성기금 지원계획 변경 공고"),
+                selectChungjuCase("70852","2026년 결혼·출산가정 대출이자 지원사업 공고"));
         if("TAEBAEK".equals(group)) return Stream.of(new ObservationCase(CASE,TITLE,SOURCE,PROFILE,
                 "https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=25&key=352",2,TitleLayout.CLASSIC_LABEL));
         if("TAEBAEK_HWP".equals(group)) {
@@ -78,6 +74,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectChungjuCase(String id,String title) {
+        String url="https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no="+id;
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("CHUNGJU-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                n.hash(n.canonicalizeUrl(url)),url,"LGS-000137","SAEOL_GOSI"),new ChungjuEminwonAttachmentDiscoveryProfile(),
+                "https://www.chungju.go.kr/www/selectEminwonList.do?key=510",1,TitleLayout.CLASSIC_LABEL,
+                "70852".equals(id)?null:TitleStageCode.COMBINATION_NOT_MATCHED);
     }
     private static ObservationCase selectYangpyeongCase(String id,String identity,String title,int count) {
         return new ObservationCase("YANGPYEONG-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",identity,

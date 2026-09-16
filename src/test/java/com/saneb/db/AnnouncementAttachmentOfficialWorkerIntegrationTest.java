@@ -64,8 +64,11 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
 
     static Stream<ObservationCase> selectCases() {
         // 제목 제외 표본도 유지한다. 임의 URL·전체 기관 실행 모드는 제공하지 않는다.
-        return AnnouncementAttachmentBbsOfficialObservationTest.selectCases(
-                System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG"));
+        String group=System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG");
+        var expected=AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(group);
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).toList();
+        assertEquals(expected,samples.stream().map(ObservationCase::code).toList(),"OFFICIAL_WORKER_CASES_CHANGED");
+        return samples.stream();
     }
     @BeforeAll static void start() throws Exception {
         distribution=System.getProperty("saneb.attachment-qa.extractor-root");
@@ -117,7 +120,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 var engine=new AnnouncementSourceClassificationEngine();
                 var title=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
                 report.put("titleStage",title.titleStageCode());report.put("titleReason",title.reasonCode());
-                if(title.semanticStatusCode()==SemanticStatusCode.EXCLUDED) {
+                if(selectPlannedTitleStop(sample,title)) {
                     assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_snapshots",Integer.class));
                     assertEquals(0,client.requests);report.put("status","TITLE_EXCLUDED_NOT_FETCHED");return;
                 }
@@ -242,6 +245,16 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertTrue(cleanup,"ORIGINAL_FILE_CLEANUP_INCOMPLETE");assertEquals(0,report.get("remainingResourceLeases"));
             }
         }
+    }
+    static boolean selectPlannedTitleStop(ObservationCase sample,AnnouncementSourceClassificationResult title) {
+        if(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(sample.code())) {
+            assertEquals(TitleStageCode.COMBINATION_NOT_MATCHED,title.titleStageCode(),"FIXED_TITLE_STOP_CHANGED");
+            assertEquals(ReasonCode.TITLE_COMBINATION_NOT_MATCHED,title.reasonCode(),"FIXED_TITLE_STOP_REASON_CHANGED");
+            assertEquals(SemanticStatusCode.EXCLUDED,title.semanticStatusCode(),"FIXED_TITLE_STOP_BECAME_ELIGIBLE");
+            return true;
+        }
+        assertTrue(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title),"FIXED_TITLE_CANDIDATE_STOPPED");
+        return false;
     }
     static AttachmentJobReservation insertSourceRequest(ObservationCase sample,String text,AnnouncementSourceClassificationResult base,AttachmentExecutionSnapshot execution) throws Exception {
         UUID policy=insertPolicy(execution),source=UUID.randomUUID();
@@ -385,7 +398,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         @Override public Download selectDownload(Request request,Set<String> hosts,Predicate<Request> approved,Path output,long maximum,ByteReservation reservation) throws IOException {
             assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
             var downloaded=super.selectDownload(request,hosts,r->{
-                if(requests>=44||Thread.currentThread().isInterrupted()||!sample.profile().selectApprovedRequest(r)||!approved.test(r))return false;
+                if(requests>=44||Thread.currentThread().isInterrupted()||!sample.profile().selectApprovedRequest(request,r)||!approved.test(r))return false;
                 requests++;return true;
             },output,maximum,count->{
                 if(count<0||bytes>80*MIB-count||Thread.currentThread().isInterrupted()||!reservation.reserve(count))return false;
