@@ -17,6 +17,8 @@
 - 진단은 QA 브랜치의 명시 표식만 실행하며8논리 조회·최대80초와 기동 여유/단계3분으로 제한한다. HTTP/파일 다운로드/DB 쓰기0, DNS/IP/TLS/SSRF 설정 변경0, 주소/예외/환경 원문 비보관이다. 결과는 수집 성공이 아닌 OBSERVED_NOT_COLLECTION_QA다. [보은 진단 계약](announcement-boeun-worker-db-api-qa-2026-09-16.md)을 따른다.
 - Node68건/생략0 통과, Java helper의 임의 대상 거부를 확인했다. 새 workflow 테스트의 첫 컴파일 타입 오류를 수정한 후 표적Java21건(워크플로16·URL 검증5)이21초 성공/실패·생략0이다. production Java·DB/API/UI·migration과 엔진7/첨부19/본문18/형식3·catalog30/기대값1/정상0은 불변이다. 실제 새 Linux 진단은 후속 실행에서 판정한다.
 - Git 기본 TLS backend 조회가 인증서 체인 오류로 실패했으나 명령 범위의 Windows schannel backend로 같은 원격 SHA를 확인했다. 인증서 검증을 끄거나 전역 Git 설정을 변경하지 않았다. 운영 재인증·취소 배포 재개 확인·정확한 게시/ENFORCE/기존 데이터 범위 승인·운영 업무 E2E는 여전히 남는다. 사용자 output을 보존한다.
+- `8589016`을 QA 브랜치에 커밋/푸시하고 원격 SHA 일치를 확인했다. [Linux35055559668](https://github.com/FrostyCityMan/saneB/actions/runs/35055559668)의04:26:15Z~04:26:27Z DNS 단계에서 보은·제천 모두 OS/JVM/Node A 동일 IPv4 지문, AAAA ENODATA를 실제 metadata로 확인했다. 새 환경에서 실패가 재현되지 않았으나 이전 근본 원인은 미확정이다. HTTP/파일/운영 쓰기0이다.
+- 상태 변화 근거에 따라 같은 SHA의 [보은 고정3건 재검증35055669009](https://github.com/FrostyCityMan/saneB/actions/runs/35055669009)를 한 차례 명시 실행했다. 기존 계약 실행과 직렬 concurrency를 유지하며 둘의 전체 terminal 결과는 후속 확인한다. DNS 관측 성공을 파일/정책 QA 성공으로 계산하지 않는다. Gate8진행/1차단·Not ready·goal ACTIVE다.
 
 ### 2026-09-16 보은 Linux 결과 — 계약 성공·공식 수집 DNS 차단
 

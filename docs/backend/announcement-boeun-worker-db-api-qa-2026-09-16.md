@@ -62,3 +62,9 @@ worker가 반환한 EVALUATED는 정상 파일 처리 성공이 아니다. 세 �
 - 결과에는 상태 코드·주소 개수/종류·주소 집합 지문만 넣고 주소 원문·resolver 설정·예외 메시지·환경값은 넣지 않는다. `OBSERVED_NOT_COLLECTION_QA`는 관측 완료이지 DNS 정상/공식 수집/정책 QA 성공이 아니다.
 - OS/JVM의 주소 집합 차이는 IPv6 표기·주소 선택/현재성 차이일 수도 있으며 근본 원인을 자동 확정하지 않는다. 새 runner의 관측은 이전 실패 당시의 상태를 소급 증명하지 않는다.
 - 실제 Linux 결과와 이후 보은 파일 재검증은 별도 기록한다. DNS 조회만으로 BODY/첨부/정상 공고 Gate를 통과시키지 않는다.
+
+### 2026-09-16 13:26 KST 관측 — 새 Linux 환경에서 DNS 해석 성공
+
+`8589016448fa0b63b8e4ff5cca4a0e7dfe3d4af2`의 [Linux35055559668](https://github.com/FrostyCityMan/saneB/actions/runs/35055559668) DNS 단계와 보관 JSON을 직접 확인했다. 04:26:15Z~04:26:27Z의 보은·제천 모두 OS/JVM/Node A가 같은 IPv4 1개 지문을 반환했다. Node AAAA는 ENODATA이고 OS/JVM 비교는 RESOLVED_SAME_SET이다. HTTP0·다운로드0·운영 쓰기0이다. 원본 artifact는 Git 제외 `build/qa-results/run-35055559668-dns/result.json`에 있다.
+
+이 결과는 새 Linux 환경에서 이전 DNS 실패가 재현되지 않았다는 근거이며 원인 해결·기관 정상 수집의 증거가 아니다. 실패 당시35053587664의 보고서를 바꾸거나 성공으로 재계산하지 않는다. 조회 상태의 변화가 확인되어 같은 코드 SHA에 보은 고정3건만 한 차례 재검증하는 [수동35055669009](https://github.com/FrostyCityMan/saneB/actions/runs/35055669009)를 시작했다. 최대132요청/240MiB, 기존 TITLE/BODY/전체 파일/DB/API/정리 기준을 유지한다. 전체 계약 실행35055559668과 실제 파일 실행35055669009의 최종 결과는 아직 미확인이다. 중복 재시작·운영 활성화·기대값 자동 승격은 하지 않는다.
