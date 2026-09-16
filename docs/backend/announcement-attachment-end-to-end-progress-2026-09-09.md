@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-16 12:34 이후 — 제천 실파일 worker 통과·DB/API 문서 불일치 정정
+
+- 직전 회차는9fe892c의 제천 실제 worker 경로·로컬 회귀·커밋·푸시·명시적 Linux 실행을 완료한 **progress**다. 이번에는 같은 실행35051444985의 terminal success와 보관 XML/metadata를 회수하고 실제 다음 상태를 확정한 **progress**다. 전체 ATT62/9Gate·제목→본문→첨부→관리자 순서를 유지한다.
+- `9fe892c` [Linux35051444985](https://github.com/FrostyCityMan/saneB/actions/runs/35051444985) root2717=2451통과/266조건부 생략/실패0, 별도 추출기88·패키지20·job192·migration17·부모2·runtime1·worker12·Flyway3 실패·생략0이다. 제천 별도JUnit3/3도 통과했고 로컬 판정기로 현재 실행/전체3공고·3파일/완전성·검수·정리 경계를 재확인했다.
+- 제목 음성403587은 후속 요청0, 양성403530/403490은 BODY AVAILABLE→전체HWPX3개→실제 worker EVALUATED·job SUCCEEDED→임시 DB/API 일치를 확인했다. 파일11645/4692/4792자 모두 COMPLETE_TEXT지만 혼합/초기 표제 부족으로 UNKNOWN·FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED다. 전체9요청/5,069,800bytes·원본정리true·lease0·운영쓰기0이며 정상 후보/정책 QA 성공으로 승격하지 않는다. [제천 실행 기록](announcement-jecheon-worker-db-api-qa-2026-09-16.md)을 따른다.
+- DB 계약의 V72/운영 미반영·V73~V83 PG 미실행, API의 게시/배치 미구현·Provider 검증 미연결·게시 잠금18개 설명을 실제 코드·migration·JUnit에 맞췄다. ATT037/053/058의 DB 실행 차단 표기를 부분 완료로 갱신하고 운영 잔여를 유지했다. 인용 testcase16개 모두 실제 통과 XML에 존재하며 변경 문서의 상대 링크도 검증했다. [계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)는 과거 운영09-15 V83과 현재 재조회 미실행을 분리한다.
+- 이번은 문서 정정이며 production/test code·migration·workflow·DB/API shape 변경0이다. 추가 빌드·외부 수집을 재실행하지 않았고 단발Node 종료·사용자 output 보존이다. 전체 엔진7/첨부 모델19/전용BODY18/형식3·catalog30/기대값1/정상0, Gate8진행/1차단·Not ready·goal ACTIVE다. AWS 재인증·취소 배포 재개 확인·정확한 정책/기존 데이터 범위 승인·운영 업무 E2E는 남는다.
+
 ### 2026-09-16 12시대 — 선행 Linux 성공·제천 실제 worker 검증 연결
 
 - 직전 현황 보고는 live 실행35050057694를 확인한 **검증된 대기**다. 이번에는 동일 실행의 terminal success/보관 XML을 회수하고 제천의 본문·실파일 관측을 실제 worker→임시 DB→API로 확장한다. 원래 사용자 goal·QA 계획의 전체 ATT62/9Gate·정상 표본/전체 대상 요구와 제목→본문→첨부→관리자 순서를 다시 대조했다.
@@ -393,12 +401,12 @@
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
-| 1 DB·API 계약 | [~] | f7b7396 Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 태백 HWP1건의 임시 DB/API 일치 확인. 마지막 운영 V83/실패0 및 이전 공식 양평3건과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
+| 1 DB·API 계약 | [~] | 9fe892c Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 제천3공고 중 제목 중단1건과 HWPX3파일의 worker/임시 DB/API 일치도 확인. 태백·양평의 선행 근거 및 마지막 운영09-15 V83과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 로컬 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 마지막 운영 설치는 profile17/worker 비활성. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
-| 3 분류·정책 | [~] | 로컬 전용 BODY 연결18(철원 실제 marker 재확인 필요). catalog30참조/보관 기대값1/정상0. f7b7396의 태백 고정 HWPX2파일 PASSED와 f5d06e4의 제천 HWPX3개 완전 추출·UNKNOWN/검수 확인. 충주 격리 제목 음성2/양성1·HWP signature를 확인했으며 전체 Provider/형식 QA·정책 게시는 잔여 |
+| 3 분류·정책 | [~] | 로컬 전용 BODY 연결18(철원 실제 marker 재확인 필요). catalog30참조/보관 기대값1/정상0. 태백 고정 HWPX2파일 PASSED 및9fe892c의 제천 HWPX3개 완전 추출·UNKNOWN/검수 상태의 worker/DB/API 일치 확인. 충주 격리 제목 음성2/양성1·HWP signature와 Linux 접속 실패를 분리한다. 전체 Provider/형식 QA·정책 게시는 잔여 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 174230a Linux 계약/격리/정책 부모 검증 성공, 충주 관측2통과/1실패: 양성1건 BODY·DETAIL 시간 초과/파일·추출0. 앞선 제천 HWPX3개 완전 추출/UNKNOWN, 태백 HWP 부분 추출·HWPX2파일 고정 비교와 구분. 전체 Provider·정상 공고·형식 기대값은 잔여 |
+| 6 자동·실파일 QA | [!] | 9fe892c Linux 계약·제천 worker3/3 성공, HWPX3파일 COMPLETE_TEXT/UNKNOWN/검수 유지. 충주의 선행 Linux 관측2통과/1실패(BODY·DETAIL 시간 초과/파일·추출0)는 미해결이다. 태백 HWP 부분 추출·HWPX2파일 고정 비교와 구분. 전체 Provider·정상 공고·형식 기대값은 잔여 |
 | 7 운영 배포·활성화 | [~] | 16시대 SSM으로787c594·실제DB V83·추출기1.0.1·catalog24/기대값1·health UP·첨부 count0/worker 비활성/외부키2종 없음 재확인. JAR와 기본 추출기 버전 연결은 로컬 보완/미배포. 재배포 재개 확인과 게시/ENFORCE/기존 데이터의 정확한 범위 승인이 필요 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

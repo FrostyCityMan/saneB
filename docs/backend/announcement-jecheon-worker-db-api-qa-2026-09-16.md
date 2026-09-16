@@ -30,7 +30,10 @@
 - [x] 선행 `85c7f65`의 [Linux35050057694](https://github.com/FrostyCityMan/saneB/actions/runs/35050057694)는 2026-09-16 12:13 KST success다. 보관 XML root2713=2447통과/266조건부 생략/실패0, 별도 추출기88·패키징20·job192·migration17·부모2·runtime1·worker12·Flyway3 모두 실패·생략0을 확인했다. 이번 제천 연결 전 SHA이며 공식 외부 요청 없이 실행한 계약 검증이다.
 - [x] 수정본 전체 로컬 회귀 4분43초 성공: root2717=2452통과/265조건부 생략/실패0, 패키징20/20·Node91/91. 추출기88·bootJar·probe는 유효한 선행 결과 재사용(UP-TO-DATE)이며 새 실행으로 합산하지 않는다. Java/임시 PostgreSQL 잔여0, 직접 실행한 단발 Node 종료를 확인했다.
 - [x] 웹 JAR SHA256 `c2680a76f97a1e891dc0aa3b83f876c8ba350a2ccdc7346eb12bae2292d80632` 불변, probe JAR `ca5e01db3e2652e5e71d91d1a29af804b93176ac7f17cb8878a09e0512aef6b0` 생성. production Java/추출기/migration 변경0, diff·구문·제한 자격증명 패턴 검사 통과. 사용자 `output/`는 보존한다.
-- [ ] 새 SHA의 Linux 전체 계약 및 제천 실제 worker·DB/API 실행.
+- [x] `9fe892c36745ecc4fdc8aba87d816a6bf8cd5db5`의 [Linux35051444985](https://github.com/FrostyCityMan/saneB/actions/runs/35051444985) success와 보관 XML/공식 metadata를 회수·대조했다. root2717=2451통과/266조건부 생략/실패0, 별도 추출기88·패키징20·job192·migration17·부모2·runtime1·worker12·Flyway3 실패·생략0이다.
+- [x] 제천 별도 JUnit3/3·실패/오류/생략0, 현재 실행 보고서 판정기 통과다. 제목 음성403587은 저장/본문/첨부 요청0, 양성403530/403490은 BODY AVAILABLE→전체HWPX3개 실제 추출→worker EVALUATED/job SUCCEEDED→임시 DB/API 대조를 완료했다. 최초 관측 시각은2026-09-16T03:30:56Z, 다중 공고는03:31:06Z다.
+- [x] 403530:11645자/562블록·UNKNOWN/MIXED_DOCUMENT_ROLES. 403490:4692자/207블록·UNKNOWN/MIXED_DOCUMENT_ROLES 및4792자/304블록·UNKNOWN/INITIAL_HEADING_REQUIRED. 세 파일 모두 COMPLETE_TEXT지만 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW이며 정상 후보·정책 승인으로 승격하지 않는다.
+- [x] 전체9요청 예약/5,069,800bytes, 원본 정리true·잔여lease0·운영 쓰기0. 전체 본문·텍스트 분석 완전성true와 관리자 검수 필요true를 함께 확인했다. 보관 경로는`build/qa-results/run-35051444985-contracts/`, `build/qa-results/run-35051444985-jecheon/`이며 원본·추출문·DB는 업로드하지 않았다.
 - [ ] 정책 QA·운영 적용·인증된 관리자 업무 E2E. 이 증분의 성공으로 전체 Gate를 통과 처리하지 않는다.
 
 ```powershell

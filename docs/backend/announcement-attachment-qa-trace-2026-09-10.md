@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-09-16 검증 기준 갱신
+
+아래 날짜별 증분은 당시 기록이다. 과거의 “최신 PG 미실행/환경 차단”은 현재의 Linux 실행 여부를 뜻하지 않는다. `85c7f65` Linux35050057694의 보관 XML에서 migration3·전체 분할14·job192·worker12·Flyway3·runtime1·정책 부모2건의 실패·생략0을 확인했다. [DB/API 계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)에 실제 testcase와 증명 범위를 연결했다. ATT037/053/058의 DB 실행 차단 표기는 갱신하되 전체 운영 요구 통과로 승격하지 않는다.
+
+실제 공식 파일·운영 설정/데이터·인증 브라우저는 별도 근거가 필요하다. 표의 나머지 “최신 PG” 요구는 위 실행된 해당 assertion으로 충족한 부분과 운영/실파일 잔여를 구분해 읽는다. 후속 `9fe892c` Linux35051444985도 전체 계약 success이며 제천 별도3/3을 확인했다. 제목 음성1건 요청0, 양성2건 전체HWPX3개 완전 추출·worker/DB/API 대조·UNKNOWN 검수 유지·원본/lease 정리/운영쓰기0이다. ATT002/011/017/036의 해당 표본 근거이며 전체62행·Gate0~8과 정상 표본·전체 대상 분모를 줄이지 않는다.
+
 - 09-14 17시 3단계 대기열: P1 처리 흐름 projection/상세 안내와 P2 v2 선택 필터·공통 SQL count/page·읽기 전용 화면을 구현했다. FLOW004~010 및 ATT043~045의 부분 구현/로컬 회귀 근거이며 기존62행의 실제 통과 상태를 변경하지 않는다. root2059통과/239생략·Node152·독립 QA14·bootJar 성공, 실제 PG 대기열 시험은 initdb/Code Integrity 초기화 실패1로 assertion 미실행이다. Linux 독립213건은INVENTORY_ONLY/통과0. P3/P4·실제 Provider/Linux/운영 E2E와 전체 Gate 최종 통과0을 유지한다. 상세는09-14 3단계 설계/최신 진행 기록/API24.33/DB11.30이다.
 
 - 09-12 11:15 Provider QA 관리 연결: V80 승인 계획/분할 원자 봉인, 정확한 범위·예산 확인/멱등 예약, 역할별 계획·원장·항목 페이지/취소, 기본 OFF 스케줄러의 현재 입력/전체 항목 대조·단일 case 실행을 연결했다. ATT-029~034/037/044/045/052/058/060/061의 부분 구현 근거다. Service34/HTTP23/스케줄러2와 전체 root1919통과234생략·추출기25(기존 결과 재사용)·QA14·Node130통과. 실제 PG3사례/V80 migration은 미실행이며 독립208건도 발견만 했고 통과0이다. 공식 참조9/기대값0, 전체 catalog/UI/verifier·Linux/운영 E2E 잔여와62행/Gate 최종 통과0을 유지한다. 상세는 `announcement-attachment-provider-qa-management-2026-09-12.md`와 최신 진행 기록을 따른다.
@@ -137,7 +143,7 @@
 | ATT-034 | 내용/검수/version 변경 충돌 | PG.att034ChangedSource…; PG.att034And044BaseChange… | [~] | 검수 변경 API 동시성/늦은 worker |
 | ATT-035 | 원문 삭제 후 되살림 금지 | PG.att035And038…; W.att001MissingEligibleSource…; WorkerDB.sourceDeletedDuringRealExtractionCannotBeRecreatedByLateWorkerResult 작성 | [~] | 실제 Linux 실행 중 source 삭제·임시 자원 정리 |
 | ATT-036 | source 불일치 접근 404 | HTTP.sourceMismatchReturns404Wrapper; HistoryService/HistoryController 다른 source/evaluation/file 404; ReadService 제목 제외·QA·기본 판정 없는 조회 차단 | [~] | 최신 PG·운영 각 READ 역할의 교차 source 요청 |
-| ATT-037 | 다른 source/release DB 근거 거부 | AnnouncementAttachmentMigrationTest; PG.att061PolicyProfileAndRule… | [!] | 최신 additive/PG composite FK 재실행 차단 |
+| ATT-037 | 다른 source/release DB 근거 거부 | Linux35050057694 Migration3/3·PG.att061PolicyProfileAndRuleMustMatchWithoutUpdatingSourceOnFailure 통과 | [~] | 운영 API·최종 설치에서 교차 근거 거부 재확인 |
 | ATT-038 | 제목 제외 cascade/임시 정리 | PG.att035And038…; T.att038SuccessAndExceptionScopes…; T.att038ExpiredOrphan… | [~] | Linux 실제 OS crash 후 원본 정리 |
 | ATT-039 | 역할 변경은 새 set/STALE | RoleService/RoleController: 새 SEALED set·추출 provenance/시각 보존·버전/STALE·OFF 무HTTP; PG 역할/동시 요청/재사용 무결성 4건; 복구 UI·Node·합성 브라우저 OFF에서 역할 변경 예약/검수 잠금 | [~] | 최신 PG 실행·역할 변경 후 재검수 운영 E2E |
 | ATT-040 | 미완료/오래된 확인 전환 거부 | ReviewServiceTest stale/setHash/OPEN/처리중/cross-source; ReviewControllerSmokeTest 409; RetryService/새 PG 선택 재시도 후 확인 STALE; 단건 복구 UI·Node 및 합성 브라우저 409 공유 쓰기 잠금/입력 보존/재확인 검증 | [~] | 최신 PG 실행·실제 운영 두 세션 충돌/재검수 |
@@ -153,12 +159,12 @@
 | ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI; 승인 목록 당시 영향/현재 영수증 분리, PG 페이지/삭제/혼합 이력3건 추가(미실행) | [~] | 실제 PostgreSQL/운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
 | ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard | [~] | 명시 포함 batch의 보호/경고 정책·후속 신청 불변 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
-| ATT-053 | 새 DB/업그레이드/checksum | AnnouncementAttachmentMigrationTest(V78 upgrade 포함), MigrationContractTest | [!] | 최신 V78 및 빈 DB 실제 PostgreSQL 검증 미완료 |
+| ATT-053 | 새 DB/업그레이드/checksum | Linux35050057694 freshSchemaAndV71UpgradePreservePriorChecksums·Flyway3/3, V83까지 순차 적용/빈 DB 검증 | [~] | 최종 배포의 실제 DB·설치 migration 재확인; 마지막 운영 확인09-15 V83과 구분 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |
 | ATT-055 | 동시 확인/전환 | source 잠금·평가 current unique; PG 동시 확인/동시 DRAFT·다른 source 멱등 키 race 테스트 추가 | [~] | 최신 PG 동시 실행 및 운영 E2E 검증 |
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |
 | ATT-057 | OPEN/pending 판정 ID null | PG.att031UnsealedOrExpiredWorker…; CurrentServiceTest.enforcePending…; HistoryService pending의 과거 판정은 NOT_CURRENT | [~] | 최신 PG 및 운영 화면 pending→sealed |
-| ATT-058 | source 같아도 다른 입력 조합 거부 | V72 composite FK; AnnouncementAttachmentMigrationTest | [!] | 최신 PG 재실행·API 교차 set/policy/base |
+| ATT-058 | source 같아도 다른 입력 조합 거부 | Linux35050057694 immutableEvidenceRejectsMismatchedBindingsAndCascadesWithSource·역할 근거 소속 시험 통과 | [~] | 최신 운영 API에서 교차 set/policy/base 거부 검증 |
 | ATT-059 | 추출기 비밀·망·파일 격리 | I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation; Windows fail closed | [~] | Linux 실제 subprocess 환경/망/파일 canary |
 | ATT-060 | 전역 동시성/한도 상향 금지 | PG.att060DownloadAndHostAndExtractionCaps…; PG.att024And060…; D/T 한도 검사; CollectionService 공유 수동 한도·132 HTTP 상한; PolicyService/HTTP 초안 1~80 MiB·임의 실행 설정 거부 | [~] | 최신 PG + 두 실제 worker·실제 정책 검증/게시 상한 |
 | ATT-061 | base/정책 release 불일치 | E.mismatchedRuleReleaseIsRejectedBeforeEvaluation; PG.att061PolicyProfileAndRule…; Intake/SourceService/MapperBinding 미일치 ENFORCE·퇴역 규칙 준비 차단; PolicyService 초안 DRAFT/ACTIVE 규칙 허용; PublicationImpact 최신 QA/필수 재검증 및 정책 UI의 조회 버전·QA 누락/불일치·퇴역 선택 차단 | [~] | 최신 PG 실행·정책 전체 QA/게시/교체·운영 검증 |

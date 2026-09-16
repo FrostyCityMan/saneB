@@ -2328,7 +2328,9 @@ AI 보조는 운영자 업무 초안 생성에만 사용한다. 입력 원문은
 - `data_purpose_code`가 명시적으로 `QA`인 원문·요청만 QA 정리 대상이다. 일반 애플리케이션 수집은 `PRODUCTION`만 생성하며, DB에 쓰는 격리 QA 경로는 운영 QA 승인 시 별도 확정한다.
 - 상세본문 기능을 운영에서 켜기 전 DNS 재바인딩을 포함한 private-range egress 차단 또는 연결 IP 고정 검증을 완료한다.
 
-## 24. 첨부 근거 V2 조회 (2026-09-10 로컬 구현)
+## 24. 첨부 근거 V2 조회
+
+2026-09-16 검증 구분: 아래는 구현된 확장 계약이며 최초2026-09-10 설명 이후 정책 게시·배치·Provider QA API가 추가됐다. `85c7f65` Linux35050057694의 HTTP 단위 계약, 실제 임시 PostgreSQL job192건·migration17건·worker12건과 운영 업무 E2E를 구분한다. 후속 `9fe892c` Linux35051444985에서도 전체 계약 및 제천 실파일3개→worker/임시 DB/API를 검증했으며 UNKNOWN 검수 상태를 유지했다. [계약 검증 근거](announcement-attachment-contract-evidence-2026-09-16.md)를 따르며, API 구현이나 시험 fixture의 정책 활성화를 실제 운영 게시·ENFORCE로 표현하지 않는다.
 
 기존 TITLE/BODY 및 `/api/v1` 응답에 첨부를 혼합하지 않는다. 아래 별도 조회는 `ADMIN`, `OPERATOR`, `APPROVER`만 허용하며 `USER`, `PARTNER`, `REVIEWER`는 거부한다. 운영 배포 완료 기록이 아니다.
 
@@ -2347,7 +2349,7 @@ prefix: `/api/v2/admin/announcement-sources/{sourceId}`
 - 제목 통과 기본 판정이 있는 PRODUCTION 원문만 조회한다. 원문 행이 잔존하더라도 제목 제외·QA·기본/제목 판정 미완료이면 집합·파일·텍스트를 반환하지 않는다. 다른 source에 속한 set/extraction ID는 404 wrapper다. 잘못된 페이지·본문 한도는 구체적인 한국어 400 wrapper를 반환한다.
 - 신규 첨부 변경 namespace(`attachment-*`, 첨부 policies/batches)는 session CSRF 검증을 요구한다. 기존 V1 및 기존 V2 변경 경로의 CSRF 계약은 이번 단계에서 바꾸지 않았다. 누락/만료 시 403과 새로고침 안내를 반환한다.
 - 첨부 필수 source는 기존 V1/V2 전환·기본 분류 확정·재분류·롤백으로 우회할 수 없다. `ANNOUNCEMENT_SOURCE_NOT_CONVERTIBLE` 409를 반환한다. 기존 link가 이미 있는 전환 재요청은 쓰기 없이 기존 link를 반환한다.
-- 새 수집의 내부 자동 예약, 종합 조회·확인·DRAFT 전환, 역할 변경/작업 조회, 실패 파일 재시도 및 24.7의 초기/전체 수동 수집 API를 로컬 구현했다. 정책 게시·배치 API와 관리자 UI는 남은 구현 범위다. CSRF 경로 보호만으로 변경 API의 구현 완료를 주장하지 않는다.
+- 새 수집의 내부 자동 예약, 종합 조회·확인·DRAFT 전환, 역할 변경/작업 조회, 실패 파일 재시도 및24.7의 초기/전체 수동 수집 API를 구현했다. 정책 게시·배치·전체 분할·Provider QA 관리 API와 관리자 화면도 후속 절에 구현 계약이 있다. 남은 것은 전체 공식 표본/정책 QA, 승인된 운영 적용, 최신 버전 관리자 업무 E2E이며 CSRF 경로 보호나 로컬 시험만으로 운영 완료를 주장하지 않는다.
 
 ### 24.1 현재 분류 목록·상세
 
@@ -2533,7 +2535,7 @@ prefix: `/api/v2/admin/announcement-sources/{sourceId}`
 
 ### 24.9 첨부 정책 초안·개정 관리
 
-2026-09-11 로컬 구현. 상세 설계의 정책 관리 중 **초안 생성/조회/수정/개정** 계약이다. 초안 저장은 QA 통과, 정책 게시 또는 ENFORCE 적용이 아니다. `/validation`, `/publication`, 관리자 화면과 배치 처리는 아직 미구현이다.
+상세 설계의 정책 관리 중 **초안 생성/조회/수정/개정** 계약이다. 초안 저장은 QA 통과, 정책 게시 또는 ENFORCE 적용이 아니다. 이후 추가된 `/validation`, `/publication`, 관리자 화면과 배치 계약은 후속 절을 따른다. 전체 공식 QA와 승인된 운영 적용·업무 E2E는 별도 미완료다.
 
 prefix: `/api/v2/admin/announcement-attachment-policies`. 모든 정상 응답은 `ApiResponse`, 목록 data는 `PageResponse`, 응답 캐시는 `no-store`다.
 
@@ -2850,13 +2852,13 @@ POST201/GET상세의 data는 scope(Summary), isExpired, isScopeCurrent, isApprov
 
 POST `/api/v2/admin/announcement-attachment-policies/{policyId}/publication`: 활성 ADMIN·비밀번호 변경 완료·CSRF·UUID Idempotency-Key가 필요하다. 입력은 scopeId, scopeHash, expectedVersion, acknowledgeNewCollectionBehavior=true, acknowledgeExistingJobsUnchanged=true, acknowledgeNoBackfill=true, reason(1~1000자)다. 임의 QA 성공/설정/모드/hash를 입력하지 않는다. scope는 현재 관리자가 준비한 원장이며 동의 항목은 신규 수집 조건·기존 고정 작업·별도 기존 데이터 승인 배치를 구분한다.
 
-설치·전체 애플리케이션 코드 지문 읽기 → 짧은 읽기 transaction에서 현재 입력/QA 준비 → transaction 밖 네 단계 근거 검증·설치/코드 지문 재확인 → READ COMMITTED/15초의18개 관련 테이블 EXCLUSIVE NOWAIT → 현재 범위/정책/최신 QA/단계/입력과 검증 당시 값의 일치 재확인 → 영수증/이전 ACTIVE 퇴역/새 정책 ACTIVE/감사 원자적 저장 순서다. 파일 읽기/QA CPU 검증은 쓰기 잠금 안에서 하지 않는다. 일반 SELECT는 허용하며 진행 중인 writer나 row-lock 업무가 있으면409로 반환한다. 자동 대기/재게시하지 않는다. 잠금 밖 검증 중 같은 요청이 먼저 게시됐다면 입력 지문을 확인하고 원래 영수증을 반환한다.
+설치·전체 애플리케이션 코드 지문 읽기 → 짧은 읽기 transaction에서 현재 입력/QA 준비 → transaction 밖 네 단계 근거 검증·설치/코드 지문 재확인 → READ COMMITTED/15초의 관련 테이블 EXCLUSIVE NOWAIT(V77 기존18개와 V81 Provider 원장/항목/계획3개) → 현재 범위/정책/최신 QA/단계/입력과 검증 당시 값의 일치 재확인 → 영수증/이전 ACTIVE 퇴역/새 정책 ACTIVE/감사 원자적 저장 순서다. 파일 읽기/QA CPU 검증은 쓰기 잠금 안에서 하지 않는다. 일반 SELECT는 허용하며 진행 중인 writer나 row-lock 업무가 있으면409로 반환한다. 자동 대기/재게시하지 않는다. 잠금 밖 검증 중 같은 요청이 먼저 게시됐다면 입력 지문을 확인하고 원래 영수증을 반환한다.
 
 게시할 policyHash는 검증된 QA snapshot hash다. 초안 설정의 null extractorConfigHash는 QA의 installed.runtimeHash로만 고정한다. 그 외 설정·모드·규칙·profile은 변경하지 않는다. 원문/기존 job/운영 공고를 일괄 변경하지 않고 worker flag도 켜지 않는다.
 
 POST201/GET200의 data는 publication(영수증), existingDataApplied=false, workerEnabledByRequest=false, currentHttpRequests=0이다. 영수증 필드는 publicationId/policyId/publishedPolicyVersion/policyHash/previousPolicyId/previousPolicyVersion(교체 직전)/scopeId/scopeHash/qaRunId/modeCode/publishedAt이다. GET 같은 경로는 ADMIN/OPERATOR/APPROVER의 정책별 단건 이력이며 이후 퇴역해도 당시 결과를 반환한다. 동일 게시 키/actor/정책/입력은 준비 만료 이후에도 같은 영수증이며, 다른 입력 재사용은409다. ApiResponse/no-store를 유지한다.
 
-현재 WORKER_DB_RECOVERY 실행·근거 검증기는 연결했지만 실제 Linux 성공은 미확인이며 PROVIDER_PROFILES 전체 실행·검증기는 미연결이다. 실제 전체 QA→게시 성공은 미완료다. 네 단계 PASSED metadata나 과거 CLI를 성공으로 변환하지 않는다. 분류 정답을 현재 규칙으로 재계산하고 설치 runtime 결과는 현재12개 fixture와 소속 시각/지문/정리 여부를 대조한다. 관리자 게시 준비·실행·영수증 UI는 후속 연결했으나 실제 PG·운영 검증은 남는다. 서버 계약은 `announcement-attachment-policy-publication-2026-09-12.md`, 화면 계약과 합성 검증 경계는 `announcement-attachment-policy-publication-ui-2026-09-12.md`를 따른다.
+WORKER_DB_RECOVERY 실행·근거 검증기는 연결됐고 Linux35050057694에서 실제 부모 연결·취소·정리를 확인했다. PROVIDER_PROFILES 실행·근거 검증기도24.30~24.31 및 정책 validation 경로에 연결됐으나 전체 공식 표본·고정 기대값·실행 원장이 부족하여 전체 QA→게시 성공은 미완료다. 네 단계 PASSED metadata나 과거 CLI를 성공으로 변환하지 않는다. 분류 정답을 현재 규칙으로 재계산하고 설치 runtime 결과는 현재12개 fixture와 소속 시각/지문/정리 여부를 대조한다. 관리자 게시 준비·실행·영수증 UI와 실제 PG 계약 시험은 존재하며 승인된 운영 게시·업무 E2E가 남는다. 서버 계약은 `announcement-attachment-policy-publication-2026-09-12.md`, 화면 계약과 합성 검증 경계는 `announcement-attachment-policy-publication-ui-2026-09-12.md`를 따른다.
 
 09-12 정책 QA 내부 snapshot schema5: 수집원 publicCode·전체 코드 지문·독립 QA artifact/전체 suite/case/추출기 지문과 전체 Provider 요구 목록(providerQaPlan)을 고정한다. 설치 경로는 `SANEB_ANNOUNCEMENT_ATTACHMENT_CONTRACT_QA_ROOT`, 기본 `/opt/saneb/attachment-contract-qa`다. 성공 JSON 업로드 기능은 없다. 기존 schema1~4 이력은 재작성하지 않으며 현재 입력과 다른 과거 QA는 게시 근거로 재사용하지 않는다. 실행은 기존8분 lease 안에서60초 저장/정리 여유를 남기고 취소/슬롯을 반복 확인한다. 상세는 `announcement-attachment-policy-qa-bridge-2026-09-12.md`다.
 
