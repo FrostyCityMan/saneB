@@ -29,6 +29,23 @@ class AnnouncementAttachmentBbsOfficialObservationContractTest {
             boolean stopped=!"CHUNGJU-70852".equals(sample.code());
             assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).isEqualTo(!stopped);
             assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,title)).isEqualTo(stopped);
+            if (stopped) {
+                // 초기 DRAFT의 포괄 범위 진단이다. 지원사업이 아니라는 판단이나 운영 규칙의 정답으로 사용하지 않는다.
+                assertThat(title.groupACodes()).isEmpty();
+                assertThat(title.groupBCodes()).isEmpty();
+                assertThat(title.reasonCode().name()).isEqualTo("TITLE_COMBINATION_NOT_MATCHED");
+                assertThat(title.supportTypeCodes()).extracting(Enum::name).containsExactly("GENERAL_SUPPORT");
+                var tagged = title.matches().stream().filter(m -> m.appliedActionCode().name().equals("TAG")).toList();
+                assertThat(tagged).extracting(m -> m.matchedRuleTerm()).containsExactlyElementsOf(
+                        sample.code().equals("CHUNGJU-72625") ? List.of("지원") : List.of("기업", "지원"));
+                assertThat(tagged).allSatisfy(match -> {
+                    var rule = rules.rules().stream().filter(r -> r.ruleCode().equals(match.ruleCode())).findFirst().orElseThrow();
+                    assertThat(rule.strengthCode().name()).isEqualTo("SUPPLEMENTARY");
+                    assertThat(match.maskedByProtectedMetadata()).isFalse();
+                });
+                if (sample.code().equals("CHUNGJU-72625")) assertThat(title.targetCategoryCodes()).isEmpty();
+                else assertThat(title.targetCategoryCodes()).extracting(Enum::name).containsExactly("BUSINESS");
+            }
         }
     }
     @Test void observationBudgetUsesInitialRequestBindingBeforeCountingRedirect() {

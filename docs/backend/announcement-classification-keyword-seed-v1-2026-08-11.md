@@ -4,6 +4,8 @@
 - 상태: 초기 DRAFT 운영 적재·Golden QA 구현 완료, 운영 활성화 보류
 - 관련 설계: `docs/backend/announcement-classification-v2-design-2026-08-11.md`
 
+> 적용 시점 안내(2026-09-16): 이 문서는 V65 초기 키워드 seed의 이력이다. 아래의 "첨부 제외"와 "EXCLUDED 원문 저장" 설명을 현재 수집 흐름에 적용하지 않는다. 현재는 [제목→본문→첨부→최종 검증 설계](announcement-three-stage-filtering-workflow-2026-09-14.md)가 우선하며 제목 제외는 후속 요청·원문 신규 저장 없이 종료한다. 키워드 목록/강도는 운영 ACTIVE 버전과 별도로 확인해야 한다. [충주 제목 미충족 진단](announcement-chungju-eminwon-profile-2026-09-16.md#초기-draft-제목-조건-미충족-진단)은 초기 seed의 누락·보조어 조합 사례이며 운영 규칙 변경 승인이 아니다.
+
 ## 1. 현재 단계와 Gate
 
 - [x] 지원대상 5종과 `본인(개인)` 명칭 확정
