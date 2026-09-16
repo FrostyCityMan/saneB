@@ -11,6 +11,31 @@ import org.junit.jupiter.api.io.TempDir;
 
 class AttachmentPinnedDownloadClientTest {
     @TempDir Path root;
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"UNKNOWN_HOST", "EMPTY", "NULL"})
+    void unresolvedPublicHostIsNetworkFailureWithoutHttpOrOriginalOutput(String mode) throws Exception {
+        var resolver=new ProviderContentUrlValidator(host -> {
+            if ("UNKNOWN_HOST".equals(mode)) throw new java.net.UnknownHostException("PRIVATE_DIAGNOSTIC_CANARY");
+            return "EMPTY".equals(mode) ? new InetAddress[0] : null;
+        });
+        try (var client=new AttachmentPinnedDownloadClient(resolver, (target, remaining, handler) -> {
+            throw new AssertionError("DNS failure must not open HTTP");
+        }, java.time.Duration.ofSeconds(1))) {
+            assertThatThrownBy(() -> client.selectDownload(URI.create("https://approved.example/file"),Set.of("approved.example"),root.resolve("file.bin"),1024))
+                    .isInstanceOf(java.io.IOException.class).hasMessage("ATTACHMENT_DNS_LOOKUP_FAILED").hasNoCause();
+            try (var paths=Files.list(root)) { assertThat(paths.toList()).isEmpty(); }
+        }
+    }
+    @Test void unexpectedResolverFailureRemainsBlockedWithoutLeakingItsMessage() throws Exception {
+        var resolver=new ProviderContentUrlValidator(host -> { throw new IllegalStateException("PRIVATE_DIAGNOSTIC_CANARY"); });
+        try (var client=new AttachmentPinnedDownloadClient(resolver, (target, remaining, handler) -> {
+            throw new AssertionError("invalid resolver must not open HTTP");
+        }, java.time.Duration.ofSeconds(1))) {
+            assertThatThrownBy(() -> client.selectDownload(URI.create("https://approved.example/file"),Set.of("approved.example"),root.resolve("file.bin"),1024))
+                    .isInstanceOf(java.io.IOException.class).hasMessage("ATTACHMENT_URL_BLOCKED").hasNoCause();
+            try (var paths=Files.list(root)) { assertThat(paths.toList()).isEmpty(); }
+        }
+    }
     @Test void unapprovedHostIsRejectedBeforeDnsOrHttpAndPreservesExistingFile() throws Exception {
         Path output=root.resolve("existing.bin"); Files.writeString(output,"사용자 기존 파일");
         try (var client=new AttachmentPinnedDownloadClient(new ProviderContentUrlValidator(host -> { throw new AssertionError("DNS must not run"); }))) {

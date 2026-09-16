@@ -184,7 +184,14 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
             return task.get(Math.min(selectRemaining(deadline).toNanos(), Duration.ofSeconds(3).toNanos()), TimeUnit.NANOSECONDS);
         } catch (TimeoutException exception) { throw new IOException("ATTACHMENT_DNS_TIMEOUT"); }
         catch (InterruptedException exception) { Thread.currentThread().interrupt(); throw new IOException("ATTACHMENT_CANCELLED"); }
-        catch (ExecutionException exception) { throw new IOException("ATTACHMENT_URL_BLOCKED"); }
+        catch (ExecutionException exception) {
+            // 조회 불능은 보안 차단과 다르다. 검증된 고정 코드만 기존 worker의 제한 재시도로 전달한다.
+            // 사설 주소·미승인 URL·예상하지 못한 resolver 오류는 계속 차단하며 원인 메시지는 복사하지 않는다.
+            if (exception.getCause() instanceof ProviderContentValidationException validation
+                    && validation.selectFailureCode() == ProviderContentCodes.FailureCode.DNS_LOOKUP_FAILED)
+                throw new IOException("ATTACHMENT_DNS_LOOKUP_FAILED");
+            throw new IOException("ATTACHMENT_URL_BLOCKED");
+        }
         finally { task.cancel(true); }
     }
 

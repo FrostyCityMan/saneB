@@ -68,3 +68,11 @@ worker가 반환한 EVALUATED는 정상 파일 처리 성공이 아니다. 세 �
 `8589016448fa0b63b8e4ff5cca4a0e7dfe3d4af2`의 [Linux35055559668](https://github.com/FrostyCityMan/saneB/actions/runs/35055559668) DNS 단계와 보관 JSON을 직접 확인했다. 04:26:15Z~04:26:27Z의 보은·제천 모두 OS/JVM/Node A가 같은 IPv4 1개 지문을 반환했다. Node AAAA는 ENODATA이고 OS/JVM 비교는 RESOLVED_SAME_SET이다. HTTP0·다운로드0·운영 쓰기0이다. 원본 artifact는 Git 제외 `build/qa-results/run-35055559668-dns/result.json`에 있다.
 
 이 결과는 새 Linux 환경에서 이전 DNS 실패가 재현되지 않았다는 근거이며 원인 해결·기관 정상 수집의 증거가 아니다. 실패 당시35053587664의 보고서를 바꾸거나 성공으로 재계산하지 않는다. 조회 상태의 변화가 확인되어 같은 코드 SHA에 보은 고정3건만 한 차례 재검증하는 [수동35055669009](https://github.com/FrostyCityMan/saneB/actions/runs/35055669009)를 시작했다. 최대132요청/240MiB, 기존 TITLE/BODY/전체 파일/DB/API/정리 기준을 유지한다. 전체 계약 실행35055559668과 실제 파일 실행35055669009의 최종 결과는 아직 미확인이다. 중복 재시작·운영 활성화·기대값 자동 승격은 하지 않는다.
+
+### 2026-09-16 13:49 KST 재검증 결과 — 본문 시간 초과
+
+35055559668은 전체 success,35055669009는 전체 failure로 완료됐다. 둘 다8589016이며 후속 DNS 오류 분류 수정본은 아니다. 두 번째 실행의 계약 root XML도2722=2456통과/266생략/실패0이다. 보은 실제 JUnit은3건 모두 실패했다.
+
+04:48:59Z·04:49:17Z·04:49:26Z의 고정3건은 BODY FETCH_FAILED/TIMEOUT·2회 시도, worker NETWORK_TIMEOUT/job RETRY_WAIT로 끝났다. 발견 완료·파일 처리 수는 미확정(null), 파일 결과[]·추출 미실행이다. RETRY_WAIT는 이 시험의 임시 DB 상태이며 운영에서 재시도가 예약되었다는 뜻이 아니다. 발견0으로도 임의 치환하지 않는다.
+
+모두 원본 정리true·lease0·운영 쓰기0, 합계 예약9회/6,291,456bytes다. 실제 수신 트래픽으로 계산하지 않는다. 보관 metadata/JUnit은 `build/qa-results/run-35055669009-boeun/`, 계약은 `build/qa-results/run-35055669009-contracts/`에 있다. DNS 실패와 이번 TIMEOUT은 구분하며 외부 방화벽/특정 서버 장애를 확정하지 않는다. 상태 변화 없이 동일 요청을 다시 반복하지 않는다.

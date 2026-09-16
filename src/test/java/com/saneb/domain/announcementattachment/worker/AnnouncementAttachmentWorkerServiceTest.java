@@ -138,6 +138,30 @@ class AnnouncementAttachmentWorkerServiceTest {
         else { verifyNoInteractions(extractor); assertThat(file.failureCode()).isEqualTo(AttachmentFailureCode.DOWNLOAD_BLOCKED); }
         assertTemporaryEmpty();
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints = {1, 2, 3})
+    void discoveryDnsFailureUsesExistingBoundedRetryThenPreservesIncompleteEvidence(int attempt) throws Exception {
+        job=selectJob(attempt,null,"b".repeat(64));
+        doAnswer(call -> { ((Runnable)call.getArgument(5)).run();throw new IOException("ATTACHMENT_DNS_LOOKUP_FAILED"); })
+                .when(downloads).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        var result=worker.saveNextAttachmentJob();
+        if(attempt<3) {
+            assertThat(result.statusCode()).isEqualTo("NETWORK_UNAVAILABLE");
+            verify(jobs).saveJobFailure(job.jobId(),job.leaseToken(),AttachmentFailureCode.NETWORK_UNAVAILABLE);
+            verify(evidence,never()).saveAttachmentSet(any(),any(),any());
+            verifyNoInteractions(evaluations);
+        } else {
+            assertThat(result.statusCode()).isEqualTo("EVALUATED");
+            var saved=selectSaved();
+            assertThat(saved.discoveryStatus()).isEqualTo("FAILED");
+            assertThat(saved.discoveryComplete()).isFalse();
+            assertThat(saved.files()).isEmpty();
+            assertThat(saved.warningCodes()).contains("NETWORK_UNAVAILABLE");
+            verify(jobs,never()).saveJobFailure(any(),any(),any());
+        }
+        verify(downloads,times(1)).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        verifyNoInteractions(extractor);assertTemporaryEmpty();
+    }
     @Test void idleDoesNotStartRuntimeOrNetwork() throws Exception {
         when(jobs.saveNextJobClaim()).thenReturn(Optional.empty());
         assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("IDLE");

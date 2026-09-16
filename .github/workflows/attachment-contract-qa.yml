@@ -121,6 +121,25 @@ jobs:
       - name: 배포 QA 패키지 불변 설치·JAR 원복 경로 검증
         run: node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs
 
+      - name: 변경 코드의 태백 고정 공고 관측 — 기대값 승인·운영 쓰기 없음
+        id: taebaek-revalidation-observation
+        # 프로필 코드 변경은 기존 기대값을 무효화한다. 새 관측 없이 지문을 치환하거나
+        # catalog 회귀 검사를 완화하지 않도록, 명시 표식에 한해 고정1건을 먼저 관측한다.
+        if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[taebaek-revalidation-observation]') }}
+        timeout-minutes: 10
+        run: bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=TAEBAEK --no-daemon --console=plain --max-workers=1
+
+      - name: 태백 변경 코드 관측 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.taebaek-revalidation-observation.outcome != 'skipped' && steps.taebaek-revalidation-observation.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-taebaek-revalidation-observation-${{ github.sha }}
+          path: |
+            build/reports/attachment-bbs-official-observation/TAEBAEK-184816.json
+            build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
       - name: 단위·HTTP·실제 임시 DB·migration·artifact 검증
         id: contracts
         shell: bash

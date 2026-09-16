@@ -1,5 +1,7 @@
 # 첨부 수집 구현·출시 진행 기록
 
+> 이 문서는 2026-09-08~09 초기 구현 기록이다. 아래의 미구현·연결 대기·브라우저 미승인 표시는 당시 상태이며 현재 상태로 해석하지 않는다. 현재 Gate0~8·운영 승인/검증 경계는 [장기 진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md), 전체62개 요구는 [ATT 추적표](announcement-attachment-qa-trace-2026-09-10.md), DB/API의 실제 검증은 [계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)를 따른다. 초기 기록과 실패 이력은 그대로 보존한다.
+
 기준: `61223aef8db0118cf32d01e4fac16d41b0041868`, V71. 승인 범위는 첨부 설계 구현·검증·운영 반영이다. 기존 설계 문서 변경 5개는 직전 설계 산출물로 보존한다.
 
 ## Gate

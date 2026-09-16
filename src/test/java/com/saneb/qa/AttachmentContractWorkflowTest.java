@@ -13,6 +13,23 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void changedProfileObservationIsExplicitAndDoesNotBypassContractFailureOrApproveExpectations() throws Exception {
+        var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
+        var observation=all.stream().filter(item->"taebaek-revalidation-observation".equals(item.get("id"))).findFirst().orElseThrow();
+        var contracts=all.stream().filter(item->"contracts".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(observation.get("if")).isEqualTo("${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[taebaek-revalidation-observation]') }}");
+        assertThat(observation.get("timeout-minutes")).isEqualTo(10);
+        assertThat(observation.get("run")).isEqualTo("bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=TAEBAEK --no-daemon --console=plain --max-workers=1");
+        assertThat(all.indexOf(observation)).isLessThan(all.indexOf(contracts));
+        assertThat(contracts.containsKey("if")).isFalse();
+        assertThat(String.valueOf(contracts.get("run"))).contains(":test ","--continue").doesNotContain("-x ","|| true");
+        var artifact=all.stream().filter(item->"태백 변경 코드 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-bbs-official-observation/TAEBAEK-184816.json",
+                "build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml");
+        assertThat(((Map<?,?>)artifact.get("with")).get("if-no-files-found")).isEqualTo("error");
+        assertThat(Files.readString(Path.of("scripts/qa/attachment-contract-report.mjs"))).doesNotContain("taebaek-revalidation-observation");
+    }
     @Test void boundedDnsDiagnosisRequiresExactOptInAndCannotFetchNotices() throws Exception {
         var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
         var run=all.stream().filter(item->"provider-dns-diagnostic".equals(item.get("id"))).findFirst().orElseThrow();
@@ -201,8 +218,8 @@ class AttachmentContractWorkflowTest {
         var environment=(Map<?,?>)job.get("env");
         for(String name:List.of("SANEB_ATTACHMENT_REAL_FILE_QA","SANEB_ATTACHMENT_RULE_EXPORT","SANEB_FLYWAY_INTEGRATION",
                 "SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED")) assertThat(environment.get(name)).isEqualTo("false");
-        var build=steps(job).stream().map(item -> (Map<?,?>)item)
-                .map(item -> String.valueOf(item.get("run"))).filter(run -> run.contains("bash ./gradlew")).findFirst().orElseThrow();
+        var build=steps(job).stream().map(item -> (Map<?,?>)item).filter(item -> "contracts".equals(item.get("id")))
+                .map(item -> String.valueOf(item.get("run"))).findFirst().orElseThrow();
         assertThat(build).contains(":test ", ":attachment-extractor:test", "attachmentJobIntegrationTest", "attachmentMigrationTest",
                 "attachmentRuntimeIntegrationTest", "attachmentWorkerIntegrationTest", "bootJar", ":attachment-extractor:installDist", "--rerun-tasks", "--no-daemon", "--max-workers=1", "--continue", "set -euo pipefail")
                 .doesNotContain("|| true", "-x ", "attachmentRealFileQa");
