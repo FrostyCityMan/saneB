@@ -4,7 +4,9 @@
 
 `AttachmentRuntimeGateIntegrationTest.productionLauncherBlocksParentEnvironmentHostFilesAndHostNetwork`를 추가했다. 실제 운영 비밀·외부 사이트 대신 공개 합성 부모 환경값, 테스트 소유의 호스트 파일, 테스트 부모의 loopback listener를 만들고 production `IsolatedAttachmentExtractor.selectExtraction`으로 합성 probe JAR를 실행한다. 환경값 비전달·호스트 파일 비노출·호스트 loopback 연결 차단, 입력/추출기 라이브러리 읽기 전용과 전용 임시 파일 쓰기·JRE 읽기를 직접 assertion한다. 기존12개 실제 parser fixture 시험은 유지한다.
 
-이 probe는 parser 동작을 대신 검증하지 않으며 실행 경계를 관찰하는 테스트 전용 클래스다. 단위시험에서 Java21 컴파일·단일 class JAR 구성을 확인했다. 로컬 표적22건=21통과/Windows의 Linux 전용1건 생략/실패0·23초 성공이다. **실제 sandbox 신규 시험은 Linux CI 대기**이며 이 작성/컴파일 성공을 ATT-059 전체 완료로 계산하지 않는다. OOM/프로세스 트리·OS crash와 최종 설치 환경의 격리는 별도 잔여다. 운영 main 코드·정책·DB·catalog 기대값은 변경하지 않는다.
+이 probe는 parser 동작을 대신 검증하지 않으며 실행 경계를 관찰하는 테스트 전용 클래스다. 단위시험에서 Java21 컴파일·단일 class JAR 구성을 확인했다. 로컬 표적22건=21통과/Windows의 Linux 전용1건 생략/실패0·23초 성공이다. 이 로컬 작성/컴파일 성공과 아래 실제 Linux 결과를 구분하며 ATT-059 전체 완료로 계산하지 않는다. OOM/프로세스 트리·OS crash와 최종 설치 환경의 격리는 별도 잔여다. 운영 main 코드·정책·DB·catalog 기대값은 변경하지 않는다.
+
+후속 실제 결과: `f496d2e` [Linux35631537040](https://github.com/FrostyCityMan/saneB/actions/runs/35631537040) success, runtime XML2건 실패/생략0이다. `productionLauncherBlocksParentEnvironmentHostFilesAndHostNetwork`1.391초 통과, 기존12fixture 검증5.024초 통과를 개별 testcase에서 확인했다. 합성 canary의 실제 launcher 환경/파일/네트워크·read-only 경계 증거이며 최종 운영 설치, 임의 악성 문서 전체, OOM/프로세스 트리 복구까지 완료한 것은 아니다.
 
 ## 2026-09-22 서울 태백 재관측·고정 비교 근거
 
@@ -177,7 +179,7 @@
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |
 | ATT-057 | OPEN/pending 판정 ID null | PG.att031UnsealedOrExpiredWorker…; CurrentServiceTest.enforcePending…; HistoryService pending의 과거 판정은 NOT_CURRENT | [~] | 최신 PG 및 운영 화면 pending→sealed |
 | ATT-058 | source 같아도 다른 입력 조합 거부 | Linux35050057694 immutableEvidenceRejectsMismatchedBindingsAndCascadesWithSource·역할 근거 소속 시험 통과 | [~] | 최신 운영 API에서 교차 set/policy/base 거부 검증 |
-| ATT-059 | 추출기 비밀·망·파일 격리 | I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation; Windows fail closed | [~] | Linux 실제 subprocess 환경/망/파일 canary |
+| ATT-059 | 추출기 비밀·망·파일 격리 | f496d2e Linux35631537040의 productionLauncherBlocksParentEnvironmentHostFilesAndHostNetwork 통과: 실제 subprocess 합성 환경/호스트 파일/loopback 차단·입력/라이브러리 read-only; Windows fail closed | [~] | 최종 운영 설치의 동일 격리 설정·실행 환경 대조. 합성 canary 성공은 모든 악성 파일/자원 고갈 검증이 아님 |
 | ATT-060 | 전역 동시성/한도 상향 금지 | PG.att060DownloadAndHostAndExtractionCaps…; PG.att024And060…; D/T 한도 검사; CollectionService 공유 수동 한도·132 HTTP 상한; PolicyService/HTTP 초안 1~80 MiB·임의 실행 설정 거부 | [~] | 최신 PG + 두 실제 worker·실제 정책 검증/게시 상한 |
 | ATT-061 | base/정책 release 불일치 | E.mismatchedRuleReleaseIsRejectedBeforeEvaluation; PG.att061PolicyProfileAndRule…; Intake/SourceService/MapperBinding 미일치 ENFORCE·퇴역 규칙 준비 차단; PolicyService 초안 DRAFT/ACTIVE 규칙 허용; PublicationImpact 최신 QA/필수 재검증 및 정책 UI의 조회 버전·QA 누락/불일치·퇴역 선택 차단 | [~] | 최신 PG 실행·정책 전체 QA/게시/교체·운영 검증 |
 | ATT-062 | COLLECT_ONLY는 preview만 변경 | CurrentServiceTest.collectOnlyKeepsBaseEffective…; HistoryService CURRENT_PREVIEW와 AUTO 태그 구분; Current/History PG projection | [~] | 최신 PG 목록/count/태그와 운영 브라우저 |

@@ -1,5 +1,20 @@
 # 옥천군 BBS 본문·첨부 모델
 
+## 2026-09-22 실제 관측 결과 — 본문·상세 접속 실패
+
+- [Linux35630969706](https://github.com/FrostyCityMan/saneB/actions/runs/35630969706), SHA `0bfa7522cfbd636a78dc2bea851500648761b6ba`는 최종 failure다. 관측 JUnit3건 중 제목 중단1건 통과/본문·상세2건 실패/생략0이며, 다음 표는 실제 결과 JSON 기준이다.
+
+| 고정 공고 | 제목 | 본문 | 첨부 단계 | 예약 요청/bytes |
+|---|---|---|---|---|
+| 193369 | COMBINATION_MATCHED | 2시도 TIMEOUT/0자 | DETAIL_DISCOVERY TRANSPORT_TIMEOUT, 파일0/추출 미실행 | 3 / 2,097,152 |
+| 193297 | COMBINATION_MATCHED | 2시도 TIMEOUT/0자 | DETAIL_DISCOVERY TRANSPORT_TIMEOUT, 파일0/추출 미실행 | 3 / 2,097,152 |
+| 193187 | COMBINATION_NOT_MATCHED | 요청 없음 | 요청 없음 | 0 / 0 |
+
+- 총6예약/4,194,304bytes는 본문 최대 응답량 예약을 포함하며 실제 다운로드된 파일 크기가 아니다. 세 보고서 모두 originalFilesRemoved=true, 운영쓰기0·기대값 승인false·정책 QA false다. 파일0을 정상 NO_FILES나 파서 성공으로 계산하지 않는다.
+- 로컬에서193369 상세 URL에 TLS 검증 유지·redirect 미추적·연결5초/전체12초/최대1MiB의 단일 GET 진단을 수행했다. HTTP403/318bytes/0.148초/redirect0이며 원문은 저장하지 않았다. GitHub timeout과 다른 경로의 거부 응답을 확인한 것이지, 사이트 자체 장애·지역 제한·차단 주체를 확정하거나 production 본문 수집 성공을 증명한 것은 아니다. 자동 재시도/보안 완화/서울 서버 추가 실행은 하지 않는다.
+- 같은 CI의 기본 XML2754=2488통과/266조건부 생략/실패·오류0, 추출기88·패키징20·job192·migration17·runtime1·worker12·Flyway3·정책 부모2 실패/생략0이다. 독립PG221/221 및 독립/부모 정리 성공을 확인했다. 이 코드 계약 통과와 외부 관측 실패를 분리한다. 결과는 `build/qa-results/run-35630969706-okcheon/`와 `run-35630969706-contracts/`에 있다.
+- 다음은 접속 거부 원인과 허용된 수집 경로 확인이다. 접속이 확보된 뒤 같은 고정 표본을 관측하고, 실제 파일 내용·역할을 검토한 후에만 catalog 기대값으로 채택한다. 전체 수집처 QA·정상 후보·상시 worker·운영 E2E는 미완료다.
+
 ## 2026-09-22 독립 Linux 실제 관측 실행 범위
 
 - 장기 goal의 실제 수집 모델 검증으로 기존 고정3공고를 GitHub Linux QA에서 한 번 실행한다. 서울 임시 QA의 태백1공고 범위를 확대하거나 운영 서버/DB를 사용하는 작업이 아니다. 기존 `[okcheon-observation]` 표식 경로를 사용하며 코드·migration·catalog 기대값·정책은 변경하지 않는다.
