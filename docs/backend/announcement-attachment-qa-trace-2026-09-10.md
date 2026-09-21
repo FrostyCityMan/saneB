@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-09-22 서울 태백 재관측·고정 비교 근거
+
+[서울 임시 QA](announcement-seoul-temporary-bbs-qa-2026-09-21.md)에서 최신 BBS 코드의 BODY431자와 전체HWPX2파일(2041/1994자,62/117블록)을 관측하고, 새 사전 기대값을 production CaseExecutor로 별도 재다운로드·재추출해 비교했다. 두 실행 각 JUnit1/1·실패/생략0, 전체 파일/역할 지문 일치·원본/임시 자원 정리·운영 DB쓰기0이다. UNKNOWN/MIXED_DOCUMENT_ROLES와 FORM·REVIEW_REQUIRED를 유지해 ATT-011의 해당 표본 분류 근거, ATT-017의 HWPX 해당 표본 추출/locator 근거를 보강한다. 실제 UI 표시/후속 행동·나머지 모든 profile/형식 요구는 남는다.
+
+합계8요청/2,658,726bytes가 승인44요청/80MiB 이내인 점은 예산 사용 근거이며 ATT-024의 초과 경계 시험이나 ATT-060의 다중 worker 동시성/정책 게시를 대체하지 않는다. 관측 성공을 제목 제외·실패/재시도·운영 DB/API/브라우저 검증으로 확장하지 않으며 기존62행 상태/분모를 유지한다.
+
 ## 2026-09-16 검증 기준 갱신
 
 아래 날짜별 증분은 당시 기록이다. 과거의 “최신 PG 미실행/환경 차단”은 현재의 Linux 실행 여부를 뜻하지 않는다. `85c7f65` Linux35050057694의 보관 XML에서 migration3·전체 분할14·job192·worker12·Flyway3·runtime1·정책 부모2건의 실패·생략0을 확인했다. [DB/API 계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)에 실제 testcase와 증명 범위를 연결했다. ATT037/053/058의 DB 실행 차단 표기는 갱신하되 전체 운영 요구 통과로 승격하지 않는다.

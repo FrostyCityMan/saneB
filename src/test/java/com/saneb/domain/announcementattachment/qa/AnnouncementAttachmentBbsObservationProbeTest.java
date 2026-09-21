@@ -6,6 +6,54 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsObservationProbeTest {
+    private ObjectNode fixedReport() {
+        var node=new ObjectMapper().createObjectNode();
+        node.put("caseCode","TAEBAEK-184816").put("scope","FIXED_CASE_EXECUTOR_QA_EPHEMERAL_ONLY")
+                .put("status","FIXED_EXPECTATIONS_MATCHED_REVIEW_REQUIRED").put("productionWriteCount",0)
+                .put("originalFilesRemoved",true).put("isPolicyQaPassed",false)
+                .put("isExpectationCoverageComplete",false).put("normalNotice",false);
+        var result=node.putObject("result");
+        result.put("scope","SINGLE_FIXED_NOTICE_PROVIDER_QA").put("caseId","TAEBAEK-184816")
+                .put("status","PASSED").put("reasonCode","FIXED_NOTICE_EXPECTATIONS_MATCHED")
+                .put("expectedFileCount",2).put("discoveredFileCount",2).put("discoveryComplete",true)
+                .put("allTextComplete",true).put("originalFilesRemoved",true).put("isPolicyQaPassed",false)
+                .put("requestReservations",3).put("reservedBytes",280787);
+        var files=result.putArray("files");
+        for(int i=0;i<2;i++)files.addObject().put("status","PASSED").put("quality","COMPLETE_TEXT").put("roleAssessmentHash","a".repeat(64));
+        return node;
+    }
+    @Test void fixedComparisonRequiresEveryFileAndNeverApprovesWholeCoverage() {
+        assertTrue(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(fixedReport()));
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(null));
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(report()));
+        for(String key:new String[]{"isPolicyQaPassed","isExpectationCoverageComplete","normalNotice"}) {
+            var changed=fixedReport();changed.put(key,true);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+            changed.remove(key);assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        }
+        var changed=fixedReport();changed.withObject("/result").withArray("files").remove(0);
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        changed=fixedReport();((ObjectNode)changed.at("/result/files/0")).put("quality","PARTIAL_TEXT");
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        changed=fixedReport();((ObjectNode)changed.at("/result/files/0")).remove("roleAssessmentHash");
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        changed=fixedReport();changed.withObject("/result").put("caseId","TAEBAEK-176153");
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+    }
+    @Test void fixedComparisonReservesOnlyRemainingApprovedBudget() {
+        for(String key:new String[]{"requestReservations","reservedBytes"}) {
+            var changed=fixedReport();changed.withObject("/result").put(key,key.equals("requestReservations")?40:81508142);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+            changed.withObject("/result").put(key,0);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        }
+        for(String key:new String[]{"allTextComplete","originalFilesRemoved","discoveryComplete"}) {
+            var changed=fixedReport();changed.withObject("/result").put(key,false);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+        }
+        var changed=fixedReport();changed.put("productionWriteCount",1);
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(changed));
+    }
     private ObjectNode report() {
         var node = new ObjectMapper().createObjectNode();
         node.put("caseCode", "TAEBAEK-184816").put("scope", "OFFICIAL_THREE_STAGE_OBSERVATION_V1")

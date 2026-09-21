@@ -14,10 +14,10 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 
-/** 승인된 태백 1공고의 기존 JUnit 관측을 임시 패키지에서 실행한다. 게시/기대값 변경은 없다. */
+/** 승인된 태백 1공고를 관측하거나 사전 기대값과 비교한다. 게시/기대값 변경은 없다. */
 public final class AnnouncementAttachmentBbsObservationProbe {
     private static final Set<String> ENV = Set.of("PATH", "LANG", "HOME", "TMPDIR", "PWD",
-            "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION");
+            "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", "SANEB_ATTACHMENT_BBS_FIXED_CASE_QA");
     private AnnouncementAttachmentBbsObservationProbe() { }
 
     static boolean selectComplete(long found, long succeeded, long failed, long skipped, long aborted, long containersFailed) {
@@ -43,6 +43,30 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                 && report.path("reservedBytesIncludingBodyUpperBound").asLong(-1) <= 83886080L;
     }
 
+    static boolean selectFixedReportComplete(JsonNode report) {
+        if(report==null||!"TAEBAEK-184816".equals(report.path("caseCode").asText())
+                ||!"FIXED_CASE_EXECUTOR_QA_EPHEMERAL_ONLY".equals(report.path("scope").asText())
+                ||!"FIXED_EXPECTATIONS_MATCHED_REVIEW_REQUIRED".equals(report.path("status").asText())
+                ||report.path("productionWriteCount").asInt(-1)!=0
+                ||!report.path("originalFilesRemoved").asBoolean(false))return false;
+        for(String key:Set.of("isPolicyQaPassed","isExpectationCoverageComplete","normalNotice"))
+            if(!report.path(key).isBoolean()||report.path(key).asBoolean())return false;
+        var result=report.path("result");
+        if(!"SINGLE_FIXED_NOTICE_PROVIDER_QA".equals(result.path("scope").asText())
+                ||!"TAEBAEK-184816".equals(result.path("caseId").asText())
+                ||!"PASSED".equals(result.path("status").asText())
+                ||!"FIXED_NOTICE_EXPECTATIONS_MATCHED".equals(result.path("reasonCode").asText())
+                ||result.path("expectedFileCount").asInt(-1)!=2||result.path("discoveredFileCount").asInt(-1)!=2
+                ||!result.path("discoveryComplete").asBoolean(false)||!result.path("allTextComplete").asBoolean(false)
+                ||!result.path("originalFilesRemoved").asBoolean(false)||!result.path("isPolicyQaPassed").isBoolean()
+                ||result.path("isPolicyQaPassed").asBoolean()||!result.path("files").isArray()||result.path("files").size()!=2
+                ||result.path("requestReservations").asLong(-1)<1||result.path("requestReservations").asLong()>39
+                ||result.path("reservedBytes").asLong(-1)<1||result.path("reservedBytes").asLong()>81508141L)return false;
+        for(var file:result.path("files"))if(!"PASSED".equals(file.path("status").asText())
+                ||!"COMPLETE_TEXT".equals(file.path("quality").asText())||!file.path("roleAssessmentHash").asText().matches("[a-f0-9]{64}"))return false;
+        return true;
+    }
+
     public static void main(String[] args) {
         PrintStream output = System.out;
         System.setOut(new PrintStream(OutputStream.nullOutputStream()));
@@ -55,12 +79,15 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         boolean passed = false;
         String stage = "BOUNDARY";
         try {
-            if (args.length != 1 || !args[0].matches("[a-f0-9]{64}")
+            boolean fixed=args.length==2&&"FIXED".equals(args[1]);
+            if ((!fixed&&args.length!=1) || !args[0].matches("[a-f0-9]{64}")
                     || !"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
                     || !"/work/tmp".equals(System.getProperty("java.io.tmpdir"))
-                    || !"true".equals(System.getenv("SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION"))
+                    || !"true".equals(System.getenv(fixed?"SANEB_ATTACHMENT_BBS_FIXED_CASE_QA":"SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION"))
+                    || System.getenv(fixed?"SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION":"SANEB_ATTACHMENT_BBS_FIXED_CASE_QA")!=null
                     || !ENV.containsAll(System.getenv().keySet())) throw new IllegalStateException();
+            result.put("verificationMode",fixed?"FIXED":"OBSERVATION");
             var json = new ObjectMapper();
             stage = "CODE_IDENTITY";
             String codeHash = new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash();
@@ -72,10 +99,15 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             System.setProperty("saneb.attachment-observation.extractor", "/qa/extractor");
             System.setProperty("saneb.attachment-observation.report", "/work/reports");
             System.setProperty("saneb.attachment-observation.group", "TAEBAEK");
+            if(fixed) {
+                // 동일 승인44요청/80MiB에서 앞선 관측5요청/2,377,939bytes를 공제한다.
+                System.setProperty("saneb.attachment-fixed.maximum-requests","39");
+                System.setProperty("saneb.attachment-fixed.maximum-bytes","81508141");
+            }
             stage = "JUNIT_EXECUTION";
             var listener = new SummaryGeneratingListener();
             var request = LauncherDiscoveryRequestBuilder.request()
-                    .selectors(DiscoverySelectors.selectClass(AnnouncementAttachmentBbsOfficialObservationTest.class))
+                    .selectors(DiscoverySelectors.selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class))
                     .configurationParameter("junit.jupiter.execution.parallel.enabled", "false")
                     .configurationParameter("junit.jupiter.tempdir.cleanup.mode.default", "ALWAYS").build();
             LauncherFactory.create().execute(request, listener);
@@ -88,13 +120,13 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             result.put("failedContainers", summary.getContainersFailedCount());
             result.put("failureTypes", summary.getFailures().stream().map(f -> f.getException().getClass().getSimpleName()).distinct().limit(8).toList());
             stage = "REPORTS";
-            Path path = Path.of("/work/reports/TAEBAEK-184816.json");
+            Path path = Path.of(fixed?"/work/reports/TAEBAEK-184816-fixed-case.json":"/work/reports/TAEBAEK-184816.json");
             if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
             JsonNode report = json.readTree(Files.readAllBytes(path));
             result.put("report", report);
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
-            passed = selectReportComplete(report) && selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(),
+            passed = (fixed?selectFixedReportComplete(report):selectReportComplete(report)) && selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(),
                     summary.getTestsFailedCount(), summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount());
         } catch (Exception | LinkageError | AssertionError failure) {
             result.put("failedStage", stage);

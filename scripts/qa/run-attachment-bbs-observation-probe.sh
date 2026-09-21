@@ -2,7 +2,13 @@
 set -euo pipefail
 
 # 승인된 태백1건만 실행한다. systemd의 CPU/메모리/임시공간 제한 안에서 호출한다.
-[[ $# -eq 4 && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
+[[ ( $# -eq 4 || ( $# -eq 5 && "$5" == FIXED ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
+probe_flag=SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION
+probe_args=("$4")
+if [[ $# -eq 5 ]]; then
+  probe_flag=SANEB_ATTACHMENT_BBS_FIXED_CASE_QA
+  probe_args+=(FIXED)
+fi
 qa_distribution="$(realpath -- "$1")"
 probe_jar="$(realpath -- "$2")"
 [[ "$3" =~ ^[a-f0-9]{64}$ && "$4" =~ ^[a-f0-9]{64}$ ]] || exit 1
@@ -51,13 +57,13 @@ if output="$(env -i PATH=/usr/bin:/bin LANG=C.UTF-8 \
   "${mounts[@]}" --proc /proc --dev /dev --tmpfs /dev/shm --bind "$work/tmp" /tmp \
   --ro-bind "$qa_distribution" /qa --ro-bind "$probe_jar" /probe.jar --bind "$work" /work --chdir /work \
   --clearenv --setenv PATH /usr/bin:/bin --setenv LANG C.UTF-8 --setenv HOME /work --setenv TMPDIR /work/tmp \
-  --setenv SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION true \
+  --setenv "$probe_flag" true \
   /jre/bin/java -Xms32m -Xmx256m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC \
   -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m -Xss512k \
   "-javaagent:/qa/lib/$mockito_name" \
   -Djava.io.tmpdir=/work/tmp -Djava.net.preferIPv4Stack=true -Dlogback.configurationFile=/qa/config/logback-qa.xml \
   -Djava.util.logging.config.file=/qa/config/logging.properties \
-  -cp '/probe.jar:/qa/lib/*' com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsObservationProbe "$4" 2>/dev/null)"; then
+  -cp '/probe.jar:/qa/lib/*' com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsObservationProbe "${probe_args[@]}" 2>/dev/null)"; then
   probe_exit=0
 else
   probe_exit=$?

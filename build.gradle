@@ -449,6 +449,7 @@ tasks.register('attachmentBbsObservationProbeJar', Jar) {
     destinationDirectory = layout.buildDirectory.dir('bbs-observation-probe')
     from(sourceSets.test.output.classesDirs) {
         ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
+         'AnnouncementAttachmentBbsFixedCaseQaTest',
          'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',
          'DockerAttachmentQaRunner'].each { name ->
             include "com/saneb/domain/announcementattachment/qa/${name}.class"

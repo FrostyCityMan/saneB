@@ -35,12 +35,14 @@ def digest(path):
     return h.hexdigest()
 def main():
     global phase,source_work_started
+    mode=cfg.get('verificationMode','OBSERVATION')
+    if mode not in ('OBSERVATION','FIXED'):raise ValueError('VERIFICATION_MODE_INVALID')
     group=pathlib.Path('/sys/fs/cgroup',pathlib.Path('/proc/self/cgroup').read_text().strip().split('0::',1)[1].lstrip('/'))
     quota,period=(group/'cpu.max').read_text().split()
     memory=int((group/'memory.max').read_text())
     fs=os.statvfs('/tmp');space=fs.f_blocks*fs.f_frsize
     if quota=='max' or int(quota)>int(period) or memory>805306368 or space>1073741824:raise ValueError('RESOURCE_BOUNDARY_INVALID')
-    result={'kind':'TEMPORARY_BBS_QA','cpuQuota':quota,'cpuPeriod':period,'memoryMaxBytes':memory,'temporarySpaceMaxBytes':space,'productionDatabaseUsed':False}
+    result={'kind':'TEMPORARY_BBS_QA','verificationMode':mode,'cpuQuota':quota,'cpuPeriod':period,'memoryMaxBytes':memory,'temporarySpaceMaxBytes':space,'productionDatabaseUsed':False}
     parent=pathlib.Path(tempfile.mkdtemp(prefix='saneb-transfer-',dir='/tmp'))
     try:
         archive=parent/'package.zip'
@@ -76,6 +78,7 @@ def main():
         result['packageFileCount']=len(entries);result['archiveSha256']=cfg['archiveSha256'];result['executionCodeHash']=cfg['codeHash']
         phase='SOURCE_PROBE'
         command=['/usr/sbin/runuser','-u','ubuntu','--','/usr/bin/env','-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','/bin/bash',str(package/'run.sh'),str(package/'qa'),str(package/'probe.jar'),cfg['probeHash'],cfg['codeHash']]
+        if mode=='FIXED':command.append('FIXED')
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
@@ -91,7 +94,7 @@ def main():
         for line in out.decode('utf-8').splitlines():
             if line.startswith('{'):
                 report=json.loads(line)
-                if report.get('kind')!='BBS_OBSERVATION_PROBE':raise ValueError('PROBE_OUTPUT_INVALID')
+                if report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:raise ValueError('PROBE_OUTPUT_INVALID')
         result['probe']=report
         result['probeCleanupSucceeded']=b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED' in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
@@ -126,6 +129,8 @@ def health():
 
 def main():
     if not re.fullmatch('[a-f0-9]{32}',CONFIG['executionId']):raise ValueError('EXECUTION_ID_INVALID')
+    mode=CONFIG.get('verificationMode','OBSERVATION')
+    if mode not in ('OBSERVATION','FIXED'):raise ValueError('VERIFICATION_MODE_INVALID')
     for key in ('archiveSha256','codeHash','probeHash','installedJarSha256'):
         if not re.fullmatch('[a-f0-9]{64}',CONFIG[key]):raise ValueError('IDENTITY_INVALID')
     if not re.fullmatch('[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]',CONFIG['bucket']) or CONFIG['key']!='qa/temporary-bbs/'+CONFIG['executionId']+'/package.zip':raise ValueError('OBJECT_SCOPE_INVALID')
@@ -142,7 +147,7 @@ def main():
              '--property=NoNewPrivileges=yes','--property=UMask=0077',
              '/usr/bin/env','-i','PATH=/usr/local/bin:/usr/bin:/bin','LANG=C.UTF-8',
              '/usr/bin/python3','-c',UNIT_CODE,json.dumps(CONFIG,separators=(',',':'))]
-    print(json.dumps({'kind':'TEMPORARY_QA_START','executionId':CONFIG['executionId'],'unit':unit,'maximumSeconds':1200,'maximumRequests':44,'maximumSourceBytes':83886080,'cpuQuotaPercent':100,'memoryMaxMiB':768,'temporarySpaceMaxMiB':1024,'operatingChangesRequested':False}),flush=True)
+    print(json.dumps({'kind':'TEMPORARY_QA_START','executionId':CONFIG['executionId'],'verificationMode':mode,'unit':unit,'maximumSeconds':1200,'maximumRequests':39 if mode=='FIXED' else 44,'maximumSourceBytes':81508141 if mode=='FIXED' else 83886080,'cpuQuotaPercent':100,'memoryMaxMiB':768,'temporarySpaceMaxMiB':1024,'operatingChangesRequested':False}),flush=True)
     try:
         p=subprocess.run(command,capture_output=True,timeout=1170)
         report=None

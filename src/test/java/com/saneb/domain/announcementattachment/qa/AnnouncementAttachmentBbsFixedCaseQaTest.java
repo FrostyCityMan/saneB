@@ -56,7 +56,9 @@ class AnnouncementAttachmentBbsFixedCaseQaTest {
             var input=prepared.inputs().stream().filter(c->CASE.equals(c.caseId())).findFirst().orElseThrow();
             assertEquals(2,input.files().size(),"WHOLE_FILE_SET_REQUIRED");
             assertEquals(List.of("UNKNOWN","FORM"),input.files().stream().map(f->f.roleExpectation().roleCode()).toList());
-            var control=new BoundedControl(input.limits(),System::nanoTime);
+            var control=new BoundedControl(selectBoundedLimits(input.limits(),
+                    System.getProperty("saneb.attachment-fixed.maximum-requests"),
+                    System.getProperty("saneb.attachment-fixed.maximum-bytes")),System::nanoTime);
             var executor=new AttachmentProviderQaCaseExecutor(registry,client,new AttachmentTemporaryStorage(directory.toString()),runtime,
                     new IsolatedAttachmentExtractor(JSON,distribution),new AttachmentFileTypeValidator(),JSON);
             var result=executor.selectResult(input,control);report.put("result",result);
@@ -78,6 +80,19 @@ class AnnouncementAttachmentBbsFixedCaseQaTest {
             Path output=Path.of(System.getProperty("saneb.attachment-observation.report")).toAbsolutePath().normalize();
             Files.createDirectories(output);JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(CASE+"-fixed-case.json").toFile(),report);
         }
+    }
+
+    /** 이전 관측에서 사용한 예산을 빼고 실행할 때 상한 축소만 허용한다. */
+    static AttachmentProviderQaCase.Limits selectBoundedLimits(AttachmentProviderQaCase.Limits maximum,
+            String requestsValue,String bytesValue) {
+        if((requestsValue==null)!=(bytesValue==null))throw new IllegalArgumentException("FIXED_BUDGET_PAIR_REQUIRED");
+        if(requestsValue==null)return maximum;
+        if(!requestsValue.matches("[1-9][0-9]{0,2}")||!bytesValue.matches("[1-9][0-9]{0,8}"))
+            throw new IllegalArgumentException("FIXED_BUDGET_INVALID");
+        int requests=Integer.parseInt(requestsValue);long bytes=Long.parseLong(bytesValue);
+        if(requests>maximum.maximumRequestReservations()||bytes>maximum.maximumReservedBytes())
+            throw new IllegalArgumentException("FIXED_BUDGET_CANNOT_INCREASE");
+        return new AttachmentProviderQaCase.Limits(maximum.maximumSeconds(),requests,bytes);
     }
 
     /** 시험 프로세스 한 개의 제한된 자원. 운영 callback/원장 대신 사용할 수 없는 test 전용 구현이다. */

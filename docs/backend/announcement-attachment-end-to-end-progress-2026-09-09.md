@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-22 태백 새 기대값 production 재비교 성공
+
+- 직전 회차71a05ae는 관측/기대값 검토/전체 로컬/커밋·푸시의 progress다. 같은 Linux35627379350을 계속 확인했으며 별도 재시작하지 않았다. 이 회차에서는 새 기대값을 production 단건 실행기로 실제 재검증했다.
+- 앞선 서울 관측5요청/2,377,939bytes의 SSM 영수증과 정리를 대조하고, FIXED 모드를 잔여39요청/81,508,141bytes로 제한했다. JUnit 시험의 상한은 축소만 허용하고 관측/비교·기관을 명시적으로 분리한다. Java30·Node4·Python10건 실패/생략0이며 production 코드/API/schema/운영 설정 변경은 없다.
+- SSM66eb8090-64c9-4947-b343-0e103bf98894 Success, 별도 JUnit1/1·실패/생략0,25.419초. 전체HWPX2파일의 사전 binary/text/blocks/문구/역할 지문이 일치했다. FIXED_EXPECTATIONS_MATCHED_REVIEW_REQUIRED/UNKNOWN+FORM·정상0·coverage false·정책 QA false를 유지한다.
+- 비교3요청/280,787bytes, 관측+비교 합계8요청/2,658,726bytes. 원본·임시 파일·프로세스·자기 S3 객체 정리와 운영 JAR불변/health UP/운영 DB쓰기0을 확인했다. [고정 비교 근거](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)를 따른다. 전체 정상 후보/기관/파일 형식, 동일 SHA 배포·승인된 활성화/기존 데이터·운영 브라우저 E2E는 남는다.
+- [Linux35627379350](https://github.com/FrostyCityMan/saneB/actions/runs/35627379350), SHA71a05ae는 최종 success다. artifact XML의 root2751=2485통과/266조건부 생략/실패·오류0, 추출기88·패키징20·job192·migration17·runtime1·worker12·Flyway3·정책 부모2는 실패·생략0이다. 각 suite는 중복 실행을 포함하므로 고유 시험 수로 합산하지 않는다.
+- 독립 PostgreSQL 산출물221/221·실패/생략/미실행/container 실패0, 원본/소유 환경 정리 성공 및 부모 연결·취소 정리 성공을 로그와 XML로 확인했다. Linux application code hash는 `d49cb22d272b66bd5d10078d33f6f698ddb89bef53b48faa72a60cafa6096780`이다. 로컬 패키지의6ff295d8…와 바이너리/리소스 지문이 같다고 주장하지 않는다. 원격 XML은 `build/qa-results/run-35627379350-contracts/`에 있다.
+- 후속 FIXED 모드 변경은 시험 코드/launcher뿐이며71a05ae 대비 production 코드/리소스 변경0이다. 결과의 scope/caseId 교차 차단 추가 후 최종 Java30건도18초/실패·생략0으로 재검증했다. 이 회차 전체 로컬 회귀 재실행은 하지 않았으며 새 커밋의 Linux 결과와 위71a05ae를 구분한다.
+- 취소된 운영 재배포의 재개 승인은 이번 서울 임시 QA에 포함되지 않았다. 코드 설치 뒤 기존 활성 본문 정기 수집에 BBS 보안/충주 모델이 적용될 수 있으므로 정확한 배포 SHA와 영향을 제시한 후 재개 확인이 필요하다. 첨부 worker/게시/ENFORCE/기존 데이터는 별도 범위다.
+
 ### 2026-09-22 서울 실제 3단계 관측 성공·태백 기대값 재검토
 
 - 임시 실행기의 AWS 경로 및 CLI1/v2 옵션 호환성 결함을 수정했다. 서버 설치/권한 변경 없이 진행했고, PACKAGE_DOWNLOAD 단계에서 멈춘 재시도는 sourceWorkStarted=false였다. Python9건·Node24통과/Windows 조건부3생략·Java41건 통과다.
@@ -510,7 +521,7 @@
 | 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 09-22 서울 태백 BODY431자/HWPX2파일 실제 관측1/1 및 정리 성공. 기존 내용 기대값 보존/metadata3필드 갱신 뒤 표적159·패키징20 통과, 전체 로컬2751=2486통과/265조건부 생략/실패0. 새 Linux/production 고정 재비교는 후속 확인. 전체 Provider 정상/형식 기대값·부분 추출·보은 등 접근 실패는 미해소 |
+| 6 자동·실파일 QA | [!] | 09-22 서울 태백 관측1/1·새 production 고정 비교1/1·정리 성공, 합계8요청/2,658,726bytes·정상0/검수 유지.71a05ae Linux35627379350 성공(root2485통과/266조건부 생략, 독립PG221/221·정책 부모2). 후속 시험 코드의 새 CI와 전체 Provider 정상/형식 기대값·부분 추출·보은 등 접근 실패는 미해소 |
 | 7 운영 배포·활성화 | [~] | 09-21 현재 SSM으로787c594·실제DB V83·추출기1.0.1·catalog24/기대값1·health UP·첨부 count0/worker 비활성/외부키2종 없음 재확인. GitHub/AWS 인증 차단은 명령 범위 인증으로 해소. 새7a5ef22/추출기1.0.3의 재배포 재개와 게시/ENFORCE/기존 데이터의 정확한 범위 승인은 여전히 필요 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

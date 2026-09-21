@@ -6,6 +6,16 @@ import org.junit.jupiter.api.Test;
 
 /** 실사이트/격리 실행 성공이 아니라 명시 시험의 요청·용량·자원 한도 계약이다. */
 class AnnouncementAttachmentBbsFixedCaseQaContractTest {
+    @Test void remainingBudgetOnlyReducesBothLimits() {
+        var maximum=new AttachmentProviderQaCase.Limits(420,44,83886080);
+        assertSame(maximum,AnnouncementAttachmentBbsFixedCaseQaTest.selectBoundedLimits(maximum,null,null));
+        var remaining=AnnouncementAttachmentBbsFixedCaseQaTest.selectBoundedLimits(maximum,"39","81508141");
+        assertEquals(420,remaining.maximumSeconds());assertEquals(39,remaining.maximumRequestReservations());
+        assertEquals(81508141,remaining.maximumReservedBytes());
+        for(String[] invalid:new String[][]{{"45","81508141"},{"39","83886081"},{"39",null},{null,"1"},
+                {"0","1"},{"-1","1"},{"1","0"},{" 1","1"},{"9999999999999","1"},{"1","999999999999999"}})
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsFixedCaseQaTest.selectBoundedLimits(maximum,invalid[0],invalid[1]));
+    }
     final AtomicLong nano=new AtomicLong();
     final AnnouncementAttachmentBbsFixedCaseQaTest.BoundedControl control=new AnnouncementAttachmentBbsFixedCaseQaTest.BoundedControl(
             new AttachmentProviderQaCase.Limits(420,3,100),nano::get);

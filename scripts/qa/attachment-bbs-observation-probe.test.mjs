@@ -19,13 +19,16 @@ test('비root·식별자·PID 격리·정리·10분 실행 상한 유지', () =>
     'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED', '--bind "$work/tmp" /tmp']) assert(source.includes(text), text);
   for (const text of ['--ro-bind / /', 'app.env', '--bind /home', 'crypto.policy=']) assert(!source.includes(text), text);
 });
-test('그룹 인자를 받지 않고 고정 관측만 호출한다', () => {
-  assert(source.includes('[[ $# -eq 4'));
-  assert(source.includes('AnnouncementAttachmentBbsObservationProbe "$4"'));
+test('타 기관 인자는 받지 않고 태백 관측 또는 잔여 예산 고정 비교만 호출한다', () => {
+  assert(source.includes('[[ ( $# -eq 4 || ( $# -eq 5 && "$5" == FIXED ) )'));
+  assert(source.includes('probe_args=("$4")'));
+  assert(source.includes('AnnouncementAttachmentBbsObservationProbe "${probe_args[@]}"'));
   assert(!source.includes('OfficialWorkerProbe'));
   const java = readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsObservationProbe.java', 'utf8');
   assert(java.includes('System.setProperty("saneb.attachment-observation.group", "TAEBAEK")'));
-  assert(java.includes('selectClass(AnnouncementAttachmentBbsOfficialObservationTest.class)'));
+  assert(java.includes('selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class)'));
+  assert(java.includes('"saneb.attachment-fixed.maximum-requests","39"'));
+  assert(java.includes('"saneb.attachment-fixed.maximum-bytes","81508141"'));
   assert(java.includes('new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash()'));
   assert(!java.includes('getMessage()'));
 });

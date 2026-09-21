@@ -1,5 +1,11 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 새 기대값 실제 재비교 — 2026-09-22
+
+서울 임시 SSM `66eb8090-64c9-4947-b343-0e103bf98894`가 Success/관측과 별도 JUnit1/1·실패/생략0이다. 새 catalog의 production `AttachmentProviderQaCaseExecutor`가 실제 전체HWPX2파일을 사전 기대값과 비교해 `PASSED/FIXED_NOTICE_EXPECTATIONS_MATCHED`를 반환했다. locator/binary/text/blocks/필수 문구/역할 지문 일치와 원본 정리를 확인했다. 상태는 `FIXED_EXPECTATIONS_MATCHED_REVIEW_REQUIRED`이며 UNKNOWN+FORM·정상0·coverage false·정책 QA false를 보존했다.
+
+앞선 관측 사용량을 공제한39요청/81,508,141bytes 상한으로 실행했고 실제3요청/280,787bytes다. 관측+비교 합계8요청/2,658,726bytes이며 원 승인44요청/80MiB 이내다.26초 이내 종료·CPU1/메모리768MiB/임시1GiB·운영 JAR불변·health UP·원본/프로세스/전송 및 S3 정리를 확인했다. 운영 DB쓰기0이며 운영 설치·정책·worker·기존 데이터는 변경하지 않았다. [정확한 코드 지문과 실행 근거](announcement-seoul-temporary-bbs-qa-2026-09-21.md)를 따른다. 전체 수집처/형식·운영 E2E 완료는 아니다.
+
 ## 서울 임시 최신 코드 재관측 — 2026-09-22
 
 - [서울 격리 QA](announcement-seoul-temporary-bbs-qa-2026-09-21.md)의 SSM `10df4968-07d1-49ce-b2c3-d768003c9f9c`가 Success/관측 JUnit1통과·실패/생략0이다. 시각 `2026-09-21T16:32:11.928279006Z`, application code catalog hash b53a0384…이며 운영 설치물은 교체하지 않았다.

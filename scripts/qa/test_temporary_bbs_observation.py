@@ -20,6 +20,13 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_unknown_mode_is_rejected_before_resource_or_network_access(self):
+        self.unit['cfg']={'verificationMode':'OTHER_PROVIDER'}
+        with patch('pathlib.Path.read_text',side_effect=AssertionError('resource access')), patch('subprocess.run',side_effect=AssertionError('process start')):
+            with self.assertRaisesRegex(ValueError,'^VERIFICATION_MODE_INVALID$'):
+                self.unit['main']()
+        self.assertFalse(self.unit['source_work_started'])
+
     def test_local_install_location_is_supported(self):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/local/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/local/bin/aws', self.unit['aws_binary']())

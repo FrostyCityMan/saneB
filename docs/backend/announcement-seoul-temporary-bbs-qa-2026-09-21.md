@@ -1,5 +1,18 @@
 # 서울 서버 임시 격리 태백 QA
 
+## 2026-09-22 사전 기대값 production 실행기 재비교 성공
+
+- [x] 앞선 성공 영수증10df4968…의 terminal 성공과 실제 사용량5요청/2,377,939bytes 및 전송 정리 상태를 다시 확인했다. 남은 승인 예산39요청/81,508,141bytes로 축소한 FIXED 모드를 별도 실행했다. 기존 관측 모드는 유지하고 임의 기관/모드·상한 증액은 허용하지 않는다.
+- [x] SSM `66eb8090-64c9-4947-b343-0e103bf98894` Success/responseCode0, 실행 ID `961ca0f905f34272861d1369d3744dfd`. 기존 production `AttachmentProviderQaCaseExecutor`의 JUnit1건/통과1/실패·생략·중단0이다. probe25.419초로 종료됐다.
+- [x] 사전 고정2파일의 locator/binary/전체 text/blocks/필수 문구/role assessment를 비교해 모두 PASSED/COMPLETE_TEXT다. 결과 `FIXED_EXPECTATIONS_MATCHED_REVIEW_REQUIRED`, 기대/발견2/2, 전체 텍스트 완전성true다. 실행 중 기대값을 쓰거나 UNKNOWN+FORM을 정상 공고로 바꾸지 않았다.
+- [x] 고정 비교3요청/280,787bytes, 앞선 관측과 합계8요청/2,658,726bytes로 원 승인44요청/80MiB 이내다. 저장소 미삭제 seed+전국 채널246대상·참조30·실행 가능1·정상0·coverage false·정책 QA false를 유지했다. 246은 운영 활성 기관 수나 검증 완료 기관 수가 아니다.
+- [x] 실제 CPU1/메모리768MiB/임시1GiB 제한, 원본·probe·전송 임시파일 정리true, unitInactive/운영 JAR불변/healthUp=true를 확인했다. 자기 S3 객체도 삭제 후 부재 확인했으며 plan.cleaned=true다. 운영 DB 쓰기0·정책 게시/worker 활성화/기존 데이터 적용은 없다.
+- [x] Java 표적30건 실패/생략0,22초 성공과 별도 probe 생성. Node4/Python10 실패/생략0이다. 웹 JAR/QA 배포 패키지는 유효한 이전 산출물을 재사용했다. 이 증분의 전체 로컬 재실행은 하지 않았으며 Linux 계약은 별도로 구분한다.
+- [x] 후속 결과 검사에 scope/caseId 교차 차단을 추가하고 Java30건을18초/실패·생략0으로 다시 검증했다. 추가 공개 HTTP는 없었다. 위 서버 실행 결과의 실제 scope/caseId도 해당 조건과 일치한다.
+- [x] 선행 production SHA71a05ae의 Linux35627379350은 success다. root2485통과/266조건부 생략·특수 suite 전부 실패/생략0·독립PG221/221·부모2/2·정리 성공을 확인했다. 현재 FIXED 시험 코드 증분의 새 CI 완료를 의미하지 않는다. 보관 artifact는 `build/qa-results/run-35627379350-contracts/`다.
+
+고정 비교 패키지188,082,896bytes/138파일 SHA256 `a9fe8d5aca6d072e4c94154c75178889851efe302176af91b7d36a4b8612a338`, application code catalog hash `6ff295d8607d41e979fbf5554532e9bce752afcd0e2c99242fc6ae15fc839ba5`다. 새 기대값 metadata를 포함한71a05ae의 production 코드/리소스이며, 별도 FIXED probe는 이 회차의 시험 코드다. 이전 관측 b53a0384…와 runtime/package 지문을 혼동하지 않는다. 원문 없는 결과는 `build/temporary-bbs-qa-961ca0f905f34272861d1369d3744dfd/result.json`에 보존했다. 전체 Provider/형식/정상 후보/운영 업무 E2E는 여전히 미완료다.
+
 ## 2026-09-22 경로·CLI 호환성 보완 후 실제 관측 성공
 
 - [x] 읽기 전용 사전 점검 SSM `fa63d757-87b1-46aa-a4e3-4a17ac302acb`: 서버 `/usr/local/bin/aws`는 없고 `/usr/bin/aws`가 있다. 이전 실행기 고정 경로 결함을 확인했다. 운영 JAR는 d8696e85…로 동일하다.
