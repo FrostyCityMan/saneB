@@ -1,5 +1,21 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 중단된 전체 로컬 회귀 결과 확인 — 2026-09-21
+
+09-16 14:23 최종 XML의 root2731=2466통과/265조건부 생략/실패·오류0을 회수했다. 옛 실행 핸들과 Java/PG 프로세스는 없으며, 동일 소스의 전체 Gradle 명령은31초/23task 모두 UP-TO-DATE로 성공했다. 패키징20·추출기88도 기존 결과 재사용이며 현재 새 실행으로 합산하지 않는다. 고정 기대값의 관측 시각과09-23T05:06:32Z 만료는 연장하지 않았다. 새 커밋의 Linux 계약·실제 고정 비교는 별도 확인한다.
+
+## DNS 수정 후 재관측 — 2026-09-16 14:06 KST
+
+- `9d5eaae67f70660e55e2d00633396fe388ce143b`의 [Linux35058110396](https://github.com/FrostyCityMan/saneB/actions/runs/35058110396)에서 고정1공고 재관측 단계와 metadata 보관이 성공했다. 관측 JUnit1건/실패·오류·생략0이다. 전체 계약 단계의 terminal 결과와는 구분한다.
+- `2026-09-16T05:06:32.672171396Z` 관측은 TITLE 조합 충족→BODY AVAILABLE/431자·1시도→전체 HWPX2파일/COMPLETE_TEXT였다. 파일1은2041자/62블록·UNKNOWN/MIXED_DOCUMENT_ROLES, 파일2는1994자/117블록·FORM/ROLE_TEXT_STRUCTURE_MATCHED다. 전체 텍스트 완전성true이나 REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW·최종 관리자 검증을 유지한다.5요청 예약/2,377,939bytes(본문 상한 포함)·원본 정리true·운영 쓰기0이다.
+- 기존 expectation의 전체2파일 locator/downloadAllowed/format/binary/quality/문자·블록 수, 역할 규칙/텍스트/전체 블록/assessment 지문을 대조해 전부 일치를 확인했다. requiredPhrases는 변경하지 않았고 동일한 전체 텍스트 hash가 이전 문구 검토의 유지 근거다. 원문은 로그·문서로 복사하지 않았다.
+- 이전 관측 코드 `cc79d59..9d5eaae`를 검토했다. production 변경은 충주 전용 발견·본문 연결과 공통 전송기의 알려진 DNS 실패 분리이며, 태백 선택자·성공 다운로드 경로·HWPX 추출·역할 규칙 변경은 없다. 실제 관측의 profileHash는 로컬 수정본과 같은 `627d3f602e4f1255556906409999a7b38dd72bef98e2fe7da46792d8c524e572`다.
+- 검토 후 catalogVersion/profileHash/observedAt3필드만 갱신했다. 전체30참조·파일 내용 기대값·역할·문구·예산은 불변이다. 고정 literal/현행 코드 hash 동시 대조를 유지하고 구지문9aea97d…와8a93cf4… 모두 PROFILE_CHANGED/실행0이 되는 회귀를 보존·확장했다. 새 catalog의 표적·전체 회귀와 production CaseExecutor 실제 재비교는 별도 결과로 판정한다.
+- 갱신 후 표적133건·패키징20건/실패·오류·생략0,2분48초 성공이다. 웹 JAR는 새 catalog를 포함해 생성했으며 SHA256 `843b7a4b208226b0685eabd7983bd93fe9dc5b79d839e45e972943775d336dbf`다. 전체 로컬 회귀는 후속 실행 중이다.
+- 관측을 실행한35058110396 전체 CI는 예상했던 구catalog/현행 profile 지문 불일치1건으로 failure 종료했다. XML root2730=2463통과/266생략/실패1, 추출기88·패키징20·job192·migration17·runtime1·worker12·Flyway3 실패/생략0이다. 독립 산출물/정책 부모 단계는 앞선 실패로 생략됐고 필수 보고서 판정도 실패다. 실제 관측1건 성공을 전체 CI 성공으로 바꾸지 않는다. `build/qa-results/run-35058110396-contracts/`에 보관했다.
+
+관측 metadata/JUnit은 Git 제외 `build/qa-results/run-35058110396-taebaek-observation/`에 있다. 전체 정상 공고0·coverage false·정책 QA false이며 운영 배포·worker 활성화·정책 게시·기존 데이터 실행은 없다.
+
 ## 후속 고정 비교 확인 — 2026-09-16
 
 `f7b7396`의 [Linux34944248951](https://github.com/FrostyCityMan/saneB/actions/runs/34944248951)는 success이며 보관 JUnit의 고정 비교1건/실패·오류·생략0을 확인했다. production CaseExecutor 결과는 `PASSED/FIXED_NOTICE_EXPECTATIONS_MATCHED`, 전체 HWPX2개 모두 COMPLETE_TEXT/기대값 일치다. 전체3요청 예약/280787bytes·원본 정리true·운영 쓰기0이다. catalog27참조/실행 가능1/정상0·전체 coverage false·정책 QA false와 관리자 검수 상태를 유지한다. 아래16:33의 “새 SHA 재비교 필요”는 이 실행으로 해당1공고에 한해 해소됐다. 전체 Provider/운영 배포·업무 E2E를 완료한 것은 아니다.

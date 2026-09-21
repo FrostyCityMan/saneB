@@ -2,14 +2,14 @@
 
 ## 범위와 상태
 
-현재 기준(2026-09-16 DNS 실패 분류 수정본): classpath의 `2026-09-16-chungju-references-v2`는 총30항목 중 참조전용29/보관 기대값1이다. 전송 코드의 변경으로 태백184816 기대값이 PROFILE_CHANGED이므로 **현행 실행 가능0건**, 정상 공고0·전체 coverage/정책 QA false다. 전체2파일의 기존 기대값·혼합 UNKNOWN/신청서 FORM은 보존하며 자동 지문 갱신을 하지 않는다. [DNS 변경 후 재관측 경계](announcement-attachment-dns-failure-retry-2026-09-16.md)를 따른다. 수정 전8589016의 실행 가능1과 구분한다. 현재 역할 규칙은 `document-role-1.0.2`이며 catalog의 JavaTimeModule·strict JSON 검증은 그대로다.
+현재 기준(2026-09-16 14:06 KST 재관측 검토 후): classpath의 `2026-09-16-taebaek-dns-revalidated-v2`는 총30항목 중 참조전용29/기대값1이며 **현행 실행 가능1건**, 정상 공고0·전체 coverage/정책 QA false다. `9d5eaae`의 실제 태백184816 BODY·전체HWPX2파일 관측에서 기존 파일/텍스트/역할/위치 지문 일치를 확인한 뒤 catalogVersion/profileHash/observedAt만 갱신했다. 표적133건·생략0 성공, 새 catalog의 전체 회귀·production CaseExecutor 실제 재비교는 별도 판정한다. 혼합 UNKNOWN/신청서 FORM·내용 기대값·전체 분모는 보존한다. [DNS 변경 후 재관측 근거](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)를 따른다. 현재 역할 규칙은 `document-role-1.0.2`이며 catalog의 JavaTimeModule·strict JSON 검증은 그대로다.
 
 최신 코드의 schema2 리소스와 운영에 설치된 catalog는 구분한다. schema1 파일·해석은 보존하며 [형식 적용성 V2](announcement-provider-format-applicability-v2-2026-09-15.md)는 기관별 기대 파일의 형식/미관측과 정상 다중 첨부를 구분한다. 전체3형식·모든 기관/파일 분모는 유지한다. 제천의 실제 worker·DB/API 검증이 통과했어도 그 결과를 자동으로 catalog 기대값에 등록하지 않았다. 아래 최초 구현 수량은 당시 기록이며 최신 검증·운영 경계는 [계약 근거](announcement-attachment-contract-evidence-2026-09-16.md)와 [장기 진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 Gate3 진행이다. 전체 ATT001~062/Gate0~8을 유지한다. 서버가 배포한 고정 표본을 V79 실행 원장에 연결하기 전에 전체 대상·누락·파일 기대값·시간/요청/byte 계획을 검증한다. 관리자가 URL·parser·정답 JSON을 입력하는 기능은 만들지 않는다.
 
 - [x] 고정 classpath JSON catalog와 엄격한 입력·전체 scope 대조를 구현했다.
-- [x] 참조 표본/실행 기대값/누락·형식 coverage·분할 계획을 분리했다. 현재 전체30/보관 기대값1·현행 실행0·정상0이다.
+- [x] 참조 표본/실행 기대값/누락·형식 coverage·분할 계획을 분리했다. 현재 전체30/기대값1·현행 실행1·정상0이다. 전체 공식 Provider QA 통과 수량이 아니다.
 - [x] 기존 정책 QA snapshot schema6에 전체 catalog 지문·계획을 연결했다. 후속 V80 관리 API/예약과 전체 근거 verifier 구현은 장기 진행 기록을 따른다.
 - [ ] 실제 공식 파일의 전체 목록·binary/추출 품질·기대 문구를 확인하여 catalog를 채운다.
 - [x] 관리자 예약·취소/조회 API, scheduler 및 정책 전체 QA verifier를 연결했다. 운영 실행은 별도 미완료다.

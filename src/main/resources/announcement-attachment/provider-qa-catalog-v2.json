@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-16-chungju-references-v2",
+  "catalogVersion": "2026-09-16-taebaek-dns-revalidated-v2",
   "notices": [
     {
       "caseCode": "CHUNGJU-72625",
@@ -205,9 +205,9 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": {
-        "profileHash": "8a93cf41a20e0b3ae3a93c441d4db196762fbe972a71fb15e87136fe69d90044",
+        "profileHash": "627d3f602e4f1255556906409999a7b38dd72bef98e2fe7da46792d8c524e572",
         "title": "2026년 청년농업인 육성지원(취업농) 신청자 모집 공고",
-        "observedAt": "2026-09-15T07:33:03.129802080Z",
+        "observedAt": "2026-09-16T05:06:32.672171396Z",
         "discoveryStatus": "FOUND",
         "discoveryComplete": true,
         "files": [

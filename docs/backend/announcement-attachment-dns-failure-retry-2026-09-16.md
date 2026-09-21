@@ -1,5 +1,9 @@
 # 첨부 DNS 조회 실패와 보안 차단의 분리
 
+## 후속 실제 관측 — 2026-09-16 14:06 KST
+
+`9d5eaae`를 QA 전용 브랜치에 커밋·푸시하고 원격 SHA 일치를 확인했다. [Linux35058110396](https://github.com/FrostyCityMan/saneB/actions/runs/35058110396)의 명시적 태백 관측1건은 실패/생략0이며 BODY와 HWPX2개를 모두 완전 추출했다. 기존 전체 파일·텍스트·역할·위치 지문은 일치하므로 catalogVersion/profileHash/observedAt만 검토 후 갱신했다. [재관측·검토 근거](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)를 따른다. 새 catalog의 전체 회귀와 실제 고정 비교는 별도 검증이며, 정상 공고·정책 QA·운영 활성화 성공으로 합산하지 않는다.
+
 ## 원인과 범위
 
 보은의 이전 Linux 관측은 BODY `DNS_LOOKUP_FAILED`였으며 첨부 발견의 별도 원인 코드는 없었다. [보은 관측 기록](announcement-boeun-worker-db-api-qa-2026-09-16.md)을 따른다. 이번 수정은 그 실패의 근본 원인을 확정한 것이 아니라, 실패 경로를 조사하다 코드와 합성 회귀로 확인한 별도 결함을 해결한다.
