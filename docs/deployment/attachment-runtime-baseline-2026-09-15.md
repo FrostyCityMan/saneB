@@ -1,5 +1,13 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-09-22 현재 인증·운영 읽기 전용 재확인
+
+- 로그인 CLI는 시간 초과로 종료됐지만, 후속 STS와 배포 조회는 성공했다. 현재 default/root·서울 리전·저장소 대상 계정 일치, 대상 Ubuntu1대·SSM Online을 확인했다. 로그인 명령의 성공으로 소급 변경하지 않으며 **현재 인증 사용 가능**으로 정정한다. 인증값은 출력하지 않았고 TLS 검증을 유지했다.
+- Runtime SSM `521e3255-17e7-41ef-a9c6-5c339bbdb57b`, Database SSM `c7d7d18b-dcf1-4b4e-b1fb-e20aa0c885f7` 모두 Success다. 운영은 `787c594e6ce33ad6b2ffbff994929d1faeb24dac`/CodeDeploy `d-MWENRAGTK` Succeeded, JAR `d8696e85c2d7c5415b8a39ea9ccb33f596f264feb5a7add966a62610b3751d74` 그대로다. service active·health UP·실제 DB V83/실패0, 추출기1.0.1·공용/QA library set 일치를 확인했다.
+- 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch는 모두0이며 첨부 worker/정책QA/ProviderQA는 UNSET→기본false다. 기존 목록·BODY·분류V2·source batch는true, 활성 지자체223/목록parser41/저장 원문2945다. 기업마당·정부24 key2종은 실행 환경에 없다. 건수는 재처리 적격 또는 승인 수량이 아니다.
+- DB는 READ ONLY·8초 statement/2초 lock 제한·ROLLBACK·쓰기0이다. 소유 CA/전송 임시 파일을 정리했으며 서비스 재시작/운영 설정 변경/배포/브라우저 조작은 없었다.
+- 전체 판정은 **Not ready**다. 취소된 코드 재배포 재개 승인은 별도로 미확인이다. GitHub에서 본문·상세 timeout, 로컬에서403인 옥천3공고를 서울에서 임시 검증하는 추가 범위도 승인 대기다. 기존 태백1공고 승인으로 확대하지 않으며 정책 게시·ENFORCE·기존 데이터는 실행하지 않는다.
+
 ## 2026-09-22 코드 재배포 전 판정
 
 **Decision: Not ready.** 취소된 재배포의 정확한 SHA 재개 확인과 설치 후 동일 산출물/설정/DB/health 증거가 필요하다. 전체 첨부 서비스 활성화는 아래 코드 검증 성공과 별개로 미완료다.
@@ -13,7 +21,7 @@
 | 플래그/운영 smoke | [ ] | 이번 임시 QA에서 운영 JAR d8696e85… 불변/health UP 확인. 실제 재배포 직전 Runtime/DB/플래그를 새로 조회하고, 배포 후 동일 SHA/JAR/QA·추출기 release/V83/health 대조 필요 |
 | 전체 활성화 | [!] | 전체 Provider/정상 표본/형식 QA·정책 게시·ENFORCE·기존 데이터 승인/적용·업무 브라우저 E2E 미완료. 외부키2종 없음은09-21 조회 근거이며 배포 시 재확인 |
 
-실행 명령은 로컬 Gradle 표적/전체 및71a05ae·1a19e63 CI의 실제 임시DB suite이고 [현재 실행 기록](../backend/announcement-attachment-end-to-end-progress-2026-09-09.md)과 [서울 임시 QA](../backend/announcement-seoul-temporary-bbs-qa-2026-09-21.md)에 횟수/생략/코드 지문을 분리했다. 두 Linux 실행의 업무 코드 지문d49cb22d…는 같지만 로컬 임시 패키지6ff295d8…와는 다르다. 설치 후 검증은 CI/실제 배포 산출물을 기준으로 한다. 현재 AWS 로그인 갱신은 대기 중이며 새 운영 Runtime/DB 확인이나 배포 완료 근거가 아니다.
+실행 명령은 로컬 Gradle 표적/전체 및71a05ae·1a19e63 CI의 실제 임시DB suite이고 [현재 실행 기록](../backend/announcement-attachment-end-to-end-progress-2026-09-09.md)과 [서울 임시 QA](../backend/announcement-seoul-temporary-bbs-qa-2026-09-21.md)에 횟수/생략/코드 지문을 분리했다. 두 Linux 실행의 업무 코드 지문d49cb22d…는 같지만 로컬 임시 패키지6ff295d8…와는 다르다. 설치 후 검증은 CI/실제 배포 산출물을 기준으로 한다. 후속 현재 인증·Runtime/DB 조회 결과는 위 재확인 절에 기록했으며 코드 재배포 완료 근거는 아니다.
 
 배포·정책/worker 활성화·운영 데이터 변경·브라우저 업무 검증은 이 판정에서 실행하지 않았다. 재개 시 코드/추출기만 설치해도 기존 활성 목록·본문 정기 수집에는 새로운 BBS 검증/충주 모델이 적용될 수 있다. 첨부 worker/정책 QA/Provider QA는 비활성 유지, 기존 데이터 일괄 적용은 제외해야 한다. 원복은 기존 JAR와 그 지문에 연결된 추출기 release를 함께 선택하는 경로를 사용하며, 실제 운영 원복을 시험했다는 뜻은 아니다.
 
