@@ -7,6 +7,54 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void okcheonKeepsThreeReferencesAndDoesNotBypassDraftTitleStops() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("OKCHEON").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("OKCHEON-193369","OKCHEON-193297","OKCHEON-193187");
+        var mapper=new ObjectMapper();
+        var catalog=mapper.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:cases) {
+            assertThat(sample.listedFileCount()).isEqualTo(1);
+            assertThat(sample.titleLayout()).isEqualTo(AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.COMPACT_SUBJECT);
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_OKCHEON_BBS_V1");
+            assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("www.oc.go.kr");
+            var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(mapper.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            boolean stopped=sample.code().equals("OKCHEON-193187");
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).as(sample.code()).isEqualTo(!stopped);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,title)).isEqualTo(stopped);
+            // DRAFT의 실제 조합 경계를 고정한다. 운영 정책의 적정성이나 지원사업의 부적격 판정이 아니다.
+            assertThat(title.groupACodes()).isEmpty();
+            assertThat(title.groupBCodes()).isEmpty();
+            if(stopped) {
+                assertThat(title.reasonCode().name()).isEqualTo("TITLE_COMBINATION_NOT_MATCHED");
+            } else {
+                assertThat(title.titleStageCode().name()).isEqualTo("COMBINATION_MATCHED");
+                assertThat(title.matches()).extracting(m->m.matchedRuleTerm()).contains("기업",
+                        sample.code().equals("OKCHEON-193297")?"융자":"지원사업");
+            }
+        }
+    }
+    @Test void okcheonObservationCannotRequestOtherInstitutionsOrPreviewLinks() {
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("OKCHEON").findFirst().orElseThrow();
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile());
+        var request=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(sample.profile().selectDetailUri(sample.source()));
+        assertThat(budget.selectRequestAllowed(request,request)).isTrue();
+        for(String url:List.of("https://www.oc.go.kr/common/program/synap.jsp?atchmnflNo=1",
+                "https://www.boeun.go.kr/www/selectBbsNttView.do?key=194&bbsNo=66&nttNo=221499",
+                "https://www.oc.go.kr/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=193297"))
+            assertThat(budget.selectRequestAllowed(request,com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(java.net.URI.create(url)))).isFalse();
+        assertThat(budget.requests).isEqualTo(1);
+        assertThat(budget.bytes).isZero();
+    }
     @Test void boeunHasThreeTitleEligibleSingleFileReferencesWithoutExpectationApproval() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

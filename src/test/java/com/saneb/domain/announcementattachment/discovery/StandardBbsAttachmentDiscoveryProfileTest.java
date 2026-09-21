@@ -87,6 +87,30 @@ class StandardBbsAttachmentDiscoveryProfileTest {
             assertThat(d.toString()).doesNotContain("공고문", "atchmnflNo");
         });
     }
+    @ParameterizedTest @MethodSource("selectCases") void redirectsCannotReplaceNoticeFileOrRequestKind(Case sample) {
+        var profile=sample.profile();
+        var detail=AttachmentPinnedDownloadClient.Request.selectGet(profile.selectDetailUri(selectSource(sample,"123")));
+        var otherDetail=AttachmentPinnedDownloadClient.Request.selectGet(profile.selectDetailUri(selectSource(sample,"124")));
+        var descriptors=profile.selectDescriptors(selectSource(sample,"123"),selectPage(sample,
+                selectItem(sample,"1","공고.hwpx",false)+selectItem(sample,"2","신청.hwpx",false))).descriptors();
+        assertThat(descriptors).hasSize(2);
+        var file=descriptors.getFirst().selectRequest();var otherFile=descriptors.getLast().selectRequest();
+        assertThat(profile.selectApprovedRequest(detail,detail)).isTrue();
+        assertThat(profile.selectApprovedRequest(file,file)).isTrue();
+        // 각각은 이 기관의 유효한 URL이나 최초 요청의 대체 응답으로는 사용할 수 없다.
+        assertThat(profile.selectApprovedRequest(otherDetail)).isTrue();
+        assertThat(profile.selectApprovedRequest(otherFile)).isTrue();
+        assertThat(profile.selectApprovedRequest(detail,otherDetail)).isFalse();
+        assertThat(profile.selectApprovedRequest(file,otherFile)).isFalse();
+        assertThat(profile.selectApprovedRequest(detail,file)).isFalse();
+        assertThat(profile.selectApprovedRequest(file,detail)).isFalse();
+        assertThat(profile.selectApprovedRequest(null,file)).isFalse();
+        assertThat(profile.selectApprovedRequest(file,null)).isFalse();
+        var reordered=AttachmentPinnedDownloadClient.Request.selectGet(URI.create("https://"+sample.host()
+                +StandardBbsAttachmentDiscoveryProfile.DETAIL+"?nttNo=123&bbsNo="+sample.board()+"&key="+sample.menu()));
+        assertThat(profile.selectApprovedRequest(detail,reordered)).isTrue();
+        assertThat(profile.selectApprovedRequest(detail,new AttachmentPinnedDownloadClient.Request(detail.uri(),"POST",Map.of("fixture","value")))).isFalse();
+    }
     @ParameterizedTest @MethodSource("selectCases") void sourceIdentityAndExactBoardAreMandatory(Case sample) {
         var profile = sample.profile(); var source = selectSource(sample, "123");
         for (var altered : List.of(new AttachmentDiscoveryProfile.Source("BIZINFO", source.providerNoticeId(), source.sourceUrl(), sample.sourceCode(), "SPRING_BBS"),

@@ -1,5 +1,15 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 읽기 전용 재확인 — 2026-09-21
+
+후속 검증에서 [BBS 리다이렉트 식별자 결함](../backend/announcement-bbs-redirect-identity-2026-09-21.md)을 발견해 로컬 보완 중이다. 아래7a5ef22 코드 재배포 요청보다 수정본 검증이 선행하며 취소된 배포를 임의 재개하지 않는다. 기존 설치/운영 데이터는 이 발견 이후에도 이번 작업에서 변경하지 않았다.
+
+- 현재 Windows가 신뢰하는 유효한 공개 CA를 명령 범위에 적용해 TLS 검증을 유지했다. 저장된 GitHub 작업 계정도 명령 범위에서만 사용했고 전역 활성 계정은 변경하지 않았다. 서울/default root와 저장소 배포 계정 일치·대상 Ubuntu1대·SSM Online을 확인했다. 인증값은 출력/파일 보관하지 않았다.
+- Runtime SSM `954cd94c-a8cc-401c-b531-86c364d24b58`, Database SSM `42b133fe-7b85-47e8-8e93-abae5663891f` 모두 Success다. 운영 revision은 여전히 `787c594e6ce33ad6b2ffbff994929d1faeb24dac`/CodeDeploy `d-MWENRAGTK`, JAR `d8696e85…`·추출기1.0.1·catalog24/기대값1이다. service active·health UP·실제 DB V83/실패0·QA/공용 추출기 library set 일치를 재확인했다.
+- 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0, 첨부 worker/정책QA/ProviderQA는 UNSET→기본false다. 기존 지자체 schedule/BODY/분류V2/source batch true·활성 지자체223/목록parser41/저장원문2945이며 기업마당·정부24 키는 실행 환경에 없다. 원문 건수는 재처리 승인 수량이 아니다.
+- DB 조회는 READ ONLY·statement8초/lock2초·ROLLBACK·쓰기0이다. helper가 생성한 공개 CA/전송용 임시 파일은 정리했다. 로컬 Docker Linux pipe는 연결 불가이며 운영 서버에서 임의 테스트·배포·정책/환경값 변경·브라우저 조작을 하지 않았다.
+- 새 코드 `7a5ef22`는 QA 브랜치 푸시/원격 일치를 확인했다. [Linux35602665310](https://github.com/FrostyCityMan/saneB/actions/runs/35602665310)은22:13 KST success로 종료했고 실제 XML의 전체 계약·독립 PG·정책 부모 연결/취소/정리와 태백 고정 비교1건/전체HWPX2파일 통과를 확인했다. 이 성공은 배포·상시 수집 활성화가 아니며 전체 Provider/정상 후보·정책 QA는 미완료다. 취소된 배포 재개 승인을 같은 SHA의 코드/추출기1.0.3 설치 범위로 요청했으며 worker 활성화·게시·ENFORCE·기존 데이터는 제외한다. 기존 목록/본문 정기 수집이 활성 상태이므로 코드 설치 후 새 본문 모델이 이후 정기 수집에 적용될 수 있다는 영향은 남는다.
+
 ## 최신 읽기 전용 재확인 — 2026-09-15 16시대
 
 전체 출시 판정은 **Not ready**다. 재배포 승인 대기 중 Runtime SSM `d291efb8-5107-485f-9cae-6f66def58921`와 Database SSM `7547e95d-562f-4bef-baa8-15659ed0c8c6`를 실행했고 모두 Success다. 서울/default root·저장소 대상 계정 일치·운영 인스턴스1/SSM Online을 확인했다. 상태를 읽었을 뿐 배포·정책·운영 환경값은 변경하지 않았다.

@@ -1,5 +1,25 @@
 # 옥천군 BBS 본문·첨부 모델
 
+## 2026-09-21 세 단계 관측 연결
+
+- 기존 등록 표본3개를 공통 관측기의 `OKCHEON` 그룹에 연결한다. 제목→본문→전체 첨부 텍스트→종합 판정 순서와 혼합 문서 UNKNOWN을 유지하며 HTML parser/역할 규칙·DB·catalog 기대값은 변경하지 않는다. 이 과정에서 발견한 [BBS 리다이렉트 식별자 검사](announcement-bbs-redirect-identity-2026-09-21.md)는 별도 production 보완이다.
+- 공식 페이지193369/193297/193187을 제한된 상세 GET 각1회로 조회해 HTTP200 및 `p-table__subject_text` 표식 각1개를 확인했다. 원문·담당자·연락처·첨부파일은 보관하지 않았다. 외부 검색 도구에서는 접근 불가였으므로 그 실패를 사이트 전체 장애로 단정하지 않는다.
+- 고정 제목은 각각 환경개선 지원사업, 중소기업육성자금 융자 지원계획, 일반음식점 주방환경 개선 사업이다. 실제 원문 제목 전체는 테스트의 고정 입력이며 현재 DRAFT의 판정과 별도로 확인한다. 초기 DRAFT에서 중단되는 사례는 운영 정책의 정답 또는 지원사업 부적격이라는 뜻이 아니다.
+- 단위/임시 DB 계약에서3개 source가 기존 catalog와 같고 기대값null·기관/공고/미리보기 요청 경계를 보존하는지 검증한다. 외부 관측은 아래 명시적 task에서만 수행하며 일반 `test`는 외부 요청하지 않는다.
+- 전체 상한3공고/132요청/240MiB, 공고당44요청/80MiB/420초·파일당20MiB다. 제목 중단은 본문·첨부 요청0이며 보고서에서 제외하지 않는다. TLS·SSRF·추출 격리·원본 정리·metadata만 보관·운영 쓰기0은 그대로다.
+- 실제 새 Linux 추출/역할/worker·DB/API·정상 후보 기대값·운영 검증은 아직 미실행이다. 현재 Windows에는 실행 가능한 Linux 격리 환경이 없으므로 우회하여 비격리 파일 추출을 하지 않는다. 아래09-15 다운로드/signature 통과와 구분한다.
+- 실제 DRAFT seed를 적용한 제목 계약 결과는193369/193297 조합 통과,193187 조합 미충족이다. 첫 표본은 `기업`(보조)+`지원사업`(강함), 둘째는 `기업`+`융자` 근거를 검증했다. 사전 중단1건을 관측 분모에 남기고 요청하지 않는다. production 규칙의 변경이나 전체 공고 적합성 판단이 아니다. 이 경계와 source 일치·요청 제한을 포함한 표적179건이 실패/생략0으로 통과했다.
+
+```powershell
+.\gradlew.bat :test --tests '*AnnouncementAttachmentBbsOfficialObservationContractTest' --tests '*AttachmentDocumentRoleClassifierTest' --no-daemon --console=plain --max-workers=1
+```
+
+Linux에서만 실행할 후속 명령(현재 미실행):
+
+```bash
+bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=OKCHEON --no-daemon --console=plain --max-workers=1
+```
+
 ## 현재 단계 / Gate
 
 P3 기관 모델 구현 증분이며 전체 Gate는 **Not ready**다. 제목 → 정제 본문 → 실제 첨부 텍스트 → 최종 관리자 검증 순서를 보존한다. 본문 A/B·정보 부족은 첨부 처리를 중단시키지 않는다. 파일명·미리보기로 내용이나 문서 역할을 확정하지 않는다.

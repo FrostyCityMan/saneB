@@ -109,7 +109,8 @@ public final class StandardBbsAttachmentDiscoveryProfile implements AttachmentDi
     }
 
     @Override public boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request initial, AttachmentPinnedDownloadClient.Request request) {
-        if (downloadParameters != DownloadParameters.NOTICE_BOUND) return selectApprovedRequest(request);
+        // 상세/첨부의 다른 ID로 이동한 응답을 원래 공고의 근거로 저장하지 않는다.
+        // 모든 BBS 형식에서 최초 요청의 경로와 전체 식별 파라미터를 고정한다.
         return selectApprovedRequest(initial) && selectApprovedRequest(request)
                 && initial.uri().getPath().equals(request.uri().getPath())
                 && selectParameters(initial.uri().getRawQuery()).equals(selectParameters(request.uri().getRawQuery()));

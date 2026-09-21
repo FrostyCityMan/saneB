@@ -12,6 +12,35 @@ import org.junit.jupiter.api.io.TempDir;
 class AttachmentPinnedDownloadClientTest {
     @TempDir Path root;
     @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=123,/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=124",
+            "/www/downloadBbsFile.do?atchmnflNo=1,/www/downloadBbsFile.do?atchmnflNo=2",
+            "/www/downloadBbsFile.do?atchmnflNo=1,/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo=123"})
+    void bbsRedirectIdentityChangeStopsBeforeSecondDnsHttpAndFileCreation(String initialPath,String redirectPath) throws Exception {
+        var profile=new com.saneb.domain.announcementattachment.discovery.StandardBbsAttachmentProfileConfiguration().selectOkcheonProfileDetails();
+        var initial=AttachmentPinnedDownloadClient.Request.selectGet(URI.create("https://www.oc.go.kr"+initialPath));
+        var dns=new java.util.concurrent.atomic.AtomicInteger();var http=new java.util.concurrent.atomic.AtomicInteger();
+        var dnsAtRedirect=new java.util.concurrent.atomic.AtomicInteger();
+        var bytes=new java.util.concurrent.atomic.AtomicLong();var output=root.resolve("redirect.bin");
+        try(var client=new AttachmentPinnedDownloadClient(new ProviderContentUrlValidator(host->{
+            dns.incrementAndGet();return new InetAddress[]{InetAddress.getByAddress(new byte[]{8,8,8,8})};
+        }), (target,remaining,handler)->{
+            assertThat(http.incrementAndGet()).isEqualTo(1);
+            dnsAtRedirect.set(dns.get());
+            return handler.handle(new AttachmentPinnedDownloadClient.Response(302,redirectPath,0,"text/html",null,
+                    new java.io.ByteArrayInputStream(new byte[0])));
+        },java.time.Duration.ofSeconds(2))) {
+            assertThatThrownBy(()->com.saneb.domain.announcementattachment.discovery.AttachmentProfileDownloadFlow.selectDownload(
+                    profile,initial,output,1024,(request,limit,approved)->client.selectDownload(request,
+                            profile.selectApprovedHosts(),approved,output,limit,count->{bytes.addAndGet(count);return true;})))
+                    .isInstanceOf(java.io.IOException.class).hasMessage("ATTACHMENT_PATH_NOT_APPROVED");
+        }
+        // 최초 요청 검증의 DNS 호출 수를 가정하지 않고 redirect 이후 추가 조회가 없는지 확인한다.
+        assertThat(dnsAtRedirect.get()).isPositive();assertThat(dns.get()).isEqualTo(dnsAtRedirect.get());
+        assertThat(http.get()).isEqualTo(1);
+        assertThat(bytes.get()).isZero();assertThat(output).doesNotExist();
+    }
+    @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"UNKNOWN_HOST", "EMPTY", "NULL"})
     void unresolvedPublicHostIsNetworkFailureWithoutHttpOrOriginalOutput(String mode) throws Exception {
         var resolver=new ProviderContentUrlValidator(host -> {
