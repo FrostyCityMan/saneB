@@ -6,14 +6,14 @@
 
 | Gate | 상태 | 근거 / 필요한 조치 |
 |---|---|---|
-| production 후보 소스 | [x] |71a05ae, 운영787c594 대비 HWP 추출기1.0.3·BBS redirect/DNS 보완·충주 본문/첨부·catalog·추출기 release fallback이 주요 변경. migration diff0 |
-| 코드/DB 계약 | [x] | Linux35627379350 success. root2485통과/266조건부 생략, 독립PG221/221, job192·migration17·worker12·Flyway3·정책 부모2 실패/생략0·정리 성공. 특수 suite와 root의 중복을 합산하지 않음 |
+| production 후보 소스 | [x] |1a19e63, 운영787c594 대비 HWP 추출기1.0.3·BBS redirect/DNS 보완·충주 본문/첨부·catalog·추출기 release fallback이 주요 변경. migration diff0.71a05ae 이후 main 코드/리소스 변경0이며 후속은 FIXED 시험/probe/문서 변경 |
+| 코드/DB 계약 | [x] | [Linux35629360526](https://github.com/FrostyCityMan/saneB/actions/runs/35629360526) success, SHA1a19e63. root2488통과/266조건부 생략, 독립PG221/221, job192·migration17·worker12·Flyway3·정책 부모2 실패/생략0·정리 성공. 특수 suite와 root의 중복을 합산하지 않음 |
 | 태백 실제 파일 | [x] | 서울 임시 패키지에서 BODY/HWPX2 관측 및 production 고정 비교 각1/1 성공. 합계8요청/2,658,726bytes·검수 유지·운영 쓰기0 |
 | 설치 대상/재개 | [!] | 기존 취소 이후의 코드 재배포 재개 승인은 미확인. 서울 임시 QA 승인으로 운영 설치를 대체하지 않음 |
 | 플래그/운영 smoke | [ ] | 이번 임시 QA에서 운영 JAR d8696e85… 불변/health UP 확인. 실제 재배포 직전 Runtime/DB/플래그를 새로 조회하고, 배포 후 동일 SHA/JAR/QA·추출기 release/V83/health 대조 필요 |
 | 전체 활성화 | [!] | 전체 Provider/정상 표본/형식 QA·정책 게시·ENFORCE·기존 데이터 승인/적용·업무 브라우저 E2E 미완료. 외부키2종 없음은09-21 조회 근거이며 배포 시 재확인 |
 
-실행 명령은 로컬 Gradle 표적/전체 및71a05ae CI의 실제 임시DB suite이고 [현재 실행 기록](../backend/announcement-attachment-end-to-end-progress-2026-09-09.md)과 [서울 임시 QA](../backend/announcement-seoul-temporary-bbs-qa-2026-09-21.md)에 횟수/생략/코드 지문을 분리했다. Linux 업무 코드 지문d49cb22d…와 로컬 임시 패키지6ff295d8…는 같은 산출물 지문이 아니다. 설치 후 검증은 CI/실제 배포 산출물을 기준으로 한다.
+실행 명령은 로컬 Gradle 표적/전체 및71a05ae·1a19e63 CI의 실제 임시DB suite이고 [현재 실행 기록](../backend/announcement-attachment-end-to-end-progress-2026-09-09.md)과 [서울 임시 QA](../backend/announcement-seoul-temporary-bbs-qa-2026-09-21.md)에 횟수/생략/코드 지문을 분리했다. 두 Linux 실행의 업무 코드 지문d49cb22d…는 같지만 로컬 임시 패키지6ff295d8…와는 다르다. 설치 후 검증은 CI/실제 배포 산출물을 기준으로 한다. 현재 AWS 로그인 갱신은 대기 중이며 새 운영 Runtime/DB 확인이나 배포 완료 근거가 아니다.
 
 배포·정책/worker 활성화·운영 데이터 변경·브라우저 업무 검증은 이 판정에서 실행하지 않았다. 재개 시 코드/추출기만 설치해도 기존 활성 목록·본문 정기 수집에는 새로운 BBS 검증/충주 모델이 적용될 수 있다. 첨부 worker/정책 QA/Provider QA는 비활성 유지, 기존 데이터 일괄 적용은 제외해야 한다. 원복은 기존 JAR와 그 지문에 연결된 추출기 release를 함께 선택하는 경로를 사용하며, 실제 운영 원복을 시험했다는 뜻은 아니다.
 
