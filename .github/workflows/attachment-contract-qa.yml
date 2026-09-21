@@ -98,6 +98,9 @@ jobs:
       - name: 보은 worker 판정기 단위 검증
         run: node --test scripts/qa/attachment-boeun-worker-report.test.mjs
 
+      - name: 옥천 세 단계 관측 판정기 단위 검증
+        run: node --test scripts/qa/attachment-okcheon-observation-report.test.mjs
+
       - name: 고정 DNS 진단기 단위 검증 — 외부 조회 없음
         run: node --test scripts/qa/attachment-dns-diagnostic.test.mjs
 
@@ -142,6 +145,8 @@ jobs:
 
       - name: 단위·HTTP·실제 임시 DB·migration·artifact 검증
         id: contracts
+        # 앞선 명시적 외부 관측 실패와 코드/DB 계약 결과를 분리한다. 전체 job 실패는 보존한다.
+        if: ${{ !cancelled() }}
         shell: bash
         run: |
           set -euo pipefail
@@ -149,6 +154,7 @@ jobs:
           bash ./gradlew :test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest flywayIntegrationTest -PsanebFlywayEphemeral=true bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1 --continue
 
       - name: 독립 산출물의 임시 namespace·PostgreSQL 실행
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' }}
         run: bash build/install/attachment-contract-qa/bin/run-attachment-contract-qa.sh
 
       - name: 정책 부모의 실제 DB QA 연결·취소·정리 검증
@@ -352,6 +358,29 @@ jobs:
             build/reports/attachment-bbs-official-observation/CHUNGJU-72625.json
             build/reports/attachment-bbs-official-observation/CHUNGJU-72039.json
             build/reports/attachment-bbs-official-observation/CHUNGJU-70852.json
+            build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 옥천 고정 공고 제목·본문·전체 첨부 관측 — 운영 쓰기 없음
+        id: okcheon-official-observation
+        if: ${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[okcheon-observation]') }}
+        timeout-minutes: 12
+        run: |
+          set -euo pipefail
+          export OKCHEON_OBSERVATION_STARTED_AT="$(date +%s)000"
+          bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=OKCHEON --no-daemon --console=plain --max-workers=1
+          node scripts/qa/attachment-okcheon-observation-report.mjs
+
+      - name: 옥천 세 단계 관측 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.okcheon-official-observation.outcome != 'skipped' && steps.okcheon-official-observation.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-okcheon-official-observation-${{ github.sha }}
+          path: |
+            build/reports/attachment-bbs-official-observation/OKCHEON-193369.json
+            build/reports/attachment-bbs-official-observation/OKCHEON-193297.json
+            build/reports/attachment-bbs-official-observation/OKCHEON-193187.json
             build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
           if-no-files-found: error
           retention-days: 7

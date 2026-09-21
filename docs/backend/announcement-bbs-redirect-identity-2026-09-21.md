@@ -1,5 +1,11 @@
 # BBS 첨부 요청의 리다이렉트 식별자 고정
 
+## 2026-09-21 후속 관측 결과
+
+- 수정 커밋 bbc8639의 [Actions35606668928](https://github.com/FrostyCityMan/saneB/actions/runs/35606668928)은 실패로 종료했다. 태백 TITLE은 조합 충족이지만 BODY는2회 TIMEOUT/0자였고 상세 발견도 TRANSPORT_TIMEOUT이다. 보안 차단 응답은 아니며 파일 다운로드/추출은 시작되지 않았다. JUnit1건 실패, 운영 DB 쓰기0·원본 정리true다.
+- 관측 metadata는 새 profileHash `8cf428f1…`를 확인하지만 실제 파일이 없으므로 기존 기대값/관측 시각을 갱신할 근거는 아니다. catalog/assertion을 변경하지 않는다.
+- 기존 CI는 외부 관측 실패 후 코드/DB 계약을 생략했다. 후속 workflow는 취소되지 않은 경우 이 계약을 실행해 별도 근거를 확보하되 외부 실패를 숨기지 않는다. 독립 산출물·정책 부모 검증은 계약 성공 뒤에만 실행한다. 이번 변경은 새 실파일 성공이나 배포를 의미하지 않는다.
+
 ## 발견·영향 범위
 
 옥천의 기존3표본을 세 단계 관측기에 연결하던 중, 같은 기관의 다른 공고번호로 이동하는 요청이 허용되는 회귀 실패를 확인했다. 원인은 `StandardBbsAttachmentDiscoveryProfile.selectApprovedRequest(initial, request)`가 `NOTICE_BOUND` 형식인 철원에만 최초 요청 비교를 적용하고 나머지8개 BBS 프로필에서는 각 URL의 기관/게시판/경로 유효성만 확인한 것이다.

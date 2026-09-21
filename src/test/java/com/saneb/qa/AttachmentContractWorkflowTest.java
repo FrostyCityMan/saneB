@@ -13,6 +13,23 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void okcheonObservationRequiresExplicitMarkerPassingContractsAndAllThreeCurrentReports() throws Exception {
+        var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"okcheon-official-observation".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' && github.event_name == 'push' && contains(github.event.head_commit.message, '[okcheon-observation]') }}");
+        assertThat(run.get("timeout-minutes")).isEqualTo(12);
+        assertThat(String.valueOf(run.get("run"))).contains("set -euo pipefail","export OKCHEON_OBSERVATION_STARTED_AT=",
+                "-PsanebBbsObservationGroup=OKCHEON","node scripts/qa/attachment-okcheon-observation-report.mjs").doesNotContain("|| true");
+        var artifact=all.stream().filter(item->"옥천 세 단계 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(
+                "build/reports/attachment-bbs-official-observation/OKCHEON-193369.json",
+                "build/reports/attachment-bbs-official-observation/OKCHEON-193297.json",
+                "build/reports/attachment-bbs-official-observation/OKCHEON-193187.json",
+                "build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml");
+        assertThat(((Map<?,?>)artifact.get("with")).get("if-no-files-found")).isEqualTo("error");
+        assertThat(Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml")))
+                .contains("node --test scripts/qa/attachment-okcheon-observation-report.test.mjs");
+    }
     @Test void changedProfileObservationIsExplicitAndDoesNotBypassContractFailureOrApproveExpectations() throws Exception {
         var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
         var observation=all.stream().filter(item->"taebaek-revalidation-observation".equals(item.get("id"))).findFirst().orElseThrow();
@@ -21,7 +38,11 @@ class AttachmentContractWorkflowTest {
         assertThat(observation.get("timeout-minutes")).isEqualTo(10);
         assertThat(observation.get("run")).isEqualTo("bash ./gradlew attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=TAEBAEK --no-daemon --console=plain --max-workers=1");
         assertThat(all.indexOf(observation)).isLessThan(all.indexOf(contracts));
-        assertThat(contracts.containsKey("if")).isFalse();
+        assertThat(contracts.get("if")).isEqualTo("${{ !cancelled() }}");
+        assertThat(contracts.containsKey("continue-on-error")).isFalse();
+        assertThat(observation.containsKey("continue-on-error")).isFalse();
+        var independent=all.stream().filter(item->"독립 산출물의 임시 namespace·PostgreSQL 실행".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(independent.get("if")).isEqualTo("${{ !cancelled() && steps.contracts.outcome == 'success' }}");
         assertThat(String.valueOf(contracts.get("run"))).contains(":test ","--continue").doesNotContain("-x ","|| true");
         var artifact=all.stream().filter(item->"태백 변경 코드 관측 metadata 보관 — 원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
         assertThat(((String)((Map<?,?>)artifact.get("with")).get("path")).lines().toList()).containsExactly(

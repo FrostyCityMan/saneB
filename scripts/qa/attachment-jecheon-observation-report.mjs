@@ -6,6 +6,7 @@ import { validateSuite, validateReportTime } from './attachment-contract-report.
 const suiteName = 'com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest';
 const cases = [['JECHEON-403587', 1, true, 'HWPX'], ['JECHEON-403530', 1, false, 'HWPX'], ['JECHEON-403490', 2, false, 'HWPX']];
 const chungjuCases = [['CHUNGJU-72625', 1, true, 'HWPX'], ['CHUNGJU-72039', 1, true, 'HWPX'], ['CHUNGJU-70852', 1, false, 'HWP']];
+const okcheonCases = [['OKCHEON-193369', 1, false, 'HWPX'], ['OKCHEON-193297', 1, false, 'HWPX'], ['OKCHEON-193187', 1, true, 'HWPX']];
 const bounded = (n, min, max) => Number.isSafeInteger(n) && n >= min && n <= max;
 
 // 연결·음성 표본·문서 완전성을 분리하며 정상 공고 또는 정책 승인으로 승격하지 않는다.
@@ -15,6 +16,10 @@ export function validateJecheonObservation(xml, reports, startedAtMs) {
 
 export function validateChungjuObservation(xml, reports, startedAtMs) {
   return validateObservation(xml, reports, startedAtMs, chungjuCases, 'LOCAL_CHUNGJU_EMINWON_V1');
+}
+
+export function validateOkcheonObservation(xml, reports, startedAtMs) {
+  return validateObservation(xml, reports, startedAtMs, okcheonCases, 'LOCAL_OKCHEON_BBS_V1');
 }
 
 function validateObservation(xml, reports, startedAtMs, fixedCases, profileCode) {
