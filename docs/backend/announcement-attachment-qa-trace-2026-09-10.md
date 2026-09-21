@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-09-22 ATT-059 실제 격리 경계 시험 보강
+
+`AttachmentRuntimeGateIntegrationTest.productionLauncherBlocksParentEnvironmentHostFilesAndHostNetwork`를 추가했다. 실제 운영 비밀·외부 사이트 대신 공개 합성 부모 환경값, 테스트 소유의 호스트 파일, 테스트 부모의 loopback listener를 만들고 production `IsolatedAttachmentExtractor.selectExtraction`으로 합성 probe JAR를 실행한다. 환경값 비전달·호스트 파일 비노출·호스트 loopback 연결 차단, 입력/추출기 라이브러리 읽기 전용과 전용 임시 파일 쓰기·JRE 읽기를 직접 assertion한다. 기존12개 실제 parser fixture 시험은 유지한다.
+
+이 probe는 parser 동작을 대신 검증하지 않으며 실행 경계를 관찰하는 테스트 전용 클래스다. 단위시험에서 Java21 컴파일·단일 class JAR 구성을 확인했다. 로컬 표적22건=21통과/Windows의 Linux 전용1건 생략/실패0·23초 성공이다. **실제 sandbox 신규 시험은 Linux CI 대기**이며 이 작성/컴파일 성공을 ATT-059 전체 완료로 계산하지 않는다. OOM/프로세스 트리·OS crash와 최종 설치 환경의 격리는 별도 잔여다. 운영 main 코드·정책·DB·catalog 기대값은 변경하지 않는다.
+
 ## 2026-09-22 서울 태백 재관측·고정 비교 근거
 
 [서울 임시 QA](announcement-seoul-temporary-bbs-qa-2026-09-21.md)에서 최신 BBS 코드의 BODY431자와 전체HWPX2파일(2041/1994자,62/117블록)을 관측하고, 새 사전 기대값을 production CaseExecutor로 별도 재다운로드·재추출해 비교했다. 두 실행 각 JUnit1/1·실패/생략0, 전체 파일/역할 지문 일치·원본/임시 자원 정리·운영 DB쓰기0이다. UNKNOWN/MIXED_DOCUMENT_ROLES와 FORM·REVIEW_REQUIRED를 유지해 ATT-011의 해당 표본 분류 근거, ATT-017의 HWPX 해당 표본 추출/locator 근거를 보강한다. 실제 UI 표시/후속 행동·나머지 모든 profile/형식 요구는 남는다.

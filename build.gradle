@@ -179,6 +179,8 @@ tasks.register('attachmentRuntimeIntegrationTest', Test) {
     classpath = sourceSets.test.runtimeClasspath
     include '**/AttachmentRuntimeGateIntegrationTest.class'
     environment 'SANEB_ATTACHMENT_RUNTIME_QA', 'true'
+    // 실제 비밀값 대신 부모 환경 전파 여부만 검증하는 공개 합성 표식이다.
+    environment 'SANEB_ATTACHMENT_SANDBOX_CANARY', 'synthetic-parent-only'
     systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
     maxParallelForks = 1
     maxHeapSize = '256m'
