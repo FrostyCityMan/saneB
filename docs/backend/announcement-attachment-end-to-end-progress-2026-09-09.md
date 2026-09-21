@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-21 최신 수정본 Linux 결과 확정 — 1d06b4e
+
+- [Linux35608794560](https://github.com/FrostyCityMan/saneB/actions/runs/35608794560)은7분45초 후 terminal failure다. 직전 회차의 CI 시작 이후 같은 실행을 확인했으며 중복 재실행하지 않았다. QA 브랜치1d06b4e는 원격과 일치하고 사용자 output은 보존했다.
+- metadata/XML artifact를 `build/qa-results/run-35608794560-contracts/`에 회수했다. root2745=2478통과/266조건부 생략/1실패/오류0이며 실패는 `AttachmentProviderQaCatalogTest.packagedRevalidatedExpectationKeepsWholeSetAndDoesNotCompleteCoverage` 한 건뿐이다. 실제 profile 지문8cf428f1…과 구 기대값627d3f60…의 불일치로, 추가 코드 실패는 관측하지 않았다. 이 결과를 전체 통과로 표시하지 않는다.
+- 별도 suite는 추출기88·QA패키지20·작업DB192·migration17·runtime1·worker12·Flyway3 모두 실패/오류/생략0이다. root와 별도 suite는 중복 실행을 포함할 수 있으므로 고유 시험 수로 합산하지 않는다. 로그에서 bootJar/추출기 installDist/QA 설치 task 실행도 확인했다.
+- 독립 산출물 PostgreSQL 실행과 정책 부모 연결·취소·정리는 계약 실패 때문에 SKIPPED다. 필수 보고서 검사도 실패를 유지했고 artifact 보관은 성공했다. 공식 사이트 관측은 요청하지 않아 실행되지 않았다. 태백 기대값/관측 시각/정책을 변경하지 않는다.
+- 서울 서버 임시 격리 QA 승인 대기가 다음 실제 파일 검증의 차단이다. 기존 서버 도구는 운영787c594 설치물을 사용하므로 최신 코드 QA로 재사용하지 않는다. 로컬 패키지 후보136파일/187,978,430bytes와 probe73,350bytes를 확인했지만 업로드/설치/실행은 하지 않았다. 전체9Gate는8진행/1차단, 정상 후보 coverage0이며 goal ACTIVE다.
+- 이번은 terminal CI와 Linux DB·추출기 근거를 확정한 progress다. 새 코드·migration·운영 설정·데이터·브라우저 변경 없이 이 증거만 기록하며, 문서만의 후속 커밋에서는 중복 CI·배포를 시작하지 않는다. gh 관측 프로세스는 종료됐다.
+
 ### 2026-09-21 태백 관측 실패 확정·옥천 검사기 및 CI 실행 분리
 
 - 직전 회차는 Git/CI/작업 기록의 현황 보고로 새 구현 진척이 없었다. 이번에는 미커밋 옥천 검사기와 workflow 보완을 검토·검증하고 기록하는 단계다. 전체 ATT001~062, Gate0~8 및 제목→정제 본문→실제 첨부 텍스트→최종 관리자 검증 목표를 유지한다.
