@@ -440,6 +440,25 @@ tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
     reproducibleFileOrder = true
 }
 
+// 운영 설치물을 교체하지 않고 승인된 고정1건을 관측하는 별도 시험 클래스 패키지다.
+tasks.register('attachmentBbsObservationProbeJar', Jar) {
+    group = 'verification'
+    description = '태백 1공고 관측용 별도 JUnit 실행 패키지를 생성합니다. 외부 요청·운영 설치는 하지 않습니다.'
+    dependsOn 'testClasses'
+    archiveFileName = 'bbs-observation-probe.jar'
+    destinationDirectory = layout.buildDirectory.dir('bbs-observation-probe')
+    from(sourceSets.test.output.classesDirs) {
+        ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
+         'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',
+         'DockerAttachmentQaRunner'].each { name ->
+            include "com/saneb/domain/announcementattachment/qa/${name}.class"
+            include "com/saneb/domain/announcementattachment/qa/${name}\$*.class"
+        }
+    }
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 tasks.register('attachmentBbsFixedCaseQa', Test) {
     description = '사전 검토한 태백 전체 파일 기대값을 production 실행기로 비교합니다. 최대44요청/80MiB, 운영 쓰기는 없습니다.'
     group = 'verification'

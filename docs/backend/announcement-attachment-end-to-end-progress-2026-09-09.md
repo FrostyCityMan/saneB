@@ -11,6 +11,30 @@
 
 ## 기준선
 
+### 2026-09-22 서울 실제 3단계 관측 성공·태백 기대값 재검토
+
+- 임시 실행기의 AWS 경로 및 CLI1/v2 옵션 호환성 결함을 수정했다. 서버 설치/권한 변경 없이 진행했고, PACKAGE_DOWNLOAD 단계에서 멈춘 재시도는 sourceWorkStarted=false였다. Python9건·Node24통과/Windows 조건부3생략·Java41건 통과다.
+- 최종 SSM10df4968-07d1-49ce-b2c3-d768003c9f9c Success/관측 JUnit1/1, 실제 처리27.983초. TITLE 조합 통과→BODY431자/AVAILABLE→HWPX2개 COMPLETE_TEXT/2041·1994자→전체 텍스트 분석true다. 혼합 UNKNOWN+FORM, REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW·관리자 검증은 유지한다.
+- 5요청 예약/2,377,939bytes(본문 상한 포함), CPU1/메모리768MiB/임시1GiB 실측, 운영 DB쓰기0·원본/임시 파일/프로세스 정리true·운영 JAR불변/healthUp=true다. 이번 두 재시도의 임시 S3 객체도 삭제/부재 확인했다. 전체3실행 cleaned=true이며 사용자 output은 보존했다.
+- [사전 기대값 재검토](announcement-taebaek-fixed-qa-expectation-2026-09-15.md): 전체2파일의 모든 내용·역할 지문 일치와 BBS redirect3행 변경을 확인하고 metadata3필드만 갱신했다. 이전 profile627d3f… 거부 회귀를 추가하고 정상0/참조30/전체 coverage false를 유지한다. 관측이 새 catalog의 production 고정 비교 성공은 아니다.
+- 현재는 Gate6 실제 파일 QA 차단의 일부를 해소한 진척이다. 전체 Gate8진행/1차단은 나머지 Provider·형식·정상 후보 검증 때문에 유지한다. 새 catalog 전체 회귀/CI/고정 재비교·동일 SHA 배포·승인된 정책/기존 데이터·업무 브라우저 E2E는 남는다. [실행 상세](announcement-seoul-temporary-bbs-qa-2026-09-21.md)를 따른다.
+- 최종 로컬 전체 회귀는4분24초 성공이다. root2751=2486통과/265조건부 생략/실패·오류0이며 기존 profile 불일치 실패는 해소됐다. 패키징20·추출기88은 각각 앞선 유효 실행 결과를 재사용했다. 표적159/패키징20 실행에서는 새 bootJar를 생성했으며 최종 SHA256은 `15d5e97dd7e440cebae1853d155f030b92ba56ff0f51611233837454edc485cf`다. 운영 설치 JAR와 혼동하지 않는다. 로컬 Java/Node 작업은 종료됐다.
+
+### 2026-09-22 AWS 인증 갱신·서울 임시 QA 실패 회수·전송 패키지 정리
+
+- 사용자 승인으로 default/root 서울 로그인을 갱신하고 저장소 대상 계정 일치를 확인했다. SSL 검증은 유지했다. 같은 SSM35926df3-e555-4c7a-bf95-444a3568d9c9만 조회했으며 재실행하지 않았다.
+- 기존 실행은 Failed/responseCode1, 격리 실행기 INCOMPLETE/FileNotFoundError/RUNNER_FAILED다. 실패 경로·단계와 본문/첨부 관측 보고서는 없어 정확한 누락 대상과 실제 요청량은 미확인이다. 제목→본문→첨부 성공으로 계산하지 않는다.
+- 해당 실행의 사후 결과에 unitInactive/installedJarUnchanged/healthUp=true가 확인됐다. 과거 실행 종료 시점의 증거이며 현재 health 새 조회와 구분한다. 파일별 정리 성공 metadata는 반환되지 않았다.
+- terminal 상태와 소유 metadata/크기를 확인한 임시 S3 객체만 삭제하고 부재/plan.cleaned=true를 확인했다. 운영 객체 삭제0, 로컬 패키지·결과·사용자 output은 보존했다. 임시 CA와 로컬 단발 Node/로그인/조회 프로세스는 정리됐다.
+- [서울 QA 기록](announcement-seoul-temporary-bbs-qa-2026-09-21.md)에 결과를 반영했다. 인증/전송 패키지 정리 차단은 해소됐으나 실행기 실패 진단·실제 최신 파일 QA가 남는다. 운영 배포·DB·정책·worker·기존 데이터 변경과 업무 브라우저 검증은 없으며 전체 Gate8진행/1차단을 유지한다.
+
+### 2026-09-21 서울 임시 QA 승인·제출 후 인증 만료
+
+- 사용자가 서울 임시 격리 QA를 승인하여 태백1공고/44요청·80MiB/20분/CPU1·임시1GiB 범위로 재개했다. 이전 승인 대기 상태는 해소됐다. 운영 서비스·DB·정책·기존 데이터 변경 승인은 아니다.
+- 현재 운영 baseline과 서버 자원을 확인하고 기존 관측 JUnit용 별도 probe/제한 launcher를 준비했다. Java41건·새 Node4건 통과, 기존 launcher 포함 Node27건은24통과/Windows 조건부3생략이며 후속 workflow18건도 통과했다.
+- 자기 임시 패키지188,072,770bytes를 비공개 S3에 전송하고 SSM35926df3-e555-4c7a-bf95-444a3568d9c9로 한 번 제출했다. 첫 결과 조회에서 AWS 인증이 만료돼 실행 결과/종료/사후 운영 불변·S3 삭제는 미확인이다. 같은 실행을 재시작하지 않는다.
+- [실행·인증 후 재개 기록](announcement-seoul-temporary-bbs-qa-2026-09-21.md)의 plan/command ID로 조회와 정리를 이어간다. 승인 범위를 다시 요청하지 않고 인증 갱신만 필요하다. 제출 성공을 QA 성공으로 계산하지 않는다. 전체 Gate8진행/1차단·ATT62와 사용자 output을 유지한다.
+
 ### 2026-09-21 최신 수정본 Linux 결과 확정 — 1d06b4e
 
 - [Linux35608794560](https://github.com/FrostyCityMan/saneB/actions/runs/35608794560)은7분45초 후 terminal failure다. 직전 회차의 CI 시작 이후 같은 실행을 확인했으며 중복 재실행하지 않았다. QA 브랜치1d06b4e는 원격과 일치하고 사용자 output은 보존했다.
@@ -483,10 +507,10 @@
 | 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
 | 1 DB·API 계약 | [~] | 9fe892c Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 제천3공고 중 제목 중단1건과 HWPX3파일의 worker/임시 DB/API 일치도 확인. 태백·양평의 선행 근거 및 마지막 운영09-15 V83과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 로컬 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 마지막 운영 설치는 profile17/worker 비활성. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
-| 3 분류·정책 | [~] | 로컬 전용 BODY18. catalog30/보관 기대값1/정상0. 7a5ef22의 태백 고정 비교는 PASS지만 후속 BBS 리다이렉트 식별자 보완으로 profile 지문이 변경돼 현행 실행 가능0, 재관측·내용 대조 전 구기대값을 재사용하지 않음. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
+| 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 7a5ef22 Linux35602665310/태백 고정 비교 성공 후 BBS 리다이렉트 결함 보완. 수정본 표적179 통과, 전체 로컬2744=2478통과/265생략/구태백 지문1실패·패키징20 성공. 새 실파일 관측/지문 대조가 필요하며 catalog/assertion은 유지. 보은 TIMEOUT3건·전체 Provider 정상/형식 기대값·부분 추출·접근 실패도 미해소 |
+| 6 자동·실파일 QA | [!] | 09-22 서울 태백 BODY431자/HWPX2파일 실제 관측1/1 및 정리 성공. 기존 내용 기대값 보존/metadata3필드 갱신 뒤 표적159·패키징20 통과, 전체 로컬2751=2486통과/265조건부 생략/실패0. 새 Linux/production 고정 재비교는 후속 확인. 전체 Provider 정상/형식 기대값·부분 추출·보은 등 접근 실패는 미해소 |
 | 7 운영 배포·활성화 | [~] | 09-21 현재 SSM으로787c594·실제DB V83·추출기1.0.1·catalog24/기대값1·health UP·첨부 count0/worker 비활성/외부키2종 없음 재확인. GitHub/AWS 인증 차단은 명령 범위 인증으로 해소. 새7a5ef22/추출기1.0.3의 재배포 재개와 게시/ENFORCE/기존 데이터의 정확한 범위 승인은 여전히 필요 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 

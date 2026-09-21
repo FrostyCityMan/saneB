@@ -159,7 +159,7 @@ class AttachmentProviderQaCatalogTest {
                 rule("SUPPORT",RuleGroupKindCode.SUPPORT_TYPE,"육성지원",null,SupportTypeCode.GRANT_SUBSIDY)));
         return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles));
     }
-    private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-16T05:06:32.672171396Z");
+    private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-21T16:32:11.928279006Z");
     private Definition packagedDefinition() throws Exception {
         try(var input=new org.springframework.core.io.ClassPathResource("announcement-attachment/provider-qa-catalog-v2.json").getInputStream()) {
             return mapper.readValue(input,Definition.class);
@@ -178,7 +178,7 @@ class AttachmentProviderQaCatalogTest {
     @Test void packagedRevalidatedExpectationKeepsWholeSetAndDoesNotCompleteCoverage() throws Exception {
         var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
         var reviewed=packagedDefinition().notices().stream().filter(n->"TAEBAEK-184816".equals(n.caseCode())).findFirst().orElseThrow();
-        assertThat(reviewed.expectation().profileHash()).isEqualTo("627d3f602e4f1255556906409999a7b38dd72bef98e2fe7da46792d8c524e572");
+        assertThat(reviewed.expectation().profileHash()).isEqualTo("8cf428f1ca718f67960130dc0398aa354679179d3cc2638cd6d47f51ffc17e88");
         assertThat(reviewed.expectation().profileHash()).isEqualTo(profiles.getFirst().selectProfileHash());
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
@@ -192,7 +192,8 @@ class AttachmentProviderQaCatalogTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {
             "9aea97d1281dd778ba6d6f331fd7dd147fef2a05f6de7132ccd90c28b28a58e5",
-            "8a93cf41a20e0b3ae3a93c441d4db196762fbe972a71fb15e87136fe69d90044"})
+            "8a93cf41a20e0b3ae3a93c441d4db196762fbe972a71fb15e87136fe69d90044",
+            "627d3f602e4f1255556906409999a7b38dd72bef98e2fe7da46792d8c524e572"})
     void historicalExpectationIsNotReboundToChangedBbsCode(String historicalProfileHash) throws Exception {
         packagedCatalog();var definition=packagedDefinition();
         // 실제 새 관측 후 catalog를 갱신해도 구지문 이력을 현행 코드에 자동 연결하지 않는다.

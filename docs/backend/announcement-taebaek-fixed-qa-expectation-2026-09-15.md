@@ -1,5 +1,15 @@
 # 태백 전체 첨부 고정 기대값 연결
 
+## 서울 임시 최신 코드 재관측 — 2026-09-22
+
+- [서울 격리 QA](announcement-seoul-temporary-bbs-qa-2026-09-21.md)의 SSM `10df4968-07d1-49ce-b2c3-d768003c9f9c`가 Success/관측 JUnit1통과·실패/생략0이다. 시각 `2026-09-21T16:32:11.928279006Z`, application code catalog hash b53a0384…이며 운영 설치물은 교체하지 않았다.
+- 제목 조합 충족 → BODY431자/AVAILABLE → HWPX2개 COMPLETE_TEXT/전체 텍스트 분석true다. UNKNOWN/MIXED_DOCUMENT_ROLES(2041자/62블록)와 FORM(1994자/117블록), REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW는 기존과 같다.5요청 예약/2,377,939bytes(본문 상한 포함), 운영 DB 쓰기0·원본/임시 전송/프로세스 정리true다.
+- 사전 expectation의 전체2파일 locator/downloadAllowed/format/binary/quality/문자·블록/역할 규칙/text/blocks/assessment hash를 각각 대조해 일치했다. 필수 문구는 변경하지 않았으며 이전 검토와 동일한 전체 텍스트 hash를 확인했다. 원문을 새 문서/로그로 복사하지 않았다.
+- 이전 관측 코드9d5eaae..b5a125a의 production diff는 StandardBbsAttachmentDiscoveryProfile의 BBS redirect 최초 경로·전체 식별 파라미터 고정3행이다. 추출기/역할 규칙/태백 본문·첨부 선택자는 변경되지 않았다. 성공한 새 관측의 profileHash8cf428f1…와 현행 코드 일치를 확인했다.
+- catalogVersion을 `2026-09-22-taebaek-seoul-revalidated-v2`, profileHash를 `8cf428f1ca718f67960130dc0398aa354679179d3cc2638cd6d47f51ffc17e88`, observedAt을 위 시각으로 갱신했다. metadata3필드 외 차이0을 구조 대조하고 구627d3f60…의 자동 재연결 거부 회귀를 추가했다. 구지문9aea97d…/8a93cf4…도 유지한다.
+- 현재 저장된 기대값1/전체 참조30/정상 후보0·coverage false·정책 QA false다. catalog 갱신 후 새 production CaseExecutor 고정 비교와 전체 CI는 별도 필요하다. 운영 정책 게시·worker·기존 데이터·업무 브라우저 E2E 승인/완료를 뜻하지 않는다.
+- 갱신 후 표적159건/패키징20건 실패·생략0,1분34초 성공과 새 bootJar를 확인했다. 전체 로컬 회귀도4분24초 성공(root2751=2486통과/265조건부 생략/실패·오류0)이다. 추출기88·패키징20 결과는 전체 호출에서 재사용했으며 새 시험으로 중복 합산하지 않는다.
+
 ## 중단된 전체 로컬 회귀 결과 확인 — 2026-09-21
 
 09-16 14:23 최종 XML의 root2731=2466통과/265조건부 생략/실패·오류0을 회수했다. 옛 실행 핸들과 Java/PG 프로세스는 없으며, 동일 소스의 전체 Gradle 명령은31초/23task 모두 UP-TO-DATE로 성공했다. 패키징20·추출기88도 기존 결과 재사용이며 현재 새 실행으로 합산하지 않는다. 고정 기대값의 관측 시각과09-23T05:06:32Z 만료는 연장하지 않았다. 새 커밋의 Linux 계약·실제 고정 비교는 별도 확인한다.
