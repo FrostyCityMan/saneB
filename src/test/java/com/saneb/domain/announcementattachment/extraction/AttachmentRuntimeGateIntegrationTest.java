@@ -38,7 +38,9 @@ class AttachmentRuntimeGateIntegrationTest {
                 .path("qualityCode").asText()).isEqualTo("OCR_REQUIRED");
         var rejected = selectFixtureResult(extractor, storage, "/hwp-record-limit-qa/paragraphs-20001.hwp");
         assertThat(rejected.path("qualityCode").asText()).isEqualTo("LIMIT_EXCEEDED");
-        assertThat(rejected.path("text").asText()).isEmpty();
+        assertThat(rejected.path("text").isNull()).isTrue();
+        assertThat(rejected.path("errorCode").asText()).isEqualTo("LIMIT_EXCEEDED");
+        assertThat(rejected.path("blocks").isArray()).isTrue();
         assertThat(rejected.path("blocks").size()).isZero();
         var recovered = selectFixtureResult(extractor, storage, "/attachment-runtime-qa/AR-003.bin");
         assertThat(recovered.path("qualityCode").asText()).isEqualTo("COMPLETE_TEXT");

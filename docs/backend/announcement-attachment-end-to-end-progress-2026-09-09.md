@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-22 af2ad8f Linux 실패 원인 및 ATT 추적표 정정
+
+- [Linux35680764020](https://github.com/FrostyCityMan/saneB/actions/runs/35680764020), SHA `af2ad8f5c82bc0bbfed68643b90d46e965939bd6`는 failure다. runtime5건 중 새 HWP 시험1건이 실패했다. 20,000 문단의 OCR_REQUIRED와 20,001 문단의 LIMIT_EXCEEDED assertion 뒤, 실제 실패 IPC의 `text:null`을 `asText()`로 읽어 문자열 `null`과 빈 문자열을 비교한 새 시험 오류다. `ExtractionResult.failure`의 기존 계약대로 JSON null·정확한 errorCode·빈 배열을 검사하도록 수정했다. 이후 정상 HWP 복구/정리 assertion은 이 실패 실행에서 도달하지 못했으므로 성공으로 보고하지 않는다.
+- root2769=2499통과/270조건부 생략, 추출기90·패키징20·job192·migration17·worker12·Flyway3은 실패/오류0이다. runtime은4통과/1실패/생략0이다. 독립 산출물/정책 부모 시험은 선행 실패로 미실행이며 필수 보고서 검사도 실패했다. 부분 suite 통과를 전체 성공으로 합산하지 않는다. 원문 없는 XML은 `build/qa-results/run-35680764020-contracts/`에 보관했다.
+- ATT-008/035/046/050/055의 과거 작성/미실행 표기를 a884ac1 Linux35679213890 전용 worker12/12·backfill14/14·job192/192의 실제 XML과 현재 테스트 assertion에 맞춰 정정했다. 최신 운영 검증이나 실사이트 표본으로 확대하지 않으며 62행 모두의 미완료 상태와 원래 목표는 유지한다.
+- 옥천 서울 QA는 사용자 보류, 코드 재배포 재개는 별도 응답 대기다. 실패 확인 때문에 운영/공식 사이트/정책/기존 데이터 범위를 넓히지 않는다.
+- 수정 후 로컬 추출기90/90·root 표적23=22통과/Windows의 Linux 전용1생략, 실패/오류0·26초 성공이다. JSON null 직렬화 계약을 로컬 HWP 제한 시험에도 포함했다. 새 Linux 결과는 아직 대기이며 main 코드나 기존 migration은 수정하지 않았다.
+
 ### 2026-09-22 ATT-025 실제 HWP 레코드 경계 입력 추가 — Linux 결과 대기
 
 - 합성 JVM 자원 실패 시험과 구분해 실제 OLE/HWP 입력의 20,000개 문단 경계와 20,001개 제한 초과 파일을 시험 전용으로 생성한다. 비압축·1MiB 미만이며 실제 레코드 개수/헤더를 대조해 byte/압축률 차단으로 잘못 통과하지 않게 한다.

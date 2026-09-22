@@ -128,7 +128,7 @@
 | ATT-005 | NOTICE 첨부 B는 검수 | E.attachmentGroupBRequiresReviewNeverTitleExclusion | [~] | 운영 ACTIVE 근거·검수 표시 |
 | ATT-006 | 첨부 A/B 동시: B 우선/A 보존 | E.attachmentGroupBRequiresReviewNeverTitleExclusion; PolicyGoldenGate AG-007 B 주사유·A/B 양쪽 근거 직접 assertion | [~] | 최신 실제 DB/API·운영 확인 |
 | ATT-007 | 본문 부족을 같은 첨부가 보완 | E.attachmentCanSupplementMissingBodyWithoutChangingBase; PG.att016And036… | [~] | 실파일 worker→DB→API |
-| ATT-008 | 본문 실패와 첨부 처리는 분리 | 별도 detail/descriptor 경로; WorkerDB.bodyFetchFailureStillCollectsAttachmentsAndPreservesBaseFailureEvidence 작성 | [~] | 실제 Linux/PG 실행 및 본문 수집기 실패+유효 첨부 실사이트 표본 |
+| ATT-008 | 본문 실패와 첨부 처리는 분리 | 별도 detail/descriptor 경로; a884ac1 Linux35679213890의 WorkerDB.bodyFetchFailureStillCollectsAttachmentsAndPreservesBaseFailureEvidence 통과(worker12/12·실패/생략0 XML 확인) | [~] | 본문 수집기 실패+유효 첨부 실사이트 표본 및 최종 운영 확인 |
 | ATT-009 | 파일 간 AND 금지 | E.separateFilesCannotSatisfyAnd | [~] | 실제 다중 첨부 판정/locator |
 | ATT-010 | FORM은 참고 근거 | E.formIsContextOnlyEvenWhenItContainsFullCombination | [~] | 관리자 역할 수정·재검수 흐름 |
 | ATT-011 | UNKNOWN/불명확 scope는 검수 | E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 UNKNOWN 역할 표시/후속 행동 |
@@ -145,7 +145,7 @@
 | ATT-022 | redirect allowlist 재검증 | D.redirectRevalidatesPathBeforeDnsOrSecondHttp; D.postRedirectNeverForwardsFileNamesOrParametersToAnotherEndpoint | [~] | 기관별 GET redirect 실제 연결·host lease 교체 |
 | ATT-023 | SSRF/DNS 재바인딩 방어 | AttachmentPinnedDownloadClientTest; D.stalledDnsTimesOutWithoutStartingHttpAndResolverExits | [~] | Linux 실제 pinned transport/사설망 canary |
 | ATT-024 | 파일/스트리밍/누적 예산 | D.reservesBytesBeforeReadingAndKeepsActualBytesSeparate; D.deniedBudgetReadsNoBytesAndDeletesOnlyNewPartialFile; PG.att024And060…; T.att024… | [~] | 최신 PG + 실제 20/80 MiB 경계 |
-| ATT-025 | 압축 폭탄과 앱 생존 | D.compressedOrOverLimitResponsesAreRejectedBeforeReading; X.archiveBombIsRejected; a884ac1 Linux35679213890 Runtime.childHeapExhaustionLeavesParentAliveAndOwnedOriginalsRemoved 0.522초 통과: 실제 자식 heap 한도·비정상 종료 후 부모 재개·소유 원본 정리. HwpRecordLimitFixtureTest 로컬2/2: 비압축 OLE 20,000/20,001 문단 경계 검증 | [~] | 설치된 실제 HWP parser의 record bomb·다음 추출/정리 시험 추가, 새 Linux 실행 결과 대기. OS OOM killer/다양한 악성 parser 입력·최종 운영 검증은 별도 |
+| ATT-025 | 압축 폭탄과 앱 생존 | D.compressedOrOverLimitResponsesAreRejectedBeforeReading; X.archiveBombIsRejected; a884ac1 Linux35679213890 Runtime.childHeapExhaustionLeavesParentAliveAndOwnedOriginalsRemoved 0.522초 통과: 실제 자식 heap 한도·비정상 종료 후 부모 재개·소유 원본 정리. HwpRecordLimitFixtureTest 비압축 OLE 20,000/20,001 문단 경계2/2 통과 | [~] | af2ad8f Linux35680764020 새 HWP 시험은 실패 IPC의 JSON null 기대값 오류로 실패. 계약에 맞게 수정 후 재검증 필요, 후속 정상 추출/정리는 아직 미입증. OS OOM killer/다양한 악성 parser 입력·최종 운영 검증은 별도 |
 | ATT-026 | XXE/ZIP 경로 이탈 | X.hwpxDtdAndExternalEntityAreRejected; X.zipTraversalIsRejectedWithoutCreatingFiles; Runtime AR-008/009 CORRUPT·원본 정리 검사 | [~] | 실제 Linux 실행·canary 읽기/외부 요청 0 |
 | ATT-027 | timeout/OOM/프로세스 종료 정리 | I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation; W.failedSaveNeverLeavesOriginalFiles; T.att038…; a884ac1 Linux35679213890 Runtime.actualThirtySecondTimeoutKillsObservedChildTreeAndReleasesOwnedOriginal 30.303초 통과: 실제30초 TIMEOUT·관측 자식 JVM 종료·소유 원본 정리·다음 추출 재개 | [~] | 최종 운영 설치/환경 대조와 강제 crash·다양한 악성 parser 입력 검증은 별도 |
 | ATT-028 | 매크로/embedded/JS 비실행 | S.arbitraryJavascriptAndTraversalAreNeverExecutedOrRequested; I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation | [~] | 매크로/embedded 파일 실표본 |
@@ -155,7 +155,7 @@
 | ATT-032 | 같은 URL binary 교체 | set binary/manifest hash 계약; PG.att014And032…; W.newJobGenerationDoesNotReusePriorJobEvenWithSameLocator | [~] | 같은 URL 다른 binary 실수집 2세대 |
 | ATT-033 | 같은 본문 첨부 갱신 예약 | SourceServiceImplTest.attachmentPlanIsFrozen…; PG.sameContentOnALaterRunWaits24HoursThenCreatesANewGeneration; IntakeServiceTest | [~] | 최신 PG 24시간 경계·실제 바이너리 교체 |
 | ATT-034 | 내용/검수/version 변경 충돌 | PG.att034ChangedSource…; PG.att034And044BaseChange… | [~] | 검수 변경 API 동시성/늦은 worker |
-| ATT-035 | 원문 삭제 후 되살림 금지 | PG.att035And038…; W.att001MissingEligibleSource…; WorkerDB.sourceDeletedDuringRealExtractionCannotBeRecreatedByLateWorkerResult 작성 | [~] | 실제 Linux 실행 중 source 삭제·임시 자원 정리 |
+| ATT-035 | 원문 삭제 후 되살림 금지 | PG.att035And038…; W.att001MissingEligibleSource…; a884ac1 Linux35679213890 WorkerDB.sourceDeletedDuringRealExtractionCannotBeRecreatedByLateWorkerResult 통과(worker12/12·실패/생략0 XML 확인) | [~] | 최종 운영 설치에서 삭제/늦은 결과/임시 자원 정리 대조. 임시 Linux DB 증거와 운영을 구분 |
 | ATT-036 | source 불일치 접근 404 | HTTP.sourceMismatchReturns404Wrapper; HistoryService/HistoryController 다른 source/evaluation/file 404; ReadService 제목 제외·QA·기본 판정 없는 조회 차단 | [~] | 최신 PG·운영 각 READ 역할의 교차 source 요청 |
 | ATT-037 | 다른 source/release DB 근거 거부 | Linux35050057694 Migration3/3·PG.att061PolicyProfileAndRuleMustMatchWithoutUpdatingSourceOnFailure 통과 | [~] | 운영 API·최종 설치에서 교차 근거 거부 재확인 |
 | ATT-038 | 제목 제외 cascade/임시 정리 | PG.att035And038…; T.att038SuccessAndExceptionScopes…; T.att038ExpiredOrphan… | [~] | Linux 실제 OS crash 후 원본 정리 |
@@ -166,16 +166,16 @@
 | ATT-043 | 정상 확인→DRAFT 멱등 | ReviewServiceTest 같은 요청/다른 요청/자동 활성화 차단; ReviewControllerSmokeTest; PG 확인·동시 DRAFT/actor-source key race; 합성 브라우저 확인→별도 초안/응답 유실 재시도, Node 동일 payload/key | [~] | 최신 PG 실행·운영 중복 클릭 E2E |
 | ATT-044 | OFF는 새 요청만 중지/검수 유지 | W.att040OffBeforeDetail…; PG.att040OffImmediately…; CurrentServiceTest; Current PG projection; PublicationImpact의 해당/전체 규칙 고정 작업·검수/적용/원복 관측·OFF 중지조건 해제 영향(읽기 전용) | [~] | 정책 게시/교체 transaction·실제 OFF·sealed 복구·최신 PG |
 | ATT-045 | 역할/CSRF | HTTP/Current/Review/Role/Retry/History/CollectionControllerSmokeTest: READ 3역할, WRITE 2역할; PolicyControllerSmokeTest·PolicyServiceTest: READ 3역할/ADMIN 변경·금지 필드400/CSRF/직접 service 방어; 정책 UI8 SSR·22 Node·합성 브라우저 읽기 역할 변경0/명시 동의 | [~] | 정책 전체 QA/게시 API 및 실제 운영 세션·CSRF 확인 |
-| ATT-046 | 배치 범위 고정 | V74 전체 목록·V75 고정 분할→batch 연결/전체 집계; BackfillIntegrationTest 1001건 두 분할 예약·신규 미편입·삭제/경합·불변 소속 시험12건 작성(PG 미실행); 전체 분할 UI17 Node·8 SSR | [~] | 최신 PG 전체 범위/경합·실제 승인 범위 운영 실행/최종 대조·운영 브라우저 |
+| ATT-046 | 배치 범위 고정 | V74 전체 목록·V75 고정 분할→batch 연결/전체 집계; a884ac1 Linux35679213890 BackfillIntegrationTest14/14·실패/생략0: 1001건 두 분할/신규 미편입/삭제·경합/불변 소속 XML 확인; 전체 분할 UI17 Node·8 SSR | [~] | 실제 승인 범위 운영 실행/최종 대조·운영 브라우저 |
 | ATT-047 | scope/분류 preview 네트워크 0 | Batch/BackfillService 순수 전체/단일 범위 조회; BatchPreviewService exact 봉인 metadata·불변 이력/선택·HTTP0; 배치 UI 전체 페이지 개수/중복/최종 지문 대조·선택 보존 | [~] | 최신 PG/worker·운영 실제 HTTP0 및 실제 브라우저 검증 |
 | ATT-048 | preview 뒤 버전 변경 충돌 | BatchPreview/Application CAS; BackfillService 전체 지문409, V75 분할 예약/시작/claim 입력 확인 및 기관 변경 차단 계약; 배치/분할 UI 응답 유실 동일키 유지·401/403/409 Node | [~] | 최신 PG·분할 예약/실행 실제 경합·운영 적용/충돌·실제 관리자 브라우저 |
 | ATT-049 | 추가 검수/전환 뒤 rollback 거부 | 배치 원복 영향/ADMIN·CSRF 승인 API와 전체 inputHash 재검증 worker; 일반 원복 UI의 버전·효과/충돌/유실 동일 요청·잠금; 배치 승인 이력/영수증 대조·다른 배치 결과 해제 Node/SSR; 새 검수·DRAFT·기관 변경 차단 PG | [~] | 실제 PostgreSQL·일반/배치 복구 브라우저·운영 검증 |
-| ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI; 승인 목록 당시 영향/현재 영수증 분리, PG 페이지/삭제/혼합 이력3건 추가(미실행) | [~] | 실제 PostgreSQL/운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
+| ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI. a884ac1 Linux35679213890 PG192/192·실패/생략0의 approvalHistoryPagesStayCompleteWhileLaterApprovalsAdvanceTheBatch·sourceDeletionDoesNotRewriteOrHideOriginalApprovalHistory·mixedApplicationAndRollbackHistoryRetainsOriginalImpactAfterCompletion 통과 XML 확인 | [~] | 운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
 | ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard | [~] | 명시 포함 batch의 보호/경고 정책·후속 신청 불변 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
 | ATT-053 | 새 DB/업그레이드/checksum | Linux35050057694 freshSchemaAndV71UpgradePreservePriorChecksums·Flyway3/3, V83까지 순차 적용/빈 DB 검증 | [~] | 최종 배포의 실제 DB·설치 migration 재확인; 마지막 운영 확인09-15 V83과 구분 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |
-| ATT-055 | 동시 확인/전환 | source 잠금·평가 current unique; PG 동시 확인/동시 DRAFT·다른 source 멱등 키 race 테스트 추가 | [~] | 최신 PG 동시 실행 및 운영 E2E 검증 |
+| ATT-055 | 동시 확인/전환 | source 잠금·평가 current unique; a884ac1 Linux35679213890 PG.concurrentConfirmationsAllowOneWriterAndReturnConflictForStaleVersion·concurrentSameDraftRequestCreatesOneAnnouncement 통과(PG192/192·실패/생략0 XML 확인) | [~] | 최종 운영 세션의 동시 검수/DRAFT E2E 검증 |
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |
 | ATT-057 | OPEN/pending 판정 ID null | PG.att031UnsealedOrExpiredWorker…; CurrentServiceTest.enforcePending…; HistoryService pending의 과거 판정은 NOT_CURRENT | [~] | 최신 PG 및 운영 화면 pending→sealed |
 | ATT-058 | source 같아도 다른 입력 조합 거부 | Linux35050057694 immutableEvidenceRejectsMismatchedBindingsAndCascadesWithSource·역할 근거 소속 시험 통과 | [~] | 최신 운영 API에서 교차 set/policy/base 거부 검증 |

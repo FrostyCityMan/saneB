@@ -40,7 +40,17 @@ class HwpRecordLimitFixtureTest {
             }
         }
         if (count == 20_000) assertEquals("OCR_REQUIRED", AttachmentExtractorMain.selectExtraction(file).qualityCode());
-        else assertEquals("LIMIT_EXCEEDED", assertThrows(IOException.class,
-                () -> AttachmentExtractorMain.selectExtraction(file)).getMessage());
+        else {
+            var failure = assertThrows(IOException.class, () -> AttachmentExtractorMain.selectExtraction(file));
+            assertEquals("LIMIT_EXCEEDED", failure.getMessage());
+            // 실제 IPC 실패 계약은 빈 문자열이 아닌 JSON null과 빈 근거 배열이다.
+            var output = new java.io.ByteArrayOutputStream();
+            AttachmentExtractorMain.saveResult(output, ExtractionResult.failure(failure.getMessage()));
+            var result = new com.fasterxml.jackson.databind.ObjectMapper().readTree(output.toByteArray());
+            assertTrue(result.path("text").isNull());
+            assertEquals("LIMIT_EXCEEDED", result.path("errorCode").asText());
+            assertTrue(result.path("blocks").isArray());
+            assertEquals(0, result.path("blocks").size());
+        }
     }
 }
