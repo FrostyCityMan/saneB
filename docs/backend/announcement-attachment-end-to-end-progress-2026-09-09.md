@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-22 ATT-053 기존 업무 데이터 보존 직접 시험 보완
+
+- `freshSchemaAndV71UpgradePreservePriorChecksums`에 V71 합성 사용자/원문2건/본문 확보·미확보/분류 ACCEPTED·REVIEW_REQUIRED/숨김 DRAFT/연결1건을 추가했다. 규칙 seed를 포함한 기존10테이블의 V71 전체 컬럼·전체 행을 정렬 SHA256으로 고정해 V83 적용 후 비교한다. additive 새 컬럼은 별도로 두며 시험 DB 외부의 운영 데이터를 복사하지 않는다.
+- V71·V83 upgrade·fresh DB에서 기존 attachment_analysis_enabled=true INSERT/UPDATE가 PostgreSQL SQLSTATE23514와 정확한 CHECK 이름으로 거부되는지 검사한다. 기존 순차 migration·checksum·schema assertion은 유지하고 fresh DB validate를 추가했다.
+- 로컬 첫 `test --tests ...` 명령은 extractor 하위 모듈에 해당 테스트가 없어 실패했다. 루트 `:test`로 범위를 정정한 후 성공(14초, up-to-date 재사용), 실제 생성 XML은 정적 MigrationContract93통과·DB3조건부 생략이다. `:bootJar`도 up-to-date 성공이며 새 production 코드/기존 migration 변경은 없다. 이 결과는 실제 DB 통과가 아니므로 ATT-053은 Linux 검증 전 부분 완료를 유지한다.
+- QA 브랜치 전용 CI에서 실제 PostgreSQL 시험을 실행한다. 운영 재배포/정책/worker/기존 데이터 변경·브라우저·옥천 QA는 이번 변경에 포함하지 않는다.
+
 ### 2026-09-22 운영 checksum 검증 완료 / ATT-053 잔여 분리
 
 - 승인된 코드 배포 이후 읽기 전용 SSM `638ec0bb-b863-4bd0-a2b7-a87eb589f3c6`으로 설치 JAR와 운영 Flyway 이력을 대조했다. V83까지 실제80파일/이력80건 checksum 일치·누락/추가/불일치0, READ ONLY/ROLLBACK/쓰기0이다. 파일 수를 버전 번호83으로 가정한 로컬 준비 assertion은 서버 요청 전에 수정했다. 실제 Flyway10.20.1 기준80파일·인코딩5사례·비교 판정8사례를 검증한 뒤 실행했다.

@@ -108,6 +108,10 @@ class AnnouncementAttachmentMigrationTest {
                 .setServerConfig("listen_addresses","127.0.0.1").start()) {
             var dataSource = pg.getPostgresDatabase();
             Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("71").load().migrate();
+            var legacySql = new org.springframework.jdbc.core.JdbcTemplate(dataSource);
+            insertLegacyBusinessFixtures(legacySql);
+            assertLegacyAttachmentCheck(legacySql);
+            var legacySnapshots = selectLegacySnapshots(legacySql);
             try (Connection connection=dataSource.getConnection(); var statement=connection.createStatement()) {
                 statement.execute("CREATE TABLE prior_checksums AS SELECT version,checksum FROM flyway_schema_history WHERE success");
             }
@@ -197,8 +201,73 @@ class AnnouncementAttachmentMigrationTest {
                     .contains("jsonb_agg","IS DISTINCT FROM","frozen_provider_code");
             assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('ct_att_backfill_segment_batch','ct_att_backfill_marked_batch','ct_att_backfill_fixed_job') AND tgdeferrable AND tginitdeferred AND tgenabled='O'",Integer.class)).isEqualTo(3);
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
-            Flyway.configure().dataSource(pg.getDatabase("postgres","attachment_fresh"))
-                    .locations("classpath:db/migration").load().migrate();
+            assertLegacyAttachmentCheck(workerSql);
+            for (var snapshot : legacySnapshots) {
+                assertThat(workerSql.queryForObject(snapshot.query(), String.class))
+                        .as("V71 기존 컬럼/전체 행 보존: %s", snapshot.table()).isEqualTo(snapshot.hash());
+            }
+            var freshDataSource = pg.getDatabase("postgres","attachment_fresh");
+            var freshFlyway = Flyway.configure().dataSource(freshDataSource)
+                    .locations("classpath:db/migration").load();
+            freshFlyway.migrate();
+            freshFlyway.validate();
+            assertLegacyAttachmentCheck(new org.springframework.jdbc.core.JdbcTemplate(freshDataSource));
         }
     }
+
+    private static void insertLegacyBusinessFixtures(org.springframework.jdbc.core.JdbcTemplate sql) {
+        // 이 메서드는 새로 생성한 loopback 시험 DB에만 합성 업무 데이터를 넣는다.
+        UUID actor = UUID.randomUUID(), announcement = UUID.randomUUID();
+        UUID release = sql.queryForObject("SELECT id FROM announcement_source_classification_rule_releases ORDER BY version_no LIMIT 1", UUID.class);
+        sql.update("INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,'migration-preservation','unused-fixture-hash','마이그레이션 합성 담당자','ACTIVE',false)", actor);
+        sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','합성 지원 공고','합성 기관','HIDDEN','DRAFT')", announcement);
+        for (boolean available : java.util.List.of(true, false)) {
+            UUID source = UUID.randomUUID(), content = UUID.randomUUID();
+            sql.update("INSERT INTO announcement_source_snapshots(id,provider_code,title,raw_hash) VALUES (?,'BIZINFO','합성 소상공인 지원금',?)", source, source.toString().replace("-", "").repeat(2));
+            sql.update("INSERT INTO announcement_source_content_versions(id,source_id,raw_hash,title,body_text,body_source_code,body_availability_code,collected_at) VALUES (?,?,repeat('a',64),'합성 소상공인 지원금',?,?,?,now())",
+                    content, source, available ? "소상공인 대상 경영 지원금 합성 본문" : null,
+                    available ? "DETAIL_PAGE_TEXT" : "NONE", available ? "AVAILABLE" : "UNAVAILABLE");
+            sql.update("INSERT INTO announcement_source_classification_evaluations(id,source_id,content_version_id,rule_release_id,engine_version,body_source_code,body_availability_code,title_stage_code,body_stage_code,decision_status_code,reason_code) VALUES (?,?,?,?,'migration-fixture',?,?,'COMBINATION_MATCHED',?,?,?)",
+                    UUID.randomUUID(), source, content, release, available ? "DETAIL_PAGE_TEXT" : "NONE",
+                    available ? "AVAILABLE" : "UNAVAILABLE", available ? "COMBINATION_CONFIRMED" : "UNAVAILABLE",
+                    available ? "ACCEPTED" : "REVIEW_REQUIRED", available ? "TARGET_SUPPORT_CONFIRMED" : "BODY_UNAVAILABLE");
+            if (available) sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)", UUID.randomUUID(), source, announcement, actor);
+        }
+    }
+
+    private static java.util.List<LegacySnapshot> selectLegacySnapshots(org.springframework.jdbc.core.JdbcTemplate sql) {
+        var snapshots = new java.util.ArrayList<LegacySnapshot>();
+        for (String table : java.util.List.of("users", "announcements", "announcement_source_snapshots",
+                "announcement_source_content_versions", "announcement_source_classification_evaluations",
+                "announcement_source_links", "announcement_source_classification_rule_releases",
+                "announcement_source_classification_rule_groups", "announcement_source_classification_keyword_rules",
+                "announcement_source_classification_keyword_terms")) {
+            // allowlist 테이블의 V71 컬럼만 고정한다. 이후 additive 컬럼은 기존 데이터와 분리한다.
+            var columns = sql.queryForList("SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=? ORDER BY ordinal_position", String.class, table);
+            assertThat(columns).isNotEmpty().allMatch(name -> name.matches("[a-z][a-z0-9_]*"));
+            String projection = columns.stream().map(name -> "\"" + name + "\"").collect(java.util.stream.Collectors.joining(","));
+            String query = "SELECT encode(digest(coalesce(string_agg(to_jsonb(legacy)::text, E'\\n' ORDER BY legacy.id),'[]'),'sha256'),'hex') FROM (SELECT "
+                    + projection + " FROM " + table + ") legacy";
+            assertThat(sql.queryForObject("SELECT count(1) FROM " + table, Integer.class)).as(table).isPositive();
+            snapshots.add(new LegacySnapshot(table, query, sql.queryForObject(query, String.class)));
+        }
+        return snapshots;
+    }
+
+    private static void assertLegacyAttachmentCheck(org.springframework.jdbc.core.JdbcTemplate sql) {
+        // false 값 존재뿐 아니라 INSERT/UPDATE 양쪽을 PostgreSQL CHECK가 거부하는지 확인한다.
+        for (String statement : java.util.List.of(
+                "INSERT INTO announcement_source_classification_rule_releases(release_code,version_no,attachment_analysis_enabled) VALUES ('migration-forbidden',9001,true)",
+                "UPDATE announcement_source_classification_rule_releases SET attachment_analysis_enabled=true WHERE version_no=1")) {
+            assertThatThrownBy(() -> sql.update(statement)).satisfies(error -> {
+                Throwable cause = org.springframework.core.NestedExceptionUtils.getMostSpecificCause(error);
+                assertThat(cause).isInstanceOf(SQLException.class);
+                assertThat(((SQLException) cause).getSQLState()).isEqualTo("23514");
+                assertThat(cause.getMessage()).contains("ck_announcement_source_classification_releases_attachment");
+            });
+        }
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_classification_rule_releases WHERE attachment_analysis_enabled", Integer.class)).isZero();
+    }
+
+    private record LegacySnapshot(String table, String query, String hash) { }
 }
