@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-09-22 운영 migration checksum 전수 대조
+
+승인 배포 `9a1bb45`의 설치 JAR와 운영 Flyway 이력을 읽기 전용으로 비교했다. 최신 버전은 V83이며 실제 migration은 V2/V3/V5가 없는 **80개**다. 이력80/파일80, 누락·추가·checksum 불일치·잘못된 항목 모두0, READ ONLY/ROLLBACK/쓰기0이다. SSM `638ec0bb-b863-4bd0-a2b7-a87eb589f3c6` Success와 설치 JAR hash `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`를 결합했다. 비교기는 실제 Flyway10.20.1 계산기로 로컬80파일·인코딩5경계 사례를 대조하고 정상/오류 판정8사례를 검증했다.
+
+동일 SHA Linux35681482535의 `freshSchemaAndV71UpgradePreservePriorChecksums` 통과와 순차 V72~83/빈 DB 적용 근거도 재확인했다. 다만 해당 시험은 V71 업무 데이터의 대표 snapshot 보존을 직접 대조하지 않는다. 기존 false 값 assertion을 CHECK 제약의 실제 거부 시험으로 확대하지 않는다. ATT-053은 checksum 차단만 해소하고, 기존 업무 데이터 보존 및 CHECK false 유지의 직접 시험 근거를 보완할 때까지 부분 완료다. 정책/worker 활성화·옥천 QA·운영 업무 E2E를 실행하지 않았다.
+
 ## 2026-09-22 ATT-059 실제 격리 경계 시험 보강
 
 `AttachmentRuntimeGateIntegrationTest.productionLauncherBlocksParentEnvironmentHostFilesAndHostNetwork`를 추가했다. 실제 운영 비밀·외부 사이트 대신 공개 합성 부모 환경값, 테스트 소유의 호스트 파일, 테스트 부모의 loopback listener를 만들고 production `IsolatedAttachmentExtractor.selectExtraction`으로 합성 probe JAR를 실행한다. 환경값 비전달·호스트 파일 비노출·호스트 loopback 연결 차단, 입력/추출기 라이브러리 읽기 전용과 전용 임시 파일 쓰기·JRE 읽기를 직접 assertion한다. 기존12개 실제 parser fixture 시험은 유지한다.
@@ -173,7 +179,7 @@
 | ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI. a884ac1 Linux35679213890 PG192/192·실패/생략0의 approvalHistoryPagesStayCompleteWhileLaterApprovalsAdvanceTheBatch·sourceDeletionDoesNotRewriteOrHideOriginalApprovalHistory·mixedApplicationAndRollbackHistoryRetainsOriginalImpactAfterCompletion 통과 XML 확인 | [~] | 운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
 | ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard | [~] | 명시 포함 batch의 보호/경고 정책·후속 신청 불변 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
-| ATT-053 | 새 DB/업그레이드/checksum | Linux35050057694 freshSchemaAndV71UpgradePreservePriorChecksums·Flyway3/3, V83까지 순차 적용/빈 DB 검증. 09-22 승인 배포9a1bb45/d-NCB2HF3YK의 JAR/실제 DB V83·실패0, 운영787c594 대비 migration 파일 diff0 확인 | [~] | 운영 Flyway checksum 전수 대조는 별도. 설치 버전/실패0 조회를 checksum 전수 검증으로 확대하지 않음 |
+| ATT-053 | 새 DB/업그레이드/checksum | 동일 SHA Linux35681482535의 freshSchemaAndV71UpgradePreservePriorChecksums·Flyway3/3, V83까지 순차 적용/빈 DB 검증. 승인 배포9a1bb45/d-NCB2HF3YK의 설치 JAR 대 운영 이력80/80 checksum 일치, 누락/추가/불일치0. SSM638ec0bb-b863-4bd0-a2b7-a87eb589f3c6 READ ONLY/ROLLBACK/쓰기0 | [~] | V71 대표 업무 데이터 snapshot의 upgrade 전후 보존 및 기존 CHECK false 유지의 직접 시험 근거 보완. 운영 checksum 전수 대조는 완료 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |
 | ATT-055 | 동시 확인/전환 | source 잠금·평가 current unique; a884ac1 Linux35679213890 PG.concurrentConfirmationsAllowOneWriterAndReturnConflictForStaleVersion·concurrentSameDraftRequestCreatesOneAnnouncement 통과(PG192/192·실패/생략0 XML 확인) | [~] | 최종 운영 세션의 동시 검수/DRAFT E2E 검증 |
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |

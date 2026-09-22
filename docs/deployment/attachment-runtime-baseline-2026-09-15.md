@@ -1,5 +1,12 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-09-22 배포 후 Flyway checksum 전수 대조
+
+- 승인 배포 `9a1bb45`/CodeDeploy `d-NCB2HF3YK`의 설치 JAR SHA256 `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`와 운영 migration 이력을 비교했다. JAR에 포함된 Flyway10.20.1의 UTF-8/BOM/개행 처리와 동일한 계산을 사용했고 실제 Flyway 계산기로 로컬80파일·인코딩5사례·비교 판정8사례를 먼저 검증했다.
+- 최신 버전 V83과 파일 수는 다르다. V2/V3/V5가 없는 파일80개와 이력80건의 version/script/type/success/checksum이 일치했다. 누락·추가·불일치·잘못된 항목0이며 전후 설치 JAR hash도 동일하다.
+- 명령: 로컬 `verify-migration-checksum.py` 및 읽기 전용 `Invoke-SanebAwsReadOnly.ps1 -Action MigrationIntegrity`. SSM `638ec0bb-b863-4bd0-a2b7-a87eb589f3c6` Success, READ ONLY·statement8초/lock2초·ROLLBACK·쓰기0이다. migrate/repair/설정 변경/재시작을 실행하지 않았다. 소유 임시 CA·전송 파일과 실행 프로세스는 정리했다.
+- 이는 migration 파일/이력 무결성 근거다. 전체 업무 데이터·전체 schema drift·첨부 상시 worker·정책 활성화·운영 브라우저 완료로 확대하지 않는다. ATT-053의 기존 데이터 보존 직접 시험 근거 보완과 전체 Gate는 남는다.
+
 ## 2026-09-22 14:46 KST 승인된 코드 재배포 완료
 
 **Decision: Not ready — 전체 첨부 서비스 활성화 기준. 승인된 코드 설치·재시작·읽기 전용 검증은 완료했다.** 아래 과거 재배포 승인 대기는 이번 코드 범위에 한해 해소됐다. 정책 게시·ENFORCE·기존 데이터 적용 및 옥천 서버 QA까지 승인된 것은 아니다.

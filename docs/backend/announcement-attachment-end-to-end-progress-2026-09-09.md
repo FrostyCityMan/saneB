@@ -11,6 +11,12 @@
 
 ## 기준선
 
+### 2026-09-22 운영 checksum 검증 완료 / ATT-053 잔여 분리
+
+- 승인된 코드 배포 이후 읽기 전용 SSM `638ec0bb-b863-4bd0-a2b7-a87eb589f3c6`으로 설치 JAR와 운영 Flyway 이력을 대조했다. V83까지 실제80파일/이력80건 checksum 일치·누락/추가/불일치0, READ ONLY/ROLLBACK/쓰기0이다. 파일 수를 버전 번호83으로 가정한 로컬 준비 assertion은 서버 요청 전에 수정했다. 실제 Flyway10.20.1 기준80파일·인코딩5사례·비교 판정8사례를 검증한 뒤 실행했다.
+- 동일 SHA Linux35681482535의 순차 upgrade/빈 DB 시험 통과도 재확인했다. ATT-053의 운영 checksum 미확인 사유는 해소했으나 V71 대표 업무 데이터 snapshot 보존과 CHECK false 유지의 직접 시험 근거는 보완 대상이므로 해당 행은 부분 완료다. 상세는 [추적표](announcement-attachment-qa-trace-2026-09-10.md)와 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)을 따른다.
+- 코드·migration·운영 데이터/설정 변경은 없고 정책/worker 활성화·ENFORCE·기존 데이터 배치·옥천 QA는 실행하지 않았다. 이번 범위의 브라우저 검증은 정책상 미실행이다. 전체 Gate 8진행/1차단 및 Not ready를 유지한다. 사용자 output을 보존하고 소유 실행 프로세스·임시 인증/전송 파일을 정리했다.
+
 ### 2026-09-22 14:46 KST 사용자 승인 후 9a1bb45 코드 운영 반영
 
 - 사용자가 지정 SHA/추출기1.0.3 코드 재배포를 승인했고 AWS 로그인 갱신을 완료했다. [배포35691586461](https://github.com/FrostyCityMan/saneB/actions/runs/35691586461)/CodeDeploy `d-NCB2HF3YK` Succeeded, 실제 revision `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`를 확인했다. 고정 배포 ref `codex/redeploy-9a1bb45-20260922`를 사용했으며 main/작업 브랜치 재설정은 없다.
