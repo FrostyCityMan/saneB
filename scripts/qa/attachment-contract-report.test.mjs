@@ -63,7 +63,11 @@ test('DB 성공만으로 설치 격리 실행의 누락·생략을 통과 처리
     assert.throws(() => checkRequiredReports(root, start), /attachmentRuntimeIntegrationTest/);
     save(reports[3], { skipped: '1' });
     assert.throws(() => checkRequiredReports(root, start), /생략/);
-    save(reports[3]);
+    for (const tests of ['1', '2', '3']) {
+      save(reports[3], { tests });
+      assert.throws(() => checkRequiredReports(root, start), /attachmentRuntimeIntegrationTest: 필수 테스트 일부가 실행되지/);
+    }
+    save(reports[3], { tests: '4' });
     assert.throws(() => checkRequiredReports(root, start), /attachmentWorkerIntegrationTest/);
     save(reports[4], { skipped: '1' });
     assert.throws(() => checkRequiredReports(root, start), /생략/);

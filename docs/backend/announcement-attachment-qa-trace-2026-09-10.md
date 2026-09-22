@@ -145,9 +145,9 @@
 | ATT-022 | redirect allowlist 재검증 | D.redirectRevalidatesPathBeforeDnsOrSecondHttp; D.postRedirectNeverForwardsFileNamesOrParametersToAnotherEndpoint | [~] | 기관별 GET redirect 실제 연결·host lease 교체 |
 | ATT-023 | SSRF/DNS 재바인딩 방어 | AttachmentPinnedDownloadClientTest; D.stalledDnsTimesOutWithoutStartingHttpAndResolverExits | [~] | Linux 실제 pinned transport/사설망 canary |
 | ATT-024 | 파일/스트리밍/누적 예산 | D.reservesBytesBeforeReadingAndKeepsActualBytesSeparate; D.deniedBudgetReadsNoBytesAndDeletesOnlyNewPartialFile; PG.att024And060…; T.att024… | [~] | 최신 PG + 실제 20/80 MiB 경계 |
-| ATT-025 | 압축 폭탄과 앱 생존 | D.compressedOrOverLimitResponsesAreRejectedBeforeReading; X.archiveBombIsRejected | [~] | HWP record bomb·Linux OOM/주 JVM 생존 |
+| ATT-025 | 압축 폭탄과 앱 생존 | D.compressedOrOverLimitResponsesAreRejectedBeforeReading; X.archiveBombIsRejected; Runtime.childHeapExhaustionLeavesParentAliveAndOwnedOriginalsRemoved 추가(실제 Linux 대기) | [~] | HWP record bomb·새 Linux heap 한도/부모 JVM 재개 시험 결과·최종 운영 검증 |
 | ATT-026 | XXE/ZIP 경로 이탈 | X.hwpxDtdAndExternalEntityAreRejected; X.zipTraversalIsRejectedWithoutCreatingFiles; Runtime AR-008/009 CORRUPT·원본 정리 검사 | [~] | 실제 Linux 실행·canary 읽기/외부 요청 0 |
-| ATT-027 | timeout/OOM/프로세스 종료 정리 | I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation; W.failedSaveNeverLeavesOriginalFiles; T.att038… | [~] | 실제 Linux timeout/OOM/프로세스 트리 종료 |
+| ATT-027 | timeout/OOM/프로세스 종료 정리 | I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation; W.failedSaveNeverLeavesOriginalFiles; T.att038…; Runtime.actualThirtySecondTimeoutKillsObservedChildTreeAndReleasesOwnedOriginal 추가(실제 Linux 대기) | [~] | 새 Linux 실제30초 timeout/관측 자식 종료·소유 원본 정리 결과 및 최종 운영 환경 대조 |
 | ATT-028 | 매크로/embedded/JS 비실행 | S.arbitraryJavascriptAndTraversalAreNeverExecutedOrRequested; I.processCommandRequiresNetworkPidFilesystemAndMemoryIsolation | [~] | 매크로/embedded 파일 실표본 |
 | ATT-029 | 동일 키 멱등 | PG.att029And030…; PG.att029SimultaneousSameKeyReturnsExactlyOneJob; PG.att029CompletedEvaluation…; Role/Retry/CollectionService 동일 actor/key/정규화 요청 | [~] | 최신 PG 재실행·정책/배치 API |
 | ATT-030 | 같은 키 다른 요청 409 | PG.att029And030ReserveIdempotentlyWithoutChangingBaseOrAllowingDifferentRequests; CollectionService 다른 actor/body/key 충돌 및 HTTP 409 | [~] | 최신 PG·정책/배치 API |

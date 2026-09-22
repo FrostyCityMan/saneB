@@ -10,6 +10,13 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 class IsolatedAttachmentExtractorTest {
+    @Test void syntheticResourceFaultProbeCompilesWithoutApplicationClasses(@TempDir Path root) throws Exception {
+        Path distribution=AttachmentRuntimeGateIntegrationTest.selectFaultDistribution(root);
+        try(var archive=new java.util.jar.JarFile(distribution.resolve("lib/canary.jar").toFile())) {
+            assertThat(archive.stream().map(java.util.jar.JarEntry::getName).toList())
+                    .containsExactly("com/saneb/extractor/AttachmentExtractorMain.class");
+        }
+    }
     @Test void syntheticSandboxProbeCompilesWithoutProductionOrThirdPartyClasses(@TempDir Path root) throws Exception {
         Path distribution=AttachmentRuntimeGateIntegrationTest.selectCanaryDistribution(root);
         try(var archive=new java.util.jar.JarFile(distribution.resolve("lib/canary.jar").toFile())) {

@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-22 ATT-025/027 실제 Linux 자원 실패 검증 추가
+
+- 이전 회차는 옥천 실행기와23a7139 Linux 계약 검증을 완료한 진척이다. 이후 승인 경계와 ATT62의 남은 항목을 대조했고, 운영/외부 HTTP 없이 검증 가능한 실제 추출기 자원 실패 경로를 보완했다. 서버 QA·취소된 배포 재개는 승인 대기를 유지하며 main/migration/규칙/운영 설정은 변경하지 않았다.
+- 전용 runtime task에2시험을 추가했다. 실제 production launcher의128MiB 자식 heap에서256MiB 단일 할당 실패를 관측하고, 비정상 종료가 FAILED로 반환된 뒤 부모 시험 JVM의 다음 추출 성공·소유 원본 정리를 검증한다. 다른 시험은 격리 내부에서 시작한 고유 표식 자식 JVM을 호스트에서 관측한 후 실제30초 TIMEOUT·그 자식 종료·임시 작업 폴더 정리·다음 추출 재개를 요구한다. 실패 시에도 자기 표식 자식과 호출 스레드만 정리한다.
+- 테스트용 무의존 JAR로 launcher의 OS 경계를 검증하는 것이며 실제 HWP record bomb/모든 악성 parser 입력·운영 JVM 생존 증거는 아니다. 기존12형식 fixture·망/파일/환경 canary도 보존했다. 보고서 검사기는 runtime 최소4건과 실패/생략0을 요구하도록 강화했다.
+- 로컬 표적23건=22통과/Windows에서 Linux 전용1생략,23초 성공이다. 새 합성 JAR 컴파일과 기존 workflow 계약을 확인했으며 실제 Linux 신규2시험을 실행한 결과는 아니다. Node 보고서 판정10건은 실패/생략0이다. 새 SHA Linux 실행 결과를 별도 확인한다. 사용한 로컬 Java/Node 작업은 종료됐고 사용자 output은 보존했다.
+
 ### 2026-09-22 옥천 고정3건 임시 QA 실행기 로컬 준비
 
 - 후속 [Linux35677829436](https://github.com/FrostyCityMan/saneB/actions/runs/35677829436), SHA `23a71394acac9c111d7b17b67e059e8e9d34456e`는 최종 success다. root2765=2498통과/267조건부 생략/실패·오류0, 신규 probe16건 통과다. 추출기88·패키징20·job192·migration17·runtime2·worker12·Flyway3·정책 부모2는 모두 실패/생략0이다. 독립PG221/221·실패/생략/미실행/container 실패0 및 독립/정책 환경 정리를 확인했다. root와 특수 suite의 중복을 고유 시험 수로 합산하지 않는다.
