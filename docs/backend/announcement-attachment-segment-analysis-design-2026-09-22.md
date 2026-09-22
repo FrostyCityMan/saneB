@@ -157,7 +157,9 @@ FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 
 - [x] `git diff --check`; 기존 V1~V83 변경 없음. `output/` 사용자 문서 변경 없음.
 - [x] 42f8cb5의 Linux35699149911 일반 PostgreSQL migration suite는 4/4 통과했다. 그러나 독립 namespace 실행은 222건 중 221통과/1실패, 정책 부모도 실패하여 CI 전체는 failure다.
 - [~] 실패 case hash를 새 구간 분석 DB 테스트로 특정했다. 계측 attach를 요구하는 Mockito 대신 무호출 시 실패하는 JDK proxy로 수정했으며 독립 실행 재검증 전 해결 완료로 보지 않는다.
-- [x] 로컬 `:attachmentMigrationTest`의 임시 PostgreSQL에서 migration4/4·기존 데이터 배치14/14, 실패/오류/생략0을 XML로 확인했다. V84 저장 분석 행을 유지한 V85 upgrade와 fresh schema도 포함한다. Docker 없이 이 경로를 사용할 수 있음을 직접 확인했다. Linux namespace 실행 증거와는 구분한다.
+- [x] 로컬 `:attachmentMigrationTest :attachmentJobIntegrationTest` 18분2초 성공. 임시 PostgreSQL migration4/4·기존 데이터 배치14/14·작업194/194, 실패/오류/생략0을 XML로 확인했다. V84 저장 분석 행을 유지한 V85 upgrade·fresh schema, 새 구간 worker 평가/근거 변조·사후 추가 거부/실패 파일 유지/cascade도 포함한다. Docker 없이 이 경로를 사용할 수 있음을 직접 확인했다. Linux namespace 실행 증거와는 구분한다.
+- [~] 코드6933ef3의 Linux35703442168 실행 중. 운영 DB 적용이나 독립 Linux QA 통과로 미리 간주하지 않는다.
+- [x] 연결 보완 후 대상9suite·218건 실패/오류/생략0 및 bootJar 성공(1분9초). 추출기 시험은 UP-TO-DATE 재사용이다. 수정 전 전체 로컬 준비 테스트4실패는 Mapper 등록 누락으로 보완했으며 전체 재실행은 새 Linux CI의 결과를 별도 확인한다.
 - [~] worker/manifest/V85 연결을 구현했고 전체 회귀에서 테스트용 Mapper 등록 누락을 발견해 보완했다. 정책 QA·UI 연결, PDF 구조 추출, 실제 파일 재검증, 운영 반영은 미완료다.
 - [ ] 브라우저 검증은 현재 요청에 대한 명시 지시가 없어 정책상 미실행이다.
 

@@ -17,7 +17,9 @@
 - [~] V85는 평가 입력과 match의 분석/구간 복합 FK, 동일 생성 transaction, 불변성, 전체 파일 분모, 실패/미확인 ACCEPTED 금지를 추가한다. 혼합 GUIDE/FORM, 참고 A/B, 실패 첨부 유지, 위조/사후 변경 거부, 원문 삭제 cascade 및 V84 분석 행 upgrade 보존 테스트를 추가했다. 실제 DB 및 전체 회귀 검증 중이다.
 - [!] 이전42f8cb5의 [Linux35699149911](https://github.com/FrostyCityMan/saneB/actions/runs/35699149911)은 failure다. 일반 PostgreSQL migration4/4는 통과했지만 독립 실행222건 중221통과/1실패이며 정책 부모도 실패했다. 실패 hash를 `segmentAnalysisBindsFullTextAndRejectsTamperingWithoutChangingFileRole`로 특정하고 테스트의 Mockito 계측 의존을 JDK 무호출 proxy로 교체했다. 격리 제한은 완화하지 않았다. 수정 후 독립 실행 통과 전 해소로 기록하지 않는다.
 - [~] 전체 로컬 회귀에서 테스트 환경의 Segment Mapper 등록 누락을 발견해 보완했다. Docker 부재와 별개인 EmbeddedPostgres 경로도 직접 검증한다. 이전의 Docker 기반 차단 사유를 임시 PostgreSQL 전체의 실행 불가로 확대하지 않는다.
-- [x] 로컬 `:attachmentMigrationTest` 결과 migration4/4·backfill14/14, 실패/오류/생략0을 확인했다. V84 분석 원본 행의 V85 upgrade 보존·fresh schema를 포함하며 Linux 격리 실행은 별도다. 작업 통합 suite는 아직 실행 중이다.
+- [x] 로컬 `:attachmentMigrationTest :attachmentJobIntegrationTest --no-daemon --max-workers=1` 18분2초 성공. migration4/4·backfill14/14·job194/194, 실패/오류/생략0을 XML로 확인했다. V84 분석 원본 행의 V85 upgrade 보존·fresh schema, 혼합 GUIDE/FORM 판정6.796초·실패 첨부 유지4.875초를 포함한다. 로컬 Windows 임시 PostgreSQL 성공이며 Linux namespace 검증과 구분한다.
+- [~] 코드 `6933ef3a32d37d6012b450e0a2830650214fcfda`를 QA 브랜치에 커밋·푸시하고 origin 동일 SHA를 확인했다. [Linux35703442168](https://github.com/FrostyCityMan/saneB/actions/runs/35703442168)은 실행 중이다. 이전 실패 실행은 보존하고 새 전체 회귀/독립 QA 성공으로 미리 기록하지 않는다.
+- [x] 수정 후 로컬 구간/엔진 호환/Mapper/정책 QA 차단/정적 migration 대상9suite·218건 실패/오류/생략0, bootJar 성공(1분9초). 추출기 시험은 변경 없어 UP-TO-DATE 재사용이다. 수정 전 전체 로컬 회귀의 준비 테스트4실패는 테스트 Mapper 등록 누락이며 실제 작업194건의 같은 Spring/MyBatis 환경 기동 통과로 보완을 확인했다. 전체 준비 사례 재실행은 새 Linux CI에서 확인한다. 본 작업의 로컬 Gradle·임시 PostgreSQL·단기 Node 명령은 종료했다.
 - [ ] 신규 엔진 정책 QA·관리자 표시·PDF 구조 추출·새 엔진 실파일 QA가 남는다. 정책 생성은 기존 엔진을 유지하며 새 엔진 게시 QA는 명시적 오류로 차단한다. 운영/정책/worker/기존 데이터/옥천 보류/브라우저 상태는 변경하지 않았다. 전체 Gate는 여전히8진행/1차단이다.
 
 ### 2026-09-22 사용자 승인: 파일 전체 역할에서 구간별 근거 분석으로 확장
