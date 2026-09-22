@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-22 9a1bb45 Linux HWP 실제 파서 검증 성공
+
+- [Linux35681482535](https://github.com/FrostyCityMan/saneB/actions/runs/35681482535), SHA `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`는 최종 success다. 전용 runtime5/5·실패/오류/생략0이며 `installedHwpParserRejectsRecordBombThenRecoversAndRemovesOriginals` 0.99초 통과를 XML로 확인했다. 실제 설치된 HWP parser가 비압축 OLE 20,000문단 경계를 처리하고 20,001문단을 LIMIT_EXCEEDED로 거부한 뒤 정상 HWP를 다시 처리했으며 각 소유 원본/작업 폴더를 정리했다. 앞선 af2ad8f 실패를 삭제하거나 성공으로 바꾸지 않는다.
+- 같은 runtime의 환경/파일/망 canary0.785초, 실제 자식 heap 제한/부모 재개0.279초, 기존12fixture2.92초, 실제30초 timeout/관측 자식 종료30.2초도 통과했다. 이는 Linux 합성 파일/격리 launcher 증거이며 운영 설치·OS OOM killer·모든 악성 파일·모든 Provider 실파일 지원을 입증하지 않는다.
+- root2769=2499통과/270조건부 생략/실패·오류0, 추출기90·패키징20·job192·migration17·worker12·Flyway3·정책 부모2는 모두 실패/오류/생략0이다. 독립PG221/221·실패/생략/미실행/container 실패0 및 독립/정책 임시 환경 정리 성공을 로그에서 확인했다. 중복 suite를 고유 테스트 수로 합산하지 않는다. XML은 `build/qa-results/run-35681482535-contracts/`에 보관했다.
+- 업무 코드 지문 `d49cb22d272b66bd5d10078d33f6f698ddb89bef53b48faa72a60cafa6096780`은 기존과 같다. 주 코드·migration·정책 기대값 변경 없이 검증 결함을 해소했다. 전체62요구/9Gate 중8진행·1차단은 유지한다. 옥천 서버 QA 보류와 별도 재배포 승인 대기는 해제하지 않았으며 운영/AWS/공식 사이트/브라우저를 새로 조회하거나 변경하지 않았다. CI 감시 프로세스는 종료됐고 사용자 output은 보존했다.
+
 ### 2026-09-22 af2ad8f Linux 실패 원인 및 ATT 추적표 정정
 
 - [Linux35680764020](https://github.com/FrostyCityMan/saneB/actions/runs/35680764020), SHA `af2ad8f5c82bc0bbfed68643b90d46e965939bd6`는 failure다. runtime5건 중 새 HWP 시험1건이 실패했다. 20,000 문단의 OCR_REQUIRED와 20,001 문단의 LIMIT_EXCEEDED assertion 뒤, 실제 실패 IPC의 `text:null`을 `asText()`로 읽어 문자열 `null`과 빈 문자열을 비교한 새 시험 오류다. `ExtractionResult.failure`의 기존 계약대로 JSON null·정확한 errorCode·빈 배열을 검사하도록 수정했다. 이후 정상 HWP 복구/정리 assertion은 이 실패 실행에서 도달하지 못했으므로 성공으로 보고하지 않는다.
@@ -580,7 +587,7 @@
 | 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 09-22 서울 태백 관측/고정 비교 성공·정상0/검수 유지. a884ac1 Linux35679213890 성공(root2499통과/269조건부 생략, runtime4·독립PG221/221·정책 부모2). ATT-059 격리 canary 및 ATT-025/027 자식 heap 한도·30초 timeout/관측 자식 종료 통과. 옥천 양성2건 본문·상세 timeout은 미해소이며 서울 추가 QA는 사용자 보류. 전체 Provider 정상/형식 기대값·부분 추출·접근 실패가 남음 |
+| 6 자동·실파일 QA | [!] | 09-22 서울 태백 관측/고정 비교 성공·정상0/검수 유지. 9a1bb45 Linux35681482535 성공(root2499통과/270조건부 생략, 추출기90·runtime5·독립PG221/221·정책 부모2). ATT-025 실제 HWP20,000/20,001 레코드 경계·제한 후 정상 추출/원본 정리0.99초 통과. 격리 canary·자식 heap·30초 timeout 회귀도 통과. 옥천 양성2건 본문·상세 timeout 미해소/서울 추가 QA 사용자 보류. 전체 Provider 정상/형식 기대값·부분 추출·접근 실패가 남음 |
 | 7 운영 배포·활성화 | [~] | 09-22 최신 STS/Runtime/DB SSM 성공: 인증사용가능·787c594·V83·추출기1.0.1·catalog24/기대값1·healthUP·첨부count0/worker비활성/외부key2종없음. 새1a19e63/추출기1.0.3 코드 재배포 재개 및 게시/ENFORCE/기존 데이터 정확한 범위 승인은 별도로 필요 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
 
