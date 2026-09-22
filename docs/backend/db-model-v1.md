@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 2026-09-22 구간 분석 확장: 로컬 저장소에 additive **V84**를 추가했다. `announcement_attachment_segment_analyses`는 봉인된 extraction에 결합한 불변 SHADOW 분석이며 기존 파일 역할·evaluation·정책을 변경하지 않는다. V84 실제 PostgreSQL 검증과 운영 반영은 아직 완료되지 않았다. 아래 V83 수치는 과거 검증 이력이다. [구간 분석 DB/API 상세 계약](announcement-attachment-segment-analysis-design-2026-09-22.md)을 따른다.
+
 > 첨부 DB 검증 기준(2026-09-16): 저장소의 최신 Flyway는 V83이다. `85c7f65`의 Linux35050057694에서 빈 DB·V71부터 V83까지 순차 업그레이드·기존 checksum·복합 FK·불변 이력·동시성 시험을 확인했다. 마지막 운영 DB 직접 확인은 **2026-09-15 16시대 V83/실패0**이며 현재 운영 재조회 결과가 아니다. 스키마 적용과 첨부 worker·정책 활성화는 구분한다. [계약 검증 근거](announcement-attachment-contract-evidence-2026-09-16.md), [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md), [장기 진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다. 기존 V26을 포함한 실제 컬럼과 제약의 source of truth는 Flyway다.
 
 작성일: 2026-05-14

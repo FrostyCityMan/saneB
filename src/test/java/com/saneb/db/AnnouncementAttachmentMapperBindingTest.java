@@ -16,6 +16,22 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** XML/namespace/parameter type 검증이다. 실제 PostgreSQL SQL/trigger 실행 성공을 뜻하지 않는다. */
 class AnnouncementAttachmentMapperBindingTest {
+    @Test void segmentAnalysisMapperBindsSourceAndVersionWithoutUpdatingExistingEvidence() {
+        String prefix="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.";
+        for(var method:com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class.getDeclaredMethods())
+            assertThat(configuration.hasStatement(prefix+method.getName())).as(method.getName()).isTrue();
+        var args=Map.of("sourceId",UUID.randomUUID(),"extractionId",UUID.randomUUID(),"analysisVersion","segment-role-1.0.0","rulesHash","a".repeat(64));
+        var input=configuration.getMappedStatement(prefix+"selectExtractionDetails").getBoundSql(args);
+        assertThat(input.getSql()).contains("aset.set_status_code='SEALED'","s.data_purpose_code='PRODUCTION'","b.is_current","x.source_id=? AND x.id=?","newer.attempt_no>x.attempt_no");
+        assertThat(input.getParameterMappings()).extracting(p->p.getProperty()).containsExactly("sourceId","extractionId");
+        var read=configuration.getMappedStatement(prefix+"selectAnalysisDetails").getBoundSql(args);
+        assertThat(read.getSql()).doesNotContain("INSERT", "UPDATE", "extracted_text", "SELECT *");
+        assertThat(read.getParameterMappings()).extracting(p->p.getProperty()).containsExactly("sourceId","extractionId","analysisVersion","rulesHash");
+        var command=new com.saneb.domain.announcementattachment.vo.AttachmentSegmentRows.Insert(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),"segment-role-1.0.0","a".repeat(64),"b".repeat(64),"c".repeat(64),"{}");
+        var insert=configuration.getMappedStatement(prefix+"insertAnalysis").getBoundSql(command);
+        assertThat(insert.getSql()).contains("ON CONFLICT (extraction_id,analysis_version,rules_hash) DO NOTHING").doesNotContain("UPDATE ", "announcement_source_snapshots", "announcement_source_attachment_files");
+        assertThat(insert.getParameterMappings()).hasSize(10).allSatisfy(p->assertThat(p.getTypeHandler()).isNotNull());
+    }
     @Test void conversionLinkUsesFlywayPublicCodeColumnWithoutChangingResponseAlias() {
         var bound=configuration.getMappedStatement("com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentReviewDao.selectConversionLinkDetails")
                 .getBoundSql(Map.of("sourceId",UUID.randomUUID()));

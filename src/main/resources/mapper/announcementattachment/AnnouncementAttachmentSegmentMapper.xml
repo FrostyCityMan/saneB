@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao">
+    <resultMap id="InputMap" type="com.saneb.domain.announcementattachment.vo.AttachmentSegmentRows$Input">
+        <constructor>
+            <arg column="source_id" javaType="java.util.UUID"/><arg column="set_id" javaType="java.util.UUID"/>
+            <arg column="file_id" javaType="java.util.UUID"/><arg column="extraction_id" javaType="java.util.UUID"/>
+            <arg column="quality_code" javaType="java.lang.String"/><arg column="extracted_text" javaType="java.lang.String"/>
+            <arg column="blocks_json" javaType="java.lang.String"/><arg column="page_count" javaType="java.lang.Integer"/>
+            <arg column="document_role_code" javaType="java.lang.String"/><arg column="role_origin_code" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+    <select id="selectExtractionDetails" resultMap="InputMap" useCache="false" flushCache="true">
+        -- 원문/source 결합과 봉인된 최신 시도만 읽는다. 제목 제외 및 QA 목적 원문은 운영 분석 API에 노출하지 않는다.
+        SELECT x.source_id,x.set_id,x.file_id,x.id AS extraction_id,x.quality_code,x.extracted_text,
+               x.blocks_json::text AS blocks_json,x.page_count,f.document_role_code,f.role_origin_code
+        FROM announcement_source_attachment_extractions x
+        JOIN announcement_source_attachment_files f ON f.id=x.file_id AND f.set_id=x.set_id AND f.source_id=x.source_id
+        JOIN announcement_source_attachment_sets aset ON aset.id=x.set_id AND aset.source_id=x.source_id AND aset.set_status_code='SEALED'
+        JOIN announcement_source_snapshots s ON s.id=x.source_id AND s.data_purpose_code='PRODUCTION'
+        JOIN announcement_source_classification_evaluations b ON b.source_id=s.id AND b.is_current
+            AND b.title_stage_code IN ('COMBINATION_MATCHED','GROUP_A_MATCHED') AND b.decision_status_code&lt;&gt;'EXCLUDED'
+        WHERE x.source_id=#{sourceId} AND x.id=#{extractionId}
+            AND NOT EXISTS (SELECT 1 FROM announcement_source_attachment_extractions newer
+                WHERE newer.file_id=x.file_id AND newer.attempt_no&gt;x.attempt_no)
+    </select>
+    <resultMap id="StoredMap" type="com.saneb.domain.announcementattachment.vo.AttachmentSegmentRows$Stored">
+        <constructor>
+            <arg column="id" javaType="java.util.UUID"/><arg column="source_id" javaType="java.util.UUID"/>
+            <arg column="set_id" javaType="java.util.UUID"/><arg column="file_id" javaType="java.util.UUID"/>
+            <arg column="extraction_id" javaType="java.util.UUID"/><arg column="analysis_json" javaType="java.lang.String"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <select id="selectAnalysisDetails" resultMap="StoredMap" useCache="false" flushCache="true">
+        -- 현재 분석기 버전의 저장 이력만 조회한다. GET은 분석을 생성하지 않는다.
+        SELECT id,source_id,set_id,file_id,extraction_id,analysis_json::text AS analysis_json,created_at
+        FROM announcement_attachment_segment_analyses
+        WHERE source_id=#{sourceId} AND extraction_id=#{extractionId} AND analysis_version=#{analysisVersion} AND rules_hash=#{rulesHash}
+    </select>
+    <insert id="insertAnalysis">
+        -- 동일 추출/버전 재요청은 불변 결과를 재사용한다. 기존 evaluation/role/current pointer는 수정하지 않는다.
+        INSERT INTO announcement_attachment_segment_analyses
+            (id,source_id,set_id,file_id,extraction_id,analysis_version,rules_hash,text_hash,blocks_hash,analysis_json)
+        VALUES (#{id},#{sourceId},#{setId},#{fileId},#{extractionId},#{analysisVersion},#{rulesHash},#{textHash},#{blocksHash},CAST(#{analysisJson} AS jsonb))
+        ON CONFLICT (extraction_id,analysis_version,rules_hash) DO NOTHING
+    </insert>
+</mapper>

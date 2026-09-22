@@ -20,6 +20,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void segmentEvidenceIsAdditiveBoundAndCannotMutateExistingDecisions() throws IOException {
+        var sql=new ClassPathResource("db/migration/V84__add_attachment_segment_analysis_evidence.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("CREATE TABLE announcement_attachment_segment_analyses", "fk_att_segment_extraction", "uq_att_segment_version",
+                "ON DELETE CASCADE", "attachment_role_blocks_hash(blocks)", "start_pos<>previous_end", "previous_end<>total",
+                "tr_att_segment_validate", "tr_att_segment_immutable", "NOT EXISTS (SELECT 1 FROM announcement_source_snapshots WHERE id=OLD.source_id)",
+                "attachment segment unreliable scope promoted", "ERRCODE='23514'");
+        assertThat(sql).doesNotContain("ALTER TABLE", "UPDATE announcement_source", "INSERT INTO announcement_attachment_policies", "DROP ", "DISABLE TRIGGER");
+    }
     @Test void backfillMembershipUsesExactOrderedTuplesWithoutRemovingDeferredGuards() throws IOException {
         var sql=new ClassPathResource("db/migration/V83__compare_backfill_batch_membership_as_ordered_sets.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("CREATE OR REPLACE FUNCTION check_attachment_backfill_segment_batch()", "ORDER BY j.source_id,j.content_version_id,j.base_evaluation_id,j.rule_release_id,j.frozen_provider_code",

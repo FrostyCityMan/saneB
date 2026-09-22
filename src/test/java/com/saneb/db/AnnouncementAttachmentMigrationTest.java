@@ -11,6 +11,89 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @EnabledIfEnvironmentVariable(named="SANEB_ATTACHMENT_MIGRATION_TEST",matches="true")
 class AnnouncementAttachmentMigrationTest {
+    @Test void segmentAnalysisBindsFullTextAndRejectsTamperingWithoutChangingFileRole() throws Exception {
+        try (var pg=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start()) {
+            var ds=pg.getPostgresDatabase();
+            Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+            var sql=new org.springframework.jdbc.core.JdbcTemplate(ds);
+            var json=new com.fasterxml.jackson.databind.ObjectMapper();
+            UUID actor=UUID.randomUUID(),source=UUID.randomUUID(),content=UUID.randomUUID(),policy=UUID.randomUUID();
+            UUID set=UUID.randomUUID(),file=UUID.randomUUID(),extraction=UUID.randomUUID();
+            UUID release=sql.queryForObject("SELECT id FROM announcement_source_classification_rule_releases ORDER BY version_no LIMIT 1",UUID.class);
+            sql.update("INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,'segment-probe','unused-fixture-hash','합성 구간 QA','ACTIVE',false)",actor);
+            sql.update("INSERT INTO announcement_source_snapshots(id,provider_code,title,raw_hash) VALUES (?,'BIZINFO','합성 구간 검증',repeat('a',64))",source);
+            sql.update("INSERT INTO announcement_source_content_versions(id,source_id,raw_hash,title,body_source_code,body_availability_code,collected_at) VALUES (?,?,repeat('a',64),'합성 구간 검증','NONE','UNAVAILABLE',now())",content,source);
+            sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,mode_code,rule_release_id,settings_json,profile_manifest_json,created_by) VALUES (?,'segment-probe',1,'COLLECT_ONLY',?,'{}','[]',?)",policy,release,actor);
+            sql.update("INSERT INTO announcement_source_attachment_sets(id,source_id,content_version_id,policy_id,data_purpose_code,profile_hash) VALUES (?,?,?,?,'PRODUCTION',repeat('b',64))",set,source,content,policy);
+            sql.update("INSERT INTO announcement_source_attachment_files(id,set_id,source_id,stable_locator_hash,safe_locator_json,sort_order,download_status_code,downloaded_bytes,binary_hash) VALUES (?,?,?,repeat('c',64),'{}',0,'SUCCEEDED',100,repeat('d',64))",file,set,source);
+            String text="😀 사업 지원 안내\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)";
+            var blocks=java.util.List.of(new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Block(0,0,text.codePointCount(0,text.length()),"p:0",true,"p:0"));
+            var analysis=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer().selectAnalysis(
+                    new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,blocks,1,1));
+            sql.update("INSERT INTO announcement_source_attachment_extractions(id,file_id,set_id,source_id,attempt_no,extractor_code,extractor_version,extractor_config_hash,quality_code,extracted_text,text_hash,blocks_json,character_count,duration_ms) VALUES (?,?,?,?,1,'HWPX','1.0.3',repeat('f',64),'COMPLETE_TEXT',?,encode(digest(?,'sha256'),'hex'),CAST(? AS jsonb),char_length(?),1)",extraction,file,set,source,text,text,json.writeValueAsString(blocks),text);
+            String insert="INSERT INTO announcement_attachment_segment_analyses(extraction_id,file_id,set_id,source_id,analysis_version,rules_hash,text_hash,blocks_hash,analysis_json) VALUES (?,?,?,?,?,?,?,?,CAST(? AS jsonb))";
+            String valid=json.writeValueAsString(analysis);
+            assertThatThrownBy(()->sql.update(insert,extraction,file,set,source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid))
+                    .hasRootCauseInstanceOf(SQLException.class);
+            sql.update("UPDATE announcement_source_attachment_sets SET set_status_code='SEALED',discovery_status_code='FOUND',is_discovery_complete=true,discovered_count=1,processed_count=1,manifest_hash=repeat('e',64),sealed_at=now() WHERE id=?",set);
+            // 유일성 위반에 기대지 않고 각 위조 입력을 먼저 거부하는지 검증한다.
+            for (String mutation:java.util.List.of("hash","gap","overlap","end","role","evidence","raw","source","file")) {
+                var value=(com.fasterxml.jackson.databind.node.ObjectNode)json.readTree(valid);
+                var first=(com.fasterxml.jackson.databind.node.ObjectNode)value.path("segments").get(0);
+                var second=(com.fasterxml.jackson.databind.node.ObjectNode)value.path("segments").get(1);
+                switch(mutation) {
+                    case "hash" -> value.put("textHash","0".repeat(64));
+                    case "gap" -> second.put("startOffset",second.path("startOffset").asInt()+1);
+                    case "overlap" -> second.put("startOffset",second.path("startOffset").asInt()-1);
+                    case "end" -> second.put("endOffset",analysis.textLength()-1);
+                    case "role" -> first.put("roleCode","UNKNOWN");
+                    case "evidence" -> ((com.fasterxml.jackson.databind.node.ObjectNode)first.path("evidence").get(0)).put("endOffset",analysis.textLength()+1);
+                    case "raw" -> value.put("rawText","SYNTHETIC_CANARY");
+                    default -> { }
+                }
+                assertThatThrownBy(()->sql.update(insert,extraction,mutation.equals("file")?UUID.randomUUID():file,set,
+                        mutation.equals("source")?UUID.randomUUID():source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),value.toString()))
+                        .as("구간 위조 거부: %s",mutation).hasRootCauseInstanceOf(SQLException.class);
+            }
+            assertThat(sql.update(insert,extraction,file,set,source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid)).isEqualTo(1);
+            var configuration=new org.apache.ibatis.session.Configuration(new org.apache.ibatis.mapping.Environment("segment-qa",
+                    new org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory(),ds));
+            configuration.getTypeHandlerRegistry().register(UUID.class,com.saneb.config.typehandler.UuidTypeHandler.class);
+            var resource=new org.springframework.core.io.ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentSegmentMapper.xml");
+            try(var stream=resource.getInputStream()) {
+                new org.apache.ibatis.builder.xml.XMLMapperBuilder(stream,configuration,resource.getPath(),configuration.getSqlFragments()).parse();
+            }
+            try(var session=new org.apache.ibatis.session.SqlSessionFactoryBuilder().build(configuration).openSession(true)) {
+                var mapper=session.getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class);
+                var saved=mapper.selectAnalysisDetails(source,extraction,analysis.analysisVersion(),analysis.rulesHash());
+                assertThat(saved.extractionId()).isEqualTo(extraction);
+                assertThat(json.readTree(saved.analysisJson())).isEqualTo(json.readTree(valid));
+                assertThat(mapper.selectAnalysisDetails(UUID.randomUUID(),extraction,analysis.analysisVersion(),analysis.rulesHash())).isNull();
+                assertThat(mapper.insertAnalysis(new com.saneb.domain.announcementattachment.vo.AttachmentSegmentRows.Insert(UUID.randomUUID(),source,set,file,extraction,
+                        analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid))).isZero();
+                // 현재 제목 통과 평가가 없는 원문은 SHADOW 분석 운영 API에도 노출하지 않는다.
+                assertThat(mapper.selectExtractionDetails(source,extraction)).isNull();
+                sql.update("INSERT INTO announcement_source_classification_evaluations(source_id,content_version_id,rule_release_id,engine_version,body_source_code,body_availability_code,title_stage_code,body_stage_code,decision_status_code,reason_code) VALUES (?,?,?,'segment-fixture','NONE','UNAVAILABLE','COMBINATION_MATCHED','UNAVAILABLE','REVIEW_REQUIRED','BODY_UNAVAILABLE')",source,content,release);
+                var input=mapper.selectExtractionDetails(source,extraction);
+                assertThat(input.extractedText()).isEqualTo(text);
+                assertThat(input.fileId()).isEqualTo(file);
+                var audits=org.mockito.Mockito.mock(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class);
+                var service=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(mapper,audits,json);
+                var response=service.selectAnalysisDetails(source,extraction);
+                assertThat(response.analysis()).isEqualTo(analysis);
+                assertThat(response.applicationMode()).isEqualTo("SHADOW");
+                org.mockito.Mockito.verifyNoInteractions(audits);
+            }
+            assertThatThrownBy(()->sql.update(insert,extraction,file,set,source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid)).hasRootCauseInstanceOf(SQLException.class);
+            assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_segment_analyses SET analysis_json=analysis_json WHERE extraction_id=?",extraction)).hasRootCauseInstanceOf(SQLException.class);
+            assertThatThrownBy(()->sql.update("DELETE FROM announcement_attachment_segment_analyses WHERE extraction_id=?",extraction)).hasRootCauseInstanceOf(SQLException.class);
+            assertThat(sql.queryForObject("SELECT document_role_code FROM announcement_source_attachment_files WHERE id=?",String.class,file)).isEqualTo("UNKNOWN");
+            assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluations WHERE source_id=?",Integer.class,source)).isZero();
+            // 기존 원문 삭제의 cascade는 새로운 분석 행 때문에 차단되면 안 된다.
+            sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",source);
+            assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source)).isZero();
+        }
+    }
     @Test void textRoleEvidenceRejectsForgedHashesPositionsVersionsAndPreservesCodePointBinding() throws Exception {
         try(var pg=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start()) {
             var ds=pg.getPostgresDatabase();Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
@@ -200,6 +283,9 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('check_attachment_backfill_segment_batch'::regproc)",String.class))
                     .contains("jsonb_agg","IS DISTINCT FROM","frozen_provider_code");
             assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('ct_att_backfill_segment_batch','ct_att_backfill_marked_batch','ct_att_backfill_fixed_job') AND tgdeferrable AND tginitdeferred AND tgenabled='O'",Integer.class)).isEqualTo(3);
+            var segmentUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("84").load();
+            assertThat(segmentUpgrade.migrate().migrationsExecuted).isEqualTo(1);segmentUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses",Integer.class)).isZero();
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {

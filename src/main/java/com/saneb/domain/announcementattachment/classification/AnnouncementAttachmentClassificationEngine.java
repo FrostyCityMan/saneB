@@ -8,6 +8,7 @@ import com.saneb.domain.announcementsource.classification.AnnouncementSourceClas
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,8 +29,14 @@ public final class AnnouncementAttachmentClassificationEngine {
             AnnouncementSourceClassificationMatch keyword, String action) { }
     public record Decision(String status, String reason, List<String> warnings, List<String> targetCodes,
             List<String> supportCodes, List<Match> matches) { }
+    record RoleScope(Block block, String role) { }
 
     public Decision selectDecision(Input input) {
+        return selectDecision(input, Map.of());
+    }
+
+    // 구간 엔진은 별도 버전/전체 원문 검증 후에만 이 경로를 호출한다. 기존 공개 진입점은 파일 역할 그대로다.
+    Decision selectDecision(Input input, Map<UUID, List<RoleScope>> segmentedScopes) {
         if (input.files().size()>10) throw new IllegalArgumentException("첨부파일은 공고당 최대 10개까지 판정할 수 있습니다.");
         if (input.base().semanticStatusCode() == SemanticStatusCode.EXCLUDED
                 || !Set.of(TitleStageCode.GROUP_A_MATCHED, TitleStageCode.COMBINATION_MATCHED).contains(input.base().titleStageCode()))
@@ -59,8 +66,9 @@ public final class AnnouncementAttachmentClassificationEngine {
         for (FileInput file : input.files()) {
             if (!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(file.role()))
                 throw new IllegalArgumentException("지원하지 않는 첨부 문서 역할입니다.");
-            boolean primary = Set.of("NOTICE","GUIDE").contains(file.role());
-            if ("UNKNOWN".equals(file.role())) { context = true; warnings.add("ATTACHMENT_ROLE_UNKNOWN"); }
+            if ((segmentedScopes.isEmpty() || !segmentedScopes.containsKey(file.fileId())) && "UNKNOWN".equals(file.role())) {
+                context = true; warnings.add("ATTACHMENT_ROLE_UNKNOWN");
+            }
             if (!"COMPLETE_TEXT".equals(file.quality()) || file.text() == null || file.text().isBlank()) {
                 incomplete = true;
                 warnings.add(file.errorCode() == null ? "ATTACHMENT_TEXT_INCOMPLETE" : file.errorCode());
@@ -70,7 +78,14 @@ public final class AnnouncementAttachmentClassificationEngine {
             if (total>1_000_000 || file.blocks().size()>20000) throw new IllegalArgumentException("첨부 근거 처리 한도를 초과했습니다.");
             int previousEnd = 0;
             Set<String> scopes = new LinkedHashSet<>();
-            for (Block block : file.blocks()) {
+            var fileScopes = segmentedScopes.isEmpty() ? null : segmentedScopes.get(file.fileId());
+            if (fileScopes == null) fileScopes = file.blocks().stream().map(block -> new RoleScope(block, file.role())).toList();
+            for (RoleScope roleScope : fileScopes) {
+                Block block = roleScope.block();
+                if (!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(roleScope.role()))
+                    throw new IllegalArgumentException("지원하지 않는 첨부 구간 역할입니다.");
+                boolean primary = Set.of("NOTICE","GUIDE").contains(roleScope.role());
+                if ("UNKNOWN".equals(roleScope.role())) { context = true; warnings.add("ATTACHMENT_ROLE_UNKNOWN"); }
                 if (block.startOffset() < previousEnd || block.endOffset() <= block.startOffset()
                         || block.endOffset() > total || block.evidenceScopeId() == null
                         || !scopes.add(block.evidenceScopeId())) throw new IllegalArgumentException("첨부 근거 위치가 올바르지 않습니다.");
