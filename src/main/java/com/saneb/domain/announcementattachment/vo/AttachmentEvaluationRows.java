@@ -11,7 +11,11 @@ public final class AttachmentEvaluationRows {
                        String status, String reason, String titleStage, String bodyStage,
                        String bodySource, String bodyAvailability) { }
     public record File(UUID fileId, UUID extractionId, String role, String downloadStatus,
-                       String quality, String text, String blocksJson, String errorCode) { }
+                       String quality, String text, String blocksJson, String errorCode, String roleOrigin) {
+        public File(UUID fileId, UUID extractionId, String role, String downloadStatus, String quality, String text, String blocksJson, String errorCode) {
+            this(fileId,extractionId,role,downloadStatus,quality,text,blocksJson,errorCode,"UNKNOWN");
+        }
+    }
     public record Evaluation(UUID evaluationId, UUID sourceId, UUID baseEvaluationId, UUID setId,
                              UUID policyId, UUID ruleReleaseId, String engineVersion,
                              String inputHash, String decisionHash, String status, String reason,

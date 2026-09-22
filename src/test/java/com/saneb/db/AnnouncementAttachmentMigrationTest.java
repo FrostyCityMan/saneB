@@ -14,7 +14,7 @@ class AnnouncementAttachmentMigrationTest {
     @Test void segmentAnalysisBindsFullTextAndRejectsTamperingWithoutChangingFileRole() throws Exception {
         try (var pg=EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses","127.0.0.1").start()) {
             var ds=pg.getPostgresDatabase();
-            Flyway.configure().dataSource(ds).locations("classpath:db/migration").load().migrate();
+            Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("84").load().migrate();
             var sql=new org.springframework.jdbc.core.JdbcTemplate(ds);
             var json=new com.fasterxml.jackson.databind.ObjectMapper();
             UUID actor=UUID.randomUUID(),source=UUID.randomUUID(),content=UUID.randomUUID(),policy=UUID.randomUUID();
@@ -56,6 +56,10 @@ class AnnouncementAttachmentMigrationTest {
                         .as("구간 위조 거부: %s",mutation).hasRootCauseInstanceOf(SQLException.class);
             }
             assertThat(sql.update(insert,extraction,file,set,source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid)).isEqualTo(1);
+            String priorAnalysis=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcement_attachment_segment_analyses a WHERE extraction_id=?",String.class,extraction);
+            var bindingUpgrade=Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("85").load();
+            assertThat(bindingUpgrade.migrate().migrationsExecuted).isEqualTo(1);bindingUpgrade.validate();
+            assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcement_attachment_segment_analyses a WHERE extraction_id=?",String.class,extraction)).isEqualTo(priorAnalysis);
             var configuration=new org.apache.ibatis.session.Configuration(new org.apache.ibatis.mapping.Environment("segment-qa",
                     new org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory(),ds));
             configuration.getTypeHandlerRegistry().register(UUID.class,com.saneb.config.typehandler.UuidTypeHandler.class);
@@ -77,12 +81,15 @@ class AnnouncementAttachmentMigrationTest {
                 var input=mapper.selectExtractionDetails(source,extraction);
                 assertThat(input.extractedText()).isEqualTo(text);
                 assertThat(input.fileId()).isEqualTo(file);
-                var audits=org.mockito.Mockito.mock(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class);
+                // 독립 namespace QA에는 JVM attach/계측 권한이 없다. 조회의 무호출 계약은 JDK proxy로 검증한다.
+                var audits=(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao)java.lang.reflect.Proxy.newProxyInstance(
+                        com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class.getClassLoader(),
+                        new Class<?>[]{com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class},
+                        (proxy,method,args)->{ throw new AssertionError("조회 중 감사 DAO 호출 금지: "+method.getName()); });
                 var service=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(mapper,audits,json);
                 var response=service.selectAnalysisDetails(source,extraction);
                 assertThat(response.analysis()).isEqualTo(analysis);
                 assertThat(response.applicationMode()).isEqualTo("SHADOW");
-                org.mockito.Mockito.verifyNoInteractions(audits);
             }
             assertThatThrownBy(()->sql.update(insert,extraction,file,set,source,analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),valid)).hasRootCauseInstanceOf(SQLException.class);
             assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_segment_analyses SET analysis_json=analysis_json WHERE extraction_id=?",extraction)).hasRootCauseInstanceOf(SQLException.class);
@@ -286,6 +293,10 @@ class AnnouncementAttachmentMigrationTest {
             var segmentUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("84").load();
             assertThat(segmentUpgrade.migrate().migrationsExecuted).isEqualTo(1);segmentUpgrade.validate();
             assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses",Integer.class)).isZero();
+            var segmentBindingUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("85").load();
+            assertThat(segmentBindingUpgrade.migrate().migrationsExecuted).isEqualTo(1);segmentBindingUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname='ct_att_segment_evaluation' AND tgdeferrable AND tginitdeferred AND tgenabled='O'",Integer.class)).isEqualTo(1);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.columns WHERE table_schema='public' AND table_name IN ('announcement_source_attachment_evaluation_inputs','announcement_source_attachment_matches') AND column_name='segment_analysis_id'",Integer.class)).isEqualTo(2);
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {

@@ -78,6 +78,14 @@ class AttachmentSegmentClassificationEngineTest {
         var forged = new AttachmentSegmentClassificationEngine.FileEvidence(fixture.file().fileId(), fixture.file().extractionId(), "TEXT_RULE", altered, fixture.evidence().analysis());
         assertThatIllegalArgumentException().isThrownBy(() -> engine.selectDecision(selectInput(null, List.of(fixture)), List.of(forged)));
     }
+    @Test void fileWithoutExtractionIsNotOmittedOrReportedAsAccepted() {
+        var normal=selectFixture(GUIDE+"\n"+FORM,"UNKNOWN","UNKNOWN","COMPLETE_TEXT");
+        var failed=new AnnouncementAttachmentClassificationEngine.FileInput(UUID.randomUUID(),null,"UNKNOWN","FAILED",null,List.of(),"NETWORK_UNAVAILABLE");
+        var failedEvidence=new AttachmentSegmentClassificationEngine.FileEvidence(failed.fileId(),null,"UNKNOWN",null,null);
+        var input=new AnnouncementAttachmentClassificationEngine.Input(selectBase("소상공인 지원금","소상공인 지원금"),rules,true,"FOUND",true,List.of(normal.file(),failed),null,List.of());
+        assertThat(engine.selectDecision(input,List.of(normal.evidence(),failedEvidence)).decision().reason()).isEqualTo("ATTACHMENT_INCOMPLETE");
+        assertThatIllegalArgumentException().isThrownBy(()->engine.selectDecision(input,List.of(normal.evidence())));
+    }
     @Test void titleExclusionAndBaseReviewPoliciesCannotBeOverridden() {
         var fixture = selectFixture(GUIDE + "\n" + FORM, "UNKNOWN", "TEXT_RULE", "COMPLETE_TEXT");
         var excludedBase = selectBase("소상공인 수출 지원금", null);

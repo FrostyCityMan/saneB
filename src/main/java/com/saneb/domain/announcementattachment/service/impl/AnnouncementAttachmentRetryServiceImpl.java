@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
-import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.dao.*;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
 import com.saneb.domain.announcementattachment.dto.AttachmentJobResponse;
@@ -130,7 +129,9 @@ public class AnnouncementAttachmentRetryServiceImpl implements AnnouncementAttac
             if(!allowed || !execution.selectRoleRulesCurrent()
                     || !java.util.Objects.equals(execution.roleRuleVersion(),settings.path("roleRuleVersion").asText(null))
                     || !java.util.Objects.equals(execution.roleRulesHash(),settings.path("roleRulesHash").asText(null))
-                    || !AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
+                    || !execution.selectEngineCurrent()
+                    || !java.util.Objects.equals(execution.segmentRuleVersion(),settings.path("segmentRuleVersion").asText(null))
+                    || !java.util.Objects.equals(execution.segmentRulesHash(),settings.path("segmentRulesHash").asText(null))
                     || !execution.engineVersion().equals(settings.path("engineVersion").asText())
                     || !execution.extractorVersion().equals(settings.path("extractorVersion").asText())
                     || !execution.extractorConfigHash().equals(settings.path("extractorConfigHash").asText())

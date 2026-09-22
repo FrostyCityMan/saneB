@@ -614,6 +614,101 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?", Integer.class, job.sourceId())).isZero();
     }
 
+    @Test void segmentEvaluationBindsGuideAndFormWithoutPromotingFormOrChangingBase() throws Exception {
+        var job=selectSegmentJob(false);
+        var evaluator=context.getBean(AnnouncementAttachmentEvaluationService.class);
+        var result=evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(result.status()).isEqualTo("ACCEPTED");
+        assertThat(evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow().evaluationId()).isEqualTo(result.evaluationId());
+        assertThat(sql.queryForObject("SELECT engine_version FROM announcement_source_attachment_evaluations WHERE id=?",String.class,result.evaluationId()))
+                .isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
+        assertThat(sql.queryForList("SELECT analysis_json->'segments'->0->>'roleCode' AS first_role,analysis_json->'segments'->1->>'roleCode' AS second_role FROM announcement_attachment_segment_analyses WHERE source_id=?",job.sourceId()))
+                .containsExactly(java.util.Map.of("first_role","GUIDE","second_role","FORM"));
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=? AND segment_analysis_id IS NOT NULL",Integer.class,result.evaluationId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_matches WHERE evaluation_id=? AND segment_index=1 AND applied_action_code='CONTEXT_ONLY'",Integer.class,result.evaluationId())).isPositive();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_matches WHERE evaluation_id=? AND (segment_analysis_id IS NULL OR (segment_index=1 AND applied_action_code<>'CONTEXT_ONLY'))",Integer.class,result.evaluationId())).isZero();
+        assertThat(sql.queryForObject("SELECT document_role_code FROM announcement_source_attachment_files WHERE source_id=?",String.class,job.sourceId())).isEqualTo("UNKNOWN");
+        assertThat(sql.queryForObject("SELECT semantic_status_code FROM announcement_source_snapshots WHERE id=?",String.class,job.sourceId())).isEqualTo("REVIEW_REQUIRED");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+        assertThat(dao.selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("SUCCEEDED");
+        // 근거 삭제·교체로 판정을 사후 변경하지 못한다. 원문 삭제 cascade만 허용한다.
+        for(String statement:List.of(
+                "UPDATE announcement_source_attachment_evaluation_inputs SET segment_analysis_id=NULL WHERE evaluation_id=?",
+                "DELETE FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",
+                "UPDATE announcement_source_attachment_matches SET segment_index=0 WHERE evaluation_id=?",
+                "DELETE FROM announcement_source_attachment_matches WHERE evaluation_id=?",
+                "DELETE FROM announcement_source_attachment_evaluations WHERE id=?")) {
+            assertThatThrownBy(()->sql.update(statement,result.evaluationId())).isInstanceOf(DataIntegrityViolationException.class);
+        }
+        // 기존 유일성 위반이 아니라 신규 구간 보호 trigger 자체에서 거부해야 한다.
+        String copyMatch="""
+                INSERT INTO announcement_source_attachment_matches(evaluation_id,source_id,set_id,file_id,extraction_id,rule_release_id,
+                    keyword_group_id,keyword_rule_id,keyword_term_id,block_index,start_offset,end_offset,applied_action_code,segment_analysis_id,segment_index)
+                SELECT evaluation_id,source_id,set_id,file_id,extraction_id,rule_release_id,keyword_group_id,keyword_rule_id,keyword_term_id,
+                    block_index,start_offset,end_offset,%s,segment_analysis_id,%s
+                FROM announcement_source_attachment_matches WHERE evaluation_id=? AND segment_index=1 LIMIT 1
+                """;
+        assertThatThrownBy(()->sql.update(copyMatch.formatted("'TAG'","segment_index"),result.evaluationId()))
+                .isInstanceOf(DataIntegrityViolationException.class).hasStackTraceContaining("attachment segment context cannot become decision evidence");
+        assertThatThrownBy(()->sql.update(copyMatch.formatted("applied_action_code","0"),result.evaluationId()))
+                .isInstanceOf(DataIntegrityViolationException.class).hasStackTraceContaining("attachment segment match position invalid");
+        assertThatThrownBy(()->sql.update(copyMatch.formatted("applied_action_code","segment_index"),result.evaluationId()))
+                .isInstanceOf(DataIntegrityViolationException.class).hasStackTraceContaining("attachment segment matches require creation transaction");
+        assertThatThrownBy(()->sql.update("""
+                INSERT INTO announcement_source_attachment_evaluation_inputs(evaluation_id,source_id,set_id,file_id,extraction_id,document_role_code,input_status_code)
+                SELECT evaluation_id,source_id,set_id,file_id,extraction_id,document_role_code,input_status_code
+                FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?
+                """,result.evaluationId())).isInstanceOf(DataIntegrityViolationException.class)
+                .hasStackTraceContaining("complete attachment requires segment analysis");
+        sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",job.sourceId());
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+    }
+
+    @Test void segmentEvaluationKeepsFailedFilesAndDoesNotAcceptPartialEvidence() throws Exception {
+        var job=selectSegmentJob(true);
+        var result=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(result.status()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(sql.queryForObject("SELECT reason_code FROM announcement_source_attachment_evaluations WHERE id=?",String.class,result.evaluationId())).isEqualTo("ATTACHMENT_INCOMPLETE");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",Integer.class,result.evaluationId())).isEqualTo(2);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=? AND extraction_id IS NULL AND segment_analysis_id IS NULL AND input_status_code='FAILED'",Integer.class,result.evaluationId())).isEqualTo(1);
+        assertThat(dao.selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
+    }
+
+    private AttachmentJobRow selectSegmentJob(boolean includeFailed) throws Exception {
+        var execution=new AttachmentExecutionSnapshot(EXECUTION.profileCode(),PROFILE_HASH,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,
+                EXECUTION.extractorVersion(),CONFIG_HASH,null,null,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        // 아직 예약/자료가 없는 테스트 소유 정책만 교체한다. 운영 게시 검증을 우회하는 기능은 추가하지 않는다.
+        String manifest=sql.queryForObject("SELECT profile_manifest_json::text FROM announcement_attachment_policies WHERE id=?",String.class,policy);
+        sql.update("DELETE FROM announcement_attachment_policies WHERE id=?",policy);
+        String settings=new ObjectMapper().writeValueAsString(java.util.Map.of("engineVersion",execution.engineVersion(),
+                "extractorVersion",execution.extractorVersion(),"extractorConfigHash",CONFIG_HASH,"maximumSourceBytes",80L*1024*1024,
+                "segmentRuleVersion",execution.segmentRuleVersion(),"segmentRulesHash",execution.segmentRulesHash()));
+        sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE','COLLECT_ONLY',?,repeat('d',64),?::jsonb,?::jsonb,?,now())",
+                policy,policy.toString(),release,settings,manifest,actor);
+        var base=selectRequest();
+        service.insertAttachmentJob(new AttachmentJobReservation(base.sourceId(),policy,base.expectedBaseDecisionId(),0,0,base.idempotencyKey(),execution));
+        var job=service.saveNextJobClaim().orElseThrow();
+        assertThat(service.saveDownloadBytes(job.jobId(),job.leaseToken(),15)).isTrue();
+        String text="😀 사업 지원 안내\n지원대상: 소상공인 지원금\n지원내용: 경영지원\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금";
+        var blocks=new java.util.ArrayList<AttachmentSetEvidence.Block>(); int offset=0;
+        for(String line:text.split("\n")) {
+            int end=offset+line.codePointCount(0,line.length());
+            blocks.add(new AttachmentSetEvidence.Block(blocks.size(),offset,end,"p:"+blocks.size(),true,"p:"+blocks.size())); offset=end+1;
+        }
+        var files=new java.util.ArrayList<AttachmentSetEvidence.File>();
+        files.add(new AttachmentSetEvidence.File(new AttachmentSetEvidence.Locator(execution.profileCode(),"/download/file",java.util.Map.of("fileId","fixture-1")),
+                "혼합 안내.hwpx","HWPX","UNKNOWN","UNKNOWN","SUCCEEDED",15,"a".repeat(64),null,
+                new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,blocks,null,100)));
+        if(includeFailed) files.add(new AttachmentSetEvidence.File(new AttachmentSetEvidence.Locator(execution.profileCode(),"/download/file",java.util.Map.of("fileId","fixture-2")),
+                "미완료 첨부.pdf","PDF","UNKNOWN","UNKNOWN","FAILED",0,null,AttachmentFailureCode.NETWORK_TIMEOUT,null));
+        evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence("FOUND",true,files)).orElseThrow();
+        return job;
+    }
+
     @Test void att029CompletedEvaluationIsIdempotentOnlyForItsLeaseOwner() {
         service.insertAttachmentJob(selectRequest());
         var job = service.saveNextJobClaim().orElseThrow();
@@ -3122,6 +3217,7 @@ class AnnouncementAttachmentJobIntegrationTest {
                     new ClassPathResource("mapper/announcement/AnnouncementMapper.xml"),
                     new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentEvidenceMapper.xml"),
                     new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentEvaluationMapper.xml"),
+                    new ClassPathResource("mapper/announcementattachment/AnnouncementAttachmentSegmentMapper.xml"),
                     new ClassPathResource("mapper/announcementsource/AnnouncementSourceRuleReleaseMapper.xml"),
                     new ClassPathResource("mapper/announcementsource/AnnouncementSourceClassificationMapper.xml"),
                     new ClassPathResource("mapper/announcementsource/AnnouncementSourceMapper.xml"));
@@ -3231,8 +3327,9 @@ class AnnouncementAttachmentJobIntegrationTest {
         }
         @Bean AnnouncementAttachmentEvaluationService evaluationService(AnnouncementAttachmentJobDao jobs,
                 AnnouncementAttachmentEvidenceDao evidence, AnnouncementAttachmentEvaluationDao evaluations,
-                AnnouncementSourceRuleReleaseService rules, PlatformTransactionManager transactions) {
-            return new AnnouncementAttachmentEvaluationServiceImpl(jobs, evidence, evaluations, rules, new ObjectMapper(), transactions);
+                AnnouncementSourceRuleReleaseService rules, PlatformTransactionManager transactions, SqlSessionTemplate session) {
+            return new AnnouncementAttachmentEvaluationServiceImpl(jobs, evidence, evaluations,
+                    session.getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class),rules,new ObjectMapper(),transactions);
         }
         @Bean AnnouncementAttachmentEvidenceService evidenceService(SqlSessionTemplate session,AnnouncementAttachmentJobDao jobs, AnnouncementAttachmentEvidenceDao evidence) {
             return new AnnouncementAttachmentEvidenceServiceImpl(jobs, evidence,

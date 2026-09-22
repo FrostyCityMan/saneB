@@ -2,7 +2,6 @@ package com.saneb.domain.announcementattachment.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.classification.AttachmentFileRoleRules;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
@@ -79,7 +78,7 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
             AttachmentRuntimeIdentity.Identity installed;
             try { installed=runtime.selectIdentity(); }
             catch (IOException exception) { return saveFailure(job,AttachmentFailureCode.ISOLATION_UNAVAILABLE); }
-            if (!execution.selectRoleRulesCurrent() || !AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion())
+            if (!execution.selectRoleRulesCurrent() || !execution.selectEngineCurrent()
                     || !installed.extractorVersion().equals(execution.extractorVersion())
                     || !installed.configHash().equals(execution.extractorConfigHash()))
                 return saveFailure(job, AttachmentFailureCode.PROFILE_REQUIRED);

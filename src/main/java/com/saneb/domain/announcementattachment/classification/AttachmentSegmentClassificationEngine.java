@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/** 파일 수/식별자와 기존 A/B 정책을 보존하는 별도 버전의 구간 종합 판정. 아직 운영 worker에 적용하지 않는다. */
+/** 파일 수/식별자와 기존 A/B 정책을 보존한다. 실행 snapshot에 고정된 별도 엔진에서만 사용한다. */
 public final class AttachmentSegmentClassificationEngine {
     public static final String VERSION = "attachment-segment-1.0.0";
     public record FileEvidence(UUID fileId, UUID extractionId, String fileRoleOrigin, AttachmentSetEvidence.Extraction extraction,
                                AttachmentSegmentRoleAnalyzer.Analysis analysis) { }
-    public record MatchEvidence(AnnouncementAttachmentClassificationEngine.Match match, int segmentIndex, String segmentRole) { }
+    public record MatchEvidence(AnnouncementAttachmentClassificationEngine.Match match, Integer segmentIndex, String segmentRole) { }
     public record Result(String engineVersion, AnnouncementAttachmentClassificationEngine.Decision decision,
                          List<MatchEvidence> segmentMatches) {
         public Result { segmentMatches = List.copyOf(segmentMatches); }
@@ -31,9 +31,15 @@ public final class AttachmentSegmentClassificationEngine {
         var seen = new java.util.HashSet<UUID>();
         var seenExtractions = new java.util.HashSet<UUID>();
         for (var file : input.files()) {
-            if (file.fileId() == null || !seen.add(file.fileId()) || file.extractionId() == null || !seenExtractions.add(file.extractionId())) throw invalid();
+            if (file.fileId() == null || !seen.add(file.fileId()) || file.extractionId() != null && !seenExtractions.add(file.extractionId())) throw invalid();
             var item = byId.get(file.fileId());
-            if (item == null || !file.extractionId().equals(item.extractionId()) || item.extraction() == null || !java.util.Objects.equals(file.text(), item.extraction().text())
+            if (item == null || !java.util.Objects.equals(file.extractionId(), item.extractionId())) throw invalid();
+            if (item.analysis() == null) {
+                // 실패/원문 없음 파일은 제거하지 않는다. 기존 엔진이 동일 입력으로 불완전 판정을 유지한다.
+                if ("COMPLETE_TEXT".equals(file.quality())) throw invalid();
+                continue;
+            }
+            if (file.extractionId() == null || item.extraction() == null || !java.util.Objects.equals(file.text(), item.extraction().text())
                     || !java.util.Objects.equals(file.quality(), item.extraction().quality())
                     || !file.blocks().equals(item.extraction().blocks().stream().map(block -> new AnnouncementAttachmentClassificationEngine.Block(
                             block.index(), block.startOffset(), block.endOffset(), block.evidenceScopeId(), block.scopeReliable())).toList())
@@ -66,6 +72,10 @@ public final class AttachmentSegmentClassificationEngine {
         }
         var matches = new ArrayList<MatchEvidence>();
         for (var match : decision.matches()) {
+            if (byId.get(match.fileId()).analysis() == null) {
+                matches.add(new MatchEvidence(match, null, "UNKNOWN"));
+                continue;
+            }
             var segment = byId.get(match.fileId()).analysis().segments().stream().filter(item ->
                     match.startOffset() >= item.startOffset() && match.endOffset() <= item.endOffset()).findFirst().orElseThrow(AttachmentSegmentClassificationEngine::invalid);
             matches.add(new MatchEvidence(match, segment.index(), segment.roleCode()));

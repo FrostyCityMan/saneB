@@ -20,6 +20,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void segmentEvaluationBindsAllFilesAndProtectsContextOnlyEvidence() throws IOException {
+        var sql=new ClassPathResource("db/migration/V85__bind_attachment_segment_evaluations.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("fk_att_input_segment", "fk_att_match_segment_input", "ct_att_segment_evaluation",
+                "DEFERRABLE INITIALLY DEFERRED", "attachment segment evaluation omits files", "attachment segment rules policy mismatch",
+                "attachment segment context cannot become decision evidence", "attachment segment incomplete input cannot be accepted",
+                "tr_att_input_segment_immutable", "tr_att_match_segment_immutable", "tr_att_segment_evaluation_delete");
+        assertThat(sql).doesNotContain("DROP ", "DISABLE TRIGGER", "UPDATE announcement_source", "INSERT INTO announcement_attachment_policies");
+    }
     @Test void segmentEvidenceIsAdditiveBoundAndCannotMutateExistingDecisions() throws IOException {
         var sql=new ClassPathResource("db/migration/V84__add_attachment_segment_analysis_evidence.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("CREATE TABLE announcement_attachment_segment_analyses", "fk_att_segment_extraction", "uq_att_segment_version",

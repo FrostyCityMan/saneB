@@ -2,6 +2,8 @@
 
 > 2026-09-22 구간 분석 API 추가: `GET/POST /api/v2/admin/announcement-sources/{sourceId}/attachment-extractions/{extractionId}/segment-analysis`. GET은 미분석/저장 결과만 조회하고 POST는 저장된 추출 원문으로 버전별 멱등 분석을 생성한다. 응답은 `ApiResponse`, `applicationMode=SHADOW`; 기존 파일 역할·종합 판정·ACTIVE 상태는 변경하지 않는다. GET은 ADMIN/OPERATOR/APPROVER, POST는 ADMIN/OPERATOR 및 기존 CSRF 검증을 적용한다. 원문·인증정보는 분석 JSON/감사 metadata에 넣지 않는다. [필드·정합성·미완료 범위](announcement-attachment-segment-analysis-design-2026-09-22.md).
 
+> 후속 worker 연결: 정책 조회 Configuration에 선택적 `segmentRuleVersion/segmentRulesHash`를 추가하고 미설정 시 기존 JSON을 유지한다. SHADOW는 위 API 호출의 비적용 동작을 뜻하며, 동일 분석이 별도 worker 평가에 참조됐는지 여부를 뜻하지 않는다. 신규 엔진 정책 게시 QA·관리자 구간 표시 연결은 아직 완료되지 않았다. 운영 정책 활성화나 기존 데이터 재처리를 수행하지 않는다.
+
 > 첨부 V2 확장: [공고 첨부파일 수집·추출 API 설계](announcement-attachment-collection-design-2026-09-08.md)를 바탕으로 24절에 로컬 구현 계약을 기록한다. 기존 v1 제목·본문 조회 계약을 유지하며 첨부 적용 원문의 전환/검수 조건을 서버에서 확인한다. 로컬 코드·테스트 진척은 운영 반영이나 전체 E2E 완료를 뜻하지 않는다. 최신 실행 증거와 잔여 Gate는 [진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 작성일: 2026-05-14

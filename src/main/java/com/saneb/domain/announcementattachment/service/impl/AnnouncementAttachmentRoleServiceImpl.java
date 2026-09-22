@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
-import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentCurrentDao;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvidenceDao;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao;
@@ -91,7 +90,7 @@ public class AnnouncementAttachmentRoleServiceImpl implements AnnouncementAttach
                 || !Objects.equals(source.ruleReleaseId(),originalJob.ruleReleaseId()) || !set.policyId().equals(originalJob.policyId()))
             throw notReady("현재 첨부 판정에 연결된 고정 실행 버전이 없습니다. 먼저 첨부 수집 결과를 확인하세요.");
         var execution=selectExecution(originalJob.executionSnapshotJson());
-        if(!AnnouncementAttachmentClassificationEngine.VERSION.equals(execution.engineVersion()) || !set.profileHash().equals(execution.profileHash()))
+        if(!execution.selectEngineCurrent() || !set.profileHash().equals(execution.profileHash()))
             throw conflict("저장된 근거의 엔진·프로필 버전과 현재 역할 재판정 조건이 다릅니다.");
         var policy=jobs.selectPolicyDetails(set.policyId());
         if(policy==null || policy.policyHash()==null || !source.ruleReleaseId().equals(policy.ruleReleaseId())

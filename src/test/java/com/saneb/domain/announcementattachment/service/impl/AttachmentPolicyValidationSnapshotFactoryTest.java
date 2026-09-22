@@ -110,6 +110,13 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThatThrownBy(()->factory.selectRuntime()).hasMessageContaining("Linux").hasMessageNotContaining("internal-path");
         assertThatThrownBy(()->factory.selectSnapshot(policy("{}",manifest()),installed)).hasMessageContaining("버전");
     }
+    @Test void segmentWorkerSupportDoesNotUnlockUnverifiedPolicyPublication() throws Exception {
+        var settings=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(settings());
+        settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        settings.put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
+        settings.put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        assertThatThrownBy(()->factory.selectSnapshot(policy(settings.toString(),manifest()),installed)).hasMessageContaining("구간 엔진의 정책 QA 연결");
+    }
     @Test void oversizedAndMissingTargetConfigurationAreRejected() throws Exception {
         var policy=policy();when(dao.selectTargetList()).thenReturn(Collections.nCopies(1001,target("https://example.com","{}")));
         assertThatThrownBy(()->factory.selectSnapshot(policy,installed)).hasMessageContaining("한도");

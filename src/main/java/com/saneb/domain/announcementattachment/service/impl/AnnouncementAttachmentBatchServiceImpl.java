@@ -3,7 +3,6 @@ package com.saneb.domain.announcementattachment.service.impl;
 import com.fasterxml.jackson.databind.*;
 import com.saneb.common.error.*;
 import com.saneb.common.response.PageResponse;
-import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.dao.*;
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.dto.*;
@@ -259,7 +258,7 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
         try {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000) throw new IllegalArgumentException();
             var value=mapper.readValue(policy.settingsJson(),AttachmentPolicyResponses.Configuration.class);
-            if(!AnnouncementAttachmentClassificationEngine.VERSION.equals(value.engineVersion()) || !AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(value.extractorVersion())
+            if(!value.selectEngineCurrent() || !AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(value.extractorVersion())
                     || value.extractorConfigHash()==null || !value.extractorConfigHash().matches("[0-9a-f]{64}") || value.maximumSourceBytes()==null
                     || value.maximumSourceBytes()<1 || value.maximumSourceBytes()>83886080) throw new IllegalArgumentException();
             return value;
@@ -277,7 +276,8 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
             }
             if(matched.size()!=1)return null;var profile=matched.getFirst();
             var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),configuration.engineVersion(),
-                    configuration.extractorVersion(),configuration.extractorConfigHash(),configuration.roleRuleVersion(),configuration.roleRulesHash());
+                    configuration.extractorVersion(),configuration.extractorConfigHash(),configuration.roleRuleVersion(),configuration.roleRulesHash(),
+                    configuration.segmentRuleVersion(),configuration.segmentRulesHash());
             return execution.selectRoleRulesCurrent()?execution:null;
         } catch(Exception exception) {return null;}
     }

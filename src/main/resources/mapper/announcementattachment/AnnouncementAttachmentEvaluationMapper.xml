@@ -46,12 +46,13 @@
             <arg column="document_role_code" javaType="java.lang.String"/><arg column="download_status_code" javaType="java.lang.String"/>
             <arg column="quality_code" javaType="java.lang.String"/><arg column="extracted_text" javaType="java.lang.String"/>
             <arg column="blocks_json" javaType="java.lang.String"/><arg column="error_code" javaType="java.lang.String"/>
+            <arg column="role_origin_code" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
     <select id="selectFileInputList" resultMap="FileInputMap">
         -- 봉인된 동일 source/set의 최대 10개 파일만 내부 분류기에 전달한다. 표시명은 분류 입력이 아니다.
         SELECT f.id,x.id AS extraction_id,f.document_role_code,f.download_status_code,x.quality_code,
-               x.extracted_text,x.blocks_json::text AS blocks_json,coalesce(f.error_code,x.error_code) AS error_code
+               x.extracted_text,x.blocks_json::text AS blocks_json,coalesce(f.error_code,x.error_code) AS error_code,f.role_origin_code
         FROM announcement_source_attachment_files f
         JOIN announcement_source_attachment_sets s ON s.id=f.set_id AND s.source_id=f.source_id AND s.set_status_code='SEALED'
         LEFT JOIN LATERAL (
@@ -104,16 +105,16 @@
     <insert id="insertInput">
         -- 실패 파일도 평가 입력에서 빠뜨리지 않는다.
         INSERT INTO announcement_source_attachment_evaluation_inputs
-            (evaluation_id,source_id,set_id,file_id,extraction_id,document_role_code,input_status_code)
-        VALUES (#{evaluationId},#{sourceId},#{setId},#{fileId},#{extractionId},#{role},#{inputStatus})
+            (evaluation_id,source_id,set_id,file_id,extraction_id,document_role_code,input_status_code,segment_analysis_id)
+        VALUES (#{evaluationId},#{sourceId},#{setId},#{fileId},#{extractionId},#{role},#{inputStatus},#{segmentAnalysisId})
     </insert>
     <insert id="insertMatch">
         -- 저장된 release/group/rule/term을 정확히 해석한다. 일치 원문은 감사 테이블에 복사하지 않는다.
         INSERT INTO announcement_source_attachment_matches
             (evaluation_id,source_id,set_id,file_id,extraction_id,rule_release_id,keyword_group_id,keyword_rule_id,keyword_term_id,
-             block_index,start_offset,end_offset,applied_action_code)
+             block_index,start_offset,end_offset,applied_action_code,segment_analysis_id,segment_index)
         SELECT #{evaluationId},#{sourceId},#{setId},#{fileId},#{extractionId},g.release_id,g.id,r.id,t.id,
-               #{blockIndex},#{startOffset},#{endOffset},#{action}
+               #{blockIndex},#{startOffset},#{endOffset},#{action},#{segmentAnalysisId},#{segmentIndex}
         FROM announcement_source_classification_rule_groups g
         JOIN announcement_source_classification_keyword_rules r ON r.group_id=g.id
         JOIN announcement_source_classification_keyword_terms t ON t.keyword_rule_id=r.id AND t.group_id=g.id

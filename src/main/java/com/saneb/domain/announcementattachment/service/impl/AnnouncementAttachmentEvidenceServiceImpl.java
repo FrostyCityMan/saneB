@@ -333,7 +333,7 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
                     extraction == null || extraction.text() == null || extraction.text().isEmpty() ? null : selectHash(extraction.text()),
                     extraction == null ? null : selectHash(selectJson(extraction.blocks())), extraction == null ? null : extraction.pageCount(),file.roleAssessment()));
         }
-        return selectHash(selectJson(new Manifest(execution.roleRuleVersion()==null?1:2, selectEvidenceId(jobId, 0, "set"), execution,
+        return selectHash(selectJson(new Manifest(execution.segmentRuleVersion()!=null?3:execution.roleRuleVersion()==null?1:2, selectEvidenceId(jobId, 0, "set"), execution,
                 result.discoveryStatus(), result.discoveryComplete(), result.warningCodes(), files)));
     }
 

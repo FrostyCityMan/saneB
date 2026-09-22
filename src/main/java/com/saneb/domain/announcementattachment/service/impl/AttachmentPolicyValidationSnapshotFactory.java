@@ -87,7 +87,10 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000)
                 throw conflict("정책 설정 크기가 유효하지 않습니다.");
             var settings=mapper.readValue(policy.settingsJson(), AttachmentPolicyResponses.Configuration.class);
-            if(settings==null || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier
+            // 구간 엔진의 정책 golden/provider QA 연결 전에는 새 엔진 게시 검증을 허용하지 않는다.
+            if(settings!=null && com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION.equals(settings.engineVersion()))
+                throw conflict("구간 엔진의 정책 QA 연결이 완료되지 않았습니다. 기존 엔진의 QA 결과로 게시할 수 없습니다.");
+            if(settings==null || !settings.selectEngineCurrent() || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier
                     .selectRulesCurrent(settings.roleRuleVersion(),settings.roleRulesHash())
                     || !AnnouncementAttachmentClassificationEngine.VERSION.equals(settings.engineVersion())
                     || !AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(settings.extractorVersion()) || settings.maximumSourceBytes()==null

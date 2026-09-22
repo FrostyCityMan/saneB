@@ -221,9 +221,11 @@ public class AnnouncementAttachmentJobServiceImpl implements AnnouncementAttachm
                         && execution.profileHash().equals(profile.path("profileHash").asText())) allowed = true;
             }
             JsonNode settings = mapper.readTree(policy.settingsJson());
-            if (!allowed || !execution.selectRoleRulesCurrent()
+            if (!allowed || !execution.selectRoleRulesCurrent() || !execution.selectEngineCurrent()
                     || !Objects.equals(execution.roleRuleVersion(),settings.path("roleRuleVersion").asText(null))
                     || !Objects.equals(execution.roleRulesHash(),settings.path("roleRulesHash").asText(null))
+                    || !Objects.equals(execution.segmentRuleVersion(),settings.path("segmentRuleVersion").asText(null))
+                    || !Objects.equals(execution.segmentRulesHash(),settings.path("segmentRulesHash").asText(null))
                     || !execution.engineVersion().equals(settings.path("engineVersion").asText())
                     || !execution.extractorVersion().equals(settings.path("extractorVersion").asText())
                     || !execution.extractorConfigHash().equals(settings.path("extractorConfigHash").asText())) {

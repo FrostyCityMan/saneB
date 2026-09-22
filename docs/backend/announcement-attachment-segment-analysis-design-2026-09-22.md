@@ -77,10 +77,18 @@ file/set/source/content/policy는 기존 FK 연결로 추적한다. 원문을 �
 - 분석 JSON의 구간은 순서대로 전체 범위를 빠짐없이 덮고, evidence는 해당 구간과 실제 reliable block 안에 있어야 한다.
 - 수정/단독 삭제 금지. 기존 원문 삭제에 따른 cascade만 보존한다. 새 분석 버전은 새 행을 만든다. 기존 set/evaluation/role/추출 원문을 변경하지 않는다.
 
-초기 구현은 **독립 분석/SHADOW**다. 분석 행이 있다고 기존 evaluation을 변경하거나 후보를 활성화하지 않는다.
-실제 worker 종합 판정에 적용하려면 정책 snapshot의 segmentRuleVersion/segmentRulesHash,
-새 engine 버전, 새 manifest 및 QA code binding을 함께 연결해야 한다.
-기존 정책에서 segment 설정이 없으면 기존 파일 단위 경로 그대로 동작해야 한다.
+초기 V84 구현은 **독립 분석/SHADOW**다. 분석 행이 있다고 기존 evaluation을 변경하거나 후보를 활성화하지 않는다.
+후속 V85는 새 엔진의 evaluation input에 `segment_analysis_id`, match에 `segment_analysis_id/segment_index`를 추가한다.
+복합 FK로 동일 source/set/file/extraction/input을 결합하고 정책의 segment 버전·hash와 대조한다.
+모든 파일을 입력으로 저장해야 하며 실패/미확인 구간을 제거한 ACCEPTED는 거부한다.
+FORM/REFERENCE/UNKNOWN 및 고정 파일 역할 충돌은 CONTEXT_ONLY만 허용한다. 위치는 원본 block과 구간의 교집합 안이어야 한다.
+새 결합의 수정·단독 삭제는 금지하며 원문 삭제 cascade는 보존한다. V1~V84는 수정하지 않는다.
+평가에 서버가 기록한 `segment_binding_xid`를 사용하여 입력·match의 사후 추가도 거부한다. 새 평가 생성 transaction에서만 근거를 추가할 수 있다.
+
+worker 경로는 실행 snapshot에 `attachment-segment-1.0.0`과 `segmentRuleVersion/segmentRulesHash`가 모두 고정된 경우에만 새 분석을 사용한다.
+기존 정책에서 segment 설정이 없으면 기존 JSON/manifest/해시/파일 단위 경로를 유지한다.
+신규 manifest schemaVersion은 3이다. 분석은 CPU 단계에서 계산하고 source/job lease fence를 다시 확인한 transaction에서 저장한다.
+정책 생성은 아직 기존 엔진을 사용하며 정책 게시 QA는 신규 엔진을 거부한다. 새 golden/provider QA가 연결되기 전 활성화 우회 경로를 추가하지 않는다.
 
 ## 6. API 및 UI 계약
 
@@ -90,6 +98,7 @@ file/set/source/content/policy는 기존 FK 연결로 추적한다. 원문을 �
 - POST: 서버에 저장된 해당 source의 extraction으로만 분석을 생성한다. 임의 텍스트·역할·구간 좌표를 요청받지 않는다.
 - POST 허용 역할 ADMIN/OPERATOR, GET은 ADMIN/OPERATOR/APPROVER. 서버 권한 검증, CSRF 및 no-store 유지.
 - 응답은 ApiResponse. file/extraction 식별자, version/hash, 구간 좌표·역할·reason/evidence를 제공한다.
+- `applicationMode=SHADOW`는 이 분석 API 호출 자체가 종합 판정을 적용하지 않는다는 뜻이다. 분석 행이 별도 worker evaluation에 참조된 적이 없는지를 뜻하지 않는다.
 - 기존 v1과 기존 파일 role/roleAssessment 필드는 의미를 바꾸지 않는다.
 - 수동으로 정해진 파일 역할은 새 자동 분석으로 덮어쓰지 않는다. 종합 판정 연결 시 충돌은 검수 사유다.
 
@@ -122,17 +131,19 @@ UNKNOWN을 제거하거나 기대 결과만 바꿔 테스트를 통과시키는 
 FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 구간 역할 충돌은
 `ATTACHMENT_SEGMENT_ROLE_CONFLICT`로 검수를 유지하며 충돌 구간을 긍정 근거로 사용하지 않는다.
 
-다음 연결은 아직 구현 완료가 아니다:
+연결별 현재 상태:
 
-1. 정책 `Configuration`/`AttachmentExecutionSnapshot`에 새 segment 버전·hash를 선택적으로 결합한다.
+1. [~] 정책 `Configuration`/`AttachmentExecutionSnapshot`에 새 segment 버전·hash를 선택적으로 결합했다.
    미설정 정책은 구 버전과 같은 JSON/실행 경로를 유지한다. 오래된 작업을 새 엔진으로 조용히 재실행하지 않는다.
-2. 예약·재시도·배치·정책 QA의 버전 비교를 동일하게 확장한다. 새 정책 QA와 code hash를 이전 승인 결과로 대체하지 않는다.
-3. worker 봉인 후 동일 extraction의 분석을 생성하고 종합 평가의 입력 지문에 결합한다.
+2. [~] 예약·재시도·배치·수집/worker 버전 비교를 확장했다. 새 정책 QA는 별도 연결 전 차단하며 code hash를 이전 승인 결과로 대체하지 않는다.
+   후속 연결 대상은 `AnnouncementAttachmentPolicyGoldenGate`, `AnnouncementAttachmentServerQa`, 정책 검증 snapshot/게시 verifier 및 Provider 고정 기대값이다.
+   구간 엔진의 혼합 문서·다른 문단/파일 AND 금지·부분 추출·수동 역할 충돌 시험을 고정한 뒤에만 정책 기본 엔진과 게시 검증을 전환한다.
+3. [~] worker 봉인 후 동일 extraction의 분석을 생성하고 종합 평가의 입력·판정 지문에 결합했다. 실제 DB/전체 회귀 검증 중이다.
    원문 없는 실패 파일은 분석에서 제거하지 않고 기존 실패 우선순위를 유지한다.
-4. 새 evaluation과 각 match에 segment 분석/구간의 FK 또는 동등한 불변 결합을 추가한다.
+4. [~] V85로 새 evaluation input과 각 match에 segment 분석/구간의 복합 FK·불변 결합을 추가했다. 실제 PostgreSQL 검증 중이다.
    V84 SHADOW 분석 행만 추가했다고 기존 evaluation의 해시/판정을 덮어쓰지 않는다.
-5. 관리자 화면은 파일 역할과 구간 역할을 구분해 보여주고, 단계별 부족한 근거를 표시한다.
-6. PDF 구조 추출 및 합성/실파일 QA, Linux 실제 DB와 전체 회귀를 통과한 뒤 운영 적용 범위를 별도로 확인한다.
+5. [ ] 관리자 화면은 파일 역할과 구간 역할을 구분해 보여주고, 단계별 부족한 근거를 표시한다.
+6. [ ] PDF 구조 추출 및 합성/실파일 QA, Linux 실제 DB와 전체 회귀를 통과한 뒤 운영 적용 범위를 별도로 확인한다.
 
 전체 goal은 계속 진행 중이다. 이 기반 구현만으로 SEG-007~010이나 기존 ATT/Gate를 완료 처리하지 않는다.
 
@@ -144,8 +155,10 @@ FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 
 - [x] 마지막 경계/식별자/DB Mapper 보강 후 대상 재검증과 bootJar: 2분25초 성공.
   256건 중 통과252/실제 DB 조건부 생략4/실패·오류0. 전체 XML은 `build/qa-results/segment-local-full-20260922-1617`에 별도 보존했다.
 - [x] `git diff --check`; 기존 V1~V83 변경 없음. `output/` 사용자 문서 변경 없음.
-- [!] 로컬 Docker daemon 접속 불가로 실제 PostgreSQL의 V84 실행은 미검증이다. Linux CI 결과로 별도 확인한다.
-- [ ] worker/정책/manifest·UI 연결, PDF 구조 추출, 실제 파일 재검증, 운영 반영은 미완료다.
+- [x] 42f8cb5의 Linux35699149911 일반 PostgreSQL migration suite는 4/4 통과했다. 그러나 독립 namespace 실행은 222건 중 221통과/1실패, 정책 부모도 실패하여 CI 전체는 failure다.
+- [~] 실패 case hash를 새 구간 분석 DB 테스트로 특정했다. 계측 attach를 요구하는 Mockito 대신 무호출 시 실패하는 JDK proxy로 수정했으며 독립 실행 재검증 전 해결 완료로 보지 않는다.
+- [x] 로컬 `:attachmentMigrationTest`의 임시 PostgreSQL에서 migration4/4·기존 데이터 배치14/14, 실패/오류/생략0을 XML로 확인했다. V84 저장 분석 행을 유지한 V85 upgrade와 fresh schema도 포함한다. Docker 없이 이 경로를 사용할 수 있음을 직접 확인했다. Linux namespace 실행 증거와는 구분한다.
+- [~] worker/manifest/V85 연결을 구현했고 전체 회귀에서 테스트용 Mapper 등록 누락을 발견해 보완했다. 정책 QA·UI 연결, PDF 구조 추출, 실제 파일 재검증, 운영 반영은 미완료다.
 - [ ] 브라우저 검증은 현재 요청에 대한 명시 지시가 없어 정책상 미실행이다.
 
 SEG-001~004의 로컬 합성/회귀 증거는 확보했으나 DB·실파일·worker·UI까지의 확장 완료로 간주하지 않는다.
