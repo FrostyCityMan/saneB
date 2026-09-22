@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-22 보은3공고 서울 실제 worker/임시 DB/API 검증 완료
+
+- 사용자 명시 승인132요청/240MiB/20분·CPU1/768MiB/임시1GiB 범위에서 보은221499·221497·218812를 실행했다. SSM98c4627a-36f6-4c52-875d-7af57758ba2a Success·JUnit3/3·실패/생략0·65.595초다. 운영9a1bb45 JAR별 설치 QA/추출기1.0.3을 읽기 전용 사용하고 별도 probe/실행기78,731bytes만 전달했다. Windows 로컬 묶음은 코드 지문 차이로 사용하지 않았다.
+- 세 BODY 확보·HWPX2/PDF1 COMPLETE_TEXT·worker SUCCEEDED·임시 DB/API 대조·원본/lease/임시 DB 정리 완료다. 단, HWPX2는 MIXED_DOCUMENT_ROLES, PDF1은 STRUCTURE_UNCERTAIN/UNKNOWN으로3건 모두 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED다. 정상 후보·정책 QA·catalog 기대값으로 자동 승격하지 않는다. 상세는 [보은 실제 검증](announcement-boeun-worker-db-api-qa-2026-09-16.md)에 기록했다.
+- 운영 JAR 전후동일·health UP, 실제 DB 전후 V83/실패0·첨부 데이터0·원문2945 불변이다. S3 객체·서버 임시 원본·local 소유ZIP2개·CA·실행 프로세스를 정리했다. 반복 외부 실행은 없고 옥천 보류·운영 worker/정책 비활성·기존 데이터 미적용·브라우저 미실행을 유지한다.
+- 실행기 지원만 BOEUN 고정 모드로 추가했다. Python15·Node33·Java22 시험 통과/생략0, 실제 서울 실행까지 검증했다. ATT 완료1/부분61, Gate8진행/1차단은 유지한다. 다음 병목은 네트워크 실패가 아니라 정상 문서 기대값 부족과 혼합/PDF 구조 예외 처리다. 기존 기준을 묵시적으로 완화하지 않는다.
+
 ### 2026-09-22 ATT-053 실제 Linux 검증 통과
 
 - `272dafd527d7f37236b8728bd764a48d1a66be81` [Linux35693601984](https://github.com/FrostyCityMan/saneB/actions/runs/35693601984) success/11분25초다. 보완한 기존 데이터 보존·CHECK 시험4.036초 통과/생략0을 내려받은 XML에서 확인했다. 운영과 migration diff0이고 기존 운영80건 checksum 대조와 결합해 ATT-053을 완료로 전환했다. ATT62 중 완료1/부분61이며 Gate8진행/1차단은 유지한다.

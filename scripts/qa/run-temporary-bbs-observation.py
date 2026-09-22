@@ -13,6 +13,7 @@ SCOPES = {
     'OBSERVATION': ('TAEBAEK-184816', ['TAEBAEK-184816'], 44, 83886080),
     'FIXED': ('TAEBAEK-184816', ['TAEBAEK-184816'], 39, 81508141),
     'OKCHEON': ('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 132, 251658240),
+    'BOEUN': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 132, 251658240),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -42,10 +43,35 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode=='OKCHEON' and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
+
+def select_qa_distribution(package,mode):
+    if mode!='BOEUN':return package/'qa'
+    # 운영 설치물을 복사/수정하지 않고 JAR 지문별 불변 QA를 그대로 읽는다.
+    root=pathlib.Path('/opt/saneb/attachment-contract-qa-releases',cfg['installedJarSha256'])
+    jars=list((root/'lib').glob('saneb-attachment-contract-qa-*.jar'))
+    if root.is_symlink() or len(jars)!=1 or jars[0].is_symlink():raise ValueError('INSTALLED_QA_INVALID')
+    with zipfile.ZipFile(jars[0]) as jar:
+        info=jar.getinfo('attachment-qa-code/catalog.json')
+        if info.file_size>2097152 or hashlib.sha256(jar.read(info)).hexdigest()!=cfg['codeHash']:raise ValueError('INSTALLED_QA_CODE_CHANGED')
+    if not (root/'extractor/bin/attachment-extractor').is_file():raise ValueError('INSTALLED_EXTRACTOR_MISSING')
+    return root
+
+def validate_probe_scope(report,mode):
+    if mode=='BOEUN':
+        if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!='BOEUN'
+                or report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
+                or report.get('isAuthenticatedBrowserE2e') is not False):raise ValueError('PROBE_OUTPUT_INVALID')
+        cases=report.get('cases',[])
+        if not isinstance(cases,list) or any(not isinstance(c,dict) for c in cases):raise ValueError('PROBE_OUTPUT_INVALID')
+        codes=[c.get('caseCode') for c in cases]
+        if len(codes)!=len(set(codes)) or any(c not in SCOPES[mode][1] for c in codes):raise ValueError('PROBE_OUTPUT_INVALID')
+        if report.get('status')=='PASSED' and codes!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
+    elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
+        raise ValueError('PROBE_OUTPUT_INVALID')
 def main():
     global phase,source_work_started
     mode=cfg.get('verificationMode','OBSERVATION')
@@ -71,6 +97,7 @@ def main():
             m=json.loads(z.read('manifest.json'))
             validate_manifest_scope(m,mode)
             entries=m['files']
+            if mode=='BOEUN' and {e['path'] for e in entries}!={'probe.jar','run.sh'}:raise ValueError('WORKER_PACKAGE_SCOPE_INVALID')
             if len(entries)>200 or len({e['path'] for e in entries})!=len(entries) or set(names)!={e['path'] for e in entries}|{'manifest.json'}:raise ValueError('MANIFEST_ENTRIES_INVALID')
             if sum(e['bytes'] for e in entries)>209715200:raise ValueError('PACKAGE_EXPANSION_LIMIT')
             for e in entries:
@@ -90,12 +117,13 @@ def main():
             if directory.is_dir():directory.chmod(0o755)
         result['packageFileCount']=len(entries);result['archiveSha256']=cfg['archiveSha256'];result['executionCodeHash']=cfg['codeHash']
         phase='SOURCE_PROBE'
-        command=['/usr/sbin/runuser','-u','ubuntu','--','/usr/bin/env','-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','/bin/bash',str(package/'run.sh'),str(package/'qa'),str(package/'probe.jar'),cfg['probeHash'],cfg['codeHash']]
+        qa_distribution=select_qa_distribution(package,mode)
+        command=['/usr/sbin/runuser','-u','ubuntu','--','/usr/bin/env','-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','/bin/bash',str(package/'run.sh'),str(qa_distribution),str(package/'probe.jar'),cfg['probeHash'],cfg['codeHash']]
         command.extend(select_probe_arguments(mode))
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
-        try:out,err=proc.communicate(timeout=650)
+        try:out,err=proc.communicate(timeout=900 if mode=='BOEUN' else 650)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid,signal.SIGTERM)
             try:out,err=proc.communicate(timeout=5)
@@ -107,9 +135,10 @@ def main():
         for line in out.decode('utf-8').splitlines():
             if line.startswith('{'):
                 report=json.loads(line)
-                if report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:raise ValueError('PROBE_OUTPUT_INVALID')
+                validate_probe_scope(report,mode)
         result['probe']=report
-        result['probeCleanupSucceeded']=b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED' in out
+        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode=='BOEUN' else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
+        result['probeCleanupSucceeded']=cleanup_marker in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
         return result
     finally:

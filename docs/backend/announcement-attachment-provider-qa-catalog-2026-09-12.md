@@ -2,6 +2,8 @@
 
 ## 범위와 상태
 
+2026-09-22 현재 리소스는 `2026-09-22-taebaek-seoul-revalidated-v2`, 참조30/기대값1/정상0이며 운영9a1bb45에도 설치됐다. 태백 기대값의 최신 근거는 서울 재관측·고정 비교다. 아래09-21 profile 변경/실행0 표기는 과거 기록이다. [보은 서울 임시 worker QA](announcement-boeun-worker-db-api-qa-2026-09-16.md)에서 HWPX2/PDF1 완전 추출·DB/API 연결은 성공했으나 혼합 역할/구조 불확실로 정상 기대값은 증가하지 않았다. 자동 catalog 등록·정책 승인은 하지 않았다.
+
 09-21 후속: `7a5ef22` Linux35602665310의 고정 태백 전체2파일 비교는 성공했다. 이후 [BBS 리다이렉트 식별자 검사](announcement-bbs-redirect-identity-2026-09-21.md)를 보완 중이므로 **보관 기대값1/수정본의 현행 실행 가능0/정상0**이다. 아래09-16의 실행 가능1은7a5ef22까지의 근거다. 새 관측 없이 catalog/hash/기한을 변경하지 않으며 전체 coverage와 정책 QA는 여전히 false다.
 
 현재 기준(2026-09-16 14:06 KST 재관측 검토 후): classpath의 `2026-09-16-taebaek-dns-revalidated-v2`는 총30항목 중 참조전용29/기대값1이며 **현행 실행 가능1건**, 정상 공고0·전체 coverage/정책 QA false다. `9d5eaae`의 실제 태백184816 BODY·전체HWPX2파일 관측에서 기존 파일/텍스트/역할/위치 지문 일치를 확인한 뒤 catalogVersion/profileHash/observedAt만 갱신했다. 표적133건·생략0 성공, 새 catalog의 전체 회귀·production CaseExecutor 실제 재비교는 별도 판정한다. 혼합 UNKNOWN/신청서 FORM·내용 기대값·전체 분모는 보존한다. [DNS 변경 후 재관측 근거](announcement-taebaek-fixed-qa-expectation-2026-09-15.md)를 따른다. 현재 역할 규칙은 `document-role-1.0.2`이며 catalog의 JavaTimeModule·strict JSON 검증은 그대로다.

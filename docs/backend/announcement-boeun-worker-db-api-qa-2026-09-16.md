@@ -1,5 +1,25 @@
 # 보은 실제 worker·임시 DB·API 검증
 
+## 2026-09-22 서울 승인 임시 QA — 고정3건 성공, 정상 후보0
+
+사용자가 보은221499·221497·218812의 서울 임시 격리 QA를 승인했다. 상한은132요청/240MiB/20분·CPU1·메모리768MiB·임시공간1GiB다. 옥천 보류는 유지하고 운영 설치/DB/정책/worker 변경은 제외했다.
+
+- 사전 SSM `6a368e81-bfdc-41c0-9774-b3fff3c4279b`에서 메모리 여유951MiB/cgroup v2/도구/현재 JAR를 확인했다. DB 사전 `a84e994c-9921-44e6-bf89-71adf75305eb`, 사후 `10c14ada-2c72-49cb-8269-2a04182a0fcf` 모두 V83/실패0·첨부 정책/set/file/extraction/job/batch0·원문2945·READ ONLY/ROLLBACK/쓰기0이다.
+- 실제 실행 SSM `98c4627a-36f6-4c52-875d-7af57758ba2a` Success. 설치 JAR `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc` 전후 동일·health UP·transient unit 종료를 확인했다. 현재9a1bb45 전용 `/opt` 불변 QA/추출기1.0.3을 읽기 전용으로 사용했다. 코드 지문은d49cb22d…로 운영과 동일하다. 로컬 Windows 묶음6ff295d8…는 사용/업로드하지 않았다.
+- 시험 클래스·스크립트2개만 담은78,731bytes 패키지(c8e17350…/probe7eb19361…)를 전달했다. 실제 JUnit 발견3/통과3/실패·생략·중단·container 실패0, 실행65.595초다. 모든 공고의 BODY AVAILABLE/ACCEPTED, 전체 첨부 실제 추출→worker EVALUATED/job SUCCEEDED→임시 DB/API 검증, 전체 텍스트 완전성true를 확인했다.
+
+| 공고 | 실제 파일 | 추출 결과 | 종합 판정 |
+|---|---|---|---|
+| 221499 | HWPX 97,068bytes | COMPLETE_TEXT·8,129자·397블록, UNKNOWN/MIXED_DOCUMENT_ROLES | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+| 221497 | HWPX 95,092bytes | COMPLETE_TEXT·7,821자·378블록, UNKNOWN/MIXED_DOCUMENT_ROLES | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+| 218812 | PDF 219,929bytes | COMPLETE_TEXT·5,566자·6블록, UNKNOWN/STRUCTURE_UNCERTAIN | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+
+요청 예약 합계12/예약 byte7,391,673, 실제 파일 수신412,089bytes로 승인 상한 이내다. 예약량을 실제 전체 트래픽으로 표현하지 않는다. 원본 정리true·lease0·임시 DB/전송 공간 정리true, S3 전송 객체 제거와 로컬 소유 ZIP2개 제거도 확인했다. 사용자 output은 보존했다. 첫 CLI 수신의 한글 고정 metadata 키 인코딩 문제는 프로세스 한정 UTF-8로 동일 SSM 결과를 다시 조회해 대체문자0인 원본 metadata를 보관했다. 외부 수집을 재실행하지 않았다.
+
+준비 검증: Python 실행기15/15, Node 보고서·Bash33/33, Java probe18+임시 DB 준비4=22/22, 실패/생략0·Gradle1분20초 성공. 기존 main Java·migration·운영 배포는 변경하지 않았다. 보관 결과는 `build/temporary-bbs-qa-2c7cc3ace7404142983932c905f1be45/result.json`이며 원본·추출 텍스트는 없다.
+
+이 결과는 이전 GitHub DNS/TIMEOUT 실패를 성공으로 소급하지 않는다. **서울에서 수집·추출·임시 DB/API 연결은 성공했으나 정상 기대값0·정책 QA false**다. 혼합 문서와 PDF 구조 예외를 임의로 NOTICE/GUIDE로 바꾸지 않았고 catalog 기대값도 자동 등록하지 않았다. 운영 상시 worker·정책 게시·ENFORCE·기존 데이터·인증 브라우저 E2E 및 전체 Provider 검증은 남는다.
+
 ## 범위와 성공·실패 기준
 
 기존 [보은 본문·첨부 모델](announcement-boeun-bbs-profile-2026-09-15.md)의 다운로드·signature 검증을 실제 텍스트 추출→worker→임시 PostgreSQL→API까지 확장한다. 전체 ATT-001~062·Gate0~8, 제목→본문→첨부→관리자 최종 검증 순서를 유지한다. 운영 데이터·정책·키워드·과거 migration은 변경하지 않는다.

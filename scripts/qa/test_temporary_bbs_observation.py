@@ -31,6 +31,7 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         self.assertEqual([], self.unit['select_probe_arguments']('OBSERVATION'))
         self.assertEqual(['FIXED'], self.unit['select_probe_arguments']('FIXED'))
         self.assertEqual(['OKCHEON'], self.unit['select_probe_arguments']('OKCHEON'))
+        self.assertEqual(['BOEUN'], self.unit['select_probe_arguments']('BOEUN'))
         for mode in ('', 'JECHEON', 'TAEBAEK_HWP', 'OKCHEON;echo unsafe'):
             with self.assertRaisesRegex(ValueError, '^VERIFICATION_MODE_INVALID$'):
                 self.unit['select_probe_arguments'](mode)
@@ -62,6 +63,44 @@ class TemporaryBbsObservationTest(unittest.TestCase):
     def test_local_install_location_is_supported(self):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/local/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/local/bin/aws', self.unit['aws_binary']())
+
+    def test_boeun_reads_only_pinned_installed_qa_and_checks_code_hash(self):
+        import hashlib
+        import zipfile
+        from unittest.mock import MagicMock
+        self.unit['cfg']={'installedJarSha256':'b'*64,'codeHash':hashlib.sha256(b'catalog').hexdigest()}
+        expected=pathlib.Path('/opt/saneb/attachment-contract-qa-releases', 'b'*64)
+        archive=MagicMock()
+        archive.__enter__.return_value=archive
+        archive.getinfo.return_value.file_size=7
+        archive.read.return_value=b'catalog'
+        with patch('pathlib.Path.glob',return_value=[expected/'lib/saneb-attachment-contract-qa-1.0.jar']), \
+                patch('pathlib.Path.is_symlink',return_value=False),patch('pathlib.Path.is_file',return_value=True), \
+                patch('zipfile.ZipFile',return_value=archive):
+            self.assertEqual(expected,self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),'BOEUN'))
+            self.unit['cfg']['codeHash']='c'*64
+            with self.assertRaisesRegex(ValueError,'^INSTALLED_QA_CODE_CHANGED$'):
+                self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),'BOEUN')
+        self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),'OBSERVATION'))
+
+    def test_boeun_requires_exact_scope_and_worker_kind_without_production_authority(self):
+        cases=['BOEUN-221499','BOEUN-221497','BOEUN-218812']
+        self.assertEqual(('BOEUN-THREE-NOTICES',cases,132,251658240),self.runner['SCOPES']['BOEUN'])
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest={'schemaVersion':1,'caseCode':'BOEUN-THREE-NOTICES','caseCodes':cases,'verificationMode':'BOEUN','executionCodeHash':'a'*64}
+        self.unit['validate_manifest_scope'](manifest,'BOEUN')
+        for field,value in [('caseCodes',cases[:2]),('caseCodes',cases[::-1]),('verificationMode','OKCHEON'),('caseCode','TAEBAEK-184816')]:
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,**{field:value}),'BOEUN')
+        report={'kind':'OFFICIAL_WORKER_PROBE','caseGroup':'BOEUN','productionDatabaseUsed':False,
+                'isPolicyQaPassed':False,'isAuthenticatedBrowserE2e':False,'status':'PASSED','cases':[{'caseCode':c} for c in cases]}
+        self.unit['validate_probe_scope'](report,'BOEUN')
+        for field,value in [('kind','BBS_OBSERVATION_PROBE'),('caseGroup','OKCHEON'),('productionDatabaseUsed',True),
+                            ('isPolicyQaPassed',True),('isAuthenticatedBrowserE2e',True),('cases',report['cases'][:2]),
+                            ('cases',[report['cases'][0]]*3),('cases',[{'caseCode':'OTHER'}])]:
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
+                self.unit['validate_probe_scope'](dict(report,**{field:value}),'BOEUN')
+        self.unit['validate_probe_scope'](dict(report,status='INCOMPLETE',cases=[]),'BOEUN')
 
     def test_untrusted_path_is_not_searched(self):
         with patch('pathlib.Path.is_file', return_value=False), patch('shutil.which', side_effect=AssertionError('untrusted PATH')):
