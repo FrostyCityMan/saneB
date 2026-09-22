@@ -50,6 +50,8 @@ catalog에서 실행 가능한 항목이 있다는 이유로 HTTP를 호출하�
 
 ## 구현·검증 경계
 
+2026-09-22 추가: 신규 `attachment-segment-1.0.0` 정책의 COMPLETE_TEXT 파일에는 `segmentExpectation`이 필수다. 분석 버전/규칙·text/blocks/analysis hash·상태·순서별 역할을 검증하고 실행 결과에는 `segmentAnalysisHash`만 남긴다. catalog의 정상 표본은 전체 파일의 구간이 RESOLVED이고 NOTICE/GUIDE가 최소 하나 있어야 한다. 기존 전체 파일 역할은 그대로 보관하므로 혼합 파일 UNKNOWN을 지우지 않는다. 구간 UNKNOWN/부분/실패/양식 전용은 정상 표본이 아니다. 신규 엔진과 기대값은 입력 hash에 결합되며 정책 snapshot·예약·집계·게시 검증에서 모두 동일하게 대조한다. 과거 JSON/hash는 선택적 필드를 누락하여 보존한다. 실제 사이트의 구간 기대값은 자동 생성하지 않았고 현재 추가 등록도 없다.
+
 `AttachmentProviderQaCatalog`가 classpath 리소스와 전체 계획을 관리한다. `AttachmentProviderQaCaseContract`로 기존 실행기의 syntax/파일 기대값/한도 검증을 공유하여 계획과 실행의 조건이 갈라지지 않게 했다. 이 분리는 기존 TITLE 제외·420초/44회/80MiB·파일10개·품질/문구 검증을 완화하지 않는다.
 
 `AttachmentPolicyValidationSnapshotFactory` schema6의 providerQaCatalog에는 catalogVersion/catalogHash/scopeHash·전체 target/case metadata·분할별 case code/상한을 저장한다. URL·제목·텍스트·기대 문구나 Prepared.inputs는 snapshot/audit에 복사하지 않는다. 이전 schema1~5 이력을 수정하지 않으며 현재 snapshot과 달라 재사용하지 않는다. PROVIDER_PROFILES 실행 원장·최신 근거 검증기·정책 연결은 구현되어 있다. 다만 전체 대상의 실제 기대값·실행 근거가 부족하므로 정책 QA 통과·게시 가능 상태를 주장하지 않는다.

@@ -65,11 +65,12 @@ class AnnouncementAttachmentProviderQaManagementServiceTest {
                 List.of(new AttachmentProviderQaCatalog.Segment(1,List.of("CASE-1"),3,100,480)),1,false,false);
         prepared=new AttachmentProviderQaCatalog.Prepared(plan,List.of(input));
         frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("2".repeat(64),mapper.writeValueAsString(Map.of("schemaVersion",6,
+                "settings",Map.of("engineVersion","attachment-1.0.0"),
                 "providerQaPlan",AttachmentProviderQaPlan.selectPlan(List.of(),List.of()),"providerQaCatalog",plan,
                 "targets",List.of(Map.of("providerCode","BIZINFO"),Map.of("providerCode","GOV24_PUBLIC_SERVICE")))),
                 new AnnouncementSourceRuleValidationDetails(ruleId,0,"DRAFT",null,"3".repeat(64),rules),runtime);
         when(snapshots.selectSnapshot(any(),any())).thenAnswer(c->frozen);
-        when(catalog.selectPrepared(any(),any(),anyString(),any())).thenAnswer(c->prepared);
+        when(catalog.selectPrepared(any(),any(),anyString(),any(),any())).thenAnswer(c->prepared);
         when(dao.selectActiveRunIds()).thenReturn(List.of());
         when(ledger.insertRun(any())).thenAnswer(c->{var run=(AttachmentProviderQaRows.RunInsert)c.getArgument(0);runs.put(run.runId(),run);return 1;});
         when(dao.insertPlan(any())).thenAnswer(c->{var p=(AttachmentProviderQaManagementRows.PlanInsert)c.getArgument(0);plans.put(p.runId(),p);return 1;});
@@ -106,6 +107,18 @@ class AnnouncementAttachmentProviderQaManagementServiceTest {
                 p.segmentCount(),p.catalogCaseCount(),p.executableCaseCount(),p.expectationCoverageComplete(),p.maximumSecondsIncludingMargin(),true);
     }
     private UUID reserve() throws Exception{return service.insertRun(auth("ADMIN"),policyId,key,request()).runId();}
+    @Test void executionPlanPassesFrozenSegmentConfigurationToCatalogWithoutReserving() throws Exception {
+        var json=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(frozen.json());
+        var settings=new AttachmentPolicyResponses.Configuration(
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,null,null,null,null,null,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        json.set("settings",mapper.valueToTree(settings));
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),mapper.writeValueAsString(json),frozen.rule(),frozen.runtime());
+        service.selectExecutionPlan(auth("ADMIN"),policyId,1,20);
+        verify(catalog).selectPrepared(any(),eq(frozen.rule().ruleSet()),eq(runtime.runtimeHash()),any(),eq(settings));
+        verifyNoInteractions(ledger,audit,execution);
+    }
     @Test void previewIsReadOnlyAndKeepsWholeCoverageSeparateFromPartialSegment() {
         var view=service.selectExecutionPlan(auth("APPROVER"),policyId,1,1);
         assertThat(view.targetCount()).isEqualTo(2);assertThat(view.isExpectationCoverageComplete()).isFalse();assertThat(view.isQaPassed()).isFalse();

@@ -81,6 +81,9 @@ class AnnouncementAttachmentPolicyServiceTest {
         assertThat(result.policy().policyStatusCode()).isEqualTo("DRAFT");assertThat(result.policy().modeCode()).isEqualTo(mode);
         assertThat(result.policy().policyHash()).isNull();assertThat(result.policy().publishedAt()).isNull();
         assertThat(result.configuration().extractorConfigHash()).isNull();assertThat(result.configuration().maximumSourceBytes()).isEqualTo(83886080);
+        assertThat(result.configuration().engineVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        assertThat(result.configuration().segmentRuleVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
+        assertThat(result.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
         assertThat(result.isDraftValidationRequired()).isTrue();assertThat(result.isEditable()).isTrue();
         assertThat(result.systemProfileBindings()).containsExactly(new AttachmentPolicyResponses.Profile("BIZINFO","BIZINFO_DETAIL_V1","b".repeat(64)));
         var saved=rows.get(result.policy().policyId());assertThat(saved.creationOperationCode()).isEqualTo("CREATE");
@@ -94,6 +97,20 @@ class AnnouncementAttachmentPolicyServiceTest {
         var repeated=create("OFF");
         assertThat(repeated.policy().policyId()).isEqualTo(first.policy().policyId());assertThat(repeated.policy().rowVersion()).isEqualTo(modified.policy().rowVersion());
         assertThat(repeated.policy().modeCode()).isEqualTo("COLLECT_ONLY");verify(dao,times(1)).insertPolicy(any());
+    }
+    @Test void legacyPolicyEditAndRevisionDoNotSilentlyMigrateEngine() throws Exception {
+        var created=create("OFF");var row=rows.get(created.policy().policyId());
+        var settings=new AttachmentPolicyResponses.Configuration("attachment-1.0.0",created.configuration().extractorVersion(),null,83886080L,
+                created.configuration().roleRuleVersion(),created.configuration().roleRulesHash());
+        rows.put(row.policyId(),new AttachmentPolicyManagementRows.Row(row.policyId(),row.policyCode(),row.versionNo(),row.rowVersion(),row.policyStatusCode(),row.modeCode(),row.ruleReleaseId(),
+                row.ruleReleaseStatusCode(),row.policyHash(),mapper.writeValueAsString(settings),row.profileManifestJson(),row.createdBy(),row.createdAt(),row.updatedAt(),row.publishedAt(),
+                row.copiedFromPolicyId(),row.creationIdempotencyKey(),row.creationRequestHash(),row.creationOperationCode()));
+        var updated=service.updatePolicyDraft(auth("ADMIN"),row.policyId(),new AttachmentPolicyRequests.Update(0,rule,"COLLECT_ONLY",100L,"기존 엔진 한도 변경"));
+        assertThat(updated.configuration().engineVersion()).isEqualTo("attachment-1.0.0");assertThat(updated.configuration().segmentRuleVersion()).isNull();
+        assertThat(rows.get(row.policyId()).settingsJson()).doesNotContain("segmentRule");
+        var revision=service.insertPolicyRevision(auth("ADMIN"),row.policyId(),UUID.randomUUID(),new AttachmentPolicyRequests.Revision(1,"기존 정책 복사"));
+        assertThat(revision.configuration()).isEqualTo(updated.configuration());assertThat(revision.policy().policyStatusCode()).isEqualTo("DRAFT");
+        assertThat(create("OFF").configuration()).isEqualTo(updated.configuration());
     }
     @Test void reusedKeyCannotCrossActorBodyOrOperation() {
         var first=create("OFF");

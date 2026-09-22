@@ -136,11 +136,11 @@ FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 
 
 1. [~] 정책 `Configuration`/`AttachmentExecutionSnapshot`에 새 segment 버전·hash를 선택적으로 결합했다.
    미설정 정책은 구 버전과 같은 JSON/실행 경로를 유지한다. 오래된 작업을 새 엔진으로 조용히 재실행하지 않는다.
-2. [~] 예약·재시도·배치·수집/worker 버전 비교를 확장했다. 새 정책 QA는 별도 연결 전 차단하며 code hash를 이전 승인 결과로 대체하지 않는다.
+2. [~] 예약·재시도·배치·수집/worker 버전 비교를 확장했다. 새 정책 QA는 아래 11절에서 Provider 기대값까지 연결했으며 code hash를 이전 승인 결과로 대체하지 않는다.
    `AnnouncementAttachmentPolicyGoldenGate`와 정책 검증/게시 verifier는 엔진에 고정된 정답 목록을 사용한다. 신규 엔진은 AG30+SG22이며 구 엔진은 기존 AG30 결과 형식을 유지한다.
-   후속 연결 대상은 `AttachmentProviderQaCase`의 구간 기대값, 실제 전체 파일 executor/verifier, catalog 및 snapshot이다.
+   `AttachmentProviderQaCase`의 구간 기대값, 실제 전체 파일 executor/verifier, catalog 및 snapshot을 연결했다. 실제 사이트 기대값 검토·재실행은 남는다.
    `AnnouncementAttachmentServerQa`의 단일 선택 파일 진단은 전체 Provider 정책 QA가 아니므로 그 성공을 재사용하지 않는다.
-   전체 Provider 근거를 연결한 뒤 정책 기본 엔진과 게시 검증을 전환한다.
+   신규 정책 초안은 구간 엔진을 사용하며 기존 초안 일반 편집/개정은 엔진 계열을 유지한다. 실제 Provider 전체 근거 없이는 게시할 수 없다.
 3. [~] worker 봉인 후 동일 extraction의 분석을 생성하고 종합 평가의 입력·판정 지문에 결합했다. 실제 DB/전체 회귀 검증 중이다.
    원문 없는 실패 파일은 분석에서 제거하지 않고 기존 실패 우선순위를 유지한다.
 4. [~] V85로 새 evaluation input과 각 match에 segment 분석/구간의 복합 FK·불변 결합을 추가했다. 실제 PostgreSQL 검증 중이다.
@@ -196,3 +196,15 @@ SEG-001~004의 로컬 합성/회귀 증거는 확보했으나 DB·실파일·wor
 4. 정상 표본 산정은 모든 구간이 RESOLVED이고 NOTICE/GUIDE 근거가 있는지를 사용한다. 혼합 문서의 기존 파일 역할 UNKNOWN만으로 새 구간 결과를 무시하지 않되, UNKNOWN 구간이나 실패 품질을 정상으로 승격하지 않는다.
 5. policy snapshot/Provider 입력 hash/저장 결과 verifier를 동일 신규 엔진 기대값에 결합한다. 기존 파일 역할 QA 성공을 신규 구간 QA로 재사용하지 않는다.
 6. 위 계약·구 엔진 호환·실제 파일 위치 및 참고 근거 변조 거부 시험 후 정책 생성 기본값과 전체 QA 예약을 신규 엔진으로 연결한다. 정책 활성화는 별도 승인 경계를 유지한다.
+
+## 11. Provider 구간 근거 연결 및 신규 정책 작성 경로
+
+- [x] 내부 `ExpectedFile.segmentExpectation`은 버전/규칙·원문·전체 block·분석 지문, 상태, 순서 고정 구간 역할을 결합한다. 모든 COMPLETE_TEXT 파일에 요구하며 부분/실패 파일도 전체 분모에 남긴다.
+- [x] executor는 실제 추출 IPC의 엄격한 block 자료형과 전체 위치를 검증하고 같은 분석기를 실행한다. 결과에 원문·구간 위치를 복제하지 않고 `segmentAnalysisHash`만 남긴다. 불일치·누락·위조 구조는 성공이 아니다.
+- [x] snapshot→catalog→예약 입력→저장 결과→전체 Provider 집계→게시 직전 재검증이 같은 엔진/분석 지문을 사용한다. 구 엔진 QA를 새 엔진 성공으로 재사용하지 않는다. 기존 선택적 필드 누락 JSON과 해시는 유지한다.
+- [x] 혼합 파일의 원래 역할 UNKNOWN을 수정하지 않고 RESOLVED NOTICE/FORM 구간을 검증한다. UNKNOWN 구간/FORM·REFERENCE만 있는 공고는 정상 표본 수에 포함하지 않는다. 정상3건·정상 다중 첨부·전체 형식/기관 분모 요건은 유지한다.
+- [x] 신규 정책 생성은 구간 엔진·현재 구간 규칙 지문을 고정한다. 기존 초안의 일반 편집은 엔진 계열을 유지하고 개정은 설정을 그대로 복사한다. 과거 정책·job·평가는 자동 이관되지 않는다. 모두 DRAFT이며 게시/외부 요청은 실행하지 않는다.
+- [~] 새 엔진 QA 입력 생성은 가능하지만 현재 실제 catalog의 구간 기대값은 미등록이다. 미등록 COMPLETE_TEXT는 EXPECTATION_INVALID이며 전체 근거를 통과시키지 않는다. 실제 파일 관측 후 검토한 기대값과 같은 버전의 재실행 증거가 필요하다.
+- [ ] PDF 문단·표 구조 추출, 관리자 구간 표시, 실제 사이트 구간 기대값·재검증, 운영 적용과 업무 E2E는 남는다.
+
+검증 범위: 기존·구간 엔진의 합성 다운로드/IPC, catalog/원장 검증/집계/정책 작성 회귀 및 실제 임시 PostgreSQL 정책 저장을 사용한다. 외부 사이트 다운로드나 운영 정책 활성화를 수행한 증거로 확대하지 않는다. 구체적인 명령·최종 결과는 장기 진행 기록에 기록한다.

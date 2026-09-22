@@ -4,7 +4,7 @@
 
 > 후속 worker 연결: 정책 조회 Configuration에 선택적 `segmentRuleVersion/segmentRulesHash`를 추가하고 미설정 시 기존 JSON을 유지한다. SHADOW는 위 API 호출의 비적용 동작을 뜻하며, 동일 분석이 별도 worker 평가에 참조됐는지 여부를 뜻하지 않는다. 신규 엔진 정책 게시 QA·관리자 구간 표시 연결은 아직 완료되지 않았다. 운영 정책 활성화나 기존 데이터 재처리를 수행하지 않는다.
 
-> 엔진별 정책 분류 검증: 기존 `attachment-1.0.0`은 AG30건과 기존 결과 형식을 유지한다. 명시적으로 구간 버전·hash에 고정된 `attachment-segment-1.0.0` 초안은 AG30+SG22 총52건을 검사하고 동일 wrapper/이력 필드에 suite·engine·caseCount·caseIds·resultHash를 저장한다. 구 엔진의 결과를 신규 엔진의 게시 근거로 재사용하지 않는다. 분류 검사 성공은 전체 정책 QA·게시·활성화 성공이 아니며, 실제 Provider 구간 기대값 연결 전 전체 신규 정책 QA 예약은 계속 차단한다.
+> 엔진별 정책 분류 검증: 기존 `attachment-1.0.0`은 AG30건과 기존 결과 형식을 유지한다. 신규 생성 초안은 구간 버전·hash에 고정된 `attachment-segment-1.0.0`을 사용하며 AG30+SG22 총52건을 검사한다. 기존 정책의 일반 편집은 엔진 계열을 유지하고 개정은 기존 설정을 복사한다. 구 엔진 결과를 신규 엔진 게시 근거로 재사용하지 않는다. 전체 QA 입력 생성·수집원 QA 계획 조회는 신규 엔진도 지원하지만 실제 구간 기대값/전체 실행 근거가 부족하면 통과·게시할 수 없다. 초안 생성·분류 검사 성공은 운영 활성화가 아니다.
 
 > 첨부 V2 확장: [공고 첨부파일 수집·추출 API 설계](announcement-attachment-collection-design-2026-09-08.md)를 바탕으로 24절에 로컬 구현 계약을 기록한다. 기존 v1 제목·본문 조회 계약을 유지하며 첨부 적용 원문의 전환/검수 조건을 서버에서 확인한다. 로컬 코드·테스트 진척은 운영 반영이나 전체 E2E 완료를 뜻하지 않는다. 최신 실행 증거와 잔여 Gate는 [진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
@@ -2941,6 +2941,8 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 기존 HTTP API·v1/v2 응답은 변경하지 않는다. 관리자 URL·파일·성공 JSON 제출 API도 추가하지 않는다. 내부 `AttachmentProviderQaEvidenceGate`는 현재 snapshot6/전체 catalog와 DB 분할별 최신 시도·모든 case의 파일별 근거를 대조해 PASSED/MISSING/FAILED/CANCELLED 및 고정 사유 코드를 반환한다. 여기서 PASSED는 해당 전체 Provider 실행 근거의 검증 결과이며 정책 전체 VERIFIED/게시 완료가 아니다.
 
 2026-09-15 내부 파일 기대값에 선택적 `roleExpectation`(규칙 버전/지문, 역할/사유, textHash/blocksHash/assessmentHash), 실행 결과에 선택적 `roleAssessmentHash`를 추가한다. 기존 누락 필드의 직렬화/hash는 보존하지만 새 catalog의 COMPLETE_TEXT는 역할 기대값 필수다. 실제 추출의 역할·사유·텍스트·전체 위치 근거가 모두 일치해야 하며 저장된 결과도 같은 고정 입력/실제 textHash에 재결합한다. UNKNOWN 음성 사례와 양식/참고자료만 있는 공고는 정상3공고 요구량을 채우지 않는다. 원장 조회 HTTP 응답에 내부 기대값·증거 JSON·원문을 추가하지 않으며 공개 계약 변경과 DDL은 없다.
+
+2026-09-22 구간 엔진은 내부 실행 입력에 `engineVersion`, COMPLETE_TEXT 파일에 `segmentExpectation`(analysisVersion/rulesHash/textHash/blocksHash/analysisHash/statusCode/순서 고정 roleCodes)을 요구한다. 실제 추출 결과의 전체 구간 위치·역할·근거 hash를 대조하고 결과에는 `segmentAnalysisHash`만 추가한다. 설정·catalog·입력·저장 결과·정책 게시 재검증이 같은 엔진에 결합된다. 기존 엔진의 누락 필드는 직렬화하지 않아 기존 JSON/hash를 보존한다. 새 엔진의 정상 표본은 모든 파일 COMPLETE_TEXT/모든 구간 RESOLVED이며 NOTICE/GUIDE가 하나 이상 있어야 한다. 파일 전체 UNKNOWN이어도 NOTICE/FORM 구간이 모두 확인되면 정상 표본에 포함할 수 있으나 UNKNOWN 구간·부분/실패 파일·양식만 있는 공고는 포함하지 않는다. 정상 표본은 정책 QA 수량의 의미이며 사용자 노출·최종 승인·자동 활성화가 아니다. 기대값은 검토 없이 관측 결과에서 자동 작성하지 않는다.
 
 전체 기대값 부재·분할 누락·최신 시도 미완료는 MISSING, 지문/순번/분모/시각/파일·예산 불일치 또는 DB 조회 실패는 FAILED, 소유 실행 중단은 CANCELLED다. 실패 원문/SQL/URL/파일 텍스트를 사유에 복사하지 않는다. 실제 실패/부분 품질을 정상 문서로 바꾸지 않으며 미실행 파일을 분모에서 제외하지 않는다.
 

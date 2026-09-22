@@ -11,6 +11,18 @@
 
 ## 기준선
 
+### 2026-09-22 Provider 구간 근거 검증·신규 정책 작성 연결
+
+- 직전 회차는 진행률 보고와 최신 `ca474a7` [Linux35706589100](https://github.com/FrostyCityMan/saneB/actions/runs/35706589100)의 최종 success 확인이었다. 이번 회차는 미완성 Provider 연결과 신규 정책 작성 경로를 구현한 progress다. 전체9Gate/ATT62 및 구간 확장 범위를 유지한다.
+- [x] COMPLETE_TEXT 파일의 사전 고정 `segmentExpectation`을 실행 입력과 hash에 결합했다. 실제 추출 block/전체 구간 분석을 대조하고 저장 결과는 `segmentAnalysisHash`만 추가한다. 누락·지문/역할 순서 변경·형식 위조를 거부한다. 기존 역할/JSON/hash는 보존한다.
+- [x] snapshot·catalog·예약 coordinator·저장 결과 verifier·전체 Provider 집계/게시 재검증에 동일 엔진 설정을 전달한다. 혼합 파일 UNKNOWN을 지우지 않고 RESOLVED NOTICE/FORM을 별도 검증하며, UNKNOWN 구간·양식 전용·실패 파일은 정상 표본에서 제외한다. 전체 파일/형식/기관 분모와 정상3건·다중 첨부 요건은 그대로다.
+- [x] 신규 초안은 구간 엔진·현재 규칙 hash로 생성한다. 기존 초안의 일반 편집은 엔진 계열을 유지하고 개정은 설정을 그대로 복사한다. 새 초안도 DRAFT이며 게시·수집·기존 평가 변경을 자동 실행하지 않는다. 실제 catalog 구간 기대값을 자동 생성하거나 등록하지 않았다.
+- [x] 정책/Provider 표적 회귀와 bootJar는2분9초 성공했다. 후속 전체 `:test`는245suite2864건 중2591통과/273조건부 생략/실패·오류0이며 production 변경 전체를 포함한다. 같은 명령의 PG 단계는 새 과거 엔진 fixture 정책 코드가 varchar(40)을 넘어43건 중24실패했다. 기존 제약을 완화하지 않고 fixture 식별자만36자로 고쳤다. 이후 추가한 DB 근거 시험1건은 앞 전체 root 수량에 포함하지 않는다.
+- [x] 최종 `:attachmentJobIntegrationTest --tests '*Policy*' --tests '*policy*' --tests '*providerQa*' :bootJar --no-daemon --max-workers=1`은2분51초 성공했다. 실제 임시 PostgreSQL44/44·실패/오류/생략0이다. 신규 초안→52사례 저장3.815초, 기존 초안→30사례2.913초, JSONB 구간 지문 보존/완료 이력 변조 거부2.507초를 포함한다. 마지막 bootJar는 동일 production 코드의 선행 산출물 UP-TO-DATE이며 새 빌드 실행으로 세지 않는다.
+- [x] `node --test scripts/qa/attachment-contract-report.test.mjs`10/10·실패/생략0, `git diff --check` 성공. 변경22텍스트 파일의 제한 credential 패턴0건, migration 변경0, Java/임시 PostgreSQL·Node 실행 종료를 확인했다. XML과 초기 fixture 실패는 `build/qa-results/segment-provider-20260922/`에 보존했다. 전체 보안 감사나 실제 사이트 증거가 아니다.
+- [~] QA 브랜치에 `[skip deploy]`로 커밋·푸시 후 같은 SHA Linux 결과를 별도 확인한다. 앞선 ca474a7 CI 성공은 이번 변경의 성공 근거가 아니다.
+- [ ] 실제 사이트 구간 기대값·PDF 문단/표 구조·관리자 구간 표시·운영 적용/업무 E2E는 남는다. 운영 설정/DB/기존 데이터, 옥천 QA 보류, 사용자 output은 변경하지 않았다. 이번 서버 계약 증분에서 브라우저는 미실행이며 구간 UI/운영 연결 후 실제 업무 검증이 필요하다. 전체 Gate8진행/1차단·goal active를 유지한다.
+
 ### 2026-09-22 구간 정책 정답52건 연결 / 실제 seed 검증
 
 - [x] 직전6933ef3의 [Linux35703442168](https://github.com/FrostyCityMan/saneB/actions/runs/35703442168) 최종 success 및 보관 XML을 재확인했다. root2827=2554통과/273조건부 생략/실패·오류0, 별도 job194·migration4/backfill14·worker12·정책 부모2 실패/오류/생략0이다. 신규 구간 worker2사례 포함이며 이전42f8cb5 독립 계측 실패 수정 후 성공이다. 현재 후속 코드나 운영 반영의 증거는 아니다.

@@ -109,6 +109,13 @@ public final class AttachmentProviderQaCatalog {
     }
     /** 규칙/runtime은 예약 coordinator가 현재 설치·DB snapshot에서 검증한 값을 전달해야 한다. 이 함수는 HTTP/DB를 호출하지 않는다. */
     public Prepared selectPrepared(AttachmentProviderQaPlan.Plan scope,AnnouncementSourceClassificationRuleSet rules,String runtimeHash,Instant observedNow) {
+        return selectPrepared(scope,rules,runtimeHash,observedNow,new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(
+                com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.VERSION,null,null,null));
+    }
+    public Prepared selectPrepared(AttachmentProviderQaPlan.Plan scope,AnnouncementSourceClassificationRuleSet rules,String runtimeHash,Instant observedNow,
+            com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration configuration) {
+        if(configuration==null || !configuration.selectEngineCurrent())throw invalid("CATALOG_ENGINE_CHANGED");
+        boolean segmentEngine=configuration.segmentRuleVersion()!=null;
         if(scope==null || scope.schemaVersion()!=1 || scope.items().size()<2 || scope.items().size()>1002 || rules==null || rules.rules().isEmpty()
                 || rules.rules().size()>2000 || !hash(runtimeHash) || observedNow==null)throw invalid("CATALOG_CONTEXT_INVALID");
         var required=new LinkedHashMap<String,Item>();
@@ -127,7 +134,7 @@ public final class AttachmentProviderQaCatalog {
             String state=selectState(notice,target,observedNow);AttachmentProviderQaCase input=null;
             if("EXPECTED_INPUT_READY".equals(state)) {
                 var e=notice.expectation();input=new AttachmentProviderQaCase(notice.caseCode(),notice.profileCode(),e.profileHash(),notice.source(),e.title(),rules,runtimeHash,
-                        e.discoveryStatus(),e.discoveryComplete(),e.files(),e.limits());
+                        e.discoveryStatus(),e.discoveryComplete(),e.files(),e.limits(),segmentEngine?configuration.engineVersion():null);
                 try {AttachmentProviderQaCaseContract.validate(input);}catch(IllegalArgumentException failure){state="EXPECTATION_INVALID";input=null;}
                 // 기존 quality-only 이력은 보존하지만 새 catalog 실행은 역할·위치 근거 없는 완전 추출을 승인하지 않는다.
                 if(input!=null && input.files().stream().anyMatch(f->"COMPLETE_TEXT".equals(f.quality()) && f.roleExpectation()==null)) {
@@ -147,8 +154,10 @@ public final class AttachmentProviderQaCatalog {
             }
             boolean normal=input!=null && "FOUND".equals(input.discoveryStatus()) && input.discoveryComplete()
                     && input.files().stream().allMatch(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality())
-                        && f.roleExpectation()!=null && !"UNKNOWN".equals(f.roleExpectation().roleCode()))
-                    && input.files().stream().anyMatch(f->Set.of("NOTICE","GUIDE").contains(f.roleExpectation().roleCode()));
+                        && (segmentEngine ? f.segmentExpectation()!=null && "RESOLVED".equals(f.segmentExpectation().statusCode())
+                            : f.roleExpectation()!=null && !"UNKNOWN".equals(f.roleExpectation().roleCode())))
+                    && input.files().stream().anyMatch(f->segmentEngine ? f.segmentExpectation().roleCodes().stream().anyMatch(r->Set.of("NOTICE","GUIDE").contains(r))
+                        : Set.of("NOTICE","GUIDE").contains(f.roleExpectation().roleCode()));
             List<String> formats=input==null?List.of():input.files().stream().filter(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality())).map(ExpectedFile::format).distinct().sorted().toList();
             cases.add(new CasePlan(notice.caseCode(),key,state,input==null?null:selectHash(input),expectedFiles,normal,formats));
             if(input!=null)inputs.add(input);

@@ -137,6 +137,58 @@ class AttachmentProviderQaCaseExecutorTest {
         return change(base,base.title(),base.discoveryStatus(),base.discoveryComplete(),files,base.limits());
     }
     final String noticeText="소상공인 지원금 공고\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월";
+    final String mixedText=noticeText+"\n지원 신청서\n성 명\n(서명 또는 인)\n수출 지원금";
+    SegmentExpectation segmentExpectation(String text) {
+        var block=new AttachmentSetEvidence.Block(0,0,text.codePointCount(0,text.length()),"paragraph-1",true,"paragraph:1");
+        var analysis=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer()
+                .selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,List.of(block),null,0));
+        return new SegmentExpectation(analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),
+                executor.selectHash(analysis),analysis.statusCode(),analysis.segments().stream().map(s->s.roleCode()).toList());
+    }
+    AttachmentProviderQaCase withSegments(AttachmentProviderQaCase base,SegmentExpectation segment) {
+        var files=base.files().stream().map(f->new ExpectedFile(f.locatorHash(),f.downloadAllowed(),f.format(),f.binaryHash(),f.quality(),
+                f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),f.roleExpectation(),segment)).toList();
+        return new AttachmentProviderQaCase(base.caseId(),base.profileCode(),base.profileHash(),base.source(),base.title(),base.rules(),base.runtimeHash(),
+                base.discoveryStatus(),base.discoveryComplete(),files,base.limits(),com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+    }
+    @Test void mixedFileIsCheckedAgainstEverySegmentWithoutRewritingFileRoleOrPublishing() throws Exception {
+        when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",mixedText));
+        var role=roleExpectation(mixedText);assertThat(role.roleCode()).isEqualTo("UNKNOWN");
+        var segment=segmentExpectation(mixedText);assertThat(segment.roleCodes()).containsExactly("NOTICE","FORM");
+        var result=executor.selectResult(withSegments(withRole(input(descriptors),role),segment),control);
+        assertThat(result.status()).isEqualTo("PASSED");assertThat(result.isPolicyQaPassed()).isFalse();
+        assertThat(result.files()).hasSize(2).allSatisfy(f->{assertThat(f.segmentAnalysisHash()).isEqualTo(segment.analysisHash());assertThat(f.roleAssessmentHash()).isEqualTo(role.assessmentHash());});
+        assertThat(mapper.writeValueAsString(result)).doesNotContain("소상공인","수출","paragraph:1","roleCodes","startOffset");cleaned();
+    }
+    @ParameterizedTest @ValueSource(strings={"textHash","blocksHash","analysisHash","roles","status"})
+    void matchingBytesAndPhrasesCannotHideChangedSegmentExpectations(String field) throws Exception {
+        when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",mixedText));var s=segmentExpectation(mixedText);
+        var changed=new SegmentExpectation(s.analysisVersion(),s.rulesHash(),field.equals("textHash")?"e".repeat(64):s.textHash(),
+                field.equals("blocksHash")?"e".repeat(64):s.blocksHash(),field.equals("analysisHash")?"e".repeat(64):s.analysisHash(),
+                field.equals("status")?"REVIEW_REQUIRED":s.statusCode(),field.equals("status")?List.of("UNKNOWN"):field.equals("roles")?List.of("FORM","NOTICE"):s.roleCodes());
+        var result=executor.selectResult(withSegments(input(descriptors),changed),control);
+        assertThat(result.status()).isEqualTo("FAILED");assertThat(result.allTextComplete()).isFalse();
+        assertThat(result.files()).allSatisfy(f->{assertThat(f.reasonCode()).isEqualTo("SEGMENT_EXPECTATION_CHANGED");assertThat(f.segmentAnalysisHash()).isNull();});cleaned();
+    }
+    @ParameterizedTest @ValueSource(strings={"numericString","scopeType","hiddenText","outOfRange","extra"})
+    void malformedSegmentBlocksCannotProduceProof(String kind) throws Exception {
+        var out=(com.fasterxml.jackson.databind.node.ObjectNode)output("COMPLETE_TEXT",mixedText);
+        var block=(com.fasterxml.jackson.databind.node.ObjectNode)out.path("blocks").get(0);
+        switch(kind){case "numericString"->block.put("index","0");case "scopeType"->block.put("scopeReliable","true");
+            case "hiddenText"->block.put("startOffset",1);case "outOfRange"->block.put("endOffset",999999);default->block.put("override",true);}
+        when(extractor.selectExtraction(any())).thenReturn(out);
+        var result=executor.selectResult(withSegments(input(descriptors),segmentExpectation(mixedText)),control);
+        assertThat(result.status()).isEqualTo("FAILED");assertThat(result.files()).allSatisfy(f->assertThat(f.reasonCode()).isEqualTo("SEGMENT_EXTRACTION_STRUCTURE_INVALID"));cleaned();
+    }
+    @Test void segmentEngineRequiresCurrentAndCompleteExpectationsBeforeAnyIo() throws Exception {
+        var base=input(descriptors);var s=segmentExpectation(mixedText);
+        assertThatThrownBy(()->executor.selectResult(withSegments(base,null),control)).hasMessage("CASE_INPUT_INVALID");
+        var stale=new SegmentExpectation("segment-role-old",s.rulesHash(),s.textHash(),s.blocksHash(),s.analysisHash(),s.statusCode(),s.roleCodes());
+        assertThatThrownBy(()->executor.selectResult(withSegments(base,stale),control)).hasMessage("CASE_INPUT_INVALID");
+        var bad=new SegmentExpectation(s.analysisVersion(),s.rulesHash(),s.textHash(),s.blocksHash(),s.analysisHash(),"RESOLVED",List.of("UNKNOWN"));
+        assertThatThrownBy(()->executor.selectResult(withSegments(base,bad),control)).hasMessage("CASE_INPUT_INVALID");
+        verifyNoInteractions(client,extractor,temporary,runtime);
+    }
     @Test void actualExtractionRoleAndEveryEvidencePositionMustMatchFrozenExpectation() throws Exception {
         when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",noticeText));
         var role=roleExpectation(noticeText);assertThat(role.roleCode()).isEqualTo("NOTICE");
@@ -186,8 +238,8 @@ class AttachmentProviderQaCaseExecutorTest {
     }
     @Test void legacyCaseAndResultSerializationDoesNotAddNullRoleProofOrChangeFrozenHash() throws Exception {
         var base=input(descriptors);var before=executor.selectHash(base);var result=executor.selectResult(base,control);
-        assertThat(mapper.writeValueAsString(base)).doesNotContain("roleExpectation");
-        assertThat(mapper.writeValueAsString(result)).doesNotContain("roleAssessmentHash");
+        assertThat(mapper.writeValueAsString(base)).doesNotContain("roleExpectation","segmentExpectation","engineVersion");
+        assertThat(mapper.writeValueAsString(result)).doesNotContain("roleAssessmentHash","segmentAnalysisHash");
         assertThat(executor.selectHash(mapper.readTree(mapper.writeValueAsString(base)))).isEqualTo(before);cleaned();
     }
     @Test void everyFrozenFileIsExtractedAndOnlyMetadataReturnsAfterCleanup() throws Exception {

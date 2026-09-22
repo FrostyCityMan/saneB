@@ -217,7 +217,7 @@ public class AnnouncementAttachmentProviderQaManagementServiceImpl implements An
                 var json=mapper.readTree(frozen.json());
                 if(json.path("schemaVersion").asInt()!=6 || !json.path("targets").isArray() || !json.path("providerQaCatalog").isObject()) throw conflict("현재 전체 QA 계획이 snapshot에 없습니다.");
                 var scope=mapper.treeToValue(json.path("providerQaPlan"),AttachmentProviderQaPlan.Plan.class);
-                var prepared=catalog.selectPrepared(scope,frozen.rule().ruleSet(),installed.runtimeHash(),Instant.now());
+                var prepared=catalog.selectPrepared(scope,frozen.rule().ruleSet(),installed.runtimeHash(),Instant.now(),frozen.selectConfiguration());
                 // long 필드의 valueToTree(LongNode)와 JSON 재조회(IntNode)의 타입 차이를 값 변경으로 오인하지 않는다.
                 if(!mapper.readTree(snapshots.json(prepared.plan())).equals(json.path("providerQaCatalog"))) throw conflict("공고 기대값의 유효기간 또는 계획이 바뀌었습니다. 다시 조회하세요.");
                 return new Prepared(policy,frozen,prepared,snapshots.hash(mapper.convertValue(prepared.plan(),Object.class)),json.path("targets").toString());

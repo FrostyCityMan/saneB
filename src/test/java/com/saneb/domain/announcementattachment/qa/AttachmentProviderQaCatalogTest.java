@@ -54,6 +54,38 @@ class AttachmentProviderQaCatalogTest {
     Notice alter(Notice n,Expectation e){return new Notice(n.caseCode(),n.profileCode(),n.source(),e);}
     AttachmentProviderQaCatalog catalog(List<Notice> notices){return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(1,"TEST-1",notices));}
     Prepared prepare(List<Notice> notices){return catalog(notices).selectPrepared(scope,rules,runtimeHash,now);}
+    com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration segmentConfiguration() {
+        return new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,null,null,null,null,null,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+    }
+    Notice segmentNotice(String status,List<String> roles) {
+        var n=notice("BIZINFO","BIZ","1");var e=n.expectation();
+        var files=e.files().stream().map(f->{var r=f.roleExpectation();
+            var mixed=new RoleExpectation(r.ruleVersion(),r.rulesHash(),"UNKNOWN","MIXED_DOCUMENT_ROLES",r.textHash(),r.blocksHash(),r.assessmentHash());
+            var s=new SegmentExpectation(segmentConfiguration().segmentRuleVersion(),segmentConfiguration().segmentRulesHash(),r.textHash(),r.blocksHash(),"9".repeat(64),status,roles);
+            return new ExpectedFile(f.locatorHash(),f.downloadAllowed(),f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),mixed,s);
+        }).toList();
+        return alter(n,new Expectation(e.profileHash(),e.title(),e.observedAt(),e.discoveryStatus(),e.discoveryComplete(),files,e.limits()));
+    }
+    @Test void segmentPolicyRequiresSeparateExpectationsAndCannotReuseLegacyInputHashes() {
+        var legacy=catalog(List.of(notice("BIZINFO","BIZ","1"))).selectPrepared(scope,rules,runtimeHash,now,segmentConfiguration());
+        assertThat(legacy.inputs()).isEmpty();assertThat(legacy.plan().cases().getFirst().statusCode()).isEqualTo("EXPECTATION_INVALID");
+        var notices=List.of(segmentNotice("RESOLVED",List.of("NOTICE","FORM")));var selected=catalog(notices);
+        var segmented=selected.selectPrepared(scope,rules,runtimeHash,now,segmentConfiguration());var old=selected.selectPrepared(scope,rules,runtimeHash,now);
+        assertThat(segmented.inputs()).hasSize(1);assertThat(segmented.inputs().getFirst().engineVersion()).isEqualTo(segmentConfiguration().engineVersion());
+        assertThat(segmented.plan().cases().getFirst().normalNotice()).isTrue();assertThat(old.plan().cases().getFirst().normalNotice()).isFalse();
+        assertThat(segmented.plan().cases().getFirst().inputHash()).isNotEqualTo(old.plan().cases().getFirst().inputHash());
+        assertThat(segmented.plan().isExpectationCoverageComplete()).isFalse();assertThat(segmented.plan().isQaPassed()).isFalse();
+    }
+    @Test void unknownSegmentsOrFormsOnlyNeverFillNormalCoverage() {
+        for(var n:List.of(segmentNotice("REVIEW_REQUIRED",List.of("NOTICE","UNKNOWN")),segmentNotice("RESOLVED",List.of("FORM","REFERENCE")))) {
+            var result=catalog(List.of(n)).selectPrepared(scope,rules,runtimeHash,now,segmentConfiguration());
+            assertThat(result.inputs()).hasSize(1);assertThat(result.plan().cases().getFirst().normalNotice()).isFalse();
+            assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
+        }
+    }
     @Test void entireScopeRemainsWhenCatalogHasNoReadyEntries() {
         var result=prepare(List.of());assertThat(result.inputs()).isEmpty();assertThat(result.plan().targets()).hasSize(2);
         assertThat(result.plan().targets()).allSatisfy(t->{assertThat(t.normalNoticeCount()).isZero();assertThat(t.missingFormats()).containsExactly("HWP","HWPX","PDF");});

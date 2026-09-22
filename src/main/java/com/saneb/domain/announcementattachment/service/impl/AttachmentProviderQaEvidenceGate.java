@@ -83,7 +83,7 @@ public final class AttachmentProviderQaEvidenceGate implements AttachmentPolicyA
                     && json.path("policyVersion").isIntegralNumber() && json.path("policyVersion").asInt()==policyRun.policyVersion()
                     && Objects.equals(frozen.rule().releaseId(),policyRun.ruleReleaseId()) && Objects.equals(frozen.rule().rowVersion(),policyRun.ruleVersion()),"POLICY_SNAPSHOT_CHANGED");
             var scope=mapper.treeToValue(json.path("providerQaPlan"),AttachmentProviderQaPlan.Plan.class);
-            var prepared=catalog.selectPrepared(scope,frozen.rule().ruleSet(),frozen.runtime().runtimeHash(),Instant.now());var plan=prepared.plan();
+            var prepared=catalog.selectPrepared(scope,frozen.rule().ruleSet(),frozen.runtime().runtimeHash(),Instant.now(),frozen.selectConfiguration());var plan=prepared.plan();
             require(mapper.readTree(mapper.writeValueAsString(plan)).equals(json.path("providerQaCatalog")),"CURRENT_CATALOG_CHANGED");
             if(!plan.isExpectationCoverageComplete())return new Assessment("MISSING","ALL_PROVIDER_EXPECTATIONS_REQUIRED",null);
             require(!plan.isQaPassed() && !plan.segments().isEmpty() && plan.executableCount()==prepared.inputs().size() && plan.cases().size()==prepared.inputs().size()

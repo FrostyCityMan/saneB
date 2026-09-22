@@ -125,12 +125,18 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThatThrownBy(()->factory.selectRuntime()).hasMessageContaining("Linux").hasMessageNotContaining("internal-path");
         assertThatThrownBy(()->factory.selectSnapshot(policy("{}",manifest()),installed)).hasMessageContaining("버전");
     }
-    @Test void segmentWorkerSupportDoesNotUnlockUnverifiedPolicyPublication() throws Exception {
+    @Test void segmentSnapshotRetainsMissingProviderEvidenceInsteadOfReusingLegacyProof() throws Exception {
         var settings=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(settings());
         settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
         settings.put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
         settings.put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
-        assertThatThrownBy(()->factory.selectSnapshot(policy(settings.toString(),manifest()),installed)).hasMessageContaining("구간 엔진의 실제 수집원 QA 기대값 연결");
+        var frozen=factory.selectSnapshot(policy(settings.toString(),manifest()),installed);
+        assertThat(frozen.selectConfiguration().segmentRulesHash()).isEqualTo(settings.path("segmentRulesHash").asText());
+        var catalog=mapper.readTree(frozen.json()).path("providerQaCatalog");
+        assertThat(catalog.path("executableCount").asInt()).isZero();
+        assertThat(catalog.path("isExpectationCoverageComplete").asBoolean()).isFalse();
+        assertThat(catalog.path("isQaPassed").asBoolean()).isFalse();
+        assertThat(frozen.hash()).isNotEqualTo(factory.selectSnapshot(policy(),installed).hash());
     }
     @Test void oversizedAndMissingTargetConfigurationAreRejected() throws Exception {
         var policy=policy();when(dao.selectTargetList()).thenReturn(Collections.nCopies(1001,target("https://example.com","{}")));

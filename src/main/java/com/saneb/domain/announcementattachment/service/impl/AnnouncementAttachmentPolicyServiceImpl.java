@@ -6,6 +6,8 @@ import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyDao;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
 import com.saneb.domain.announcementattachment.dto.AttachmentPolicyRequests;
@@ -86,7 +88,12 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         if(!"DRAFT".equals(original.policyStatusCode())) throw new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_POLICY_NOT_DRAFT,HttpStatus.CONFLICT,
                 "게시·퇴역 정책은 수정할 수 없습니다. 해당 버전에서 새 개정 초안을 만드세요.");
         if(!request.expectedVersion().equals(original.rowVersion())) throw conflict("조회 이후 정책이 변경됐습니다. 입력을 보존하고 최신 정책을 확인하세요.");
-        String settings=selectJson(selectNewConfiguration(request.maximumSourceBytes()));
+        var existingConfiguration=selectDetails(original).configuration();
+        // 일반 초안 편집은 엔진 이관 요청이 아니다. 구 정책의 판정 의미를 묵시적으로 변경하지 않는다.
+        if(!AnnouncementAttachmentClassificationEngine.VERSION.equals(existingConfiguration.engineVersion())
+                && !AttachmentSegmentClassificationEngine.VERSION.equals(existingConfiguration.engineVersion()))
+            throw conflict("이 초안의 엔진 버전은 현재 편집할 수 없습니다. 현재 엔진으로 새 정책 초안을 생성하세요.");
+        String settings=selectJson(selectConfiguration(request.maximumSourceBytes(),existingConfiguration.engineVersion()));
         String manifest=selectJson(selectSystemBindings());
         if(dao.updatePolicyDraft(new AttachmentPolicyManagementRows.Update(policyId,request.expectedVersion(),request.modeCode(),request.ruleReleaseId(),settings,manifest))!=1)
             throw conflict("다른 작업이 먼저 정책을 변경했습니다. 입력을 보존하고 최신 버전을 확인하세요.");
@@ -119,10 +126,15 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         return selectDetails(selectPolicy(id,false));
     }
     private AttachmentPolicyResponses.Configuration selectNewConfiguration(long maximumBytes) {
+        return selectConfiguration(maximumBytes,AttachmentSegmentClassificationEngine.VERSION);
+    }
+    private AttachmentPolicyResponses.Configuration selectConfiguration(long maximumBytes,String engineVersion) {
         // 설치 Linux 런타임 지문은 실제 검증 단계에서만 결합한다. Windows에서 추측하거나 임의 hash를 받지 않는다.
-        return new AttachmentPolicyResponses.Configuration(AnnouncementAttachmentClassificationEngine.VERSION,AttachmentRuntimeIdentity.EXTRACTOR_VERSION,null,maximumBytes,
+        boolean segmentEngine=AttachmentSegmentClassificationEngine.VERSION.equals(engineVersion);
+        return new AttachmentPolicyResponses.Configuration(engineVersion,AttachmentRuntimeIdentity.EXTRACTOR_VERSION,null,maximumBytes,
                 com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH);
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH,
+                segmentEngine?AttachmentSegmentRoleAnalyzer.VERSION:null,segmentEngine?AttachmentSegmentRoleAnalyzer.RULES_HASH:null);
     }
     private List<AttachmentPolicyResponses.Profile> selectSystemBindings() {
         if(profiles.selectProfileList().size()>1000) throw conflict("등록된 시스템 첨부 profile 수가 한도를 초과했습니다.");

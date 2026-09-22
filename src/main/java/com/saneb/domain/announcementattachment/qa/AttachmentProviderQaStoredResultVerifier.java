@@ -43,8 +43,10 @@ public final class AttachmentProviderQaStoredResultVerifier {
             for(var file:tree.path("files")) {
                 var expectedFields=new HashSet<>(FILE);
                 if(file.has("roleAssessmentHash"))expectedFields.add("roleAssessmentHash");
+                if(file.has("segmentAnalysisHash"))expectedFields.add("segmentAnalysisHash");
                 fields(file,expectedFields);
                 if(file.has("roleAssessmentHash"))require(file.path("roleAssessmentHash").isTextual(),"EVIDENCE_TYPE_INVALID");
+                if(file.has("segmentAnalysisHash"))require(file.path("segmentAnalysisHash").isTextual(),"EVIDENCE_TYPE_INVALID");
             }
             for(String key:List.of("expectedFileCount","discoveredFileCount","requestReservations","reservedBytes"))integer(tree,key);
             for(String key:List.of("discoveryComplete","originalFilesRemoved","allTextComplete","isPolicyQaPassed"))require(tree.path(key).isBoolean(),"EVIDENCE_TYPE_INVALID");
@@ -91,6 +93,10 @@ public final class AttachmentProviderQaStoredResultVerifier {
                 require(role==null ? actual.roleAssessmentHash()==null
                         : "COMPLETE_TEXT".equals(actual.quality()) && Objects.equals(role.textHash(),actual.textHash())
                             && Objects.equals(role.assessmentHash(),actual.roleAssessmentHash()),"ROLE_EXPECTATION_CHANGED");
+                var segment=expected.segmentExpectation();
+                require(segment==null ? actual.segmentAnalysisHash()==null
+                        : "COMPLETE_TEXT".equals(actual.quality()) && Objects.equals(segment.textHash(),actual.textHash())
+                            && Objects.equals(segment.analysisHash(),actual.segmentAnalysisHash()),"SEGMENT_EXPECTATION_CHANGED");
                 if(!expected.downloadAllowed()) {
                     require("UNSUPPORTED_NOT_DOWNLOADED".equals(actual.status()) && actual.bytes()==0 && actual.binaryHash()==null && actual.quality()==null
                             && actual.textHash()==null && actual.characterCount()==0 && actual.blockCount()==0,"UNSUPPORTED_FILE_DOWNLOADED");

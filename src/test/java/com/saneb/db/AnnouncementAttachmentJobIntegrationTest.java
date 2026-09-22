@@ -2085,10 +2085,26 @@ class AnnouncementAttachmentJobIntegrationTest {
         return context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentPolicyCheckService.class);
     }
     private UUID insertPolicyCheckFixture() {
+        return insertPolicyCheckFixture(false);
+    }
+    private UUID insertPolicyCheckFixture(boolean segmentEngine) {
         var snapshot=context.getBean(AnnouncementSourceRuleReleaseService.class).selectRuleValidationDetails(release);
         // 테스트 소유 DB의 게시 fixture 지문을 실제 초기 seed 내용과 맞춘다. 운영 규칙은 변경하지 않는다.
         sql.update("UPDATE announcement_source_classification_rule_releases SET rule_snapshot_hash=? WHERE id=?",snapshot.calculatedSnapshotHash(),release);
-        return policyService().insertPolicy(reviewActor(),UUID.randomUUID(),policyCreateRequest()).policy().policyId();
+        if(segmentEngine)return policyService().insertPolicy(reviewActor(),UUID.randomUUID(),policyCreateRequest()).policy().policyId();
+        UUID id=UUID.randomUUID();
+        // 과거 엔진의 관리 초안은 별도 fixture로 삽입한다. 신규 작성 경로·버전 증가 제약을 수정하거나 우회하지 않는다.
+        assertThat(sql.update("""
+                INSERT INTO announcement_attachment_policies(id,policy_code,version_no,mode_code,rule_release_id,settings_json,
+                    profile_manifest_json,created_by,creation_idempotency_key,creation_request_hash,creation_operation_code)
+                SELECT ?,?,1,'COLLECT_ONLY',rule_release_id,
+                    (settings_json-'extractorConfigHash') || jsonb_build_object('extractorConfigHash',NULL,'roleRuleVersion',CAST(? AS text),'roleRulesHash',CAST(? AS text)),
+                    profile_manifest_json,created_by,gen_random_uuid(),repeat('a',64),'CREATE'
+                FROM announcement_attachment_policies WHERE id=?
+                """,id,"OLD-"+id.toString().replace("-",""),
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier.RULES_HASH,policy)).isEqualTo(1);
+        return id;
     }
     @Test void policyClassificationCheckRunsCurrentPersistedRulesAndKeepsPublicationSeparate() {
         UUID id=insertPolicyCheckFixture(),key=UUID.randomUUID();
@@ -2104,17 +2120,11 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .contains("resultHash","reasonHash").doesNotContain("분류 검증 원문","소상공인");
     }
     @Test void segmentPolicyClassificationCheckPersistsFiftyTwoCasesWithoutPublishing() throws Exception {
-        UUID id=insertPolicyCheckFixture(),key=UUID.randomUUID();
-        var mapper=new ObjectMapper();
-        var settings=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(sql.queryForObject(
-                "SELECT settings_json::text FROM announcement_attachment_policies WHERE id=?",String.class,id));
-        settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION)
-                .put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION)
-                .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
-        // 격리 테스트 DB의 초안만 새 엔진에 고정한다. 운영 정책 생성 기본값이나 게시 상태는 바꾸지 않는다.
-        assertThat(sql.update("UPDATE announcement_attachment_policies SET settings_json=?::jsonb,row_version=row_version+1 WHERE id=?",
-                settings.toString(),id)).isEqualTo(1);
-        var request=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(1,"구간 분류 검증 원문");
+        UUID id=insertPolicyCheckFixture(true),key=UUID.randomUUID();
+        var configuration=policyService().selectPolicyDetails(reviewActor(),id).configuration();
+        assertThat(configuration.segmentRuleVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
+        assertThat(configuration.segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        var request=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(0,"구간 분류 검증 원문");
         var result=policyCheckService().insertClassificationCheck(reviewActor(),id,key,request);
         assertThat(result.caseCount()).isEqualTo(52);assertThat(result.caseIds()).hasSize(52).contains("AG-030","SG-001","SG-022");
         assertThat(result.engineVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
@@ -2122,7 +2132,7 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(policyCheckService().insertClassificationCheck(reviewActor(),id,key,request)).isEqualTo(result);
         assertThat(policyCheckService().selectCheckList(reviewActor(),id,1,20).items()).containsExactly(result);
         var details=policyService().selectPolicyDetails(reviewActor(),id);
-        assertThat(details.policy().policyStatusCode()).isEqualTo("DRAFT");assertThat(details.policy().rowVersion()).isEqualTo(1);
+        assertThat(details.policy().policyStatusCode()).isEqualTo("DRAFT");assertThat(details.policy().rowVersion()).isZero();
         assertThat(details.policy().publishedAt()).isNull();assertThat(details.isDraftValidationRequired()).isTrue();
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
         assertThat(sql.queryForObject("SELECT metadata_json::text FROM audit_logs WHERE resource_id=? AND action_code='ATTACHMENT_POLICY_CLASSIFICATION_CHECK'",String.class,id))
@@ -2177,10 +2187,15 @@ class AnnouncementAttachmentJobIntegrationTest {
         return new com.saneb.domain.announcementattachment.vo.AttachmentProviderQaRows.CaseInsert(id,run,ordinal,"CASE-"+ordinal,"f".repeat(64),"0".repeat(64),0,420,3,100);
     }
     private ProviderQaFixture providerQaFixture(int count) {
+        return providerQaFixture(count,0);
+    }
+    private ProviderQaFixture providerQaFixture(int count,int expectedFilesPerCase) {
         UUID id=UUID.randomUUID(),draft=insertPolicyCheckFixture();var cases=new java.util.ArrayList<UUID>();
         new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx->{
             providerQaDao().selectQueueLock();assertThat(providerQaDao().insertRun(providerQaRun(id,draft,count))).isEqualTo(1);
-            for(int i=1;i<=count;i++){UUID item=UUID.randomUUID();cases.add(item);assertThat(providerQaDao().insertCase(providerQaCase(item,id,i))).isEqualTo(1);}
+            for(int i=1;i<=count;i++){UUID item=UUID.randomUUID();cases.add(item);var original=providerQaCase(item,id,i);
+                assertThat(providerQaDao().insertCase(new com.saneb.domain.announcementattachment.vo.AttachmentProviderQaRows.CaseInsert(item,id,i,
+                        original.caseCode(),original.inputHash(),original.profileHash(),expectedFilesPerCase,420,3,100))).isEqualTo(1);}
             insertProviderQaPlan(id,count,count*480);
             assertThat(providerQaDao().updateReady(id)).isEqualTo(1);
         });return new ProviderQaFixture(id,draft,List.copyOf(cases));
@@ -2229,6 +2244,24 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .singleElement().satisfies(row->{assertThat(row.caseCode()).isEqualTo("CASE-2");assertThat(row.statusCode()).isEqualTo("PENDING");assertThat(row.evidenceJson()).isNull();});
         assertThat(new ObjectMapper().readTree(providerQaEvidenceDao().selectRequiredScope(f.run())).size()).isEqualTo(2);
         assertThat(providerQaEvidenceDao().selectEvidenceList(new com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows.Page(f.run(),1,2))).isEmpty();
+    }
+    @Test void providerQaSegmentDigestSurvivesJsonbStorageAndTerminalEvidenceIsImmutable() throws Exception {
+        // 합성 파일 metadata의 실제 PostgreSQL 저장 계약이다. 실파일 실행·정책 QA 성공을 의미하지 않는다.
+        var f=providerQaFixture(1,1);UUID item=f.cases().getFirst(),token=claimProviderQa(f,0);
+        var mapper=new ObjectMapper();var json=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(providerEvidence(item));
+        json.put("expectedFileCount",1);json.putArray("files").addObject().put("segmentAnalysisHash","7".repeat(64)).put("roleAssessmentHash","8".repeat(64));
+        var verifier=new com.saneb.domain.announcementattachment.qa.AttachmentProviderQaStoredResultVerifier(mapper);
+        String evidence=mapper.writeValueAsString(json),hash=verifier.hash(mapper.convertValue(json,Object.class));
+        providerQaWrite(f.run(),()->assertThat(providerQaDao().updateFinished(item,token,"PASSED",null,evidence,hash)).isEqualTo(1));
+        var rows=providerQaEvidenceDao().selectEvidenceList(new com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows.Page(f.run(),1,0));
+        assertThat(rows).hasSize(1);var saved=mapper.readTree(rows.getFirst().evidenceJson());
+        assertThat(saved.path("files").get(0).path("segmentAnalysisHash").asText()).isEqualTo("7".repeat(64));
+        assertThat(verifier.hash(mapper.convertValue(saved,Object.class))).isEqualTo(hash);assertThat(rows.getFirst().evidenceHash()).isEqualTo(hash);
+        assertThat(rows.getFirst().evidenceJson()).doesNotContain("roleCodes","startOffset","소상공인");
+        assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_provider_qa_cases SET evidence_json=jsonb_set(evidence_json,'{files,0,segmentAnalysisHash}',to_jsonb(repeat('6',64))),row_version=row_version+1 WHERE id=?",item))
+                .hasStackTraceContaining("provider QA case input and terminal results are immutable");
+        assertThat(policyService().selectPolicyDetails(reviewActor(),f.policy()).policy().policyStatusCode()).isEqualTo("DRAFT");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
     }
     @Test void providerQaApprovedPlanIsRequiredAndTimeMustEqualAllCases() {
         UUID id=UUID.randomUUID(),draft=insertPolicyCheckFixture();

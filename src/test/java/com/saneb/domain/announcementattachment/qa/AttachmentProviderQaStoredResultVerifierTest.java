@@ -45,7 +45,7 @@ class AttachmentProviderQaStoredResultVerifierTest {
         boolean blocked="TITLE_BLOCKED".equals(discovery);
         var results=files.stream().map(f->{boolean text=Set.of("COMPLETE_TEXT","PARTIAL_TEXT").contains(Objects.toString(f.quality(),""));return new AttachmentProviderQaCaseExecutor.FileResult(
                 f.locatorHash(),f.downloadAllowed()?"PASSED":"UNSUPPORTED_NOT_DOWNLOADED",null,f.format(),f.quality(),f.downloadAllowed()?100:0,f.binaryHash(),text?"e".repeat(64):null,text?20:0,text?1:0,
-                f.roleExpectation()==null?null:f.roleExpectation().assessmentHash());}).toList();
+                f.roleExpectation()==null?null:f.roleExpectation().assessmentHash(),f.segmentExpectation()==null?null:f.segmentExpectation().analysisHash());}).toList();
         boolean all="FOUND".equals(discovery) && complete && !files.isEmpty() && files.stream().allMatch(f->f.downloadAllowed() && "COMPLETE_TEXT".equals(f.quality()));
         String titleStage=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput("BIZINFO",title,null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules).titleStageCode().name();
         var result=new AttachmentProviderQaCaseExecutor.Result("SINGLE_FIXED_NOTICE_PROVIDER_QA",input.caseId(),verifier.hash(input),input.profileHash(),input.runtimeHash(),"PASSED",
@@ -67,6 +67,30 @@ class AttachmentProviderQaStoredResultVerifierTest {
         var f=file("PDF","COMPLETE_TEXT");var role=new RoleExpectation(AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
                 "NOTICE","ROLE_TEXT_STRUCTURE_MATCHED","e".repeat(64),"f".repeat(64),"9".repeat(64));
         prepare("FOUND",true,"소상공인 지원금",List.of(new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),role)));
+    }
+    private void prepareSegment() {
+        var f=file("PDF","COMPLETE_TEXT");
+        var s=new SegmentExpectation(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH,"e".repeat(64),"f".repeat(64),"9".repeat(64),"RESOLVED",List.of("NOTICE","FORM"));
+        prepare("FOUND",true,"소상공인 지원금",List.of(new ExpectedFile(f.locatorHash(),true,f.format(),f.binaryHash(),f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),null,s)));
+        input=new AttachmentProviderQaCase(input.caseId(),input.profileCode(),input.profileHash(),input.source(),input.title(),input.rules(),input.runtimeHash(),input.discoveryStatus(),input.discoveryComplete(),input.files(),input.limits(),
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        evidence.put("inputHash",verifier.hash(input));
+    }
+    @Test void storedSegmentProofBindsEngineAndAnalysisWithoutRawPositions() throws Exception {
+        prepareSegment();assertThat(verify().allTextComplete()).isTrue();
+        assertThat(evidence.path("files").get(0).path("segmentAnalysisHash").asText()).isEqualTo(input.files().getFirst().segmentExpectation().analysisHash());
+        assertThat(evidence.toString()).doesNotContain("지원","startOffset","roleCodes","evidenceScopeId");
+    }
+    @ParameterizedTest @ValueSource(strings={"missing","null","wrong","coerced","textChanged"})
+    void rehashingCannotHideSegmentProofMutation(String kind) throws Exception {
+        prepareSegment();rejects(n->{var file=(ObjectNode)n.path("files").get(0);switch(kind){
+            case "missing"->file.remove("segmentAnalysisHash");case "null"->file.putNull("segmentAnalysisHash");
+            case "wrong"->file.put("segmentAnalysisHash","8".repeat(64));case "coerced"->file.put("segmentAnalysisHash",9);default->file.put("textHash","7".repeat(64));
+        }});
+    }
+    @Test void legacyResultCannotInventSegmentProof() throws Exception {
+        assertThat(verify().allTextComplete()).isTrue();rejects(n->((ObjectNode)n.path("files").get(0)).put("segmentAnalysisHash","9".repeat(64)));
     }
     @Test void storedRoleProofBindsFrozenInputAndActualTextHashWithoutRawEvidence() throws Exception {
         prepareRole();assertThat(verify().allTextComplete()).isTrue();

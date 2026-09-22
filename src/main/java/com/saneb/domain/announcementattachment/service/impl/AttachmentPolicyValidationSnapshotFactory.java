@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
-import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyValidationDao;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
 import com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses;
@@ -97,12 +96,8 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000)
                 throw conflict("정책 설정 크기가 유효하지 않습니다.");
             var settings=mapper.readValue(policy.settingsJson(), AttachmentPolicyResponses.Configuration.class);
-            // 구간 golden은 연결됐지만 실제 Provider 기대값 결합 전에는 새 엔진 게시 검증을 허용하지 않는다.
-            if(settings!=null && com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION.equals(settings.engineVersion()))
-                throw conflict("구간 엔진의 실제 수집원 QA 기대값 연결이 완료되지 않았습니다. 기존 엔진의 QA 결과로 게시할 수 없습니다.");
             if(settings==null || !settings.selectEngineCurrent() || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier
                     .selectRulesCurrent(settings.roleRuleVersion(),settings.roleRulesHash())
-                    || !AnnouncementAttachmentClassificationEngine.VERSION.equals(settings.engineVersion())
                     || !AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(settings.extractorVersion()) || settings.maximumSourceBytes()==null
                     || settings.maximumSourceBytes()<1 || settings.maximumSourceBytes()>83886080
                     || (settings.extractorConfigHash()!=null && !settings.extractorConfigHash().equals(installed.runtimeHash())))
@@ -137,7 +132,7 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             snapshot.put("rule",rule); snapshot.put("installed",installed); snapshot.put("executionCodeHash",installed.executionCodeHash());
             var providerPlan=AttachmentProviderQaPlan.selectPlan(profiles.selectProfileList(),targets);
             snapshot.put("providerQaPlan",providerPlan);
-            snapshot.put("providerQaCatalog",catalog.selectPrepared(providerPlan,rule.ruleSet(),installed.runtimeHash(),java.time.Instant.now()).plan());
+            snapshot.put("providerQaCatalog",catalog.selectPrepared(providerPlan,rule.ruleSet(),installed.runtimeHash(),java.time.Instant.now(),settings).plan());
             String value=json(snapshot);
             if(value.getBytes(StandardCharsets.UTF_8).length>1500000) throw conflict("QA 입력이 고정 저장 한도를 초과했습니다.");
             return new Frozen(hash(mapper.readValue(value,Object.class)),value,rule,installed);

@@ -10,6 +10,9 @@ import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog.*;
 import com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCase.*;
 import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
+import com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration;
 import com.saneb.domain.announcementattachment.service.impl.*;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaEvidenceRows.*;
 import com.saneb.domain.announcementattachment.vo.AttachmentProviderQaManagementRows.Run;
@@ -50,6 +53,9 @@ class AttachmentProviderQaEvidenceGateTest {
         configure(count,1,false);
     }
     private void configure(int count,int catalogSchema,boolean mixedFormats) throws Exception {
+        configure(count,catalogSchema,mixedFormats,false);
+    }
+    private void configure(int count,int catalogSchema,boolean mixedFormats,boolean segmentEngine) throws Exception {
         runs.clear();items.clear();reset(dao,transactions);depth.set(0);
         when(transactions.getTransaction(any())).thenAnswer(c->{var definition=c.getArgument(0,TransactionDefinition.class);assertThat(definition.isReadOnly()).isTrue();
             assertThat(definition.getIsolationLevel()).isEqualTo(TransactionDefinition.ISOLATION_REPEATABLE_READ);depth.incrementAndGet();return new SimpleTransactionStatus();});
@@ -57,21 +63,26 @@ class AttachmentProviderQaEvidenceGateTest {
         var rules=new AnnouncementSourceClassificationRuleSet("TEST",List.of(rule("T",RuleGroupKindCode.TARGET,"소상공인",TargetCategoryCode.BUSINESS,null),rule("S",RuleGroupKindCode.SUPPORT_TYPE,"지원금",null,SupportTypeCode.GRANT_SUBSIDY)));
         var profiles=List.of(profile("BIZINFO","BIZ"),profile("GOV24_PUBLIC_SERVICE","GOV"));var scope=AttachmentProviderQaPlan.selectPlan(profiles,List.of());
         var role=new RoleExpectation(AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
-                "NOTICE","ROLE_TEXT_STRUCTURE_MATCHED","8".repeat(64),"f".repeat(64),"9".repeat(64));
-        var files=new ArrayList<ExpectedFile>();int f=1;for(String format:List.of("PDF","HWP","HWPX"))files.add(new ExpectedFile(Integer.toString(f++).repeat(64),true,format,"c".repeat(64),"COMPLETE_TEXT",10,1,List.of("지원"),role));
+                segmentEngine?"UNKNOWN":"NOTICE",segmentEngine?"MIXED_DOCUMENT_ROLES":"ROLE_TEXT_STRUCTURE_MATCHED","8".repeat(64),"f".repeat(64),"9".repeat(64));
+        var segmentExpectation=segmentEngine?new SegmentExpectation(AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH,
+                role.textHash(),role.blocksHash(),"7".repeat(64),"RESOLVED",List.of("NOTICE","FORM")):null;
+        var configuration=segmentEngine?new Configuration(AttachmentSegmentClassificationEngine.VERSION,null,null,null,null,null,
+                AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH):new Configuration("attachment-1.0.0",null,null,null);
+        var files=new ArrayList<ExpectedFile>();int f=1;for(String format:List.of("PDF","HWP","HWPX"))files.add(new ExpectedFile(Integer.toString(f++).repeat(64),true,format,"c".repeat(64),"COMPLETE_TEXT",10,1,List.of("지원"),role,segmentExpectation));
         var notices=new ArrayList<Notice>();
         for(int i=0;i<count;i++) {String provider=i%2==0?"BIZINFO":"GOV24_PUBLIC_SERVICE",code=i%2==0?"BIZ":"GOV";
             List<ExpectedFile> noticeFiles=files;
             if(mixedFormats) {
                 var pdf=files.getFirst();
-                noticeFiles=i%2==0?List.of(pdf,new ExpectedFile("4".repeat(64),true,"PDF",pdf.binaryHash(),pdf.quality(),pdf.minimumCharacters(),pdf.minimumBlocks(),pdf.requiredPhrases(),role))
+                noticeFiles=i%2==0?List.of(pdf,new ExpectedFile("4".repeat(64),true,"PDF",pdf.binaryHash(),pdf.quality(),pdf.minimumCharacters(),pdf.minimumBlocks(),pdf.requiredPhrases(),role,segmentExpectation))
                         :List.of(files.get(1),files.get(2));
             }
             notices.add(new Notice(code+"-"+String.format(Locale.ROOT,"%04d",i),code,new AttachmentDiscoveryProfile.Source(provider,Integer.toString(i),"https://example.go.kr/"+i,null,null),
                     new Expectation(profileHash,"소상공인 지원금",now.minusSeconds(3600),"FOUND",true,noticeFiles,new Limits(420,44,83886080))));}
         var catalog=new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(catalogSchema,"TEST",notices));
-        prepared=catalog.selectPrepared(scope,rules,runtimeHash,now);
+        prepared=catalog.selectPrepared(scope,rules,runtimeHash,now,configuration);
         var json=mapper.createObjectNode().put("schemaVersion",6).put("policyId",policyId.toString()).put("policyVersion",0);json.set("targets",mapper.readTree(scopeJson));
+        json.set("settings",mapper.valueToTree(configuration));
         json.set("providerQaPlan",mapper.valueToTree(scope));json.set("providerQaCatalog",mapper.valueToTree(prepared.plan()));
         frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("d".repeat(64),mapper.writeValueAsString(json),new AnnouncementSourceRuleValidationDetails(ruleId,0,"DRAFT",null,"e".repeat(64),rules),
                 new AttachmentPolicyValidationSnapshotFactory.Runtime(runtimeHash,"f".repeat(64),"0".repeat(64)));
@@ -82,7 +93,7 @@ class AttachmentProviderQaEvidenceGateTest {
             UUID id=UUID.randomUUID();var rows=new ArrayList<Item>();Instant begin=now.minusSeconds(count*3L+300).plusSeconds(all*3L);
             for(String code:segment.caseCodes()) {
                 var input=prepared.inputs().stream().filter(c->c.caseId().equals(code)).findFirst().orElseThrow();Instant start=now.minusSeconds(count*3L+300).plusSeconds(all++*3L);
-                var fileResults=input.files().stream().map(e->new AttachmentProviderQaCaseExecutor.FileResult(e.locatorHash(),"PASSED",null,e.format(),e.quality(),100,e.binaryHash(),"8".repeat(64),20,1,e.roleExpectation().assessmentHash())).toList();
+                var fileResults=input.files().stream().map(e->new AttachmentProviderQaCaseExecutor.FileResult(e.locatorHash(),"PASSED",null,e.format(),e.quality(),100,e.binaryHash(),"8".repeat(64),20,1,e.roleExpectation().assessmentHash(),e.segmentExpectation()==null?null:e.segmentExpectation().analysisHash())).toList();
                 var result=new AttachmentProviderQaCaseExecutor.Result("SINGLE_FIXED_NOTICE_PROVIDER_QA",code,verifier.hash(input),profileHash,runtimeHash,"PASSED","FIXED_NOTICE_EXPECTATIONS_MATCHED",
                         "COMBINATION_MATCHED","FOUND",true,input.files().size(),input.files().size(),fileResults,4,400,true,true,false,start.plusMillis(100),start.plusSeconds(1));
                 rows.add(new Item(UUID.randomUUID(),id,rows.size()+1,code,verifier.hash(input),profileHash,input.files().size(),420,44,83886080L,4,400L,"PASSED",4,start.atOffset(ZoneOffset.UTC),
@@ -103,6 +114,34 @@ class AttachmentProviderQaEvidenceGateTest {
     private AttachmentDiscoveryProfile profile(String provider,String code){var p=mock(AttachmentDiscoveryProfile.class);when(p.selectProviderCode()).thenReturn(provider);when(p.selectProfileCode()).thenReturn(code);when(p.selectProfileHash()).thenReturn(profileHash);
         when(p.selectSourceBindings()).thenReturn(List.of(new AttachmentDiscoveryProfile.SourceBinding(null,null)));when(p.selectDetailUri(any(AttachmentDiscoveryProfile.Source.class))).thenAnswer(c->URI.create(c.getArgument(0,AttachmentDiscoveryProfile.Source.class).sourceUrl()));when(p.selectApprovedRequest(any(URI.class))).thenReturn(true);return p;}
     private AttachmentProviderQaEvidenceGate.Assessment assess(){return gate.selectAssessment(frozen,policyRun,()->true);}
+    @Test void segmentPolicyAggregatesMixedDocumentsWithoutRewritingWholeFileRoles() throws Exception {
+        configure(6,2,false,true);
+        var result=assess();assertThat(result.status()).isEqualTo("PASSED");
+        assertThat(result.evidence().caseCount()).isEqualTo(6);assertThat(result.evidence().fileCount()).isEqualTo(18);
+        assertThat(prepared.inputs()).allSatisfy(input->{
+            assertThat(input.engineVersion()).isEqualTo(AttachmentSegmentClassificationEngine.VERSION);
+            assertThat(input.files()).allSatisfy(file->{assertThat(file.roleExpectation().roleCode()).isEqualTo("UNKNOWN");
+                assertThat(file.segmentExpectation().roleCodes()).containsExactly("NOTICE","FORM");});});
+        var json=mapper.readTree(mapper.writeValueAsString(result.evidence()));
+        assertThat(gate.selectValidatedEvidenceHash(json,frozen,policyRun)).isEqualTo(verifier.hash(result.evidence()));
+        assertThat(json.toString()).doesNotContain("지원","roleCodes","textHash","startOffset");
+    }
+    @ParameterizedTest @ValueSource(strings={"missing","changed"})
+    void segmentPolicyRejectsMissingOrRehashedChangedFileAnalysis(String mutation) throws Exception {
+        configure(6,2,false,true);
+        var row=items.get(runs.getFirst().runId()).getFirst();var json=(ObjectNode)mapper.readTree(row.evidenceJson());
+        var file=(ObjectNode)json.path("files").get(0);
+        if("missing".equals(mutation))file.remove("segmentAnalysisHash");else file.put("segmentAnalysisHash","6".repeat(64));
+        changeCase("evidenceJson",mapper.writeValueAsString(json));changeCase("evidenceHash",verifier.hash(mapper.convertValue(json,Object.class)));
+        assertThat(assess().status()).isEqualTo("FAILED");assertThat(assess().reasonCode()).isEqualTo("SEGMENT_EXPECTATION_CHANGED");
+    }
+    @Test void legacyProviderProofCannotBeReusedByChangingOnlyPolicyEngine() throws Exception {
+        var json=(ObjectNode)mapper.readTree(frozen.json());
+        json.set("settings",mapper.valueToTree(new Configuration(AttachmentSegmentClassificationEngine.VERSION,null,null,null,null,null,
+                AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH)));
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),mapper.writeValueAsString(json),frozen.rule(),frozen.runtime());
+        assertThat(assess().reasonCode()).isEqualTo("CURRENT_CATALOG_CHANGED");verify(dao,never()).selectLatestRunList(any());
+    }
     @Test void publicationHashRecomputesActualAggregateAndRejectsAlteredJson() throws Exception {
         var saved=assess().evidence();var json=mapper.readTree(mapper.writeValueAsString(saved));
         assertThat(gate.selectStepCode()).isEqualTo("PROVIDER_PROFILES");

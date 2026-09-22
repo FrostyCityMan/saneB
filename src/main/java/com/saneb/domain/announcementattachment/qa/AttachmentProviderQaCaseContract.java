@@ -18,6 +18,7 @@ public final class AttachmentProviderQaCaseContract {
                 || input.limits().maximumSeconds()<1 || input.limits().maximumSeconds()>420
                 || input.limits().maximumRequestReservations()<1 || input.limits().maximumRequestReservations()>44
                 || input.limits().maximumReservedBytes()<1 || input.limits().maximumReservedBytes()>83886080)throw invalid();
+        if(input.engineVersion()!=null && !com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION.equals(input.engineVersion()))throw invalid();
         if(Set.of("TITLE_BLOCKED","NO_FILES").contains(input.discoveryStatus()) && !input.files().isEmpty()
                 || "FOUND".equals(input.discoveryStatus()) && input.files().isEmpty()
                 || "NO_FILES".equals(input.discoveryStatus()) && !input.discoveryComplete()
@@ -44,6 +45,19 @@ public final class AttachmentProviderQaCaseContract {
                 if("UNKNOWN".equals(role.roleCode()) ? !Set.of("STRUCTURE_UNCERTAIN","ROLE_ANALYSIS_LIMIT","MIXED_DOCUMENT_ROLES",
                         "INITIAL_HEADING_REQUIRED","ROLE_STRUCTURE_INCOMPLETE").contains(role.reasonCode())
                         : !"ROLE_TEXT_STRUCTURE_MATCHED".equals(role.reasonCode()))throw invalid();
+            }
+            var segment=file.segmentExpectation();
+            if(input.engineVersion()!=null && "COMPLETE_TEXT".equals(file.quality()) && segment==null)throw invalid();
+            if(segment!=null) {
+                if(!file.downloadAllowed() || !"COMPLETE_TEXT".equals(file.quality())
+                        || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION.equals(segment.analysisVersion())
+                        || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(segment.rulesHash())
+                        || !hash(segment.textHash()) || !hash(segment.blocksHash()) || !hash(segment.analysisHash())
+                        || segment.statusCode()==null || !Set.of("RESOLVED","REVIEW_REQUIRED").contains(segment.statusCode())
+                        || segment.roleCodes().isEmpty() || segment.roleCodes().size()>200
+                        || segment.roleCodes().stream().anyMatch(r->!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(r))
+                        || "RESOLVED".equals(segment.statusCode())==segment.roleCodes().contains("UNKNOWN")
+                        || role!=null && (!role.textHash().equals(segment.textHash()) || !role.blocksHash().equals(segment.blocksHash())))throw invalid();
             }
         }
     }
