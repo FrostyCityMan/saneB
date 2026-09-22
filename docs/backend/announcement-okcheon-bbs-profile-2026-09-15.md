@@ -99,6 +99,7 @@ P3 기관 모델 구현 증분이며 전체 Gate는 **Not ready**다. 제목 →
 
 ## 2026-09-22 서울 임시 QA 로컬 준비 — 서버 미실행
 
+- [x] 후속 SHA `23a71394acac9c111d7b17b67e059e8e9d34456e`의 [Linux35677829436](https://github.com/FrostyCityMan/saneB/actions/runs/35677829436)은 success다. root2498통과/267조건부 생략·실패0, probe16건·추출기88·패키징20·job192·migration17·runtime2·worker12·Flyway3·정책 부모2는 실패/생략0, 독립PG221/221 및 임시 환경 정리 성공이다. 공식 사이트/서울 서버 관측을 실행한 결과가 아니며 아래 새 SHA Linux 대기만 해소한다.
 - [x] 임시 BBS probe/launcher/server runner에 명시적 `OKCHEON` 모드를 추가했다. 범위는193369·193297·193187 고정3건뿐이며 임의 기관 인자나 태백 manifest 재사용을 거부한다. 기존 태백 OBSERVATION/FIXED 범위·잔여 예산은 변경하지 않는다.
 - [x] 실제 JUnit 선택3건과 결과3건을 모두 요구한다. 제목 미충족193187은 본문·첨부 요청0으로 분모에 남는다. 나머지2건은 본문 AVAILABLE·전체 HWPX각1개·종합 판정·최종 관리자 검증 필요·원본 정리·현재 실행 시각을 대조한다. 부분 추출은 관측 성공과 완전 분석을 분리하며 정책/기대값 승인으로 승격하지 않는다.
 - [x] 패키지 manifest는 `caseCode=OKCHEON-THREE-NOTICES`, `verificationMode=OKCHEON`, `caseCodes=[OKCHEON-193369,OKCHEON-193297,OKCHEON-193187]`를 모두 요구한다. 총132요청/251,658,240bytes는 각 공고44요청/80MiB의 합계 상한이다. 제목 중단 건은 실제 사용0이어야 하며 예약 bytes를 실제 다운로드 bytes로 표현하지 않는다.
