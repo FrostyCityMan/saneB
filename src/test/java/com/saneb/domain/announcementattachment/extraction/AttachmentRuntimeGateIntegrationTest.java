@@ -28,6 +28,40 @@ import org.junit.jupiter.api.io.TempDir;
 class AttachmentRuntimeGateIntegrationTest {
     @TempDir Path temporary;
 
+    @Test @Timeout(110)
+    void installedHwpParserRejectsRecordBombThenRecoversAndRemovesOriginals() throws Exception {
+        String distribution = System.getProperty("saneb.attachment-qa.extractor-root");
+        assertThat(distribution).isNotBlank();
+        var extractor = new IsolatedAttachmentExtractor(new ObjectMapper(), distribution);
+        var storage = new AttachmentTemporaryStorage(temporary.resolve("storage").toString());
+        assertThat(selectFixtureResult(extractor, storage, "/hwp-record-limit-qa/paragraphs-20000.hwp")
+                .path("qualityCode").asText()).isEqualTo("OCR_REQUIRED");
+        var rejected = selectFixtureResult(extractor, storage, "/hwp-record-limit-qa/paragraphs-20001.hwp");
+        assertThat(rejected.path("qualityCode").asText()).isEqualTo("LIMIT_EXCEEDED");
+        assertThat(rejected.path("text").asText()).isEmpty();
+        assertThat(rejected.path("blocks").size()).isZero();
+        var recovered = selectFixtureResult(extractor, storage, "/attachment-runtime-qa/AR-003.bin");
+        assertThat(recovered.path("qualityCode").asText()).isEqualTo("COMPLETE_TEXT");
+        assertThat(recovered.path("blocks").size()).isPositive();
+        validateStorageEmpty();
+    }
+
+    private JsonNode selectFixtureResult(IsolatedAttachmentExtractor extractor, AttachmentTemporaryStorage storage, String resource) throws Exception {
+        Path original;
+        JsonNode result;
+        try (var workspace = storage.insertWorkspace(UUID.randomUUID(), UUID.randomUUID())) {
+            original = workspace.selectBinaryPath();
+            try (var input = getClass().getResourceAsStream(resource)) {
+                assertThat(input).as("시험 전용 합성 입력이 있어야 합니다.").isNotNull();
+                Files.copy(input, original);
+            }
+            result = extractor.selectExtraction(original);
+        }
+        assertThat(Files.exists(original)).isFalse();
+        assertThat(Files.exists(original.getParent())).isFalse();
+        return result;
+    }
+
     @Test @Timeout(60)
     void childHeapExhaustionLeavesParentAliveAndOwnedOriginalsRemoved() throws Exception {
         Path distribution = selectFaultDistribution(temporary);

@@ -189,6 +189,12 @@ tasks.register('attachmentRuntimeIntegrationTest', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentRuntimeIntegrationTest')
 }
 
+// 악성 입력 합성 표본은 시험 classpath에만 포함한다. 운영 runtime suite는 12건을 유지한다.
+tasks.named('processTestResources') {
+    dependsOn ':attachment-extractor:generateHwpRecordLimitQaFixtures'
+    from(project(':attachment-extractor').layout.buildDirectory.dir('generated/test-qa'))
+}
+
 tasks.register('attachmentMigrationTest', Test) {
     description = 'Verifies attachment migrations in isolated loopback PostgreSQL.'
     group = 'verification'

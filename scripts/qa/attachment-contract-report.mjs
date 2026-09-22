@@ -37,7 +37,7 @@ export function checkRequiredReports(root, startedAtMs) {
     ['attachmentJobIntegrationTest', 'com.saneb.db.AnnouncementAttachmentJobIntegrationTest'],
     ['attachmentMigrationTest', 'com.saneb.db.AnnouncementAttachmentMigrationTest'],
     ['attachmentMigrationTest', 'com.saneb.db.AnnouncementAttachmentBackfillIntegrationTest'],
-    ['attachmentRuntimeIntegrationTest', 'com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeGateIntegrationTest', 4],
+    ['attachmentRuntimeIntegrationTest', 'com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeGateIntegrationTest', 5],
     ['attachmentWorkerIntegrationTest', 'com.saneb.db.AnnouncementAttachmentWorkerIntegrationTest'],
     ['attachmentPolicyDbQaIntegrationTest', 'com.saneb.domain.announcementattachment.service.impl.AttachmentWorkerDbQaLinuxIntegrationTest'],
     ['flywayIntegrationTest', 'com.saneb.db.FlywayMigrationIntegrationTest', 3],

@@ -37,4 +37,17 @@ tasks.register('generateRuntimeQaFixtures', JavaExec) {
 tasks.named('processTestResources') {
     dependsOn 'generateRuntimeQaFixtures'
     from(layout.buildDirectory.dir('generated/runtime-qa'))
+    dependsOn 'generateHwpRecordLimitQaFixtures'
+    from(layout.buildDirectory.dir('generated/test-qa'))
+}
+
+tasks.register('generateHwpRecordLimitQaFixtures', JavaExec) {
+    dependsOn tasks.named('qaFixturesClasses')
+    classpath = sourceSets.qaFixtures.runtimeClasspath
+    mainClass = 'com.saneb.extractor.qa.HwpRecordLimitFixtureGenerator'
+    def destination = layout.buildDirectory.dir('generated/test-qa/hwp-record-limit-qa')
+    args destination.get().asFile.absolutePath
+    inputs.files(sourceSets.qaFixtures.output, configurations.runtimeClasspath)
+    outputs.dir(destination)
+    maxHeapSize = '128m'
 }
