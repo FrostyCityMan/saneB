@@ -11,6 +11,12 @@
 
 ## 기준선
 
+### 2026-09-22 ATT-053 실제 Linux 검증 통과
+
+- `272dafd527d7f37236b8728bd764a48d1a66be81` [Linux35693601984](https://github.com/FrostyCityMan/saneB/actions/runs/35693601984) success/11분25초다. 보완한 기존 데이터 보존·CHECK 시험4.036초 통과/생략0을 내려받은 XML에서 확인했다. 운영과 migration diff0이고 기존 운영80건 checksum 대조와 결합해 ATT-053을 완료로 전환했다. ATT62 중 완료1/부분61이며 Gate8진행/1차단은 유지한다.
+- root2769=2499통과/270조건부 생략/실패·오류0, 별도 패키징20·job192·migration17·runtime5·worker12·Flyway3·정책 부모2 모두 실패/오류/생략0이다. 독립 package도221/221·실패/생략/미실행0, 업무 코드 지문d49cb22d… 동일·독립/정책 DB 정리 SUCCEEDED를 확인했다. 중복 suite를 고유 시험 수로 합산하지 않는다. 보관 경로는 `build/qa-results/run-35693601984-contracts/`다.
+- main 코드·migration·운영 배포/설정/데이터·브라우저·옥천 QA 변경은 없다. 운영은 기존 승인 배포9a1bb45이고 시험 변경을 재배포할 필요는 없다. 소유 Gradle/Node/CI 감시 명령은 종료됐다. 사용자 output은 보존했다. 다음 필수 작업은 전체 Provider/정상 기대값 QA 및 정확한 승인 범위의 정책/worker 활성화·업무 E2E다.
+
 ### 2026-09-22 ATT-053 기존 업무 데이터 보존 직접 시험 보완
 
 - `freshSchemaAndV71UpgradePreservePriorChecksums`에 V71 합성 사용자/원문2건/본문 확보·미확보/분류 ACCEPTED·REVIEW_REQUIRED/숨김 DRAFT/연결1건을 추가했다. 규칙 seed를 포함한 기존10테이블의 V71 전체 컬럼·전체 행을 정렬 SHA256으로 고정해 V83 적용 후 비교한다. additive 새 컬럼은 별도로 두며 시험 DB 외부의 운영 데이터를 복사하지 않는다.

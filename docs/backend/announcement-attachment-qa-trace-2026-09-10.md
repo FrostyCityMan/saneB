@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-09-22 ATT-053 완료 근거
+
+`272dafd527d7f37236b8728bd764a48d1a66be81`의 [Linux35693601984](https://github.com/FrostyCityMan/saneB/actions/runs/35693601984)가 success다. 보완한 `freshSchemaAndV71UpgradePreservePriorChecksums`는4.036초 통과/생략0이다. V71 합성 사용자·본문 확보/미확보 원문2건·분류2건·숨김 DRAFT·연결1건과 규칙 seed를 포함한 기존10테이블의 모든 기존 컬럼/행 지문이 V83 upgrade 후 동일하다. V71/upgrade/fresh DB의 attachment_analysis_enabled=true INSERT/UPDATE는 정확한 CHECK와 SQLSTATE23514로 거부됐다. 빈 DB validate 및 기존 순차 schema/checksum 검증도 유지했다.
+
+운영의 동일 migration80개 checksum 대조 근거와 결합해 ATT-053만 [x]로 전환한다. 현재 추적표는 완료1/부분61이며 전체 Gate 완료는 아니다. 합성 대표 데이터의 보존을 운영 전체 업무 데이터/모든 schema drift 감사로 확대하지 않는다. 정책/worker/기존 데이터 변경·옥천 QA·운영 브라우저 E2E는 실행하지 않았다. 아래 checksum 증분의 미완료 표기는 보완 이전 기록이다.
+
 ## 2026-09-22 운영 migration checksum 전수 대조
 
 승인 배포 `9a1bb45`의 설치 JAR와 운영 Flyway 이력을 읽기 전용으로 비교했다. 최신 버전은 V83이며 실제 migration은 V2/V3/V5가 없는 **80개**다. 이력80/파일80, 누락·추가·checksum 불일치·잘못된 항목 모두0, READ ONLY/ROLLBACK/쓰기0이다. SSM `638ec0bb-b863-4bd0-a2b7-a87eb589f3c6` Success와 설치 JAR hash `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`를 결합했다. 비교기는 실제 Flyway10.20.1 계산기로 로컬80파일·인코딩5경계 사례를 대조하고 정상/오류 판정8사례를 검증했다.
@@ -179,7 +185,7 @@
 | ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI. a884ac1 Linux35679213890 PG192/192·실패/생략0의 approvalHistoryPagesStayCompleteWhileLaterApprovalsAdvanceTheBatch·sourceDeletionDoesNotRewriteOrHideOriginalApprovalHistory·mixedApplicationAndRollbackHistoryRetainsOriginalImpactAfterCompletion 통과 XML 확인 | [~] | 운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
 | ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard | [~] | 명시 포함 batch의 보호/경고 정책·후속 신청 불변 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
-| ATT-053 | 새 DB/업그레이드/checksum | 동일 SHA Linux35681482535의 freshSchemaAndV71UpgradePreservePriorChecksums·Flyway3/3, V83까지 순차 적용/빈 DB 검증. 승인 배포9a1bb45/d-NCB2HF3YK의 설치 JAR 대 운영 이력80/80 checksum 일치, 누락/추가/불일치0. SSM638ec0bb-b863-4bd0-a2b7-a87eb589f3c6 READ ONLY/ROLLBACK/쓰기0 | [~] | V71 대표 업무 데이터 snapshot의 upgrade 전후 보존 및 기존 CHECK false 유지의 직접 시험 근거 보완. 운영 checksum 전수 대조는 완료 |
+| ATT-053 | 새 DB/업그레이드/checksum | Linux35693601984/272dafd의 freshSchemaAndV71UpgradePreservePriorChecksums4.036초 통과. 기존10테이블/V71 합성 업무 데이터 보존, V72~83 순차/빈 DB validate, false CHECK INSERT·UPDATE 실제 거부. 운영 설치 JAR 대 이력80/80 checksum 일치(SSM638ec0bb-b863-4bd0-a2b7-a87eb589f3c6, 쓰기0) | [x] | 이 요구의 필수 증거 충족. 전체 운영 업무/Provider/브라우저 완료를 의미하지 않음 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |
 | ATT-055 | 동시 확인/전환 | source 잠금·평가 current unique; a884ac1 Linux35679213890 PG.concurrentConfirmationsAllowOneWriterAndReturnConflictForStaleVersion·concurrentSameDraftRequestCreatesOneAnnouncement 통과(PG192/192·실패/생략0 XML 확인) | [~] | 최종 운영 세션의 동시 검수/DRAFT E2E 검증 |
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |
