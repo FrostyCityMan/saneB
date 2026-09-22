@@ -21,7 +21,7 @@
 - [x] hook/helper Bash 구문과 실제 launch 호출 연결 검사. 테스트는 직접 생성한 임시 디렉터리만 사용하고 정리한다.
 - [x] catalog 갱신과 함께 표적 Java/패키지/bootJar1분23초 성공. 전체 회귀4분36초는 root2677=2413통과/264조건부 생략/실패0이며 패키지20·추출기88·bootJar/probe는 선행 결과 재사용이다. 웹 JAR SHA256은 `917d743ee8634d8af6cf736102f9fa198cf71aa29fb205d7787abe5fe8b09905`다.
 - [x] `f7b7396`의 [Linux34944248951](https://github.com/FrostyCityMan/saneB/actions/runs/34944248951) 성공을09-16 재확인했다. 새/이전 JAR의 worker 추출기 선택과 Linux 심볼릭 링크 거부를 포함한 배포 QA 단계·전체 계약·태백 HWPX 고정2파일 비교·HWP worker 시험이 성공했다. 실제 HWP는 부분 추출이며 운영 설치/원복 성공을 뜻하지 않는다.
-- [ ] 승인된 새 코드 운영 설치 후 프로세스의 실제 선택 경로·추출기 지문·QA 지문 일치 확인.
+- [x] 2026-09-22 사용자 승인 후9a1bb45/CodeDeploy d-NCB2HF3YK 운영 설치 완료. Runtime SSM8f719daf…에서 실행 프로세스의 QA/worker 추출기 경로가 현재 JAR hash12985f8c…의 release와 일치하고 공용/QA 추출기1.0.3 및 library set7ab20969… 일치를 확인했다. 이전 JAR d8696e85… backup과 이전 extractor release도 존재한다. [현재 운영 기준선](attachment-runtime-baseline-2026-09-15.md) 참조.
 - [ ] 운영 실패를 발생시킨 실제 원복 E2E. 이번 경로 선택 시험은 서비스 재시작·CodeDeploy 전체 원복·DB 복원 시험이 아니다.
 
 배포용 공용 추출기 설치 경로는 유지한다. 이 변경이 해당 디렉터리 자체를 과거 상태로 되돌리는 것은 아니다. 기본 worker/기본 QA가 이전 웹 JAR의 불변 묶음을 함께 사용하도록 하는 범위다. 실제 운영 rollout은 취소된 배포 재개 승인 및 새 SHA 검증 후 진행하며, 기존cc79d59 대상 승인에 이 미배포 변경을 포함됐다고 가정하지 않는다.

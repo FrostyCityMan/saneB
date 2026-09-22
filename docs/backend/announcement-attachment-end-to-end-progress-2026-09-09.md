@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-22 14:46 KST 사용자 승인 후 9a1bb45 코드 운영 반영
+
+- 사용자가 지정 SHA/추출기1.0.3 코드 재배포를 승인했고 AWS 로그인 갱신을 완료했다. [배포35691586461](https://github.com/FrostyCityMan/saneB/actions/runs/35691586461)/CodeDeploy `d-NCB2HF3YK` Succeeded, 실제 revision `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`를 확인했다. 고정 배포 ref `codex/redeploy-9a1bb45-20260922`를 사용했으며 main/작업 브랜치 재설정은 없다.
+- 실제 bundle/설치 JAR hash `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc` 일치, Linux CI와 업무 코드 지문d49cb22d… 일치, 추출기1.0.3·QA/worker의 JAR별 release 연결·공용/QA 라이브러리 일치·service active/내부 health UP·JAR/DB V83/실패0을 확인했다. 이전 JAR d8696e85… backup과 이전 release도 존재한다. [전체 설치 지문/SSM 근거](../deployment/attachment-runtime-baseline-2026-09-15.md)에 기록했다.
+- 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0, 첨부 worker/정책QA/ProviderQA는 비활성 유지다. 배포 옵션 attachment_qa=false와 실제 NOT_REQUESTED marker/서버 QA 보고서0건을 확인했다. 기존 목록/BODY/분류V2/source batch true, 지자체223/목록parser41/원문2945·외부key2종 부재다. DB 조회 READ ONLY/ROLLBACK/쓰기0이며 새 migration 파일도 없다.
+- 코드 재배포 승인 차단은 해소됐지만 전체 목표/ATT62/9Gate는 미완료다. 옥천 서버 QA 보류, 전체 출처 실파일·정책 검증/게시·ENFORCE·기존 데이터 적용 승인 및 운영 업무 E2E는 남는다. 이번 요청에 없는 브라우저 검증/실제 원복은 미실행이다. 로컬 Node/배포 감시/SSM 명령은 종료했고 소유 CA/전송 임시 파일을 정리했으며 사용자 output은 보존했다.
+
 ### 2026-09-22 9a1bb45 Linux HWP 실제 파서 검증 성공
 
 - [Linux35681482535](https://github.com/FrostyCityMan/saneB/actions/runs/35681482535), SHA `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`는 최종 success다. 전용 runtime5/5·실패/오류/생략0이며 `installedHwpParserRejectsRecordBombThenRecoversAndRemovesOriginals` 0.99초 통과를 XML로 확인했다. 실제 설치된 HWP parser가 비압축 OLE 20,000문단 경계를 처리하고 20,001문단을 LIMIT_EXCEEDED로 거부한 뒤 정상 HWP를 다시 처리했으며 각 소유 원본/작업 폴더를 정리했다. 앞선 af2ad8f 실패를 삭제하거나 성공으로 바꾸지 않는다.
@@ -581,15 +588,15 @@
 
 | Gate | 상태 | 실제 결과 / 다음 작업 |
 |---|---|---|
-| 0 맥락·범위·검증 목록 | [~] | 09-15 10시대 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 최신 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
+| 0 맥락·범위·검증 목록 | [~] | 09-22 14:46 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
 | 1 DB·API 계약 | [~] | 9fe892c Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 제천3공고 중 제목 중단1건과 HWPX3파일의 worker/임시 DB/API 일치도 확인. 태백·양평의 선행 근거 및 마지막 운영09-15 V83과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
-| 2 상시 worker·Provider | [~] | 로컬 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 마지막 운영 설치는 profile17/worker 비활성. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
+| 2 상시 worker·Provider | [~] | 코드 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 09-22 운영9a1bb45/추출기1.0.3 설치, worker 비활성 유지. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
 | 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
 | 6 자동·실파일 QA | [!] | 09-22 서울 태백 관측/고정 비교 성공·정상0/검수 유지. 9a1bb45 Linux35681482535 성공(root2499통과/270조건부 생략, 추출기90·runtime5·독립PG221/221·정책 부모2). ATT-025 실제 HWP20,000/20,001 레코드 경계·제한 후 정상 추출/원본 정리0.99초 통과. 격리 canary·자식 heap·30초 timeout 회귀도 통과. 옥천 양성2건 본문·상세 timeout 미해소/서울 추가 QA 사용자 보류. 전체 Provider 정상/형식 기대값·부분 추출·접근 실패가 남음 |
-| 7 운영 배포·활성화 | [~] | 09-22 최신 STS/Runtime/DB SSM 성공: 인증사용가능·787c594·V83·추출기1.0.1·catalog24/기대값1·healthUP·첨부count0/worker비활성/외부key2종없음. 새1a19e63/추출기1.0.3 코드 재배포 재개 및 게시/ENFORCE/기존 데이터 정확한 범위 승인은 별도로 필요 |
-| 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인. 최신787c594의 인증 업무 E2E는 재로그인 대기. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 미완료 |
+| 7 운영 배포·활성화 | [~] | 사용자 승인 후 Actions35691586461/CodeDeploy d-NCB2HF3YK 성공. 운영9a1bb45·bundle/설치JAR 일치·V83·추출기1.0.3·catalog30/기대값1·healthUP·이전JAR/release 존재 확인. 첨부count0/worker비활성/외부key2종 부재 유지. 정책 QA/게시/ENFORCE/기존 데이터 정확한 범위 승인·적용은 별도 |
+| 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인은 과거 근거다. 최신9a1bb45 코드 배포의 인증 업무 E2E는 미실행. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 별도이며 이번 코드 재배포 승인에서 브라우저 실행을 추론하지 않음 |
 
 ## 최신 실행 기록
 

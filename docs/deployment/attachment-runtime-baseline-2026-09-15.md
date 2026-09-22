@@ -1,5 +1,20 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-09-22 14:46 KST 승인된 코드 재배포 완료
+
+**Decision: Not ready — 전체 첨부 서비스 활성화 기준. 승인된 코드 설치·재시작·읽기 전용 검증은 완료했다.** 아래 과거 재배포 승인 대기는 이번 코드 범위에 한해 해소됐다. 정책 게시·ENFORCE·기존 데이터 적용 및 옥천 서버 QA까지 승인된 것은 아니다.
+
+- 사용자가 `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`/추출기1.0.3 서울 코드 재배포를 승인했고 AWS 갱신 후 default/root·서울·저장소 대상 계정 일치를 확인했다. 고정 ref `codex/redeploy-9a1bb45-20260922`를 해당 SHA로 생성해 실행했으며 작업 브랜치를 되돌리거나 사용자 output을 변경하지 않았다.
+- [배포 Actions35691586461](https://github.com/FrostyCityMan/saneB/actions/runs/35691586461)은 동일 SHA로 success, CodeDeploy `d-NCB2HF3YK`는 Succeeded다. `attachment_qa=false`이며 실제 hook에서 `ATTACHMENT_SERVER_QA=NOT_REQUESTED`, QA 보고서0건과 불변 QA 패키지 설치 성공을 확인했다. 옥천/공식 첨부 파일 QA를 실행하지 않았다.
+- 설치 JAR SHA256 `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`가 해당 CodeDeploy bundle의 app.jar와 일치한다. 업무 코드 지문 `d49cb22d272b66bd5d10078d33f6f698ddb89bef53b48faa72a60cafa6096780`은 성공한 Linux35681482535의 지문과 같다. 설치 catalog는 schema2/`2026-09-22-taebaek-seoul-revalidated-v2`, 참조30/기대값1이다.
+- 추출기1.0.3 JAR hash `a6e09b4a405234ef4efa6f7aaee848edd610c08d58236fa3e4ec299d57a604a3`, library set hash `7ab209693fa6f8990c6643074f28d29150bd18a9bc1e58fe2b668466046117b2`다. 공용 설치/불변 QA 묶음이 일치하고, 실행 프로세스의 QA 및 worker 추출기 경로가 현재 웹 JAR별 release와 모두 일치한다.
+- service active·서버 내부 health UP·JAR/실제 DB V83·migration 실패0이다. 운영787c594 대비 migration 파일 diff0이며 새 migration은 없다. 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0, worker/정책QA/ProviderQA는 UNSET→기본false를 유지했다. 기존 목록/BODY/분류V2/source batch true, 활성 지자체223/목록parser41/원문2945다. 기업마당·정부24 key는 값 노출 없이 부재만 확인했다.
+- 이전 JAR backup hash는 배포 전 `d8696e85c2d7c5415b8a39ea9ccb33f596f264feb5a7add966a62610b3751d74`와 일치하고 이전 extractor release도 존재한다. 실제 장애 유발/원복 실행을 검증한 것은 아니다.
+
+실행 명령/근거: `gh workflow run deploy.yml --ref codex/redeploy-9a1bb45-20260922 -f attachment_qa=false`, 동일 Actions의 테스트·빌드·CodeDeploy 완료, 읽기 전용 Runtime/Database/DeploymentEvidence probe. 배포 전 Runtime `4e20e8db-ef81-4469-8490-6b2a7bd6b136`/DB `eeb36bac-c39a-4641-8b43-2c724001cd38`, 배포 후 Runtime `8f719daf-87ff-43c3-a919-01a81f385a06`/DB `60a71f6a-8691-4260-8198-b6b319e57828`/bundle 대조 `164de9bb-6521-4783-bd98-073c56004637` 모두 Success다. DB 확인은 READ ONLY·8초 statement/2초 lock·ROLLBACK·쓰기0이며 임시 CA/전송 파일과 감시 프로세스를 정리했다.
+
+미실행/남은 위험: 전체 Provider·정상/형식 기대값 QA, 정책/worker 활성화, 기존 데이터 적용, 운영 업무 브라우저 E2E, 실제 rollback은 이번 코드 배포와 별개다. 브라우저는 이번 승인 범위에서 요청하지 않아 실행하지 않았다. 서버 내부 health 결과를 외부/인증 업무 E2E로 확대하지 않는다. 기존 본문 정기 수집에는 새 코드가 적용되지만 모든 공고의 본문/첨부 수집 완료나 첨부 상시 수집 시작을 의미하지 않는다.
+
 ## 2026-09-22 현재 인증·운영 읽기 전용 재확인
 
 - 로그인 CLI는 시간 초과로 종료됐지만, 후속 STS와 배포 조회는 성공했다. 현재 default/root·서울 리전·저장소 대상 계정 일치, 대상 Ubuntu1대·SSM Online을 확인했다. 로그인 명령의 성공으로 소급 변경하지 않으며 **현재 인증 사용 가능**으로 정정한다. 인증값은 출력하지 않았고 TLS 검증을 유지했다.
