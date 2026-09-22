@@ -33,7 +33,17 @@ public final class AttachmentPolicyValidationSnapshotFactory {
     public record Runtime(String runtimeHash, String runtimeSuiteHash, String executionCodeHash, AttachmentWorkerDbQaGate.Identity workerDbQa) {
         public Runtime(String runtimeHash,String runtimeSuiteHash,String executionCodeHash) {this(runtimeHash,runtimeSuiteHash,executionCodeHash,null);}
     }
-    public record Frozen(String hash, String json, AnnouncementSourceRuleValidationDetails rule, Runtime runtime) { }
+    public record Frozen(String hash, String json, AnnouncementSourceRuleValidationDetails rule, Runtime runtime) {
+        public AttachmentPolicyResponses.Configuration selectConfiguration() {
+            try {
+                if(json==null || json.length()>2097152)throw new IllegalArgumentException();
+                var parser=new ObjectMapper().enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+                var configuration=parser.treeToValue(parser.readTree(json).path("settings"),AttachmentPolicyResponses.Configuration.class);
+                if(configuration==null || !configuration.selectEngineCurrent())throw new IllegalArgumentException();
+                return configuration;
+            }catch(Exception exception){throw new IllegalArgumentException("고정된 정책 QA의 엔진·구간 규칙 설정이 유효하지 않습니다.");}
+        }
+    }
     public AttachmentPolicyValidationSnapshotFactory(AnnouncementSourceRuleReleaseService rules, AnnouncementAttachmentPolicyValidationDao dao,
             AttachmentDiscoveryProfileRegistry profiles, AttachmentRuntimeIdentity runtime, AttachmentRuntimeGate gate, AttachmentWorkerDbQaGate workerDb, ObjectMapper mapper,
             com.saneb.domain.announcementattachment.qa.AttachmentProviderQaCatalog catalog) {
@@ -87,9 +97,9 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000)
                 throw conflict("정책 설정 크기가 유효하지 않습니다.");
             var settings=mapper.readValue(policy.settingsJson(), AttachmentPolicyResponses.Configuration.class);
-            // 구간 엔진의 정책 golden/provider QA 연결 전에는 새 엔진 게시 검증을 허용하지 않는다.
+            // 구간 golden은 연결됐지만 실제 Provider 기대값 결합 전에는 새 엔진 게시 검증을 허용하지 않는다.
             if(settings!=null && com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION.equals(settings.engineVersion()))
-                throw conflict("구간 엔진의 정책 QA 연결이 완료되지 않았습니다. 기존 엔진의 QA 결과로 게시할 수 없습니다.");
+                throw conflict("구간 엔진의 실제 수집원 QA 기대값 연결이 완료되지 않았습니다. 기존 엔진의 QA 결과로 게시할 수 없습니다.");
             if(settings==null || !settings.selectEngineCurrent() || !com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier
                     .selectRulesCurrent(settings.roleRuleVersion(),settings.roleRulesHash())
                     || !AnnouncementAttachmentClassificationEngine.VERSION.equals(settings.engineVersion())

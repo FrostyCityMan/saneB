@@ -88,7 +88,8 @@ FORM/REFERENCE/UNKNOWN 및 고정 파일 역할 충돌은 CONTEXT_ONLY만 허용
 worker 경로는 실행 snapshot에 `attachment-segment-1.0.0`과 `segmentRuleVersion/segmentRulesHash`가 모두 고정된 경우에만 새 분석을 사용한다.
 기존 정책에서 segment 설정이 없으면 기존 JSON/manifest/해시/파일 단위 경로를 유지한다.
 신규 manifest schemaVersion은 3이다. 분석은 CPU 단계에서 계산하고 source/job lease fence를 다시 확인한 transaction에서 저장한다.
-정책 생성은 아직 기존 엔진을 사용하며 정책 게시 QA는 신규 엔진을 거부한다. 새 golden/provider QA가 연결되기 전 활성화 우회 경로를 추가하지 않는다.
+정책 생성은 아직 기존 엔진을 사용하며 전체 정책 QA 예약은 실제 Provider 구간 기대값 연결 전까지 신규 엔진을 거부한다.
+분류 정답 검증은 신규 엔진 52건으로 연결했지만 실제 Provider QA를 대신하지 않는다. 활성화 우회 경로를 추가하지 않는다.
 
 ## 6. API 및 UI 계약
 
@@ -136,8 +137,10 @@ FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 
 1. [~] 정책 `Configuration`/`AttachmentExecutionSnapshot`에 새 segment 버전·hash를 선택적으로 결합했다.
    미설정 정책은 구 버전과 같은 JSON/실행 경로를 유지한다. 오래된 작업을 새 엔진으로 조용히 재실행하지 않는다.
 2. [~] 예약·재시도·배치·수집/worker 버전 비교를 확장했다. 새 정책 QA는 별도 연결 전 차단하며 code hash를 이전 승인 결과로 대체하지 않는다.
-   후속 연결 대상은 `AnnouncementAttachmentPolicyGoldenGate`, `AnnouncementAttachmentServerQa`, 정책 검증 snapshot/게시 verifier 및 Provider 고정 기대값이다.
-   구간 엔진의 혼합 문서·다른 문단/파일 AND 금지·부분 추출·수동 역할 충돌 시험을 고정한 뒤에만 정책 기본 엔진과 게시 검증을 전환한다.
+   `AnnouncementAttachmentPolicyGoldenGate`와 정책 검증/게시 verifier는 엔진에 고정된 정답 목록을 사용한다. 신규 엔진은 AG30+SG22이며 구 엔진은 기존 AG30 결과 형식을 유지한다.
+   후속 연결 대상은 `AttachmentProviderQaCase`의 구간 기대값, 실제 전체 파일 executor/verifier, catalog 및 snapshot이다.
+   `AnnouncementAttachmentServerQa`의 단일 선택 파일 진단은 전체 Provider 정책 QA가 아니므로 그 성공을 재사용하지 않는다.
+   전체 Provider 근거를 연결한 뒤 정책 기본 엔진과 게시 검증을 전환한다.
 3. [~] worker 봉인 후 동일 extraction의 분석을 생성하고 종합 평가의 입력·판정 지문에 결합했다. 실제 DB/전체 회귀 검증 중이다.
    원문 없는 실패 파일은 분석에서 제거하지 않고 기존 실패 우선순위를 유지한다.
 4. [~] V85로 새 evaluation input과 각 match에 segment 분석/구간의 복합 FK·불변 결합을 추가했다. 실제 PostgreSQL 검증 중이다.
@@ -158,9 +161,38 @@ FORM/REFERENCE는 참고, UNKNOWN은 검수다. MANUAL/PROFILE 파일 역할과 
 - [x] 42f8cb5의 Linux35699149911 일반 PostgreSQL migration suite는 4/4 통과했다. 그러나 독립 namespace 실행은 222건 중 221통과/1실패, 정책 부모도 실패하여 CI 전체는 failure다.
 - [~] 실패 case hash를 새 구간 분석 DB 테스트로 특정했다. 계측 attach를 요구하는 Mockito 대신 무호출 시 실패하는 JDK proxy로 수정했으며 독립 실행 재검증 전 해결 완료로 보지 않는다.
 - [x] 로컬 `:attachmentMigrationTest :attachmentJobIntegrationTest` 18분2초 성공. 임시 PostgreSQL migration4/4·기존 데이터 배치14/14·작업194/194, 실패/오류/생략0을 XML로 확인했다. V84 저장 분석 행을 유지한 V85 upgrade·fresh schema, 새 구간 worker 평가/근거 변조·사후 추가 거부/실패 파일 유지/cascade도 포함한다. Docker 없이 이 경로를 사용할 수 있음을 직접 확인했다. Linux namespace 실행 증거와는 구분한다.
-- [~] 코드6933ef3의 Linux35703442168 실행 중. 운영 DB 적용이나 독립 Linux QA 통과로 미리 간주하지 않는다.
+- [x] 코드6933ef3의 [Linux35703442168](https://github.com/FrostyCityMan/saneB/actions/runs/35703442168) 최종 success를 재조회했다. 보관 XML은 root2827=2554통과/273조건부 생략/실패·오류0, 별도 job194·migration4/backfill14·worker12·정책 부모2 실패/오류/생략0이다. 신규 구간 worker2사례도 실제 실행됐다. 앞선42f8cb5 독립 계측 실패의 수정 후 CI 성공이며, 이후 미커밋 정책 변경이나 운영 적용의 증거는 아니다.
 - [x] 연결 보완 후 대상9suite·218건 실패/오류/생략0 및 bootJar 성공(1분9초). 추출기 시험은 UP-TO-DATE 재사용이다. 수정 전 전체 로컬 준비 테스트4실패는 Mapper 등록 누락으로 보완했으며 전체 재실행은 새 Linux CI의 결과를 별도 확인한다.
 - [~] worker/manifest/V85 연결을 구현했고 전체 회귀에서 테스트용 Mapper 등록 누락을 발견해 보완했다. 정책 QA·UI 연결, PDF 구조 추출, 실제 파일 재검증, 운영 반영은 미완료다.
 - [ ] 브라우저 검증은 현재 요청에 대한 명시 지시가 없어 정책상 미실행이다.
 
 SEG-001~004의 로컬 합성/회귀 증거는 확보했으나 DB·실파일·worker·UI까지의 확장 완료로 간주하지 않는다.
+
+## 10. 엔진별 정책 분류 정답 검증 연결
+
+- 구 엔진: `attachment-golden-1.0.0`의 AG-001~030과 기존 결과 해시를 유지한다.
+- 구간 엔진: `attachment-segment-golden-1.0.0`, AG-001~030 및 SG-001~022 총52건을 요구한다.
+- SG는 혼합 GUIDE/NOTICE+FORM, 미확인 앞부분, 불확실 scope, 문단/파일/구간 간 조합 금지,
+  부분/실패 첨부, 수동/프로필 역할 충돌, A/B 우선순위, 부정 조건, FORM 참고 전용,
+  제목/본문 정책 보존, 원문 변조 거부, Provider 불변성, 파일 식별자 중복 거부를 검증한다.
+- 실제 일치 위치가 원본 block과 구간의 교집합에 있고 FORM 근거가 CONTEXT_ONLY인지 검사한다.
+  결과 해시는 segment 버전·규칙 hash·고정 입력·전체 분석·실제 판정과 기존 AG 결과에 결합한다.
+  결과/감사 로그에는 표본 원문을 반환하지 않으며 오류에는 고정 case ID와 안내만 남긴다.
+- 분류 검증 저장·조회, 전체 QA 실행 coordinator, 게시 직전 재검증은 같은 엔진의 정답 목록·순서·개수·suite를 요구한다.
+  구 엔진30건을 신규 엔진 근거로 재사용하지 않는다. 분류 검사 성공 자체가 게시 또는 job 예약을 실행하지 않는다.
+- 실제 seed 검증에서 SG-005의 잘못된 음성 입력을 발견했다. `지원대상: 소상공인`에는 보조어 `지원`이 같은 문단에 있어
+  기존 정책상 조합이 성립한다. 음성 입력을 `신청자격: 소상공인`으로 정정하고 보조어 회귀를 추가했다.
+  판정 엔진·강/약 키워드 정책·seed·기존 migration은 변경하지 않았다.
+- [x] `:test --tests '*AnnouncementAttachmentPolicy*Test' --tests '*AttachmentPolicy*Test' :attachmentJobIntegrationTest --tests '*segmentPolicyClassificationCheckPersistsFiftyTwoCasesWithoutPublishing' :bootJar --no-daemon --max-workers=1`: 1분24초 성공. 정책16suite286건 및 실제 PostgreSQL1건(3.402초), 실패/오류/생략0. 신규52건의 저장·조회·멱등성·DRAFT/rowVersion 유지·job0·원문 없는 감사 metadata를 확인했다.
+- [x] 전체 로컬 `:test :attachment-extractor:test :bootJar --no-daemon --max-workers=1`: 5분51초 성공. root245suite2837건 중2564통과/273조건부 생략/실패·오류0이다. extractor90건과 bootJar는 선행 결과 UP-TO-DATE 재사용이며 새 실행으로 세지 않는다. 소유 Java·임시 PostgreSQL 프로세스0 및 단기 Node 종료를 확인했다.
+- [~] 새 SHA Linux 검증은 별도 확인한다. 앞선6933ef3 CI 성공을 현재 정책 변경의 증거로 재사용하지 않는다.
+- [ ] 실제 Provider 구간 기대값·PDF 구조·UI·새 실파일 증거가 남으므로 정책 기본 엔진은 전환하지 않는다.
+
+### 다음 Provider 연결의 필수 계약
+
+1. ExpectedFile에 선택적 segment 기대값을 추가한다. 전체 text/blocks/analysis hash, 분석 버전/규칙 hash, 상태와 구간 역할을 사전 고정한다. 기존 역할 기대값/JSON은 보존한다.
+2. executor는 실제 다운로드·격리 추출의 전체 text/blocks로 분석한다. 파일 이름·다른 파일·실행 결과로 기대값을 생성하지 않는다. 결과에는 원문 대신 segment analysis hash를 남긴다.
+3. 신규 엔진 catalog는 COMPLETE_TEXT 모든 파일의 segment 기대값을 요구한다. 누락이면 실행 준비/정상 표본으로 세지 않고 구체적 사유로 남긴다. 실패/미지원 파일은 전체 분모에서 제거하지 않는다.
+4. 정상 표본 산정은 모든 구간이 RESOLVED이고 NOTICE/GUIDE 근거가 있는지를 사용한다. 혼합 문서의 기존 파일 역할 UNKNOWN만으로 새 구간 결과를 무시하지 않되, UNKNOWN 구간이나 실패 품질을 정상으로 승격하지 않는다.
+5. policy snapshot/Provider 입력 hash/저장 결과 verifier를 동일 신규 엔진 기대값에 결합한다. 기존 파일 역할 QA 성공을 신규 구간 QA로 재사용하지 않는다.
+6. 위 계약·구 엔진 호환·실제 파일 위치 및 참고 근거 변조 거부 시험 후 정책 생성 기본값과 전체 QA 예약을 신규 엔진으로 연결한다. 정책 활성화는 별도 승인 경계를 유지한다.

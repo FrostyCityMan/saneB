@@ -44,8 +44,9 @@ public final class AttachmentPolicyPublicationQaVerifier {
                 String calculated;
                 if("CLASSIFICATION_GOLDEN".equals(step.stepCode())){
                     var saved=mapper.readValue(step.evidenceJson(),AnnouncementAttachmentPolicyGoldenGate.Result.class);
-                    var expected=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash());
-                    if(!expected.equals(saved))throw conflict("현재 규칙의 분류 정답 결과와 저장된 QA 근거가 다릅니다.");
+                    var configuration=frozen.selectConfiguration();
+                    var expected=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),configuration);
+                    if(!AnnouncementAttachmentPolicyGoldenGate.selectContractCurrent(expected,configuration) || !expected.equals(saved))throw conflict("현재 규칙의 분류 정답 결과와 저장된 QA 근거가 다릅니다.");
                     calculated=snapshots.hash(saved);
                 } else if("INSTALLED_RUNTIME".equals(step.stepCode())){
                     var saved=mapper.readValue(step.evidenceJson(),AttachmentRuntimeGate.Result.class);

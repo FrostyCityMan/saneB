@@ -69,6 +69,21 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThat(frozen.json()).contains(sourceId.toString(),"QA_LIST","configurationHash","executionCodeHash").doesNotContain("https://public.example", "noticeUrl", "passed");
         assertThat(frozen.hash()).isEqualTo(factory.selectSnapshot(policy(),installed).hash());verifyNoInteractions(runtime,gate);
     }
+    @Test void frozenConfigurationRejectsMissingDuplicateOrUnboundSegmentRules() throws Exception {
+        assertThat(factory.selectSnapshot(policy(),installed).selectConfiguration().engineVersion()).isEqualTo("attachment-1.0.0");
+        String segmentVersion=com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION;
+        String segmentHash=com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH;
+        String segmentEngine=com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION;
+        String valid="{\"settings\":{\"engineVersion\":\""+segmentEngine+"\",\"segmentRuleVersion\":\""+segmentVersion+"\",\"segmentRulesHash\":\""+segmentHash+"\"}}";
+        assertThat(new AttachmentPolicyValidationSnapshotFactory.Frozen("a".repeat(64),valid,rule,installed)
+                .selectConfiguration().segmentRulesHash()).isEqualTo(segmentHash);
+        for(String invalid:List.of("{}","{\"settings\":null}",
+                "{\"settings\":{\"engineVersion\":\"attachment-1.0.0\",\"engineVersion\":\"attachment-1.0.0\"}}",
+                valid.replace(segmentEngine,"attachment-1.0.0"),valid.replace(segmentHash,"0".repeat(64)))) {
+            assertThatThrownBy(()->new AttachmentPolicyValidationSnapshotFactory.Frozen("a".repeat(64),invalid,rule,installed).selectConfiguration())
+                    .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("고정된 정책 QA");
+        }
+    }
     @Test void targetOrSystemConfigurationChangesInvalidateFrozenInput() throws Exception {
         String first=factory.selectSnapshot(policy(),installed).hash();
         when(dao.selectTargetList()).thenReturn(List.of(target("https://public.example/changed","{\"parser\":\"fixture\"}")));
@@ -115,7 +130,7 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
         settings.put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
         settings.put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
-        assertThatThrownBy(()->factory.selectSnapshot(policy(settings.toString(),manifest()),installed)).hasMessageContaining("구간 엔진의 정책 QA 연결");
+        assertThatThrownBy(()->factory.selectSnapshot(policy(settings.toString(),manifest()),installed)).hasMessageContaining("구간 엔진의 실제 수집원 QA 기대값 연결");
     }
     @Test void oversizedAndMissingTargetConfigurationAreRejected() throws Exception {
         var policy=policy();when(dao.selectTargetList()).thenReturn(Collections.nCopies(1001,target("https://example.com","{}")));

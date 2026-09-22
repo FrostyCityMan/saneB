@@ -123,10 +123,9 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
             var frozen=selectCurrentSnapshot(run);
             stage="CLASSIFICATION_GOLDEN";
             if(!selectAllowed(run)) return saveFinish(run,"CANCELLED","EXECUTION_STOPPED");
-            var result=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash());
-            if(result.caseCount()!=30 || result.caseIds().size()!=30 || new HashSet<>(result.caseIds()).size()!=30
-                    || !AnnouncementAttachmentPolicyGoldenGate.SUITE_VERSION.equals(result.suiteVersion())
-                    || !result.caseIds().equals(java.util.stream.IntStream.rangeClosed(1,30).mapToObj(n->String.format(java.util.Locale.ROOT,"AG-%03d",n)).toList())
+            var configuration=frozen.selectConfiguration();
+            var result=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),configuration);
+            if(!AnnouncementAttachmentPolicyGoldenGate.selectContractCurrent(result,configuration)
                     || !result.ruleSnapshotHash().equals(frozen.rule().calculatedSnapshotHash())) throw conflict("분류 QA snapshot과 필수 case 목록이 일치하지 않습니다.");
             saveStep(run,stage,"PASSED",result);
             stage="INSTALLED_RUNTIME";

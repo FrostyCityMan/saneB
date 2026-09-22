@@ -35,10 +35,10 @@ class AttachmentPolicyPublicationQaVerifierTest {
     @BeforeEach void setup()throws Exception{
         when(snapshots.hash(any())).thenAnswer(c->hash(c.getArgument(0)));
         var rule=new AnnouncementSourceRuleValidationDetails(ruleId,1,"ACTIVE","a".repeat(64),"a".repeat(64),new AnnouncementSourceClassificationRuleSet("QA",List.of()));
-        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("b".repeat(64),"{\"schema\":1}",rule,new AttachmentPolicyValidationSnapshotFactory.Runtime("c".repeat(64),"d".repeat(64),"e".repeat(64)));
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("b".repeat(64),"{\"schema\":1,\"settings\":{\"engineVersion\":\"attachment-1.0.0\"}}",rule,new AttachmentPolicyValidationSnapshotFactory.Runtime("c".repeat(64),"d".repeat(64),"e".repeat(64)));
         run=new Run(runId,policyId,0,ruleId,1,frozen.hash(),frozen.json(),"VERIFIED",2,UUID.randomUUID(),UUID.randomUUID(),"a".repeat(64),null,null,null,now.minusSeconds(90),now.minusSeconds(60),now,true);
         classification=new AnnouncementAttachmentPolicyGoldenGate.Result(AnnouncementAttachmentPolicyGoldenGate.SUITE_VERSION,"attachment-1.0.0","QA","a".repeat(64),"c".repeat(64),"d".repeat(64),30,java.util.stream.IntStream.rangeClosed(1,30).mapToObj(i->String.format("AG-%03d",i)).toList());
-        when(golden.selectValidatedResult(any(),any())).thenReturn(classification);
+        when(golden.selectValidatedResult(any(),any(),any())).thenReturn(classification);
         extraction=new AttachmentRuntimeGate.Result(UUID.randomUUID(),AttachmentRuntimeGate.SCOPE,AttachmentRuntimeGate.SUITE_VERSION,"d".repeat(64),"c".repeat(64),"1.0.0","a".repeat(64),12,List.of(),now.minusSeconds(40).toInstant(),now.minusSeconds(5).toInstant());
         steps=new ArrayList<>(List.of(step("CLASSIFICATION_GOLDEN",classification),step("INSTALLED_RUNTIME",extraction),
                 new Step(runId,"PROVIDER_PROFILES","PASSED","{}","e".repeat(64),now.minusSeconds(1)),new Step(runId,"WORKER_DB_RECOVERY","PASSED","{}","e".repeat(64),now.minusSeconds(1))));
@@ -46,7 +46,7 @@ class AttachmentPolicyPublicationQaVerifierTest {
     }
     @Test void combinesOnlyRevalidatedCurrentBoundEvidence()throws Exception{
         assertThat(verifier.selectValidatedEvidenceHash(run,steps,frozen)).matches("[0-9a-f]{64}");
-        verify(golden).selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash());verify(runtime).validateStoredResult(extraction,"c".repeat(64));
+        verify(golden).selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),frozen.selectConfiguration());verify(runtime).validateStoredResult(extraction,"c".repeat(64));
     }
     @Test void fourPassedStringsCannotBypassMissingProductionVerifiers(){
         var unavailable=new AttachmentPolicyPublicationQaVerifier(snapshots,golden,runtime,List.of(),mapper);
@@ -91,6 +91,19 @@ class AttachmentPolicyPublicationQaVerifierTest {
         var original=steps.get(3);steps.set(3,steps.getFirst());assertThatThrownBy(()->verifier.selectValidatedEvidenceHash(run,steps,frozen)).isInstanceOf(ApiException.class);
         steps.set(3,new Step(UUID.randomUUID(),original.stepCode(),"PASSED",original.evidenceJson(),original.evidenceHash(),original.createdAt()));assertThatThrownBy(()->verifier.selectValidatedEvidenceHash(run,steps,frozen)).isInstanceOf(ApiException.class);
         steps.set(3,new Step(runId,original.stepCode(),"PASSED",original.evidenceJson(),original.evidenceHash(),now.plusSeconds(1)));assertThatThrownBy(()->verifier.selectValidatedEvidenceHash(run,steps,frozen)).isInstanceOf(ApiException.class);
+    }
+    @Test void segmentPublicationRechecksItsOwnEngineAndRejectsLegacyEvidence() throws Exception {
+        var settings=Map.of("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,
+                "segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                "segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),mapper.writeValueAsString(Map.of("settings",settings)),frozen.rule(),frozen.runtime());
+        run=new Run(runId,policyId,0,ruleId,1,frozen.hash(),frozen.json(),"VERIFIED",2,UUID.randomUUID(),UUID.randomUUID(),"a".repeat(64),null,null,null,now.minusSeconds(90),now.minusSeconds(60),now,true);
+        assertThatThrownBy(()->verifier.selectValidatedEvidenceHash(run,steps,frozen)).isInstanceOf(ApiException.class).hasMessageContaining("분류 정답");
+        var result=new AnnouncementAttachmentPolicyGoldenGate.Result(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,settings.get("engineVersion"),"QA","a".repeat(64),"c".repeat(64),"d".repeat(64),52,
+                AnnouncementAttachmentPolicyGoldenGate.selectCaseIds(settings.get("engineVersion")));
+        when(golden.selectValidatedResult(any(),any(),any())).thenReturn(result);steps.set(0,step("CLASSIFICATION_GOLDEN",result));
+        assertThat(verifier.selectValidatedEvidenceHash(run,steps,frozen)).matches("[0-9a-f]{64}");
+        verify(golden,times(2)).selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),frozen.selectConfiguration());
     }
     @Test void changedFrozenSnapshotCannotReuseQa(){
         var changed=new AttachmentPolicyValidationSnapshotFactory.Frozen("f".repeat(64),frozen.json(),frozen.rule(),frozen.runtime());

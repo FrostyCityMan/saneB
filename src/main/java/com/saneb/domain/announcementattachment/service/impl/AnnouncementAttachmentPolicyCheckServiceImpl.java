@@ -66,18 +66,18 @@ public class AnnouncementAttachmentPolicyCheckServiceImpl implements Announcemen
         if(prepared==null) throw conflict("정책 검증 snapshot을 읽지 못했습니다.");
         if(prepared.existing()!=null) return prepared.existing();
         var frozen=prepared.snapshot();
-        var result=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash());
+        var result=golden.selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),frozen.configuration());
         return write.execute(tx->{
             checks.selectRequestLock(key);
             var existing=checks.selectCheckDetails(key);
             if(existing!=null) return selectSame(existing,actor,policyId,requestHash);
-            // 다른 정책 쓰기와 동일하게 규칙 → 정책 순서로 잠근다. 30개 분류 실행은 이미 transaction 밖에서 끝났다.
+            // 다른 정책 쓰기와 동일하게 규칙 → 정책 순서로 잠근다. 엔진별 정답 실행은 transaction 밖에서 끝났다.
             policies.selectRuleStatus(frozen.rule().releaseId());
             var currentPolicy=selectPolicy(policyId,true);validateDraft(currentPolicy,request.expectedVersion());
             var current=selectSnapshot(currentPolicy);
             if(!frozen.policyHash().equals(current.policyHash()) || !frozen.rule().equals(current.rule()))
                 throw conflict("검증 중 정책 또는 규칙이 바뀌었습니다. 입력을 보존하고 현재 버전으로 다시 검증하세요.");
-            if(result.caseCount()!=AnnouncementAttachmentPolicyGoldenGate.CASE_COUNT || !result.ruleSnapshotHash().equals(current.rule().calculatedSnapshotHash()))
+            if(!AnnouncementAttachmentPolicyGoldenGate.selectContractCurrent(result,current.configuration()) || !result.ruleSnapshotHash().equals(current.rule().calculatedSnapshotHash()))
                 throw conflict("서버 분류 검증 결과가 현재 snapshot과 일치하지 않습니다.");
             UUID id=UUID.randomUUID();
             if(checks.insertCheck(new AttachmentPolicyCheckRows.Insert(id,policyId,currentPolicy.rowVersion(),current.policyHash(),current.rule().releaseId(),
@@ -97,8 +97,10 @@ public class AnnouncementAttachmentPolicyCheckServiceImpl implements Announcemen
         try {
             if(policy.settingsJson()==null || policy.settingsJson().length()>8192 || policy.profileManifestJson()==null || policy.profileManifestJson().length()>256000)
                 throw conflict("정책 설정 snapshot 크기가 유효하지 않습니다.");
+            var configuration=mapper.readValue(policy.settingsJson(),com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration.class);
+            if(configuration==null || !configuration.selectEngineCurrent())throw conflict("정책의 엔진·구간 규칙 버전과 지문이 현재 코드와 다릅니다.");
             return new Snapshot(policy,rule,hash(List.of("attachment-policy-draft-v1",policy.policyId(),policy.rowVersion(),policy.modeCode(),rule.releaseId(),
-                    mapper.readValue(policy.settingsJson(),Object.class),mapper.readValue(policy.profileManifestJson(),Object.class))));
+                    mapper.readValue(policy.settingsJson(),Object.class),mapper.readValue(policy.profileManifestJson(),Object.class))),configuration);
         } catch(ApiException exception) { throw exception; }
         catch(Exception exception) { throw conflict("정책 설정 snapshot을 읽지 못했습니다. 서버의 정책 형식을 확인하세요."); }
     }
@@ -121,7 +123,7 @@ public class AnnouncementAttachmentPolicyCheckServiceImpl implements Announcemen
         try {
             if(row.caseIdsJson()==null || row.caseIdsJson().length()>16384) throw conflict("저장된 검증 목록 크기가 올바르지 않습니다.");
             List<String> ids=mapper.readValue(row.caseIdsJson(),mapper.getTypeFactory().constructCollectionType(List.class,String.class));
-            if(ids==null || ids.size()!=row.caseCount() || ids.size()>1000 || ids.stream().anyMatch(id->id==null || !id.matches("AG-[0-9]{3}")))
+            if(ids==null || ids.size()!=row.caseCount() || !ids.equals(AnnouncementAttachmentPolicyGoldenGate.selectCaseIds(row.engineVersion())))
                 throw conflict("저장된 검증 항목이 올바르지 않습니다.");
             return new AttachmentPolicyCheckResponse(row.checkId(),row.policyId(),row.policyVersion(),row.policySnapshotHash(),row.ruleReleaseId(),row.ruleVersion(),row.ruleSnapshotHash(),
                     row.ruleContentHash(),row.checkTypeCode(),row.suiteVersion(),row.engineVersion(),row.resultHash(),row.caseCount(),ids,Boolean.TRUE.equals(row.isCurrent()),row.createdAt());
@@ -141,6 +143,7 @@ public class AnnouncementAttachmentPolicyCheckServiceImpl implements Announcemen
     private String hash(Object value) {try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(json(value).getBytes(StandardCharsets.UTF_8)));}catch(ApiException exception){throw exception;}catch(Exception exception){throw invalid("검증 지문을 생성하지 못했습니다.");} }
     private ApiException invalid(String message) {return new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_POLICY_INVALID,HttpStatus.BAD_REQUEST,message);}
     private ApiException conflict(String message) {return new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_VERSION_CONFLICT,HttpStatus.CONFLICT,message);}
-    private record Snapshot(AttachmentPolicyManagementRows.Row policy,AnnouncementSourceRuleValidationDetails rule,String policyHash) { }
+    private record Snapshot(AttachmentPolicyManagementRows.Row policy,AnnouncementSourceRuleValidationDetails rule,String policyHash,
+                            com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration configuration) { }
     private record Prepared(Snapshot snapshot,AttachmentPolicyCheckResponse existing) { }
 }

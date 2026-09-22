@@ -4,6 +4,8 @@
 
 > 후속 worker 연결: 정책 조회 Configuration에 선택적 `segmentRuleVersion/segmentRulesHash`를 추가하고 미설정 시 기존 JSON을 유지한다. SHADOW는 위 API 호출의 비적용 동작을 뜻하며, 동일 분석이 별도 worker 평가에 참조됐는지 여부를 뜻하지 않는다. 신규 엔진 정책 게시 QA·관리자 구간 표시 연결은 아직 완료되지 않았다. 운영 정책 활성화나 기존 데이터 재처리를 수행하지 않는다.
 
+> 엔진별 정책 분류 검증: 기존 `attachment-1.0.0`은 AG30건과 기존 결과 형식을 유지한다. 명시적으로 구간 버전·hash에 고정된 `attachment-segment-1.0.0` 초안은 AG30+SG22 총52건을 검사하고 동일 wrapper/이력 필드에 suite·engine·caseCount·caseIds·resultHash를 저장한다. 구 엔진의 결과를 신규 엔진의 게시 근거로 재사용하지 않는다. 분류 검사 성공은 전체 정책 QA·게시·활성화 성공이 아니며, 실제 Provider 구간 기대값 연결 전 전체 신규 정책 QA 예약은 계속 차단한다.
+
 > 첨부 V2 확장: [공고 첨부파일 수집·추출 API 설계](announcement-attachment-collection-design-2026-09-08.md)를 바탕으로 24절에 로컬 구현 계약을 기록한다. 기존 v1 제목·본문 조회 계약을 유지하며 첨부 적용 원문의 전환/검수 조건을 서버에서 확인한다. 로컬 코드·테스트 진척은 운영 반영이나 전체 E2E 완료를 뜻하지 않는다. 최신 실행 증거와 잔여 Gate는 [진행 기록](announcement-attachment-end-to-end-progress-2026-09-09.md)을 따른다.
 
 작성일: 2026-05-14

@@ -72,7 +72,7 @@ class AnnouncementAttachmentPolicyCheckServiceTest {
         when(transactions.getTransaction(any())).thenAnswer(call->{activeTransactions.incrementAndGet();return new SimpleTransactionStatus();});
         doAnswer(call->{activeTransactions.decrementAndGet();return null;}).when(transactions).commit(any());
         doAnswer(call->{activeTransactions.decrementAndGet();return null;}).when(transactions).rollback(any());
-        doAnswer(call->{assertThat(activeTransactions.get()).isZero();var result=call.callRealMethod();afterGolden.run();return result;}).when(golden).selectValidatedResult(any(),anyString());
+        doAnswer(call->{assertThat(activeTransactions.get()).isZero();var result=call.callRealMethod();afterGolden.run();return result;}).when(golden).selectValidatedResult(any(),anyString(),any());
         service=new AnnouncementAttachmentPolicyCheckServiceImpl(policies,checks,rules,golden,audit,mapper,transactions);
     }
     private AttachmentPolicyCheckRows.Row current(AttachmentPolicyCheckRows.Row row) {
@@ -91,11 +91,24 @@ class AnnouncementAttachmentPolicyCheckServiceTest {
         assertThat(log.getValue().metadataJson()).contains("checkId","caseCount","reasonHash").doesNotContain("관리자 검증 사유 원문","소상공인","settingsJson");
         verify(policies,never()).updatePolicyDraft(any());verify(policies,never()).insertPolicy(any());
     }
+    @Test void segmentPolicyPersistsFiftyTwoCasesWithoutPublishingOrChangingTheDraft() throws Exception {
+        var configuration=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(policy.settingsJson());
+        configuration.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        configuration.put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
+        configuration.put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        policy=new AttachmentPolicyManagementRows.Row(policyId,"ATT-CHECK",1,0,"DRAFT","ENFORCE",ruleId,"DRAFT",null,
+                configuration.toString(),"[]",actor,now,now,null,null,null,null,null);
+        var result=service.insertClassificationCheck(auth("ADMIN"),policyId,key,request());
+        assertThat(result.caseCount()).isEqualTo(52);assertThat(result.caseIds()).contains("AG-030","SG-022");
+        assertThat(result.engineVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        assertThat(service.insertClassificationCheck(auth("ADMIN"),policyId,key,request()).checkId()).isEqualTo(result.checkId());
+        verify(policies,never()).updatePolicyDraft(any());verify(policies,never()).insertPolicy(any());
+    }
     @Test void repeatedRequestReturnsSameCheckWithFreshStalenessWithoutRerunningGolden() {
         var first=service.insertClassificationCheck(auth("ADMIN"),policyId,key,request());policy=policy(1,"DRAFT");
         var repeated=service.insertClassificationCheck(auth("ADMIN"),policyId,key,request());
         assertThat(repeated.checkId()).isEqualTo(first.checkId());assertThat(repeated.isCurrent()).isFalse();
-        verify(golden,times(1)).selectValidatedResult(any(),anyString());verify(checks,times(1)).insertCheck(any());verify(audit,times(1)).insertAuditLog(any());
+        verify(golden,times(1)).selectValidatedResult(any(),anyString(),any());verify(checks,times(1)).insertCheck(any());verify(audit,times(1)).insertAuditLog(any());
     }
     @Test void reusedKeyCannotCrossActorPolicyOrRequest() {
         service.insertClassificationCheck(auth("ADMIN"),policyId,key,request());
@@ -115,7 +128,7 @@ class AnnouncementAttachmentPolicyCheckServiceTest {
         assertThatThrownBy(()->service.insertClassificationCheck(auth("ADMIN"),policyId,key,request())).isInstanceOf(ApiException.class).hasMessageContaining("무결성");
         snapshot=new AnnouncementSourceRuleValidationDetails(ruleId,1,"RETIRED","a".repeat(64),"a".repeat(64),snapshot.ruleSet());
         assertThatThrownBy(()->service.insertClassificationCheck(auth("ADMIN"),policyId,key,request())).isInstanceOf(ApiException.class).hasMessageContaining("DRAFT 또는 ACTIVE");
-        verify(golden,never()).selectValidatedResult(any(),anyString());verify(checks,never()).insertCheck(any());
+        verify(golden,never()).selectValidatedResult(any(),anyString(),any());verify(checks,never()).insertCheck(any());
     }
     @Test void goldenFailureCannotBeStoredAsSuccessfulValidation() {
         snapshot=new AnnouncementSourceRuleValidationDetails(ruleId,1,"DRAFT",null,"a".repeat(64),new AnnouncementSourceClassificationRuleSet("BROKEN",snapshot.ruleSet().rules().stream().filter(row->!row.ruleCode().equals("B")).toList()));
@@ -125,7 +138,7 @@ class AnnouncementAttachmentPolicyCheckServiceTest {
     @ParameterizedTest @ValueSource(strings={"ACTIVE","RETIRED"})
     void onlyDraftPolicyCanStartNewCheck(String state) {
         policy=policy(0,state);assertThatThrownBy(()->service.insertClassificationCheck(auth("ADMIN"),policyId,key,request())).isInstanceOf(ApiException.class).hasMessageContaining("개정 초안");
-        verifyNoInteractions(rules);verify(golden,never()).selectValidatedResult(any(),anyString());
+        verifyNoInteractions(rules);verify(golden,never()).selectValidatedResult(any(),anyString(),any());
     }
     @ParameterizedTest @ValueSource(strings={"OPERATOR","APPROVER","USER","PARTNER","REVIEWER"})
     void onlyAdminMayRunCheckEvenWithDirectServiceInvocation(String role) {

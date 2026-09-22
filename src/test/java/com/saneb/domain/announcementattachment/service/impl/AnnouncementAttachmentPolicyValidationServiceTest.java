@@ -58,7 +58,7 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
         when(policies.selectPolicyDetails(eq(policyId),anyBoolean())).thenReturn(policy);
         var rule=new AnnouncementSourceRuleValidationDetails(ruleId,0,"DRAFT",null,"d".repeat(64),new AnnouncementSourceClassificationRuleSet("QA",List.of()));
         var plan=AttachmentProviderQaPlan.selectPlan(List.of(),List.of());
-        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("c".repeat(64),mapper.writeValueAsString(Map.of("providerQaPlan",plan)),rule,installed);
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("c".repeat(64),mapper.writeValueAsString(Map.of("providerQaPlan",plan,"settings",Map.of("engineVersion","attachment-1.0.0"))),rule,installed);
         when(snapshots.selectProviderQaPlan()).thenReturn(plan);
         when(snapshots.selectRuntime()).thenReturn(installed);when(snapshots.selectSnapshot(any(),any())).thenAnswer(c->frozen);
         when(transactions.getTransaction(any())).thenAnswer(c->{activeTransactions.incrementAndGet();return new SimpleTransactionStatus();});
@@ -80,7 +80,7 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
             UUID id=c.getArgument(0);String state="CANCEL_REQUESTED".equals(runs.get(id).statusCode())?"CANCELLED":c.getArgument(2);
             replace(id,state,null,c.getArgument(3));return 1;});
         when(dao.updateCancellation(any(),anyInt())).thenAnswer(c->{var row=runs.get(c.getArgument(0));replace(row.runId(),"PENDING".equals(row.statusCode())?"CANCELLED":"CANCEL_REQUESTED",row.leaseToken(),"CANCELLED_BY_ADMIN");return 1;});
-        when(golden.selectValidatedResult(any(),anyString())).thenAnswer(c->{assertThat(activeTransactions.get()).isZero();return goldenResult();});
+        when(golden.selectValidatedResult(any(),anyString(),any())).thenAnswer(c->{assertThat(activeTransactions.get()).isZero();return goldenResult();});
         when(runtime.selectValidatedResult(any(BooleanSupplier.class))).thenAnswer(c->{assertThat(activeTransactions.get()).isZero();afterRuntime.run();return runtimeResult();});
         when(workerDb.selectValidatedResult(any(),any(),any())).thenAnswer(c->{
             assertThat(activeTransactions.get()).isZero();assertThat(((BooleanSupplier)c.getArgument(2)).getAsBoolean()).isTrue();
@@ -107,6 +107,28 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
     }
     private AttachmentPolicyCheckRequest request() {return new AttachmentPolicyCheckRequest(0,"운영 검증 사유 원문");}
     private UUID reserve() {return service.insertRun(auth("ADMIN"),policyId,key,request()).runId();}
+    private void selectSegmentSnapshot() throws Exception {
+        var tree=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(frozen.json());
+        var settings=tree.putObject("settings");
+        settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        settings.put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION);
+        settings.put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen("c".repeat(64),tree.toString(),frozen.rule(),installed);
+    }
+    @Test void segmentCoordinatorRequiresAllFiftyTwoCasesAndStillNeedsProviderEvidence() throws Exception {
+        selectSegmentSnapshot();var config=frozen.selectConfiguration();
+        var result=new AnnouncementAttachmentPolicyGoldenGate.Result(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,config.engineVersion(),"QA","d".repeat(64),"e".repeat(64),"f".repeat(64),52,
+                AnnouncementAttachmentPolicyGoldenGate.selectCaseIds(config.engineVersion()));
+        when(golden.selectValidatedResult(any(),anyString(),any())).thenReturn(result);
+        reserve();assertThat(service.saveNextValidationRun()).isEqualTo("INCOMPLETE");
+        assertThat(steps.getFirst().evidenceJson()).contains("SG-022",config.engineVersion());
+        verify(golden).selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),config);
+    }
+    @Test void segmentCoordinatorRejectsLegacyGoldenBeforeRuntimeOrProviderExecution() throws Exception {
+        selectSegmentSnapshot();reserve();
+        assertThat(service.saveNextValidationRun()).isEqualTo("CONFLICT");
+        verifyNoInteractions(runtime,providerQa,workerDb);
+    }
     @Test void reservationIsPendingAndDoesNotExecuteOrPublishAnything() {
         UUID id=reserve();var value=service.selectRunDetails(auth("APPROVER"),policyId,id);
         assertThat(value.statusCode()).isEqualTo("PENDING");assertThat(value.steps()).hasSize(4).allSatisfy(s->assertThat(s.statusCode()).isEqualTo("NOT_RUN"));
@@ -179,7 +201,7 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
         // 실제 rollback 복원은 PostgreSQL 통합 테스트에서 확인한다.
     }
     @Test void failedGoldenDoesNotBecomeInputConflictOrInvokeParser() {
-        reserve();when(golden.selectValidatedResult(any(),anyString())).thenThrow(new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_POLICY_QA_FAILED,HttpStatus.CONFLICT,"AG-001: QA"));
+        reserve();when(golden.selectValidatedResult(any(),anyString(),any())).thenThrow(new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_POLICY_QA_FAILED,HttpStatus.CONFLICT,"AG-001: QA"));
         assertThat(service.saveNextValidationRun()).isEqualTo("FAILED");verifyNoInteractions(runtime);
         assertThat(steps).singleElement().satisfies(s->assertThat(s.statusCode()).isEqualTo("FAILED"));
     }

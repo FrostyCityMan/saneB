@@ -7,6 +7,9 @@ import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.*;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
+import com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration;
 import com.saneb.domain.announcementsource.classification.*;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
 import java.nio.charset.StandardCharsets;
@@ -24,15 +27,50 @@ public final class AnnouncementAttachmentPolicyGoldenGate {
     private static final String COMBINATION="소상공인 지원금";
     private final AnnouncementSourceClassificationEngine baseEngine;
     private final AnnouncementAttachmentClassificationEngine engine;
+    private final AttachmentSegmentPolicyGoldenGate segmentGate;
     private final JsonMapper mapper=JsonMapper.builder().enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS).build();
     public AnnouncementAttachmentPolicyGoldenGate() { this(new AnnouncementSourceClassificationEngine(),new AnnouncementAttachmentClassificationEngine()); }
     AnnouncementAttachmentPolicyGoldenGate(AnnouncementSourceClassificationEngine baseEngine,AnnouncementAttachmentClassificationEngine engine) {
-        this.baseEngine=baseEngine;this.engine=engine;
+        this(baseEngine,engine,new AttachmentSegmentPolicyGoldenGate());
+    }
+    AnnouncementAttachmentPolicyGoldenGate(AnnouncementSourceClassificationEngine baseEngine,AnnouncementAttachmentClassificationEngine engine,AttachmentSegmentPolicyGoldenGate segmentGate) {
+        this.baseEngine=baseEngine;this.engine=engine;this.segmentGate=segmentGate;
     }
     public record Result(String suiteVersion,String engineVersion,String ruleReleaseCode,String ruleSnapshotHash,
             String ruleContentHash,String resultHash,int caseCount,List<String> caseIds) {
         public Result { caseIds=List.copyOf(caseIds); }
+    }
+    public Result selectValidatedResult(AnnouncementSourceClassificationRuleSet rules,String ruleSnapshotHash,Configuration configuration) {
+        if(configuration==null || !configuration.selectEngineCurrent()) throw failure("ENGINE","정책의 엔진·구간 규칙 버전과 지문을 확인하세요.");
+        var legacy=selectValidatedResult(rules,ruleSnapshotHash);
+        if(configuration.segmentRuleVersion()==null) return legacy;
+        try {
+            var signatures=segmentGate.selectValidatedSignatures(rules);
+            var ids=new ArrayList<>(legacy.caseIds());ids.addAll(signatures.keySet());
+            return new Result(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,AttachmentSegmentClassificationEngine.VERSION,
+                    legacy.ruleReleaseCode(),legacy.ruleSnapshotHash(),legacy.ruleContentHash(),
+                    hash(List.of(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,AttachmentSegmentClassificationEngine.VERSION,
+                            AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH,legacy.resultHash(),signatures)),ids.size(),ids);
+        } catch(AttachmentSegmentPolicyGoldenGate.Failure exception) {
+            throw failure("SEGMENT/"+exception.selectCaseId(),"구간 엔진의 고정 판정·위치·참고 근거 검증을 통과하지 못했습니다.");
+        } catch(RuntimeException exception) {
+            throw failure("SEGMENT","구간 엔진의 고정 판정·위치·참고 근거 검증을 통과하지 못했습니다.");
+        }
+    }
+    public static List<String> selectCaseIds(String engineVersion) {
+        var ids=new ArrayList<String>();
+        java.util.stream.IntStream.rangeClosed(1,CASE_COUNT).mapToObj(n->String.format(Locale.ROOT,"AG-%03d",n)).forEach(ids::add);
+        if(AttachmentSegmentClassificationEngine.VERSION.equals(engineVersion))
+            java.util.stream.IntStream.rangeClosed(1,AttachmentSegmentPolicyGoldenGate.CASE_COUNT).mapToObj(n->String.format(Locale.ROOT,"SG-%03d",n)).forEach(ids::add);
+        else if(!AnnouncementAttachmentClassificationEngine.VERSION.equals(engineVersion)) throw new IllegalArgumentException("지원하지 않는 정책 분류 엔진입니다.");
+        return List.copyOf(ids);
+    }
+    public static boolean selectContractCurrent(Result result,Configuration configuration) {
+        if(result==null || configuration==null || !configuration.selectEngineCurrent()) return false;
+        var ids=selectCaseIds(configuration.engineVersion());
+        return configuration.engineVersion().equals(result.engineVersion()) && ids.equals(result.caseIds()) && ids.size()==result.caseCount()
+                && (configuration.segmentRuleVersion()==null?SUITE_VERSION:AttachmentSegmentPolicyGoldenGate.SUITE_VERSION).equals(result.suiteVersion());
     }
     public Result selectValidatedResult(AnnouncementSourceClassificationRuleSet rules,String ruleSnapshotHash) {
         if(rules==null || rules.rules().isEmpty() || rules.rules().size()>2000 || ruleSnapshotHash==null || !ruleSnapshotHash.matches("[0-9a-f]{64}"))

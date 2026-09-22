@@ -2103,6 +2103,31 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT metadata_json::text FROM audit_logs WHERE resource_id=? AND action_code='ATTACHMENT_POLICY_CLASSIFICATION_CHECK'",String.class,id))
                 .contains("resultHash","reasonHash").doesNotContain("분류 검증 원문","소상공인");
     }
+    @Test void segmentPolicyClassificationCheckPersistsFiftyTwoCasesWithoutPublishing() throws Exception {
+        UUID id=insertPolicyCheckFixture(),key=UUID.randomUUID();
+        var mapper=new ObjectMapper();
+        var settings=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(sql.queryForObject(
+                "SELECT settings_json::text FROM announcement_attachment_policies WHERE id=?",String.class,id));
+        settings.put("engineVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION)
+                .put("segmentRuleVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION)
+                .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        // 격리 테스트 DB의 초안만 새 엔진에 고정한다. 운영 정책 생성 기본값이나 게시 상태는 바꾸지 않는다.
+        assertThat(sql.update("UPDATE announcement_attachment_policies SET settings_json=?::jsonb,row_version=row_version+1 WHERE id=?",
+                settings.toString(),id)).isEqualTo(1);
+        var request=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(1,"구간 분류 검증 원문");
+        var result=policyCheckService().insertClassificationCheck(reviewActor(),id,key,request);
+        assertThat(result.caseCount()).isEqualTo(52);assertThat(result.caseIds()).hasSize(52).contains("AG-030","SG-001","SG-022");
+        assertThat(result.engineVersion()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION);
+        assertThat(result.isCurrent()).isTrue();
+        assertThat(policyCheckService().insertClassificationCheck(reviewActor(),id,key,request)).isEqualTo(result);
+        assertThat(policyCheckService().selectCheckList(reviewActor(),id,1,20).items()).containsExactly(result);
+        var details=policyService().selectPolicyDetails(reviewActor(),id);
+        assertThat(details.policy().policyStatusCode()).isEqualTo("DRAFT");assertThat(details.policy().rowVersion()).isEqualTo(1);
+        assertThat(details.policy().publishedAt()).isNull();assertThat(details.isDraftValidationRequired()).isTrue();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
+        assertThat(sql.queryForObject("SELECT metadata_json::text FROM audit_logs WHERE resource_id=? AND action_code='ATTACHMENT_POLICY_CLASSIFICATION_CHECK'",String.class,id))
+                .contains("resultHash","reasonHash").doesNotContain("구간 분류 검증 원문","소상공인");
+    }
     @Test void simultaneousPolicyClassificationChecksWithSameKeyPersistOnce() throws Exception {
         UUID id=insertPolicyCheckFixture(),key=UUID.randomUUID();var gate=new CountDownLatch(1);
         var request=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(0,"동시 검증 QA");
