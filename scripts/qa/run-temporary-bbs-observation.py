@@ -8,7 +8,14 @@ import urllib.request
 
 CONFIG = json.loads(sys.argv[1]) if __name__ == '__main__' else {}
 
-UNIT_CODE = r'''
+# 코드의 지원 범위이며 실행 승인 자체가 아니다. 다른 기관/표본/예산은 받지 않는다.
+SCOPES = {
+    'OBSERVATION': ('TAEBAEK-184816', ['TAEBAEK-184816'], 44, 83886080),
+    'FIXED': ('TAEBAEK-184816', ['TAEBAEK-184816'], 39, 81508141),
+    'OKCHEON': ('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 132, 251658240),
+}
+
+UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
 import hashlib,json,os,pathlib,re,shutil,signal,stat,subprocess,sys,tempfile,time,zipfile
 cfg=json.loads(sys.argv[1])
 phase='RESOURCE_LIMITS'
@@ -33,10 +40,16 @@ def digest(path):
     with path.open('rb') as stream:
         for b in iter(lambda:stream.read(1048576),b''):h.update(b)
     return h.hexdigest()
+def validate_manifest_scope(manifest,mode):
+    if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode=='OKCHEON' and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+def select_probe_arguments(mode):
+    if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
+    return [] if mode=='OBSERVATION' else [mode]
 def main():
     global phase,source_work_started
     mode=cfg.get('verificationMode','OBSERVATION')
-    if mode not in ('OBSERVATION','FIXED'):raise ValueError('VERIFICATION_MODE_INVALID')
+    if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     group=pathlib.Path('/sys/fs/cgroup',pathlib.Path('/proc/self/cgroup').read_text().strip().split('0::',1)[1].lstrip('/'))
     quota,period=(group/'cpu.max').read_text().split()
     memory=int((group/'memory.max').read_text())
@@ -56,7 +69,7 @@ def main():
             if len(names)>201 or len(set(names))!=len(names) or names.count('manifest.json')!=1:raise ValueError('PACKAGE_ENTRIES_INVALID')
             if z.getinfo('manifest.json').file_size>65536:raise ValueError('MANIFEST_SIZE_LIMIT')
             m=json.loads(z.read('manifest.json'))
-            if m.get('schemaVersion')!=1 or m.get('caseCode')!='TAEBAEK-184816' or m.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
+            validate_manifest_scope(m,mode)
             entries=m['files']
             if len(entries)>200 or len({e['path'] for e in entries})!=len(entries) or set(names)!={e['path'] for e in entries}|{'manifest.json'}:raise ValueError('MANIFEST_ENTRIES_INVALID')
             if sum(e['bytes'] for e in entries)>209715200:raise ValueError('PACKAGE_EXPANSION_LIMIT')
@@ -78,7 +91,7 @@ def main():
         result['packageFileCount']=len(entries);result['archiveSha256']=cfg['archiveSha256'];result['executionCodeHash']=cfg['codeHash']
         phase='SOURCE_PROBE'
         command=['/usr/sbin/runuser','-u','ubuntu','--','/usr/bin/env','-i','PATH=/usr/bin:/bin','LANG=C.UTF-8','/bin/bash',str(package/'run.sh'),str(package/'qa'),str(package/'probe.jar'),cfg['probeHash'],cfg['codeHash']]
-        if mode=='FIXED':command.append('FIXED')
+        command.extend(select_probe_arguments(mode))
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
@@ -130,7 +143,7 @@ def health():
 def main():
     if not re.fullmatch('[a-f0-9]{32}',CONFIG['executionId']):raise ValueError('EXECUTION_ID_INVALID')
     mode=CONFIG.get('verificationMode','OBSERVATION')
-    if mode not in ('OBSERVATION','FIXED'):raise ValueError('VERIFICATION_MODE_INVALID')
+    if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     for key in ('archiveSha256','codeHash','probeHash','installedJarSha256'):
         if not re.fullmatch('[a-f0-9]{64}',CONFIG[key]):raise ValueError('IDENTITY_INVALID')
     if not re.fullmatch('[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]',CONFIG['bucket']) or CONFIG['key']!='qa/temporary-bbs/'+CONFIG['executionId']+'/package.zip':raise ValueError('OBJECT_SCOPE_INVALID')
@@ -147,7 +160,7 @@ def main():
              '--property=NoNewPrivileges=yes','--property=UMask=0077',
              '/usr/bin/env','-i','PATH=/usr/local/bin:/usr/bin:/bin','LANG=C.UTF-8',
              '/usr/bin/python3','-c',UNIT_CODE,json.dumps(CONFIG,separators=(',',':'))]
-    print(json.dumps({'kind':'TEMPORARY_QA_START','executionId':CONFIG['executionId'],'verificationMode':mode,'unit':unit,'maximumSeconds':1200,'maximumRequests':39 if mode=='FIXED' else 44,'maximumSourceBytes':81508141 if mode=='FIXED' else 83886080,'cpuQuotaPercent':100,'memoryMaxMiB':768,'temporarySpaceMaxMiB':1024,'operatingChangesRequested':False}),flush=True)
+    print(json.dumps({'kind':'TEMPORARY_QA_START','executionId':CONFIG['executionId'],'verificationMode':mode,'caseCodes':SCOPES[mode][1],'unit':unit,'maximumSeconds':1200,'maximumRequests':SCOPES[mode][2],'maximumSourceBytes':SCOPES[mode][3],'cpuQuotaPercent':100,'memoryMaxMiB':768,'temporarySpaceMaxMiB':1024,'operatingChangesRequested':False}),flush=True)
     try:
         p=subprocess.run(command,capture_output=True,timeout=1170)
         report=None

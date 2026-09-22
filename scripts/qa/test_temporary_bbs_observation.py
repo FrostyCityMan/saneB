@@ -27,6 +27,38 @@ class TemporaryBbsObservationTest(unittest.TestCase):
                 self.unit['main']()
         self.assertFalse(self.unit['source_work_started'])
 
+    def test_modes_cannot_select_arbitrary_groups_and_preserve_default(self):
+        self.assertEqual([], self.unit['select_probe_arguments']('OBSERVATION'))
+        self.assertEqual(['FIXED'], self.unit['select_probe_arguments']('FIXED'))
+        self.assertEqual(['OKCHEON'], self.unit['select_probe_arguments']('OKCHEON'))
+        for mode in ('', 'JECHEON', 'TAEBAEK_HWP', 'OKCHEON;echo unsafe'):
+            with self.assertRaisesRegex(ValueError, '^VERIFICATION_MODE_INVALID$'):
+                self.unit['select_probe_arguments'](mode)
+
+    def test_okcheon_scope_is_exact_three_cases_with_unchanged_per_case_limits(self):
+        scopes = self.runner['SCOPES']
+        self.assertEqual(scopes, self.unit['SCOPES'])
+        self.assertEqual(('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 3*44, 3*80*1024*1024), scopes['OKCHEON'])
+        self.assertEqual((44, 83886080), scopes['OBSERVATION'][2:])
+        self.assertEqual((39, 81508141), scopes['FIXED'][2:])
+
+    def test_manifest_cannot_reuse_taebaek_package_or_drop_negative_sample(self):
+        self.unit['cfg'] = {'codeHash': 'a'*64}
+        original = {'schemaVersion': 1, 'caseCode': 'TAEBAEK-184816', 'executionCodeHash': 'a'*64}
+        self.unit['validate_manifest_scope'](original, 'OBSERVATION')
+        self.unit['validate_manifest_scope'](original, 'FIXED')
+        with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](original, 'OKCHEON')
+        manifest = dict(original, caseCode='OKCHEON-THREE-NOTICES', verificationMode='OKCHEON', caseCodes=self.runner['SCOPES']['OKCHEON'][1])
+        self.unit['validate_manifest_scope'](manifest, 'OKCHEON')
+        for mode in ('OBSERVATION', 'FIXED'):
+            with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](manifest, mode)
+        for key, value in [('caseCodes', manifest['caseCodes'][:2]), ('caseCodes', ['OKCHEON-193369']*3),
+                           ('verificationMode', 'FIXED'), ('executionCodeHash', 'b'*64), ('caseCode', 'OTHER')]:
+            with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest, **{key: value}), 'OKCHEON')
+
     def test_local_install_location_is_supported(self):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/local/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/local/bin/aws', self.unit['aws_binary']())

@@ -96,3 +96,13 @@ P3 기관 모델 구현 증분이며 전체 Gate는 **Not ready**다. 제목 →
 보고서: `build/test-results/attachmentProfileDiscoveryQa/TEST-*.xml`, `build/reports/attachment-profile-discovery-qa/LOCAL_OKCHEON_BBS_V1-*.json`. metadata만 보관하며 파일·본문 원문을 문서/로그에 복사하지 않는다. 운영·브라우저 검증은 이번 증분에서 미실행이다.
 
 최종 production JAR SHA256은 `e2acf6573847a4af2e183831b9b4f1c666e29bc56426faabeed77954e0956cdf`다. 최종 회귀의 extractor/bootJar는 UP-TO-DATE이며 새 실행 성공으로 세지 않는다. bootJar는 앞선 표적/공식 검증에서 새로 생성했다. 직전 SHA `d18216e`의 Linux 실행32는 원래 Flyway3건까지 성공했지만 이번 코드의 동일 SHA 운영 증거는 아니다. 사용한 단발 Node와 Gradle/임시 PostgreSQL은 종료하고 사용자 Word2개를 보존했다.
+
+## 2026-09-22 서울 임시 QA 로컬 준비 — 서버 미실행
+
+- [x] 임시 BBS probe/launcher/server runner에 명시적 `OKCHEON` 모드를 추가했다. 범위는193369·193297·193187 고정3건뿐이며 임의 기관 인자나 태백 manifest 재사용을 거부한다. 기존 태백 OBSERVATION/FIXED 범위·잔여 예산은 변경하지 않는다.
+- [x] 실제 JUnit 선택3건과 결과3건을 모두 요구한다. 제목 미충족193187은 본문·첨부 요청0으로 분모에 남는다. 나머지2건은 본문 AVAILABLE·전체 HWPX각1개·종합 판정·최종 관리자 검증 필요·원본 정리·현재 실행 시각을 대조한다. 부분 추출은 관측 성공과 완전 분석을 분리하며 정책/기대값 승인으로 승격하지 않는다.
+- [x] 패키지 manifest는 `caseCode=OKCHEON-THREE-NOTICES`, `verificationMode=OKCHEON`, `caseCodes=[OKCHEON-193369,OKCHEON-193297,OKCHEON-193187]`를 모두 요구한다. 총132요청/251,658,240bytes는 각 공고44요청/80MiB의 합계 상한이다. 제목 중단 건은 실제 사용0이어야 하며 예약 bytes를 실제 다운로드 bytes로 표현하지 않는다.
+- [x] 기존 CPU1개·768MiB·임시1GiB·전체20분 이내·내부 probe600초 제한을 유지한다. 공개 다운로드의 TLS/SSRF 경계, 파일 추출기 네트워크 격리, 임시 원본/패키지 정리 절차도 그대로다. 시간 초과는 미완료이며 다른 모드로 우회 실행하지 않는다.
+- [x] 로컬 Java 표적52건(관측 probe16·기존 관측 계약18·workflow18) 실패/생략0·1분25초, probe JAR 빌드 성공이다. Node29/Python13도 실패/생략0이다. 기본 `python` 별칭은 실행 불가였으며 설치된 번들 Python으로 검증했다. PowerShell 패키지/operation helper 구문 검사도 통과했다.
+- [x] 로컬 `build/temporary-bbs-qa-849a85926f3744d5abe20de804fe0db0/plan.json` 생성과138개 파일 해시를 검증했다. 패키지188,085,566bytes/SHA256 `c900273aed826a57c3fb4e17d5dc65139b410fb0d30032549fbbc3f8b83b045f`, 재사용 QA 업무 코드 지문 `6ff295d8607d41e979fbf5554532e9bce752afcd0e2c99242fc6ae15fc839ba5`다. 새 probe만 이 회차 시험 코드이며 운영 설치물/새 Linux 산출물과 동일하다고 주장하지 않는다.
+- [!] `uploaded=false`, commandId 없음이다. 서울3공고 실행 추가 승인은 대기 중이며 업로드·SSM 제출·공식 HTTP·운영 DB/설정/설치 변경을 하지 않았다. 이 준비는 앞서 기록한 옥천 접속 실패의 해소 또는 실파일 QA 통과가 아니다. 새 SHA Linux CI, 실제 서버 관측, 전체 Provider QA와 운영 E2E는 별도 미완료다.

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 승인된 태백1건만 실행한다. systemd의 CPU/메모리/임시공간 제한 안에서 호출한다.
-[[ ( $# -eq 4 || ( $# -eq 5 && "$5" == FIXED ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
+# 태백1건과 별도 승인이 필요한 옥천3건만 허용한다. 자원 제한은 동일하다.
+[[ ( $# -eq 4 || ( $# -eq 5 && ( "$5" == FIXED || "$5" == OKCHEON ) ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
 probe_flag=SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION
 probe_args=("$4")
 if [[ $# -eq 5 ]]; then
-  probe_flag=SANEB_ATTACHMENT_BBS_FIXED_CASE_QA
-  probe_args+=(FIXED)
+  [[ "$5" != FIXED ]] || probe_flag=SANEB_ATTACHMENT_BBS_FIXED_CASE_QA
+  probe_args+=("$5")
 fi
 qa_distribution="$(realpath -- "$1")"
 probe_jar="$(realpath -- "$2")"
