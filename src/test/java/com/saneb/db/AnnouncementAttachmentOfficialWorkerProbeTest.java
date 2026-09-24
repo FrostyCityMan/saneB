@@ -4,6 +4,58 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void structuralModeHasSeparatePinnedExecutionAndNeverReusesQuarterProof() throws Exception {
+        String mode="BOEUN_STRUCTURAL";
+        assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(mode));
+        assertEquals("BOEUN",AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(mode));
+        assertEquals(5,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests(mode));
+        assertEquals(25165824,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes(mode));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete(mode,3,3,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete(mode,3,2,0,1,0,0));
+        assertEquals("segment-role-1.0.2",AnnouncementAttachmentOfficialWorkerProbe.selectSegmentVersion("BOEUN_SEGMENT"));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectSegmentVersion("BOEUN"));
+        var sample=com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").findFirst().orElseThrow();
+        var execution=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution(mode,sample,"1.0.5","b".repeat(64));
+        assertEquals("segment-role-1.0.3",execution.segmentRuleVersion());assertTrue(execution.selectEngineCurrent());
+        assertEquals(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH,execution.segmentRulesHash());
+        var policy=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPolicyConfiguration(execution);
+        assertEquals(execution.segmentRuleVersion(),policy.segmentRuleVersion());assertEquals(execution.segmentRulesHash(),policy.segmentRulesHash());
+        assertEquals(25165824L,policy.maximumSourceBytes());
+        var json=new com.fasterxml.jackson.databind.ObjectMapper();
+        for(String code:AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(mode)) {
+            boolean pdf=code.equals("BOEUN-218812"),first=code.equals("BOEUN-221499");
+            var report=json.createObjectNode().put("caseCode",code).put("engineVersion",execution.engineVersion())
+                    .put("segmentRuleVersion",execution.segmentRuleVersion()).put("segmentRulesHash",execution.segmentRulesHash())
+                    .put("segmentDatabaseApiVerified",true).put("segmentReviewContextVerified",true).put("manualSourceCheckRequired",true)
+                    .put("decisionStatus","REVIEW_REQUIRED").put("maximumRequestReservations",5).put("maximumReservedBytes",25165824)
+                    .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
+            var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT")
+                    .put("segmentAnalysisHash",AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(code))
+                    .put("segmentCount",pdf?1:first?6:4).put("unknownSegmentCount",pdf?1:first?3:2).put("noticeSegmentCount",pdf?0:1);
+            var flags=java.util.List.of("segmentEvaluationInputBound","segmentApiProjectionMatched","legacyDefaultReadOnlyVerified",
+                    "structuralObservedHashMatched","evaluationBoundApiVerified","otherVersionReadOnlyVerified");
+            flags.forEach(key->file.put(key,true));
+            assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report),code);
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+            for(String flag:flags) for(Object value:java.util.List.of(false,"true")) {
+                var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).set(flag,json.valueToTree(value));
+                assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid),code+":"+flag);
+            }
+            for(String flag:java.util.List.of("segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired"))
+                assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report.deepCopy().put(flag,"true")));
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report.deepCopy().put("segmentRuleVersion","segment-role-1.0.2")));
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report.deepCopy().put("decisionStatus","ACCEPTED")));
+            for(String key:java.util.List.of("segmentCount","unknownSegmentCount","noticeSegmentCount")) {
+                var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).put(key,file.path(key).intValue()+1);
+                assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid),key);
+            }
+            file.put("segmentAnalysisHash",AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(code));
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report));
+            file.put("segmentAnalysisHash",AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(code));file.putObject("structuralCandidate");
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report));
+        }
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash("UNKNOWN"));
+    }
     @Test void structuralComparisonReportsOnlyCandidateMetadataAndRejectsMissingProof() throws Exception {
         String text="공고문\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월\n3. 신청안내\n신청기간: 9월";
         var input=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,

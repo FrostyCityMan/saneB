@@ -11,6 +11,16 @@
 
 ## 기준선
 
+### 2026-09-24 구조 보완 규칙의 실파일 저장 QA 준비
+
+- [x] 직전84f0bd9은 명시 정책·worker 연결 구현/로컬 검증/푸시를 마친 progress다. 현재 SHA와 Git 상태를 재확인하고 사용자 output/·cache를 보존했다. 장기 goal 스킬에 따라 메모리 후보 결과와 실제 저장 증거를 분리하는 검증 경로를 추가했다.
+- [x] `BOEUN_STRUCTURAL` 모드/명시 Gradle task/별도 보고서를 추가했다. 기존1.0.2 모드를 보존하고 같은 고정3공고·5요청/24MiB씩을 적용한다. 이전 영수증에서 재확인한1.0.3 지문·구간 수·UNKNOWN·검수 상태를 고정해 worker 저장→평가 FK→버전별 GET→판정 결합 GET을 대조한다. 후보 메모리 결과·다른 버전 응답·임의 정상화를 성공으로 인정하지 않는다.
+- [x] `:test --tests 'com.saneb.db.AnnouncementAttachmentOfficialWorkerProbeTest' :attachmentContractQaTest :attachmentOfficialWorkerProbeJar :bootJar --no-daemon --max-workers=1` 33초 성공. 표적 Java26·패키지20·Node/Bash8·Python19건 실패/생략0. production 코드·migration 변경 없음, bootJar는 검증된 동일 코드 산출물 UP-TO-DATE다. 신규 임시 PG 준비 경로1건은 컴파일했으나 실제 실행은 Linux에서 확인해야 한다.
+- [x] 선행831725f [Linux35999057406](https://github.com/FrostyCityMan/saneB/actions/runs/35999057406) success/artifact 확인. root2987=2705통과/282조건부 생략·실패/오류0, 별도 extractor122·패키지20·jobPG203·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 후보 분석의 전체 회귀 근거이지 다음84f0bd9의 실제 PG3건이나 새 실파일 저장 증거가 아니다.
+- [~] 84f0bd9 [Linux36000896726](https://github.com/FrostyCityMan/saneB/actions/runs/36000896726)은 실행 중으로 확인했다. 재시작·취소하지 않았다.
+- [!] 보은 누적128/132요청의 잔여4회와 추가30회 승인 대기를 유지한다. 이번 턴 외부 공고/서버 요청0, 운영 변경0이며 예산을 갱신하지 않았다. 서울 새 모드 전송 실행기 연결·실파일 실행/정리는 승인 확인 후 진행한다.
+- [~] 전체9Gate=8부분/1차단과 goal active를 유지한다. UNKNOWN/PDF 구조, 전체 Provider 기대값, 운영 정책/배포·실사용자 최종 확인·기존 데이터 적용·브라우저 E2E는 아직 완료되지 않았다. 브라우저는 현재 명시 요청 정책상 미실행이다.
+
 ### 2026-09-24 구조 보완 규칙의 명시 정책·worker 연결
 
 - [x] 시작 HEAD831725f, QA 브랜치와 origin 동일, 미추적 output/·Python cache만 있음을 확인하고 보존했다. `long-goal-operating-protocol` 및 frontend/UI 운영 스킬을 사용해 명시 버전 연결→호환성·상태 테스트→Linux PG 검증 순서를 따른다.

@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /** 합성 본문으로 공개 worker 시험의 실제 DB 준비 경로만 검증한다. HTTP/추출 성공 증거가 아니다. */
 class AnnouncementAttachmentOfficialWorkerPreparationTest {
-    @ParameterizedTest @ValueSource(strings={"YANGPYEONG","CHUNGJU","JECHEON","BOEUN","BOEUN_SEGMENT"})
+    @ParameterizedTest @ValueSource(strings={"YANGPYEONG","CHUNGJU","JECHEON","BOEUN","BOEUN_SEGMENT","BOEUN_STRUCTURAL"})
     void realClassificationPersistenceProducesReservableVersionedLocalSource(String group) throws Exception {
         try {
             AnnouncementAttachmentOfficialWorkerIntegrationTest.startDatabase();

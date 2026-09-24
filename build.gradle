@@ -433,7 +433,7 @@ tasks.register('attachmentBoeunWorkerIntegrationTest', Test) {
 
 // 명시 실행 전용: 최신 구간 엔진과 실제 파일의 평가 입력/DB/GET API 결합을 검증한다.
 tasks.register('attachmentBoeunSegmentWorkerIntegrationTest', Test) {
-    description = '보은 고정3건의 구간 엔진 worker/임시 DB/API 검증. 최대60요청/96MiB, 운영 쓰기 없음.'
+    description = '보은 고정3건의 구간 규칙1.0.2 worker/임시 DB/API 검증. 최대15요청/72MiB, 운영 쓰기 없음.'
     group = 'verification'
     dependsOn ':attachment-extractor:installDist'
     useJUnitPlatform()
@@ -450,6 +450,27 @@ tasks.register('attachmentBoeunSegmentWorkerIntegrationTest', Test) {
     outputs.upToDateWhen { false }
     reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBoeunSegmentWorkerIntegrationTest')
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBoeunSegmentWorkerIntegrationTest')
+}
+
+// 명시 실행 전용: 선행 후보 관측의1.0.3 지문과 실제 저장·평가 FK·API를 대조한다.
+tasks.register('attachmentBoeunStructuralWorkerIntegrationTest', Test) {
+    description = '보은 고정3건의 구간 규칙1.0.3 저장 검증. 최대15요청/72MiB, 누적 예산 승인 필요, 운영 쓰기 없음.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-official-worker.group', 'BOEUN_STRUCTURAL'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-official-worker.report', layout.buildDirectory.dir('reports/attachment-boeun-structural-worker').get().asFile.absolutePath
+    systemProperty 'logback.configurationFile', layout.projectDirectory.file('src/attachmentContractQa/config/logback-qa.xml').asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBoeunStructuralWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBoeunStructuralWorkerIntegrationTest')
 }
 
 // 명시한 동일 코드 QA runtime에 고정 공식 시험만 전달한다. 웹/합성 QA JAR는 바꾸지 않는다.

@@ -135,6 +135,52 @@ class TemporaryBbsObservationTest(unittest.TestCase):
                 self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),'BOEUN')
         self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),'OBSERVATION'))
 
+    def test_structural_storage_proof_is_separate_from_candidate_and_keeps_review_required(self):
+        import copy
+        mode='BOEUN_STRUCTURAL'
+        scope=self.runner['SCOPES'][mode]
+        self.assertEqual(self.runner['SCOPES']['BOEUN_SEGMENT'],scope)
+        # 누적128회 이후15회 실행은 기존132회 승인 안에 들어가지 않는다.
+        self.assertGreater(128+scope[2],132)
+        self.assertLessEqual(87496577+scope[3],251658240)
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest={'schemaVersion':1,'caseCode':scope[0],'caseCodes':scope[1],'verificationMode':mode,'executionCodeHash':'a'*64}
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,verificationMode='BOEUN_SEGMENT'),mode)
+        expected=[('22f9d58ac8c6a8c76fe3508e58bf367358453b88684af5710437a5133e687827',6,3,1),
+                  ('3594adc138acae4211de819c3803295704410a8e8484a2070323042f9f3bda3a',4,2,1),
+                  ('f823ab78281f55cb16c634bde50bbc6fc84175c1058c90355c1845ea50aa3673',1,1,0)]
+        flags=('structuralObservedHashMatched','evaluationBoundApiVerified','otherVersionReadOnlyVerified',
+               'legacyDefaultReadOnlyVerified','segmentEvaluationInputBound','segmentApiProjectionMatched')
+        cases=[]
+        for code,e in zip(scope[1],expected):
+            file=dict(zip(('segmentAnalysisHash','segmentCount','unknownSegmentCount','noticeSegmentCount'),e),quality='COMPLETE_TEXT',**dict.fromkeys(flags,True))
+            cases.append({'caseCode':code,'scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','engineVersion':'attachment-segment-1.0.0',
+                          'segmentRuleVersion':'segment-role-1.0.3','segmentRulesHash':'8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43',
+                          'segmentDatabaseApiVerified':True,'segmentReviewContextVerified':True,'manualSourceCheckRequired':True,
+                          'productionWriteCount':0,'isPolicyQaPassed':False,'decisionStatus':'REVIEW_REQUIRED','files':[file],
+                          'maximumRequestReservations':5,'maximumReservedBytes':25165824,
+                          'requestReservationsIncludingBodyUpperBound':4,'reservedBytesIncludingBodyUpperBound':2400000})
+        report={'kind':'OFFICIAL_WORKER_PROBE','caseGroup':mode,'productionDatabaseUsed':False,
+                'isPolicyQaPassed':False,'isAuthenticatedBrowserE2e':False,'status':'PASSED','cases':cases}
+        self.unit['validate_probe_scope'](report,mode)
+        for index in range(3):
+            for key,value in [('quality','PARTIAL_TEXT'),('segmentAnalysisHash','a'*64),('segmentCount',0),
+                              ('unknownSegmentCount',0),('noticeSegmentCount',True),('structuralCandidate',{}),
+                              *((flag,value) for flag in flags for value in (False,'true',None))]:
+                invalid=copy.deepcopy(report);invalid['cases'][index]['files'][0][key]=value
+                with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+            for key,value in [('segmentRuleVersion','segment-role-1.0.2'),('segmentRulesHash','b'*64),
+                              ('decisionStatus','ACCEPTED'),('manualSourceCheckRequired',False),('files',[])]:
+                invalid=copy.deepcopy(report);invalid['cases'][index][key]=value
+                with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
+            self.unit['validate_probe_scope'](dict(report,caseGroup='BOEUN_SEGMENT'),'BOEUN_SEGMENT')
+
     def test_boeun_requires_exact_scope_and_worker_kind_without_production_authority(self):
         cases=['BOEUN-221499','BOEUN-221497','BOEUN-218812']
         self.assertEqual(('BOEUN-THREE-NOTICES',cases,132,251658240),self.runner['SCOPES']['BOEUN'])

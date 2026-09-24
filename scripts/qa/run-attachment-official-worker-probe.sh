@@ -4,7 +4,7 @@ set -euo pipefail
 # 명시한 설치 QA와 별도 시험 JAR만 사용한다. 기존 합성 QA의 네트워크 격리는 변경하지 않는다.
 [[ ( $# -eq 4 || $# -eq 5 ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
 case_group="${5:-YANGPYEONG}"
-[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT ]] || exit 1
+[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL ]] || exit 1
 qa_distribution="$(realpath -- "$1")"
 probe_jar="$(realpath -- "$2")"
 [[ "$3" =~ ^[a-f0-9]{64}$ && "$4" =~ ^[a-f0-9]{64}$ ]] || exit 1
@@ -44,7 +44,7 @@ for java_policy_relative in limited/default_US_export.policy limited/default_loc
   [[ "$java_policy_file" == "$java_home/"* ]] || mounts+=(--ro-bind "$java_policy_file" "$java_policy_file")
 done
 # 공식 사이트 요청 때문에 네트워크는 공유한다. 공개 요청은 기존 profile/DNS/redirect pinning과
-# 공고당44요청/80MiB(BOEUN_SEGMENT는5요청/24MiB)로 제한한다.
+# 공고당44요청/80MiB(BOEUN_SEGMENT·BOEUN_STRUCTURAL는5요청/24MiB)로 제한한다.
 # 운영 home/env/socket은 공유하지 않으며 파일 추출은 별도 network 격리다.
 # PID namespace 전체 종료로 임시 PostgreSQL 자손을 회수한다. 원문 보고서는 외부로 보관하지 않는다.
 if output="$(env -i PATH=/usr/bin:/bin LANG=C.UTF-8 \

@@ -27,7 +27,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
             case "CHUNGJU" -> List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
             case "JECHEON" -> List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
-            case "BOEUN", "BOEUN_SEGMENT" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
+            case "BOEUN", "BOEUN_SEGMENT", "BOEUN_STRUCTURAL" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
@@ -51,7 +51,11 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     }
     static boolean selectSegmentMode(String group) {
         selectCaseCodes(group);
-        return "BOEUN_SEGMENT".equals(group);
+        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL").contains(group);
+    }
+    static String selectSegmentVersion(String group) {
+        if(!selectSegmentMode(group))throw new IllegalArgumentException("SEGMENT_MODE_REQUIRED");
+        return "BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
     }
     static String selectObservationGroup(String group) {
         return selectSegmentMode(group) ? "BOEUN" : group;
@@ -67,12 +71,26 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             default -> throw new IllegalArgumentException("QUARTER_OBSERVATION_CASE_INVALID");
         };
     }
+    /** 실행5b81a5c5의 후보 메모리 대조 지문. 새 저장 실행의 성공 근거가 아니다. */
+    static String selectStructuralObservedHash(String caseCode) {
+        return switch(caseCode) {
+            case "BOEUN-221499" -> "22f9d58ac8c6a8c76fe3508e58bf367358453b88684af5710437a5133e687827";
+            case "BOEUN-221497" -> "3594adc138acae4211de819c3803295704410a8e8484a2070323042f9f3bda3a";
+            case "BOEUN-218812" -> "f823ab78281f55cb16c634bde50bbc6fc84175c1058c90355c1845ea50aa3673";
+            default -> throw new IllegalArgumentException("STRUCTURAL_OBSERVATION_CASE_INVALID");
+        };
+    }
     static boolean selectSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
+        return selectSegmentReportComplete("BOEUN_SEGMENT",report);
+    }
+    static boolean selectSegmentReportComplete(String group,com.fasterxml.jackson.databind.JsonNode report) {
+        String version=selectSegmentVersion(group);
+        boolean structural="BOEUN_STRUCTURAL".equals(group);
         if (!selectCaseCodes("BOEUN").contains(report.path("caseCode").asText())
                 || !"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
-                || !"segment-role-1.0.2".equals(report.path("segmentRuleVersion").asText())
-                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH.equals(report.path("segmentRulesHash").asText())
-                || !report.path("segmentDatabaseApiVerified").asBoolean(false)
+                || !version.equals(report.path("segmentRuleVersion").asText())
+                || !com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version).equals(report.path("segmentRulesHash").asText())
+                || !selectTrue(report,"segmentDatabaseApiVerified")
                 || !report.path("segmentReviewContextVerified").isBoolean() || !report.path("segmentReviewContextVerified").booleanValue()
                 || !report.path("manualSourceCheckRequired").isBoolean()
                 || report.path("maximumRequestReservations").asLong(-1)!=5
@@ -82,16 +100,30 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 || !report.path("files").isArray() || report.path("files").size()!=1) return false;
         var file=report.path("files").get(0);
         return "COMPLETE_TEXT".equals(file.path("quality").asText())
-                && selectQuarterObservedHash(report.path("caseCode").asText()).equals(file.path("segmentAnalysisHash").asText())
+                && (structural?selectStructuralObservedHash(report.path("caseCode").asText()):selectQuarterObservedHash(report.path("caseCode").asText())).equals(file.path("segmentAnalysisHash").asText())
                 && selectBounded(file,"segmentCount",1,200)
                 && selectBounded(file,"unknownSegmentCount",0,file.path("segmentCount").asLong())
                 && (file.path("unknownSegmentCount").longValue()==0 || report.path("manualSourceCheckRequired").booleanValue())
-                && file.path("segmentEvaluationInputBound").asBoolean(false)
-                && file.path("segmentApiProjectionMatched").asBoolean(false)
+                && selectTrue(file,"segmentEvaluationInputBound")
+                && selectTrue(file,"segmentApiProjectionMatched")
                 && file.path("legacyDefaultReadOnlyVerified").isBoolean() && file.path("legacyDefaultReadOnlyVerified").booleanValue()
-                && file.path("quarterObservedHashMatched").isBoolean() && file.path("quarterObservedHashMatched").booleanValue()
                 && selectBounded(file,"noticeSegmentCount",0,file.path("segmentCount").asLong())
-                && selectStructuralComparisonComplete(file.path("structuralCandidate"));
+                && (structural
+                    ? selectTrue(file,"structuralObservedHashMatched") && selectTrue(file,"evaluationBoundApiVerified")
+                        && selectTrue(file,"otherVersionReadOnlyVerified") && !file.has("structuralCandidate")
+                        && selectStructuralCounts(report,file)
+                    : selectTrue(file,"quarterObservedHashMatched") && selectStructuralComparisonComplete(file.path("structuralCandidate")));
+    }
+    private static boolean selectTrue(com.fasterxml.jackson.databind.JsonNode node,String key) {
+        return node.path(key).isBoolean() && node.path(key).booleanValue();
+    }
+    private static boolean selectStructuralCounts(com.fasterxml.jackson.databind.JsonNode report,com.fasterxml.jackson.databind.JsonNode file) {
+        String code=report.path("caseCode").asText();
+        int total="BOEUN-221499".equals(code)?6:"BOEUN-221497".equals(code)?4:1;
+        int unknown="BOEUN-221499".equals(code)?3:"BOEUN-221497".equals(code)?2:1;
+        return file.path("segmentCount").longValue()==total && file.path("unknownSegmentCount").longValue()==unknown
+                && file.path("noticeSegmentCount").longValue()==("BOEUN-218812".equals(code)?0:1)
+                && "REVIEW_REQUIRED".equals(report.path("decisionStatus").asText()) && selectTrue(report,"manualSourceCheckRequired");
     }
     static boolean selectStructuralComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
         var roles=value.path("roles");
@@ -195,7 +227,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 String expected=selectTitleStopExpected(code)?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
                 reportsComplete&=expected.equals(report.path("status").asText())
                         &&report.path("originalFilesRemoved").asBoolean(false)&&report.path("remainingResourceLeases").asInt(-1)==0;
-                if(selectSegmentMode(group))reportsComplete&=selectSegmentReportComplete(report);
+                if(selectSegmentMode(group))reportsComplete&=selectSegmentReportComplete(group,report);
             }
             result.put("cases",reports);
             stage="FINAL_IDENTITY";

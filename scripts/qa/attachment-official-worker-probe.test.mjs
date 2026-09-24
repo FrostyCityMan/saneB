@@ -20,7 +20,7 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
 });
 test('공식 그룹은 양평 기본값과 고정 태백·충주·제천·보은 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT ]] || exit 1'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
 });
@@ -48,6 +48,12 @@ test('공개 요청 QA도 비root·깨끗한 환경·PID 격리와 원본 정리
   assert(source.includes('unlimited/default_local.policy'));
   assert(!source.includes('-Dcrypto.policy='));
   assert(readFileSync('scripts/qa/run-attachment-contract-qa.sh', 'utf8').includes('--unshare-all'));
+});
+test('구조 보완 저장 검증은 구버전·CI 자동 외부 호출과 분리한다',()=>{
+  const gradle=readFileSync('build.gradle','utf8');
+  const task=gradle.slice(gradle.indexOf("tasks.register('attachmentBoeunStructuralWorkerIntegrationTest'"),gradle.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"));
+  for(const value of ["'BOEUN_STRUCTURAL'",'reports/attachment-boeun-structural-worker','test-results/attachmentBoeunStructuralWorkerIntegrationTest','maxParallelForks = 1'])assert(task.includes(value));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml','utf8').includes('attachmentBoeunStructuralWorkerIntegrationTest'));
 });
 test('별도 probe JAR는 운영 코드·설정·JUnit 의존성을 포함하지 않는다', () => {
   const gradle = readFileSync('build.gradle', 'utf8');

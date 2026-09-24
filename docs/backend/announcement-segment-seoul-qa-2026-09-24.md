@@ -234,3 +234,11 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 이번 예약12요청/7,391,673byte를 더한 누적은 **128요청/87,496,577예약byte**, 승인132요청/240MiB 대비 **잔여4요청/164,161,663byte**다. 현재15요청짜리 전체3공고 QA를 다시 실행할 수 없다. 추가 범위 승인 없이 예산을 초기화하거나 같은 실행을 재전송하지 않는다.
 - unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 각 원본 제거·lease0을 확인했다. S3 자기 객체 삭제/부재와 plan.cleaned=true를 확인하고 hash/절대 경로가 일치하는 로컬 package.zip만 제거했다. 패키지는 코드에서 재생성 가능하며 `build/temporary-bbs-qa-5b81a5c5ee0d437fb4d368b7ba68aef9/{plan,result}.json`은 보존했다.
 - AWS CLI 경유 영수증의 정적 한국어 사전 key 일부가 문자 인코딩 손상으로 보인다. 그 key로 새 의미 판단을 하지 않았다. 이번 비교의 근거인 ASCII 버전/hash/role/reason/개수/결합·정리 boolean은 별도 구조 조회로 확인했다. 로그 전체를 원문이나 운영 성공 근거로 재사용하지 않는다.
+
+## 후속1.0.3 실제 저장 검증 준비 — 서버 미실행
+
+- `BOEUN_STRUCTURAL`을 별도 명시 모드로 추가했다. 기존 `BOEUN` 파일 엔진과 `BOEUN_SEGMENT`의1.0.2 저장/3 후보 대조 경로를 보존한다. 새 모드도 고정3공고, 공고당5요청/24MiB·전체15요청/72MiB다. 이 한도는 코드상 최대치일 뿐 누적 승인 잔여를 갱신하지 않는다.
+- `attachmentBoeunStructuralWorkerIntegrationTest`와 별도 보고서 경로를 만들었다. CI에서는 이를 자동 실행하지 않는다. 서울에서는 최신 임시 QA 패키지를 사용해야 하며 운영 설치 QA나 운영 DB를 사용하지 않는다. 기존 Windows PG 실행 차단을 우회하지 않는다.
+- 새 실행은 이전 `5b81a5c5` 영수증의3개1.0.3 analysisHash를 고정 입력으로 대조한다. 실제 worker가 정책 snapshot의1.0.3 버전/hash로 저장하고, 평가 입력 FK·버전 GET·판정 결합 GET의 전체 응답이 일치해야 한다. 기본0과 명시2의 GET은 NOT_ANALYZED이며 조회 후 분석 수가 증가하면 실패한다.
+- 성공 보고서는 구간 수6/4/1, UNKNOWN3/2/1, NOTICE1/1/0과 REVIEW_REQUIRED·수동 원문 확인 요구를 유지해야 한다. 저장 검증을 후보 메모리 자료로 대신하지 못하도록 `structuralCandidate`를 거부한다. 실제 검증 후에만 `structuralObservedHashMatched`, `evaluationBoundApiVerified`, `otherVersionReadOnlyVerified`를 기록한다. raw text/locator를 보고서에 새로 추가하지 않는다.
+- 로컬 표적 Java26·QA 패키지20·Node/Bash8·Python19건 실패/생략0, probe JAR/bootJar 검증33초 성공이다. Python 회귀는128+15가 기존132요청을 초과함을 명시한다. 추가30요청 승인 답변·누적 원장 재검증·서울 전송 실행기 연결 전에는 새 서버 실행을 하지 않는다. 아직 실제1.0.3 저장/API·정리 결과는 없다.
