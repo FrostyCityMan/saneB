@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-24 버전 고정 판정의 최종 확인·DRAFT 연결 시험
+
+- [x] 직전 턴은 관리자 정책 버전 선택 구현·로컬 검증·89319e8 QA 브랜치 푸시를 완료한 progress다. 현재 Git 기준선과 Linux35996557606의 실행 중 상태를 다시 확인했다. 종료되지 않은 CI를 재시작하지 않았다.
+- [x] 선행7bd2e71 [Linux35995173406](https://github.com/FrostyCityMan/saneB/actions/runs/35995173406) success와 artifact XML을 확인했다. root2956=2677통과/279조건부 생략·실패/오류0, 별도 extractor122·패키지20·jobPG200·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 판정 결합 조회가 포함된 신규 버전별2시험의 실제 실행도 확인했다. 자료는 `build/qa-results/linux-35995173406`에 보존한다.
+- [x] `long-goal-operating-protocol`에 따라 구간 평가와 최종 확인의 개별 시험 사이에 남은 연결을 검사하도록 실제 PG 사례2건을 추가했다. 명시1.0.2 평가→EXTRACTED_TEXT 확인→별도1.0.0 SHADOW 생성→현재 확인/평가 FK 불변→DRAFT 단건/다중 태그/자동 승인0 경로다. 확인 전 전환과 오래된 확인 전 버전의 전환은 거부해야 한다. 같은 분기 문서의 기존1.0.0은 UNKNOWN·수동 검수 필요를 유지하며 EXTRACTED_TEXT 확인/미확인 DRAFT를 거부해야 한다.
+- [x] `:attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은40초 성공했다. 신규 시험 컴파일·QA 패키징/계약20건을 확인했으며 production 코드 변경이 없어 bootJar는 UP-TO-DATE다. Node 정책/구간/검수71건은 실패·생략0이다. 테스트를 위해 운영 데이터나 공개 파일을 요청하지 않았다.
+- [~] 신규 PG2건의 실행은 이번 SHA의 Linux CI에서 별도로 확인해야 한다. 컴파일 성공을 DB 실행 성공으로 세지 않는다. 이번 시험은 합성 혼합 문서 경로이며 보은 실파일3건의 UNKNOWN5/4/1·수동 확인 필요를 해소하거나 실사용자 확인을 대신하지 않는다.
+- [~] 전체9Gate=8부분/1차단·ATT62·SEG10과 goal active를 유지한다. 전체 Provider 정상/형식 기대값, 실제 검수·DRAFT, 운영 정책 QA/게시/상시 수집·기존 데이터·운영 브라우저 E2E는 남는다. 운영 DB/설정/정책/배포 및 브라우저는 이번 증분에서 실행하지 않았다.
+
 ### 2026-09-24 관리자 정책 초안의 구간 규칙 선택
 
 - [x] 직전 회차는7bd2e71의 판정 결합 API/UI와 검증을 추가한 progress다. 현재 worktree/HEAD와 Linux35995173406의 실제 실행 상태를 확인했으며 독립 PostgreSQL 검증 단계까지 진행 중이었다. 종료되지 않은 실행을 재시작하지 않았다.

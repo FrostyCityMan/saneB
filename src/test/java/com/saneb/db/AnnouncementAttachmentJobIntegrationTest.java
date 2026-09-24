@@ -707,6 +707,62 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThatThrownBy(()->reviewService().insertConfirmation(reviewActor(),job.sourceId(),UUID.randomUUID(),request)).isInstanceOf(ApiException.class);
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,job.sourceId())).isZero();
     }
+    @Test void quarterReviewConfirmationRemainsBoundAfterLegacyShadowAndCreatesOnlyOneDraft() throws Exception {
+        var job=selectSegmentJob(false,true,"segment-role-1.0.2",true);
+        var evaluation=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(evaluation.status()).isEqualTo("ACCEPTED");
+        var ready=reviewService().selectReviewContextDetails(job.sourceId());
+        assertThat(ready.manualSourceCheckRequired()).isFalse();
+        assertThat(ready.requiredAcknowledgementCodes()).isEmpty();
+        assertThat(ready.confirmedClassification()).isNull();assertThat(ready.linkedAnnouncement()).isNull();
+        assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),
+                new AttachmentReviewRequests.Conversion(ready.version(),UUID.randomUUID(),"BUSINESS",null))).isInstanceOf(ApiException.class);
+        var request=selectReviewRequest(job.sourceId());
+        assertThat(request.reviewMethodCode()).isEqualTo("EXTRACTED_TEXT");
+        UUID key=UUID.randomUUID();
+        var confirmed=reviewService().insertConfirmation(reviewActor(),job.sourceId(),key,request);
+        var beforeShadow=reviewService().selectReviewContextDetails(job.sourceId());
+        UUID extraction=sql.queryForObject("SELECT extraction_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId());
+        UUID bound=sql.queryForObject("SELECT segment_analysis_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId());
+        var session=context.getBean(SqlSessionTemplate.class);
+        var segments=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(
+                session.getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class),session.getMapper(AnnouncementSourceDao.class),new ObjectMapper());
+        var legacy=new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).execute(tx->segments.insertAnalysis(reviewActor(),job.sourceId(),extraction));
+        assertThat(legacy.analysis().analysisVersion()).isEqualTo("segment-role-1.0.0");
+        assertThat(legacy.analysis().segments().getFirst().roleCode()).isEqualTo("UNKNOWN");
+        assertThat(legacy.analysisId()).isNotEqualTo(bound);
+        // 다른 버전의 독립 분석은 이미 확인한 현재 판정이나 확인 버전을 바꾸지 않는다.
+        assertThat(reviewService().selectReviewContextDetails(job.sourceId())).isEqualTo(beforeShadow);
+        assertThat(segments.selectEvaluationAnalysisDetails(job.sourceId(),extraction,evaluation.evaluationId()).segmentAnalysis().analysisId()).isEqualTo(bound);
+        assertThat(reviewService().insertConfirmation(reviewActor(),job.sourceId(),key,request)).isEqualTo(confirmed);
+        assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),
+                new AttachmentReviewRequests.Conversion(ready.version(),confirmed.confirmationId(),"BUSINESS",null))).isInstanceOf(ApiException.class);
+        var conversion=new AttachmentReviewRequests.Conversion(beforeShadow.version(),confirmed.confirmationId(),"BUSINESS",null);
+        var draft=reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),conversion);
+        assertThat(reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),conversion)).isEqualTo(draft);
+        assertThat(sql.queryForObject("SELECT approval_status_code FROM announcements WHERE id=?",String.class,draft.announcementId())).isEqualTo("DRAFT");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_approval_requests WHERE announcement_id=?",Integer.class,draft.announcementId())).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_target_category_assignments WHERE announcement_id=?",Integer.class,draft.announcementId())).isEqualTo(2);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_support_type_assignments WHERE announcement_id=?",Integer.class,draft.announcementId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT segment_analysis_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId())).isEqualTo(bound);
+    }
+    @Test void legacyQuarterReviewCannotConfirmExtractedTextOrCreateDraftWithoutManualCheck() throws Exception {
+        var job=selectSegmentJob(false,true,"segment-role-1.0.0",true);
+        var evaluation=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(evaluation.status()).isEqualTo("REVIEW_REQUIRED");
+        var ready=reviewService().selectReviewContextDetails(job.sourceId());
+        assertThat(ready.manualSourceCheckRequired()).isTrue();
+        assertThat(ready.requiredAcknowledgementCodes()).contains("ATTACHMENT_ROLE_UNKNOWN");
+        var request=new AttachmentReviewRequests.Confirmation(ready.version(),List.of("BUSINESS"),List.of("POLICY_FINANCE"),
+                "EXTRACTED_TEXT",ready.requiredAcknowledgementCodes(),"구버전 미확정 구간 검수 경계 QA");
+        assertThatThrownBy(()->reviewService().insertConfirmation(reviewActor(),job.sourceId(),UUID.randomUUID(),request)).isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),
+                new AttachmentReviewRequests.Conversion(ready.version(),UUID.randomUUID(),"BUSINESS",null))).isInstanceOf(ApiException.class);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+    }
     private AttachmentJobRow selectSegmentJob(boolean includeFailed) throws Exception {
         return selectSegmentJob(includeFailed,false);
     }
