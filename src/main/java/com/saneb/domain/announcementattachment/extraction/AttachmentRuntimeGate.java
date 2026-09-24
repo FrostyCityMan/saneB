@@ -18,9 +18,9 @@ import org.springframework.stereotype.Component;
 /** 명시적 QA 호출 전용. 서버에 포함된 합성 입력만 실제 격리 추출하며 전체 정책 QA 성공으로 승격하지 않는다. */
 @Component
 public final class AttachmentRuntimeGate {
-    public static final String SUITE_VERSION = "attachment-runtime-1";
+    public static final String SUITE_VERSION = "attachment-runtime-2";
     public static final String SCOPE = "SYNTHETIC_INSTALLED_RUNTIME";
-    public static final int CASE_COUNT = 12;
+    public static final int CASE_COUNT = 14;
     private static final String KOREAN = "소상공인 지원금 😀";
     private final AttachmentRuntimeIdentity identity;
     private final IsolatedAttachmentExtractor extractor;
@@ -208,7 +208,11 @@ public final class AttachmentRuntimeGate {
                 new Sample("AR-009", "CORRUPT", "", "", List.of(), false),
                 new Sample("AR-010", "LIMIT_EXCEEDED", "", "", List.of(), false),
                 new Sample("AR-011", "UNSUPPORTED", "", "", List.of(), false),
-                new Sample("AR-012", "CORRUPT", "", "", List.of(), false));
+                new Sample("AR-012", "CORRUPT", "", "", List.of(), false),
+                new Sample("AR-013", "COMPLETE_TEXT", "PDF", "Target business\nSupport grant",
+                        List.of("page:1:paragraph:1", "page:1:paragraph:2"), true),
+                new Sample("AR-014", "COMPLETE_TEXT", "PDF", "Target business Support grant\nTarget farmers Support loan",
+                        List.of("page:1:row:1", "page:1:row:2"), true));
     }
     private static GateFailure failure(String id, String code) { return new GateFailure(id, code); }
     private static MessageDigest selectDigest() {

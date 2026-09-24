@@ -61,6 +61,19 @@ PDF 추출기는 페이지 block을 `scopeReliable=false`로 반환한다. 보�
 
 PDF 문단·표 구조 추출기는 별도 구현/실파일 검증 Gate다. 구간 분석기만 추가한 상태를 PDF 자동 판정 완료로 보고하지 않는다.
 
+### 2026-09-24 PDF 구조 추출 구현 증분
+
+- 추출기 `1.0.4`는 구조 트리와 ParentTree의 같은 페이지/MCID/소유자 결합, 실제 글자 위치와 읽기 순서를 함께 검사한다.
+- 검증된 P/H 계열 문단은 `page:N:paragraph:M`, 단순 TR 행은 `page:N:row:M` scope로 제공한다. 다른 문단/행은 합치지 않는다.
+- 태그 없는 페이지, 누락/중복 MCID, 구조 순환, 범위 초과 식별자, 읽기 순서 역전, 겹침/숨은 글자,
+  사용자 RoleMap/ClassMap, 병합 셀, 여러 줄의 표 행, 회전 등 현재 지원하지 않는 구조는 페이지 텍스트를 보존하고 `scopeReliable=false`로 남긴다.
+- 그림/Form XObject가 있는 페이지는 기존 부분 추출 정책도 유지한다. 구조 신뢰와 텍스트 완전성은 별도 값이다.
+- 기존 PDF 출력/근거를 덮어쓰지 않는다. 추출기 버전/설치 지문 변경으로 새 QA가 필요하며 과거 정책/평가를 자동 갱신하지 않는다.
+- 합성 문단/표 PDF의 실제 파싱·렌더링과 잘못된 구조의 보존/거부를 시험한다. 설치 runtime suite는
+  `attachment-runtime-2`, 기존 AR-001~012 + 문단 AR-013/표 행 AR-014 총14건이다. 단일 파일30초·기존8분 lease/40초 잔여 검사는 유지한다.
+- 위 합성 검증은 보은 등 실제 지자체 PDF, 새 구간 기대값, 운영 적용/브라우저 검증을 대신하지 않는다.
+  SEG-008은 실파일 검증 전까지 부분 완료다. 관리자 구간 표시 SEG-009도 별도 잔여다.
+
 ## 5. DB 계약 — additive V84
 
 `announcement_attachment_segment_analyses`는 기존 extraction에 결합한 별도 append-only 분석 이력이다.
@@ -88,7 +101,8 @@ FORM/REFERENCE/UNKNOWN 및 고정 파일 역할 충돌은 CONTEXT_ONLY만 허용
 worker 경로는 실행 snapshot에 `attachment-segment-1.0.0`과 `segmentRuleVersion/segmentRulesHash`가 모두 고정된 경우에만 새 분석을 사용한다.
 기존 정책에서 segment 설정이 없으면 기존 JSON/manifest/해시/파일 단위 경로를 유지한다.
 신규 manifest schemaVersion은 3이다. 분석은 CPU 단계에서 계산하고 source/job lease fence를 다시 확인한 transaction에서 저장한다.
-정책 생성은 아직 기존 엔진을 사용하며 전체 정책 QA 예약은 실제 Provider 구간 기대값 연결 전까지 신규 엔진을 거부한다.
+신규 정책 초안은 구간 엔진을 사용하며 기존 초안 편집/개정은 기존 엔진 계열을 유지한다(11절).
+전체 정책 QA는 실제 Provider 구간 기대값과 현재 실행 증거가 부족하면 통과하지 않는다.
 분류 정답 검증은 신규 엔진 52건으로 연결했지만 실제 Provider QA를 대신하지 않는다. 활성화 우회 경로를 추가하지 않는다.
 
 ## 6. API 및 UI 계약

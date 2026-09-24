@@ -18,7 +18,8 @@ class AttachmentRuntimeFixtureTest {
         "AR-001,COMPLETE_TEXT,PDF,1", "AR-002,OCR_REQUIRED,PDF,0", "AR-003,COMPLETE_TEXT,HWP,1",
         "AR-004,ENCRYPTED,NONE,0", "AR-005,CORRUPT,NONE,0", "AR-006,COMPLETE_TEXT,HWPX,3",
         "AR-007,PARTIAL_TEXT,HWPX,1", "AR-008,CORRUPT,NONE,0", "AR-009,CORRUPT,NONE,0",
-        "AR-010,LIMIT_EXCEEDED,NONE,0", "AR-011,UNSUPPORTED,NONE,0", "AR-012,CORRUPT,NONE,0"
+        "AR-010,LIMIT_EXCEEDED,NONE,0", "AR-011,UNSUPPORTED,NONE,0", "AR-012,CORRUPT,NONE,0",
+        "AR-013,COMPLETE_TEXT,PDF,2", "AR-014,COMPLETE_TEXT,PDF,2"
     })
     void fixedBuildFixtureHasExactCliQuality(String id, String quality, String format, int blocks) throws Exception {
         Path input = root.resolve("input.bin");
@@ -37,6 +38,17 @@ class AttachmentRuntimeFixtureTest {
         assertEquals(ExtractionResult.VERSION,result.path("extractorVersion").asText());
         assertEquals("NONE".equals(format) ? "" : format, result.path("format").asText(""));
         assertEquals(blocks, result.path("blocks").size());
+        if (id.equals("AR-013") || id.equals("AR-014")) {
+            boolean table = id.equals("AR-014");
+            assertEquals(table ? "Target business Support grant\nTarget farmers Support loan" : "Target business\nSupport grant", result.path("text").asText());
+            for (int index = 0; index < 2; index++) {
+                var block = result.path("blocks").get(index);
+                assertTrue(block.path("scopeReliable").asBoolean());
+                String locator = "page:1:" + (table ? "row:" : "paragraph:") + (index + 1);
+                assertEquals(locator, block.path("locator").asText());
+                assertEquals(locator, block.path("evidenceScopeId").asText());
+            }
+        }
         if (id.equals("AR-003") || id.equals("AR-006") || id.equals("AR-007"))
             assertTrue(result.path("text").asText().startsWith("소상공인 지원금 😀"));
         assertFalse(Files.exists(root.getParent().resolve("outside")));

@@ -97,7 +97,7 @@
         VALUES (#{runId},#{policyId},#{policyVersion},#{ruleReleaseId},#{ruleVersion},#{snapshotHash},CAST(#{inputSnapshotJson} AS jsonb),#{requestedBy},#{idempotencyKey},#{requestHash})
     </insert>
     <update id="updateClaim">
-        -- 12개 파일의 제한된 실행보다 긴 8분 lease. 실행 중 DB transaction을 유지하지 않는다.
+        -- 현재 14개 합성 파일과 정리 여유를 위한 8분 lease. 40초 잔여 검사와 기존 상한을 유지한다.
         UPDATE announcement_attachment_policy_validation_runs SET run_status_code='RUNNING',row_version=row_version+1,
             lease_token=#{leaseToken},lease_expires_at=clock_timestamp()+interval '8 minutes',started_at=clock_timestamp()
         WHERE id=#{runId} AND run_status_code='PENDING'

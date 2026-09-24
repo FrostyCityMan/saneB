@@ -16,6 +16,9 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.pdfbox.cos.*;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 
 /** 빌드 전용. 임의 문서/URL을 받지 않으며 생성기와 파서 JAR은 서버 artifact에 포함하지 않는다. */
 public final class AttachmentRuntimeFixtureGenerator {
@@ -39,6 +42,8 @@ public final class AttachmentRuntimeFixtureGenerator {
         saveHwpx(root.resolve("AR-010.bin"), opening + "<hp:p><hp:run><hp:t>" + "a".repeat(100000) + "</hp:t></hp:run></hp:p></hs:sec>", null);
         Files.writeString(root.resolve("AR-011.bin"), "<html>QA 오류 응답</html>");
         Files.writeString(root.resolve("AR-012.bin"), "%PDF-1.7\ninvalid fixture\n");
+        saveStructuredPdf(root.resolve("AR-013.bin"), false);
+        saveStructuredPdf(root.resolve("AR-014.bin"), true);
     }
     private static void savePdf(Path file, boolean text) throws Exception {
         try (PDDocument pdf = new PDDocument()) {
@@ -67,6 +72,41 @@ public final class AttachmentRuntimeFixtureGenerator {
             ole.getRoot().createDocument("FileHeader", new ByteArrayInputStream(header));
             ole.getRoot().createDirectory("BodyText").createDocument("Section0", new ByteArrayInputStream(body.toByteArray()));
             try (var output = Files.newOutputStream(file)) { ole.writeFilesystem(output); }
+        }
+    }
+    /** 독립 문단과 같은 표의 서로 다른 두 행을 실제 PDF 구조/MCID로 고정한다. */
+    private static void saveStructuredPdf(Path file, boolean table) throws Exception {
+        try (var pdf = new PDDocument()) {
+            var page = new PDPage(); pdf.addPage(page);
+            var ids = new COSArray(); ids.add(new COSString("saneb-runtime-qa")); ids.add(new COSString("saneb-runtime-qa"));
+            pdf.getDocument().setDocumentID(ids);
+            var tree = new PDStructureTreeRoot(); var document = new PDStructureElement("Document", tree); tree.appendKid(document);
+            pdf.getDocumentCatalog().setStructureTreeRoot(tree);
+            var marked = new PDMarkInfo(); marked.setMarked(true); pdf.getDocumentCatalog().setMarkInfo(marked);
+            page.getCOSObject().setInt(COSName.STRUCT_PARENTS, 0);
+            var owners = new COSArray(); var nums = new COSArray(); nums.add(COSInteger.ZERO); nums.add(owners);
+            var parents = new COSDictionary(); parents.setItem(COSName.NUMS, nums); tree.getCOSObject().setItem(COSName.PARENT_TREE, parents);
+            var container = document;
+            if (table) { container = new PDStructureElement("Table", document); container.setPage(page); document.appendKid(container); }
+            String[][] content = table ? new String[][]{{"Target business", "Support grant"}, {"Target farmers", "Support loan"}}
+                    : new String[][]{{"Target business"}, {"Support grant"}};
+            int id = 0;
+            for (int row = 0; row < content.length; row++) {
+                var scope = new PDStructureElement(table ? "TR" : "P", container); scope.setPage(page); container.appendKid(scope);
+                for (int column = 0; column < content[row].length; column++) {
+                    var owner = scope;
+                    if (table) { owner = new PDStructureElement("TD", scope); owner.setPage(page); scope.appendKid(owner); }
+                    owner.appendKid(id); owners.add(owner);
+                    try (var stream = new PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true, true)) {
+                        var properties = new COSDictionary(); properties.setInt(COSName.MCID, id++);
+                        stream.beginMarkedContent(COSName.P, PDPropertyList.create(properties));
+                        stream.beginText(); stream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                        stream.newLineAtOffset(40 + column * 260, 700 - row * 50); stream.showText(content[row][column]); stream.endText();
+                        stream.endMarkedContent();
+                    }
+                }
+            }
+            pdf.save(file.toFile());
         }
     }
     private static void saveHwpx(Path file, String xml, String extra) throws Exception {

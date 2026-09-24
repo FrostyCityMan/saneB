@@ -1,5 +1,13 @@
 # 첨부 정책 검증·게시 실행 계약
 
+## 2026-09-24 설치 runtime 계약 갱신
+
+추출기1.0.4/`attachment-runtime-2`는 기존12개 입력에 검증된 PDF 문단·표 행 입력2개를 더한14개를 요구한다.
+정책 실행과 저장 결과 verifier는 같은 suite/전체 case 순서·텍스트·scope·지문을 확인한다.
+과거12개 성공 결과를 현재 정책 QA로 재사용하지 않으며 기존 저장 이력 자체는 변경하지 않는다.
+원본 정리·파일30초·8분 lease/40초 잔여 검사는 유지한다. 지역별 실파일 검증이나 정책 게시 승인과 별개다.
+아래12개 표본 및 초기 미실행 설명은 작성 당시 기록이며, 현재 버전 검증 결과는 장기 진행 기록을 따른다.
+
 현재 상태: Gate 4 부분 구현, **Not ready**. 정책 초안 CRUD, 분류 정답 세트, 설치 런타임 실행기와 비동기 QA 예약·취소·단계별 DB 이력을 연결했다. 09-12 관리자 초안·QA·게시 영향 조회 화면을 추가했다. 실제 전체 profile·worker DB 증거가 없는 실행은 `INCOMPLETE`로 끝난다. Linux 실제 실행·전체 QA·정책 게시 실행·운영 적용·실제 운영 브라우저는 완료되지 않았다.
 
 09-12 기관 identity/독립 실행 연결: 최신 QA snapshot schema6는 지자체 target publicCode·독립 QA artifact/code/runtime/전체 suite/case와 전체 Provider 요구 목록·catalog/분할 계획을 고정한다. 읽기 전용 provider-qa-plan은 전체 기관의 결합·미구현·불일치·중복 및 요구량을 제공하며 실제 QA 성공이 아니다. catalog의 공식 참조9건은 실행 기대값0이며 임의 성공으로 전환하지 않는다. 독립 QA 보고서 schema2는 실제 업무 코드/추출기 runtime의 전후 지문을 제공하지만 inventory는 runtimeHash=null·실행0이다. 부모 소유 namespace·취소·정리·lease 및 게시 verifier를 WORKER_DB_RECOVERY에 연결했다. PROVIDER_PROFILES는 MISSING이며 해당 목록의 hash/요약을 근거로 남긴다. 실제 Linux/PG 성공은 미확인이다. 상세는 `announcement-attachment-policy-qa-bridge-2026-09-12.md`, `announcement-attachment-provider-qa-scope-2026-09-12.md`, `announcement-attachment-provider-qa-catalog-2026-09-12.md`를 따른다.

@@ -99,8 +99,8 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
     }
     private AnnouncementAttachmentPolicyGoldenGate.Result goldenResult() {return new AnnouncementAttachmentPolicyGoldenGate.Result(AnnouncementAttachmentPolicyGoldenGate.SUITE_VERSION,"attachment-1.0.0","QA","d".repeat(64),"e".repeat(64),"f".repeat(64),30,
             java.util.stream.IntStream.rangeClosed(1,30).mapToObj(n->String.format("AG-%03d",n)).toList());}
-    private AttachmentRuntimeGate.Result runtimeResult() {return new AttachmentRuntimeGate.Result(UUID.randomUUID(),AttachmentRuntimeGate.SCOPE,AttachmentRuntimeGate.SUITE_VERSION,"b".repeat(64),"a".repeat(64),"1.0.0","f".repeat(64),12,
-            java.util.stream.IntStream.rangeClosed(1,12).mapToObj(n->new AttachmentRuntimeGate.CaseResult(String.format("AR-%03d",n),"a".repeat(64),"COMPLETE_TEXT","PDF","b".repeat(64),10,1,true)).toList(),Instant.now(),Instant.now());}
+    private AttachmentRuntimeGate.Result runtimeResult() {return new AttachmentRuntimeGate.Result(UUID.randomUUID(),AttachmentRuntimeGate.SCOPE,AttachmentRuntimeGate.SUITE_VERSION,"b".repeat(64),"a".repeat(64),"1.0.0","f".repeat(64),AttachmentRuntimeGate.CASE_COUNT,
+            java.util.stream.IntStream.rangeClosed(1,AttachmentRuntimeGate.CASE_COUNT).mapToObj(n->new AttachmentRuntimeGate.CaseResult(String.format("AR-%03d",n),"a".repeat(64),"COMPLETE_TEXT","PDF","b".repeat(64),10,1,true)).toList(),Instant.now(),Instant.now());}
     private Authentication auth(String role) {
         var actor=new AuthenticatedUserDetails(new AuthUserDetailsRow(actorId,"qa","unused","QA","ACTIVE",false,null,null,null),List.of(role));
         return UsernamePasswordAuthenticationToken.authenticated(actor,null,actor.getAuthorities());
@@ -237,6 +237,15 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
         reserve();doReturn(null).when(workerDb).selectValidatedResult(any(),any(),any());
         assertThat(service.saveNextValidationRun()).isEqualTo("CONFLICT");
         assertThat(steps).filteredOn(s->s.stepCode().equals("WORKER_DB_RECOVERY")).noneMatch(s->s.statusCode().equals("PASSED"));
+    }
+    @Test void twelveCaseRuntimeResultCannotPassCurrentPolicyValidation() throws Exception {
+        reserve(); var current=runtimeResult();
+        var incomplete=new AttachmentRuntimeGate.Result(current.runId(),current.scope(),current.suiteVersion(),current.suiteHash(),current.runtimeHash(),
+                current.extractorVersion(),current.resultHash(),12,current.cases().subList(0,12),current.startedAt(),current.completedAt());
+        doReturn(incomplete).when(runtime).selectValidatedResult(any(BooleanSupplier.class));
+        assertThat(service.saveNextValidationRun()).isEqualTo("CONFLICT");
+        assertThat(steps).filteredOn(s->s.stepCode().equals("INSTALLED_RUNTIME")).noneMatch(s->s.statusCode().equals("PASSED"));
+        verifyNoInteractions(workerDb); verify(policies,never()).updatePolicyDraft(any());
     }
     @Test void providerPlanReadIsPagedAndNeverRunsQaOrMutatesPolicy() {
         var response=service.selectProviderQaPlan(auth("OPERATOR"),policyId,2,1);

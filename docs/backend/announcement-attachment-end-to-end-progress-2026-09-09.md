@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 장기 goal 재개 — PDF 문단·표 행 추출 및 설치 QA 확장
+
+- 사용자 재개 요청 후 AGENTS/구간 설계/현재 Git을 재확인했다. 기준은 `9f88ff7`이며 기존 미커밋 PDF 작업과 사용자 `output/`을 보존했다. 해당 커밋의 Linux35709830406 success를 재조회했으며 이번 PDF 변경의 검증과 구분한다.
+- [x] 추출기1.0.4는 구조 태그/ParentTree/페이지/MCID/글자 위치·읽기 순서를 대조한 문단과 단순 표 행만 reliable로 반환한다. 태그 없음·순환/누락/중복·회전/겹침/숨은 글자·병합/여러 줄 표 행 등은 전체 페이지 텍스트를 보존하고 검수로 남긴다. 식별자의 32비트 wraparound도 거부한다. 이전 출력/이력 자동 수정은 없다.
+- [x] 합성 문단/표 행 PDF를 실제 생성·파싱하고 PNG를 렌더링/확인했다. 설치 runtime suite2에 AR-013/014를 추가하여 총14건이며 텍스트/좌표/별도 scope를 검사한다. 기존12건의 suite1 또는 누락된14건 결과는 현재 성공 근거가 아니다. 파일30초/8분 lease/40초 잔여 검사는 그대로다.
+- [x] 첫 표적 `:attachment-extractor:test :test --tests '*AttachmentRuntime*Test' --tests '*AttachmentPolicy*Test' --tests '*AnnouncementAttachmentPolicy*Test' :bootJar --no-daemon --max-workers=1`은2분24초 성공했다. 이후 누락된 runtime 사례의 정책 단계 거부 테스트1건을 추가하여 전체 회귀 중이다. Node 보고서 판정10/10·실패/생략0, `git diff --check` 성공이다.
+- [!] 전체 로컬 회귀는5분19초에 실패했다. XML245suite2869건 중2585통과/274조건부 생략/10실패/오류0이다. 실패는 DB 준비4건과 실제 seed 계약6건 모두 `initdb.exe` 실행 전 CreateProcess4551(애플리케이션 제어 정책 차단)이다. 같은 시각 CodeIntegrity3077/3033도 확인했다. 보안 정책 해제/비격리 외부 파일 파싱/Docker 재설치로 우회하지 않는다.
+- [x] 추출기7suite114/114·실패/생략0은 앞 표적 실행의 실제 결과다. 후속 전체 명령에서는 root 실패로 extractor 재실행까지 도달하지 않았으며 이 구분을 유지한다. bootJar는 production 변경 없는 앞 성공 산출물 UP-TO-DATE다. 최종 추가한 정책 사례 누락 거부 테스트는 전체 root에서 통과했다. XML은 `build/qa-results/pdf-structure-20260924-164017/`에 보존했다.
+- [~] QA 브랜치 전용 커밋/푸시 후 같은 SHA의 Linux 실제14개 설치 QA·정책/DB 계약 검증을 확인한다. 실제 지자체 구간 기대값·실파일 재검증·관리자 구간 UI·운영 활성화·기존 데이터·운영 업무 E2E는 별도 잔여다.
+- 전체 Gate8진행/1차단, ATT1완료/61부분 및 SEG 확장 분모를 유지한다. 이는 코드 작성률이 아니다. 운영 배포/설정/DB/정책/외부 관측·옥천 서버 QA는 실행하지 않았으며 브라우저는 현재 증분에서 정책상 미실행이다.
+
 ### 2026-09-22 Provider 구간 근거 검증·신규 정책 작성 연결
 
 - 직전 회차는 진행률 보고와 최신 `ca474a7` [Linux35706589100](https://github.com/FrostyCityMan/saneB/actions/runs/35706589100)의 최종 success 확인이었다. 이번 회차는 미완성 Provider 연결과 신규 정책 작성 경로를 구현한 progress다. 전체9Gate/ATT62 및 구간 확장 범위를 유지한다.

@@ -272,13 +272,17 @@ class AttachmentRuntimeGateIntegrationTest {
         return distribution;
     }
 
-    @Test void installedLinuxProcessChecksAllTwelveFixturesAndDeletesOriginals() throws Exception {
+    @Test void installedLinuxProcessChecksAllFixturesIncludingPdfScopesAndDeletesOriginals() throws Exception {
         String distribution = System.getProperty("saneb.attachment-qa.extractor-root");
         assertThat(distribution).as("설치된 추출기 경로를 전용 task에서 지정해야 합니다.").isNotBlank();
         var gate = new AttachmentRuntimeGate(new AttachmentRuntimeIdentity(distribution),
                 new IsolatedAttachmentExtractor(new ObjectMapper(), distribution), new AttachmentTemporaryStorage(temporary.toString()));
         var result = org.junit.jupiter.api.Assertions.assertTimeout(Duration.ofMinutes(7), () -> { return gate.selectValidatedResult(); });
-        assertThat(result.caseCount()).isEqualTo(12); assertThat(result.cases()).hasSize(12);
+        assertThat(result.caseCount()).isEqualTo(14); assertThat(result.cases()).hasSize(14);
+        assertThat(result.cases().subList(12,14)).allSatisfy(row -> {
+            assertThat(row.format()).isEqualTo("PDF"); assertThat(row.qualityCode()).isEqualTo("COMPLETE_TEXT");
+            assertThat(row.blockCount()).isEqualTo(2);
+        });
         assertThat(result.cases()).allSatisfy(row -> assertThat(row.originalRemoved()).isTrue());
         assertThat(result.cases()).extracting(AttachmentRuntimeGate.CaseResult::qualityCode)
                 .contains("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED", "ENCRYPTED", "CORRUPT", "LIMIT_EXCEEDED", "UNSUPPORTED");

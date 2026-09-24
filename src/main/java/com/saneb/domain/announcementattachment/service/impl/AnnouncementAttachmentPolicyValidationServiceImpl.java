@@ -130,10 +130,10 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
             saveStep(run,stage,"PASSED",result);
             stage="INSTALLED_RUNTIME";
             var extracted=runtime.selectValidatedResult(()->selectAllowed(run));
-            if(extracted.caseCount()!=12 || extracted.cases().size()!=12 || !AttachmentRuntimeGate.SCOPE.equals(extracted.scope())
+            if(extracted.caseCount()!=AttachmentRuntimeGate.CASE_COUNT || extracted.cases().size()!=AttachmentRuntimeGate.CASE_COUNT || !AttachmentRuntimeGate.SCOPE.equals(extracted.scope())
                     || !AttachmentRuntimeGate.SUITE_VERSION.equals(extracted.suiteVersion())
                     || !extracted.cases().stream().map(AttachmentRuntimeGate.CaseResult::caseId).toList()
-                        .equals(java.util.stream.IntStream.rangeClosed(1,12).mapToObj(n->String.format(java.util.Locale.ROOT,"AR-%03d",n)).toList())
+                        .equals(java.util.stream.IntStream.rangeClosed(1,AttachmentRuntimeGate.CASE_COUNT).mapToObj(n->String.format(java.util.Locale.ROOT,"AR-%03d",n)).toList())
                     || extracted.cases().stream().anyMatch(c->!c.originalRemoved()) || !extracted.runtimeHash().equals(frozen.runtime().runtimeHash())
                     || !extracted.suiteHash().equals(frozen.runtime().runtimeSuiteHash())) throw conflict("설치 runtime QA 지문이 예약과 다릅니다.");
             saveStep(run,stage,"PASSED",extracted);

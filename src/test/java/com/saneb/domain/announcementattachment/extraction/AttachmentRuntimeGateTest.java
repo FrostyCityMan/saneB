@@ -29,6 +29,7 @@ class AttachmentRuntimeGateTest {
     private final List<Path> originals = new ArrayList<>();
     private final AtomicInteger calls = new AtomicInteger();
     private Consumer<ObjectNode> alterFirst = result -> { };
+    private int alteredIndex = 1;
     private AttachmentRuntimeGate gate;
     @BeforeEach void setup() throws Exception {
         when(identity.selectIdentity()).thenReturn(new AttachmentRuntimeIdentity.Identity(AttachmentRuntimeIdentity.EXTRACTOR_VERSION, "a".repeat(64), 5, 100));
@@ -37,28 +38,31 @@ class AttachmentRuntimeGateTest {
             assertThat(Files.size(path)).isBetween(1L, 1024L * 1024);
             int index = calls.incrementAndGet();
             ObjectNode result = response(index);
-            if (index == 1) alterFirst.accept(result);
+            if (index == alteredIndex) alterFirst.accept(result);
             return result;
         });
         gate = new AttachmentRuntimeGate(identity, extractor, new AttachmentTemporaryStorage(root.toString()));
     }
     private ObjectNode response(int index) {
         String quality = switch (index) {
-            case 1, 3, 6 -> "COMPLETE_TEXT"; case 2 -> "OCR_REQUIRED"; case 4 -> "ENCRYPTED";
+            case 1, 3, 6, 13, 14 -> "COMPLETE_TEXT"; case 2 -> "OCR_REQUIRED"; case 4 -> "ENCRYPTED";
             case 7 -> "PARTIAL_TEXT"; case 10 -> "LIMIT_EXCEEDED"; case 11 -> "UNSUPPORTED"; default -> "CORRUPT";
         };
-        String format = switch (index) { case 1, 2 -> "PDF"; case 3 -> "HWP"; case 6, 7 -> "HWPX"; default -> null; };
+        String format = switch (index) { case 1, 2, 13, 14 -> "PDF"; case 3 -> "HWP"; case 6, 7 -> "HWPX"; default -> null; };
         String text = switch (index) {
             case 1 -> "Business grant notice"; case 3, 7 -> "소상공인 지원금 😀";
-            case 6 -> "소상공인 지원금 😀\n지원 한도\n100만원"; default -> "";
+            case 6 -> "소상공인 지원금 😀\n지원 한도\n100만원";
+            case 13 -> "Target business\nSupport grant";
+            case 14 -> "Target business Support grant\nTarget farmers Support loan"; default -> "";
         };
         ObjectNode result = mapper.createObjectNode().put("qualityCode", quality).put("format", format)
                 .put("extractorVersion", AttachmentRuntimeIdentity.EXTRACTOR_VERSION).put("text", text);
-        if (index == 1 || index == 2) result.put("pageCount", 1); else result.putNull("pageCount");
+        if ("PDF".equals(format)) result.put("pageCount", 1); else result.putNull("pageCount");
         if (format == null) result.put("errorCode", quality); else result.putNull("errorCode");
         var blocks = result.putArray("blocks"); int offset = 0, blockIndex = 0;
         if (!text.isEmpty()) for (String paragraph : text.split("\n")) {
             String locator = index == 1 ? "page:1" : index == 3 ? "Section0:paragraph:1" : "Contents/section0.xml:paragraph:" + (blockIndex + 1);
+            if (index == 13 || index == 14) locator = "page:1:" + (index == 13 ? "paragraph:" : "row:") + (blockIndex + 1);
             int end = offset + paragraph.codePointCount(0, paragraph.length());
             blocks.addObject().put("index", blockIndex++).put("startOffset", offset).put("endOffset", end)
                     .put("locator", locator).put("evidenceScopeId", locator).put("scopeReliable", index != 1);
@@ -74,12 +78,12 @@ class AttachmentRuntimeGateTest {
     }
     @Test void executesAllFixedInputsAndReturnsOnlyHashedEvidenceAfterCleanup() throws Exception {
         var result = gate.selectValidatedResult();
-        assertThat(result.caseCount()).isEqualTo(12); assertThat(calls.get()).isEqualTo(12);
+        assertThat(result.caseCount()).isEqualTo(14); assertThat(calls.get()).isEqualTo(14);
         assertThat(result.scope()).isEqualTo("SYNTHETIC_INSTALLED_RUNTIME");
         assertThat(result.runtimeHash()).isEqualTo("a".repeat(64));
         assertThat(result.suiteHash()).matches("[0-9a-f]{64}"); assertThat(result.resultHash()).matches("[0-9a-f]{64}");
         assertThat(result.cases()).extracting(AttachmentRuntimeGate.CaseResult::caseId)
-                .containsExactly("AR-001", "AR-002", "AR-003", "AR-004", "AR-005", "AR-006", "AR-007", "AR-008", "AR-009", "AR-010", "AR-011", "AR-012");
+                .containsExactly("AR-001", "AR-002", "AR-003", "AR-004", "AR-005", "AR-006", "AR-007", "AR-008", "AR-009", "AR-010", "AR-011", "AR-012", "AR-013", "AR-014");
         assertThat(result.cases()).allSatisfy(row -> { assertThat(row.originalRemoved()).isTrue(); assertThat(row.inputHash()).matches("[0-9a-f]{64}"); });
         assertThat(result.toString()).doesNotContain("소상공인", "Business grant notice", root.toString());
         assertThat(result.completedAt()).isAfterOrEqualTo(result.startedAt()); verify(identity, times(2)).selectIdentity(); assertClean();
@@ -89,7 +93,7 @@ class AttachmentRuntimeGateTest {
         gate.validateStoredResult(result,"a".repeat(64));verifyNoInteractions(extractor);assertClean();
         assertThatThrownBy(()->gate.validateStoredResult(result,"b".repeat(64))).hasMessageContaining("QA_RESULT_BINDING_INVALID");
         var rows=new ArrayList<>(result.cases());var first=rows.getFirst();rows.set(0,new AttachmentRuntimeGate.CaseResult(first.caseId(),first.inputHash(),first.qualityCode(),first.format(),first.textHash(),first.characterCount(),first.blockCount(),false));
-        var altered=new AttachmentRuntimeGate.Result(result.runId(),result.scope(),result.suiteVersion(),result.suiteHash(),result.runtimeHash(),result.extractorVersion(),result.resultHash(),12,rows,result.startedAt(),result.completedAt());
+        var altered=new AttachmentRuntimeGate.Result(result.runId(),result.scope(),result.suiteVersion(),result.suiteHash(),result.runtimeHash(),result.extractorVersion(),result.resultHash(),14,rows,result.startedAt(),result.completedAt());
         assertThatThrownBy(()->gate.validateStoredResult(altered,"a".repeat(64))).hasMessageContaining("QA_STORED_CASE_CHANGED");verifyNoInteractions(extractor);
     }
     @ParameterizedTest @ValueSource(strings={"quality", "format", "text", "version", "page", "error", "index", "start", "end", "locator", "scope", "reliable", "missing-block"})
@@ -129,11 +133,11 @@ class AttachmentRuntimeGateTest {
         doAnswer(call -> { originals.add(call.getArgument(0)); throw new IOException("sensitive-document-error"); })
                 .doAnswer(call -> response(calls.incrementAndGet())).when(extractor).selectExtraction(any());
         assertThatThrownBy(() -> gate.selectValidatedResult()).hasMessage("AR-001:RUNTIME_EXECUTION_FAILED"); assertClean();
-        assertThat(gate.selectValidatedResult().caseCount()).isEqualTo(12); assertClean();
+        assertThat(gate.selectValidatedResult().caseCount()).isEqualTo(14); assertClean();
     }
     @Test void concurrentExecutionIsRejectedWithoutSecondParserOrWorkspace() throws Exception {
         alterFirst = result -> assertThatThrownBy(() -> gate.selectValidatedResult()).hasMessage("SETUP:RUNTIME_QA_BUSY");
-        assertThat(gate.selectValidatedResult().caseCount()).isEqualTo(12); assertThat(calls.get()).isEqualTo(12); assertClean();
+        assertThat(gate.selectValidatedResult().caseCount()).isEqualTo(14); assertThat(calls.get()).isEqualTo(14); assertClean();
     }
     @Test void unexpectedWorkspaceFileBlocksCleanupAndCannotProduceSuccess() throws Exception {
         alterFirst = result -> {
@@ -167,5 +171,19 @@ class AttachmentRuntimeGateTest {
     @Test void suiteIdentityReadDoesNotExecuteParserOrCreateOriginal() throws Exception {
         assertThat(gate.selectSuiteHash()).matches("[0-9a-f]{64}").isEqualTo(gate.selectSuiteHash());
         verifyNoInteractions(identity,extractor); assertClean();
+    }
+    @ParameterizedTest @ValueSource(ints={13,14})
+    void structuredPdfMustRetainIndependentReliableScopes(int index) throws Exception {
+        alteredIndex=index;
+        alterFirst=result->((ObjectNode)result.path("blocks").get(1)).put("evidenceScopeId",result.path("blocks").get(0).path("evidenceScopeId").asText());
+        assertThatThrownBy(()->gate.selectValidatedResult()).hasMessageStartingWith(String.format("AR-%03d:",index));
+        assertThat(calls.get()).isEqualTo(index); assertClean();
+    }
+    @Test void priorTwelveCaseSuiteCannotBeReusedAfterStructureSupport() throws Exception {
+        var result=gate.selectValidatedResult(); clearInvocations(extractor);
+        var old=new AttachmentRuntimeGate.Result(result.runId(),result.scope(),"attachment-runtime-1",result.suiteHash(),result.runtimeHash(),
+                result.extractorVersion(),result.resultHash(),12,result.cases().subList(0,12),result.startedAt(),result.completedAt());
+        assertThatThrownBy(()->gate.validateStoredResult(old,result.runtimeHash())).hasMessage("STORED:QA_RESULT_BINDING_INVALID");
+        verifyNoInteractions(extractor); assertClean();
     }
 }

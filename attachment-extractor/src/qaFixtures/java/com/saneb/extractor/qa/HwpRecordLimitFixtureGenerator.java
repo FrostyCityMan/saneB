@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
-/** 시험 전용 HWP 노드 경계 입력. 운영 12개 fixture와 배포 artifact에는 포함하지 않는다. */
+/** 시험 전용 HWP 노드 경계 입력. 설치 runtime fixture와 배포 artifact에는 포함하지 않는다. */
 public final class HwpRecordLimitFixtureGenerator {
     private HwpRecordLimitFixtureGenerator() { }
 
