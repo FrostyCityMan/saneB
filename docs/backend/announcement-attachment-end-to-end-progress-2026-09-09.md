@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-25 함안 후속 CI 종료와 인증 차단
+
+- [x] 387af57 Linux36036535878 completed/success, 78cbf7b Linux36037865775 completed/failure를 terminal 상태로 확인했다. 두 계약 artifact를 별도 경로로 내려받아 각각 root3049=2756통과/293조건부 생략·실패/오류0, 추출기149·패키지20·job209·migration18·정책 부모2·runtime5·worker12·Flyway3 실패/오류/생략0을 확인했다.
+- [!] 후속 CI의 실패 단계는 함안 실제 관측1개다. 본문·상세 timeout/JUnit1실패는 코드·DB 회귀 통과로 대체하지 않는다. 누적11/60요청·8,496,362byte를 보존하며 추가 외부 요청은0이다. [실행 SHA·artifact·집계·다음 경계](announcement-haman-linux-ci-observation-2026-09-25.md)에 기록했다.
+- [!] AWS_AUTH_REFRESH_REQUIRED가 연속3회 반복됐고 GitHub 대체 관측도 종료됐다. 다음 승인된 서울 관측은 사용자 인증 갱신을 기다린다. 재실행·원장 초기화·타임아웃/TLS 완화로 우회하지 않는다. 새 서버 작업·운영 변경·브라우저 실행은 없다.
+- [~] 전체9Gate=8부분/1차단을 유지한다. 실파일 구간 엔진 worker/DB/API·검토된 정상 기대값·전체 수집원·정확한 승인 범위 적용·동일SHA 배포/운영 E2E가 남는다. 장기 목표 완료가 아닌 외부 인증 차단 체크포인트다.
+
 ### 2026-09-25 함안 GitHub Linux 관측 예약과 선행 CI 확인
 
 - [x] 직전 함안 실행 경로 구현은 progress다. AWS 갱신 대기와 분리하여 기존 Linux `HAMAN` 관측 task를 재사용하는 명시 실행 표식을 연결했다. 원본 지문·1공고/전체1파일·현재 실행 시각·JUnit1건·실패/생략0을 검사하며 부분 품질을 정상 후보로 승격하지 않는다. [범위·환경 차이·예산·검증 근거](announcement-haman-linux-ci-observation-2026-09-25.md)를 따른다.

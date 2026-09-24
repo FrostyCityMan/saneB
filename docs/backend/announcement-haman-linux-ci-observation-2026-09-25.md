@@ -61,3 +61,17 @@ artifact `attachment-haman-observation-78cbf7b28c0d94f98109d54012d729e0618c42cc`
 로컬 원장은 함안 단계의 terminal failure와 실제 소비량을 보존한다. 서울 실행기는 이 특정 영수증 hash/상태/건수/정리와 기존 본문·HWP 영수증을 모두 대조하고, 누적11회에서 최대6회를 추가할 수 있는지만 확인한다. 기록 삭제·새 모드로 예산 초기화는 허용하지 않는다. 아직 서울 실행을 시작한 것은 아니다.
 
 앞선 Windows pinned 수집 성공과 GitHub timeout은 환경/시점이 다른 관측이다. IP차단·지역제한·함안 서버 장애 등 원인은 미확정이다. 같은 GitHub 조건을 반복하거나 TLS를 끄고 타임아웃을 늘려 성공을 만들지 않는다. AWS 인증 재확인도 갱신 필요였으므로 다음 실제 관측은 사용자 인증 갱신 후 서울에서 수행한다. 임시 CA·로컬 작업 프로세스는 정리하며 브라우저를 실행하지 않았다.
+
+## 후속 전체 CI 종료 확인
+
+2026-09-25 후속 조회에서 `387af57c201e275e0ef7cd44fa72543f45a5537d`의 [36036535878](https://github.com/FrostyCityMan/saneB/actions/runs/36036535878)은 completed/success다. artifact `attachment-contract-qa-387af57c201e275e0ef7cd44fa72543f45a5537d`를 `build/qa-results/linux-36036535878`에 보존하고 JUnit을 직접 합산했다.
+
+`78cbf7b28c0d94f98109d54012d729e0618c42cc`의 [36037865775](https://github.com/FrostyCityMan/saneB/actions/runs/36037865775)는 **completed/failure**다. 실패 단계는 함안 실제 관측1개이며 나머지 실행된 계약·독립 namespace/PostgreSQL·정책 부모 DB·필수 테스트 누락 차단 단계는 success다. artifact `attachment-contract-qa-78cbf7b28c0d94f98109d54012d729e0618c42cc`를 `build/qa-results/linux-36037865775`에 별도로 보존했다. 앞선 함안 실패 영수증을 덮어쓰지 않았다.
+
+두 계약 artifact의 실제 JUnit 집계는 각각 동일하다.
+
+- root3,049=통과2,756/조건부 생략293/실패·오류0.
+- 추출기149·패키지20·job DB209·migration18·정책 부모 DB2·runtime5·worker DB12·Flyway3: 실패·오류·생략0.
+- 함안 실파일 관측 JUnit1건/실패1은 위 계약 집계와 별개다. 전체 실행을 통과로 표시하지 않는다.
+
+이번 후속 확인은 추가 외부 공고 요청·서울 제출·운영 변경 없이 기존 CI 결과를 읽은 것이다. AWS 인증 확인은 다시 `AWS_AUTH_REFRESH_REQUIRED`였고 소유 임시 CA는 제거됐다. 인증 blocker가 연속3회 반복됐으며 GitHub 대체 경로도 실제 timeout으로 종료됐다. 다음 고정 서울 관측은 인증 갱신이 선행돼야 한다. 임의 재요청·예산 초기화·검증 완화 대신 이 지점에서 외부 인증 대기로 구분한다. 명시 구간 worker/DB/API, 정상 기대값, 추가 표본과 전체 수집원, 운영 적용·브라우저 E2E는 여전히 미완료다.
