@@ -27,7 +27,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "TAEBAEK_HWP" -> List.of("TAEBAEK-176153");
             case "CHUNGJU" -> List.of("CHUNGJU-72625","CHUNGJU-72039","CHUNGJU-70852");
             case "JECHEON" -> List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
-            case "BOEUN" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
+            case "BOEUN", "BOEUN_SEGMENT" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
@@ -48,6 +48,37 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static boolean selectComplete(String group,long found,long succeeded,long failed,long skipped,long aborted,long containersFailed) {
         int required=selectCaseCodes(group).size();
         return found==required&&succeeded==required&&failed==0&&skipped==0&&aborted==0&&containersFailed==0;
+    }
+    static boolean selectSegmentMode(String group) {
+        selectCaseCodes(group);
+        return "BOEUN_SEGMENT".equals(group);
+    }
+    static String selectObservationGroup(String group) {
+        return selectSegmentMode(group) ? "BOEUN" : group;
+    }
+    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 20 : 44; }
+    static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 32L : 80L)*1024*1024; }
+    static boolean selectSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
+        if (!"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
+                || !"segment-role-1.0.0".equals(report.path("segmentRuleVersion").asText())
+                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(report.path("segmentRulesHash").asText())
+                || !report.path("segmentDatabaseApiVerified").asBoolean(false)
+                || report.path("maximumRequestReservations").asLong(-1)!=20
+                || report.path("maximumReservedBytes").asLong(-1)!=33554432L
+                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,20)
+                || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,33554432L)
+                || !report.path("files").isArray() || report.path("files").size()!=1) return false;
+        var file=report.path("files").get(0);
+        return "COMPLETE_TEXT".equals(file.path("quality").asText())
+                && file.path("segmentAnalysisHash").asText().matches("[a-f0-9]{64}")
+                && selectBounded(file,"segmentCount",1,200)
+                && selectBounded(file,"unknownSegmentCount",0,file.path("segmentCount").asLong())
+                && file.path("segmentEvaluationInputBound").asBoolean(false)
+                && file.path("segmentApiProjectionMatched").asBoolean(false);
+    }
+    private static boolean selectBounded(com.fasterxml.jackson.databind.JsonNode report,String key,long min,long max) {
+        var value=report.path(key);
+        return value.isIntegralNumber() && value.canConvertToLong() && value.longValue()>=min && value.longValue()<=max;
     }
     static List<Object> selectFailureTrace(Throwable failure) {
         var trace=new java.util.ArrayList<Object>();
@@ -115,6 +146,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 String expected=selectTitleStopExpected(code)?"TITLE_EXCLUDED_NOT_FETCHED":"WORKER_DB_API_OBSERVED_NOT_APPROVED";
                 reportsComplete&=expected.equals(report.path("status").asText())
                         &&report.path("originalFilesRemoved").asBoolean(false)&&report.path("remainingResourceLeases").asInt(-1)==0;
+                if(selectSegmentMode(group))reportsComplete&=selectSegmentReportComplete(report);
             }
             result.put("cases",reports);
             stage="FINAL_IDENTITY";

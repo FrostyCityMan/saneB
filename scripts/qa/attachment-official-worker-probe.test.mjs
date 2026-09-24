@@ -20,9 +20,20 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
 });
 test('공식 그룹은 양평 기본값과 고정 태백·충주·제천·보은 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN ]] || exit 1'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
+});
+
+test('구간 엔진 실제 시험은 명시 task와 별도 보고서를 사용하며 CI에서 외부 호출하지 않는다', () => {
+  const gradle = readFileSync('build.gradle', 'utf8');
+  const start = gradle.indexOf("tasks.register('attachmentBoeunSegmentWorkerIntegrationTest'");
+  assert(start >= 0);
+  const task = gradle.slice(start, gradle.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'", start));
+  assert(task.includes("'BOEUN_SEGMENT'"));
+  assert(task.includes('reports/attachment-boeun-segment-worker'));
+  assert(task.includes('maxParallelForks = 1'));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8').includes('attachmentBoeunSegmentWorkerIntegrationTest'));
 });
 test('공개 요청 QA도 비root·깨끗한 환경·PID 격리와 원본 정리를 유지한다', () => {
   for (const value of ['"$(id -u)" != 0', '--unshare-pid', '--unshare-ipc', '--clearenv',

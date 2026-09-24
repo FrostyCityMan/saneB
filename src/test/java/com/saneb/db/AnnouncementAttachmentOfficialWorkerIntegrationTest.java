@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.saneb.common.error.GlobalExceptionHandler;
 import com.saneb.domain.announcementattachment.controller.*;
 import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
+import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao;
 import com.saneb.domain.announcementattachment.discovery.*;
 import com.saneb.domain.announcementattachment.dto.*;
@@ -66,7 +69,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         // 제목 제외 표본도 유지한다. 임의 URL·전체 기관 실행 모드는 제공하지 않는다.
         String group=System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG");
         var expected=AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(group);
-        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).toList();
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(group)).toList();
         assertEquals(expected,samples.stream().map(ObservationCase::code).toList(),"OFFICIAL_WORKER_CASES_CHANGED");
         return samples.stream();
     }
@@ -137,8 +140,9 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 // BODY의 A/B/부족/실패 결과로 첨부를 끊지 않는다. 실제 결과를 저장해 worker의 입력으로 사용한다.
                 assertTrue(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(base),"TITLE_DECISION_CHANGED");
                 stage="BASE_PERSISTENCE";var installed=runtime.selectIdentity();var profile=sample.profile();
-                var execution=new AttachmentExecutionSnapshot(profile.selectProfileCode(),profile.selectProfileHash(),"attachment-1.0.0",installed.extractorVersion(),installed.configHash(),
-                        AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH);
+                String group=System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG");
+                boolean segmentMode=AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode(group);
+                var execution=selectExecution(group,sample,installed.extractorVersion(),installed.configHash());
                 var request=insertSourceRequest(sample,bodyComplete?body.bodyText():null,base,execution);
                 UUID source=request.sourceId();
                 var job=bean(AnnouncementAttachmentJobService.class).insertAttachmentJob(request);
@@ -148,6 +152,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         new AttachmentTemporaryStorage(temporary.toString()),new AttachmentDownloadGateway(bean(AnnouncementAttachmentJobService.class),client),new AttachmentFileTypeValidator(),extractor,JSON);
                 report.put("profileCode",profile.selectProfileCode());report.put("profileHash",profile.selectProfileHash());
                 report.put("extractorVersion",execution.extractorVersion());report.put("extractorConfigHash",execution.extractorConfigHash());report.put("roleRuleVersion",execution.roleRuleVersion());
+                if(segmentMode) {
+                    report.put("engineVersion",execution.engineVersion());report.put("segmentRuleVersion",execution.segmentRuleVersion());
+                    report.put("segmentRulesHash",execution.segmentRulesHash());
+                }
                 stage="ACTUAL_WORKER";var outcome=worker.saveNextAttachmentJob();report.put("workerStatus",outcome.statusCode());
                 report.put("jobStatus",bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode());
                 assertEquals("EVALUATED",outcome.statusCode(),"WORKER_NOT_EVALUATED");
@@ -158,7 +166,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertTrue(set.discoveryComplete());assertEquals("SEALED",set.setStatusCode());
                 assertEquals(sample.listedFileCount(),set.discoveredCount());assertEquals(set.discoveredCount(),set.processedCount());
                 assertEquals(sample.listedFileCount(),files.size());
-                var http=MockMvcBuilders.standaloneSetup(new AnnouncementAttachmentController(read),new AnnouncementAttachmentCurrentController(bean(AnnouncementAttachmentCurrentService.class)))
+                var controllers=new ArrayList<Object>(List.of(new AnnouncementAttachmentController(read),new AnnouncementAttachmentCurrentController(bean(AnnouncementAttachmentCurrentService.class))));
+                AnnouncementAttachmentSegmentService segments=segmentMode?selectSegmentService():null;
+                if(segmentMode)controllers.add(new AnnouncementAttachmentSegmentController(segments));
+                var http=MockMvcBuilders.standaloneSetup(controllers.toArray())
                         .setControllerAdvice(new GlobalExceptionHandler())
                         .setMessageConverters(new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(JSON)).build();
                 var fileJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-sets/"+set.setId()+"/files");
@@ -202,6 +213,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         var blocks=read.selectAttachmentBlockList(source,file.extractionId(),1,10,0,2000);
                         var blockJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/blocks?page=1&size=10&textOffset=0&textLimit=2000");
                         assertTrue(selectWireTree(blocks).equals(blockJson),"API_BLOCK_PROJECTION_MISMATCH");
+                        if(segmentMode)saveSegmentVerification(source,file,actual,segments,http,row);
                         var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/blocks",UUID.randomUUID(),file.extractionId())).andReturn();
                         assertEquals(404,wrong.getResponse().getStatus());
                     } else {
@@ -218,6 +230,14 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertNotEquals("EXCLUDED",summary.effectiveClassification().semanticStatusCode());
                 assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,source));
                 assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,source));
+                if(segmentMode) {
+                    assertEquals(execution.engineVersion(),sql.queryForObject("SELECT engine_version FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current",String.class,source));
+                    assertEquals(files.size(),sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs i JOIN announcement_source_attachment_evaluations e ON e.id=i.evaluation_id WHERE e.source_id=? AND e.is_current",Integer.class,source));
+                    assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_matches m JOIN announcement_source_attachment_evaluations e ON e.id=m.evaluation_id JOIN announcement_attachment_segment_analyses a ON a.id=m.segment_analysis_id WHERE e.source_id=? AND e.is_current AND a.analysis_json->'segments'->m.segment_index->>'roleCode' IN ('FORM','REFERENCE','UNKNOWN') AND m.applied_action_code<>'CONTEXT_ONLY'",Integer.class,source));
+                    if(rows.stream().anyMatch(r->((Number)r.getOrDefault("unknownSegmentCount",0)).longValue()>0))
+                        assertEquals("REVIEW_REQUIRED",summary.effectiveClassification().semanticStatusCode(),"UNKNOWN_SEGMENT_MUST_REMAIN_REVIEW");
+                    report.put("segmentDatabaseApiVerified",true);
+                }
                 report.put("requiresFinalAdminVerification",true);
                 boolean whole=bodyComplete&&files.stream().allMatch(f->"COMPLETE_TEXT".equals(f.qualityCode()));
                 report.put("isWholeTextAnalysisComplete",whole);
@@ -238,13 +258,50 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     cleanup=paths.filter(Files::isRegularFile).allMatch(p->Set.of(".owner",".quota.lock").contains(p.getFileName().toString()));
                 }
                 report.put("originalFilesRemoved",cleanup);report.put("remainingResourceLeases",sql.queryForObject("SELECT count(1) FROM announcement_attachment_resource_leases",Integer.class));
-                report.put("maximumRequestReservations",44);report.put("maximumReservedBytes",80*MIB);
+                report.put("maximumRequestReservations",client.maximumRequests);report.put("maximumReservedBytes",client.maximumBytes);
                 report.put("requestReservationsIncludingBodyUpperBound",client.requests);report.put("reservedBytesIncludingBodyUpperBound",client.bytes);
                 Path output=Path.of(System.getProperty("saneb.attachment-official-worker.report"));Files.createDirectories(output);
                 JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
                 assertTrue(cleanup,"ORIGINAL_FILE_CLEANUP_INCOMPLETE");assertEquals(0,report.get("remainingResourceLeases"));
             }
         }
+    }
+    static AttachmentExecutionSnapshot selectExecution(String group,ObservationCase sample,String version,String configHash) {
+        boolean segment=AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode(group);
+        if(!AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(group).contains(sample.code()))throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
+        return new AttachmentExecutionSnapshot(sample.profile().selectProfileCode(),sample.profile().selectProfileHash(),
+                segment?AttachmentSegmentClassificationEngine.VERSION:"attachment-1.0.0",version,configHash,
+                AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
+                segment?AttachmentSegmentRoleAnalyzer.VERSION:null,segment?AttachmentSegmentRoleAnalyzer.RULES_HASH:null);
+    }
+    static AnnouncementAttachmentSegmentService selectSegmentService() {
+        var session=bean(SqlSessionTemplate.class);
+        return new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(
+                session.getMapper(AnnouncementAttachmentSegmentDao.class),
+                session.getMapper(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class),JSON);
+    }
+    private static void saveSegmentVerification(UUID source,AttachmentEvidenceResponses.FileSummary file,JsonNode actual,
+            AnnouncementAttachmentSegmentService service,MockMvc http,Map<String,Object> row) throws Exception {
+        var before=sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source);
+        var stored=service.selectAnalysisDetails(source,file.extractionId());
+        var api=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/segment-analysis");
+        assertEquals(selectWireTree(stored),api,"SEGMENT_API_PROJECTION_MISMATCH");
+        assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source),"SEGMENT_GET_MUST_NOT_WRITE");
+        var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/segment-analysis",UUID.randomUUID(),file.extractionId())).andReturn();
+        assertEquals(404,wrong.getResponse().getStatus());
+        if(actual.path("text").asText("").isBlank()) {
+            assertEquals("NOT_ANALYZED",stored.analysisState());assertNull(stored.analysis());return;
+        }
+        var blocks=JSON.treeToValue(actual.path("blocks"),AttachmentSetEvidence.Block[].class);
+        var input=new AttachmentSetEvidence.Extraction(file.qualityCode(),actual.path("text").asText(),Arrays.asList(blocks),actual.path("pageCount").isIntegralNumber()?actual.path("pageCount").intValue():null,0);
+        var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input);
+        assertEquals("ANALYZED",stored.analysisState());assertEquals(expected,stored.analysis());
+        assertEquals(file.fileId(),stored.fileId());assertEquals(file.setId(),stored.setId());
+        assertEquals(file.documentRoleCode(),stored.fileRoleCode());assertEquals(file.roleOriginCode(),stored.fileRoleOriginCode());
+        assertEquals(1,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs i JOIN announcement_source_attachment_evaluations e ON e.id=i.evaluation_id WHERE e.source_id=? AND e.is_current AND i.extraction_id=? AND i.segment_analysis_id=?",Integer.class,source,file.extractionId(),stored.analysisId()));
+        row.put("segmentAnalysisHash",selectCanonicalHash(expected));row.put("segmentCount",expected.segments().size());
+        row.put("unknownSegmentCount",expected.segments().stream().filter(s->"UNKNOWN".equals(s.roleCode())).count());
+        row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
     }
     static boolean selectPlannedTitleStop(ObservationCase sample,AnnouncementSourceClassificationResult title) {
         if(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(sample.code())) {
@@ -326,10 +383,14 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     }
     private static UUID insertPolicy(AttachmentExecutionSnapshot execution) throws Exception {
         UUID id=UUID.randomUUID();
-        String settings=JSON.writeValueAsString(new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),80*MIB,execution.roleRuleVersion(),execution.roleRulesHash()));
+        String settings=JSON.writeValueAsString(selectPolicyConfiguration(execution));
         String manifest=JSON.writeValueAsString(List.of(Map.of("providerCode","LOCAL_GOV_NOTICE","profileCode",execution.profileCode(),"profileHash",execution.profileHash())));
         sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE','ENFORCE',?,repeat('d',64),CAST(? AS jsonb),CAST(? AS jsonb),?,now())",id,id.toString(),release,settings,manifest,actor);
         return id;
+    }
+    static AttachmentPolicyResponses.Configuration selectPolicyConfiguration(AttachmentExecutionSnapshot execution) {
+        return new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),
+                (execution.segmentRuleVersion()==null?80L:32L)*MIB,execution.roleRuleVersion(),execution.roleRulesHash(),execution.segmentRuleVersion(),execution.segmentRulesHash());
     }
     private static JsonNode selectApi(MockMvc http,String path) throws Exception {
         var response=http.perform(get(path)).andReturn().getResponse();assertEquals(200,response.getStatus());assertEquals("no-store",response.getHeader("Cache-Control"));
@@ -392,16 +453,21 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         }
     }
     private static final class OfficialClient extends AttachmentPinnedDownloadClient {
-        final ObservationCase sample;long requests,bytes;
-        OfficialClient(ObservationCase sample){this.sample=sample;}
+        final ObservationCase sample;final long maximumRequests,maximumBytes;long requests,bytes;
+        OfficialClient(ObservationCase sample){
+            this.sample=sample;
+            String group=System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG");
+            maximumRequests=AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests(group);
+            maximumBytes=AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes(group);
+        }
         void reserveBody(){requests=2;bytes=2*MIB;}
         @Override public Download selectDownload(Request request,Set<String> hosts,Predicate<Request> approved,Path output,long maximum,ByteReservation reservation) throws IOException {
             assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
             var downloaded=super.selectDownload(request,hosts,r->{
-                if(requests>=44||Thread.currentThread().isInterrupted()||!sample.profile().selectApprovedRequest(request,r)||!approved.test(r))return false;
+                if(requests>=maximumRequests||Thread.currentThread().isInterrupted()||!sample.profile().selectApprovedRequest(request,r)||!approved.test(r))return false;
                 requests++;return true;
             },output,maximum,count->{
-                if(count<0||bytes>80*MIB-count||Thread.currentThread().isInterrupted()||!reservation.reserve(count))return false;
+                if(count<0||bytes>maximumBytes-count||Thread.currentThread().isInterrupted()||!reservation.reserve(count))return false;
                 bytes+=count;return true;
             });
             if(request.uri().equals(sample.profile().selectDetailUri(sample.source()))) {

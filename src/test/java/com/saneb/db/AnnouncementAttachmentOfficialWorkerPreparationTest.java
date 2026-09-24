@@ -14,13 +14,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /** 합성 본문으로 공개 worker 시험의 실제 DB 준비 경로만 검증한다. HTTP/추출 성공 증거가 아니다. */
 class AnnouncementAttachmentOfficialWorkerPreparationTest {
-    @ParameterizedTest @ValueSource(strings={"YANGPYEONG","CHUNGJU","JECHEON","BOEUN"})
+    @ParameterizedTest @ValueSource(strings={"YANGPYEONG","CHUNGJU","JECHEON","BOEUN","BOEUN_SEGMENT"})
     void realClassificationPersistenceProducesReservableVersionedLocalSource(String group) throws Exception {
         try {
             AnnouncementAttachmentOfficialWorkerIntegrationTest.startDatabase();
             var engine=new AnnouncementSourceClassificationEngine();
             var rules=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectRules();
-            var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).toList();
+            var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(group)).toList();
             for(var candidate:samples) {
                 var title=engine.selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",candidate.title(),
                         null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),rules);
@@ -41,8 +41,7 @@ class AnnouncementAttachmentOfficialWorkerPreparationTest {
                     "지원대상: 소상공인. 지원내용: 지원금. 수출기업 포함 여부는 관리자 검수 필요.",null,List.of(),BodySourceCode.DETAIL_PAGE_TEXT,BodyAvailabilityCode.AVAILABLE),
                     AnnouncementAttachmentOfficialWorkerIntegrationTest.selectRules());
             assertEquals(SemanticStatusCode.REVIEW_REQUIRED,base.semanticStatusCode());
-            var execution=new AttachmentExecutionSnapshot(sample.profile().selectProfileCode(),sample.profile().selectProfileHash(),"attachment-1.0.0","1.0.0","b".repeat(64),
-                    AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH);
+            var execution=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution(group,sample,"1.0.5","b".repeat(64));
             var request=AnnouncementAttachmentOfficialWorkerIntegrationTest.insertSourceRequest(sample,
                     "지원대상: 소상공인. 지원내용: 지원금. 수출기업 포함 여부는 관리자 검수 필요.",base,execution);
             var service=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectService(AnnouncementAttachmentJobService.class);

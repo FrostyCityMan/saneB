@@ -80,6 +80,37 @@ class TemporaryBbsObservationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
                 self.unit['validate_manifest_scope'](dict(manifest,verificationMode=original),mode)
 
+    def test_boeun_segment_uses_latest_package_and_rejects_old_worker_report(self):
+        mode='BOEUN_SEGMENT'
+        scope=self.runner['SCOPES'][mode]
+        self.assertEqual(self.runner['SCOPES']['BOEUN'][:2],scope[:2])
+        self.assertEqual((60,100663296),scope[2:])
+        self.assertLessEqual(24+scope[2],132)
+        self.assertLessEqual(14783346+scope[3],251658240)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),mode))
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest={'schemaVersion':1,'caseCode':scope[0],'caseCodes':scope[1],'verificationMode':mode,'executionCodeHash':'a'*64}
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,verificationMode='BOEUN'),mode)
+        cases=[{'caseCode':code,'scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','engineVersion':'attachment-segment-1.0.0',
+                'segmentDatabaseApiVerified':True,'productionWriteCount':0,'isPolicyQaPassed':False,
+                'maximumRequestReservations':20,'maximumReservedBytes':33554432,
+                'requestReservationsIncludingBodyUpperBound':4,'reservedBytesIncludingBodyUpperBound':2400000} for code in scope[1]]
+        report={'kind':'OFFICIAL_WORKER_PROBE','caseGroup':mode,'productionDatabaseUsed':False,
+                'isPolicyQaPassed':False,'isAuthenticatedBrowserE2e':False,'status':'PASSED','cases':cases}
+        self.unit['validate_probe_scope'](report,mode)
+        for key,value in [('engineVersion','attachment-1.0.0'),('segmentDatabaseApiVerified',False),
+                          ('maximumRequestReservations',44),('maximumReservedBytes',83886080),
+                          ('requestReservationsIncludingBodyUpperBound',21),('requestReservationsIncludingBodyUpperBound',True),
+                          ('reservedBytesIncludingBodyUpperBound',33554433)]:
+            invalid=dict(report,cases=[dict(cases[0],**{key:value}),*cases[1:]])
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
+            self.unit['validate_probe_scope'](dict(report,caseGroup='BOEUN'),mode)
+
     def test_boeun_reads_only_pinned_installed_qa_and_checks_code_hash(self):
         import hashlib
         import zipfile

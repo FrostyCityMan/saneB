@@ -431,7 +431,28 @@ tasks.register('attachmentBoeunWorkerIntegrationTest', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBoeunWorkerIntegrationTest')
 }
 
-// 이미 설치된 동일 코드 QA runtime에 고정 공식 시험만 전달한다. 웹/합성 QA JAR는 바꾸지 않는다.
+// 명시 실행 전용: 최신 구간 엔진과 실제 파일의 평가 입력/DB/GET API 결합을 검증한다.
+tasks.register('attachmentBoeunSegmentWorkerIntegrationTest', Test) {
+    description = '보은 고정3건의 구간 엔진 worker/임시 DB/API 검증. 최대60요청/96MiB, 운영 쓰기 없음.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-official-worker.group', 'BOEUN_SEGMENT'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-official-worker.report', layout.buildDirectory.dir('reports/attachment-boeun-segment-worker').get().asFile.absolutePath
+    systemProperty 'logback.configurationFile', layout.projectDirectory.file('src/attachmentContractQa/config/logback-qa.xml').asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentBoeunSegmentWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBoeunSegmentWorkerIntegrationTest')
+}
+
+// 명시한 동일 코드 QA runtime에 고정 공식 시험만 전달한다. 웹/합성 QA JAR는 바꾸지 않는다.
 tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
     group = 'verification'
     description = '고정 양평·태백·충주·제천·보은 JUnit 시험의 별도 실행 패키지입니다. 생성만 하며 외부 요청은 하지 않습니다.'

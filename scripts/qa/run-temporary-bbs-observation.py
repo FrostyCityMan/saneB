@@ -18,6 +18,7 @@ SCOPES = {
     # 9/24 선행 관측 사용량을 차감한 잔여보다 작은 재진단 상한. 기존 모드 한도를 바꾸지 않는다.
     'BOEUN_DIAGNOSTIC': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 60, 100663296),
     'OKCHEON_DIAGNOSTIC': ('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 60, 100663296),
+    'BOEUN_SEGMENT': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 60, 100663296),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -47,7 +48,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -65,8 +66,8 @@ def select_qa_distribution(package,mode):
     return root
 
 def validate_probe_scope(report,mode):
-    if mode=='BOEUN':
-        if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!='BOEUN'
+    if mode in ('BOEUN','BOEUN_SEGMENT'):
+        if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!=mode
                 or report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
                 or report.get('isAuthenticatedBrowserE2e') is not False):raise ValueError('PROBE_OUTPUT_INVALID')
         cases=report.get('cases',[])
@@ -74,6 +75,16 @@ def validate_probe_scope(report,mode):
         codes=[c.get('caseCode') for c in cases]
         if len(codes)!=len(set(codes)) or any(c not in SCOPES[mode][1] for c in codes):raise ValueError('PROBE_OUTPUT_INVALID')
         if report.get('status')=='PASSED' and codes!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
+        if mode=='BOEUN_SEGMENT' and report.get('status')=='PASSED':
+            for case in cases:
+                if (case.get('scope')!='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1'
+                        or case.get('engineVersion')!='attachment-segment-1.0.0'
+                        or case.get('segmentDatabaseApiVerified') is not True
+                        or case.get('productionWriteCount')!=0 or case.get('isPolicyQaPassed') is not False
+                        or case.get('maximumRequestReservations')!=20 or case.get('maximumReservedBytes')!=33554432):raise ValueError('PROBE_OUTPUT_INVALID')
+                for key,lower,upper in [('requestReservationsIncludingBodyUpperBound',3,20),('reservedBytesIncludingBodyUpperBound',1,33554432)]:
+                    value=case.get(key)
+                    if type(value) is not int or not lower<=value<=upper:raise ValueError('PROBE_OUTPUT_INVALID')
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
         raise ValueError('PROBE_OUTPUT_INVALID')
 def main():
@@ -127,7 +138,7 @@ def main():
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
-        try:out,err=proc.communicate(timeout=900 if mode=='BOEUN' else 650)
+        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT') else 650)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid,signal.SIGTERM)
             try:out,err=proc.communicate(timeout=5)
@@ -141,7 +152,7 @@ def main():
                 report=json.loads(line)
                 validate_probe_scope(report,mode)
         result['probe']=report
-        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode=='BOEUN' else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
+        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
         result['probeCleanupSucceeded']=cleanup_marker in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
         return result

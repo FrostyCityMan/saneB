@@ -4,6 +4,57 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void segmentModePreservesFixedBoeunDenominatorAndUsesSmallerBudget() {
+        assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN_SEGMENT"));
+        assertEquals("BOEUN",AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup("BOEUN_SEGMENT"));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN_SEGMENT"));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN"));
+        assertEquals(20,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN_SEGMENT"));
+        assertEquals(33554432,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN_SEGMENT"));
+        assertEquals(44,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN"));
+        assertEquals(83886080,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN"));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("ALL_SEGMENT"));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN_SEGMENT",3,3,0,0,0,0));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectComplete("BOEUN_SEGMENT",3,2,0,1,0,0));
+    }
+    @Test void segmentExecutionAndEphemeralPolicyPinBothRulesWithoutChangingLegacyMode() throws Exception {
+        var sample=com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").findFirst().orElseThrow();
+        var legacy=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution("BOEUN",sample,"1.0.5","b".repeat(64));
+        var segment=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution("BOEUN_SEGMENT",sample,"1.0.5","b".repeat(64));
+        assertEquals("attachment-1.0.0",legacy.engineVersion());assertNull(legacy.segmentRuleVersion());
+        assertEquals("attachment-segment-1.0.0",segment.engineVersion());assertTrue(segment.selectEngineCurrent());
+        var config=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPolicyConfiguration(segment);
+        assertEquals(segment.segmentRuleVersion(),config.segmentRuleVersion());assertEquals(segment.segmentRulesHash(),config.segmentRulesHash());
+        assertEquals(33554432L,config.maximumSourceBytes());assertTrue(config.selectEngineCurrent());
+        var oldConfig=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPolicyConfiguration(legacy);
+        assertEquals(83886080L,oldConfig.maximumSourceBytes());assertNull(oldConfig.segmentRuleVersion());
+        assertFalse(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(oldConfig).contains("segmentRule"));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution("TAEBAEK",sample,"1.0.5","b".repeat(64)));
+    }
+    @Test void segmentReportRequiresDbApiBindingAndExactBudgetNotJustOldWorkerSuccess() {
+        var json=new com.fasterxml.jackson.databind.ObjectMapper();
+        var report=json.createObjectNode().put("engineVersion","attachment-segment-1.0.0").put("segmentRuleVersion","segment-role-1.0.0")
+                .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH)
+                .put("segmentDatabaseApiVerified",true).put("maximumRequestReservations",20).put("maximumReservedBytes",33554432)
+                .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
+        var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT").put("segmentAnalysisHash","a".repeat(64))
+                .put("segmentCount",7).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true);
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+        for(String key:java.util.List.of("engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","maximumRequestReservations","maximumReservedBytes","files")) {
+            var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
+        }
+        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched")) {
+            var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).remove(key);
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
+        }
+        var old=report.deepCopy().put("maximumRequestReservations",44).put("maximumReservedBytes",83886080);
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(old));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",21)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("reservedBytesIncludingBodyUpperBound",33554433)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentRulesHash","b".repeat(64))));
+        file.put("unknownSegmentCount",8);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+        file.put("unknownSegmentCount",5).put("quality","PARTIAL_TEXT");assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+    }
     @Test void boeunPreservesThreePositiveNoticesWithOneFileEach() {
         var expected=java.util.List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
         assertEquals(expected,AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"));
