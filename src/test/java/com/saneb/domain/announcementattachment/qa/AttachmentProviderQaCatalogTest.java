@@ -203,7 +203,7 @@ class AttachmentProviderQaCatalogTest {
         var second=new AnnouncementSourceClassificationRuleSet("SECOND",rules.rules());assertThat(cat.selectPrepared(scope,second,runtimeHash,now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
     }
     private AttachmentProviderQaCatalog packagedCatalog() {
-        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails(),new ChungjuEminwonAttachmentDiscoveryProfile(),new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails());
+        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails(),new ChungjuEminwonAttachmentDiscoveryProfile(),new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguDalseongProfileDetails());
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
         rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
@@ -234,7 +234,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
-        assertThat(result.plan().cases()).hasSize(33);
+        assertThat(result.plan().cases()).hasSize(36);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -269,9 +269,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(13);assertThat(result.plan().cases()).hasSize(33);
+        assertThat(result.plan().targets()).hasSize(14);assertThat(result.plan().cases()).hasSize(36);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(32).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(35).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

@@ -39,4 +39,13 @@ class MeasuredBodyContentLiveQaTest {
         assertEquals(0, result.redirectCount(), "UNEXPECTED_DETAIL_REDIRECT");
         // 원문·URL·개인정보는 assertion 메시지와 산출물에 복사하지 않는다.
     }
+
+    static Stream<Sample> selectDalseongSupportCases() {
+        return com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG")
+                .map(sample -> new Sample(sample.code(), sample.source().sourceUrl()));
+    }
+    @ParameterizedTest(name = "달성 지원사업 본문 {0}") @MethodSource("selectDalseongSupportCases") @Timeout(30)
+    void readsDalseongSupportBodyThroughProductionPinnedTransport(Sample sample) {
+        readsOnlyMeasuredBodyThroughProductionPinnedTransport(sample);
+    }
 }

@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-24-namgu-support-references-v2",
+  "catalogVersion": "2026-09-25-dalseong-support-references-v2",
   "notices": [
+    {
+      "caseCode": "DALSEONG-51022",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0d83177e895cb044b7b81bb547e608d9cb31dd5a6fc534076ed3ef8fa2c0d904",
+        "sourceUrl": "https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=51022&subCheck=Y",
+        "localSourceCode": "LGS-000052",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DALSEONG-52145",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "21341faa447a1f3105501a1b8b9b7f47d1ad01e063424571d3cd3763612dc6b6",
+        "sourceUrl": "https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=52145&subCheck=Y",
+        "localSourceCode": "LGS-000052",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DALSEONG-51075",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "244f532bcbb280441edead552effce0baaab67c41d55f9aeac784423a1068054",
+        "sourceUrl": "https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=51075&subCheck=Y",
+        "localSourceCode": "LGS-000052",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "NAMGU-44466",
       "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",

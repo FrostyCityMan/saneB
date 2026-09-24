@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL }
     public record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
                            AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,TitleLayout titleLayout,
                            TitleStageCode expectedTitleStopStage) {
@@ -49,6 +49,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("DALSEONG".equals(group)) return Stream.of(
+                selectDalseongCase("51022","2026년 달성군 중소기업 경영안정자금(이차보전) 지원사업 공고",2),
+                selectDalseongCase("52145","2026년 달성군 소상공인 카드수수료 지원사업 공고",1),
+                selectDalseongCase("51075","「2026년 달성청년 자격증 응시료 지원사업」공고",1));
         if("NAMGU_STRUCTURE".equals(group)) return selectCases("NAMGU").filter(sample->"NAMGU-44381".equals(sample.code()));
         if("NAMGU".equals(group)) return Stream.of(
                 selectNamguCase("44466","2026년 청년 사업자 임차료 지원사업 참여자 모집 공고"),
@@ -87,6 +91,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectDalseongCase(String id,String title,int count) {
+        String url="https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("DALSEONG-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000052","SAFE_SAEOL_EMINWON"),
+                new SaeolGetAttachmentProfileConfiguration().selectDaeguDalseongProfileDetails(),url,count,TitleLayout.DALSEONG_LABEL);
     }
     private static ObservationCase selectNamguCase(String id,String title) {
         String url="https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
@@ -254,6 +265,15 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
         Objects.requireNonNull(layout);
+        if(layout==TitleLayout.DALSEONG_LABEL) {
+            var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
+            var tables=forms.getFirst().select("table.bbsView");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");
+            var table=tables.getFirst();
+            var labels=table.select("th[scope=row]").stream().filter(e->e.closest("table")==table&&"제목".equals(e.text().strip())).toList();
+            assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");var cell=labels.getFirst().nextElementSibling();
+            assertTrue(cell!=null&&"td".equals(cell.tagName())&&"3".equals(cell.attr("colspan"))&&cell.select("table").isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertTrue(normalized(expected).equals(normalized(cell.text())),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.NAMGU_HEADER) {
             var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
             var headers=forms.getFirst().select("table.table_03");assertEquals(1,headers.size(),"TITLE_STRUCTURE_CHANGED");
@@ -290,7 +310,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
-            maximumRequests=namgu?5:diagnostic?20:44;maximumBytes=(namgu?24:diagnostic?32:80)*MIB;}
+            boolean dalseong="LOCAL_DAEGU_DALSEONG_GET_V1".equals(profile.selectProfileCode());
+            maximumRequests=dalseong?6:namgu?5:diagnostic?20:44;maximumBytes=(dalseong||namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}

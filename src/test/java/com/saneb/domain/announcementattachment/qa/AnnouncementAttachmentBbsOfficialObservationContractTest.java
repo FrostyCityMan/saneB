@@ -7,6 +7,58 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void dalseongKeepsDistinctSupportTitlesAndWholeFileCounts() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("DALSEONG-51022","DALSEONG-52145","DALSEONG-51075");
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::listedFileCount).containsExactly(2,1,1);
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        var json=new ObjectMapper();
+        var catalog=json.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        for(var sample:cases) {
+            var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(json.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_DAEGU_DALSEONG_GET_V1");
+            assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("eminwon.dalseong.daegu.kr");
+            assertThat(sample.source().listParserProfileCode()).isEqualTo("SAFE_SAEOL_EMINWON");
+            assertThat(sample.expectedTitleStopStage()).isNull();
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).isTrue();
+        }
+    }
+    @Test void dalseongTitleCannotBeBorrowedFromCaptionNestedTableOrDuplicateForm() {
+        String title="달성군 소상공인 지원사업 공고";
+        String table="<table class='bbsView'><caption>다른 설명</caption><tr><th scope='row'>제목</th><td colspan='3'>"+title+"</td></tr></table>";
+        String page="<form name='form1' method='post'>"+table+"</form>";
+        var layout=AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.DALSEONG_LABEL;
+        java.util.function.Consumer<String> validate=html->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(org.jsoup.Jsoup.parse(html),title,layout);
+        validate.accept(page);
+        for(String invalid:List.of(page+page,page.replace("제목","내용"),page.replace("colspan='3'","colspan='2'"),
+                page.replace(title,"다른 제목"),page.replace(title,"<table><tr><td>"+title+"</td></tr></table>"),
+                page.replace("</form>",table+"</form>"),page.replace("method='post'","method='get'"))) {
+            assertThatThrownBy(()->validate.accept(invalid)).isInstanceOf(AssertionError.class);
+        }
+    }
+    @Test void dalseongFutureObservationCannotExpandFixedRequestAndByteCeilings() {
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG").findFirst().orElseThrow();
+        for(boolean diagnostic:List.of(false,true)) {
+            var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),diagnostic);
+            assertThat(budget.maximumRequests).isEqualTo(6);assertThat(budget.maximumBytes).isEqualTo(24L*1024*1024);
+            budget.reserveBody();
+            var request=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(sample.profile().selectDetailUri(sample.source()));
+            for(int i=0;i<4;i++)assertThat(budget.selectRequestAllowed(request)).isTrue();
+            assertThat(budget.selectRequestAllowed(request)).isFalse();assertThat(budget.requests).isEqualTo(6);
+            assertThat(budget.saveBytes(22L*1024*1024)).isTrue();assertThat(budget.saveBytes(1)).isFalse();
+            assertThat(16+3*budget.maximumRequests).isLessThanOrEqualTo(60);
+            assertThat(17513073L+3*budget.maximumBytes).isLessThanOrEqualTo(96L*1024*1024);
+        }
+    }
     @Test void namguKeepsThreeTitleEligibleReferencesWithoutApprovingExpectations() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

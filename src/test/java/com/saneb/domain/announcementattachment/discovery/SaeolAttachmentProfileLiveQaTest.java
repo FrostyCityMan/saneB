@@ -55,6 +55,20 @@ class SaeolAttachmentProfileLiveQaTest {
                 com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.NAMGU_HEADER);
     }
 
+    static java.util.stream.Stream<SaeolGetAttachmentDiscoveryProfileTest.Case> selectDalseongSupportCases() {
+        return com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG")
+                .map(sample -> new SaeolGetAttachmentDiscoveryProfileTest.Case(sample.profile(), "LGS-000052",
+                        "SAFE_SAEOL_EMINWON", "th", sample.code().substring("DALSEONG-".length()), sample.listedFileCount()));
+    }
+
+    @ParameterizedTest(name = "달성 지원사업 고정 참조 {index}")
+    @MethodSource("selectDalseongSupportCases") @Timeout(120)
+    void fixedDalseongSupportReferencesValidateTitleAndWholeFileSignature(SaeolGetAttachmentDiscoveryProfileTest.Case sample) throws Exception {
+        String title = com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG")
+                .filter(item -> item.code().equals("DALSEONG-" + sample.noticeId())).findFirst().orElseThrow().title();
+        verifyOfficialPage(sample, title);
+    }
+
     @ParameterizedTest(name = "새올 실측 프로필 {index}")
     @MethodSource("selectLiveCases")
     @Timeout(180)
@@ -100,7 +114,11 @@ class SaeolAttachmentProfileLiveQaTest {
                 var page = Jsoup.parse(input, null, profile.selectDetailUri(source).toASCIIString());
                 if (expectedTitle != null) {
                     stage = "TITLE_IDENTITY";
-                    validateNamguTitle(page, expectedTitle); report.put("fixedTitleVerified", true);
+                    if ("LGS-000052".equals(sample.sourceCode())) {
+                        com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page, expectedTitle,
+                                com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.DALSEONG_LABEL);
+                    } else validateNamguTitle(page, expectedTitle);
+                    report.put("fixedTitleVerified", true);
                 }
                 discovered = profile.selectDescriptors(source, page.outerHtml());
             }
