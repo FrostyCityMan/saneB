@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -83,6 +83,59 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     }
     private boolean validNamgu(List<JsonNode> reports) {
         return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),"NAMGU",true);
+    }
+    private ObjectNode structureObservation() {
+        var node=new ObjectMapper().createObjectNode().put("schemaVersion",1).put("scope","FIXED_TOKEN_STRUCTURE_ONLY")
+                .put("inspectedNonblankLineCount",10).put("isLineLimitReached",false).put("signalMatchCount",1).put("isTruncated",false);
+        node.putArray("signals").addObject().put("code","TARGET_LABEL").put("lineNumber",4)
+                .put("startOffset",12).put("endOffset",22).put("blockIndex",3).put("isSingleReliableBlock",true)
+                .put("isWithinInitialHeading",false).put("isWholeLineToken",false).put("isLineEndingToken",false)
+                .put("hasColon",true).putArray("tokenIndexes").add(0).add(2);
+        return node;
+    }
+    @Test void structureSummaryContainsOnlyFixedDictionaryAndNumericTuples() {
+        var source=structureObservation();var result=AnnouncementAttachmentBbsObservationProbe.selectStructureSummary(source);
+        assertEquals(14,result.path("ruleDictionary").size());
+        assertEquals("[3,4,5,12,22,3,17]",result.path("signals").get(0).toString());
+        assertTrue(source.has("scope"));
+        assertFalse(result.toString().contains("startOffset"));
+    }
+    @Test void structureSummaryRejectsRawFieldsUnknownCodesMalformedValuesAndTruncation() {
+        for(String key:List.of("raw","filename","url","locator")) {
+            var input=structureObservation();((ObjectNode)input.path("signals").get(0)).put(key,"PRIVATE_CANARY");
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectStructureSummary(input));
+        }
+        for(String key:List.of("isTruncated","isLineLimitReached")) {
+            var input=structureObservation().put(key,true);
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectStructureSummary(input));
+        }
+        for(String key:List.of("code","lineNumber","startOffset","endOffset","blockIndex","hasColon","isWholeLineToken")) {
+            var input=structureObservation();((ObjectNode)input.path("signals").get(0)).put(key,"PRIVATE_CANARY");
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectStructureSummary(input));
+        }
+        for(int index:new int[]{-1,5,999}) {
+            var input=structureObservation();((ObjectNode)input.path("signals").get(0)).putArray("tokenIndexes").add(index);
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectStructureSummary(input));
+        }
+    }
+    @Test void structureModeIsOnePinnedCompleteFileAndCannotReplaceThreeCaseObservation() throws Exception {
+        var row=(ObjectNode)namguReports().get(1);var file=(ObjectNode)row.at("/files/0");
+        String textHash="7181d23cb9973622cf14e2a6edfbed42424b06ad13a91eb53ed55d158d77161a";
+        file.put("binaryHash","69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8").put("textHash",textHash);
+        ((ObjectNode)file.path("segmentAnalysis")).put("textHash",textHash);
+        file.put("segmentAnalysisHash",AnnouncementAttachmentOfficialObservationTest.selectHash(file.path("segmentAnalysis")));
+        file.set("roleStructureObservation",structureObservation());
+        assertTrue(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(List.of(row),START,START.plusSeconds(60),"NAMGU_STRUCTURE",true));
+        assertFalse(validNamgu(List.of(row)));
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(List.of(row,row),START,START.plusSeconds(60),"NAMGU_STRUCTURE",true));
+        var transported=AnnouncementAttachmentBbsObservationProbe.selectStructureTransportReport(row);
+        assertTrue(transported.at("/files/0/structureSummary").isObject());
+        assertFalse(transported.at("/files/0").has("roleStructureObservation"));
+        for(String key:List.of("binaryHash","textHash","quality")) {
+            var invalid=row.deepCopy();((ObjectNode)invalid.at("/files/0")).put(key,"changed");
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(List.of(invalid),START,START.plusSeconds(60),"NAMGU_STRUCTURE",true));
+        }
+        assertEquals(List.of("NAMGU-44381"),AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU_STRUCTURE").map(c->c.code()).toList());
     }
     @Test void namguRequiresAllThreeBoundedHwpReportsAndNeverApprovesPolicy() throws Exception {
         assertTrue(validNamgu(namguReports()));

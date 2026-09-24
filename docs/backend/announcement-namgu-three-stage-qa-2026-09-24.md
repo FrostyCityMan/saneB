@@ -152,4 +152,22 @@
 
 검증 명령: `:test --tests 'com.saneb.domain.announcementattachment.*' :attachment-extractor:test :attachmentContractQaTest :attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`.3분15초 성공, root1966=1944통과/22조건부 생략·실패/오류0, 추출기133건 실패/생략0. 패키지20건·bootJar/probe는1차1분3초에서 실행/생성한 동일 산출물 UP-TO-DATE다. Node4·Python21건, PowerShell 구문0오류, diff 검사 통과. 소유 로컬 Java/PG 시험 프로세스와 단발 Node는 종료됐다. 사용자 output/cache 및 기존 프로세스는 보존했다.
 
+## 44381 단일 구간 구조 진단
+
+- [x] 대상은 이미 COMPLETE_TEXT로 확인된 `NAMGU-44381`의 동일 binary/text hash1건이다. `NAMGU_STRUCTURE`를 별도 명시 모드로 추가하고 기존3건 모드와 수량·manifest·결과 판정을 분리했다. 단일 결과를 전체3건/Provider QA 통과로 사용하지 않는다.
+- [x] 기존 역할 구조 관측에서 고정 사전14종·token 인덱스·줄/원문 위치·block index·불리언만 검증하여 압축한다. 원문/URL/파일명/locator/임의 코드/미지 필드·범위·중복·역순·잘린 관측은 거부한다. 출력 `signals`의 각 배열은 `[사전번호, 줄번호, token비트, 시작, 끝, block번호, 형태비트]`다. 형태 bit0~4는 순서대로 reliable단일block/초기표제영역/전체줄token/줄끝token/콜론존재다. 텍스트/판정/역할을 변경하지 않는다.
+- [x] 선행 서울4회와 로컬6요청의 누적54요청/26,409,829byte를 대조한 뒤 최대5요청/24MiB·20분·CPU1·메모리768MiB·임시1GiB로1회 실행했다. 전체60요청/96MiB 예산은 유지했다. 기존3건 재실행은 잔여 부족으로 차단한다. 같은 plan 재시작 및 새 모드로 누적 초기화 금지.
+- 성공 기준: 동일 파일/텍스트·원문 없는 완전한 구조 metadata·기존 검수/최종 관리자 확인 유지·수량/예산/정리 영수증 일치. 실패 기준: 새 진단을 역할 확정이나 기대값 승인으로 사용, 잘린 결과를 완전한 관측으로 표시, 다른 공고 요청, 운영 설치/DB/정책/worker 변경.
+- 테스트는 고정 단일 선택·3건 대체 거부·파일 변경 거부·진단 원문 필드/잘린 결과/범위·타입 거부, Bash/Java/Python mode 경계와 누적 예산을 검증한다. Python 시험의 최초 들여쓰기 오류1건은 수정 후22건 통과했다. 실제 서울 실행과 기본 CI 결과는 후속 영수증으로 기록한다.
+
+### 단일 진단 결과와 다음 행동
+
+- execution `456802d2371442d9b78afbc07050fc63`, SSM `842e0419-56b8-4918-9c98-8d46f8d0561a`:27.817초·1/1 통과·실패/생략/중단0. 실제4요청/2,180,578byte, 고정3건 범위의 누적 **58요청/28,590,407byte**, 잔여2요청이다. 최대5요청인 단일 진단도 그대로 반복할 수 없다.
+- codeHash는1.0.7 실파일 검증과 동일한 `cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981`, probeHash `4b16e14f6a3635911b2392cf8dba2ad74899d14f6a900235073af3879ce90199`, ZIP SHA256 `641b2327e452ab4688e956651bfd4465c24c8213443311394945e011f114969c`다. body/binary/text/segment analysis hash 모두 직전44381과 일치했다.
+-160개 비어 있지 않은 줄/160block에서 사전 signal15건을 누락/잘림 없이 확인했다. 모든 signal은 신뢰 가능한 단일 block 안에 있다. 신청기간은8/40행, 신청방법55행, 제출서류57행에서 관측됐다. 서식 용어는64/69/72/84/91/111행에 있다. 현재 사전의 대상/지원내용/신청인·성명/사업자번호/서명 표지는0건이다.
+- 확정 사실은 **현재 사전 표현이 추출 줄에서 발견되지 않았다**는 것이다. 실제 지원조건·신청인·서명이 문서에 없다는 뜻은 아니다. 단순히 글머리표 정규식을 추가해서 모든 미확정을 해소할 근거는 없다. 제출서류 뒤의 서식 용어가 독립 서식 표제인지 제출 목록의 참조인지는 아직 미확정이다.
+- 다음 행동은 원문과 대조한 역할별 정답/표제·항목 표현을 확보하고, 제출 목록의 서식 참조와 실제 서식 본문 경계를 구별하는 것이다. 사전에 없는 표현을 임의로 가정하거나 UNKNOWN을 제거하지 않는다. 구간 분석기0/2/3 및 운영 판정은 이번에 수정하지 않았다. 기본0 관측을 명시3의 실파일 검증으로 재사용하지 않는다.
+- 원격 unit inactive·원본/임시 DB/transport 정리·운영 JAR 불변·health UP, 소유 S3 객체 부재 및 로컬 전송 ZIP 삭제를 확인했다. 영수증은 보존한다. 운영 DB/정책/worker/기존 데이터/배포 쓰기는0이다.
+- `:test --tests '*AnnouncementAttachment*Observation*Test' :attachmentContractQaTest :attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`:1분36초 성공. 표적64=62통과/조건부 생략2·실패/오류0, 패키지20건 실패/생략0. bootJar/추출기는 코드 변경이 없어 기존 산출물 UP-TO-DATE다. Node4·Python22·PowerShell 구문0오류·diff 검사 통과다. 일반 전체 회귀와 새 SHA Linux CI는 별도 확인 대상이다.
+
 전체9Gate=8부분/1차단, goal active를 유지한다.

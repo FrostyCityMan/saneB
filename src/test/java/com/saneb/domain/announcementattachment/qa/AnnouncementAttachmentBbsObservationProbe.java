@@ -18,7 +18,7 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 
-/** 별도 승인 범위의 태백1건·옥천/보은/남구 고정3건만 실행한다. 게시/기대값 변경은 없다. */
+/** 별도 승인 범위의 고정 표본만 실행한다. 남구44381 단일 구조 진단은3건 QA와 구분한다. 게시/기대값 변경은 없다. */
 public final class AnnouncementAttachmentBbsObservationProbe {
     static final List<String> OKCHEON_CASES = List.of("OKCHEON-193369", "OKCHEON-193297", "OKCHEON-193187");
     static final List<String> BOEUN_CASES = List.of("BOEUN-221499", "BOEUN-221497", "BOEUN-218812");
@@ -39,7 +39,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -70,12 +70,13 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectThreeReportsComplete(reports, startedAt, endedAt, boeun ? "BOEUN" : "OKCHEON", diagnostic);
     }
     static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, String group, boolean diagnostic) {
-        if (!Set.of("BOEUN", "OKCHEON", "NAMGU").contains(group)) return false;
-        boolean boeun = "BOEUN".equals(group), namgu = "NAMGU".equals(group);
+        if (!Set.of("BOEUN", "OKCHEON", "NAMGU", "NAMGU_STRUCTURE").contains(group)) return false;
+        boolean structure="NAMGU_STRUCTURE".equals(group);
+        boolean boeun = "BOEUN".equals(group), namgu = "NAMGU".equals(group) || structure;
         if (namgu && !diagnostic) return false;
         long maximumRequests = namgu ? 5 : diagnostic ? 20 : 44, maximumBytes = namgu ? 25165824L : diagnostic ? 33554432L : 83886080L;
-        if (reports == null || reports.size() != 3 || startedAt == null || endedAt == null || endedAt.isBefore(startedAt)) return false;
-        var caseCodes = namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : OKCHEON_CASES;
+        if (reports == null || reports.size() != (structure?1:3) || startedAt == null || endedAt == null || endedAt.isBefore(startedAt)) return false;
+        var caseCodes = structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : OKCHEON_CASES;
         var seen = new HashSet<String>();
         for (var report : reports) {
             if (report == null || !caseCodes.contains(report.path("caseCode").asText())
@@ -121,6 +122,12 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED", "ENCRYPTED", "CORRUPT", "UNSUPPORTED", "LIMIT_EXCEEDED")
                             .contains(file.path("quality").asText())) return false;
             boolean complete = "COMPLETE_TEXT".equals(file.path("quality").asText());
+            if(structure) {
+                if(!complete || !"69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8".equals(file.path("binaryHash").asText())
+                        || !"7181d23cb9973622cf14e2a6edfbed42424b06ad13a91eb53ed55d158d77161a".equals(file.path("textHash").asText()))return false;
+                try { selectStructureSummary(file.path("roleStructureObservation")); }
+                catch(IllegalArgumentException invalid){return false;}
+            }
             if (namgu && Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED").contains(file.path("quality").asText())) {
                 try {
                     if (com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpStructureDetails(file) == null) return false;
@@ -191,6 +198,59 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return copy;
     }
 
+    private static final List<String> STRUCTURE_CODES=List.of("NOTICE_TERM","GUIDE_TERM","FORM_TERM","TARGET_LABEL",
+            "SUPPORT_LABEL","PERIOD_LABEL","METHOD_LABEL","APPLICANT_LABEL","BUSINESS_ID_LABEL","BUSINESS_NAME_LABEL",
+            "SIGNATURE_MARKER","STANDARD_REFERENCE","EXCLUSION_REFERENCE","SUBMISSION_SECTION");
+    private static final int[] STRUCTURE_TOKEN_COUNTS={3,4,5,5,7,4,3,3,2,3,5,5,3,3};
+    /** 고정 사전 번호/원문 위치/불리언만 전송한다. 임의 문자열과 잘린 관측은 거부한다. */
+    static JsonNode selectStructureSummary(JsonNode input) {
+        final String error="STRUCTURE_DIAGNOSTIC_INVALID";
+        if(!input.isObject() || input.size()!=7 || !selectBounded(input,"schemaVersion",1,1)
+                || !"FIXED_TOKEN_STRUCTURE_ONLY".equals(input.path("scope").asText())
+                || !selectBounded(input,"inspectedNonblankLineCount",1,20000)
+                || !selectBoolean(input,"isLineLimitReached",false) || !selectBoolean(input,"isTruncated",false)
+                || !input.path("signals").isArray() || !selectBounded(input,"signalMatchCount",0,128)
+                || input.path("signals").size()!=input.path("signalMatchCount").intValue())throw new IllegalArgumentException(error);
+        var result=new ObjectMapper().createObjectNode();result.put("schemaVersion",1);
+        result.put("lineCount",input.path("inspectedNonblankLineCount").intValue());
+        var dictionary=result.putArray("ruleDictionary");STRUCTURE_CODES.forEach(dictionary::add);
+        var rows=result.putArray("signals");
+        int previousLine=0,previousRule=-1;
+        for(var signal:input.path("signals")) {
+            int rule=STRUCTURE_CODES.indexOf(signal.path("code").asText());
+            if(!signal.isObject() || signal.size()!=11 || rule<0
+                    || !selectBounded(signal,"lineNumber",1,input.path("inspectedNonblankLineCount").intValue())
+                    || !selectBounded(signal,"startOffset",0,1000000) || !selectBounded(signal,"endOffset",1,1000000)
+                    || signal.path("endOffset").intValue()<=signal.path("startOffset").intValue()
+                    || !selectBounded(signal,"blockIndex",-1,19999) || !signal.path("tokenIndexes").isArray()
+                    || signal.path("tokenIndexes").isEmpty())throw new IllegalArgumentException(error);
+            int line=signal.path("lineNumber").intValue();
+            if(line<previousLine || (line==previousLine && rule<=previousRule))throw new IllegalArgumentException(error);
+            previousLine=line;previousRule=rule;
+            int mask=0,last=-1;
+            for(var index:signal.path("tokenIndexes")) {
+                if(!index.isIntegralNumber() || !index.canConvertToInt() || index.intValue()<=last || index.intValue()>=STRUCTURE_TOKEN_COUNTS[rule])throw new IllegalArgumentException(error);
+                last=index.intValue();mask|=1<<last;
+            }
+            int flags=0,bit=0;
+            for(String key:List.of("isSingleReliableBlock","isWithinInitialHeading","isWholeLineToken","isLineEndingToken","hasColon")) {
+                if(!signal.path(key).isBoolean())throw new IllegalArgumentException(error);
+                if(signal.path(key).booleanValue())flags|=1<<bit;bit++;
+            }
+            rows.addArray().add(rule).add(line).add(mask).add(signal.path("startOffset").intValue())
+                    .add(signal.path("endOffset").intValue()).add(signal.path("blockIndex").intValue()).add(flags);
+        }
+        return result;
+    }
+    static JsonNode selectStructureTransportReport(JsonNode report) {
+        var output=selectTransportReport(report);
+        for(int index=0;index<report.path("files").size();index++) {
+            var file=(com.fasterxml.jackson.databind.node.ObjectNode)output.path("files").get(index);
+            file.set("structureSummary",selectStructureSummary(report.path("files").get(index).path("roleStructureObservation")));
+        }
+        return output;
+    }
+
     static boolean selectReportComplete(JsonNode report) {
         return report != null && "TAEBAEK-184816".equals(report.path("caseCode").asText())
                 && "OFFICIAL_THREE_STAGE_OBSERVATION_V1".equals(report.path("scope").asText())
@@ -250,10 +310,12 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean fixed = "FIXED".equals(mode);
             boolean okcheon = Set.of("OKCHEON", "OKCHEON_DIAGNOSTIC").contains(mode);
             boolean boeun = Set.of("BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC").contains(mode);
-            boolean namgu = "NAMGU_OBSERVATION".equals(mode);
+            boolean structure="NAMGU_STRUCTURE".equals(mode);
+            boolean namgu = "NAMGU_OBSERVATION".equals(mode) || structure;
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
             boolean three = okcheon || boeun || namgu;
-            String group = namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            String group = structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
                     || !"/work/tmp".equals(System.getProperty("java.io.tmpdir"))
@@ -297,7 +359,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
@@ -306,8 +368,9 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
             passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
-                    && selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
-                            summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount())
+                    && (structure?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                            summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                            summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))
                     && selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount());
@@ -316,8 +379,11 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             result.put("failureCode", "BBS_OBSERVATION_INCOMPLETE");
             result.put("failureType", failure.getClass().getSimpleName());
         }
-        if (result.get("reports") instanceof List<?> reports)
-            result.put("reports", reports.stream().map(report -> selectTransportReport((JsonNode) report)).toList());
+        if (result.get("reports") instanceof List<?> reports) {
+            try { result.put("reports", reports.stream().map(report -> Boolean.TRUE.equals(result.get("structureDiagnostic"))
+                    ?selectStructureTransportReport((JsonNode)report):selectTransportReport((JsonNode) report)).toList()); }
+            catch(IllegalArgumentException invalid){result.remove("reports");result.put("failureCode","STRUCTURE_DIAGNOSTIC_INVALID");passed=false;}
+        }
         result.put("status", passed ? "PASSED" : "INCOMPLETE");
         try { output.println(new ObjectMapper().writeValueAsString(result)); }
         catch (Exception ignored) { output.println("{\"kind\":\"BBS_OBSERVATION_PROBE\",\"status\":\"INCOMPLETE\"}"); }

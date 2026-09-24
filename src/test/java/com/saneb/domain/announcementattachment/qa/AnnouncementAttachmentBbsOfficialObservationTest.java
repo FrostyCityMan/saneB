@@ -49,6 +49,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("NAMGU_STRUCTURE".equals(group)) return selectCases("NAMGU").filter(sample->"NAMGU-44381".equals(sample.code()));
         if("NAMGU".equals(group)) return Stream.of(
                 selectNamguCase("44466","2026년 청년 사업자 임차료 지원사업 참여자 모집 공고"),
                 selectNamguCase("44381","2026년 남구 청년 자격시험 응시료 지원사업 참가자 모집 공고"),

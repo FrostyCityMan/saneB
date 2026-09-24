@@ -95,6 +95,28 @@ class TemporaryBbsObservationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
                 self.unit['validate_manifest_scope'](dict(manifest, **{key: value}), 'OKCHEON')
 
+    def test_namgu_structure_is_one_pinned_file_within_remaining_budget(self):
+        mode='NAMGU_STRUCTURE';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('NAMGU-44381',['NAMGU-44381'],5,25165824),scope)
+        self.assertLessEqual(54+scope[2],60);self.assertLessEqual(26409829+scope[3],100663296)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        for cases in ([],['NAMGU-44466'],self.runner['SCOPES']['NAMGU_OBSERVATION'][1]):
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,caseCodes=cases),mode)
+        row=dict(caseCode='NAMGU-44381',scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_BUSAN_NAMGU_GET_V1',
+            isPolicyQaPassed=False,isExpectationApproved=False,productionWriteCount=0,originalFilesRemoved=True,
+            maximumRequestReservations=5,maximumReservedBytes=25165824,status='OBSERVED_NOT_VALIDATED',
+            requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2200000,
+            files=[dict(quality='COMPLETE_TEXT',structureSummary={},binaryHash='69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8',
+                        textHash='7181d23cb9973622cf14e2a6edfbed42424b06ad13a91eb53ed55d158d77161a')])
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',reports=[row])
+        self.unit['validate_probe_scope'](report,mode)
+        for field,value in [('quality','PARTIAL_TEXT'),('binaryHash','a'*64),('textHash','a'*64),('structureSummary',None)]:
+            changed=json.loads(json.dumps(report));changed['reports'][0]['files'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](changed,mode)
+
     def test_local_install_location_is_supported(self):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/local/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/local/bin/aws', self.unit['aws_binary']())

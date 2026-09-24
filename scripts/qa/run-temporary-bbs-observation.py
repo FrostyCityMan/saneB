@@ -22,6 +22,7 @@ SCOPES = {
     # 후보 대조가 아닌 명시1.0.3 저장 검증. 누적 잔여를 초과하면 별도 승인이 필요하다.
     'BOEUN_STRUCTURAL': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
     'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472),
+    'NAMGU_STRUCTURE': ('NAMGU-44381', ['NAMGU-44381'], 5, 25165824),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -51,7 +52,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','NAMGU_OBSERVATION') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','NAMGU_OBSERVATION','NAMGU_STRUCTURE') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -112,9 +113,9 @@ def validate_probe_scope(report,mode):
                         if file.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
         raise ValueError('PROBE_OUTPUT_INVALID')
-    if mode=='NAMGU_OBSERVATION' and report.get('status')=='PASSED':
+    if mode in ('NAMGU_OBSERVATION','NAMGU_STRUCTURE') and report.get('status')=='PASSED':
         rows=report.get('reports')
-        if not isinstance(rows,list) or len(rows)!=3 or any(not isinstance(row,dict) for row in rows):raise ValueError('PROBE_OUTPUT_INVALID')
+        if not isinstance(rows,list) or len(rows)!=len(SCOPES[mode][1]) or any(not isinstance(row,dict) for row in rows):raise ValueError('PROBE_OUTPUT_INVALID')
         if [row.get('caseCode') for row in rows]!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
         for row in rows:
             if (row.get('scope')!='OFFICIAL_THREE_STAGE_OBSERVATION_V1' or row.get('profileCode')!='LOCAL_BUSAN_NAMGU_GET_V1'
@@ -125,6 +126,12 @@ def validate_probe_scope(report,mode):
             for field,minimum,maximum in [('requestReservationsIncludingBodyUpperBound',3,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
                 value=row.get(field)
                 if type(value) is not int or not minimum<=value<=maximum:raise ValueError('PROBE_OUTPUT_INVALID')
+            if mode=='NAMGU_STRUCTURE':
+                files=row.get('files')
+                if (not isinstance(files,list) or len(files)!=1 or not isinstance(files[0],dict)
+                        or files[0].get('quality')!='COMPLETE_TEXT' or not isinstance(files[0].get('structureSummary'),dict)
+                        or files[0].get('binaryHash')!='69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8'
+                        or files[0].get('textHash')!='7181d23cb9973622cf14e2a6edfbed42424b06ad13a91eb53ed55d158d77161a'):raise ValueError('PROBE_OUTPUT_INVALID')
 def main():
     global phase,source_work_started
     mode=cfg.get('verificationMode','OBSERVATION')
