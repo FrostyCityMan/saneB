@@ -36,6 +36,40 @@ class AnnouncementAttachmentSegmentControllerSmokeTest {
                 .andExpect(jsonPath("$.data.analysisState").value("NOT_ANALYZED"));
         verify(service, never()).insertAnalysis(any(), any(), any());
     }
+    @ParameterizedTest @ValueSource(strings = {"ADMIN", "OPERATOR", "APPROVER"})
+    void evaluationBoundReadUsesOnlySelectedIdsAndNoStore(String role) throws Exception {
+        UUID evaluation=UUID.randomUUID(),policy=UUID.randomUUID();
+        when(service.selectEvaluationAnalysisDetails(SOURCE,EXTRACTION,evaluation)).thenReturn(
+                new AttachmentSegmentAnalysisResponse.EvaluationBinding(evaluation,policy,false,"FORM",result()));
+        mvc.perform(get(URL+"/evaluations/"+evaluation).with(user("fixture").roles(role)))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
+                .andExpect(jsonPath("$.data.evaluationId").value(evaluation.toString()))
+                .andExpect(jsonPath("$.data.policyId").value(policy.toString()))
+                .andExpect(jsonPath("$.data.evaluationCurrent").value(false));
+        verify(service).selectEvaluationAnalysisDetails(SOURCE,EXTRACTION,evaluation);
+        verifyNoMoreInteractions(service);
+    }
+    @Test void boundReadRejectsAnonymousOtherRolesAndMalformedEvaluationId() throws Exception {
+        String path=URL+"/evaluations/"+UUID.randomUUID();
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        for(String role:new String[]{"USER","PARTNER","REVIEWER"})
+            mvc.perform(get(path).with(user("fixture").roles(role))).andExpect(status().isForbidden());
+        mvc.perform(get(URL+"/evaluations/invalid").with(user("fixture").roles("ADMIN")))
+                .andExpect(status().isBadRequest()).andExpect(header().string("Cache-Control","no-store"))
+                .andExpect(jsonPath("$.message").value("판정 ID는 UUID 형식이어야 합니다. 분류 이력에서 판정을 다시 선택하세요."));
+        verifyNoInteractions(service);
+    }
+    @Test void missingOrCorruptBindingErrorsRemainNoStoreWithoutFallingBack() throws Exception {
+        UUID evaluation=UUID.randomUUID();
+        for(var status:new org.springframework.http.HttpStatus[]{org.springframework.http.HttpStatus.NOT_FOUND,org.springframework.http.HttpStatus.CONFLICT}) {
+            doThrow(new com.saneb.common.error.ApiException(com.saneb.common.error.ErrorCode.ANNOUNCEMENT_ATTACHMENT_NOT_READY,
+                    status,"선택한 판정의 구간 근거를 확인하세요.")).when(service).selectEvaluationAnalysisDetails(SOURCE,EXTRACTION,evaluation);
+            mvc.perform(get(URL+"/evaluations/"+evaluation).with(user("fixture").roles("ADMIN")))
+                    .andExpect(status().is(status.value())).andExpect(header().string("Cache-Control","no-store"))
+                    .andExpect(jsonPath("$.success").value(false));
+        }
+        verify(service,never()).selectAnalysisDetails(any(),any());verify(service,never()).insertAnalysis(any(),any(),any());
+    }
     @ParameterizedTest @ValueSource(strings = {"ADMIN", "OPERATOR"})
     void postUsesOnlyPathIdentifiersNotUserSuppliedTextOrRoles(String role) throws Exception {
         when(service.insertAnalysis(any(), eq(SOURCE), eq(EXTRACTION))).thenReturn(result());

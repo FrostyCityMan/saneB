@@ -47,6 +47,25 @@ public class AnnouncementAttachmentSegmentServiceImpl implements AnnouncementAtt
         return selectResponse(input, dao.selectAnalysisDetails(sourceId, extractionId, analysisVersion, rulesHash), analysisVersion, rulesHash);
     }
 
+    @Override @Transactional(readOnly=true, timeout=10)
+    public AttachmentSegmentAnalysisResponse.EvaluationBinding selectEvaluationAnalysisDetails(UUID sourceId, UUID extractionId, UUID evaluationId) {
+        if (evaluationId == null) throw notFound();
+        var input = selectInput(sourceId, extractionId);
+        var binding = dao.selectEvaluationBindingDetails(sourceId, extractionId, evaluationId);
+        if (binding == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND,
+                "선택한 판정에 연결된 구간 분석이 없습니다. 구간 엔진 사용 여부와 해당 판정의 파일 집합을 확인하세요. 독립 분석으로 대체하지 않습니다.");
+        String rulesHash = AttachmentEngineContract.selectSegmentRulesHash(binding.analysisVersion());
+        if (!evaluationId.equals(binding.evaluationId()) || !sourceId.equals(binding.sourceId())
+                || !input.setId().equals(binding.setId()) || !input.fileId().equals(binding.fileId())
+                || !extractionId.equals(binding.extractionId()) || binding.policyId() == null || binding.analysisId() == null
+                || binding.evaluationCurrent() == null || rulesHash == null || !rulesHash.equals(binding.rulesHash())
+                || !Set.of("NOTICE", "GUIDE", "FORM", "REFERENCE", "UNKNOWN").contains(binding.evaluatedFileRoleCode() == null ? "" : binding.evaluatedFileRoleCode())) throw notReady();
+        var stored = dao.selectAnalysisDetails(sourceId, extractionId, binding.analysisVersion(), rulesHash);
+        if (stored == null || !binding.analysisId().equals(stored.id())) throw notReady();
+        return new AttachmentSegmentAnalysisResponse.EvaluationBinding(evaluationId, binding.policyId(), binding.evaluationCurrent(),
+                binding.evaluatedFileRoleCode(), selectResponse(input, stored, binding.analysisVersion(), rulesHash));
+    }
+
     @Override @Transactional(timeout=20)
     public AttachmentSegmentAnalysisResponse insertAnalysis(Authentication authentication, UUID sourceId, UUID extractionId) {
         UUID actor = selectActor(authentication);

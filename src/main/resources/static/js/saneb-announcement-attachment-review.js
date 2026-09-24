@@ -129,7 +129,7 @@
     const segments = window.SanebAttachmentSegments.createPanel({container: q("[data-segments]"), request, sourceId,
         readEpoch: () => epoch, text, meta, action, date, core: C,
         showBlocks: (file, match, blockPage) => { showBlocks(file, match, blockPage); q("[data-blocks]").focus(); }});
-    const showFiles = (setId, title) => {
+    const showFiles = (setId, title, evaluation = null) => {
         segments.reset();
         clear(q("[data-blocks]"));
         return paged(q("[data-files]"), `${root}/attachment-sets/${encodeURIComponent(setId)}/files`, (parent, file) => {
@@ -142,7 +142,8 @@
                 ["추출 글자 수", file.characterCount == null ? "미집계" : `${file.characterCount}자`], ["추출 시각", date(file.extractedAt)],
                 ["이전 추출 재사용", file.reusedFromExtractionId || "재사용 기록 없음"]]);
             action(item, "이 파일의 추출 텍스트 확인", () => showBlocks(file), !file.extractionId);
-            action(item, "이 파일의 문서 구간 근거 확인", () => segments.show(file, setId), !file.extractionId);
+            if (evaluation) action(item, "선택한 판정에 연결된 구간 근거 확인", () => segments.show(file, setId, evaluation), !file.extractionId);
+            action(item, "독립 구간 분석 확인 (기존 1.0.0)", () => segments.show(file, setId), !file.extractionId);
             if (!file.extractionId) text(item, "p", "추출 이력이 없어 텍스트를 조회할 수 없습니다.");
             if (file.roleAssessment == null) {
                 text(item, "p", "텍스트 역할 판정 근거가 없습니다. 기존 정책·수동 지정 또는 미완료 추출일 수 있으며, 역할 자동 판정 완료로 간주하지 않습니다.");
@@ -173,7 +174,9 @@
         meta(item, [["집합 ID", set.setId], ["집합 처리", C.label(set.setStatusCode)], ["첨부 발견", C.label(set.discoveryStatusCode)],
             ["발견 완료", set.discoveryComplete ? "완료" : "미완료"], ["파일 처리", `${set.processedCount}/${set.discoveredCount}개`],
             ["경고", listLabels(set.warningCodes)], ["집합 해시", set.manifestHash || "아직 확정되지 않음"]]);
-        action(item, "이 집합의 파일 확인", () => showFiles(set.setId, usage));
+        const classification = active ? source.effectiveClassification : preview ? source.previewClassification : null;
+        action(item, "이 집합의 파일 확인", () => showFiles(set.setId, usage,
+            classification?.decisionId ? {evaluationId: classification.decisionId} : null));
     }, "첨부 집합 기록이 없습니다. 첨부 없음으로 단정할 수 없습니다.");
     const showMatches = evaluation => {
         const container = q("[data-matches]");
@@ -192,7 +195,7 @@
         meta(item, [["판정 시각", date(evaluation.evaluatedAt)], ["사유", C.label(evaluation.reasonCode)], ["판정 ID", evaluation.evaluationId],
             ["정책 ID", evaluation.policyId], ["규칙 ID", evaluation.ruleReleaseId], ["고정 입력 해시", evaluation.inputHash], ["경고", listLabels(evaluation.warningCodes)]]);
         action(item, "이 판정의 일치 근거 조회", () => showMatches(evaluation));
-        action(item, "이 판정의 파일 집합 조회", () => showFiles(evaluation.setId, C.label(evaluation.usageCode)));
+        action(item, "이 판정의 파일 집합 조회", () => showFiles(evaluation.setId, C.label(evaluation.usageCode), evaluation));
     }, "첨부 판정 이력이 없습니다. 처리 중 여부와 정책 적용 여부를 확인하세요.");
     const renderCurrent = content => {
         const node = q("[data-current-summary]"); clear(node); text(node, "h3", source.title);

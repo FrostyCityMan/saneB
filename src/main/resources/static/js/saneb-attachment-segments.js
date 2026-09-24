@@ -11,9 +11,11 @@
         SEGMENT_ANALYSIS_LIMIT: "구간 분석 한도 초과 · 직접 확인 필요"};
     const id = v => typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
     const hash = v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
+    const versions = {"segment-role-1.0.0": "fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde",
+        "segment-role-1.0.2": "2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82"};
     const integer = (v, min, max) => Number.isSafeInteger(v) && v >= min && v <= max;
     // 서버는 원문으로 분석을 재현한다. 여기서는 잘못 연결된 응답/좌표를 표시하지 않는 방어 검증만 수행한다.
-    const valid = (data, sourceId, setId, file) => {
+    const valid = (data, sourceId, setId, file, bound = false) => {
         if (!data || !file || ![sourceId, setId, file.fileId, file.extractionId].every(id)
             || data.sourceId !== sourceId || data.setId !== setId || file.setId !== setId
             || data.fileId !== file.fileId || data.extractionId !== file.extractionId
@@ -22,7 +24,8 @@
         if (data.analysisState === "NOT_ANALYZED") return data.analysis === null && data.analysisId === null && data.analyzedAt === null;
         const a = data.analysis;
         if (data.analysisState !== "ANALYZED" || !id(data.analysisId) || typeof data.analyzedAt !== "string"
-            || !Number.isFinite(Date.parse(data.analyzedAt)) || !a || a.analysisVersion !== "segment-role-1.0.0"
+            || !Number.isFinite(Date.parse(data.analyzedAt)) || !a || !Object.hasOwn(versions, a.analysisVersion)
+            || (!bound && a.analysisVersion !== "segment-role-1.0.0") || a.rulesHash !== versions[a.analysisVersion]
             || ![a.rulesHash, a.textHash, a.blocksHash].every(hash) || !integer(a.textLength, 1, 1000000)
             || file.characterCount !== a.textLength || !Array.isArray(a.segments) || !integer(a.segments.length, 1, 200)) return false;
         let end = 0;
@@ -40,23 +43,35 @@
             ? a.statusCode === "RESOLVED" && a.reasonCode === "SEGMENTS_RESOLVED" && file.qualityCode === "COMPLETE_TEXT"
             : a.statusCode === "REVIEW_REQUIRED" && ["SEGMENT_CONTEXT_REQUIRED", "COMPLETE_TEXT_REQUIRED", "STRUCTURE_UNCERTAIN", "SEGMENT_ANALYSIS_LIMIT"].includes(a.reasonCode));
     };
+    const validBinding = (data, evaluationId, sourceId, setId, file) => !!data && id(evaluationId)
+        && data.evaluationId === evaluationId && id(data.policyId) && typeof data.evaluationCurrent === "boolean"
+        && roles.includes(data.evaluatedFileRoleCode) && data.segmentAnalysis?.analysisState === "ANALYZED"
+        && valid(data.segmentAnalysis, sourceId, setId, file, true);
     const createPanel = ({container, request, sourceId, readEpoch, text, meta, action, showBlocks, date, core}) => {
         let generation = 0;
         const label = code => labels[code] || core.label(code);
         const reset = () => { generation++; container.replaceChildren(); container.setAttribute("aria-busy", "false"); };
-        const show = async (file, setId) => {
+        const show = async (file, setId, evaluation = null) => {
             reset(); const ownGeneration = generation, ownEpoch = readEpoch();
             const current = () => ownGeneration === generation && ownEpoch === readEpoch();
             text(container, "h3", `문서 구간 근거 · ${file.displayName || file.fileId}`);
             text(container, "p", "고정 추출 이력의 저장된 구간 분석을 조회합니다. 조회만으로 분석·재분류·검수 확정·공고 공개가 실행되지 않습니다.");
+            text(container, "p", evaluation ? "선택한 판정의 입력에 연결된 구간 분석입니다. 현재 운영 적용·최종 검수 완료 여부는 상단 현재 판정에서 확인하세요."
+                : "독립 분석 조회 · 기존 1.0.0 규칙의 결과입니다. 현재 판정에 사용된 근거라는 뜻이 아닙니다.");
             const body = text(container, "div", "");
             text(body, "p", "구간 근거를 조회 중입니다.").setAttribute("role", "status");
             container.setAttribute("aria-busy", "true"); container.focus();
             try {
-                const data = await request(`/api/v2/admin/announcement-sources/${encodeURIComponent(sourceId)}/attachment-extractions/${encodeURIComponent(file.extractionId)}/segment-analysis`);
+                if (evaluation && !id(evaluation.evaluationId)) throw new Error("판정 ID를 확인할 수 없습니다. 최신 기준 또는 분류 이력을 다시 조회하세요.");
+                const result = await request(`/api/v2/admin/announcement-sources/${encodeURIComponent(sourceId)}/attachment-extractions/${encodeURIComponent(file.extractionId)}/segment-analysis${evaluation ? `/evaluations/${encodeURIComponent(evaluation.evaluationId)}` : ""}`);
                 if (!current()) return;
-                if (!valid(data, sourceId, setId, file)) throw new Error("구간 근거의 원문·집합·파일·추출 식별자 또는 좌표가 일치하지 않습니다. 최신 기준을 조회한 뒤 다시 확인하세요.");
+                if (evaluation ? !validBinding(result, evaluation.evaluationId, sourceId, setId, file) : !valid(result, sourceId, setId, file))
+                    throw new Error("구간 근거의 판정·원문·집합·파일·추출 식별자 또는 좌표가 일치하지 않습니다. 최신 기준을 조회한 뒤 다시 확인하세요.");
+                const data = evaluation ? result.segmentAnalysis : result;
                 body.replaceChildren();
+                if (evaluation) meta(body, [["선택한 판정 ID", result.evaluationId], ["판정 정책 ID", result.policyId],
+                    ["판정 이력 상태", result.evaluationCurrent ? "조회 시점의 현재 이력 · 운영 적용 여부와 별개" : "과거 판정 이력 · 현재 검수 기준 아님"],
+                    ["판정 당시 파일 역할", core.label(result.evaluatedFileRoleCode)]]);
                 meta(body, [["파일 전체 역할", core.label(data.fileRoleCode)], ["파일 역할 출처", core.roleOrigin(data.fileRoleOriginCode)]]);
                 if (data.analysisState === "NOT_ANALYZED") {
                     text(body, "p", "현재 분석 규칙에 맞는 저장된 구간 근거가 없습니다. 분석 미완료이며, 첨부 없음이나 정상 후보를 뜻하지 않습니다. 자동 처리 상태와 정책 버전을 확인하세요.").setAttribute("role", "status");
@@ -87,12 +102,12 @@
             } catch (error) {
                 if (!current()) return;
                 body.replaceChildren(); text(body, "p", error.message, "attachment-error").setAttribute("role", "alert");
-                action(body, "구간 근거 조회 재시도", () => show(file, setId));
+                action(body, "구간 근거 조회 재시도", () => show(file, setId, evaluation));
             } finally { if (current()) container.setAttribute("aria-busy", "false"); }
         };
         return {show, reset};
     };
-    const api = {valid, createPanel};
+    const api = {valid, validBinding, createPanel};
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else root.SanebAttachmentSegments = api;
 })(globalThis);

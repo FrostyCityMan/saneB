@@ -12,13 +12,29 @@ const evidence = (codes, start) => codes.map((ruleCode, i) => ({ruleCode, blockI
 const fixture = () => ({sourceId, setId, fileId:file.fileId, extractionId:file.extractionId,
     fileRoleCode:'UNKNOWN', fileRoleOriginCode:'TEXT_RULE', applicationMode:'SHADOW', analysisState:'ANALYZED',
     analysisId:uuid(5), analyzedAt:'2026-09-24T15:00:00+09:00', analysis:{analysisVersion:'segment-role-1.0.0',
-        rulesHash:'a'.repeat(64), textHash:'b'.repeat(64), blocksHash:'c'.repeat(64), textLength:80,
+        rulesHash:'fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde', textHash:'b'.repeat(64), blocksHash:'c'.repeat(64), textLength:80,
         statusCode:'RESOLVED', reasonCode:'SEGMENTS_RESOLVED', segments:[
             {index:0, startOffset:0, endOffset:40, roleCode:'NOTICE', reasonCode:'ROLE_TEXT_STRUCTURE_MATCHED',
                 evidence:evidence(['NOTICE_HEADING','TARGET_SECTION','SUPPORT_SECTION','APPLICATION_SECTION'],0)},
             {index:1, startOffset:40, endOffset:80, roleCode:'FORM', reasonCode:'ROLE_TEXT_STRUCTURE_MATCHED',
                 evidence:evidence(['FORM_HEADING','APPLICANT_FIELD','SIGNATURE_FIELD'],40)}]}});
 const notAnalyzed = () => ({...fixture(), analysisState:'NOT_ANALYZED', analysis:null, analysisId:null, analyzedAt:null});
+const boundFixture = () => {
+    const segmentAnalysis=fixture();Object.assign(segmentAnalysis.analysis,{analysisVersion:'segment-role-1.0.2',
+        rulesHash:'2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82'});
+    return {evaluationId:uuid(6),policyId:uuid(7),evaluationCurrent:true,evaluatedFileRoleCode:'UNKNOWN',segmentAnalysis};
+};
+
+test('bound analysis requires exact evaluation and known version/hash without legacy fallback', () => {
+    const d=boundFixture();assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),true);
+    assert.equal(S.valid(d.segmentAnalysis,sourceId,setId,file),false);
+    for(const mutate of [v=>v.evaluationId=uuid(9),v=>v.policyId=null,v=>v.evaluationCurrent='true',
+        v=>v.evaluatedFileRoleCode='APPROVED',v=>v.segmentAnalysis=notAnalyzed(),
+        v=>v.segmentAnalysis.analysis.rulesHash=fixture().analysis.rulesHash,
+        v=>v.segmentAnalysis.analysis.analysisVersion='segment-role-1.0.1']) {
+        const invalid=boundFixture();mutate(invalid);assert.equal(S.validBinding(invalid,uuid(6),sourceId,setId,file),false);
+    }
+});
 
 test('mixed notice/form segments preserve unknown file role and require exact source/set/file/extraction', () => {
     assert.equal(S.valid(fixture(),sourceId,setId,file),true);
@@ -101,6 +117,24 @@ test('loading, unanalysed and unresolved states do not offer analysis writes or 
     Object.assign(d.analysis.segments[1],{roleCode:'UNKNOWN',reasonCode:'STRUCTURE_UNCERTAIN',evidence:[]});
     const u=harness(()=>d);await u.panel.show(file,setId);assert.match(u.words(),/역할 미확정 구간이 남아 있음/);
     assert.match(u.words(),/확정할 수 있는 구간 역할 근거가 없습니다/);assert.doesNotMatch(u.words(),/구간 역할 분석 완료/);
+});
+test('selected evaluation displays its bound version, snapshot role and history state using GET only', async () => {
+    for(const current of [true,false]) {
+        const d=boundFixture();d.evaluationCurrent=current;d.evaluatedFileRoleCode='FORM';
+        const h=harness(()=>d);await h.panel.show(file,setId,{evaluationId:uuid(6)});
+        assert.deepEqual(h.requests,[[`/api/v2/admin/announcement-sources/${sourceId}/attachment-extractions/${file.extractionId}/segment-analysis/evaluations/${uuid(6)}`]]);
+        assert.match(h.words(),/선택한 판정의 입력에 연결/);assert.match(h.words(),/segment-role-1.0.2/);
+        assert.match(h.words(),/판정 당시 파일 역할/);assert.match(h.words(),/파일 전체 역할/);
+        assert.match(h.words(),current?/운영 적용 여부와 별개/:/과거 판정 이력 · 현재 검수 기준 아님/);
+    }
+});
+test('bound retrieval failure never substitutes independent analysis and retries the same evaluation', async () => {
+    let first=true;const h=harness(()=>{if(first){first=false;return fixture();}return boundFixture();});
+    await h.panel.show(file,setId,{evaluationId:uuid(6)});assert.doesNotMatch(h.words(),/1번 구간/);
+    await h.all().find(n=>n.tag==='button').click();assert.match(h.words(),/segment-role-1.0.2/);
+    assert.equal(h.requests.length,2);assert.equal(h.requests[0][0],h.requests[1][0]);
+    const invalid=harness(()=>{throw new Error('must not request');});await invalid.panel.show(file,setId,{evaluationId:'bad'});
+    assert.equal(invalid.requests.length,0);assert.match(invalid.words(),/판정 ID/);
 });
 test('manual/profile role conflicts remain explicit without changing stored role or calling writes', async () => {
     for(const origin of ['MANUAL','PROFILE']){

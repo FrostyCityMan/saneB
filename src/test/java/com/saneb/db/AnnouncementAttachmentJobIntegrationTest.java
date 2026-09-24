@@ -772,6 +772,13 @@ class AnnouncementAttachmentJobIntegrationTest {
         var segments=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(
                 session.getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class),session.getMapper(AnnouncementSourceDao.class),new ObjectMapper());
         assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,version).analysisId()).isEqualTo(bound);
+        var boundRead=segments.selectEvaluationAnalysisDetails(job.sourceId(),extraction,evaluation.evaluationId());
+        assertThat(boundRead.evaluationId()).isEqualTo(evaluation.evaluationId());
+        assertThat(boundRead.policyId()).isEqualTo(evaluation.policyId());
+        assertThat(boundRead.segmentAnalysis().analysisId()).isEqualTo(bound);
+        assertThat(boundRead.segmentAnalysis().analysis().analysisVersion()).isEqualTo(version);
+        assertThatThrownBy(()->segments.selectEvaluationAnalysisDetails(job.sourceId(),extraction,UUID.randomUUID())).isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->segments.selectEvaluationAnalysisDetails(UUID.randomUUID(),extraction,evaluation.evaluationId())).isInstanceOf(ApiException.class);
         assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.2").analysisState()).isEqualTo(quarter?"ANALYZED":"NOT_ANALYZED");
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
         if(quarter) {
@@ -781,6 +788,7 @@ class AnnouncementAttachmentJobIntegrationTest {
             assertThat(legacy.analysis().segments().getFirst().roleCode()).isEqualTo("UNKNOWN");
             assertThat(legacy.analysisId()).isNotEqualTo(bound);
             assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction).analysisId()).isEqualTo(legacy.analysisId());
+            assertThat(segments.selectEvaluationAnalysisDetails(job.sourceId(),extraction,evaluation.evaluationId()).segmentAnalysis().analysisId()).isEqualTo(bound);
             assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,version).analysisId()).isEqualTo(bound);
             assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(2);
         }

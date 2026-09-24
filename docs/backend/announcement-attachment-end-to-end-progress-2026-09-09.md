@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 판정 결합 구간 근거의 관리자 조회 연결
+
+- [x] AGENTS/현재 branch·HEAD를 다시 확인했다. 기준선은 `codex/attachment-three-stage-linux-qa`의 cc788fc이며 기존 미추적 output/와 Python cache는 보존한다. `long-goal-operating-protocol`과 프론트엔드/UI·UX/구현 스킬에 따라 조회 근거 정합성을 먼저 고정하고 기존 화면을 재사용했다.
+- [x] 기존 화면의 구간 조회가 항상1.0.0이어서1.0.2 평가 입력과 분리되어 있음을 확인했다. 선택한 판정의 입력 FK/정책 버전/hash/분석 ID에 고정한 읽기 전용 v2 경로와 관리자 버튼을 추가했다. 현재·미리보기 집합 및 선택한 과거 이력의 ID를 전달하고, 독립1.0.0 조회는 별도 표시한다. 정책 신규 버전 선택 기능은 이번에 추가하지 않았다.
+- [x] 서버는 source/set/file/extraction/판정 결합과 저장 분석의 원문 재현을 확인한다. 결합 없음404, 불일치409이며 성공·업무 오류 no-store다. 판정 당시 파일 역할과 현재 파일 역할, 평가 current와 운영 적용을 구별한다. GET에 따른 분석 생성/분류 변경/검수 확인/공개는 없다. V84/V85와 기존 v1/GET/POST를 보존하며 migration은 변경하지 않았다.
+- [x] Node 구간/검수/복구/작업/정책 회귀93건 실패·생략0. 표적 Java/마이그레이션 정적 계약과 bootJar는48초 성공했다. `:test --tests 'com.saneb.domain.announcementattachment.*' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은3분37초 성공, 도메인1917=1896통과/21조건부 생략·실패/오류0, 패키지20건 실패/오류/생략0이다. 화면-서버 버전 지문 일치 검사 추가 후 서비스/Controller47건과 bootJar를37초에 재검증했고 실패/오류/생략0이다. 종료 후 소유 Java/PG/Node 프로세스가 남지 않았으며 기존 사용자 Node는 종료하지 않았다.
+- [x] e3ead92 [Linux35992333497](https://github.com/FrostyCityMan/saneB/actions/runs/35992333497) 성공과 artifact XML을 검증했다. root2938=2659통과/279조건부 생략·실패/오류0이다. 별도 extractor122·패키지20·jobPG200·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 신규 버전별 PG2건도 실제 testcase가 실행되어 통과했음을 확인했다. 자료는 `build/qa-results/linux-35992333497`에 보존하며 이번 조회 연결 변경의 PG 통과 근거로 대체하지 않는다.
+- [x] cc788fc [Linux35993498318](https://github.com/FrostyCityMan/saneB/actions/runs/35993498318)도 성공했다. `build/qa-results/linux-35993498318` artifact XML의 root2938/279생략, 별도 suite122/20/200/18/2/5/12/3의 동일 분모·실패/오류0과 별도 suite 생략0을 확인했다. 이는 이번 조회 연결 변경 전 기준선의 성공이다.
+- [~] 신규 결합 조회는 기존 PG 버전별2시험에 검사를 추가했으며, 이번 변경 SHA의 Linux 실행이 필요하다. Windows initdb 차단을 재시도·우회하지 않았다.
+- [~] 별도 잔여: 신규 정책 버전 선택/정상·형식 기대값/UNKNOWN·부분 추출 해소/최종 검수·DRAFT/운영 및 브라우저 E2E. 이번에는 외부 공개 요청·AWS QA·운영 DB/정책/ENFORCE/기존 데이터/배포를 실행하지 않았다. 보은 누적112요청/75,910,600예약byte·잔여20요청은 그대로다. 브라우저는 현재 요청 정책상 미실행이다. 전체9Gate=8부분/1차단·ATT62·SEG10 및 goal active를 유지한다.
+
 ### 2026-09-24 명시1.0.2 worker의 서울 실파일 검증
 
 - [x] 직전 turn은1.0.2의 worker/정책/조회 연결 및1879건 회귀 통과로 authoritative state를 변경한 progress다. 현재 HEAD/origin e3ead92, Linux35992333497의 실행 중 상태를 재확인했다. `long-goal-operating-protocol`에 따라 후보 메모리 분석과 실제 새 버전 저장 경로를 분리해 검증했다.
@@ -817,9 +828,9 @@
 | 1 DB·API 계약 | [~] | 9fe892c Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 제천3공고 중 제목 중단1건과 HWPX3파일의 worker/임시 DB/API 일치도 확인. 태백·양평의 선행 근거 및 마지막 운영09-15 V83과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 코드 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 09-22 운영9a1bb45/추출기1.0.3 설치, worker 비활성 유지. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
 | 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
-| 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 운영 관리자 로그인·준비0/전체2945 조회 확인. 검수·DRAFT·운영 역할별 E2E는 미완료 |
+| 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 판정 입력에 결합된 구간 조회와 독립1.0.0 조회를 분리했으며 이번 SHA PG/브라우저 확인은 별도다. 운영 관리자 로그인·준비0/전체2945 조회는 과거 근거다. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
-| 6 자동·실파일 QA | [!] | 09-24 전체 격리 QA 승인으로 옥천 보류 해제. 서울 보은·옥천6건 관측/진단 성공, 양성5건은 UNKNOWN/부분 추출로 검수 유지. e3ead92의 명시1.0.2 보은 worker/임시 DB/버전 GET3건도 일치 확인. 선행e34743b Linux35990375446 성공이며 e3ead92 Linux35992333497은 검증 중. 차단 사유는 QA 승인 대기가 아니라 전체 Provider의 검토된 정상/형식 기대값 및 미확정·부분 추출 해소 부족임 |
+| 6 자동·실파일 QA | [!] | 09-24 전체 격리 QA 승인으로 옥천 보류 해제. 서울 보은·옥천6건 관측/진단 성공, 양성5건은 UNKNOWN/부분 추출로 검수 유지. e3ead92 명시1.0.2 보은 worker/임시 DB/버전 GET3건 및 Linux35992333497의 jobPG200 등 성공 확인. 이번 판정 결합 조회 변경의 Linux 검증은 별도다. 차단 사유는 QA 승인 대기가 아니라 전체 Provider의 검토된 정상/형식 기대값 및 미확정·부분 추출 해소 부족임 |
 | 7 운영 배포·활성화 | [~] | 사용자 승인 후 Actions35691586461/CodeDeploy d-NCB2HF3YK 성공. 운영9a1bb45·bundle/설치JAR 일치·V83·추출기1.0.3·catalog30/기대값1·healthUP·이전JAR/release 존재 확인. 첨부count0/worker비활성/외부key2종 부재 유지. 정책 QA/게시/ENFORCE/기존 데이터 정확한 범위 승인·적용은 별도 |
 | 8 운영 브라우저 E2E | [~] | 이전476c8f7 관리자 로그인·읽기 전용 목록, 2bde216 배포 후 인증 만료→로그인 확인은 과거 근거다. 최신9a1bb45 코드 배포의 인증 업무 E2E는 미실행. 실제 검수/DRAFT/복구·역할/반응형 업무 E2E는 별도이며 이번 코드 재배포 승인에서 브라우저 실행을 추론하지 않음 |
 

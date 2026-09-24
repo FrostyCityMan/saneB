@@ -33,6 +33,13 @@ class AnnouncementAttachmentSegmentServiceTest {
     private static final String TEXT = "사업 지원 안내\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)";
     private AttachmentSegmentRows.Stored stored;
 
+    @Test void browserVersionFingerprintsMatchServerContract() throws Exception {
+        String script=new org.springframework.core.io.ClassPathResource("static/js/saneb-attachment-segments.js")
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(script).contains("\""+AttachmentSegmentRoleAnalyzer.VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.RULES_HASH+"\"",
+                "\""+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH+"\"");
+    }
+
     @Test void getReturnsNotAnalyzedWithoutWriting() throws Exception {
         prepare();
         var result = service.selectAnalysisDetails(source, extraction);
@@ -115,6 +122,38 @@ class AnnouncementAttachmentSegmentServiceTest {
     void unknownOrDiagnosticVersionIsRejectedBeforeStorageAccess(String version) {
         assertThatThrownBy(()->service.selectAnalysisDetails(source,extraction,version)).isInstanceOf(ApiException.class)
                 .hasMessageContaining("analysisVersion");verifyNoInteractions(dao,audits);
+    }
+    @Test void evaluationBindingReadsExactImmutableInputAndNeverFallsBackToShadow() throws Exception {
+        prepare();
+        var saved=service.insertAnalysis(auth("ADMIN"),source,extraction);
+        UUID evaluation=UUID.randomUUID(), policy=UUID.randomUUID();
+        var binding=new AttachmentSegmentRows.Binding(evaluation,source,set,file,extraction,policy,saved.analysisId(),
+                AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH,"FORM",false);
+        when(dao.selectEvaluationBindingDetails(source,extraction,evaluation)).thenReturn(binding);
+        clearInvocations(dao,audits);
+        var read=service.selectEvaluationAnalysisDetails(source,extraction,evaluation);
+        assertThat(read.evaluationId()).isEqualTo(evaluation);assertThat(read.policyId()).isEqualTo(policy);
+        assertThat(read.evaluationCurrent()).isFalse();assertThat(read.evaluatedFileRoleCode()).isEqualTo("FORM");
+        assertThat(read.segmentAnalysis()).isEqualTo(saved);
+        stored=new AttachmentSegmentRows.Stored(UUID.randomUUID(),source,set,file,extraction,stored.analysisJson(),stored.createdAt());
+        assertThatThrownBy(()->service.selectEvaluationAnalysisDetails(source,extraction,evaluation)).isInstanceOf(ApiException.class);
+        when(dao.selectEvaluationBindingDetails(source,extraction,evaluation)).thenReturn(null);
+        assertThatThrownBy(()->service.selectEvaluationAnalysisDetails(source,extraction,evaluation)).isInstanceOf(ApiException.class)
+                .hasMessageContaining("독립 분석으로 대체하지 않습니다");
+        verify(dao,never()).insertAnalysis(any());verifyNoInteractions(audits);
+    }
+    @ParameterizedTest @ValueSource(strings={"evaluation","source","set","file","extraction","policy","analysis","version","hash","role","current"})
+    void corruptEvaluationBindingCannotExposeAnalysis(String field) throws Exception {
+        prepare();UUID evaluation=UUID.randomUUID();
+        when(dao.selectEvaluationBindingDetails(source,extraction,evaluation)).thenReturn(new AttachmentSegmentRows.Binding(
+                field.equals("evaluation")?UUID.randomUUID():evaluation,field.equals("source")?UUID.randomUUID():source,
+                field.equals("set")?UUID.randomUUID():set,field.equals("file")?UUID.randomUUID():file,
+                field.equals("extraction")?UUID.randomUUID():extraction,field.equals("policy")?null:UUID.randomUUID(),
+                field.equals("analysis")?null:UUID.randomUUID(),field.equals("version")?"segment-role-1.0.1":AttachmentSegmentRoleAnalyzer.VERSION,
+                field.equals("hash")?"a".repeat(64):AttachmentSegmentRoleAnalyzer.RULES_HASH,field.equals("role")?null:"UNKNOWN",field.equals("current")?null:true));
+        assertThatThrownBy(()->service.selectEvaluationAnalysisDetails(source,extraction,evaluation)).isInstanceOf(ApiException.class);
+        verify(dao,never()).selectAnalysisDetails(any(),any(),anyString(),anyString());
+        verify(dao,never()).insertAnalysis(any());verifyNoInteractions(audits);
     }
     private void prepare() throws Exception {
         var block = new AttachmentSetEvidence.Block(0, 0, TEXT.length(), "p:0", true, "p:0");

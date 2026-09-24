@@ -10,6 +10,9 @@ public final class AttachmentSegmentRows {
                         String extractedText, String blocksJson, Integer pageCount, String fileRoleCode, String fileRoleOriginCode) { }
     public record Stored(UUID id, UUID sourceId, UUID setId, UUID fileId, UUID extractionId,
                          String analysisJson, OffsetDateTime createdAt) { }
+    public record Binding(UUID evaluationId, UUID sourceId, UUID setId, UUID fileId, UUID extractionId,
+                          UUID policyId, UUID analysisId, String analysisVersion, String rulesHash,
+                          String evaluatedFileRoleCode, Boolean evaluationCurrent) { }
     public record Insert(UUID id, UUID sourceId, UUID setId, UUID fileId, UUID extractionId, String analysisVersion,
                          String rulesHash, String textHash, String blocksHash, String analysisJson) { }
 }
