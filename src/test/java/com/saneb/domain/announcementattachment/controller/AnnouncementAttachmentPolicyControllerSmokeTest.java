@@ -70,6 +70,26 @@ class AnnouncementAttachmentPolicyControllerSmokeTest {
         verify(service).updatePolicyDraft(any(),eq(ID),eq(new AttachmentPolicyRequests.Update(0,RULE,"OFF",1L,"정책 QA")));
         verify(service).insertPolicyRevision(any(),eq(ID),eq(KEY),eq(new AttachmentPolicyRequests.Revision(0,"개정 QA")));
     }
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.0","segment-role-1.0.2"})
+    void adminCanExplicitlyChooseKnownSegmentVersionWithoutSendingHash(String version) throws Exception {
+        var create=new AttachmentPolicyRequests.Create(RULE,"OFF",1L,"구간 선택",version);
+        var update=new AttachmentPolicyRequests.Update(0,RULE,"OFF",1L,"구간 선택",version);
+        when(service.insertPolicy(any(),eq(KEY),eq(create))).thenReturn(details());
+        when(service.updatePolicyDraft(any(),eq(ID),eq(update))).thenReturn(details());
+        mvc.perform(post(ROOT).with(user("qa").roles("ADMIN")).with(csrf()).header("Idempotency-Key",KEY)
+                .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(create))).andExpect(status().isCreated());
+        mvc.perform(put(ROOT+"/"+ID).with(user("qa").roles("ADMIN")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(update))).andExpect(status().isOk());
+        verify(service).insertPolicy(any(),eq(KEY),eq(create));verify(service).updatePolicyDraft(any(),eq(ID),eq(update));
+    }
+    @ParameterizedTest @ValueSource(strings={"","segment-role-1.0.1","segment-role-1.0.2 ","future"})
+    void invalidSegmentVersionIsRejectedBeforeService(String version) throws Exception {
+        mvc.perform(post(ROOT).with(user("qa").roles("ADMIN")).with(csrf()).header("Idempotency-Key",KEY).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(new AttachmentPolicyRequests.Create(RULE,"OFF",1L,"구간 선택",version)))).andExpect(status().isBadRequest());
+        mvc.perform(put(ROOT+"/"+ID).with(user("qa").roles("ADMIN")).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(new AttachmentPolicyRequests.Update(0,RULE,"OFF",1L,"구간 선택",version)))).andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
     @ParameterizedTest @ValueSource(strings={"OPERATOR","APPROVER","USER","PARTNER","REVIEWER"})
     void everyNonAdminRoleIsDeniedForAllDraftMutations(String role) throws Exception {
         mvc.perform(post(ROOT).with(user("qa").roles(role)).with(csrf()).header("Idempotency-Key",KEY).contentType(MediaType.APPLICATION_JSON).content(create())).andExpect(status().isForbidden());
@@ -93,7 +113,7 @@ class AnnouncementAttachmentPolicyControllerSmokeTest {
         }
         verifyNoInteractions(service);
     }
-    @ParameterizedTest @ValueSource(strings={"url","parser","profileManifest","extractorConfigHash","policyStatusCode","validationPassed","settingsJson"})
+    @ParameterizedTest @ValueSource(strings={"url","parser","profileManifest","extractorConfigHash","segmentRulesHash","policyStatusCode","validationPassed","settingsJson"})
     void unknownAndSystemOwnedFieldsAreRejectedForEveryInput(String field) throws Exception {
         for(int operation=0;operation<3;operation++) {
             var tree=mapper.readTree(operation==0?create():operation==1?update():revision());

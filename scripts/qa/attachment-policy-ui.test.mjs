@@ -13,6 +13,23 @@ const impact=(d=detail(),patch={})=>({policy:d.policy,activePolicyForRule:null,m
 const paged=(items,n=1,size=10,total=items.length)=>({items,page:n,size,totalCount:total,totalPages:Math.ceil(total/size)});
 const rules=()=>paged([{releaseId:id(2),releaseCode:'규칙1',versionNo:1,releaseStatusCode:'ACTIVE'}],1,20);
 const input=()=>({ruleReleaseId:id(2),modeCode:'OFF',maximumSourceBytes:'83886080'});
+const segmentDetail=(version='segment-role-1.0.0',rowVersion=0)=>detail({policy:summary({rowVersion}),configuration:{...detail().configuration,
+    engineVersion:'attachment-segment-1.0.0',segmentRuleVersion:version,segmentRulesHash:P.segmentVersions[version]}});
+
+test('explicit segment choices are allowlisted and omitted update preserves exact stored version in receipt',()=>{
+    const d=segmentDetail(),s={detail:d};
+    const command=P.command('update',s,{...input(),segmentRuleVersion:'segment-role-1.0.2'},'규칙 전환',true);
+    assert.equal(command.payload.segmentRuleVersion,'segment-role-1.0.2');assert(!('segmentRulesHash' in command.payload));
+    assert.equal(P.receipt(segmentDetail('segment-role-1.0.2',1),command),true);
+    assert.equal(P.receipt(segmentDetail('segment-role-1.0.0',1),command),false);
+    const omitted=P.command('update',{detail:segmentDetail('segment-role-1.0.2')},input(),'한도만 변경',true);
+    assert.equal(omitted.payload.segmentRuleVersion,undefined);
+    assert.equal(P.receipt(segmentDetail('segment-role-1.0.2',1),omitted),true);
+    assert.equal(P.receipt(segmentDetail('segment-role-1.0.0',1),omitted),false);
+    for(const v of ['segment-role-1.0.1','future','segment-role-1.0.2 '])assert.throws(()=>P.command('create',{}, {...input(),segmentRuleVersion:v},'규칙 선택',true));
+    assert.throws(()=>P.command('update',{detail:detail()}, {...input(),segmentRuleVersion:'segment-role-1.0.2'},'전환 금지',true),/새 정책/);
+    for(const v of Object.keys(P.segmentVersions))assert.equal(P.command('create',{}, {...input(),segmentRuleVersion:v},'새 초안',true).payload.segmentRuleVersion,v);
+});
 const cmd=(kind='qa')=>P.command(kind,{detail:detail(),run:run({statusCode:'RUNNING'})},input(),'업무 확인',true);
 
 test('strict details and impact distinguish counts, zero and absent data',()=>{
@@ -95,6 +112,7 @@ class Element {
 const text=e=>[e.textContent,...e.children.map(text)].join(' ');
 function harness({admin=true,nav={policyId:id(1)},request:custom,confirm=true}={}){
     const nodes=new Map(),q=s=>{if(!nodes.has(s))nodes.set(s,new Element());return nodes.get(s);},fields=new Map(Object.entries(input()).map(([k,v])=>{const e=new Element();e.value=v;return[k,e];}));
+    fields.set('segmentRuleVersion',new Element());
     q('[data-editor]').elements={namedItem:n=>fields.get(n)};q('[data-editor]').reportValidity=()=>true;
     const reason=new Element('textarea'),ack=new Element('input'),consents=new Map(['acknowledgeNewCollectionBehavior','acknowledgeExistingJobsUnchanged','acknowledgeNoBackfill'].map(n=>[n,new Element('input')]));reason.value='업무 확인';q('[data-approval-form]').elements={namedItem:n=>n==='reason'?reason:n==='acknowledged'?ack:consents.get(n)};q('[data-approval-form]').reportValidity=()=>true;
     const calls=[],params={...nav},navigation={read:()=>({...params}),url:patch=>'/app/admin/announcement-attachment-policies?'+new URLSearchParams(Object.entries({...params,...patch}).filter(([,v])=>v!=null)),replace:patch=>Object.assign(params,patch)};
@@ -142,6 +160,29 @@ test('CAS update confirms exact saved fields and uses policy version',async()=>{
     const call=h.calls.find(c=>c.method==='PUT');assert.equal(JSON.parse(call.body).expectedVersion,0);assert.deepEqual(call.headers,{});
     assert.match(text(h.q('[data-receipt]')),/조회 버전 1/);assert.equal(h.app.mutation.uncertain,false);assert.equal(h.app.state.detail.policy.rowVersion,1);
     assert.equal(h.q('[data-receipt]').focused,true);
+});
+test('segment selector requires explicit reviewed change, clears consent and never publishes',async()=>{
+    let saved=false;const old=segmentDetail(),updated=segmentDetail('segment-role-1.0.2',1);
+    const h=harness({request:async(url,o,next)=>{
+        if(o.method==='PUT'){saved=true;return updated;}
+        if(url===P.base+'/'+id(1))return saved?updated:old;
+        if(url.endsWith('/publication-impact'))return impact(saved?updated:old);
+        return next(url);
+    }});await h.app.start();assert.equal(h.fields.get('segmentRuleVersion').disabled,false);
+    assert.match(text(h.q('[data-detail]')),/구간 규칙 버전/);
+    h.app.arm('save');h.ack.checked=true;h.fields.get('segmentRuleVersion').value='segment-role-1.0.2';
+    await h.q('[data-editor]').fire('input');assert.equal(h.ack.checked,false);assert.equal(h.q('[data-qa]').disabled,true);
+    h.app.arm('save');assert.match(text(h.q('[data-action-impact]')),/segment-role-1.0.0/);assert.match(text(h.q('[data-action-impact]')),/segment-role-1.0.2/);
+    assert.match(text(h.q('[data-action-impact]')),/전체 QA/);h.ack.checked=true;await h.app.submit();
+    const writes=h.calls.filter(c=>c.method);assert.equal(writes.length,1);assert.equal(writes[0].method,'PUT');
+    assert.equal(JSON.parse(writes[0].body).segmentRuleVersion,'segment-role-1.0.2');assert.equal(h.app.mutation.uncertain,false);
+    assert.equal(h.fields.get('segmentRuleVersion').value,'');assert.match(text(h.q('[data-detail]')),/segment-role-1.0.2/);
+});
+test('legacy selector is disabled and creation choice resets to explicit unchanged default',async()=>{
+    const h=harness();await h.app.start();assert.equal(h.fields.get('segmentRuleVersion').disabled,true);
+    h.fields.get('segmentRuleVersion').value='segment-role-1.0.2';h.app.arm('save');assert.equal(h.calls.some(c=>c.method),false);
+    assert.match(h.q('[data-error]').textContent,/새 정책/);h.app.reset(true);
+    assert.equal(h.fields.get('segmentRuleVersion').disabled,false);assert.equal(h.fields.get('segmentRuleVersion').value,'');
 });
 test('creation and revision use keyed POST without publication; returned policy becomes selection',async()=>{
     for(const kind of ['create','revision']){

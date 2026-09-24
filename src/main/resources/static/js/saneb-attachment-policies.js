@@ -13,12 +13,14 @@
         const meta=(box,pairs)=>{const dl=el(box,"dl",null,"attachment-meta");for(const[k,v]of pairs){el(dl,"dt",k);el(dl,"dd",v);}};
         const note=s=>{q("[data-status]").textContent=s;},error=e=>{q("[data-error]").textContent=e?.message||"현재 상태를 확인하지 못했습니다. 다시 조회하세요.";q("[data-error]").hidden=false;q("[data-error]").focus();};
         const locked=()=>busy||mutation.pending||mutation.uncertain;
-        const values=()=>({ruleReleaseId:field("ruleReleaseId").value,modeCode:field("modeCode").value,maximumSourceBytes:field("maximumSourceBytes").value});
+        const values=()=>({ruleReleaseId:field("ruleReleaseId").value,modeCode:field("modeCode").value,maximumSourceBytes:field("maximumSourceBytes").value,
+            segmentRuleVersion:field("segmentRuleVersion").value});
         function disarm(restoreFocus=false){const kind=action?.kind;action=null;ack.checked=false;for(const n of consentNames)approval.elements.namedItem(n).checked=false;q("[data-approval]").hidden=true;
             if(restoreFocus&&kind)q(({create:"[data-save]",update:"[data-save]",revision:"[data-revision]",qa:"[data-qa]",cancel:"[data-cancel-qa]",prepare:"[data-prepare]",publish:"[data-publish]"})[kind]).focus();}
         function gates(){
             const editable=admin&&!stale&&(creating||state.detail?.isEditable),frozen=locked();
             q("[data-editor-fields]").disabled=frozen||!editable;q("[data-save]").disabled=frozen||!editable;
+            field("segmentRuleVersion").disabled=frozen||!editable||(!creating&&!P.segmentEditable(state.detail));
             for(const s of ["[data-list-refresh]","[data-filter-submit]","[data-rule-refresh]","[data-new]","[data-reset]"])q(s).disabled=frozen;
             q("[data-new]").disabled=frozen||!admin;q("[data-refresh]").disabled=frozen||!state.detail;
             q("[data-revision]").disabled=frozen||!admin||stale||!state.detail;
@@ -67,14 +69,17 @@
             meta(box,[["공고별 누적 다운로드 한도",`${d.configuration.maximumSourceBytes.toLocaleString("ko-KR")}바이트`],["저장 시각",date(d.updatedAt)],
                 ["분류 엔진",d.configuration.engineVersion],["추출기",d.configuration.extractorVersion],["개정 원본",d.copiedFromPolicyId||"없음"],
                 ["텍스트 역할 규칙",d.configuration.roleRuleVersion||"연결 없음 · 자동 역할 판정 미적용"],
-                ["역할 규칙 지문",d.configuration.roleRulesHash||"연결 없음"]]);
+                ["역할 규칙 지문",d.configuration.roleRulesHash||"연결 없음"],
+                ["구간 규칙 버전",d.configuration.segmentRuleVersion||"파일 단위 엔진 · 구간 규칙 없음"],
+                ["구간 규칙 지문",d.configuration.segmentRulesHash||"연결 없음"]]);
             el(box,"p",d.configuration.roleRuleVersion
                 ?"이 정책은 완전 추출된 역할 미확정 파일에 텍스트 규칙을 사용합니다. 관리자·시스템 지정 역할은 유지하며, 정책 게시·기존 데이터 재처리는 별도 승인 대상입니다."
                 :"기존 정책에는 새 역할 규칙을 자동 적용하지 않습니다. 새 초안 저장 후 QA와 게시 절차가 필요합니다.");
             el(box,"p",d.isEditable?"이 초안은 편집 가능합니다. 수정 후 이전 QA는 다시 검증해야 합니다.":"현재 계정·정책 상태에서는 직접 편집할 수 없습니다. 관리자는 개정 초안을 만들 수 있습니다.");
             const bindings=el(box,"details");el(bindings,"summary",`시스템 수집 방식 ${d.systemProfileBindings.length}개 · 관리자가 선택하지 않음`);
             for(const p of d.systemProfileBindings)el(bindings,"p",`${P.label(p.providerCode)} / ${p.profileCode} · 지문 ${p.profileHash}`);
-            if(fill){fillRules(d.policy.ruleReleaseId);field("modeCode").value=d.policy.modeCode;field("maximumSourceBytes").value=String(d.configuration.maximumSourceBytes);dirty=false;}
+            if(fill){fillRules(d.policy.ruleReleaseId);field("modeCode").value=d.policy.modeCode;field("maximumSourceBytes").value=String(d.configuration.maximumSourceBytes);
+                field("segmentRuleVersion").value="";dirty=false;}
         }
         function stepView(box,list){for(const s of list){const row=el(box,"article",null,"attachment-evidence-item");el(row,"p",`${P.label(s.stepCode)}: ${P.label(s.statusCode)}`);
             if(s.evidenceHash)el(row,"p",`단계 증거 지문: ${s.evidenceHash}`);
@@ -152,6 +157,9 @@
                 publish:"실제 게시 요청입니다. 서버가 전체 QA와 설치·현재 범위를 재검증한 뒤 같은 규칙의 이전 ACTIVE 정책을 퇴역시키고 이 초안을 게시합니다. 기존 고정 작업의 정책은 보존하고 기존 데이터는 일괄 적용하지 않습니다."};
             el(box,"p",descriptions[kind]);if(planned.payload.expectedVersion!=null)el(box,"p",`확인한 ${kind==="cancel"?"QA 실행":"정책"} 버전: ${planned.payload.expectedVersion}`);
             if(["create","update"].includes(kind))meta(box,[["저장할 키워드 규칙",planned.payload.ruleReleaseId],["저장할 초안 모드",P.label(planned.payload.modeCode)],["공고별 상한",`${planned.payload.maximumSourceBytes.toLocaleString("ko-KR")}바이트`]]);
+            if(["create","update"].includes(kind))meta(box,[["변경 전 구간 규칙",state.detail?.configuration.segmentRuleVersion||"연결 없음"],
+                ["저장할 구간 규칙",planned.payload.segmentRuleVersion||state.detail?.configuration.segmentRuleVersion||(kind==="create"?"segment-role-1.0.0 (신규 기본값)":"변경 없음")],
+                ["검증 영향","초안 저장 후 전체 QA를 다시 검증해야 합니다. 운영 정책·기존 고정 작업·기존 데이터는 변경하지 않습니다."]]);
             if(kind==="publish"){const s=state.scope.scope,i=state.impact;meta(box,[["실제로 게시할 모드",P.label(planned.modeCode)],["고정 범위 ID",s.scopeId],["고정 범위 지문",s.scopeHash],["고정 항목 수",`${s.itemCount}개 · 공고/작업/정책/계획/수집원 혼합`],["유효기간",date(s.expiresAt)],["연결 QA",s.qaRunId],
                 ["현재 동일 규칙 게시 정책",i.activePolicyForRule?.policyId||"없음"],["공고별 누적 다운로드 상한",`${i.maximumSourceBytes.toLocaleString("ko-KR")}바이트`]]);
                 el(box,"p",i.wouldStopNewExternalRequests?"OFF 게시로 다른 규칙의 고정 작업을 포함한 새 외부 요청이 중지될 수 있습니다.":i.wouldLiftGlobalOffStop?"현재 OFF의 전역 중지가 해제될 수 있습니다. 별도 작업자 설정·제한은 유지됩니다.":"새 수집에는 게시한 모드가 적용됩니다. 기존 고정 작업·다른 제한은 유지됩니다.");
@@ -174,7 +182,9 @@
             try{const s=mutation.sent,current=await request(s.kind==="update"?`${P.base}/${s.policyId}`:`${P.base}/${s.policyId}/validation-runs/${s.runId}`);
                 P.requireValue(s.kind==="update"?P.details(current)&&current.policy.policyId===s.policyId&&current.policy.rowVersion>=s.payload.expectedVersion:P.run(current,s.policyId)&&current.runId===s.runId&&current.rowVersion>=s.payload.expectedVersion);
                 state.reconciliation=current;const box=clear("[data-reconcile-result]");el(box,"p","원래 요청이 성공했는지는 확정하지 않습니다. 아래는 현재 조회한 상태이며, 별도 확인 후 새로운 검토 기준으로만 채택할 수 있습니다.");
-                if(s.kind==="update"){policyMeta(box,current.policy);el(box,"p",`현재 공고별 한도: ${current.configuration.maximumSourceBytes.toLocaleString("ko-KR")}바이트`);}else{el(box,"p",`QA ${current.runId} · 버전 ${current.rowVersion} · ${P.label(current.statusCode)}`);}
+                if(s.kind==="update"){policyMeta(box,current.policy);el(box,"p",`현재 공고별 한도: ${current.configuration.maximumSourceBytes.toLocaleString("ko-KR")}바이트`);
+                    meta(box,[["현재 저장된 구간 규칙",current.configuration.segmentRuleVersion||"연결 없음"],["현재 구간 규칙 지문",current.configuration.segmentRulesHash||"연결 없음"]]);
+                }else{el(box,"p",`QA ${current.runId} · 버전 ${current.rowVersion} · ${P.label(current.statusCode)}`);}
             }catch(e){error(e);}finally{busy=false;gates();}}
         function reconcile(){if(busy||!admin)return;try{const c=state.reconciliation,kind=mutation.sent?.kind;mutation.reconcile(c,q("[data-reconcile-ack]").checked);
             if(kind==="update"){showDetail(c,false);dirty=true;}else showRun(c);state.reconciliation=null;disarm();stale=true;clear("[data-reconcile-result]");
@@ -182,7 +192,7 @@
         }catch(e){error(e);}}
         function reset(newDraft=false){if(locked()||newDraft&&!admin)return;if((dirty||reason.value)&&!confirmDiscard("저장하지 않은 초안 입력과 사유를 버리시겠습니까? 서버에 저장된 정책과 QA 이력은 바뀌지 않습니다."))return;
             disarm();reason.value="";dirty=false;
-            if(newDraft){state.detail=null;state.run=null;state.impact=null;state.scope=null;state.publication=null;creating=true;stale=false;fillRules("");field("modeCode").value="OFF";field("maximumSourceBytes").value="83886080";
+            if(newDraft){state.detail=null;state.run=null;state.impact=null;state.scope=null;state.publication=null;creating=true;stale=false;fillRules("");field("modeCode").value="OFF";field("maximumSourceBytes").value="83886080";field("segmentRuleVersion").value="";
                 for(const s of ["[data-detail]","[data-run]","[data-qa-list]","[data-qa-pages]","[data-impact]","[data-scope-list]","[data-scope-pages]","[data-scope]","[data-scope-items]","[data-scope-item-pages]","[data-publication-receipt]"])clear(s);navigation.replace({policyId:null,runId:null,scopeId:null,scopePage:1,scopeItemPage:1});}
             else if(state.detail)showDetail(state.detail);gates();}
         form.addEventListener("submit",e=>{e.preventDefault();if(form.reportValidity())arm("save");});form.addEventListener("input",()=>{if(locked())return;dirty=true;disarm();gates();});

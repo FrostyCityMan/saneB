@@ -7,6 +7,7 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
 import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
+import com.saneb.domain.announcementattachment.classification.AttachmentEngineContract;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyDao;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfileRegistry;
 import com.saneb.domain.announcementattachment.dto.AttachmentPolicyRequests;
@@ -61,14 +62,20 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         UUID actor=selectActor(authentication,true);
         if(key==null || request==null) throw invalid("정책 생성 입력과 UUID 형식 Idempotency-Key가 필요합니다.");
         validateFields(request.ruleReleaseId(),request.modeCode(),request.maximumSourceBytes(),request.reason());
-        String hash=selectHash(selectJson(List.of("attachment-policy-create-v1",actor,request.ruleReleaseId(),request.modeCode(),request.maximumSourceBytes(),request.reason().strip())));
+        validateSegmentVersion(request.segmentRuleVersion());
+        var identity=new ArrayList<Object>(List.of("attachment-policy-create-v1",actor,request.ruleReleaseId(),request.modeCode(),request.maximumSourceBytes(),request.reason().strip()));
+        // 기존 생략 요청의 멱등 hash는 유지하고 명시한 구간 버전은 별도 요청으로 결합한다.
+        if(request.segmentRuleVersion()!=null) identity.add(request.segmentRuleVersion());
+        String hash=selectHash(selectJson(identity));
         dao.selectCreationLock(key);
         var existing=dao.selectCreationDetails(key);
         if(existing!=null) return selectSameCreation(existing,actor,hash,"CREATE");
         validateRule(request.ruleReleaseId());
         UUID id=UUID.randomUUID();
         String code="ATT-"+id.toString().replace("-","");
-        var configuration=selectNewConfiguration(request.maximumSourceBytes());
+        String segmentVersion=request.segmentRuleVersion()==null?AttachmentSegmentRoleAnalyzer.VERSION:request.segmentRuleVersion();
+        var configuration=selectConfiguration(request.maximumSourceBytes(),AttachmentSegmentClassificationEngine.VERSION,
+                segmentVersion,AttachmentEngineContract.selectSegmentRulesHash(segmentVersion));
         String manifest=selectJson(selectSystemBindings());
         if(dao.insertPolicy(new AttachmentPolicyManagementRows.Insert(id,code,1,request.modeCode(),request.ruleReleaseId(),selectJson(configuration),manifest,
                 actor,null,key,hash,"CREATE"))!=1) throw conflict("정책 초안을 저장하지 못했습니다. 생성 결과를 다시 확인하세요.");
@@ -81,6 +88,7 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         if(policyId==null || request==null || request.expectedVersion()==null || request.expectedVersion()<0 || request.expectedVersion()==Integer.MAX_VALUE)
             throw invalid("수정할 정책과 조회 버전(0~2147483646)이 필요합니다.");
         validateFields(request.ruleReleaseId(),request.modeCode(),request.maximumSourceBytes(),request.reason());
+        validateSegmentVersion(request.segmentRuleVersion());
         // 게시 경로와의 잠금 순서는 규칙 → 정책이다. rule이 퇴역하면 초안에 다른 현재 규칙을 지정해야 한다.
         validateRule(request.ruleReleaseId());
         var original=selectPolicy(policyId,true);
@@ -91,13 +99,16 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         // 일반 초안 편집은 엔진 이관 요청이 아니다. 구 정책의 판정 의미를 묵시적으로 변경하지 않는다.
         if(!existingConfiguration.selectEngineCurrent())
             throw conflict("이 초안의 엔진 버전은 현재 편집할 수 없습니다. 현재 엔진으로 새 정책 초안을 생성하세요.");
+        if(request.segmentRuleVersion()!=null && !AttachmentSegmentClassificationEngine.VERSION.equals(existingConfiguration.engineVersion()))
+            throw conflict("파일 단위 엔진 정책을 구간 엔진으로 변경할 수 없습니다. 구간 규칙을 사용할 새 정책 초안을 생성하세요.");
+        String segmentVersion=request.segmentRuleVersion()==null?existingConfiguration.segmentRuleVersion():request.segmentRuleVersion();
         String settings=selectJson(selectConfiguration(request.maximumSourceBytes(),existingConfiguration.engineVersion(),
-                existingConfiguration.segmentRuleVersion(),existingConfiguration.segmentRulesHash()));
+                segmentVersion,request.segmentRuleVersion()==null?existingConfiguration.segmentRulesHash():AttachmentEngineContract.selectSegmentRulesHash(segmentVersion)));
         String manifest=selectJson(selectSystemBindings());
         if(dao.updatePolicyDraft(new AttachmentPolicyManagementRows.Update(policyId,request.expectedVersion(),request.modeCode(),request.ruleReleaseId(),settings,manifest))!=1)
             throw conflict("다른 작업이 먼저 정책을 변경했습니다. 입력을 보존하고 최신 버전을 확인하세요.");
         insertAudit(actor,policyId,"ATTACHMENT_POLICY_DRAFT_UPDATE",request.reason(),Map.of("previousVersion",original.rowVersion(),"newVersion",original.rowVersion()+1,
-                "configurationHash",selectHash(settings+"\n"+manifest)));
+                "configurationHash",selectHash(settings+"\n"+manifest),"segmentRuleChanged",!Objects.equals(existingConfiguration.segmentRuleVersion(),segmentVersion)));
         return selectDetails(selectPolicy(policyId,false));
     }
     @Override @Transactional(timeout=20)
@@ -124,9 +135,9 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
         insertAudit(actor,id,"ATTACHMENT_POLICY_DRAFT_REVISION",request.reason(),Map.of("copiedFromPolicyId",policyId,"versionNo",latest+1));
         return selectDetails(selectPolicy(id,false));
     }
-    private AttachmentPolicyResponses.Configuration selectNewConfiguration(long maximumBytes) {
-        return selectConfiguration(maximumBytes,AttachmentSegmentClassificationEngine.VERSION,
-                AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH);
+    private void validateSegmentVersion(String version) {
+        if(version!=null && AttachmentEngineContract.selectSegmentRulesHash(version)==null)
+            throw invalid("구간 규칙은 segment-role-1.0.0 또는 segment-role-1.0.2를 선택하세요. 생략하면 기존 버전을 유지하고 신규 초안은 1.0.0을 사용합니다.");
     }
     private AttachmentPolicyResponses.Configuration selectConfiguration(long maximumBytes,String engineVersion,String segmentVersion,String segmentHash) {
         // 설치 Linux 런타임 지문은 실제 검증 단계에서만 결합한다. Windows에서 추측하거나 임의 hash를 받지 않는다.

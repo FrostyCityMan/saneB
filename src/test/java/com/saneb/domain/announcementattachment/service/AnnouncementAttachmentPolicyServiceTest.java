@@ -25,6 +25,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 class AnnouncementAttachmentPolicyServiceTest {
+    @Test void policySelectorFingerprintsMatchServerRules() throws Exception {
+        String script=new org.springframework.core.io.ClassPathResource("static/js/saneb-attachment-policy-core.js")
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        for(String version:List.of("segment-role-1.0.0","segment-role-1.0.2"))assertThat(script).contains("\""+version+"\":\""
+                +com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version)+"\"");
+    }
     @Test void systemProfileUsesActualGov24ProviderCodeNotBatchFilterAlias() {
         when(profile.selectProviderCode()).thenReturn("GOV24_PUBLIC_SERVICE");
         var result=create("COLLECT_ONLY");
@@ -98,6 +104,29 @@ class AnnouncementAttachmentPolicyServiceTest {
         assertThat(repeated.policy().policyId()).isEqualTo(first.policy().policyId());assertThat(repeated.policy().rowVersion()).isEqualTo(modified.policy().rowVersion());
         assertThat(repeated.policy().modeCode()).isEqualTo("COLLECT_ONLY");verify(dao,times(1)).insertPolicy(any());
     }
+    @Test void explicitVersionCreationBindsIdempotencyAndDraftEditPinsServerOwnedHash() {
+        var request=new AttachmentPolicyRequests.Create(rule,"OFF",100L,"명시 구간 버전","segment-role-1.0.2");
+        var first=service.insertPolicy(auth("ADMIN"),key,request);
+        assertThat(first.configuration().segmentRuleVersion()).isEqualTo("segment-role-1.0.2");
+        assertThat(first.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        assertThat(service.insertPolicy(auth("ADMIN"),key,request)).isEqualTo(first);
+        assertThatThrownBy(()->service.insertPolicy(auth("ADMIN"),key,new AttachmentPolicyRequests.Create(rule,"OFF",100L,"명시 구간 버전","segment-role-1.0.0")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("멱등 키");
+        var changed=service.updatePolicyDraft(auth("ADMIN"),first.policy().policyId(),new AttachmentPolicyRequests.Update(0,rule,"OFF",100L,"기존 구간 비교","segment-role-1.0.0"));
+        assertThat(changed.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+        assertThat(changed.policy().rowVersion()).isEqualTo(1);assertThat(changed.policy().policyStatusCode()).isEqualTo("DRAFT");
+        assertThat(changed.policy().policyHash()).isNull();assertThat(changed.isDraftValidationRequired()).isTrue();
+        assertThat(service.insertPolicy(auth("ADMIN"),key,request)).isEqualTo(changed);
+        verify(dao,times(1)).insertPolicy(any());
+    }
+    @ParameterizedTest @ValueSource(strings={"","segment-role-1.0.1","segment-role-1.0.2 ","future"})
+    void unsupportedSegmentVersionNeverReachesDatabase(String version) {
+        assertThatThrownBy(()->service.insertPolicy(auth("ADMIN"),key,new AttachmentPolicyRequests.Create(rule,"OFF",100L,"버전 검증",version)))
+                .isInstanceOf(ApiException.class).hasMessageContaining("구간 규칙");
+        assertThatThrownBy(()->service.updatePolicyDraft(auth("ADMIN"),UUID.randomUUID(),new AttachmentPolicyRequests.Update(0,rule,"OFF",100L,"버전 검증",version)))
+                .isInstanceOf(ApiException.class).hasMessageContaining("구간 규칙");
+        verifyNoInteractions(dao,audit,registry);
+    }
     @Test void legacyPolicyEditAndRevisionDoNotSilentlyMigrateEngine() throws Exception {
         var created=create("OFF");var row=rows.get(created.policy().policyId());
         var settings=new AttachmentPolicyResponses.Configuration("attachment-1.0.0",created.configuration().extractorVersion(),null,83886080L,
@@ -108,6 +137,8 @@ class AnnouncementAttachmentPolicyServiceTest {
         var updated=service.updatePolicyDraft(auth("ADMIN"),row.policyId(),new AttachmentPolicyRequests.Update(0,rule,"COLLECT_ONLY",100L,"기존 엔진 한도 변경"));
         assertThat(updated.configuration().engineVersion()).isEqualTo("attachment-1.0.0");assertThat(updated.configuration().segmentRuleVersion()).isNull();
         assertThat(rows.get(row.policyId()).settingsJson()).doesNotContain("segmentRule");
+        assertThatThrownBy(()->service.updatePolicyDraft(auth("ADMIN"),row.policyId(),new AttachmentPolicyRequests.Update(1,rule,"COLLECT_ONLY",100L,"구간 전환 거부","segment-role-1.0.2")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("새 정책 초안");
         var revision=service.insertPolicyRevision(auth("ADMIN"),row.policyId(),UUID.randomUUID(),new AttachmentPolicyRequests.Revision(1,"기존 정책 복사"));
         assertThat(revision.configuration()).isEqualTo(updated.configuration());assertThat(revision.policy().policyStatusCode()).isEqualTo("DRAFT");
         assertThat(create("OFF").configuration()).isEqualTo(updated.configuration());

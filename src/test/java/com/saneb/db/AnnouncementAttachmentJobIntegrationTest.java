@@ -2227,6 +2227,25 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT metadata_json::text FROM audit_logs WHERE resource_id=? AND action_code='ATTACHMENT_POLICY_CLASSIFICATION_CHECK'",String.class,id))
                 .contains("resultHash","reasonHash").doesNotContain("구간 분류 검증 원문","소상공인");
     }
+    @Test void selectedSegmentRuleChangesDraftAndInvalidatesPreviousGoldenEvidenceWithoutPublication() {
+        UUID id=insertPolicyCheckFixture(true),key=UUID.randomUUID();
+        var oldRequest=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(0,"이전 구간 규칙 검증");
+        var old=policyCheckService().insertClassificationCheck(reviewActor(),id,key,oldRequest);
+        var changed=policyService().updatePolicyDraft(reviewActor(),id,new com.saneb.domain.announcementattachment.dto.AttachmentPolicyRequests.Update(
+                0,release,"ENFORCE",83886080L,"구간 버전 선택 QA","segment-role-1.0.2"));
+        assertThat(changed.configuration().segmentRuleVersion()).isEqualTo("segment-role-1.0.2");
+        assertThat(changed.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        assertThat(changed.policy().rowVersion()).isEqualTo(1);assertThat(changed.policy().policyStatusCode()).isEqualTo("DRAFT");
+        assertThat(changed.policy().policyHash()).isNull();assertThat(changed.policy().publishedAt()).isNull();
+        assertThat(policyCheckService().selectCheckList(reviewActor(),id,1,20).items().getFirst().isCurrent()).isFalse();
+        assertThat(policyCheckService().insertClassificationCheck(reviewActor(),id,key,oldRequest).isCurrent()).isFalse();
+        var fresh=policyCheckService().insertClassificationCheck(reviewActor(),id,UUID.randomUUID(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(1,"새 구간 규칙 검증"));
+        assertThat(fresh.caseCount()).isEqualTo(52);assertThat(fresh.isCurrent()).isTrue();
+        assertThat(fresh.resultHash()).isNotEqualTo(old.resultHash());
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links",Integer.class)).isZero();
+    }
     @Test void simultaneousPolicyClassificationChecksWithSameKeyPersistOnce() throws Exception {
         UUID id=insertPolicyCheckFixture(),key=UUID.randomUUID();var gate=new CountDownLatch(1);
         var request=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(0,"동시 검증 QA");

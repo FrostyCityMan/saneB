@@ -6,6 +6,11 @@
     const hash=v=>typeof v==="string" && /^[0-9a-f]{64}$/.test(v),integer=v=>Number.isSafeInteger(v)&&v>=0;
     const version=v=>integer(v)&&v<=2147483647,time=v=>typeof v==="string"&&Number.isFinite(Date.parse(v));
     const modes=["OFF","COLLECT_ONLY","ENFORCE"],statuses=["DRAFT","ACTIVE","RETIRED"];
+    const segmentVersions={"segment-role-1.0.0":"fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde",
+        "segment-role-1.0.2":"2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82"};
+    const segmentEditable=d=>d?.configuration?.engineVersion==="attachment-segment-1.0.0"
+        &&Object.hasOwn(segmentVersions,d.configuration.segmentRuleVersion)
+        &&segmentVersions[d.configuration.segmentRuleVersion]===d.configuration.segmentRulesHash;
     const steps=["CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY"];
     const runStates=["PENDING","RUNNING","CANCEL_REQUESTED","CANCELLED","INCOMPLETE","CONFLICT","FAILED","VERIFIED"];
     const labels={DRAFT:"초안 · 운영 미반영",ACTIVE:"게시 중",RETIRED:"퇴역 · 이력 보존",OFF:"새 첨부 수집 중지",
@@ -33,6 +38,8 @@
         &&d.configuration.maximumSourceBytes<=83886080&&typeof d.configuration.engineVersion==="string"&&typeof d.configuration.extractorVersion==="string"
         &&((d.configuration.roleRuleVersion==null&&d.configuration.roleRulesHash==null)
             ||typeof d.configuration.roleRuleVersion==="string"&&/^[A-Za-z0-9_.-]{1,40}$/.test(d.configuration.roleRuleVersion)&&hash(d.configuration.roleRulesHash))
+        &&((d.configuration.segmentRuleVersion==null&&d.configuration.segmentRulesHash==null&&d.configuration.engineVersion!=="attachment-segment-1.0.0")
+            ||typeof d.configuration.segmentRuleVersion==="string"&&/^[A-Za-z0-9_.-]{1,40}$/.test(d.configuration.segmentRuleVersion)&&hash(d.configuration.segmentRulesHash))
         &&typeof d.isEditable==="boolean"&&typeof d.isDraftValidationRequired==="boolean"&&(!d.isEditable||d.policy.policyStatusCode==="DRAFT")
         &&(d.copiedFromPolicyId===null||uuid(d.copiedFromPolicyId))&&time(d.updatedAt)&&Array.isArray(d.systemProfileBindings)&&d.systemProfileBindings.length<=1000
         &&d.systemProfileBindings.every(p=>["BIZINFO","GOV24","GOV24_PUBLIC_SERVICE","LOCAL_GOV_NOTICE"].includes(p.providerCode)&&typeof p.profileCode==="string"&&hash(p.profileHash)));
@@ -90,6 +97,11 @@
             requireValue(uuid(input.ruleReleaseId),"저장할 키워드 규칙을 선택하세요.");requireValue(modes.includes(input.modeCode),"첨부 정책 모드를 선택하세요.");
             const bytes=Number(input.maximumSourceBytes);requireValue(integer(bytes)&&bytes>=1&&bytes<=83886080,"공고별 한도는 1~83,886,080바이트의 정수로 입력하세요.");
             Object.assign(payload,{ruleReleaseId:input.ruleReleaseId,modeCode:input.modeCode,maximumSourceBytes:bytes});
+            if(input.segmentRuleVersion!=null&&input.segmentRuleVersion!=="") {
+                requireValue(Object.hasOwn(segmentVersions,input.segmentRuleVersion),"구간 규칙은 1.0.0 또는 1.0.2를 선택하세요.");
+                requireValue(kind==="create"||segmentEditable(d),"기존 파일 단위 엔진은 구간 규칙을 선택할 수 없습니다. 새 정책 초안을 만드세요.");
+                payload.segmentRuleVersion=input.segmentRuleVersion;
+            }
             if(kind==="update"){requireValue(d.isEditable&&d.policy.rowVersion<2147483647,"수정 가능한 최신 초안을 조회하세요.");payload.expectedVersion=d.policy.rowVersion;method="PUT";keyed=false;}
         } else if(kind==="revision") {path+="/revisions";payload.expectedVersion=d.policy.rowVersion;
         } else if(kind==="qa") {requireValue(d.isEditable,"저장한 초안에서 QA를 예약하세요.");path+="/validation-runs";payload.expectedVersion=d.policy.rowVersion;
@@ -104,6 +116,8 @@
                 acknowledgeNewCollectionBehavior:true,acknowledgeExistingJobsUnchanged:true,acknowledgeNoBackfill:true});
         } else throw new Error("지원하지 않는 정책 작업입니다.");
         return {kind,path,method,keyed,payload,policyId:d?.policy.policyId||null,runId:r?.runId||null,
+            ...(kind==="update"?{expectedSegmentVersion:payload.segmentRuleVersion??d.configuration.segmentRuleVersion??null,
+                expectedSegmentHash:payload.segmentRuleVersion?segmentVersions[payload.segmentRuleVersion]:d.configuration.segmentRulesHash??null}:{}),
             ...(kind==="publish"?{qaRunId:state.scope.scope.qaRunId,policyHash:state.scope.scope.qaSnapshotHash,modeCode:d.policy.modeCode}:{})};
     }
     function receipt(d,s) {
@@ -114,6 +128,7 @@
         if(["qa","cancel"].includes(s.kind))return run(d,s.policyId)&&(s.kind==="qa"?d.policyVersion===s.payload.expectedVersion:d.runId===s.runId&&d.rowVersion>=s.payload.expectedVersion&&["CANCEL_REQUESTED","CANCELLED"].includes(d.statusCode));
         if(!details(d))return false;
         if(s.kind==="update")return d.policy.policyId===s.policyId&&d.policy.rowVersion===s.payload.expectedVersion+1
+            &&(d.configuration.segmentRuleVersion??null)===s.expectedSegmentVersion&&(d.configuration.segmentRulesHash??null)===s.expectedSegmentHash
             &&d.policy.ruleReleaseId===s.payload.ruleReleaseId&&d.policy.modeCode===s.payload.modeCode&&d.configuration.maximumSourceBytes===s.payload.maximumSourceBytes;
         if(s.kind==="revision")return d.copiedFromPolicyId===s.policyId&&d.policy.policyId!==s.policyId;
         return s.kind==="create"&&d.copiedFromPolicyId===null;
@@ -155,7 +170,7 @@
             get sent(){return sent;},get pending(){return pending;},get uncertain(){return uncertain;}
         };
     }
-    const api={base,rules,uuid,hash,integer,version,time,label,requireValue,summary,details,run,impact,page,rule,steps,countFields,
+    const api={base,rules,uuid,hash,integer,version,time,label,requireValue,summary,details,run,impact,page,rule,steps,countFields,segmentVersions,segmentEditable,
         scopeSummary,scope,scopeItem,publication,canPublish,command,receipt,RequestError,client,mutations};
     if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.SanebAttachmentPolicy=api;
 })(globalThis);

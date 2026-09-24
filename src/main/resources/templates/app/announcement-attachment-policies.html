@@ -36,6 +36,13 @@
             <p id="policy-rule-help">규칙 목록의 다음 페이지도 확인할 수 있습니다. 파서·수집 방식은 시스템이 고정하며 관리자가 선택하지 않습니다.</p>
             <label class="field-block" for="policy-mode">초안 모드 (필수)</label><select id="policy-mode" name="modeCode" required aria-describedby="policy-mode-help policy-error"><option value="OFF">새 수집 중지 (OFF)</option><option value="COLLECT_ONLY">수집·미리보기만 (COLLECT_ONLY)</option><option value="ENFORCE">첨부 판정 적용 정책 (ENFORCE)</option></select>
             <p id="policy-mode-help">초안 모드만 저장합니다. 현재 운영 정책의 변경은 게시 재검증·영향 승인 후 별도로 수행해야 합니다.</p>
+            <label class="field-block" for="policy-segment-version">구간 규칙 버전 (선택)</label>
+            <select id="policy-segment-version" name="segmentRuleVersion" aria-describedby="policy-segment-help policy-error">
+                <option value="">기존 버전 유지 · 신규 초안은 1.0.0</option>
+                <option value="segment-role-1.0.0">1.0.0 · 기존 구간 규칙</option>
+                <option value="segment-role-1.0.2">1.0.2 · 분기 주표제·괄호 조건 인식</option>
+            </select>
+            <p id="policy-segment-help">구간 엔진 초안에서만 선택합니다. 기존 파일 단위 엔진은 새 정책 초안이 필요합니다. 지문은 서버가 고정하며 사이트 파서는 선택하지 않습니다. 변경 후 전체 QA가 필요하고 운영 게시·기존 데이터 재처리는 별도입니다.</p>
             <label class="field-block" for="policy-bytes">공고별 누적 다운로드 한도 (바이트, 필수)</label><input id="policy-bytes" name="maximumSourceBytes" type="number" min="1" max="83886080" step="1" value="83886080" required aria-describedby="policy-bytes-help policy-error">
             <p id="policy-bytes-help">1~83,886,080바이트(80 MiB). 파일·시도별 한도와 작업자 전체 자원 제한도 별도로 적용됩니다.</p>
         </fieldset><p data-input-state role="status"></p><div class="attachment-actions"><button type="submit" class="primary-action" data-save disabled>초안 저장 내용 확인</button><button type="button" class="secondary-action" data-reset>입력 복원·사유 지우기</button><button type="button" class="secondary-action" data-revision disabled>새 개정 초안 내용 확인</button></div></form>

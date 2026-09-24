@@ -11,6 +11,16 @@
 
 ## 기준선
 
+### 2026-09-24 관리자 정책 초안의 구간 규칙 선택
+
+- [x] 직전 회차는7bd2e71의 판정 결합 API/UI와 검증을 추가한 progress다. 현재 worktree/HEAD와 Linux35995173406의 실제 실행 상태를 확인했으며 독립 PostgreSQL 검증 단계까지 진행 중이었다. 종료되지 않은 실행을 재시작하지 않았다.
+- [x] `long-goal-operating-protocol` 및 프론트엔드/UI·UX 스킬을 적용했다. 기존 Thymeleaf 정책 편집 폼과 영향 확인·오류 복구 흐름을 재사용했다. 정책 생성/수정에 선택적 `segmentRuleVersion`을 추가해0/2만 선택할 수 있게 했으며 서버가 정확한 hash를 고정한다. 생략 시 생성은 기존0, 수정은 기존값 유지다.
+- [x] 기존 생략 생성 요청의 멱등 hash/재시도 동작과 Java 생성자 호환을 유지한다. 명시한 버전은 멱등 identity에 포함한다. 구 파일 엔진 전환·ACTIVE/RETIRED 수정·임의hash·진단1.0.1은 허용하지 않는다. DRAFT/CAS/row_version 증가/정책 hash 초기화와 기존 QA/게시 준비 재검증을 유지한다. 기존 source/작업/정책 활성화는 하지 않는다.
+- [x] 화면에 현재 버전/hash·명시 선택·변경 전후·QA 영향·저장 응답의 버전/hash 대조를 추가했다. 변경 시 동의 해제·QA 잠금, 구형 엔진/조회 역할 비활성화, 실패 시 입력 보존과 미확정 응답 재조회에서 현재 저장 버전 표시를 제공한다. 사이트 파서를 관리자에게 선택시키지 않는다.
+- [x] 표적 Java105·패키지20·bootJar는1분11초 성공이다. 확대 `:test --tests '*AttachmentPolicy*Test' --tests '*AttachmentSegment*Test' :bootJar --no-daemon --max-workers=1`은1분2초,398건 실패/오류/생략0이다. Node 정책39 및 구간/검수/Provider QA/coverage 연관158건도 실패/생략0이다. 마지막 표시 보완 후 정책39건을 다시 통과하고 최종 bootJar를17초에 재생성했다. 소유 Java/PG/Node는 종료했으며 기존 사용자 프로세스는 변경하지 않았다.
+- [~] 실제 PG 시험1건을 추가해 관리자 요청으로0→2 변경, 이전 정답 근거 STALE, 신규52정답·다른 결과hash, DRAFT 유지·수집/link0을 확인하도록 했다. 컴파일/QA 패키징은 통과했으나 이번 SHA의 Linux 실행은 아직 필요하다. Windows initdb 정책을 우회하지 않았다.
+- [~] 전체9Gate=8부분/1차단·ATT62·SEG10과 goal active를 유지한다. 잔여는 전체 Provider 정상/형식 기대값·UNKNOWN/부분 추출 해소·정책 QA/게시·최종 검수/DRAFT·기존 데이터·운영/브라우저 E2E다. 신규 버전 선택을 전체 완료나 검수 시간 감소 실측으로 표현하지 않는다. 브라우저는 현재 요청 정책상 미실행이다. 공개 공고 추가 요청·AWS QA·운영 DB/설정·게시/ENFORCE/배포는 하지 않았고 기존 미추적 output/와 Python cache를 보존했다.
+
 ### 2026-09-24 판정 결합 구간 근거의 관리자 조회 연결
 
 - [x] AGENTS/현재 branch·HEAD를 다시 확인했다. 기준선은 `codex/attachment-three-stage-linux-qa`의 cc788fc이며 기존 미추적 output/와 Python cache는 보존한다. `long-goal-operating-protocol`과 프론트엔드/UI·UX/구현 스킬에 따라 조회 근거 정합성을 먼저 고정하고 기존 화면을 재사용했다.

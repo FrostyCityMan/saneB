@@ -57,6 +57,6 @@ public class AnnouncementAttachmentPolicyController {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handleJson(HttpMessageNotReadableException exception) {
         return ResponseEntity.badRequest().cacheControl(CacheControl.noStore()).body(ApiResponse.failure(ErrorResponse.of(ErrorCode.ANNOUNCEMENT_ATTACHMENT_POLICY_INVALID),
-                "정책 입력 형식이 올바르지 않습니다. 규칙·모드·공고별 한도·조회 버전·사유만 사용하며 URL, parser, 실행 설정, 게시 상태는 직접 지정할 수 없습니다."));
+                "정책 입력 형식이 올바르지 않습니다. 규칙·모드·공고별 한도·조회 버전·사유·구간 규칙 버전만 사용하며 URL, parser, 임의 지문·실행 설정·게시 상태는 직접 지정할 수 없습니다."));
     }
 }
