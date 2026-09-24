@@ -72,3 +72,39 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 5. 이후 최신 worker/임시 DB/API, 관리자 최종 검수/DRAFT와 운영 업무 E2E를 이어간다. 운영 정책·기존 데이터는 별도 범위 승인 경계를 지킨다.
 
 네트워크 접근/옥천 승인 대기는 이번 두 실행의 blocker에서 해소됐다. 남은 핵심은 파일 수집 가능 여부가 아니라 문서 구조 판정의 근거 품질과 최신 업무 경로 검증이다.
+
+## 후속 1.0.5 실파일 원인 진단
+
+이 절은 앞의 1.0.4 관측과 별개다. production 코드 기준 `b4fa280`, 감축 예산 probe/실행기 기준 `ff930d5737a390571272cfa1919cb9e04b943a02`이며 공통 executionCodeHash는 `5f76392be3eb0cfcd2c5db52a61f6d6d7af0c7b0b777d2fbab859ef2114115b3`이다. 기존 고정 공고는 그대로이며 각 공고20요청/32MiB, 지역60요청/96MiB로 낮췄다. 선행 영수증·정리 상태를 재조회했고 지역별 진단 중복 실행을 차단한다.
+
+### 옥천 재관측
+
+- executionId `698cde56f7274380ba8a97716ff25ad4`, SSM `bc38b132-0111-481e-8086-2896f52ffe35`: Success/0, 47.375초, 3/3·실패/생략0.
+- 패키지138파일/188,201,489byte, SHA-256 `d1dc175b0d046b600584e51d1cf07139ab2ca02fe2d63b6ff9984481fac10177`.
+- 요청 예약8회/5,630,612byte, 첨부469,652byte. 선행을 합친 누적16회/11,261,224byte로 승인132회/251,658,240byte 이내다. 예약 byte를 실제 총 트래픽으로 표현하지 않는다.
+- 193369: section1/paragraph414, 그림·OLE·수식·대체 문자 모두0. COMPLETE_TEXT 6,221자/312block은 그대로다. 구간9개 중 선행1개는 초기 표제 없음, NOTICE 후보1개는 NOTICE_HEADING+TARGET_SECTION 이후 SUPPORT_SECTION을 충족하지 못했다. FORM 후보7개 중6개는 APPLICANT_FIELD, 1개는 SIGNATURE_FIELD를 첫 부족 조건으로 갖는다. 필수 조건 순서 중 앞에서 멈춘 결과이므로 뒤쪽 조건의 원문 부재를 뜻하지 않는다.
+- 193297: section1/paragraph4,377, **그림2·수식1·OLE0·대체 문자0**. PARTIAL_TEXT 48,760자/3,117block의 원인을 수치로 확인했다. 그림 의미·수식 내용의 완전성을 확인한 것이 아니므로 장식으로 간주하거나 COMPLETE_TEXT로 승격하지 않는다. OCR 후속 범위와 문서 구조 인식 개선을 구분한다.
+- 193187: 제목 조합 미충족 유지, 본문/첨부 요청0회. 음성 사례를 분모에서 빼지 않는다.
+- 양성2건의 본문·binary·text hash는 1.0.4 관측과 일치한다. 193369의 segmentAnalysisHash도 같다. 진단 추가로 판정/텍스트를 조용히 변경하지 않았음을 확인했으며 부분 파일에 구간 분석 성공 자료는 없다.
+- 실제 CPU quota/period100000/100000·memory805306368·tmp1073741824, unitInactive/installedJarUnchanged/healthUp/probeCleanupSucceeded/transportTemporaryFilesRemoved 모두true. 운영 DB 미사용·정책 QA 미통과다.
+- S3 자기 객체 삭제/부재와 plan.cleaned=true 확인 후 로컬 package.zip을 정확한 경로 검증으로 제거했다. `build/temporary-bbs-qa-698cde56f7274380ba8a97716ff25ad4/{plan,result}.json`을 보존했다.
+
+### 보은 재관측
+
+- executionId `7aaaee228eda4381a56f18f6bc23f273`, SSM `4cf323b6-28b1-4ee1-8304-04ff4c2ae8ed`: Success/0, 56.429초, 3/3·실패/생략0.
+- 패키지138파일/188,201,487byte, SHA-256 `5ba922ab5b23ee197b697ba2bc8d461ccd1d59bb98fe2cc9ab46c4606e08675c`.
+- 요청 예약12회/7,391,673byte, 첨부412,089byte. 선행을 합친 누적24회/14,783,346byte로 승인132회/251,658,240byte 이내다.
+- 221499: HWPX section1/paragraph481, 그림·OLE·수식·대체 문자 모두0. COMPLETE_TEXT 8,129자/397block, 7구간 중 UNKNOWN5/FORM2 유지다. GUIDE 후보는 GUIDE_HEADING 이후 TARGET_SECTION이 첫 부족 조건이다. 미완성 FORM 후보2개는 APPLICANT_FIELD, 1개는 SIGNATURE_FIELD에서 멈췄다. 선행1구간은 초기 표제가 없다.
+- 221497: HWPX section1/paragraph437, 그림·OLE·수식·대체 문자 모두0. COMPLETE_TEXT 7,821자/378block, 5구간 중 UNKNOWN4/FORM1 유지다. GUIDE 후보는 TARGET_SECTION, FORM 후보 각1개는 APPLICANT_FIELD·SIGNATURE_FIELD가 첫 부족 조건이다. 선행1구간은 초기 표제가 없다.
+- 218812: PDF COMPLETE_TEXT 5,566자/6block, UNKNOWN1/STRUCTURE_UNCERTAIN 유지다. HWPX 전용 수치가 없는 것은 정상이다. 추출 텍스트 존재만으로 PDF 문단·표의 읽기 순서/경계를 확정하지 않는다.
+- 세 공고의 본문·binary·text·segmentAnalysis hash가 모두 1.0.4 관측과 같다. 누락 조건 진단을 추가했지만 규칙 또는 품질을 완화하지 않았다.
+- 실제 CPU quota/period100000/100000·memory805306368·tmp1073741824, unitInactive/installedJarUnchanged/healthUp/probeCleanupSucceeded/transportTemporaryFilesRemoved 모두true. 운영 DB 미사용·정책 QA 미통과다.
+- S3 자기 객체 삭제/부재와 plan.cleaned=true 확인 후 정확한 소유 경로의 로컬 package.zip을 제거했다. `build/temporary-bbs-qa-7aaaee228eda4381a56f18f6bc23f273/{plan,result}.json`은 보존했다. 패키지는 코드에서 재생성할 수 있다.
+
+### 후속 결론과 검증 경계
+
+- 두 지역 재관측으로 본문·첨부 확보와 원인 진단은 재확인했다. 양성5건은 여전히 REVIEW_REQUIRED이며 정상 후보 증가나 검수량 감소를 입증하지 못했다.
+- 다음 개선 대상은 HWPX의 실제 표제/지원 조건/양식 필드 구조다. 현재 metadata는 첫 미충족 규칙만 특정하므로 원문 표현·구간 경계 오류를 단정하지 않는다. 동일 파일을 무작정 재다운로드하거나 실제 근거 없이 정규식을 넓히지 않는다.
+- 옥천193297의 그림2/수식1은 현재 범위에서 부분 추출을 유지한다. OCR 실행은 기존 설계의 후속 범위이며 모든 격리 QA 승인만으로 OCR 기능/외부 서비스를 추가하지 않는다.
+- 새 버전 최신 worker→업무 DB/API→관리자 최종 검수/DRAFT 및 전체 Provider 정상 표본·검토된 기대값은 여전히 별도 잔여다. 수집 성공과 운영 업무 E2E를 구분한다.
+- 로컬 감축 예산 probe24/24·패키지20/20·Python17/17·Node/Bash4/4 통과. 실제 seed 계약6건은 Windows CreateProcess4551로 실패했으며 성공으로 치환하지 않았다. 추출기1.0.5의 Linux35978778828은 실행 중, 감축 예산 ff930d5의 Linux35979527273은 대기 중인 시점의 기록이며 최종 성공은 별도 확인한다.

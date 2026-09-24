@@ -11,13 +11,22 @@
 
 ## 기준선
 
+### 2026-09-24 추출기1.0.5 보은·옥천 진단 재관측 완료
+
+- [x] `long-goal-operating-protocol`에 따라 앞선 관측에서 드러난 실패 원인을 좁히는 증분으로 진행했다. 두 지역 고정6건은 재관측6/6·실패/생략0, 양성5건 본문/첨부 확보 및 제목 음성1건 후속 요청0을 확인했다. 상세 영수증·지문은 [서울 QA 후속 진단](announcement-segment-seoul-qa-2026-09-24.md)에 기록했다.
+- [x] 옥천193297의 PARTIAL_TEXT 원인은 그림2·수식1(OLE/대체 문자0)이다. 보은 HWPX2개와 옥천193369는 네 종류 모두0이며 COMPLETE_TEXT를 유지한다. HWPX GUIDE의 TARGET_SECTION, NOTICE의 SUPPORT_SECTION, 미완성 FORM의 APPLICANT_FIELD/SIGNATURE_FIELD 등 첫 부족 조건을 수치 근거로 좁혔다. 뒤쪽 미검사 조건의 원문 부재는 단정하지 않는다.
+- [x] 두 실행 누적 예약은 보은24회/14,783,346byte, 옥천16회/11,261,224byte로 각 승인132회/240MiB 이내다. 실제 자원 제한·운영 JAR 불변·health UP·unit 종료·원본 정리·S3 자기 객체 부재를 확인했다. 로컬 자기 패키지2개만 제거했고 JSON은 보존했다.
+- [~] 양성5건은 모두 검수 유지다. 기존/후속 본문·파일·텍스트 및 COMPLETE_TEXT 분석 지문은 동일하다. PDF 구조 불확실, HWPX 실제 표현/경계 진단, 검토된 기대값과 최신 worker/DB/API/최종 검수·DRAFT 검증이 남는다. 원인 진단 성공을 정상 후보나 검수량 감소로 계산하지 않는다.
+- [~] 추출기1.0.5 `b4fa280` Linux35978778828 실행 중, 감축 예산 `ff930d5` Linux35979527273 대기 상태를 조회했다. 로컬 PostgreSQL 6실패는 Windows 실행 정책 차단으로 유지하며 다른 표적 시험 성공으로 덮지 않는다. 현재 커밋 전체 회귀 성공은 아직 주장하지 않는다.
+- 전체9Gate는8부분/1차단, ATT62는1완료/61부분 및 SEG10 확장 범위를 유지한다. 운영 DB/정책/worker/기존 데이터 변경·배포는 없고 브라우저는 현재 요청 정책상 미실행이다. 목표 active, 다음 단계는 실제 구조 근거에 기반한 최소 개선이다.
+
 ### 2026-09-24 재관측 누적 예산 감축
 
 - [x] 직전 진단 구현은 progress이며 사용자 전체 격리 QA 승인 범위에서 새 버전 실제 관측을 준비했다. BOEUN_DIAGNOSTIC/OKCHEON_DIAGNOSTIC은 기존 고정3건 그대로, 각20요청/32MiB(지역 합계60요청/96MiB)로 제한한다. 기존44요청/80MiB 모드와 결과 한도를 혼용하지 않는다.
 - [x] 앞선 보은12요청/7,391,673byte 및 옥천8요청/5,630,612byte 영수증과 정리 상태를 재확인한 후 실행하도록 로컬 전송기를 보완했다. 같은 진단 모드를 이미 전송/실행한 plan이 있으면 새 실행을 거부한다. CPU1·768MiB·임시1GiB·운영 불변/원본 정리 경계는 보존한다.
 - [x] Python17/17, Node/Bash4/4, PowerShell 구문 오류0, `git diff --check` 통과다. 최초 Java42건 중36통과/6실패는 실제 seed용 PostgreSQL의 Windows CreateProcess4551(`initdb.exe` 애플리케이션 제어 차단)이며 정책 완화나 fixture 대체를 하지 않았다.
 - [x] 후속 `:test --tests '*AnnouncementAttachmentBbsObservationProbeTest' attachmentBbsObservationProbeJar :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은26초 성공, 감축 한도/원본 보고서 거부 등24/24 및 패키지20/20이다. bootJar는 production 변경이 없어 UP-TO-DATE다. 로컬6실패를 이 표적 성공으로 해소 처리하지 않는다.
-- [~] 옥천 새 버전 임시 패키지 execution698cde56f7274380ba8a97716ff25ad4, code hash5f76392b…로 순차 관측한다. 서버 종료·관측 결과·실측 자원·정리는 별도 실제 영수증으로 확인한다. 네트워크 전송 중이라는 사실만으로 QA 성공을 기록하지 않는다.
+- [x] 새 버전 임시 패키지 execution698cde56f7274380ba8a97716ff25ad4(옥천)·7aaaee228eda4381a56f18f6bc23f273(보은), code hash5f76392b…의 서버 종료·관측 결과·실측 자원·정리를 위 후속 영수증으로 확인했다. 네트워크 전송 성공만을 QA 성공으로 계산하지 않았다.
 
 ### 2026-09-24 HWPX 부분 추출 원인 및 구간 근거 진단 구현
 
