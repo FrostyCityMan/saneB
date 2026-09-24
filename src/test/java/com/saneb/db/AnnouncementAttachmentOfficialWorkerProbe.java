@@ -56,8 +56,8 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static String selectObservationGroup(String group) {
         return selectSegmentMode(group) ? "BOEUN" : group;
     }
-    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 20 : 44; }
-    static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 32L : 80L)*1024*1024; }
+    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 14 : 44; }
+    static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 24L : 80L)*1024*1024; }
     static boolean selectSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
         if (!"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
                 || !"segment-role-1.0.0".equals(report.path("segmentRuleVersion").asText())
@@ -65,10 +65,10 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 || !report.path("segmentDatabaseApiVerified").asBoolean(false)
                 || !report.path("segmentReviewContextVerified").isBoolean() || !report.path("segmentReviewContextVerified").booleanValue()
                 || !report.path("manualSourceCheckRequired").isBoolean()
-                || report.path("maximumRequestReservations").asLong(-1)!=20
-                || report.path("maximumReservedBytes").asLong(-1)!=33554432L
-                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,20)
-                || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,33554432L)
+                || report.path("maximumRequestReservations").asLong(-1)!=14
+                || report.path("maximumReservedBytes").asLong(-1)!=25165824L
+                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,14)
+                || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,25165824L)
                 || !report.path("files").isArray() || report.path("files").size()!=1) return false;
         var file=report.path("files").get(0);
         return "COMPLETE_TEXT".equals(file.path("quality").asText())
@@ -78,7 +78,18 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && (file.path("unknownSegmentCount").longValue()==0 || report.path("manualSourceCheckRequired").booleanValue())
                 && file.path("segmentEvaluationInputBound").asBoolean(false)
                 && file.path("segmentApiProjectionMatched").asBoolean(false)
-                && selectCandidateComparisonComplete(file.path("candidateSegmentComparison"),file.path("segmentCount").intValue());
+                && selectCandidateComparisonComplete(file.path("candidateSegmentComparison"),file.path("segmentCount").intValue())
+                && selectQuarterComparisonComplete(file.path("quarterHeadingComparison"));
+    }
+    static boolean selectQuarterComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
+        return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(value.path("analysisVersion").asText())
+                && com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH.equals(value.path("rulesHash").asText())
+                && value.path("analysisHash").asText().matches("[a-f0-9]{64}")
+                && Set.of("RESOLVED","REVIEW_REQUIRED").contains(value.path("statusCode").asText())
+                && value.path("sameInputAndCoverageVerified").isBoolean() && value.path("sameInputAndCoverageVerified").booleanValue()
+                && value.path("persistedOrApplied").isBoolean() && !value.path("persistedOrApplied").booleanValue()
+                && value.path("roles").isArray() && value.path("roles").size()>0 && value.path("roles").size()<=200
+                && value.path("noticeEvidenceCounts").isArray();
     }
     static boolean selectCandidateComparisonComplete(com.fasterxml.jackson.databind.JsonNode candidate,int count) {
         return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION.equals(candidate.path("analysisVersion").asText())
@@ -87,6 +98,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && Set.of("RESOLVED","REVIEW_REQUIRED").contains(candidate.path("statusCode").asText())
                 && candidate.path("sameInputAndBoundariesVerified").isBoolean() && candidate.path("sameInputAndBoundariesVerified").booleanValue()
                 && candidate.path("persistedOrApplied").isBoolean() && !candidate.path("persistedOrApplied").booleanValue()
+                && candidate.path("sectionLayout").isArray() && candidate.path("sectionLayout").size()<=64
                 && count>0 && count<=200 && candidate.path("segments").isArray() && candidate.path("segments").size()==count;
     }
     private static boolean selectBounded(com.fasterxml.jackson.databind.JsonNode report,String key,long min,long max) {

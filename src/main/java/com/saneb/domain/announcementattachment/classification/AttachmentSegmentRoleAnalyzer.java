@@ -26,6 +26,11 @@ public final class AttachmentSegmentRoleAnalyzer {
     public static final String PARENTHESIZED_VERSION = "segment-role-1.0.1";
     public static final String PARENTHESIZED_RULES_HASH = selectHash(PARENTHESIZED_VERSION + "\n" + RULES_HASH + "\n"
             + AttachmentDocumentRoleClassifier.PARENTHESIZED_SECTIONS_HASH + "\n");
+    public static final String QUARTER_VERSION="segment-role-1.0.2";
+    private static final String QUARTER_HEADING_EXPRESSION="(?:"+HEADING_EXPRESSION+"|"+AttachmentDocumentRoleClassifier.QUARTER_NOTICE_EXPRESSION+")";
+    private static final Pattern QUARTER_HEADING=Pattern.compile(QUARTER_HEADING_EXPRESSION,Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    public static final String QUARTER_RULES_HASH=selectHash(QUARTER_VERSION+"\n"+PARENTHESIZED_RULES_HASH+"\n"
+            +QUARTER_HEADING_EXPRESSION+"\n"+AttachmentDocumentRoleClassifier.QUARTER_SECTIONS_HASH+"\n");
 
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Segment(int index, int startOffset, int endOffset, String roleCode, String reasonCode,
@@ -42,12 +47,13 @@ public final class AttachmentSegmentRoleAnalyzer {
     }
     public Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,String version,String rulesHash) {
         boolean parenthesized=PARENTHESIZED_VERSION.equals(version) && PARENTHESIZED_RULES_HASH.equals(rulesHash);
-        if(!parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
-        var result=selectAnalysis(extraction,parenthesized);
+        boolean quarter=QUARTER_VERSION.equals(version) && QUARTER_RULES_HASH.equals(rulesHash);
+        if(!quarter && !parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
+        var result=selectAnalysis(extraction,parenthesized,quarter);
         return new Analysis(version,rulesHash,result.textHash(),result.blocksHash(),result.textLength(),
                 result.statusCode(),result.reasonCode(),result.segments());
     }
-    private Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,boolean parenthesized) {
+    private Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,boolean parenthesized,boolean quarter) {
         if (extraction == null || extraction.text() == null) throw invalid();
         // 전체 block 정합성도 기존의 엄격한 계약으로 검증한다. 입력 quality를 성공으로 바꾸어 반환하지 않는다.
         var classifier = new AttachmentDocumentRoleClassifier();
@@ -83,7 +89,7 @@ public final class AttachmentSegmentRoleAnalyzer {
             while (blockIndex < extraction.blocks().size() && extraction.blocks().get(blockIndex).endOffset() <= start) blockIndex++;
             if (blockIndex >= extraction.blocks().size()) throw invalid();
             var block = extraction.blocks().get(blockIndex);
-            if (line.length() <= 200 && HEADING.matcher(line).matches()) {
+            if (line.length() <= 200 && (quarter?QUARTER_HEADING:HEADING).matcher(line).matches()) {
                 if (start < block.startOffset() || end > block.endOffset() || !block.scopeReliable()) {
                     uncertainHeadings.add(start);
                 } else if (nonblankBefore) {
@@ -110,7 +116,8 @@ public final class AttachmentSegmentRoleAnalyzer {
             }
             var localInput = new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",
                     text.substring(utf16ByPosition[start], utf16ByPosition[end]), localBlocks, extraction.pageCount(), 0);
-            var local = parenthesized ? classifier.selectParenthesizedSegmentAssessment(localInput) : classifier.selectAssessment(localInput);
+            var local = quarter ? classifier.selectQuarterSegmentAssessment(localInput)
+                    : parenthesized ? classifier.selectParenthesizedSegmentAssessment(localInput) : classifier.selectAssessment(localInput);
             if (uncertainHeadings.stream().anyMatch(position -> position >= start && position < end)) {
                 segments.add(new Segment(index, start, end, "UNKNOWN", "STRUCTURE_UNCERTAIN", List.of()));
                 continue;

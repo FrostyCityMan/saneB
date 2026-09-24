@@ -84,7 +84,7 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         mode='BOEUN_SEGMENT'
         scope=self.runner['SCOPES'][mode]
         self.assertEqual(self.runner['SCOPES']['BOEUN'][:2],scope[:2])
-        self.assertEqual((60,100663296),scope[2:])
+        self.assertEqual((42,75497472),scope[2:])
         self.assertLessEqual(24+scope[2],132)
         self.assertLessEqual(14783346+scope[3],251658240)
         with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
@@ -98,7 +98,7 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         cases=[{'caseCode':code,'scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','engineVersion':'attachment-segment-1.0.0',
                 'segmentDatabaseApiVerified':True,'segmentReviewContextVerified':True,'manualSourceCheckRequired':True,
                 'productionWriteCount':0,'isPolicyQaPassed':False,
-                'maximumRequestReservations':20,'maximumReservedBytes':33554432,
+                'maximumRequestReservations':14,'maximumReservedBytes':25165824,
                 'requestReservationsIncludingBodyUpperBound':4,'reservedBytesIncludingBodyUpperBound':2400000} for code in scope[1]]
         report={'kind':'OFFICIAL_WORKER_PROBE','caseGroup':mode,'productionDatabaseUsed':False,
                 'isPolicyQaPassed':False,'isAuthenticatedBrowserE2e':False,'status':'PASSED','cases':cases}
@@ -107,8 +107,8 @@ class TemporaryBbsObservationTest(unittest.TestCase):
                           ('segmentReviewContextVerified',False),('segmentReviewContextVerified','true'),
                           ('manualSourceCheckRequired',None),('manualSourceCheckRequired','true'),
                           ('maximumRequestReservations',44),('maximumReservedBytes',83886080),
-                          ('requestReservationsIncludingBodyUpperBound',21),('requestReservationsIncludingBodyUpperBound',True),
-                          ('reservedBytesIncludingBodyUpperBound',33554433)]:
+                          ('requestReservationsIncludingBodyUpperBound',15),('requestReservationsIncludingBodyUpperBound',True),
+                          ('reservedBytesIncludingBodyUpperBound',25165825)]:
             invalid=dict(report,cases=[dict(cases[0],**{key:value}),*cases[1:]])
             with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
         with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):

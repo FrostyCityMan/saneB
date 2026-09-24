@@ -53,6 +53,11 @@ public final class AttachmentDocumentRoleClassifier {
     private static final List<CompiledRule> SEGMENT_COMPILED = java.util.stream.Stream.concat(COMPILED.stream(),
             PARENTHESIZED_SECTIONS.stream().map(rule -> new CompiledRule(rule,
                     Pattern.compile(rule.expression(),Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)))).toList();
+    static final String QUARTER_NOTICE_EXPRESSION=".{0,120}(?:공고문?|모집\\h*요강)\\h*\\(\\h*[1-4]\\h*분기\\h*\\)";
+    private static final Rule QUARTER_NOTICE=new Rule("NOTICE_HEADING","NOTICE",QUARTER_NOTICE_EXPRESSION,true);
+    static final String QUARTER_SECTIONS_HASH=hash(json(List.of("segment-quarter-notice-1",PARENTHESIZED_SECTIONS_HASH,QUARTER_NOTICE)));
+    private static final List<CompiledRule> QUARTER_COMPILED=java.util.stream.Stream.concat(SEGMENT_COMPILED.stream(),
+            java.util.stream.Stream.of(new CompiledRule(QUARTER_NOTICE,Pattern.compile(QUARTER_NOTICE_EXPRESSION)))).toList();
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Assessment(String ruleVersion, String rulesHash, String textHash, String blocksHash,
                              String roleCode, String reasonCode, List<Evidence> evidence) {
@@ -72,6 +77,11 @@ public final class AttachmentDocumentRoleClassifier {
     Assessment selectParenthesizedSegmentAssessment(AttachmentSetEvidence.Extraction extraction) {
         var result=selectAssessment(extraction,SEGMENT_COMPILED);
         return new Assessment("segment-parenthesized-sections-1",PARENTHESIZED_SECTIONS_HASH,
+                result.textHash(),result.blocksHash(),result.roleCode(),result.reasonCode(),result.evidence());
+    }
+    Assessment selectQuarterSegmentAssessment(AttachmentSetEvidence.Extraction extraction) {
+        var result=selectAssessment(extraction,QUARTER_COMPILED);
+        return new Assessment("segment-quarter-notice-1",QUARTER_SECTIONS_HASH,
                 result.textHash(),result.blocksHash(),result.roleCode(),result.reasonCode(),result.evidence());
     }
     private Assessment selectAssessment(AttachmentSetEvidence.Extraction extraction,List<CompiledRule> compiledRules) {

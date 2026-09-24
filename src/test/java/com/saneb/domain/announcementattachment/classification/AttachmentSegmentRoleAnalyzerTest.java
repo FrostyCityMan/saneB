@@ -18,6 +18,37 @@ class AttachmentSegmentRoleAnalyzerTest {
     private AttachmentSegmentRoleAnalyzer.Analysis selectParenthesized(AttachmentSetEvidence.Extraction input) {
         return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH);
     }
+    private AttachmentSegmentRoleAnalyzer.Analysis selectQuarter(AttachmentSetEvidence.Extraction input) {
+        return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+    }
+    @Test void quarterNoticeHeadingSeparatesRealStructureWithoutBorrowingLaterGuideConditions() {
+        String notice=PARENTHESIZED_GUIDE.replace("사업 지원 안내","참여자 모집 공고 (3분기)");
+        var input=selectExtraction("기관 공고 번호\n사업명 표지\n"+notice+"\n신청 안내\n❍(신청기간) 9월\n"+FORM);
+        var previous=selectParenthesized(input);var updated=selectQuarter(input);
+        assertThat(AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH).isEqualTo("9bba150694efbdaa10b853f492b748f643521f8a7c82b9e8d8bd28f86ed7d9e3");
+        assertThat(previous.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","UNKNOWN","FORM");
+        assertThat(updated.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","NOTICE","UNKNOWN","FORM");
+        assertThat(updated.statusCode()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(updated.segments().get(1).evidence()).extracting(AttachmentSegmentRoleAnalyzer.Evidence::ruleCode)
+                .containsExactly("NOTICE_HEADING","TARGET_SECTION","SUPPORT_SECTION","APPLICATION_SECTION");
+        assertThat(updated.textHash()).isEqualTo(previous.textHash());assertThat(updated.blocksHash()).isEqualTo(previous.blocksHash());
+        assertThat(analyzer.selectAnalysisValid(input,previous)).isTrue();assertThat(analyzer.selectAnalysisValid(input,updated)).isTrue();
+        assertCoverage(input,updated);
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,updated.analysisVersion(),updated.rulesHash())).isFalse();
+    }
+    @ParameterizedTest @ValueSource(strings={"참여자 모집 공고(0분기)","참여자 모집 공고(5분기)","참여자 모집 공고(3분기) 참고", "참여자 모집 공고(3분기", "참여자 모집 공고(담당자 확인)","참여자 모집 공고(3분기)입니다."})
+    void quarterHeadingDoesNotAcceptArbitrarySuffixesOrMentions(String heading) {
+        assertThat(selectQuarter(selectExtraction(PARENTHESIZED_GUIDE.replace("사업 지원 안내",heading))).segments())
+                .allMatch(s->"UNKNOWN".equals(s.roleCode()));
+    }
+    @Test void quarterHeadingCannotResolveUnreliablePdfOrPartialExtraction() {
+        var input=selectExtraction(PARENTHESIZED_GUIDE.replace("사업 지원 안내","참여자 모집 공고(1분기)"));
+        assertThat(selectQuarter(input).statusCode()).isEqualTo("RESOLVED");
+        assertThat(selectQuarter(new AttachmentSetEvidence.Extraction("PARTIAL_TEXT",input.text(),input.blocks(),1,0)).reasonCode()).isEqualTo("COMPLETE_TEXT_REQUIRED");
+        var pdf=new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",input.text(),List.of(new AttachmentSetEvidence.Block(0,0,input.text().length(),"page:1",false,"page:1")),1,0);
+        assertThat(selectQuarter(pdf).reasonCode()).isEqualTo("SEGMENT_CONTEXT_REQUIRED");
+        assertThat(selectQuarter(pdf).segments()).allMatch(s->"UNKNOWN".equals(s.roleCode()));
+    }
     @Test void exactObservedParenthesizedSectionsResolveOnlyInExplicitNewVersion() {
         var input=selectExtraction(PARENTHESIZED_GUIDE+"\n"+FORM);
         var old=analyzer.selectAnalysis(input);var updated=selectParenthesized(input);

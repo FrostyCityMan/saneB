@@ -324,6 +324,28 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
         // 동일 설치 추출 결과를 메모리에서만 대조한다. 후보 규칙을 정책/평가/DB에 적용하지 않는다.
         row.put("candidateSegmentComparison",selectCandidateSegmentComparison(input,expected));
+        row.put("quarterHeadingComparison",selectQuarterHeadingComparison(input,expected));
+    }
+    static Map<String,Object> selectQuarterHeadingComparison(AttachmentSetEvidence.Extraction input,
+            AttachmentSegmentRoleAnalyzer.Analysis legacy) throws Exception {
+        var analyzer=new AttachmentSegmentRoleAnalyzer();
+        var candidate=analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        assertEquals(legacy,analyzer.selectAnalysis(input));assertEquals(legacy.textHash(),candidate.textHash());assertEquals(legacy.blocksHash(),candidate.blocksHash());
+        assertTrue(analyzer.selectAnalysisValid(input,candidate));
+        int end=0;
+        for(var segment:candidate.segments()) {
+            assertEquals(end,segment.startOffset());assertTrue(segment.endOffset()>end);end=segment.endOffset();
+            for(var evidence:segment.evidence()) {
+                var block=input.blocks().get(evidence.blockIndex());
+                assertTrue(evidence.startOffset()>=Math.max(block.startOffset(),segment.startOffset()));
+                assertTrue(evidence.endOffset()<=Math.min(block.endOffset(),segment.endOffset()));
+            }
+        }
+        assertEquals(input.text().codePointCount(0,input.text().length()),end);
+        return Map.of("analysisVersion",candidate.analysisVersion(),"rulesHash",candidate.rulesHash(),"analysisHash",selectCanonicalHash(candidate),
+                "sameInputAndCoverageVerified",true,"persistedOrApplied",false,"statusCode",candidate.statusCode(),
+                "roles",candidate.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList(),
+                "noticeEvidenceCounts",candidate.segments().stream().filter(s->"NOTICE".equals(s.roleCode())).map(s->s.evidence().size()).toList());
     }
     static Map<String,Object> selectCandidateSegmentComparison(AttachmentSetEvidence.Extraction input,
             AttachmentSegmentRoleAnalyzer.Analysis legacy) throws Exception {
@@ -341,8 +363,31 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         return Map.of("analysisVersion",candidate.analysisVersion(),"rulesHash",candidate.rulesHash(),
                 "analysisHash",selectCanonicalHash(candidate),"statusCode",candidate.statusCode(),
                 "sameInputAndBoundariesVerified",true,"persistedOrApplied",false,
+                "sectionLayout",selectSectionLayout(input,legacy),
                 "segments",candidate.segments().stream().map(s->Map.of("index",s.index(),"roleCode",s.roleCode(),
                         "reasonCode",s.reasonCode(),"evidenceCodes",s.evidence().stream().map(AttachmentSegmentRoleAnalyzer.Evidence::ruleCode).toList())).toList());
+    }
+    /** 구조 진단 전용이다. 사전의 조건 표제와 좌표/boolean만 출력하고 본문 값·문장·locator는 내보내지 않는다. */
+    static List<Map<String,Object>> selectSectionLayout(AttachmentSetEvidence.Extraction input,
+            AttachmentSegmentRoleAnalyzer.Analysis analysis) {
+        var result=new ArrayList<Map<String,Object>>();
+        var labels=java.util.regex.Pattern.compile("지원\\h*대상|신청\\h*자격|지원\\h*내용|지원\\h*규모|신청\\h*기간|접수\\h*기간");
+        var full=java.util.regex.Pattern.compile("❍\\h*\\(\\h*(?:"+labels.pattern()+")\\h*\\)\\h*(?:[:：]\\h*)?(?=[^\\r\\n]*[\\p{L}\\p{N}])\\S.{0,159}");
+        var lines=java.util.regex.Pattern.compile("[^\\r\\n]+").matcher(input.text());
+        while(lines.find()) {
+            String line=lines.group().strip();var label=labels.matcher(line);
+            if(!label.find())continue;
+            if(result.size()==64)throw new IllegalStateException("SECTION_DIAGNOSTIC_LIMIT");
+            int utf16=lines.start()+lines.group().indexOf(line);
+            int start=input.text().codePointCount(0,utf16),end=start+line.codePointCount(0,line.length());
+            var block=input.blocks().stream().filter(b->b.startOffset()<=start&&b.endOffset()>=end).findFirst();
+            int segment=analysis.segments().stream().filter(s->s.startOffset()<=start&&s.endOffset()>=end).mapToInt(AttachmentSegmentRoleAnalyzer.Segment::index).findFirst().orElse(-1);
+            result.add(Map.of("label",label.group().replaceAll("\\h",""),"startOffset",start,"lineLength",line.length(),
+                    "segmentIndex",segment,"blockIndex",block.map(AttachmentSetEvidence.Block::index).orElse(-1),
+                    "scopeReliable",block.map(AttachmentSetEvidence.Block::scopeReliable).orElse(false),
+                    "fullLineGrammarMatches",full.matcher(line).matches(),"prefixLength",label.start()));
+        }
+        return List.copyOf(result);
     }
     static boolean selectPlannedTitleStop(ObservationCase sample,AnnouncementSourceClassificationResult title) {
         if(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(sample.code())) {
@@ -431,7 +476,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     }
     static AttachmentPolicyResponses.Configuration selectPolicyConfiguration(AttachmentExecutionSnapshot execution) {
         return new AttachmentPolicyResponses.Configuration(execution.engineVersion(),execution.extractorVersion(),execution.extractorConfigHash(),
-                (execution.segmentRuleVersion()==null?80L:32L)*MIB,execution.roleRuleVersion(),execution.roleRulesHash(),execution.segmentRuleVersion(),execution.segmentRulesHash());
+                (execution.segmentRuleVersion()==null?80L:24L)*MIB,execution.roleRuleVersion(),execution.roleRulesHash(),execution.segmentRuleVersion(),execution.segmentRulesHash());
     }
     private static JsonNode selectApi(MockMvc http,String path) throws Exception {
         var response=http.perform(get(path)).andReturn().getResponse();assertEquals(200,response.getStatus());assertEquals("no-store",response.getHeader("Cache-Control"));

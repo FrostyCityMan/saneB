@@ -175,3 +175,26 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 앞선4개 SSM 영수증과 정리 완료를 재조회하고 수동 XML 확인8요청/8MiB를 포함하여 시작 예산56요청/37,955,300byte를 차감했다. 이번12요청/7,391,673byte를 합친 누적은 **68요청/45,346,973byte**다. 승인132요청/251,658,240byte 이내이며 예약byte를 실제 총 트래픽으로 표현하지 않는다. 같은 실행의 재전송은 차단한다.
 - unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved 모두true, CPU1/768MiB/tmp1GiB다. 운영 DB/정책/설치 변경0, 원본/lease 잔여0이다. S3 자기 객체 부재와 plan.cleaned=true 확인 후 검증한 로컬 package.zip만 제거했다. JSON은 `build/temporary-bbs-qa-3fdb2e7468864e0bab68142a1fdcb3eb/{plan,result}.json`에 보존했다. 패키지는 코드에서 재생성 가능하다.
 - 전체 Provider QA·새 규칙 DB/API 적용·실사용자 최종 확인/DRAFT·정책 게시·기존 데이터·브라우저 E2E는 이 대조의 완료 범위가 아니다.
+
+## 후속 구간 위치 진단 — 주표제 인식 누락 확인
+
+- 1.0.1의 production codeHash `fa2a1c1f0506293d10cb6aaf976104cfe019df402e9b5f734f34f73253421e9a`를 그대로 사용하고 probeHash `b50f795d95f43e7b2e8ba412bde923fb54fb1bc9187cbe191877519d5c2ef1f8`에 표제 위치 진단만 추가했다.
+- executionId `d6682645ef9d4c34b65faba75b0bd485`, SSM `57af67c3-c83d-4c9d-968c-81d6a4e92fc1`: Success/0, 3/3·실패/생략/중단0, 72.753초다. 패키지138파일/188,210,943byte, archive SHA256 `cb24c9e92411be5850f0f905ac01149e8055d4ac288a809988eab94c5c375829`다.
+- 221499 신청기간/신청자격/지원내용의 code point 시작 위치526/570/1108, 원본block13/14/24는 모두0번 구간이다. 221497의 대응 위치395/439/756, block12/13/19도0번 구간이다. 모두 신뢰 가능한 단일 block에 있고1.0.1 전체 줄 문법에 일치했다. 각1번 안내 구간에는 뒤쪽 신청기간만 있었다.
+- 따라서 이 표제들의 정규식 불일치나 block 분리가 아니라, 앞쪽 주표제가 경계로 인식되지 않은 것이 NOTICE 구간을 만들지 못한 직접 원인이다. 안내 구간으로 앞선 조건을 복사하는 방식은 적용하지 않는다. 신청서 필드 부족/PDF 불확실성은 이 원인과 별개다.
+- 공개 XML의 표제 띄어쓰기 확인1회 및 주표제 형태 확인1회는 각각 고정2파일·4요청/4MiB 보수적 상한으로 제한했다. 두 파일 모두 알려진 binary hash와 일치했다. 후자는 원문 문장이 아닌 미리 정한 업무 단어와 표제 끝 형식만 출력했다. 221499 paragraph5,221497 paragraph4에서 `모집 공고(3분기)` 형식을 확인했다. XML 관측은 설치 추출 결과로 표현하지 않는다.
+- 진단 실행 후 누적84요청/56,932,950예약byte, 뒤이은 주표제 XML 확인 후 **88요청/61,127,254예약byte**다. 승인132요청/240MiB 안이며 같은 작업의 재전송은 차단한다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 운영 DB/정책/설치 변경0을 확인했다. S3 자기 객체 부재와 cleaned=true 이후 검증한 로컬 package.zip만 제거했다. plan/result JSON은 `build/temporary-bbs-qa-d6682645ef9d4c34b65faba75b0bd485/`에 보존했다.
+- 위치 진단 표적52/52·패키지20/20·Node10/10 통과이며32초 빌드 성공이다. 이후 후보1.0.2 구현/실파일 대조 결과와 구분한다.
+
+## 후속1.0.2 분기 공고 표제 대조 — 두 NOTICE 구간 확보
+
+- executionId `41fc277ff44d49289f6f1066e67baf9c`, SSM `946fe091-c139-43df-8d73-2083e592d37f`: Success/0, 3/3·실패/생략/중단0, 71.630초다. 패키지138파일/188,212,263byte, archive SHA256 `bfae203e433324a33ed0da692800ddc85edfbd357a2c2cbb0f545c9be89d5585`, executionCodeHash `56dcabc7b85abe3e1a71224a772f8821d2f8bd09192e36c8e161c40180913e2b`다.
+- 후보1.0.2 rulesHash `2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82`. 같은 실제 추출 입력과 전체 범위/evidence 좌표를 재검증했다. 후보는 저장·적용false이며 worker DB/API·검수 조회는 기존1.0.0이다.
+- BOEUN-221499: 기존7구간에서 후보8구간으로 분리되고 NOTICE1개가 생겼다. 역할 순서는 UNKNOWN/NOTICE/UNKNOWN/UNKNOWN/UNKNOWN/FORM/UNKNOWN/FORM이다. NOTICE는 표제/대상/지원/기간의4개 근거를 갖는다. 후보 analysisHash `7b5436c08db86b5ff9fe0648b1d8c8eed01e29cb996c35ee53cba26ab3b583e2`.
+- BOEUN-221497: 기존5구간에서 후보6구간, UNKNOWN/NOTICE/UNKNOWN/FORM/UNKNOWN/UNKNOWN이며 NOTICE에4개 근거가 있다. 후보 analysisHash `381f7db64f91cda2e44c5f3ee2a4d2ed5e89ecaf11a0225b6bf8bff7f9e71c7e`.
+- BOEUN-218812: PDF UNKNOWN1개 유지, NOTICE0이다. 후보 analysisHash `b87ff442be093bfc05c95739a5a48b70623c1bb1256174a5b8cbb084bebbbc7d`.
+- 두 HWPX의 앞쪽 공고 범위를 정상 역할로 식별한 실제 진척이다. 그러나 UNKNOWN 개수는5/4/1로 그대로이고 모든 후보·공고의 상태는 REVIEW_REQUIRED다. 서문/일부 FORM·내부 GUIDE/PDF 구조 문제를 지우지 않았다. 정상 후보 증가·사람의 검수 시간 감소·최종 확인/DRAFT 성공을 주장하지 않는다.
+- 실행 전 선행6개 SSM 영수증·정리와 수동 구조4회(16요청/16MiB 상한)를 합산해88요청/61,127,254byte를 확인했다. 새 상한42요청/72MiB는 승인132요청/240MiB 이내다. 실제 예약12요청/7,391,673byte를 합친 **누적100요청/68,518,927byte**이며 잔여32요청/183,139,313byte다. 이는 예약 상한 집계이며 전체 실제 트래픽 측정값이 아니다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 원본/lease 잔여0·운영 DB/정책/설치 변경0을 확인했다. S3 자기 객체 삭제/부재·plan.cleaned=true 이후 검증한 로컬 package.zip을 제거했다. JSON 근거는 `build/temporary-bbs-qa-41fc277ff44d49289f6f1066e67baf9c/`에 보존했다.
+- 다음 과제는 남은 미확정 서문/양식/내부 안내 구조를 근거로 해소하고, 검증된 새 규칙을 고정 정책/worker/DB/API 계약에 연결하는 것이다. 기존 버전 재현성·A/B·최종 관리자 확인·자동 활성화 금지는 유지한다. 전체 Provider/실운영 E2E 완료는 아니다.
