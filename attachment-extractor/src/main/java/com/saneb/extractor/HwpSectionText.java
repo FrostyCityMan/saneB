@@ -14,6 +14,7 @@ import java.util.List;
 final class HwpSectionText {
     private static final int TABLE = 0x74626c20; // MAKE4CHID('t','b','l',' '), little endian payload
     private static final int SECTION = 0x73656364, COLUMN = 0x636f6c64;
+    private static final int HYPERLINK = 0x25686c6b;
     private static final int MAX_NODES = 20_000, MAX_DEPTH = 64, MAX_TABLE_POSITIONS = 20_000;
     private final String section;
     private final TextEvidence evidence;
@@ -90,7 +91,9 @@ final class HwpSectionText {
         }
     }
 
-    private record Piece(String text, Integer controlId) { }
+    private record Piece(String text, Integer controlId, int characterCode) {
+        Piece(String text,Integer controlId) { this(text,controlId,0); }
+    }
 
     private final class Paragraph extends Frame {
         final int index;
@@ -123,12 +126,13 @@ final class HwpSectionText {
                     if (buffer.getChar()!=ch) throw new IOException("CORRUPT");
                     if (ch==9) text.append('\t');
                     else if (ch==4 || (ch>=5 && ch<=8) || ch==19 || ch==20) {
-                        // 필드 끝/예약 inline 영역은 문장을 붙이지 않는다. 미지원 의미는 부분 처리다.
+                        // inline은 별도 CTRL_HEADER를 요구하지 않는다. 문장 경계는 보존한다.
                         pieces.add(new Piece(text.toString(),null)); text.setLength(0);
-                        pieces.add(new Piece("",0)); hasContentAnchor=true; evidence.updateHwpPartial(UNSUPPORTED_INLINE_CONTROL);
+                        pieces.add(new Piece("",id,ch)); hasContentAnchor=true;
+                        if (ch!=4) evidence.updateHwpPartial(UNSUPPORTED_INLINE_CONTROL);
                     } else {
                         pieces.add(new Piece(text.toString(),null)); text.setLength(0);
-                        pieces.add(new Piece(null,id));
+                        pieces.add(new Piece(null,id,ch));
                         if (id==TABLE && ch!=11) evidence.updateHwpPartial(TABLE_ANCHOR_TYPE);
                         if (id!=SECTION && id!=COLUMN) hasContentAnchor=true;
                     }
@@ -147,12 +151,19 @@ final class HwpSectionText {
         }
 
         @Override void save(boolean reliable) throws IOException {
+            boolean fieldsValid=selectFieldsValid();
+            reliable=reliable && fieldsValid;
             var remaining=new HashMap<Integer,ArrayDeque<Control>>();
             for (Control control:controls) remaining.computeIfAbsent(control.id,key->new ArrayDeque<>()).add(control);
             var text=new StringBuilder(); int segment=0;
             boolean split=hasContentAnchor || controls.stream().anyMatch(c->c.id!=SECTION && c.id!=COLUMN) || !loose.isEmpty();
             for (Piece piece:pieces) {
                 if (piece.controlId()==null) { text.append(piece.text()); continue; }
+                if (piece.characterCode()==4 || (piece.characterCode()>=5 && piece.characterCode()<=8)
+                        || piece.characterCode()==19 || piece.characterCode()==20) {
+                    saveText(text,++segment,reliable);
+                    continue;
+                }
                 var queue=remaining.get(piece.controlId());
                 Control control=queue==null?null:queue.poll();
                 if ((piece.controlId()==SECTION || piece.controlId()==COLUMN) && (control==null || control.selectLayoutOnly())) {
@@ -160,7 +171,8 @@ final class HwpSectionText {
                     continue;
                 }
                 saveText(text,split?++segment:0,reliable);
-                if (control==null) evidence.updateHwpPartial(MISSING_CONTROL); else control.save(reliable);
+                if (control==null) evidence.updateHwpPartial(MISSING_CONTROL);
+                else if (!(fieldsValid && piece.characterCode()==3 && control.selectPassiveHyperlink())) control.save(reliable);
             }
             saveText(text,split?++segment:0,reliable);
             // 앵커 누락 시 텍스트를 버리지는 않지만 위치를 추정한 정상 근거로 사용하지 않는다.
@@ -174,6 +186,33 @@ final class HwpSectionText {
             saveLoose();
         }
 
+        /** 한 문단 안에서 닫힌 하이퍼링크 표시값만 지원한다. 명령 문자열은 읽거나 실행하지 않는다. */
+        boolean selectFieldsValid() {
+            var hyperlinks=new ArrayDeque<Control>();
+            for (Control control:controls) if (control.id==HYPERLINK) hyperlinks.add(control);
+            Integer open=null;
+            boolean valid=true, seen=false;
+            for (Piece piece:pieces) {
+                if (piece.characterCode()==3) {
+                    seen=true;
+                    if (open!=null || piece.controlId()!=HYPERLINK) valid=false;
+                    open=piece.controlId();
+                    Control control=piece.controlId()==HYPERLINK?hyperlinks.poll():null;
+                    if (control==null || !control.selectPassiveHyperlink()) {
+                        valid=false;
+                        if (control!=null) evidence.updateHwpPartial(FIELD_HEADER_INVALID);
+                    }
+                } else if (piece.characterCode()==4) {
+                    seen=true;
+                    if (open==null || piece.controlId()!=(open&0x00ffffff)) valid=false;
+                    open=null;
+                } else if (piece.controlId()!=null && open!=null) valid=false;
+            }
+            if (open!=null) valid=false;
+            if (seen && !valid) evidence.updateHwpPartial(FIELD_RANGE_INVALID);
+            return valid;
+        }
+
         void saveText(StringBuilder text,int segment,boolean reliable) throws IOException {
             String locator=section+cellLocation+":paragraph:"+index+(segment>0?":segment:"+segment:"");
             evidence.insertBlock(text.toString(),locator,reliable); text.setLength(0);
@@ -184,7 +223,7 @@ final class HwpSectionText {
         final int id, tableNumber;
         final List<Paragraph> paragraphs=new ArrayList<>();
         final List<Cell> cells=new ArrayList<>();
-        boolean validHeader, tableSeen;
+        boolean validHeader, tableSeen, passiveHyperlink;
         final java.util.EnumSet<ExtractionResult.HwpPartialCause> invalidTableReasons = java.util.EnumSet.noneOf(ExtractionResult.HwpPartialCause.class);
         int rows, columns;
         int[] rowCellCounts;
@@ -193,9 +232,16 @@ final class HwpSectionText {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
             validHeader=id!=TABLE || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44));
             if (!validHeader) invalidTableReasons.add(TABLE_CONTROL_HEADER);
+            if (id==HYPERLINK && data.length>=15) {
+                int expected=15+2*unsigned(data,9);
+                // 명세의 길이 또는 공개 작성기에서 확인된 0 padding 4바이트만 허용한다.
+                passiveHyperlink=(data.length==expected || (data.length==expected+4 && integer(data,expected)==0))
+                        && integer(data,expected-4)!=0 && data[8]==0 && (integer(data,4)&~0x0000f801)==0;
+            }
         }
         void invalidateTable(ExtractionResult.HwpPartialCause cause) { validHeader=false; invalidTableReasons.add(cause); }
         boolean selectLayoutOnly() { return (id==SECTION || id==COLUMN) && paragraphs.isEmpty() && loose.isEmpty(); }
+        boolean selectPassiveHyperlink() { return passiveHyperlink && paragraphs.isEmpty() && loose.isEmpty(); }
 
         void insertParagraph(Paragraph paragraph) throws IOException {
             if (paragraph.level!=level+1) invalidateTable(TABLE_PARAGRAPH_LEVEL);

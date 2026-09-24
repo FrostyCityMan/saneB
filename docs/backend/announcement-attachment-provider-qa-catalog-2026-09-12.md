@@ -2,7 +2,7 @@
 
 ## 범위와 상태
 
-2026-09-24 후속: 남구 지원사업3건의 직접 제목·전체 HWP signature와 서울3단계 관측을 확인하여 `2026-09-24-namgu-support-references-v2`에 참조3건을 추가했다. 현재 코드 catalog33참조/11기관/기대값1/정상0이며 새3건의 expectation은 null이다. HWP3건은 모두 PARTIAL_TEXT/REVIEW_REQUIRED여서 정상 기대값으로 승격하지 않는다. 운영 catalog30과 별개이며 기존 태백 기대값·schema1을 보존한다. [남구 실파일 근거와 잔여](announcement-namgu-three-stage-qa-2026-09-24.md)를 따른다.
+2026-09-24 후속: 남구 지원사업3건의 직접 제목·전체 HWP signature와 서울3단계 관측을 확인하여 `2026-09-24-namgu-support-references-v2`에 참조3건을 추가했다. 현재 코드 catalog33참조/11기관/기대값1/정상0이며 새3건의 expectation은 null이다. 추출기1.0.7에서44381은 동일 파일/텍스트의 COMPLETE_TEXT로 개선됐으나 구간 문맥 검수는 남는다. 나머지2건은 PARTIAL_TEXT이며 세 공고 모두 REVIEW_REQUIRED로 정상 기대값에 승격하지 않는다. 운영 catalog30과 별개이며 기존 태백 기대값·schema1을 보존한다. [남구 실파일 근거와 잔여](announcement-namgu-three-stage-qa-2026-09-24.md)를 따른다.
 
 2026-09-22 현재 리소스는 `2026-09-22-taebaek-seoul-revalidated-v2`, 참조30/기대값1/정상0이며 운영9a1bb45에도 설치됐다. 태백 기대값의 최신 근거는 서울 재관측·고정 비교다. 아래09-21 profile 변경/실행0 표기는 과거 기록이다. [보은 서울 임시 worker QA](announcement-boeun-worker-db-api-qa-2026-09-16.md)에서 HWPX2/PDF1 완전 추출·DB/API 연결은 성공했으나 혼합 역할/구조 불확실로 정상 기대값은 증가하지 않았다. 자동 catalog 등록·정책 승인은 하지 않았다.
 

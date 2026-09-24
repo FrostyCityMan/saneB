@@ -27,6 +27,106 @@ class HwpTableTextTest {
     record Paragraph(List<Object> parts) { }
     record Cell(int row,int column,int rowSpan,int columnSpan,List<Paragraph> paragraphs) { }
     record Table(int rows,int columns,List<Cell> cells) { }
+    static final int HYPERLINK=0x25686c6b;
+
+    @ParameterizedTest @ValueSource(booleans={false,true})
+    void closedHyperlinkReadsOnlyVisibleTextWithoutFollowingCommands(boolean compressed) throws Exception {
+        var result=AttachmentExtractorMain.selectExtraction(file(hyperlinkBody(),compressed));
+        assertComplete(result,"앞 소상공인","표시 😀 지원금","뒤");
+        assertFalse(result.text().contains("COMMAND_CANARY"));
+        assertScopes(result);
+    }
+
+    @Test void repeatedHyperlinksPreserveDisplayedOrderAndDistinctScopes() throws Exception {
+        byte[] text=join(fieldAnchor(3,HYPERLINK),utf("첫 표시"),fieldAnchor(4,HYPERLINK&0xffffff),
+                utf("사이"),fieldAnchor(3,HYPERLINK),utf("둘째 표시"),fieldAnchor(4,HYPERLINK&0xffffff));
+        assertComplete(select(join(record(66,0,header(text.length/2,true)),record(67,1,text),
+                record(71,1,fieldHeader()),record(71,1,fieldHeader()))),"첫 표시","사이","둘째 표시");
+    }
+
+    @Test void hyperlinkInsideValidatedCellKeepsCellLocatorAndSeparateEvidenceScopes() throws Exception {
+        byte[] text=join(utf("셀 앞"),fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금"),fieldAnchor(4,HYPERLINK&0xffffff),utf("셀 뒤"));
+        byte[] tableBody=body(paragraph(table(1,1,cell(0,0,"임시"))));
+        tableBody=replace(tableBody,67,1,ignored->text);
+        tableBody=replace(tableBody,66,1,ignored->header(text.length/2,true));
+        var result=select(join(tableBody,record(71,3,fieldHeader())));
+        assertComplete(result,"셀 앞","표시 😀 지원금","셀 뒤");
+        assertTrue(result.blocks().stream().allMatch(b->b.locator().contains(":table:1:cell:0:0:")));
+        assertScopes(result);
+    }
+
+    @Test void optionalZeroPaddingIsBoundedAndNonzeroPaddingIsNotIgnored() throws Exception {
+        assertComplete(select(replace(hyperlinkBody(),71,0,d->java.util.Arrays.copyOf(d,d.length+4))),
+                "앞 소상공인","표시 😀 지원금","뒤");
+        byte[] invalid=replace(hyperlinkBody(),71,0,d->{var padded=java.util.Arrays.copyOf(d,d.length+4);padded[d.length]=1;return padded;});
+        assertFieldPartial(select(invalid));
+    }
+
+    @Test void invalidFieldHeaderLengthIdentityFlagsAndExtraAttributeRemainPartial() throws Exception {
+        for(var mutation:List.<java.util.function.UnaryOperator<byte[]>>of(
+                d->java.util.Arrays.copyOf(d,14),d->java.util.Arrays.copyOf(d,d.length-1),
+                d->{little(d).putShort(9,(short)65535);return d;},
+                d->{little(d).putInt(d.length-4,0);return d;},
+                d->{little(d).putInt(4,2);return d;},d->{d[8]=1;return d;})) {
+            var result=select(replace(hyperlinkBody(),71,0,mutation));
+            assertFieldPartial(result);
+            assertTrue(result.hwpPartialCauses().stream().anyMatch(c->c.code()==ExtractionResult.HwpPartialCause.FIELD_HEADER_INVALID));
+        }
+    }
+
+    @Test void missingMismatchedCrossParagraphAndNestedFieldsDoNotBecomeComplete() throws Exception {
+        for(byte[] text:List.of(join(fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금")),
+                join(utf("표시 😀 지원금"),fieldAnchor(4,HYPERLINK&0xffffff)),
+                join(fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금"),fieldAnchor(4,0)),
+                join(fieldAnchor(3,HYPERLINK),fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금"),
+                        fieldAnchor(4,HYPERLINK&0xffffff),fieldAnchor(4,HYPERLINK&0xffffff)))) {
+            var result=select(replace(hyperlinkBody(),67,0,ignored->text));
+            assertFieldPartial(result);
+        }
+        byte[] first=join(fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금"));
+        byte[] second=join(utf("다른 문단"),fieldAnchor(4,HYPERLINK&0xffffff));
+        assertFieldPartial(select(join(record(66,0,header(first.length/2,false)),record(67,1,first),record(71,1,fieldHeader()),
+                record(66,0,header(second.length/2,true)),record(67,1,second))));
+    }
+
+    @Test void unknownFieldKindsAndWrongAnchorTypeRemainUnsupported() throws Exception {
+        byte[] unknown=replace(hyperlinkBody(),67,0,d->{little(d).putInt(utf("앞 소상공인").length+2,0x25636c6b);return d;});
+        assertFieldPartial(select(unknown));
+        byte[] wrong=replace(hyperlinkBody(),67,0,d->{int offset=utf("앞 소상공인").length;little(d).putChar(offset,(char)11).putChar(offset+14,(char)11);return d;});
+        assertFieldPartial(select(wrong));
+    }
+
+    @Test void unsupportedInlineDoesNotInventAMissingExtendedControl() throws Exception {
+        byte[] text=join(utf("앞"),fieldAnchor(5,0),utf("뒤"));
+        var result=select(join(record(66,0,header(text.length/2,true)),record(67,1,text)));
+        assertEquals("PARTIAL_TEXT",result.qualityCode());
+        assertEquals(List.of(new ExtractionResult.PartialCause(ExtractionResult.HwpPartialCause.UNSUPPORTED_INLINE_CONTROL,1)),result.hwpPartialCauses());
+        assertEquals(List.of("앞","뒤"),texts(result));assertScopes(result);
+    }
+
+    @Test void fieldControlWithUnexpectedChildParagraphCannotHideItsText() throws Exception {
+        byte[] unexpected=utf("숨기면 안 되는 추가 내용");
+        var result=select(join(hyperlinkBody(),record(66,2,header(unexpected.length/2,true)),record(67,3,unexpected)));
+        assertFieldPartial(result);assertTrue(result.text().contains("숨기면 안 되는 추가 내용"));
+    }
+
+    private void assertFieldPartial(ExtractionResult result) {
+        assertEquals("PARTIAL_TEXT",result.qualityCode());assertTrue(result.text().contains("표시 😀 지원금"));
+        assertTrue(result.blocks().stream().noneMatch(ExtractionResult.Block::scopeReliable));
+        assertFalse(result.text().contains("COMMAND_CANARY"));
+    }
+    private byte[] utf(String value) { return value.getBytes(StandardCharsets.UTF_16LE); }
+    private byte[] fieldAnchor(int code,int id) { return ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
+            .putChar((char)code).putInt(id).putLong(0).putChar((char)code).array(); }
+    private byte[] fieldHeader() {
+        byte[] command=utf("https://invalid.example/COMMAND_CANARY;1;0;0;");
+        return ByteBuffer.allocate(15+command.length).order(ByteOrder.LITTLE_ENDIAN).putInt(HYPERLINK)
+                .putInt(0xa800).put((byte)0).putShort((short)(command.length/2)).put(command).putInt(1).array();
+    }
+    private byte[] hyperlinkBody() throws Exception {
+        byte[] text=join(utf("앞 소상공인"),fieldAnchor(3,HYPERLINK),utf("표시 😀 지원금"),fieldAnchor(4,HYPERLINK&0xffffff),utf("뒤"));
+        return join(record(66,0,header(text.length/2,true)),record(67,1,text),record(71,1,fieldHeader()));
+    }
 
     @ParameterizedTest @ValueSource(booleans={false,true})
     void realOleAndCompressedSectionsKeepBeforeCellsAfterAndDistinctScopes(boolean compressed) throws Exception {

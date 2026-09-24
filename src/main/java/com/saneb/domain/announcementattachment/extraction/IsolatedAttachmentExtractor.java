@@ -116,7 +116,7 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && "1.0.6".equals(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
     }
@@ -127,7 +127,8 @@ public class IsolatedAttachmentExtractor {
             "UNSUPPORTED_CONTROL", "REPLACEMENT_CHARACTER", "TABLE_CONTROL_HEADER", "TABLE_PARAGRAPH_LEVEL",
             "TABLE_PARAGRAPH_WITHOUT_CELL", "TABLE_METADATA_INVALID", "TABLE_METADATA_MISSING", "TABLE_LOOSE_STRUCTURE",
             "CELL_HEADER_INVALID", "CELL_GEOMETRY_INVALID", "CELL_PARAGRAPH_COUNT", "CELL_ORDER_INVALID",
-            "CELL_PARAGRAPH_HEADER", "CELL_OVERLAP", "TABLE_PARAGRAPH_COUNT", "TABLE_COVERAGE", "TABLE_ROW_COUNTS");
+            "CELL_PARAGRAPH_HEADER", "CELL_OVERLAP", "TABLE_PARAGRAPH_COUNT", "TABLE_COVERAGE", "TABLE_ROW_COUNTS",
+            "FIELD_HEADER_INVALID", "FIELD_RANGE_INVALID");
     /** 구 IPC는 선택 필드를 생략할 수 있다. 진단이 있으면 고정 코드·범위·순서·품질을 검증한다. */
     public static JsonNode selectHwpPartialCauseList(JsonNode result) throws IOException {
         if (result == null || !result.has("hwpPartialCauses")) return null;

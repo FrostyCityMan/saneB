@@ -52,11 +52,11 @@ class HwpPartialDiagnosticTest {
         assertTrue(match.find());
         var input=valid();var causes=input.putArray("hwpPartialCauses");
         for(String code:match.group(1).split(",")) causes.addObject().put("code",code.strip()).put("count",1);
-        assertEquals(29,causes.size());
+        assertEquals(31,causes.size());
         assertEquals(causes,IsolatedAttachmentExtractor.selectHwpPartialCauseList(input));
     }
     @Test void newHwpIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable() throws Exception {
-        var input=valid().put("extractorVersion","1.0.6").put("text","가");
+        var input=valid().put("extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION).put("text","가");
         input.putArray("blocks").addObject().put("startOffset",0).put("endOffset",1).put("locator","synthetic").put("scopeReliable",false);
         var validator=IsolatedAttachmentExtractor.class.getDeclaredMethod("validateResult",JsonNode.class);
         validator.setAccessible(true);

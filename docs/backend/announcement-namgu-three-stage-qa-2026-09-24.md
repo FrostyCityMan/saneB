@@ -122,4 +122,34 @@
 - 선행caba129 [Linux36002040454](https://github.com/FrostyCityMan/saneB/actions/runs/36002040454) success/artifact를 확인했다. root3000=2715통과/285조건부 생략·실패/오류0, 별도 extractor122·패키지20·jobPG206·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 이번 남구 변경의 CI 증거로 대체하지 않는다.
 - 남구 정상3공고와 정상 다중 첨부1건은 아직 충족하지 않았다. 단일 HWP3건을 다중 첨부나 정상3건으로 계산하지 않는다. 전체 Provider/형식·부분 추출 해소·DB/API worker·정책 게시·기존 데이터·동일SHA 운영 배포/브라우저 E2E가 남는다. 브라우저는 현재 명시 요청 정책에 따라 미실행이다.
 
+## 1.0.7 하이퍼링크 표시 텍스트 지원 검증 계획
+
+- [x] 공개 HWP 5.0 revision1.3의 제어 문자/필드 헤더 규격과 공개 작성기의 FIELD_END payload를 대조했다. 필드 시작은 extended, 필드 종료는 inline이므로 종료에 별도 CTRL_HEADER를 요구하는 기존 placeholder의 MISSING_CONTROL은 실제 누락을 뜻하지 않았다.
+- [x] `%hlk` 하나만 지원 범위로 둔다. 동일 문단의 시작/종료 종류 일치, 정확한 헤더 길이(명세 또는 0 padding4바이트), 알려진 속성·기타0·비영 instance ID, 자식 문단 부재를 모두 확인한다. URL/command는 디코딩·노출·다운로드·실행하지 않는다. 본문 표시값과 기존 필드 경계별 evidence scope를 보존한다.
+- [x] 미지원 필드/누락/잘못된 종료/중첩/문단 간 범위/다른 컨트롤을 포함한 범위/헤더 오류는 PARTIAL_TEXT다. 해당 문단 scopeReliable=false이며 원문은 손실 없이 기존 텍스트 경로로 보존한다. 알 수 없는 record/tag87/그림 처리는 완화하지 않는다. 새 원인 FIELD_HEADER_INVALID/FIELD_RANGE_INVALID를 고정 목록 끝에 추가한다(총31). 구1.0.6 진단 계약도 유지한다.
+- [x] 합성 정상·손상·표 안 필드·압축 OLE·명령 미노출 검증 후, 이전 본문/binary/text hash가 있는 남구 고정3건을1회 재관측했다. 실제44381은 아래와 같이 정상 추출로 개선됐다. 다른 컨트롤까지 지원한다고 확대 해석하지 않는다.
+- [x] 누적42요청/19,869,572byte와 선행 서울3회 성공/정리 영수증을 실시간 대조했다. 새 실행 최대15요청/72MiB를 더해도 전체60요청/96MiB를 넘지 않는다. 원본/임시 DB/전송 패키지를 정리하고 운영 설치/DB/정책/worker는 변경하지 않았다. 같은 실행 재시작이나 예산 초기화는 금지한다.
+- 성공 기준: 손상 필드 거부·표시 텍스트/분리 scope 보존·명령 미실행·실파일 동일성 확인·예산/정리 확인. 실패 기준: 미지원 구조의 일괄 정상화, 다른 파일을 동일 재검증으로 간주, 누적 예산 초과, 운영 데이터/설정 변경. 정상 추출과 정상 후보/최종 승인/worker 저장은 별개다.
+
+근거: [한컴 HWP 5.0 revision1.3](https://cdn.hancom.com/link/docs/%ED%95%9C%EA%B8%80%EB%AC%B8%EC%84%9C%ED%8C%8C%EC%9D%BC%ED%98%95%EC%8B%9D_5.0_revision1.3.pdf) §4.3.10.15 및 [공개 작성기 필드 형식 구현](https://github.com/STAIxBWLB/hwp-cli/blob/main/crates/hwp-convert/src/field.rs). 구현 소스는 복사하지 않고 형식과 길이만 참고했다.
+
+### 1.0.7 서울 실파일 재검증 결과
+
+- execution `6294ca42fe97455a96d6760e0b0c20f8`, SSM `0ca2037f-3c43-41b7-bbe3-940bde0a5f24`:45.706초·관측3/3 통과·실패/생략/중단0. 이는 정상 공고3건 통과가 아니다.
+- codeHash `cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981`, probeHash `4936bec6d592b62d48eeee4efd343db2d873381c0e4760f70b86760fb06f5509`, ZIP SHA256 `a16b8dbd4762c2a011640a190c95ab4851dd3e3e0181bc9ad333d818fd79cf83`.
+- 실제12요청/6,540,257byte, 고정3건 누적 **54요청/26,409,829byte**, 잔여6요청이다. 새15요청 상한의 전체3건 재실행은 현재 잔여 예산으로 불가능하다. 예산을 초기화하거나 같은 관측을 반복하지 않는다.
+- 모든 표본의 body/binary/text hash가1.0.6과 일치했다. 원문과 명령을 추가 저장/출력하지 않았다.
+
+| 공고 | 추출 결과 | 이후 분류/남은 쟁점 |
+|---|---|---|
+| 44381 | COMPLETE_TEXT, 원인0,3,307자/160블록, 전체 첨부 텍스트 처리 완료true | REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW. 문서 역할UNKNOWN/MIXED_DOCUMENT_ROLES, 구간7개 모두UNKNOWN. INITIAL_HEADING_REQUIRED1·ROLE_STRUCTURE_INCOMPLETE6이며 문맥 검수 유지. 추출 완전성과 후보 적합성은 별개다. |
+| 44466 | PARTIAL_TEXT, 기존 원인2개 유지 | 미지원record1/control1. 태그87을 장식이라 가정하지 않는다. |
+| 42871 | PARTIAL_TEXT, 기존 원인27개 유지 | 미지원record20/control7. 그림/기타 구조 지원이 남는다. |
+
+세 공고 모두 최종 관리자 검증 필요true·운영 쓰기0·정책QA/기대값 승인false다. 정상3공고/다중 첨부 요건, 운영 worker DB/API 저장 증거는 아직 충족하지 않았다.44381의 다음 문제는 다운로드나 텍스트 추출이 아니라 검증된 구간 문맥의 부족이다. 구간 판정을 완화하지 않고 제목/표 셀/본문의 소속 근거를 먼저 검증한다.
+
+원격 unit inactive·원본/임시 DB/transport 정리·운영 JAR 불변·health UP을 확인했다. S3 자기 객체 및 로컬 전송 ZIP 정리 영수증을 보존한다. 운영 설치/DB/정책/worker/기존 데이터/배포는 변경하지 않았다. 브라우저는 현재 명시 요청 정책상 미실행이다.
+
+검증 명령: `:test --tests 'com.saneb.domain.announcementattachment.*' :attachment-extractor:test :attachmentContractQaTest :attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`.3분15초 성공, root1966=1944통과/22조건부 생략·실패/오류0, 추출기133건 실패/생략0. 패키지20건·bootJar/probe는1차1분3초에서 실행/생성한 동일 산출물 UP-TO-DATE다. Node4·Python21건, PowerShell 구문0오류, diff 검사 통과. 소유 로컬 Java/PG 시험 프로세스와 단발 Node는 종료됐다. 사용자 output/cache 및 기존 프로세스는 보존했다.
+
 전체9Gate=8부분/1차단, goal active를 유지한다.
