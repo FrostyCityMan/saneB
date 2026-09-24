@@ -52,6 +52,16 @@ class HwpStructureEvidenceTest {
         assertEquals(1,result.hwpStructure().maximumLevel());
     }
 
+    @Test void recognizedDrawingHeaderAndPictureRecordsStillRequireReview() throws Exception {
+        byte[] control=ByteBuffer.allocate(182).order(ByteOrder.LITTLE_ENDIAN).putInt(0x67736f20).array();
+        var result=AttachmentExtractorMain.selectExtraction(file(List.of(records(record(66,0,new byte[24]),
+                text(1,"지원사업 내용"),record(71,1,control),record(76,2,new byte[4]),record(85,2,new byte[4]))),false));
+        assertEquals("PARTIAL_TEXT",result.qualityCode());assertEquals("지원사업 내용",result.text());
+        assertEquals(List.of(new ExtractionResult.ControlHeader("GSO",182,"NOT_TABLE",0,1)),result.hwpStructure().controlHeaders());
+        assertTrue(result.hwpPartialCauses().contains(new ExtractionResult.PartialCause(ExtractionResult.HwpPartialCause.UNSUPPORTED_RECORD,2)));
+        assertTrue(result.hwpPartialCauses().contains(new ExtractionResult.PartialCause(ExtractionResult.HwpPartialCause.UNSUPPORTED_CONTROL,1)));
+    }
+
     @Test void extendedRecordLengthAndMaximumEncodedLevelAreCountedWithoutCopyingPayload() throws Exception {
         var result=AttachmentExtractorMain.selectExtraction(file(List.of(text(1023,"가".repeat(3000))),false));
         assertEquals("COMPLETE_TEXT",result.qualityCode());assertEquals(1,result.hwpStructure().recordCount());

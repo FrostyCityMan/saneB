@@ -84,4 +84,18 @@ class HwpStructureDiagnosticTest {
         var error=assertThrows(IOException.class,()->IsolatedAttachmentExtractor.selectHwpStructureDetails(value));
         assertEquals("INVALID_HWP_STRUCTURE_DIAGNOSTIC",error.getMessage());
     }
+    @Test void fixedControlKindsAreAcceptedOnlyWithAnIdAndNoArbitraryName() throws Exception {
+        for(String kind:new String[]{"TABLE","SECTION","COLUMN","HYPERLINK","GSO","AUTO_NUMBER","NEW_NUMBER",
+                "PAGE_HIDE","PAGE_ODD_EVEN","PAGE_NUMBER","HEADER","FOOTER","FOOTNOTE","ENDNOTE","EQUATION",
+                "INDEX_MARK","BOOKMARK","OVERLAPPING_LETTER","ADDITIONAL_TEXT","HIDDEN_COMMENT","FORM","CLICK_HERE","OTHER"}) {
+            var input=valid();var summary=(ObjectNode)input.path("hwpStructure");
+            summary.putArray("recordTypes").addObject().put("tagId",71).put("count",2);
+            var row=summary.putArray("controlHeaders").addObject().put("kind",kind).put("bytes",4)
+                    .put("shape",kind.equals("TABLE")?"SHORT":"NOT_TABLE").put("tailBytes",0).put("count",2);
+            assertNotNull(IsolatedAttachmentExtractor.selectHwpStructureDetails(input));
+            row.put("bytes",3);
+            if(kind.equals("OTHER"))assertNotNull(IsolatedAttachmentExtractor.selectHwpStructureDetails(input));else assertInvalid(input);
+            row.put("bytes",4).put("kind","PRIVATE_CANARY");assertInvalid(input);
+        }
+    }
 }

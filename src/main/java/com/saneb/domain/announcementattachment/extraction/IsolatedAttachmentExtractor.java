@@ -116,7 +116,7 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10").contains(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
     }
@@ -186,12 +186,14 @@ public class IsolatedAttachmentExtractor {
         for(var row:headers) {
             String kind=row.path("kind").asText(),shape=row.path("shape").asText();
             if(!row.isObject()||row.size()!=5||!row.path("kind").isTextual()||!row.path("shape").isTextual()
-                    ||!List.of("TABLE","SECTION","COLUMN","HYPERLINK","OTHER").contains(kind)
+                    ||!List.of("TABLE","SECTION","COLUMN","HYPERLINK","OTHER","GSO","AUTO_NUMBER","NEW_NUMBER",
+                            "PAGE_HIDE","PAGE_ODD_EVEN","PAGE_NUMBER","HEADER","FOOTER","FOOTNOTE","ENDNOTE","EQUATION",
+                            "INDEX_MARK","BOOKMARK","OVERLAPPING_LETTER","ADDITIONAL_TEXT","HIDDEN_COMMENT","FORM","CLICK_HERE").contains(kind)
                     ||!List.of("NOT_TABLE","COMMON_ONLY","FIXED_ONLY","SHORT","DECLARED_TOO_LONG","EXTENDED_EXACT","EXTRA_ZERO","EXTRA_NONZERO").contains(shape))throw new IOException(error);
             int bytes=selectBoundedDiagnosticInt(row.path("bytes"),0,8388608),tail=selectBoundedDiagnosticInt(row.path("tailBytes"),0,8388608);
             sum+=selectBoundedDiagnosticInt(row.path("count"),1,33554432);
             int order=kind.compareTo(previousKind);if(order==0){order=Integer.compare(bytes,previousBytes);if(order==0){order=shape.compareTo(previousShape);if(order==0)order=Integer.compare(tail,previousTail);}}
-            if(order<=0||tail>bytes)throw new IOException(error);
+            if(order<=0||tail>bytes||(!"OTHER".equals(kind)&&bytes<4))throw new IOException(error);
             boolean extra=List.of("EXTRA_ZERO","EXTRA_NONZERO").contains(shape);
             if(!"TABLE".equals(kind)) {if(!"NOT_TABLE".equals(shape)||tail!=0)throw new IOException(error);}
             else if("NOT_TABLE".equals(shape)||("COMMON_ONLY".equals(shape)&&bytes!=40)||("FIXED_ONLY".equals(shape)&&bytes!=44)

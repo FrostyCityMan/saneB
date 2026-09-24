@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 /** 실제 설치된 격리 실행 코드/JDK/파서 JAR을 고정한다. QA 성공 여부를 hash만으로 추정하지 않는다. */
 @Component
 public final class AttachmentRuntimeIdentity {
-    public static final String EXTRACTOR_VERSION = "1.0.10";
+    public static final String EXTRACTOR_VERSION = "1.0.11";
     private static final long MAX_LIBRARY_BYTES = 256L * 1024 * 1024;
     private final Path distribution;
     public AttachmentRuntimeIdentity(@Value("${saneb.announcement-attachment.extractor-root:/opt/saneb/attachment-extractor}") String root) {

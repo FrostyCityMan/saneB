@@ -30,4 +30,22 @@ class HwpControlHeaderSummaryTest {
         assertEquals("LIMIT_EXCEEDED",assertThrows(java.io.IOException.class,()->limited.insert(new byte[128])).getMessage());
         limited.insert(new byte[127]);assertEquals(128,limited.select().size());
     }
+    @Test void knownControlIdsBecomeFixedNamesButNeverExportPayloadOrGrantTextCompleteness() throws Exception {
+        int[] ids={0x67736f20,0x61746e6f,0x6e776e6f,0x70676864,0x70676374,0x70676e70,
+                0x68656164,0x666f6f74,0x666e2020,0x656e2020,0x65716564,0x6964786d,0x626f6b6d,
+                0x74637073,0x74647574,0x74636d74,0x666f726d,0x25636c6b};
+        String[] names={"GSO","AUTO_NUMBER","NEW_NUMBER","PAGE_HIDE","PAGE_ODD_EVEN","PAGE_NUMBER",
+                "HEADER","FOOTER","FOOTNOTE","ENDNOTE","EQUATION","INDEX_MARK","BOOKMARK",
+                "OVERLAPPING_LETTER","ADDITIONAL_TEXT","HIDDEN_COMMENT","FORM","CLICK_HERE"};
+        var summary=new HwpControlHeaderSummary();
+        for(int i=0;i<ids.length;i++) {
+            byte[] data=new byte[64];ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).putInt(ids[i]);
+            System.arraycopy("PRIVATE_CANARY".getBytes(java.nio.charset.StandardCharsets.US_ASCII),0,data,4,14);
+            summary.insert(data);
+            assertTrue(summary.select().contains(new ExtractionResult.ControlHeader(names[i],64,"NOT_TABLE",0,1)));
+        }
+        assertEquals(ids.length,summary.select().size());
+        assertFalse(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(summary.select()).contains("PRIVATE"));
+        assertEquals(java.util.Arrays.stream(names).sorted().toList(),summary.select().stream().map(ExtractionResult.ControlHeader::kind).toList());
+    }
 }

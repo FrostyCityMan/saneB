@@ -11,7 +11,7 @@ public record ExtractionResult(String format, String extractorVersion, String qu
         HwpxStructure hwpxStructure,
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
         List<PartialCause> hwpPartialCauses) {
-    public static final String VERSION = "1.0.10";
+    public static final String VERSION = "1.0.11";
     /** 고정된 검증 실패 종류다. 원본 문자열이나 컨트롤 ID를 코드로 사용하지 않는다. */
     public enum HwpPartialCause {
         UNATTACHED_PARAGRAPH, PARAGRAPH_LEVEL_GAP, UNATTACHED_TEXT, CONTROL_LEVEL_GAP,
