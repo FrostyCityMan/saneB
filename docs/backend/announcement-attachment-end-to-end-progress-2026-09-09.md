@@ -17,7 +17,10 @@
 - [x] 기존 BOEUN 모드를 보존하고 BOEUN_SEGMENT를 추가했다. 고정3건·현재 추출기·구간 규칙을 snapshot과 임시 정책에 함께 결합하며 각20요청/32MiB(지역60요청/96MiB)로 제한한다. 새 모드는 운영 설치 QA가 아닌 임시 최신 배포 묶음을 사용한다.
 - [x] 실제 추출 결과 재분석↔DB 저장 분석↔평가 입력 FK↔GET API를 대조한다. 모든 파일 입력 유지·FORM/REFERENCE/UNKNOWN의 CONTEXT_ONLY·UNKNOWN 검수 유지·잘못된 source404·GET 무생성·확정/공고 link0을 검사한다. MockMvc 투영 검증이며 인증/브라우저 E2E를 주장하지 않는다.
 - [x] 표적 Java21/21, 패키지20/20, Node/Bash7/7, Python18/18, PowerShell 구문 검사 통과다. 최초 표적27초, 후속 패키지 포함30초 성공이며 bootJar는 production 변경 없는 선행 산출물 UP-TO-DATE다. 실제 임시 DB 준비 시험에 새 구간 모드를 추가했고 Windows initdb 차단은 별도 Linux 검증 대상으로 유지한다.
-- [~] 최신 묶음 격리 실행 준비 중이다. 전송 전 선행 보은2회 영수증/정리를 재조회하고 누적24회/14,783,346byte에 새 상한을 합쳐132회/240MiB 이내인지 검사한다. 같은 모드 재전송은 차단한다. 코드 작성/패키징은 실제 worker 성공이 아니다.
+- [x] 새 모드 서울 실파일3/3·실패/생략0·68.701초 통과다. 세 파일의 실제 추출↔구간 분석 저장↔평가 입력↔API 투영이 일치했고 기존 관측과 binary/text/분석 지문도 같다. [실행 근거](announcement-segment-seoul-qa-2026-09-24.md)의 SSM cc2f0970-2626-4d7c-910b-59d017d287fd를 확인했다.
+- [x] 전송 전 선행 보은2회 영수증/정리를 재조회했다. 이번 예약12회/7,391,673byte, 누적36회/22,175,019byte로 승인132회/240MiB 이내다. 운영 JAR 불변·health UP·임시 unit 종료·원본 및 lease0을 확인했다. 같은 모드 재전송은 차단한다.
+- [~] 세 건 모두 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED다. 수집/최신 worker DB/API 검증 성공과 정상 후보·검수량 감소·최종 확정/DRAFT·운영/브라우저 E2E 완료를 구분한다. 구간 구조 인식 개선과 실제 기대값 검토는 남는다.
+- [x] 앞선 `ff930d5` Linux35979527273 최종 success 및 XML: root2886=2611통과/275생략/실패·오류0. 별도 extractor122·패키지20·jobPG196·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패·생략0이다. 새 `100ccb2` Linux35981889914는 별도 대기 상태다.
 - 운영 DB/정책/설치/기존 데이터 변경 및 브라우저 검증은 수행하지 않는다. 전체9Gate·ATT62·SEG10 분모 및 goal active를 유지한다.
 
 ### 2026-09-24 추출기1.0.5 보은·옥천 진단 재관측 완료

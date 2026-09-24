@@ -114,3 +114,27 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 후속 조회에서 `b4fa280481881d538f04aeafa05d8a32c578c47c`의 [Linux35978778828](https://github.com/FrostyCityMan/saneB/actions/runs/35978778828) 최종 success와 artifact XML을 확인했다. root2,884건=2,609통과/275조건부 생략/실패·오류0이다.
 - extractor122·패키지20·job PostgreSQL196·migration18·정책 부모 PostgreSQL2·runtime5·worker PostgreSQL12·Flyway3건은 각각 실패·오류·생략0이다. XML은 `build/qa-results/linux-35978778828/`에 보존했다.
 - 이 결과는 새 추출기 production 코드의 Linux 계약 회귀다. 후속 감축 예산 `ff930d5`의 Linux35979527273은 실행 중이며 해당 SHA의 전체 성공으로 확대하지 않는다. Windows 실행 정책 차단 사실, 실제 공고의 검수 유지 및 업무 E2E 잔여도 그대로다.
+
+## 최신 구간 엔진 보은 worker·임시 DB·API 실파일 검증
+
+관측 전용 시험과 별개로 `100ccb29b87520b4f02bd9633eb0938c9e1dd97e`의 BOEUN_SEGMENT를 실행했다. 운영 설치물을 바꾸지 않고 최신 임시 QA/추출기1.0.5와 `attachment-segment-1.0.0`/`segment-role-1.0.0`을 사용했다. application executionCodeHash는 `5f76392be3eb0cfcd2c5db52a61f6d6d7af0c7b0b777d2fbab859ef2114115b3`로 기존 진단과 동일하며, 새 검증 코드는 별도 probe JAR 지문과 패키지 manifest에 결합된다.
+
+- executionId `0d283126b08f488693ab2a831e416e3d`, SSM `cc2f0970-2626-4d7c-910b-59d017d287fd`: Success/0, JUnit3/3·실패/생략/중단/컨테이너 실패0, 68.701초.
+- 패키지138파일/188,201,454byte, archive SHA-256 `94e7a2073f852a1a2b9898b178eadad6100ed5d0f8e5a43a3f1ef83976c88150`.
+- 제목 고정 입력→실제 본문→전체 첨부→worker EVALUATED/job SUCCEEDED→임시 PostgreSQL→MockMvc API를 검사했다. 임시 DB에서만 실행 fixture를 사용하며 운영 정책 승인 증거는 아니다.
+
+| 공고 | 실제 첨부 | 구간 / UNKNOWN | DB·API 결합 | 최종 상태 |
+|---|---|---:|---|---|
+| BOEUN-221499 | HWPX / COMPLETE_TEXT / 8,129자 | 7 / 5 | 분석 재현·평가 입력 FK·API 투영 일치 | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+| BOEUN-221497 | HWPX / COMPLETE_TEXT / 7,821자 | 5 / 4 | 분석 재현·평가 입력 FK·API 투영 일치 | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+| BOEUN-218812 | PDF / COMPLETE_TEXT / 5,566자 | 1 / 1 | 분석 재현·평가 입력 FK·API 투영 일치 | FINAL_REVIEW_EXCEPTION / REVIEW_REQUIRED |
+
+- 세 파일 모두 이전 관측의 binary/text/segmentAnalysis hash와 일치했다. 기존 파일 전체 역할 UNKNOWN은 유지했고 구간 근거가 실제 평가 입력에 연결됨을 확인했다.
+- GET은 분석을 새로 만들지 않았고 다른 source 조회는404다. 참고/미확인 구간을 긍정 근거로 승격하지 않으며 모든 파일 입력, 확정0·공고 link0, 원본 정리·resource lease0을 확인했다.
+- 본문 판정3건은 ACCEPTED였으나 첨부 미확정 때문에 최종 REVIEW_REQUIRED였다. 본문 성공을 최종 후보 준비 완료로 표현하지 않는다. 실제 검수량 감소는 여전히 미입증이다.
+- 요청 예약12회/7,391,673byte, 같은 날 선행 두 관측을 포함한 누적36회/22,175,019byte로 승인132회/240MiB 이내다. 실제 첨부412,089byte와 본문 상한을 포함한 예약량은 다르다.
+- CPU quota/period100000/100000·memory805306368·tmp1073741824, unitInactive/installedJarUnchanged/healthUp/probeCleanupSucceeded/transportTemporaryFilesRemoved 모두true다. 운영 DB 미사용·productionWriteCount0·정책 QA/기대값 승인/인증 브라우저 E2E=false다.
+- 근거는 `build/temporary-bbs-qa-0d283126b08f488693ab2a831e416e3d/{plan,result}.json`이다. 이 시험은 상시 목록 수집·관리자 최종 확정/DRAFT·기존 데이터 배치·운영 브라우저 E2E를 대신하지 않는다.
+- terminal 확인 후 S3 자기 전송 객체 삭제/부재 및 plan.cleaned=true를 확인했다. 검증한 자기 경로의 로컬 package.zip을 제거했고 JSON은 보존했다. 패키지는 코드에서 재생성 가능하다. 로컬 Java/PostgreSQL 잔여0·단기 Node 종료, 사용자 `output/` 보존을 확인했다.
+
+후속 예산 변경 `ff930d5`의 [Linux35979527273](https://github.com/FrostyCityMan/saneB/actions/runs/35979527273)도 최종 success 및 XML을 확인했다. root2886=2611통과/275조건부 생략/실패·오류0, extractor122·패키지20·jobPG196·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패·오류·생략0이다. XML은 `build/qa-results/linux-35979527273/`에 보존했다. 새 `100ccb2`의 [Linux35981889914](https://github.com/FrostyCityMan/saneB/actions/runs/35981889914)는 별도 대기 상태이며 선행 성공으로 대체하지 않는다.
