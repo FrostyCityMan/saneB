@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-24 관리자 문서 구간 근거 조회 연결
+
+- [x] 기존 첨부 검수 화면에 저장된 구간 분석 GET 조회를 연결했다. 파일 전체 역할·수동/시스템 출처·구간 역할·충돌 사유를 분리하며 고정 extraction의 문단/좌표로 이동한다. 파일 역할이나 검수/초안 게이트를 변경하지 않고 POST·재분류·수집을 호출하지 않는다.
+- [x] 미분석/미확정/조회 중/오류/재시도와 분석 완료를 구분한다. 원문/집합/파일/추출 식별자·전체 구간 범위·근거 좌표·버전/지문 형식을 대조하고 불일치는 표시하지 않는다. 현재 세대/선택 파일과 다른 늦은 응답을 버린다. 근거 버튼은 펼칠 때 생성하고 기존 한글화·textContent·네이티브 controls·반응형 CSS를 사용한다.
+- [x] Node 관리자 UI 회귀241/241(구간 신규10건 포함), 실패/생략0이다. `:test --tests '*AttachmentSegment*Test' --tests '*AnnouncementAttachmentViewControllerSmokeTest' :bootJar --no-daemon --max-workers=1`은47초 성공, XML5suite57/57·실패/생략0이다. 마지막 JS 보완 이후 `:bootJar --no-daemon --max-workers=1`도18초 성공했다. 실제 브라우저 검증으로 해석하지 않는다.
+- [x] 앞 PDF 증분의 독립 패키지 검사 `:attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은47초 성공, 3suite20/20·실패/생략0이다. PDF 커밋 `5aa2318b28fe0733ec69b91a5be802456b9767d1`의 원격 일치를 확인했다. [Linux35971006262](https://github.com/FrostyCityMan/saneB/actions/runs/35971006262)는 UI 변경 전 SHA 검증이며 별도 최종 결과를 확인한다.
+- [~] SEG-009는 조회 화면/정적·서버 테스트까지 진행했다. 실제 브라우저·실파일 근거로 최종 검수/DRAFT까지 확인하지 않았으므로 완료가 아니다. Gate8진행/1차단·ATT1완료/61부분 및 SEG 전체 분모를 유지한다.
+- [ ] 다음 잔여는 신규 PDF/구간 엔진의 실제 Provider 관측·검토된 기대값·동일 버전 재검증, 운영 정책/worker/기존 데이터 처리 및 운영 업무 E2E다. 운영 변경·외부 관측·브라우저·옥천 서버 QA는 이번 증분에서 실행하지 않았다. 사용자 `output/`을 보존했다.
+
 ### 2026-09-24 장기 goal 재개 — PDF 문단·표 행 추출 및 설치 QA 확장
 
 - 사용자 재개 요청 후 AGENTS/구간 설계/현재 Git을 재확인했다. 기준은 `9f88ff7`이며 기존 미커밋 PDF 작업과 사용자 `output/`을 보존했다. 해당 커밋의 Linux35709830406 success를 재조회했으며 이번 PDF 변경의 검증과 구분한다.

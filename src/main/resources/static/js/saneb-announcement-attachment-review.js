@@ -126,7 +126,11 @@
                 action(area, "텍스트 조회 재시도", () => showBlocks(file, match, blockPage, offset));
             });
     };
+    const segments = window.SanebAttachmentSegments.createPanel({container: q("[data-segments]"), request, sourceId,
+        readEpoch: () => epoch, text, meta, action, date, core: C,
+        showBlocks: (file, match, blockPage) => { showBlocks(file, match, blockPage); q("[data-blocks]").focus(); }});
     const showFiles = (setId, title) => {
+        segments.reset();
         clear(q("[data-blocks]"));
         return paged(q("[data-files]"), `${root}/attachment-sets/${encodeURIComponent(setId)}/files`, (parent, file) => {
             const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
@@ -138,6 +142,7 @@
                 ["추출 글자 수", file.characterCount == null ? "미집계" : `${file.characterCount}자`], ["추출 시각", date(file.extractedAt)],
                 ["이전 추출 재사용", file.reusedFromExtractionId || "재사용 기록 없음"]]);
             action(item, "이 파일의 추출 텍스트 확인", () => showBlocks(file), !file.extractionId);
+            action(item, "이 파일의 문서 구간 근거 확인", () => segments.show(file, setId), !file.extractionId);
             if (!file.extractionId) text(item, "p", "추출 이력이 없어 텍스트를 조회할 수 없습니다.");
             if (file.roleAssessment == null) {
                 text(item, "p", "텍스트 역할 판정 근거가 없습니다. 기존 정책·수동 지정 또는 미완료 추출일 수 있으며, 역할 자동 판정 완료로 간주하지 않습니다.");
@@ -247,6 +252,7 @@
     const refresh = async () => {
         if (busy || operations?.busy || recovery?.busy || uncertain()) return;
         const currentEpoch = ++epoch; busy = true; locked = true; mutationStale = false; context = null; gates();
+        segments.reset();
         message("[data-page-error]", ""); message("[data-page-status]", "입력을 유지하고 현재 원문·검수 기준을 조회 중입니다.");
         try {
             const details = await request(root);

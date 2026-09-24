@@ -22,7 +22,9 @@
     <section class="plain-panel" aria-labelledby="attachment-evidence-title">
         <h2 id="attachment-evidence-title">2. 첨부 집합·파일·추출 근거</h2>
         <p>처리 종료는 모든 파일의 추출 성공을 뜻하지 않습니다. 실패한 파일은 기술 복구 상태를 먼저 확인하고, 불완전한 근거로 최종 검증할 때는 원문 전체 직접 확인 절차를 사용합니다. 과거 집합 조회는 현재 검수 기준을 바꾸지 않습니다.</p>
-        <div data-sets></div><div data-files></div><div data-blocks></div>
+        <div data-sets></div><div data-files></div>
+        <div data-segments role="region" aria-label="선택한 첨부의 문서 구간 근거" tabindex="-1"></div>
+        <div data-blocks role="region" aria-label="선택한 첨부의 추출 문단" tabindex="-1"></div>
         <details><summary>자동 분류 이력과 일치 근거</summary><button type="button" class="secondary-action" data-load-history>분류 이력 조회</button><div data-history></div><div data-matches></div></details>
         <details data-operation-panel>
             <summary>첨부 수집·실패 복구·문서 역할 변경</summary>
@@ -137,6 +139,7 @@
         <a class="secondary-action" th:href="@{/app/announcements/input}">공고 관리로 이동</a>
     </section>
     <script th:src="@{/js/saneb-attachment-review-core.js}"></script>
+    <script th:src="@{/js/saneb-attachment-segments.js}"></script>
     <script th:src="@{/js/saneb-attachment-operations.js}"></script>
     <script th:src="@{/js/saneb-attachment-recovery.js}"></script>
     <script th:src="@{/js/saneb-announcement-attachment-review.js}"></script>

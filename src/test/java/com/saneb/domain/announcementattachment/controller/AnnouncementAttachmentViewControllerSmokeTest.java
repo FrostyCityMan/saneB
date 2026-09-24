@@ -43,6 +43,10 @@ class AnnouncementAttachmentViewControllerSmokeTest {
         assertThat(html.selectFirst("input[name=operationAcknowledged]").hasAttr("checked")).isFalse();
         assertThat(html.select("script[src='/js/saneb-attachment-operations.js']")).hasSize(1);
         assertThat(html.select("script[src='/js/saneb-attachment-recovery.js']")).hasSize(1);
+        assertThat(html.select("script[src='/js/saneb-attachment-segments.js']")).hasSize(1);
+        assertThat(html.select("[data-segments][role=region][tabindex='-1'], [data-blocks][role=region][tabindex='-1']")).hasSize(2);
+        assertThat(html.select("script[src]").eachAttr("src").indexOf("/js/saneb-attachment-segments.js"))
+                .isLessThan(html.select("script[src]").eachAttr("src").indexOf("/js/saneb-announcement-attachment-review.js"));
         assertThat(html.select("[data-recovery-fields][disabled], [data-recovery-submit][disabled], [data-recovery-load][disabled]")).hasSize(3);
         assertThat(html.selectFirst("input[name=restorationAcknowledged]").hasAttr("checked")).isFalse();
         assertThat(html.selectFirst("input[name=restorationAcknowledged]").hasAttr("required")).isTrue();
@@ -57,6 +61,7 @@ class AnnouncementAttachmentViewControllerSmokeTest {
             html.select("script").stream().filter(e->!e.attr("src").equals("/js/saneb-attachment-review-core.js")
                     && !e.attr("src").equals("/js/saneb-attachment-operations.js")
                     && !e.attr("src").equals("/js/saneb-attachment-recovery.js")
+                    && !e.attr("src").equals("/js/saneb-attachment-segments.js")
                     && !e.attr("src").equals("/js/saneb-layout.js")
                     && !e.attr("src").equals("/js/saneb-announcement-attachment-review.js")).forEach(org.jsoup.nodes.Element::remove);
             html.selectFirst("[data-attachment-review-page]").prependElement("p").attr("role","note")
