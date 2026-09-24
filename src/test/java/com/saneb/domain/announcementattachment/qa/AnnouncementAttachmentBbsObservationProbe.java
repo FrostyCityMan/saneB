@@ -22,6 +22,10 @@ import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 public final class AnnouncementAttachmentBbsObservationProbe {
     static final List<String> OKCHEON_CASES = List.of("OKCHEON-193369", "OKCHEON-193297", "OKCHEON-193187");
     static final List<String> BOEUN_CASES = List.of("BOEUN-221499", "BOEUN-221497", "BOEUN-218812");
+    // bit i는 아래 사전의 i번째 규칙이 실제 해당 구간 evidence에 존재한다는 뜻이다. 역할 추정이 아니다.
+    private static final List<String> SEGMENT_EVIDENCE_RULES = List.of("NOTICE_HEADING", "GUIDE_HEADING", "FORM_HEADING",
+            "REFERENCE_HEADING", "TARGET_SECTION", "SUPPORT_SECTION", "APPLICATION_SECTION", "APPLICANT_FIELD",
+            "SIGNATURE_FIELD", "QUESTION_ITEM", "ANSWER_ITEM");
     private static final Set<String> ENV = Set.of("PATH", "LANG", "HOME", "TMPDIR", "PWD",
             "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", "SANEB_ATTACHMENT_BBS_FIXED_CASE_QA");
     private AnnouncementAttachmentBbsObservationProbe() { }
@@ -145,9 +149,19 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                 var segments = analysis.remove("segments");
                 analysis.put("segmentCount", segments.size());
                 var roles = analysis.putArray("roleCodes");
+                var ruleDictionary = analysis.putArray("evidenceRuleDictionary");
+                SEGMENT_EVIDENCE_RULES.forEach(ruleDictionary::add);
+                var ruleMasks = analysis.putArray("evidenceRuleMasks");
                 var reasons = analysis.putObject("reasonCounts");
                 for (var segment : segments) {
                     roles.add(segment.path("roleCode").asText());
+                    int mask = 0;
+                    for (var evidence : segment.path("evidence")) {
+                        int index = SEGMENT_EVIDENCE_RULES.indexOf(evidence.path("ruleCode").asText());
+                        if (index < 0) throw new IllegalArgumentException("SEGMENT_DIAGNOSTIC_RULE_UNKNOWN");
+                        mask |= 1 << index;
+                    }
+                    ruleMasks.add(mask);
                     String reason = segment.path("reasonCode").asText();
                     reasons.put(reason, reasons.path(reason).asInt() + 1);
                 }

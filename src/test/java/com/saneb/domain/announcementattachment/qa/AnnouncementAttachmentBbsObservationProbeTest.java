@@ -212,6 +212,8 @@ class AnnouncementAttachmentBbsObservationProbeTest {
             var file=compact.get(i).at("/files/0");
             assertEquals(200,file.at("/segmentSummary/segmentCount").asInt());
             assertEquals(200,file.at("/segmentSummary/roleCodes").size());
+            assertEquals(200,file.at("/segmentSummary/evidenceRuleMasks").size());
+            assertEquals(11,file.at("/segmentSummary/evidenceRuleDictionary").size());
             assertEquals(reports.get(i).at("/files/0/segmentAnalysisHash"),file.path("segmentAnalysisHash"));
             assertFalse(file.has("roleStructureObservation"));assertFalse(file.has("segmentAnalysis"));
             assertTrue(reports.get(i).at("/files/0").has("segmentAnalysis"));
@@ -220,6 +222,31 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         String output=json.writeValueAsString(compact);
         assertTrue(output.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<18000);
         for(String forbidden:List.of("CANARY","private-scope","private-location","startOffset","endOffset"))assertFalse(output.contains(forbidden));
+    }
+    @Test void compactRuleMasksPreserveMatchedPrefixWithoutInventingMissingConditions() throws Exception {
+        var reports=boeunReports();
+        var segment=(ObjectNode)reports.getFirst().at("/files/0/segmentAnalysis/segments/0");
+        segment.put("roleCode","UNKNOWN").put("reasonCode","ROLE_STRUCTURE_INCOMPLETE");
+        var evidence=segment.putArray("evidence");
+        evidence.addObject().put("ruleCode","NOTICE_HEADING"); evidence.addObject().put("ruleCode","TARGET_SECTION");
+        evidence.addObject().put("ruleCode","TARGET_SECTION");
+        var output=AnnouncementAttachmentBbsObservationProbe.selectTransportReport(reports.getFirst());
+        assertEquals(17,output.at("/files/0/segmentSummary/evidenceRuleMasks/0").asInt());
+        assertEquals("UNKNOWN",output.at("/files/0/segmentSummary/roleCodes/0").asText());
+        assertEquals("TARGET_SECTION",output.at("/files/0/segmentSummary/evidenceRuleDictionary/4").asText());
+        evidence.addObject().put("ruleCode","PRIVATE_CANARY");
+        var failure=assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectTransportReport(reports.getFirst()));
+        assertEquals("SEGMENT_DIAGNOSTIC_RULE_UNKNOWN",failure.getMessage());
+    }
+    @Test void compactReportKeepsPartialHwpxDiagnosticWithoutInventingSegments() throws Exception {
+        var report=boeunReports().getFirst(); var file=(ObjectNode)report.at("/files/0");
+        file.put("quality","PARTIAL_TEXT"); file.remove(List.of("segmentAnalysis","segmentAnalysisHash","roleAssessment","roleAssessmentHash"));
+        file.putObject("hwpxStructure").put("sectionCount",1).put("paragraphCount",12).put("pictureCount",3)
+                .put("oleCount",0).put("equationCount",0).put("replacementCharacterCount",0);
+        var output=AnnouncementAttachmentBbsObservationProbe.selectTransportReport(report).at("/files/0");
+        assertEquals(file.path("hwpxStructure"),output.path("hwpxStructure"));
+        assertEquals("PARTIAL_TEXT",output.path("quality").asText());
+        assertFalse(output.has("segmentSummary")); assertFalse(output.has("segmentAnalysisHash"));
     }
     @Test void fixedComparisonRequiresEveryFileAndNeverApprovesWholeCoverage() {
         assertTrue(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(fixedReport()));

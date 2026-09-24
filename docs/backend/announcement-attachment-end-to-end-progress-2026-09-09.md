@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 HWPX 부분 추출 원인 및 구간 근거 진단 구현
+
+- [x] 직전 보은·옥천 실파일 관측은 실제 근거를 확보한 progress로 분류했다. 원인이 드러나지 않은 PARTIAL_TEXT/ROLE_STRUCTURE_INCOMPLETE를 판정 완화 없이 진단하도록 보완했다.
+- [x] 추출기1.0.5는 HWPX section/paragraph/picture/OLE/equation/replacementCharacter 수치만 별도 IPC 진단에 담는다. 그림·OLE·수식 외에 U+FFFD도 기존 부분 추출 원인이므로 문서 설명을 정정했다. 실제 옥천 파일의 원인 종류/개수는 아직 재관측 전이다.
+- [x] 서버는 고정 필드·정수 범위·형식·대체 문자 실측·품질 관계를 검증한다. 부분 추출은 계속 부분 추출이며 빈 텍스트는 OCR_REQUIRED다. 설치 runtime AR-006/007은 진단 누락·잘못된 원인을 거부한다. 과거 이력/정책은 자동 변경하지 않는다.
+- [x] 관측 보고서는 부분 파일의 수치 진단을 보존하며, 전체 추출 구간은 고정 규칙 사전+순서별 evidence bitmask로 실제 충족한 근거를 전송한다. 200구간 전체 및 기존 분석 hash를 보존한다. 뒤쪽 규칙 미표시는 원문 부재를 뜻하지 않으며 UNKNOWN/검수 조건은 그대로다. 세부 계약은 [구간 설계](announcement-attachment-segment-analysis-design-2026-09-22.md)에 기록했다.
+- [x] 최초 검증은 신규 테스트의 Java generic 타입 추론 오류로35초에 실패했다. 명시적 JsonNode 타입만 수정한 후 `:attachment-extractor:test :test --tests '*HwpxStructureDiagnosticTest' --tests '*HwpStructureDiagnosticTest' --tests '*AttachmentRuntime*Test' --tests '*AnnouncementAttachmentOfficialObservationContractTest' --tests '*AnnouncementAttachmentBbsObservationProbeTest' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은1분3초 성공했다. extractor122/122(최초 실행 성공 결과 UP-TO-DATE 재사용), 서버72통과/5 Linux전용 생략/실패·오류0, 패키지20/20이다.
+- [x] 마지막 부분 진단 전송 회귀 추가 후 `:test --tests '*AnnouncementAttachmentBbsObservationProbeTest' --tests '*AnnouncementAttachmentOfficialObservationContractTest' attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`도23초 성공했다. 34/34·실패/생략0, bootJar는 production 변경 없는 선행 산출물 UP-TO-DATE다. Node/Bash4/4·`git diff --check` 통과다.
+- [~] 같은 SHA의 Linux 전체 회귀/실제14fixture 설치 검증을 QA 브랜치에서 확인한다. 이번에는 Windows 전체 DB 회귀·실사이트 재다운로드·운영 적용·브라우저를 실행하지 않았다. 기존 Linux/실파일 성공을 새 버전 성공으로 재사용하지 않는다.
+- [ ] 다음은 누적 승인 상한 내 새 진단의 실파일 재관측→누락 조건/부분 원인 특정→필요한 최소 개선→검토한 기대값→최신 worker/DB/API/관리자 E2E다. 전체9Gate·ATT62·SEG 분모와 목표 active를 유지한다.
+
 ### 2026-09-24 보은·옥천 서울 격리 실파일 관측 완료
 
 - [x] [실행 근거와 잔여 업무](announcement-segment-seoul-qa-2026-09-24.md)를 기록했다. 보은3/3·옥천3/3 관측 성공, 실패/생략0이며 양성5공고의 본문·첨부5파일을 확보했다. 추출기 품질은4개 COMPLETE_TEXT·1개 PARTIAL_TEXT다. 음성1공고는 제목에서 중단하여 후속 요청0회다.

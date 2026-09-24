@@ -59,6 +59,9 @@ class AttachmentRuntimeGateTest {
                 .put("extractorVersion", AttachmentRuntimeIdentity.EXTRACTOR_VERSION).put("text", text);
         if ("PDF".equals(format)) result.put("pageCount", 1); else result.putNull("pageCount");
         if (format == null) result.put("errorCode", quality); else result.putNull("errorCode");
+        if ("HWPX".equals(format)) result.putObject("hwpxStructure").put("sectionCount", 1)
+                .put("paragraphCount", index == 6 ? 3 : 1).put("pictureCount", index == 7 ? 1 : 0)
+                .put("oleCount", 0).put("equationCount", 0).put("replacementCharacterCount", 0);
         var blocks = result.putArray("blocks"); int offset = 0, blockIndex = 0;
         if (!text.isEmpty()) for (String paragraph : text.split("\n")) {
             String locator = index == 1 ? "page:1" : index == 3 ? "Section0:paragraph:1" : "Contents/section0.xml:paragraph:" + (blockIndex + 1);
@@ -185,5 +188,18 @@ class AttachmentRuntimeGateTest {
                 result.extractorVersion(),result.resultHash(),12,result.cases().subList(0,12),result.startedAt(),result.completedAt());
         assertThatThrownBy(()->gate.validateStoredResult(old,result.runtimeHash())).hasMessage("STORED:QA_RESULT_BINDING_INVALID");
         verifyNoInteractions(extractor); assertClean();
+    }
+    @ParameterizedTest @ValueSource(ints={6,7})
+    void hwpxDiagnosticMustBePresentAndMatchTheInstalledFixture(int index) throws Exception {
+        alteredIndex=index;
+        alterFirst=result->result.remove("hwpxStructure");
+        assertThatThrownBy(()->gate.selectValidatedResult()).hasMessage(String.format("AR-%03d:UNEXPECTED_HWPX_DIAGNOSTIC",index));
+        assertThat(calls.get()).isEqualTo(index); assertClean();
+    }
+    @Test void aDifferentPartialReasonCannotMasqueradeAsThePictureFixture() throws Exception {
+        alteredIndex=7;
+        alterFirst=result->((ObjectNode)result.path("hwpxStructure")).put("pictureCount",0).put("oleCount",1);
+        assertThatThrownBy(()->gate.selectValidatedResult()).hasMessage("AR-007:UNEXPECTED_HWPX_DIAGNOSTIC");
+        assertClean();
     }
 }

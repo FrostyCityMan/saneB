@@ -115,6 +115,7 @@ public class IsolatedAttachmentExtractor {
         if ("COMPLETE_TEXT".equals(result.path("qualityCode").asText()) && (text.isBlank() || result.path("blocks").isEmpty()))
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
+        selectHwpxStructureDetails(result);
     }
     /** 격리 IPC의 수치 진단만 허용한다. 원문·가변 코드·미지 필드는 외부 보고로 전달하지 않는다. */
     public static JsonNode selectHwpStructureDetails(JsonNode result) throws IOException {
@@ -147,6 +148,29 @@ public class IsolatedAttachmentExtractor {
         if (!value.isIntegralNumber() || !value.canConvertToInt() || value.intValue() < minimum || value.intValue() > maximum)
             throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
         return value.intValue();
+    }
+    /** HWPX 진단은 선택적이다. 존재하면 형식·수치·품질·실제 대체 문자 개수를 함께 검증한다. */
+    public static JsonNode selectHwpxStructureDetails(JsonNode result) throws IOException {
+        if (result == null || !result.has("hwpxStructure")) return null;
+        final String code = "INVALID_HWPX_STRUCTURE_DIAGNOSTIC";
+        JsonNode value = result.path("hwpxStructure");
+        var fields = List.of("sectionCount", "paragraphCount", "pictureCount", "oleCount", "equationCount", "replacementCharacterCount");
+        if (!"HWPX".equals(result.path("format").asText()) || !value.isObject() || value.size() != fields.size()
+                || !result.path("text").isTextual()) throw new IOException(code);
+        for (String field : fields) {
+            var number = value.path(field);
+            int maximum = "sectionCount".equals(field) ? 2000 : "replacementCharacterCount".equals(field) ? 1_000_000 : 33_554_432;
+            if (!number.isIntegralNumber() || !number.canConvertToInt() || number.intValue() < 0 || number.intValue() > maximum)
+                throw new IOException(code);
+        }
+        String text = result.path("text").textValue(), quality = result.path("qualityCode").asText();
+        long causes = (long) value.path("pictureCount").intValue() + value.path("oleCount").intValue()
+                + value.path("equationCount").intValue() + value.path("replacementCharacterCount").intValue();
+        if (value.path("sectionCount").intValue() < 1 || value.path("paragraphCount").intValue() < value.path("sectionCount").intValue()
+                || value.path("replacementCharacterCount").intValue() != text.codePoints().filter(point -> point == 0xfffd).count()
+                || !(text.isEmpty() ? "OCR_REQUIRED" : causes > 0 ? "PARTIAL_TEXT" : "COMPLETE_TEXT").equals(quality))
+            throw new IOException(code);
+        return value.deepCopy();
     }
     private JsonNode selectFailure(String code) { return mapper.createObjectNode().put("qualityCode",code).put("errorCode",code); }
     private static void deleteProcessTree(Process process) {

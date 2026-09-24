@@ -146,6 +146,17 @@ public final class AttachmentRuntimeGate {
             throw failure(sample.id(), "UNEXPECTED_ERROR_CODE");
         if ("PDF".equals(sample.format()) ? !result.path("pageCount").isIntegralNumber() || result.path("pageCount").asInt() != 1
                 : !result.path("pageCount").isNull()) throw failure(sample.id(), "UNEXPECTED_PAGE_COUNT");
+        if ("HWPX".equals(sample.format())) {
+            try {
+                var structure = IsolatedAttachmentExtractor.selectHwpxStructureDetails(result);
+                if (structure == null || structure.path("sectionCount").asInt() != 1
+                        || structure.path("paragraphCount").asInt() != sample.locators().size()
+                        || structure.path("pictureCount").asInt() != ("AR-007".equals(sample.id()) ? 1 : 0)
+                        || structure.path("oleCount").asInt() != 0 || structure.path("equationCount").asInt() != 0
+                        || structure.path("replacementCharacterCount").asInt() != 0)
+                    throw failure(sample.id(), "UNEXPECTED_HWPX_DIAGNOSTIC");
+            } catch (IOException exception) { throw failure(sample.id(), "UNEXPECTED_HWPX_DIAGNOSTIC"); }
+        }
         int offset = 0;
         String[] paragraphs = sample.text().split("\n", -1);
         for (int index = 0; index < sample.locators().size(); index++) {

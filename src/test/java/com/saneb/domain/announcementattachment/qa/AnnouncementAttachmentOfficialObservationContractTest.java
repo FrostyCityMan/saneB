@@ -62,6 +62,20 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         assertThat(result).doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation","segmentAnalysis","segmentAnalysisHash");
         assertThat(result).containsKeys("textHash","characterCount","blockCount");
     }
+    @Test void hwpxPartialDiagnosticsAreReportedWithoutCreatingRoleOrSegmentSuccess() throws Exception {
+        var input=JSON.createObjectNode().put("format","HWPX").put("qualityCode","PARTIAL_TEXT").put("text","PRIVATE_CANARY");
+        input.putArray("blocks");
+        input.putObject("hwpxStructure").put("sectionCount",1).put("paragraphCount",1).put("pictureCount",2)
+                .put("oleCount",0).put("equationCount",0).put("replacementCharacterCount",0);
+        var result=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input);
+        assertThat(result).containsKey("hwpxStructure").doesNotContainKeys("roleAssessment","segmentAnalysis","segmentAnalysisHash");
+        var output=JSON.valueToTree(result);
+        assertThat(output.at("/hwpxStructure/pictureCount").asInt()).isEqualTo(2);
+        assertThat(output.toString()).doesNotContain("PRIVATE_CANARY");
+        input.withObject("/hwpxStructure").put("unexpected","PRIVATE_CANARY");
+        assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input))
+                .isInstanceOf(java.io.IOException.class).hasMessage("INVALID_HWPX_STRUCTURE_DIAGNOSTIC");
+    }
     @Test void unknownRoleRemainsUnknownAndBrokenLocationProofFails() throws Exception {
         var input=JSON.valueToTree(Map.of("qualityCode","COMPLETE_TEXT","text","일반자료","blocks",List.of(
                 Map.of("index",0,"startOffset",0,"endOffset",4,"evidenceScopeId","p1","scopeReliable",true,"locator","page:1"))));

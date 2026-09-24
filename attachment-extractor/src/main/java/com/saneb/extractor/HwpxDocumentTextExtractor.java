@@ -16,6 +16,7 @@ final class HwpxDocumentTextExtractor {
     private static final String HP = "http://www.hancom.co.kr/hwpml/2011/paragraph";
     ExtractionResult selectExtraction(Path file) throws Exception {
         TextEvidence evidence = new TextEvidence();
+        int sectionCount = 0, paragraphCount = 0, pictureCount = 0, oleCount = 0, equationCount = 0;
         try (ZipFile zip = new ZipFile(file.toFile())) {
             if (zip.size() > 2000) throw new IOException("LIMIT_EXCEEDED");
             Set<String> names = new HashSet<>();
@@ -51,6 +52,7 @@ final class HwpxDocumentTextExtractor {
                     .toList();
             if (sections.isEmpty()) return ExtractionResult.failure("CORRUPT");
             for (String section : sections) {
+                sectionCount++;
                 try (InputStream input = zip.getInputStream(zip.getEntry(section))) {
                     XMLInputFactory factory = XMLInputFactory.newFactory();
                     factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -74,6 +76,7 @@ final class HwpxDocumentTextExtractor {
                                 if (HP.equals(xml.getNamespaceURI())) {
                                     String name = xml.getLocalName();
                                     if ("p".equals(name)) {
+                                        paragraphCount++;
                                         if (!paragraphs.isEmpty()) {
                                             Paragraph parent = paragraphs.peek();
                                             parent.hasNestedParagraph=true;
@@ -83,7 +86,9 @@ final class HwpxDocumentTextExtractor {
                                         paragraphs.push(new Paragraph(++index));
                                     }
                                     if ("t".equals(name)) textDepth++;
-                                    if ("pic".equals(name) || "ole".equals(name) || "equation".equals(name)) evidence.updatePartial();
+                                    if ("pic".equals(name)) { pictureCount++; evidence.updatePartial(); }
+                                    if ("ole".equals(name)) { oleCount++; evidence.updatePartial(); }
+                                    if ("equation".equals(name)) { equationCount++; evidence.updatePartial(); }
                                 }
                             } else if (event == XMLStreamConstants.CHARACTERS && textDepth > 0 && !paragraphs.isEmpty()) {
                                 paragraphs.peek().text.append(xml.getText());
@@ -104,7 +109,11 @@ final class HwpxDocumentTextExtractor {
                 }
             }
         }
-        return evidence.selectResult("HWPX", null);
+        var result = evidence.selectResult("HWPX", null);
+        int replacements = (int) result.text().codePoints().filter(point -> point == 0xfffd).count();
+        return new ExtractionResult(result.format(), result.extractorVersion(), result.qualityCode(), result.text(),
+                result.blocks(), result.pageCount(), result.errorCode(), null,
+                new ExtractionResult.HwpxStructure(sectionCount, paragraphCount, pictureCount, oleCount, equationCount, replacements));
     }
     private static final class Paragraph {
         final int index;
