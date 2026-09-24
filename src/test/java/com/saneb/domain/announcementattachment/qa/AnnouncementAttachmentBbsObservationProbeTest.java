@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -66,6 +66,48 @@ class AnnouncementAttachmentBbsObservationProbeTest {
             ((ObjectNode)reports.getFirst()).put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",33554433);
             assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
         }
+    }
+    private List<JsonNode> dalseongReports() throws Exception {
+        var reports=namguReports();
+        for(int i=0;i<3;i++) {
+            var row=(ObjectNode)reports.get(i);String code=AnnouncementAttachmentBbsObservationProbe.DALSEONG_CASES.get(i);
+            var hashes=AnnouncementAttachmentBbsObservationProbe.selectDalseongBinaryHashes(code);int count=hashes.size();
+            row.put("caseCode",code).put("profileCode","LOCAL_DAEGU_DALSEONG_GET_V1").put("maximumRequestReservations",6)
+                    .put("expectedListedFileCount",count).put("discoveredFileCount",count).put("requestReservationsIncludingBodyUpperBound",count+3);
+            var files=row.withArray("files");if(i==0)files.add(files.get(0).deepCopy());
+            for(int j=0;j<count;j++)((ObjectNode)files.get(j)).put("binaryHash",hashes.get(j)).put("downloadAllowed",true).put("format",i==0&&j==0?"PDF":"HWP");
+        }
+        return reports;
+    }
+    private boolean validDalseong(List<JsonNode> reports) {
+        return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),"DALSEONG",false);
+    }
+    @Test void dalseongRequiresAllFourPinnedFilesAndDoesNotApproveExpectations() throws Exception {
+        assertTrue(validDalseong(dalseongReports()));assertFalse(validDalseong(namguReports()));
+        var rows=dalseongReports();rows.removeLast();assertFalse(validDalseong(rows));
+        rows=dalseongReports();rows.set(1,rows.getFirst());assertFalse(validDalseong(rows));
+        rows=dalseongReports();((ObjectNode)rows.getFirst()).withArray("files").remove(1);assertFalse(validDalseong(rows));
+        for(String key:List.of("isPolicyQaPassed","isExpectationApproved")) {
+            rows=dalseongReports();((ObjectNode)rows.getFirst()).put(key,true);assertFalse(validDalseong(rows));
+        }
+        for(String key:List.of("originalFilesRemoved","bodyStageComplete","discoveryComplete","requiresFinalAdminVerification")) {
+            rows=dalseongReports();((ObjectNode)rows.getFirst()).put(key,false);assertFalse(validDalseong(rows));
+        }
+        for(String key:List.of("binaryHash","format","extractorVersion","quality","segmentAnalysisHash")) {
+            rows=dalseongReports();((ObjectNode)rows.getFirst().at("/files/0")).put(key,"changed");assertFalse(validDalseong(rows));
+        }
+        for(String key:List.of("productionWriteCount","maximumRequestReservations","maximumReservedBytes","expectedListedFileCount","discoveredFileCount","requestReservationsIncludingBodyUpperBound")) {
+            rows=dalseongReports();((ObjectNode)rows.getFirst()).put(key,"6");assertFalse(validDalseong(rows));
+        }
+        rows=dalseongReports();((ObjectNode)rows.getFirst()).put("observedAt",START.minusSeconds(1).toString());assertFalse(validDalseong(rows));
+        assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentBbsObservationProbe.selectDalseongBinaryHashes("DALSEONG-53932"));
+    }
+    @Test void dalseongMixedPartialSetRemainsObservedButIncompleteAndReviewRequired() throws Exception {
+        var rows=dalseongReports();var row=(ObjectNode)rows.getFirst();var file=(ObjectNode)row.at("/files/0");
+        file.put("quality","PARTIAL_TEXT");file.remove(List.of("roleAssessment","segmentAnalysis","segmentAnalysisHash"));
+        row.put("isWholeTextAnalysisComplete",false);assertTrue(validDalseong(rows));
+        row.put("decisionStatus","ACCEPTED");assertFalse(validDalseong(rows));
+        row.put("decisionStatus","REVIEW_REQUIRED").put("isWholeTextAnalysisComplete",true);assertFalse(validDalseong(rows));
     }
     private List<JsonNode> namguReports() throws Exception {
         var reports=boeunReports();

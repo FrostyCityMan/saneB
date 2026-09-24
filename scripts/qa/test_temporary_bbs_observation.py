@@ -20,6 +20,43 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_dalseong_mode_pins_all_four_files_and_preserves_cumulative_budget(self):
+        import copy
+        mode='DALSEONG_OBSERVATION';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('DALSEONG-THREE-NOTICES',['DALSEONG-51022','DALSEONG-52145','DALSEONG-51075'],18,75497472),scope)
+        self.assertLessEqual(16+scope[2],60);self.assertLessEqual(17513073+scope[3],100663296)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=scope[1][1:]),mode)
+        hashes=[['1dc0fd0deeb1d892bb125ec567c71bc3111fb9ecf861f52e7107c6877ec88fdb','6dd8d582a0c8d6cbe2f22376002d737eb15aab98a28ac0e8f612bdc1e1837fb4'],
+                ['c3488feba7f7b3addafb0e6037be47f1e34193e8137769b514ed2453bd27e98c'],['f400d97b469c0473a78d10a91ec0d9bc2956d0ecbba2df6546a8191564b729ad']]
+        rows=[]
+        for index,code in enumerate(scope[1]):
+            count=len(hashes[index])
+            rows.append(dict(caseCode=code,scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_DAEGU_DALSEONG_GET_V1',
+                status='OBSERVED_NOT_VALIDATED',productionWriteCount=0,isPolicyQaPassed=False,isExpectationApproved=False,originalFilesRemoved=True,
+                bodyStageComplete=True,bodyStatus='AVAILABLE',discoveryStatus='FOUND',discoveryComplete=True,requiresFinalAdminVerification=True,
+                expectedListedFileCount=count,discoveredFileCount=count,maximumRequestReservations=6,maximumReservedBytes=25165824,
+                requestReservationsIncludingBodyUpperBound=count+3,reservedBytesIncludingBodyUpperBound=3000000,
+                decisionStatus='REVIEW_REQUIRED',isWholeTextAnalysisComplete=True,
+                files=[dict(binaryHash=value,status='OBSERVED',quality='COMPLETE_TEXT',format='PDF' if index==0 and j==0 else 'HWP') for j,value in enumerate(hashes[index])]))
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',productionDatabaseUsed=False,isPolicyQaPassed=False,isExpectationApproved=False,reports=rows)
+        self.unit['validate_probe_scope'](report,mode)
+        for field,value in [('productionWriteCount',True),('maximumRequestReservations',44),('requiresFinalAdminVerification',False),('discoveredFileCount',1),('bodyStatus','UNAVAILABLE')]:
+            invalid=copy.deepcopy(report);invalid['reports'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for field,value in [('binaryHash','a'*64),('format','HWPX'),('status','FAILED')]:
+            invalid=copy.deepcopy(report);invalid['reports'][0]['files'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        invalid=copy.deepcopy(report);invalid['reports'][0]['files'].pop()
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        rows[0]['files'][0]['quality']='PARTIAL_TEXT';rows[0]['isWholeTextAnalysisComplete']=False
+        self.unit['validate_probe_scope'](report,mode)
+        rows[0]['decisionStatus']='ACCEPTED'
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,mode)
+
     def test_long_form_mode_pins_one_file_and_stored_proof_within_cumulative_budget(self):
         import copy
         mode='BOEUN_LONG_FORM';scope=self.runner['SCOPES'][mode]

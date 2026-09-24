@@ -42,16 +42,48 @@
 
 `provider-qa-catalog-v2.json`에 공식 source identity3건만 추가했다. catalogVersion=`2026-09-25-dalseong-support-references-v2`,36참조/12기관/기대값1/정상0이다. 신규3건 expectation은 null이고 기존33건을 JSON 전체 비교로 보존했다. 등록7엔진/19프로필은 그대로이며 참조 없는 등록 프로필8→7이다. catalog/코드 지문이 바뀌므로 과거 QA snapshot을 현재 성공으로 재사용하지 않는다. API·V1~V85 migration·운영 설치 catalog는 변경하지 않았다.
 
-## 미완료
+## 서울 격리 추출 결과 — 2026-09-25 01:04~01:05 KST
+
+- 실행 `1c25284886454085b39e272799932bd7`, SSM `7f20c102-42e2-4ac8-8af1-ac718c225a5d`, `DALSEONG_OBSERVATION` 1회. 63초, 관측 시험3/3·실패/생략/중단0, SSM Success/exit0이다. 관측 계약 통과이지 완전 추출·정상 후보·정책 QA 통과가 아니다.
+- 실행 코드 지문 `927818e19548730dcb682b615b65f328690a9faadb77d08da1162799ee75dee3`, probe `6ebfa5c0938575ab48f5d41186a8d87b6b7a735f858b3a37f6c98a517f87784e`, archive `d62b33ed6825ab8079fab48631ccc5e08473f1c39b9862ddff3a13fed191e087`이다. 전송은138파일/188,238,744byte이며 다운로드 공고 원문을 포함하지 않았다.
+- 제목3건 COMBINATION_MATCHED, 본문3건 AVAILABLE/완료/attempt1/redirect0, 공식 첨부 발견3건 FOUND/완료와 전체2/1/1파일을 확인했다. 본문 길이는97/132/395자다. 4개 binary는 위 로컬 다운로드 SHA256과 동일하며 추출기1.0.7이다.
+
+| 공고 / 파일 | 추출 문자 / 블록 | 품질 | 확인된 HWP 부분 사유 |
+|---|---:|---|---|
+| 51022 PDF | 1,629 / 21 | PARTIAL_TEXT | 해당 없음; PDF 세부 원인은 이번 metadata로 확정하지 않음 |
+| 51022 HWP | 8,993 / 347 | PARTIAL_TEXT | UNSUPPORTED_RECORD 2, UNSUPPORTED_CONTROL 3, TABLE_CONTROL_HEADER 19 |
+| 52145 HWP | 6,703 / 321 | PARTIAL_TEXT | UNSUPPORTED_RECORD 5, UNSUPPORTED_CONTROL 2 |
+| 51075 HWP | 2,294 / 95 | PARTIAL_TEXT | UNSUPPORTED_RECORD 6, UNSUPPORTED_CONTROL 3 |
+
+3공고 모두 `REVIEW_REQUIRED / ATTACHMENT_INCOMPLETE`, wholeText=false, `ATTACHMENT_ROLE_UNKNOWN / ATTACHMENT_TEXT_INCOMPLETE`, 관리자 최종 검증 요구를 유지한다. 규칙은 임시 DB 초안 seed이며 운영 규칙 적용 증거가 아니다. 지원대상·형태는 관측값이고 검토된 기대값은 여전히 없다. 실제 상시 worker의 저장·API·관리자 DRAFT는 이번 관측으로 검증하지 않았다.
+
+신규 보수적 요청 예약은5+4+4=13회, 예약byte는3,489,905+2,356,224+2,229,760=8,075,889다. 이전 원장16회/17,513,073byte를 유지하여 **누적29/60회·25,588,962/100,663,296byte, 잔여31회·75,074,334byte**다. 새 실행은 이 원장을 차감해야 한다. 이전16회 기준의 전송 guard는 이번 실행 이후 재사용하지 않는다.
+
+원격 unit 비활성·probe/transport 임시 원본과 자원 정리, 운영 DB 미사용/쓰기0, 설치 JAR 불변·health UP을 확인했다. 설치 JAR 지문은 `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`다. S3 자기 객체 삭제·plan.cleaned=true를 확인하고 exact path/hash를 검증한 로컬 package.zip만 삭제했다. 재생성 가능한 전송본이며 plan/result 영수증과 사용자 미추적 파일은 보존했다. 운영 설치·정책·worker·DB·배포 변경은 없다.
+
+이번 증분 검증 `:test --tests '*AnnouncementAttachmentBbsObservationProbeTest' --tests '*AnnouncementAttachmentBbsOfficialObservationContractTest' :attachmentContractQaTest :attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`은1분44초 성공했다. Java54(32+22)·패키지20건 실패/오류/생략0, Node4·Python24건 통과다. probe JAR는 새로 생성했고 변경 없는 본체/bootJar는 UP-TO-DATE다. 선행3f4e6d7 [Linux36023716864](https://github.com/FrostyCityMan/saneB/actions/runs/36023716864)는 마지막 조회 in_progress로 새 증분 CI 성공을 의미하지 않는다.
+
+## 실행 준비 및 선행 검증 기록
+
+### 서울 격리 실행 계약 연결
+
+`DALSEONG_OBSERVATION` 명시 모드를 Java probe·Bash·임시 Python runner와 로컬 패키지/전송 도구에 연결했다. 고정3공고·전체4파일·선행 binary4개 지문·profile·기간·본문/발견 완료·형식·추출 버전·구간 지문을 검사한다. 부분 추출도 관측 결과로 남기되 wholeText=false/REVIEW_REQUIRED를 강제하며 정책·기대값 승인과 운영 쓰기는 금지한다. 기본/다른 지역 모드·기존 예산은 바꾸지 않는다.
+
+전송 전 누적16요청/17,513,073byte를 로컬 다운로드 영수증과 본문 JUnit3건으로 재검증한다. 동일 plan 재전송과 이미 전송된 달성 plan이 있는 새 실행을 거부한다. 최대18요청/72MiB/20분·CPU1·메모리768MiB·임시공간1GiB이며 운영 설치/환경/DB는 공유하지 않는다. 기존 공개 요청은 profile/DNS/TLS 경계, 실제 파일 추출은 별도 network namespace 제한을 사용한다.
+
+첫 전송 시도는 JUnit XML의 method 이름을 기대한 로컬 선행 검증에서 중단됐다. 실제 XML의 고정 한글 표시명3건과 정확히 비교하도록 고쳤다. 이 시도는 uploaded=false/commandId=null이므로 S3 전송·SSM 실행·공고 요청이 없었다. 이와 별도로 수정 중 PowerShell 줄바꿈 구문 오류는 실행 전에 발견·수정했고 재검사0오류다. 실패를 정상 실행이나 외부 사용량으로 기록하지 않는다.
 
 표적 계약 검증 `:test --tests '*AnnouncementAttachmentBbsOfficialObservationContractTest' --tests '*AttachmentProviderQaCatalogTest' --tests '*AttachmentPolicyValidationSnapshotFactoryTest' --tests '*SaeolGetAttachmentDiscoveryProfileTest' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은2분6초 성공했다. Java113·패키지20건 실패/오류/생략0, 새 catalog를 포함한 bootJar 생성 완료다. 제목 차용/중복/중첩 구조를 거부하고 source identity·제목 선행 규칙·기존 정상 표본 부족·QA snapshot 계약을 검증했다. 이는 Linux 공식 파일 추출이나 운영 적용 증거가 아니다.
 
 확대 `:test --tests 'com.saneb.domain.announcementattachment.*' :bootJar --no-daemon --max-workers=1`은3분20초 성공,1983건=1960통과/23조건부 생략·실패/오류0이다. 이 확대 실행 이후의 달성 관측 예산 제한 증분은 별도 표적 재검증으로 구분한다. `node --test scripts/qa/attachment-bbs-observation-probe.test.mjs`4건 통과·생략0, `git diff --check`도 통과했다. 확대 실행의 bootJar는 앞선 생성물 UP-TO-DATE다.
 
-최종 예산 제한 증분은 `:test --tests '*AnnouncementAttachmentBbsOfficialObservationContractTest' --no-daemon --max-workers=1`로1분39초·22건 통과/실패/오류/생략0을 확인했다. 소유 단기 Node와 Gradle 실행은 종료했고 workspace Node/Java/PG 잔여0이다. 선행 `bd68cfa` [Linux36021816332](https://github.com/FrostyCityMan/saneB/actions/runs/36021816332)는 success이며 이번 달성 변경의 새 CI와 구분한다. 이번 서울 호출·운영 상태 재조회·운영 배포는 실행하지 않았다.
+최종 예산 제한 증분은 `:test --tests '*AnnouncementAttachmentBbsOfficialObservationContractTest' --no-daemon --max-workers=1`로1분39초·22건 통과/실패/오류/생략0을 확인했다. 당시 소유 단기 Node와 Gradle 실행은 종료했고 workspace Node/Java/PG 잔여0이다. 선행 `bd68cfa` [Linux36021816332](https://github.com/FrostyCityMan/saneB/actions/runs/36021816332)는 success이며 달성 변경의 새 CI와 구분한다. 이 선행 단계에서는 서울 호출·운영 상태 재조회·운영 배포를 실행하지 않았고, 후속 서울 실측은 위 별도 절에 기록했다.
+
+## 남은 업무
 
 - [x] 직접 제목·파일 전체 목록 확인, 기존 transport로 다운로드/signature 및 본문 수집 검증.
-- [ ] 실제 텍스트·구간/역할 검토, 서울 제한 격리 추출, worker·DB/API와 관리자 검수/DRAFT.
+- [x] 서울 제한 격리에서 본문3건·전체4파일 추출과 부분 품질/검수 유지·임시 자원 정리 확인.
+- [ ] PDF 부분 원인·HWP 미지원 구조 개선, 실제 텍스트·구간/역할 검토, worker·DB/API와 관리자 검수/DRAFT.
 - [ ] 검토된 기대값과 전체 Provider coverage. 자동 승인하지 않는다.
 
 브라우저 검증은 현재 명시 요청 정책에 따라 미실행이다.
