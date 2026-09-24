@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-24 구간 실파일 관측 준비 및 PDF Linux 증거 확인
+
+- [x] 기업마당/지자체 공통 관측 보고서에 `segmentAnalysis`와 canonical `segmentAnalysisHash`를 추가했다. 원문/locator는 복제하지 않고 기존 파일 역할을 유지한다. COMPLETE_TEXT만 구간 근거를 생성하며 혼합 NOTICE/FORM과 전체 좌표/이모지, 구조 불확실 UNKNOWN, 해시 호환성을 검증했다. 이는 관측 metadata이며 기대값 승인/등록·종합 판정 엔진 전환·정책 활성화가 아니다.
+- [x] `:test --tests '*AnnouncementAttachmentOfficialObservationContractTest' :bootJar --no-daemon --max-workers=1` 최종23초 성공, 11/11·실패/생략0이다. 앞선 신규 시험의 생성자 인자 오류와 서명란 합성 입력 오류는 시험 코드에서 수정했다. 판정 규칙/기존 기대값을 완화하지 않았다. Node 보고서 판정기158/158·실패/생략0이며 실사이트 호출은 없다.
+- [x] 마지막 변경을 포함한 `:attachmentContractQaTest :bootJar --no-daemon --max-workers=1`도32초 성공했다. 독립 QA JAR/install 경로를 다시 만들고 패키지20/20·실패/생략0을 확인했다. 운영 설치는 수행하지 않았다.
+- [x] PDF SHA `5aa2318b28fe0733ec69b91a5be802456b9767d1`의 [Linux35971006262](https://github.com/FrostyCityMan/saneB/actions/runs/35971006262) 최종 success 및 artifact XML을 확인했다. root2869건=2594통과/275조건부 생략/실패·오류0; extractor114, 패키지20, 작업PG196, migration18, workerPG12, Flyway3, runtime5, 정책부모PG2는 모두 실패/생략0이다. 실제 격리 설치14fixture는5.9초, 30초 timeout·원본 정리 시험30.297초 통과다. 증거는 `build/qa-results/linux-35971006262/`에 보존했다.
+- [~] 위 Linux 결과는 뒤의 관리자 UI `a6842cb` 및 관측 보고서 추가 변경 검증과 구분한다. [UI35972307990](https://github.com/FrostyCityMan/saneB/actions/runs/35972307990)와 후속 SHA는 각각 최종 결과 확인이 필요하다.
+- [ ] 다음 실파일 검증에는 새 추출기/구간 엔진의 고정 공고 관측, 수동 검토한 기대값, 동일 버전 재실행이 필요하다. 관측 자료만으로 catalog를 자동 채우지 않는다. 운영 DB/정책/worker/재처리·옥천 보류·브라우저 경계와 전체 미완료 분모를 유지한다.
+
 ### 2026-09-24 관리자 문서 구간 근거 조회 연결
 
 - [x] 기존 첨부 검수 화면에 저장된 구간 분석 GET 조회를 연결했다. 파일 전체 역할·수동/시스템 출처·구간 역할·충돌 사유를 분리하며 고정 extraction의 문단/좌표로 이동한다. 파일 역할이나 검수/초안 게이트를 변경하지 않고 POST·재분류·수집을 호출하지 않는다.

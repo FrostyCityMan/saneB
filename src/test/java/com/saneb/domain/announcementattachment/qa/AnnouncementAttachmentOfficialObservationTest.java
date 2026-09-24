@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.saneb.domain.announcementattachment.classification.AttachmentDocumentRoleClassifier;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
 import com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile;
 import com.saneb.domain.announcementattachment.discovery.BizInfoAttachmentDiscoveryProfile;
 import com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor;
@@ -182,11 +183,15 @@ class AnnouncementAttachmentOfficialObservationTest {
         if (!"COMPLETE_TEXT".equals(actual.path("qualityCode").asText())) return observation;
         var blocks = new ArrayList<AttachmentSetEvidence.Block>();
         for (var block : actual.path("blocks")) blocks.add(JSON.treeToValue(block, AttachmentSetEvidence.Block.class));
-        var assessment = new AttachmentDocumentRoleClassifier().selectAssessment(new AttachmentSetEvidence.Extraction(
-                "COMPLETE_TEXT", text, blocks, null, 0));
+        var extraction = new AttachmentSetEvidence.Extraction("COMPLETE_TEXT", text, blocks, null, 0);
+        var assessment = new AttachmentDocumentRoleClassifier().selectAssessment(extraction);
         observation.put("roleAssessment", assessment);
         observation.put("roleAssessmentHash", selectHash(assessment));
         observation.put("roleStructureObservation", selectRoleStructureObservation(text, blocks));
+        // 관측 자료일 뿐 catalog의 승인된 기대값을 생성/등록하거나 기존 파일 판정을 대체하지 않는다.
+        var segments = new AttachmentSegmentRoleAnalyzer().selectAnalysis(extraction);
+        observation.put("segmentAnalysis", segments);
+        observation.put("segmentAnalysisHash", selectHash(segments));
         return observation;
     }
 

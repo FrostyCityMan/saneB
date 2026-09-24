@@ -59,7 +59,7 @@ class AnnouncementAttachmentOfficialObservationContractTest {
     @Test void incompleteExtractionCannotAcquireRoleEvidence() throws Exception {
         var result=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(JSON.valueToTree(
                 Map.of("qualityCode","PARTIAL_TEXT","text","소상공인 지원 공고","blocks",List.of())));
-        assertThat(result).doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation");
+        assertThat(result).doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation","segmentAnalysis","segmentAnalysisHash");
         assertThat(result).containsKeys("textHash","characterCount","blockCount");
     }
     @Test void unknownRoleRemainsUnknownAndBrokenLocationProofFails() throws Exception {
@@ -69,6 +69,43 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         assertThat(output.path("roleAssessment").path("roleCode").asText()).isEqualTo("UNKNOWN");
         ((com.fasterxml.jackson.databind.node.ObjectNode)input.path("blocks").get(0)).put("endOffset",3);
         assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test void mixedActualTextExportsIndependentSegmentMetadataWithoutApprovingExpectedValues() throws Exception {
+        String text="😀 소상공인 지원 공고\n지원대상\n지원내용\n신청기간\n개인정보_CANARY_원문\n참여 신청서\n성명\n(서명)";
+        var input=JSON.valueToTree(Map.of("qualityCode","COMPLETE_TEXT","text",text,"blocks",List.of(
+                Map.of("index",0,"startOffset",0,"endOffset",text.codePointCount(0,text.length()),"evidenceScopeId","private-scope","scopeReliable",true,"locator","private-locator"))));
+        var observed=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input);
+        var output=JSON.valueToTree(observed);
+        assertThat(output.path("roleAssessment").path("roleCode").asText()).isEqualTo("UNKNOWN");
+        assertThat(output.path("roleAssessment").path("reasonCode").asText()).isEqualTo("MIXED_DOCUMENT_ROLES");
+        var analysis=output.path("segmentAnalysis");
+        assertThat(analysis.path("analysisVersion").asText()).isEqualTo("segment-role-1.0.0");
+        assertThat(analysis.path("statusCode").asText()).isEqualTo("RESOLVED");
+        assertThat(analysis.path("segments")).extracting(s->s.path("roleCode").asText()).containsExactly("NOTICE","FORM");
+        int boundary=text.substring(0,text.indexOf("참여 신청서")).codePointCount(0,text.indexOf("참여 신청서"));
+        assertThat(analysis.path("segments").get(0).path("endOffset").asInt()).isEqualTo(boundary);
+        assertThat(analysis.path("segments").get(1).path("startOffset").asInt()).isEqualTo(boundary);
+        assertThat(analysis.path("segments").get(1).path("endOffset").asInt()).isEqualTo(text.codePointCount(0,text.length()));
+        assertThat(analysis.path("textHash")).isEqualTo(output.path("textHash"));
+        assertThat(analysis.path("blocksHash")).isEqualTo(output.path("roleAssessment").path("blocksHash"));
+        assertThat(output.path("segmentAnalysisHash").asText())
+                .isEqualTo(AnnouncementAttachmentOfficialObservationTest.selectHash(observed.get("segmentAnalysis")));
+        var executor=new AttachmentProviderQaCaseExecutor(null,null,null,null,null,null,JSON);
+        assertThat(output.path("segmentAnalysisHash").asText()).isEqualTo(executor.selectHash(observed.get("segmentAnalysis")));
+        assertThat(output.toString()).doesNotContain("개인정보","CANARY","지원대상","참여 신청서","private-scope","private-locator",
+                "segmentExpectation","isExpectationApproved","isPolicyQaPassed","ACCEPTED");
+    }
+
+    @Test void uncertainPdfScopesAndUnknownSegmentsRemainUnresolvedInObservation() throws Exception {
+        String text="지원 공고\n지원대상\n지원내용\n신청기간\n신청서\n성명\n서명";
+        var input=JSON.valueToTree(Map.of("qualityCode","COMPLETE_TEXT","text",text,"blocks",List.of(
+                Map.of("index",0,"startOffset",0,"endOffset",text.length(),"evidenceScopeId","page:1","scopeReliable",false,"locator","page:1"))));
+        var output=JSON.valueToTree(AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input));
+        assertThat(output.path("segmentAnalysis").path("statusCode").asText()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(output.path("segmentAnalysis").path("segments")).allMatch(s->s.path("roleCode").asText().equals("UNKNOWN"));
+        assertThat(output.path("segmentAnalysisHash").asText()).matches("[0-9a-f]{64}");
+        assertThat(output.path("roleAssessment").path("roleCode").asText()).isEqualTo("UNKNOWN");
     }
 
     @Test void structureSignalsKeepCurrentFormAssessmentWithoutCopyingText() throws Exception {
