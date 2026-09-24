@@ -27,6 +27,18 @@ test('Bash 구문과 인자 없는 실행 차단', () => {
   const denied = spawnSync(bash, [resolve(script).replaceAll('\\', '/')], { encoding: 'utf8', timeout: 10000 });
   assert.equal(denied.status, 1); assert.equal(denied.stdout, '');
 });
+test('함안 Linux 실파일 호출은 고정 표식의 최초 실행으로만 제한한다', () => {
+  const workflow = readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8');
+  const block = workflow.split('id: haman-observation')[1]?.split('      - name: 함안 관측 metadata')[0];
+  assert(block);
+  assert(block.includes("github.event_name == 'push' && github.run_attempt == 1"));
+  assert(block.includes("contains(github.event.head_commit.message, '[haman-41306-observation-01]')"));
+  assert(block.includes('-PsanebBbsObservationGroup=HAMAN'));
+  assert(block.includes(':attachmentBbsOfficialFileObservation'));
+  assert(block.includes('validate-haman-observation.py "$started_ms"'));
+  assert(block.includes('timeout-minutes: 10')); assert(block.includes('--max-workers=1'));
+  for (const text of ['workflow_dispatch', 'aws ', 'curl ', 'wget ', '--rerun-tasks', 'retry', 'inputs.']) assert(!block.includes(text));
+});
 test('비root·식별자·PID 격리·정리·10분 실행 상한 유지', () => {
   for (const text of ['"$(id -u)" != 0', 'sha256sum -- "$probe_jar"', '--unshare-pid', '--clearenv',
     '--die-with-parent', '--cap-drop ALL', '--kill-after=5 600', '--cpu=540', '-Xmx256m',

@@ -128,6 +128,30 @@ jobs:
         run: |
           python3 -B -m unittest discover -s scripts/qa -p test_temporary_bbs_observation.py -v
           python3 -B -m unittest discover -s scripts/qa -p test_cheorwon_transport.py -v
+          python3 -B -m unittest discover -s scripts/qa -p test_haman_observation_report.py -v
+
+      - name: 함안 고정1공고 Linux 관측 — 운영 및 서울 서버 변경 없음
+        id: haman-observation
+        # 재실행은 외부 요청을 반복하지 않는다. 누적8요청/6,399,210byte에 최대6요청/23MiB를 가산한다.
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[haman-41306-observation-01]') }}
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_ms="$(date +%s)000"
+          bash ./gradlew :attachmentBbsOfficialFileObservation -PsanebBbsObservationGroup=HAMAN --no-daemon --console=plain --max-workers=1
+          python3 -B scripts/qa/validate-haman-observation.py "$started_ms"
+
+      - name: 함안 관측 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.haman-observation.outcome != 'skipped' && steps.haman-observation.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-haman-observation-${{ github.sha }}
+          path: |
+            build/reports/attachment-bbs-official-observation/HAMAN-41306.json
+            build/test-results/attachmentBbsOfficialFileObservation/TEST-*.xml
+          if-no-files-found: error
+          retention-days: 7
 
       - name: 변경 코드의 태백 고정 공고 관측 — 기대값 승인·운영 쓰기 없음
         id: taebaek-revalidation-observation
