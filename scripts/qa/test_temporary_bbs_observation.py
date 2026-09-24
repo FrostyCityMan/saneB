@@ -102,6 +102,23 @@ class TemporaryBbsObservationTest(unittest.TestCase):
                 self.unit['validate_probe_scope'](dict(report,**{field:value}),'BOEUN')
         self.unit['validate_probe_scope'](dict(report,status='INCOMPLETE',cases=[]),'BOEUN')
 
+    def test_boeun_observation_uses_new_temporary_package_not_installed_worker(self):
+        mode='BOEUN_OBSERVATION'
+        self.assertEqual(self.runner['SCOPES']['BOEUN'],self.runner['SCOPES'][mode])
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest={'schemaVersion':1,'caseCode':'BOEUN-THREE-NOTICES','caseCodes':self.runner['SCOPES'][mode][1],
+                  'verificationMode':mode,'executionCodeHash':'a'*64}
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,verificationMode='BOEUN'),mode)
+        report={'kind':'BBS_OBSERVATION_PROBE','verificationMode':mode}
+        self.unit['validate_probe_scope'](report,mode)
+        for changed in [dict(report,kind='OFFICIAL_WORKER_PROBE'),dict(report,verificationMode='BOEUN')]:
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](changed,mode)
+
     def test_untrusted_path_is_not_searched(self):
         with patch('pathlib.Path.is_file', return_value=False), patch('shutil.which', side_effect=AssertionError('untrusted PATH')):
             with self.assertRaisesRegex(ValueError, '^AWS_EXECUTABLE_MISSING$'):

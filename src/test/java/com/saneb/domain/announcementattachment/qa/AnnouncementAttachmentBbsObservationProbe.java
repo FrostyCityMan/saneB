@@ -21,6 +21,7 @@ import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 /** 별도 승인 범위의 태백 1공고 또는 옥천 고정 3공고만 실행한다. 게시/기대값 변경은 없다. */
 public final class AnnouncementAttachmentBbsObservationProbe {
     static final List<String> OKCHEON_CASES = List.of("OKCHEON-193369", "OKCHEON-193297", "OKCHEON-193187");
+    static final List<String> BOEUN_CASES = List.of("BOEUN-221499", "BOEUN-221497", "BOEUN-218812");
     private static final Set<String> ENV = Set.of("PATH", "LANG", "HOME", "TMPDIR", "PWD",
             "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", "SANEB_ATTACHMENT_BBS_FIXED_CASE_QA");
     private AnnouncementAttachmentBbsObservationProbe() { }
@@ -33,7 +34,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -52,17 +53,24 @@ public final class AnnouncementAttachmentBbsObservationProbe {
 
     // Node 관측 보고서 검증과 동일하게 관측 성공과 완전 추출·정책 승인을 분리한다.
     static boolean selectOkcheonReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt) {
+        return selectThreeReportsComplete(reports, startedAt, endedAt, false);
+    }
+    static boolean selectBoeunReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt) {
+        return selectThreeReportsComplete(reports, startedAt, endedAt, true);
+    }
+    private static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, boolean boeun) {
         if (reports == null || reports.size() != 3 || startedAt == null || endedAt == null || endedAt.isBefore(startedAt)) return false;
+        var caseCodes = boeun ? BOEUN_CASES : OKCHEON_CASES;
         var seen = new HashSet<String>();
         for (var report : reports) {
-            if (report == null || !OKCHEON_CASES.contains(report.path("caseCode").asText())
+            if (report == null || !caseCodes.contains(report.path("caseCode").asText())
                     || !seen.add(report.path("caseCode").asText())) return false;
             try {
                 var observedAt = Instant.parse(report.path("observedAt").asText());
                 if (observedAt.isBefore(startedAt) || observedAt.isAfter(endedAt)) return false;
             } catch (java.time.format.DateTimeParseException failure) { return false; }
             if (!"OFFICIAL_THREE_STAGE_OBSERVATION_V1".equals(report.path("scope").asText())
-                    || !"LOCAL_OKCHEON_BBS_V1".equals(report.path("profileCode").asText())
+                    || !(boeun ? "LOCAL_BOEUN_BBS_V1" : "LOCAL_OKCHEON_BBS_V1").equals(report.path("profileCode").asText())
                     || !selectBounded(report, "productionWriteCount", 0, 0)
                     || !selectBoolean(report, "isPolicyQaPassed", false) || !selectBoolean(report, "isExpectationApproved", false)
                     || !selectBoolean(report, "originalFilesRemoved", true) || !selectBounded(report, "expectedListedFileCount", 1, 1)
@@ -71,7 +79,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !selectBounded(report, "requestReservationsIncludingBodyUpperBound", 0, 44)
                     || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 0, 83886080L)
                     || !report.path("files").isArray()) return false;
-            if ("OKCHEON-193187".equals(report.path("caseCode").asText())) {
+            if (!boeun && "OKCHEON-193187".equals(report.path("caseCode").asText())) {
                 if (!"TITLE_NOT_ELIGIBLE_NOT_FETCHED".equals(report.path("status").asText())
                         || !"COMBINATION_NOT_MATCHED".equals(report.path("titleStage").asText())
                         || !"TITLE_COMBINATION_NOT_MATCHED".equals(report.path("titleReason").asText())
@@ -92,7 +100,8 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 1, 83886080L)
                     || !Set.of("ACCEPTED", "REVIEW_REQUIRED").contains(report.path("decisionStatus").asText())) return false;
             var file = report.path("files").get(0);
-            if (!"OBSERVED".equals(file.path("status").asText()) || !"HWPX".equals(file.path("format").asText())
+            String format = boeun && "BOEUN-218812".equals(report.path("caseCode").asText()) ? "PDF" : "HWPX";
+            if (!"OBSERVED".equals(file.path("status").asText()) || !format.equals(file.path("format").asText())
                     || !selectBounded(file, "bytes", 1, 20971520)
                     || !Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED", "ENCRYPTED", "CORRUPT", "UNSUPPORTED", "LIMIT_EXCEEDED")
                             .contains(file.path("quality").asText())) return false;
@@ -100,8 +109,52 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if (complete && (!selectBounded(file, "characterCount", 1, 1000000) || !selectBounded(file, "blockCount", 1, 20000)
                     || !Set.of("NOTICE", "GUIDE", "FORM", "REFERENCE", "UNKNOWN").contains(file.path("roleAssessment").path("roleCode").asText()))) return false;
             if (!selectBoolean(report, "isWholeTextAnalysisComplete", complete)) return false;
+            if (boeun && complete && !selectSegmentMetadataComplete(file)) return false;
         }
         return true;
+    }
+
+    static boolean selectSegmentMetadataComplete(JsonNode file) {
+        try {
+            var analysis = file.path("segmentAnalysis");
+            return analysis.isObject() && analysis.path("analysisVersion").asText().equals(
+                    com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION)
+                    && analysis.path("rulesHash").asText().equals(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH)
+                    && analysis.path("textHash").asText().matches("[a-f0-9]{64}")
+                    && analysis.path("textHash").equals(file.path("textHash"))
+                    && analysis.path("blocksHash").asText().matches("[a-f0-9]{64}")
+                    && analysis.path("blocksHash").equals(file.path("roleAssessment").path("blocksHash"))
+                    && analysis.path("textLength").equals(file.path("characterCount"))
+                    && analysis.path("segments").isArray() && analysis.path("segments").size() > 0 && analysis.path("segments").size() <= 200
+                    && Set.of("RESOLVED", "REVIEW_REQUIRED").contains(analysis.path("statusCode").asText())
+                    && AnnouncementAttachmentOfficialObservationTest.selectHash(analysis).equals(file.path("segmentAnalysisHash").asText());
+        } catch (Exception failure) { return false; }
+    }
+
+    // SSM stdout 한도 안에서 모든 파일/역할 분모와 전체 분석 지문을 보존한다. 원문·좌표를 전송하지 않는다.
+    static JsonNode selectTransportReport(JsonNode report) {
+        var copy = (com.fasterxml.jackson.databind.node.ObjectNode) report.deepCopy();
+        copy.put("reportRepresentation", "METADATA_SUMMARY_FULL_ANALYSIS_HASH");
+        for (var file : copy.path("files")) {
+            if (!(file instanceof com.fasterxml.jackson.databind.node.ObjectNode row)) continue;
+            row.remove("roleStructureObservation");
+            if (row.path("roleAssessment") instanceof com.fasterxml.jackson.databind.node.ObjectNode role) {
+                role.put("evidenceCount", role.path("evidence").size()); role.remove("evidence");
+            }
+            if (row.path("segmentAnalysis") instanceof com.fasterxml.jackson.databind.node.ObjectNode analysis) {
+                var segments = analysis.remove("segments");
+                analysis.put("segmentCount", segments.size());
+                var roles = analysis.putArray("roleCodes");
+                var reasons = analysis.putObject("reasonCounts");
+                for (var segment : segments) {
+                    roles.add(segment.path("roleCode").asText());
+                    String reason = segment.path("reasonCode").asText();
+                    reasons.put(reason, reasons.path(reason).asInt() + 1);
+                }
+                row.set("segmentSummary", analysis); row.remove("segmentAnalysis");
+            }
+        }
+        return copy;
     }
 
     static boolean selectReportComplete(JsonNode report) {
@@ -162,6 +215,8 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             String mode = selectMode(args);
             boolean fixed = "FIXED".equals(mode);
             boolean okcheon = "OKCHEON".equals(mode);
+            boolean boeun = "BOEUN_OBSERVATION".equals(mode);
+            boolean three = okcheon || boeun;
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
                     || !"/work/tmp".equals(System.getProperty("java.io.tmpdir"))
@@ -179,7 +234,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             javax.net.ssl.SSLContext.getDefault();
             System.setProperty("saneb.attachment-observation.extractor", "/qa/extractor");
             System.setProperty("saneb.attachment-observation.report", "/work/reports");
-            System.setProperty("saneb.attachment-observation.group", okcheon ? "OKCHEON" : "TAEBAEK");
+            System.setProperty("saneb.attachment-observation.group", boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK");
             if(fixed) {
                 // 동일 승인44요청/80MiB에서 앞선 관측5요청/2,377,939bytes를 공제한다.
                 System.setProperty("saneb.attachment-fixed.maximum-requests","39");
@@ -203,16 +258,16 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             result.put("failureTypes", summary.getFailures().stream().map(f -> f.getException().getClass().getSimpleName()).distinct().limit(8).toList());
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
-            if (okcheon) result.put("reports", reports);
-            for (String name : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            if (three) result.put("reports", reports);
+            for (String name : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
             }
-            if (!okcheon) result.put("report", reports.getFirst());
+            if (!three) result.put("report", reports.getFirst());
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
-            passed = okcheon ? selectOkcheonReportsComplete(reports, startedAt, Instant.now())
+            passed = three ? (boeun ? selectBoeunReportsComplete(reports, startedAt, Instant.now()) : selectOkcheonReportsComplete(reports, startedAt, Instant.now()))
                     && selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount())
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))
@@ -223,6 +278,8 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             result.put("failureCode", "BBS_OBSERVATION_INCOMPLETE");
             result.put("failureType", failure.getClass().getSimpleName());
         }
+        if (result.get("reports") instanceof List<?> reports)
+            result.put("reports", reports.stream().map(report -> selectTransportReport((JsonNode) report)).toList());
         result.put("status", passed ? "PASSED" : "INCOMPLETE");
         try { output.println(new ObjectMapper().writeValueAsString(result)); }
         catch (Exception ignored) { output.println("{\"kind\":\"BBS_OBSERVATION_PROBE\",\"status\":\"INCOMPLETE\"}"); }

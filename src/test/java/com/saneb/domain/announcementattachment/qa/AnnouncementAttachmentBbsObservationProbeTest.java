@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -149,6 +149,77 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         var files=result.putArray("files");
         for(int i=0;i<2;i++)files.addObject().put("status","PASSED").put("quality","COMPLETE_TEXT").put("roleAssessmentHash","a".repeat(64));
         return node;
+    }
+
+    private List<JsonNode> boeunReports() throws Exception {
+        var json = new ObjectMapper();
+        var reports = new ArrayList<JsonNode>();
+        String text = "지원 공고\n지원대상\n지원내용\n신청기간\n개인_CANARY\n신청서\n성명\n(인)";
+        var observation = AnnouncementAttachmentOfficialObservationTest.selectTextObservation(json.valueToTree(java.util.Map.of(
+                "qualityCode", "COMPLETE_TEXT", "text", text, "blocks", List.of(java.util.Map.of(
+                "index", 0, "startOffset", 0, "endOffset", text.length(), "scopeReliable", true, "evidenceScopeId", "private-scope", "locator", "private-location")))));
+        for (String code : AnnouncementAttachmentBbsObservationProbe.BOEUN_CASES) {
+            var r = (ObjectNode) okcheonReports().getFirst();
+            r.put("caseCode", code).put("profileCode", "LOCAL_BOEUN_BBS_V1");
+            var file = (ObjectNode) r.at("/files/0");
+            file.put("format", code.endsWith("218812") ? "PDF" : "HWPX");
+            file.setAll((ObjectNode) json.valueToTree(observation)); reports.add(r);
+        }
+        return reports;
+    }
+    private boolean validBoeun(List<JsonNode> reports) {
+        return AnnouncementAttachmentBbsObservationProbe.selectBoeunReportsComplete(reports, START, START.plusSeconds(60));
+    }
+    @Test void boeunObservationUsesFixedThreeCasesAndCurrentSegmentsWithoutChangingFileRoles() throws Exception {
+        var cases = AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").toList();
+        assertEquals(AnnouncementAttachmentBbsObservationProbe.BOEUN_CASES, cases.stream().map(c->c.code()).toList());
+        assertTrue(cases.stream().allMatch(c->c.expectedTitleStopStage()==null && c.listedFileCount()==1
+                && c.profile().selectProfileCode().equals("LOCAL_BOEUN_BBS_V1")));
+        var reports = boeunReports(); assertTrue(validBoeun(reports)); assertFalse(validOkcheon(reports));
+        assertFalse(validBoeun(okcheonReports()));
+        assertEquals("UNKNOWN", reports.getFirst().at("/files/0/roleAssessment/roleCode").asText());
+        assertEquals("RESOLVED", reports.getFirst().at("/files/0/segmentAnalysis/statusCode").asText());
+        assertEquals("REVIEW_REQUIRED", reports.getFirst().path("decisionStatus").asText());
+    }
+    @Test void boeunCannotReuseWorkerModeOrOtherSourceOrIncompleteFileEvidence() throws Exception {
+        for (String field : List.of("segmentAnalysis", "segmentAnalysisHash", "textHash")) {
+            var reports = boeunReports(); ((ObjectNode) reports.getFirst().at("/files/0")).remove(field); assertFalse(validBoeun(reports));
+        }
+        for (String field : List.of("textHash", "rulesHash", "blocksHash", "analysisVersion")) {
+            var reports = boeunReports(); ((ObjectNode) reports.getFirst().at("/files/0/segmentAnalysis")).put(field,"changed"); assertFalse(validBoeun(reports));
+        }
+        for (String field : List.of("bodyStatus", "caseCode", "profileCode", "status", "scope")) {
+            var reports = boeunReports(); ((ObjectNode) reports.getFirst()).put(field,"changed"); assertFalse(validBoeun(reports));
+        }
+        var reports=boeunReports(); ((ObjectNode)reports.getLast().at("/files/0")).put("format","HWPX"); assertFalse(validBoeun(reports));
+        reports=boeunReports(); reports.removeLast(); assertFalse(validBoeun(reports));
+        reports=boeunReports(); reports.set(1,reports.getFirst()); assertFalse(validBoeun(reports));
+    }
+    @Test void boeunPartialQualityRemainsIncompleteAndNeverBecomesPolicyQaSuccess() throws Exception {
+        var reports=boeunReports(); var file=(ObjectNode)reports.getFirst().at("/files/0");file.put("quality","PARTIAL_TEXT");
+        file.remove(List.of("segmentAnalysis","segmentAnalysisHash","roleAssessment")); assertFalse(validBoeun(reports));
+        ((ObjectNode)reports.getFirst()).put("isWholeTextAnalysisComplete",false);assertTrue(validBoeun(reports));
+        ((ObjectNode)reports.getFirst()).put("isPolicyQaPassed",true);assertFalse(validBoeun(reports));
+    }
+    @Test void transportSummaryKeepsAllRolesAndFullAnalysisHashWithoutRawTextOrHugeCoordinates() throws Exception {
+        var json=new ObjectMapper();var reports=boeunReports();
+        for(var report:reports){
+            var segments=(com.fasterxml.jackson.databind.node.ArrayNode)report.at("/files/0/segmentAnalysis/segments");
+            var first=segments.get(0).deepCopy();segments.removeAll();for(int i=0;i<200;i++)segments.add(first.deepCopy());
+        }
+        var compact=reports.stream().map(AnnouncementAttachmentBbsObservationProbe::selectTransportReport).toList();
+        for(int i=0;i<3;i++){
+            var file=compact.get(i).at("/files/0");
+            assertEquals(200,file.at("/segmentSummary/segmentCount").asInt());
+            assertEquals(200,file.at("/segmentSummary/roleCodes").size());
+            assertEquals(reports.get(i).at("/files/0/segmentAnalysisHash"),file.path("segmentAnalysisHash"));
+            assertFalse(file.has("roleStructureObservation"));assertFalse(file.has("segmentAnalysis"));
+            assertTrue(reports.get(i).at("/files/0").has("segmentAnalysis"));
+            assertEquals("METADATA_SUMMARY_FULL_ANALYSIS_HASH",compact.get(i).path("reportRepresentation").asText());
+        }
+        String output=json.writeValueAsString(compact);
+        assertTrue(output.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<18000);
+        for(String forbidden:List.of("CANARY","private-scope","private-location","startOffset","endOffset"))assertFalse(output.contains(forbidden));
     }
     @Test void fixedComparisonRequiresEveryFileAndNeverApprovesWholeCoverage() {
         assertTrue(AnnouncementAttachmentBbsObservationProbe.selectFixedReportComplete(fixedReport()));

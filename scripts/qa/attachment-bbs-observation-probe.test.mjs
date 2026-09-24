@@ -19,13 +19,14 @@ test('비root·식별자·PID 격리·정리·10분 실행 상한 유지', () =>
     'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED', '--bind "$work/tmp" /tmp']) assert(source.includes(text), text);
   for (const text of ['--ro-bind / /', 'app.env', '--bind /home', 'crypto.policy=']) assert(!source.includes(text), text);
 });
-test('태백 관측·고정 비교와 별도 옥천3건 모드만 호출한다', () => {
+test('태백 관측·고정 비교와 별도 옥천·보은3건 관측 모드만 호출한다', () => {
   assert(source.includes('"$5" == FIXED || "$5" == OKCHEON'));
   assert(source.includes('probe_args=("$4")'));
   assert(source.includes('AnnouncementAttachmentBbsObservationProbe "${probe_args[@]}"'));
   assert(!source.includes('OfficialWorkerProbe'));
   const java = readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsObservationProbe.java', 'utf8');
-  assert(java.includes('System.setProperty("saneb.attachment-observation.group", okcheon ? "OKCHEON" : "TAEBAEK")'));
+  assert(source.includes('"$5" == BOEUN_OBSERVATION'));
+  assert(java.includes('System.setProperty("saneb.attachment-observation.group", boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK")'));
   assert(java.includes('selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class)'));
   assert(java.includes('"saneb.attachment-fixed.maximum-requests","39"'));
   assert(java.includes('"saneb.attachment-fixed.maximum-bytes","81508141"'));
