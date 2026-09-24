@@ -44,6 +44,24 @@ class AnnouncementAttachmentPolicyGoldenGateTest {
         var result=new AnnouncementAttachmentPolicyGoldenGate().selectValidatedResult(seedLike,"a".repeat(64),segmentConfiguration());
         assertThat(result.caseIds()).hasSize(52).contains("SG-005","SG-006","SG-007");
     }
+    @Test void quarterPolicyPinsEveryFixtureAndLeavesOldGoldenReproducible() {
+        var gate=new AnnouncementAttachmentPolicyGoldenGate();var old=segmentConfiguration();
+        var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),old.extractorVersion(),
+                old.extractorConfigHash(),old.maximumSourceBytes(),old.roleRuleVersion(),old.roleRulesHash(),
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        var oldResult=gate.selectValidatedResult(rules(),"a".repeat(64),old);
+        var newResult=gate.selectValidatedResult(rules(),"a".repeat(64),newer);
+        assertThat(newResult.caseCount()).isEqualTo(52);assertThat(newResult.resultHash()).isNotEqualTo(oldResult.resultHash());
+        assertThat(gate.selectValidatedResult(rules(),"a".repeat(64),old)).isEqualTo(oldResult);
+        assertThat(gate.selectValidatedResult(rules(),"a".repeat(64),newer)).isEqualTo(newResult);
+        var fixtures=new AttachmentSegmentPolicyGoldenGate().selectValidatedSignatures(rules(),newer.segmentRuleVersion(),newer.segmentRulesHash());
+        @SuppressWarnings("unchecked")
+        var files=(List<com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.FileEvidence>)((List<?>)fixtures.get("SG-002")).get(1);
+        assertThat(files).allSatisfy(f->{assertThat(f.analysis().analysisVersion()).isEqualTo(newer.segmentRuleVersion());
+            assertThat(f.analysis().rulesHash()).isEqualTo(newer.segmentRulesHash());});
+        assertThat(files.getFirst().analysis().segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","FORM");
+    }
     @Test void segmentContractRejectsReorderedMissingOrWrongEngineResults() {
         var gate=new AnnouncementAttachmentPolicyGoldenGate();var settings=segmentConfiguration();
         var good=gate.selectValidatedResult(rules(),"a".repeat(64),settings);

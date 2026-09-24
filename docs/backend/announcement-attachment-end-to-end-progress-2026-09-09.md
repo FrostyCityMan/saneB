@@ -11,6 +11,19 @@
 
 ## 기준선
 
+### 2026-09-24 분기 구간 규칙의 worker·정책·조회 계약 연결
+
+- [x] `long-goal-operating-protocol`에 따라 명시적으로 고정한 구간 규칙만 실행하도록 연결했다. worker가 기본 분석 버전을 사용하던 경로와 일반 초안 수정이 고정 구간 버전을 기본값으로 되돌리는 경로를 수정했다. 기존1.0.0/파일 엔진 재현과 신규 정책 기본값은 유지한다.
+- [x] 정확한1.0.0/1.0.2 버전·hash 쌍만 실행 가능하며 진단용1.0.1은 제외한다. 정책 정답52건은 각 버전으로 재현하고1.0.2 표본은 분기 주표제/괄호 조건/신청서 분리를 검사한다. Provider 기대값도 고정 버전으로 재현하며 다른 버전 catalog는 EXPECTATION_INVALID로 분리한다.
+- [x] 구간 GET에 선택적 analysisVersion을 추가했다. 생략은 기존1.0.0, 명시1.0.2는 해당 저장 결과만 조회한다. 미저장은 NOT_ANALYZED, 버전/지문이 다른 저장 결과는 거부한다. GET 무생성·권한/no-store/wrapper와 POST의 기존 SHADOW1.0.0을 보존했다. V84/V85 schema와 기존 migration은 변경하지 않았다.
+- [x] 표적 Java244건 실패/오류/생략0 및 bootJar는1분3초 성공했다. 이어 첨부 도메인 회귀1900건=1879통과/21조건부 생략/실패·오류0을 확인했다. 실파일/설치 runtime 등 명시 실행 전용 시험의 생략을 성공으로 계산하지 않는다.
+- [x] 확장 검증의 패키지20건 중1건은 추가 PG 시험의 ParameterizedTest가 고정 suite inventory와 충돌해 실패했다. 검증 규칙을 완화하지 않고 버전별 독립 @Test2건으로 분리했다. 재검증 `:attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은45초 성공, 패키지20건 실패/오류/생략0이다. Node 공식 worker launcher7건과 git diff --check도 통과했다.
+- [~] 신규 실제 PG2건은 동일 분기 문서의 구버전 UNKNOWN/검수, 새 버전 NOTICE/후보, 두 분석 공존·버전 조회·평가 FK 불변·기존 상태/link 미변경을 검사한다. 컴파일/패키징은 확인했으며 실행은 이번 변경과 동일 SHA의 Linux CI에서 확인해야 한다. 알려진 Windows initdb 정책 차단을 반복 실행하거나 우회하지 않았다.
+- [x] 선행e34743b [Linux35990375446](https://github.com/FrostyCityMan/saneB/actions/runs/35990375446) success 및 artifact XML을 확인했다. root2923=2646통과/277생략/실패·오류0, 별도 extractor122·패키지20·jobPG198·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. `build/qa-results/linux-35990375446`에 보존했다. 이번 연결 변경의 신규 PG2건 성공 근거로 쓰지 않는다.
+- [~] 남은 업무: 이번 SHA Linux PG 회귀,1.0.2 worker 실파일 고정 QA, 검토된 Provider 기대값, 관리자 새 버전 선택/표시, 최종 검수/DRAFT 및 운영/브라우저 E2E. 과거 후보1.0.2 메모리 분석 성공을 새 버전 worker 저장 성공으로 대체하지 않는다.
+- [x] 이번 증분은 외부 실파일 요청·운영 DB/설정·정책 게시/ENFORCE·기존 데이터 재분류·배포를 실행하지 않았다. 보은 누적100요청/68,518,927예약byte와 잔여32요청을 그대로 유지한다. 브라우저는 현재 요청 정책상 미실행이다. 사용자 output/와 삭제가 차단된 기존 Python cache는 보존하고 커밋에서 제외한다.
+- 전체9Gate는8부분 완료/1차단, ATT62·SEG10 분모 및 goal active를 유지한다. 이 서버 연결만으로 전체 완료나 실제 검수량 감소를 선언하지 않는다.
+
 ### 2026-09-24 실제 구간 위치 진단과 분기 주표제 후보 보완
 
 - [x] 직전 turn은 실파일에서1.0.1 개선 효과가 없다는 근거를 얻은 progress다. AGENTS·설계·현재 코드·승인 예산을 다시 대조했다. `long-goal-operating-protocol`에 따라 원인 진단과 수정 검증을 분리했다.

@@ -34,7 +34,7 @@ class AttachmentSegmentRoleAnalyzerTest {
         assertThat(updated.textHash()).isEqualTo(previous.textHash());assertThat(updated.blocksHash()).isEqualTo(previous.blocksHash());
         assertThat(analyzer.selectAnalysisValid(input,previous)).isTrue();assertThat(analyzer.selectAnalysisValid(input,updated)).isTrue();
         assertCoverage(input,updated);
-        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,updated.analysisVersion(),updated.rulesHash())).isFalse();
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,updated.analysisVersion(),updated.rulesHash())).isTrue();
     }
     @ParameterizedTest @ValueSource(strings={"참여자 모집 공고(0분기)","참여자 모집 공고(5분기)","참여자 모집 공고(3분기) 참고", "참여자 모집 공고(3분기", "참여자 모집 공고(담당자 확인)","참여자 모집 공고(3분기)입니다."})
     void quarterHeadingDoesNotAcceptArbitrarySuffixesOrMentions(String heading) {

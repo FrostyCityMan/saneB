@@ -711,11 +711,14 @@ class AnnouncementAttachmentJobIntegrationTest {
         return selectSegmentJob(includeFailed,false);
     }
     private AttachmentJobRow selectSegmentJob(boolean includeFailed,boolean enforce) throws Exception {
+        return selectSegmentJob(includeFailed,enforce,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,false);
+    }
+    private AttachmentJobRow selectSegmentJob(boolean includeFailed,boolean enforce,String segmentVersion,boolean quarterHeading) throws Exception {
         var execution=new AttachmentExecutionSnapshot(EXECUTION.profileCode(),PROFILE_HASH,
                 com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,
                 EXECUTION.extractorVersion(),CONFIG_HASH,null,null,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+                segmentVersion,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(segmentVersion));
         // 아직 예약/자료가 없는 테스트 소유 정책만 교체한다. 운영 게시 검증을 우회하는 기능은 추가하지 않는다.
         String manifest=sql.queryForObject("SELECT profile_manifest_json::text FROM announcement_attachment_policies WHERE id=?",String.class,policy);
         sql.update("DELETE FROM announcement_attachment_policies WHERE id=?",policy);
@@ -731,6 +734,8 @@ class AnnouncementAttachmentJobIntegrationTest {
         var job=service.saveNextJobClaim().orElseThrow();
         assertThat(service.saveDownloadBytes(job.jobId(),job.leaseToken(),15)).isTrue();
         String text="😀 사업 지원 안내\n지원대상: 소상공인 지원금\n지원내용: 경영지원\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금";
+        if(quarterHeading) text=text.replace("😀 사업 지원 안내","참여자 모집 공고(3분기)")
+                .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
         var blocks=new java.util.ArrayList<AttachmentSetEvidence.Block>(); int offset=0;
         for(String line:text.split("\n")) {
             int end=offset+line.codePointCount(0,line.length());
@@ -744,6 +749,45 @@ class AnnouncementAttachmentJobIntegrationTest {
                 "미완료 첨부.pdf","PDF","UNKNOWN","UNKNOWN","FAILED",0,null,AttachmentFailureCode.NETWORK_TIMEOUT,null));
         evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence("FOUND",true,files)).orElseThrow();
         return job;
+    }
+
+    @Test void legacyWorkerKeepsQuarterNoticeUnknownAndVersionedGetDoesNotCreateNewAnalysis() throws Exception {
+        validatePinnedQuarterAnalysis("segment-role-1.0.0");
+    }
+    @Test void quarterWorkerPersistsPinnedAnalysisAndLegacyShadowCannotRebindItsEvaluation() throws Exception {
+        validatePinnedQuarterAnalysis("segment-role-1.0.2");
+    }
+    private void validatePinnedQuarterAnalysis(String version) throws Exception {
+        boolean quarter="segment-role-1.0.2".equals(version);
+        var job=selectSegmentJob(false,false,version,true);
+        var evaluator=context.getBean(AnnouncementAttachmentEvaluationService.class);
+        var evaluation=evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(evaluation.status()).isEqualTo(quarter?"ACCEPTED":"REVIEW_REQUIRED");
+        UUID extraction=sql.queryForObject("SELECT extraction_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId());
+        UUID bound=sql.queryForObject("SELECT segment_analysis_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId());
+        assertThat(sql.queryForObject("SELECT analysis_version FROM announcement_attachment_segment_analyses WHERE id=?",String.class,bound)).isEqualTo(version);
+        assertThat(sql.queryForObject("SELECT analysis_json->'segments'->0->>'roleCode' FROM announcement_attachment_segment_analyses WHERE id=?",String.class,bound))
+                .isEqualTo(quarter?"NOTICE":"UNKNOWN");
+        var session=context.getBean(SqlSessionTemplate.class);
+        var segments=new com.saneb.domain.announcementattachment.service.impl.AnnouncementAttachmentSegmentServiceImpl(
+                session.getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class),session.getMapper(AnnouncementSourceDao.class),new ObjectMapper());
+        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,version).analysisId()).isEqualTo(bound);
+        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.2").analysisState()).isEqualTo(quarter?"ANALYZED":"NOT_ANALYZED");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
+        if(quarter) {
+            assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction).analysisState()).isEqualTo("NOT_ANALYZED");
+            var legacy=new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).execute(tx->segments.insertAnalysis(reviewActor(),job.sourceId(),extraction));
+            assertThat(legacy.analysis().analysisVersion()).isEqualTo("segment-role-1.0.0");
+            assertThat(legacy.analysis().segments().getFirst().roleCode()).isEqualTo("UNKNOWN");
+            assertThat(legacy.analysisId()).isNotEqualTo(bound);
+            assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction).analysisId()).isEqualTo(legacy.analysisId());
+            assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,version).analysisId()).isEqualTo(bound);
+            assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(2);
+        }
+        assertThat(evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow().evaluationId()).isEqualTo(evaluation.evaluationId());
+        assertThat(sql.queryForObject("SELECT segment_analysis_id FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",UUID.class,evaluation.evaluationId())).isEqualTo(bound);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+        assertThat(sql.queryForObject("SELECT semantic_status_code FROM announcement_source_snapshots WHERE id=?",String.class,job.sourceId())).isEqualTo("REVIEW_REQUIRED");
     }
 
     @Test void att029CompletedEvaluationIsIdempotentOnlyForItsLeaseOwner() {

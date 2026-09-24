@@ -86,6 +86,25 @@ class AttachmentProviderQaCatalogTest {
             assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
         }
     }
+    @Test void catalogCannotUseAnotherSegmentVersionAsThePinnedPolicyProof() {
+        var old=segmentConfiguration();
+        var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),null,null,null,null,null,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        var n=segmentNotice("RESOLVED",List.of("NOTICE","FORM"));var e=n.expectation();
+        var stale=catalog(List.of(n)).selectPrepared(scope,rules,runtimeHash,now,newer);
+        assertThat(stale.inputs()).isEmpty();assertThat(stale.plan().cases().getFirst().statusCode()).isEqualTo("EXPECTATION_INVALID");
+        var files=e.files().stream().map(f->{var s=f.segmentExpectation();return new ExpectedFile(f.locatorHash(),f.downloadAllowed(),f.format(),f.binaryHash(),
+                f.quality(),f.minimumCharacters(),f.minimumBlocks(),f.requiredPhrases(),f.roleExpectation(),
+                new SegmentExpectation(newer.segmentRuleVersion(),newer.segmentRulesHash(),s.textHash(),s.blocksHash(),s.analysisHash(),s.statusCode(),s.roleCodes()));}).toList();
+        var current=catalog(List.of(alter(n,new Expectation(e.profileHash(),e.title(),e.observedAt(),e.discoveryStatus(),e.discoveryComplete(),files,e.limits()))));
+        var prepared=current.selectPrepared(scope,rules,runtimeHash,now,newer);
+        assertThat(prepared.inputs()).hasSize(1);assertThat(prepared.plan().isQaPassed()).isFalse();
+        assertThat(current.selectPrepared(scope,rules,runtimeHash,now,old).inputs()).isEmpty();
+        var mixed=new ArrayList<>(files);mixed.set(0,e.files().getFirst());
+        var mismatch=catalog(List.of(alter(n,new Expectation(e.profileHash(),e.title(),e.observedAt(),e.discoveryStatus(),e.discoveryComplete(),mixed,e.limits()))));
+        assertThat(mismatch.selectPrepared(scope,rules,runtimeHash,now,newer).inputs()).isEmpty();
+    }
     @Test void entireScopeRemainsWhenCatalogHasNoReadyEntries() {
         var result=prepare(List.of());assertThat(result.inputs()).isEmpty();assertThat(result.plan().targets()).hasSize(2);
         assertThat(result.plan().targets()).allSatisfy(t->{assertThat(t.normalNoticeCount()).isZero();assertThat(t.missingFormats()).containsExactly("HWP","HWPX","PDF");});

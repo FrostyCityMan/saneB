@@ -19,13 +19,20 @@ final class AttachmentSegmentPolicyGoldenGate {
     private static final String SUPPORT_ONLY_GUIDE=GUIDE.replace("지원대상: 소상공인 지원금","신청자격: 해당 조건 확인").replace("경영지원","지원금");
     private static final String FORM="지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금";
     private final AttachmentSegmentClassificationEngine engine;
+    private final String segmentVersion, segmentHash;
     static final class Failure extends IllegalStateException {
         private final String caseId;
         Failure(String caseId) {super("구간 정답·위치·참고 근거 계약이 일치하지 않습니다.");this.caseId=caseId;}
         String selectCaseId(){return caseId;}
     }
     AttachmentSegmentPolicyGoldenGate() {this(new AttachmentSegmentClassificationEngine());}
-    AttachmentSegmentPolicyGoldenGate(AttachmentSegmentClassificationEngine engine) {this.engine=engine;}
+    AttachmentSegmentPolicyGoldenGate(AttachmentSegmentClassificationEngine engine) {
+        this(engine,AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH);
+    }
+    private AttachmentSegmentPolicyGoldenGate(AttachmentSegmentClassificationEngine engine,String version,String hash) {
+        if(!AttachmentEngineContract.selectSegmentCurrent(version,hash))throw new Failure("VERSION");
+        this.engine=engine;this.segmentVersion=version;this.segmentHash=hash;
+    }
     record Fixture(FileInput input,AttachmentSegmentClassificationEngine.FileEvidence evidence) { }
     record Sample(int number,Input input,List<Fixture> files,String status,String reason) {
         String id(){return String.format(Locale.ROOT,"SG-%03d",number);}
@@ -34,7 +41,11 @@ final class AttachmentSegmentPolicyGoldenGate {
         var missing=base(rules,"BIZINFO","소상공인 지원금",null);
         var samples=new ArrayList<Sample>();
         samples.add(sample(1,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,"😀 "+GUIDE+"\n"+FORM)));
-        samples.add(sample(2,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,GUIDE.replace("사업 지원 안내","지원사업 공고")+"\n"+FORM)));
+        String notice=GUIDE.replace("사업 지원 안내","지원사업 공고");
+        if(AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(segmentVersion))
+            notice=notice.replace("지원사업 공고","지원사업 모집 공고(3분기)")
+                    .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
+        samples.add(sample(2,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,notice+"\n"+FORM)));
         samples.add(sample(3,missing,rules,"REVIEW_REQUIRED","ATTACHMENT_CONTEXT_REVIEW",file(0,"미확인 제한 조건\n"+GUIDE)));
         samples.add(sample(4,missing,rules,"REVIEW_REQUIRED","ATTACHMENT_CONTEXT_REVIEW",file(0,GUIDE,"UNKNOWN","UNKNOWN","COMPLETE_TEXT",false)));
         samples.add(sample(5,missing,rules,"REVIEW_REQUIRED","EXTENDED_COMBINATION_NOT_CONFIRMED",file(0,TARGET_ONLY_GUIDE.replace("경영지원","지원금"))));
@@ -84,6 +95,10 @@ final class AttachmentSegmentPolicyGoldenGate {
         require("SUMMARY",signatures.size()==CASE_COUNT);
         return signatures;
     }
+    Map<String,Object> selectValidatedSignatures(AnnouncementSourceClassificationRuleSet rules,String version,String hash) {
+        // 요청마다 불변 인스턴스를 사용하므로 서로 다른 정책의 병렬 검증이 섞이지 않는다.
+        return new AttachmentSegmentPolicyGoldenGate(engine,version,hash).selectValidatedSignatures(rules);
+    }
     private void validate(Sample sample,AttachmentSegmentClassificationEngine.Result result) {
         require(sample.id(),result!=null && AttachmentSegmentClassificationEngine.VERSION.equals(result.engineVersion())
                 && sample.status().equals(result.decision().status()) && sample.reason().equals(result.decision().reason()));
@@ -103,8 +118,8 @@ final class AttachmentSegmentPolicyGoldenGate {
             if(!Set.of("NOTICE","GUIDE").contains(match.segmentRole())) require(sample.id(),"CONTEXT_ONLY".equals(match.match().action()));
         }
     }
-    private static Fixture file(int n,String text) {return file(n,text,"UNKNOWN","UNKNOWN","COMPLETE_TEXT",true);}
-    private static Fixture file(int n,String text,String role,String origin,String quality,boolean reliable) {
+    private Fixture file(int n,String text) {return file(n,text,"UNKNOWN","UNKNOWN","COMPLETE_TEXT",true);}
+    private Fixture file(int n,String text,String role,String origin,String quality,boolean reliable) {
         var blocks=new ArrayList<AttachmentSetEvidence.Block>();int offset=0;
         for(String line:text.split("\n")) {
             int end=offset+line.codePointCount(0,line.length());
@@ -112,7 +127,8 @@ final class AttachmentSegmentPolicyGoldenGate {
         }
         var extraction=new AttachmentSetEvidence.Extraction(quality,text,blocks,1,0);
         var file=new FileInput(id("file",n),id("extraction",n),role,quality,text,blocks.stream().map(b->new Block(b.index(),b.startOffset(),b.endOffset(),b.evidenceScopeId(),b.scopeReliable())).toList(),null);
-        return new Fixture(file,new AttachmentSegmentClassificationEngine.FileEvidence(file.fileId(),file.extractionId(),origin,extraction,new AttachmentSegmentRoleAnalyzer().selectAnalysis(extraction)));
+        return new Fixture(file,new AttachmentSegmentClassificationEngine.FileEvidence(file.fileId(),file.extractionId(),origin,extraction,
+                new AttachmentSegmentRoleAnalyzer().selectAnalysis(extraction,segmentVersion,segmentHash)));
     }
     private static Fixture failed(int n) {
         var file=new FileInput(id("file",n),null,"UNKNOWN","FAILED",null,List.of(),"NETWORK_TIMEOUT");

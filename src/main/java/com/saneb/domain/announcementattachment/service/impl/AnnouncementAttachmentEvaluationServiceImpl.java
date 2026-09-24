@@ -131,7 +131,7 @@ public class AnnouncementAttachmentEvaluationServiceImpl implements Announcement
             AttachmentSegmentRoleAnalyzer.Analysis analysis = null;
             if (file.extractionId() != null && file.text() != null && !file.text().isBlank()) {
                 extraction = new AttachmentSetEvidence.Extraction(file.quality(), file.text(), selectBlocks(file), null, 0);
-                try { analysis = analyzer.selectAnalysis(extraction); }
+                try { analysis = analyzer.selectAnalysis(extraction, prepared.execution().segmentRuleVersion(), prepared.execution().segmentRulesHash()); }
                 catch (IllegalArgumentException exception) {
                     if ("COMPLETE_TEXT".equals(file.quality())) throw conflict("완료로 저장된 첨부의 전체 구간·block 근거가 일치하지 않습니다.");
                     // 실패 추출에 구조 근거가 부족해도 파일 자체를 판정 입력에서 제거하지 않는다.

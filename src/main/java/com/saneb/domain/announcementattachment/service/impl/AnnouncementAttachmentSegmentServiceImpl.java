@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
+import com.saneb.domain.announcementattachment.classification.AttachmentEngineContract;
 import com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao;
 import com.saneb.domain.announcementattachment.dto.AttachmentSegmentAnalysisResponse;
 import com.saneb.domain.announcementattachment.service.AnnouncementAttachmentSegmentService;
@@ -34,8 +35,16 @@ public class AnnouncementAttachmentSegmentServiceImpl implements AnnouncementAtt
 
     @Override @Transactional(readOnly=true, timeout=10)
     public AttachmentSegmentAnalysisResponse selectAnalysisDetails(UUID sourceId, UUID extractionId) {
+        return selectAnalysisDetails(sourceId, extractionId, AttachmentSegmentRoleAnalyzer.VERSION);
+    }
+
+    @Override @Transactional(readOnly=true, timeout=10)
+    public AttachmentSegmentAnalysisResponse selectAnalysisDetails(UUID sourceId, UUID extractionId, String analysisVersion) {
+        String rulesHash = AttachmentEngineContract.selectSegmentRulesHash(analysisVersion);
+        if (rulesHash == null) throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST,
+                "analysisVersion은 segment-role-1.0.0 또는 segment-role-1.0.2여야 합니다. 생략하면 기존 1.0.0 분석을 조회합니다.");
         var input = selectInput(sourceId, extractionId);
-        return selectResponse(input, dao.selectAnalysisDetails(sourceId, extractionId, AttachmentSegmentRoleAnalyzer.VERSION, AttachmentSegmentRoleAnalyzer.RULES_HASH));
+        return selectResponse(input, dao.selectAnalysisDetails(sourceId, extractionId, analysisVersion, rulesHash), analysisVersion, rulesHash);
     }
 
     @Override @Transactional(timeout=20)
@@ -72,13 +81,17 @@ public class AnnouncementAttachmentSegmentServiceImpl implements AnnouncementAtt
         } catch (JsonProcessingException | IllegalArgumentException exception) { throw notReady(); }
     }
     private AttachmentSegmentAnalysisResponse selectResponse(AttachmentSegmentRows.Input input, AttachmentSegmentRows.Stored stored) {
+        return selectResponse(input, stored, AttachmentSegmentRoleAnalyzer.VERSION, AttachmentSegmentRoleAnalyzer.RULES_HASH);
+    }
+    private AttachmentSegmentAnalysisResponse selectResponse(AttachmentSegmentRows.Input input, AttachmentSegmentRows.Stored stored, String version, String hash) {
         AttachmentSegmentRoleAnalyzer.Analysis analysis = null;
         if (stored != null) {
             if (!input.sourceId().equals(stored.sourceId()) || !input.extractionId().equals(stored.extractionId())
                     || !input.fileId().equals(stored.fileId()) || !input.setId().equals(stored.setId())) throw notReady();
             try { analysis = json.readValue(stored.analysisJson(), AttachmentSegmentRoleAnalyzer.Analysis.class); }
             catch (JsonProcessingException exception) { throw notReady(); }
-            if (!analyzer.selectAnalysisValid(selectExtraction(input), analysis)) throw notReady();
+            if (analysis == null || !version.equals(analysis.analysisVersion()) || !hash.equals(analysis.rulesHash())
+                    || !analyzer.selectAnalysisValid(selectExtraction(input), analysis)) throw notReady();
         }
         return new AttachmentSegmentAnalysisResponse(input.sourceId(), input.setId(), input.fileId(), input.extractionId(), input.fileRoleCode(), input.fileRoleOriginCode(),
                 "SHADOW", stored == null ? "NOT_ANALYZED" : "ANALYZED", stored == null ? null : stored.id(), stored == null ? null : stored.createdAt(), analysis);

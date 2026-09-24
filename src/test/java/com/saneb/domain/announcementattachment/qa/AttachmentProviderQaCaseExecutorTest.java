@@ -139,9 +139,13 @@ class AttachmentProviderQaCaseExecutorTest {
     final String noticeText="소상공인 지원금 공고\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월";
     final String mixedText=noticeText+"\n지원 신청서\n성 명\n(서명 또는 인)\n수출 지원금";
     SegmentExpectation segmentExpectation(String text) {
+        return segmentExpectation(text,com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH);
+    }
+    SegmentExpectation segmentExpectation(String text,String version,String hash) {
         var block=new AttachmentSetEvidence.Block(0,0,text.codePointCount(0,text.length()),"paragraph-1",true,"paragraph:1");
         var analysis=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer()
-                .selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,List.of(block),null,0));
+                .selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,List.of(block),null,0),version,hash);
         return new SegmentExpectation(analysis.analysisVersion(),analysis.rulesHash(),analysis.textHash(),analysis.blocksHash(),
                 executor.selectHash(analysis),analysis.statusCode(),analysis.segments().stream().map(s->s.roleCode()).toList());
     }
@@ -169,6 +173,18 @@ class AttachmentProviderQaCaseExecutorTest {
         var result=executor.selectResult(withSegments(input(descriptors),changed),control);
         assertThat(result.status()).isEqualTo("FAILED");assertThat(result.allTextComplete()).isFalse();
         assertThat(result.files()).allSatisfy(f->{assertThat(f.reasonCode()).isEqualTo("SEGMENT_EXPECTATION_CHANGED");assertThat(f.segmentAnalysisHash()).isNull();});cleaned();
+    }
+    @Test void quarterExpectationReplaysItsVersionRatherThanDefaultAndKeepsLegacyEvidenceUnchanged() throws Exception {
+        String text=mixedText.replace("소상공인 지원금 공고","소상공인 지원금 모집 공고(3분기)")
+                .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
+        when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",text));
+        var expectation=segmentExpectation(text,com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        assertThat(expectation.roleCodes()).containsExactly("NOTICE","FORM");
+        assertThat(segmentExpectation(text).roleCodes()).contains("UNKNOWN");
+        var result=executor.selectResult(withSegments(withRole(input(descriptors),roleExpectation(text)),expectation),control);
+        assertThat(result.status()).isEqualTo("PASSED");assertThat(result.isPolicyQaPassed()).isFalse();
+        assertThat(result.files()).allSatisfy(f->assertThat(f.segmentAnalysisHash()).isEqualTo(expectation.analysisHash()));cleaned();
     }
     @ParameterizedTest @ValueSource(strings={"numericString","scopeType","hiddenText","outOfRange","extra"})
     void malformedSegmentBlocksCannotProduceProof(String kind) throws Exception {

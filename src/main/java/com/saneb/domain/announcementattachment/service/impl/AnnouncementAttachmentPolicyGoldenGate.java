@@ -8,7 +8,6 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine;
 import com.saneb.domain.announcementattachment.classification.AnnouncementAttachmentClassificationEngine.*;
 import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
-import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
 import com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration;
 import com.saneb.domain.announcementsource.classification.*;
 import com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.*;
@@ -46,12 +45,12 @@ public final class AnnouncementAttachmentPolicyGoldenGate {
         var legacy=selectValidatedResult(rules,ruleSnapshotHash);
         if(configuration.segmentRuleVersion()==null) return legacy;
         try {
-            var signatures=segmentGate.selectValidatedSignatures(rules);
+            var signatures=segmentGate.selectValidatedSignatures(rules,configuration.segmentRuleVersion(),configuration.segmentRulesHash());
             var ids=new ArrayList<>(legacy.caseIds());ids.addAll(signatures.keySet());
             return new Result(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,AttachmentSegmentClassificationEngine.VERSION,
                     legacy.ruleReleaseCode(),legacy.ruleSnapshotHash(),legacy.ruleContentHash(),
                     hash(List.of(AttachmentSegmentPolicyGoldenGate.SUITE_VERSION,AttachmentSegmentClassificationEngine.VERSION,
-                            AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH,legacy.resultHash(),signatures)),ids.size(),ids);
+                            configuration.segmentRuleVersion(),configuration.segmentRulesHash(),legacy.resultHash(),signatures)),ids.size(),ids);
         } catch(AttachmentSegmentPolicyGoldenGate.Failure exception) {
             throw failure("SEGMENT/"+exception.selectCaseId(),"구간 엔진의 고정 판정·위치·참고 근거 검증을 통과하지 못했습니다.");
         } catch(RuntimeException exception) {

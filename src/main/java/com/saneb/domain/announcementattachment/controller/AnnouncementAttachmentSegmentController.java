@@ -19,8 +19,10 @@ public class AnnouncementAttachmentSegmentController {
     private final AnnouncementAttachmentSegmentService service;
     public AnnouncementAttachmentSegmentController(AnnouncementAttachmentSegmentService service) { this.service = service; }
     @GetMapping @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','APPROVER')")
-    public ResponseEntity<ApiResponse<AttachmentSegmentAnalysisResponse>> selectAnalysisDetails(@PathVariable UUID sourceId, @PathVariable UUID extractionId) {
-        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectAnalysisDetails(sourceId, extractionId)));
+    public ResponseEntity<ApiResponse<AttachmentSegmentAnalysisResponse>> selectAnalysisDetails(@PathVariable UUID sourceId, @PathVariable UUID extractionId,
+            @RequestParam(required=false) String analysisVersion) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(analysisVersion == null
+                ? service.selectAnalysisDetails(sourceId, extractionId) : service.selectAnalysisDetails(sourceId, extractionId, analysisVersion)));
     }
     @PostMapping @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     public ResponseEntity<ApiResponse<AttachmentSegmentAnalysisResponse>> insertAnalysis(Authentication authentication, @PathVariable UUID sourceId, @PathVariable UUID extractionId) {

@@ -34,4 +34,15 @@ class AttachmentEngineContractTest {
         assertThatIllegalArgumentException().isThrownBy(()->new AttachmentExecutionSnapshot("BIZINFO","a".repeat(64),AttachmentSegmentClassificationEngine.VERSION,
                 "1.0.3","b".repeat(64),null,null,AttachmentSegmentRoleAnalyzer.VERSION,null));
     }
+    @Test void verifiedQuarterVersionRequiresItsOwnHashAndDoesNotChangeTheDefault() {
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,
+                AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH)).isTrue();
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,
+                AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH)).isFalse();
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,
+                AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH)).isFalse();
+        assertThat(AttachmentEngineContract.selectSegmentRulesHash(AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION)).isNull();
+        assertThat(AttachmentEngineContract.selectSegmentRulesHash(null)).isNull();
+        assertThat(AttachmentSegmentRoleAnalyzer.VERSION).isEqualTo("segment-role-1.0.0");
+    }
 }

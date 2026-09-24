@@ -6,6 +6,16 @@ public final class AttachmentEngineContract {
     public static boolean selectCurrent(String engineVersion, String segmentVersion, String segmentHash) {
         return AnnouncementAttachmentClassificationEngine.VERSION.equals(engineVersion) && segmentVersion == null && segmentHash == null
                 || AttachmentSegmentClassificationEngine.VERSION.equals(engineVersion)
-                    && AttachmentSegmentRoleAnalyzer.VERSION.equals(segmentVersion) && AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(segmentHash);
+                    && selectSegmentCurrent(segmentVersion, segmentHash);
+    }
+    /** 실행 가능한 명시적 버전만 허용한다. 진단용 1.0.1 및 알려지지 않은 지문은 승격하지 않는다. */
+    public static boolean selectSegmentCurrent(String version, String hash) {
+        String expected = selectSegmentRulesHash(version);
+        return expected != null && expected.equals(hash);
+    }
+    public static String selectSegmentRulesHash(String version) {
+        if (AttachmentSegmentRoleAnalyzer.VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.RULES_HASH;
+        if (AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH;
+        return null;
     }
 }

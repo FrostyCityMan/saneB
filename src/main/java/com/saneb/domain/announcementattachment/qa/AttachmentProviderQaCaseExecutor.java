@@ -242,7 +242,7 @@ public final class AttachmentProviderQaCaseExecutor {
         var blocks=selectEvidenceBlocks(output,"SEGMENT_EXTRACTION_STRUCTURE_INVALID");
         com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.Analysis actual;
         try {actual=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer()
-                .selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,blocks,null,0));}
+                .selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,blocks,null,0),expected.analysisVersion(),expected.rulesHash());}
         catch(IllegalArgumentException invalid){throw failure("SEGMENT_EXTRACTION_STRUCTURE_INVALID");}
         String hash=selectHash(actual);
         if(!expected.analysisVersion().equals(actual.analysisVersion()) || !expected.rulesHash().equals(actual.rulesHash())

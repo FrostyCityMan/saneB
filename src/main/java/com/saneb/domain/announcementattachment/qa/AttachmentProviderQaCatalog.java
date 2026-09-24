@@ -136,6 +136,12 @@ public final class AttachmentProviderQaCatalog {
                 var e=notice.expectation();input=new AttachmentProviderQaCase(notice.caseCode(),notice.profileCode(),e.profileHash(),notice.source(),e.title(),rules,runtimeHash,
                         e.discoveryStatus(),e.discoveryComplete(),e.files(),e.limits(),segmentEngine?configuration.engineVersion():null);
                 try {AttachmentProviderQaCaseContract.validate(input);}catch(IllegalArgumentException failure){state="EXPECTATION_INVALID";input=null;}
+                // 다른 구간 규칙으로 관측한 기대값은 현재 정책의 QA 증거로 사용할 수 없다.
+                if(input!=null && segmentEngine && input.files().stream().anyMatch(f->f.segmentExpectation()!=null
+                        && (!configuration.segmentRuleVersion().equals(f.segmentExpectation().analysisVersion())
+                            || !configuration.segmentRulesHash().equals(f.segmentExpectation().rulesHash())))) {
+                    state="EXPECTATION_INVALID";input=null;
+                }
                 // 기존 quality-only 이력은 보존하지만 새 catalog 실행은 역할·위치 근거 없는 완전 추출을 승인하지 않는다.
                 if(input!=null && input.files().stream().anyMatch(f->"COMPLETE_TEXT".equals(f.quality()) && f.roleExpectation()==null)) {
                     state="EXPECTATION_INVALID";input=null;

@@ -119,6 +119,23 @@ class AnnouncementAttachmentPolicyServiceTest {
         assertThatThrownBy(() -> service.insertPolicyRevision(auth("ADMIN"),first.policy().policyId(),key,new AttachmentPolicyRequests.Revision(0,"개정")))
                 .isInstanceOf(ApiException.class).hasMessageContaining("멱등 키");verify(dao,times(1)).insertPolicy(any());
     }
+    @Test void explicitQuarterPolicyEditAndRevisionPreservePinnedVersionWithoutChangingNewPolicyDefault() throws Exception {
+        var created=create("OFF");var row=rows.get(created.policy().policyId());var original=created.configuration();
+        var pinned=new AttachmentPolicyResponses.Configuration(original.engineVersion(),original.extractorVersion(),null,83886080L,
+                original.roleRuleVersion(),original.roleRulesHash(),
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        rows.put(row.policyId(),new AttachmentPolicyManagementRows.Row(row.policyId(),row.policyCode(),row.versionNo(),row.rowVersion(),row.policyStatusCode(),row.modeCode(),row.ruleReleaseId(),
+                row.ruleReleaseStatusCode(),row.policyHash(),mapper.writeValueAsString(pinned),row.profileManifestJson(),row.createdBy(),row.createdAt(),row.updatedAt(),row.publishedAt(),
+                row.copiedFromPolicyId(),row.creationIdempotencyKey(),row.creationRequestHash(),row.creationOperationCode()));
+        var updated=service.updatePolicyDraft(auth("ADMIN"),row.policyId(),new AttachmentPolicyRequests.Update(0,rule,"COLLECT_ONLY",100L,"고정 구간 규칙 한도 변경"));
+        assertThat(updated.configuration().segmentRuleVersion()).isEqualTo(pinned.segmentRuleVersion());
+        assertThat(updated.configuration().segmentRulesHash()).isEqualTo(pinned.segmentRulesHash());
+        var revision=service.insertPolicyRevision(auth("ADMIN"),row.policyId(),UUID.randomUUID(),new AttachmentPolicyRequests.Revision(1,"고정 정책 복사"));
+        assertThat(revision.configuration()).isEqualTo(updated.configuration());assertThat(revision.policy().policyStatusCode()).isEqualTo("DRAFT");
+        var fresh=service.insertPolicy(auth("ADMIN"),UUID.randomUUID(),request("OFF"));
+        assertThat(fresh.configuration()).isEqualTo(original);
+    }
     @ParameterizedTest @ValueSource(strings={"ACTIVE","RETIRED"})
     void publishedPolicyCannotBeEditedAndRevisionPreservesOldIdentityWithoutPublication(String state) {
         var first=create("ENFORCE");UUID id=first.policy().policyId();changeStatus(id,state);var old=rows.get(id);

@@ -1,5 +1,7 @@
 # saneB Backend API Contract v1
 
+> 2026-09-24 구간 버전 고정 연결: 구간 GET API에 선택적 `analysisVersion=segment-role-1.0.2`를 추가했다. 생략하면 기존 `segment-role-1.0.0`만 조회한다. 저장 이력이 없으면 `NOT_ANALYZED`이며 다른 버전으로 대체하거나 분석을 생성하지 않는다. 지원 버전은 정확한 `1.0.0`/`1.0.2`이고 진단용 `1.0.1`·알 수 없는 값·빈 값은 구체적인 400 오류다. 권한·no-store·wrapper는 유지한다. POST 수동 SHADOW 분석과 정책 신규 생성 기본값은 여전히 `1.0.0`이다. 이번 연결은 명시적으로 고정한 `1.0.2` worker·정책 검증의 서버 기반이며, 관리자 신규 버전 선택 UI·운영 게시·재분류 완료를 뜻하지 않는다.
+
 > 2026-09-22 구간 분석 API 추가: `GET/POST /api/v2/admin/announcement-sources/{sourceId}/attachment-extractions/{extractionId}/segment-analysis`. GET은 미분석/저장 결과만 조회하고 POST는 저장된 추출 원문으로 버전별 멱등 분석을 생성한다. 응답은 `ApiResponse`, `applicationMode=SHADOW`; 기존 파일 역할·종합 판정·ACTIVE 상태는 변경하지 않는다. GET은 ADMIN/OPERATOR/APPROVER, POST는 ADMIN/OPERATOR 및 기존 CSRF 검증을 적용한다. 원문·인증정보는 분석 JSON/감사 metadata에 넣지 않는다. [필드·정합성·미완료 범위](announcement-attachment-segment-analysis-design-2026-09-22.md).
 
 > 후속 worker 연결: 정책 조회 Configuration에 선택적 `segmentRuleVersion/segmentRulesHash`를 추가하고 미설정 시 기존 JSON을 유지한다. SHADOW는 위 API 호출의 비적용 동작을 뜻하며, 동일 분석이 별도 worker 평가에 참조됐는지 여부를 뜻하지 않는다. 신규 엔진 정책 게시 QA·관리자 구간 표시 연결은 아직 완료되지 않았다. 운영 정책 활성화나 기존 데이터 재처리를 수행하지 않는다.

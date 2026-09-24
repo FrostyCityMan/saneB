@@ -93,6 +93,29 @@ class AnnouncementAttachmentSegmentServiceTest {
         assertThatThrownBy(() -> service.insertAnalysis(auth("ADMIN"), source, extraction)).isInstanceOf(ApiException.class);
         verify(dao, never()).insertAnalysis(any()); verifyNoInteractions(audits);
     }
+    @Test void explicitVersionReadsOnlyItsStoredAnalysisWithoutCreatingOrFallingBack() throws Exception {
+        prepare();
+        var old=service.insertAnalysis(auth("ADMIN"),source,extraction);
+        assertThat(service.selectAnalysisDetails(source,extraction,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION).analysisState()).isEqualTo("NOT_ANALYZED");
+        var analysis=new AttachmentSegmentRoleAnalyzer().selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",TEXT,
+                List.of(new AttachmentSetEvidence.Block(0,0,TEXT.length(),"p:0",true,"p:0")),1,0),
+                AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        var newer=new AttachmentSegmentRows.Stored(UUID.randomUUID(),source,set,file,extraction,json.writeValueAsString(analysis),OffsetDateTime.now());
+        when(dao.selectAnalysisDetails(source,extraction,analysis.analysisVersion(),analysis.rulesHash())).thenReturn(newer);
+        var read=service.selectAnalysisDetails(source,extraction,analysis.analysisVersion());
+        assertThat(read.analysis()).isEqualTo(analysis);assertThat(read.analysisId()).isEqualTo(newer.id());
+        assertThat(service.selectAnalysisDetails(source,extraction)).isEqualTo(old);
+        assertThat(service.insertAnalysis(auth("ADMIN"),source,extraction)).isEqualTo(old);
+        verify(dao,times(1)).insertAnalysis(any());verify(audits,times(1)).insertAuditLog(any());
+        // 다른 버전의 정상 분석도 요청한 버전의 결과로 대체할 수 없다.
+        when(dao.selectAnalysisDetails(source,extraction,analysis.analysisVersion(),analysis.rulesHash())).thenReturn(stored);
+        assertThatThrownBy(()->service.selectAnalysisDetails(source,extraction,analysis.analysisVersion())).isInstanceOf(ApiException.class);
+    }
+    @ParameterizedTest @ValueSource(strings={"","segment-role-1.0.1","future","segment-role-1.0.2 "})
+    void unknownOrDiagnosticVersionIsRejectedBeforeStorageAccess(String version) {
+        assertThatThrownBy(()->service.selectAnalysisDetails(source,extraction,version)).isInstanceOf(ApiException.class)
+                .hasMessageContaining("analysisVersion");verifyNoInteractions(dao,audits);
+    }
     private void prepare() throws Exception {
         var block = new AttachmentSetEvidence.Block(0, 0, TEXT.length(), "p:0", true, "p:0");
         when(dao.selectExtractionDetails(source, extraction)).thenReturn(new AttachmentSegmentRows.Input(source, set, file, extraction,

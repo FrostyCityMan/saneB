@@ -6,5 +6,6 @@ import org.springframework.security.core.Authentication;
 
 public interface AnnouncementAttachmentSegmentService {
     AttachmentSegmentAnalysisResponse selectAnalysisDetails(UUID sourceId, UUID extractionId);
+    AttachmentSegmentAnalysisResponse selectAnalysisDetails(UUID sourceId, UUID extractionId, String analysisVersion);
     AttachmentSegmentAnalysisResponse insertAnalysis(Authentication authentication, UUID sourceId, UUID extractionId);
 }

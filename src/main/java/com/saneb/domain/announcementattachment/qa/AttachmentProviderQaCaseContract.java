@@ -50,8 +50,7 @@ public final class AttachmentProviderQaCaseContract {
             if(input.engineVersion()!=null && "COMPLETE_TEXT".equals(file.quality()) && segment==null)throw invalid();
             if(segment!=null) {
                 if(!file.downloadAllowed() || !"COMPLETE_TEXT".equals(file.quality())
-                        || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.VERSION.equals(segment.analysisVersion())
-                        || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(segment.rulesHash())
+                        || !com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentCurrent(segment.analysisVersion(),segment.rulesHash())
                         || !hash(segment.textHash()) || !hash(segment.blocksHash()) || !hash(segment.analysisHash())
                         || segment.statusCode()==null || !Set.of("RESOLVED","REVIEW_REQUIRED").contains(segment.statusCode())
                         || segment.roleCodes().isEmpty() || segment.roleCodes().size()>200
