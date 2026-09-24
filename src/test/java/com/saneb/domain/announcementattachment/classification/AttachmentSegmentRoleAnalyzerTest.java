@@ -14,6 +14,55 @@ class AttachmentSegmentRoleAnalyzerTest {
     private static final String FORM = "지원 신청서\n성 명\n(서명 또는 인)";
     private final AttachmentSegmentRoleAnalyzer analyzer = new AttachmentSegmentRoleAnalyzer();
 
+    private static final String PARENTHESIZED_GUIDE="사업 지원 안내\n❍(신청자격) 소상공인\n❍(지원내용) 지원금\n❍(신청기간) 9월";
+    private AttachmentSegmentRoleAnalyzer.Analysis selectParenthesized(AttachmentSetEvidence.Extraction input) {
+        return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH);
+    }
+    @Test void exactObservedParenthesizedSectionsResolveOnlyInExplicitNewVersion() {
+        var input=selectExtraction(PARENTHESIZED_GUIDE+"\n"+FORM);
+        var old=analyzer.selectAnalysis(input);var updated=selectParenthesized(input);
+        assertThat(AttachmentSegmentRoleAnalyzer.RULES_HASH).isEqualTo("fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde");
+        assertThat(old.statusCode()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(updated.statusCode()).isEqualTo("RESOLVED");
+        assertThat(updated.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("GUIDE","FORM");
+        assertThat(updated.textHash()).isEqualTo(old.textHash());assertThat(updated.blocksHash()).isEqualTo(old.blocksHash());
+        assertThat(analyzer.selectAnalysisValid(input,old)).isTrue();assertThat(analyzer.selectAnalysisValid(input,updated)).isTrue();
+        assertThat(analyzer.selectAnalysis(input)).isEqualTo(old);
+        assertThat(new AttachmentDocumentRoleClassifier().selectAssessment(selectExtraction(PARENTHESIZED_GUIDE)).roleCode()).isEqualTo("UNKNOWN");
+        assertCoverage(input,updated);
+    }
+    @ParameterizedTest @ValueSource(strings={"문장에서 신청자격 언급", "❍(신청자격 제외) 소상공인", "❍(신청자격 소상공인", "❍신청자격) 소상공인", "❍(신청자격)", "❍(신청자격)   ", "❍(신청자격):", "❍(신청자격) ： …", "다른 글 ❍(신청자격) 소상공인"})
+    void mentionsMalformedOrEmptyLabelsCannotSupplyRequiredSection(String line) {
+        var result=selectParenthesized(selectExtraction(PARENTHESIZED_GUIDE.replace("❍(신청자격) 소상공인",line)));
+        assertThat(result.segments().getFirst().roleCode()).isEqualTo("UNKNOWN");
+    }
+    @Test void explicitSynonymsWhitespaceAndUnicodeOffsetsPreserveEvidence() {
+        var input=selectExtraction("사업 지원 안내\r\n❍ ( 지원 대상 ) : 소상공인 😀\r\n❍( 지원 규모 )：지원금\r\n❍ ( 접수 기간 ) 9월");
+        var result=selectParenthesized(input);
+        assertThat(result.statusCode()).isEqualTo("RESOLVED");
+        assertThat(result.segments().getFirst().evidence()).extracting(AttachmentSegmentRoleAnalyzer.Evidence::ruleCode)
+                .containsExactly("GUIDE_HEADING","TARGET_SECTION","SUPPORT_SECTION","APPLICATION_SECTION");
+        assertCoverage(input,result);
+        assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();
+    }
+    @Test void newRulesKeepUnknownPrefixPartialQualityAndOriginalBlockBounds() {
+        var input=selectExtraction("미확인 서문\n"+PARENTHESIZED_GUIDE);
+        assertThat(selectParenthesized(input).segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","GUIDE");
+        var partial=new AttachmentSetEvidence.Extraction("PARTIAL_TEXT",input.text(),input.blocks(),1,1);
+        assertThat(selectParenthesized(partial).reasonCode()).isEqualTo("COMPLETE_TEXT_REQUIRED");
+        var original=selectExtraction(PARENTHESIZED_GUIDE);var split=new ArrayList<>(original.blocks());
+        var target=split.remove(1);int cut=target.startOffset()+4;
+        split.add(1,new AttachmentSetEvidence.Block(1,target.startOffset(),cut,"split:1",true,"split:1"));
+        split.add(2,new AttachmentSetEvidence.Block(2,cut,target.endOffset(),"split:2",true,"split:2"));
+        for(int i=3;i<split.size();i++){var b=split.get(i);split.set(i,new AttachmentSetEvidence.Block(i,b.startOffset(),b.endOffset(),b.evidenceScopeId(),b.scopeReliable(),b.locator()));}
+        assertThat(selectParenthesized(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",original.text(),split,1,1)).segments().getFirst().roleCode()).isEqualTo("UNKNOWN");
+    }
+    @Test void versionHashCrossBindingCannotReplayOrEnterCurrentWorker() {
+        var input=selectExtraction(PARENTHESIZED_GUIDE);
+        assertThatThrownBy(()->analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION,AttachmentSegmentRoleAnalyzer.RULES_HASH)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH)).isFalse();
+    }
+
     @Test void mixedDocumentGetsSeparateRolesWithoutChangingLegacyFileAssessment() {
         var input = selectExtraction(GUIDE + "\n" + FORM);
         var legacy = new AttachmentDocumentRoleClassifier().selectAssessment(input);

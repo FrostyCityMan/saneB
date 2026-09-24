@@ -322,6 +322,27 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         row.put("segmentAnalysisHash",selectCanonicalHash(expected));row.put("segmentCount",expected.segments().size());
         row.put("unknownSegmentCount",expected.segments().stream().filter(s->"UNKNOWN".equals(s.roleCode())).count());
         row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
+        // 동일 설치 추출 결과를 메모리에서만 대조한다. 후보 규칙을 정책/평가/DB에 적용하지 않는다.
+        row.put("candidateSegmentComparison",selectCandidateSegmentComparison(input,expected));
+    }
+    static Map<String,Object> selectCandidateSegmentComparison(AttachmentSetEvidence.Extraction input,
+            AttachmentSegmentRoleAnalyzer.Analysis legacy) throws Exception {
+        var analyzer=new AttachmentSegmentRoleAnalyzer();
+        var candidate=analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION,
+                AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH);
+        assertEquals(legacy,analyzer.selectAnalysis(input),"LEGACY_ANALYSIS_CHANGED");
+        assertEquals(legacy.textHash(),candidate.textHash());assertEquals(legacy.blocksHash(),candidate.blocksHash());
+        assertTrue(analyzer.selectAnalysisValid(input,candidate));
+        assertEquals(legacy.segments().size(),candidate.segments().size());
+        for(int i=0;i<legacy.segments().size();i++) {
+            assertEquals(legacy.segments().get(i).startOffset(),candidate.segments().get(i).startOffset());
+            assertEquals(legacy.segments().get(i).endOffset(),candidate.segments().get(i).endOffset());
+        }
+        return Map.of("analysisVersion",candidate.analysisVersion(),"rulesHash",candidate.rulesHash(),
+                "analysisHash",selectCanonicalHash(candidate),"statusCode",candidate.statusCode(),
+                "sameInputAndBoundariesVerified",true,"persistedOrApplied",false,
+                "segments",candidate.segments().stream().map(s->Map.of("index",s.index(),"roleCode",s.roleCode(),
+                        "reasonCode",s.reasonCode(),"evidenceCodes",s.evidence().stream().map(AttachmentSegmentRoleAnalyzer.Evidence::ruleCode).toList())).toList());
     }
     static boolean selectPlannedTitleStop(ObservationCase sample,AnnouncementSourceClassificationResult title) {
         if(AnnouncementAttachmentOfficialWorkerProbe.selectTitleStopExpected(sample.code())) {

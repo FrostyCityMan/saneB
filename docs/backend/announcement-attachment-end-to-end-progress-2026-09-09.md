@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 괄호형 조건 표제의 버전 분리 및 실파일 대조
+
+- [x] 고정 보은 HWPX 두 파일의 알려진 binary hash를 확인한 뒤 공개 XML에서 `❍(신청자격)`, `❍(지원내용)`, `❍(신청기간)` 형식을 확인했다. 원문은 메모리에서만 읽고 출력에는 사전 정의한 표제/구조만 남겼다. 이는 설치 추출기·worker 성공이 아닌 제한된 구조 진단이다.
+- [x] `segment-role-1.0.1` 명시 호출에만 정확한 괄호형 표제를 추가했다. 기본1.0.0/hash·파일 역할·기존 정책·worker 동작을 보존한다. 빈 값/문장 속 언급/불완전 괄호/다른 block 합성은 거부하고 UNKNOWN·부분 추출을 유지한다. API/DB migration 변경은 없다.
+- [x] BOEUN_SEGMENT는 동일 실제 추출 text/blocks로 구/신 규칙을 메모리에서 대조한다. 입력 지문·구간 경계·기존 분석 불변·새 분석 재현성을 검사하고 원문 없는 역할/근거 코드만 보고한다. 후보 규칙은 DB에 저장하거나 종합 판정에 적용하지 않는다.
+- [x] 최종 표적 Java150·패키지20·Node10 통과, 실패/오류/생략0이다. 최초 명령은 존재하지 않는 Gradle task 이름으로10초 실패했고 실제 `attachmentContractQaTest` 의존 작업으로 수정했다. 후속 동의어/공백/Unicode 좌표 회귀까지 포함한 최종 실행은52초 성공이며 bootJar도 재생성했다. production code catalog hash는 서울 QA의 fa2a1c1f…와 일치한다. PowerShell 구문 검사·diff 검사 통과다.
+- [x] 선행 a583cc1 [Linux35985840975](https://github.com/FrostyCityMan/saneB/actions/runs/35985840975) 최종 success와 XML 확인: root2899=2622통과/277생략/실패·오류0, extractor122·패키지20·jobPG198·migration18·정책부모PG2·runtime5·workerPG12·Flyway3 실패/오류/생략0이다. 새 괄호 규칙의 CI 증거로 혼용하지 않는다.
+- [x] 서울 대조 SSM88f5ece8-dfc1-46f6-afe5-83bb6cbb1c11은3/3·71.775초·실패/생략0이다. 그러나 UNKNOWN은5→5/4→4/1→1로 **감소0**이며 GUIDE의 TARGET_SECTION도 미충족 유지다. 합성 테스트 성공을 실파일 개선으로 계산하지 않는다. 후보를 worker/정책에 연결하지 않고 실제 추출문에서 표제 위치/block 경계/구간 소속을 확인하는 것이 다음 작업이다.
+- [x] 누적68요청/45,346,973예약byte로 승인132요청/240MiB 이내다. 운영 JAR/DB/정책 불변·임시 unit/원본/전송 객체 정리·로컬 자기 패키지 제거를 확인했다. [실행 상세](announcement-segment-seoul-qa-2026-09-24.md)에 수동 구조 진단의 한계와 wrapper 종료 판정 오류도 기록했다.
+- [~] 일반 Provider 기대값·새 규칙 DB/API 연결·최종 검수/DRAFT·운영 E2E는 남는다. 전체9Gate·ATT62·SEG10 분모와 goal active를 유지한다. 브라우저는 현재 요청 정책상 미실행이다.
+
 ### 2026-09-24 보은 실파일의 관리자 검수 컨텍스트 확인
 
 - [x] 앞선 Linux/실파일 증거에서 누락된 review-context를 BOEUN_SEGMENT에 추가했다. 실제 worker→현재 평가 구간→검수 Service/GET 투영·no-store·다른 source404·동일 버전·확인/link0을 검사한다. 미확정 구간은 ATTACHMENT_ROLE_UNKNOWN과 원문 확인을 유지한다.
@@ -18,6 +29,8 @@
 - [x] bfa7c2d production 코드와 새 probe로 서울 실파일3/3·75.662초·실패/생략0 통과다. 세 파일의 원문/텍스트/분석 지문이 이전과 같고 검수 조회 대조 및 원문 확인 요구 유지가 확인됐다. [실행 근거](announcement-segment-seoul-qa-2026-09-24.md)의 SSM ab78764e-9d11-4508-85cb-44011bb535de를 참조한다.
 - [x] 선행3회 영수증/정리를 조회하여 누적 예산을 차감했다. 누적48요청/29,566,692byte이며 승인132요청/240MiB 이내다. 운영 JAR/DB/정책 불변, 실제 자원 한도, unit 종료·원본 및 전송 패키지 정리, 로컬 Java/PostgreSQL 잔여0을 확인했다. JSON 근거와 사용자 output은 보존했다.
 - [~] 최신 검수 수정 bfa7c2d의 Linux35983635675는 마지막 정책 DB 연결 검증 중이다. 실파일3건은 여전히 REVIEW_REQUIRED이며 정상 후보·검수량 감소·최종 확인/DRAFT·운영 브라우저 E2E와 구분한다. 전체9Gate·ATT62·SEG10 및 goal active를 유지한다.
+- [x] 후속 bfa7c2d Linux35983635675 최종 success와 XML을 확인했다. root2899=2622통과/277조건부 생략/실패·오류0, extractor122·패키지20·jobPG198·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패·오류·생략0이다. 신규 resolvedMixedSegmentReviewUsesExtractedEvidenceAndCreatesOnlyOneDraft(0.428초), failedFileAlongsideResolvedSegmentsStillRequiresManualOriginalCheck(0.358초)도 각각 실행/통과했다. `build/qa-results/linux-35983635675`에 보존했다. 이는 합성 혼합 문서의 실제 DB 검증이며 실사용자 최종 검수나 정상 실파일 분류를 대신하지 않는다.
+- [x] 실파일 검수 조회 QA 추가분 a583cc1a9cebbce9389451d840b24d2f34cdfbb8를 커밋·푸시하고 원격 SHA를 확인했다. production 코드는 bfa7c2d와 동일하고 새 Linux35985840975는 실행 중이다. 중복 CI를 만들지 않도록 이 후속 결과 기록은 다음 증분까지 로컬에 보존한다.
 
 ### 2026-09-24 구간 분석과 최종 검수 연결 수정
 

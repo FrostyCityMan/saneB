@@ -22,6 +22,10 @@ public final class AttachmentSegmentRoleAnalyzer {
     public static final String RULES_HASH = selectHash(VERSION + "\n" + MAX_SEGMENTS + "\n" + MAX_LINES + "\n"
             + HEADING_EXPRESSION + "\n" + AttachmentDocumentRoleClassifier.VERSION + "\n"
             + AttachmentDocumentRoleClassifier.RULES_HASH + "\nfull-coverage-codepoints-clipped-original-scopes-v1\n");
+    // 실파일 QA 후 별도 정책/worker 연결 대상으로만 제공한다. 기본 버전과 기존 이력의 재현성을 보존한다.
+    public static final String PARENTHESIZED_VERSION = "segment-role-1.0.1";
+    public static final String PARENTHESIZED_RULES_HASH = selectHash(PARENTHESIZED_VERSION + "\n" + RULES_HASH + "\n"
+            + AttachmentDocumentRoleClassifier.PARENTHESIZED_SECTIONS_HASH + "\n");
 
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Segment(int index, int startOffset, int endOffset, String roleCode, String reasonCode,
@@ -34,6 +38,16 @@ public final class AttachmentSegmentRoleAnalyzer {
     }
 
     public Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction) {
+        return selectAnalysis(extraction,VERSION,RULES_HASH);
+    }
+    public Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,String version,String rulesHash) {
+        boolean parenthesized=PARENTHESIZED_VERSION.equals(version) && PARENTHESIZED_RULES_HASH.equals(rulesHash);
+        if(!parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
+        var result=selectAnalysis(extraction,parenthesized);
+        return new Analysis(version,rulesHash,result.textHash(),result.blocksHash(),result.textLength(),
+                result.statusCode(),result.reasonCode(),result.segments());
+    }
+    private Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,boolean parenthesized) {
         if (extraction == null || extraction.text() == null) throw invalid();
         // 전체 block 정합성도 기존의 엄격한 계약으로 검증한다. 입력 quality를 성공으로 바꾸어 반환하지 않는다.
         var classifier = new AttachmentDocumentRoleClassifier();
@@ -94,8 +108,9 @@ public final class AttachmentSegmentRoleAnalyzer {
                         Math.min(end, block.endOffset()) - start, block.evidenceScopeId(), block.scopeReliable(), block.locator()));
                 originalIndexes.add(block.index());
             }
-            var local = classifier.selectAssessment(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",
-                    text.substring(utf16ByPosition[start], utf16ByPosition[end]), localBlocks, extraction.pageCount(), 0));
+            var localInput = new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",
+                    text.substring(utf16ByPosition[start], utf16ByPosition[end]), localBlocks, extraction.pageCount(), 0);
+            var local = parenthesized ? classifier.selectParenthesizedSegmentAssessment(localInput) : classifier.selectAssessment(localInput);
             if (uncertainHeadings.stream().anyMatch(position -> position >= start && position < end)) {
                 segments.add(new Segment(index, start, end, "UNKNOWN", "STRUCTURE_UNCERTAIN", List.of()));
                 continue;
@@ -112,7 +127,7 @@ public final class AttachmentSegmentRoleAnalyzer {
     /** 저장하거나 종합 판정에 사용할 때 서버가 같은 입력으로 재현하여 위조/누락을 거부한다. */
     public boolean selectAnalysisValid(AttachmentSetEvidence.Extraction extraction, Analysis analysis) {
         if (analysis == null) return false;
-        try { return selectAnalysis(extraction).equals(analysis); }
+        try { return selectAnalysis(extraction,analysis.analysisVersion(),analysis.rulesHash()).equals(analysis); }
         catch (IllegalArgumentException exception) { return false; }
     }
 

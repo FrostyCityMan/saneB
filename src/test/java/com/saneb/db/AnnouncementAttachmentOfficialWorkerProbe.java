@@ -77,7 +77,17 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && selectBounded(file,"unknownSegmentCount",0,file.path("segmentCount").asLong())
                 && (file.path("unknownSegmentCount").longValue()==0 || report.path("manualSourceCheckRequired").booleanValue())
                 && file.path("segmentEvaluationInputBound").asBoolean(false)
-                && file.path("segmentApiProjectionMatched").asBoolean(false);
+                && file.path("segmentApiProjectionMatched").asBoolean(false)
+                && selectCandidateComparisonComplete(file.path("candidateSegmentComparison"),file.path("segmentCount").intValue());
+    }
+    static boolean selectCandidateComparisonComplete(com.fasterxml.jackson.databind.JsonNode candidate,int count) {
+        return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION.equals(candidate.path("analysisVersion").asText())
+                && com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH.equals(candidate.path("rulesHash").asText())
+                && candidate.path("analysisHash").asText().matches("[a-f0-9]{64}")
+                && Set.of("RESOLVED","REVIEW_REQUIRED").contains(candidate.path("statusCode").asText())
+                && candidate.path("sameInputAndBoundariesVerified").isBoolean() && candidate.path("sameInputAndBoundariesVerified").booleanValue()
+                && candidate.path("persistedOrApplied").isBoolean() && !candidate.path("persistedOrApplied").booleanValue()
+                && count>0 && count<=200 && candidate.path("segments").isArray() && candidate.path("segments").size()==count;
     }
     private static boolean selectBounded(com.fasterxml.jackson.databind.JsonNode report,String key,long min,long max) {
         var value=report.path(key);

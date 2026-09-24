@@ -44,6 +44,15 @@ public final class AttachmentDocumentRoleClassifier {
     private record CompiledRule(Rule rule, Pattern pattern) { }
     private static final List<CompiledRule> COMPILED = RULES.stream().map(rule -> new CompiledRule(rule,
             Pattern.compile(rule.expression(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE))).toList();
+    // 고정 보은 HWPX 두 파일에서 확인한 정확한 글머리표·괄호형 표제다. 문장 속 단어 검색으로 넓히지 않는다.
+    private static final List<Rule> PARENTHESIZED_SECTIONS = List.of(
+            new Rule("TARGET_SECTION", null, "❍\\h*\\(\\h*(?:지원\\h*대상|신청\\h*자격)\\h*\\)\\h*(?:[:：]\\h*)?(?=[^\\r\\n]*[\\p{L}\\p{N}])\\S.{0,159}", false),
+            new Rule("SUPPORT_SECTION", null, "❍\\h*\\(\\h*(?:지원\\h*내용|지원\\h*규모)\\h*\\)\\h*(?:[:：]\\h*)?(?=[^\\r\\n]*[\\p{L}\\p{N}])\\S.{0,159}", false),
+            new Rule("APPLICATION_SECTION", null, "❍\\h*\\(\\h*(?:신청\\h*기간|접수\\h*기간)\\h*\\)\\h*(?:[:：]\\h*)?(?=[^\\r\\n]*[\\p{L}\\p{N}])\\S.{0,159}", false));
+    static final String PARENTHESIZED_SECTIONS_HASH = hash(json(List.of("segment-parenthesized-sections-1",RULES_HASH,PARENTHESIZED_SECTIONS)));
+    private static final List<CompiledRule> SEGMENT_COMPILED = java.util.stream.Stream.concat(COMPILED.stream(),
+            PARENTHESIZED_SECTIONS.stream().map(rule -> new CompiledRule(rule,
+                    Pattern.compile(rule.expression(),Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)))).toList();
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Assessment(String ruleVersion, String rulesHash, String textHash, String blocksHash,
                              String roleCode, String reasonCode, List<Evidence> evidence) {
@@ -57,6 +66,15 @@ public final class AttachmentDocumentRoleClassifier {
 
     /** 파일명·URL·다른 파일·이전 수동 역할을 받지 않는다. 역할 적용 여부는 별도 저장 계약이 결정한다. */
     public Assessment selectAssessment(AttachmentSetEvidence.Extraction extraction) {
+        return selectAssessment(extraction,COMPILED);
+    }
+    /** 새 구간 규칙 내부에서만 사용한다. 기존 파일 역할 이력과 기본 규칙의 버전·hash는 변경하지 않는다. */
+    Assessment selectParenthesizedSegmentAssessment(AttachmentSetEvidence.Extraction extraction) {
+        var result=selectAssessment(extraction,SEGMENT_COMPILED);
+        return new Assessment("segment-parenthesized-sections-1",PARENTHESIZED_SECTIONS_HASH,
+                result.textHash(),result.blocksHash(),result.roleCode(),result.reasonCode(),result.evidence());
+    }
+    private Assessment selectAssessment(AttachmentSetEvidence.Extraction extraction,List<CompiledRule> compiledRules) {
         if (extraction == null || !"COMPLETE_TEXT".equals(extraction.quality()))
             return result(null, null, "UNKNOWN", "COMPLETE_TEXT_REQUIRED", List.of());
         String text = extraction.text();
@@ -89,7 +107,7 @@ public final class AttachmentDocumentRoleClassifier {
             var block = extraction.blocks().get(blockIndex);
             // 한 줄이 block 경계를 넘으면 단일 위치의 근거로 합성하지 않는다.
             if (start < block.startOffset() || end > block.endOffset() || line.length() > 200) continue;
-            for (var compiled : COMPILED) if (compiled.pattern().matcher(line).matches()) {
+            for (var compiled : compiledRules) if (compiled.pattern().matcher(line).matches()) {
                 hits.add(new Hit(compiled.rule(), new Evidence(compiled.rule().code(), block.index(), start, end),
                         lineCount <= HEADER_LINES && end <= HEADER_CHARACTERS));
                 if (hits.size() > 100) return result(textHash, blocksHash, "UNKNOWN", "ROLE_ANALYSIS_LIMIT", List.of());

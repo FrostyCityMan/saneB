@@ -149,3 +149,29 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - S3 소유 전송 객체 삭제/부재 및 plan.cleaned=true를 확인했다. 검증한 소유 경로의 로컬 package.zip도 제거했으며 코드에서 재생성 가능하다. `build/temporary-bbs-qa-56fd6b7de295458b9c48190f3baa2e21/{plan,result}.json`은 보존했다.
 - 로컬 Java85·Node/Bash7·Python18·패키지20은 실패/생략0이다. 표적29초·패키지/bootJar22초 성공이며 production 변경이 없어 bootJar는 선행 산출물 UP-TO-DATE다. Python 기본 alias는 실행되지 않아 번들 Python으로 실제 재실행했다. Windows 전체 회귀11건의 initdb 차단은 별도 기록으로 유지한다.
 - 이 검증은 실제 파일과 검수 조회의 연결 증거다. 정상 혼합 문서의 검수량 감소, 실사용자 최종 확인/DRAFT, 전체 지역·기존 데이터·운영 브라우저 E2E 완료를 대신하지 않는다.
+
+## 후속 괄호형 조건 표제 후보 규칙 대조 — 개선 효과 미확인
+
+### 제한된 원본 구조 진단
+
+- 알려진 HWPX binary hash를 대조하여 보은221499/221497의 공개 XML을 메모리에서만 검사했다. 같은 HTTPS 공식 호스트·redirect 없음·기본 TLS·응답1MiB·ZIP100항목/확장8MiB·section1·DTD/외부 entity 금지로 제한했다. 원문 파일과 텍스트를 저장하지 않았으며 보고에는 사전 정의된 표제/길이/문장부호 형태만 포함했다.
+- 두 파일에서 `❍(신청자격)`, `❍(지원내용)`, `❍(신청기간)`을 확인했다. 닫는 괄호 유무 추가 확인까지 2회·총8요청, 보수적 예약 상한8MiB다. 두 번째는 결과 출력/자원 정리는 완료됐으나 호출 shell에서 PowerShell 스크립트 이후의 `$LASTEXITCODE`를 잘못 판정하여 최종 wrapper 오류가 발생했다. 이를 정상 종료로 기록하지 않으며 동일 자료를 다시 받지 않았다.
+- 이 진단은 설치 추출기 결과가 아니다. XML 표제 확인만으로 실제 구간의 필수 조건 충족을 단정할 수 없다는 것이 아래 대조에서 확인됐다.
+
+### 동일 실파일·추출 결과의 구/신 규칙 대조
+
+- 후보 `segment-role-1.0.1`, rulesHash `9bba150694efbdaa10b853f492b748f643521f8a7c82b9e8d8bd28f86ed7d9e3`는 명시 호출에만 존재한다. 기본/worker/정책은1.0.0 그대로이며 후보 결과는 저장·적용하지 않는다.
+- executionId `3fdb2e7468864e0bab68142a1fdcb3eb`, SSM `88f5ece8-dfc1-46f6-afe5-83bb6cbb1c11`: Success/0, 3/3·실패/생략/중단0, 71.775초다. 패키지138파일/188,209,380byte, archive SHA256 `d4ccc0a67ad03f65f8da9820b75281d59e2994a7a2196d21622e3743384d6aa1`, executionCodeHash `fa2a1c1f0506293d10cb6aaf976104cfe019df402e9b5f734f34f73253421e9a`다.
+- worker DB/API·검수 조회는 기존1.0.0 규칙으로 모두 대조됐다. 후보1.0.1은 같은 실제 text/blocks/구간 경계를 검증한 메모리 분석이다. 두 경로의 성공 의미를 혼동하지 않는다.
+
+| 고정 공고 | 구간 수 | UNKNOWN 기존→후보 | 후보 분석 hash | 실제 결과 |
+|---|---:|---:|---|---|
+| BOEUN-221499 | 7 | 5→5 | `6a7cabbb9232333adc022ba4075e3d45cfb0cf9be6c181c6df45c36bbbd4ad03` | GUIDE 후보는 여전히 GUIDE_HEADING만 근거로 보유 |
+| BOEUN-221497 | 5 | 4→4 | `452243ef7239546fff5e4fb29a1d4af5cd94c3f6ef428fd5c56a0b9082d3692f` | GUIDE 후보는 여전히 GUIDE_HEADING만 근거로 보유 |
+| BOEUN-218812 | 1 | 1→1 | `5de4445ff80a7f6388f5da07cca2d181fd856d6ed3d837f4f2f5f65319fcff0e` | PDF STRUCTURE_UNCERTAIN 유지 |
+
+- 원문/binary/text/기존 분석 지문은 선행 관측과 같다. 모든 공고는 FINAL_REVIEW_EXCEPTION/REVIEW_REQUIRED·원문 확인 요구를 유지했다. 합성 GUIDE+FORM 테스트는 통과하지만 **이번 실파일에서 검수량 감소는 0**이다. 괄호 표제만 추가하면 해결된다는 가설은 채택하지 않는다.
+- 다음 진단은 설치 추출문에서 해당 표제의 위치·block 경계·구간 소속·규칙 일치 여부다. 현재 보고서로 세부 원인을 확정할 수 없다. 새 규칙을 worker/정책에 연결하거나 UNKNOWN/부분 추출을 완화하지 않는다.
+- 앞선4개 SSM 영수증과 정리 완료를 재조회하고 수동 XML 확인8요청/8MiB를 포함하여 시작 예산56요청/37,955,300byte를 차감했다. 이번12요청/7,391,673byte를 합친 누적은 **68요청/45,346,973byte**다. 승인132요청/251,658,240byte 이내이며 예약byte를 실제 총 트래픽으로 표현하지 않는다. 같은 실행의 재전송은 차단한다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved 모두true, CPU1/768MiB/tmp1GiB다. 운영 DB/정책/설치 변경0, 원본/lease 잔여0이다. S3 자기 객체 부재와 plan.cleaned=true 확인 후 검증한 로컬 package.zip만 제거했다. JSON은 `build/temporary-bbs-qa-3fdb2e7468864e0bab68142a1fdcb3eb/{plan,result}.json`에 보존했다. 패키지는 코드에서 재생성 가능하다.
+- 전체 Provider QA·새 규칙 DB/API 적용·실사용자 최종 확인/DRAFT·정책 게시·기존 데이터·브라우저 E2E는 이 대조의 완료 범위가 아니다.

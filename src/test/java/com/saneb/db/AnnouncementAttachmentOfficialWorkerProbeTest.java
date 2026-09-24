@@ -40,11 +40,17 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
                 .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
         var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT").put("segmentAnalysisHash","a".repeat(64))
                 .put("segmentCount",7).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true);
+        var candidate=file.putObject("candidateSegmentComparison")
+                .put("analysisVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION)
+                .put("rulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH)
+                .put("analysisHash","c".repeat(64)).put("statusCode","REVIEW_REQUIRED")
+                .put("sameInputAndBoundariesVerified",true).put("persistedOrApplied",false);
+        var segments=candidate.putArray("segments");for(int i=0;i<7;i++)segments.addObject().put("index",i);
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
         for(String key:java.util.List.of("engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired","maximumRequestReservations","maximumReservedBytes","files")) {
             var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
-        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched")) {
+        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched","candidateSegmentComparison")) {
             var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).remove(key);
             assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
@@ -59,6 +65,26 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("manualSourceCheckRequired","true")));
         file.put("unknownSegmentCount",8);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
         file.put("unknownSegmentCount",5).put("quality","PARTIAL_TEXT");assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+    }
+    @Test void candidateComparisonKeepsUnknownAndNeverClaimsDatabaseApplication() throws Exception {
+        String text="별도 서문\n사업 지원 안내\n❍(신청자격) 소상공인\n❍(지원내용) 지원금\n❍(신청기간) 9월";
+        var input=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,
+                java.util.List.of(new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Block(0,0,text.length(),"p:0",true,"p:0")),1,0);
+        var legacy=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer().selectAnalysis(input);
+        var result=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectCandidateSegmentComparison(input,legacy);
+        var json=new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode candidate=json.valueToTree(result);
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectCandidateComparisonComplete(candidate,2));
+        assertEquals("REVIEW_REQUIRED",candidate.path("statusCode").asText());
+        assertEquals("UNKNOWN",candidate.path("segments").get(0).path("roleCode").asText());
+        assertEquals("GUIDE",candidate.path("segments").get(1).path("roleCode").asText());
+        assertFalse(json.writeValueAsString(result).contains("소상공인"));
+        for(String key:java.util.List.of("analysisVersion","rulesHash","analysisHash","statusCode","sameInputAndBoundariesVerified","persistedOrApplied","segments")) {
+            var missing=candidate.deepCopy();missing.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectCandidateComparisonComplete(missing,2),key);
+        }
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectCandidateComparisonComplete(candidate.deepCopy().put("persistedOrApplied",true),2));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectCandidateComparisonComplete(candidate.deepCopy().put("sameInputAndBoundariesVerified","true"),2));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectCandidateComparisonComplete(candidate,1));
     }
     @Test void boeunPreservesThreePositiveNoticesWithOneFileEach() {
         var expected=java.util.List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
