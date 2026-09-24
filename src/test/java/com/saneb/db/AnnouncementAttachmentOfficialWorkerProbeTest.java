@@ -4,6 +4,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void longFormComparisonKeepsStoredVersionAndReportsOnlyFixedMetadata() throws Exception {
+        String text="동의서\n신청인 : "+" ".repeat(165)+"(서명 또는 인)";
+        var input=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,
+                java.util.List.of(new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Block(0,0,text.length(),"p:0",true,"p:0")),1,0);
+        var analyzer=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer();
+        var original=analyzer.selectAnalysis(input,com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
+        var json=new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode report=json.valueToTree(AnnouncementAttachmentOfficialWorkerIntegrationTest.selectLongFormComparison(input,original));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(report));
+        assertEquals("FORM",report.path("roles").get(0).asText());assertEquals("UNKNOWN",original.segments().getFirst().roleCode());
+        assertFalse(report.toString().contains("신청인"));assertFalse(report.path("persistedOrApplied").booleanValue());
+        for(String key:java.util.List.of("analysisVersion","rulesHash","analysisHash","sameInputAndCoverageVerified","sameBoundariesVerified","persistedOrApplied","statusCode","roles","reasons")) {
+            var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(invalid),key);
+        }
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(report.deepCopy().put("text","private fixture")));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(report.deepCopy().put("persistedOrApplied",true)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(report.deepCopy().put("sameBoundariesVerified","true")));
+        var invalid=report.deepCopy();invalid.putArray("reasons").add("private fixture");assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(invalid));
+    }
     @Test void structuralModeHasSeparatePinnedExecutionAndNeverReusesQuarterProof() throws Exception {
         String mode="BOEUN_STRUCTURAL";
         assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(mode));

@@ -343,9 +343,36 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
             assertEquals(selectWireTree(oldVersion),selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION));
             assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source));
             row.put("structuralObservedHashMatched",true);row.put("evaluationBoundApiVerified",true);row.put("otherVersionReadOnlyVerified",true);
+            row.put("longFormCandidate",selectLongFormComparison(input,expected));
         } else {
             row.put("quarterObservedHashMatched",true);row.put("structuralCandidate",selectStructuralComparison(input,expected));
         }
+    }
+    static Map<String,Object> selectLongFormComparison(AttachmentSetEvidence.Extraction input,AttachmentSegmentRoleAnalyzer.Analysis original) throws Exception {
+        var analyzer=new AttachmentSegmentRoleAnalyzer();
+        var candidate=analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH);
+        assertEquals(original,analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH));
+        assertEquals(original.textHash(),candidate.textHash());assertEquals(original.blocksHash(),candidate.blocksHash());
+        assertTrue(analyzer.selectAnalysisValid(input,candidate));assertEquals(original.segments().size(),candidate.segments().size());
+        int end=0;
+        for(int i=0;i<candidate.segments().size();i++) {
+            var old=original.segments().get(i);var updated=candidate.segments().get(i);
+            assertEquals(end,updated.startOffset());assertEquals(old.startOffset(),updated.startOffset());assertEquals(old.endOffset(),updated.endOffset());end=updated.endOffset();
+            if(!old.equals(updated)) {assertEquals("UNKNOWN",old.roleCode());assertEquals("ROLE_STRUCTURE_INCOMPLETE",old.reasonCode());assertEquals("FORM",updated.roleCode());}
+            for(var evidence:updated.evidence()) {
+                var block=input.blocks().get(evidence.blockIndex());assertTrue(block.scopeReliable());
+                assertTrue(evidence.startOffset()>=Math.max(block.startOffset(),updated.startOffset()));
+                assertTrue(evidence.endOffset()<=Math.min(block.endOffset(),updated.endOffset()));
+            }
+        }
+        assertEquals(input.text().codePointCount(0,input.text().length()),end);
+        var result=Map.<String,Object>of("analysisVersion",candidate.analysisVersion(),"rulesHash",candidate.rulesHash(),
+                "analysisHash",selectCanonicalHash(candidate),"sameInputAndCoverageVerified",true,"sameBoundariesVerified",true,
+                "persistedOrApplied",false,"statusCode",candidate.statusCode(),
+                "roles",candidate.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList(),
+                "reasons",candidate.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::reasonCode).toList());
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectLongFormComparisonComplete(JSON.valueToTree(result)));
+        return result;
     }
     static Map<String,Object> selectStructuralComparison(AttachmentSetEvidence.Extraction input,AttachmentSegmentRoleAnalyzer.Analysis quarter) throws Exception {
         var analyzer=new AttachmentSegmentRoleAnalyzer();

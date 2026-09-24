@@ -125,6 +125,28 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && file.path("noticeSegmentCount").longValue()==("BOEUN-218812".equals(code)?0:1)
                 && "REVIEW_REQUIRED".equals(report.path("decisionStatus").asText()) && selectTrue(report,"manualSourceCheckRequired");
     }
+    static boolean selectLongFormComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
+        if(!value.isObject())return false;
+        var names=new java.util.HashSet<String>();value.fieldNames().forEachRemaining(names::add);
+        if(!names.equals(Set.of("analysisVersion","rulesHash","analysisHash","sameInputAndCoverageVerified","sameBoundariesVerified","persistedOrApplied","statusCode","roles","reasons")))return false;
+        if(!com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION.equals(value.path("analysisVersion").asText())
+                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH.equals(value.path("rulesHash").asText())
+                || !value.path("analysisHash").asText().matches("[a-f0-9]{64}") || !selectTrue(value,"sameInputAndCoverageVerified")
+                || !selectTrue(value,"sameBoundariesVerified") || !value.path("persistedOrApplied").isBoolean() || value.path("persistedOrApplied").booleanValue())return false;
+        var roles=value.path("roles");var reasons=value.path("reasons");
+        if(!roles.isArray() || roles.isEmpty() || roles.size()>200 || !reasons.isArray() || reasons.size()!=roles.size())return false;
+        boolean unknown=false;
+        for(int i=0;i<roles.size();i++) {
+            String role=roles.get(i).asText(),reason=reasons.get(i).asText();
+            if(!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(role))return false;
+            if("UNKNOWN".equals(role)) {
+                unknown=true;
+                if(!Set.of("INITIAL_HEADING_REQUIRED","ROLE_STRUCTURE_INCOMPLETE","STRUCTURE_UNCERTAIN","MIXED_DOCUMENT_ROLES",
+                        "ROLE_ANALYSIS_LIMIT","COMPLETE_TEXT_REQUIRED","SEGMENT_ANALYSIS_LIMIT").contains(reason))return false;
+            } else if(!"ROLE_TEXT_STRUCTURE_MATCHED".equals(reason))return false;
+        }
+        return (unknown?"REVIEW_REQUIRED":"RESOLVED").equals(value.path("statusCode").asText());
+    }
     static boolean selectStructuralComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
         var roles=value.path("roles");
         return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(value.path("analysisVersion").asText())

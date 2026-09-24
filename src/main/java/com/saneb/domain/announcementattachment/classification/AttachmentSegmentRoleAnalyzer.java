@@ -38,6 +38,10 @@ public final class AttachmentSegmentRoleAnalyzer {
     public static final String STRUCTURAL_RULES_HASH=selectHash(STRUCTURAL_VERSION+"\n"+QUARTER_RULES_HASH+"\n"
             +INTERNAL_APPLICATION_EXPRESSION+"\nresolved-notice-incomplete-numbered-application-section-v1\n"
             +"adjacent-identical-heading-only-whitespace-normalized-reassessment-v1\n");
+    // 진단 후보. worker/정책 선택은 실파일 대조 이후 별도 계약으로 연결한다.
+    public static final String LONG_FORM_VERSION="segment-role-1.0.4";
+    public static final String LONG_FORM_RULES_HASH=selectHash(LONG_FORM_VERSION+"\n"+STRUCTURAL_RULES_HASH+"\n"
+            +AttachmentDocumentRoleClassifier.LONG_FORM_FIELDS_HASH+"\nonly-incomplete-form-same-boundaries-v1\n");
 
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Segment(int index, int startOffset, int endOffset, String roleCode, String reasonCode,
@@ -56,9 +60,11 @@ public final class AttachmentSegmentRoleAnalyzer {
         boolean parenthesized=PARENTHESIZED_VERSION.equals(version) && PARENTHESIZED_RULES_HASH.equals(rulesHash);
         boolean quarter=QUARTER_VERSION.equals(version) && QUARTER_RULES_HASH.equals(rulesHash);
         boolean structural=STRUCTURAL_VERSION.equals(version) && STRUCTURAL_RULES_HASH.equals(rulesHash);
-        if(!structural && !quarter && !parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
-        var result=selectAnalysis(extraction,parenthesized,quarter||structural);
-        if(structural)result=selectStructuralAnalysis(extraction,result);
+        boolean longForm=LONG_FORM_VERSION.equals(version) && LONG_FORM_RULES_HASH.equals(rulesHash);
+        if(!longForm && !structural && !quarter && !parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
+        var result=selectAnalysis(extraction,parenthesized,quarter||structural||longForm);
+        if(structural||longForm)result=selectStructuralAnalysis(extraction,result);
+        if(longForm)result=selectLongFormAnalysis(extraction,result);
         return new Analysis(version,rulesHash,result.textHash(),result.blocksHash(),result.textLength(),
                 result.statusCode(),result.reasonCode(),result.segments());
     }
@@ -196,6 +202,32 @@ public final class AttachmentSegmentRoleAnalyzer {
                 "COMPLETE_TEXT",input.text().substring(utf16[start],utf16[end]),blocks,input.pageCount(),0));
         return new Segment(index,start,end,local.roleCode(),local.reasonCode(),local.evidence().stream().map(e->
                 new Evidence(e.ruleCode(),indexes.get(e.blockIndex()),start+e.startOffset(),start+e.endOffset())).toList());
+    }
+    private Analysis selectLongFormAnalysis(AttachmentSetEvidence.Extraction input,Analysis original) {
+        if(!"COMPLETE_TEXT".equals(input.quality()))return original;
+        var segments=new ArrayList<Segment>();
+        for(var segment:original.segments()) {
+            if(!"UNKNOWN".equals(segment.roleCode()) || !"ROLE_STRUCTURE_INCOMPLETE".equals(segment.reasonCode())
+                    || segment.evidence().stream().noneMatch(e->"FORM_HEADING".equals(e.ruleCode()))) {
+                segments.add(segment);continue;
+            }
+            int start=segment.startOffset(),end=segment.endOffset();
+            var blocks=new ArrayList<AttachmentSetEvidence.Block>();var indexes=new ArrayList<Integer>();
+            for(var block:input.blocks())if(block.endOffset()>start && block.startOffset()<end) {
+                blocks.add(new AttachmentSetEvidence.Block(blocks.size(),Math.max(start,block.startOffset())-start,
+                        Math.min(end,block.endOffset())-start,block.evidenceScopeId(),block.scopeReliable(),block.locator()));
+                indexes.add(block.index());
+            }
+            var local=new AttachmentDocumentRoleClassifier().selectLongFormSegmentAssessment(new AttachmentSetEvidence.Extraction(
+                    "COMPLETE_TEXT",input.text().substring(input.text().offsetByCodePoints(0,start),input.text().offsetByCodePoints(0,end)),blocks,input.pageCount(),0));
+            if(!"FORM".equals(local.roleCode())) {segments.add(segment);continue;}
+            segments.add(new Segment(segment.index(),start,end,"FORM",local.reasonCode(),local.evidence().stream().map(e->
+                    new Evidence(e.ruleCode(),indexes.get(e.blockIndex()),start+e.startOffset(),start+e.endOffset())).toList()));
+        }
+        if(segments.equals(original.segments()))return original;
+        boolean resolved=segments.stream().noneMatch(s->"UNKNOWN".equals(s.roleCode()));
+        return new Analysis(original.analysisVersion(),original.rulesHash(),original.textHash(),original.blocksHash(),original.textLength(),
+                resolved?"RESOLVED":"REVIEW_REQUIRED",resolved?"SEGMENTS_RESOLVED":"SEGMENT_CONTEXT_REQUIRED",segments);
     }
     private static String selectHash(String value) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }

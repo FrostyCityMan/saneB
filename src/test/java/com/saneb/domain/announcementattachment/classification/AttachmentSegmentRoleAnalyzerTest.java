@@ -24,6 +24,40 @@ class AttachmentSegmentRoleAnalyzerTest {
     private AttachmentSegmentRoleAnalyzer.Analysis selectStructural(AttachmentSetEvidence.Extraction input) {
         return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
     }
+    private AttachmentSegmentRoleAnalyzer.Analysis selectLongForm(AttachmentSetEvidence.Extraction input) {
+        return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH);
+    }
+    private static String selectLongSignature(int length) {
+        String prefix="신청인 : (신청자) (서명 또는 인) (동의자) ",suffix="(서명 또는 인)";
+        return prefix+" ".repeat(length-prefix.length()-suffix.length())+suffix;
+    }
+    @ParameterizedTest @ValueSource(ints={187,200})
+    void explicitLongFormCandidateRecognizesBoundedApplicantSignatureLine(int length) {
+        var input=selectExtraction("미확인 서문 😀\n"+GUIDE+"\n개인정보 수집 및 이용 동의서\n"+selectLongSignature(length));
+        var old=selectStructural(input);var result=selectLongForm(input);
+        assertThat(old.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","GUIDE","UNKNOWN");
+        assertThat(result.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","GUIDE","FORM");
+        assertThat(result.statusCode()).isEqualTo("REVIEW_REQUIRED");assertThat(result.textHash()).isEqualTo(old.textHash());assertThat(result.blocksHash()).isEqualTo(old.blocksHash());
+        for(int i=0;i<old.segments().size();i++) {
+            assertThat(result.segments().get(i).startOffset()).isEqualTo(old.segments().get(i).startOffset());
+            assertThat(result.segments().get(i).endOffset()).isEqualTo(old.segments().get(i).endOffset());
+        }
+        assertThat(selectStructural(input)).isEqualTo(old);assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();assertCoverage(input,result);
+        assertThat(AttachmentEngineContract.selectSegmentCurrent(result.analysisVersion(),result.rulesHash())).isFalse();
+        assertThat(AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH).isEqualTo("8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43");
+    }
+    @Test void longFormCandidateDoesNotRelaxWholeLineLengthMissingFieldsOrCrossBlockEvidence() {
+        for(String text:List.of("동의서\n"+selectLongSignature(201),"동의서\n신청인 : "+" ".repeat(170),
+                "동의서\n다른 사람 "+" ".repeat(160)+"(서명 또는 인)","동의서\n"+selectLongSignature(187)+" 끝")) {
+            assertThat(selectLongForm(selectExtraction(text)).segments()).allMatch(s->"UNKNOWN".equals(s.roleCode()));
+        }
+        var original=selectExtraction("동의서\n"+selectLongSignature(187));var last=original.blocks().getLast();
+        var blocks=List.of(original.blocks().getFirst(),new AttachmentSetEvidence.Block(1,last.startOffset(),last.startOffset()+5,"p:1a",true,"p:1a"),
+                new AttachmentSetEvidence.Block(2,last.startOffset()+5,last.endOffset(),"p:1b",true,"p:1b"));
+        assertThat(selectLongForm(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",original.text(),blocks,1,0)).segments()).allMatch(s->"UNKNOWN".equals(s.roleCode()));
+        assertThat(selectLongForm(new AttachmentSetEvidence.Extraction("PARTIAL_TEXT",original.text(),original.blocks(),1,0)).reasonCode()).isEqualTo("COMPLETE_TEXT_REQUIRED");
+        assertThat(selectLongForm(selectExtraction((GUIDE+"\n").repeat(201))).reasonCode()).isEqualTo("SEGMENT_ANALYSIS_LIMIT");
+    }
     @Test void numberedApplicationSubsectionStaysInsideAlreadyResolvedNoticeWithoutChangingLegacy() {
         var input=selectExtraction("미확인 표지\n"+PARENTHESIZED_GUIDE.replace("사업 지원 안내","참여자 모집 공고(3분기)")
                 +"\n3. 신청안내\n❍(신청기간) 9월\n원문 신청 조건\n"+FORM);

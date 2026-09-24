@@ -235,10 +235,60 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 각 원본 제거·lease0을 확인했다. S3 자기 객체 삭제/부재와 plan.cleaned=true를 확인하고 hash/절대 경로가 일치하는 로컬 package.zip만 제거했다. 패키지는 코드에서 재생성 가능하며 `build/temporary-bbs-qa-5b81a5c5ee0d437fb4d368b7ba68aef9/{plan,result}.json`은 보존했다.
 - AWS CLI 경유 영수증의 정적 한국어 사전 key 일부가 문자 인코딩 손상으로 보인다. 그 key로 새 의미 판단을 하지 않았다. 이번 비교의 근거인 ASCII 버전/hash/role/reason/개수/결합·정리 boolean은 별도 구조 조회로 확인했다. 로그 전체를 원문이나 운영 성공 근거로 재사용하지 않는다.
 
-## 후속1.0.3 실제 저장 검증 준비 — 서버 미실행
+## 후속1.0.3 실제 저장 검증 준비 — 당시 서버 미실행
 
 - `BOEUN_STRUCTURAL`을 별도 명시 모드로 추가했다. 기존 `BOEUN` 파일 엔진과 `BOEUN_SEGMENT`의1.0.2 저장/3 후보 대조 경로를 보존한다. 새 모드도 고정3공고, 공고당5요청/24MiB·전체15요청/72MiB다. 이 한도는 코드상 최대치일 뿐 누적 승인 잔여를 갱신하지 않는다.
 - `attachmentBoeunStructuralWorkerIntegrationTest`와 별도 보고서 경로를 만들었다. CI에서는 이를 자동 실행하지 않는다. 서울에서는 최신 임시 QA 패키지를 사용해야 하며 운영 설치 QA나 운영 DB를 사용하지 않는다. 기존 Windows PG 실행 차단을 우회하지 않는다.
 - 새 실행은 이전 `5b81a5c5` 영수증의3개1.0.3 analysisHash를 고정 입력으로 대조한다. 실제 worker가 정책 snapshot의1.0.3 버전/hash로 저장하고, 평가 입력 FK·버전 GET·판정 결합 GET의 전체 응답이 일치해야 한다. 기본0과 명시2의 GET은 NOT_ANALYZED이며 조회 후 분석 수가 증가하면 실패한다.
 - 성공 보고서는 구간 수6/4/1, UNKNOWN3/2/1, NOTICE1/1/0과 REVIEW_REQUIRED·수동 원문 확인 요구를 유지해야 한다. 저장 검증을 후보 메모리 자료로 대신하지 못하도록 `structuralCandidate`를 거부한다. 실제 검증 후에만 `structuralObservedHashMatched`, `evaluationBoundApiVerified`, `otherVersionReadOnlyVerified`를 기록한다. raw text/locator를 보고서에 새로 추가하지 않는다.
 - 로컬 표적 Java26·QA 패키지20·Node/Bash8·Python19건 실패/생략0, probe JAR/bootJar 검증33초 성공이다. Python 회귀는128+15가 기존132요청을 초과함을 명시한다. 추가30요청 승인 답변·누적 원장 재검증·서울 전송 실행기 연결 전에는 새 서버 실행을 하지 않는다. 아직 실제1.0.3 저장/API·정리 결과는 없다.
+
+## 후속 격리 QA 일괄 승인 적용 — 2026-09-24
+
+- 사용자의 최신 `모든 격리 qa 요청 승인`을 위에서 요청한 보은 추가30요청에 적용한다. 기존132회에30회를 더한 누적162회이며 기존 사용128회/87,496,577예약byte를 초기화하지 않는다. 지역 bytes 한도240MiB는 증액하지 않는다.
+- 이번 실행은 `BOEUN_STRUCTURAL`의 같은3공고1회, 최대15요청/72MiB/20분, CPU1개·메모리768MiB·임시공간1GiB다. 운영 설치·DB·정책·worker 설정은 변경하지 않고 임시 원본/DB/패키지를 정리한다. 추가 실행은 사용량과 미완료 자원을 다시 확인해야 하며 이 기록만으로 무제한 재실행하지 않는다.
+- 전송 실행기는 선행9회 영수증·고정 case·정리 완료를 실시간 검증하고 수동 구조20요청 상한을 합산한다. 후보1.0.3 메모리 분석을 새 worker 저장 근거로 재사용하지 않는다. 버전/분석 hash·평가 FK·두 GET 투영·조회 무생성·미확정 검수 유지가 성공 기준이다.
+- 로컬 표적/패키지/probe/bootJar 준비 명령은22초 성공했다. production 코드·bootJar·QA 패키지는 변경 없는 UP-TO-DATE이며 새 운영 배포의 증거가 아니다. Node8·Python22건 통과 및 로컬 실행기2파일 PowerShell 구문0오류를 확인했다. 서버 결과는 후속 영수증으로 별도 기록한다.
+
+### 명시1.0.3 실제 worker 저장 결과
+
+- executionId `24283053367d4b44be39750b2bd2d65e`, SSM `347a254f-e8a2-4829-aea7-6ba869571b4e`: Success/0,75.058초·3/3·실패/생략/중단/컨테이너 실패0이다. source code 기준선은 `c477c6552979ca6c09ac0c8746caf13abf62770b`, 추출기1.0.7이다. 이번에는 production Java/Flyway/API를 수정하지 않았다.
+- 패키지138파일/188,238,871byte, archive SHA256 `5f0e217367260f8d4b2ada248c7210f4beb5aa97b8b083c263c044d60668d624`, codeHash `cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981`, probeHash `090f9fd77826b8519fd2a26989171811c4af17065fb3f91ee8fa205cf0c0b5bf`다.
+
+| 고정 공고 | 형식/문자 수 | 실제 저장 구간/UNKNOWN/NOTICE | 판정 |
+|---|---|---|---|
+| BOEUN-221499 | HWPX/8,129 | 6/3/1 | REVIEW_REQUIRED, 원문 확인 필요 |
+| BOEUN-221497 | HWPX/7,821 | 4/2/1 | REVIEW_REQUIRED, 원문 확인 필요 |
+| BOEUN-218812 | PDF/5,566 | 1/1/0 | REVIEW_REQUIRED, 구조 불확실6블록 |
+
+- 본문3건 AVAILABLE·제목 조합 충족·공고별 공식 첨부1개 발견/다운로드/처리,3파일 COMPLETE_TEXT를 확인했다. 각각의 binary/text/1.0.3 analysisHash는 선행 고정값과 일치한다. 텍스트 완전성과 역할 확정은 다르며 정상 후보0·기대값 승인0·정책QA 통과false·최종 관리자 확인 필요true다.
+- `segmentDatabaseApiVerified`, `segmentReviewContextVerified`, 평가 입력 FK/버전 GET/판정 결합 GET의 전체 응답 일치가3건 모두 true다. 기본0과 명시2 조회는 NOT_ANALYZED·분석 무생성을 검증했다. 이 결과는 신규1.0.3 worker 저장 근거이며 후보 메모리 대조와 구분한다. 운영 DB·정책은 사용하지 않았고 운영 쓰기0이다.
+- 선행9회 SSM·정리 및 수동 구조20요청 예약을 재대조했다. 이번12요청/7,391,673예약byte를 더해 누적 **140/162요청·94,888,250/251,658,240예약byte**, 잔여22요청/156,769,990byte다. 이전 BOEUN 설치 검증은 다른 이전 범위의 이력이며 이9월24일 구간 관측 원장을 전체 보은 역사 요청량이라고 표현하지 않는다.
+- 원격 unit 비활성·원본/임시 DB/lease/전송 경로 정리, 운영 JAR 불변·health UP을 확인했다. S3 자기 객체 부재와 plan.cleaned=true 이후 정확한 절대경로/hash를 확인하여 로컬 package.zip도 제거했다. 재생성 가능한 패키지와 임시 원본만 삭제했으며 `build/temporary-bbs-qa-24283053367d4b44be39750b2bd2d65e/{plan,result}.json` 영수증을 보존했다.
+- Node8/Python22 및 이번 로컬 Java26 실패/생략0이다. QA 패키지20·bootJar는 변경 없는 UP-TO-DATE를 재실행으로 계산하지 않는다. 선행614850d [Linux36012304604](https://github.com/FrostyCityMan/saneB/actions/runs/36012304604) success와 다운로드 XML의 root3013=2727통과/286조건부 생략/실패·오류0을 확인했다. 별도 extractor133·패키지20·jobPG206·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 현재 c477c65 CI는 마지막 조회 실행 중이며 이 결과로 대체하지 않는다.
+- 장기 goal 스킬에 따라 실제 저장/조회 근거와 미확정 판정을 분리했다. 전체9Gate=8부분/1차단은 유지한다. 남은 업무는 문서 미확정/부분 추출·전체 Provider 정답, 운영 정책/기존 데이터/동일SHA 배포·실사용자 검수/DRAFT·브라우저 E2E다. 브라우저는 현재 명시 요청 정책에 따라 미실행이며 이번 격리 QA 승인으로 운영 활성화 권한을 확대하지 않는다.
+
+## 긴 신청인·복수 서명란 후보 대조 준비
+
+- 후속 공개 XML 관측4요청/4MiB 예약을 추가했다. 고정 HWPX2파일의 binary hash 일치, 원본 메모리 처리·미저장·클라이언트 종료를 확인했다. 이 시점 누적144/162요청·99,082,554/251,658,240예약byte, 잔여18회다.
+- 221497은 같은 표 셀 문단의 신청인/복수 서명란187자가 확인됐다. 기존 신청인 값160자·서명 앞부분120자 규칙이 이를 받아들이지 못할 가능성이 있어 전체 줄200자 한도 안에서만 명시 후보1.0.4를 추가한다. 다른 서문/표/지원 조건을 임의로 합치지 않는다.
+- 다음 BOEUN_STRUCTURAL1회 상한은 같은3공고15요청/72MiB/20분이다. 실제 저장/판정은1.0.3으로 유지하고 같은 추출문을 후보1.0.4와 메모리에서만 비교한다. `longFormCandidate`는 버전/hash·역할/사유·같은 입력/전체 범위/경계 검증·persistedOrApplied=false만 보고한다. 기존 저장 결과/상태/확인/link는 바꾸지 않는다.
+- 전송 전에10개 선행 영수증과 수동 구조24요청을 합산하여144회 사용을 재검증한다. 다른 모드로 예산을 초기화하지 않으며 같은 plan의 재전송을 차단한다. 실제 개선 여부는 실행 결과 전까지 미확인이다.
+
+### 후보1.0.4 실파일 결과 — 2026-09-25 00:04 KST
+
+- executionId `4b3409d6de39411689693af41184453c`, SSM `251f933d-10c6-4a70-8af2-3669af5c35bb`: Success/0,73.631초·3/3·실패/생략/중단0이다. 추출기1.0.7, 실제 저장/판정은1.0.3, 후보 메모리 대조만1.0.4다. 세 파일의 binary/text/저장1.0.3 analysisHash는 직전24283053 실행과 각각 일치했다.
+- codeHash `3711db9ffe7b69f0f0711a300b43da52b55e48821edb6dd2f11c1e3525824ba2`, probeHash `fa752e6858d0b7ee21e20dcbde8fac8e8f3271c398d813f60d25f5a768691bba`, archive SHA256 `35e1ff5ce750c2fc305bfd00fa0a72fa6d06b079cd9588487986fa71eb774240`,188,241,339byte다.
+- 후보 rulesHash는 `27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe`이며 모든 결과의 입력/전체 범위/경계 불변 검증true·persistedOrApplied=false다.
+
+| 공고 | 저장1.0.3 UNKNOWN → 후보1.0.4 UNKNOWN | 후보 역할 순서 | 후보 analysisHash |
+|---|---|---|---|
+| 221499 | 3 → 3 | UNKNOWN/NOTICE/UNKNOWN/UNKNOWN/FORM/FORM | `d458819cb7789b14d6214e7b8dc365b6bd78a2420599d1ece3330c4e14efb3cc` |
+| 221497 | 2 → 1 | UNKNOWN/NOTICE/FORM/FORM | `9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f` |
+| 218812 | 1 → 1 | UNKNOWN | `0d67340e2320e1f3f787c4b73c2336b5657e19d8d991ce2823c33052cf0fb223` |
+
+- 221497 동의서1구간의 긴 필드 제한을 해소했다. 서문 UNKNOWN·다른 HWPX의2미확정 구간·PDF 구조 불확실성은 보존한다. 세 공고의 후보 상태도 REVIEW_REQUIRED다. 정상 후보/운영 적용/실제 검수 시간 감소로 확대 해석하지 않는다. 다음은 후보의 명시 worker/정책/조회 계약 연결 및 남은 문서 구조 검토다.
+- 이번12요청/7,391,673예약byte를 합산하여 누적 **156/162요청·106,474,227/251,658,240예약byte**, 잔여6회다. 현재 전체3건 최대15회 모드는 잔여 내 재실행 불가다. 같은 요청 재전송/예산 초기화 없이 다음 실행 범위를 다시 고정해야 한다.
+- 원격 unit/원본/임시 DB/lease/전송 경로 정리, 운영 JAR 불변·health UP, S3 자기 객체 삭제/부재와 plan.cleaned=true를 확인했다. 정확한 절대경로/hash 검증 후 재생성 가능한 자기 로컬 ZIP을 제거했다. `build/temporary-bbs-qa-4b3409d6de39411689693af41184453c/{plan,result}.json`은 보존한다. 운영 쓰기·정책 게시·ENFORCE·기존 데이터·배포는0이다.
+- 로컬 첫 표적/bootJar38초 성공, 확대 명령 `:test --tests 'com.saneb.domain.announcementattachment.*' --tests '*AnnouncementAttachmentOfficialWorkerProbeTest' :attachmentContractQaTest :attachmentOfficialWorkerProbeJar :bootJar --no-daemon --max-workers=1`은3분36초 성공했다. root1999=1977통과/22조건부 생략·패키지20건 실패/오류0, Node8·Python22·PowerShell 구문0오류·diff 검사 통과다. 확대 명령의 bootJar는 첫 표적에서 생성한 동일 코드 결과 UP-TO-DATE다.
+- 선행 c477c65 [Linux36014177794](https://github.com/FrostyCityMan/saneB/actions/runs/36014177794) success와 다운로드 XML root3016=2730통과/286생략,별도133/20/206/18/2/5/12/3 실패/오류/생략0을 확인했다. 새 후보 코드의 전체 Linux 증거로 대체하지 않는다. 현재 브라우저 검증은 사용자 명시 요청 정책상 미실행이다.

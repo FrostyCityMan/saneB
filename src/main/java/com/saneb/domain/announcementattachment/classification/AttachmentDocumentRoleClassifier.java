@@ -58,6 +58,14 @@ public final class AttachmentDocumentRoleClassifier {
     static final String QUARTER_SECTIONS_HASH=hash(json(List.of("segment-quarter-notice-1",PARENTHESIZED_SECTIONS_HASH,QUARTER_NOTICE)));
     private static final List<CompiledRule> QUARTER_COMPILED=java.util.stream.Stream.concat(SEGMENT_COMPILED.stream(),
             java.util.stream.Stream.of(new CompiledRule(QUARTER_NOTICE,Pattern.compile(QUARTER_NOTICE_EXPRESSION)))).toList();
+    // 보은 동의서의 187자 신청인/복수 서명란. 기존 전체 줄 200자 한도 안에서만 명시 후보에 적용한다.
+    private static final List<Rule> LONG_FORM_FIELDS = List.of(
+            new Rule("APPLICANT_FIELD", null, ITEM + "(?:신청\\h*인|사업자\\h*등록\\h*번호|성\\h*명)\\h*(?:[:：].{0,200})?", false),
+            new Rule("SIGNATURE_FIELD", null, ".{0,200}(?:\\(서명\\)|\\(인\\)|서명\\h*또는\\h*인|\\(\\h*서명\\h*또는\\h*인\\h*\\))", false));
+    static final String LONG_FORM_FIELDS_HASH=hash(json(List.of("segment-long-form-fields-1",QUARTER_SECTIONS_HASH,200,LONG_FORM_FIELDS)));
+    private static final List<CompiledRule> LONG_FORM_COMPILED=java.util.stream.Stream.concat(
+            QUARTER_COMPILED.stream().filter(rule->!Set.of("APPLICANT_FIELD","SIGNATURE_FIELD").contains(rule.rule().code())),
+            LONG_FORM_FIELDS.stream().map(rule->new CompiledRule(rule,Pattern.compile(rule.expression())))).toList();
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Assessment(String ruleVersion, String rulesHash, String textHash, String blocksHash,
                              String roleCode, String reasonCode, List<Evidence> evidence) {
@@ -82,6 +90,11 @@ public final class AttachmentDocumentRoleClassifier {
     Assessment selectQuarterSegmentAssessment(AttachmentSetEvidence.Extraction extraction) {
         var result=selectAssessment(extraction,QUARTER_COMPILED);
         return new Assessment("segment-quarter-notice-1",QUARTER_SECTIONS_HASH,
+                result.textHash(),result.blocksHash(),result.roleCode(),result.reasonCode(),result.evidence());
+    }
+    Assessment selectLongFormSegmentAssessment(AttachmentSetEvidence.Extraction extraction) {
+        var result=selectAssessment(extraction,LONG_FORM_COMPILED);
+        return new Assessment("segment-long-form-fields-1",LONG_FORM_FIELDS_HASH,
                 result.textHash(),result.blocksHash(),result.roleCode(),result.reasonCode(),result.evidence());
     }
     private Assessment selectAssessment(AttachmentSetEvidence.Extraction extraction,List<CompiledRule> compiledRules) {
