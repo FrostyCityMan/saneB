@@ -63,6 +63,8 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 || !"segment-role-1.0.0".equals(report.path("segmentRuleVersion").asText())
                 || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(report.path("segmentRulesHash").asText())
                 || !report.path("segmentDatabaseApiVerified").asBoolean(false)
+                || !report.path("segmentReviewContextVerified").isBoolean() || !report.path("segmentReviewContextVerified").booleanValue()
+                || !report.path("manualSourceCheckRequired").isBoolean()
                 || report.path("maximumRequestReservations").asLong(-1)!=20
                 || report.path("maximumReservedBytes").asLong(-1)!=33554432L
                 || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,20)
@@ -73,6 +75,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && file.path("segmentAnalysisHash").asText().matches("[a-f0-9]{64}")
                 && selectBounded(file,"segmentCount",1,200)
                 && selectBounded(file,"unknownSegmentCount",0,file.path("segmentCount").asLong())
+                && (file.path("unknownSegmentCount").longValue()==0 || report.path("manualSourceCheckRequired").booleanValue())
                 && file.path("segmentEvaluationInputBound").asBoolean(false)
                 && file.path("segmentApiProjectionMatched").asBoolean(false);
     }

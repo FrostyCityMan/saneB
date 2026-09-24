@@ -80,6 +80,8 @@ def validate_probe_scope(report,mode):
                 if (case.get('scope')!='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1'
                         or case.get('engineVersion')!='attachment-segment-1.0.0'
                         or case.get('segmentDatabaseApiVerified') is not True
+                        or case.get('segmentReviewContextVerified') is not True
+                        or type(case.get('manualSourceCheckRequired')) is not bool
                         or case.get('productionWriteCount')!=0 or case.get('isPolicyQaPassed') is not False
                         or case.get('maximumRequestReservations')!=20 or case.get('maximumReservedBytes')!=33554432):raise ValueError('PROBE_OUTPUT_INVALID')
                 for key,lower,upper in [('requestReservationsIncludingBodyUpperBound',3,20),('reservedBytesIncludingBodyUpperBound',1,33554432)]:

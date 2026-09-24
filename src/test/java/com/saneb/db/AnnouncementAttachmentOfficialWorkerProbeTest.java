@@ -35,12 +35,13 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         var json=new com.fasterxml.jackson.databind.ObjectMapper();
         var report=json.createObjectNode().put("engineVersion","attachment-segment-1.0.0").put("segmentRuleVersion","segment-role-1.0.0")
                 .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH)
-                .put("segmentDatabaseApiVerified",true).put("maximumRequestReservations",20).put("maximumReservedBytes",33554432)
+                .put("segmentDatabaseApiVerified",true).put("segmentReviewContextVerified",true).put("manualSourceCheckRequired",true)
+                .put("maximumRequestReservations",20).put("maximumReservedBytes",33554432)
                 .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
         var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT").put("segmentAnalysisHash","a".repeat(64))
                 .put("segmentCount",7).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true);
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
-        for(String key:java.util.List.of("engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","maximumRequestReservations","maximumReservedBytes","files")) {
+        for(String key:java.util.List.of("engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired","maximumRequestReservations","maximumReservedBytes","files")) {
             var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
         for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched")) {
@@ -52,6 +53,10 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",21)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("reservedBytesIncludingBodyUpperBound",33554433)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentRulesHash","b".repeat(64))));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentReviewContextVerified",false)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentReviewContextVerified","true")));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("manualSourceCheckRequired",false)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("manualSourceCheckRequired","true")));
         file.put("unknownSegmentCount",8);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
         file.put("unknownSegmentCount",5).put("quality","PARTIAL_TEXT");assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
     }

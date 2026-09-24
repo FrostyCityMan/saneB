@@ -168,7 +168,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertEquals(sample.listedFileCount(),files.size());
                 var controllers=new ArrayList<Object>(List.of(new AnnouncementAttachmentController(read),new AnnouncementAttachmentCurrentController(bean(AnnouncementAttachmentCurrentService.class))));
                 AnnouncementAttachmentSegmentService segments=segmentMode?selectSegmentService():null;
-                if(segmentMode)controllers.add(new AnnouncementAttachmentSegmentController(segments));
+                if(segmentMode) {
+                    controllers.add(new AnnouncementAttachmentSegmentController(segments));
+                    controllers.add(new AnnouncementAttachmentReviewController(bean(AnnouncementAttachmentReviewService.class)));
+                }
                 var http=MockMvcBuilders.standaloneSetup(controllers.toArray())
                         .setControllerAdvice(new GlobalExceptionHandler())
                         .setMessageConverters(new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter(JSON)).build();
@@ -237,6 +240,23 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                     if(rows.stream().anyMatch(r->((Number)r.getOrDefault("unknownSegmentCount",0)).longValue()>0))
                         assertEquals("REVIEW_REQUIRED",summary.effectiveClassification().semanticStatusCode(),"UNKNOWN_SEGMENT_MUST_REMAIN_REVIEW");
                     report.put("segmentDatabaseApiVerified",true);
+                    stage="SEGMENT_REVIEW_CONTEXT";
+                    var review=bean(AnnouncementAttachmentReviewService.class).selectReviewContextDetails(source);
+                    String reviewUrl="/api/v2/admin/announcement-sources/"+source+"/attachment-classification/review-context";
+                    assertEquals(selectWireTree(review),selectApi(http,reviewUrl),"REVIEW_CONTEXT_PROJECTION_MISMATCH");
+                    var response=http.perform(get(reviewUrl)).andReturn().getResponse();
+                    assertEquals(200,response.getStatus());assertEquals("no-store",response.getHeader("Cache-Control"));
+                    assertEquals(404,http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-classification/review-context",UUID.randomUUID())).andReturn().getResponse().getStatus());
+                    if(rows.stream().anyMatch(r->((Number)r.getOrDefault("unknownSegmentCount",0)).longValue()>0)) {
+                        assertTrue(review.manualSourceCheckRequired(),"UNKNOWN_SEGMENT_ORIGINAL_CHECK_REQUIRED");
+                        assertTrue(review.requiredAcknowledgementCodes().contains("ATTACHMENT_ROLE_UNKNOWN"));
+                    }
+                    assertNull(review.confirmedClassification());assertNull(review.linkedAnnouncement());
+                    assertEquals(review,bean(AnnouncementAttachmentReviewService.class).selectReviewContextDetails(source),"REVIEW_GET_MUST_NOT_CHANGE_VERSION");
+                    assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,source));
+                    assertEquals(0,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,source));
+                    report.put("segmentReviewContextVerified",true);
+                    report.put("manualSourceCheckRequired",review.manualSourceCheckRequired());
                 }
                 report.put("requiresFinalAdminVerification",true);
                 boolean whole=bodyComplete&&files.stream().allMatch(f->"COMPLETE_TEXT".equals(f.qualityCode()));

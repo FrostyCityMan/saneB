@@ -138,3 +138,14 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - terminal 확인 후 S3 자기 전송 객체 삭제/부재 및 plan.cleaned=true를 확인했다. 검증한 자기 경로의 로컬 package.zip을 제거했고 JSON은 보존했다. 패키지는 코드에서 재생성 가능하다. 로컬 Java/PostgreSQL 잔여0·단기 Node 종료, 사용자 `output/` 보존을 확인했다.
 
 후속 예산 변경 `ff930d5`의 [Linux35979527273](https://github.com/FrostyCityMan/saneB/actions/runs/35979527273)도 최종 success 및 XML을 확인했다. root2886=2611통과/275조건부 생략/실패·오류0, extractor122·패키지20·jobPG196·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패·오류·생략0이다. XML은 `build/qa-results/linux-35979527273/`에 보존했다. 새 `100ccb2`의 [Linux35981889914](https://github.com/FrostyCityMan/saneB/actions/runs/35981889914)는 별도 대기 상태이며 선행 성공으로 대체하지 않는다.
+
+## 검수 수정 코드의 보은 실파일 review-context 검증
+
+- production 코드 `bfa7c2d5654726c13fde3e6bb5824fd77f78d24d`, executionCodeHash `95146282e8cfb03e735bd3bb43f4459207dc4f218e792f617063ce9dbf99245c`와 새 probeHash `2a041092c5022db86872343b7ff46d9e93e8d2fb8421689ac7b6898d0179a4d6`로 실행했다. 새 probe는 Service/GET review-context 대조·no-store·다른 source404·반복 GET 버전 불변·확인/link0을 검사한다.
+- executionId `56fd6b7de295458b9c48190f3baa2e21`, SSM `ab78764e-9d11-4508-85cb-44011bb535de`: Success/0, 실파일3/3·실패/생략/중단0, 75.662초다. 패키지138파일/188,207,246byte, archive hash `ae40a7b308ffa1614a2ca5e5a375ec8f15c5b0d17b717b36494ba3baff323d77`.
+- 보은221499(HWPX),221497(HWPX),218812(PDF) 모두 segmentReviewContextVerified=true·manualSourceCheckRequired=true다. 이전 관측과 binary/text/segmentAnalysis 지문이 모두 일치하며 UNKNOWN 5/4/1 구간의 원문 확인 요구를 유지했다. 정상 후보나 최종 관리자 확인으로 승격하지 않았다.
+- 전송 전 선행3회 SSM 영수증·정리 완료를 확인하고 36요청/22,175,019byte를 차감했다. 새 상한60요청/96MiB도 승인132요청/240MiB 이내이며, 실제 사용12요청/7,391,673byte를 합친 누적은48요청/29,566,692byte다. 이전과 다른 코드/probe 및 단 한 번의 신규 재검증만 허용했다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved 모두true, CPU1/768MiB/tmp1GiB를 확인했다. 운영 DB·정책·설치 변경0, 원본/lease 잔여0이며 인증·브라우저 E2E=false다.
+- S3 소유 전송 객체 삭제/부재 및 plan.cleaned=true를 확인했다. 검증한 소유 경로의 로컬 package.zip도 제거했으며 코드에서 재생성 가능하다. `build/temporary-bbs-qa-56fd6b7de295458b9c48190f3baa2e21/{plan,result}.json`은 보존했다.
+- 로컬 Java85·Node/Bash7·Python18·패키지20은 실패/생략0이다. 표적29초·패키지/bootJar22초 성공이며 production 변경이 없어 bootJar는 선행 산출물 UP-TO-DATE다. Python 기본 alias는 실행되지 않아 번들 Python으로 실제 재실행했다. Windows 전체 회귀11건의 initdb 차단은 별도 기록으로 유지한다.
+- 이 검증은 실제 파일과 검수 조회의 연결 증거다. 정상 혼합 문서의 검수량 감소, 실사용자 최종 확인/DRAFT, 전체 지역·기존 데이터·운영 브라우저 E2E 완료를 대신하지 않는다.
