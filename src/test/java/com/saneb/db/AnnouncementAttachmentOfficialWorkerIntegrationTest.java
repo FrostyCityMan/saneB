@@ -66,10 +66,13 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     @TempDir Path temporary;
 
     static Stream<ObservationCase> selectCases() {
+        return selectFixedCases(System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG"));
+    }
+    static Stream<ObservationCase> selectFixedCases(String group) {
         // 제목 제외 표본도 유지한다. 임의 URL·전체 기관 실행 모드는 제공하지 않는다.
-        String group=System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG");
         var expected=AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(group);
-        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(group)).toList();
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(group))
+                .filter(sample->!"BOEUN_LONG_FORM".equals(group)||expected.contains(sample.code())).toList();
         assertEquals(expected,samples.stream().map(ObservationCase::code).toList(),"OFFICIAL_WORKER_CASES_CHANGED");
         return samples.stream();
     }
@@ -304,6 +307,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     private static void saveSegmentVerification(String caseCode,UUID source,AttachmentEvidenceResponses.FileSummary file,JsonNode actual,
             AnnouncementAttachmentSegmentService service,MockMvc http,Map<String,Object> row,AttachmentExecutionSnapshot execution) throws Exception {
         String version=execution.segmentRuleVersion();boolean structural=AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(version);
+        boolean longForm=AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION.equals(version);
         var before=sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source);
         String baseUrl="/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/segment-analysis";
         var stored=service.selectAnalysisDetails(source,file.extractionId(),version);
@@ -323,7 +327,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         var input=new AttachmentSetEvidence.Extraction(file.qualityCode(),actual.path("text").asText(),Arrays.asList(blocks),actual.path("pageCount").isIntegralNumber()?actual.path("pageCount").intValue():null,0);
         var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input,version,execution.segmentRulesHash());
         assertEquals("ANALYZED",stored.analysisState());assertEquals(expected,stored.analysis());
-        assertEquals(structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
+        assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
                 selectCanonicalHash(expected),"PREVIOUS_SEGMENT_OBSERVATION_CHANGED");
         assertEquals(file.fileId(),stored.fileId());assertEquals(file.setId(),stored.setId());
         assertEquals(file.documentRoleCode(),stored.fileRoleCode());assertEquals(file.roleOriginCode(),stored.fileRoleOriginCode());
@@ -333,7 +337,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
         row.put("legacyDefaultReadOnlyVerified",true);
         row.put("noticeSegmentCount",expected.segments().stream().filter(s->"NOTICE".equals(s.roleCode())).count());
-        if(structural) {
+        if(structural || longForm) {
             UUID evaluation=sql.queryForObject("SELECT id FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current",UUID.class,source);
             var bound=service.selectEvaluationAnalysisDetails(source,file.extractionId(),evaluation);
             assertEquals(stored,bound.segmentAnalysis());
@@ -342,8 +346,19 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
             assertEquals("NOT_ANALYZED",oldVersion.analysisState(),"OTHER_VERSION_GET_MUST_NOT_FALL_BACK");
             assertEquals(selectWireTree(oldVersion),selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION));
             assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source));
-            row.put("structuralObservedHashMatched",true);row.put("evaluationBoundApiVerified",true);row.put("otherVersionReadOnlyVerified",true);
-            row.put("longFormCandidate",selectLongFormComparison(input,expected));
+            if(longForm) {
+                var prior=service.selectAnalysisDetails(source,file.extractionId(),AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION);
+                assertEquals("NOT_ANALYZED",prior.analysisState(),"STRUCTURAL_GET_MUST_NOT_FALL_BACK");
+                assertEquals(selectWireTree(prior),selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION));
+                assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source));
+                assertEquals("6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04",file.binaryHash());
+                assertEquals("ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066",expected.textHash());
+                assertEquals(List.of("UNKNOWN","NOTICE","FORM","FORM"),expected.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList());
+                row.put("longFormObservedHashMatched",true);
+            } else {
+                row.put("structuralObservedHashMatched",true);row.put("longFormCandidate",selectLongFormComparison(input,expected));
+            }
+            row.put("evaluationBoundApiVerified",true);row.put("otherVersionReadOnlyVerified",true);
         } else {
             row.put("quarterObservedHashMatched",true);row.put("structuralCandidate",selectStructuralComparison(input,expected));
         }

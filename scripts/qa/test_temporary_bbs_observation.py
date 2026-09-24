@@ -20,6 +20,43 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_long_form_mode_pins_one_file_and_stored_proof_within_cumulative_budget(self):
+        import copy
+        mode='BOEUN_LONG_FORM';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('BOEUN-221497',['BOEUN-221497'],5,25165824),scope)
+        self.assertLessEqual(156+scope[2],162);self.assertLessEqual(106474227+scope[3],251658240)
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        for cases in ([],['BOEUN-221499'],self.runner['SCOPES']['BOEUN'][1]):
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,caseCodes=cases),mode)
+        flags=('longFormObservedHashMatched','evaluationBoundApiVerified','otherVersionReadOnlyVerified',
+               'legacyDefaultReadOnlyVerified','segmentEvaluationInputBound','segmentApiProjectionMatched')
+        file=dict(quality='COMPLETE_TEXT',format='HWPX',segmentCount=4,unknownSegmentCount=1,noticeSegmentCount=1,
+                  binaryHash='6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04',
+                  textHash='ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066',
+                  segmentAnalysisHash='9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f',**dict.fromkeys(flags,True))
+        case=dict(caseCode=scope[0],scope='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1',engineVersion='attachment-segment-1.0.0',
+                  segmentRuleVersion='segment-role-1.0.4',segmentRulesHash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',
+                  segmentDatabaseApiVerified=True,segmentReviewContextVerified=True,manualSourceCheckRequired=True,requiresFinalAdminVerification=True,
+                  productionWriteCount=0,isPolicyQaPassed=False,decisionStatus='REVIEW_REQUIRED',files=[file],
+                  maximumRequestReservations=5,maximumReservedBytes=25165824,requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2400000)
+        report=dict(kind='OFFICIAL_WORKER_PROBE',caseGroup=mode,productionDatabaseUsed=False,
+                    isPolicyQaPassed=False,isAuthenticatedBrowserE2e=False,status='PASSED',cases=[case])
+        self.unit['validate_probe_scope'](report,mode)
+        for key,value in [('segmentRuleVersion','segment-role-1.0.3'),('requiresFinalAdminVerification',False),
+                          ('manualSourceCheckRequired',False),('decisionStatus','ACCEPTED'),('caseCode','BOEUN-221499')]:
+            invalid=copy.deepcopy(report);invalid['cases'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('binaryHash','a'*64),('textHash','a'*64),('segmentAnalysisHash','a'*64),('unknownSegmentCount',0),
+                          ('segmentCount',True),('longFormCandidate',{}),('format','PDF'),*[(flag,'true') for flag in flags]]:
+            invalid=copy.deepcopy(report);invalid['cases'][0]['files'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+
     def test_unknown_mode_is_rejected_before_resource_or_network_access(self):
         self.unit['cfg']={'verificationMode':'OTHER_PROVIDER'}
         with patch('pathlib.Path.read_text',side_effect=AssertionError('resource access')), patch('subprocess.run',side_effect=AssertionError('process start')):

@@ -275,6 +275,13 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 다음 BOEUN_STRUCTURAL1회 상한은 같은3공고15요청/72MiB/20분이다. 실제 저장/판정은1.0.3으로 유지하고 같은 추출문을 후보1.0.4와 메모리에서만 비교한다. `longFormCandidate`는 버전/hash·역할/사유·같은 입력/전체 범위/경계 검증·persistedOrApplied=false만 보고한다. 기존 저장 결과/상태/확인/link는 바꾸지 않는다.
 - 전송 전에10개 선행 영수증과 수동 구조24요청을 합산하여144회 사용을 재검증한다. 다른 모드로 예산을 초기화하지 않으며 같은 plan의 재전송을 차단한다. 실제 개선 여부는 실행 결과 전까지 미확인이다.
 
+## 긴 서명란1.0.4 실제 저장 단일 QA 범위 — 2026-09-25
+
+- 사용자 모든 격리 QA 승인 안에서 `BOEUN_LONG_FORM`은 고정 `BOEUN-221497` 한 공고/공식 HWPX 전체1파일만 실행한다. 최대5요청/24MiB/20분·CPU1·메모리768MiB·임시공간1GiB다. 기존3공고 모드·표본 분모·상한은 변경하지 않는다.
+- 선행11회와 수동 구조24요청의 영수증·정리를 재검증하여 누적156/162요청·106,474,227byte를 차감한다. 새 모드로 원장을 초기화하지 않고 같은 plan 재전송/추가 실행을 거부한다. 이번 실행은 최대161/162회 이내다.
+- 고정 binary/text/후보4 analysisHash를 실제 worker4 저장과 비교하고 평가 입력 FK·명시 GET·판정 결합 GET의 전체 응답 일치를 검증한다. 기본0·명시2·명시3은 NOT_ANALYZED/무생성이다. 저장 역할은 UNKNOWN/NOTICE/FORM/FORM, 서문 UNKNOWN1개와 REVIEW_REQUIRED·원문 확인·최종 관리자 확인을 유지해야 한다.
+- 운영 설치/DB/정책/게시/기존 데이터 적용/자동 활성화는 없다. 이 실파일 결과를 정상 후보나 전체 Provider QA 통과로 표현하지 않는다. 실행 결과와 정리는 아래 영수증에 별도로 기록한다.
+
 ### 후보1.0.4 실파일 결과 — 2026-09-25 00:04 KST
 
 - executionId `4b3409d6de39411689693af41184453c`, SSM `251f933d-10c6-4a70-8af2-3669af5c35bb`: Success/0,73.631초·3/3·실패/생략/중단0이다. 추출기1.0.7, 실제 저장/판정은1.0.3, 후보 메모리 대조만1.0.4다. 세 파일의 binary/text/저장1.0.3 analysisHash는 직전24283053 실행과 각각 일치했다.
@@ -292,3 +299,14 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 원격 unit/원본/임시 DB/lease/전송 경로 정리, 운영 JAR 불변·health UP, S3 자기 객체 삭제/부재와 plan.cleaned=true를 확인했다. 정확한 절대경로/hash 검증 후 재생성 가능한 자기 로컬 ZIP을 제거했다. `build/temporary-bbs-qa-4b3409d6de39411689693af41184453c/{plan,result}.json`은 보존한다. 운영 쓰기·정책 게시·ENFORCE·기존 데이터·배포는0이다.
 - 로컬 첫 표적/bootJar38초 성공, 확대 명령 `:test --tests 'com.saneb.domain.announcementattachment.*' --tests '*AnnouncementAttachmentOfficialWorkerProbeTest' :attachmentContractQaTest :attachmentOfficialWorkerProbeJar :bootJar --no-daemon --max-workers=1`은3분36초 성공했다. root1999=1977통과/22조건부 생략·패키지20건 실패/오류0, Node8·Python22·PowerShell 구문0오류·diff 검사 통과다. 확대 명령의 bootJar는 첫 표적에서 생성한 동일 코드 결과 UP-TO-DATE다.
 - 선행 c477c65 [Linux36014177794](https://github.com/FrostyCityMan/saneB/actions/runs/36014177794) success와 다운로드 XML root3016=2730통과/286생략,별도133/20/206/18/2/5/12/3 실패/오류/생략0을 확인했다. 새 후보 코드의 전체 Linux 증거로 대체하지 않는다. 현재 브라우저 검증은 사용자 명시 요청 정책상 미실행이다.
+
+### 1.0.4 실제 worker 저장 결과 — 2026-09-25 00:32 KST
+
+- executionId `bd32a37c51634a6e84f1653bd60034e8`, SSM `d0c1117a-5667-4d91-b2c8-83733a1d39df`: Success/0,43.290초·1/1·실패/생략/중단0이다. `BOEUN_LONG_FORM` 고정221497 한 공고이며 전체3공고 실행으로 표시하지 않는다. 명시1.0.4 실제 worker·임시 DB 저장·버전 GET·판정 결합 GET 및0/2/3 무생성 조회를 검증했다.
+- codeHash `a04904b74ab7c9196b3ac5b7b9642b521d7e08c970d6ee9feef5e04c9d0128c0`, probeHash `db401c95a4e64de1f6c0428db6b923ed84127037323a913b723864d730c1f2c7`, ZIP SHA256 `7713d4a3a7b7c6069b8b15b74cb1ffd84a229d23eebb705e4c151b83623e3888`,188,242,993byte다. 본체는 `df74ec2`와 동일한 실행 코드이며 이번 고정 probe는 별도 변경으로 검증했다.
+- 제목 조합 충족·본문 AVAILABLE·공식 첨부1/1 발견/처리, HWPX95,092byte·7,821자·378개 신뢰 block·COMPLETE_TEXT다. binary `6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04`, text `ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066`, 저장4 analysisHash `9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f`는 선행 원본/텍스트/메모리 후보와 각각 일치한다.
+- 저장 역할 UNKNOWN/NOTICE/FORM/FORM, UNKNOWN1개·NOTICE1개다. 파일 전체 역할 UNKNOWN과 `FINAL_REVIEW_EXCEPTION`, `REVIEW_REQUIRED/ATTACHMENT_CONTEXT_REVIEW`, 원문 확인/최종 관리자 확인 요구를 보존한다. 정상 후보0·확인/link0·운영 쓰기0·정책 QA 통과false다. 완전한 텍스트 추출을 정상 후보나 관리자 승인으로 바꾸지 않는다.
+- 실제4요청/2,421,620예약byte를 더해 누적 **160/162요청·108,895,847/251,658,240예약byte**, 잔여2요청/142,762,393byte다. 같은 모드 반복 또는 전체3건 실행은 잔여 한도에 들어가지 않는다.
+- 원격 unit 비활성·원본/임시 DB/lease/전송 정리, 운영 JAR 불변·health UP을 확인했다. S3 자기 객체 부재·plan.cleaned=true 이후 정확한 절대경로/hash로 자기 로컬 ZIP도 제거했다. 재생성 가능한 패키지와 임시 원본만 삭제했고 `build/temporary-bbs-qa-bd32a37c51634a6e84f1653bd60034e8/{plan,result}.json` 영수증은 보존한다.
+- 로컬 명령 `:test --tests '*AnnouncementAttachmentOfficialWorkerProbeTest' :attachmentContractQaTest :attachmentOfficialWorkerProbeJar :bootJar --no-daemon --max-workers=1` 최종32초 성공. Java29·패키지20·Node9·Python23 실패/생략0, PowerShell 구문0오류·diff 검사 통과다. 본체/추출기/bootJar는 변경 없는 UP-TO-DATE이며 새 probe JAR를 생성했다. 소유 Node/Java/PG 잔여0이다.
+- 선행 `eaeb482` [Linux36017762988](https://github.com/FrostyCityMan/saneB/actions/runs/36017762988) success에 이어 `df74ec2` [Linux36019625775](https://github.com/FrostyCityMan/saneB/actions/runs/36019625775) success를 확인했다. 후자의 다운로드 XML root3031=2742통과/289조건부 생략, 별도 extractor133/패키지20/jobPG209/migration18/정책부모PG2/runtime5/workerPG12/Flyway3의 실패·오류·생략0이다. 이번 단일 probe 변경은 후속 CI로 별도 검증한다. 운영 정책/기존 데이터 적용·배포·브라우저는 이번 실행하지 않았다.

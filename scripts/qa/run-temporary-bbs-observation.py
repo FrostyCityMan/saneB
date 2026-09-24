@@ -21,6 +21,7 @@ SCOPES = {
     'BOEUN_SEGMENT': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
     # 후보 대조가 아닌 명시1.0.3 저장 검증. 누적 잔여를 초과하면 별도 승인이 필요하다.
     'BOEUN_STRUCTURAL': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
+    'BOEUN_LONG_FORM': ('BOEUN-221497', ['BOEUN-221497'], 5, 25165824),
     'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472),
     'NAMGU_STRUCTURE': ('NAMGU-44381', ['NAMGU-44381'], 5, 25165824),
 }
@@ -52,7 +53,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','NAMGU_OBSERVATION','NAMGU_STRUCTURE') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -70,7 +71,7 @@ def select_qa_distribution(package,mode):
     return root
 
 def validate_probe_scope(report,mode):
-    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL'):
+    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM'):
         if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!=mode
                 or report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
                 or report.get('isAuthenticatedBrowserE2e') is not False):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -79,10 +80,11 @@ def validate_probe_scope(report,mode):
         codes=[c.get('caseCode') for c in cases]
         if len(codes)!=len(set(codes)) or any(c not in SCOPES[mode][1] for c in codes):raise ValueError('PROBE_OUTPUT_INVALID')
         if report.get('status')=='PASSED' and codes!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
-        if mode in ('BOEUN_SEGMENT','BOEUN_STRUCTURAL') and report.get('status')=='PASSED':
-            structural=mode=='BOEUN_STRUCTURAL'
-            version='segment-role-1.0.3' if structural else 'segment-role-1.0.2'
-            rules_hash='8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43' if structural else '2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82'
+        if mode in ('BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM') and report.get('status')=='PASSED':
+            long_form=mode=='BOEUN_LONG_FORM'
+            structural=mode=='BOEUN_STRUCTURAL' or long_form
+            version='segment-role-1.0.4' if long_form else 'segment-role-1.0.3' if structural else 'segment-role-1.0.2'
+            rules_hash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe' if long_form else '8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43' if structural else '2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82'
             for case in cases:
                 if (case.get('scope')!='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1'
                         or case.get('engineVersion')!='attachment-segment-1.0.0'
@@ -101,6 +103,7 @@ def validate_probe_scope(report,mode):
                         'BOEUN-221499':('22f9d58ac8c6a8c76fe3508e58bf367358453b88684af5710437a5133e687827',6,3,1),
                         'BOEUN-221497':('3594adc138acae4211de819c3803295704410a8e8484a2070323042f9f3bda3a',4,2,1),
                         'BOEUN-218812':('f823ab78281f55cb16c634bde50bbc6fc84175c1058c90355c1845ea50aa3673',1,1,0)}[case['caseCode']]
+                    if long_form:expected=('9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f',4,1,1)
                     files=case.get('files')
                     if (case.get('decisionStatus')!='REVIEW_REQUIRED' or case.get('manualSourceCheckRequired') is not True
                             or not isinstance(files,list) or len(files)!=1 or not isinstance(files[0],dict)):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -108,9 +111,13 @@ def validate_probe_scope(report,mode):
                     if file.get('quality')!='COMPLETE_TEXT' or file.get('segmentAnalysisHash')!=expected[0] or 'structuralCandidate' in file:raise ValueError('PROBE_OUTPUT_INVALID')
                     for key,value in zip(('segmentCount','unknownSegmentCount','noticeSegmentCount'),expected[1:]):
                         if type(file.get(key)) is not int or file[key]!=value:raise ValueError('PROBE_OUTPUT_INVALID')
-                    for key in ('structuralObservedHashMatched','evaluationBoundApiVerified','otherVersionReadOnlyVerified',
+                    for key in ('longFormObservedHashMatched' if long_form else 'structuralObservedHashMatched','evaluationBoundApiVerified','otherVersionReadOnlyVerified',
                                 'legacyDefaultReadOnlyVerified','segmentEvaluationInputBound','segmentApiProjectionMatched'):
                         if file.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
+                    if long_form and (file.get('format')!='HWPX' or 'longFormCandidate' in file
+                            or file.get('binaryHash')!='6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04'
+                            or file.get('textHash')!='ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066'
+                            or case.get('requiresFinalAdminVerification') is not True):raise ValueError('PROBE_OUTPUT_INVALID')
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
         raise ValueError('PROBE_OUTPUT_INVALID')
     if mode in ('NAMGU_OBSERVATION','NAMGU_STRUCTURE') and report.get('status')=='PASSED':
@@ -183,7 +190,7 @@ def main():
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
-        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL') else 650)
+        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM') else 650)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid,signal.SIGTERM)
             try:out,err=proc.communicate(timeout=5)
@@ -197,7 +204,7 @@ def main():
                 report=json.loads(line)
                 validate_probe_scope(report,mode)
         result['probe']=report
-        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
+        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
         result['probeCleanupSucceeded']=cleanup_marker in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
         return result
