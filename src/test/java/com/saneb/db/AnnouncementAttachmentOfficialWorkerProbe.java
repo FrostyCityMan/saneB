@@ -56,30 +56,41 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static String selectObservationGroup(String group) {
         return selectSegmentMode(group) ? "BOEUN" : group;
     }
-    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 14 : 44; }
+    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 10 : 44; }
     static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 24L : 80L)*1024*1024; }
+    /** 9/24 고정 실파일의 메모리 1.0.2 관측 지문이다. Provider catalog 승인이나 운영 정책 QA를 대신하지 않는다. */
+    static String selectQuarterObservedHash(String caseCode) {
+        return switch(caseCode) {
+            case "BOEUN-221499" -> "7b5436c08db86b5ff9fe0648b1d8c8eed01e29cb996c35ee53cba26ab3b583e2";
+            case "BOEUN-221497" -> "381f7db64f91cda2e44c5f3ee2a4d2ed5e89ecaf11a0225b6bf8bff7f9e71c7e";
+            case "BOEUN-218812" -> "b87ff442be093bfc05c95739a5a48b70623c1bb1256174a5b8cbb084bebbbc7d";
+            default -> throw new IllegalArgumentException("QUARTER_OBSERVATION_CASE_INVALID");
+        };
+    }
     static boolean selectSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
-        if (!"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
-                || !"segment-role-1.0.0".equals(report.path("segmentRuleVersion").asText())
-                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH.equals(report.path("segmentRulesHash").asText())
+        if (!selectCaseCodes("BOEUN").contains(report.path("caseCode").asText())
+                || !"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
+                || !"segment-role-1.0.2".equals(report.path("segmentRuleVersion").asText())
+                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH.equals(report.path("segmentRulesHash").asText())
                 || !report.path("segmentDatabaseApiVerified").asBoolean(false)
                 || !report.path("segmentReviewContextVerified").isBoolean() || !report.path("segmentReviewContextVerified").booleanValue()
                 || !report.path("manualSourceCheckRequired").isBoolean()
-                || report.path("maximumRequestReservations").asLong(-1)!=14
+                || report.path("maximumRequestReservations").asLong(-1)!=10
                 || report.path("maximumReservedBytes").asLong(-1)!=25165824L
-                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,14)
+                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,10)
                 || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,25165824L)
                 || !report.path("files").isArray() || report.path("files").size()!=1) return false;
         var file=report.path("files").get(0);
         return "COMPLETE_TEXT".equals(file.path("quality").asText())
-                && file.path("segmentAnalysisHash").asText().matches("[a-f0-9]{64}")
+                && selectQuarterObservedHash(report.path("caseCode").asText()).equals(file.path("segmentAnalysisHash").asText())
                 && selectBounded(file,"segmentCount",1,200)
                 && selectBounded(file,"unknownSegmentCount",0,file.path("segmentCount").asLong())
                 && (file.path("unknownSegmentCount").longValue()==0 || report.path("manualSourceCheckRequired").booleanValue())
                 && file.path("segmentEvaluationInputBound").asBoolean(false)
                 && file.path("segmentApiProjectionMatched").asBoolean(false)
-                && selectCandidateComparisonComplete(file.path("candidateSegmentComparison"),file.path("segmentCount").intValue())
-                && selectQuarterComparisonComplete(file.path("quarterHeadingComparison"));
+                && file.path("legacyDefaultReadOnlyVerified").isBoolean() && file.path("legacyDefaultReadOnlyVerified").booleanValue()
+                && file.path("quarterObservedHashMatched").isBoolean() && file.path("quarterObservedHashMatched").booleanValue()
+                && selectBounded(file,"noticeSegmentCount",0,file.path("segmentCount").asLong());
     }
     static boolean selectQuarterComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
         return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(value.path("analysisVersion").asText())

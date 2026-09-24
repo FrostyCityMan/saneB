@@ -216,7 +216,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         var blocks=read.selectAttachmentBlockList(source,file.extractionId(),1,10,0,2000);
                         var blockJson=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/blocks?page=1&size=10&textOffset=0&textLimit=2000");
                         assertTrue(selectWireTree(blocks).equals(blockJson),"API_BLOCK_PROJECTION_MISMATCH");
-                        if(segmentMode)saveSegmentVerification(source,file,actual,segments,http,row);
+                        if(segmentMode)saveSegmentVerification(sample.code(),source,file,actual,segments,http,row);
                         var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/blocks",UUID.randomUUID(),file.extractionId())).andReturn();
                         assertEquals(404,wrong.getResponse().getStatus());
                     } else {
@@ -292,7 +292,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         return new AttachmentExecutionSnapshot(sample.profile().selectProfileCode(),sample.profile().selectProfileHash(),
                 segment?AttachmentSegmentClassificationEngine.VERSION:"attachment-1.0.0",version,configHash,
                 AttachmentDocumentRoleClassifier.VERSION,AttachmentDocumentRoleClassifier.RULES_HASH,
-                segment?AttachmentSegmentRoleAnalyzer.VERSION:null,segment?AttachmentSegmentRoleAnalyzer.RULES_HASH:null);
+                segment?AttachmentSegmentRoleAnalyzer.QUARTER_VERSION:null,segment?AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH:null);
     }
     static AnnouncementAttachmentSegmentService selectSegmentService() {
         var session=bean(SqlSessionTemplate.class);
@@ -300,31 +300,36 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 session.getMapper(AnnouncementAttachmentSegmentDao.class),
                 session.getMapper(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class),JSON);
     }
-    private static void saveSegmentVerification(UUID source,AttachmentEvidenceResponses.FileSummary file,JsonNode actual,
+    private static void saveSegmentVerification(String caseCode,UUID source,AttachmentEvidenceResponses.FileSummary file,JsonNode actual,
             AnnouncementAttachmentSegmentService service,MockMvc http,Map<String,Object> row) throws Exception {
         var before=sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source);
-        var stored=service.selectAnalysisDetails(source,file.extractionId());
-        var api=selectApi(http,"/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/segment-analysis");
+        String baseUrl="/api/v2/admin/announcement-sources/"+source+"/attachment-extractions/"+file.extractionId()+"/segment-analysis";
+        var stored=service.selectAnalysisDetails(source,file.extractionId(),AttachmentSegmentRoleAnalyzer.QUARTER_VERSION);
+        var api=selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION);
         assertEquals(selectWireTree(stored),api,"SEGMENT_API_PROJECTION_MISMATCH");
+        var legacy=service.selectAnalysisDetails(source,file.extractionId());
+        assertEquals("NOT_ANALYZED",legacy.analysisState(),"DEFAULT_GET_MUST_NOT_FALL_BACK_TO_QUARTER");
+        assertEquals(selectWireTree(legacy),selectApi(http,baseUrl));
         assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source),"SEGMENT_GET_MUST_NOT_WRITE");
-        var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/segment-analysis",UUID.randomUUID(),file.extractionId())).andReturn();
+        var wrong=http.perform(get("/api/v2/admin/announcement-sources/{source}/attachment-extractions/{extraction}/segment-analysis",UUID.randomUUID(),file.extractionId())
+                .param("analysisVersion",AttachmentSegmentRoleAnalyzer.QUARTER_VERSION)).andReturn();
         assertEquals(404,wrong.getResponse().getStatus());
         if(actual.path("text").asText("").isBlank()) {
             assertEquals("NOT_ANALYZED",stored.analysisState());assertNull(stored.analysis());return;
         }
         var blocks=JSON.treeToValue(actual.path("blocks"),AttachmentSetEvidence.Block[].class);
         var input=new AttachmentSetEvidence.Extraction(file.qualityCode(),actual.path("text").asText(),Arrays.asList(blocks),actual.path("pageCount").isIntegralNumber()?actual.path("pageCount").intValue():null,0);
-        var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input);
+        var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
         assertEquals("ANALYZED",stored.analysisState());assertEquals(expected,stored.analysis());
+        assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),selectCanonicalHash(expected),"PREVIOUS_QUARTER_OBSERVATION_CHANGED");
         assertEquals(file.fileId(),stored.fileId());assertEquals(file.setId(),stored.setId());
         assertEquals(file.documentRoleCode(),stored.fileRoleCode());assertEquals(file.roleOriginCode(),stored.fileRoleOriginCode());
         assertEquals(1,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs i JOIN announcement_source_attachment_evaluations e ON e.id=i.evaluation_id WHERE e.source_id=? AND e.is_current AND i.extraction_id=? AND i.segment_analysis_id=?",Integer.class,source,file.extractionId(),stored.analysisId()));
         row.put("segmentAnalysisHash",selectCanonicalHash(expected));row.put("segmentCount",expected.segments().size());
         row.put("unknownSegmentCount",expected.segments().stream().filter(s->"UNKNOWN".equals(s.roleCode())).count());
         row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
-        // 동일 설치 추출 결과를 메모리에서만 대조한다. 후보 규칙을 정책/평가/DB에 적용하지 않는다.
-        row.put("candidateSegmentComparison",selectCandidateSegmentComparison(input,expected));
-        row.put("quarterHeadingComparison",selectQuarterHeadingComparison(input,expected));
+        row.put("legacyDefaultReadOnlyVerified",true);row.put("quarterObservedHashMatched",true);
+        row.put("noticeSegmentCount",expected.segments().stream().filter(s->"NOTICE".equals(s.roleCode())).count());
     }
     static Map<String,Object> selectQuarterHeadingComparison(AttachmentSetEvidence.Extraction input,
             AttachmentSegmentRoleAnalyzer.Analysis legacy) throws Exception {

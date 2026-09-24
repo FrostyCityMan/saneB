@@ -198,3 +198,21 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 실행 전 선행6개 SSM 영수증·정리와 수동 구조4회(16요청/16MiB 상한)를 합산해88요청/61,127,254byte를 확인했다. 새 상한42요청/72MiB는 승인132요청/240MiB 이내다. 실제 예약12요청/7,391,673byte를 합친 **누적100요청/68,518,927byte**이며 잔여32요청/183,139,313byte다. 이는 예약 상한 집계이며 전체 실제 트래픽 측정값이 아니다.
 - unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 원본/lease 잔여0·운영 DB/정책/설치 변경0을 확인했다. S3 자기 객체 삭제/부재·plan.cleaned=true 이후 검증한 로컬 package.zip을 제거했다. JSON 근거는 `build/temporary-bbs-qa-41fc277ff44d49289f6f1066e67baf9c/`에 보존했다.
 - 다음 과제는 남은 미확정 서문/양식/내부 안내 구조를 근거로 해소하고, 검증된 새 규칙을 고정 정책/worker/DB/API 계약에 연결하는 것이다. 기존 버전 재현성·A/B·최종 관리자 확인·자동 활성화 금지는 유지한다. 전체 Provider/실운영 E2E 완료는 아니다.
+
+## 후속1.0.2 실제 worker 저장·평가·버전별 조회 검증
+
+- production 코드는 `e3ead92a90003dca267950e71744884e0ef449be`이며 executionCodeHash는 `e37456b8b256327ae0409bd7e44a0de3b4d2290b762329ba58000b61edf66236`이다. 이번 probe는 같은 고정3공고의 임시 정책/실행 snapshot을 명시1.0.2에 고정한다. 일반 정책 생성/수동 SHADOW 분석 기본값과 운영 설치물은 바꾸지 않는다.
+- executionId `dc11d4e01ef3475aa64c5197a08f875f`, SSM `87d32cd1-0a36-4ea1-bb8e-3f22290187e7`: Success/0, 3/3·실패/생략/중단0, 70.279초다. 패키지138파일/188,216,029byte, archive SHA256 `f549bea6206562a3a9cb5ee97f488ae6f00600f7cd95e996c78be6b8e2373385`, probeHash `2d68eeab7196a545fddd75a18399d4f83f86c6779c70f2879500426c3b8d0dce`다.
+- 기존 후보 메모리 대조와 달리 이번에는 실제 worker가1.0.2 분석을 임시 DB에 저장하고 평가 입력 FK에 결합했다. API `analysisVersion=segment-role-1.0.2` 응답 전체가 저장 분석/실제 추출 재분석과 일치하며, 위 직전 관측의 각1.0.2 analysisHash와도 일치한다.
+- 기본 GET은 아직 저장하지 않은1.0.0의 NOT_ANALYZED를 반환한다. 새 버전 fallback/분석 생성이 없고 반복 GET에 따른 분석 수 증가0·잘못된 source404·no-store를 확인했다. 최종 검수 컨텍스트의 서비스/GET 투영과 조회 무변경도 일치했다. MockMvc 검증이지 인증된 운영 브라우저 E2E는 아니다.
+
+| 공고 | 형식 | 저장 구간 수 | NOTICE | UNKNOWN | 종합 판정 |
+|---|---|---:|---:|---:|---|
+| BOEUN-221499 | HWPX | 8 | 1 | 5 | REVIEW_REQUIRED / ATTACHMENT_CONTEXT_REVIEW |
+| BOEUN-221497 | HWPX | 6 | 1 | 4 | REVIEW_REQUIRED / ATTACHMENT_CONTEXT_REVIEW |
+| BOEUN-218812 | PDF | 1 | 0 | 1 | REVIEW_REQUIRED / ATTACHMENT_CONTEXT_REVIEW |
+
+- 세 공고 모두 파일 발견/처리1개, COMPLETE_TEXT, EVALUATED/SUCCEEDED다. 파일 전체 역할 UNKNOWN을 임의 변경하지 않고 FORM/REFERENCE/UNKNOWN의 CONTEXT_ONLY·원문 확인 요구·최종 관리자 검증을 유지했다. 확정/공고 link0이며 정상 후보 증가·검수 시간 감소를 주장하지 않는다.
+- 실행 전 선행7개 SSM 영수증·정리와 수동 구조4회 상한을 다시 검증해 누적100요청/68,518,927byte를 확인했다. 잔여32요청보다 작은 총30요청/72MiB(공고별10요청/24MiB)로 실행했다. 실제 예약12요청/7,391,673byte를 더한 **누적112요청/75,910,600예약byte**, 승인132요청/240MiB 대비 잔여20요청/175,747,640byte다. 같은 작업 재전송은 차단하며 후속 실행은 더 낮은 한도와 선행 영수증 재검증이 필요하다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 원본/lease 잔여0을 확인했다. S3 자기 객체 부재·plan.cleaned=true 확인 후 지문/경로가 일치한 로컬 package.zip도 제거했다. 이 패키지는 재생성 가능하며 `{plan,result}.json`은 해당 build 실행 디렉터리에 보존했다. 운영 DB/정책/설치 변경0이다.
+- 실행기 Java24·패키지20·Python18·Node7 및 PowerShell 구문/git diff 검사가 통과했다. production 신규 PG2건을 포함한 전체 Linux 회귀는 별도35992333497 실행으로 판정한다. 이 실파일3건 성공으로 전체 Provider/정책 게시 QA/기존 데이터/운영 브라우저 Gate를 대체하지 않는다.

@@ -84,9 +84,9 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         mode='BOEUN_SEGMENT'
         scope=self.runner['SCOPES'][mode]
         self.assertEqual(self.runner['SCOPES']['BOEUN'][:2],scope[:2])
-        self.assertEqual((42,75497472),scope[2:])
-        self.assertLessEqual(24+scope[2],132)
-        self.assertLessEqual(14783346+scope[3],251658240)
+        self.assertEqual((30,75497472),scope[2:])
+        self.assertLessEqual(100+scope[2],132)
+        self.assertLessEqual(68518927+scope[3],251658240)
         with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
             self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),mode))
         self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
@@ -96,18 +96,20 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
             self.unit['validate_manifest_scope'](dict(manifest,verificationMode='BOEUN'),mode)
         cases=[{'caseCode':code,'scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','engineVersion':'attachment-segment-1.0.0',
+                'segmentRuleVersion':'segment-role-1.0.2','segmentRulesHash':'2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82',
                 'segmentDatabaseApiVerified':True,'segmentReviewContextVerified':True,'manualSourceCheckRequired':True,
                 'productionWriteCount':0,'isPolicyQaPassed':False,
-                'maximumRequestReservations':14,'maximumReservedBytes':25165824,
+                'maximumRequestReservations':10,'maximumReservedBytes':25165824,
                 'requestReservationsIncludingBodyUpperBound':4,'reservedBytesIncludingBodyUpperBound':2400000} for code in scope[1]]
         report={'kind':'OFFICIAL_WORKER_PROBE','caseGroup':mode,'productionDatabaseUsed':False,
                 'isPolicyQaPassed':False,'isAuthenticatedBrowserE2e':False,'status':'PASSED','cases':cases}
         self.unit['validate_probe_scope'](report,mode)
         for key,value in [('engineVersion','attachment-1.0.0'),('segmentDatabaseApiVerified',False),
+                          ('segmentRuleVersion','segment-role-1.0.0'),('segmentRulesHash','a'*64),
                           ('segmentReviewContextVerified',False),('segmentReviewContextVerified','true'),
                           ('manualSourceCheckRequired',None),('manualSourceCheckRequired','true'),
                           ('maximumRequestReservations',44),('maximumReservedBytes',83886080),
-                          ('requestReservationsIncludingBodyUpperBound',15),('requestReservationsIncludingBodyUpperBound',True),
+                          ('requestReservationsIncludingBodyUpperBound',11),('requestReservationsIncludingBodyUpperBound',True),
                           ('reservedBytesIncludingBodyUpperBound',25165825)]:
             invalid=dict(report,cases=[dict(cases[0],**{key:value}),*cases[1:]])
             with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)

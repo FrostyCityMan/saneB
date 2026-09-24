@@ -9,7 +9,7 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         assertEquals("BOEUN",AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup("BOEUN_SEGMENT"));
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN_SEGMENT"));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN"));
-        assertEquals(14,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN_SEGMENT"));
+        assertEquals(10,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN_SEGMENT"));
         assertEquals(25165824,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN_SEGMENT"));
         assertEquals(44,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN"));
         assertEquals(83886080,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN"));
@@ -23,6 +23,7 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         var segment=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution("BOEUN_SEGMENT",sample,"1.0.5","b".repeat(64));
         assertEquals("attachment-1.0.0",legacy.engineVersion());assertNull(legacy.segmentRuleVersion());
         assertEquals("attachment-segment-1.0.0",segment.engineVersion());assertTrue(segment.selectEngineCurrent());
+        assertEquals("segment-role-1.0.2",segment.segmentRuleVersion());
         var config=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectPolicyConfiguration(segment);
         assertEquals(segment.segmentRuleVersion(),config.segmentRuleVersion());assertEquals(segment.segmentRulesHash(),config.segmentRulesHash());
         assertEquals(25165824L,config.maximumSourceBytes());assertTrue(config.selectEngineCurrent());
@@ -33,44 +34,39 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
     }
     @Test void segmentReportRequiresDbApiBindingAndExactBudgetNotJustOldWorkerSuccess() {
         var json=new com.fasterxml.jackson.databind.ObjectMapper();
-        var report=json.createObjectNode().put("engineVersion","attachment-segment-1.0.0").put("segmentRuleVersion","segment-role-1.0.0")
-                .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.RULES_HASH)
+        var report=json.createObjectNode().put("caseCode","BOEUN-221499").put("engineVersion","attachment-segment-1.0.0").put("segmentRuleVersion","segment-role-1.0.2")
+                .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH)
                 .put("segmentDatabaseApiVerified",true).put("segmentReviewContextVerified",true).put("manualSourceCheckRequired",true)
-                .put("maximumRequestReservations",14).put("maximumReservedBytes",25165824)
+                .put("maximumRequestReservations",10).put("maximumReservedBytes",25165824)
                 .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
-        var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT").put("segmentAnalysisHash","a".repeat(64))
-                .put("segmentCount",7).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true);
-        var candidate=file.putObject("candidateSegmentComparison")
-                .put("analysisVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_VERSION)
-                .put("rulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.PARENTHESIZED_RULES_HASH)
-                .put("analysisHash","c".repeat(64)).put("statusCode","REVIEW_REQUIRED")
-                .put("sameInputAndBoundariesVerified",true).put("persistedOrApplied",false);
-        var segments=candidate.putArray("segments");for(int i=0;i<7;i++)segments.addObject().put("index",i);
-        candidate.putArray("sectionLayout");
-        var quarter=file.putObject("quarterHeadingComparison")
-                .put("analysisVersion",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION)
-                .put("rulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH)
-                .put("analysisHash","d".repeat(64)).put("statusCode","REVIEW_REQUIRED")
-                .put("sameInputAndCoverageVerified",true).put("persistedOrApplied",false);
-        quarter.putArray("roles").add("UNKNOWN");quarter.putArray("noticeEvidenceCounts");
+        var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT")
+                .put("segmentAnalysisHash",AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash("BOEUN-221499"))
+                .put("segmentCount",8).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true)
+                .put("legacyDefaultReadOnlyVerified",true).put("quarterObservedHashMatched",true).put("noticeSegmentCount",1);
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
-        for(String key:java.util.List.of("engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired","maximumRequestReservations","maximumReservedBytes","files")) {
+        for(String key:java.util.List.of("caseCode","engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired","maximumRequestReservations","maximumReservedBytes","files")) {
             var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
-        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched","candidateSegmentComparison","quarterHeadingComparison")) {
+        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched","legacyDefaultReadOnlyVerified","quarterObservedHashMatched","noticeSegmentCount")) {
             var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).remove(key);
             assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
         var old=report.deepCopy().put("maximumRequestReservations",44).put("maximumReservedBytes",83886080);
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(old));
-        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",15)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",11)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentRuleVersion","segment-role-1.0.0")));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("caseCode","BOEUN-UNKNOWN")));
+        for(String flag:java.util.List.of("legacyDefaultReadOnlyVerified","quarterObservedHashMatched")) {
+            var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).put(flag,"true");
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid));
+        }
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("reservedBytesIncludingBodyUpperBound",25165825)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentRulesHash","b".repeat(64))));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentReviewContextVerified",false)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentReviewContextVerified","true")));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("manualSourceCheckRequired",false)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("manualSourceCheckRequired","true")));
-        file.put("unknownSegmentCount",8);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
+        file.put("unknownSegmentCount",9);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
         file.put("unknownSegmentCount",5).put("quality","PARTIAL_TEXT");assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
     }
     @Test void candidateComparisonKeepsUnknownAndNeverClaimsDatabaseApplication() throws Exception {
