@@ -18,7 +18,7 @@ SCOPES = {
     # 9/24 선행 관측 사용량을 차감한 잔여보다 작은 재진단 상한. 기존 모드 한도를 바꾸지 않는다.
     'BOEUN_DIAGNOSTIC': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 60, 100663296),
     'OKCHEON_DIAGNOSTIC': ('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 60, 100663296),
-    'BOEUN_SEGMENT': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 30, 75497472),
+    'BOEUN_SEGMENT': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -85,8 +85,8 @@ def validate_probe_scope(report,mode):
                         or case.get('segmentReviewContextVerified') is not True
                         or type(case.get('manualSourceCheckRequired')) is not bool
                         or case.get('productionWriteCount')!=0 or case.get('isPolicyQaPassed') is not False
-                        or case.get('maximumRequestReservations')!=10 or case.get('maximumReservedBytes')!=25165824):raise ValueError('PROBE_OUTPUT_INVALID')
-                for key,lower,upper in [('requestReservationsIncludingBodyUpperBound',3,10),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
+                        or case.get('maximumRequestReservations')!=5 or case.get('maximumReservedBytes')!=25165824):raise ValueError('PROBE_OUTPUT_INVALID')
+                for key,lower,upper in [('requestReservationsIncludingBodyUpperBound',3,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
                     value=case.get(key)
                     if type(value) is not int or not lower<=value<=upper:raise ValueError('PROBE_OUTPUT_INVALID')
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:

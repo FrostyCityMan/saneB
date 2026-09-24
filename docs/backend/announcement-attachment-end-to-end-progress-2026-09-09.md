@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 실파일 내부 절·중복 제목 후보 개선
+
+- [x] 직전 턴은 cb359b7의 최종 확인/DRAFT 연결 시험 추가·푸시를 완료한 progress다. 현재 worktree와 실행 중인 Linux35996557606/35997120672를 재확인하고 중복 실행하지 않았다. `long-goal-operating-protocol`에 따라 실제 미확정 원인 확인→후보 수정→실파일 대조 순서로 진행했다.
+- [x] 고정 보은 HWPX2파일의 기존 binary hash와 XML 구조를 메모리에서 확인했다. 내부 번호형 신청 절과 인접 동의서 중복 제목을 대상으로 별도 진단 후보1.0.3을 구현했다. 검증된 NOTICE 앞부분·정확한 절 이름 또는 전체 내용이 같은 제목뿐인 인접 구간만 연결한다. 기존0/2 이력, 서문 UNKNOWN·불완전/불확실 구조, 문단 간 조합 금지, A/B와 FORM 참고 정책을 유지한다. DB/API/운영 선택 버전은 변경하지 않았다.
+- [x] 표적 Java182·패키지20 및 bootJar/probe는58초 성공, Python18·Node/Bash7·PowerShell 구문0오류다. 추가 A/B·문단 분리4사례를 포함한 분류15·패키지20은30초에 통과했다. 신규 production 코드의 bootJar는 동일 코드 산출물로 UP-TO-DATE다.
+- [x] [서울 실파일 대조](announcement-segment-seoul-qa-2026-09-24.md)3/3·실패/생략0,78.371초다. 후보의 HWPX UNKNOWN은5→3/4→2, PDF는1→1이다. 기존1.0.2 worker/DB/API 결과는 그대로이며 후보는 메모리 분석만 수행했다. 정상 후보/검수 시간 감소·운영 적용 완료를 주장하지 않는다.
+- [x] 운영 JAR 불변·health UP·unit/원본/lease 정리와 S3 자기 객체 부재를 확인했다. 로컬 자기 전송 ZIP도 제거하고 JSON 영수증은 보존했다. 누적128요청/87,496,577예약byte·잔여4요청이므로 현재15요청의 전체3공고 QA는 추가 승인 없이 재실행하지 않는다. 사용자 output/와 기존 Python cache를 보존한다.
+- [x] 선행89319e8 [Linux35996557606](https://github.com/FrostyCityMan/saneB/actions/runs/35996557606) success 및 artifact XML을 확인했다. root2970=2690통과/280조건부 생략·실패/오류0, 별도 extractor122·패키지20·jobPG201·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 정책0→2 편집으로 이전 QA 근거가 STALE이 되는 신규 실제 PG사례도0.52초에 통과했다. 이번1.0.3의 회귀 근거와 구분한다.
+- [x] 확대 `:test --tests 'com.saneb.domain.announcementattachment.*' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은3분3초 성공했다. 도메인1945=1924통과/21조건부 생략·실패/오류0이며 패키지20/bootJar는 같은 코드 산출물 UP-TO-DATE다. 소유 Java/PG 잔여0·단기 Node 종료를 확인했다.
+- [~] cb359b7 Linux35997120672의 최종 확인 PG2건 결과는 실행 중이다. 전체9Gate=8부분/1차단·ATT62·SEG10 및 goal active를 유지한다. 잔여 서문/양식/PDF 구조, 전체 Provider 기대값, 후보의 명시 정책 연결, 실사용자 최종 확인/DRAFT·운영 및 브라우저 E2E는 남는다. 운영 정책/DB/기존 데이터·배포·브라우저는 이번 증분에서 변경하거나 실행하지 않았다.
+
 ### 2026-09-24 버전 고정 판정의 최종 확인·DRAFT 연결 시험
 
 - [x] 직전 턴은 관리자 정책 버전 선택 구현·로컬 검증·89319e8 QA 브랜치 푸시를 완료한 progress다. 현재 Git 기준선과 Linux35996557606의 실행 중 상태를 다시 확인했다. 종료되지 않은 CI를 재시작하지 않았다.

@@ -216,3 +216,21 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 실행 전 선행7개 SSM 영수증·정리와 수동 구조4회 상한을 다시 검증해 누적100요청/68,518,927byte를 확인했다. 잔여32요청보다 작은 총30요청/72MiB(공고별10요청/24MiB)로 실행했다. 실제 예약12요청/7,391,673byte를 더한 **누적112요청/75,910,600예약byte**, 승인132요청/240MiB 대비 잔여20요청/175,747,640byte다. 같은 작업 재전송은 차단하며 후속 실행은 더 낮은 한도와 선행 영수증 재검증이 필요하다.
 - unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 원본/lease 잔여0을 확인했다. S3 자기 객체 부재·plan.cleaned=true 확인 후 지문/경로가 일치한 로컬 package.zip도 제거했다. 이 패키지는 재생성 가능하며 `{plan,result}.json`은 해당 build 실행 디렉터리에 보존했다. 운영 DB/정책/설치 변경0이다.
 - 실행기 Java24·패키지20·Python18·Node7 및 PowerShell 구문/git diff 검사가 통과했다. production 신규 PG2건을 포함한 전체 Linux 회귀는 별도35992333497 실행으로 판정한다. 이 실파일3건 성공으로 전체 Provider/정책 게시 QA/기존 데이터/운영 브라우저 Gate를 대체하지 않는다.
+
+## 후속1.0.3 내부 절·중복 제목 후보 대조
+
+- 공개 XML 추가 확인1회에서 고정 HWPX2개의 기존 binary hash를 대조했다. 본문/파일4요청, 응답당1MiB로 제한했으며 원본을 저장하지 않았다. `3. 신청안내`가 내부 절이고,221497의 동의서 제목2개가 인접하며 공백만 다름을 업무 단어/문자 모양/위치로 확인했다. 서문과 서식 필수 구조 부족은 별개로 유지한다.
+- 이 추가4요청/4MiB와 선행8회 서버 영수증을 반영한 시작 예산은116요청/80,104,904예약byte다. 동일한3공고를 각5요청/24MiB, 합계15요청/72MiB로 제한했다. 원격 영수증·정리 완료와 다른 코드/probe 지문을 다시 확인한 후 한 번 실행했다.
+- executionId `5b81a5c5ee0d437fb4d368b7ba68aef9`, SSM `f3c8fcd9-5cd6-494e-956d-624edddc8abc`: Success/0,3/3·실패/생략/중단0,78.371초다. 패키지138파일/188,227,665byte, archive SHA256 `dd97a4f8f046800b4c502d7a9f80cdfc6b67e362dcdfead226c082700e989dd0`, codeHash `c844054b29bf61488eba6710f53bd2375c3dbe6ad0416281b008e5f11a0d85ed`, probeHash `a81c723e34bdfdae1ffc691dc32fef6ac89e8a7efe5ccb20a77de588eb56afe6`다.
+- 기존1.0.2 worker/임시 DB/API/검수 조회와 저장 분석 지문은 그대로 일치했다. 후보1.0.3은 같은 추출 text/blocks의 메모리 분석이며 persistedOrApplied=false다. rulesHash는 `8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43`이다.
+
+| 공고 | UNKNOWN 기존→후보 | 후보 역할 | 후보 analysisHash |
+|---|---:|---|---|
+| BOEUN-221499 | 5→3 | UNKNOWN / NOTICE / UNKNOWN / UNKNOWN / FORM / FORM | `22f9d58ac8c6a8c76fe3508e58bf367358453b88684af5710437a5133e687827` |
+| BOEUN-221497 | 4→2 | UNKNOWN / NOTICE / FORM / UNKNOWN | `3594adc138acae4211de819c3803295704410a8e8484a2070323042f9f3bda3a` |
+| BOEUN-218812 | 1→1 | UNKNOWN | `f823ab78281f55cb16c634bde50bbc6fc84175c1058c90355c1845ea50aa3673` |
+
+- 두 HWPX에서 불필요하게 나뉜 구간이 각각2개 줄었다. 모두 여전히 REVIEW_REQUIRED이며 정상 후보 증가나 검수 시간 감소를 실측한 것은 아니다. 남은 사유는 HWPX 서문 INITIAL_HEADING_REQUIRED·일부 역할 ROLE_STRUCTURE_INCOMPLETE와 PDF STRUCTURE_UNCERTAIN이다. 후보를 운영 가능 버전으로 승격하지 않았다.
+- 이번 예약12요청/7,391,673byte를 더한 누적은 **128요청/87,496,577예약byte**, 승인132요청/240MiB 대비 **잔여4요청/164,161,663byte**다. 현재15요청짜리 전체3공고 QA를 다시 실행할 수 없다. 추가 범위 승인 없이 예산을 초기화하거나 같은 실행을 재전송하지 않는다.
+- unitInactive·installedJarUnchanged·healthUp·probeCleanupSucceeded·transportTemporaryFilesRemoved=true, CPU1/768MiB/tmp1GiB, 각 원본 제거·lease0을 확인했다. S3 자기 객체 삭제/부재와 plan.cleaned=true를 확인하고 hash/절대 경로가 일치하는 로컬 package.zip만 제거했다. 패키지는 코드에서 재생성 가능하며 `build/temporary-bbs-qa-5b81a5c5ee0d437fb4d368b7ba68aef9/{plan,result}.json`은 보존했다.
+- AWS CLI 경유 영수증의 정적 한국어 사전 key 일부가 문자 인코딩 손상으로 보인다. 그 key로 새 의미 판단을 하지 않았다. 이번 비교의 근거인 ASCII 버전/hash/role/reason/개수/결합·정리 boolean은 별도 구조 조회로 확인했다. 로그 전체를 원문이나 운영 성공 근거로 재사용하지 않는다.

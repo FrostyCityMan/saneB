@@ -21,6 +21,29 @@ class AttachmentSegmentClassificationEngineTest {
             selectRule("A", RuleGroupKindCode.REVIEW_A, "특허", null, null), selectRule("B", RuleGroupKindCode.AUTO_EXCLUDE_B, "수출", null, null)));
     private record Fixture(AnnouncementAttachmentClassificationEngine.FileInput file, AttachmentSegmentClassificationEngine.FileEvidence evidence) { }
 
+    @ParameterizedTest @CsvSource({"특허,ATTACHMENT_GROUP_A_MATCHED", "수출,ATTACHMENT_GROUP_B_MATCHED", "특허 수출,ATTACHMENT_GROUP_B_MATCHED"})
+    void structuralCandidateKeepsInternalApplicationABAndFormContextSeparate(String keyword,String reason) {
+        var fixture=selectStructuralFixture(GUIDE.replace("사업 지원 안내","공고문")+"\n3. 신청안내\n"+keyword
+                +"\n지원 신청서\n지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금");
+        var result=engine.selectDecision(selectInput(null,List.of(fixture)),List.of(fixture.evidence()));
+        assertThat(result.decision().status()).isEqualTo("REVIEW_REQUIRED");assertThat(result.decision().reason()).isEqualTo(reason);
+        assertThat(result.segmentMatches()).filteredOn(m->"FORM".equals(m.segmentRole())).isNotEmpty()
+                .allMatch(m->"CONTEXT_ONLY".equals(m.match().action()));
+    }
+    @Test void structuralCandidateNeverJoinsKeywordsFromDifferentOriginalParagraphs() {
+        var fixture=selectStructuralFixture(GUIDE.replace("사업 지원 안내","공고문").replace("소상공인 지원금","소상공인")
+                +"\n3. 신청안내\n지원금\n"+FORM);
+        var result=engine.selectDecision(selectInput(null,List.of(fixture)),List.of(fixture.evidence()));
+        assertThat(result.decision().reason()).isEqualTo("EXTENDED_COMBINATION_NOT_CONFIRMED");
+    }
+    private Fixture selectStructuralFixture(String text) {
+        var old=selectFixture(text,"UNKNOWN","TEXT_RULE","COMPLETE_TEXT");
+        var candidate=new AttachmentSegmentRoleAnalyzer().selectAnalysis(old.evidence().extraction(),
+                AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
+        return new Fixture(old.file(),new AttachmentSegmentClassificationEngine.FileEvidence(old.file().fileId(),old.file().extractionId(),
+                "TEXT_RULE",old.evidence().extraction(),candidate));
+    }
+
     @Test void resolvedGuidePlusFormReducesUnknownReviewWithoutPromotingFormKeywords() {
         var fixture = selectFixture(GUIDE + "\n" + FORM, "UNKNOWN", "TEXT_RULE", "COMPLETE_TEXT");
         var input = selectInput(null, List.of(fixture));

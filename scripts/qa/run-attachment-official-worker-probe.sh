@@ -44,7 +44,7 @@ for java_policy_relative in limited/default_US_export.policy limited/default_loc
   [[ "$java_policy_file" == "$java_home/"* ]] || mounts+=(--ro-bind "$java_policy_file" "$java_policy_file")
 done
 # 공식 사이트 요청 때문에 네트워크는 공유한다. 공개 요청은 기존 profile/DNS/redirect pinning과
-# 공고당44요청/80MiB(BOEUN_SEGMENT는14요청/24MiB)로 제한한다.
+# 공고당44요청/80MiB(BOEUN_SEGMENT는5요청/24MiB)로 제한한다.
 # 운영 home/env/socket은 공유하지 않으며 파일 추출은 별도 network 격리다.
 # PID namespace 전체 종료로 임시 PostgreSQL 자손을 회수한다. 원문 보고서는 외부로 보관하지 않는다.
 if output="$(env -i PATH=/usr/bin:/bin LANG=C.UTF-8 \

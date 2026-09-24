@@ -31,6 +31,13 @@ public final class AttachmentSegmentRoleAnalyzer {
     private static final Pattern QUARTER_HEADING=Pattern.compile(QUARTER_HEADING_EXPRESSION,Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     public static final String QUARTER_RULES_HASH=selectHash(QUARTER_VERSION+"\n"+PARENTHESIZED_RULES_HASH+"\n"
             +QUARTER_HEADING_EXPRESSION+"\n"+AttachmentDocumentRoleClassifier.QUARTER_SECTIONS_HASH+"\n");
+    // 진단 후보다. 운영 가능한 정책 버전 목록에는 실파일 검증 전 추가하지 않는다.
+    public static final String STRUCTURAL_VERSION="segment-role-1.0.3";
+    private static final String INTERNAL_APPLICATION_EXPRESSION="[1-9][0-9]?[.)]\\h*신청\\h*안내";
+    private static final Pattern INTERNAL_APPLICATION=Pattern.compile(INTERNAL_APPLICATION_EXPRESSION);
+    public static final String STRUCTURAL_RULES_HASH=selectHash(STRUCTURAL_VERSION+"\n"+QUARTER_RULES_HASH+"\n"
+            +INTERNAL_APPLICATION_EXPRESSION+"\nresolved-notice-incomplete-numbered-application-section-v1\n"
+            +"adjacent-identical-heading-only-whitespace-normalized-reassessment-v1\n");
 
     public record Evidence(String ruleCode, int blockIndex, int startOffset, int endOffset) { }
     public record Segment(int index, int startOffset, int endOffset, String roleCode, String reasonCode,
@@ -48,8 +55,10 @@ public final class AttachmentSegmentRoleAnalyzer {
     public Analysis selectAnalysis(AttachmentSetEvidence.Extraction extraction,String version,String rulesHash) {
         boolean parenthesized=PARENTHESIZED_VERSION.equals(version) && PARENTHESIZED_RULES_HASH.equals(rulesHash);
         boolean quarter=QUARTER_VERSION.equals(version) && QUARTER_RULES_HASH.equals(rulesHash);
-        if(!quarter && !parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
-        var result=selectAnalysis(extraction,parenthesized,quarter);
+        boolean structural=STRUCTURAL_VERSION.equals(version) && STRUCTURAL_RULES_HASH.equals(rulesHash);
+        if(!structural && !quarter && !parenthesized && !(VERSION.equals(version) && RULES_HASH.equals(rulesHash)))throw invalid();
+        var result=selectAnalysis(extraction,parenthesized,quarter||structural);
+        if(structural)result=selectStructuralAnalysis(extraction,result);
         return new Analysis(version,rulesHash,result.textHash(),result.blocksHash(),result.textLength(),
                 result.statusCode(),result.reasonCode(),result.segments());
     }
@@ -141,6 +150,52 @@ public final class AttachmentSegmentRoleAnalyzer {
     private Analysis selectUnresolved(AttachmentDocumentRoleClassifier.Assessment validated, int length, String reason) {
         return new Analysis(VERSION, RULES_HASH, validated.textHash(), validated.blocksHash(), length, "REVIEW_REQUIRED", reason,
                 List.of(new Segment(0, 0, length, "UNKNOWN", reason, List.of())));
+    }
+    private Analysis selectStructuralAnalysis(AttachmentSetEvidence.Extraction input,Analysis original) {
+        // 부분 추출·한도·불확실한 구조는 합치기로 해결하지 않는다.
+        if(!"COMPLETE_TEXT".equals(input.quality()) || input.text().indexOf('\uFFFD')>=0
+                || "SEGMENT_ANALYSIS_LIMIT".equals(original.reasonCode()))return original;
+        var segments=new ArrayList<Segment>();
+        int[] utf16=new int[original.textLength()+1];
+        for(int p=0,o=0;o<input.text().length();p++){utf16[p]=o;o+=Character.charCount(input.text().codePointAt(o));utf16[p+1]=o;}
+        for(var current:original.segments()) {
+            if(!segments.isEmpty()) {
+                var previous=segments.getLast();
+                String currentText=input.text().substring(utf16[current.startOffset()],utf16[current.endOffset()]);
+                String first=currentText.lines().map(String::strip).filter(s->!s.isEmpty()).findFirst().orElse("");
+                String previousText=input.text().substring(utf16[previous.startOffset()],utf16[previous.endOffset()]);
+                String heading=first.replaceAll("\\h","");
+                boolean duplicate=QUARTER_HEADING.matcher(first).matches() && !heading.isEmpty()
+                        && previousText.lines().filter(s->!s.isBlank()).allMatch(s->s.strip().replaceAll("\\h","").equals(heading));
+                boolean internal="NOTICE".equals(previous.roleCode()) && "UNKNOWN".equals(current.roleCode())
+                        && "ROLE_STRUCTURE_INCOMPLETE".equals(current.reasonCode()) && INTERNAL_APPLICATION.matcher(first).matches();
+                if(duplicate) {
+                    segments.set(segments.size()-1,selectQuarterRange(input,previous.index(),previous.startOffset(),current.endOffset(),utf16));
+                    continue;
+                }
+                if(internal) {
+                    // 같은 공고의 신청 절이다. 기존 NOTICE의 필수 근거는 유지하며 원본 block/scope를 합성하지 않는다.
+                    segments.set(segments.size()-1,new Segment(previous.index(),previous.startOffset(),current.endOffset(),
+                            previous.roleCode(),previous.reasonCode(),previous.evidence()));
+                    continue;
+                }
+            }
+            segments.add(new Segment(segments.size(),current.startOffset(),current.endOffset(),current.roleCode(),current.reasonCode(),current.evidence()));
+        }
+        boolean resolved=segments.stream().noneMatch(s->"UNKNOWN".equals(s.roleCode()));
+        return new Analysis(original.analysisVersion(),original.rulesHash(),original.textHash(),original.blocksHash(),original.textLength(),
+                resolved?"RESOLVED":"REVIEW_REQUIRED",resolved?"SEGMENTS_RESOLVED":"SEGMENT_CONTEXT_REQUIRED",segments);
+    }
+    private Segment selectQuarterRange(AttachmentSetEvidence.Extraction input,int index,int start,int end,int[] utf16) {
+        var blocks=new ArrayList<AttachmentSetEvidence.Block>();var indexes=new ArrayList<Integer>();
+        for(var block:input.blocks())if(block.endOffset()>start && block.startOffset()<end) {
+            blocks.add(new AttachmentSetEvidence.Block(blocks.size(),Math.max(start,block.startOffset())-start,Math.min(end,block.endOffset())-start,
+                    block.evidenceScopeId(),block.scopeReliable(),block.locator()));indexes.add(block.index());
+        }
+        var local=new AttachmentDocumentRoleClassifier().selectQuarterSegmentAssessment(new AttachmentSetEvidence.Extraction(
+                "COMPLETE_TEXT",input.text().substring(utf16[start],utf16[end]),blocks,input.pageCount(),0));
+        return new Segment(index,start,end,local.roleCode(),local.reasonCode(),local.evidence().stream().map(e->
+                new Evidence(e.ruleCode(),indexes.get(e.blockIndex()),start+e.startOffset(),start+e.endOffset())).toList());
     }
     private static String selectHash(String value) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }

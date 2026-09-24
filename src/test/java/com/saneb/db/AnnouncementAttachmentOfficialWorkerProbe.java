@@ -56,7 +56,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static String selectObservationGroup(String group) {
         return selectSegmentMode(group) ? "BOEUN" : group;
     }
-    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 10 : 44; }
+    static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 5 : 44; }
     static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 24L : 80L)*1024*1024; }
     /** 9/24 고정 실파일의 메모리 1.0.2 관측 지문이다. Provider catalog 승인이나 운영 정책 QA를 대신하지 않는다. */
     static String selectQuarterObservedHash(String caseCode) {
@@ -75,9 +75,9 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 || !report.path("segmentDatabaseApiVerified").asBoolean(false)
                 || !report.path("segmentReviewContextVerified").isBoolean() || !report.path("segmentReviewContextVerified").booleanValue()
                 || !report.path("manualSourceCheckRequired").isBoolean()
-                || report.path("maximumRequestReservations").asLong(-1)!=10
+                || report.path("maximumRequestReservations").asLong(-1)!=5
                 || report.path("maximumReservedBytes").asLong(-1)!=25165824L
-                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,10)
+                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,5)
                 || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,25165824L)
                 || !report.path("files").isArray() || report.path("files").size()!=1) return false;
         var file=report.path("files").get(0);
@@ -90,7 +90,20 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && file.path("segmentApiProjectionMatched").asBoolean(false)
                 && file.path("legacyDefaultReadOnlyVerified").isBoolean() && file.path("legacyDefaultReadOnlyVerified").booleanValue()
                 && file.path("quarterObservedHashMatched").isBoolean() && file.path("quarterObservedHashMatched").booleanValue()
-                && selectBounded(file,"noticeSegmentCount",0,file.path("segmentCount").asLong());
+                && selectBounded(file,"noticeSegmentCount",0,file.path("segmentCount").asLong())
+                && selectStructuralComparisonComplete(file.path("structuralCandidate"));
+    }
+    static boolean selectStructuralComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
+        var roles=value.path("roles");
+        return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(value.path("analysisVersion").asText())
+                && com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH.equals(value.path("rulesHash").asText())
+                && value.path("analysisHash").asText().matches("[a-f0-9]{64}")
+                && value.path("sameInputAndCoverageVerified").isBoolean() && value.path("sameInputAndCoverageVerified").booleanValue()
+                && value.path("persistedOrApplied").isBoolean() && !value.path("persistedOrApplied").booleanValue()
+                && roles.isArray() && roles.size()>0 && roles.size()<=200
+                && java.util.stream.StreamSupport.stream(roles.spliterator(),false).allMatch(r->Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(r.asText()))
+                && (java.util.stream.StreamSupport.stream(roles.spliterator(),false).anyMatch(r->"UNKNOWN".equals(r.asText()))?"REVIEW_REQUIRED":"RESOLVED").equals(value.path("statusCode").asText())
+                && value.path("reasons").isArray() && value.path("reasons").size()==roles.size();
     }
     static boolean selectQuarterComparisonComplete(com.fasterxml.jackson.databind.JsonNode value) {
         return com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(value.path("analysisVersion").asText())

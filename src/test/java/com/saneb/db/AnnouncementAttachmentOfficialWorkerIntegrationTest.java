@@ -330,6 +330,27 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         row.put("segmentEvaluationInputBound",true);row.put("segmentApiProjectionMatched",true);
         row.put("legacyDefaultReadOnlyVerified",true);row.put("quarterObservedHashMatched",true);
         row.put("noticeSegmentCount",expected.segments().stream().filter(s->"NOTICE".equals(s.roleCode())).count());
+        row.put("structuralCandidate",selectStructuralComparison(input,expected));
+    }
+    static Map<String,Object> selectStructuralComparison(AttachmentSetEvidence.Extraction input,AttachmentSegmentRoleAnalyzer.Analysis quarter) throws Exception {
+        var analyzer=new AttachmentSegmentRoleAnalyzer();
+        var candidate=analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
+        assertEquals(quarter,analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH));
+        assertEquals(quarter.textHash(),candidate.textHash());assertEquals(quarter.blocksHash(),candidate.blocksHash());
+        assertTrue(analyzer.selectAnalysisValid(input,candidate));int end=0;
+        for(var segment:candidate.segments()) {
+            assertEquals(end,segment.startOffset());assertTrue(segment.endOffset()>end);end=segment.endOffset();
+            for(var evidence:segment.evidence()) {
+                var block=input.blocks().get(evidence.blockIndex());
+                assertTrue(evidence.startOffset()>=Math.max(block.startOffset(),segment.startOffset()));
+                assertTrue(evidence.endOffset()<=Math.min(block.endOffset(),segment.endOffset()));
+            }
+        }
+        assertEquals(input.text().codePointCount(0,input.text().length()),end);
+        return Map.of("analysisVersion",candidate.analysisVersion(),"rulesHash",candidate.rulesHash(),"analysisHash",selectCanonicalHash(candidate),
+                "sameInputAndCoverageVerified",true,"persistedOrApplied",false,"statusCode",candidate.statusCode(),
+                "roles",candidate.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList(),
+                "reasons",candidate.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::reasonCode).toList());
     }
     static Map<String,Object> selectQuarterHeadingComparison(AttachmentSetEvidence.Extraction input,
             AttachmentSegmentRoleAnalyzer.Analysis legacy) throws Exception {

@@ -4,12 +4,30 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentOfficialWorkerProbeTest {
+    @Test void structuralComparisonReportsOnlyCandidateMetadataAndRejectsMissingProof() throws Exception {
+        String text="공고문\n지원대상: 소상공인\n지원내용: 지원금\n신청기간: 9월\n3. 신청안내\n신청기간: 9월";
+        var input=new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Extraction("COMPLETE_TEXT",text,
+                java.util.List.of(new com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence.Block(0,0,text.length(),"p:0",true,"p:0")),1,0);
+        var analyzer=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer();
+        var quarter=analyzer.selectAnalysis(input,com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
+                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        var json=new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode report=json.valueToTree(AnnouncementAttachmentOfficialWorkerIntegrationTest.selectStructuralComparison(input,quarter));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectStructuralComparisonComplete(report));
+        assertEquals("RESOLVED",report.path("statusCode").asText());assertEquals("NOTICE",report.path("roles").get(0).asText());
+        assertFalse(report.toString().contains("소상공인"));assertFalse(report.path("persistedOrApplied").asBoolean());
+        for(String key:java.util.List.of("analysisVersion","rulesHash","analysisHash","sameInputAndCoverageVerified","persistedOrApplied","roles","reasons","statusCode")) {
+            var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectStructuralComparisonComplete(invalid),key);
+        }
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectStructuralComparisonComplete(report.deepCopy().put("persistedOrApplied",true)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectStructuralComparisonComplete(report.deepCopy().put("sameInputAndCoverageVerified","true")));
+    }
     @Test void segmentModePreservesFixedBoeunDenominatorAndUsesSmallerBudget() {
         assertEquals(AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes("BOEUN_SEGMENT"));
         assertEquals("BOEUN",AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup("BOEUN_SEGMENT"));
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN_SEGMENT"));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode("BOEUN"));
-        assertEquals(10,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN_SEGMENT"));
+        assertEquals(5,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN_SEGMENT"));
         assertEquals(25165824,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN_SEGMENT"));
         assertEquals(44,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests("BOEUN"));
         assertEquals(83886080,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes("BOEUN"));
@@ -37,23 +55,27 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
         var report=json.createObjectNode().put("caseCode","BOEUN-221499").put("engineVersion","attachment-segment-1.0.0").put("segmentRuleVersion","segment-role-1.0.2")
                 .put("segmentRulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH)
                 .put("segmentDatabaseApiVerified",true).put("segmentReviewContextVerified",true).put("manualSourceCheckRequired",true)
-                .put("maximumRequestReservations",10).put("maximumReservedBytes",25165824)
+                .put("maximumRequestReservations",5).put("maximumReservedBytes",25165824)
                 .put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",2400000);
         var file=report.putArray("files").addObject().put("quality","COMPLETE_TEXT")
                 .put("segmentAnalysisHash",AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash("BOEUN-221499"))
                 .put("segmentCount",8).put("unknownSegmentCount",5).put("segmentEvaluationInputBound",true).put("segmentApiProjectionMatched",true)
                 .put("legacyDefaultReadOnlyVerified",true).put("quarterObservedHashMatched",true).put("noticeSegmentCount",1);
+        var comparison=file.putObject("structuralCandidate").put("analysisVersion","segment-role-1.0.3")
+                .put("rulesHash",com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH)
+                .put("analysisHash","a".repeat(64)).put("sameInputAndCoverageVerified",true).put("persistedOrApplied",false).put("statusCode","REVIEW_REQUIRED");
+        comparison.putArray("roles").add("UNKNOWN");comparison.putArray("reasons").add("INITIAL_HEADING_REQUIRED");
         assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report));
         for(String key:java.util.List.of("caseCode","engineVersion","segmentRuleVersion","segmentRulesHash","segmentDatabaseApiVerified","segmentReviewContextVerified","manualSourceCheckRequired","maximumRequestReservations","maximumReservedBytes","files")) {
             var invalid=report.deepCopy();invalid.remove(key);assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
-        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched","legacyDefaultReadOnlyVerified","quarterObservedHashMatched","noticeSegmentCount")) {
+        for(String key:java.util.List.of("segmentAnalysisHash","segmentCount","unknownSegmentCount","segmentEvaluationInputBound","segmentApiProjectionMatched","legacyDefaultReadOnlyVerified","quarterObservedHashMatched","noticeSegmentCount","structuralCandidate")) {
             var invalid=report.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)invalid.path("files").get(0)).remove(key);
             assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(invalid),key);
         }
         var old=report.deepCopy().put("maximumRequestReservations",44).put("maximumReservedBytes",83886080);
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(old));
-        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",11)));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("requestReservationsIncludingBodyUpperBound",6)));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("segmentRuleVersion","segment-role-1.0.0")));
         assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(report.deepCopy().put("caseCode","BOEUN-UNKNOWN")));
         for(String flag:java.util.List.of("legacyDefaultReadOnlyVerified","quarterObservedHashMatched")) {

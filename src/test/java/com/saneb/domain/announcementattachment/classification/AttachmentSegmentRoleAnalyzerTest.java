@@ -21,6 +21,60 @@ class AttachmentSegmentRoleAnalyzerTest {
     private AttachmentSegmentRoleAnalyzer.Analysis selectQuarter(AttachmentSetEvidence.Extraction input) {
         return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
     }
+    private AttachmentSegmentRoleAnalyzer.Analysis selectStructural(AttachmentSetEvidence.Extraction input) {
+        return analyzer.selectAnalysis(input,AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
+    }
+    @Test void numberedApplicationSubsectionStaysInsideAlreadyResolvedNoticeWithoutChangingLegacy() {
+        var input=selectExtraction("미확인 표지\n"+PARENTHESIZED_GUIDE.replace("사업 지원 안내","참여자 모집 공고(3분기)")
+                +"\n3. 신청안내\n❍(신청기간) 9월\n원문 신청 조건\n"+FORM);
+        var legacy=selectQuarter(input);var result=selectStructural(input);
+        assertThat(legacy.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","NOTICE","UNKNOWN","FORM");
+        assertThat(result.segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","NOTICE","FORM");
+        assertThat(result.segments().get(1).evidence()).isEqualTo(legacy.segments().get(1).evidence());
+        assertThat(result.statusCode()).isEqualTo("REVIEW_REQUIRED");
+        assertThat(result.textHash()).isEqualTo(legacy.textHash());assertThat(result.blocksHash()).isEqualTo(legacy.blocksHash());
+        assertThat(selectQuarter(input)).isEqualTo(legacy);assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();assertCoverage(input,result);
+        assertThat(AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH).isEqualTo("2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82");
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,result.analysisVersion(),result.rulesHash())).isFalse();
+    }
+    @ParameterizedTest @ValueSource(strings={"신청 안내","3. 다른 사업 신청안내","0. 신청안내","100. 신청안내","3. 신청안내 참고"})
+    void structuralCandidateDoesNotInventInternalSectionFromDifferentHeadings(String heading) {
+        var input=selectExtraction(PARENTHESIZED_GUIDE.replace("사업 지원 안내","공고문")+"\n"+heading+"\n❍(신청기간) 9월\n"+FORM);
+        assertThat(selectStructural(input).segments()).isEqualTo(selectQuarter(input).segments());
+    }
+    @Test void internalSectionCannotBorrowMissingNoticeConditionsOrHideUnreliableBlocks() {
+        var input=selectExtraction("공고문\n❍(신청자격) 소상공인\n3. 신청안내\n❍(지원내용) 지원금\n❍(신청기간) 9월");
+        assertThat(selectStructural(input).segments()).hasSize(2).allMatch(s->"UNKNOWN".equals(s.roleCode()));
+        var complete=selectExtraction(PARENTHESIZED_GUIDE.replace("사업 지원 안내","공고문")+"\n3. 신청안내\n❍(신청기간) 9월");
+        var blocks=new ArrayList<>(complete.blocks());var last=blocks.getLast();
+        blocks.set(blocks.size()-1,new AttachmentSetEvidence.Block(last.index(),last.startOffset(),last.endOffset(),last.evidenceScopeId(),false,last.locator()));
+        var unreliable=new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",complete.text(),blocks,1,0);
+        assertThat(selectStructural(unreliable).segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("NOTICE","UNKNOWN");
+        assertThat(selectStructural(new AttachmentSetEvidence.Extraction("PARTIAL_TEXT",complete.text(),complete.blocks(),1,0)).reasonCode()).isEqualTo("COMPLETE_TEXT_REQUIRED");
+    }
+    @Test void completeNumberedGuideAndGuideParentRemainSeparateDocuments() {
+        String section=PARENTHESIZED_GUIDE.replace("사업 지원 안내","3. 신청안내");
+        for(String parent:List.of(PARENTHESIZED_GUIDE,PARENTHESIZED_GUIDE.replace("사업 지원 안내","공고문"))) {
+            var input=selectExtraction(parent+"\n"+section);
+            assertThat(selectStructural(input).segments()).isEqualTo(selectQuarter(input).segments());
+        }
+    }
+    @Test void adjacentIdenticalConsentHeadingsAreReassessedAsOneFormWithoutTextLoss() {
+        var input=selectExtraction("개인정보 수집 및 이용동의서\r\n \r\n개인정보 수집 및 이용 동의서\r\n성 명\r\n(서명 또는 인)");
+        assertThat(selectQuarter(input).segments()).extracting(AttachmentSegmentRoleAnalyzer.Segment::roleCode).containsExactly("UNKNOWN","FORM");
+        var result=selectStructural(input);
+        assertThat(result.segments()).singleElement().satisfies(s->assertThat(s.roleCode()).isEqualTo("FORM"));
+        assertThat(result.statusCode()).isEqualTo("RESOLVED");assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();assertCoverage(input,result);
+        assertThat(result.segments().getFirst().evidence()).extracting(AttachmentSegmentRoleAnalyzer.Evidence::blockIndex).containsExactly(0,2,3);
+    }
+    @Test void repeatedFormsWithInterveningContentOrDifferentTitlesNeverMerge() {
+        for(String text:List.of(FORM+"\n"+FORM,"지원 신청서\n알 수 없는 조건\n"+FORM,"다른 신청서\n"+FORM)) {
+            var input=selectExtraction(text);
+            assertThat(selectStructural(input).segments()).isEqualTo(selectQuarter(input).segments());
+        }
+        var input=selectExtraction("지원 신청서\n지원 신청서\n설명만 있고 필수 입력 항목 없음");
+        assertThat(selectStructural(input).segments()).singleElement().satisfies(s->assertThat(s.roleCode()).isEqualTo("UNKNOWN"));
+    }
     @Test void quarterNoticeHeadingSeparatesRealStructureWithoutBorrowingLaterGuideConditions() {
         String notice=PARENTHESIZED_GUIDE.replace("사업 지원 안내","참여자 모집 공고 (3분기)");
         var input=selectExtraction("기관 공고 번호\n사업명 표지\n"+notice+"\n신청 안내\n❍(신청기간) 9월\n"+FORM);
