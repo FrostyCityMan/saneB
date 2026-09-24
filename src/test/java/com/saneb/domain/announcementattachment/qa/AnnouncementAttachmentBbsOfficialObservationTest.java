@@ -287,7 +287,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(){this(PROFILE);}
         Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
-            maximumRequests=diagnostic?20:44;maximumBytes=(diagnostic?32:80)*MIB;}
+            boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
+            maximumRequests=namgu?5:diagnostic?20:44;maximumBytes=(namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}

@@ -72,8 +72,10 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         for(int i=0;i<reports.size();i++) {
             var row=(ObjectNode)reports.get(i);
             row.put("caseCode",AnnouncementAttachmentBbsObservationProbe.NAMGU_CASES.get(i))
-                    .put("profileCode","LOCAL_BUSAN_NAMGU_GET_V1").put("maximumRequestReservations",20).put("maximumReservedBytes",33554432);
+                    .put("profileCode","LOCAL_BUSAN_NAMGU_GET_V1").put("maximumRequestReservations",5).put("maximumReservedBytes",25165824);
             ((ObjectNode)row.at("/files/0")).put("format","HWP");
+            ((ObjectNode)row.at("/files/0")).putObject("hwpStructure").put("sectionCount",1).put("recordCount",2)
+                    .put("maximumLevel",1).putArray("recordTypes").addObject().put("tagId",67).put("count",2);
         }
         return reports;
     }
@@ -89,7 +91,19 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         }
         var changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).put("format","HWPX");assertFalse(validNamgu(changed));
         changed=namguReports();((ObjectNode)changed.getFirst()).put("caseCode","NAMGU-46034");assertFalse(validNamgu(changed));
-        changed=namguReports();((ObjectNode)changed.getFirst()).put("requestReservationsIncludingBodyUpperBound",21);assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst()).put("requestReservationsIncludingBodyUpperBound",6);assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst()).put("maximumRequestReservations",20).put("maximumReservedBytes",33554432);assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).remove("hwpStructure");assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0/hwpStructure")).put("recordCount",3);assertFalse(validNamgu(changed));
+    }
+    @Test void namguBudgetReservesBodyThenAllowsOnlyThreeMoreRequests() {
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").findFirst().orElseThrow();
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),true);
+        budget.reserveBody(); assertEquals(2,budget.requests); assertEquals(2097152,budget.bytes);
+        var request=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(sample.profile().selectDetailUri(sample.source()));
+        for(int i=0;i<3;i++)assertTrue(budget.selectRequestAllowed(request));
+        assertFalse(budget.selectRequestAllowed(request));assertEquals(5,budget.requests);
+        assertTrue(budget.saveBytes(22L*1024*1024));assertFalse(budget.saveBytes(1));assertEquals(25165824,budget.bytes);
     }
     @Test void namguPartialExtractionRemainsIncompleteAndHasNoNormalExpectation() throws Exception {
         var reports=namguReports();((ObjectNode)reports.getFirst().at("/files/0")).put("quality","PARTIAL_TEXT");

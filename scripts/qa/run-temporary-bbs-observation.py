@@ -21,7 +21,7 @@ SCOPES = {
     'BOEUN_SEGMENT': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
     # 후보 대조가 아닌 명시1.0.3 저장 검증. 누적 잔여를 초과하면 별도 승인이 필요하다.
     'BOEUN_STRUCTURAL': ('BOEUN-THREE-NOTICES', ['BOEUN-221499', 'BOEUN-221497', 'BOEUN-218812'], 15, 75497472),
-    'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 60, 100663296),
+    'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -120,9 +120,9 @@ def validate_probe_scope(report,mode):
             if (row.get('scope')!='OFFICIAL_THREE_STAGE_OBSERVATION_V1' or row.get('profileCode')!='LOCAL_BUSAN_NAMGU_GET_V1'
                     or row.get('isPolicyQaPassed') is not False or row.get('isExpectationApproved') is not False
                     or row.get('productionWriteCount')!=0 or row.get('originalFilesRemoved') is not True
-                    or row.get('maximumRequestReservations')!=20 or row.get('maximumReservedBytes')!=33554432
+                    or row.get('maximumRequestReservations')!=5 or row.get('maximumReservedBytes')!=25165824
                     or row.get('status')!='OBSERVED_NOT_VALIDATED'):raise ValueError('PROBE_OUTPUT_INVALID')
-            for field,minimum,maximum in [('requestReservationsIncludingBodyUpperBound',3,20),('reservedBytesIncludingBodyUpperBound',1,33554432)]:
+            for field,minimum,maximum in [('requestReservationsIncludingBodyUpperBound',3,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
                 value=row.get(field)
                 if type(value) is not int or not minimum<=value<=maximum:raise ValueError('PROBE_OUTPUT_INVALID')
 def main():

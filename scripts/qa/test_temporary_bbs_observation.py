@@ -46,7 +46,7 @@ class TemporaryBbsObservationTest(unittest.TestCase):
     def test_namgu_scope_is_fixed_and_smaller_than_generic_three_case_limits(self):
         mode = 'NAMGU_OBSERVATION'
         scope = self.runner['SCOPES'][mode]
-        self.assertEqual(('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 60, 100663296), scope)
+        self.assertEqual(('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472), scope)
         self.assertEqual([mode], self.unit['select_probe_arguments'](mode))
         self.unit['cfg'] = {'codeHash': 'a'*64}
         manifest = {'schemaVersion': 1, 'caseCode': scope[0], 'caseCodes': scope[1],
@@ -63,14 +63,15 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         mode='NAMGU_OBSERVATION'
         rows=[dict(caseCode=case,scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_BUSAN_NAMGU_GET_V1',
                    isPolicyQaPassed=False,isExpectationApproved=False,productionWriteCount=0,originalFilesRemoved=True,
-                   maximumRequestReservations=20,maximumReservedBytes=33554432,status='OBSERVED_NOT_VALIDATED',
+                   maximumRequestReservations=5,maximumReservedBytes=25165824,status='OBSERVED_NOT_VALIDATED',
                    requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2200000)
               for case in self.runner['SCOPES'][mode][1]]
         report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',reports=rows)
         self.unit['validate_probe_scope'](report,mode)
         for field,value in [('caseCode','NAMGU-46034'),('isPolicyQaPassed',True),('isExpectationApproved',True),
-                            ('originalFilesRemoved',False),('requestReservationsIncludingBodyUpperBound',21),
-                            ('reservedBytesIncludingBodyUpperBound',33554433)]:
+                            ('originalFilesRemoved',False),('requestReservationsIncludingBodyUpperBound',6),
+                            ('reservedBytesIncludingBodyUpperBound',25165825),('maximumRequestReservations',20),
+                            ('maximumReservedBytes',33554432)]:
             changed=json.loads(json.dumps(report));changed['reports'][0][field]=value
             with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
                 self.unit['validate_probe_scope'](changed,mode)

@@ -180,6 +180,8 @@ class AnnouncementAttachmentOfficialObservationTest {
         observation.put("textHash", selectTextHash(text));
         observation.put("characterCount", text.codePointCount(0,text.length()));
         observation.put("blockCount", actual.path("blocks").size());
+        var hwpStructure = IsolatedAttachmentExtractor.selectHwpStructureDetails(actual);
+        if (hwpStructure != null) observation.put("hwpStructure", hwpStructure);
         var hwpxStructure = IsolatedAttachmentExtractor.selectHwpxStructureDetails(actual);
         if (hwpxStructure != null) observation.put("hwpxStructure", hwpxStructure);
         if (!"COMPLETE_TEXT".equals(actual.path("qualityCode").asText())) return observation;

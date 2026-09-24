@@ -73,7 +73,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (!Set.of("BOEUN", "OKCHEON", "NAMGU").contains(group)) return false;
         boolean boeun = "BOEUN".equals(group), namgu = "NAMGU".equals(group);
         if (namgu && !diagnostic) return false;
-        long maximumRequests = diagnostic ? 20 : 44, maximumBytes = diagnostic ? 33554432L : 83886080L;
+        long maximumRequests = namgu ? 5 : diagnostic ? 20 : 44, maximumBytes = namgu ? 25165824L : diagnostic ? 33554432L : 83886080L;
         if (reports == null || reports.size() != 3 || startedAt == null || endedAt == null || endedAt.isBefore(startedAt)) return false;
         var caseCodes = namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : OKCHEON_CASES;
         var seen = new HashSet<String>();
@@ -121,6 +121,11 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED", "ENCRYPTED", "CORRUPT", "UNSUPPORTED", "LIMIT_EXCEEDED")
                             .contains(file.path("quality").asText())) return false;
             boolean complete = "COMPLETE_TEXT".equals(file.path("quality").asText());
+            if (namgu && Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED").contains(file.path("quality").asText())) {
+                try {
+                    if (com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpStructureDetails(file) == null) return false;
+                } catch (java.io.IOException invalid) { return false; }
+            }
             if (complete && (!selectBounded(file, "characterCount", 1, 1000000) || !selectBounded(file, "blockCount", 1, 20000)
                     || !Set.of("NOTICE", "GUIDE", "FORM", "REFERENCE", "UNKNOWN").contains(file.path("roleAssessment").path("roleCode").asText()))) return false;
             if (!selectBoolean(report, "isWholeTextAnalysisComplete", complete)) return false;

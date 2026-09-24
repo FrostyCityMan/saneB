@@ -62,6 +62,25 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         assertThat(result).doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation","segmentAnalysis","segmentAnalysisHash");
         assertThat(result).containsKeys("textHash","characterCount","blockCount");
     }
+    @Test void hwpPartialDiagnosticsAreNumericOnlyAndNeverCreateSuccessfulRoleEvidence() throws Exception {
+        var input=JSON.createObjectNode().put("format","HWP").put("qualityCode","PARTIAL_TEXT").put("text","PRIVATE_CANARY");
+        input.putArray("blocks");
+        var structure=input.putObject("hwpStructure").put("sectionCount",1).put("recordCount",2).put("maximumLevel",3);
+        structure.putArray("recordTypes").addObject().put("tagId",85).put("count",2);
+        var result=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input);
+        assertThat(result).containsKeys("hwpStructure","textHash","characterCount","blockCount")
+                .doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation","segmentAnalysis","segmentAnalysisHash");
+        var output=JSON.valueToTree(result);
+        assertThat(output.path("hwpStructure")).isEqualTo(structure);
+        assertThat(output.toString()).doesNotContain("PRIVATE_CANARY","isPolicyQaPassed","isExpectationApproved","ACCEPTED");
+        structure.put("recordCount",3);
+        assertThat(output.at("/hwpStructure/recordCount").asInt()).isEqualTo(2);
+        assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input))
+                .isInstanceOf(java.io.IOException.class).hasMessage("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        structure.put("recordCount",2).put("raw","PRIVATE_CANARY");
+        assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input))
+                .isInstanceOf(java.io.IOException.class).hasMessage("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+    }
     @Test void hwpxPartialDiagnosticsAreReportedWithoutCreatingRoleOrSegmentSuccess() throws Exception {
         var input=JSON.createObjectNode().put("format","HWPX").put("qualityCode","PARTIAL_TEXT").put("text","PRIVATE_CANARY");
         input.putArray("blocks");

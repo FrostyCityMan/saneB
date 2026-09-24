@@ -53,6 +53,34 @@
 - 운영 불변 JAR SHA256: `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`
 - 로컬 영수증: `build/temporary-bbs-qa-f5bada861ef2444fb0cacad8543804ff/plan.json`, `result.json`.
 
+## 3. HWP 구조 진단 연결 후 서울 재관측
+
+선행 관측에서는 추출기가 반환하던 `hwpStructure`가 공통 관측 보고서에 누락됐다. 검증된 section/record/level/tag별 count만 전달하도록 수정했다. 원문·파일명·컨트롤 payload는 추가하지 않는다. 기존 4필드·정수 범위·태그 정렬·합계 검증과 deep copy를 재사용하며, 잘못된 진단은 실패한다. PARTIAL_TEXT에서 역할/구간 성공 근거를 생성하지 않는다. 추출기1.0.5·분류기·catalog·운영 코드는 바꾸지 않았다.
+
+새 NAMGU_OBSERVATION 예산은 각5요청/24MiB, 전체15요청/72MiB로 축소했다. 이전 서울 영수증과 로컬 signature 사용량18요청/6,789,058byte를 실시간 대조·차감해 고정3건 총60요청/96MiB 안에서 수행했다. 같은 plan 재시작·누락된 영수증·동일 probe 반복·추가 실행 예약은 거부한다. 보은의 별도 누적 예산은 변경하지 않는다.
+
+- execution `3c38378daf3745ac96ee3a19815c5b57`, SSM `0ff3408e-de3b-437d-81e4-339cd33fd625`.
+- 결과3/3·44.502초·실패/생략/중단0, 실제 예약12요청/6,540,257byte다. 앞선 로컬+서울과 합친 고정3건 누적은 **30요청/13,329,315byte**다. 웹 검색·과거 다른 남구 표본을 포함한 전체 지역 누적값은 아니다.
+- codeHash는 선행 `32d813afcc3177697013a9eea4b1b607aca062b6b7106f90815ea4a836cce2ef`와 동일하다. 새 probeHash는 `8479fa9dc95f2689d1c93992a11f150a3712970ac1124cc65862fb9dfb13660f`, ZIP SHA256은 `3f181f985e2f7326625b83c02a2d3d3f953866ebc7b85016d5591dc180d05ae4`다.
+- 세 공고의 본문 hash·HWP binary hash·추출 text hash는 선행 결과와 모두 동일하다. PARTIAL_TEXT·REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE·최종 관리자 검증 필요 상태도 동일하다.
+
+| 표본 | section / record / 최대 level | 원인 범위 확인 |
+|---|---:|---|
+| 44466 | 1 / 1,960 / 3 | tag87 1개가 존재한다. 현재 HwpSectionText의 미해석 record 분기가 부분 처리를 수행하는 직접 조건이다. 다른 원인이 없다는 뜻은 아니다. |
+| 44381 | 1 / 891 / 3 | tag66~75 및77만 관측됐다. 종류 집계만으로는 표/셀/컨트롤 연결 실패와 다른 부분 처리 경로를 구분할 수 없다. 원인 미확정이다. |
+| 42871 | 1 / 1,467 / 6 | tag76 12개·tag82 8개가 존재하며 현재 미해석 record 분기의 부분 처리 조건이다. 이것이 유일 원인인지는 미확인이다. |
+
+근거 코드는 `attachment-extractor/src/main/java/com/saneb/extractor/HwpSectionText.java`의 `insertRecord`다. 위 숫자를 임의로 그림/수식/장식이라고 해석하거나 무시하지 않는다. **다운로드 실패가 아니라 현재 추출기의 구조 해석 범위 문제라는 점을2건에서 좁혔지만, 이를 해결한 상태는 아니다.** 44381은 표/컨트롤/문단 앵커별 실패 사유를 원문 없는 고정 코드·수치로 구분한 뒤 재관측해야 한다. 구조가 검증되지 않은 텍스트를 정상 후보에 사용하지 않는다.
+
+원격 unit inactive·원본/임시 DB/transport 정리·JAR 불변·health UP, 소유 S3 객체 부재를 확인했다. 로컬 자기 ZIP도 경로/hash/cleaned 상태 확인 후 삭제했으며 plan/result JSON은 보존했다. 운영 DB/정책/worker/기존 데이터/배포 변경은 없다.
+
+검증 명령/결과:
+
+- `:test --tests '*AnnouncementAttachmentOfficialObservationContractTest' --tests '*AnnouncementAttachmentBbsObservationProbeTest' --tests '*HwpStructureDiagnosticTest' :attachmentContractQaTest :attachmentBbsObservationProbeJar :bootJar --no-daemon --max-workers=1`:34초 성공, 표적44·패키지20건 실패/생략0. probe 재생성, bootJar 동일 코드 UP-TO-DATE.
+- `:test --tests '*AnnouncementAttachment*Observation*Test' --tests '*Hwp*Test' :attachment-extractor:test :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`:1분28초 성공, root68=66통과/조건부 생략2·실패/오류0. extractor122·패키지20·bootJar는 변경 없는 산출물 UP-TO-DATE로 재사용했으며 이번 명령에서 재실행된 것으로 세지 않는다.
+- Node/Bash4·Python21건 실패/생략0, PowerShell 구문0오류. PATH의 python은 Store alias라 실행되지 않아 번들 Python의 절대 경로로21건을 실행했다. 소유 시험 프로세스 종료, 기존 사용자 Node/output/cache 보존.
+- 선행047a1d8 Linux36006726822는 실행 중으로 확인했다. 원격 실행을 재시작·취소하지 않았고 이번 진단 코드의 전체 CI 성공으로 표현하지 않는다.
+
 ## 검증과 남은 Gate
 
 - 최초 제목 구조 단위 시험3건 중 중첩 표 차용1건이 실패했다. assertion을 완화하지 않고 중첩 표를 명시적으로 거부했으며3건 재검증과 실제 사이트3건이 통과했다.
