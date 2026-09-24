@@ -11,6 +11,17 @@
 
 ## 기준선
 
+### 2026-09-24 부산 남구 지원사업3건 제목·본문·HWP 서울 관측
+
+- [x] `long-goal-operating-protocol`에 따라 기존 남구 프로필의 실제 지원사업44466·44381·42871을 고정하고 제목→본문→전체 첨부 경계를 검증했다. 새 엔진/프로필은 없으며7엔진/19프로필을 유지한다. [상세 근거](announcement-namgu-three-stage-qa-2026-09-24.md)에 실행 지문·예산·정리 결과를 기록했다.
+- [x] 로컬 제목/다운로드/signature3건은 실패·생략0,6요청/248,801예약byte다. 서울 NAMGU_OBSERVATION3건도46.347초·실패/생략/중단0,12요청/6,540,257예약byte로 끝났다. 고정3건 누적18요청/6,789,058예약byte이며 과거 다른 남구 표본이나 검색 요청을 포함한 전체 지역 누적값은 아니다.
+- [x] 세 공고 모두 제목 COMBINATION_MATCHED·본문 AVAILABLE·첨부 FOUND/전체1HWP를 확인했다. 그러나 추출5,031/3,307/4,152자는 모두 PARTIAL_TEXT이고 최종 REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE다. 원인 구조 metadata가 이번 보고서에 없으므로 부분 추출 이유는 아직 미확정이다. 정상3건·정상 다중 첨부·worker DB/API 성공으로 바꾸어 계산하지 않는다.
+- [x] catalog를33참조/11기관으로 확장했으며 새3건 expectation:null, 보관 기대값1/정상0·coverage false를 유지한다. 참조 없는 등록 프로필은8개다. 태백 기존 기대값과 과거 migration/v1은 보존한다. 변경된 catalog/코드 지문에 이전 정책 QA snapshot을 재사용하지 않는다.
+- [x] 확대 회귀 `:test --tests 'com.saneb.domain.announcementattachment.*' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1` 재실행은3분22초 성공이다. XML 기준1960=1938통과/22조건부 생략·실패/오류0, 패키지20건 실패/오류/생략0이다. 최초 catalog 고정 수량30→33 실패1건은 전체 참조 수에 맞추고 실행0/정책QA false 계약을 유지했다. bootJar는 앞서 생성한 동일 코드 산출물 UP-TO-DATE다. Node12·Python21건도 실패/생략0, git diff --check 통과다.
+- [x] 선행caba129 Linux36002040454 success/artifact의 root3000=2715통과/285조건부 생략과 별도122/20/206/18/2/5/12/3의 실패/오류0·별도 suite 생략0을 확인했다. 기준선319fdbb Linux36003750528의 success 상태도 확인했으나 해당 artifact는 이번에 내려받지 않았다. 새 남구 변경의 CI 성공으로 대체하지 않는다.
+- [x] 서울 unit/원본·임시 DB·S3 자기 객체·로컬 전송 ZIP 정리를 확인했다. 운영 JAR 불변과 health UP을 확인했으며 운영 DB/정책/worker/공고/기존 데이터/배포를 변경하지 않았다. 소유 Java/PG 시험 프로세스는 종료됐고 기존 사용자 Node/output/cache는 보존했다.
+- [~] 전체9Gate=8부분/1차단·goal active 유지. 다음은 HWP의 검증된 숫자 구조 metadata를 관측에 연결해 부분 추출 원인을 좁히는 것이다. 전체 Provider 정상/형식 기대값·상시 worker/DB/API·최종 검수/DRAFT·정책/기존 데이터·동일SHA 운영 E2E는 남는다. 브라우저는 현재 명시 요청 정책상 미실행이다.
+
 ### 2026-09-24 전체 수집원 잔여 대조와 철원 서울 진단
 
 - [x] 현재 등록7엔진/19프로필과 catalog30참조/10기관/기대값1을 코드·JSON에서 재대조했다. 등록9프로필은 catalog 참조가 없으며 정부24 프로필은 미구현이다. `repo-status-audit`에 따라 과거 등록 수·초기 미구현 기록과 현재 잔여를 분리한 [전체 잔여 범위](announcement-provider-qa-remaining-scope-2026-09-24.md)를 작성했다. 운영223기관은09-22 snapshot이며 이번 DB 조회 수치가 아니다.
@@ -887,7 +898,7 @@
 | 0 맥락·범위·검증 목록 | [~] | 09-22 14:46 운영 snapshot: 지자체223개/목록 parser41·JAR/DB V83. 전체 ATT62·9Gate 유지. 전체 대상과 첨부 프로필의 적용성 대조가 남음 |
 | 1 DB·API 계약 | [~] | 9fe892c Linux migration17·worker12·job192·Flyway3 실패/생략0. 실제 제천3공고 중 제목 중단1건과 HWPX3파일의 worker/임시 DB/API 일치도 확인. 태백·양평의 선행 근거 및 마지막 운영09-15 V83과 구분. 전체 catalog/Provider 근거는 미완료. v1/과거 migration 보존 |
 | 2 상시 worker·Provider | [~] | 코드 엔진7·첨부 profile19(충주 추가, 철원 실제 접속 QA 미완료). 09-22 운영9a1bb45/추출기1.0.3 설치, worker 비활성 유지. worker/scheduler·예약/ENFORCE binding·24시간 재확인/checkpoint 구현. 전체223기관 적용성과 운영 상시 수집은 미완료 |
-| 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-22 서울 최신 코드 실제 관측·내용/역할 전체 지문 대조 후 catalog metadata3필드만 갱신. 참조30/현행 실행 가능1/정상0·coverage false. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·정책 게시 미완료 |
+| 3 분류·정책 | [~] | 로컬 전용 BODY18. 09-24 남구 지원사업3건을 추가해 catalog33참조/11기관/보관 기대값1/정상0·coverage false. 남구 새3건 expectation:null, HWP 부분 추출로 검수 유지. UNKNOWN+FORM과 관리자 검증을 유지. 전체 Provider/형식/정상 기대값·현행 지문 QA·정책 게시 미완료 |
 | 4 관리자 API·화면 | [~] | 처리 흐름 상세/최종 검증 대기열 구현·실제 PG/Java/HTTP/Node 검증. 판정 입력에 결합된 구간 조회와 독립1.0.0 조회를 분리했으며 이번 SHA PG/브라우저 확인은 별도다. 운영 관리자 로그인·준비0/전체2945 조회는 과거 근거다. 검수·DRAFT·운영 역할별 E2E는 미완료 |
 | 5 기존 데이터 | [~] | 전체 후보 고정·불변 분할/배치/수집/적용/원복 구현과 실제 PG 전수/경합 시험 통과. 1,001건 전수 분할도 독립 환경에서 통과. 승인 범위 운영 실행/최종 대조·운영 응답 성능은 미완료 |
 | 6 자동·실파일 QA | [!] | 09-24 전체 격리 QA 승인으로 옥천 보류 해제. 서울 보은·옥천6건 관측/진단 성공, 양성5건은 UNKNOWN/부분 추출로 검수 유지. e3ead92 명시1.0.2 보은 worker/임시 DB/버전 GET3건 및 Linux35992333497의 jobPG200 등 성공 확인. 이번 판정 결합 조회 변경의 Linux 검증은 별도다. 차단 사유는 QA 승인 대기가 아니라 전체 Provider의 검토된 정상/형식 기대값 및 미확정·부분 추출 해소 부족임 |

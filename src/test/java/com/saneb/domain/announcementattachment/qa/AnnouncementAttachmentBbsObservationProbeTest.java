@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -66,6 +66,37 @@ class AnnouncementAttachmentBbsObservationProbeTest {
             ((ObjectNode)reports.getFirst()).put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",33554433);
             assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
         }
+    }
+    private List<JsonNode> namguReports() throws Exception {
+        var reports=boeunReports();
+        for(int i=0;i<reports.size();i++) {
+            var row=(ObjectNode)reports.get(i);
+            row.put("caseCode",AnnouncementAttachmentBbsObservationProbe.NAMGU_CASES.get(i))
+                    .put("profileCode","LOCAL_BUSAN_NAMGU_GET_V1").put("maximumRequestReservations",20).put("maximumReservedBytes",33554432);
+            ((ObjectNode)row.at("/files/0")).put("format","HWP");
+        }
+        return reports;
+    }
+    private boolean validNamgu(List<JsonNode> reports) {
+        return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),"NAMGU",true);
+    }
+    @Test void namguRequiresAllThreeBoundedHwpReportsAndNeverApprovesPolicy() throws Exception {
+        assertTrue(validNamgu(namguReports()));
+        assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(namguReports(),START,START.plusSeconds(60),"NAMGU",false));
+        var missing=namguReports();missing.removeLast();assertFalse(validNamgu(missing));
+        for(String key:List.of("isPolicyQaPassed","isExpectationApproved")) {
+            var reports=namguReports();((ObjectNode)reports.getFirst()).put(key,true);assertFalse(validNamgu(reports));
+        }
+        var changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).put("format","HWPX");assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst()).put("caseCode","NAMGU-46034");assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst()).put("requestReservationsIncludingBodyUpperBound",21);assertFalse(validNamgu(changed));
+    }
+    @Test void namguPartialExtractionRemainsIncompleteAndHasNoNormalExpectation() throws Exception {
+        var reports=namguReports();((ObjectNode)reports.getFirst().at("/files/0")).put("quality","PARTIAL_TEXT");
+        assertFalse(validNamgu(reports));
+        ((ObjectNode)reports.getFirst()).put("isWholeTextAnalysisComplete",false);assertTrue(validNamgu(reports));
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").toList();
+        assertEquals(AnnouncementAttachmentBbsObservationProbe.NAMGU_CASES,cases.stream().map(c->c.code()).toList());
     }
     @Test void reducedBudgetReservesBodyFirstAndStopsBeforeAdditionalHttpOrBytes() {
         var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").findFirst().orElseThrow();

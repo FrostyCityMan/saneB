@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER }
     public record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
                            AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,TitleLayout titleLayout,
                            TitleStageCode expectedTitleStopStage) {
@@ -49,6 +49,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("NAMGU".equals(group)) return Stream.of(
+                selectNamguCase("44466","2026년 청년 사업자 임차료 지원사업 참여자 모집 공고"),
+                selectNamguCase("44381","2026년 남구 청년 자격시험 응시료 지원사업 참가자 모집 공고"),
+                selectNamguCase("42871","2025년 남구 청년 자기개발 도서구입비 지원사업 참여자 모집 변경공고"));
         if("OKCHEON".equals(group)) return Stream.of(
                 selectOkcheonCase("193369","2026년 4차 옥천군 중소기업 환경개선 지원사업 모집 공고",null),
                 selectOkcheonCase("193297","2026 충청북도 중소기업육성자금 융자(이차보전) 지원계획 변경(2차) 공고",null),
@@ -82,6 +86,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectNamguCase(String id,String title) {
+        String url="https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("NAMGU-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000034","SAFE_SAEOL_EMINWON_LEGACY"),
+                new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails(),url,1,TitleLayout.NAMGU_HEADER);
     }
     private static ObservationCase selectOkcheonCase(String id,String title,TitleStageCode expectedStop) {
         String url="https://www.oc.go.kr/www/selectBbsNttView.do?key=236&bbsNo=40&nttNo="+id;
@@ -241,6 +252,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
         Objects.requireNonNull(layout);
+        if(layout==TitleLayout.NAMGU_HEADER) {
+            var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
+            var headers=forms.getFirst().select("table.table_03");assertEquals(1,headers.size(),"TITLE_STRUCTURE_CHANGED");
+            var table=headers.getFirst();
+            var titles=table.select("th[colspan=4]").stream().filter(e->e.closest("table")==table).toList();
+            assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");assertTrue(titles.getFirst().select("table").isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertTrue(normalized(expected).equals(normalized(titles.getFirst().text())),"TITLE_CHANGED");return;
+        }
         var tables=page.select(layout==TitleLayout.CLASSIC_LABEL?"table.bbs_default.view":"div.p-wrap.bbs.bbs__view > table.p-table.block");
         assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
         if(layout==TitleLayout.COMPACT_SUBJECT) {

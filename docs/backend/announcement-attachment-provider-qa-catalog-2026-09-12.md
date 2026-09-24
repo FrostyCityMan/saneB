@@ -2,6 +2,8 @@
 
 ## 범위와 상태
 
+2026-09-24 후속: 남구 지원사업3건의 직접 제목·전체 HWP signature와 서울3단계 관측을 확인하여 `2026-09-24-namgu-support-references-v2`에 참조3건을 추가했다. 현재 코드 catalog33참조/11기관/기대값1/정상0이며 새3건의 expectation은 null이다. HWP3건은 모두 PARTIAL_TEXT/REVIEW_REQUIRED여서 정상 기대값으로 승격하지 않는다. 운영 catalog30과 별개이며 기존 태백 기대값·schema1을 보존한다. [남구 실파일 근거와 잔여](announcement-namgu-three-stage-qa-2026-09-24.md)를 따른다.
+
 2026-09-22 현재 리소스는 `2026-09-22-taebaek-seoul-revalidated-v2`, 참조30/기대값1/정상0이며 운영9a1bb45에도 설치됐다. 태백 기대값의 최신 근거는 서울 재관측·고정 비교다. 아래09-21 profile 변경/실행0 표기는 과거 기록이다. [보은 서울 임시 worker QA](announcement-boeun-worker-db-api-qa-2026-09-16.md)에서 HWPX2/PDF1 완전 추출·DB/API 연결은 성공했으나 혼합 역할/구조 불확실로 정상 기대값은 증가하지 않았다. 자동 catalog 등록·정책 승인은 하지 않았다.
 
 09-21 후속: `7a5ef22` Linux35602665310의 고정 태백 전체2파일 비교는 성공했다. 이후 [BBS 리다이렉트 식별자 검사](announcement-bbs-redirect-identity-2026-09-21.md)를 보완 중이므로 **보관 기대값1/수정본의 현행 실행 가능0/정상0**이다. 아래09-16의 실행 가능1은7a5ef22까지의 근거다. 새 관측 없이 catalog/hash/기한을 변경하지 않으며 전체 coverage와 정책 QA는 여전히 false다.

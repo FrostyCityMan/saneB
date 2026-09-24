@@ -7,6 +7,29 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void namguKeepsThreeTitleEligibleReferencesWithoutApprovingExpectations() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").toList();
+        assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)
+                .containsExactly("NAMGU-44466","NAMGU-44381","NAMGU-42871");
+        var json=new ObjectMapper();
+        var catalog=json.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:cases) {
+            assertThat(sample.listedFileCount()).isEqualTo(1);
+            assertThat(sample.titleLayout()).isEqualTo(AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.NAMGU_HEADER);
+            var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                    .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+            assertThat(reference.path("source")).isEqualTo(json.valueToTree(sample.source()));
+            assertThat(reference.hasNonNull("expectation")).isFalse();
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).isTrue();
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectPlannedTitleStop(sample,title)).isFalse();
+        }
+    }
     @Test void okcheonKeepsThreeReferencesAndDoesNotBypassDraftTitleStops() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("OKCHEON").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

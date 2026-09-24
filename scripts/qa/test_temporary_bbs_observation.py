@@ -43,6 +43,40 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         self.assertEqual((44, 83886080), scopes['OBSERVATION'][2:])
         self.assertEqual((39, 81508141), scopes['FIXED'][2:])
 
+    def test_namgu_scope_is_fixed_and_smaller_than_generic_three_case_limits(self):
+        mode = 'NAMGU_OBSERVATION'
+        scope = self.runner['SCOPES'][mode]
+        self.assertEqual(('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 60, 100663296), scope)
+        self.assertEqual([mode], self.unit['select_probe_arguments'](mode))
+        self.unit['cfg'] = {'codeHash': 'a'*64}
+        manifest = {'schemaVersion': 1, 'caseCode': scope[0], 'caseCodes': scope[1],
+                    'verificationMode': mode, 'executionCodeHash': 'a'*64}
+        self.unit['validate_manifest_scope'](manifest, mode)
+        with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest, caseCodes=scope[1][:2]), mode)
+        with self.assertRaisesRegex(ValueError, '^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest, caseCodes=['NAMGU-46034']), mode)
+        with patch('pathlib.Path.is_file', side_effect=AssertionError('installed files read')):
+            self.assertEqual(pathlib.Path('/package/qa'), self.unit['select_qa_distribution'](pathlib.Path('/package'), mode))
+
+    def test_namgu_transport_rejects_wrong_scope_missing_cases_and_policy_claims(self):
+        mode='NAMGU_OBSERVATION'
+        rows=[dict(caseCode=case,scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_BUSAN_NAMGU_GET_V1',
+                   isPolicyQaPassed=False,isExpectationApproved=False,productionWriteCount=0,originalFilesRemoved=True,
+                   maximumRequestReservations=20,maximumReservedBytes=33554432,status='OBSERVED_NOT_VALIDATED',
+                   requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2200000)
+              for case in self.runner['SCOPES'][mode][1]]
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',reports=rows)
+        self.unit['validate_probe_scope'](report,mode)
+        for field,value in [('caseCode','NAMGU-46034'),('isPolicyQaPassed',True),('isExpectationApproved',True),
+                            ('originalFilesRemoved',False),('requestReservationsIncludingBodyUpperBound',21),
+                            ('reservedBytesIncludingBodyUpperBound',33554433)]:
+            changed=json.loads(json.dumps(report));changed['reports'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
+                self.unit['validate_probe_scope'](changed,mode)
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):
+            self.unit['validate_probe_scope'](dict(report,reports=rows[:2]),mode)
+
     def test_manifest_cannot_reuse_taebaek_package_or_drop_negative_sample(self):
         self.unit['cfg'] = {'codeHash': 'a'*64}
         original = {'schemaVersion': 1, 'caseCode': 'TAEBAEK-184816', 'executionCodeHash': 'a'*64}

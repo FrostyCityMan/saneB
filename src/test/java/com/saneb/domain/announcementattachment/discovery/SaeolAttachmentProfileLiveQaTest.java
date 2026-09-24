@@ -32,10 +32,37 @@ class SaeolAttachmentProfileLiveQaTest {
                         "SAFE_SAEOL_EMINWON_LEGACY", "td", "33895", 2, "N")));
     }
 
+    static final Map<String, String> NAMGU_SUPPORT_TITLES = com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU")
+            .collect(java.util.stream.Collectors.toUnmodifiableMap(sample -> sample.code().substring("NAMGU-".length()),
+                    com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::title));
+
+    static java.util.stream.Stream<SaeolGetAttachmentDiscoveryProfileTest.Case> selectNamguSupportCases() {
+        var profile = new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails();
+        return java.util.stream.Stream.of("44466", "44381", "42871").map(id ->
+                new SaeolGetAttachmentDiscoveryProfileTest.Case(profile, "LGS-000034",
+                        "SAFE_SAEOL_EMINWON_LEGACY", "th", id, 1));
+    }
+
+    @ParameterizedTest(name = "남구 지원사업 고정 참조 {index}")
+    @MethodSource("selectNamguSupportCases") @Timeout(120)
+    void fixedNamguSupportReferencesValidateTitleAndWholeFileSignature(SaeolGetAttachmentDiscoveryProfileTest.Case sample) throws Exception {
+        verifyOfficialPage(sample, NAMGU_SUPPORT_TITLES.get(sample.noticeId()));
+    }
+
+    static void validateNamguTitle(org.jsoup.nodes.Document page, String expected) {
+        assertTrue(expected != null && NAMGU_SUPPORT_TITLES.containsValue(expected), "FIXED_TITLE_REQUIRED");
+        com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page, expected,
+                com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.NAMGU_HEADER);
+    }
+
     @ParameterizedTest(name = "새올 실측 프로필 {index}")
     @MethodSource("selectLiveCases")
     @Timeout(180)
     void fixedOfficialPageAndAllListedFilesUseProductionDownloadBoundary(SaeolGetAttachmentDiscoveryProfileTest.Case sample) throws Exception {
+        verifyOfficialPage(sample, null);
+    }
+
+    private void verifyOfficialPage(SaeolGetAttachmentDiscoveryProfileTest.Case sample, String expectedTitle) throws Exception {
         var profile = sample.profile();
         var source = SaeolGetAttachmentDiscoveryProfileTest.selectSource(sample, "https");
         Path detail = directory.resolve("detail.html"), binary = directory.resolve("attachment.bin");
@@ -48,18 +75,34 @@ class SaeolAttachmentProfileLiveQaTest {
         report.put("status", "FAILED");
         var results = new ArrayList<Map<String, Object>>();
         var reserved = new AtomicLong(); var requests = new AtomicLong();
+        long maximumBytes = (expectedTitle == null ? 80L : 24L) * 1024 * 1024;
+        int maximumRequests = expectedTitle == null ? 44 : 8;
+        report.put("maximumRequests", maximumRequests); report.put("maximumReservedBytes", maximumBytes);
+        report.put("fixedTitleVerified", false);
+        java.util.function.Predicate<AttachmentPinnedDownloadClient.Request> allowed = request -> {
+            if (!profile.selectApprovedRequest(request) || requests.get() >= maximumRequests) return false;
+            requests.incrementAndGet(); return true;
+        };
         String stage = "DETAIL";
         try (var client = new AttachmentPinnedDownloadClient()) {
-            AttachmentPinnedDownloadClient.ByteReservation budget = bytes -> reserved.addAndGet(bytes) <= 80L * 1024 * 1024;
+            AttachmentPinnedDownloadClient.ByteReservation budget = bytes -> {
+                if (bytes < 0 || reserved.get() > maximumBytes - bytes) return false;
+                reserved.addAndGet(bytes); return true;
+            };
             var detailResult = client.selectDownload(AttachmentPinnedDownloadClient.Request.selectGet(profile.selectDetailUri(source)),
-                    profile.selectApprovedHosts(), request -> { requests.incrementAndGet(); return profile.selectApprovedRequest(request); },
+                    profile.selectApprovedHosts(), allowed,
                     detail, 1024L * 1024, budget);
             report.put("detailHash", detailResult.sha256());
             assertTrue(detailResult.contentType() != null && detailResult.contentType().toLowerCase(java.util.Locale.ROOT).startsWith("text/html"),
                     "공식 상세 응답이 HTML이 아닙니다.");
             AttachmentDiscoveryProfile.Result discovered;
             try (var input = Files.newInputStream(detail)) {
-                discovered = profile.selectDescriptors(source, Jsoup.parse(input, null, profile.selectDetailUri(source).toASCIIString()).outerHtml());
+                var page = Jsoup.parse(input, null, profile.selectDetailUri(source).toASCIIString());
+                if (expectedTitle != null) {
+                    stage = "TITLE_IDENTITY";
+                    validateNamguTitle(page, expectedTitle); report.put("fixedTitleVerified", true);
+                }
+                discovered = profile.selectDescriptors(source, page.outerHtml());
             }
             Files.delete(detail);
             stage = "DISCOVERY";
@@ -74,7 +117,7 @@ class SaeolAttachmentProfileLiveQaTest {
                 assertEquals("UNKNOWN", descriptor.documentRole(), "파일명을 근거로 문서 역할을 자동 확정하면 안 됩니다.");
                 try {
                     var downloaded = client.selectDownload(descriptor.selectRequest(), profile.selectApprovedHosts(),
-                            request -> { requests.incrementAndGet(); return profile.selectApprovedRequest(request); }, binary, 20L * 1024 * 1024, budget);
+                            allowed, binary, 20L * 1024 * 1024, budget);
                     String format = new AttachmentFileTypeValidator().selectFormat(binary, downloaded, descriptor.expectedFormat());
                     assertTrue(downloaded.bytes() > 0 && downloaded.bytes() <= 20L * 1024 * 1024, "다운로드 byte 상한을 확인하세요.");
                     results.add(Map.of("attachmentIdHash", descriptor.locator().identifiers().get("attachmentId"),

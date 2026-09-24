@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-22-taebaek-seoul-revalidated-v2",
+  "catalogVersion": "2026-09-24-namgu-support-references-v2",
   "notices": [
+    {
+      "caseCode": "NAMGU-44466",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "282fff497c39dbbd9c3a3115892608e8d2ae1f8e178dfa6ec364410a6f61ff29",
+        "sourceUrl": "https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=44466&subCheck=Y",
+        "localSourceCode": "LGS-000034",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NAMGU-44381",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0910beeeaae106ab7ca9e5f37c0c1a012d86d287a2df6d22b6a04acfe9386e4a",
+        "sourceUrl": "https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=44381&subCheck=Y",
+        "localSourceCode": "LGS-000034",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NAMGU-42871",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1b32ee0612064de6b1a0578ad3b0504cd146d5990a55252a0360ec6a36d81982",
+        "sourceUrl": "https://eminwon.bsnamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=42871&subCheck=Y",
+        "localSourceCode": "LGS-000034",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "CHUNGJU-72625",
       "profileCode": "LOCAL_CHUNGJU_EMINWON_V1",
