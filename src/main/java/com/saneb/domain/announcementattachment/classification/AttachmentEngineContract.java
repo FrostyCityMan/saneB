@@ -17,6 +17,7 @@ public final class AttachmentEngineContract {
         if (AttachmentSegmentRoleAnalyzer.VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.RULES_HASH;
         if (AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH;
         if (AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH;
+        if (AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH;
         return null;
     }
 }

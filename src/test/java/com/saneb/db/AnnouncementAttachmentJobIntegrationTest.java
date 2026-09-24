@@ -713,6 +713,9 @@ class AnnouncementAttachmentJobIntegrationTest {
     @Test void structuralReviewConfirmationRemainsBoundAfterLegacyShadowAndCreatesOnlyOneDraft() throws Exception {
         validateSelectedReviewConfirmation("segment-role-1.0.3");
     }
+    @Test void longFormReviewConfirmationRemainsBoundAfterLegacyShadowAndCreatesOnlyOneDraft() throws Exception {
+        validateSelectedReviewConfirmation("segment-role-1.0.4");
+    }
     private void validateSelectedReviewConfirmation(String version) throws Exception {
         var job=selectSegmentJob(false,true,version,true);
         var evaluation=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
@@ -798,8 +801,10 @@ class AnnouncementAttachmentJobIntegrationTest {
         String text="😀 사업 지원 안내\n지원대상: 소상공인 지원금\n지원내용: 경영지원\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금";
         if(quarterHeading) text=text.replace("😀 사업 지원 안내","참여자 모집 공고(3분기)")
                 .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
-        if("segment-role-1.0.3".equals(segmentVersion)) text=text.replace("\n지원 신청서\n",
+        if(java.util.Set.of("segment-role-1.0.3","segment-role-1.0.4").contains(segmentVersion)) text=text.replace("\n지원 신청서\n",
                 "\n3. 신청안내\n접수 방법을 확인하세요.\n지원 신청서\n지원 신청서\n");
+        if("segment-role-1.0.4".equals(segmentVersion)) text=text.replace("성 명\n(서명 또는 인)",
+                "신청인 : "+" ".repeat(172)+"(서명 또는 인)");
         var blocks=new java.util.ArrayList<AttachmentSetEvidence.Block>(); int offset=0;
         for(String line:text.split("\n")) {
             int end=offset+line.codePointCount(0,line.length());
@@ -823,6 +828,9 @@ class AnnouncementAttachmentJobIntegrationTest {
     }
     @Test void structuralWorkerPersistsMergedSectionsAndLegacyShadowCannotRebindItsEvaluation() throws Exception {
         validatePinnedQuarterAnalysis("segment-role-1.0.3");
+    }
+    @Test void longFormWorkerPersistsPinnedSignatureEvidenceAndLegacyShadowCannotRebindItsEvaluation() throws Exception {
+        validatePinnedQuarterAnalysis("segment-role-1.0.4");
     }
     private void validatePinnedQuarterAnalysis(String version) throws Exception {
         boolean quarter=!"segment-role-1.0.0".equals(version);
@@ -848,7 +856,8 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThatThrownBy(()->segments.selectEvaluationAnalysisDetails(UUID.randomUUID(),extraction,evaluation.evaluationId())).isInstanceOf(ApiException.class);
         assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.2").analysisState()).isEqualTo("segment-role-1.0.2".equals(version)?"ANALYZED":"NOT_ANALYZED");
         assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.3").analysisState()).isEqualTo("segment-role-1.0.3".equals(version)?"ANALYZED":"NOT_ANALYZED");
-        if("segment-role-1.0.3".equals(version)) assertThat(boundRead.segmentAnalysis().analysis().segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","FORM");
+        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.4").analysisState()).isEqualTo("segment-role-1.0.4".equals(version)?"ANALYZED":"NOT_ANALYZED");
+        if(java.util.Set.of("segment-role-1.0.3","segment-role-1.0.4").contains(version)) assertThat(boundRead.segmentAnalysis().analysis().segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","FORM");
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
         if(quarter) {
             assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction).analysisState()).isEqualTo("NOT_ANALYZED");
@@ -2301,6 +2310,9 @@ class AnnouncementAttachmentJobIntegrationTest {
     }
     @Test void structuralSegmentRuleChangesDraftAndInvalidatesPreviousGoldenEvidenceWithoutPublication() {
         validateSelectedSegmentRuleDraft("segment-role-1.0.3");
+    }
+    @Test void longFormSegmentRuleChangesDraftAndInvalidatesPreviousGoldenEvidenceWithoutPublication() {
+        validateSelectedSegmentRuleDraft("segment-role-1.0.4");
     }
     private void validateSelectedSegmentRuleDraft(String version) {
         UUID id=insertPolicyCheckFixture(true),key=UUID.randomUUID();

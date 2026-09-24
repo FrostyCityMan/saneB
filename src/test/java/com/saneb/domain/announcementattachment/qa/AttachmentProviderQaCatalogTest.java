@@ -86,7 +86,7 @@ class AttachmentProviderQaCatalogTest {
             assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
         }
     }
-    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4"})
     void catalogCannotUseAnotherSegmentVersionAsThePinnedPolicyProof(String version) {
         var old=segmentConfiguration();
         var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),null,null,null,null,null,

@@ -38,7 +38,7 @@ public final class AttachmentSegmentRoleAnalyzer {
     public static final String STRUCTURAL_RULES_HASH=selectHash(STRUCTURAL_VERSION+"\n"+QUARTER_RULES_HASH+"\n"
             +INTERNAL_APPLICATION_EXPRESSION+"\nresolved-notice-incomplete-numbered-application-section-v1\n"
             +"adjacent-identical-heading-only-whitespace-normalized-reassessment-v1\n");
-    // 진단 후보. worker/정책 선택은 실파일 대조 이후 별도 계약으로 연결한다.
+    // 실파일 대조 후 명시 선택으로 연결한다. 기존 버전·기본값·운영 정책을 자동 변경하지 않는다.
     public static final String LONG_FORM_VERSION="segment-role-1.0.4";
     public static final String LONG_FORM_RULES_HASH=selectHash(LONG_FORM_VERSION+"\n"+STRUCTURAL_RULES_HASH+"\n"
             +AttachmentDocumentRoleClassifier.LONG_FORM_FIELDS_HASH+"\nonly-incomplete-form-same-boundaries-v1\n");

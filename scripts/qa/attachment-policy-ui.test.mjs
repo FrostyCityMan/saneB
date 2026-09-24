@@ -161,7 +161,7 @@ test('CAS update confirms exact saved fields and uses policy version',async()=>{
     assert.match(text(h.q('[data-receipt]')),/조회 버전 1/);assert.equal(h.app.mutation.uncertain,false);assert.equal(h.app.state.detail.policy.rowVersion,1);
     assert.equal(h.q('[data-receipt]').focused,true);
 });
-for(const version of ['segment-role-1.0.2','segment-role-1.0.3']) test(`segment selector ${version} requires reviewed change, clears consent and never publishes`,async()=>{
+for(const version of ['segment-role-1.0.2','segment-role-1.0.3','segment-role-1.0.4']) test(`segment selector ${version} requires reviewed change, clears consent and never publishes`,async()=>{
     let saved=false;const old=segmentDetail(),updated=segmentDetail(version,1);
     const h=harness({request:async(url,o,next)=>{
         if(o.method==='PUT'){saved=true;return updated;}
@@ -188,6 +188,20 @@ test('structural version receipt rejects quarter fallback and wrong hash; omitte
     assert.equal(P.receipt(forged,command),false);
     const template=readFileSync(new URL('../../src/main/resources/templates/app/announcement-attachment-policies.html',import.meta.url),'utf8');
     assert.match(template,/<option value="segment-role-1\.0\.3">1\.0\.3 · 내부 신청안내 절·연속 중복 표제 보완<\/option>/);
+});
+test('long form receipt preserves exact version and rejects older fingerprints without changing default',()=>{
+    const version='segment-role-1.0.4',d=segmentDetail(version);
+    const command=P.command('update',{detail:d},input(),'한도 수정',true);
+    assert.equal(command.payload.segmentRuleVersion,undefined);
+    assert.equal(P.receipt(segmentDetail(version,1),command),true);
+    for(const old of ['segment-role-1.0.0','segment-role-1.0.2','segment-role-1.0.3']) {
+        assert.equal(P.receipt(segmentDetail(old,1),command),false);
+        const forged=segmentDetail(version,1);forged.configuration.segmentRulesHash=P.segmentVersions[old];
+        assert.equal(P.receipt(forged,command),false);
+    }
+    const template=readFileSync(new URL('../../src/main/resources/templates/app/announcement-attachment-policies.html',import.meta.url),'utf8');
+    assert.ok(template.includes('<option value="segment-role-1.0.4">1.0.4 · 긴 신청인·복수 서명란 보완</option>'));
+    assert.equal(/<option[^>]*value="segment-role-1\.0\.4"[^>]*selected/.test(template),false);
 });
 test('legacy selector is disabled and creation choice resets to explicit unchanged default',async()=>{
     const h=harness();await h.app.start();assert.equal(h.fields.get('segmentRuleVersion').disabled,true);

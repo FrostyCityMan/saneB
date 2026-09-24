@@ -44,7 +44,7 @@ class AnnouncementAttachmentPolicyGoldenGateTest {
         var result=new AnnouncementAttachmentPolicyGoldenGate().selectValidatedResult(seedLike,"a".repeat(64),segmentConfiguration());
         assertThat(result.caseIds()).hasSize(52).contains("SG-005","SG-006","SG-007");
     }
-    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4"})
     void selectedPolicyPinsEveryFixtureAndLeavesOldGoldenReproducible(String version) {
         var gate=new AnnouncementAttachmentPolicyGoldenGate();var old=segmentConfiguration();
         var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),old.extractorVersion(),
@@ -61,6 +61,14 @@ class AnnouncementAttachmentPolicyGoldenGateTest {
         assertThat(files).allSatisfy(f->{assertThat(f.analysis().analysisVersion()).isEqualTo(newer.segmentRuleVersion());
             assertThat(f.analysis().rulesHash()).isEqualTo(newer.segmentRulesHash());});
         assertThat(files.getFirst().analysis().segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","FORM");
+        if("segment-role-1.0.4".equals(version)) {
+            var file=files.getFirst();
+            assertThat(file.extraction().text().lines().filter(line->line.startsWith("신청인 : ")).findFirst().orElseThrow()).hasSize(187);
+            var previous=new com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer().selectAnalysis(file.extraction(),
+                    com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,
+                    com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH);
+            assertThat(previous.segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","UNKNOWN");
+        }
     }
     @Test void segmentContractRejectsReorderedMissingOrWrongEngineResults() {
         var gate=new AnnouncementAttachmentPolicyGoldenGate();var settings=segmentConfiguration();

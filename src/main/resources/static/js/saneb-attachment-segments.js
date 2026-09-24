@@ -13,7 +13,8 @@
     const hash = v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
     const versions = {"segment-role-1.0.0": "fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde",
         "segment-role-1.0.2": "2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82",
-        "segment-role-1.0.3": "8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43"};
+        "segment-role-1.0.3": "8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43",
+        "segment-role-1.0.4": "27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe"};
     const integer = (v, min, max) => Number.isSafeInteger(v) && v >= min && v <= max;
     // 서버는 원문으로 분석을 재현한다. 여기서는 잘못 연결된 응답/좌표를 표시하지 않는 방어 검증만 수행한다.
     const valid = (data, sourceId, setId, file, bound = false) => {

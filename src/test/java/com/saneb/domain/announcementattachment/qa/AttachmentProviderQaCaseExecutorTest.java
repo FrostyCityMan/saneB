@@ -174,7 +174,7 @@ class AttachmentProviderQaCaseExecutorTest {
         assertThat(result.status()).isEqualTo("FAILED");assertThat(result.allTextComplete()).isFalse();
         assertThat(result.files()).allSatisfy(f->{assertThat(f.reasonCode()).isEqualTo("SEGMENT_EXPECTATION_CHANGED");assertThat(f.segmentAnalysisHash()).isNull();});cleaned();
     }
-    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4"})
     void selectedExpectationReplaysItsVersionRatherThanDefaultAndKeepsLegacyEvidenceUnchanged(String version) throws Exception {
         String text=mixedText.replace("소상공인 지원금 공고","소상공인 지원금 모집 공고(3분기)")
                 .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");

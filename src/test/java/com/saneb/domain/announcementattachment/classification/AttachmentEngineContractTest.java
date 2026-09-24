@@ -14,7 +14,17 @@ class AttachmentEngineContractTest {
             assertThat(AttachmentEngineContract.selectSegmentCurrent(old,hash)).isFalse();
             assertThat(AttachmentEngineContract.selectSegmentCurrent(version,AttachmentEngineContract.selectSegmentRulesHash(old))).isFalse();
         }
-        assertThat(AttachmentEngineContract.selectSegmentRulesHash("segment-role-1.0.4")).isNull();
+        assertThat(AttachmentEngineContract.selectSegmentRulesHash("segment-role-1.0.5")).isNull();
+    }
+    @Test void longFormVersionRequiresExactHashAndNeverUpgradesOtherVersions() {
+        String version=AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,hash=AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH;
+        assertThat(hash).isEqualTo("27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe");
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,version,hash)).isTrue();
+        assertThat(AttachmentEngineContract.selectCurrent(AnnouncementAttachmentClassificationEngine.VERSION,version,hash)).isFalse();
+        for(String old:java.util.List.of(AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION)) {
+            assertThat(AttachmentEngineContract.selectSegmentCurrent(old,hash)).isFalse();
+            assertThat(AttachmentEngineContract.selectSegmentCurrent(version,AttachmentEngineContract.selectSegmentRulesHash(old))).isFalse();
+        }
     }
     @Test void oldSnapshotKeepsItsExactSevenOrFiveFieldJson() throws Exception {
         var json=new ObjectMapper();

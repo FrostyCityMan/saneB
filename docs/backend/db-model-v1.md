@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 2026-09-25 긴 서명란 구간 규칙 `segment-role-1.0.4`도 기존 V84의 버전/지문 유일성 및 V85의 실행 settings/평가 입력 FK로 구별한다. 기본값·기존0/2/3 분석·현재 운영 정책을 자동 변경하지 않으며 신규 DDL이나 migration 수정은 없다.4의 worker 저장/버전 조회/구버전 SHADOW 공존/최종 확인·DRAFT 멱등/QA stale 격리 테스트를 추가했다. 테스트 코드 존재는 실제 PostgreSQL 실행이나 운영 반영 성공을 뜻하지 않으며 실행 결과는 진행 기록을 따른다.
+
 > 2026-09-24 명시 구간 규칙 버전 연결: `segment-role-1.0.0`/`1.0.2`/`1.0.3`은 기존 V84의 `(extraction_id, analysis_version, rules_hash)` 유일성 및 V85의 정책 settings/평가 입력 FK로 구별한다. 신규 DDL이나 기존 migration 수정은 없다. worker는 예약 snapshot의 버전·hash로 분석하고, 일반 초안 수정·개정은 고정 버전을 유지한다. 서로 다른 버전의 분석 이력이 한 추출에 공존해도 기존 평가의 analysis FK는 교체하지 않는다. 운영 DB 반영·정책 활성화는 수행하지 않았으며 신규 버전별 공존/조회/최종 확인 시험의 실제 PG 실행 결과는 진행 기록에서 별도로 확인한다.1.0.3은 명시 선택 연결이며 기존1.0.2 실파일 저장 근거를1.0.3 저장 성공으로 간주하지 않는다.
 
 > 2026-09-22 구간 분석 확장: additive **V84** 분석 이력에 이어 **V85**로 신규 엔진의 evaluation input·match를 구간 분석에 결합한다. 기존 파일 역할·evaluation·정책은 자동 변경하지 않는다. 로컬 임시 PostgreSQL과 코드6933ef3의 Linux35703442168에서 migration4·backfill14·job194건이 실패/생략 없이 통과했다. 이전 V84 독립 Linux QA 실패를 보완한 CI도 success이며 운영에는 반영하지 않았다. 신규 정책 분류 정답52건은 기존 V73의 가변 case_count/JSON 계약을 사용하며 추가 schema 변경은 없다. 신규 작성 정책은 settings_json에 구간 엔진/규칙 버전·hash를 고정하고 기존 정책은 자동 이관하지 않는다. 수집원 QA의 선택적 segmentAnalysisHash는 기존 evidence_json 안에서 보관·재검증하므로 신규 DDL은 없다. 아래 V83 수치는 과거 검증 이력이다. [구간 분석 DB/API 상세 계약](announcement-attachment-segment-analysis-design-2026-09-22.md)을 따른다.

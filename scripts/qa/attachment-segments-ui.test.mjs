@@ -33,6 +33,17 @@ test('structural evaluation binding accepts exact known hash but never quarter f
     d.segmentAnalysis.analysis.analysisVersion='segment-role-1.0.2';
     assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),false);
 });
+test('long form evaluation binding accepts only its exact hash and cannot masquerade as legacy shadow',()=>{
+    const d=boundFixture();d.segmentAnalysis.analysis.analysisVersion='segment-role-1.0.4';
+    assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),false);
+    d.segmentAnalysis.analysis.rulesHash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe';
+    assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),true);
+    assert.equal(S.valid(d.segmentAnalysis,sourceId,setId,file),false);
+    for(const old of ['segment-role-1.0.0','segment-role-1.0.2','segment-role-1.0.3']) {
+        d.segmentAnalysis.analysis.analysisVersion=old;
+        assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),false);
+    }
+});
 
 test('bound analysis requires exact evaluation and known version/hash without legacy fallback', () => {
     const d=boundFixture();assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),true);

@@ -38,7 +38,8 @@ class AnnouncementAttachmentSegmentServiceTest {
                 .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         assertThat(script).contains("\""+AttachmentSegmentRoleAnalyzer.VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.RULES_HASH+"\"",
                 "\""+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH+"\"",
-                "\""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH+"\"");
+                "\""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH+"\"",
+                "\""+AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH+"\"");
     }
 
     @Test void getReturnsNotAnalyzedWithoutWriting() throws Exception {
@@ -101,7 +102,7 @@ class AnnouncementAttachmentSegmentServiceTest {
         assertThatThrownBy(() -> service.insertAnalysis(auth("ADMIN"), source, extraction)).isInstanceOf(ApiException.class);
         verify(dao, never()).insertAnalysis(any()); verifyNoInteractions(audits);
     }
-    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4"})
     void explicitVersionReadsOnlyItsStoredAnalysisWithoutCreatingOrFallingBack(String version) throws Exception {
         prepare();
         var old=service.insertAnalysis(auth("ADMIN"),source,extraction);

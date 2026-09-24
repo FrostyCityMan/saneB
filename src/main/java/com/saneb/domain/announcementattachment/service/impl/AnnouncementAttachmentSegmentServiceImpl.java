@@ -42,7 +42,7 @@ public class AnnouncementAttachmentSegmentServiceImpl implements AnnouncementAtt
     public AttachmentSegmentAnalysisResponse selectAnalysisDetails(UUID sourceId, UUID extractionId, String analysisVersion) {
         String rulesHash = AttachmentEngineContract.selectSegmentRulesHash(analysisVersion);
         if (rulesHash == null) throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST,
-                "analysisVersion은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3 중 하나여야 합니다. 생략하면 기존 1.0.0 분석을 조회합니다.");
+                "analysisVersion은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3, segment-role-1.0.4 중 하나여야 합니다. 생략하면 기존 1.0.0 분석을 조회합니다.");
         var input = selectInput(sourceId, extractionId);
         return selectResponse(input, dao.selectAnalysisDetails(sourceId, extractionId, analysisVersion, rulesHash), analysisVersion, rulesHash);
     }

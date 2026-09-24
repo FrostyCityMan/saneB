@@ -43,7 +43,7 @@ class AttachmentSegmentRoleAnalyzerTest {
             assertThat(result.segments().get(i).endOffset()).isEqualTo(old.segments().get(i).endOffset());
         }
         assertThat(selectStructural(input)).isEqualTo(old);assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();assertCoverage(input,result);
-        assertThat(AttachmentEngineContract.selectSegmentCurrent(result.analysisVersion(),result.rulesHash())).isFalse();
+        assertThat(AttachmentEngineContract.selectSegmentCurrent(result.analysisVersion(),result.rulesHash())).isTrue();
         assertThat(AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH).isEqualTo("8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43");
     }
     @Test void longFormCandidateDoesNotRelaxWholeLineLengthMissingFieldsOrCrossBlockEvidence() {

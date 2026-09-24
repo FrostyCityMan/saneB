@@ -95,7 +95,7 @@ class AnnouncementAttachmentSegmentControllerSmokeTest {
     }
     @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
     void explicitAnalysisVersionKeepsAuthorizationAndReadOnlyNoStoreContract(String role) throws Exception {
-        for(String version:java.util.List.of("segment-role-1.0.2","segment-role-1.0.3")) {
+        for(String version:java.util.List.of("segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4")) {
         when(service.selectAnalysisDetails(SOURCE,EXTRACTION,version)).thenReturn(result());
         mvc.perform(get(URL).param("analysisVersion",version).with(user("fixture").roles(role)))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))

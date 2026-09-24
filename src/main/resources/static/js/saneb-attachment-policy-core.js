@@ -8,7 +8,8 @@
     const modes=["OFF","COLLECT_ONLY","ENFORCE"],statuses=["DRAFT","ACTIVE","RETIRED"];
     const segmentVersions={"segment-role-1.0.0":"fb807a5fcf11c102badcc35cc4b60c6abe7fa36672e2aa431e3b5f2dc16bcdde",
         "segment-role-1.0.2":"2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82",
-        "segment-role-1.0.3":"8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43"};
+        "segment-role-1.0.3":"8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43",
+        "segment-role-1.0.4":"27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe"};
     const segmentEditable=d=>d?.configuration?.engineVersion==="attachment-segment-1.0.0"
         &&Object.hasOwn(segmentVersions,d.configuration.segmentRuleVersion)
         &&segmentVersions[d.configuration.segmentRuleVersion]===d.configuration.segmentRulesHash;
@@ -99,7 +100,7 @@
             const bytes=Number(input.maximumSourceBytes);requireValue(integer(bytes)&&bytes>=1&&bytes<=83886080,"공고별 한도는 1~83,886,080바이트의 정수로 입력하세요.");
             Object.assign(payload,{ruleReleaseId:input.ruleReleaseId,modeCode:input.modeCode,maximumSourceBytes:bytes});
             if(input.segmentRuleVersion!=null&&input.segmentRuleVersion!=="") {
-                requireValue(Object.hasOwn(segmentVersions,input.segmentRuleVersion),"구간 규칙은 1.0.0, 1.0.2, 1.0.3 중 하나를 선택하세요.");
+                requireValue(Object.hasOwn(segmentVersions,input.segmentRuleVersion),"구간 규칙은 1.0.0, 1.0.2, 1.0.3, 1.0.4 중 하나를 선택하세요.");
                 requireValue(kind==="create"||segmentEditable(d),"기존 파일 단위 엔진은 구간 규칙을 선택할 수 없습니다. 새 정책 초안을 만드세요.");
                 payload.segmentRuleVersion=input.segmentRuleVersion;
             }

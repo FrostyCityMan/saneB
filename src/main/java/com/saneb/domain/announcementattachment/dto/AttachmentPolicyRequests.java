@@ -12,7 +12,7 @@ public final class AttachmentPolicyRequests {
             @NotNull(message="첨부 정책 모드를 선택하세요.") @Pattern(regexp="OFF|COLLECT_ONLY|ENFORCE",message="정책 모드는 OFF, COLLECT_ONLY, ENFORCE 중 하나여야 합니다.") String modeCode,
             @NotNull(message="공고별 다운로드 한도를 입력하세요.") @Min(value=1,message="다운로드 한도는 1바이트 이상이어야 합니다.") @Max(value=83886080,message="공고별 다운로드 한도는 80 MiB를 초과할 수 없습니다.") Long maximumSourceBytes,
             @NotBlank(message="정책 생성 사유를 입력하세요.") @Size(max=1000,message="정책 사유는 1000자 이하여야 합니다.") String reason,
-            @Pattern(regexp="segment-role-1\\.0\\.[023]",message="구간 규칙은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3 중 하나를 선택하세요.") String segmentRuleVersion) {
+            @Pattern(regexp="segment-role-1\\.0\\.[0234]",message="구간 규칙은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3, segment-role-1.0.4 중 하나를 선택하세요.") String segmentRuleVersion) {
         public Create(UUID ruleReleaseId,String modeCode,Long maximumSourceBytes,String reason) {
             this(ruleReleaseId,modeCode,maximumSourceBytes,reason,null);
         }
@@ -25,7 +25,7 @@ public final class AttachmentPolicyRequests {
             @NotNull(message="첨부 정책 모드를 선택하세요.") @Pattern(regexp="OFF|COLLECT_ONLY|ENFORCE",message="정책 모드는 OFF, COLLECT_ONLY, ENFORCE 중 하나여야 합니다.") String modeCode,
             @NotNull(message="공고별 다운로드 한도를 입력하세요.") @Min(value=1,message="다운로드 한도는 1바이트 이상이어야 합니다.") @Max(value=83886080,message="공고별 다운로드 한도는 80 MiB를 초과할 수 없습니다.") Long maximumSourceBytes,
             @NotBlank(message="정책 수정 사유를 입력하세요.") @Size(max=1000,message="정책 사유는 1000자 이하여야 합니다.") String reason,
-            @Pattern(regexp="segment-role-1\\.0\\.[023]",message="구간 규칙은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3 중 하나를 선택하세요.") String segmentRuleVersion) {
+            @Pattern(regexp="segment-role-1\\.0\\.[0234]",message="구간 규칙은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3, segment-role-1.0.4 중 하나를 선택하세요.") String segmentRuleVersion) {
         public Update(Integer expectedVersion,UUID ruleReleaseId,String modeCode,Long maximumSourceBytes,String reason) {
             this(expectedVersion,ruleReleaseId,modeCode,maximumSourceBytes,reason,null);
         }

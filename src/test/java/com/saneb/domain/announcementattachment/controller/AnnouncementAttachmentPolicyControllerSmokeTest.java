@@ -70,7 +70,7 @@ class AnnouncementAttachmentPolicyControllerSmokeTest {
         verify(service).updatePolicyDraft(any(),eq(ID),eq(new AttachmentPolicyRequests.Update(0,RULE,"OFF",1L,"정책 QA")));
         verify(service).insertPolicyRevision(any(),eq(ID),eq(KEY),eq(new AttachmentPolicyRequests.Revision(0,"개정 QA")));
     }
-    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.0","segment-role-1.0.2","segment-role-1.0.3"})
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.0","segment-role-1.0.2","segment-role-1.0.3","segment-role-1.0.4"})
     void adminCanExplicitlyChooseKnownSegmentVersionWithoutSendingHash(String version) throws Exception {
         var create=new AttachmentPolicyRequests.Create(RULE,"OFF",1L,"구간 선택",version);
         var update=new AttachmentPolicyRequests.Update(0,RULE,"OFF",1L,"구간 선택",version);
