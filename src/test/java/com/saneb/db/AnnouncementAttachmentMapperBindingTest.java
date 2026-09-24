@@ -16,6 +16,18 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** XML/namespace/parameter type 검증이다. 실제 PostgreSQL SQL/trigger 실행 성공을 뜻하지 않는다. */
 class AnnouncementAttachmentMapperBindingTest {
+    @Test void reviewSegmentsComeOnlyFromCurrentEvaluationInputsAndPinnedPolicy() {
+        var statement=configuration.getMappedStatement("com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvaluationDao.selectSegmentReviewList");
+        var bound=statement.getBoundSql(Map.of("sourceId",UUID.randomUUID(),"evaluationId",UUID.randomUUID()));
+        assertThat(bound.getParameterMappings()).extracting(p->p.getProperty()).containsExactly("evaluationId","sourceId");
+        assertThat(bound.getSql()).contains("i.evaluation_id=e.id AND i.source_id=e.source_id AND i.set_id=e.set_id",
+                "a.id=i.segment_analysis_id AND a.extraction_id=i.extraction_id AND a.file_id=i.file_id",
+                "a.set_id=i.set_id AND a.source_id=i.source_id","a.analysis_version=p.settings_json->>'segmentRuleVersion'",
+                "a.rules_hash=p.settings_json->>'segmentRulesHash'","e.id=? AND e.source_id=? AND e.is_current",
+                "e.engine_version='attachment-segment-1.0.0'","p.settings_json->>'engineVersion'=e.engine_version","LIMIT 11")
+                .doesNotContain("SELECT *","UPDATE ","INSERT ","DELETE ");
+        assertThat(statement.isUseCache()).isFalse();
+    }
     @Test void segmentAnalysisMapperBindsSourceAndVersionWithoutUpdatingExistingEvidence() {
         String prefix="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.";
         for(var method:com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentSegmentDao.class.getDeclaredMethods())

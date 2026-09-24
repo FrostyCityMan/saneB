@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-24 구간 분석과 최종 검수 연결 수정
+
+- [x] 새 구간 엔진에서 GUIDE/FORM 구간이 모두 RESOLVED여도 파일 전체 UNKNOWN 때문에 원문 재검수를 요구하던 불일치를 수정했다. 기존 파일 엔진·MANUAL/PROFILE 역할·UNKNOWN 구간·부분 추출·A/B 확인 사유는 보존한다.
+- [x] 현재 평가 입력 FK·정책 규칙 버전·동일 source/set/file/extraction에 결합된 분석만 조회하고, 전체 추출 텍스트와 구조로 재분석하여 일치 여부를 검사한다. 누락·타 파일·변조·미결합 SHADOW 근거로 검수 요구를 해제하지 않는다. 공개 API 형식과 migration 변경은 없다.
+- [x] `:test` 표적 119건(검수 판정23·검수 서비스41·Controller14·Mapper41), `:attachmentContractQaTest` 20건은 실패·오류·생략0이다. `:bootJar` 포함 최신 검증은 1분1초 성공했다.
+- [~] 실제 PostgreSQL 시험 2건을 추가했다. RESOLVED 혼합 문서의 EXTRACTED_TEXT 최종 확인·멱등 DRAFT/link1·자동 승인0, 다른 파일 실패 시 원문 확인 유지 경로다. Windows initdb 실행 정책 차단으로 이 신규 DB 시험은 아직 실행 전이며 Linux 동일 SHA 검증을 기다린다.
+- [~] 선행 `100ccb2` Linux35981889914는 cancelled이며 통과 근거가 아니다. 후속 `f303dc6` Linux35982286016은 조회 시 실행 중이다. 선행 성공이나 보은 실파일 관측을 이번 검수 수정분의 통과로 대체하지 않는다.
+- 전체9Gate·ATT62·SEG10 분모와 goal active를 유지한다. 운영 DB·정책·배포 변경은 없고 브라우저는 현재 요청 정책상 미실행이다. 실제 지역 파일의 UNKNOWN 구간 해소 및 최종 검수/DRAFT E2E는 남는다.
+
 ### 2026-09-24 보은 최신 구간 엔진 worker/DB/API 검증 경로
 
 - [x] 직전 진단은 실제 원인 증거를 확보한 progress다. 기존 보은 worker 시험은 `attachment-1.0.0`이므로 새 구간 엔진 업무 경로의 성공 근거가 아님을 코드에서 확인했다.

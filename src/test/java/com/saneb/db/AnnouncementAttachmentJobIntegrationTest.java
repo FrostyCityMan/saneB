@@ -675,7 +675,42 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(dao.selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
     }
 
+    @Test void resolvedMixedSegmentReviewUsesExtractedEvidenceAndCreatesOnlyOneDraft() throws Exception {
+        var job=selectSegmentJob(false,true);
+        var result=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(result.status()).isEqualTo("ACCEPTED");
+        var state=reviewService().selectReviewContextDetails(job.sourceId());
+        assertThat(state.manualSourceCheckRequired()).isFalse();assertThat(state.requiredAcknowledgementCodes()).isEmpty();
+        assertThat(sql.queryForObject("SELECT document_role_code FROM announcement_source_attachment_files WHERE source_id=?",String.class,job.sourceId())).isEqualTo("UNKNOWN");
+        assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),
+                new AttachmentReviewRequests.Conversion(state.version(),UUID.randomUUID(),"BUSINESS",null))).isInstanceOf(ApiException.class);
+        var request=selectReviewRequest(job.sourceId());assertThat(request.reviewMethodCode()).isEqualTo("EXTRACTED_TEXT");
+        UUID key=UUID.randomUUID();
+        var confirmation=reviewService().insertConfirmation(reviewActor(),job.sourceId(),key,request);
+        assertThat(reviewService().insertConfirmation(reviewActor(),job.sourceId(),key,request)).isEqualTo(confirmation);
+        var conversion=new AttachmentReviewRequests.Conversion(reviewService().selectReviewContextDetails(job.sourceId()).version(),confirmation.confirmationId(),"BUSINESS",null);
+        var draft=reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),conversion);
+        assertThat(reviewService().insertOperationalAnnouncement(reviewActor(),job.sourceId(),conversion)).isEqualTo(draft);
+        assertThat(sql.queryForObject("SELECT approval_status_code FROM announcements WHERE id=?",String.class,draft.announcementId())).isEqualTo("DRAFT");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_approval_requests WHERE announcement_id=?",Integer.class,draft.announcementId())).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_target_category_assignments WHERE announcement_id=?",Integer.class,draft.announcementId())).isEqualTo(2);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_support_type_assignments WHERE announcement_id=?",Integer.class,draft.announcementId())).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT decision_status_code FROM announcement_source_attachment_evaluations WHERE id=?",String.class,result.evaluationId())).isEqualTo("ACCEPTED");
+    }
+    @Test void failedFileAlongsideResolvedSegmentsStillRequiresManualOriginalCheck() throws Exception {
+        var job=selectSegmentJob(true,true);
+        context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        var state=reviewService().selectReviewContextDetails(job.sourceId());
+        assertThat(state.manualSourceCheckRequired()).isTrue();assertThat(state.requiredAcknowledgementCodes()).contains("NETWORK_TIMEOUT","ATTACHMENT_TEXT_NOT_EXTRACTED");
+        var request=new AttachmentReviewRequests.Confirmation(state.version(),List.of("BUSINESS"),List.of("POLICY_FINANCE"),"EXTRACTED_TEXT",state.requiredAcknowledgementCodes(),"격리 검증용 잘못된 확인 방법");
+        assertThatThrownBy(()->reviewService().insertConfirmation(reviewActor(),job.sourceId(),UUID.randomUUID(),request)).isInstanceOf(ApiException.class);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,job.sourceId())).isZero();
+    }
     private AttachmentJobRow selectSegmentJob(boolean includeFailed) throws Exception {
+        return selectSegmentJob(includeFailed,false);
+    }
+    private AttachmentJobRow selectSegmentJob(boolean includeFailed,boolean enforce) throws Exception {
         var execution=new AttachmentExecutionSnapshot(EXECUTION.profileCode(),PROFILE_HASH,
                 com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION,
                 EXECUTION.extractorVersion(),CONFIG_HASH,null,null,
@@ -687,9 +722,11 @@ class AnnouncementAttachmentJobIntegrationTest {
         String settings=new ObjectMapper().writeValueAsString(java.util.Map.of("engineVersion",execution.engineVersion(),
                 "extractorVersion",execution.extractorVersion(),"extractorConfigHash",CONFIG_HASH,"maximumSourceBytes",80L*1024*1024,
                 "segmentRuleVersion",execution.segmentRuleVersion(),"segmentRulesHash",execution.segmentRulesHash()));
-        sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE','COLLECT_ONLY',?,repeat('d',64),?::jsonb,?::jsonb,?,now())",
-                policy,policy.toString(),release,settings,manifest,actor);
+        sql.update("INSERT INTO announcement_attachment_policies(id,policy_code,version_no,policy_status_code,mode_code,rule_release_id,policy_hash,settings_json,profile_manifest_json,created_by,published_at) VALUES (?,?,1,'ACTIVE',?,?,repeat('d',64),?::jsonb,?::jsonb,?,now())",
+                policy,policy.toString(),enforce?"ENFORCE":"COLLECT_ONLY",release,settings,manifest,actor);
         var base=selectRequest();
+        if(enforce)sql.update("UPDATE announcement_source_snapshots SET title=?,is_attachment_review_required=true,attachment_policy_id=? WHERE id=?",
+                "구간 최종 검수 QA "+base.sourceId(),policy,base.sourceId());
         service.insertAttachmentJob(new AttachmentJobReservation(base.sourceId(),policy,base.expectedBaseDecisionId(),0,0,base.idempotencyKey(),execution));
         var job=service.saveNextJobClaim().orElseThrow();
         assertThat(service.saveDownloadBytes(job.jobId(),job.leaseToken(),15)).isTrue();

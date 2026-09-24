@@ -20,4 +20,7 @@ public final class AttachmentEvaluationRows {
                              UUID policyId, UUID ruleReleaseId, String engineVersion,
                              String inputHash, String decisionHash, String status, String reason,
                              String warningCodesJson, Boolean current, OffsetDateTime evaluatedAt) { }
+    /** 현재 평가 입력에 결합된 분석만 검수에 사용한다. 원문은 내부 재현 검증 전용이다. */
+    public record SegmentReview(UUID fileId, UUID extractionId, String qualityCode, String extractedText,
+                                String blocksJson, Integer pageCount, String analysisJson) { }
 }

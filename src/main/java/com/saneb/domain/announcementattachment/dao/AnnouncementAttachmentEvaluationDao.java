@@ -15,6 +15,7 @@ public interface AnnouncementAttachmentEvaluationDao {
     List<String> selectBaseSupportList(@Param("evaluationId") UUID evaluationId);
     List<AttachmentEvaluationRows.File> selectFileInputList(@Param("sourceId") UUID sourceId, @Param("setId") UUID setId);
     AttachmentEvaluationRows.Evaluation selectEvaluationDetails(@Param("sourceId") UUID sourceId, @Param("evaluationId") UUID evaluationId);
+    List<AttachmentEvaluationRows.SegmentReview> selectSegmentReviewList(@Param("sourceId") UUID sourceId, @Param("evaluationId") UUID evaluationId);
     AttachmentEvaluationRows.Evaluation selectInputEvaluationDetails(@Param("sourceId") UUID sourceId,
             @Param("inputHash") String inputHash, @Param("engineVersion") String engineVersion);
     AttachmentEvaluationRows.Evaluation selectJobEvaluationDetails(@Param("jobId") UUID jobId, @Param("leaseToken") UUID leaseToken);

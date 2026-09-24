@@ -227,7 +227,9 @@ public class AnnouncementAttachmentReviewServiceImpl implements AnnouncementAtta
         if (expected!=null && !expected.expectedSetHash().equals(row.setHash())) throw conflict("첨부 집합 hash가 변경됐습니다. 최신 첨부 전체를 다시 확인하세요.");
         var files=evidence.selectFileList(source.sourceId(),set.setId(),0,11);
         if (files==null || evidence.selectFileCount(source.sourceId(),set.setId())!=files.size()) throw conflict("첨부 파일 목록을 완전히 확인할 수 없습니다. 처리가 끝난 뒤 다시 확인하세요.");
-        return new Ready(row,decision,AttachmentReviewAssessment.select(decision,set,files,mapper));
+        var segmentEvidence=com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine.VERSION.equals(decision.engineVersion())
+                ? evaluations.selectSegmentReviewList(source.sourceId(),decision.evaluationId()) : List.<AttachmentEvaluationRows.SegmentReview>of();
+        return new Ready(row,decision,AttachmentReviewAssessment.select(decision,set,files,segmentEvidence,mapper));
     }
     private AttachmentReviewRequests.Version selectVersion(AttachmentCurrentSourceRow row) {
         return new AttachmentReviewRequests.Version(row.baseDecisionId(),row.attachmentDecisionId(),row.sourceVersion(),row.attachmentVersion(),row.setHash());

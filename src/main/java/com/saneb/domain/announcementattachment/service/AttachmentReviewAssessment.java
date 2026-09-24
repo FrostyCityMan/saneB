@@ -7,12 +7,15 @@ import com.saneb.common.error.ErrorCode;
 import com.saneb.domain.announcementattachment.vo.AttachmentEvaluationRows;
 import com.saneb.domain.announcementattachment.vo.AttachmentFileSummaryRow;
 import com.saneb.domain.announcementattachment.vo.AttachmentSetRow;
+import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentClassificationEngine;
+import com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import org.springframework.http.HttpStatus;
 
-/** 자동 판정을 수정하지 않고 사람이 확인해야 할 사유만 도출한다. 원문은 입력받지 않는다. */
+/** 자동 판정을 수정하지 않고 검수 사유를 도출한다. 구간 근거는 현재 평가에 결합된 추출 텍스트로 재검증한다. */
 public final class AttachmentReviewAssessment {
     private AttachmentReviewAssessment() { }
     private static final Set<String> TEXT_REVIEW_REASONS = Set.of("TITLE_GROUP_A_MATCHED", "BODY_GROUP_A_MATCHED",
@@ -21,6 +24,12 @@ public final class AttachmentReviewAssessment {
 
     public static Result select(AttachmentEvaluationRows.Evaluation decision, AttachmentSetRow set,
             List<AttachmentFileSummaryRow> files, ObjectMapper mapper) {
+        return select(decision,set,files,List.of(),mapper);
+    }
+    public static Result select(AttachmentEvaluationRows.Evaluation decision, AttachmentSetRow set,
+            List<AttachmentFileSummaryRow> files, List<AttachmentEvaluationRows.SegmentReview> segmentEvidence, ObjectMapper mapper) {
+        boolean segmentEngine=AttachmentSegmentClassificationEngine.VERSION.equals(decision.engineVersion());
+        Set<java.util.UUID> resolved=segmentEngine?selectResolvedSegments(files,segmentEvidence,mapper):Set.of();
         TreeSet<String> codes = new TreeSet<>();
         if (decision.warningCodesJson() == null || decision.warningCodesJson().length() > 10000) throw invalidEvidence();
         try {
@@ -54,7 +63,10 @@ public final class AttachmentReviewAssessment {
                 manual = true;
             }
             if (file.extractionErrorCode() != null) { codes.add(selectCode(file.extractionErrorCode())); manual = true; }
-            if (file.documentRoleCode() == null || "UNKNOWN".equals(file.documentRoleCode())) {
+            boolean automaticRole=Set.of("TEXT_RULE","UNKNOWN").contains(file.roleOriginCode()==null?"":file.roleOriginCode());
+            boolean unresolvedRole=file.documentRoleCode() == null || "UNKNOWN".equals(file.documentRoleCode());
+            if ((unresolvedRole && !(segmentEngine && automaticRole && resolved.contains(file.fileId())))
+                    || (segmentEngine && "COMPLETE_TEXT".equals(file.qualityCode()) && !resolved.contains(file.fileId()))) {
                 codes.add("ATTACHMENT_ROLE_UNKNOWN"); manual = true;
             }
         }
@@ -64,6 +76,37 @@ public final class AttachmentReviewAssessment {
         } else if (!"ACCEPTED".equals(decision.status())) throw invalidEvidence();
         if (codes.size() > 100) throw invalidEvidence();
         return new Result(manual, List.copyOf(codes));
+    }
+    private static Set<java.util.UUID> selectResolvedSegments(List<AttachmentFileSummaryRow> files,
+            List<AttachmentEvaluationRows.SegmentReview> rows,ObjectMapper mapper) {
+        if(rows==null || rows.size()!=files.size() || rows.size()>10)throw invalidSegmentEvidence();
+        var byFile=new java.util.HashMap<java.util.UUID,AttachmentEvaluationRows.SegmentReview>();
+        for(var row:rows)if(row==null || row.fileId()==null || byFile.put(row.fileId(),row)!=null)throw invalidSegmentEvidence();
+        var resolved=new java.util.HashSet<java.util.UUID>();
+        var seen=new java.util.HashSet<java.util.UUID>();
+        var analyzer=new AttachmentSegmentRoleAnalyzer();
+        for(var file:files) {
+            if(file==null || !seen.add(file.fileId()))throw invalidSegmentEvidence();
+            var row=byFile.get(file.fileId());
+            if(row==null || !java.util.Objects.equals(row.extractionId(),file.extractionId())
+                    || !java.util.Objects.equals(row.qualityCode(),file.qualityCode()))throw invalidSegmentEvidence();
+            // 부분/실패 파일은 원문 수동 확인을 유지한다. 다른 파일의 완전 분석으로 덮지 않는다.
+            if(!"COMPLETE_TEXT".equals(file.qualityCode()))continue;
+            if(row.extractedText()==null || row.blocksJson()==null || row.analysisJson()==null)throw invalidSegmentEvidence();
+            try {
+                var blocks=mapper.readValue(row.blocksJson(),AttachmentSetEvidence.Block[].class);
+                var analysis=mapper.readValue(row.analysisJson(),AttachmentSegmentRoleAnalyzer.Analysis.class);
+                if(blocks==null || analysis==null)throw invalidSegmentEvidence();
+                var extraction=new AttachmentSetEvidence.Extraction(row.qualityCode(),row.extractedText(),java.util.Arrays.asList(blocks),row.pageCount(),0);
+                if(!analyzer.selectAnalysisValid(extraction,analysis))throw invalidSegmentEvidence();
+                if("RESOLVED".equals(analysis.statusCode()) && analysis.segments().stream().noneMatch(s->"UNKNOWN".equals(s.roleCode())))resolved.add(file.fileId());
+            } catch(JsonProcessingException | IllegalArgumentException exception) {throw invalidSegmentEvidence();}
+        }
+        return Set.copyOf(resolved);
+    }
+    private static ApiException invalidSegmentEvidence() {
+        return new ApiException(ErrorCode.ANNOUNCEMENT_ATTACHMENT_NOT_READY,HttpStatus.CONFLICT,
+                "현재 첨부 판정에 연결된 구간 분석과 파일·추출 버전 또는 원문이 일치하지 않습니다. 최신 첨부 처리 결과를 확인한 뒤 다시 검수하세요.");
     }
     private static String selectCode(String code) {
         if (code == null || !code.matches("[A-Z][A-Z0-9_]{0,79}")) throw invalidEvidence();

@@ -2421,6 +2421,8 @@ version.expectedSetHash
 
 발견 실패, 다운로드 실패, COMPLETE_TEXT 아닌 품질, 미확인 역할, 불확실한 문맥 또는 경고가 있으면 전체 원문을 직접 확인하는 MANUAL_SOURCE_CHECK와 모든 해당 사유 확인을 요구한다. 첫 정상 첨부로 뒤의 실패를 숨기지 않는다. A/B 검수 사유는 자동 판정을 ACCEPTED로 바꾸지 않고 별도 확인으로 처리한다. OFF/퇴역 정책만으로 이미 적용된 확인 의무가 없어지거나 현재 근거의 수동 검수가 차단되지는 않는다.
 
+구간 엔진(`attachment-segment-1.0.0`)에서는 현재 evaluation input에 결합되고 정책 버전·hash 및 전체 원문/block 재현 검증을 통과한 RESOLVED 구간을 사용한다. 파일 전체 자동 역할이 UNKNOWN이어도 구간이 모두 확정되었다면 그 이유만으로 MANUAL_SOURCE_CHECK를 중복 요구하지 않는다. 수동/프로필 고정 역할, UNKNOWN 구간, 부분·실패 파일, A/B·부정 문맥·경고는 기존대로 별도 확인한다. 미결합 SHADOW 분석·다른 추출·변조/누락 근거는 요구 해제에 사용할 수 없으며 409로 최신 처리를 안내한다. 최종 confirmation은 여전히 필수이고 DRAFT 외 자동 활성화는 없다. 기존 파일 엔진과 `/api/v1`은 변경하지 않는다.
+
 확인 응답은 source/confirmation/evaluation ID, set hash, 확인 직후 `sourceVersion`/`attachmentVersion`, 방법, `isCurrent`, 시각이다. 확인은 첨부 버전을 1 증가시키며 이전 확인을 STALE로 남긴다. 기본 판정과 첨부 자동 판정·실패 상태는 변경하지 않는다. 같은 Idempotency-Key와 동일한 정규화 요청/actor는 최초 확인을 반환하며 새 확인이나 태그를 만들지 않는다. 다른 원문·actor·요청으로 재사용하면 409다. 이후 STALE가 된 확인 재조회는 `isCurrent=false`로 반환될 수 있다.
 
 전환 요청은 `version`, `expectedConfirmationId`, 현재 확정 대상에 포함된 `primaryTargetCategoryCode`, 선택 `incomeJudgementCode`다. 소득 판단 방식 생략 시 기존 V2와 같은 VAT_TAX_BASE_ONLY를 사용하며 이 값은 자격 판정 완료를 뜻하지 않는다. 확인 이후 최신 버전은 review-context에서 다시 읽는다.
