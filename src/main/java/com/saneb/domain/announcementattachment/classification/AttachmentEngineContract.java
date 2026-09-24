@@ -16,6 +16,7 @@ public final class AttachmentEngineContract {
     public static String selectSegmentRulesHash(String version) {
         if (AttachmentSegmentRoleAnalyzer.VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.RULES_HASH;
         if (AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH;
+        if (AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(version)) return AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH;
         return null;
     }
 }

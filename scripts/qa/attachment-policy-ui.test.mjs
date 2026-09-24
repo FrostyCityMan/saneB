@@ -161,8 +161,8 @@ test('CAS update confirms exact saved fields and uses policy version',async()=>{
     assert.match(text(h.q('[data-receipt]')),/조회 버전 1/);assert.equal(h.app.mutation.uncertain,false);assert.equal(h.app.state.detail.policy.rowVersion,1);
     assert.equal(h.q('[data-receipt]').focused,true);
 });
-test('segment selector requires explicit reviewed change, clears consent and never publishes',async()=>{
-    let saved=false;const old=segmentDetail(),updated=segmentDetail('segment-role-1.0.2',1);
+for(const version of ['segment-role-1.0.2','segment-role-1.0.3']) test(`segment selector ${version} requires reviewed change, clears consent and never publishes`,async()=>{
+    let saved=false;const old=segmentDetail(),updated=segmentDetail(version,1);
     const h=harness({request:async(url,o,next)=>{
         if(o.method==='PUT'){saved=true;return updated;}
         if(url===P.base+'/'+id(1))return saved?updated:old;
@@ -170,13 +170,24 @@ test('segment selector requires explicit reviewed change, clears consent and nev
         return next(url);
     }});await h.app.start();assert.equal(h.fields.get('segmentRuleVersion').disabled,false);
     assert.match(text(h.q('[data-detail]')),/구간 규칙 버전/);
-    h.app.arm('save');h.ack.checked=true;h.fields.get('segmentRuleVersion').value='segment-role-1.0.2';
+    h.app.arm('save');h.ack.checked=true;h.fields.get('segmentRuleVersion').value=version;
     await h.q('[data-editor]').fire('input');assert.equal(h.ack.checked,false);assert.equal(h.q('[data-qa]').disabled,true);
-    h.app.arm('save');assert.match(text(h.q('[data-action-impact]')),/segment-role-1.0.0/);assert.match(text(h.q('[data-action-impact]')),/segment-role-1.0.2/);
+    h.app.arm('save');assert.match(text(h.q('[data-action-impact]')),/segment-role-1.0.0/);assert.ok(text(h.q('[data-action-impact]')).includes(version));
     assert.match(text(h.q('[data-action-impact]')),/전체 QA/);h.ack.checked=true;await h.app.submit();
     const writes=h.calls.filter(c=>c.method);assert.equal(writes.length,1);assert.equal(writes[0].method,'PUT');
-    assert.equal(JSON.parse(writes[0].body).segmentRuleVersion,'segment-role-1.0.2');assert.equal(h.app.mutation.uncertain,false);
-    assert.equal(h.fields.get('segmentRuleVersion').value,'');assert.match(text(h.q('[data-detail]')),/segment-role-1.0.2/);
+    assert.equal(JSON.parse(writes[0].body).segmentRuleVersion,version);assert.equal(h.app.mutation.uncertain,false);
+    assert.equal(h.fields.get('segmentRuleVersion').value,'');assert.ok(text(h.q('[data-detail]')).includes(version));
+});
+test('structural version receipt rejects quarter fallback and wrong hash; omitted updates keep structural version',()=>{
+    const version='segment-role-1.0.3',d=segmentDetail(version);
+    const command=P.command('update',{detail:d},input(),'한도 수정',true);
+    assert.equal(command.payload.segmentRuleVersion,undefined);
+    assert.equal(P.receipt(segmentDetail(version,1),command),true);
+    assert.equal(P.receipt(segmentDetail('segment-role-1.0.2',1),command),false);
+    const forged=segmentDetail(version,1);forged.configuration.segmentRulesHash=P.segmentVersions['segment-role-1.0.2'];
+    assert.equal(P.receipt(forged,command),false);
+    const template=readFileSync(new URL('../../src/main/resources/templates/app/announcement-attachment-policies.html',import.meta.url),'utf8');
+    assert.match(template,/<option value="segment-role-1\.0\.3">1\.0\.3 · 내부 신청안내 절·연속 중복 표제 보완<\/option>/);
 });
 test('legacy selector is disabled and creation choice resets to explicit unchanged default',async()=>{
     const h=harness();await h.app.start();assert.equal(h.fields.get('segmentRuleVersion').disabled,true);

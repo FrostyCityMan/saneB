@@ -24,6 +24,15 @@ const boundFixture = () => {
         rulesHash:'2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82'});
     return {evaluationId:uuid(6),policyId:uuid(7),evaluationCurrent:true,evaluatedFileRoleCode:'UNKNOWN',segmentAnalysis};
 };
+test('structural evaluation binding accepts exact known hash but never quarter fallback or default shadow',()=>{
+    const d=boundFixture();d.segmentAnalysis.analysis.analysisVersion='segment-role-1.0.3';
+    assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),false);
+    d.segmentAnalysis.analysis.rulesHash='8b9fdd872f3eb9890146d6e360408204ff285f4b23977e07693834aceec66d43';
+    assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),true);
+    assert.equal(S.valid(d.segmentAnalysis,sourceId,setId,file),false);
+    d.segmentAnalysis.analysis.analysisVersion='segment-role-1.0.2';
+    assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),false);
+});
 
 test('bound analysis requires exact evaluation and known version/hash without legacy fallback', () => {
     const d=boundFixture();assert.equal(S.validBinding(d,uuid(6),sourceId,setId,file),true);

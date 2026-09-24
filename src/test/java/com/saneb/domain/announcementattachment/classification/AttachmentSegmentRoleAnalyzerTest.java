@@ -35,7 +35,8 @@ class AttachmentSegmentRoleAnalyzerTest {
         assertThat(result.textHash()).isEqualTo(legacy.textHash());assertThat(result.blocksHash()).isEqualTo(legacy.blocksHash());
         assertThat(selectQuarter(input)).isEqualTo(legacy);assertThat(analyzer.selectAnalysisValid(input,result)).isTrue();assertCoverage(input,result);
         assertThat(AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH).isEqualTo("2f02f48368ce3f42557dd62094dec8e6b99d44e27d0f51f265a2fd737aabdd82");
-        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,result.analysisVersion(),result.rulesHash())).isFalse();
+        // 명시 실행 허용과 문서 판정은 별개다. 서문 UNKNOWN 때문에 REVIEW_REQUIRED는 그대로다.
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,result.analysisVersion(),result.rulesHash())).isTrue();
     }
     @ParameterizedTest @ValueSource(strings={"신청 안내","3. 다른 사업 신청안내","0. 신청안내","100. 신청안내","3. 신청안내 참고"})
     void structuralCandidateDoesNotInventInternalSectionFromDifferentHeadings(String heading) {

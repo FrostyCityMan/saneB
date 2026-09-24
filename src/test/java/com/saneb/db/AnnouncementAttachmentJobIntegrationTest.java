@@ -708,7 +708,13 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,job.sourceId())).isZero();
     }
     @Test void quarterReviewConfirmationRemainsBoundAfterLegacyShadowAndCreatesOnlyOneDraft() throws Exception {
-        var job=selectSegmentJob(false,true,"segment-role-1.0.2",true);
+        validateSelectedReviewConfirmation("segment-role-1.0.2");
+    }
+    @Test void structuralReviewConfirmationRemainsBoundAfterLegacyShadowAndCreatesOnlyOneDraft() throws Exception {
+        validateSelectedReviewConfirmation("segment-role-1.0.3");
+    }
+    private void validateSelectedReviewConfirmation(String version) throws Exception {
+        var job=selectSegmentJob(false,true,version,true);
         var evaluation=context.getBean(AnnouncementAttachmentEvaluationService.class).saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
         assertThat(evaluation.status()).isEqualTo("ACCEPTED");
         var ready=reviewService().selectReviewContextDetails(job.sourceId());
@@ -792,6 +798,8 @@ class AnnouncementAttachmentJobIntegrationTest {
         String text="😀 사업 지원 안내\n지원대상: 소상공인 지원금\n지원내용: 경영지원\n신청기간: 9월\n지원 신청서\n성 명\n(서명 또는 인)\n수출 특허 지원금";
         if(quarterHeading) text=text.replace("😀 사업 지원 안내","참여자 모집 공고(3분기)")
                 .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
+        if("segment-role-1.0.3".equals(segmentVersion)) text=text.replace("\n지원 신청서\n",
+                "\n3. 신청안내\n접수 방법을 확인하세요.\n지원 신청서\n지원 신청서\n");
         var blocks=new java.util.ArrayList<AttachmentSetEvidence.Block>(); int offset=0;
         for(String line:text.split("\n")) {
             int end=offset+line.codePointCount(0,line.length());
@@ -813,8 +821,11 @@ class AnnouncementAttachmentJobIntegrationTest {
     @Test void quarterWorkerPersistsPinnedAnalysisAndLegacyShadowCannotRebindItsEvaluation() throws Exception {
         validatePinnedQuarterAnalysis("segment-role-1.0.2");
     }
+    @Test void structuralWorkerPersistsMergedSectionsAndLegacyShadowCannotRebindItsEvaluation() throws Exception {
+        validatePinnedQuarterAnalysis("segment-role-1.0.3");
+    }
     private void validatePinnedQuarterAnalysis(String version) throws Exception {
-        boolean quarter="segment-role-1.0.2".equals(version);
+        boolean quarter=!"segment-role-1.0.0".equals(version);
         var job=selectSegmentJob(false,false,version,true);
         var evaluator=context.getBean(AnnouncementAttachmentEvaluationService.class);
         var evaluation=evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
@@ -835,7 +846,9 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(boundRead.segmentAnalysis().analysis().analysisVersion()).isEqualTo(version);
         assertThatThrownBy(()->segments.selectEvaluationAnalysisDetails(job.sourceId(),extraction,UUID.randomUUID())).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->segments.selectEvaluationAnalysisDetails(UUID.randomUUID(),extraction,evaluation.evaluationId())).isInstanceOf(ApiException.class);
-        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.2").analysisState()).isEqualTo(quarter?"ANALYZED":"NOT_ANALYZED");
+        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.2").analysisState()).isEqualTo("segment-role-1.0.2".equals(version)?"ANALYZED":"NOT_ANALYZED");
+        assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction,"segment-role-1.0.3").analysisState()).isEqualTo("segment-role-1.0.3".equals(version)?"ANALYZED":"NOT_ANALYZED");
+        if("segment-role-1.0.3".equals(version)) assertThat(boundRead.segmentAnalysis().analysis().segments()).extracting(s->s.roleCode()).containsExactly("NOTICE","FORM");
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,job.sourceId())).isEqualTo(1);
         if(quarter) {
             assertThat(segments.selectAnalysisDetails(job.sourceId(),extraction).analysisState()).isEqualTo("NOT_ANALYZED");
@@ -2284,13 +2297,19 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .contains("resultHash","reasonHash").doesNotContain("구간 분류 검증 원문","소상공인");
     }
     @Test void selectedSegmentRuleChangesDraftAndInvalidatesPreviousGoldenEvidenceWithoutPublication() {
+        validateSelectedSegmentRuleDraft("segment-role-1.0.2");
+    }
+    @Test void structuralSegmentRuleChangesDraftAndInvalidatesPreviousGoldenEvidenceWithoutPublication() {
+        validateSelectedSegmentRuleDraft("segment-role-1.0.3");
+    }
+    private void validateSelectedSegmentRuleDraft(String version) {
         UUID id=insertPolicyCheckFixture(true),key=UUID.randomUUID();
         var oldRequest=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyCheckRequest(0,"이전 구간 규칙 검증");
         var old=policyCheckService().insertClassificationCheck(reviewActor(),id,key,oldRequest);
         var changed=policyService().updatePolicyDraft(reviewActor(),id,new com.saneb.domain.announcementattachment.dto.AttachmentPolicyRequests.Update(
-                0,release,"ENFORCE",83886080L,"구간 버전 선택 QA","segment-role-1.0.2"));
-        assertThat(changed.configuration().segmentRuleVersion()).isEqualTo("segment-role-1.0.2");
-        assertThat(changed.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+                0,release,"ENFORCE",83886080L,"구간 버전 선택 QA",version));
+        assertThat(changed.configuration().segmentRuleVersion()).isEqualTo(version);
+        assertThat(changed.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         assertThat(changed.policy().rowVersion()).isEqualTo(1);assertThat(changed.policy().policyStatusCode()).isEqualTo("DRAFT");
         assertThat(changed.policy().policyHash()).isNull();assertThat(changed.policy().publishedAt()).isNull();
         assertThat(policyCheckService().selectCheckList(reviewActor(),id,1,20).items().getFirst().isCurrent()).isFalse();

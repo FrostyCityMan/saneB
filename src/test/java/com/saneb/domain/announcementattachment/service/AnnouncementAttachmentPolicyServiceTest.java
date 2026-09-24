@@ -28,7 +28,7 @@ class AnnouncementAttachmentPolicyServiceTest {
     @Test void policySelectorFingerprintsMatchServerRules() throws Exception {
         String script=new org.springframework.core.io.ClassPathResource("static/js/saneb-attachment-policy-core.js")
                 .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
-        for(String version:List.of("segment-role-1.0.0","segment-role-1.0.2"))assertThat(script).contains("\""+version+"\":\""
+        for(String version:List.of("segment-role-1.0.0","segment-role-1.0.2","segment-role-1.0.3"))assertThat(script).contains("\""+version+"\":\""
                 +com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version)+"\"");
     }
     @Test void systemProfileUsesActualGov24ProviderCodeNotBatchFilterAlias() {
@@ -104,11 +104,12 @@ class AnnouncementAttachmentPolicyServiceTest {
         assertThat(repeated.policy().policyId()).isEqualTo(first.policy().policyId());assertThat(repeated.policy().rowVersion()).isEqualTo(modified.policy().rowVersion());
         assertThat(repeated.policy().modeCode()).isEqualTo("COLLECT_ONLY");verify(dao,times(1)).insertPolicy(any());
     }
-    @Test void explicitVersionCreationBindsIdempotencyAndDraftEditPinsServerOwnedHash() {
-        var request=new AttachmentPolicyRequests.Create(rule,"OFF",100L,"명시 구간 버전","segment-role-1.0.2");
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void explicitVersionCreationBindsIdempotencyAndDraftEditPinsServerOwnedHash(String version) {
+        var request=new AttachmentPolicyRequests.Create(rule,"OFF",100L,"명시 구간 버전",version);
         var first=service.insertPolicy(auth("ADMIN"),key,request);
-        assertThat(first.configuration().segmentRuleVersion()).isEqualTo("segment-role-1.0.2");
-        assertThat(first.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        assertThat(first.configuration().segmentRuleVersion()).isEqualTo(version);
+        assertThat(first.configuration().segmentRulesHash()).isEqualTo(com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         assertThat(service.insertPolicy(auth("ADMIN"),key,request)).isEqualTo(first);
         assertThatThrownBy(()->service.insertPolicy(auth("ADMIN"),key,new AttachmentPolicyRequests.Create(rule,"OFF",100L,"명시 구간 버전","segment-role-1.0.0")))
                 .isInstanceOf(ApiException.class).hasMessageContaining("멱등 키");
@@ -150,12 +151,12 @@ class AnnouncementAttachmentPolicyServiceTest {
         assertThatThrownBy(() -> service.insertPolicyRevision(auth("ADMIN"),first.policy().policyId(),key,new AttachmentPolicyRequests.Revision(0,"개정")))
                 .isInstanceOf(ApiException.class).hasMessageContaining("멱등 키");verify(dao,times(1)).insertPolicy(any());
     }
-    @Test void explicitQuarterPolicyEditAndRevisionPreservePinnedVersionWithoutChangingNewPolicyDefault() throws Exception {
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void explicitPolicyEditAndRevisionPreservePinnedVersionWithoutChangingNewPolicyDefault(String version) throws Exception {
         var created=create("OFF");var row=rows.get(created.policy().policyId());var original=created.configuration();
         var pinned=new AttachmentPolicyResponses.Configuration(original.engineVersion(),original.extractorVersion(),null,83886080L,
                 original.roleRuleVersion(),original.roleRulesHash(),
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+                version,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         rows.put(row.policyId(),new AttachmentPolicyManagementRows.Row(row.policyId(),row.policyCode(),row.versionNo(),row.rowVersion(),row.policyStatusCode(),row.modeCode(),row.ruleReleaseId(),
                 row.ruleReleaseStatusCode(),row.policyHash(),mapper.writeValueAsString(pinned),row.profileManifestJson(),row.createdBy(),row.createdAt(),row.updatedAt(),row.publishedAt(),
                 row.copiedFromPolicyId(),row.creationIdempotencyKey(),row.creationRequestHash(),row.creationOperationCode()));

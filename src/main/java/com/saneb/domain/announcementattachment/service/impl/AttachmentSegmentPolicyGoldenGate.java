@@ -42,10 +42,13 @@ final class AttachmentSegmentPolicyGoldenGate {
         var samples=new ArrayList<Sample>();
         samples.add(sample(1,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,"😀 "+GUIDE+"\n"+FORM)));
         String notice=GUIDE.replace("사업 지원 안내","지원사업 공고");
-        if(AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(segmentVersion))
+        boolean structural=AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION.equals(segmentVersion);
+        if(AttachmentSegmentRoleAnalyzer.QUARTER_VERSION.equals(segmentVersion) || structural)
             notice=notice.replace("지원사업 공고","지원사업 모집 공고(3분기)")
                     .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
-        samples.add(sample(2,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,notice+"\n"+FORM)));
+        // 새 버전만 내부 절·중복 표제를 포함한다. 기존 버전의 정답 지문은 바꾸지 않는다.
+        String noticeAndForm=structural?notice+"\n3. 신청안내\n접수 방법을 확인하세요.\n지원 신청서\n"+FORM:notice+"\n"+FORM;
+        samples.add(sample(2,missing,rules,"ACCEPTED","EXTENDED_TARGET_SUPPORT_CONFIRMED",file(0,noticeAndForm)));
         samples.add(sample(3,missing,rules,"REVIEW_REQUIRED","ATTACHMENT_CONTEXT_REVIEW",file(0,"미확인 제한 조건\n"+GUIDE)));
         samples.add(sample(4,missing,rules,"REVIEW_REQUIRED","ATTACHMENT_CONTEXT_REVIEW",file(0,GUIDE,"UNKNOWN","UNKNOWN","COMPLETE_TEXT",false)));
         samples.add(sample(5,missing,rules,"REVIEW_REQUIRED","EXTENDED_COMBINATION_NOT_CONFIRMED",file(0,TARGET_ONLY_GUIDE.replace("경영지원","지원금"))));

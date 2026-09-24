@@ -137,7 +137,7 @@ public class AnnouncementAttachmentPolicyServiceImpl implements AnnouncementAtta
     }
     private void validateSegmentVersion(String version) {
         if(version!=null && AttachmentEngineContract.selectSegmentRulesHash(version)==null)
-            throw invalid("구간 규칙은 segment-role-1.0.0 또는 segment-role-1.0.2를 선택하세요. 생략하면 기존 버전을 유지하고 신규 초안은 1.0.0을 사용합니다.");
+            throw invalid("구간 규칙은 segment-role-1.0.0, segment-role-1.0.2, segment-role-1.0.3 중 하나를 선택하세요. 생략하면 기존 버전을 유지하고 신규 초안은 1.0.0을 사용합니다.");
     }
     private AttachmentPolicyResponses.Configuration selectConfiguration(long maximumBytes,String engineVersion,String segmentVersion,String segmentHash) {
         // 설치 Linux 런타임 지문은 실제 검증 단계에서만 결합한다. Windows에서 추측하거나 임의 hash를 받지 않는다.

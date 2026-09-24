@@ -44,12 +44,12 @@ class AnnouncementAttachmentPolicyGoldenGateTest {
         var result=new AnnouncementAttachmentPolicyGoldenGate().selectValidatedResult(seedLike,"a".repeat(64),segmentConfiguration());
         assertThat(result.caseIds()).hasSize(52).contains("SG-005","SG-006","SG-007");
     }
-    @Test void quarterPolicyPinsEveryFixtureAndLeavesOldGoldenReproducible() {
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void selectedPolicyPinsEveryFixtureAndLeavesOldGoldenReproducible(String version) {
         var gate=new AnnouncementAttachmentPolicyGoldenGate();var old=segmentConfiguration();
         var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),old.extractorVersion(),
                 old.extractorConfigHash(),old.maximumSourceBytes(),old.roleRuleVersion(),old.roleRulesHash(),
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+                version,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         var oldResult=gate.selectValidatedResult(rules(),"a".repeat(64),old);
         var newResult=gate.selectValidatedResult(rules(),"a".repeat(64),newer);
         assertThat(newResult.caseCount()).isEqualTo(52);assertThat(newResult.resultHash()).isNotEqualTo(oldResult.resultHash());

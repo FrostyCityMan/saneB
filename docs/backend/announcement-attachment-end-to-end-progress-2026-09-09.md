@@ -11,6 +11,18 @@
 
 ## 기준선
 
+### 2026-09-24 구조 보완 규칙의 명시 정책·worker 연결
+
+- [x] 시작 HEAD831725f, QA 브랜치와 origin 동일, 미추적 output/·Python cache만 있음을 확인하고 보존했다. `long-goal-operating-protocol` 및 frontend/UI 운영 스킬을 사용해 명시 버전 연결→호환성·상태 테스트→Linux PG 검증 순서를 따른다.
+- [x] 실파일 메모리 대조를 통과한1.0.3을 서버/클라이언트 동일 지문으로 명시 선택 목록에 추가했다. 초안0/2/3 선택, 생략 기본값/현재값 보존, worker snapshot·평가 FK·버전 GET·판정 결합 GET·Provider 고정 기대값을 연결한다. 기본0/기존0·2 이력/진단1 거부/미확정 검수/FORM 참고/자동 활성화 금지를 유지한다. migration·v1·운영 데이터 변경은 없다.
+- [x] 기존52건 정답 검증의3 전용 SG-002에 내부 신청안내 절·중복 신청서 표제를 반영하고 기존0/2 표본을 보존했다. 정책 편집의 이전 QA 무효화·worker 저장/독립 구버전 공존·최종 확인/DRAFT를 검증하는 실제 PG3건을 추가했다. 이 새 PG3건은 아직 실행 결과 미확인이다.
+- [x] 선행cb359b7 [Linux35997120672](https://github.com/FrostyCityMan/saneB/actions/runs/35997120672) success와 artifact를 확인했다. root2972=2690통과/282조건부 생략·실패/오류0. 별도 extractor122·패키지20·jobPG203·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 이전 최종 확인/DRAFT 신규2건은 실제 PG에서0.717초/0.463초 통과했다. 새1.0.3 코드의 결과와 구분한다.
+- [x] Node 정책/구간/검수 화면 로직74건, CI와 동일한14파일 확장330건 모두 실패/생략0. 브라우저는 현재 명시 요청 정책에 따라 미실행이며 Node DOM 유사 객체 테스트를 브라우저 성공으로 보고하지 않는다.
+- [x] Java 확대 회귀 첫 실행은 이전의 진단 전용 전제1건 실패였다. 명시 실행 허용과 REVIEW_REQUIRED 유지의 별도 계약으로 갱신했다. 재실행 `:test --tests 'com.saneb.domain.announcementattachment.*' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은3분31초 성공, 도메인1953=1932통과/21조건부 생략·실패/오류0, 패키지20건 실패/생략0이다. bootJar는 이번 코드와 동일한 첫 실행 산출물로 UP-TO-DATE다. `git diff --check` 통과.
+- [~] 새 PG3건은 컴파일·QA 패키징까지 검증했으며 실제 Linux 실행과 worker3 실파일 저장/API 검증은 미완료다. 선행831725f Linux35999057406은 실행 중이며 중복 시작·취소하지 않았다.
+- [!] 보은 누적128/132요청, 잔여4. 새 전체3건 worker3 QA를 위해30요청 추가(지역 한도162) 승인을 요청한 상태이며 답변 전에는 초과 실행하지 않는다. byte·시간·CPU·메모리·격리/정리 제한은 유지한다.
+- [~] 전체9Gate=8부분/1차단, goal active 유지. 잔여 UNKNOWN/PDF 구조·전체 Provider 기대값·실사용자 최종 확인·운영 정책/배포·브라우저 E2E는 완료되지 않았다.
+
 ### 2026-09-24 실파일 내부 절·중복 제목 후보 개선
 
 - [x] 직전 턴은 cb359b7의 최종 확인/DRAFT 연결 시험 추가·푸시를 완료한 progress다. 현재 worktree와 실행 중인 Linux35996557606/35997120672를 재확인하고 중복 실행하지 않았다. `long-goal-operating-protocol`에 따라 실제 미확정 원인 확인→후보 수정→실파일 대조 순서로 진행했다.

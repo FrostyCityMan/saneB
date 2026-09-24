@@ -31,7 +31,7 @@ public final class AttachmentSegmentRoleAnalyzer {
     private static final Pattern QUARTER_HEADING=Pattern.compile(QUARTER_HEADING_EXPRESSION,Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     public static final String QUARTER_RULES_HASH=selectHash(QUARTER_VERSION+"\n"+PARENTHESIZED_RULES_HASH+"\n"
             +QUARTER_HEADING_EXPRESSION+"\n"+AttachmentDocumentRoleClassifier.QUARTER_SECTIONS_HASH+"\n");
-    // 진단 후보다. 운영 가능한 정책 버전 목록에는 실파일 검증 전 추가하지 않는다.
+    // 실파일 대조 후 명시 선택 버전으로 연결한다. 기본값·기존 정책·저장 분석은 자동 변경하지 않는다.
     public static final String STRUCTURAL_VERSION="segment-role-1.0.3";
     private static final String INTERNAL_APPLICATION_EXPRESSION="[1-9][0-9]?[.)]\\h*신청\\h*안내";
     private static final Pattern INTERNAL_APPLICATION=Pattern.compile(INTERNAL_APPLICATION_EXPRESSION);

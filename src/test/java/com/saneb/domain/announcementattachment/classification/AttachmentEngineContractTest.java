@@ -6,6 +6,16 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class AttachmentEngineContractTest {
+    @Test void structuralVersionUsesOnlyItsOwnHashAndCannotUpgradeLegacyEngine() {
+        String version=AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION,hash=AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH;
+        assertThat(AttachmentEngineContract.selectCurrent(AttachmentSegmentClassificationEngine.VERSION,version,hash)).isTrue();
+        assertThat(AttachmentEngineContract.selectCurrent(AnnouncementAttachmentClassificationEngine.VERSION,version,hash)).isFalse();
+        for(String old:java.util.List.of(AttachmentSegmentRoleAnalyzer.VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION)) {
+            assertThat(AttachmentEngineContract.selectSegmentCurrent(old,hash)).isFalse();
+            assertThat(AttachmentEngineContract.selectSegmentCurrent(version,AttachmentEngineContract.selectSegmentRulesHash(old))).isFalse();
+        }
+        assertThat(AttachmentEngineContract.selectSegmentRulesHash("segment-role-1.0.4")).isNull();
+    }
     @Test void oldSnapshotKeepsItsExactSevenOrFiveFieldJson() throws Exception {
         var json=new ObjectMapper();
         var snapshot=new AttachmentExecutionSnapshot("BIZINFO","a".repeat(64),AnnouncementAttachmentClassificationEngine.VERSION,"1.0.3","b".repeat(64));

@@ -37,7 +37,8 @@ class AnnouncementAttachmentSegmentServiceTest {
         String script=new org.springframework.core.io.ClassPathResource("static/js/saneb-attachment-segments.js")
                 .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         assertThat(script).contains("\""+AttachmentSegmentRoleAnalyzer.VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.RULES_HASH+"\"",
-                "\""+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH+"\"");
+                "\""+AttachmentSegmentRoleAnalyzer.QUARTER_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH+"\"",
+                "\""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION+"\": \""+AttachmentSegmentRoleAnalyzer.STRUCTURAL_RULES_HASH+"\"");
     }
 
     @Test void getReturnsNotAnalyzedWithoutWriting() throws Exception {
@@ -100,13 +101,14 @@ class AnnouncementAttachmentSegmentServiceTest {
         assertThatThrownBy(() -> service.insertAnalysis(auth("ADMIN"), source, extraction)).isInstanceOf(ApiException.class);
         verify(dao, never()).insertAnalysis(any()); verifyNoInteractions(audits);
     }
-    @Test void explicitVersionReadsOnlyItsStoredAnalysisWithoutCreatingOrFallingBack() throws Exception {
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void explicitVersionReadsOnlyItsStoredAnalysisWithoutCreatingOrFallingBack(String version) throws Exception {
         prepare();
         var old=service.insertAnalysis(auth("ADMIN"),source,extraction);
-        assertThat(service.selectAnalysisDetails(source,extraction,AttachmentSegmentRoleAnalyzer.QUARTER_VERSION).analysisState()).isEqualTo("NOT_ANALYZED");
+        assertThat(service.selectAnalysisDetails(source,extraction,version).analysisState()).isEqualTo("NOT_ANALYZED");
         var analysis=new AttachmentSegmentRoleAnalyzer().selectAnalysis(new AttachmentSetEvidence.Extraction("COMPLETE_TEXT",TEXT,
                 List.of(new AttachmentSetEvidence.Block(0,0,TEXT.length(),"p:0",true,"p:0")),1,0),
-                AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+                version,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         var newer=new AttachmentSegmentRows.Stored(UUID.randomUUID(),source,set,file,extraction,json.writeValueAsString(analysis),OffsetDateTime.now());
         when(dao.selectAnalysisDetails(source,extraction,analysis.analysisVersion(),analysis.rulesHash())).thenReturn(newer);
         var read=service.selectAnalysisDetails(source,extraction,analysis.analysisVersion());

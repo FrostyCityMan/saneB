@@ -86,11 +86,11 @@ class AttachmentProviderQaCatalogTest {
             assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
         }
     }
-    @Test void catalogCannotUseAnotherSegmentVersionAsThePinnedPolicyProof() {
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void catalogCannotUseAnotherSegmentVersionAsThePinnedPolicyProof(String version) {
         var old=segmentConfiguration();
         var newer=new com.saneb.domain.announcementattachment.dto.AttachmentPolicyResponses.Configuration(old.engineVersion(),null,null,null,null,null,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+                version,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         var n=segmentNotice("RESOLVED",List.of("NOTICE","FORM"));var e=n.expectation();
         var stale=catalog(List.of(n)).selectPrepared(scope,rules,runtimeHash,now,newer);
         assertThat(stale.inputs()).isEmpty();assertThat(stale.plan().cases().getFirst().statusCode()).isEqualTo("EXPECTATION_INVALID");

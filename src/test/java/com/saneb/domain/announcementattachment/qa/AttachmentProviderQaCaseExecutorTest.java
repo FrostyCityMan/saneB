@@ -174,12 +174,12 @@ class AttachmentProviderQaCaseExecutorTest {
         assertThat(result.status()).isEqualTo("FAILED");assertThat(result.allTextComplete()).isFalse();
         assertThat(result.files()).allSatisfy(f->{assertThat(f.reasonCode()).isEqualTo("SEGMENT_EXPECTATION_CHANGED");assertThat(f.segmentAnalysisHash()).isNull();});cleaned();
     }
-    @Test void quarterExpectationReplaysItsVersionRatherThanDefaultAndKeepsLegacyEvidenceUnchanged() throws Exception {
+    @ParameterizedTest @ValueSource(strings={"segment-role-1.0.2","segment-role-1.0.3"})
+    void selectedExpectationReplaysItsVersionRatherThanDefaultAndKeepsLegacyEvidenceUnchanged(String version) throws Exception {
         String text=mixedText.replace("소상공인 지원금 공고","소상공인 지원금 모집 공고(3분기)")
                 .replace("지원대상:","❍ (지원대상)").replace("지원내용:","❍ (지원내용)").replace("신청기간:","❍ (신청기간)");
         when(extractor.selectExtraction(any())).thenReturn(output("COMPLETE_TEXT",text));
-        var expectation=segmentExpectation(text,com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_VERSION,
-                com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.QUARTER_RULES_HASH);
+        var expectation=segmentExpectation(text,version,com.saneb.domain.announcementattachment.classification.AttachmentEngineContract.selectSegmentRulesHash(version));
         assertThat(expectation.roleCodes()).containsExactly("NOTICE","FORM");
         assertThat(segmentExpectation(text).roleCodes()).contains("UNKNOWN");
         var result=executor.selectResult(withSegments(withRole(input(descriptors),roleExpectation(text)),expectation),control);

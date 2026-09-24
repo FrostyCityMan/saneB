@@ -95,11 +95,13 @@ class AnnouncementAttachmentSegmentControllerSmokeTest {
     }
     @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
     void explicitAnalysisVersionKeepsAuthorizationAndReadOnlyNoStoreContract(String role) throws Exception {
-        when(service.selectAnalysisDetails(SOURCE,EXTRACTION,"segment-role-1.0.2")).thenReturn(result());
-        mvc.perform(get(URL).param("analysisVersion","segment-role-1.0.2").with(user("fixture").roles(role)))
+        for(String version:java.util.List.of("segment-role-1.0.2","segment-role-1.0.3")) {
+        when(service.selectAnalysisDetails(SOURCE,EXTRACTION,version)).thenReturn(result());
+        mvc.perform(get(URL).param("analysisVersion",version).with(user("fixture").roles(role)))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
                 .andExpect(jsonPath("$.data.analysisState").value("NOT_ANALYZED"));
-        verify(service).selectAnalysisDetails(SOURCE,EXTRACTION,"segment-role-1.0.2");
+        verify(service).selectAnalysisDetails(SOURCE,EXTRACTION,version);
+        }
         verify(service,never()).selectAnalysisDetails(SOURCE,EXTRACTION);verify(service,never()).insertAnalysis(any(),any(),any());
     }
 }
