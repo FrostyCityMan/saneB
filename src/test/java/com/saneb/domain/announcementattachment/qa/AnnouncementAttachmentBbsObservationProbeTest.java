@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -81,6 +81,44 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     }
     private boolean validDalseong(List<JsonNode> reports) {
         return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),"DALSEONG",false);
+    }
+    private ObjectNode hamanReport() throws Exception {
+        var row=(ObjectNode)dalseongReports().get(1);
+        row.put("caseCode","HAMAN-41306").put("profileCode","LOCAL_HAMAN_GET_V1");
+        ((ObjectNode)row.at("/files/0")).put("binaryHash","c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97");
+        return row;
+    }
+    private boolean validHaman(List<JsonNode> rows) {
+        return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"HAMAN",false);
+    }
+    @Test void hamanRequiresExactlyOnePinnedWholeFileWithoutPublicationOrScopeExpansion() throws Exception {
+        assertTrue(validHaman(List.of(hamanReport())));
+        assertFalse(validHaman(dalseongReports()));assertFalse(validHaman(List.of(hamanReport(),hamanReport())));
+        for(String key:List.of("isPolicyQaPassed","isExpectationApproved")) {
+            var row=hamanReport();row.put(key,true);assertFalse(validHaman(List.of(row)));
+        }
+        for(String key:List.of("originalFilesRemoved","bodyStageComplete","discoveryComplete","requiresFinalAdminVerification")) {
+            var row=hamanReport();row.put(key,false);assertFalse(validHaman(List.of(row)));
+        }
+        for(String key:List.of("binaryHash","format","extractorVersion","quality","segmentAnalysisHash")) {
+            var row=hamanReport();((ObjectNode)row.at("/files/0")).put(key,"changed");assertFalse(validHaman(List.of(row)));
+        }
+        for(String key:List.of("productionWriteCount","maximumRequestReservations","maximumReservedBytes","discoveredFileCount")) {
+            var row=hamanReport();row.put(key,"6");assertFalse(validHaman(List.of(row)));
+        }
+        var row=hamanReport();row.put("requestReservationsIncludingBodyUpperBound",7);assertFalse(validHaman(List.of(row)));
+        row=hamanReport();row.put("reservedBytesIncludingBodyUpperBound",24117249);assertFalse(validHaman(List.of(row)));
+        row=hamanReport();row.put("caseCode","HAMAN-43065");assertFalse(validHaman(List.of(row)));
+        row=hamanReport();row.put("observedAt",START.minusSeconds(1).toString());assertFalse(validHaman(List.of(row)));
+    }
+    @Test void hamanPartialTextRequiresDiagnosticsAndCannotBecomeCompleteOrAccepted() throws Exception {
+        var row=hamanReport();var file=(ObjectNode)row.at("/files/0");
+        file.put("quality","PARTIAL_TEXT");file.remove(List.of("roleAssessment","segmentAnalysis","segmentAnalysisHash"));
+        file.putArray("hwpPartialCauses").addObject().put("code","UNSUPPORTED_CONTROL").put("count",1);
+        row.put("isWholeTextAnalysisComplete",false);assertTrue(validHaman(List.of(row)));
+        row.put("isWholeTextAnalysisComplete",true);assertFalse(validHaman(List.of(row)));
+        row.put("isWholeTextAnalysisComplete",false).put("decisionStatus","ACCEPTED");assertFalse(validHaman(List.of(row)));
+        row.put("decisionStatus","REVIEW_REQUIRED");file.remove("hwpStructure");assertFalse(validHaman(List.of(row)));
     }
     @Test void dalseongHeaderModeRequiresOnePinnedNoticeAndValidatedHeaderMetadata() throws Exception {
         var row=(ObjectNode)dalseongReports().getFirst();var rows=List.<JsonNode>of(row);

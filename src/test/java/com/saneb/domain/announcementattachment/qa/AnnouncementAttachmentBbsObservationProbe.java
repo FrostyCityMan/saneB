@@ -40,7 +40,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -71,6 +71,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectThreeReportsComplete(reports, startedAt, endedAt, boeun ? "BOEUN" : "OKCHEON", diagnostic);
     }
     static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, String group, boolean diagnostic) {
+        if ("HAMAN".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,true);
         if ("DALSEONG".equals(group)) return selectDalseongReportsComplete(reports,startedAt,endedAt);
         if ("DALSEONG_HEADER".equals(group)) return selectDalseongReportsComplete(reports,startedAt,endedAt,true);
         if (!Set.of("BOEUN", "OKCHEON", "NAMGU", "NAMGU_STRUCTURE").contains(group)) return false;
@@ -160,15 +161,19 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectDalseongReportsComplete(reports,startedAt,endedAt,false);
     }
     static boolean selectDalseongReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt,boolean header) {
-        int caseCount=header?1:3;
+        return selectSaeolReportsComplete(reports,startedAt,endedAt,header,false);
+    }
+    private static boolean selectSaeolReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt,boolean header,boolean haman) {
+        int caseCount=header||haman?1:3;
         if(reports==null||reports.size()!=caseCount||startedAt==null||endedAt==null||endedAt.isBefore(startedAt))return false;
         for(int index=0;index<caseCount;index++) {
-            var row=reports.get(index);String code=DALSEONG_CASES.get(index);var hashes=selectDalseongBinaryHashes(code);int count=hashes.size();
+            var row=reports.get(index);String code=haman?"HAMAN-41306":DALSEONG_CASES.get(index);
+            var hashes=haman?List.of("c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97"):selectDalseongBinaryHashes(code);int count=hashes.size();
             if(row==null||!code.equals(row.path("caseCode").asText()))return false;
             try {var time=Instant.parse(row.path("observedAt").asText());if(time.isBefore(startedAt)||time.isAfter(endedAt))return false;}
             catch(java.time.format.DateTimeParseException invalid){return false;}
             if(!"OFFICIAL_THREE_STAGE_OBSERVATION_V1".equals(row.path("scope").asText())
-                    ||!"LOCAL_DAEGU_DALSEONG_GET_V1".equals(row.path("profileCode").asText())
+                    ||!(haman?"LOCAL_HAMAN_GET_V1":"LOCAL_DAEGU_DALSEONG_GET_V1").equals(row.path("profileCode").asText())
                     ||!"OBSERVED_NOT_VALIDATED".equals(row.path("status").asText())
                     ||!"COMBINATION_MATCHED".equals(row.path("titleStage").asText())
                     ||!"AVAILABLE".equals(row.path("bodyStatus").asText())||!selectBoolean(row,"bodyStageComplete",true)
@@ -182,7 +187,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     ||!Set.of("ACCEPTED","REVIEW_REQUIRED").contains(row.path("decisionStatus").asText()))return false;
             boolean whole=true;
             for(int fileIndex=0;fileIndex<count;fileIndex++) {
-                var file=row.path("files").get(fileIndex);String format=index==0&&fileIndex==0?"PDF":"HWP";
+                var file=row.path("files").get(fileIndex);String format=!haman&&index==0&&fileIndex==0?"PDF":"HWP";
                 if(!"OBSERVED".equals(file.path("status").asText())||!format.equals(file.path("format").asText())
                         ||!hashes.get(fileIndex).equals(file.path("binaryHash").asText())||!selectBoolean(file,"downloadAllowed",true)
                         ||!selectBounded(file,"bytes",1,20971520)
@@ -374,9 +379,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean namgu = "NAMGU_OBSERVATION".equals(mode) || structure;
             boolean header="DALSEONG_HEADER".equals(mode);
             boolean dalseong = "DALSEONG_OBSERVATION".equals(mode)||header;
+            boolean haman = "HAMAN_OBSERVATION".equals(mode);
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
-            boolean three = okcheon || boeun || namgu || dalseong;
-            String group = header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            boolean three = okcheon || boeun || namgu || dalseong || haman;
+            String group = haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
             result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
@@ -421,7 +427,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
@@ -430,7 +436,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
             passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
-                    && (structure||header?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                    && (structure||header||haman?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))

@@ -20,6 +20,39 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_haman_one_notice_uses_existing_budget_and_rejects_changed_file_or_false_completion(self):
+        import copy
+        mode='HAMAN_OBSERVATION';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('HAMAN-41306',['HAMAN-41306'],6,24117248),scope)
+        self.assertLessEqual(8+scope[2],60);self.assertLessEqual(6399210+scope[3],100663296)
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        for cases in ([],['HAMAN-43065'],['HAMAN-41306','HAMAN-41306']):
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,caseCodes=cases),mode)
+        row=dict(caseCode='HAMAN-41306',scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_HAMAN_GET_V1',
+            status='OBSERVED_NOT_VALIDATED',productionWriteCount=0,isPolicyQaPassed=False,isExpectationApproved=False,originalFilesRemoved=True,
+            bodyStageComplete=True,bodyStatus='AVAILABLE',discoveryStatus='FOUND',discoveryComplete=True,requiresFinalAdminVerification=True,
+            expectedListedFileCount=1,discoveredFileCount=1,maximumRequestReservations=6,maximumReservedBytes=24117248,
+            requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2300000,
+            decisionStatus='REVIEW_REQUIRED',isWholeTextAnalysisComplete=False,
+            files=[dict(binaryHash='c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97',status='OBSERVED',quality='PARTIAL_TEXT',format='HWP')])
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',productionDatabaseUsed=False,isPolicyQaPassed=False,isExpectationApproved=False,reports=[row])
+        self.unit['validate_probe_scope'](report,mode)
+        for field,value in [('caseCode','HAMAN-43065'),('profileCode','LOCAL_DAEGU_DALSEONG_GET_V1'),('productionWriteCount',True),
+                ('isPolicyQaPassed',True),('isExpectationApproved',True),('originalFilesRemoved',False),('requiresFinalAdminVerification',False),
+                ('maximumRequestReservations',44),('requestReservationsIncludingBodyUpperBound',7),('reservedBytesIncludingBodyUpperBound',24117249),
+                ('discoveredFileCount',2),('bodyStatus','UNAVAILABLE'),('decisionStatus','ACCEPTED'),('isWholeTextAnalysisComplete',True)]:
+            invalid=copy.deepcopy(report);invalid['reports'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for field,value in [('binaryHash','a'*64),('format','PDF'),('status','FAILED')]:
+            invalid=copy.deepcopy(report);invalid['reports'][0]['files'][0][field]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        invalid=copy.deepcopy(report);invalid['reports'].append(copy.deepcopy(row))
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+
     def test_dalseong_mode_pins_all_four_files_and_preserves_cumulative_budget(self):
         import copy
         mode='DALSEONG_OBSERVATION';scope=self.runner['SCOPES'][mode]
