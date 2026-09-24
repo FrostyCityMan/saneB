@@ -116,7 +116,7 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8").contains(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
     }
@@ -154,7 +154,7 @@ public class IsolatedAttachmentExtractor {
     public static JsonNode selectHwpStructureDetails(JsonNode result) throws IOException {
         if (result == null || !result.has("hwpStructure")) return null;
         JsonNode value = result.path("hwpStructure");
-        if (!"HWP".equals(result.path("format").asText()) || !value.isObject() || value.size() != 4
+        if (!"HWP".equals(result.path("format").asText()) || !value.isObject() || value.size() != (value.has("controlHeaders")?5:4)
                 || !value.has("sectionCount") || !value.has("recordCount")
                 || !value.has("maximumLevel") || !value.has("recordTypes"))
             throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
@@ -175,7 +175,33 @@ public class IsolatedAttachmentExtractor {
             sum += selectBoundedDiagnosticInt(type.path("count"), 1, 33_554_432);
         }
         if (sum != count) throw new IOException("INVALID_HWP_STRUCTURE_DIAGNOSTIC");
+        if(value.has("controlHeaders"))validateControlHeaders(value.path("controlHeaders"),types);
         return value.deepCopy();
+    }
+    private static void validateControlHeaders(JsonNode headers,JsonNode types) throws IOException {
+        final String error="INVALID_HWP_STRUCTURE_DIAGNOSTIC";
+        if(!headers.isArray()||headers.size()>128)throw new IOException(error);
+        long expected=0,sum=0;for(var type:types)if(type.path("tagId").intValue()==71)expected=type.path("count").intValue();
+        String previousKind="",previousShape="";int previousBytes=-1,previousTail=-1;
+        for(var row:headers) {
+            String kind=row.path("kind").asText(),shape=row.path("shape").asText();
+            if(!row.isObject()||row.size()!=5||!row.path("kind").isTextual()||!row.path("shape").isTextual()
+                    ||!List.of("TABLE","SECTION","COLUMN","HYPERLINK","OTHER").contains(kind)
+                    ||!List.of("NOT_TABLE","COMMON_ONLY","FIXED_ONLY","SHORT","DECLARED_TOO_LONG","EXTENDED_EXACT","EXTRA_ZERO","EXTRA_NONZERO").contains(shape))throw new IOException(error);
+            int bytes=selectBoundedDiagnosticInt(row.path("bytes"),0,8388608),tail=selectBoundedDiagnosticInt(row.path("tailBytes"),0,8388608);
+            sum+=selectBoundedDiagnosticInt(row.path("count"),1,33554432);
+            int order=kind.compareTo(previousKind);if(order==0){order=Integer.compare(bytes,previousBytes);if(order==0){order=shape.compareTo(previousShape);if(order==0)order=Integer.compare(tail,previousTail);}}
+            if(order<=0||tail>bytes)throw new IOException(error);
+            boolean extra=List.of("EXTRA_ZERO","EXTRA_NONZERO").contains(shape);
+            if(!"TABLE".equals(kind)) {if(!"NOT_TABLE".equals(shape)||tail!=0)throw new IOException(error);}
+            else if("NOT_TABLE".equals(shape)||("COMMON_ONLY".equals(shape)&&bytes!=40)||("FIXED_ONLY".equals(shape)&&bytes!=44)
+                    ||("SHORT".equals(shape)&&(bytes>=46||bytes==40||bytes==44))
+                    ||(List.of("DECLARED_TOO_LONG","EXTENDED_EXACT","EXTRA_ZERO","EXTRA_NONZERO").contains(shape)&&bytes<46)
+                    ||(extra?(tail<1||bytes-tail<46||(bytes-tail)%2!=0):tail!=0)
+                    ||("EXTENDED_EXACT".equals(shape)&&bytes%2!=0))throw new IOException(error);
+            previousKind=kind;previousBytes=bytes;previousShape=shape;previousTail=tail;
+        }
+        if(sum!=expected)throw new IOException(error);
     }
     private static int selectBoundedDiagnosticInt(JsonNode value, int minimum, int maximum) throws IOException {
         if (!value.isIntegralNumber() || !value.canConvertToInt() || value.intValue() < minimum || value.intValue() > maximum)

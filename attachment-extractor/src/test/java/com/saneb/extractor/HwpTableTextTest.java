@@ -269,6 +269,27 @@ class HwpTableTextTest {
         assertEquals("PARTIAL_TEXT",select(join(body,record(85,3,new byte[8]))).qualityCode());
     }
 
+    @ParameterizedTest @ValueSource(booleans={false,true})
+    void observedEmptyDescriptionWithExactlyTwoZeroBytesPreservesTableEvidence(boolean compressed) throws Exception {
+        byte[] source=body(paragraph("앞",table(1,2,cell(0,0,"소상공인"),cell(0,1,"지원금")),"뒤"));
+        byte[] padded=replace(source,71,0,data->java.util.Arrays.copyOf(data,48));
+        var result=AttachmentExtractorMain.selectExtraction(file(padded,compressed));
+        assertComplete(result,"앞","소상공인","지원금","뒤");assertScopes(result);
+        assertEquals(select(source).blocks(),result.blocks());
+        assertTrue(result.hwpStructure().controlHeaders().contains(new ExtractionResult.ControlHeader("TABLE",48,"EXTRA_ZERO",2,1)));
+        assertEquals("PARTIAL_TEXT",select(mutate(padded,72,0,b->b.putShort(12,(short)3))).qualityCode());
+    }
+
+    @Test void nonzeroAndLongerTableExtensionsStillRequireReview() throws Exception {
+        byte[] source=body(paragraph(table(1,1,cell(0,0,"내용 보존"))));
+        for(int offset:new int[]{46,47}) {
+            var result=select(replace(source,71,0,data->{var padded=java.util.Arrays.copyOf(data,48);padded[offset]=1;return padded;}));
+            assertEquals("PARTIAL_TEXT",result.qualityCode());assertEquals("내용 보존",result.text());
+            assertFalse(result.blocks().getFirst().scopeReliable());
+        }
+        assertEquals("PARTIAL_TEXT",select(replace(source,71,0,data->java.util.Arrays.copyOf(data,50))).qualityCode());
+    }
+
     @Test void malformedAnchorLengthOrClosingCharacterIsCorrupt() throws Exception {
         assertEquals("CORRUPT",assertThrows(IOException.class,()->select(record(67,0,new byte[]{11,0,1,0}))).getMessage());
         byte[] anchor=anchor();anchor[14]=12;

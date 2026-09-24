@@ -40,7 +40,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -72,6 +72,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
     }
     static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, String group, boolean diagnostic) {
         if ("DALSEONG".equals(group)) return selectDalseongReportsComplete(reports,startedAt,endedAt);
+        if ("DALSEONG_HEADER".equals(group)) return selectDalseongReportsComplete(reports,startedAt,endedAt,true);
         if (!Set.of("BOEUN", "OKCHEON", "NAMGU", "NAMGU_STRUCTURE").contains(group)) return false;
         boolean structure="NAMGU_STRUCTURE".equals(group);
         boolean boeun = "BOEUN".equals(group), namgu = "NAMGU".equals(group) || structure;
@@ -156,8 +157,12 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         };
     }
     static boolean selectDalseongReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt) {
-        if(reports==null||reports.size()!=3||startedAt==null||endedAt==null||endedAt.isBefore(startedAt))return false;
-        for(int index=0;index<3;index++) {
+        return selectDalseongReportsComplete(reports,startedAt,endedAt,false);
+    }
+    static boolean selectDalseongReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt,boolean header) {
+        int caseCount=header?1:3;
+        if(reports==null||reports.size()!=caseCount||startedAt==null||endedAt==null||endedAt.isBefore(startedAt))return false;
+        for(int index=0;index<caseCount;index++) {
             var row=reports.get(index);String code=DALSEONG_CASES.get(index);var hashes=selectDalseongBinaryHashes(code);int count=hashes.size();
             if(row==null||!code.equals(row.path("caseCode").asText()))return false;
             try {var time=Instant.parse(row.path("observedAt").asText());if(time.isBefore(startedAt)||time.isAfter(endedAt))return false;}
@@ -190,6 +195,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                 if("HWP".equals(format)&&Set.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED").contains(file.path("quality").asText())) {
                     try {
                         if(com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpStructureDetails(file)==null)return false;
+                        if(header&&(!file.at("/hwpStructure/controlHeaders").isArray()||file.at("/hwpStructure/controlHeaders").isEmpty()))return false;
                         var diagnostic=(com.fasterxml.jackson.databind.node.ObjectNode)file.deepCopy();diagnostic.set("qualityCode",file.path("quality"));
                         if(com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpPartialCauseList(diagnostic)==null)return false;
                     } catch(java.io.IOException invalid){return false;}
@@ -366,10 +372,11 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean boeun = Set.of("BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC").contains(mode);
             boolean structure="NAMGU_STRUCTURE".equals(mode);
             boolean namgu = "NAMGU_OBSERVATION".equals(mode) || structure;
-            boolean dalseong = "DALSEONG_OBSERVATION".equals(mode);
+            boolean header="DALSEONG_HEADER".equals(mode);
+            boolean dalseong = "DALSEONG_OBSERVATION".equals(mode)||header;
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
             boolean three = okcheon || boeun || namgu || dalseong;
-            String group = dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            String group = header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
             result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
@@ -414,7 +421,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
@@ -423,7 +430,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
             passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
-                    && (structure?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                    && (structure||header?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))

@@ -25,6 +25,7 @@ SCOPES = {
     'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472),
     'NAMGU_STRUCTURE': ('NAMGU-44381', ['NAMGU-44381'], 5, 25165824),
     'DALSEONG_OBSERVATION': ('DALSEONG-THREE-NOTICES', ['DALSEONG-51022', 'DALSEONG-52145', 'DALSEONG-51075'], 18, 72351744),
+    'DALSEONG_HEADER': ('DALSEONG-51022', ['DALSEONG-51022'], 6, 24117248),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -54,7 +55,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -140,10 +141,10 @@ def validate_probe_scope(report,mode):
                         or files[0].get('quality')!='COMPLETE_TEXT' or not isinstance(files[0].get('structureSummary'),dict)
                         or files[0].get('binaryHash')!='69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8'
                         or files[0].get('textHash')!='7181d23cb9973622cf14e2a6edfbed42424b06ad13a91eb53ed55d158d77161a'):raise ValueError('PROBE_OUTPUT_INVALID')
-    if mode=='DALSEONG_OBSERVATION' and report.get('status')=='PASSED':
+    if mode in ('DALSEONG_OBSERVATION','DALSEONG_HEADER') and report.get('status')=='PASSED':
         rows=report.get('reports')
         if (report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
-                or report.get('isExpectationApproved') is not False or not isinstance(rows,list) or len(rows)!=3
+                or report.get('isExpectationApproved') is not False or not isinstance(rows,list) or len(rows)!=len(SCOPES[mode][1])
                 or any(not isinstance(row,dict) for row in rows)
                 or [row.get('caseCode') for row in rows]!=SCOPES[mode][1]):raise ValueError('PROBE_OUTPUT_INVALID')
         expected=[['1dc0fd0deeb1d892bb125ec567c71bc3111fb9ecf861f52e7107c6877ec88fdb','6dd8d582a0c8d6cbe2f22376002d737eb15aab98a28ac0e8f612bdc1e1837fb4'],
@@ -166,6 +167,9 @@ def validate_probe_scope(report,mode):
                         or file.get('format')!=('PDF' if index==0 and file_index==0 else 'HWP')
                         or file.get('quality') not in ('COMPLETE_TEXT','PARTIAL_TEXT','OCR_REQUIRED','ENCRYPTED','CORRUPT','UNSUPPORTED','LIMIT_EXCEEDED')):raise ValueError('PROBE_OUTPUT_INVALID')
             whole=all(file.get('quality')=='COMPLETE_TEXT' for file in files)
+            if mode=='DALSEONG_HEADER':
+                headers=files[1].get('hwpStructure',{}).get('controlHeaders')
+                if not isinstance(headers,list) or not 1<=len(headers)<=128:raise ValueError('PROBE_OUTPUT_INVALID')
             if (row.get('isWholeTextAnalysisComplete') is not whole or row.get('decisionStatus') not in ('ACCEPTED','REVIEW_REQUIRED')
                     or (not whole and row.get('decisionStatus')!='REVIEW_REQUIRED')):raise ValueError('PROBE_OUTPUT_INVALID')
 

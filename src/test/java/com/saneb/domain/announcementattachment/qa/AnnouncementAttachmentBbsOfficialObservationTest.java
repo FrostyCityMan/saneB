@@ -49,6 +49,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("DALSEONG_HEADER".equals(group))return selectCases("DALSEONG").filter(sample->"DALSEONG-51022".equals(sample.code()));
         if("DALSEONG".equals(group)) return Stream.of(
                 selectDalseongCase("51022","2026년 달성군 중소기업 경영안정자금(이차보전) 지원사업 공고",2),
                 selectDalseongCase("52145","2026년 달성군 소상공인 카드수수료 지원사업 공고",1),

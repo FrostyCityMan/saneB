@@ -60,6 +60,26 @@ class HwpStructureDiagnosticTest {
                 "recordTypes":[{"tagId":67,"count":1},{"tagId":77,"count":1}]}}
                 """);
     }
+    @Test void optionalControlHeadersAreBoundedOrderedAndMustAccountForEveryControl() throws Exception {
+        var input=valid();var summary=(ObjectNode)input.path("hwpStructure");
+        summary.putArray("recordTypes").addObject().put("tagId",71).put("count",2);
+        var headers=summary.putArray("controlHeaders");
+        headers.addObject().put("kind","TABLE").put("bytes",52).put("shape","EXTRA_ZERO").put("tailBytes",6).put("count",2);
+        assertEquals(headers,IsolatedAttachmentExtractor.selectHwpStructureDetails(input).path("controlHeaders"));
+        for(String field:new String[]{"kind","shape","bytes","tailBytes","count"}) {
+            var invalid=input.deepCopy();((ObjectNode)invalid.at("/hwpStructure/controlHeaders/0")).put(field,"PRIVATE_CANARY");assertInvalid(invalid);
+        }
+        for(String field:new String[]{"bytes","tailBytes","count"}) {
+            var invalid=input.deepCopy();((ObjectNode)invalid.at("/hwpStructure/controlHeaders/0")).put(field,-1);assertInvalid(invalid);
+        }
+        for(String shape:new String[]{"NOT_TABLE","COMMON_ONLY","FIXED_ONLY","SHORT","EXTENDED_EXACT","DECLARED_TOO_LONG"}) {
+            var invalid=input.deepCopy();((ObjectNode)invalid.at("/hwpStructure/controlHeaders/0")).put("shape",shape);assertInvalid(invalid);
+        }
+        var invalid=input.deepCopy();((ObjectNode)invalid.at("/hwpStructure/controlHeaders/0")).put("raw","PRIVATE_CANARY");assertInvalid(invalid);
+        invalid=input.deepCopy();((ObjectNode)invalid.at("/hwpStructure/controlHeaders/0")).put("count",1);assertInvalid(invalid);
+        invalid=input.deepCopy();((com.fasterxml.jackson.databind.node.ArrayNode)invalid.at("/hwpStructure/controlHeaders")).add(headers.get(0).deepCopy());assertInvalid(invalid);
+        summary.putArray("controlHeaders");assertInvalid(input);
+    }
     private void assertInvalid(JsonNode value) {
         var error=assertThrows(IOException.class,()->IsolatedAttachmentExtractor.selectHwpStructureDetails(value));
         assertEquals("INVALID_HWP_STRUCTURE_DIAGNOSTIC",error.getMessage());

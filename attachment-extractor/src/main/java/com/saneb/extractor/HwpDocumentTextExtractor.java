@@ -19,6 +19,7 @@ final class HwpDocumentTextExtractor {
         TextEvidence evidence = new TextEvidence();
         int sectionCount = 0, recordCount = 0, maximumLevel = 0;
         int[] recordTypes = new int[1024];
+        var controlHeaders=new HwpControlHeaderSummary();
         try (POIFSFileSystem ole = new POIFSFileSystem(file.toFile(), true)) {
             DirectoryNode root = ole.getRoot();
             if (!root.hasEntry("FileHeader")) return ExtractionResult.failure("UNSUPPORTED");
@@ -65,6 +66,7 @@ final class HwpDocumentTextExtractor {
                             throw new IOException("LIMIT_EXCEEDED");
                         recordCount++;
                         recordTypes[tag]++;
+                        if(tag==71)controlHeaders.insert(data);
                         maximumLevel = Math.max(maximumLevel, (record >>> 10) & 1023);
                         text.insertRecord(tag,(record >>> 10) & 1023,data);
                     }
@@ -78,6 +80,6 @@ final class HwpDocumentTextExtractor {
         var result = evidence.selectResult("HWP", null);
         return new ExtractionResult(result.format(), result.extractorVersion(), result.qualityCode(),
                 result.text(), result.blocks(), result.pageCount(), result.errorCode(),
-                new ExtractionResult.HwpStructure(sectionCount, recordCount, maximumLevel, types), null, result.hwpPartialCauses());
+                new ExtractionResult.HwpStructure(sectionCount, recordCount, maximumLevel, types,controlHeaders.select()), null, result.hwpPartialCauses());
     }
 }

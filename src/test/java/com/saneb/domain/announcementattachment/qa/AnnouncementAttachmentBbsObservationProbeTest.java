@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -81,6 +81,17 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     }
     private boolean validDalseong(List<JsonNode> reports) {
         return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),"DALSEONG",false);
+    }
+    @Test void dalseongHeaderModeRequiresOnePinnedNoticeAndValidatedHeaderMetadata() throws Exception {
+        var row=(ObjectNode)dalseongReports().getFirst();var rows=List.<JsonNode>of(row);
+        java.util.function.BooleanSupplier valid=()->AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"DALSEONG_HEADER",false);
+        assertFalse(valid.getAsBoolean());
+        var structure=(ObjectNode)row.at("/files/1/hwpStructure");
+        structure.putArray("recordTypes").addObject().put("tagId",71).put("count",2);
+        structure.putArray("controlHeaders").addObject().put("kind","TABLE").put("bytes",54).put("shape","EXTRA_ZERO").put("tailBytes",8).put("count",2);
+        assertTrue(valid.getAsBoolean());assertFalse(validDalseong(rows));
+        ((ObjectNode)structure.at("/controlHeaders/0")).put("raw","PRIVATE_CANARY");assertFalse(valid.getAsBoolean());
+        assertEquals(List.of("DALSEONG-51022"),AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG_HEADER").map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList());
     }
     @Test void dalseongRequiresAllFourPinnedFilesAndDoesNotApproveExpectations() throws Exception {
         assertTrue(validDalseong(dalseongReports()));assertFalse(validDalseong(namguReports()));

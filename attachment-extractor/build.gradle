@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.saneb'
-version = '1.0.8'
+version = '1.0.10'
 java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 application { mainClass = 'com.saneb.extractor.AttachmentExtractorMain' }
 dependencies {

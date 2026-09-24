@@ -31,7 +31,7 @@ class HwpStructureEvidenceTest {
         assertEquals(List.of(new ExtractionResult.RecordType(66,1),new ExtractionResult.RecordType(67,3),
                 new ExtractionResult.RecordType(77,1)),result.hwpStructure().recordTypes());
         var json=new ObjectMapper().valueToTree(result.hwpStructure());
-        assertEquals(4,json.size());assertFalse(json.toString().contains("소상공인"));
+        assertEquals(5,json.size());assertTrue(json.path("controlHeaders").isEmpty());assertFalse(json.toString().contains("소상공인"));
         assertFalse(json.toString().contains("연락처"));
         assertTrue(result.text().contains("소상공인 지원사업"));
         assertThrows(UnsupportedOperationException.class,()->result.hwpStructure().recordTypes().clear());

@@ -231,7 +231,9 @@ final class HwpSectionText {
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
             // 개체 공통 필드는 ctrl ID 포함40바이트다. 뒤의 분할 방지/설명은 선택 영역이다.
-            validHeader=id!=TABLE || data.length==40 || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44));
+            validHeader=id!=TABLE || data.length==40 || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44))
+                    // 실제 고정 공고에서 검증한 빈 설명 뒤 0값2바이트 확장만 추가 지원한다.
+                    || (data.length==48 && unsigned(data,44)==0 && unsigned(data,46)==0);
             if (!validHeader) invalidTableReasons.add(TABLE_CONTROL_HEADER);
             if (id==HYPERLINK && data.length>=15) {
                 int expected=15+2*unsigned(data,9);

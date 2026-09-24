@@ -11,7 +11,7 @@ public record ExtractionResult(String format, String extractorVersion, String qu
         HwpxStructure hwpxStructure,
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
         List<PartialCause> hwpPartialCauses) {
-    public static final String VERSION = "1.0.8";
+    public static final String VERSION = "1.0.10";
     /** 고정된 검증 실패 종류다. 원본 문자열이나 컨트롤 ID를 코드로 사용하지 않는다. */
     public enum HwpPartialCause {
         UNATTACHED_PARAGRAPH, PARAGRAPH_LEVEL_GAP, UNATTACHED_TEXT, CONTROL_LEVEL_GAP,
@@ -27,9 +27,13 @@ public record ExtractionResult(String format, String extractorVersion, String qu
     public record Block(int index, int startOffset, int endOffset, String locator,
             String evidenceScopeId, boolean scopeReliable) { }
     /** 수치만 있는 격리 IPC 진단이다. 원문/파일명/컨트롤 payload를 포함하지 않는다. */
-    public record HwpStructure(int sectionCount, int recordCount, int maximumLevel, List<RecordType> recordTypes) {
-        public HwpStructure { recordTypes = List.copyOf(recordTypes); }
+    public record HwpStructure(int sectionCount, int recordCount, int maximumLevel, List<RecordType> recordTypes,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+            List<ControlHeader> controlHeaders) {
+        public HwpStructure { recordTypes = List.copyOf(recordTypes); if(controlHeaders!=null)controlHeaders=List.copyOf(controlHeaders); }
+        public HwpStructure(int sections,int records,int level,List<RecordType> types){this(sections,records,level,types,null);}
     }
+    public record ControlHeader(String kind,int bytes,String shape,int tailBytes,int count) { }
     public record RecordType(int tagId, int count) { }
     /** 원문/속성/파일명 없이 부분 추출 원인을 구분하는 수치 진단이다. */
     public record HwpxStructure(int sectionCount, int paragraphCount, int pictureCount,

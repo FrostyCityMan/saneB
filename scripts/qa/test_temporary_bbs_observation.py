@@ -44,6 +44,14 @@ class TemporaryBbsObservationTest(unittest.TestCase):
                 files=[dict(binaryHash=value,status='OBSERVED',quality='COMPLETE_TEXT',format='PDF' if index==0 and j==0 else 'HWP') for j,value in enumerate(hashes[index])]))
         report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,status='PASSED',productionDatabaseUsed=False,isPolicyQaPassed=False,isExpectationApproved=False,reports=rows)
         self.unit['validate_probe_scope'](report,mode)
+        single=copy.deepcopy(report);single['verificationMode']='DALSEONG_HEADER';single['reports']=single['reports'][:1]
+        self.assertEqual(('DALSEONG-51022',['DALSEONG-51022'],6,24117248),self.runner['SCOPES']['DALSEONG_HEADER'])
+        self.assertLessEqual(42+6,60);self.assertLessEqual(33664851+24117248,100663296)
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](single,'DALSEONG_HEADER')
+        single['reports'][0]['files'][1]['hwpStructure']={'controlHeaders':[{'kind':'TABLE','bytes':54,'shape':'EXTRA_ZERO','tailBytes':8,'count':2}]}
+        self.unit['validate_probe_scope'](single,'DALSEONG_HEADER')
+        single['reports'].append(copy.deepcopy(single['reports'][0]))
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](single,'DALSEONG_HEADER')
         for field,value in [('productionWriteCount',True),('maximumRequestReservations',44),('requiresFinalAdminVerification',False),('discoveredFileCount',1),('bodyStatus','UNAVAILABLE')]:
             invalid=copy.deepcopy(report);invalid['reports'][0][field]=value
             with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
