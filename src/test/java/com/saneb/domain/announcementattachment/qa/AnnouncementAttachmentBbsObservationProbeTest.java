@@ -43,7 +43,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void onlyExplicitModesCanChooseFixedScope() {
         String hash = "a".repeat(64);
         assertEquals("OBSERVATION", AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash}));
-        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION"))
+        for (String mode : List.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC"))
             assertEquals(mode, AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{hash, mode}));
         for (String[] args : new String[][]{{}, {"bad"}, {hash,"OTHER"}, {hash,"TAEBAEK_HWP"}, {hash,"OKCHEON","extra"}})
             assertThrows(IllegalArgumentException.class, () -> AnnouncementAttachmentBbsObservationProbe.selectMode(args));
@@ -53,6 +53,29 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         for (long[] v : new long[][]{{0,0,0,0,0,0},{2,2,0,0,0,0},{3,2,1,0,0,0},{3,2,0,1,0,0},
                 {3,2,0,0,1,0},{3,3,0,0,0,1},{4,4,0,0,0,0}})
             assertFalse(AnnouncementAttachmentBbsObservationProbe.selectOkcheonComplete(v[0],v[1],v[2],v[3],v[4],v[5]));
+    }
+    @Test void diagnosticModeUsesReducedBudgetAndRejectsThePriorLargerReceipt() throws Exception {
+        for (boolean boeun : List.of(false,true)) {
+            var reports=boeun?boeunReports():okcheonReports();
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
+            for(var report:reports)((ObjectNode)report).put("maximumRequestReservations",20).put("maximumReservedBytes",33554432);
+            assertTrue(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,false));
+            ((ObjectNode)reports.getFirst()).put("requestReservationsIncludingBodyUpperBound",21);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
+            ((ObjectNode)reports.getFirst()).put("requestReservationsIncludingBodyUpperBound",4).put("reservedBytesIncludingBodyUpperBound",33554433);
+            assertFalse(AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(reports,START,START.plusSeconds(60),boeun,true));
+        }
+    }
+    @Test void reducedBudgetReservesBodyFirstAndStopsBeforeAdditionalHttpOrBytes() {
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("BOEUN").findFirst().orElseThrow();
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),true);
+        budget.reserveBody(); assertEquals(2,budget.requests); assertEquals(2097152,budget.bytes);
+        var request=com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request.selectGet(sample.profile().selectDetailUri(sample.source()));
+        for(int i=0;i<18;i++)assertTrue(budget.selectRequestAllowed(request));
+        assertFalse(budget.selectRequestAllowed(request)); assertEquals(20,budget.requests);
+        assertTrue(budget.saveBytes(30L*1024*1024)); assertFalse(budget.saveBytes(1));
+        assertEquals(33554432,budget.bytes);
     }
     @Test void temporaryScopeMatchesActualJUnitCaseSelection() {
         var cases = AnnouncementAttachmentBbsOfficialObservationTest.selectCases("OKCHEON").toList();

@@ -64,6 +64,22 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/local/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/local/bin/aws', self.unit['aws_binary']())
 
+    def test_diagnostic_modes_keep_cases_but_reduce_remaining_approved_budget(self):
+        self.unit['cfg']={'codeHash':'a'*64}
+        for mode, original, used_requests, used_bytes in [('BOEUN_DIAGNOSTIC','BOEUN_OBSERVATION',12,7391673),
+                                                       ('OKCHEON_DIAGNOSTIC','OKCHEON',8,5630612)]:
+            scope=self.runner['SCOPES'][mode]
+            self.assertEqual(self.runner['SCOPES'][original][:2],scope[:2])
+            self.assertEqual((60,100663296),scope[2:])
+            self.assertLessEqual(used_requests+scope[2],132)
+            self.assertLessEqual(used_bytes+scope[3],251658240)
+            self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+            self.assertEqual(pathlib.Path('/tmp/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/tmp/package'),mode))
+            manifest={'schemaVersion':1,'caseCode':scope[0],'caseCodes':scope[1],'verificationMode':mode,'executionCodeHash':'a'*64}
+            self.unit['validate_manifest_scope'](manifest,mode)
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,verificationMode=original),mode)
+
     def test_boeun_reads_only_pinned_installed_qa_and_checks_code_hash(self):
         import hashlib
         import zipfile

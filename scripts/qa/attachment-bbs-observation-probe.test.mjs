@@ -26,6 +26,9 @@ test('태백 관측·고정 비교와 별도 옥천·보은3건 관측 모드만
   assert(!source.includes('OfficialWorkerProbe'));
   const java = readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsObservationProbe.java', 'utf8');
   assert(source.includes('"$5" == BOEUN_OBSERVATION'));
+  assert(source.includes('"$5" == BOEUN_DIAGNOSTIC'));
+  assert(source.includes('"$5" == OKCHEON_DIAGNOSTIC'));
+  assert(java.includes('"saneb.attachment-observation.diagnostic-budget", Boolean.toString(diagnostic)'));
   assert(java.includes('System.setProperty("saneb.attachment-observation.group", boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK")'));
   assert(java.includes('selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class)'));
   assert(java.includes('"saneb.attachment-fixed.maximum-requests","39"'));

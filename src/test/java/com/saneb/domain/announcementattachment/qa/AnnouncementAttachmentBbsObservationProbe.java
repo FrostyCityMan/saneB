@@ -38,7 +38,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -63,6 +63,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectThreeReportsComplete(reports, startedAt, endedAt, true);
     }
     private static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, boolean boeun) {
+        return selectThreeReportsComplete(reports, startedAt, endedAt, boeun, false);
+    }
+    static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, boolean boeun, boolean diagnostic) {
+        long maximumRequests = diagnostic ? 20 : 44, maximumBytes = diagnostic ? 33554432L : 83886080L;
         if (reports == null || reports.size() != 3 || startedAt == null || endedAt == null || endedAt.isBefore(startedAt)) return false;
         var caseCodes = boeun ? BOEUN_CASES : OKCHEON_CASES;
         var seen = new HashSet<String>();
@@ -78,10 +82,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !selectBounded(report, "productionWriteCount", 0, 0)
                     || !selectBoolean(report, "isPolicyQaPassed", false) || !selectBoolean(report, "isExpectationApproved", false)
                     || !selectBoolean(report, "originalFilesRemoved", true) || !selectBounded(report, "expectedListedFileCount", 1, 1)
-                    || !selectBounded(report, "maximumRequestReservations", 44, 44)
-                    || !selectBounded(report, "maximumReservedBytes", 83886080L, 83886080L)
-                    || !selectBounded(report, "requestReservationsIncludingBodyUpperBound", 0, 44)
-                    || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 0, 83886080L)
+                    || !selectBounded(report, "maximumRequestReservations", maximumRequests, maximumRequests)
+                    || !selectBounded(report, "maximumReservedBytes", maximumBytes, maximumBytes)
+                    || !selectBounded(report, "requestReservationsIncludingBodyUpperBound", 0, maximumRequests)
+                    || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 0, maximumBytes)
                     || !report.path("files").isArray()) return false;
             if (!boeun && "OKCHEON-193187".equals(report.path("caseCode").asText())) {
                 if (!"TITLE_NOT_ELIGIBLE_NOT_FETCHED".equals(report.path("status").asText())
@@ -100,8 +104,8 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     || !"FOUND".equals(report.path("discoveryStatus").asText()) || !selectBoolean(report, "discoveryComplete", true)
                     || !selectBounded(report, "discoveredFileCount", 1, 1) || report.path("files").size() != 1
                     || !selectBoolean(report, "requiresFinalAdminVerification", true)
-                    || !selectBounded(report, "requestReservationsIncludingBodyUpperBound", 3, 44)
-                    || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 1, 83886080L)
+                    || !selectBounded(report, "requestReservationsIncludingBodyUpperBound", 3, maximumRequests)
+                    || !selectBounded(report, "reservedBytesIncludingBodyUpperBound", 1, maximumBytes)
                     || !Set.of("ACCEPTED", "REVIEW_REQUIRED").contains(report.path("decisionStatus").asText())) return false;
             var file = report.path("files").get(0);
             String format = boeun && "BOEUN-218812".equals(report.path("caseCode").asText()) ? "PDF" : "HWPX";
@@ -228,8 +232,9 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         try {
             String mode = selectMode(args);
             boolean fixed = "FIXED".equals(mode);
-            boolean okcheon = "OKCHEON".equals(mode);
-            boolean boeun = "BOEUN_OBSERVATION".equals(mode);
+            boolean okcheon = Set.of("OKCHEON", "OKCHEON_DIAGNOSTIC").contains(mode);
+            boolean boeun = Set.of("BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC").contains(mode);
+            boolean diagnostic = mode.endsWith("_DIAGNOSTIC");
             boolean three = okcheon || boeun;
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
@@ -249,6 +254,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             System.setProperty("saneb.attachment-observation.extractor", "/qa/extractor");
             System.setProperty("saneb.attachment-observation.report", "/work/reports");
             System.setProperty("saneb.attachment-observation.group", boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK");
+            System.setProperty("saneb.attachment-observation.diagnostic-budget", Boolean.toString(diagnostic));
             if(fixed) {
                 // 동일 승인44요청/80MiB에서 앞선 관측5요청/2,377,939bytes를 공제한다.
                 System.setProperty("saneb.attachment-fixed.maximum-requests","39");
@@ -281,7 +287,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if (!three) result.put("report", reports.getFirst());
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
-            passed = three ? (boeun ? selectBoeunReportsComplete(reports, startedAt, Instant.now()) : selectOkcheonReportsComplete(reports, startedAt, Instant.now()))
+            passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), boeun, diagnostic)
                     && selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount())
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))

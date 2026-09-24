@@ -134,7 +134,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         report.put("status","INCOMPLETE");report.put("expectedListedFileCount",sample.listedFileCount());
         report.put("isWholeTextAnalysisComplete",false);
         var rows=new ArrayList<Map<String,Object>>();report.put("files",rows);
-        var budget=new Budget(profile);Path temporary=null;String stage="RUNTIME";
+        var budget=new Budget(profile, Boolean.getBoolean("saneb.attachment-observation.diagnostic-budget"));Path temporary=null;String stage="RUNTIME";
         try(var client=new AttachmentPinnedDownloadClient()) {
             assertTrue(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")
                     &&Files.isExecutable(Path.of("/usr/bin/bwrap"))&&Files.isExecutable(Path.of("/usr/bin/prlimit")),"LINUX_ISOLATION_REQUIRED");
@@ -216,7 +216,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         } catch(Exception|AssertionError failure) {report.put("failedStage",stage);report.put("failureCode",AnnouncementAttachmentOfficialObservationTest.selectFailureCode(failure));throw new AssertionError(sample.code()+": "+stage+" / OBSERVATION_INCOMPLETE");}
         finally {
             if(temporary!=null)try(var paths=Files.walk(temporary)){for(Path path:paths.sorted(Comparator.reverseOrder()).toList())Files.deleteIfExists(path);}
-            report.put("originalFilesRemoved",temporary==null||!Files.exists(temporary));report.put("maximumRequestReservations",44);report.put("maximumReservedBytes",80*MIB);
+            report.put("originalFilesRemoved",temporary==null||!Files.exists(temporary));report.put("maximumRequestReservations",budget.maximumRequests);report.put("maximumReservedBytes",budget.maximumBytes);
             report.put("requestReservationsIncludingBodyUpperBound",budget.requests);report.put("reservedBytesIncludingBodyUpperBound",budget.bytes);
             Path output=Path.of(System.getProperty("saneb.attachment-observation.report")).toAbsolutePath().normalize();Files.createDirectories(output);
             JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
@@ -263,14 +263,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     private static FileInput incompleteFile(String error){return new FileInput(UUID.randomUUID(),UUID.randomUUID(),"UNKNOWN","FAILED",null,List.of(),error);}
     static final class Budget {
         private final AttachmentDiscoveryProfile profile;
+        final int maximumRequests;
+        final long maximumBytes;
         Budget(){this(PROFILE);}
-        Budget(AttachmentDiscoveryProfile profile){this.profile=Objects.requireNonNull(profile);}
+        Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
+        Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
+            maximumRequests=diagnostic?20:44;maximumBytes=(diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
-        boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=44||Thread.currentThread().isInterrupted())return false;requests++;return true;}
+        boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request initial,AttachmentPinnedDownloadClient.Request r){
             return profile.selectApprovedRequest(initial,r)&&selectRequestAllowed(r);
         }
-        boolean saveBytes(long count){if(count<0||bytes>80*MIB-count||Thread.currentThread().isInterrupted())return false;bytes+=count;return true;}
+        boolean saveBytes(long count){if(count<0||bytes>maximumBytes-count||Thread.currentThread().isInterrupted())return false;bytes+=count;return true;}
     }
 }

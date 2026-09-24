@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 태백1건·옥천3건·보은3건의 명시된 관측만 허용한다. 자원 제한은 동일하다.
-[[ ( $# -eq 4 || ( $# -eq 5 && ( "$5" == FIXED || "$5" == OKCHEON || "$5" == BOEUN_OBSERVATION ) ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
+[[ ( $# -eq 4 || ( $# -eq 5 && ( "$5" == FIXED || "$5" == OKCHEON || "$5" == BOEUN_OBSERVATION || "$5" == BOEUN_DIAGNOSTIC || "$5" == OKCHEON_DIAGNOSTIC ) ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
 probe_flag=SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION
 probe_args=("$4")
 if [[ $# -eq 5 ]]; then

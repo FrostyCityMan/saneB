@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-24 재관측 누적 예산 감축
+
+- [x] 직전 진단 구현은 progress이며 사용자 전체 격리 QA 승인 범위에서 새 버전 실제 관측을 준비했다. BOEUN_DIAGNOSTIC/OKCHEON_DIAGNOSTIC은 기존 고정3건 그대로, 각20요청/32MiB(지역 합계60요청/96MiB)로 제한한다. 기존44요청/80MiB 모드와 결과 한도를 혼용하지 않는다.
+- [x] 앞선 보은12요청/7,391,673byte 및 옥천8요청/5,630,612byte 영수증과 정리 상태를 재확인한 후 실행하도록 로컬 전송기를 보완했다. 같은 진단 모드를 이미 전송/실행한 plan이 있으면 새 실행을 거부한다. CPU1·768MiB·임시1GiB·운영 불변/원본 정리 경계는 보존한다.
+- [x] Python17/17, Node/Bash4/4, PowerShell 구문 오류0, `git diff --check` 통과다. 최초 Java42건 중36통과/6실패는 실제 seed용 PostgreSQL의 Windows CreateProcess4551(`initdb.exe` 애플리케이션 제어 차단)이며 정책 완화나 fixture 대체를 하지 않았다.
+- [x] 후속 `:test --tests '*AnnouncementAttachmentBbsObservationProbeTest' attachmentBbsObservationProbeJar :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은26초 성공, 감축 한도/원본 보고서 거부 등24/24 및 패키지20/20이다. bootJar는 production 변경이 없어 UP-TO-DATE다. 로컬6실패를 이 표적 성공으로 해소 처리하지 않는다.
+- [~] 옥천 새 버전 임시 패키지 execution698cde56f7274380ba8a97716ff25ad4, code hash5f76392b…로 순차 관측한다. 서버 종료·관측 결과·실측 자원·정리는 별도 실제 영수증으로 확인한다. 네트워크 전송 중이라는 사실만으로 QA 성공을 기록하지 않는다.
+
 ### 2026-09-24 HWPX 부분 추출 원인 및 구간 근거 진단 구현
 
 - [x] 직전 보은·옥천 실파일 관측은 실제 근거를 확보한 progress로 분류했다. 원인이 드러나지 않은 PARTIAL_TEXT/ROLE_STRUCTURE_INCOMPLETE를 판정 완화 없이 진단하도록 보완했다.
