@@ -17,7 +17,8 @@
 - [x] 옥천193297의 PARTIAL_TEXT 원인은 그림2·수식1(OLE/대체 문자0)이다. 보은 HWPX2개와 옥천193369는 네 종류 모두0이며 COMPLETE_TEXT를 유지한다. HWPX GUIDE의 TARGET_SECTION, NOTICE의 SUPPORT_SECTION, 미완성 FORM의 APPLICANT_FIELD/SIGNATURE_FIELD 등 첫 부족 조건을 수치 근거로 좁혔다. 뒤쪽 미검사 조건의 원문 부재는 단정하지 않는다.
 - [x] 두 실행 누적 예약은 보은24회/14,783,346byte, 옥천16회/11,261,224byte로 각 승인132회/240MiB 이내다. 실제 자원 제한·운영 JAR 불변·health UP·unit 종료·원본 정리·S3 자기 객체 부재를 확인했다. 로컬 자기 패키지2개만 제거했고 JSON은 보존했다.
 - [~] 양성5건은 모두 검수 유지다. 기존/후속 본문·파일·텍스트 및 COMPLETE_TEXT 분석 지문은 동일하다. PDF 구조 불확실, HWPX 실제 표현/경계 진단, 검토된 기대값과 최신 worker/DB/API/최종 검수·DRAFT 검증이 남는다. 원인 진단 성공을 정상 후보나 검수량 감소로 계산하지 않는다.
-- [~] 추출기1.0.5 `b4fa280` Linux35978778828 실행 중, 감축 예산 `ff930d5` Linux35979527273 대기 상태를 조회했다. 로컬 PostgreSQL 6실패는 Windows 실행 정책 차단으로 유지하며 다른 표적 시험 성공으로 덮지 않는다. 현재 커밋 전체 회귀 성공은 아직 주장하지 않는다.
+- [x] 후속 조회에서 추출기1.0.5 `b4fa280` [Linux35978778828](https://github.com/FrostyCityMan/saneB/actions/runs/35978778828) success 및 artifact XML을 확인했다. root2884=2609통과/275조건부 생략/실패·오류0. extractor122·패키지20·job PG196·migration18·정책 부모 PG2·runtime5·worker PG12·Flyway3은 실패·오류·생략0이다.
+- [~] 감축 예산 `ff930d5` Linux35979527273은 실행 중이다. 로컬 PostgreSQL 6실패는 Windows 실행 정책 차단으로 유지하며 다른 환경/표적 시험 성공으로 덮지 않는다. 후속 SHA 전체 회귀 성공은 아직 주장하지 않는다.
 - 전체9Gate는8부분/1차단, ATT62는1완료/61부분 및 SEG10 확장 범위를 유지한다. 운영 DB/정책/worker/기존 데이터 변경·배포는 없고 브라우저는 현재 요청 정책상 미실행이다. 목표 active, 다음 단계는 실제 구조 근거에 기반한 최소 개선이다.
 
 ### 2026-09-24 재관측 누적 예산 감축

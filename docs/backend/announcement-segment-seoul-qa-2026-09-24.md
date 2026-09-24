@@ -108,3 +108,9 @@ byte 예약은 본문 상한을 포함하며 실제 전체 네트워크 전송�
 - 옥천193297의 그림2/수식1은 현재 범위에서 부분 추출을 유지한다. OCR 실행은 기존 설계의 후속 범위이며 모든 격리 QA 승인만으로 OCR 기능/외부 서비스를 추가하지 않는다.
 - 새 버전 최신 worker→업무 DB/API→관리자 최종 검수/DRAFT 및 전체 Provider 정상 표본·검토된 기대값은 여전히 별도 잔여다. 수집 성공과 운영 업무 E2E를 구분한다.
 - 로컬 감축 예산 probe24/24·패키지20/20·Python17/17·Node/Bash4/4 통과. 실제 seed 계약6건은 Windows CreateProcess4551로 실패했으며 성공으로 치환하지 않았다. 추출기1.0.5의 Linux35978778828은 실행 중, 감축 예산 ff930d5의 Linux35979527273은 대기 중인 시점의 기록이며 최종 성공은 별도 확인한다.
+
+### 추출기1.0.5 Linux 최종 회귀 확인
+
+- 후속 조회에서 `b4fa280481881d538f04aeafa05d8a32c578c47c`의 [Linux35978778828](https://github.com/FrostyCityMan/saneB/actions/runs/35978778828) 최종 success와 artifact XML을 확인했다. root2,884건=2,609통과/275조건부 생략/실패·오류0이다.
+- extractor122·패키지20·job PostgreSQL196·migration18·정책 부모 PostgreSQL2·runtime5·worker PostgreSQL12·Flyway3건은 각각 실패·오류·생략0이다. XML은 `build/qa-results/linux-35978778828/`에 보존했다.
+- 이 결과는 새 추출기 production 코드의 Linux 계약 회귀다. 후속 감축 예산 `ff930d5`의 Linux35979527273은 실행 중이며 해당 SHA의 전체 성공으로 확대하지 않는다. Windows 실행 정책 차단 사실, 실제 공고의 검수 유지 및 업무 E2E 잔여도 그대로다.
