@@ -48,4 +48,13 @@ class MeasuredBodyContentLiveQaTest {
     void readsDalseongSupportBodyThroughProductionPinnedTransport(Sample sample) {
         readsOnlyMeasuredBodyThroughProductionPinnedTransport(sample);
     }
+
+    static Stream<Sample> selectHamanSupportCases() {
+        return com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HAMAN")
+                .map(sample -> new Sample(sample.code(),sample.source().sourceUrl()));
+    }
+    @ParameterizedTest(name = "함안 지원사업 본문 {0}") @MethodSource("selectHamanSupportCases") @Timeout(30)
+    void readsHamanSupportBodyThroughProductionPinnedTransport(Sample sample) {
+        readsOnlyMeasuredBodyThroughProductionPinnedTransport(sample);
+    }
 }

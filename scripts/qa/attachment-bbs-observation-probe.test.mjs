@@ -7,6 +7,19 @@ import { spawnSync } from 'node:child_process';
 const script = 'scripts/qa/run-attachment-bbs-observation-probe.sh';
 const source = readFileSync(script, 'utf8');
 const bash = process.platform === 'win32' ? 'C:/Program Files/Git/bin/bash.exe' : '/bin/bash';
+
+test('함안 사전 확인은 전용 task와 보고서만 사용하며 서울 실행 모드를 열지 않는다', () => {
+  const gradle = readFileSync('build.gradle', 'utf8');
+  const task = gradle.split("tasks.register('hamanSupportDiscoveryQa', Test) {")[1]?.split("tasks.register('attachmentQaRuleSnapshot', Test)")[0];
+  assert(task);
+  assert(task.includes("includeTestsMatching '*SaeolAttachmentProfileLiveQaTest.fixedHamanSupportReferenceValidatesTitleAndWholeFileSignature'"));
+  assert(task.includes("includeTestsMatching '*MeasuredBodyContentLiveQaTest.readsHamanSupportBodyThroughProductionPinnedTransport'"));
+  assert.equal((task.match(/includeTestsMatching/g) || []).length, 2);
+  for (const path of ['reports/haman-support-discovery-qa', 'test-results/hamanSupportDiscoveryQa', 'reports/tests/hamanSupportDiscoveryQa']) assert(task.includes(path));
+  assert(!task.includes('test-results/attachmentProfileDiscoveryQa'));
+  assert(task.includes('maxParallelForks = 1')); assert(task.includes("maxHeapSize = '256m'"));
+  assert(!source.includes('HAMAN'));
+});
 test('Bash 구문과 인자 없는 실행 차단', () => {
   const syntax = spawnSync(bash, ['-n', resolve(script).replaceAll('\\', '/')], { encoding: 'utf8', timeout: 10000 });
   assert.equal(syntax.status, 0, syntax.stderr);

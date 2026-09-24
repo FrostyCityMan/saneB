@@ -69,6 +69,19 @@ class SaeolAttachmentProfileLiveQaTest {
         verifyOfficialPage(sample, title);
     }
 
+    static java.util.stream.Stream<SaeolGetAttachmentDiscoveryProfileTest.Case> selectHamanSupportCases() {
+        return com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HAMAN")
+                .map(sample -> new SaeolGetAttachmentDiscoveryProfileTest.Case(sample.profile(), "LGS-000233",
+                        "SAFE_SAEOL_EMINWON_CELL", "td", sample.code().substring("HAMAN-".length()), sample.listedFileCount()));
+    }
+    @ParameterizedTest(name = "함안 지원사업 고정 참조 {index}")
+    @MethodSource("selectHamanSupportCases") @Timeout(120)
+    void fixedHamanSupportReferenceValidatesTitleAndWholeFileSignature(SaeolGetAttachmentDiscoveryProfileTest.Case sample) throws Exception {
+        String title=com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HAMAN")
+                .filter(item->item.code().equals("HAMAN-"+sample.noticeId())).findFirst().orElseThrow().title();
+        verifyOfficialPage(sample,title);
+    }
+
     @ParameterizedTest(name = "새올 실측 프로필 {index}")
     @MethodSource("selectLiveCases")
     @Timeout(180)
@@ -117,6 +130,9 @@ class SaeolAttachmentProfileLiveQaTest {
                     if ("LGS-000052".equals(sample.sourceCode())) {
                         com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page, expectedTitle,
                                 com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.DALSEONG_LABEL);
+                    } else if ("LGS-000233".equals(sample.sourceCode())) {
+                        com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page, expectedTitle,
+                                com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.HAMAN_LABEL);
                     } else validateNamguTitle(page, expectedTitle);
                     report.put("fixedTitleVerified", true);
                 }

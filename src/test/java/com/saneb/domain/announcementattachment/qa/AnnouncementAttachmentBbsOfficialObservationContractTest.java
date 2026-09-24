@@ -7,6 +7,44 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void hamanUsesOneVerifiedReferenceWithoutClaimingThreeOrBypassingTitleGate() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HAMAN").toList();
+        assertThat(cases).hasSize(1);var sample=cases.getFirst();
+        assertThat(sample.code()).isEqualTo("HAMAN-41306");assertThat(sample.listedFileCount()).isEqualTo(1);
+        assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_HAMAN_GET_V1");
+        assertThat(sample.profile().selectDetailUri(sample.source()).getHost()).isEqualTo("eminwon.haman.go.kr");
+        assertThat(sample.source().listParserProfileCode()).isEqualTo("SAFE_SAEOL_EMINWON_CELL");
+        var json=new ObjectMapper();
+        var catalog=json.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var reference=java.util.stream.StreamSupport.stream(catalog.spliterator(),false)
+                .filter(n->sample.code().equals(n.path("caseCode").asText())).findFirst().orElseThrow();
+        assertThat(reference.path("source")).isEqualTo(json.valueToTree(sample.source()));assertThat(reference.hasNonNull("expectation")).isFalse();
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var title=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine().selectDecision(
+                new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).isTrue();
+        for(boolean diagnostic:List.of(false,true)) {
+            var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),diagnostic);
+            assertThat(budget.maximumRequests).isEqualTo(6);assertThat(budget.maximumBytes).isEqualTo(23L*1024*1024);
+        }
+    }
+    @Test void hamanTitleRequiresUniqueDirectCellInsideTheMeasuredFormAndTable() {
+        String title="함안군 소상공인 지원사업 공고";
+        String table="<table width='100%' border='0' cellspacing='1' cellpadding='0'><tr><td>제목</td><td>"+title+"</td></tr></table>";
+        String page="<form name='form1' method='post'>"+table+"</form>";
+        java.util.function.Consumer<String> validate=html->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(
+                org.jsoup.Jsoup.parse(html),title,AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.HAMAN_LABEL);
+        validate.accept(page);
+        for(String invalid:List.of(page+page,page.replace("제목","내용"),page.replace("cellspacing='1'","cellspacing='0'"),
+                page.replace(title,"다른 제목"),page.replace(title,"<table><tr><td>"+title+"</td></tr></table>"),
+                page.replace("</form>",table+"</form>"),page.replace("method='post'","method='get'"),
+                page.replace("<td>제목</td>","<td><table><tr><td>제목</td></tr></table></td>"))) {
+            assertThatThrownBy(()->validate.accept(invalid)).isInstanceOf(AssertionError.class);
+        }
+    }
+
     @Test void dalseongKeepsDistinctSupportTitlesAndWholeFileCounts() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("DALSEONG").toList();
         assertThat(cases).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

@@ -274,6 +274,29 @@ tasks.register('attachmentProfileDiscoveryQa', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentProfileDiscoveryQa')
 }
 
+// 기존 달성 누적 원장의 JUnit 영수증을 덮어쓰지 않는 명시 함안 표본 전용 실행.
+tasks.register('hamanSupportDiscoveryQa', Test) {
+    group = 'verification'
+    description = '함안41306 한 공고의 제목·본문·전체 첨부 signature만 확인합니다. 외부 파일 추출/운영 변경은 없습니다.'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching '*SaeolAttachmentProfileLiveQaTest.fixedHamanSupportReferenceValidatesTitleAndWholeFileSignature'
+        includeTestsMatching '*MeasuredBodyContentLiveQaTest.readsHamanSupportBodyThroughProductionPinnedTransport'
+    }
+    environment 'SANEB_ATTACHMENT_PROFILE_QA', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    systemProperty 'saneb.attachment-profile-qa.report', layout.buildDirectory.dir('reports/haman-support-discovery-qa').get().asFile.absolutePath
+    ['javax.net.ssl.trustStoreType', 'javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key) != null) systemProperty key, System.getProperty(key)
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/hamanSupportDiscoveryQa')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/hamanSupportDiscoveryQa')
+}
+
 tasks.register('attachmentQaRuleSnapshot', Test) {
     description = '서버 QA용 DRAFT 규칙을 빌드 머신의 임시 DB에서 내보냅니다.'
     group = 'verification'

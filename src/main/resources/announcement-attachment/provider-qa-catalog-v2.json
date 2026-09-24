@@ -1,7 +1,19 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-25-dalseong-support-references-v2",
+  "catalogVersion": "2026-09-25-haman-support-reference-v2",
   "notices": [
+    {
+      "caseCode": "HAMAN-41306",
+      "profileCode": "LOCAL_HAMAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "22122a5994bf4e1194fe93cff1d30cb74aa91509326913374e736f342fde882c",
+        "sourceUrl": "https://eminwon.haman.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=41306&subCheck=Y",
+        "localSourceCode": "LGS-000233",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "DALSEONG-51022",
       "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
