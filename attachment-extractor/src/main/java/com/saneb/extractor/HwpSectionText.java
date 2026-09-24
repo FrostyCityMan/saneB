@@ -230,7 +230,8 @@ final class HwpSectionText {
         Cell currentCell;
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
-            validHeader=id!=TABLE || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44));
+            // 개체 공통 필드는 ctrl ID 포함40바이트다. 뒤의 분할 방지/설명은 선택 영역이다.
+            validHeader=id!=TABLE || data.length==40 || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44));
             if (!validHeader) invalidTableReasons.add(TABLE_CONTROL_HEADER);
             if (id==HYPERLINK && data.length>=15) {
                 int expected=15+2*unsigned(data,9);

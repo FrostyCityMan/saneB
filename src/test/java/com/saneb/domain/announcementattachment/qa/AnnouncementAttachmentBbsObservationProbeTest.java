@@ -72,7 +72,7 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         for(int i=0;i<3;i++) {
             var row=(ObjectNode)reports.get(i);String code=AnnouncementAttachmentBbsObservationProbe.DALSEONG_CASES.get(i);
             var hashes=AnnouncementAttachmentBbsObservationProbe.selectDalseongBinaryHashes(code);int count=hashes.size();
-            row.put("caseCode",code).put("profileCode","LOCAL_DAEGU_DALSEONG_GET_V1").put("maximumRequestReservations",6)
+            row.put("caseCode",code).put("profileCode","LOCAL_DAEGU_DALSEONG_GET_V1").put("maximumRequestReservations",6).put("maximumReservedBytes",24117248)
                     .put("expectedListedFileCount",count).put("discoveredFileCount",count).put("requestReservationsIncludingBodyUpperBound",count+3);
             var files=row.withArray("files");if(i==0)files.add(files.get(0).deepCopy());
             for(int j=0;j<count;j++)((ObjectNode)files.get(j)).put("binaryHash",hashes.get(j)).put("downloadAllowed",true).put("format",i==0&&j==0?"PDF":"HWP");

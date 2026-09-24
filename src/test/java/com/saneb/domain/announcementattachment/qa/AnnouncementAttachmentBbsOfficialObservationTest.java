@@ -311,7 +311,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
             boolean dalseong="LOCAL_DAEGU_DALSEONG_GET_V1".equals(profile.selectProfileCode());
-            maximumRequests=dalseong?6:namgu?5:diagnostic?20:44;maximumBytes=(dalseong||namgu?24:diagnostic?32:80)*MIB;}
+            maximumRequests=dalseong?6:namgu?5:diagnostic?20:44;maximumBytes=(dalseong?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}

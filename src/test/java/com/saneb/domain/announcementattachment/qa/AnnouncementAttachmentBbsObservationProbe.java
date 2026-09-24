@@ -169,8 +169,8 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     ||!"AVAILABLE".equals(row.path("bodyStatus").asText())||!selectBoolean(row,"bodyStageComplete",true)
                     ||!"FOUND".equals(row.path("discoveryStatus").asText())||!selectBoolean(row,"discoveryComplete",true)
                     ||!selectBounded(row,"expectedListedFileCount",count,count)||!selectBounded(row,"discoveredFileCount",count,count)
-                    ||!selectBounded(row,"maximumRequestReservations",6,6)||!selectBounded(row,"maximumReservedBytes",25165824,25165824)
-                    ||!selectBounded(row,"requestReservationsIncludingBodyUpperBound",3+count,6)||!selectBounded(row,"reservedBytesIncludingBodyUpperBound",1,25165824)
+                    ||!selectBounded(row,"maximumRequestReservations",6,6)||!selectBounded(row,"maximumReservedBytes",24117248,24117248)
+                    ||!selectBounded(row,"requestReservationsIncludingBodyUpperBound",3+count,6)||!selectBounded(row,"reservedBytesIncludingBodyUpperBound",1,24117248)
                     ||!selectBounded(row,"productionWriteCount",0,0)||!selectBoolean(row,"isPolicyQaPassed",false)
                     ||!selectBoolean(row,"isExpectationApproved",false)||!selectBoolean(row,"originalFilesRemoved",true)
                     ||!selectBoolean(row,"requiresFinalAdminVerification",true)||!row.path("files").isArray()||row.path("files").size()!=count

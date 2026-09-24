@@ -23,8 +23,8 @@ class TemporaryBbsObservationTest(unittest.TestCase):
     def test_dalseong_mode_pins_all_four_files_and_preserves_cumulative_budget(self):
         import copy
         mode='DALSEONG_OBSERVATION';scope=self.runner['SCOPES'][mode]
-        self.assertEqual(('DALSEONG-THREE-NOTICES',['DALSEONG-51022','DALSEONG-52145','DALSEONG-51075'],18,75497472),scope)
-        self.assertLessEqual(16+scope[2],60);self.assertLessEqual(17513073+scope[3],100663296)
+        self.assertEqual(('DALSEONG-THREE-NOTICES',['DALSEONG-51022','DALSEONG-52145','DALSEONG-51075'],18,72351744),scope)
+        self.assertLessEqual(29+scope[2],60);self.assertLessEqual(25588962+scope[3],100663296)
         self.unit['cfg']={'codeHash':'a'*64}
         manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
         self.unit['validate_manifest_scope'](manifest,mode)
@@ -38,7 +38,7 @@ class TemporaryBbsObservationTest(unittest.TestCase):
             rows.append(dict(caseCode=code,scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_DAEGU_DALSEONG_GET_V1',
                 status='OBSERVED_NOT_VALIDATED',productionWriteCount=0,isPolicyQaPassed=False,isExpectationApproved=False,originalFilesRemoved=True,
                 bodyStageComplete=True,bodyStatus='AVAILABLE',discoveryStatus='FOUND',discoveryComplete=True,requiresFinalAdminVerification=True,
-                expectedListedFileCount=count,discoveredFileCount=count,maximumRequestReservations=6,maximumReservedBytes=25165824,
+                expectedListedFileCount=count,discoveredFileCount=count,maximumRequestReservations=6,maximumReservedBytes=24117248,
                 requestReservationsIncludingBodyUpperBound=count+3,reservedBytesIncludingBodyUpperBound=3000000,
                 decisionStatus='REVIEW_REQUIRED',isWholeTextAnalysisComplete=True,
                 files=[dict(binaryHash=value,status='OBSERVED',quality='COMPLETE_TEXT',format='PDF' if index==0 and j==0 else 'HWP') for j,value in enumerate(hashes[index])]))

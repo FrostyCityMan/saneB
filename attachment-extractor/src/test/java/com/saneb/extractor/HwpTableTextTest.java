@@ -242,6 +242,33 @@ class HwpTableTextTest {
         assertEquals("PARTIAL_TEXT",select(replace(source,71,0,data->java.util.Arrays.copyOf(data,4))).qualityCode());
     }
 
+    @ParameterizedTest @ValueSource(booleans={false,true})
+    void fortyByteCommonTableHeaderHasNoOptionalDescription(boolean compressed) throws Exception {
+        byte[] body=replace(body(paragraph("앞",table(1,2,cell(0,0,"소상공인"),cell(0,1,"지원금")),"뒤")),
+                71,0,data->java.util.Arrays.copyOf(data,40));
+        var result=AttachmentExtractorMain.selectExtraction(file(body,compressed));
+        assertComplete(result,"앞","소상공인","지원금","뒤");assertScopes(result);
+        assertTrue(result.blocks().get(1).locator().contains(":table:1:cell:0:0:"));
+        assertTrue(result.blocks().get(2).locator().contains(":table:1:cell:0:1:"));
+        assertTrue(result.hwpPartialCauses().isEmpty());
+    }
+
+    @ParameterizedTest @ValueSource(ints={39,41,42,43,45,47})
+    void incompleteCommonOrOptionalTableHeaderRemainsPartial(int length) throws Exception {
+        byte[] body=replace(body(paragraph(table(1,1,cell(0,0,"내용 보존")))),71,0,
+                data->java.util.Arrays.copyOf(data,length));
+        var result=select(body);
+        assertEquals("PARTIAL_TEXT",result.qualityCode());assertEquals("내용 보존",result.text());
+        assertTrue(result.hwpPartialCauses().stream().anyMatch(c->c.code()==ExtractionResult.HwpPartialCause.TABLE_CONTROL_HEADER));
+        assertFalse(result.blocks().getFirst().scopeReliable());
+    }
+
+    @Test void fortyByteHeaderDoesNotBypassCellGeometryOrUnsupportedRecords() throws Exception {
+        byte[] body=replace(body(paragraph(table(1,1,cell(0,0,"내용")))),71,0,data->java.util.Arrays.copyOf(data,40));
+        assertEquals("PARTIAL_TEXT",select(mutate(body,72,0,b->b.putShort(12,(short)2))).qualityCode());
+        assertEquals("PARTIAL_TEXT",select(join(body,record(85,3,new byte[8]))).qualityCode());
+    }
+
     @Test void malformedAnchorLengthOrClosingCharacterIsCorrupt() throws Exception {
         assertEquals("CORRUPT",assertThrows(IOException.class,()->select(record(67,0,new byte[]{11,0,1,0}))).getMessage());
         byte[] anchor=anchor();anchor[14]=12;

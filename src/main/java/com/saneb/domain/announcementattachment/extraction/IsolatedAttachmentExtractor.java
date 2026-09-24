@@ -116,7 +116,7 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7").contains(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
     }

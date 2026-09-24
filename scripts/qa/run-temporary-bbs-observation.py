@@ -24,7 +24,7 @@ SCOPES = {
     'BOEUN_LONG_FORM': ('BOEUN-221497', ['BOEUN-221497'], 5, 25165824),
     'NAMGU_OBSERVATION': ('NAMGU-THREE-NOTICES', ['NAMGU-44466', 'NAMGU-44381', 'NAMGU-42871'], 15, 75497472),
     'NAMGU_STRUCTURE': ('NAMGU-44381', ['NAMGU-44381'], 5, 25165824),
-    'DALSEONG_OBSERVATION': ('DALSEONG-THREE-NOTICES', ['DALSEONG-51022', 'DALSEONG-52145', 'DALSEONG-51075'], 18, 75497472),
+    'DALSEONG_OBSERVATION': ('DALSEONG-THREE-NOTICES', ['DALSEONG-51022', 'DALSEONG-52145', 'DALSEONG-51075'], 18, 72351744),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -157,8 +157,8 @@ def validate_probe_scope(report,mode):
                     or row.get('bodyStatus')!='AVAILABLE' or row.get('discoveryStatus')!='FOUND' or row.get('discoveryComplete') is not True
                     or not isinstance(files,list) or len(files)!=count or any(not isinstance(file,dict) for file in files)):raise ValueError('PROBE_OUTPUT_INVALID')
             for field,minimum,maximum in [('productionWriteCount',0,0),('expectedListedFileCount',count,count),('discoveredFileCount',count,count),
-                    ('maximumRequestReservations',6,6),('maximumReservedBytes',25165824,25165824),
-                    ('requestReservationsIncludingBodyUpperBound',3+count,6),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
+                    ('maximumRequestReservations',6,6),('maximumReservedBytes',24117248,24117248),
+                    ('requestReservationsIncludingBodyUpperBound',3+count,6),('reservedBytesIncludingBodyUpperBound',1,24117248)]:
                 value=row.get(field)
                 if type(value) is not int or not minimum<=value<=maximum:raise ValueError('PROBE_OUTPUT_INVALID')
             for file_index,file in enumerate(files):
