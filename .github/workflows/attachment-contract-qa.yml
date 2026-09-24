@@ -125,7 +125,9 @@ jobs:
         run: node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs scripts/qa/attachment-bbs-observation-probe.test.mjs
 
       - name: 임시 관측 실행기 경로·오류 metadata 회귀 검증 — 외부 요청 없음
-        run: python3 -B -m unittest discover -s scripts/qa -p test_temporary_bbs_observation.py -v
+        run: |
+          python3 -B -m unittest discover -s scripts/qa -p test_temporary_bbs_observation.py -v
+          python3 -B -m unittest discover -s scripts/qa -p test_cheorwon_transport.py -v
 
       - name: 변경 코드의 태백 고정 공고 관측 — 기대값 승인·운영 쓰기 없음
         id: taebaek-revalidation-observation

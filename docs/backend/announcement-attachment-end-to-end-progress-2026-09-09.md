@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-24 전체 수집원 잔여 대조와 철원 서울 진단
+
+- [x] 현재 등록7엔진/19프로필과 catalog30참조/10기관/기대값1을 코드·JSON에서 재대조했다. 등록9프로필은 catalog 참조가 없으며 정부24 프로필은 미구현이다. `repo-status-audit`에 따라 과거 등록 수·초기 미구현 기록과 현재 잔여를 분리한 [전체 잔여 범위](announcement-provider-qa-remaining-scope-2026-09-24.md)를 작성했다. 운영223기관은09-22 snapshot이며 이번 DB 조회 수치가 아니다.
+- [x] 84f0bd9 [Linux36000896726](https://github.com/FrostyCityMan/saneB/actions/runs/36000896726) success/artifact 확인. root2998=2713통과/285조건부 생략·실패/오류0, 별도 extractor122·패키지20·jobPG206·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0이다. 새1.0.3 실제 PG3건의 저장/판정 결합·QA 무효화·최종 확인/DRAFT1건 생성도 각각 통과했다. 실파일 저장 검증과 구분한다.
+- [!] 철원288915는 로컬 TCP 시간 초과, 서울 첫 진단 TLS 검증 실패, 상세 코드 보완 후 서울 두 번째 진단 TCP 시간 초과다. HTTP/본문/파일0이며 정상 수집이 아니다. 같은 조건의 추가 요청은 중단하고 TLS/HTTP 우회하지 않는다. 서울 진단2회 예약2요청/2MiB·각15초/CPU1·메모리128MiB, 원문·임시 DB·운영 설정 쓰기0이다. Python 단위8건과 CI 단위 실행 연결을 추가했다.
+- [x] 현재 AWS 인증과 대상 계정/서울/SSM online·CodeDeploy9a1bb45 Succeeded metadata를 확인했다. 운영 JAR hash/health/DB 정책 현재값을 다시 확인한 것은 아니다. 소유 CA 파일과 원격 단기 프로세스는 종료·정리됐다.
+- [~] caba129 [Linux36002040454](https://github.com/FrostyCityMan/saneB/actions/runs/36002040454)은 실행 중으로 확인했다. 보은128/132요청 및 추가30회 승인 대기는 유지한다. 브라우저는 현재 명시 요청 정책상 미실행이며 전체9Gate=8부분/1차단·goal active를 유지한다.
+
 ### 2026-09-24 구조 보완 규칙의 실파일 저장 QA 준비
 
 - [x] 직전84f0bd9은 명시 정책·worker 연결 구현/로컬 검증/푸시를 마친 progress다. 현재 SHA와 Git 상태를 재확인하고 사용자 output/·cache를 보존했다. 장기 goal 스킬에 따라 메모리 후보 결과와 실제 저장 증거를 분리하는 검증 경로를 추가했다.
