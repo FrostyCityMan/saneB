@@ -10,6 +10,7 @@ final class TextEvidence {
     private final List<ExtractionResult.Block> blocks = new ArrayList<>();
     private int length;
     private boolean partial;
+    private final java.util.EnumMap<ExtractionResult.HwpPartialCause,Integer> hwpCauses = new java.util.EnumMap<>(ExtractionResult.HwpPartialCause.class);
 
     void insertBlock(String value, String locator, boolean reliable) throws IOException {
         // PostgreSQL text에 저장할 수 없는 NUL만 공백으로 바꾸고 문서 구조를 추정하지 않는다.
@@ -21,11 +22,16 @@ final class TextEvidence {
         blocks.add(new ExtractionResult.Block(blocks.size(), length, length + size, locator, locator, reliable));
         text.append(normalized);
         length += size;
-        if (normalized.indexOf('\ufffd') >= 0) partial = true;
+        for (int i=0;i<normalized.length();i++) if (normalized.charAt(i)=='\ufffd') updateHwpPartial(ExtractionResult.HwpPartialCause.REPLACEMENT_CHARACTER);
     }
     void updatePartial() { partial = true; }
+    void updateHwpPartial(ExtractionResult.HwpPartialCause cause) {
+        partial = true;
+        hwpCauses.merge(cause,1,Math::addExact);
+    }
     ExtractionResult selectResult(String format, Integer pages) {
         return new ExtractionResult(format, ExtractionResult.VERSION, text.isEmpty() ? "OCR_REQUIRED"
-                : partial ? "PARTIAL_TEXT" : "COMPLETE_TEXT", text.toString(), blocks, pages, null);
+                : partial ? "PARTIAL_TEXT" : "COMPLETE_TEXT", text.toString(), blocks, pages, null, null, null,
+                "HWP".equals(format) ? hwpCauses.entrySet().stream().map(e->new ExtractionResult.PartialCause(e.getKey(),e.getValue())).toList() : null);
     }
 }

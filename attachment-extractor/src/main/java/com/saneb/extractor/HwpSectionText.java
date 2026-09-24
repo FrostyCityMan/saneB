@@ -1,5 +1,6 @@
 package com.saneb.extractor;
 
+import static com.saneb.extractor.ExtractionResult.HwpPartialCause.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -31,11 +32,11 @@ final class HwpSectionText {
             checkNodeBudget();
             Paragraph paragraph=new Paragraph(level, ++paragraphIndex, data);
             if (parent instanceof Control control) control.insertParagraph(paragraph);
-            else if (parent!=null) { parent.loose.add(paragraph); evidence.updatePartial(); }
+            else if (parent!=null) { parent.loose.add(paragraph); evidence.updateHwpPartial(UNATTACHED_PARAGRAPH); }
             saveFrame(paragraph);
         } else if (tag==67) {
             if (parent instanceof Paragraph paragraph) {
-                if (level!=paragraph.level+1) evidence.updatePartial();
+                if (level!=paragraph.level+1) evidence.updateHwpPartial(PARAGRAPH_LEVEL_GAP);
                 paragraph.insertText(data);
             } else {
                 // 기존 bare PARA_TEXT 입력도 읽되, 컨트롤 안의 소속 불명 문단은 정상 셀로 승격하지 않는다.
@@ -43,16 +44,16 @@ final class HwpSectionText {
                 Paragraph paragraph=new Paragraph(level, ++paragraphIndex, null);
                 paragraph.insertText(data);
                 if (parent==null) paragraph.save(true);
-                else { parent.loose.add(paragraph); evidence.updatePartial(); }
+                else { parent.loose.add(paragraph); evidence.updateHwpPartial(UNATTACHED_TEXT); }
             }
         } else if (tag==71) {
             checkNodeBudget();
             Control control=new Control(level, data);
             if (parent instanceof Paragraph paragraph) {
-                if (level!=paragraph.level+1) evidence.updatePartial();
+                if (level!=paragraph.level+1) evidence.updateHwpPartial(CONTROL_LEVEL_GAP);
                 paragraph.controls.add(control);
-            } else if (parent!=null) { parent.loose.add(control); evidence.updatePartial(); }
-            else evidence.updatePartial();
+            } else if (parent!=null) { parent.loose.add(control); evidence.updateHwpPartial(UNATTACHED_CONTROL); }
+            else evidence.updateHwpPartial(UNATTACHED_CONTROL);
             saveFrame(control);
         } else if (tag==77 && parent instanceof Control control && control.id==TABLE && level==control.level+1) {
             control.insertTable(data);
@@ -60,7 +61,7 @@ final class HwpSectionText {
             control.insertCell(data);
         } else if (tag<66 || tag>75 || tag==72) {
             // 알려지지 않은 도형/그림/수식/캡션 등의 텍스트 완전성을 주장하지 않는다.
-            evidence.updatePartial();
+            evidence.updateHwpPartial(UNSUPPORTED_RECORD);
         }
     }
 
@@ -84,7 +85,7 @@ final class HwpSectionText {
         Frame(int level) { this.level=level; }
         abstract void save(boolean reliable) throws IOException;
         void saveLoose() throws IOException {
-            if (!loose.isEmpty()) evidence.updatePartial();
+            if (!loose.isEmpty()) evidence.updateHwpPartial(LOOSE_STRUCTURE);
             for (Frame frame:loose) frame.save(false);
         }
     }
@@ -110,7 +111,7 @@ final class HwpSectionText {
             textUnits+=data.length/2;
             if (textUnits>TextEvidence.MAX_CHARACTERS*2) throw new IOException("LIMIT_EXCEEDED");
             characterUnits+=data.length/2;
-            if (++textRecords>1) { evidence.updatePartial(); pieces.add(new Piece("\n",null)); }
+            if (++textRecords>1) { evidence.updateHwpPartial(MULTIPLE_TEXT_RECORDS); pieces.add(new Piece("\n",null)); }
             var buffer=ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
             var text=new StringBuilder();
             while (buffer.hasRemaining()) {
@@ -124,11 +125,11 @@ final class HwpSectionText {
                     else if (ch==4 || (ch>=5 && ch<=8) || ch==19 || ch==20) {
                         // 필드 끝/예약 inline 영역은 문장을 붙이지 않는다. 미지원 의미는 부분 처리다.
                         pieces.add(new Piece(text.toString(),null)); text.setLength(0);
-                        pieces.add(new Piece("",0)); hasContentAnchor=true; evidence.updatePartial();
+                        pieces.add(new Piece("",0)); hasContentAnchor=true; evidence.updateHwpPartial(UNSUPPORTED_INLINE_CONTROL);
                     } else {
                         pieces.add(new Piece(text.toString(),null)); text.setLength(0);
                         pieces.add(new Piece(null,id));
-                        if (id==TABLE && ch!=11) evidence.updatePartial();
+                        if (id==TABLE && ch!=11) evidence.updateHwpPartial(TABLE_ANCHOR_TYPE);
                         if (id!=SECTION && id!=COLUMN) hasContentAnchor=true;
                     }
                 } else if (ch==10 || ch==13) text.append('\n');
@@ -159,14 +160,14 @@ final class HwpSectionText {
                     continue;
                 }
                 saveText(text,split?++segment:0,reliable);
-                if (control==null) evidence.updatePartial(); else control.save(reliable);
+                if (control==null) evidence.updateHwpPartial(MISSING_CONTROL); else control.save(reliable);
             }
             saveText(text,split?++segment:0,reliable);
             // 앵커 누락 시 텍스트를 버리지는 않지만 위치를 추정한 정상 근거로 사용하지 않는다.
             for (Control control:controls) {
                 var queue=remaining.get(control.id);
                 if (queue!=null && queue.remove(control)) {
-                    if (!control.selectLayoutOnly()) evidence.updatePartial();
+                    if (!control.selectLayoutOnly()) evidence.updateHwpPartial(UNANCHORED_CONTROL);
                     control.save(false);
                 }
             }
@@ -184,73 +185,82 @@ final class HwpSectionText {
         final List<Paragraph> paragraphs=new ArrayList<>();
         final List<Cell> cells=new ArrayList<>();
         boolean validHeader, tableSeen;
+        final java.util.EnumSet<ExtractionResult.HwpPartialCause> invalidTableReasons = java.util.EnumSet.noneOf(ExtractionResult.HwpPartialCause.class);
         int rows, columns;
         int[] rowCellCounts;
         Cell currentCell;
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
             validHeader=id!=TABLE || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44));
+            if (!validHeader) invalidTableReasons.add(TABLE_CONTROL_HEADER);
         }
+        void invalidateTable(ExtractionResult.HwpPartialCause cause) { validHeader=false; invalidTableReasons.add(cause); }
         boolean selectLayoutOnly() { return (id==SECTION || id==COLUMN) && paragraphs.isEmpty() && loose.isEmpty(); }
 
         void insertParagraph(Paragraph paragraph) throws IOException {
-            if (paragraph.level!=level+1) validHeader=false;
+            if (paragraph.level!=level+1) invalidateTable(TABLE_PARAGRAPH_LEVEL);
             paragraphs.add(paragraph);
             if (id==TABLE && currentCell!=null) {
                 currentCell.paragraphs.add(paragraph);
                 paragraph.cellLocation=":table:"+tableNumber+":cell:"+currentCell.row+":"+currentCell.column;
-            } else if (id==TABLE) validHeader=false;
+            } else if (id==TABLE) invalidateTable(TABLE_PARAGRAPH_WITHOUT_CELL);
         }
 
         void insertTable(byte[] data) throws IOException {
-            if (tableSeen) { validHeader=false; return; }
+            if (tableSeen) { invalidateTable(TABLE_METADATA_INVALID); return; }
             tableSeen=true;
-            if (data.length<20) { validHeader=false; return; }
+            if (data.length<20) { invalidateTable(TABLE_METADATA_INVALID); return; }
             rows=unsigned(data,4); columns=unsigned(data,6);
-            if (rows==0 || columns==0) { validHeader=false; return; }
+            if (rows==0 || columns==0) { invalidateTable(TABLE_METADATA_INVALID); return; }
             if ((long)rows*columns>MAX_TABLE_POSITIONS) throw new IOException("LIMIT_EXCEEDED");
             int base=20+2*rows;
-            if (data.length<base) { validHeader=false; return; }
-            if (data.length!=base && (data.length<base+2 || data.length!=base+2+10*unsigned(data,base))) validHeader=false;
+            if (data.length<base) { invalidateTable(TABLE_METADATA_INVALID); return; }
+            if (data.length!=base && (data.length<base+2 || data.length!=base+2+10*unsigned(data,base))) invalidateTable(TABLE_METADATA_INVALID);
             rowCellCounts=new int[rows];
             for (int row=0;row<rows;row++) {
                 rowCellCounts[row]=unsigned(data,18+2*row);
-                if (rowCellCounts[row]>columns) validHeader=false;
+                if (rowCellCounts[row]>columns) invalidateTable(TABLE_METADATA_INVALID);
             }
         }
 
         void insertCell(byte[] data) throws IOException {
             if (cells.size()>=MAX_NODES) throw new IOException("LIMIT_EXCEEDED");
             currentCell=new Cell(data); cells.add(currentCell);
-            if (!tableSeen) validHeader=false; // 표 앞 LIST_HEADER(캡션)는 셀로 추정하지 않는다.
+            if (!tableSeen) invalidateTable(TABLE_METADATA_MISSING); // 표 앞 LIST_HEADER(캡션)는 셀로 추정하지 않는다.
         }
 
         boolean selectTableValid() {
-            if (!validHeader || !tableSeen || rowCellCounts==null || !loose.isEmpty()) return false;
+            if (!validHeader) { invalidTableReasons.forEach(evidence::updateHwpPartial); return false; }
+            if (!tableSeen || rowCellCounts==null) return tableFailure(TABLE_METADATA_MISSING);
+            if (!loose.isEmpty()) return tableFailure(TABLE_LOOSE_STRUCTURE);
             var covered=new BitSet(rows*columns); int[] counts=new int[rows]; int paragraphCount=0, previous=-1;
             for (Cell cell:cells) {
-                if (!cell.valid || cell.row>=rows || cell.column>=columns || cell.rowSpan<1 || cell.columnSpan<1
-                        || cell.row+cell.rowSpan>rows || cell.column+cell.columnSpan>columns
-                        || cell.paragraphCount!=cell.paragraphs.size()) return false;
+                if (!cell.valid) return tableFailure(CELL_HEADER_INVALID);
+                if (cell.row>=rows || cell.column>=columns || cell.rowSpan<1 || cell.columnSpan<1
+                        || cell.row+cell.rowSpan>rows || cell.column+cell.columnSpan>columns) return tableFailure(CELL_GEOMETRY_INVALID);
+                if (cell.paragraphCount!=cell.paragraphs.size()) return tableFailure(CELL_PARAGRAPH_COUNT);
                 int position=cell.row*columns+cell.column;
-                if (position<=previous) return false;
+                if (position<=previous) return tableFailure(CELL_ORDER_INVALID);
                 previous=position; counts[cell.row]++; paragraphCount+=cell.paragraphs.size();
                 for (int i=0;i<cell.paragraphs.size();i++)
-                    if (!cell.paragraphs.get(i).selectCellHeaderValid(i==cell.paragraphs.size()-1)) return false;
+                    if (!cell.paragraphs.get(i).selectCellHeaderValid(i==cell.paragraphs.size()-1)) return tableFailure(CELL_PARAGRAPH_HEADER);
                 for (int row=cell.row;row<cell.row+cell.rowSpan;row++) {
                     int start=row*columns+cell.column, end=start+cell.columnSpan;
                     int occupied=covered.nextSetBit(start);
-                    if (occupied>=0 && occupied<end) return false;
+                    if (occupied>=0 && occupied<end) return tableFailure(CELL_OVERLAP);
                     covered.set(start,end);
                 }
             }
-            return paragraphCount==paragraphs.size() && covered.cardinality()==rows*columns
-                    && java.util.Arrays.equals(counts,rowCellCounts);
+            if (paragraphCount!=paragraphs.size()) return tableFailure(TABLE_PARAGRAPH_COUNT);
+            if (covered.cardinality()!=rows*columns) return tableFailure(TABLE_COVERAGE);
+            if (!java.util.Arrays.equals(counts,rowCellCounts)) return tableFailure(TABLE_ROW_COUNTS);
+            return true;
         }
+        boolean tableFailure(ExtractionResult.HwpPartialCause cause) { evidence.updateHwpPartial(cause); return false; }
 
         @Override void save(boolean reliable) throws IOException {
             boolean valid=id==TABLE?selectTableValid():selectLayoutOnly();
-            if (!valid) evidence.updatePartial();
+            if (!valid && id!=TABLE) evidence.updateHwpPartial(UNSUPPORTED_CONTROL);
             for (Paragraph paragraph:paragraphs) paragraph.save(reliable && valid);
             saveLoose();
         }

@@ -67,11 +67,13 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         input.putArray("blocks");
         var structure=input.putObject("hwpStructure").put("sectionCount",1).put("recordCount",2).put("maximumLevel",3);
         structure.putArray("recordTypes").addObject().put("tagId",85).put("count",2);
+        input.putArray("hwpPartialCauses").addObject().put("code","UNSUPPORTED_RECORD").put("count",2);
         var result=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input);
         assertThat(result).containsKeys("hwpStructure","textHash","characterCount","blockCount")
                 .doesNotContainKeys("roleAssessment","roleAssessmentHash","roleStructureObservation","segmentAnalysis","segmentAnalysisHash");
         var output=JSON.valueToTree(result);
         assertThat(output.path("hwpStructure")).isEqualTo(structure);
+        assertThat(output.at("/hwpPartialCauses/0/code").asText()).isEqualTo("UNSUPPORTED_RECORD");
         assertThat(output.toString()).doesNotContain("PRIVATE_CANARY","isPolicyQaPassed","isExpectationApproved","ACCEPTED");
         structure.put("recordCount",3);
         assertThat(output.at("/hwpStructure/recordCount").asInt()).isEqualTo(2);

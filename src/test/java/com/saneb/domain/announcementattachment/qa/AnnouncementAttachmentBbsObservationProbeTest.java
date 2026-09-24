@@ -74,6 +74,8 @@ class AnnouncementAttachmentBbsObservationProbeTest {
             row.put("caseCode",AnnouncementAttachmentBbsObservationProbe.NAMGU_CASES.get(i))
                     .put("profileCode","LOCAL_BUSAN_NAMGU_GET_V1").put("maximumRequestReservations",5).put("maximumReservedBytes",25165824);
             ((ObjectNode)row.at("/files/0")).put("format","HWP");
+            ((ObjectNode)row.at("/files/0")).put("extractorVersion",com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity.EXTRACTOR_VERSION)
+                    .putArray("hwpPartialCauses");
             ((ObjectNode)row.at("/files/0")).putObject("hwpStructure").put("sectionCount",1).put("recordCount",2)
                     .put("maximumLevel",1).putArray("recordTypes").addObject().put("tagId",67).put("count",2);
         }
@@ -95,6 +97,8 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         changed=namguReports();((ObjectNode)changed.getFirst()).put("maximumRequestReservations",20).put("maximumReservedBytes",33554432);assertFalse(validNamgu(changed));
         changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).remove("hwpStructure");assertFalse(validNamgu(changed));
         changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0/hwpStructure")).put("recordCount",3);assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).remove("hwpPartialCauses");assertFalse(validNamgu(changed));
+        changed=namguReports();((ObjectNode)changed.getFirst().at("/files/0")).put("extractorVersion","1.0.5");assertFalse(validNamgu(changed));
     }
     @Test void namguBudgetReservesBodyThenAllowsOnlyThreeMoreRequests() {
         var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").findFirst().orElseThrow();
@@ -108,7 +112,9 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     @Test void namguPartialExtractionRemainsIncompleteAndHasNoNormalExpectation() throws Exception {
         var reports=namguReports();((ObjectNode)reports.getFirst().at("/files/0")).put("quality","PARTIAL_TEXT");
         assertFalse(validNamgu(reports));
-        ((ObjectNode)reports.getFirst()).put("isWholeTextAnalysisComplete",false);assertTrue(validNamgu(reports));
+        ((ObjectNode)reports.getFirst()).put("isWholeTextAnalysisComplete",false);assertFalse(validNamgu(reports));
+        ((ObjectNode)reports.getFirst().at("/files/0")).putArray("hwpPartialCauses").addObject().put("code","CELL_HEADER_INVALID").put("count",1);
+        assertTrue(validNamgu(reports));
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU").toList();
         assertEquals(AnnouncementAttachmentBbsObservationProbe.NAMGU_CASES,cases.stream().map(c->c.code()).toList());
     }

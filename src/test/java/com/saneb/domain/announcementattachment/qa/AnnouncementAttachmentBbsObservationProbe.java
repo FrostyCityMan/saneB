@@ -124,6 +124,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if (namgu && Set.of("COMPLETE_TEXT", "PARTIAL_TEXT", "OCR_REQUIRED").contains(file.path("quality").asText())) {
                 try {
                     if (com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpStructureDetails(file) == null) return false;
+                    if (!com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(file.path("extractorVersion").asText())) return false;
+                    var partialDiagnostic=(com.fasterxml.jackson.databind.node.ObjectNode)file.deepCopy();
+                    partialDiagnostic.set("qualityCode",file.path("quality"));
+                    if (com.saneb.domain.announcementattachment.extraction.IsolatedAttachmentExtractor.selectHwpPartialCauseList(partialDiagnostic) == null) return false;
                 } catch (java.io.IOException invalid) { return false; }
             }
             if (complete && (!selectBounded(file, "characterCount", 1, 1000000) || !selectBounded(file, "blockCount", 1, 20000)

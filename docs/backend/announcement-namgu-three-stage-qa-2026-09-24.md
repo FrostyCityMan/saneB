@@ -83,6 +83,39 @@
 
 ## 검증과 남은 Gate
 
+### 후속 1.0.6 부분 처리 사유 진단 계약
+
+- 목적:44381의 PARTIAL_TEXT를 무조건 해제하는 것이 아니라, 표/셀/문단/컨트롤 검증 중 실제 실패한 조건을 확인한다. 검증 후 지원 가능한 구조만 별도 변경한다.
+- 격리 IPC에 선택적 `hwpPartialCauses:[{code,count}]`를 추가한다. 고정 enum29종·정수1~33,554,432·중복 없는 고정 순서만 허용한다. 원문/파일명/컨트롤 payload/외부 오류문을 담지 않는다. 기존 HWP structure4필드는 보존한다.1.0.6 HWP 응답에서 새 진단 누락은 실패한다. 구버전 응답의 생략은 호환한다.
+- COMPLETE_TEXT는 빈 사유 목록, PARTIAL_TEXT는1개 이상, OCR_REQUIRED는 문서 구조에 따라 빈 목록 또는 사유가 가능하다. 사유 수는 실패 이벤트 수이며 문서 수/고유 원인 수/누락 문자 수가 아니다. 표 검증은 기존 첫 실패 반환 순서를 보존하므로 보고되지 않은 다른 원인이 없다는 뜻이 아니다.
+- 추출기 Gradle/version·런타임 identity를1.0.6으로 맞춘다. 진단 추가로 실행 지문이 바뀌므로 이전 runtime/정책 QA snapshot을 새 성공으로 재사용하지 않는다. 기존 v1 API·DB/Flyway·A/B/FORM 정책·자동 활성화 금지는 불변이다. 운영 설치/정책은 별도이며 이번 변경으로 갱신하지 않는다.
+- 성공 조건: 기존 합성 HWP의 text/block/quality 경계 유지, 정상 빈 원인·비정상 구체 사유, 임의 payload/코드/중복/역순/범위/품질 모순 거부, 같은 고정 실파일의 이전 binary/text/본문 hash 대조, 원본/임시 자원 정리. 실제 실파일 결과와 새 CI는 실행 후 별도 기록한다.
+- 실패 조건: 부분 판정을 정상으로 완화, 원문 누출, 다른 파일을 같은 표본으로 간주, 원인 미확정을 해결로 보고, 이전 영수증 미차감 또는 예산 초과, 운영 DB/정책/worker 변경.
+
+### 1.0.6 실제 재관측 결과
+
+- execution `bfc3baf61e684f22bb839c2a9d7fb305`, SSM `96ae2857-b60d-4ddb-858b-445ee63a9dc0`.47.050초·3/3·실패/생략/중단0이다. 실제12요청/6,540,257byte, 고정3건 누적 **42요청/19,869,572byte**다. 전체60요청/96MiB 안에서 기존 영수증2회와 로컬 signature 사용량을 차감했다.
+- codeHash `8c84b30d6e55f2d63bbf5c81761c2bda62154df64720fbbfc7d49a79241fc5ae`, probeHash `87c2a795b51d0db035eb11f66eacdc9e69348b5be2632904efd7553d7a15d670`, ZIP SHA256 `2ca16c30bb4770bd77cd123475d448b0603956e0263e1a22eebc873032e1e630`.
+- 세 파일 모두 extractorVersion1.0.6이며 이전 본문/binary/text hash가 동일하다. PARTIAL_TEXT·REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE·관리자 최종 검증 필요는 유지했다. 실제 원본이나 추출 본문을 진단 보고서에 저장하지 않았다.
+
+| 공고 | 실제 부분 처리 이벤트 |
+|---|---|
+| 44466 | UNSUPPORTED_RECORD1·UNSUPPORTED_CONTROL1 |
+| 44381 | UNSUPPORTED_INLINE_CONTROL1·MISSING_CONTROL1·UNSUPPORTED_CONTROL1 |
+| 42871 | UNSUPPORTED_RECORD20·UNSUPPORTED_CONTROL7 |
+
+44381은 표/셀 검증 실패 코드가 관측되지 않았고, 인라인/컨트롤 처리로 범위가 좁혀졌다. 다만 `MISSING_CONTROL`에는 미지원 inline을 분리하는 내부 placeholder의 후속 처리도 포함된다. 위3개 이벤트를 서로 독립적인3개 원인이나 원본 자체의 앵커 유실로 단정하지 않는다. 다음은 해당 컨트롤의 고정 종류·문서 내 범위와 텍스트 보존 조건을 확인하는 것이다. 지원하지 않는 컨트롤을 장식으로 가정해 무시하거나 파일 전체를 정상으로 승격하지 않는다.
+
+원격 unit/원본/임시 DB/transport 정리·JAR 불변·health UP을 확인하고 S3 자기 객체 및 로컬 자기 ZIP을 제거했다. plan/result JSON은 보존했다. 운영 설치·DB·정책·worker·기존 데이터·배포는 변경하지 않았으며 브라우저는 현재 명시 요청 정책상 미실행이다.
+
+검증:
+
+- 추출기123건 실패/생략0. IPC 고정 코드29종 일치·범위·중복/역순·원문 필드·품질 모순 거부, HWP 표/셀/앵커/레코드 원인과 기존 text/block/quality 경계를 검증했다.
+- 후속 probe 컴파일에서 기존 diagnostic 매개변수와 지역 변수명의 충돌1건을 수정했다. 표적43·패키지20·bootJar/probe 재생성은55초 성공/실패·생략0이다.
+- 확대 `:test --tests 'com.saneb.domain.announcementattachment.*' :attachment-extractor:test :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`:3분16초 성공,root1965=1943통과/22조건부 생략·실패/오류0. extractor123/패키지20/bootJar는 앞서 실행·생성한 동일 코드 결과 UP-TO-DATE다. Node4·Python21건 실패/생략0.
+- 새 HWP IPC의 진단 누락 거부/1.0.5 생략 호환 및 기존 worker probe를 추가로 검증했다. `:test --tests '*HwpPartialDiagnosticTest' --tests '*AnnouncementAttachmentOfficialWorkerProbeTest' :bootJar --no-daemon --max-workers=1`은22초/30건 실패·생략0이다. 변경 없는 bootJar는 UP-TO-DATE이며 종료 후 Java/PG0, 사용한 단발 Node 종료와 기존 사용자 프로세스 보존을 확인했다.
+- 선행047a1d8 [Linux36006726822](https://github.com/FrostyCityMan/saneB/actions/runs/36006726822) success/artifact XML 확인:root3007=2721통과/286조건부 생략·실패/오류0,별도 extractor122·패키지20·jobPG206·migration18·정책부모PG2·runtime5·workerPG12·Flyway3은 실패/오류/생략0. 이는 이번1.0.6의 CI 통과 근거가 아니다.48fb835 Linux36007924157은 실행 중으로 확인했다.
+
 - 최초 제목 구조 단위 시험3건 중 중첩 표 차용1건이 실패했다. assertion을 완화하지 않고 중첩 표를 명시적으로 거부했으며3건 재검증과 실제 사이트3건이 통과했다.
 - 참조·제목·catalog·probe 표적 시험/QA 패키지20/bootJar는1분56초 성공. Node/Bash4·Python21건 실패/생략0. CI에는 단위 검증만 연결되며 남구 실파일 요청을 자동 실행하지 않는다.
 - 확대 회귀 첫 실행은 기존 정책 snapshot 시험의 catalog30 고정 수량1건이 실패했다.33개 전체 고정 참조와 실행0·정책QA false를 유지하도록 수량을 갱신했다. 재실행 `:test --tests 'com.saneb.domain.announcementattachment.*' :attachmentContractQaTest :bootJar --no-daemon --max-workers=1`은3분22초 성공이다. XML1960=1938통과/22조건부 생략·실패/오류0, 패키지20건 실패/오류/생략0이다. bootJar는 동일 코드 산출물 UP-TO-DATE이며 Node 확대12·Python21건 실패/생략0도 확인했다.

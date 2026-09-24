@@ -115,7 +115,39 @@ public class IsolatedAttachmentExtractor {
         if ("COMPLETE_TEXT".equals(result.path("qualityCode").asText()) && (text.isBlank() || result.path("blocks").isEmpty()))
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
+        selectHwpPartialCauseList(result);
+        if ("HWP".equals(result.path("format").asText()) && "1.0.6".equals(result.path("extractorVersion").asText())
+                && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
+    }
+    private static final List<String> HWP_PARTIAL_CAUSES = List.of(
+            "UNATTACHED_PARAGRAPH", "PARAGRAPH_LEVEL_GAP", "UNATTACHED_TEXT", "CONTROL_LEVEL_GAP",
+            "UNATTACHED_CONTROL", "UNSUPPORTED_RECORD", "LOOSE_STRUCTURE", "MULTIPLE_TEXT_RECORDS",
+            "UNSUPPORTED_INLINE_CONTROL", "TABLE_ANCHOR_TYPE", "MISSING_CONTROL", "UNANCHORED_CONTROL",
+            "UNSUPPORTED_CONTROL", "REPLACEMENT_CHARACTER", "TABLE_CONTROL_HEADER", "TABLE_PARAGRAPH_LEVEL",
+            "TABLE_PARAGRAPH_WITHOUT_CELL", "TABLE_METADATA_INVALID", "TABLE_METADATA_MISSING", "TABLE_LOOSE_STRUCTURE",
+            "CELL_HEADER_INVALID", "CELL_GEOMETRY_INVALID", "CELL_PARAGRAPH_COUNT", "CELL_ORDER_INVALID",
+            "CELL_PARAGRAPH_HEADER", "CELL_OVERLAP", "TABLE_PARAGRAPH_COUNT", "TABLE_COVERAGE", "TABLE_ROW_COUNTS");
+    /** 구 IPC는 선택 필드를 생략할 수 있다. 진단이 있으면 고정 코드·범위·순서·품질을 검증한다. */
+    public static JsonNode selectHwpPartialCauseList(JsonNode result) throws IOException {
+        if (result == null || !result.has("hwpPartialCauses")) return null;
+        final String error="INVALID_HWP_PARTIAL_DIAGNOSTIC";
+        JsonNode causes=result.path("hwpPartialCauses");
+        String quality=result.path("qualityCode").asText();
+        if (!"HWP".equals(result.path("format").asText()) || !causes.isArray() || causes.size()>HWP_PARTIAL_CAUSES.size()
+                || !List.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED").contains(quality)
+                || ("COMPLETE_TEXT".equals(quality) && !causes.isEmpty())
+                || ("PARTIAL_TEXT".equals(quality) && causes.isEmpty())) throw new IOException(error);
+        int previous=-1;
+        for (var cause:causes) {
+            int index=HWP_PARTIAL_CAUSES.indexOf(cause.path("code").asText());
+            JsonNode count=cause.path("count");
+            if (!cause.isObject() || cause.size()!=2 || !cause.path("code").isTextual() || index<=previous
+                    || !count.isIntegralNumber() || !count.canConvertToInt() || count.intValue()<1 || count.intValue()>33_554_432)
+                throw new IOException(error);
+            previous=index;
+        }
+        return causes.deepCopy();
     }
     /** 격리 IPC의 수치 진단만 허용한다. 원문·가변 코드·미지 필드는 외부 보고로 전달하지 않는다. */
     public static JsonNode selectHwpStructureDetails(JsonNode result) throws IOException {

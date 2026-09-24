@@ -180,7 +180,26 @@ class HwpTableTextTest {
 
     private void assertComplete(ExtractionResult result,String... expected) {
         assertEquals("COMPLETE_TEXT",result.qualityCode());assertEquals(List.of(expected),texts(result));
+        assertTrue(result.hwpPartialCauses().isEmpty());
         assertTrue(result.blocks().stream().allMatch(ExtractionResult.Block::scopeReliable));assertScopes(result);
+    }
+    @Test void partialCausesDistinguishCellControlAndMetadataFailuresWithoutRawText() throws Exception {
+        byte[] source=body(paragraph(table(1,1,cell(0,0,"PRIVATE_CANARY"))));
+        assertCause(select(replace(source,71,0,data->java.util.Arrays.copyOf(data,4))),"TABLE_CONTROL_HEADER");
+        assertCause(select(mutate(source,72,0,b->b.put(38,(byte)1))),"CELL_HEADER_INVALID");
+        assertCause(select(mutate(source,72,0,b->b.putShort(12,(short)0))),"CELL_GEOMETRY_INVALID");
+        assertCause(select(mutate(source,72,0,b->b.putInt(0,2))),"CELL_PARAGRAPH_COUNT");
+        assertCause(select(mutate(source,66,1,b->b.putInt(0,2))),"CELL_PARAGRAPH_HEADER");
+        assertCause(select(mutate(source,77,0,b->b.putShort(18,(short)0))),"TABLE_ROW_COUNTS");
+        assertCause(select(join(source,record(87,1,new byte[4]))),"UNSUPPORTED_RECORD");
+        assertCause(select(body(paragraph("PRIVATE_CANARY\ufffd"))),"REPLACEMENT_CHARACTER");
+    }
+    private void assertCause(ExtractionResult result,String code) throws Exception {
+        assertEquals("PARTIAL_TEXT",result.qualityCode());
+        assertTrue(result.hwpPartialCauses().stream().anyMatch(c->c.code().name().equals(code)&&c.count()>0));
+        var json=new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result.hwpPartialCauses());
+        assertFalse(json.toString().contains("PRIVATE_CANARY"));
+        assertTrue(result.text().contains("PRIVATE_CANARY"));
     }
     private void assertScopes(ExtractionResult result) {
         assertEquals(result.blocks().size(),result.blocks().stream().map(ExtractionResult.Block::evidenceScopeId).distinct().count());

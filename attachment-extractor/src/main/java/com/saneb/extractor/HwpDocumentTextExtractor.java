@@ -78,6 +78,6 @@ final class HwpDocumentTextExtractor {
         var result = evidence.selectResult("HWP", null);
         return new ExtractionResult(result.format(), result.extractorVersion(), result.qualityCode(),
                 result.text(), result.blocks(), result.pageCount(), result.errorCode(),
-                new ExtractionResult.HwpStructure(sectionCount, recordCount, maximumLevel, types));
+                new ExtractionResult.HwpStructure(sectionCount, recordCount, maximumLevel, types), null, result.hwpPartialCauses());
     }
 }

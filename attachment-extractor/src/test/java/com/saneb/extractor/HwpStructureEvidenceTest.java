@@ -42,6 +42,7 @@ class HwpStructureEvidenceTest {
         var result=AttachmentExtractorMain.selectExtraction(file(List.of(records(text(1,"지원사업 내용"),record(tag,2,new byte[4]))),false));
         assertEquals("PARTIAL_TEXT",result.qualityCode());assertEquals("지원사업 내용",result.text());
         assertTrue(result.hwpStructure().recordTypes().contains(new ExtractionResult.RecordType(tag,1)));
+        assertEquals(List.of(new ExtractionResult.PartialCause(ExtractionResult.HwpPartialCause.UNSUPPORTED_RECORD,1)),result.hwpPartialCauses());
     }
 
     @Test void paragraphLayoutMetadataDoesNotByItselfInvalidateText() throws Exception {

@@ -207,6 +207,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                     row.put("format",format);stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
                     assertEquals(format,actual.path("format").asText(),"EXTRACTED_FORMAT_CHANGED");
                     row.put("quality",actual.path("qualityCode").asText());
+                    row.put("extractorVersion",actual.path("extractorVersion").asText());
                     assertTrue(Set.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED","ENCRYPTED","CORRUPT","UNSUPPORTED","LIMIT_EXCEEDED").contains(actual.path("qualityCode").asText()),"ISOLATED_EXTRACTION_FAILED");
                     stage="TEXT_ROLE";var observation=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(actual);row.putAll(observation);
                     files.add(selectFileInput(actual,JSON.valueToTree(observation)));row.put("status","OBSERVED");
