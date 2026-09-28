@@ -21,7 +21,7 @@ DB/API/migration/분류 규칙/운영 정책·worker 설정은 변경하지 않�
 2. [x] 제한된 배치 검증, 앵커/leaf 확인과 버전 계약 구현.
 3. [x] 신규32건·기존 자동 번호20/각주19/표53, 총124건 실패/오류/생략0. 압축/비압축 OLE, 허용 위치·장식, 손상 길이·속성·사용자 기호·앵커·자식·Unicode scope·표/각주 회귀 통과.
 4. [x] 전체 추출기222·IPC/worker/구간195·패키지20·bootJar 검증 통과. 마지막 주석 변경 후 재컴파일과 산출물 의존성 재확인 성공(17초, 나머지 UP-TO-DATE). 직접 배포판과 QA 패키지 배포판 모두1.0.15 JAR만1개 존재한다.
-5. [~] QA 브랜치 커밋·푸시와 원격 SHA 확인 진행. 동일 소스 Linux와 실제 파일 관측은 별도 상태로 기록.
+5. [x] QA 브랜치 소스0b565819a55022cf67504c451dc69e1129f49413 커밋·푸시와 원격 SHA 일치 확인. 동일 소스 Linux와 실제 파일 관측은 아래처럼 별도 상태다.
 
 성공 기준: 명세의 제한 범위만 지원하고 미지원/손상 입력은 부분 품질·검수로 남으며 텍스트 순서·코드포인트 위치·독립 근거를 보존한다. 실패 기준: 길이만으로 성공 처리, 페이지 추정, 임의 장식/본문 손실, 실패 사유 제거, 실제 공고가 검증됐다고 확대 보고.
 
@@ -44,3 +44,10 @@ Node21·Python35도 실패/생략0이다. Windows Gradle에는 기존 Windows-RO
 후속은 기존 예산과 지문을 보존한 실제 HWP의 새 버전 대조다. 강북4번째 파일의 BRIDGE_GET HTTP400은 별도 blocker이며 이 파서 수정으로 해결되지 않는다. catalog40참조/14프로필/기대값1/정상0과 전체9Gate8부분/1차단은 변하지 않는다.
 
 최종 명령은 `:attachment-extractor:test :attachmentContractQaTest :attachmentBbsObservationProbeJar :attachmentOfficialWorkerProbeJar :bootJar`다. 광범위 재검증1분18초 후 위17초 의존성 확인을 마쳤다. 전체 root suite는 이번 변경에서 재실행하지 않았으며 이전3,108건 결과를 새 소스의 결과로 사용하지 않는다. 기존 Log4j provider/unchecked/VM 경고는 남는다.
+
+## QA 브랜치 전달
+
+- [x] 소스0b565819a55022cf67504c451dc69e1129f49413을 QA 브랜치에만 push했다. master/main merge·운영 배포·정책 게시·ENFORCE·재분류는 하지 않았다.
+- [~] [동일 소스 Linux36395464220](https://github.com/FrostyCityMan/saneB/actions/runs/36395464220)은 최초 조회pending이다. 이전61a9543의 Linux36393605515는in_progress, 641450c의 Linux36392919528은success로 확인했다. 다른 소스의 성공을 새 소스 통과로 사용하지 않는다.
+- [x] 사용한 Node/Gradle 명령은 종료했으며 소유 Gradle JVM도 남지 않았다. 기존 사용자 Java2개와 Node 프로세스, 미추적 `output/`·`scripts/qa/__pycache__/`를 보존했다.
+- [~] 다음은 새 버전의 실제 HWP payload/추출 대조다. 기존 소모·단일 실행 예약을 우회하지 않고 새 계획에서 버전과 누적 한도를 먼저 고정한다. 이 문서 기록만으로 외부 실행 완료 또는 정상 기대값을 추가하지 않는다.
