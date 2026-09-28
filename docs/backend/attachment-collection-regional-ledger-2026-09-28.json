@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 30,
-    "missingProfileRegionCount": 193,
-    "collectionVerifiedRegionCount": 13,
-    "remainingRegionCount": 210
+    "registeredRegionCount": 32,
+    "missingProfileRegionCount": 191,
+    "collectionVerifiedRegionCount": 15,
+    "remainingRegionCount": 208
   },
   "regions": [
     {
@@ -418,27 +418,95 @@
       "sourceCode": "LGS-000028",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000028",
+          "caseCode": "BSJUNGGU-29138",
+          "profileCode": "LOCAL_BUSAN_JUNGGU_GET_V1",
+          "profileHash": "f34ba1e71cd71f2acc568483a9af1c42e57068b8e640ad637af7e1a068c6d3d0",
+          "receiptHash": "5082ea40d974f8b4d3d3e6ae3639b30e71b50bf705310b9d68947ec33d781f36",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000028",
+          "caseCode": "BSJUNGGU-29432",
+          "profileCode": "LOCAL_BUSAN_JUNGGU_GET_V1",
+          "profileHash": "f34ba1e71cd71f2acc568483a9af1c42e57068b8e640ad637af7e1a068c6d3d0",
+          "receiptHash": "c6627578c1da95b09b80e630dc0fd92915b93a505b98b000d081599a62d6767b",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000028",
+          "caseCode": "BSJUNGGU-29433",
+          "profileCode": "LOCAL_BUSAN_JUNGGU_GET_V1",
+          "profileHash": "f34ba1e71cd71f2acc568483a9af1c42e57068b8e640ad637af7e1a068c6d3d0",
+          "receiptHash": "2db53db39ae6b8ce23d5c9663539c619ab0763033afaaf0baa9b906ec76194ed",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000029",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000029",
+          "caseCode": "BSSEOGU-36645",
+          "profileCode": "LOCAL_BUSAN_SEOGU_GET_V1",
+          "profileHash": "a30d9feec8dd4f5ac341a97e59b1ef45d22b460e90f0d5f9bf38c0f00e7e3a6b",
+          "receiptHash": "29f814a08fea775c9909f706bfd6cc2a973fa096c2893649e34385af9f510855",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000029",
+          "caseCode": "BSSEOGU-36758",
+          "profileCode": "LOCAL_BUSAN_SEOGU_GET_V1",
+          "profileHash": "a30d9feec8dd4f5ac341a97e59b1ef45d22b460e90f0d5f9bf38c0f00e7e3a6b",
+          "receiptHash": "3e1b2b051c646d961415edecc5fd42e61e86ee611b5b000fb53bf374d164287a",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000029",
+          "caseCode": "BSSEOGU-36796",
+          "profileCode": "LOCAL_BUSAN_SEOGU_GET_V1",
+          "profileHash": "a30d9feec8dd4f5ac341a97e59b1ef45d22b460e90f0d5f9bf38c0f00e7e3a6b",
+          "receiptHash": "5c71e90cf2ab53224c4c068d3ef4718ca06acda36f0ea40c4569191937a9c7d7",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000030",
@@ -3894,9 +3962,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "8765ccfaa1c5e14d2142cbfe5f5367596956e338c6e4b80bbe995b0a7cef735b",
+  "inputInventorySha256": "dc91a81b6babd821c93690e1ae3c5ab0ecf199b3a2769bfee00c30ea6714847d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 80,
+  "importedReceiptCount": 86,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4096,6 +4164,30 @@
     "junitReportHashes": {
       "BSDONGGU": "d9a0cdd9b93c266203a0cfb9e0b3d5cb51e87f153a3ef43149edaa1a8fa8423d",
       "SAHA": "dc8e6da45b55fe307d84f767164d6e8024d4d04010c251076bb66792c883ad40"
+    }
+  },
+  "busanJungguSeoguCollectionRun": {
+    "groups": [
+      "BSJUNGGU",
+      "BSSEOGU"
+    ],
+    "tests": 6,
+    "failures": 0,
+    "skipped": 0,
+    "failureCases": [],
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 16,
+    "surveyStoredHtmlBytes": 288991,
+    "requestReservations": 31,
+    "reservedBytes": 14357097,
+    "downloadedFiles": 13,
+    "uniqueDownloadedBinaryCount": 10,
+    "downloadedBytes": 1726191,
+    "junitReportHashes": {
+      "BSJUNGGU": "667f06c43c01de6cbad0502f5163bf078a4e0bc3909152df7771cf2eec404134",
+      "BSSEOGU": "44091c9a8ea0b5cd5d9cd5b7980f3003f4e0e75960f2a441cc9a5491bf1f124b"
     }
   }
 }
