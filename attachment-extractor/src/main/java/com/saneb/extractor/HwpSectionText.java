@@ -17,6 +17,7 @@ final class HwpSectionText {
     private static final int HYPERLINK = 0x25686c6b;
     private static final int FOOTNOTE = 0x666e2020, ENDNOTE = 0x656e2020;
     private static final int AUTO_NUMBER = 0x61746e6f;
+    private static final int PAGE_NUMBER = 0x70676e70;
     private static final int MAX_NODES = 20_000, MAX_DEPTH = 64, MAX_TABLE_POSITIONS = 20_000;
     private final String section;
     private final TextEvidence evidence;
@@ -31,8 +32,9 @@ final class HwpSectionText {
             if (frames.isEmpty()) closed.save(true);
         }
         Frame parent=frames.peek();
-        // 자동 번호는 문단/배치 레코드를 갖지 않는 leaf다. 알려진 tag라도 임의 자식을 무시하지 않는다.
+        // 지원하는 번호/쪽 번호 배치는 leaf다. 알려진 tag라도 임의 자식을 무시하지 않는다.
         if (parent instanceof Control control && control.id==AUTO_NUMBER) control.invalidNumber=true;
+        if (parent instanceof Control control && control.id==PAGE_NUMBER) control.invalidPageNumber=true;
         if (tag==66) {
             checkNodeBudget();
             Paragraph paragraph=new Paragraph(level, ++paragraphIndex, data);
@@ -188,6 +190,8 @@ final class HwpSectionText {
                         control.numberAnchorValid=piece.characterCode()==18 && control.level==level+1;
                         control.numberLocation=section+cellLocation+":paragraph:"+index+":auto-number:"+control.numberIndex;
                     }
+                    if (control.id==PAGE_NUMBER)
+                        control.pageNumberAnchorValid=piece.characterCode()==21 && control.level==level+1;
                     if (!(fieldsValid && piece.characterCode()==3 && control.selectPassiveHyperlink())) control.save(reliable);
                 }
             }
@@ -242,6 +246,8 @@ final class HwpSectionText {
         final String numberText;
         String numberLocation;
         boolean numberAnchorValid, invalidNumber;
+        final boolean validPageNumberLayout;
+        boolean pageNumberAnchorValid, invalidPageNumber;
         final List<Paragraph> paragraphs=new ArrayList<>();
         final List<Cell> cells=new ArrayList<>();
         boolean validHeader, tableSeen, passiveHyperlink;
@@ -256,6 +262,7 @@ final class HwpSectionText {
             noteNumber=selectNote()?++noteIndex:0;
             numberIndex=id==AUTO_NUMBER?++HwpSectionText.this.numberIndex:0;
             numberText=id==AUTO_NUMBER?selectStoredNumberText(data):null;
+            validPageNumberLayout=id==PAGE_NUMBER && selectPageNumberLayoutValid(data);
             numberLocation=section+":auto-number:"+numberIndex+":unanchored";
             // 공개 읽기/쓰기 구현의 각주·미주 헤더: ID 포함16byte, 선택 instance ID4byte.
             if (selectNote() && (data.length==16 || data.length==20)) {
@@ -364,12 +371,22 @@ final class HwpSectionText {
 
         @Override void save(boolean reliable) throws IOException {
             boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():id==AUTO_NUMBER?
-                    numberText!=null && numberAnchorValid && !invalidNumber && paragraphs.isEmpty() && loose.isEmpty():selectLayoutOnly();
+                    numberText!=null && numberAnchorValid && !invalidNumber && paragraphs.isEmpty() && loose.isEmpty():id==PAGE_NUMBER?
+                    validPageNumberLayout && pageNumberAnchorValid && !invalidPageNumber && paragraphs.isEmpty() && loose.isEmpty():selectLayoutOnly();
             if (!valid && id!=TABLE) evidence.updateHwpPartial(UNSUPPORTED_CONTROL);
             if (numberText!=null) evidence.insertBlock(numberText,numberLocation,reliable && valid);
             for (Paragraph paragraph:paragraphs) paragraph.save(reliable && valid);
             saveLoose();
         }
+    }
+
+    /** 명세/공개 작성기 양 해석에서 사용자 텍스트가 없는 배치만 허용한다. 페이지를 계산하지 않는다. */
+    private static boolean selectPageNumberLayoutValid(byte[] data) {
+        if (data.length!=16) return false;
+        int flags=integer(data,4);
+        return (flags&~0x0f00)==0 && ((flags>>>8)&15)<=10
+                && unsigned(data,8)==0 && unsigned(data,10)==0
+                && (unsigned(data,12)==0 || unsigned(data,12)=='-') && unsigned(data,14)=='-';
     }
 
     /** 저장된 십진 번호만 복원한다. 페이지 계산·미지원 번호 모양·사용자 기호를 추정하지 않는다. */

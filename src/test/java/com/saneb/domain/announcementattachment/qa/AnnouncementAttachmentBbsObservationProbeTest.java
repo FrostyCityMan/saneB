@@ -20,11 +20,18 @@ class AnnouncementAttachmentBbsObservationProbeTest {
         for(int i=0;i<3;i++) {
             var file=(ObjectNode)row.at("/files/"+i);file.retain("locatorHash","formatHint");file.put("status","NOT_SELECTED");
         }
-        ((ObjectNode)row.at("/files/3")).putObject("downloadTrace").put("schemaVersion",1).put("step","FINAL_POST")
+        // 이전 단일 진단의 영수증 계약은 현재 추출기 버전과 독립적으로 고정한다.
+        ((ObjectNode)row.at("/files/3")).put("extractorVersion","1.0.14").putObject("downloadTrace").put("schemaVersion",1).put("step","FINAL_POST")
                 .put("phase","COMPLETE").put("transportInvocations",3).put("completedTransports",3);
         return List.of(row);
     }
     private boolean validSelected(List<JsonNode> rows){return AnnouncementAttachmentBbsObservationProbe.selectGangbukSelectedComplete(rows,START,START.plusSeconds(60));}
+    @Test void selectedGangbukHistoricalContractDoesNotAcceptAnotherExtractorVersion() throws Exception {
+        for(String version:List.of("1.0.13","1.0.15","changed")) {
+            var rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/3")).put("extractorVersion",version);
+            assertFalse(validSelected(rows));
+        }
+    }
     @Test void selectedGangbukKeepsFourFileDenominatorWithoutClaimingWholeNotice() throws Exception {
         assertEquals("GANGBUK_SELECTED_DOWNLOAD",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"GANGBUK_SELECTED_DOWNLOAD"}));
         assertTrue(validSelected(selectedGangbukReports()));assertFalse(validSelected(gangbukReports()));assertFalse(validGangbuk(selectedGangbukReports()));

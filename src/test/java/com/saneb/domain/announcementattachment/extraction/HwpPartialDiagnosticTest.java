@@ -55,8 +55,10 @@ class HwpPartialDiagnosticTest {
         assertEquals(31,causes.size());
         assertEquals(causes,IsolatedAttachmentExtractor.selectHwpPartialCauseList(input));
     }
-    @Test void newHwpIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable() throws Exception {
-        var input=valid().put("extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION).put("text","가");
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"1.0.14",AttachmentRuntimeIdentity.EXTRACTOR_VERSION})
+    void newHwpIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable(String version) throws Exception {
+        var input=valid().put("extractorVersion",version).put("text","가");
         input.putArray("blocks").addObject().put("startOffset",0).put("endOffset",1).put("locator","synthetic").put("scopeReliable",false);
         var validator=IsolatedAttachmentExtractor.class.getDeclaredMethod("validateResult",JsonNode.class);
         validator.setAccessible(true);

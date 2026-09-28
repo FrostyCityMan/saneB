@@ -55,8 +55,10 @@ class PdfStructureDiagnosticContractTest {
         assertThat(IsolatedAttachmentExtractor.selectPdfStructureDetails(root)).isNotNull();
         root.put("qualityCode","COMPLETE_TEXT");rejected(root);
     }
-    @Test void currentPdfIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable() throws Exception {
-        var root=result().put("extractorVersion",AttachmentRuntimeIdentity.EXTRACTOR_VERSION);
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"1.0.14",AttachmentRuntimeIdentity.EXTRACTOR_VERSION})
+    void currentPdfIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable(String version) throws Exception {
+        var root=result().put("extractorVersion",version);
         root.putArray("blocks").addObject().put("startOffset",0).put("endOffset",5).put("locator","synthetic").put("scopeReliable",false);
         var validator=IsolatedAttachmentExtractor.class.getDeclaredMethod("validateResult",com.fasterxml.jackson.databind.JsonNode.class);
         validator.setAccessible(true);
