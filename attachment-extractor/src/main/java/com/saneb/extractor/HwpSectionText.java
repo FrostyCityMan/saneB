@@ -16,11 +16,12 @@ final class HwpSectionText {
     private static final int SECTION = 0x73656364, COLUMN = 0x636f6c64;
     private static final int HYPERLINK = 0x25686c6b;
     private static final int FOOTNOTE = 0x666e2020, ENDNOTE = 0x656e2020;
+    private static final int AUTO_NUMBER = 0x61746e6f;
     private static final int MAX_NODES = 20_000, MAX_DEPTH = 64, MAX_TABLE_POSITIONS = 20_000;
     private final String section;
     private final TextEvidence evidence;
     private final ArrayDeque<Frame> frames = new ArrayDeque<>();
-    private int paragraphIndex, tableIndex, noteIndex, nodes, textUnits;
+    private int paragraphIndex, tableIndex, noteIndex, numberIndex, nodes, textUnits;
 
     HwpSectionText(String section, TextEvidence evidence) { this.section=section; this.evidence=evidence; }
 
@@ -30,6 +31,8 @@ final class HwpSectionText {
             if (frames.isEmpty()) closed.save(true);
         }
         Frame parent=frames.peek();
+        // 자동 번호는 문단/배치 레코드를 갖지 않는 leaf다. 알려진 tag라도 임의 자식을 무시하지 않는다.
+        if (parent instanceof Control control && control.id==AUTO_NUMBER) control.invalidNumber=true;
         if (tag==66) {
             checkNodeBudget();
             Paragraph paragraph=new Paragraph(level, ++paragraphIndex, data);
@@ -181,6 +184,10 @@ final class HwpSectionText {
                 if (control==null) evidence.updateHwpPartial(MISSING_CONTROL);
                 else {
                     if (control.selectNote() && piece.characterCode()!=17) control.invalidNote=true;
+                    if (control.id==AUTO_NUMBER) {
+                        control.numberAnchorValid=piece.characterCode()==18 && control.level==level+1;
+                        control.numberLocation=section+cellLocation+":paragraph:"+index+":auto-number:"+control.numberIndex;
+                    }
                     if (!(fieldsValid && piece.characterCode()==3 && control.selectPassiveHyperlink())) control.save(reliable);
                 }
             }
@@ -231,6 +238,10 @@ final class HwpSectionText {
 
     private final class Control extends Frame {
         final int id, tableNumber, noteNumber;
+        final int numberIndex;
+        final String numberText;
+        String numberLocation;
+        boolean numberAnchorValid, invalidNumber;
         final List<Paragraph> paragraphs=new ArrayList<>();
         final List<Cell> cells=new ArrayList<>();
         boolean validHeader, tableSeen, passiveHyperlink;
@@ -243,6 +254,9 @@ final class HwpSectionText {
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
             noteNumber=selectNote()?++noteIndex:0;
+            numberIndex=id==AUTO_NUMBER?++HwpSectionText.this.numberIndex:0;
+            numberText=id==AUTO_NUMBER?selectStoredNumberText(data):null;
+            numberLocation=section+":auto-number:"+numberIndex+":unanchored";
             // 공개 읽기/쓰기 구현의 각주·미주 헤더: ID 포함16byte, 선택 instance ID4byte.
             if (selectNote() && (data.length==16 || data.length==20)) {
                 int shape=integer(data,12);
@@ -349,11 +363,29 @@ final class HwpSectionText {
         boolean tableFailure(ExtractionResult.HwpPartialCause cause) { evidence.updateHwpPartial(cause); return false; }
 
         @Override void save(boolean reliable) throws IOException {
-            boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():selectLayoutOnly();
+            boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():id==AUTO_NUMBER?
+                    numberText!=null && numberAnchorValid && !invalidNumber && paragraphs.isEmpty() && loose.isEmpty():selectLayoutOnly();
             if (!valid && id!=TABLE) evidence.updateHwpPartial(UNSUPPORTED_CONTROL);
+            if (numberText!=null) evidence.insertBlock(numberText,numberLocation,reliable && valid);
             for (Paragraph paragraph:paragraphs) paragraph.save(reliable && valid);
             saveLoose();
         }
+    }
+
+    /** 저장된 십진 번호만 복원한다. 페이지 계산·미지원 번호 모양·사용자 기호를 추정하지 않는다. */
+    private static String selectStoredNumberText(byte[] data) {
+        if (data.length!=16) return null;
+        int flags=integer(data,4), kind=flags&15, shape=(flags>>>4)&255, number=unsigned(data,8);
+        if ((flags&~0x1fff)!=0 || kind<1 || kind>5 || shape!=0 || number==0
+                || ((flags&0x1000)!=0 && kind!=1) || unsigned(data,10)!=0) return null;
+        char before=(char)unsigned(data,12), after=(char)unsigned(data,14);
+        if (!selectNumberDecorationValid(before) || !selectNumberDecorationValid(after)) return null;
+        return (before==0?"":String.valueOf(before))+number+(after==0?"":String.valueOf(after));
+    }
+
+    private static boolean selectNumberDecorationValid(char value) {
+        return value==0 || (!Character.isISOControl(value) && !Character.isSurrogate(value)
+                && Character.getType(value)!=Character.FORMAT && value!='\ufffd' && value!='\ufffe' && value!='\uffff');
     }
 
     private static final class Cell {
