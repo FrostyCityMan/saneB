@@ -616,6 +616,78 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "BUSANJIN-51342",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "334714b37d301c218d9e5d9a6fa7f26a65a5c946281e9d7eea40f12cebe9e2f8",
+        "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=51342&subCheck=Y",
+        "localSourceCode": "LGS-000032",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUSANJIN-50698",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "581664bb485202a426e431022a70255beb0af73a6a2f093361b7a08b57f263a8",
+        "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=50698&subCheck=Y",
+        "localSourceCode": "LGS-000032",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUSANJIN-47592",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c1d6fac32f2bf38c2825a481c3f314d4ff692b42019cb52ac5be23e7ee0ba204",
+        "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=47592&subCheck=Y",
+        "localSourceCode": "LGS-000032",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GEUMJEONG-43289",
+      "profileCode": "LOCAL_GEUMJEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0f02ef6ef1e798edf22b71719fc1d67ddf36a76c93d6a6ad50a4c605796eb32f",
+        "sourceUrl": "https://eminwon.geumjeong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43289&subCheck=Y",
+        "localSourceCode": "LGS-000038",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUSANJIN-47279",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "038a7f087b7b47c96c2b0656be116ea537a93f7b261601faa52f3a3cefa6c35b",
+        "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=47279&subCheck=Y",
+        "localSourceCode": "LGS-000032",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUSANJIN-45554",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c7ea573d0771ee805bd3e6dd9799abdee433b1a25b208c8d84ab4ae5cab06abd",
+        "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=45554&subCheck=Y",
+        "localSourceCode": "LGS-000032",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
     }
   ]
 }

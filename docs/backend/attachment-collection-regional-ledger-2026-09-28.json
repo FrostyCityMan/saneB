@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 20,
-    "missingProfileRegionCount": 203,
-    "collectionVerifiedRegionCount": 7,
-    "remainingRegionCount": 216
+    "registeredRegionCount": 22,
+    "missingProfileRegionCount": 201,
+    "collectionVerifiedRegionCount": 8,
+    "remainingRegionCount": 215
   },
   "regions": [
     {
@@ -470,14 +470,70 @@
       "sourceCode": "LGS-000032",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 5,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000032",
+          "caseCode": "BUSANJIN-45554",
+          "profileCode": "LOCAL_BUSANJIN_GET_V1",
+          "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+          "receiptHash": "495246976a89bfb9dc920df24552c9bc947d9883164efc9d41d01036ac11e38c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000032",
+          "caseCode": "BUSANJIN-47279",
+          "profileCode": "LOCAL_BUSANJIN_GET_V1",
+          "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+          "receiptHash": "4f973402e8e2d167ec1d9b2667a14cad29a33ee02d3ec51c3a17e754389d49e1",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000032",
+          "caseCode": "BUSANJIN-47592",
+          "profileCode": "LOCAL_BUSANJIN_GET_V1",
+          "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+          "receiptHash": "2c8f4f6c3ac7c3a7a4ba9d5ce1b32edcdf14912e0d22c957416359c709a6625c",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000032",
+          "caseCode": "BUSANJIN-50698",
+          "profileCode": "LOCAL_BUSANJIN_GET_V1",
+          "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+          "receiptHash": "96e97c5de1a98207db7eac6bbd584dc6896081894342710cd6b8f656b14b0b8d",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000032",
+          "caseCode": "BUSANJIN-51342",
+          "profileCode": "LOCAL_BUSANJIN_GET_V1",
+          "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+          "receiptHash": "4b084067bac7ac32d015c9b9b0bbbc9508a07fdda72b8dbf58d03d6502220f44",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000033",
@@ -616,14 +672,26 @@
       "sourceCode": "LGS-000038",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000038",
+          "caseCode": "GEUMJEONG-43289",
+          "profileCode": "LOCAL_GEUMJEONG_GET_V1",
+          "profileHash": "0cac11b19737f21b4e8f0c5adf5ba650a97bd5b54bf3d03d12c984e81ead762f",
+          "receiptHash": "5e184dea22a7f06e9164669907ed8b5362ce26bc4162b8d758cdc7ca73bf732e",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000039",
@@ -3554,9 +3622,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "b8b63fc746f33bcc010a566382436d587e1e0e88522a9296fdcc6994e8696b82",
+  "inputInventorySha256": "d0d3c3de8adb83e00273688e899731edf500e1835c6cfc1145b8b766ecb4ddb2",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 50,
+  "importedReceiptCount": 56,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -3598,5 +3666,28 @@
     "downloadedFiles": 3,
     "downloadedBytes": 283417,
     "junitReportHash": "e375e481c393167dc3b644c3e98a44025b76ad4e84edea44ba52925a85bed359"
+  },
+  "busanSupportCollectionRun": {
+    "groups": [
+      "BUSANJIN",
+      "GEUMJEONG"
+    ],
+    "tests": 6,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 18,
+    "surveyStoredHtmlBytes": 163977,
+    "surveyDecodedMenuBytes": 297363,
+    "requestReservations": 18,
+    "reservedBytes": 8944447,
+    "downloadedFiles": 6,
+    "downloadedBytes": 521899,
+    "junitReportHashes": {
+      "BUSANJIN": "c79d7f57bb52e8d64ca49e59817490d2a813a194f616270f2dfc48bd9a627de4",
+      "GEUMJEONG": "c45bbd7781b5443a4467437878ba50b911327a985b55e872627d285a7ebcf842"
+    }
   }
 }

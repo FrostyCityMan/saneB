@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "b8b63fc746f33bcc010a566382436d587e1e0e88522a9296fdcc6994e8696b82",
+  "inventorySha256": "d0d3c3de8adb83e00273688e899731edf500e1835c6cfc1145b8b766ecb4ddb2",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -363,6 +363,54 @@
       "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSANJIN-45554.json",
+      "receiptHash": "495246976a89bfb9dc920df24552c9bc947d9883164efc9d41d01036ac11e38c",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSANJIN-47279.json",
+      "receiptHash": "4f973402e8e2d167ec1d9b2667a14cad29a33ee02d3ec51c3a17e754389d49e1",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSANJIN-47592.json",
+      "receiptHash": "2c8f4f6c3ac7c3a7a4ba9d5ce1b32edcdf14912e0d22c957416359c709a6625c",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSANJIN-50698.json",
+      "receiptHash": "96e97c5de1a98207db7eac6bbd584dc6896081894342710cd6b8f656b14b0b8d",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSANJIN-51342.json",
+      "receiptHash": "4b084067bac7ac32d015c9b9b0bbbc9508a07fdda72b8dbf58d03d6502220f44",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GEUMJEONG-43289.json",
+      "receiptHash": "5e184dea22a7f06e9164669907ed8b5362ce26bc4162b8d758cdc7ca73bf732e",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -443,6 +491,123 @@
           "bytes": 97068,
           "format": "HWPX",
           "binaryHash": "7e1ef10adc3531a21897de01e5ccf538620cf7873674a073fbe0fca67398e59e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000032",
+      "caseCode": "BUSANJIN-45554",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+      "receiptHash": "495246976a89bfb9dc920df24552c9bc947d9883164efc9d41d01036ac11e38c",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:33:56.028214200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "1cc39c17fda062e37dcc725999be79f35c6058ac5bd41e037857049374c4f295",
+          "status": "SUCCEEDED",
+          "bytes": 77312,
+          "format": "HWP",
+          "binaryHash": "0b6d0127e651425ac023f55c241acd7d1728d911e13d2ec11722c0538ca57a08",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000032",
+      "caseCode": "BUSANJIN-47279",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+      "receiptHash": "4f973402e8e2d167ec1d9b2667a14cad29a33ee02d3ec51c3a17e754389d49e1",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:33:46.772233700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "01b2449be6038d95c9b676902d9497186675a24b118ee89dcdf6d1736b93b684",
+          "status": "SUCCEEDED",
+          "bytes": 114176,
+          "format": "HWP",
+          "binaryHash": "7327117730e9d3daaf9fc314b5e4993bc541469be1482e0da309bafff6a9276f",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000032",
+      "caseCode": "BUSANJIN-47592",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+      "receiptHash": "2c8f4f6c3ac7c3a7a4ba9d5ce1b32edcdf14912e0d22c957416359c709a6625c",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:33:38.225498Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
+      "sourceCode": "LGS-000032",
+      "caseCode": "BUSANJIN-50698",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+      "receiptHash": "96e97c5de1a98207db7eac6bbd584dc6896081894342710cd6b8f656b14b0b8d",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:33:29.698698300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
+      "sourceCode": "LGS-000032",
+      "caseCode": "BUSANJIN-51342",
+      "profileCode": "LOCAL_BUSANJIN_GET_V1",
+      "profileHash": "c744c614ff76525cadd5e0bb1b14a6a3c225d6328872471a4c59414d27c6f9f5",
+      "receiptHash": "4b084067bac7ac32d015c9b9b0bbbc9508a07fdda72b8dbf58d03d6502220f44",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:33:17.190316Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "56475f9c57db9b2859949a8527bf1aea051ee863f48d7aac020b90d995ce5a23",
+          "status": "SUCCEEDED",
+          "bytes": 63488,
+          "format": "HWP",
+          "binaryHash": "6c605d8aedf864a54fccf6b8ebab33840f3d66c20259eb5f2dae822271133470",
           "signatureVerified": true
         }
       ]
@@ -662,6 +827,49 @@
           "locatorHash": "894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d",
           "status": "FAILED",
           "bytes": 0
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000038",
+      "caseCode": "GEUMJEONG-43289",
+      "profileCode": "LOCAL_GEUMJEONG_GET_V1",
+      "profileHash": "0cac11b19737f21b4e8f0c5adf5ba650a97bd5b54bf3d03d12c984e81ead762f",
+      "receiptHash": "5e184dea22a7f06e9164669907ed8b5362ce26bc4162b8d758cdc7ca73bf732e",
+      "producerClassHash": "9c4809286c513cb1250feb5255b40e9063ea08ca48e68041c2a88268a9d61d7f",
+      "observedAt": "2026-09-28T10:34:30.371441300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f7c873eb48a383b91959db2fa69e13368458105f07f4ef10fe94da301a1a1ac5",
+          "status": "SUCCEEDED",
+          "bytes": 20231,
+          "format": "HWPX",
+          "binaryHash": "652722a96ee92ceaca4f348fb4de8c224ff2f9665015d02691e6b074fc2483de",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "0462ee2f7b4c709c52cbb41948118b4f397c999e1567c71bf49ea714c0353419",
+          "status": "SUCCEEDED",
+          "bytes": 218254,
+          "format": "HWPX",
+          "binaryHash": "bc2465c0db6a89c19b85a46d7de53041f0a10df1e64d3453eeb25ae210718452",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "bfc6360e3ee161a0d3efd5010dc518626b33f14ddb3c18e9ff05e154b3367e9b",
+          "status": "SUCCEEDED",
+          "bytes": 28438,
+          "format": "HWPX",
+          "binaryHash": "1c344bdd8fd4b0f937f0fe85495dc4a07679caae37905a179b0dc5b1e8cb86be",
+          "signatureVerified": true
         }
       ]
     },
@@ -1344,5 +1552,28 @@
     "downloadedFiles": 3,
     "downloadedBytes": 283417,
     "junitReportHash": "e375e481c393167dc3b644c3e98a44025b76ad4e84edea44ba52925a85bed359"
+  },
+  "busanSupportCollectionRun": {
+    "groups": [
+      "BUSANJIN",
+      "GEUMJEONG"
+    ],
+    "tests": 6,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 18,
+    "surveyStoredHtmlBytes": 163977,
+    "surveyDecodedMenuBytes": 297363,
+    "requestReservations": 18,
+    "reservedBytes": 8944447,
+    "downloadedFiles": 6,
+    "downloadedBytes": 521899,
+    "junitReportHashes": {
+      "BUSANJIN": "c79d7f57bb52e8d64ca49e59817490d2a813a194f616270f2dfc48bd9a627de4",
+      "GEUMJEONG": "c45bbd7781b5443a4467437878ba50b911327a985b55e872627d285a7ebcf842"
+    }
   }
 }
