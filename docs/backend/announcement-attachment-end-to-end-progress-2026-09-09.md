@@ -11,6 +11,15 @@
 
 ## 기준선
 
+### 2026-09-28 함안 실제 구간 worker·임시 DB·API 성공
+
+- [x] 059d3ec 소스의 HAMAN-41306 서울 실행 SSM245d1acb-b6c8-4b65-b6f7-2b9680da7811 Success/exit0, probe35.965초/1통과. 본문AVAILABLE·전체HWP1개101,888byte·4,644자/213블록·기존지문 유지다. [실행·누적 예산·CI·정리·진단 한계](announcement-haman-segment-worker-qa-2026-09-28.md)에 기록했다.
+- [x] 명시1.0.4의 UNKNOWN1/NOTICE0 전체범위, IPC→저장 분석·평가FK·버전GET·평가결합API·GET무변경·검수컨텍스트 일치를 실제 임시DB에서 확인했다. 앞선 관측 전용 성공과 달리 저장 경로를 검증했다.
+- [!] PARTIAL_TEXT / PARTIAL_FAILED / TECHNICAL_EXCEPTION / REVIEW_REQUIRED·ATTACHMENT_INCOMPLETE를 유지한다. 정상 후보·정책QA·기대값 승인·인증 브라우저 성공은 아니다. 고정 한글 진단 키 인코딩이 깨진 문구 존재 여부는 근거에서 제외하며 원인 미확정이다.
+- [x] 동일SHA Linux36378798262 completed/success. 보관XML root3053=2760통과/293조건부 생략/실패·오류0; 추출기168·패키지20·jobDB209·migration18·정책 부모2·runtime5·worker12·Flyway3도 실패·오류0이다. 신규 함안검사3/DB준비7 통과다.
+- [x] 누적23/60요청·15,111,080/100,663,296byte. 원본·lease·임시DB·unit·전송파일·소유S3 객체·로컬package.zip을 정리하고 plan/result는 보존했다. 운영DB미사용/쓰기0·운영JAR불변/healthUP이다. 운영 배포/정책/재분류는 수행하지 않았다.
+- [~] 전체9Gate=8부분/1차단·goal active 유지. 부분품질 해소·전체수집원 정상 기대값·운영 적용·기존데이터·동일SHA 업무E2E가 남는다. 브라우저는 현재 명시 요청 정책상 미실행이다.
+
 ### 2026-09-28 함안 구간 worker·DB·API 검증 경로 추가
 
 - [x] 후속 최종 확인: 선행835bd1a Linux36377684922 completed/success. 보관 XML root3049=2756통과/293조건부 생략, 추출기168·패키지20·job209·migration18·정책 부모2·runtime5·worker12·Flyway3 실패/오류0이다. 이 결과는 새059d3ec 함안 worker 시험보다 앞선 근거다.
