@@ -2,6 +2,8 @@
 
 ## 판정
 
+09-28 화천 후속:32258의 제목·본문AVAILABLE/ACCEPTED·공식HWP1개 POST 다운로드·3,491자/142블록·구간worker/임시DB/API를 실제 확인했다. 실행44.844초/1검사 통과지만 PARTIAL_TEXT·미지원record1/control1·UNKNOWN1·REVIEW_REQUIRED는 유지한다. 원본/임시자원/전송객체 정리·운영 불변 확인,32258 캠페인 누적6/7요청·2,282,972byte다. 현재41참조/15프로필·보관 기대값1/정상0·참조없는등록4개이며 등록7엔진/19프로필과 운영225대상 분모는 그대로다. [사전 실측](announcement-hwacheon-support-reference-2026-09-28.md)과 [worker/임시DB/API 실제 결과](announcement-hwacheon-worker-qa-2026-09-28.md)를 구분한다. 아래40/14 수치는 이전 이력이다.
+
 09-28 함안 최신worker 후속: 소스a113ef6의1.0.15/구간1.0.4 실제 HWP1개→worker→임시DB/API·평가입력·검수context 검증이38.33초/1검사 통과했다. PARTIAL_TEXT·미지원record2/control1·UNKNOWN1·REVIEW_REQUIRED는 유지한다. 원본/임시자원/전송객체 정리·운영불변, 누적35/60요청·21,725,798byte다. [실제 저장 근거·완료 경계](announcement-haman-layout-worker-qa-2026-09-28.md)를 따른다. 기존 공고의 후속 검증이므로 catalog40참조/14프로필·기대값1/정상0과 전체9Gate8부분/1차단은 증가시키지 않는다.
 
 09-28 함안1.0.15 후속: 같은41306/HWP1개에서4,647자·214블록·textHash를 유지하고 미지원control2→1 감소를 실제 확인했다. PARTIAL_TEXT/REVIEW_REQUIRED·미지원record2/control1은 남는다. 원본/임시자원 정리·운영불변, 누적31/60요청·19,520,892byte다. [실제 비교 기록](announcement-hwp-page-layout-v1.0.15-2026-09-28.md)을 따르며 정상 기대값/catalog 수·전체Gate는 증가시키지 않는다.

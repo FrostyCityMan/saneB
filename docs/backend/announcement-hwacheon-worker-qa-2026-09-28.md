@@ -34,12 +34,24 @@
 - 준비 패키지 `51446298d341474fb6ea0aeaa8b3f5b6`:135파일/88,422,873byte, archiveSHA256 `d5ad11c8a3918812ee9d0e3c082493599fb6b6a6e2e1f52ef5a5be30f96d7b09`, codeHash `bb17a531479d43b43d489a6fb6b09155348afce7ed5ad2f23b76cc44adffb3ca`. 예산CheckOnly 통과·새 helper class의 probe JAR 포함 확인. 서버 실행 성공 근거는 아니다.
 - AWS 읽기 전용 확인: root·저장소 계정 일치, 서울 Ubuntu1대/SSM online, 최신 배포는 기존 `d-NCB2HF3YK` / SHA `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`. 새 코드를 운영 반영했다는 의미가 아니다.
 
+## 실제 서울 실행 결과 — 2026-09-28 18:20 KST
+
+- 코드 `2b42461f0b71b382164a549e93d55dd4fd495696`, 실행 `51446298d341474fb6ea0aeaa8b3f5b6`, SSM `b1778b28-dda0-416a-81fd-9e84af5b5f70`: terminal Success/exit0, 44.844초, 실제 worker 검사1통과/실패0/생략0.
+- 제목 COMBINATION_MATCHED → 본문 AVAILABLE/1회·ACCEPTED(TARGET_SUPPORT_CONFIRMED) → 공식 HWP1개 발견·POST 다운로드82,944byte → 추출기1.0.15·구간1.0.4 → 임시DB/API·평가입력 FK·검수context 대조 통과. 제목 단계의 BODY_UNAVAILABLE는 제목만 입력한 시점의 사유이며 후속 본문 수집 실패가 아니다.
+- 첨부는 PARTIAL_TEXT, 3,491자/142블록, 대체문자0, 미지원record1/control1이다. HEADER12byte가 관측됐으나 구조별 실패 원인의 직접 연결은 아직 검증하지 않았다. 이를 원인 확정이나 완전 추출로 표현하지 않는다.
+- textHash `cef605e0b2aa5867852714123c99d5eaf43813e29573382c3dcbc6dac96dc1a1`, segmentAnalysisHash `000a14b4b9f2a7b0c11ffb798cb93e7adee5ea174b3b7ae3faf54fe4d910c87d`. 전체 추출 범위는 UNKNOWN1/COMPLETE_TEXT_REQUIRED로 보존됐다. NOTICE0, 최종 REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE, job PARTIAL_FAILED/processing TECHNICAL_EXCEPTION이며 원문 수동 확인·관리자 최종 검증이 필요하다.
+- 성공한 것은 부분 실패를 포함한 실제 worker 저장/API 계약이다. 완전 텍스트 분석·기대값 승인·정책 QA·운영 인증 브라우저 E2E는 모두 false다. catalog41참조/15프로필·보관 기대값1/정상0과 전체9Gate8부분/1차단은 유지한다.
+- 이번 사용량은 본문 상한 포함 보수적 예약4/5요청·2,190,062/25,165,824byte. 사전 검증과 합한 32258 캠페인 누적6/7요청·2,282,972/25,258,734byte다. 중구32/32는 재실행하지 않았다.
+- 원본/lease0/unit inactive/서버 전송파일 정리, 운영DB사용false·쓰기0·설치JAR불변·healthUP를 확인했다. TemporaryCleanup으로 소유 S3 객체만 삭제했고 plan.cleaned=true다. 경로·길이·SHA 일치를 검증한 소유 ZIP1개도 삭제했다. ZIP은 재빌드 가능하며 계획·예약·결과 영수증은 보존한다.
+- 영수증 `build/temporary-bbs-qa-51446298d341474fb6ea0aeaa8b3f5b6/result.json`, SHA256 `704b95716be252947dcf1fae5c060f4c88178e011be43207c490c1257135d90f`.
+- 동일 코드 [Linux36401934960](https://github.com/FrostyCityMan/saneB/actions/runs/36401934960)는 실행 후 조회 시 in_progress였다. 로컬/실파일 검증 성공과 CI 최종 성공을 혼동하지 않는다.
+
 ## 체크리스트
 
 - [x] 고정 worker 모드·추출 전 입력 검증·구간 저장/API 검증 계약 구현.
 - [x] 임시 실행 launcher/서버 검증기·음성 회귀·일회 요청 원장 구현.
 - [x] 추가 화천 임시 DB 준비 경로·표적 로컬 검증·패키징. 전체 Linux CI와 실제 외부 검증은 별도다.
-- [ ] 실제 서울 단일 실행·실파일 구간 결과·원본/전송 자원 정리.
+- [x] 실제 서울 단일 실행·실파일 구간 결과·원본/전송 자원 정리. 부분 품질 검수 유지까지 확인했으며 정상 기대값 승인은 아니다.
 - [ ] 정상 표본 추가 확보·검토된 기대값·전체Provider QA·정책 승인·운영 반영/브라우저 E2E.
 
-이 문서의 구현·로컬 검사 상태는 실제 서울 worker 성공 영수증이 아니다.
+다음 작업은 미지원 HWP 구조의 정확한 연결 분석과 지원 계약·회귀 검증이다. 관측되지 않은 payload를 추정해 허용하거나 부분 품질을 정상으로 바꾸지 않는다. 추가 외부 실행은 남은 예산 또는 별도 범위 확정 뒤 진행한다.
