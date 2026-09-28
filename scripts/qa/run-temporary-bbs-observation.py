@@ -10,6 +10,7 @@ CONFIG = json.loads(sys.argv[1]) if __name__ == '__main__' else {}
 
 # 코드의 지원 범위이며 실행 승인 자체가 아니다. 다른 기관/표본/예산은 받지 않는다.
 SCOPES = {
+    'GANGBUK_SELECTED_DOWNLOAD': ('GANGBUK-179490', ['GANGBUK-179490'], 5, 25165824),
     'GANGBUK_OBSERVATION': ('GANGBUK-179490', ['GANGBUK-179490'], 20, 33554432),
     'OBSERVATION': ('TAEBAEK-184816', ['TAEBAEK-184816'], 44, 83886080),
     'FIXED': ('TAEBAEK-184816', ['TAEBAEK-184816'], 39, 81508141),
@@ -62,7 +63,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -78,6 +79,43 @@ def select_qa_distribution(package,mode):
         if info.file_size>2097152 or hashlib.sha256(jar.read(info)).hexdigest()!=cfg['codeHash']:raise ValueError('INSTALLED_QA_CODE_CHANGED')
     if not (root/'extractor/bin/attachment-extractor').is_file():raise ValueError('INSTALLED_EXTRACTOR_MISSING')
     return root
+
+def validate_gangbuk_selected(report):
+    rows=report.get('reports')
+    if not isinstance(rows,list) or len(rows)!=1 or not isinstance(rows[0],dict):raise ValueError('PROBE_OUTPUT_INVALID')
+    row=rows[0]
+    expected=dict(scope='SELECTED_ATTACHMENT_DOWNLOAD_DIAGNOSTIC_V1',caseCode='GANGBUK-179490',status='SELECTED_FILE_OBSERVED_NOT_WHOLE_NOTICE',
+        profileCode='LOCAL_GANGBUK_LEGAL_GET_V1',profileHash='6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158',
+        priorReceiptSha256='bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e')
+    if any(row.get(k)!=v for k,v in expected.items()):raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('originalFilesRemoved','discoveryComplete'):
+        if row.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('isWholeTextAnalysisComplete','isPolicyQaPassed','isExpectationApproved'):
+        if row.get(key) is not False:raise ValueError('PROBE_OUTPUT_INVALID')
+    for node,ranges in ((row,[('productionWriteCount',0,0),('bodyRequests',0,0),('selectedFileOrdinal',4,4),('expectedListedFileCount',4,4),('discoveredFileCount',4,4),
+            ('maximumRequestReservations',5,5),('maximumReservedBytes',25165824,25165824),('requestReservationsIncludingBodyUpperBound',4,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]),
+            (report,[('found',1,1),('passed',1,1),('failed',0,0),('skipped',0,0),('aborted',0,0),('failedContainers',0,0)])):
+        if any(type(node.get(k)) is not int or not low<=node[k]<=high for k,low,high in ranges):raise ValueError('PROBE_OUTPUT_INVALID')
+    locators=['abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f','20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672',
+        '00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3','894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d']
+    files=row.get('files')
+    if not isinstance(files,list) or len(files)!=4 or any(not isinstance(f,dict) for f in files):raise ValueError('PROBE_OUTPUT_INVALID')
+    for i,file in enumerate(files):
+        if file.get('locatorHash')!=locators[i] or file.get('formatHint')!=('HWP' if i==1 else 'HWPX'):raise ValueError('PROBE_OUTPUT_INVALID')
+        if i<3:
+            if len(file)!=3 or file.get('status')!='NOT_SELECTED':raise ValueError('PROBE_OUTPUT_INVALID')
+            continue
+        trace=file.get('downloadTrace')
+        if (file.get('status')!='OBSERVED' or file.get('format')!='HWPX' or file.get('extractorVersion')!='1.0.14'
+                or type(file.get('bytes')) is not int or not 1<=file['bytes']<=20971520
+                or not isinstance(file.get('binaryHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['binaryHash'])
+                or file.get('quality') not in ('COMPLETE_TEXT','PARTIAL_TEXT','OCR_REQUIRED','ENCRYPTED','CORRUPT','UNSUPPORTED','LIMIT_EXCEEDED')
+                or not isinstance(trace,dict) or set(trace)!=set(('schemaVersion','step','phase','transportInvocations','completedTransports'))
+                or trace.get('step')!='FINAL_POST' or trace.get('phase')!='COMPLETE'
+                or any(type(trace.get(k)) is not int or trace[k]!=v for k,v in [('schemaVersion',1),('transportInvocations',3),('completedTransports',3)])):
+            raise ValueError('PROBE_OUTPUT_INVALID')
+        if file['quality']=='COMPLETE_TEXT' and (not isinstance(file.get('segmentSummary'),dict)
+                or not isinstance(file.get('segmentAnalysisHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['segmentAnalysisHash'])):raise ValueError('PROBE_OUTPUT_INVALID')
 
 def validate_gangbuk_observation(report):
     # 처음 확보할 binary hash는 아직 승인된 기대값이 아니다. 미리 실측한 전체 locator/형식에 결합한다.
@@ -309,6 +347,7 @@ def validate_probe_scope(report,mode):
         raise ValueError('PROBE_OUTPUT_INVALID')
     if mode=='JUNGGU_OBSERVATION' and report.get('status')=='PASSED':validate_junggu_observation(report)
     if mode=='GANGBUK_OBSERVATION' and report.get('status')=='PASSED':validate_gangbuk_observation(report)
+    if mode=='GANGBUK_SELECTED_DOWNLOAD' and report.get('status')=='PASSED':validate_gangbuk_selected(report)
     if mode=='JUNGGU_PDF' and report.get('status')=='PASSED':validate_junggu_observation(report,True)
     if mode in ('NAMGU_OBSERVATION','NAMGU_STRUCTURE') and report.get('status')=='PASSED':
         rows=report.get('reports')

@@ -20,6 +20,36 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def gangbuk_selected_report(self):
+        report=self.gangbuk_report();report['verificationMode']='GANGBUK_SELECTED_DOWNLOAD';row=report['reports'][0]
+        row.update(scope='SELECTED_ATTACHMENT_DOWNLOAD_DIAGNOSTIC_V1',status='SELECTED_FILE_OBSERVED_NOT_WHOLE_NOTICE',
+            priorReceiptSha256='bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e',
+            selectedFileOrdinal=4,bodyRequests=0,maximumRequestReservations=5,maximumReservedBytes=25165824,requestReservationsIncludingBodyUpperBound=4)
+        for i in range(3):row['files'][i]={k:v for k,v in row['files'][i].items() if k in ('locatorHash','formatHint')};row['files'][i]['status']='NOT_SELECTED'
+        row['files'][3]['downloadTrace']=dict(schemaVersion=1,step='FINAL_POST',phase='COMPLETE',transportInvocations=3,completedTransports=3)
+        return report
+
+    def test_gangbuk_selected_has_own_mode_budget_and_no_whole_notice_claim(self):
+        mode='GANGBUK_SELECTED_DOWNLOAD';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('GANGBUK-179490',['GANGBUK-179490'],5,25165824),scope)
+        self.unit['cfg']={'codeHash':'a'*64}
+        self.unit['validate_manifest_scope'](dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64),mode)
+        self.unit['validate_probe_scope'](self.gangbuk_selected_report(),mode)
+        with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_gangbuk_observation'](self.gangbuk_selected_report())
+
+    def test_gangbuk_selected_rejects_changed_denominator_scope_budget_and_trace(self):
+        import copy
+        mode='GANGBUK_SELECTED_DOWNLOAD';valid=self.gangbuk_selected_report()
+        for key,value in [('isWholeTextAnalysisComplete',True),('priorReceiptSha256','a'*64),('selectedFileOrdinal',3),('bodyRequests',1),
+                ('maximumRequestReservations',6),('requestReservationsIncludingBodyUpperBound',True),('reservedBytesIncludingBodyUpperBound',25165825),('isExpectationApproved',True)]:
+            changed=copy.deepcopy(valid);changed['reports'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        for key,value in [('phase','TRANSPORT'),('step','PERIOD_POST'),('transportInvocations','3'),('completedTransports',True),('url','PRIVATE_CANARY')]:
+            changed=copy.deepcopy(valid);changed['reports'][0]['files'][3]['downloadTrace'][key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        changed=copy.deepcopy(valid);changed['reports'][0]['files'][0]['status']='OBSERVED'
+        with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+
     def gangbuk_report(self):
         locators=['abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f','20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672',
             '00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3','894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d']

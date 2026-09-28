@@ -2,6 +2,17 @@
 
 ## 목적과 범위
 
+### 후속: 강북4번째 파일 한정 진단 준비
+
+- [x] GANGBUK_SELECTED_DOWNLOAD 전용 모드·별도 환경 opt-in·고정179490/4번째 locator를 연결했다. 상세 식별/제목 및 전체4첨부 순서·형식을 대조한 후 선택1개만 전달·signature·Linux 격리 추출한다. 1~3번째는 NOT_SELECTED이고 전체 분석/정책/기대값 승인false다.
+- [x] 신규 최대5요청/24MiB, 기존14요청/2,957,650byte에 예약하면19요청/28,123,474byte다. 누적 상한21요청/34,603,008byte는 늘리지 않는다. 본문 요청0·CI 자동 외부 실행0이다.
+- [x] 선행 영수증SHA256 bbe9144f…와 사전 확인영수증SHA256 fef3c6fe…·단일 실행 정리를 대조하는 CREATE_NEW 예약을 준비했다. 계획51fcfdc4112940db8c6f03a47216adba의 CheckOnly는 통과했으며 실행 여부는 실제 영수증으로 따로 판정한다.
+- [x] Java57통과/외부조건부1생략·패키지20/Node10/Python35통과. 첫 Java 컴파일의 checked exception lambda 오류를 명시 loop로 수정해 재검증했다. probe JAR의 진단 클래스/trace4클래스를 실제 확인했다. bootJar는 UP-TO-DATE다.
+- [x] AWS root/저장소 계정 일치·서울 단일 Ubuntu·SSM online을 재확인했다. 운영 최근 배포 d-NCB2HF3YK/9a1bb456이며 이번 작업은 운영 배포가 아니다.
+- [ ] 실제 선택 파일 결과, 누적 사용량, 원본/unit/전송객체 정리를 실행 후 기록한다. 단일 파일 성공을 전체4첨부 동시 검증이나 정상 후보·worker DB/API 성공으로 확대하지 않는다.
+
+실행 패키지:135파일/88,420,561byte, archiveSha256 `d7915cc3e74aa150b759b9087ad9c6f5b8491f3bc957a047cec0a131736de569`. source codeHash는 `a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549`로 운영 코드 변경이 없다.
+
 강북179490의 기존 서울 실행63e2cb23은 전체4첨부 중4번째 다운로드가 HTTP400으로 실패했다. 기존 영수증에는 FILE_DOWNLOAD만 있어 중계GET, 기간조회POST, 최종파일POST 중 어디서 실패했는지 확정할 수 없다. 요청 수로 추정하지 않고 다음 관측에서 실제 호출 위치를 기록한다.
 
 - [x] 관측 helper가 실제 worker의 AttachmentProfileDownloadFlow를 사용하는 경로를 유지한다.

@@ -133,6 +133,17 @@ test('새 JAR는 고정 시험 클래스만 포함하고 운영 classpath·리�
   for (const text of ['sourceSets.main.output', 'testRuntimeClasspath', 'resources', '${name}*.class']) assert(!block.includes(text), text);
   assert(block.includes('preserveFileTimestamps = false'));
   assert(block.includes("'ObservationDownloadTrace'"));
+  assert(block.includes("'GangbukSelectedDownloadDiagnosticTest'"));
   const worker = build.slice(build.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"), build.indexOf("tasks.register('attachmentBbsObservationProbeJar'"));
   assert(worker.includes("include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'"));
+});
+
+test('강북 선택 파일 진단은 전용 opt-in으로만 실행하고 전체 관측과 분리한다', () => {
+  assert(source.includes('"$5" != GANGBUK_SELECTED_DOWNLOAD ]] || probe_flag=SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD'));
+  const java=readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/GangbukSelectedDownloadDiagnosticTest.java','utf8');
+  assert(java.includes('@EnabledIfEnvironmentVariable(named="SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD",matches="true")'));
+  assert(java.includes('new AnnouncementAttachmentBbsOfficialObservationTest.Budget(profile,5,MAX_BYTES)'));
+  assert(java.includes('i==3?"NOT_RUN":"NOT_SELECTED"'));
+  const workflow=readFileSync('.github/workflows/attachment-contract-qa.yml','utf8');
+  assert(!workflow.includes('SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD'));
 });

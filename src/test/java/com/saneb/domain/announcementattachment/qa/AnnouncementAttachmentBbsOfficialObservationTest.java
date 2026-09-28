@@ -395,6 +395,11 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         final int maximumRequests;
         final long maximumBytes;
         Budget(){this(PROFILE);}
+        Budget(AttachmentDiscoveryProfile profile,int requests,long bytes){
+            this.profile=Objects.requireNonNull(profile);
+            if(requests<1||requests>44||bytes<1||bytes>80*MIB)throw new IllegalArgumentException("OBSERVATION_BUDGET_INVALID");
+            maximumRequests=requests;maximumBytes=bytes;
+        }
         Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());

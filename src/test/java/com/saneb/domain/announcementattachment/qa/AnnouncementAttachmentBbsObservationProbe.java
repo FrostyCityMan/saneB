@@ -30,7 +30,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             "REFERENCE_HEADING", "TARGET_SECTION", "SUPPORT_SECTION", "APPLICATION_SECTION", "APPLICANT_FIELD",
             "SIGNATURE_FIELD", "QUESTION_ITEM", "ANSWER_ITEM");
     private static final Set<String> ENV = Set.of("PATH", "LANG", "HOME", "TMPDIR", "PWD",
-            "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", "SANEB_ATTACHMENT_BBS_FIXED_CASE_QA");
+            "SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION", "SANEB_ATTACHMENT_BBS_FIXED_CASE_QA", "SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD");
     private AnnouncementAttachmentBbsObservationProbe() { }
 
     static boolean selectComplete(long found, long succeeded, long failed, long skipped, long aborted, long containersFailed) {
@@ -41,7 +41,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION", "JUNGGU_PDF", "GANGBUK_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION", "JUNGGU_PDF", "GANGBUK_OBSERVATION", "GANGBUK_SELECTED_DOWNLOAD").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -56,6 +56,41 @@ public final class AnnouncementAttachmentBbsObservationProbe {
     private static boolean selectBounded(JsonNode node, String field, long min, long max) {
         var value = node.path(field);
         return value.isIntegralNumber() && value.canConvertToLong() && value.longValue() >= min && value.longValue() <= max;
+    }
+
+    static boolean selectGangbukSelectedComplete(List<JsonNode> rows,Instant start,Instant end) {
+        if(rows.size()!=1)return false;var row=rows.getFirst();
+        try {var at=Instant.parse(row.path("observedAt").asText());if(at.isBefore(start)||at.isAfter(end))return false;}
+        catch(Exception ignored){return false;}
+        if(!"SELECTED_ATTACHMENT_DOWNLOAD_DIAGNOSTIC_V1".equals(row.path("scope").asText())
+                ||!"GANGBUK-179490".equals(row.path("caseCode").asText())
+                ||!GangbukSelectedDownloadDiagnosticTest.PRIOR_RECEIPT.equals(row.path("priorReceiptSha256").asText())
+                ||!"LOCAL_GANGBUK_LEGAL_GET_V1".equals(row.path("profileCode").asText())
+                ||!"6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158".equals(row.path("profileHash").asText())
+                ||!"SELECTED_FILE_OBSERVED_NOT_WHOLE_NOTICE".equals(row.path("status").asText()))return false;
+        for(String key:List.of("isWholeTextAnalysisComplete","isPolicyQaPassed","isExpectationApproved"))if(!selectBoolean(row,key,false))return false;
+        for(String key:List.of("discoveryComplete","originalFilesRemoved"))if(!selectBoolean(row,key,true))return false;
+        for(String key:List.of("expectedListedFileCount","discoveredFileCount","selectedFileOrdinal"))if(!selectBounded(row,key,4,4))return false;
+        if(!selectBounded(row,"productionWriteCount",0,0)||!selectBounded(row,"bodyRequests",0,0)
+                ||!selectBounded(row,"maximumRequestReservations",5,5)||!selectBounded(row,"maximumReservedBytes",25165824,25165824)
+                ||!selectBounded(row,"requestReservationsIncludingBodyUpperBound",4,5)||!selectBounded(row,"reservedBytesIncludingBodyUpperBound",1,25165824)
+                ||!row.path("files").isArray()||row.path("files").size()!=4)return false;
+        for(int i=0;i<4;i++) {
+            var file=row.path("files").get(i);
+            if(!AnnouncementAttachmentBbsOfficialObservationTest.GANGBUK_LOCATORS.get(i).equals(file.path("locatorHash").asText())
+                    ||!(i==1?"HWP":"HWPX").equals(file.path("formatHint").asText()))return false;
+            if(i<3){if(file.size()!=3||!"NOT_SELECTED".equals(file.path("status").asText()))return false;continue;}
+            var trace=file.path("downloadTrace");
+            if(!"OBSERVED".equals(file.path("status").asText())||!"HWPX".equals(file.path("format").asText())
+                    ||!"1.0.14".equals(file.path("extractorVersion").asText())||!selectBounded(file,"bytes",1,20971520)
+                    ||!file.path("binaryHash").asText().matches("[a-f0-9]{64}")
+                    ||!Set.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED","ENCRYPTED","CORRUPT","UNSUPPORTED","LIMIT_EXCEEDED").contains(file.path("quality").asText())
+                    ||trace.size()!=5||!selectBounded(trace,"schemaVersion",1,1)||!selectBounded(trace,"transportInvocations",3,3)
+                    ||!selectBounded(trace,"completedTransports",3,3)||!"FINAL_POST".equals(trace.path("step").asText())
+                    ||!"COMPLETE".equals(trace.path("phase").asText()))return false;
+            if("COMPLETE_TEXT".equals(file.path("quality").asText())&&!selectSegmentMetadataComplete(file))return false;
+        }
+        return true;
     }
 
     // Node 관측 보고서 검증과 동일하게 관측 성공과 완전 추출·정책 승인을 분리한다.
@@ -469,6 +504,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         try {
             String mode = selectMode(args);
             boolean fixed = "FIXED".equals(mode);
+            boolean selected = GangbukSelectedDownloadDiagnosticTest.MODE.equals(mode);
             boolean okcheon = Set.of("OKCHEON", "OKCHEON_DIAGNOSTIC").contains(mode);
             boolean boeun = Set.of("BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC").contains(mode);
             boolean structure="NAMGU_STRUCTURE".equals(mode);
@@ -480,13 +516,14 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean junggu = "JUNGGU_OBSERVATION".equals(mode)||jungguPdf;
             boolean gangbuk = "GANGBUK_OBSERVATION".equals(mode);
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
-            boolean three = okcheon || boeun || namgu || dalseong || haman || junggu || gangbuk;
+            boolean three = okcheon || boeun || namgu || dalseong || haman || junggu || gangbuk || selected;
             String group = gangbuk?"GANGBUK":jungguPdf?"JUNGGU_PDF":junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
             result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
                     || !"/work/tmp".equals(System.getProperty("java.io.tmpdir"))
-                    || !"true".equals(System.getenv(fixed?"SANEB_ATTACHMENT_BBS_FIXED_CASE_QA":"SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION"))
+                    || !"true".equals(System.getenv(selected?"SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD":fixed?"SANEB_ATTACHMENT_BBS_FIXED_CASE_QA":"SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION"))
+                    || System.getenv().keySet().stream().filter(key->key.startsWith("SANEB_ATTACHMENT_")).count()!=1
                     || System.getenv(fixed?"SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION":"SANEB_ATTACHMENT_BBS_FIXED_CASE_QA")!=null
                     || !ENV.containsAll(System.getenv().keySet())) throw new IllegalStateException();
             result.put("verificationMode", mode);
@@ -510,8 +547,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "JUNIT_EXECUTION";
             Instant startedAt = Instant.now();
             var listener = new SummaryGeneratingListener();
+            var selector=selected?DiscoverySelectors.selectClass(GangbukSelectedDownloadDiagnosticTest.class)
+                    :DiscoverySelectors.selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class);
             var request = LauncherDiscoveryRequestBuilder.request()
-                    .selectors(DiscoverySelectors.selectClass(fixed?AnnouncementAttachmentBbsFixedCaseQaTest.class:AnnouncementAttachmentBbsOfficialObservationTest.class))
+                    .selectors(selector)
                     .configurationParameter("junit.jupiter.execution.parallel.enabled", "false")
                     .configurationParameter("junit.jupiter.tempdir.cleanup.mode.default", "ALWAYS").build();
             LauncherFactory.create().execute(request, listener);
@@ -526,7 +565,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : gangbuk?List.of("GANGBUK-179490"):jungguPdf?List.of("JUNGGU-33626"):junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : selected?List.of(GangbukSelectedDownloadDiagnosticTest.REPORT):gangbuk?List.of("GANGBUK-179490"):jungguPdf?List.of("JUNGGU-33626"):junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > (gangbuk?262144:65536)) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
@@ -534,7 +573,9 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if (!three) result.put("report", reports.getFirst());
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
-            passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
+            passed = selected ? selectGangbukSelectedComplete(reports,startedAt,Instant.now())
+                    &&selectComplete(summary.getTestsFoundCount(),summary.getTestsSucceededCount(),summary.getTestsFailedCount(),summary.getTestsSkippedCount(),summary.getTestsAbortedCount(),summary.getContainersFailedCount())
+                    : three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
                     && (structure||header||haman||jungguPdf||gangbuk?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))

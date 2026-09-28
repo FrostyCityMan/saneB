@@ -11,6 +11,45 @@ import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsObservationProbeTest {
     private static final Instant START = Instant.parse("2026-09-22T01:00:00Z");
+    private List<JsonNode> selectedGangbukReports() throws Exception {
+        var row=(ObjectNode)gangbukReports().getFirst();
+        row.put("scope","SELECTED_ATTACHMENT_DOWNLOAD_DIAGNOSTIC_V1").put("status","SELECTED_FILE_OBSERVED_NOT_WHOLE_NOTICE")
+                .put("priorReceiptSha256",GangbukSelectedDownloadDiagnosticTest.PRIOR_RECEIPT).put("selectedFileOrdinal",4)
+                .put("bodyRequests",0).put("isWholeTextAnalysisComplete",false).put("maximumRequestReservations",5)
+                .put("maximumReservedBytes",25165824).put("requestReservationsIncludingBodyUpperBound",4);
+        for(int i=0;i<3;i++) {
+            var file=(ObjectNode)row.at("/files/"+i);file.retain("locatorHash","formatHint");file.put("status","NOT_SELECTED");
+        }
+        ((ObjectNode)row.at("/files/3")).putObject("downloadTrace").put("schemaVersion",1).put("step","FINAL_POST")
+                .put("phase","COMPLETE").put("transportInvocations",3).put("completedTransports",3);
+        return List.of(row);
+    }
+    private boolean validSelected(List<JsonNode> rows){return AnnouncementAttachmentBbsObservationProbe.selectGangbukSelectedComplete(rows,START,START.plusSeconds(60));}
+    @Test void selectedGangbukKeepsFourFileDenominatorWithoutClaimingWholeNotice() throws Exception {
+        assertEquals("GANGBUK_SELECTED_DOWNLOAD",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"GANGBUK_SELECTED_DOWNLOAD"}));
+        assertTrue(validSelected(selectedGangbukReports()));assertFalse(validSelected(gangbukReports()));assertFalse(validGangbuk(selectedGangbukReports()));
+        assertFalse(validSelected(List.of()));
+        var rows=selectedGangbukReports();((ObjectNode)rows.getFirst()).withArray("files").remove(0);assertFalse(validSelected(rows));
+        rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/0")).put("bytes",1);assertFalse(validSelected(rows));
+        rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/0")).put("status","OBSERVED");assertFalse(validSelected(rows));
+        rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/3")).put("quality","PARTIAL_TEXT");assertTrue(validSelected(rows));
+    }
+    @Test void selectedGangbukRejectsScopeBudgetAndTransportTraceChanges() throws Exception {
+        for(String key:List.of("caseCode","scope","priorReceiptSha256","profileHash","status","observedAt")) {
+            var rows=selectedGangbukReports();((ObjectNode)rows.getFirst()).put(key,"changed");assertFalse(validSelected(rows),key);
+        }
+        for(String key:List.of("isWholeTextAnalysisComplete","isPolicyQaPassed","isExpectationApproved")) {
+            var rows=selectedGangbukReports();((ObjectNode)rows.getFirst()).put(key,true);assertFalse(validSelected(rows),key);
+        }
+        for(String key:List.of("bodyRequests","selectedFileOrdinal","maximumRequestReservations","maximumReservedBytes","requestReservationsIncludingBodyUpperBound","reservedBytesIncludingBodyUpperBound")) {
+            var rows=selectedGangbukReports();((ObjectNode)rows.getFirst()).put(key,"5");assertFalse(validSelected(rows),key);
+        }
+        for(String key:List.of("step","phase","schemaVersion","transportInvocations","completedTransports")) {
+            var rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/3/downloadTrace")).put(key,"changed");assertFalse(validSelected(rows),key);
+        }
+        var rows=selectedGangbukReports();((ObjectNode)rows.getFirst()).put("requestReservationsIncludingBodyUpperBound",6);assertFalse(validSelected(rows));
+        rows=selectedGangbukReports();((ObjectNode)rows.getFirst().at("/files/3/downloadTrace")).put("url","PRIVATE_CANARY");assertFalse(validSelected(rows));
+    }
     private List<JsonNode> gangbukReports() throws Exception {
         var row=(ObjectNode)dalseongReports().get(1);
         var file=(ObjectNode)row.path("files").get(0).deepCopy();

@@ -606,6 +606,7 @@ tasks.register('attachmentBbsObservationProbeJar', Jar) {
     from(sourceSets.test.output.classesDirs) {
         ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
          'ObservationDownloadTrace',
+         'GangbukSelectedDownloadDiagnosticTest',
          'AnnouncementAttachmentBbsFixedCaseQaTest',
          'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',
          'DockerAttachmentQaRunner'].each { name ->

@@ -2,11 +2,12 @@
 set -euo pipefail
 
 # 고정 기관·공고만 명시적으로 실행한다. 함안은41306 한 건이며 자원 제한은 동일하다.
-[[ ( $# -eq 4 || ( $# -eq 5 && ( "$5" == FIXED || "$5" == OKCHEON || "$5" == BOEUN_OBSERVATION || "$5" == BOEUN_DIAGNOSTIC || "$5" == OKCHEON_DIAGNOSTIC || "$5" == NAMGU_OBSERVATION || "$5" == NAMGU_STRUCTURE || "$5" == DALSEONG_OBSERVATION || "$5" == DALSEONG_HEADER || "$5" == HAMAN_OBSERVATION || "$5" == JUNGGU_OBSERVATION || "$5" == JUNGGU_PDF || "$5" == GANGBUK_OBSERVATION ) ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
+[[ ( $# -eq 4 || ( $# -eq 5 && ( "$5" == FIXED || "$5" == OKCHEON || "$5" == BOEUN_OBSERVATION || "$5" == BOEUN_DIAGNOSTIC || "$5" == OKCHEON_DIAGNOSTIC || "$5" == NAMGU_OBSERVATION || "$5" == NAMGU_STRUCTURE || "$5" == DALSEONG_OBSERVATION || "$5" == DALSEONG_HEADER || "$5" == HAMAN_OBSERVATION || "$5" == JUNGGU_OBSERVATION || "$5" == JUNGGU_PDF || "$5" == GANGBUK_OBSERVATION || "$5" == GANGBUK_SELECTED_DOWNLOAD ) ) ) && "$(uname -s)" == Linux && "$(id -u)" != 0 ]] || exit 1
 probe_flag=SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION
 probe_args=("$4")
 if [[ $# -eq 5 ]]; then
   [[ "$5" != FIXED ]] || probe_flag=SANEB_ATTACHMENT_BBS_FIXED_CASE_QA
+  [[ "$5" != GANGBUK_SELECTED_DOWNLOAD ]] || probe_flag=SANEB_ATTACHMENT_GANGBUK_SELECTED_DOWNLOAD
   probe_args+=("$5")
 fi
 qa_distribution="$(realpath -- "$1")"
