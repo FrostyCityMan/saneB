@@ -110,6 +110,57 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         report['reports'][0]['decisionStatus']='ACCEPTED'
         with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
 
+    def test_junggu_segment_requires_both_files_and_stored_partial_review(self):
+        import copy
+        mode='JUNGGU_SEGMENT';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('JUNGGU-33626',['JUNGGU-33626'],5,25165824),scope)
+        self.assertEqual(32,27+scope[2])
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=['JUNGGU-34196']),mode)
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        case=dict(caseCode='JUNGGU-33626',scope='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1',status='WORKER_DB_API_OBSERVED_NOT_APPROVED',
+            profileCode='LOCAL_DAEGU_JUNGGU_GET_V1',profileHash='e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef',
+            engineVersion='attachment-segment-1.0.0',segmentRuleVersion='segment-role-1.0.4',
+            segmentRulesHash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',extractorVersion='1.0.14',
+            workerStatus='EVALUATED',bodyStatus='AVAILABLE',decisionStatus='REVIEW_REQUIRED',decisionReason='ATTACHMENT_INCOMPLETE',
+            productionWriteCount=0,remainingResourceLeases=0,discoveredFileCount=2,processedFileCount=2,extractorCalls=2,
+            maximumRequestReservations=5,maximumReservedBytes=25165824,requestReservationsIncludingBodyUpperBound=5,reservedBytesIncludingBodyUpperBound=2439945)
+        for key in ('bodyStageComplete','discoveryComplete','segmentDatabaseApiVerified','segmentReviewContextVerified','manualSourceCheckRequired','requiresFinalAdminVerification','originalFilesRemoved'):case[key]=True
+        for key in ('isWholeTextAnalysisComplete','isPolicyQaPassed','isExpectationApproved','isAuthenticatedBrowserE2e'):case[key]=False
+        files=[]
+        for pdf in (False,True):
+            file=dict(format='PDF' if pdf else 'HWP',downloadStatus='SUCCEEDED',quality='PARTIAL_TEXT' if pdf else 'COMPLETE_TEXT',
+                binaryHash='6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c' if pdf else 'ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6',
+                textHash='9f6ed99df2287fe3e4b1e5546fcd44a045eb6c7434aaa3a65566e8b0aa2938cf' if pdf else '76a66ee11c3a7e729f0777e19b7b17fef9de708ce893a199b381f603ca5a45bd',
+                bytes=209769 if pdf else 127488,characterCount=4241 if pdf else 3120,blockCount=5 if pdf else 178,
+                segmentAnalysisHash='a'*64,segmentCount=1 if pdf else 4,unknownSegmentCount=1,noticeSegmentCount=0)
+            for key in ('segmentEvaluationInputBound','segmentApiProjectionMatched','legacyDefaultReadOnlyVerified','evaluationBoundApiVerified','otherVersionReadOnlyVerified','pinnedInputAndCoverageVerified'):file[key]=True
+            if pdf:file.update(partialFullCoverageVerified=True,segmentReason='COMPLETE_TEXT_REQUIRED',pdfStructure=dict(pageCount=5,reliablePageCount=0,externalObjectInvocationCount=1,inlineImageInvocationCount=0,blankPageCount=0,replacementCharacterCount=0))
+            files.append(file)
+        case['files']=files
+        report=dict(kind='OFFICIAL_WORKER_PROBE',caseGroup=mode,status='PASSED',productionDatabaseUsed=False,isPolicyQaPassed=False,isAuthenticatedBrowserE2e=False,
+            found=1,passed=1,failed=0,skipped=0,aborted=0,failedContainers=0,cases=[case])
+        self.unit['validate_probe_scope'](report,mode)
+        valid=copy.deepcopy(report);valid['cases'][0]['files'].reverse();self.unit['validate_probe_scope'](valid,mode)
+        for key,value in [('extractorVersion','1.0.13'),('decisionStatus','ACCEPTED'),('segmentRuleVersion','segment-role-1.0.0'),('profileHash','a'*64),
+                ('requestReservationsIncludingBodyUpperBound',6),('isWholeTextAnalysisComplete',True),('segmentDatabaseApiVerified','true'),('productionWriteCount',True)]:
+            invalid=copy.deepcopy(report);invalid['cases'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for index in (0,1):
+            for key,value in [('binaryHash','a'*64),('textHash','b'*64),('segmentCount',True),('bytes',0),('pinnedInputAndCoverageVerified',False),('longFormCandidate',{})]:
+                invalid=copy.deepcopy(report);invalid['cases'][0]['files'][index][key]=value
+                with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('quality','COMPLETE_TEXT'),('partialFullCoverageVerified',False),('unknownSegmentCount',0),('pdfStructure',{}),('segmentReason','ROLE_TEXT_STRUCTURE_MATCHED')]:
+            invalid=copy.deepcopy(report);invalid['cases'][0]['files'][1][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('passed',True),('skipped',1),('found',2)]:
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](dict(report,**{key:value}),mode)
+        invalid=copy.deepcopy(report);invalid['cases'][0]['files'].pop()
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+
     def test_haman_segment_worker_keeps_partial_review_and_strict_stored_evidence(self):
         import copy
         mode='HAMAN_SEGMENT';scope=self.runner['SCOPES'][mode]

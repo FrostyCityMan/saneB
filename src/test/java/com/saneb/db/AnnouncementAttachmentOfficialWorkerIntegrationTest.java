@@ -208,6 +208,8 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         var hwpStructure=IsolatedAttachmentExtractor.selectHwpStructureDetails(actual);
                         if("HWP".equals(file.detectedTypeCode()))assertNotNull(hwpStructure,"HWP_STRUCTURE_DIAGNOSTIC_MISSING");
                         if(hwpStructure!=null)row.put("hwpStructure",hwpStructure);
+                        var pdfStructure=IsolatedAttachmentExtractor.selectPdfStructureDetails(actual);
+                        if(pdfStructure!=null)row.put("pdfStructure",pdfStructure);
                         row.put("reviewPhrasePresence",selectReviewPhrasePresence(storedText));
                         if("COMPLETE_TEXT".equals(file.qualityCode()))assertNotNull(file.roleAssessment(),"TEXT_ROLE_ASSESSMENT_MISSING");
                         if(file.roleAssessment()!=null) {
@@ -327,10 +329,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         var input=new AttachmentSetEvidence.Extraction(file.qualityCode(),actual.path("text").asText(),Arrays.asList(blocks),actual.path("pageCount").isIntegralNumber()?actual.path("pageCount").intValue():null,0);
         var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input,version,execution.segmentRulesHash());
         assertEquals("ANALYZED",stored.analysisState());assertEquals(expected,stored.analysis());
-        boolean haman="HAMAN-41306".equals(caseCode);
-        if(!haman)assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
+        boolean haman="HAMAN-41306".equals(caseCode),junggu="JUNGGU-33626".equals(caseCode);
+        if(!haman&&!junggu)assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
                 selectCanonicalHash(expected),"PREVIOUS_SEGMENT_OBSERVATION_CHANGED");
-        else {
+        else if(haman) {
             assertEquals(AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,version);
             assertEquals("PARTIAL_TEXT",file.qualityCode());
             assertEquals("c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",file.binaryHash());
@@ -341,6 +343,27 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
             assertEquals("UNKNOWN",segment.roleCode());assertEquals("COMPLETE_TEXT_REQUIRED",segment.reasonCode());
             assertEquals(0,segment.startOffset());assertEquals(expected.textLength(),segment.endOffset());assertTrue(segment.evidence().isEmpty());
             row.put("partialFullCoverageVerified",true);row.put("segmentReason",expected.reasonCode());
+        }
+        else {
+            // 관측1.0.0 구간 지문을1.0.4 정답으로 재사용하지 않는다. 동일 실제 입력과 저장 분석을 직접 대조한다.
+            assertEquals(AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,version);
+            boolean pdf="PDF".equals(file.detectedTypeCode());
+            assertTrue(pdf||"HWP".equals(file.detectedTypeCode()));
+            assertEquals(pdf?"PARTIAL_TEXT":"COMPLETE_TEXT",file.qualityCode());
+            assertEquals(pdf?"6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c":"ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6",file.binaryHash());
+            assertEquals(pdf?"9f6ed99df2287fe3e4b1e5546fcd44a045eb6c7434aaa3a65566e8b0aa2938cf":"76a66ee11c3a7e729f0777e19b7b17fef9de708ce893a199b381f603ca5a45bd",expected.textHash());
+            assertEquals(pdf?4241:3120,expected.textLength());assertEquals(pdf?5:178,blocks.length);
+            assertTrue(new AttachmentSegmentRoleAnalyzer().selectAnalysisValid(input,expected));
+            int offset=0;
+            for(var segment:expected.segments()) {assertEquals(offset,segment.startOffset());assertTrue(segment.endOffset()>offset);offset=segment.endOffset();}
+            assertEquals(expected.textLength(),offset);
+            if(pdf) {
+                assertEquals("REVIEW_REQUIRED",expected.statusCode());assertEquals("COMPLETE_TEXT_REQUIRED",expected.reasonCode());
+                assertEquals(1,expected.segments().size());var segment=expected.segments().getFirst();
+                assertEquals("UNKNOWN",segment.roleCode());assertTrue(segment.evidence().isEmpty());
+                row.put("partialFullCoverageVerified",true);row.put("segmentReason",expected.reasonCode());
+            }
+            row.put("pinnedInputAndCoverageVerified",true);
         }
         assertEquals(file.fileId(),stored.fileId());assertEquals(file.setId(),stored.setId());
         assertEquals(file.documentRoleCode(),stored.fileRoleCode());assertEquals(file.roleOriginCode(),stored.fileRoleOriginCode());
@@ -364,7 +387,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertEquals("NOT_ANALYZED",prior.analysisState(),"STRUCTURAL_GET_MUST_NOT_FALL_BACK");
                 assertEquals(selectWireTree(prior),selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION));
                 assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source));
-                if(!haman) {
+                if(!haman&&!junggu) {
                     assertEquals("6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04",file.binaryHash());
                     assertEquals("ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066",expected.textHash());
                     assertEquals(List.of("UNKNOWN","NOTICE","FORM","FORM"),expected.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList());
