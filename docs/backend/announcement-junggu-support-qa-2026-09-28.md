@@ -57,3 +57,15 @@ V41의 공식 목록과 실제 제목 검색 필드 not_ancmt_sj를 확인한 �
 이 변경은 QA task/시험·catalog 참조·문서다. 운영 parser/추출기/분류 규칙/DB/migration/API/UI는 변경하지 않았다. 새3건이 현재 제목 필터를 통과하는지와 원문의 지원 자격·문서 역할은 후속 실제 세 단계 검증으로 판정한다.
 
 후속 확대 검증은 `:test`에 위4종과 `*AttachmentProviderQaCaseExecutorTest`를 포함하고 `:bootJar`를 함께 실행했다.37초 성공,179건(실행기73 포함) 실패/오류/생략0이다. source가 같은 bootJar는 UP-TO-DATE이며 실사이트는 다시 실행하지 않았다. 기존37개 reference/기대값의 JSON 내용이 모두 불변이고 새3개 null-expectation만 추가됐음을 Node로 대조했다. 사용한 단발 Node·Gradle 시험 프로세스는 종료하고 다른 사용자 프로세스와 output/·scripts/qa/__pycache__/는 보존한다.
+
+## 후속 CI 실패와 오프라인 복구
+
+5067d26의 Linux36382856909는 패키지 검증 단계에서 실패했다. 확인 시점 전체 job과 DB/migration 검사는 아직 실행 중이다. Node 검사에서 함안 task부터 attachmentQaRuleSnapshot 직전까지를 잘라 중간에 추가한 중구 task까지 포함한 것이 원인이다. 실제 Gradle task 실행 범위가 합쳐진 것은 아니다.
+
+다음 최상위 tasks.register 선언까지만 읽도록 시험 helper를 수정하고 중구/함안 분리와 CRLF·마지막/누락 task 회귀를 추가했다. 아래 명령은 로컬에서35건/32통과/실패0/Windows에서 Linux 심볼릭 링크3건 생략,15.8초다. 표적8건은 생략 없이 통과했다. 동일SHA Linux 성공은 아직 별도 확인 대상이다.
+
+```powershell
+node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachment-official-worker-probe.test.mjs scripts/qa/attachment-bbs-observation-probe.test.mjs
+```
+
+새 공고 요청·추출·DB·운영 변경은 없다. 중구 제목 단계 통과 여부를 먼저 실제 seed로 판정해야 하며, 탈락 표본은 본문/첨부0요청으로 유지한다. 발견용4첨부 성공을 세 단계 정상 후보 성공으로 변경하지 않는다. 이 회차의 Node 시험은 정상 종료했고 관련 PID30432/35684 부재를 확인했다.

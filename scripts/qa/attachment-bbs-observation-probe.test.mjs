@@ -8,9 +8,19 @@ const script = 'scripts/qa/run-attachment-bbs-observation-probe.sh';
 const source = readFileSync(script, 'utf8');
 const bash = process.platform === 'win32' ? 'C:/Program Files/Git/bin/bash.exe' : '/bin/bash';
 
+// 다음 task 이름에 의존하지 않는다. 사이에 새 지역 task가 추가되어도 범위를 섞지 않는다.
+function selectRegisteredTask(gradle, name) {
+  const declaration = `tasks.register('${name}', Test) {`;
+  const start = gradle.indexOf(declaration);
+  assert.notEqual(start, -1, `MISSING_TEST_TASK:${name}`);
+  const remaining = gradle.slice(start + declaration.length);
+  const next = remaining.search(/^tasks\.register\(/m);
+  return next < 0 ? remaining : remaining.slice(0, next);
+}
+
 test('함안 사전 확인은 전용 task·보고서를 유지하고 서울 관측은 별도 명시 모드로 분리한다', () => {
   const gradle = readFileSync('build.gradle', 'utf8');
-  const task = gradle.split("tasks.register('hamanSupportDiscoveryQa', Test) {")[1]?.split("tasks.register('attachmentQaRuleSnapshot', Test)")[0];
+  const task = selectRegisteredTask(gradle, 'hamanSupportDiscoveryQa');
   assert(task);
   assert(task.includes("includeTestsMatching '*SaeolAttachmentProfileLiveQaTest.fixedHamanSupportReferenceValidatesTitleAndWholeFileSignature'"));
   assert(task.includes("includeTestsMatching '*MeasuredBodyContentLiveQaTest.readsHamanSupportBodyThroughProductionPinnedTransport'"));
@@ -20,6 +30,27 @@ test('함안 사전 확인은 전용 task·보고서를 유지하고 서울 관�
   assert(task.includes('maxParallelForks = 1')); assert(task.includes("maxHeapSize = '256m'"));
   assert(source.includes('"$5" == HAMAN_OBSERVATION'));
   assert(!task.includes('HAMAN_OBSERVATION'));
+});
+test('인접한 중구 task를 함안 검증 범위에 포함하지 않고 각 외부 호출을 분리한다', () => {
+  const gradle = readFileSync('build.gradle', 'utf8');
+  const haman = selectRegisteredTask(gradle, 'hamanSupportDiscoveryQa');
+  const junggu = selectRegisteredTask(gradle, 'jungguSupportDiscoveryQa');
+  assert(!haman.includes('Junggu')); assert(!haman.includes('junggu'));
+  assert(!junggu.includes('Haman')); assert(!junggu.includes('haman'));
+  assert.equal((junggu.match(/includeTestsMatching/g) || []).length, 1);
+  assert(junggu.includes("includeTestsMatching '*SaeolAttachmentProfileLiveQaTest.fixedJungguSupportReferencesValidateTitleAndWholeFileSignature'"));
+  for (const text of ["environment 'SANEB_ATTACHMENT_PROFILE_QA', 'true'", "environment 'SANEB_JUNGGU_SUPPORT_QA', 'true'",
+    'reports/junggu-support-discovery-qa', 'test-results/jungguSupportDiscoveryQa', 'reports/tests/jungguSupportDiscoveryQa',
+    'maxParallelForks = 1', "maxHeapSize = '256m'"]) assert(junggu.includes(text), text);
+  const workflow = readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8');
+  assert(!workflow.includes('jungguSupportDiscoveryQa'));
+});
+test('task 구획 추출은 새 인접 task·마지막 task·CRLF를 처리하고 누락된 task를 거부한다', () => {
+  const fixture = "tasks.register('first', Test) {\r\n  FIRST\r\n}\r\ntasks.register('inserted', Test) {\r\n  SECOND\r\n}\r\ntasks.register('last', Test) {\r\n  LAST\r\n}\r\n";
+  assert.equal(selectRegisteredTask(fixture, 'first').trim(), 'FIRST\r\n}');
+  assert.equal(selectRegisteredTask(fixture, 'inserted').trim(), 'SECOND\r\n}');
+  assert.equal(selectRegisteredTask(fixture, 'last').trim(), 'LAST\r\n}');
+  assert.throws(() => selectRegisteredTask(fixture, 'absent'), /MISSING_TEST_TASK:absent/);
 });
 test('Bash 구문과 인자 없는 실행 차단', () => {
   const syntax = spawnSync(bash, ['-n', resolve(script).replaceAll('\\', '/')], { encoding: 'utf8', timeout: 10000 });
