@@ -589,6 +589,7 @@ tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
         include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerIntegrationTest*.class'
         include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerProbe.class'
         include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsOfficialObservationTest*.class'
+        include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'
         include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentOfficialObservationTest*.class'
     }
     preserveFileTimestamps = false
@@ -604,6 +605,7 @@ tasks.register('attachmentBbsObservationProbeJar', Jar) {
     destinationDirectory = layout.buildDirectory.dir('bbs-observation-probe')
     from(sourceSets.test.output.classesDirs) {
         ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
+         'ObservationDownloadTrace',
          'AnnouncementAttachmentBbsFixedCaseQaTest',
          'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',
          'DockerAttachmentQaRunner'].each { name ->

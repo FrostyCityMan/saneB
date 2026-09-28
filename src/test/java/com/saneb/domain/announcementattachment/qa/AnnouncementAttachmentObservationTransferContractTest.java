@@ -52,7 +52,7 @@ class AnnouncementAttachmentObservationTransferContractTest {
             if(!bytes.reserve(4096))throw new IOException("SOURCE_BYTE_LIMIT");
             Path path=call.getArgument(3);assertThat(path).isEqualTo(output());assertThat(Files.exists(path)).isFalse();
             Files.writeString(path,stage==1?bridge():stage==2?period:"%PDF-1.7",StandardOpenOption.CREATE_NEW);
-            if(stage==failStage)throw new IOException("ATTACHMENT_TIMEOUT");
+            if(stage==Math.abs(failStage))throw new IOException(failStage<0?"ATTACHMENT_HTTP_400":"ATTACHMENT_TIMEOUT");
             return new AttachmentPinnedDownloadClient.Download(Files.size(path),"a".repeat(64),stage==3?"application/pdf":"text/html");
         }).when(client).selectDownload(any(AttachmentPinnedDownloadClient.Request.class),anySet(),any(),any(),anyLong(),any());
         return client;
@@ -62,12 +62,58 @@ class AnnouncementAttachmentObservationTransferContractTest {
     }
     @Test void actualObservationUsesThreeStagesAndChargesEveryStepToOneBudget() throws Exception {
         var budget=budget();var sent=new ArrayList<AttachmentPinnedDownloadClient.Request>();
-        var result=AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,initial,output(),budget,client("20991231",sent,1,0));
+        var trace=new ObservationDownloadTrace();
+        var result=AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,initial,output(),budget,client("20991231",sent,1,0),trace);
+        assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,
+                ObservationDownloadTrace.Step.FINAL_POST,ObservationDownloadTrace.Phase.COMPLETE,3,3));
         assertThat(result.contentType()).isEqualTo("application/pdf");assertThat(Files.readString(output())).isEqualTo("%PDF-1.7");
         assertThat(sent).extracting(AttachmentPinnedDownloadClient.Request::method).containsExactly("GET","POST","POST");
         assertThat(sent.getLast().form()).containsEntry("isHome","").containsEntry("pbs_end_ymd","20991231");
         assertThat(budget.requests).isEqualTo(5);assertThat(budget.bytes).isEqualTo(2L*1024*1024+3*4096);
         Files.delete(output());
+    }
+    @Test void http400IsLocatedAtEachActualTransportWithoutLeakingRequestOrResponse() throws Exception {
+        var steps=List.of(ObservationDownloadTrace.Step.BRIDGE_GET,ObservationDownloadTrace.Step.PERIOD_POST,ObservationDownloadTrace.Step.FINAL_POST);
+        for(int stage=1;stage<=3;stage++) {
+            var trace=new ObservationDownloadTrace();var sent=new ArrayList<AttachmentPinnedDownloadClient.Request>();
+            var client=client("20991231",sent,1,-stage);var budget=budget();
+            assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,initial,output(),budget,client,trace))
+                    .hasMessage("ATTACHMENT_HTTP_400");
+            assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,steps.get(stage-1),
+                    ObservationDownloadTrace.Phase.TRANSPORT,stage,stage-1));
+            assertThat(budget.requests).isEqualTo(2+stage);assertThat(Files.exists(output())).isFalse();
+            var json=new com.fasterxml.jackson.databind.ObjectMapper();var row=json.createObjectNode();
+            row.putArray("files").addObject().set("downloadTrace",json.valueToTree(trace.selectSnapshot()));
+            var transported=AnnouncementAttachmentBbsObservationProbe.selectTransportReport(row).at("/files/0/downloadTrace");
+            assertThat(transported).isEqualTo(json.valueToTree(trace.selectSnapshot()));
+            assertThat(transported.size()).isEqualTo(5);
+            assertThat(transported.toString()).doesNotContain("https", "notice", "file_path", "form", "20991231");
+        }
+    }
+    @Test void expiredPeriodIsProfileProcessingNotTransportFailure() throws Exception {
+        var trace=new ObservationDownloadTrace();var client=client("20000101",new ArrayList<>(),1,0);
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,initial,output(),budget(),client,trace))
+                .hasMessage("ATTACHMENT_DOWNLOAD_BLOCKED");
+        assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,
+                ObservationDownloadTrace.Step.PERIOD_POST,ObservationDownloadTrace.Phase.PROFILE_PROCESSING,2,2));
+        assertThat(Files.exists(output())).isFalse();
+    }
+    @Test void rejectedInitialRequestDoesNotInventATransportAttempt() {
+        var trace=new ObservationDownloadTrace();var client=mock(AttachmentPinnedDownloadClient.class);
+        var unrelated=AttachmentPinnedDownloadClient.Request.selectGet(URI.create("https://example.com/private-canary"));
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,unrelated,output(),budget(),client,trace))
+                .hasMessage("ATTACHMENT_DOWNLOAD_BLOCKED");
+        assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,
+                ObservationDownloadTrace.Step.NOT_STARTED,ObservationDownloadTrace.Phase.BEFORE_TRANSPORT,0,0));
+        verifyNoInteractions(client);
+    }
+    @Test void redirectsRemainHttpReservationsRatherThanInventedFlowSteps() throws Exception {
+        var trace=new ObservationDownloadTrace();var budget=budget();var client=client("20991231",new ArrayList<>(),3,0);
+        assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(profile,initial,output(),budget,client,trace))
+                .hasMessage("ATTACHMENT_PATH_NOT_APPROVED");
+        assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,
+                ObservationDownloadTrace.Step.FINAL_POST,ObservationDownloadTrace.Phase.TRANSPORT,3,2));
+        assertThat(budget.requests).isEqualTo(6);assertThat(Files.exists(output())).isFalse();
     }
     @Test void expiredPeriodNeverReachesFinalFileAndIsNotTreatedAsNoAttachments() throws Exception {
         var sent=new ArrayList<AttachmentPinnedDownloadClient.Request>();var budget=budget();var client=client("20000101",sent,1,0);
@@ -120,7 +166,10 @@ class AnnouncementAttachmentObservationTransferContractTest {
             Files.writeString(output(),"fixture",StandardOpenOption.CREATE_NEW);
             return new AttachmentPinnedDownloadClient.Download(7,"a".repeat(64),"application/octet-stream");
         }).when(client).selectDownload(eq(request),eq(direct.selectApprovedHosts()),any(),eq(output()),anyLong(),any());
-        AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(direct,request,output(),budget,client);
+        var trace=new ObservationDownloadTrace();
+        AnnouncementAttachmentBbsOfficialObservationTest.selectFileDownload(direct,request,output(),budget,client,trace);
+        assertThat(trace.selectSnapshot()).isEqualTo(new ObservationDownloadTrace.Snapshot(1,
+                ObservationDownloadTrace.Step.DIRECT,ObservationDownloadTrace.Phase.COMPLETE,1,1));
         verify(client,times(1)).selectDownload(eq(request),anySet(),any(),any(),anyLong(),any());
         assertThat(budget.requests).isEqualTo(3);Files.delete(output());
     }

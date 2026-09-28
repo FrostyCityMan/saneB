@@ -247,9 +247,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             for(int i=0;i<discovered.descriptors().size();i++) {
                 var descriptor=discovered.descriptors().get(i);var row=rows.get(i);Path binary=temporary.resolve(UUID.randomUUID()+".bin");
                 if(!descriptor.downloadAllowed()) {row.put("status","UNSUPPORTED_NOT_DOWNLOADED");files.add(incompleteFile("UNSUPPORTED"));continue;}
+                var transfer=new ObservationDownloadTrace();
                 try {
                     stage="FILE_DOWNLOAD";var fileRequest=descriptor.selectRequest();
-                    var bytes=selectFileDownload(profile,fileRequest,binary,budget,client);
+                    var bytes=selectFileDownload(profile,fileRequest,binary,budget,client,transfer);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
                     String format=new AttachmentFileTypeValidator().selectFormat(binary,bytes,descriptor.expectedFormat(),profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
                     row.put("format",format);stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
@@ -260,7 +261,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                     stage="TEXT_ROLE";var observation=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(actual);row.putAll(observation);
                     files.add(selectFileInput(actual,JSON.valueToTree(observation)));row.put("status","OBSERVED");
                 } catch(Exception|AssertionError failure) {row.put("status","FAILED");row.put("failedStage",stage);row.put("failureCode",AnnouncementAttachmentOfficialObservationTest.selectFailureCode(failure));files.add(incompleteFile("EXTRACTION_FAILED"));}
-                finally {Files.deleteIfExists(binary);}
+                finally {row.put("downloadTrace",transfer.selectSnapshot());Files.deleteIfExists(binary);}
             }
             stage="COMBINED_CLASSIFICATION";
             var decision=new AnnouncementAttachmentClassificationEngine().selectDecision(new Input(base,rules,true,discovered.status(),discovered.complete(),files,null,List.of()));
@@ -372,10 +373,21 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     static AttachmentPinnedDownloadClient.Download selectFileDownload(AttachmentDiscoveryProfile profile,
             AttachmentPinnedDownloadClient.Request initial,Path binary,Budget budget,AttachmentPinnedDownloadClient client)
             throws java.io.IOException {
-        return AttachmentProfileDownloadFlow.selectDownload(profile,initial,binary,20*MIB,
-                (request,limit,approved)->client.selectDownload(request,profile.selectApprovedHosts(),
+        return selectFileDownload(profile,initial,binary,budget,client,new ObservationDownloadTrace());
+    }
+    static AttachmentPinnedDownloadClient.Download selectFileDownload(AttachmentDiscoveryProfile profile,
+            AttachmentPinnedDownloadClient.Request initial,Path binary,Budget budget,AttachmentPinnedDownloadClient client,
+            ObservationDownloadTrace trace) throws java.io.IOException {
+        var result=AttachmentProfileDownloadFlow.selectDownload(profile,initial,binary,20*MIB,
+                (request,limit,approved)->{
+                    trace.saveTransportStarted(profile,request);
+                    var downloaded=client.selectDownload(request,profile.selectApprovedHosts(),
                         candidate->approved.test(candidate)&&budget.selectRequestAllowed(initial,candidate),
-                        binary,limit,budget::saveBytes));
+                        binary,limit,budget::saveBytes);
+                    trace.saveTransportCompleted();
+                    return downloaded;
+                });
+        trace.saveComplete();return result;
     }
 
     static final class Budget {

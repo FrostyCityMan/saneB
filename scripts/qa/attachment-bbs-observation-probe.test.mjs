@@ -132,4 +132,7 @@ test('새 JAR는 고정 시험 클래스만 포함하고 운영 classpath·리�
   assert(block.includes('sourceSets.test.output.classesDirs'));
   for (const text of ['sourceSets.main.output', 'testRuntimeClasspath', 'resources', '${name}*.class']) assert(!block.includes(text), text);
   assert(block.includes('preserveFileTimestamps = false'));
+  assert(block.includes("'ObservationDownloadTrace'"));
+  const worker = build.slice(build.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"), build.indexOf("tasks.register('attachmentBbsObservationProbeJar'"));
+  assert(worker.includes("include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'"));
 });
