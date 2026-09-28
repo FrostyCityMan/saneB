@@ -337,6 +337,24 @@ tasks.register('gangbukSupportDetailPreflight', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/gangbukSupportDetailPreflight')
 }
 
+tasks.register('hwacheonSupportReferencePreflight', Test) {
+    group = 'verification'
+    description = '화천32258 제목·공식 상세·HWP1개 POST signature 확인. 최대2요청/21MiB, 1회 예약, 추출·운영 쓰기 없음.'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/HwacheonSupportReferencePreflightTest.class'
+    environment 'SANEB_HWACHEON_SUPPORT_PREFLIGHT', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    ['javax.net.ssl.trustStoreType', 'javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key) != null) systemProperty key, System.getProperty(key)
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/hwacheonSupportReferencePreflight')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/hwacheonSupportReferencePreflight')
+}
+
 tasks.register('attachmentQaRuleSnapshot', Test) {
     description = '서버 QA용 DRAFT 규칙을 빌드 머신의 임시 DB에서 내보냅니다.'
     group = 'verification'

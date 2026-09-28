@@ -11,13 +11,20 @@
 
 ## 기준선
 
+### 2026-09-28 화천 지원사업 참조 1건·POST 검증
+
+- [x] 화천32258은 제목 COMBINATION_MATCHED, 공식 첨부 FOUND/complete·HWP1개 POST/signature 확인. 신규2요청·92,910byte, 파일82,944byte·원본 정리 확인. [실행 제한·영수증](announcement-hwacheon-support-reference-2026-09-28.md)을 따른다.
+- [x] catalog 참조40→41·참조 보유 프로필14→15. expectation:null, 정상0 유지. 등록7엔진/19프로필·운영 대상225개 분모는 변하지 않는다.
+- [~] 본문 판정·Linux 추출·구간 worker/DB/API·정상 기대값·전체Provider·운영 E2E는 남는다. 전체9Gate8부분/1차단 유지. 중구32/32는 소진 상태로 재실행하지 않았다.
+
 ### 2026-09-28 함안 최신 추출 결과의 worker 연결 검증
 
 - [x] 직전 회차는 중구 소진 승인 확인에 그친 no progress다. 후속으로1.0.12 이력과 분리한 함안1.0.15/구간1.0.4 명시 worker 모드를 구현했다. [범위·검증·예산](announcement-haman-layout-worker-qa-2026-09-28.md)을 따른다.
 - [x] Java45·패키지20·Node12·Python36 통과, bootJar/probe JAR 확인. 잘못된 Gradle 하위 모듈 필터 명령은 루트`:test`로 정정했다. 기존0b565819 Linux36395464220 success 확인.
 - [x] 소스a113ef6/실행6e52839b/SSMed5a8b3f가Success/exit0·38.33초·1검사 통과. 실제HWP1개·4,647자/214block·미지원record2/control1을 보존한1.0.15/구간1.0.4 worker→임시DB/API·평가입력·검수context 일치를 확인했다. 부분 품질·UNKNOWN1·REVIEW_REQUIRED는 유지한다.
 - [x] 원본/lease/unit/서버 전송파일/S3/소유ZIP 정리·운영JAR불변/healthUP·운영DB쓰기0 확인. 신규4요청/2,204,906byte, 누적35/60요청·21,725,798byte다. 중구32/32·강북16/21은 유지한다.
-- [~] 새SHA Linux36398310987은실행중. GSO/그림계열 미지원 구조·정상 기대값/정책QA·전체Provider·운영E2E는 별도이며 전체9Gate8부분/1차단은 유지한다. 운영 변경·브라우저 검증 없음.
+- [x] 후속 조회에서 a113ef6 Linux36398310987 completed/success 확인.
+- [~] GSO/그림계열 미지원 구조·정상 기대값/정책QA·전체Provider·운영E2E는 별도이며 전체9Gate8부분/1차단은 유지한다. 운영 변경·브라우저 검증 없음.
 
 ### 2026-09-28 함안 실제 HWP 쪽 번호 배치 개선 대조
 

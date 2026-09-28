@@ -95,6 +95,17 @@ test('함안 최신 추출기 worker는 과거 실행과 분리하고 외부 요
   assert(java.indexOf('validatePinnedExtractor(')<java.indexOf('startDatabase();'));
 });
 
+test('화천 지원사업 사전 확인은 명시 task만 사용하고 자동 CI 외부 호출은 없다',()=>{
+  const gradle=readFileSync('build.gradle','utf8');
+  const start=gradle.indexOf("tasks.register('hwacheonSupportReferencePreflight'");assert(start>=0);
+  const task=gradle.slice(start,gradle.indexOf("tasks.register('attachmentQaRuleSnapshot'",start));
+  for(const text of ['HwacheonSupportReferencePreflightTest.class','SANEB_HWACHEON_SUPPORT_PREFLIGHT','maxParallelForks = 1','test-results/hwacheonSupportReferencePreflight'])assert(task.includes(text));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml','utf8').includes('hwacheonSupportReferencePreflight'));
+  const java=readFileSync('src/test/java/com/saneb/domain/announcementattachment/qa/HwacheonSupportReferencePreflightTest.java','utf8');
+  assert(java.includes('StandardOpenOption.CREATE_NEW'));assert(java.includes('requests>=2'));
+  assert(java.indexOf('TITLE_NOT_ELIGIBLE_NOT_FETCHED')<java.indexOf('new AttachmentPinnedDownloadClient()'));
+});
+
 test('중구 두 파일 구간 worker는 명시 실행과 별도 보고서이며 자동 외부 호출하지 않는다',()=>{
   const gradle=readFileSync('build.gradle','utf8');
   const start=gradle.indexOf("tasks.register('attachmentJungguSegmentWorkerIntegrationTest'");

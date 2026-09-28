@@ -1,7 +1,19 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-28-junggu-support-references-v2",
+  "catalogVersion": "2026-09-28-hwacheon-support-reference-v2",
   "notices": [
+    {
+      "caseCode": "HWACHEON-32258",
+      "profileCode": "LOCAL_HWACHEON_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "adef30798671fe61ce7a68021b596a06e86d843e483807d7c2a16e6c269a8d40",
+        "sourceUrl": "https://eminwon.ihc.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=32258&subCheck=N",
+        "localSourceCode": "LGS-000130",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "JUNGGU-34196",
       "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
