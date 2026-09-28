@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-28 AWS 갱신과 함안 서울 실제 HWP 부분 추출
+
+- [x] 로그인 갱신 후 STS/계정·서울 대상1대/SSM·기존 배포 revision을 확인했다. 이전 인증 차단은 해소됐다. [고정 범위·명령·실행/정리·남은 업무](announcement-haman-seoul-observation-2026-09-28.md)에 기록했다.
+- [x] Gradle36초/20task UP-TO-DATE, Node6·Python4+25 새 실행 통과다. 약20분의 패키지 전송 후 SSM a3f55bc4-c2dc-4512-9048-eb50cb85a7bd Success, 실제 probe24.801초/1통과다.
+- [x] 본문89자·전체HWP1개101,888byte·기존binary지문일치,4,644자/213블록을 실제 추출했다. 누적15/60요청·10,701,268/100,663,296byte를 보존한다. 원본/unit/S3 자기객체/로컬전송ZIP 정리, 운영JAR불변/healthUP·DB미사용/쓰기0을 확인했다.
+- [!] HWP는 UNSUPPORTED_RECORD3/UNSUPPORTED_CONTROL4가 남아 PARTIAL_TEXT·REVIEW_REQUIRED다. 정상 후보·정책 QA·기대값 승인으로 승격하지 않는다. 부분 사유별 구조 분석과 명시 구간 worker/DB/API 결합 검증이 남는다.
+- [~] 전체9Gate=8부분/1차단을 유지한다. 인증 해소와 실파일 관측 진척이 전체 수집원·정상 기대값·운영 정책/기존 데이터·동일SHA 배포/브라우저 E2E 완료를 의미하지 않는다. 브라우저는 현재 요청 정책상 미실행이다.
+
 ### 2026-09-25 함안 후속 CI 종료와 인증 차단
 
 - [x] 387af57 Linux36036535878 completed/success, 78cbf7b Linux36037865775 completed/failure를 terminal 상태로 확인했다. 두 계약 artifact를 별도 경로로 내려받아 각각 root3049=2756통과/293조건부 생략·실패/오류0, 추출기149·패키지20·job209·migration18·정책 부모2·runtime5·worker12·Flyway3 실패/오류/생략0을 확인했다.
