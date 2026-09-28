@@ -580,6 +580,42 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DONGNAE-43807",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a45444ddf9aebdf2a7e14e9da9194e7b870119d73b04af538d7149a99f26aa74",
+        "sourceUrl": "https://eminwon.dongnae.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43807&subCheck=Y",
+        "localSourceCode": "LGS-000033",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DONGNAE-43719",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e27a6a929df0a2589b2f5f4f2bf40d04c8630a98c59ef368d6344407483cad1c",
+        "sourceUrl": "https://eminwon.dongnae.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43719&subCheck=Y",
+        "localSourceCode": "LGS-000033",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DONGNAE-43686",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "18896a347fef2cec5ba7461d4e08e5c2208f1658fee98d13926d60fea7158ae5",
+        "sourceUrl": "https://eminwon.dongnae.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43686&subCheck=Y",
+        "localSourceCode": "LGS-000033",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

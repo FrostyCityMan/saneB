@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "41d2ebf237c64589500d9408b60ccff07f2513840c27c59ff9cc6e47f5c75d06",
+  "inventorySha256": "b8b63fc746f33bcc010a566382436d587e1e0e88522a9296fdcc6994e8696b82",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -339,6 +339,30 @@
       "producerClassHash": "e575d1faf10dbc2879d1e57479549206aaf969faa7938e0eb7cd7208b631d842",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGNAE-43686.json",
+      "receiptHash": "59e9b928a424970d39579aaad1999e7ada5fe8fbb654b7b36a22705d025e8776",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGNAE-43719.json",
+      "receiptHash": "32000f155e01c3f173954d3164465fe268e5893b1bbe8dc9b758d2d462749321",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGNAE-43807.json",
+      "receiptHash": "d7ccc77aa883cd8f750e69d5c6404eefea5a9b032c0585a3afb18a68582c5ea2",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -508,6 +532,87 @@
           "bytes": 250880,
           "format": "HWP",
           "binaryHash": "c3488feba7f7b3addafb0e6037be47f1e34193e8137769b514ed2453bd27e98c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000033",
+      "caseCode": "DONGNAE-43686",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "profileHash": "41f5176ed7c601f00f39e40de274a124961b84432461a6588c3dbe6c40a5593b",
+      "receiptHash": "59e9b928a424970d39579aaad1999e7ada5fe8fbb654b7b36a22705d025e8776",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "observedAt": "2026-09-28T10:23:50.508908700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d1c8ebc332f77dcab54274946316fea5f833c2f7ebee234d2d8ba216260c25b6",
+          "status": "SUCCEEDED",
+          "bytes": 81408,
+          "format": "HWP",
+          "binaryHash": "fe12ef9d60222135d0f80ac069751e8ed9ed2ed047c7ec510730f80b5adea306",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000033",
+      "caseCode": "DONGNAE-43719",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "profileHash": "41f5176ed7c601f00f39e40de274a124961b84432461a6588c3dbe6c40a5593b",
+      "receiptHash": "32000f155e01c3f173954d3164465fe268e5893b1bbe8dc9b758d2d462749321",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "observedAt": "2026-09-28T10:23:41.152749100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "3362bde98597f1e119edddf073cd7495b9991b265d06a044971d44680b734c4d",
+          "status": "SUCCEEDED",
+          "bytes": 120832,
+          "format": "HWP",
+          "binaryHash": "ecfaae8e1df92e4ef578807bf733fbaec44db0dfa636f1a3fb39a2b9ac5384e4",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000033",
+      "caseCode": "DONGNAE-43807",
+      "profileCode": "LOCAL_DONGNAE_GET_V1",
+      "profileHash": "41f5176ed7c601f00f39e40de274a124961b84432461a6588c3dbe6c40a5593b",
+      "receiptHash": "d7ccc77aa883cd8f750e69d5c6404eefea5a9b032c0585a3afb18a68582c5ea2",
+      "producerClassHash": "2d73d2b7c322153b8224dece59ab8b3015c559e1be7f512849b2fbda30e34af8",
+      "observedAt": "2026-09-28T10:23:28.368333400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "1ed631b5f1ceaf595c7bb77e98202ae0377dbfa387a60533511e5e3692b20772",
+          "status": "SUCCEEDED",
+          "bytes": 81177,
+          "format": "PDF",
+          "binaryHash": "bc484d6fe2c7e28658e601db58e81fed71c066cf32325378499cc9e972af29c1",
           "signatureVerified": true
         }
       ]
@@ -1223,5 +1328,21 @@
       "HOENGSEONG": "5fea89cd908f6ce9fdc4e1780ff457207d337cf202c96577466c51756d27ebf7",
       "YEONGWOL": "7c0879e1a1a10aff4d30272f9974ad4aab4d23a118e03f4d1d9e6269f87bd950"
     }
+  },
+  "dongnaeCollectionRun": {
+    "group": "DONGNAE",
+    "tests": 3,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 8,
+    "surveyDecodedUtf8Bytes": 212635,
+    "requestReservations": 12,
+    "reservedBytes": 6600796,
+    "downloadedFiles": 3,
+    "downloadedBytes": 283417,
+    "junitReportHash": "e375e481c393167dc3b644c3e98a44025b76ad4e84edea44ba52925a85bed359"
   }
 }

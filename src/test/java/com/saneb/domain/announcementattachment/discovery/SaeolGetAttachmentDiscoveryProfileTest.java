@@ -132,10 +132,10 @@ class SaeolGetAttachmentDiscoveryProfileTest {
                 + selectPage(sample, selectLink("공고.pdf", "1.pdf")));
         assertThat(result.descriptors().getFirst().fetchUri().getHost()).isEqualTo("eminwon.bsnamgu.go.kr");
     }
-    @Test void springRegistryContainsFourSeparateImmutableSystemProfiles() {
+    @Test void springRegistryContainsFiveSeparateImmutableSystemProfiles() {
         try (var context = new AnnotationConfigApplicationContext(SaeolGetAttachmentProfileConfiguration.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(4);
+            assertThat(registry.selectProfileList()).hasSize(5);
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             registry.selectProfileList().forEach(profile -> {
                 assertThat(profile.selectProfileHash()).matches("[0-9a-f]{64}");
