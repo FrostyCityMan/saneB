@@ -11,6 +11,58 @@ import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsObservationProbeTest {
     private static final Instant START = Instant.parse("2026-09-22T01:00:00Z");
+    private List<JsonNode> gangbukReports() throws Exception {
+        var row=(ObjectNode)dalseongReports().get(1);
+        var file=(ObjectNode)row.path("files").get(0).deepCopy();
+        row.put("caseCode","GANGBUK-179490").put("profileCode","LOCAL_GANGBUK_LEGAL_GET_V1")
+                .put("profileHash","6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158")
+                .put("titleInputSource","FIXED_OFFICIAL_SAMPLE").put("rulesSource","EPHEMERAL_DB_DRAFT_SEED")
+                .put("rulesHash","a".repeat(64)).put("bodyHash","b".repeat(64)).put("bodyCharacterCount",100)
+                .put("expectedListedFileCount",4).put("discoveredFileCount",4).put("maximumRequestReservations",20)
+                .put("maximumReservedBytes",33554432).put("requestReservationsIncludingBodyUpperBound",15);
+        var files=row.putArray("files");
+        for(int i=0;i<4;i++){var copy=file.deepCopy();String format=i==1?"HWP":"HWPX";
+            copy.put("locatorHash",AnnouncementAttachmentBbsOfficialObservationTest.GANGBUK_LOCATORS.get(i)).put("format",format).put("formatHint",format);files.add(copy);}
+        return List.of(row);
+    }
+    private boolean validGangbuk(List<JsonNode> rows){return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"GANGBUK",false);}
+    @Test void gangbukWholeSetIsBoundToObservedLocatorsNotInventedBinaryExpectations() throws Exception {
+        assertEquals("GANGBUK_OBSERVATION",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"GANGBUK_OBSERVATION"}));
+        assertTrue(validGangbuk(gangbukReports()));assertFalse(validGangbuk(dalseongReports()));assertFalse(validGangbuk(List.of()));
+        var rows=gangbukReports();((ObjectNode)rows.getFirst()).withArray("files").remove(3);assertFalse(validGangbuk(rows));
+        for(String key:List.of("locatorHash","format","formatHint","binaryHash","extractorVersion","quality","status","segmentAnalysisHash")) {
+            rows=gangbukReports();((ObjectNode)rows.getFirst().at("/files/0")).put(key,"changed");assertFalse(validGangbuk(rows),key);
+        }
+        for(String key:List.of("rulesHash","bodyHash","observedAt","profileHash","titleInputSource","caseCode")) {
+            rows=gangbukReports();((ObjectNode)rows.getFirst()).put(key,"changed");assertFalse(validGangbuk(rows),key);
+        }
+    }
+    @Test void gangbukPartialCannotBecomeWholeOrApprovedAndBudgetTypesAreStrict() throws Exception {
+        var rows=gangbukReports();var row=(ObjectNode)rows.getFirst();((ObjectNode)row.at("/files/0")).put("quality","PARTIAL_TEXT");
+        assertFalse(validGangbuk(rows));row.put("isWholeTextAnalysisComplete",false).put("decisionStatus","REVIEW_REQUIRED");assertTrue(validGangbuk(rows));
+        row.put("decisionStatus","ACCEPTED");assertFalse(validGangbuk(rows));
+        for(String key:List.of("isExpectationApproved","isPolicyQaPassed")){rows=gangbukReports();((ObjectNode)rows.getFirst()).put(key,true);assertFalse(validGangbuk(rows));}
+        for(String key:List.of("productionWriteCount","expectedListedFileCount","discoveredFileCount","maximumRequestReservations","maximumReservedBytes","requestReservationsIncludingBodyUpperBound","reservedBytesIncludingBodyUpperBound")) {
+            rows=gangbukReports();row=(ObjectNode)rows.getFirst();row.put(key,row.path(key).asText());assertFalse(validGangbuk(rows),key);
+        }
+        rows=gangbukReports();((ObjectNode)rows.getFirst()).put("requestReservationsIncludingBodyUpperBound",21);assertFalse(validGangbuk(rows));
+        rows=gangbukReports();((ObjectNode)rows.getFirst()).put("reservedBytesIncludingBodyUpperBound",33554433);assertFalse(validGangbuk(rows));
+    }
+    @Test void gangbukCaseUsesCurrentSeedAndFixedWholeSetWithoutCatalogApproval() throws Exception {
+        var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("GANGBUK").toList();assertEquals(1,cases.size());var sample=cases.getFirst();
+        assertEquals("GANGBUK-179490",sample.code());assertEquals(4,sample.listedFileCount());
+        assertEquals(GangbukSupportDetailPreflightTest.TITLE,sample.title());assertEquals(GangbukSupportDetailPreflightTest.URL,sample.source().sourceUrl());
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var title=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine().selectDecision(
+                new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+        assertTrue(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title));
+        for(boolean diagnostic:List.of(false,true)) {
+            var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),diagnostic);
+            assertEquals(20,budget.maximumRequests);assertEquals(33554432,budget.maximumBytes);
+        }
+    }
     private List<JsonNode> jungguReports() throws Exception {
         var rows=new ArrayList<JsonNode>();
         for(int index=0;index<3;index++) {

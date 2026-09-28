@@ -20,6 +20,53 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def gangbuk_report(self):
+        locators=['abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f','20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672',
+            '00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3','894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d']
+        row=dict(caseCode='GANGBUK-179490',scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_GANGBUK_LEGAL_GET_V1',
+            profileHash='6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158',status='OBSERVED_NOT_VALIDATED',
+            titleStage='COMBINATION_MATCHED',titleInputSource='FIXED_OFFICIAL_SAMPLE',rulesSource='EPHEMERAL_DB_DRAFT_SEED',rulesHash='a'*64,
+            bodyStatus='AVAILABLE',bodyHash='b'*64,bodyCharacterCount=100,bodyStageComplete=True,discoveryStatus='FOUND',discoveryComplete=True,
+            originalFilesRemoved=True,requiresFinalAdminVerification=True,isPolicyQaPassed=False,isExpectationApproved=False,
+            productionWriteCount=0,expectedListedFileCount=4,discoveredFileCount=4,maximumRequestReservations=20,maximumReservedBytes=33554432,
+            requestReservationsIncludingBodyUpperBound=15,reservedBytesIncludingBodyUpperBound=3000000,isWholeTextAnalysisComplete=False,decisionStatus='REVIEW_REQUIRED',
+            files=[dict(locatorHash=locators[i],format=fmt,formatHint=fmt,status='OBSERVED',downloadAllowed=True,extractorVersion='1.0.14',bytes=100,
+                binaryHash='a'*64,quality='PARTIAL_TEXT') for i,fmt in enumerate(['HWPX','HWP','HWPX','HWPX'])])
+        return dict(kind='BBS_OBSERVATION_PROBE',verificationMode='GANGBUK_OBSERVATION',status='PASSED',productionDatabaseUsed=False,
+            isPolicyQaPassed=False,isExpectationApproved=False,found=1,passed=1,failed=0,skipped=0,aborted=0,failedContainers=0,reports=[row])
+
+    def test_gangbuk_explicit_single_scope_preserves_all_four_locators_and_own_distribution(self):
+        mode='GANGBUK_OBSERVATION';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('GANGBUK-179490',['GANGBUK-179490'],20,33554432),scope)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=['GANGBUK-184761']),mode)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+        self.unit['validate_probe_scope'](self.gangbuk_report(),mode)
+
+    def test_gangbuk_rejects_partial_false_success_missing_files_and_budget_type_changes(self):
+        import copy
+        valid=self.gangbuk_report();mode='GANGBUK_OBSERVATION'
+        for key,value in [('isWholeTextAnalysisComplete',True),('decisionStatus','ACCEPTED'),('bodyStatus','FAILED'),
+                ('expectedListedFileCount',3),('maximumRequestReservations',21),('requestReservationsIncludingBodyUpperBound',21),
+                ('reservedBytesIncludingBodyUpperBound',33554433),('productionWriteCount',True),('isExpectationApproved',True),('originalFilesRemoved','true')]:
+            invalid=copy.deepcopy(valid);invalid['reports'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('locatorHash','a'*64),('format','PDF'),('binaryHash','bad'),('bytes',True),('quality','FAILED'),('downloadAllowed','true')]:
+            invalid=copy.deepcopy(valid);invalid['reports'][0]['files'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        invalid=copy.deepcopy(valid);invalid['reports'][0]['files'].pop()
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for file in valid['reports'][0]['files']:
+            file.update(quality='COMPLETE_TEXT',characterCount=100,blockCount=1,segmentSummary={'segmentCount':1},segmentAnalysisHash='b'*64)
+        valid['reports'][0]['isWholeTextAnalysisComplete']=True
+        self.unit['validate_probe_scope'](valid,mode)
+        del valid['reports'][0]['files'][0]['segmentSummary']
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](valid,mode)
+
     def junggu_report(self):
         hashes=[['4a544f3c98451eb7c002c626157c2b92468962c14756f7b38e3e218954b1b554'],
                 ['ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6','6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c'],[]]

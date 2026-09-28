@@ -26,19 +26,9 @@ class GangbukSupportDetailPreflightTest {
     @TempDir Path directory;
 
     static void validateIdentity(Document document) {
-        var forms=document.select("form#board");assertEquals(1,forms.size(),"DETAIL_IDENTITY_CHANGED");
-        var form=forms.getFirst();
-        var ids=form.children().stream().filter(e->"input".equals(e.tagName())&&"nttId".equals(e.attr("name"))).toList();
-        assertEquals(1,ids.size(),"DETAIL_IDENTITY_CHANGED");
-        assertTrue("hidden".equalsIgnoreCase(ids.getFirst().attr("type"))&&ID.equals(ids.getFirst().val()),"DETAIL_IDENTITY_CHANGED");
-        var views=form.children().stream().filter(e->"div".equals(e.tagName())&&e.hasClass("bd-view")).toList();
-        assertEquals(1,views.size(),"DETAIL_IDENTITY_CHANGED");
-        var titles=views.getFirst().children().stream().filter(e->"h3".equals(e.tagName())&&e.hasClass("bd-view__subject")).toList();
-        assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");
-        assertTrue(titles.getFirst().select("table,script,input").isEmpty(),"TITLE_STRUCTURE_CHANGED");
-        assertTrue(normalize(TITLE).equals(normalize(titles.getFirst().text())),"TITLE_CHANGED");
+        AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(document,TITLE,
+                AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.GANGBUK_SUBJECT);
     }
-    private static String normalize(String value){return java.text.Normalizer.normalize(value,java.text.Normalizer.Form.NFKC).replaceAll("\\s+"," ").strip();}
     private static String fixture(){return "<form id='board'><input type='hidden' name='nttId' value='"+ID+"'><div class='bd-view'><h3 class='bd-view__subject'>"+TITLE+"</h3></div></form>";}
     @Test void titleIsBoundToDirectUniqueFormAndNoticeId() {
         validateIdentity(Jsoup.parse(fixture()));validateIdentity(Jsoup.parse(fixture().replace("청년 ","청년  ")));

@@ -17,6 +17,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 /** 실제 관측 진입점과 실제 전달 프로필을 검증한다. HTTP와 binary는 합성이며 외부 성공 증거가 아니다. */
 class AnnouncementAttachmentObservationTransferContractTest {
+    @Test void flowFailuresKeepOnlyKnownCodesWithoutCopyingExternalMessages() {
+        for(String code:List.of("ATTACHMENT_DOWNLOAD_BLOCKED","ATTACHMENT_OUTPUT_EXISTS"))
+            assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new IOException(code))).isEqualTo(code);
+        assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new IOException("external PRIVATE_CANARY"))).isEqualTo("TRANSPORT_FAILED");
+    }
     @TempDir Path directory;
     private final AttachmentDiscoveryProfile profile=new LegalBoardAttachmentProfileConfiguration().selectGangbukLegalProfileDetails();
     private final AttachmentPinnedDownloadClient.Request initial=AttachmentPinnedDownloadClient.Request.selectGet(URI.create(

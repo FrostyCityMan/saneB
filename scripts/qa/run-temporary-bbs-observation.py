@@ -10,6 +10,7 @@ CONFIG = json.loads(sys.argv[1]) if __name__ == '__main__' else {}
 
 # 코드의 지원 범위이며 실행 승인 자체가 아니다. 다른 기관/표본/예산은 받지 않는다.
 SCOPES = {
+    'GANGBUK_OBSERVATION': ('GANGBUK-179490', ['GANGBUK-179490'], 20, 33554432),
     'OBSERVATION': ('TAEBAEK-184816', ['TAEBAEK-184816'], 44, 83886080),
     'FIXED': ('TAEBAEK-184816', ['TAEBAEK-184816'], 39, 81508141),
     'OKCHEON': ('OKCHEON-THREE-NOTICES', ['OKCHEON-193369', 'OKCHEON-193297', 'OKCHEON-193187'], 132, 251658240),
@@ -61,7 +62,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -77,6 +78,45 @@ def select_qa_distribution(package,mode):
         if info.file_size>2097152 or hashlib.sha256(jar.read(info)).hexdigest()!=cfg['codeHash']:raise ValueError('INSTALLED_QA_CODE_CHANGED')
     if not (root/'extractor/bin/attachment-extractor').is_file():raise ValueError('INSTALLED_EXTRACTOR_MISSING')
     return root
+
+def validate_gangbuk_observation(report):
+    # 처음 확보할 binary hash는 아직 승인된 기대값이 아니다. 미리 실측한 전체 locator/형식에 결합한다.
+    rows=report.get('reports')
+    if not isinstance(rows,list) or len(rows)!=1 or not isinstance(rows[0],dict):raise ValueError('PROBE_OUTPUT_INVALID')
+    row=rows[0]
+    expected=dict(caseCode='GANGBUK-179490',scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_GANGBUK_LEGAL_GET_V1',
+        profileHash='6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158',status='OBSERVED_NOT_VALIDATED',
+        titleStage='COMBINATION_MATCHED',titleInputSource='FIXED_OFFICIAL_SAMPLE',rulesSource='EPHEMERAL_DB_DRAFT_SEED',bodyStatus='AVAILABLE',discoveryStatus='FOUND')
+    if any(row.get(k)!=v for k,v in expected.items()):raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('bodyStageComplete','discoveryComplete','originalFilesRemoved','requiresFinalAdminVerification'):
+        if row.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('isPolicyQaPassed','isExpectationApproved'):
+        if row.get(key) is not False:raise ValueError('PROBE_OUTPUT_INVALID')
+    for node,ranges in ((row,[('productionWriteCount',0,0),('bodyCharacterCount',1,1000000),('expectedListedFileCount',4,4),('discoveredFileCount',4,4),
+            ('maximumRequestReservations',20,20),('maximumReservedBytes',33554432,33554432),
+            ('requestReservationsIncludingBodyUpperBound',15,20),('reservedBytesIncludingBodyUpperBound',1,33554432)]),
+            (report,[('found',1,1),('passed',1,1),('failed',0,0),('skipped',0,0),('aborted',0,0),('failedContainers',0,0)])):
+        if any(type(node.get(k)) is not int or not low<=node[k]<=high for k,low,high in ranges):raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('rulesHash','bodyHash'):
+        if not isinstance(row.get(key),str) or not re.fullmatch('[a-f0-9]{64}',row[key]):raise ValueError('PROBE_OUTPUT_INVALID')
+    locators=['abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f','20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672',
+        '00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3','894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d']
+    files=row.get('files');formats=['HWPX','HWP','HWPX','HWPX']
+    if not isinstance(files,list) or len(files)!=4 or any(not isinstance(f,dict) for f in files):raise ValueError('PROBE_OUTPUT_INVALID')
+    for i,file in enumerate(files):
+        if (file.get('locatorHash')!=locators[i] or file.get('format')!=formats[i] or file.get('formatHint')!=formats[i]
+                or file.get('status')!='OBSERVED' or file.get('downloadAllowed') is not True or file.get('extractorVersion')!='1.0.14'
+                or type(file.get('bytes')) is not int or not 1<=file['bytes']<=20971520
+                or not isinstance(file.get('binaryHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['binaryHash'])
+                or file.get('quality') not in ('COMPLETE_TEXT','PARTIAL_TEXT','OCR_REQUIRED','ENCRYPTED','CORRUPT','UNSUPPORTED','LIMIT_EXCEEDED')):raise ValueError('PROBE_OUTPUT_INVALID')
+        if file['quality']=='COMPLETE_TEXT':
+            summary=file.get('segmentSummary')
+            if (type(file.get('characterCount')) is not int or not 1<=file['characterCount']<=1000000
+                    or type(file.get('blockCount')) is not int or not 1<=file['blockCount']<=20000
+                    or not isinstance(summary,dict) or type(summary.get('segmentCount')) is not int or not 1<=summary['segmentCount']<=200
+                    or not isinstance(file.get('segmentAnalysisHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['segmentAnalysisHash'])):raise ValueError('PROBE_OUTPUT_INVALID')
+    whole=all(f['quality']=='COMPLETE_TEXT' for f in files)
+    if row.get('isWholeTextAnalysisComplete') is not whole or row.get('decisionStatus') not in ('ACCEPTED','REVIEW_REQUIRED') or (not whole and row['decisionStatus']!='REVIEW_REQUIRED'):raise ValueError('PROBE_OUTPUT_INVALID')
 
 def validate_haman_segment(report):
     # 부분 추출 결과가 실제 worker/임시 DB/API에 결합됐는지만 검증한다. 정상 기대값 승인이 아니다.
@@ -268,6 +308,7 @@ def validate_probe_scope(report,mode):
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
         raise ValueError('PROBE_OUTPUT_INVALID')
     if mode=='JUNGGU_OBSERVATION' and report.get('status')=='PASSED':validate_junggu_observation(report)
+    if mode=='GANGBUK_OBSERVATION' and report.get('status')=='PASSED':validate_gangbuk_observation(report)
     if mode=='JUNGGU_PDF' and report.get('status')=='PASSED':validate_junggu_observation(report,True)
     if mode in ('NAMGU_OBSERVATION','NAMGU_STRUCTURE') and report.get('status')=='PASSED':
         rows=report.get('reports')

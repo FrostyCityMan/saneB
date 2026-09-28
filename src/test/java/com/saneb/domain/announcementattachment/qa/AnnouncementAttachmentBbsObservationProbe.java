@@ -41,7 +41,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION", "JUNGGU_PDF").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION", "JUNGGU_PDF", "GANGBUK_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -72,6 +72,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectThreeReportsComplete(reports, startedAt, endedAt, boeun ? "BOEUN" : "OKCHEON", diagnostic);
     }
     static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, String group, boolean diagnostic) {
+        if ("GANGBUK".equals(group)) return selectGangbukReportsComplete(reports,startedAt,endedAt);
         if ("JUNGGU_PDF".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,false,true,true);
         if ("JUNGGU".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,false,true);
         if ("HAMAN".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,true);
@@ -150,6 +151,44 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if ((boeun || namgu) && complete && !selectSegmentMetadataComplete(file)) return false;
         }
         return true;
+    }
+
+    /** 첫 실파일 관측은 고정 locator 전체를 결합하되 아직 없는 binary 기대값을 만들어 승인하지 않는다. */
+    static boolean selectGangbukReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt) {
+        if(reports==null||reports.size()!=1||reports.getFirst()==null||startedAt==null||endedAt==null||endedAt.isBefore(startedAt))return false;
+        var row=reports.getFirst();
+        try {var at=Instant.parse(row.path("observedAt").asText());if(at.isBefore(startedAt)||at.isAfter(endedAt))return false;}
+        catch(java.time.format.DateTimeParseException invalid){return false;}
+        var expected=java.util.Map.of("caseCode","GANGBUK-179490","scope","OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+                "profileCode","LOCAL_GANGBUK_LEGAL_GET_V1","profileHash","6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158",
+                "status","OBSERVED_NOT_VALIDATED","titleStage","COMBINATION_MATCHED","titleInputSource","FIXED_OFFICIAL_SAMPLE",
+                "rulesSource","EPHEMERAL_DB_DRAFT_SEED","bodyStatus","AVAILABLE","discoveryStatus","FOUND");
+        if(expected.entrySet().stream().anyMatch(e->!e.getValue().equals(row.path(e.getKey()).asText()))
+                ||!row.path("rulesHash").asText().matches("[a-f0-9]{64}")||!row.path("bodyHash").asText().matches("[a-f0-9]{64}"))return false;
+        for(String key:List.of("bodyStageComplete","discoveryComplete","originalFilesRemoved","requiresFinalAdminVerification"))
+            if(!selectBoolean(row,key,true))return false;
+        for(String key:List.of("isPolicyQaPassed","isExpectationApproved"))if(!selectBoolean(row,key,false))return false;
+        if(!selectBounded(row,"productionWriteCount",0,0)||!selectBounded(row,"expectedListedFileCount",4,4)
+                ||!selectBounded(row,"discoveredFileCount",4,4)||!selectBounded(row,"bodyCharacterCount",1,1000000)
+                ||!selectBounded(row,"maximumRequestReservations",20,20)||!selectBounded(row,"maximumReservedBytes",33554432,33554432)
+                ||!selectBounded(row,"requestReservationsIncludingBodyUpperBound",15,20)||!selectBounded(row,"reservedBytesIncludingBodyUpperBound",1,33554432)
+                ||!row.path("files").isArray()||row.path("files").size()!=4
+                ||!Set.of("ACCEPTED","REVIEW_REQUIRED").contains(row.path("decisionStatus").asText()))return false;
+        boolean whole=true;var formats=List.of("HWPX","HWP","HWPX","HWPX");
+        for(int i=0;i<4;i++) {
+            var file=row.path("files").get(i);String quality=file.path("quality").asText();
+            if(!AnnouncementAttachmentBbsOfficialObservationTest.GANGBUK_LOCATORS.get(i).equals(file.path("locatorHash").asText())
+                    ||!formats.get(i).equals(file.path("format").asText())||!formats.get(i).equals(file.path("formatHint").asText())
+                    ||!"OBSERVED".equals(file.path("status").asText())||!selectBoolean(file,"downloadAllowed",true)
+                    ||!selectBounded(file,"bytes",1,20971520)||!file.path("binaryHash").asText().matches("[a-f0-9]{64}")
+                    ||!com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(file.path("extractorVersion").asText())
+                    ||!Set.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED","ENCRYPTED","CORRUPT","UNSUPPORTED","LIMIT_EXCEEDED").contains(quality))return false;
+            boolean complete="COMPLETE_TEXT".equals(quality);whole&=complete;
+            if(complete&&(!selectBounded(file,"characterCount",1,1000000)||!selectBounded(file,"blockCount",1,20000)
+                    ||!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(file.path("roleAssessment").path("roleCode").asText())
+                    ||!selectSegmentMetadataComplete(file)))return false;
+        }
+        return selectBoolean(row,"isWholeTextAnalysisComplete",whole)&&(whole||"REVIEW_REQUIRED".equals(row.path("decisionStatus").asText()));
     }
 
     static List<String> selectDalseongBinaryHashes(String code) {
@@ -439,9 +478,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean haman = "HAMAN_OBSERVATION".equals(mode);
             boolean jungguPdf = "JUNGGU_PDF".equals(mode);
             boolean junggu = "JUNGGU_OBSERVATION".equals(mode)||jungguPdf;
+            boolean gangbuk = "GANGBUK_OBSERVATION".equals(mode);
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
-            boolean three = okcheon || boeun || namgu || dalseong || haman || junggu;
-            String group = jungguPdf?"JUNGGU_PDF":junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            boolean three = okcheon || boeun || namgu || dalseong || haman || junggu || gangbuk;
+            String group = gangbuk?"GANGBUK":jungguPdf?"JUNGGU_PDF":junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
             result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
@@ -486,16 +526,16 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : jungguPdf?List.of("JUNGGU-33626"):junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : gangbuk?List.of("GANGBUK-179490"):jungguPdf?List.of("JUNGGU-33626"):junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
-                if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
+                if (!Files.isRegularFile(path) || Files.size(path) > (gangbuk?262144:65536)) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
             }
             if (!three) result.put("report", reports.getFirst());
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
             passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
-                    && (structure||header||haman||jungguPdf?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                    && (structure||header||haman||jungguPdf||gangbuk?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))

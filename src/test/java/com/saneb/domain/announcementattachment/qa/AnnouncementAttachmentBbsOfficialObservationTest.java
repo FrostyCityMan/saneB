@@ -35,7 +35,12 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT }
+    static final List<String> GANGBUK_LOCATORS=List.of(
+            "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
+            "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
+            "00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3",
+            "894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d");
     public record ObservationCase(String code,String title,AttachmentDiscoveryProfile.Source source,
                            AttachmentDiscoveryProfile profile,String listUrl,int listedFileCount,TitleLayout titleLayout,
                            TitleStageCode expectedTitleStopStage) {
@@ -49,6 +54,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("GANGBUK".equals(group)) {
+            String url="https://child.gangbuk.go.kr/portal/bbs/B0000245/view.do?menuNo=200082&nttId=179490";
+            var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+            return Stream.of(new ObservationCase("GANGBUK-179490","2026년 청년 어학・자격시험 응시료 지원 사업 모집 공고",
+                    new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000010","SPRING_BBS"),
+                    new LegalBoardAttachmentProfileConfiguration().selectGangbukLegalProfileDetails(),url,4,TitleLayout.GANGBUK_SUBJECT));
+        }
         if("JUNGGU_PDF".equals(group)) return selectCases("JUNGGU").filter(sample->"JUNGGU-33626".equals(sample.code()));
         if("JUNGGU".equals(group)) return Stream.of(
                 selectJungguCase("34196","2026 다국어 QR메뉴판 지원사업 참여 사업체 모집",1,null),
@@ -227,6 +239,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             for(var d:discovered.descriptors()) {var row=new LinkedHashMap<String,Object>();rows.add(row);row.put("locatorHash",AnnouncementAttachmentOfficialObservationTest.selectHash(d.locator()));
                 row.put("formatHint",d.expectedFormat());row.put("downloadAllowed",d.downloadAllowed());row.put("status","NOT_RUN");}
             assertTrue(discovered.complete()&&Set.of("FOUND","NO_FILES").contains(discovered.status()),"DISCOVERY_INCOMPLETE");
+            if("GANGBUK-179490".equals(sample.code())) {
+                assertEquals(GANGBUK_LOCATORS,rows.stream().map(row->row.get("locatorHash")).toList(),"OFFICIAL_FILE_LIST_CHANGED");
+                assertEquals(List.of("HWPX","HWP","HWPX","HWPX"),rows.stream().map(row->row.get("formatHint")).toList(),"OFFICIAL_FILE_FORMAT_CHANGED");
+            }
             var extractor=new IsolatedAttachmentExtractor(JSON,System.getProperty("saneb.attachment-observation.extractor"));var files=new ArrayList<FileInput>();
             for(int i=0;i<discovered.descriptors().size();i++) {
                 var descriptor=discovered.descriptors().get(i);var row=rows.get(i);Path binary=temporary.resolve(UUID.randomUUID()+".bin");
@@ -285,6 +301,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
         Objects.requireNonNull(layout);
+        if(layout==TitleLayout.GANGBUK_SUBJECT) {
+            var forms=page.select("form#board");assertEquals(1,forms.size(),"DETAIL_IDENTITY_CHANGED");var form=forms.getFirst();
+            var ids=form.children().stream().filter(e->"input".equals(e.tagName())&&"nttId".equals(e.attr("name"))).toList();
+            assertEquals(1,ids.size(),"DETAIL_IDENTITY_CHANGED");
+            assertTrue("hidden".equalsIgnoreCase(ids.getFirst().attr("type"))&&"179490".equals(ids.getFirst().val()),"DETAIL_IDENTITY_CHANGED");
+            var views=form.children().stream().filter(e->"div".equals(e.tagName())&&e.hasClass("bd-view")).toList();
+            assertEquals(1,views.size(),"DETAIL_IDENTITY_CHANGED");
+            var titles=views.getFirst().children().stream().filter(e->"h3".equals(e.tagName())&&e.hasClass("bd-view__subject")).toList();
+            assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");
+            assertTrue(titles.getFirst().select("table,script,input").isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertTrue(normalized(expected).equals(normalized(titles.getFirst().text())),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.JUNGGU_LABEL) {
             var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
             var tables=forms.getFirst().select("table.boardView");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");
@@ -359,7 +387,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
             boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1").contains(profile.selectProfileCode());
-            maximumRequests=boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
+            boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
+            maximumRequests=gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}
