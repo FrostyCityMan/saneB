@@ -32,6 +32,40 @@ class SaeolAttachmentProfileLiveQaTest {
                         "SAFE_SAEOL_EMINWON_LEGACY", "td", "33895", 2, "N")));
     }
 
+    static final Map<String,String> JUNGGU_SUPPORT_TITLES=Map.of(
+            "34196","2026 다국어 QR메뉴판 지원사업 참여 사업체 모집",
+            "33626","「대구 중구 청년 부동산중개보수 및 이사비 지원사업」모집 공고",
+            "33315","2026년 음식점 위생등급제 컨설팅 지원 업소 모집 공고");
+
+    static java.util.stream.Stream<SaeolGetAttachmentDiscoveryProfileTest.Case> selectJungguSupportCases() {
+        var profile=new SaeolGetAttachmentProfileConfiguration().selectDaeguJungguProfileDetails();
+        return java.util.stream.Stream.of("34196","33626","33315").map(id ->
+                new SaeolGetAttachmentDiscoveryProfileTest.Case(profile,"LGS-000045",
+                        "SAFE_SAEOL_EMINWON_LEGACY","div",id,"33626".equals(id)?2:1));
+    }
+
+    @ParameterizedTest(name="중구 지원사업 고정 참조 {index}")
+    @MethodSource("selectJungguSupportCases") @Timeout(120)
+    @EnabledIfEnvironmentVariable(named="SANEB_JUNGGU_SUPPORT_QA",matches="true")
+    void fixedJungguSupportReferencesValidateTitleAndWholeFileSignature(SaeolGetAttachmentDiscoveryProfileTest.Case sample) throws Exception {
+        verifyOfficialPage(sample,JUNGGU_SUPPORT_TITLES.get(sample.noticeId()));
+    }
+
+    static void validateJungguTitle(org.jsoup.nodes.Document page,String expected) {
+        assertTrue(expected!=null && JUNGGU_SUPPORT_TITLES.containsValue(expected),"FIXED_TITLE_REQUIRED");
+        var forms=page.select("form[name=form1][method=post]");
+        assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
+        var tables=forms.getFirst().select("table.boardView");
+        assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");
+        var table=tables.getFirst();
+        var labels=table.select("th").stream().filter(e -> e.closest("table")==table
+                && e.select("table").isEmpty() && "제목".equals(e.text().strip())).toList();
+        assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");
+        var cell=labels.getFirst().nextElementSibling();
+        assertTrue(cell!=null && "td".equals(cell.tagName()) && cell.select("table").isEmpty(),"TITLE_STRUCTURE_CHANGED");
+        assertEquals(expected.replaceAll("\\s+"," ").strip(),cell.text().replaceAll("\\s+"," ").strip(),"TITLE_CHANGED");
+    }
+
     static final Map<String, String> NAMGU_SUPPORT_TITLES = com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU")
             .collect(java.util.stream.Collectors.toUnmodifiableMap(sample -> sample.code().substring("NAMGU-".length()),
                     com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::title));
@@ -133,7 +167,8 @@ class SaeolAttachmentProfileLiveQaTest {
                     } else if ("LGS-000233".equals(sample.sourceCode())) {
                         com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page, expectedTitle,
                                 com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.HAMAN_LABEL);
-                    } else validateNamguTitle(page, expectedTitle);
+                    } else if ("LGS-000045".equals(sample.sourceCode())) validateJungguTitle(page,expectedTitle);
+                    else validateNamguTitle(page, expectedTitle);
                     report.put("fixedTitleVerified", true);
                 }
                 discovered = profile.selectDescriptors(source, page.outerHtml());

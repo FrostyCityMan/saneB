@@ -297,6 +297,27 @@ tasks.register('hamanSupportDiscoveryQa', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/hamanSupportDiscoveryQa')
 }
 
+// 고정 중구3건만 명시 실행한다. 일반 test/기존 지역 QA에서 외부 요청을 추가하지 않는다.
+tasks.register('jungguSupportDiscoveryQa', Test) {
+    group = 'verification'
+    description = '중구34196·33626·33315의 제목·전체 첨부 signature를 확인하고 임시 원본을 삭제합니다. 추출/운영 변경은 없습니다.'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter { includeTestsMatching '*SaeolAttachmentProfileLiveQaTest.fixedJungguSupportReferencesValidateTitleAndWholeFileSignature' }
+    environment 'SANEB_ATTACHMENT_PROFILE_QA', 'true'
+    environment 'SANEB_JUNGGU_SUPPORT_QA', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    systemProperty 'saneb.attachment-profile-qa.report', layout.buildDirectory.dir('reports/junggu-support-discovery-qa').get().asFile.absolutePath
+    ['javax.net.ssl.trustStoreType', 'javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key) != null) systemProperty key, System.getProperty(key)
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/jungguSupportDiscoveryQa')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/jungguSupportDiscoveryQa')
+}
+
 tasks.register('attachmentQaRuleSnapshot', Test) {
     description = '서버 QA용 DRAFT 규칙을 빌드 머신의 임시 DB에서 내보냅니다.'
     group = 'verification'

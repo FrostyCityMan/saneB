@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-25-haman-support-reference-v2",
+  "catalogVersion": "2026-09-28-junggu-support-references-v2",
   "notices": [
+    {
+      "caseCode": "JUNGGU-34196",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c56807e8e596544d11990ea8949bbfd7e0b08e5b3f9aa90ef0a9501aeac7dbc3",
+        "sourceUrl": "https://eminwon.jung.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=34196&subCheck=Y",
+        "localSourceCode": "LGS-000045",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JUNGGU-33626",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "45c7dd22aa5255f039170fc44f3fade005f2169550e4c8380d36cc6bc81b7680",
+        "sourceUrl": "https://eminwon.jung.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=33626&subCheck=Y",
+        "localSourceCode": "LGS-000045",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JUNGGU-33315",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "491c27bc52cb41b38ea298c93af674884f53c8a4292f75e7472a5417dd657b00",
+        "sourceUrl": "https://eminwon.jung.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=33315&subCheck=Y",
+        "localSourceCode": "LGS-000045",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "HAMAN-41306",
       "profileCode": "LOCAL_HAMAN_GET_V1",

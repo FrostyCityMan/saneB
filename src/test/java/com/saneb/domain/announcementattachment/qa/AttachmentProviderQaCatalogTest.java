@@ -203,7 +203,7 @@ class AttachmentProviderQaCatalogTest {
         var second=new AnnouncementSourceClassificationRuleSet("SECOND",rules.rules());assertThat(cat.selectPrepared(scope,second,runtimeHash,now).plan().cases().getFirst().inputHash()).isNotEqualTo(first.plan().cases().getFirst().inputHash());
     }
     private AttachmentProviderQaCatalog packagedCatalog() {
-        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails(),new ChungjuEminwonAttachmentDiscoveryProfile(),new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguDalseongProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectHamanProfileDetails());
+        var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails(),new ChungjuEminwonAttachmentDiscoveryProfile(),new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguDalseongProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectHamanProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguJungguProfileDetails());
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
         rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
@@ -211,6 +211,23 @@ class AttachmentProviderQaCatalogTest {
         return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles));
     }
     private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-21T16:32:11.928279006Z");
+    @Test void jungguSignatureReferencesRetainCanonicalIdentityWithoutApprovingExtraction() throws Exception {
+        var catalog=packagedCatalog();var definition=packagedDefinition();
+        var selected=definition.notices().stream().filter(n->n.caseCode().startsWith("JUNGGU-")).toList();
+        assertThat(selected).extracting(Notice::caseCode).containsExactly("JUNGGU-34196","JUNGGU-33626","JUNGGU-33315");
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        var profile=new SaeolGetAttachmentProfileConfiguration().selectDaeguJungguProfileDetails();
+        for(var n:selected) {
+            assertThat(n.expectation()).isNull();assertThat(n.profileCode()).isEqualTo(profile.selectProfileCode());
+            assertThat(n.source().localSourceCode()).isEqualTo("LGS-000045");
+            assertThat(n.source().providerNoticeId()).isEqualTo(normalizer.hash(normalizer.canonicalizeUrl(n.source().sourceUrl())));
+            assertThat(profile.selectApprovedRequest(profile.selectDetailUri(n.source()))).isTrue();
+        }
+        var plan=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED).plan();
+        assertThat(plan.cases().stream().filter(c->c.caseCode().startsWith("JUNGGU-"))).hasSize(3)
+                .allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();assertThat(c.inputHash()).isNull();});
+        assertThat(plan.isExpectationCoverageComplete()).isFalse();assertThat(plan.isQaPassed()).isFalse();
+    }
     private Definition packagedDefinition() throws Exception {
         try(var input=new org.springframework.core.io.ClassPathResource("announcement-attachment/provider-qa-catalog-v2.json").getInputStream()) {
             return mapper.readValue(input,Definition.class);
@@ -234,7 +251,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
-        assertThat(result.plan().cases()).hasSize(37);
+        assertThat(result.plan().cases()).hasSize(40);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -269,9 +286,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(15);assertThat(result.plan().cases()).hasSize(37);
+        assertThat(result.plan().targets()).hasSize(16);assertThat(result.plan().cases()).hasSize(40);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(36).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(39).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });
