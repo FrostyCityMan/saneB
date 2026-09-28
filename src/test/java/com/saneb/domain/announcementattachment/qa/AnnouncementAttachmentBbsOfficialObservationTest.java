@@ -233,7 +233,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 if(!descriptor.downloadAllowed()) {row.put("status","UNSUPPORTED_NOT_DOWNLOADED");files.add(incompleteFile("UNSUPPORTED"));continue;}
                 try {
                     stage="FILE_DOWNLOAD";var fileRequest=descriptor.selectRequest();
-                    var bytes=client.selectDownload(fileRequest,profile.selectApprovedHosts(),r->budget.selectRequestAllowed(fileRequest,r),binary,20*MIB,budget::saveBytes);
+                    var bytes=selectFileDownload(profile,fileRequest,binary,budget,client);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
                     String format=new AttachmentFileTypeValidator().selectFormat(binary,bytes,descriptor.expectedFormat(),profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
                     row.put("format",format);stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
@@ -340,6 +340,16 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return new FileInput(UUID.randomUUID(),UUID.randomUUID(),observation.path("roleAssessment").path("roleCode").asText("UNKNOWN"),actual.path("qualityCode").asText(),actual.path("text").asText(""),blocks,null);
     }
     private static FileInput incompleteFile(String error){return new FileInput(UUID.randomUUID(),UUID.randomUUID(),"UNKNOWN","FAILED",null,List.of(),error);}
+    /** 관측도 worker와 같은 다단계 전달을 사용한다. bridge/기간 조회/redirect까지 같은 예산에 합산한다. */
+    static AttachmentPinnedDownloadClient.Download selectFileDownload(AttachmentDiscoveryProfile profile,
+            AttachmentPinnedDownloadClient.Request initial,Path binary,Budget budget,AttachmentPinnedDownloadClient client)
+            throws java.io.IOException {
+        return AttachmentProfileDownloadFlow.selectDownload(profile,initial,binary,20*MIB,
+                (request,limit,approved)->client.selectDownload(request,profile.selectApprovedHosts(),
+                        candidate->approved.test(candidate)&&budget.selectRequestAllowed(initial,candidate),
+                        binary,limit,budget::saveBytes));
+    }
+
     static final class Budget {
         private final AttachmentDiscoveryProfile profile;
         final int maximumRequests;

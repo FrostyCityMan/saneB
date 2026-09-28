@@ -318,6 +318,25 @@ tasks.register('jungguSupportDiscoveryQa', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/jungguSupportDiscoveryQa')
 }
 
+// 강북 지원사업 후보1건의 상세만 1회 확인한다. 기본 CI/전체 profile QA에서 호출하지 않는다.
+tasks.register('gangbukSupportDetailPreflight', Test) {
+    group = 'verification'
+    description = '강북179490 제목 seed 판정과 상세 식별·첨부 발견만 확인합니다. 최대1요청/1MiB, 재실행 예약 차단, 파일 다운로드 없음.'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/GangbukSupportDetailPreflightTest.class'
+    environment 'SANEB_GANGBUK_SUPPORT_DETAIL_PREFLIGHT', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '256m'
+    ['javax.net.ssl.trustStoreType', 'javax.net.ssl.trustStore'].each { key ->
+        if (System.getProperty(key) != null) systemProperty key, System.getProperty(key)
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/gangbukSupportDetailPreflight')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/gangbukSupportDetailPreflight')
+}
+
 tasks.register('attachmentQaRuleSnapshot', Test) {
     description = '서버 QA용 DRAFT 규칙을 빌드 머신의 임시 DB에서 내보냅니다.'
     group = 'verification'

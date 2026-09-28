@@ -45,6 +45,20 @@ test('인접한 중구 task를 함안 검증 범위에 포함하지 않고 각 �
   const workflow = readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8');
   assert(!workflow.includes('jungguSupportDiscoveryQa'));
 });
+test('강북 상세 사전 확인은 별도 명시 task이고 기본 CI·다른 지역 호출에 섞이지 않는다', () => {
+  const gradle = readFileSync('build.gradle', 'utf8');
+  const task = selectRegisteredTask(gradle, 'gangbukSupportDetailPreflight');
+  for (const text of ["include '**/GangbukSupportDetailPreflightTest.class'",
+    "environment 'SANEB_GANGBUK_SUPPORT_DETAIL_PREFLIGHT', 'true'", 'maxParallelForks = 1',
+    "maxHeapSize = '256m'", 'test-results/gangbukSupportDetailPreflight']) assert(task.includes(text), text);
+  assert.equal((gradle.match(/environment 'SANEB_GANGBUK_SUPPORT_DETAIL_PREFLIGHT'/g) || []).length, 1);
+  for (const name of ['attachmentProfileDiscoveryQa', 'hamanSupportDiscoveryQa', 'jungguSupportDiscoveryQa']) {
+    assert(!selectRegisteredTask(gradle, name).includes('GangbukSupportDetailPreflightTest'));
+  }
+  const workflow = readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8');
+  assert(!workflow.includes('gangbukSupportDetailPreflight'));
+  assert(!workflow.includes('SANEB_GANGBUK_SUPPORT_DETAIL_PREFLIGHT'));
+});
 test('task 구획 추출은 새 인접 task·마지막 task·CRLF를 처리하고 누락된 task를 거부한다', () => {
   const fixture = "tasks.register('first', Test) {\r\n  FIRST\r\n}\r\ntasks.register('inserted', Test) {\r\n  SECOND\r\n}\r\ntasks.register('last', Test) {\r\n  LAST\r\n}\r\n";
   assert.equal(selectRegisteredTask(fixture, 'first').trim(), 'FIRST\r\n}');
