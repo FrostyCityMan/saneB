@@ -1093,6 +1093,54 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SUSEONG-52705",
+      "profileCode": "LOCAL_SUSEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "af00ff04f000f4740a975c845b60a8b053efd72c844c0fc73d851c6c7bf5a60a",
+        "sourceUrl": "https://eminwon.suseong.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=52705&subCheck=Y",
+        "localSourceCode": "LGS-000050",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DALSEO-54290",
+      "profileCode": "LOCAL_DALSEO_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3d7c8bf1048fadca4712172fe9394662df569ff3c7a5d695310d6c73f4e24a48",
+        "sourceUrl": "https://eminwon.dalseo.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=54290&subCheck=Y",
+        "localSourceCode": "LGS-000051",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DALSEO-53625",
+      "profileCode": "LOCAL_DALSEO_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2b6bfc878a946dd54220604c2f78ef770f855f74d2e700d242904d6b75dfd0f1",
+        "sourceUrl": "https://eminwon.dalseo.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=53625&subCheck=Y",
+        "localSourceCode": "LGS-000051",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DALSEO-42293",
+      "profileCode": "LOCAL_DALSEO_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ff6f0a5a6e33afa2f1526d3cac9162c327b96b8ca30de7ef459cb13351ebc203",
+        "sourceUrl": "https://eminwon.dalseo.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=42293&subCheck=Y",
+        "localSourceCode": "LGS-000051",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

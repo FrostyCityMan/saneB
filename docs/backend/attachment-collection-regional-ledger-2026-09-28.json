@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 33,
-    "missingProfileRegionCount": 190,
-    "collectionVerifiedRegionCount": 15,
-    "remainingRegionCount": 208
+    "registeredRegionCount": 35,
+    "missingProfileRegionCount": 188,
+    "collectionVerifiedRegionCount": 16,
+    "remainingRegionCount": 207
   },
   "regions": [
     {
@@ -1248,27 +1248,73 @@
       "sourceCode": "LGS-000050",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000050",
+          "caseCode": "SUSEONG-52705",
+          "profileCode": "LOCAL_SUSEONG_GET_V1",
+          "profileHash": "80c0fa8e8bcf205847328546ba083a1d36ec908d09760dde6a50be200e54d508",
+          "receiptHash": "638333928e5fd142d275c6db1bbd4b163634a5d8067cf42e2d7df3a6f95a9ae7",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000051",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000051",
+          "caseCode": "DALSEO-42293",
+          "profileCode": "LOCAL_DALSEO_POST_V1",
+          "profileHash": "af0a2aa2da26d454e87da819185b9b30e6aa117777c00263dee4d8241ba509ec",
+          "receiptHash": "0002bd7a3196edc51fe20c9aec31a17d018b5fb8536a6eb7d538389b93a20aa5",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000051",
+          "caseCode": "DALSEO-53625",
+          "profileCode": "LOCAL_DALSEO_POST_V1",
+          "profileHash": "af0a2aa2da26d454e87da819185b9b30e6aa117777c00263dee4d8241ba509ec",
+          "receiptHash": "976dd1c1fd8f46ca41f47accbe12c58599661555dbaeb8511dd089ccf7ff34e0",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000051",
+          "caseCode": "DALSEO-54290",
+          "profileCode": "LOCAL_DALSEO_POST_V1",
+          "profileHash": "af0a2aa2da26d454e87da819185b9b30e6aa117777c00263dee4d8241ba509ec",
+          "receiptHash": "e9ef4585f81d397893792c6db067edabaa743115a58dd88f75bf34860d834598",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000052",
@@ -3996,9 +4042,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "b8657b20a515907bc6a2dba5324d32e54f63588fcb54e1c0994053ae442a84b9",
+  "inputInventorySha256": "2e4b8e5fb10274d59a4d1a4f9763d8d648b5035a65f7a4f2ee0f388c6756d387",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 89,
+  "importedReceiptCount": 93,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4260,6 +4306,35 @@
     },
     "junitReportHashes": {
       "YEONGDO": "8406d5219f9fcf34ddf42133b2f3c5046d474ea4671cb02412e73aa15aa1d1f4"
+    }
+  },
+  "suseongDalseoCollectionRun": {
+    "groups": [
+      "SUSEONG",
+      "DALSEO"
+    ],
+    "tests": 4,
+    "failures": 0,
+    "skipped": 0,
+    "failureCases": [],
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 14,
+    "surveyStoredHtmlBytes": 560091,
+    "surveyTimeoutCount": 1,
+    "requestReservations": 16,
+    "reservedBytes": 8642625,
+    "downloadedFiles": 4,
+    "uniqueDownloadedBinaryCount": 4,
+    "downloadedBytes": 223850,
+    "regionRequestReservations": {
+      "SUSEONG": 10,
+      "DALSEO": 20
+    },
+    "junitReportHashes": {
+      "SUSEONG": "4c943c606b984b4fb3cb83f772013183b83527f5ba8750a4db272df119814d3e",
+      "DALSEO": "12941ad07e88b78ab50327211bcbd2a4145b6635d8bb165393c8180712599208"
     }
   }
 }
