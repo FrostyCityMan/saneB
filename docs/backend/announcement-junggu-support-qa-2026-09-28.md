@@ -1,5 +1,24 @@
 # 대구 중구 지원사업 고정 표본 QA
 
+## 서울 실행 완료 c2ca9c52f36342e6afd7818ac199e9e7
+
+- 소스 b88a6fd406c3014d884b315dcdfeececea065163, QA branch/원격SHA 일치. 서울 root principal·저장소 계정·saneb/saneb-dev·단일 Ubuntu/SSM Online·기존 배포 d-NCB2HF3YK/revision9a1bb4569bcc3c13bf3bc30b51021b9149c67054를 재확인했다. 임시 QA 실행이지 운영 배포가 아니다.
+- 로컬 전송 helper에 고정 중구 모드와 최초 실행 누적 원장 검사를 연결했다. 선행 상세/다운로드 영수증·JUnit3건·파일4개 지문·기존 서버 실행 부재를 검사하고 예약 파일을 CreateNew로 생성하여 동일 실행 재제출을 차단한다. 예산 검증9건/Node8건, PowerShell 구문 오류0, 기존 패키지 생성 task29초 UP-TO-DATE를 확인했다.
+- 임시 전송 package135파일/88,399,111byte, archiveHash `2a0304bc17e0681b5ae76d637334452e59763d30aef65111d63f4380b10a224b`, codeHash `1100eadaef230a75068a0f465a59ac66280360781b107dbf807a6447471e509c`다. Ubuntu glibc용 의존성을 유지하고 다른OS PostgreSQL3jar만 전송 목록에서 제외했으며 로컬 의존성은 삭제하지 않았다.
+- 로컬 plan `build/temporary-bbs-qa-c2ca9c52f36342e6afd7818ac199e9e7/plan.json`, 예약 `build/qa-results/junggu-three-stage-reservation-20260928.json`. 추가 최대12요청/48,234,496byte를 예약했다. 완료 영수증 확인 전 원장13회/6,908,001byte에 이를 합산한 최대25회/55,142,497byte를 사용된 것으로 보수적으로 취급한다.
+- [x] SSM `9703133d-d9d8-4eb5-b94c-8c6859b729cc` Success/exit0, probe47.46초/3발견·3통과·실패/생략/중단0이다. 새로 만든 임시 DB의 DRAFT seed hash `609cea985b8f547292340539ab68293e6148ee76fd8636d270680aa19d7227ae`로 제목 통과2건·중단1건을 확인했다. 운영 활성 규칙 확인이나 정책 QA 통과가 아니다.
+
+| 공고 | 실제 본문·전체 파일 관측 | 판정/다음 쟁점 |
+|---|---|---|
+| 34196 | 본문559자·HWPX159,994byte/2,963자/130블록·PARTIAL_TEXT | REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE. 그림1개 metadata가 있으나 부분 추출의 유일 원인이라고 확정하지 않음 |
+| 33626 | 본문127자·HWP127,488byte/3,120자/178블록 COMPLETE_TEXT + PDF209,769byte/4,241자/5블록 PARTIAL_TEXT | 전체2파일을 빠짐없이 처리했으나 REVIEW_REQUIRED. HWP 문서역할 FORM·구간v1.0.0 UNKNOWN3/FORM1, PDF 부분 품질 원인 추가 확인 필요 |
+| 33315 | COMBINATION_NOT_MATCHED·본문/상세/첨부0요청·files빈배열 | TITLE_NOT_ELIGIBLE_NOT_FETCHED. 첨부 발견 실패나 본문 없는 정상 후보로 오인하지 않음 |
+
+- extractor1.0.13에서 통과2건의 본문은 ACCEPTED였으나 최종 첨부 결합은 모두 검수 유지다. complete HWP의 구간 metadata는 기본v1.0.0 관측이며, 승인된v1.0.4 구간 worker 저장/DB/API 성공으로 확대하지 않는다. 파일 binaryHash는 선행 관측과 모두 동일하며 원문·파일명은 영구 저장하지 않았다.
+- 사용량은 본문2시도 상한 예약을 포함해9회/4,703,888byte(각4회/2,263,943byte·5회/2,439,945byte·0회/0byte)다. 실제 본문 시도는 각1회였으며 예약 합계를 실HTTP 횟수로 단정하지 않는다. 캠페인 누적은 **22/30회·11,611,889/81,788,928예약byte**다. 단일 실행 guard는 유지하며 잔여가 있어도 자동 재실행하지 않는다.
+- 최종 영수증 `build/temporary-bbs-qa-c2ca9c52f36342e6afd7818ac199e9e7/result-utf8.json`, SHA256 `c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4`. unitInactive/installedJarUnchanged/healthUp/transportTemporaryFilesRemoved/probeCleanupSucceeded/각 originalFilesRemoved=true, productionDatabaseUsed=false·productionWriteCount=0·정책/기대값 승인false를 확인했다.
+- 서버 원본/임시 자원과 전송 객체, 로컬 소유 package.zip을 정리했다. 운영 객체 삭제0, plan/영수증/예약은 보존한다. 로컬 AWS/시험 Java/Node 프로세스는 종료했고 기존 사용자Java PID35696·output/·scripts/qa/__pycache__/는 보존했다. 소스 b88a6fd Linux36383959813은 현재 단위/DB/migration 실행 중으로 전체 CI 성공을 보고하지 않는다.
+
 ## 후속: 제목→본문→전체 첨부 Linux 관측 연결
 
 - [x] 로컬 `build/attachment-qa/rules.json`의394규칙과 현재 Java 엔진 대조에서34196/33626은 COMBINATION_MATCHED,33315는 COMBINATION_NOT_MATCHED/EXCLUDED다. 스냅샷 대조는 운영 규칙의 현재 상태 증거가 아니다.
@@ -7,7 +26,7 @@
 - [x] 33315는 제목 탈락 음성 표본이다. current seed가 달라지면 reserveBody/본문/상세/첨부 요청 전에 실패한다. 성공 보고서는 요청/byte0·files빈배열·후속 단계 필드 없음이어야 한다. 다른2건은 본문2차의 검수/정보 부족을 이유로 첨부3차를 생략하지 않는다.
 - [x] Java probe→Bash→Python 서버 실행기의 고정 목록·안전한 보고서 판정을 연결했다. 기존 그룹 기본값/한도/지문을 변경하지 않으며 일반 CI에서 중구 외부 호출은 실행하지 않는다.
 - [~] Linux 임시 DB의 최신 migration/DRAFT seed 대조 테스트를 추가했다. Windows에서는1건 명시 생략이며, 로컬 저장 스냅샷 성공으로 이 검증을 대체하지 않는다.
-- [ ] 서울 전송 helper/누적 영수증 사전 확인을 연결한 뒤 한 번만 실행한다. 현재 새 서버 실행·원본 다운로드·추출 결과는 없다. 이 관측은 구간 metadata와 기존 파일 단위 결합 판정을 기록하는 진단이며, 구간 엔진 worker 저장·DB/API·정상 기대값 승인·최종 관리자 E2E를 증명하지 않는다.
+- [x] 서울 전송 helper/누적 영수증 사전 확인 및 단일 실행은 위 완료 영수증으로 확인했다. 이 관측은 구간 metadata와 기존 파일 단위 결합 판정을 기록하는 진단이며, 구간 엔진 worker 저장·DB/API·정상 기대값 승인·최종 관리자 E2E를 증명하지 않는다.
 
 ### 유지되는 요청 상한
 

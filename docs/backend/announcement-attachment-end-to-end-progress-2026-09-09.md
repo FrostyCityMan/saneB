@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-28 중구 서울 격리 실제 세 단계 관측 완료
+
+- [x] 직전 세 단계 연결은 progress다. 소스b88a6fd의 실행c2ca9c52f36342e6afd7818ac199e9e7/SSM9703133d-d9d8-4eb5-b94c-8c6859b729cc가 Success/exit0,47.46초/3검사 통과다. [영수증·표본별 품질·누적예산·정리](announcement-junggu-support-qa-2026-09-28.md)에 기록했다.
+- [x] 임시DB 최신 migration seed에서34196/33626 제목 통과·본문559/127자·전체HWPX1/HWP1/PDF1을 실제 다운로드/격리 추출했다.33315는 제목 조합 불충족으로 본문/첨부0요청이다. 고정4파일 중 탈락 공고의1파일을 일부 누락 성공으로 세지 않는다.
+- [!] HWPX/PDF는 PARTIAL_TEXT, HWP는 COMPLETE_TEXT이나 구간v1.0.0 UNKNOWN3/FORM1이다. 본문 ACCEPTED를 최종 정상 후보로 확대하지 않고 두 공고 모두 REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE를 유지한다. 구간v1.0.4 worker 저장/DB/API·정상 기대값·운영E2E는 아직 아니다.
+- [x] 이번 예약9회/4,703,888byte·캠페인 누적22/30회·11,611,889/81,788,928byte. 서버 원본·unit·전송객체·로컬ZIP 정리, plan/영수증/단일실행예약 보존. 운영JAR 불변/healthUP·운영DB미사용/쓰기0이다.
+- [~] 소스b88a6fd Linux36383959813은 실행 중, 정상 catalog0·전체9Gate=8부분/1차단·goal active 유지. HWPX/PDF 부분 품질 원인 및 구간worker 결합을 다음 구현/검증 대상으로 삼는다. 브라우저는 현재 사용자 명시 요청 정책상 미실행이다.
+
 ### 2026-09-28 중구 제목 음성 표본·본문/전체 첨부 검증 경로 연결
 
 - [x] 직전 CI task 경계 복구는 progress다. 후속으로 중구3고정 표본을 기존 세 단계 관측 및 Java/Bash/Python 보고서 검증에 연결했다. [표본·한도·검증·남은 실행](announcement-junggu-support-qa-2026-09-28.md)을 따른다.
