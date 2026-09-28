@@ -36,8 +36,10 @@ node --test scripts/qa/attachment-official-worker-probe.test.mjs
 # 확인된 Python 런타임에서 -B -m unittest discover -s scripts/qa -p test_temporary_bbs_observation.py
 ```
 
-Gradle36초 성공, Java기존29/신규3·패키지20 실패/오류/생략0이다. bootJar/추출기는 업무 코드 변경이 없어 기존 동일 소스 결과를 재사용했다. Node10/Python26도 통과했다. 누락된 저장 근거, 숫자 대신 문자열/boolean, 바뀐 파일·버전·형식·구간 수, 정상 후보/전체 완료 위조, 초과 예산을 거부한다. 합성 보고서의 분석 hash는 형식만 검사하며 실제 저장 실행에서는 전체 IPC 원문/block 재현 결과와 DB/API 분석을 직접 대조한다.
+Gradle36초 성공, Java기존29/신규3·패키지20 실패/오류/생략0이다. DB 준비 fixture 추가 뒤31초에 같은 표적32/패키지20을 다시 통과했다. bootJar/추출기는 업무 코드 변경이 없어 기존 동일 소스 결과를 재사용했다. Node10/Python26도 통과했다. 누락된 저장 근거, 숫자 대신 문자열/boolean, 바뀐 파일·버전·형식·구간 수, 정상 후보/전체 완료 위조, 초과 예산을 거부한다. 합성 보고서의 분석 hash는 형식만 검사하며 실제 저장 실행에서는 전체 IPC 원문/block 재현 결과와 DB/API 분석을 직접 대조한다.
 
 실제 Linux 임시 DB의 준비 fixture 시험에도 함안1건을 추가했다. Windows의 기존 pg_ctl 실행 차단을 우회하거나 해당 시험을 성공 처리하지 않는다. 일반 CI는 합성 본문으로 준비 경로만 검사하고 실제 공고 요청은 하지 않는다. 새 `attachmentHamanSegmentWorkerIntegrationTest`와 `HAMAN_SEGMENT` 서버 모드는 명시 실행 전용이다.
 
 현재 추가 외부 공고 요청0·운영 변경0·함안 누적19회 유지다. 이전835bd1a Linux 실행은 이번 추가된 시험 코드보다 앞선 코드이며 성공하더라도 새 함안 worker 실증을 대신하지 않는다. 브라우저는 현재 요청 정책상 미실행이다.
+
+코드 `059d3ec05b4c0d68801beac6b458446362a01aee`를 QA 전용 브랜치에 푸시했고 원격SHA 일치를 확인했다. 새 [Linux36378798262](https://github.com/FrostyCityMan/saneB/actions/runs/36378798262)는 실행 중이며 완료 여부는 후속 확인한다. 선행835bd1a의 Linux36377684922는 최종 성공과 XML을 확인했지만 이 새 시험/함안 실제 worker의 성공을 의미하지 않는다. 자체 Gradle/Node/Python 실행 종료 후 기존 사용자 프로세스와 output/·scripts/qa/__pycache__/는 보존한다.

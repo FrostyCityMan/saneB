@@ -80,3 +80,12 @@ node --test scripts/qa/attachment-bbs-observation-probe.test.mjs
 결과는 `build/temporary-bbs-qa-ffb5e067825e418cabca1c41b642a69f/result.json`, SHA256 `061bb58686adb0a42157abe85aaf7c0fe6a3b64a92f554516d721188cc7af560`에 보존했다. S3 자기 전송 객체와 지문이 일치하는 로컬 package.zip을 삭제하고 계획/영수증은 남겼다. 운영 객체는 삭제하지 않았다. 자체 Node/Python 시험은 종료했고 기존 다른 프로세스는 보존했다. 로컬 helper/영수증은 build 아래 로컬 산출물이므로 Git으로 전달되는 공용 실행 도구로 표현하지 않는다.
 
 실행 명령은 로컬 `Build-SanebTemporaryQaPackage.ps1 -VerificationMode HAMAN_OBSERVATION -UbuntuAmd64Only`와 `Invoke-SanebAwsReadOnly.ps1`의 TemporaryRun/Poll/Cleanup이며 모두 동일 계획 파일을 사용했다. Node6·Python 실행기25/영수증4와 PowerShell 구문 검사도 다시 통과했다. Linux CI36377684922는 같은 SHA로 별도 진행하며, 현재 관측 성공으로 미확인 CI를 통과 처리하지 않는다. 운영 변경·브라우저 실행은 없고 전체9Gate=8부분/1차단을 유지한다.
+
+## 동일 소스 Linux CI 최종 확인
+
+후속 조회에서 [36377684922](https://github.com/FrostyCityMan/saneB/actions/runs/36377684922)의 SHA835bd1a·completed/success를 확인했다. artifact `attachment-contract-qa-835bd1a52a5d1bd184570a9bd4c8aa4e09c0815d`를 `build/qa-results/linux-36377684922`로 내려받아 XML을 집계했다.
+
+- root3,049=통과2,756/조건부 생략293/실패·오류0.
+- 추출기168·패키지20·jobDB209·migration18·정책 부모2·runtime5·worker12·Flyway3 모두 실패/오류/생략0.
+- Windows pg_ctl 차단 실패 기록은 그대로 남긴다. Linux 실제 DB 회귀 성공은 해당 환경의 별도 증거다.
+- 이 CI는 외부 함안 수집을 실행한 것이 아니며 서울 실파일 관측 영수증과 분리한다. 이후059d3ec의 함안 구간 worker 시험 연결이나 운영 배포/브라우저 성공으로 재사용하지 않는다.
