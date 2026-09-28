@@ -41,7 +41,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         if (args.length < 1 || args.length > 2 || !args[0].matches("[a-f0-9]{64}"))
             throw new IllegalArgumentException("PROBE_ARGUMENTS_INVALID");
         if (args.length == 1) return "OBSERVATION";
-        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
+        if (!Set.of("FIXED", "OKCHEON", "BOEUN_OBSERVATION", "BOEUN_DIAGNOSTIC", "OKCHEON_DIAGNOSTIC", "NAMGU_OBSERVATION", "NAMGU_STRUCTURE", "DALSEONG_OBSERVATION", "DALSEONG_HEADER", "HAMAN_OBSERVATION", "JUNGGU_OBSERVATION", "JUNGGU_PDF").contains(args[1])) throw new IllegalArgumentException("PROBE_MODE_INVALID");
         return args[1];
     }
 
@@ -72,6 +72,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         return selectThreeReportsComplete(reports, startedAt, endedAt, boeun ? "BOEUN" : "OKCHEON", diagnostic);
     }
     static boolean selectThreeReportsComplete(List<JsonNode> reports, Instant startedAt, Instant endedAt, String group, boolean diagnostic) {
+        if ("JUNGGU_PDF".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,false,true,true);
         if ("JUNGGU".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,false,true);
         if ("HAMAN".equals(group)) return selectSaeolReportsComplete(reports,startedAt,endedAt,false,true);
         if ("DALSEONG".equals(group)) return selectDalseongReportsComplete(reports,startedAt,endedAt);
@@ -177,10 +178,13 @@ public final class AnnouncementAttachmentBbsObservationProbe {
         };
     }
     private static boolean selectSaeolReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt,boolean header,boolean haman,boolean junggu) {
-        int caseCount=header||haman?1:3;
+        return selectSaeolReportsComplete(reports,startedAt,endedAt,header,haman,junggu,false);
+    }
+    private static boolean selectSaeolReportsComplete(List<JsonNode> reports,Instant startedAt,Instant endedAt,boolean header,boolean haman,boolean junggu,boolean jungguPdf) {
+        int caseCount=header||haman||jungguPdf?1:3;
         if(reports==null||reports.size()!=caseCount||startedAt==null||endedAt==null||endedAt.isBefore(startedAt))return false;
         for(int index=0;index<caseCount;index++) {
-            var row=reports.get(index);String code=junggu?JUNGGU_CASES.get(index):haman?"HAMAN-41306":DALSEONG_CASES.get(index);
+            var row=reports.get(index);String code=jungguPdf?"JUNGGU-33626":junggu?JUNGGU_CASES.get(index):haman?"HAMAN-41306":DALSEONG_CASES.get(index);
             var hashes=junggu?selectJungguBinaryHashes(code):haman?List.of("c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97"):selectDalseongBinaryHashes(code);int count=hashes.size();
             if(row==null||!code.equals(row.path("caseCode").asText()))return false;
             try {var time=Instant.parse(row.path("observedAt").asText());if(time.isBefore(startedAt)||time.isAfter(endedAt))return false;}
@@ -210,13 +214,14 @@ public final class AnnouncementAttachmentBbsObservationProbe {
                     ||!Set.of("ACCEPTED","REVIEW_REQUIRED").contains(row.path("decisionStatus").asText()))return false;
             boolean whole=true;
             for(int fileIndex=0;fileIndex<count;fileIndex++) {
-                var file=row.path("files").get(fileIndex);String format=junggu?(index==0?"HWPX":fileIndex==0?"HWP":"PDF"):!haman&&index==0&&fileIndex==0?"PDF":"HWP";
+                var file=row.path("files").get(fileIndex);String format=junggu?("JUNGGU-34196".equals(code)?"HWPX":fileIndex==0?"HWP":"PDF"):!haman&&index==0&&fileIndex==0?"PDF":"HWP";
                 if(!"OBSERVED".equals(file.path("status").asText())||!format.equals(file.path("format").asText())
                         ||!hashes.get(fileIndex).equals(file.path("binaryHash").asText())||!selectBoolean(file,"downloadAllowed",true)
                         ||!selectBounded(file,"bytes",1,20971520)
                         ||!com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeIdentity.EXTRACTOR_VERSION.equals(file.path("extractorVersion").asText())
                         ||!Set.of("COMPLETE_TEXT","PARTIAL_TEXT","OCR_REQUIRED","ENCRYPTED","CORRUPT","UNSUPPORTED","LIMIT_EXCEEDED").contains(file.path("quality").asText()))return false;
                 boolean complete="COMPLETE_TEXT".equals(file.path("quality").asText());whole&=complete;
+                if(jungguPdf&&"PDF".equals(format)&&!selectPdfDiagnosticComplete(file))return false;
                 if(complete&&(!selectBounded(file,"characterCount",1,1000000)||!selectBounded(file,"blockCount",1,20000)
                         ||!Set.of("NOTICE","GUIDE","FORM","REFERENCE","UNKNOWN").contains(file.path("roleAssessment").path("roleCode").asText())
                         ||!selectSegmentMetadataComplete(file)))return false;
@@ -232,6 +237,21 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             if(!selectBoolean(row,"isWholeTextAnalysisComplete",whole)||(!whole&&!"REVIEW_REQUIRED".equals(row.path("decisionStatus").asText())))return false;
         }
         return true;
+    }
+    /** 원문 없는 전송용 진단 검사. 실제 텍스트 정합성은 격리 IPC 검증에서 이미 확인한다. */
+    static boolean selectPdfDiagnosticComplete(JsonNode file) {
+        var value=file.path("pdfStructure");
+        if(!value.isObject()||value.size()!=6||!"PDF".equals(file.path("format").asText())
+                ||!selectBounded(file,"characterCount",0,1000000)||!selectBounded(file,"blockCount",0,20000)
+                ||!file.path("textHash").asText().matches("[a-f0-9]{64}"))return false;
+        for(String key:List.of("pageCount","reliablePageCount","externalObjectInvocationCount","inlineImageInvocationCount","blankPageCount","replacementCharacterCount"))
+            if(!selectBounded(value,key,0,key.endsWith("InvocationCount")?40000000:"replacementCharacterCount".equals(key)?1000000:200))return false;
+        int pages=value.path("pageCount").asInt(),reliable=value.path("reliablePageCount").asInt(),blank=value.path("blankPageCount").asInt();
+        long objects=value.path("externalObjectInvocationCount").asLong()+value.path("inlineImageInvocationCount").asLong();
+        int replacements=value.path("replacementCharacterCount").asInt(),characters=file.path("characterCount").asInt();
+        if(reliable>pages||blank>pages||objects>200000L*pages||(objects>0&&reliable==pages)||replacements>characters||(pages==0&&characters>0))return false;
+        String quality=characters==0?"OCR_REQUIRED":objects>0||blank>0||replacements>0?"PARTIAL_TEXT":"COMPLETE_TEXT";
+        return quality.equals(file.path("quality").asText());
     }
     private static boolean selectJungguTitleStopComplete(JsonNode row) {
         return "OFFICIAL_THREE_STAGE_OBSERVATION_V1".equals(row.path("scope").asText())
@@ -417,10 +437,11 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             boolean header="DALSEONG_HEADER".equals(mode);
             boolean dalseong = "DALSEONG_OBSERVATION".equals(mode)||header;
             boolean haman = "HAMAN_OBSERVATION".equals(mode);
-            boolean junggu = "JUNGGU_OBSERVATION".equals(mode);
+            boolean jungguPdf = "JUNGGU_PDF".equals(mode);
+            boolean junggu = "JUNGGU_OBSERVATION".equals(mode)||jungguPdf;
             boolean diagnostic = mode.endsWith("_DIAGNOSTIC") || namgu;
             boolean three = okcheon || boeun || namgu || dalseong || haman || junggu;
-            String group = junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
+            String group = jungguPdf?"JUNGGU_PDF":junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK";
             result.put("structureDiagnostic",structure);
             if (!"Linux".equals(System.getProperty("os.name")) || "root".equals(System.getProperty("user.name"))
                     || !"/work".equals(Path.of("").toAbsolutePath().toString())
@@ -465,7 +486,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "REPORTS";
             var reports = new ArrayList<JsonNode>();
             if (three) result.put("reports", reports);
-            for (String name : junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
+            for (String name : jungguPdf?List.of("JUNGGU-33626"):junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306"):header?List.of("DALSEONG-51022"):dalseong?DALSEONG_CASES:structure?List.of("NAMGU-44381"):namgu ? NAMGU_CASES : boeun ? BOEUN_CASES : okcheon ? OKCHEON_CASES : List.of(fixed ? "TAEBAEK-184816-fixed-case" : "TAEBAEK-184816")) {
                 Path path = Path.of("/work/reports", name + ".json");
                 if (!Files.isRegularFile(path) || Files.size(path) > 65536) throw new IllegalStateException();
                 reports.add(json.readTree(Files.readAllBytes(path)));
@@ -474,7 +495,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
             stage = "FINAL_IDENTITY";
             if (!codeHash.equals(new AttachmentApplicationCodeFingerprint(json).selectVerifiedHash())) throw new IllegalStateException();
             passed = three ? selectThreeReportsComplete(reports, startedAt, Instant.now(), group, diagnostic)
-                    && (structure||header||haman?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
+                    && (structure||header||haman||jungguPdf?selectComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()):selectOkcheonComplete(summary.getTestsFoundCount(), summary.getTestsSucceededCount(), summary.getTestsFailedCount(),
                             summary.getTestsSkippedCount(), summary.getTestsAbortedCount(), summary.getContainersFailedCount()))
                     : (fixed ? selectFixedReportComplete(reports.getFirst()) : selectReportComplete(reports.getFirst()))

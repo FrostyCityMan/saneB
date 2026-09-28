@@ -30,6 +30,7 @@ SCOPES = {
     'HAMAN_SEGMENT': ('HAMAN-41306', ['HAMAN-41306'], 5, 25165824),
     # 세 번째 제목은 현재 seed와 달라져도 요청 전에 실패한다. 네트워크 상한은 통과2건만 합산한다.
     'JUNGGU_OBSERVATION': ('JUNGGU-THREE-NOTICES', ['JUNGGU-34196', 'JUNGGU-33626', 'JUNGGU-33315'], 12, 48234496),
+    'JUNGGU_PDF': ('JUNGGU-33626', ['JUNGGU-33626'], 6, 24117248),
 }
 
 UNIT_CODE = 'SCOPES = ' + repr(SCOPES) + '\n' + r'''
@@ -59,7 +60,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -108,17 +109,34 @@ def validate_haman_segment(report):
     if (not isinstance(file.get('segmentAnalysisHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['segmentAnalysisHash'])
             or any(key in file for key in ('longFormObservedHashMatched','longFormCandidate','structuralCandidate'))):raise ValueError('PROBE_OUTPUT_INVALID')
 
-def validate_junggu_observation(report):
+def validate_pdf_diagnostic(file):
+    value=file.get('pdfStructure')
+    limits={'pageCount':200,'reliablePageCount':200,'externalObjectInvocationCount':40000000,'inlineImageInvocationCount':40000000,'blankPageCount':200,'replacementCharacterCount':1000000}
+    if not isinstance(value,dict) or set(value)!=set(limits) or file.get('format')!='PDF':raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(type(value[k]) is not int or not 0<=value[k]<=limit for k,limit in limits.items()):raise ValueError('PROBE_OUTPUT_INVALID')
+    for key,limit in [('characterCount',1000000),('blockCount',20000)]:
+        if type(file.get(key)) is not int or not 0<=file[key]<=limit:raise ValueError('PROBE_OUTPUT_INVALID')
+    if not isinstance(file.get('textHash'),str) or not re.fullmatch('[a-f0-9]{64}',file['textHash']):raise ValueError('PROBE_OUTPUT_INVALID')
+    pages=value['pageCount'];objects=value['externalObjectInvocationCount']+value['inlineImageInvocationCount'];characters=file['characterCount']
+    if (value['reliablePageCount']>pages or value['blankPageCount']>pages or objects>200000*pages
+            or (objects>0 and value['reliablePageCount']==pages) or value['replacementCharacterCount']>characters
+            or (pages==0 and characters>0)):raise ValueError('PROBE_OUTPUT_INVALID')
+    quality='OCR_REQUIRED' if characters==0 else 'PARTIAL_TEXT' if objects>0 or value['blankPageCount']>0 or value['replacementCharacterCount']>0 else 'COMPLETE_TEXT'
+    if file.get('quality')!=quality:raise ValueError('PROBE_OUTPUT_INVALID')
+
+def validate_junggu_observation(report,single=False):
     rows=report.get('reports')
+    mode='JUNGGU_PDF' if single else 'JUNGGU_OBSERVATION';size=1 if single else 3
     if (report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
-            or report.get('isExpectationApproved') is not False or not isinstance(rows,list) or len(rows)!=3
+            or report.get('isExpectationApproved') is not False or not isinstance(rows,list) or len(rows)!=size
             or any(not isinstance(row,dict) for row in rows)
-            or [row.get('caseCode') for row in rows]!=SCOPES['JUNGGU_OBSERVATION'][1]):raise ValueError('PROBE_OUTPUT_INVALID')
-    for key,value in [('found',3),('passed',3),('failed',0),('skipped',0),('aborted',0),('failedContainers',0)]:
+            or [row.get('caseCode') for row in rows]!=SCOPES[mode][1]):raise ValueError('PROBE_OUTPUT_INVALID')
+    for key,value in [('found',size),('passed',size),('failed',0),('skipped',0),('aborted',0),('failedContainers',0)]:
         if type(report.get(key)) is not int or report[key]!=value:raise ValueError('PROBE_OUTPUT_INVALID')
     hashes=[['4a544f3c98451eb7c002c626157c2b92468962c14756f7b38e3e218954b1b554'],
             ['ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6','6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c']]
     for index,row in enumerate(rows):
+        if single:index=1
         if (row.get('scope')!='OFFICIAL_THREE_STAGE_OBSERVATION_V1' or row.get('profileCode')!='LOCAL_DAEGU_JUNGGU_GET_V1'
                 or row.get('profileHash')!='e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef'
                 or row.get('rulesSource')!='EPHEMERAL_DB_DRAFT_SEED' or not isinstance(row.get('rulesHash'),str)
@@ -147,6 +165,7 @@ def validate_junggu_observation(report):
             if (file.get('binaryHash')!=hashes[index][number] or file.get('status')!='OBSERVED'
                     or file.get('format')!=('HWPX' if index==0 else 'HWP' if number==0 else 'PDF')
                     or file.get('quality') not in ('COMPLETE_TEXT','PARTIAL_TEXT','OCR_REQUIRED','ENCRYPTED','CORRUPT','UNSUPPORTED','LIMIT_EXCEEDED')):raise ValueError('PROBE_OUTPUT_INVALID')
+            if single and file.get('format')=='PDF':validate_pdf_diagnostic(file)
         whole=all(file.get('quality')=='COMPLETE_TEXT' for file in files)
         if (row.get('isWholeTextAnalysisComplete') is not whole or row.get('decisionStatus') not in ('ACCEPTED','REVIEW_REQUIRED')
                 or (not whole and row.get('decisionStatus')!='REVIEW_REQUIRED')):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -203,6 +222,7 @@ def validate_probe_scope(report,mode):
     elif report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode:
         raise ValueError('PROBE_OUTPUT_INVALID')
     if mode=='JUNGGU_OBSERVATION' and report.get('status')=='PASSED':validate_junggu_observation(report)
+    if mode=='JUNGGU_PDF' and report.get('status')=='PASSED':validate_junggu_observation(report,True)
     if mode in ('NAMGU_OBSERVATION','NAMGU_STRUCTURE') and report.get('status')=='PASSED':
         rows=report.get('reports')
         if not isinstance(rows,list) or len(rows)!=len(SCOPES[mode][1]) or any(not isinstance(row,dict) for row in rows):raise ValueError('PROBE_OUTPUT_INVALID')

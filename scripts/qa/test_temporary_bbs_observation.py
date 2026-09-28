@@ -66,6 +66,36 @@ class TemporaryBbsObservationTest(unittest.TestCase):
             report=self.junggu_report();report['reports'][2][key]=value
             with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
 
+    def test_single_junggu_pdf_keeps_both_files_numeric_diagnostics_and_remaining_budget(self):
+        import copy
+        mode='JUNGGU_PDF';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('JUNGGU-33626',['JUNGGU-33626'],6,24117248),scope)
+        self.assertLessEqual(22+scope[2],30);self.assertLessEqual(11611889+scope[3],81788928)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        for codes in ([],['JUNGGU-34196'],self.runner['SCOPES']['JUNGGU_OBSERVATION'][1]):
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):self.unit['validate_manifest_scope'](dict(manifest,caseCodes=codes),mode)
+        report=self.junggu_report();report.update(verificationMode=mode,found=1,passed=1,reports=[report['reports'][1]])
+        row=report['reports'][0];row['isWholeTextAnalysisComplete']=False
+        pdf=row['files'][1];pdf.update(quality='PARTIAL_TEXT',textHash='a'*64,characterCount=4241,blockCount=5,
+            pdfStructure=dict(pageCount=5,reliablePageCount=0,externalObjectInvocationCount=1,inlineImageInvocationCount=0,blankPageCount=0,replacementCharacterCount=0))
+        self.unit['validate_probe_scope'](report,mode)
+        for key in pdf['pdfStructure']:
+            for value in (-1,'1',True,40000001):
+                invalid=copy.deepcopy(report);invalid['reports'][0]['files'][1]['pdfStructure'][key]=value
+                with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        invalid=copy.deepcopy(report);invalid['reports'][0]['files'][1]['pdfStructure']['raw']='PRIVATE_CANARY'
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        invalid=copy.deepcopy(report);invalid['reports'][0]['files'].pop(0)
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('caseCode','JUNGGU-34196'),('requestReservationsIncludingBodyUpperBound',7),('decisionStatus','ACCEPTED')]:
+            invalid=copy.deepcopy(report);invalid['reports'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('quality','COMPLETE_TEXT'),('textHash','bad'),('pdfStructure',{}),('characterCount',True)]:
+            invalid=copy.deepcopy(report);invalid['reports'][0]['files'][1][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+
     def test_junggu_whole_set_rejects_wrong_fingerprint_missing_file_and_false_success(self):
         for key,value in [('binaryHash','a'*64),('format','HWP'),('quality','FAILED'),('status','FAILED')]:
             report=self.junggu_report();report['reports'][1]['files'][1][key]=value

@@ -11,6 +11,16 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 class AnnouncementAttachmentJungguObservationContractTest {
+    @Test void singlePdfCampaignKeepsWholeTwoFileNoticeWithinRemainingBudget() {
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("JUNGGU_PDF").toList();
+        assertThat(samples).hasSize(1);assertThat(samples.getFirst().code()).isEqualTo("JUNGGU-33626");
+        assertThat(samples.getFirst().listedFileCount()).isEqualTo(2);
+        assertThat(samples.getFirst().expectedTitleStopStage()).isNull();
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(samples.getFirst().profile(),false);
+        assertThat(budget.maximumRequests).isEqualTo(6);assertThat(budget.maximumBytes).isEqualTo(24117248);
+        assertThat(22+budget.maximumRequests).isLessThanOrEqualTo(30);
+        assertThat(11611889L+budget.maximumBytes).isLessThanOrEqualTo(81788928L);
+    }
     @Test void fixedIdentityWholeFileCountsAndNegativeSampleMatchTheCatalog() throws Exception {
         var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("JUNGGU").toList();
         assertThat(samples).extracting(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code)

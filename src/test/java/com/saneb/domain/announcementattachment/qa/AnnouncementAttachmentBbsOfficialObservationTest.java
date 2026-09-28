@@ -49,6 +49,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("JUNGGU_PDF".equals(group)) return selectCases("JUNGGU").filter(sample->"JUNGGU-33626".equals(sample.code()));
         if("JUNGGU".equals(group)) return Stream.of(
                 selectJungguCase("34196","2026 다국어 QR메뉴판 지원사업 참여 사업체 모집",1,null),
                 selectJungguCase("33626","「대구 중구 청년 부동산중개보수 및 이사비 지원사업」모집 공고",2,null),

@@ -39,6 +39,37 @@ class AnnouncementAttachmentBbsObservationProbeTest {
     private boolean validJunggu(List<JsonNode> rows) {
         return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"JUNGGU",false);
     }
+    private List<JsonNode> jungguPdfReports() throws Exception {
+        var row=(ObjectNode)jungguReports().get(1);
+        var pdf=(ObjectNode)row.at("/files/1");
+        pdf.putObject("pdfStructure").put("pageCount",5).put("reliablePageCount",0).put("externalObjectInvocationCount",1)
+                .put("inlineImageInvocationCount",0).put("blankPageCount",0).put("replacementCharacterCount",0);
+        pdf.put("quality","PARTIAL_TEXT");
+        pdf.remove(List.of("roleAssessment","segmentAnalysis","segmentAnalysisHash"));
+        row.put("isWholeTextAnalysisComplete",false).put("decisionStatus","REVIEW_REQUIRED");
+        return List.of(row);
+    }
+    private boolean validJungguPdf(List<JsonNode> rows) {
+        return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"JUNGGU_PDF",false);
+    }
+    @Test void singleJungguPdfModePreservesBothFilesAndRejectsWholeGroupOrUnboundedDiagnostics() throws Exception {
+        assertEquals("JUNGGU_PDF",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"JUNGGU_PDF"}));
+        assertTrue(validJungguPdf(jungguPdfReports()));
+        assertFalse(validJungguPdf(jungguReports()));assertFalse(validJungguPdf(jungguReports().subList(0,1)));
+        assertFalse(validJunggu(jungguPdfReports()));
+        var rows=jungguPdfReports();((ObjectNode)rows.getFirst()).withArray("files").remove(0);assertFalse(validJungguPdf(rows));
+        for(String key:List.of("pageCount","reliablePageCount","externalObjectInvocationCount","inlineImageInvocationCount","blankPageCount","replacementCharacterCount")) {
+            rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1/pdfStructure")).put(key,-1);assertFalse(validJungguPdf(rows),key);
+            rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1/pdfStructure")).put(key,"1");assertFalse(validJungguPdf(rows),key);
+        }
+        rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1/pdfStructure")).put("raw","PRIVATE_CANARY");assertFalse(validJungguPdf(rows));
+        rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1")).remove("pdfStructure");assertFalse(validJungguPdf(rows));
+        for(String key:List.of("characterCount","blockCount")) {
+            rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1")).put(key,-1);assertFalse(validJungguPdf(rows));
+        }
+        rows=jungguPdfReports();((ObjectNode)rows.getFirst().at("/files/1")).put("quality","COMPLETE_TEXT");assertFalse(validJungguPdf(rows));
+        rows=jungguPdfReports();((ObjectNode)rows.getFirst()).put("requestReservationsIncludingBodyUpperBound",7);assertFalse(validJungguPdf(rows));
+    }
     @Test void jungguPinsAllThreeCasesIncludingNoRequestNegative() throws Exception {
         assertEquals("JUNGGU_OBSERVATION",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"JUNGGU_OBSERVATION"}));
         assertTrue(validJunggu(jungguReports()));

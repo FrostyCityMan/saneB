@@ -56,3 +56,13 @@ node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachmen
 ## 후속 실파일 범위
 
 중구 누적22/30요청·11,611,889/81,788,928예약byte를 보존한다. 세 공고 전체 재실행 상한12회는 잔여8회에 들어가지 않는다. 다음 실행은33626 단일 고정 공고·본문과 전체2첨부·최대6요청/23MiB로 좁힌 별도 실행 경로와 기존 영수증 기반 단일 실행 guard를 먼저 검증해야 한다. 이 문서 작성은 재실행을 뜻하지 않는다. worker 저장·구간1.0.4·DB/API와 정상 기대값은 별도 검증 대상이다.
+
+### 단일 실행 경로 구현
+
+- [x] `JUNGGU_PDF` 명시 모드를 Java probe/Bash/Python manifest·결과 검증에 연결했다. 대상은33626 하나이며 전체 HWP/PDF2개와 기존 binaryHash를 고정한다. 기존3공고 모드와 제목 음성 표본을 삭제하거나 변경하지 않는다.
+- [x] 합계 상한6요청/24,117,248byte이며 최대 누적28/30회·35,729,137/81,788,928byte다. CI push에서 이 모드를 자동 실행하지 않는다.
+- [x] PDF 진단 필드6개·정수·범위·품질 일치를 원문 없는 전송에서도 확인한다. 단일 결과 대신3건을 제출하거나 일부 파일 누락·다른 identity·잘못된 지문·허위 전체완료는 실패한다. 진단 관측을 구간 worker 저장/DB/API 또는 정상 기대값 승인으로 표현하지 않는다.
+- [x] 전송 helper는 직전 실행c2ca9c52f36342e6afd7818ac199e9e7의 최종 영수증 SHA256·서버/S3 정리·누적 예약·다른 미확인 실행 부재를 검사한다. 별도 CreateNew 예약으로 중복 제출을 막고 CheckOnly 검사는 파일을 생성하지 않는다. 오프라인 정상1/거부8=9건 통과·외부 호출0·plan변경0이다.
+- [x] 단일 모드 추가 후 Java 확대168건 중167통과/Linux seed1생략·실패/오류0, 패키지20통과·bootJar 및 probe JAR 검증1분5초 성공이다. Node8/Python30 통과와 PowerShell4개 구문 오류0, git diff --check 오류0이다.
+- [x] 실행 전 로컬 package135파일/88,402,823byte 생성, archiveHash `ec4373bc739ebf28659ca68155edc933411d5e26563b10ef6d76a1e726585869`, codeHash `a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549`. plan은 `build/temporary-bbs-qa-6aa2931a32f148559969b70b0a367323/plan.json`이다. 이 시점 서버 전송/공고 재요청은 아직0이다.
+- [ ] 실제 서울 실행과 정리 결과는 새 영수증 확인 후 기록한다. AWS 읽기 전용 inventory에서 서울/root 대상 일치·Ubuntu1대/SSM Online·기존운영revision9a1bb45를 확인했다.
