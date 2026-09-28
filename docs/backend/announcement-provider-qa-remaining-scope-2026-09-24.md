@@ -2,6 +2,8 @@
 
 ## 판정
 
+09-28 함안1.0.15 후속: 같은41306/HWP1개에서4,647자·214블록·textHash를 유지하고 미지원control2→1 감소를 실제 확인했다. PARTIAL_TEXT/REVIEW_REQUIRED·미지원record2/control1은 남는다. 원본/임시자원 정리·운영불변, 누적31/60요청·19,520,892byte다. [실제 비교 기록](announcement-hwp-page-layout-v1.0.15-2026-09-28.md)을 따르며 정상 기대값/catalog 수·전체Gate는 증가시키지 않는다.
+
 09-28 강북 선택 파일 후속: 고정179490의4번째 첨부를 별도 진단하여 첫 중계GET에서HTTP400을 확인했다. 상세/전체4locator일치·나머지3파일미선택, 기간조회/최종POST/추출미도달이다. 서버 거부 원인은 미확정이며 자동 반복하지 않는다. 원본/전송/임시 자원 정리·운영 불변 확인, 누적16/21회·3,236,178byte/잔여5회다. [실제 단계 기록](announcement-download-stage-diagnostic-2026-09-28.md)을 따른다. catalog/정상 수와 전체Gate는 변하지 않는다.
 
 09-28 강북 실제 후속:179490 본문435자·첨부4개 발견 후HWPX2개 완전 텍스트/HWP1개 부분 텍스트·4번째HWPX HTTP400으로 전체 관측은 실패했다. 원본/전송/임시 자원 정리와 운영 불변 확인, 누적14/21회·잔여7회다. 전체 재실행 대신 실패 파일 전달 단계 진단과HWP control원인 검토가 다음이다. catalog/정상 수는 늘리지 않는다. [실제 결과](announcement-gangbuk-support-preflight-2026-09-28.md)를 따른다.

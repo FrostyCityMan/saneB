@@ -51,3 +51,34 @@ Node21·Python35도 실패/생략0이다. Windows Gradle에는 기존 Windows-RO
 - [~] [동일 소스 Linux36395464220](https://github.com/FrostyCityMan/saneB/actions/runs/36395464220)은 최초 조회pending이다. 이전61a9543의 Linux36393605515는in_progress, 641450c의 Linux36392919528은success로 확인했다. 다른 소스의 성공을 새 소스 통과로 사용하지 않는다.
 - [x] 사용한 Node/Gradle 명령은 종료했으며 소유 Gradle JVM도 남지 않았다. 기존 사용자 Java2개와 Node 프로세스, 미추적 `output/`·`scripts/qa/__pycache__/`를 보존했다.
 - [~] 다음은 새 버전의 실제 HWP payload/추출 대조다. 기존 소모·단일 실행 예약을 우회하지 않고 새 계획에서 버전과 누적 한도를 먼저 고정한다. 이 문서 기록만으로 외부 실행 완료 또는 정상 기대값을 추가하지 않는다.
+
+## 함안 고정 파일 서울 대조 준비
+
+함안41306/전체HWP1개를 기존 HAMAN_OBSERVATION 모드로 대조한다. 이전1.0.13과 binary/body/locator 지문이 같은지 확인하고1.0.15의 텍스트 수·hash·블록·부분 사유 변화를 비교한다. 본문→전체 첨부 관측이며 명시구간1.0.4 worker DB/API 또는 정책QA 성공으로 대체하지 않는다.
+
+- [x] 현재 AWS root/저장소 계정 일치·서울 단일 Ubuntu/SSM Online·배포9a1bb456 불변 확인.
+- [x] Windows 선행·실패CI·서울4회 영수증의 누적27요청/17,315,986byte를 로컬 보호 helper로 대조했다. 이전1.0.13 receipt SHA256 fbaebd9e87f89b94c8d4e889b8bf2adc4c64ac89b9b9739a93bad7308bbcda1a를 추가했다. 실패 선행 영수증의 차단도 오프라인 확인했다.
+- [x] 이번 상한6요청/24,117,248byte, 예약 합계33/60요청·41,433,234/100,663,296byte. CREATE_NEW 단일 예약과 새 코드/배포판1.0.15 검사, 선행4회 실제 SSM 종료/정리 재확인을 실행 전 조건으로 둔다. 운영 설치·DB·정책·worker 변경0, CPU1/768MiB/임시1GiB/20분 제한을 유지한다.
+- 계획 `build/temporary-bbs-qa-64aba96111d042d49e268ceb6b19e3da/plan.json`, package135파일/88,420,889byte. archiveSha256 `bdbe9128bb1021c7a43fd59662d85710a8c21f23d988e614f754cb7c9fb2ed8e`, codeHash `eb49922fe4ad08c3a1eefa1b8328478100aac353dc49d0c0f6a3f9eff7d629ea`.
+- [~] 실행·결과·정리는 아직 별도다. 살아 있는 전송/SSM handle을 추적하고 timeout만으로 재제출하지 않는다. 강북16/21 및 중구32/32 예산은 사용하지 않는다. 전체9Gate8부분/1차단 유지.
+
+## 2026-09-28 서울 실제 대조 종료
+
+- [x] 같은 실행의 SSM `0f6c59b6-cae6-4b77-ab1b-34bbab42dd7c`가 Success/exit0으로 종료됐다. 업로드는 약10분이 걸렸고 실제 probe는25.344초·JUnit1통과/실패·생략0이다. 전송 중 살아 있는 동일 handle만 추적했으며 재제출하지 않았다.
+- [x] 관측시각2026-09-28T08:20:49.054695002Z. 이전1.0.13과 HWP101,888byte/binaryHash·locatorHash·본문89자/bodyHash·추출textHash가 일치했다. 문자4,647개·블록214개도 동일하다. 압축된 관측 보고서에는 전체 block 좌표가 없어 실제 좌표 전수 비교를 수행했다고 주장하지 않는다.
+
+| 실제 같은 HWP의 비교 항목 | 1.0.13 | 1.0.15 |
+|---|---:|---:|
+| 추출 문자 수 | 4,647 | 4,647 |
+| 근거 블록 수 | 214 | 214 |
+| UNSUPPORTED_RECORD | 2 | 2 |
+| UNSUPPORTED_CONTROL | 2 | 1 |
+| 품질 | PARTIAL_TEXT | PARTIAL_TEXT |
+
+- [x] 쪽 번호 배치 지원 증분에서 미지원 제어1개 감소와 동일 추출 텍스트를 실제 확인했다. GSO/그림 계열 구조와 미지원 record2/control1은 남는다. BODY_COMBINATION_NOT_CONFIRMED·ATTACHMENT_INCOMPLETE/REVIEW_REQUIRED와 전체분석/기대값/정책QA false를 유지한다. 정상 공고 확정이나 새로운 정상catalog 등록이 아니다.
+- [x] 신규4요청/2,204,906byte, 누적 **31/60요청·19,520,892/100,663,296byte**. 다음 실행은 이번 영수증을 누적 보호 조건에 추가해야 하며 같은1.0.15 단일 예약을 재사용하지 않는다.
+- [x] 서버 원본 삭제·probe cleanup·unit inactive·전송파일 정리, 운영JAR불변/healthUP·운영DB미사용/쓰기0 확인. 소유 S3 객체 제거/부재와 plan.cleaned=true를 확인한 뒤 정확한 경로/길이/hash를 대조한 이번 로컬ZIP88,420,889byte만 삭제했다. ZIP은 재생성 가능하고 plan/영수증/예약은 보존했다. 사용한 AWS/Node 프로세스는 종료됐다.
+- 영수증 `build/temporary-bbs-qa-64aba96111d042d49e268ceb6b19e3da/result.json`, SHA256 `d376df5e09e275d9d22c95d4dd11ede098e306039641e7e314ec40830d81e36e`.
+- [~] [새 소스 Linux36395464220](https://github.com/FrostyCityMan/saneB/actions/runs/36395464220)은17:20 KST 조회in_progress이며, 이전61a9543의 Linux36393605515는success다. 새 소스 Linux 완료·명시구간worker 실파일 DB/API·GSO/그림계열 처리 범위·정상3건/형식별QA·운영 적용/E2E는 여전히 별도다. 전체9Gate8부분/1차단·catalog정상0을 유지한다.
+
+실행 명령: `TemporaryRun` 동일 handle 추적 → 같은 plan의 `TemporaryPoll` → terminal 결과 확인 후 `TemporaryCleanup`, Node의 구·신 receipt metadata 비교. 브라우저는 현재 명시 요청 정책상 미실행이다. 추가 공고 요청을 CI 대기나 운영 설정 변경으로 확대하지 않았다.
