@@ -25,6 +25,14 @@
 
 ## 목표와 승인 범위
 
+### 후속 한글 진단 키 복원 — 동일 SSM 결과 읽기 전용 재조회
+
+고정 키 손상은 Windows AWS CLI의 출력 인코딩에서 발생했다. [AWS CLI 공식 설정](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html)에 따라 로컬 helper의 개별 CLI 호출에만 `AWS_CLI_OUTPUT_ENCODING=UTF-8`을 지정하고 종료 시 이전 환경값을 복원했다. 운영 프로세스·추출기·정책 설정은 변경하지 않았다.
+
+SSM `245d1acb-b6c8-4b65-b6f7-2b9680da7811`을 재조회하자 키 청년농업인/취업농/신청서/서명이 정상 복원됐고 값은 모두 false였다. 이는 해당 고정 문구의 정확 일치 검사이며 원문 전체 의미나 신청서 부재를 입증하지 않는다. Node 구조 비교로 이 진단 필드를 제외한 모든 결과가 기존 영수증과 동일함을 확인했다. 공고 HTTP·다운로드·추출은 다시 실행하지 않았다.
+
+원본 `result.json`과 SHA256 `c9e6a8699ea52fab3e547acc512582023d7b75733b460bdce55df4e0cac4c511`은 변경하지 않았다. 별도 `result-utf8.json`의 SHA256은 `8f3ffe989a958bef4c6c3b9ce594bd2b1ad81a58a300b970fa648e0fe05f4a28`이다. 상단 원인 미확정 기록은 당시 이력이며, 출력 키 손실의 원인은 이번 재조회로 해소됐다. 실제 PARTIAL_TEXT와 운영/전체 Gate의 미완료 상태는 그대로다. helper는 build 아래 로컬 도구이며 Git 배포 산출물의 변경이 아니다.
+
 함안41306의 제목→본문→전체HWP1개를 실제 worker에 입력하고, 부분 추출 결과와 구간 분석이 임시 PostgreSQL 및 v2 조회 API에 그대로 결합되는지 검증한다. 선행1.0.12 추출 관측 성공은 이 저장 경로의 성공 근거가 아니다.
 
 모드는 `HAMAN_SEGMENT`, 고정 참조는 기존 `HAMAN-41306` 하나다. 명시 `segment-role-1.0.4`/현재 고정 지문을 사용하며 기본 정책·기존 보은 모드·운영 데이터는 바꾸지 않는다. 추출기가 아직 PARTIAL_TEXT를 반환하므로 UNKNOWN/COMPLETE_TEXT_REQUIRED·검수·원문 확인 요구가 정답이다. 정상 기대값 승인이나 전체 Provider QA 통과가 아니다.

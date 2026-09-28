@@ -32,3 +32,17 @@ node --test scripts/qa/attachment-bbs-observation-probe.test.mjs scripts/qa/atta
 표적25초/92건 성공, 확대1분22초/추출기188·IPC/관측/worker계약77·패키지20 성공이다. Node16건도 통과했다. 기존 Log4j provider/unchecked 경고는 별개로 남는다. Windows AppControl의 PostgreSQL 실행 차단을 우회하지 않았으며 실제 DB 회귀는 동일SHA Linux CI로 확인한다. 위 결과를 함안 실제 파일의1.0.13 성공·기대값 승인·정책QA·운영 배포로 해석하지 않는다. 공고 요청0·운영 변경0, 브라우저는 현재 명시 요청 정책상 미실행이다.
 
 후속 구간 역할/구간 분류/runtime 회귀97건도29초에 실패·오류·생략0으로 통과했다. 기존 VM class-sharing 경고는 별도로 남는다. 실행한 Gradle single-use daemon·시험·Node는 종료하고 기존 사용자 프로세스와 output/·scripts/qa/__pycache__/는 보존한다.
+
+## 동일 소스 Linux·서울 실파일 대조 착수
+
+소스 `385eab78f32ba2d7597a43123350ac7a558f4069`의 QA 브랜치 push/원격SHA 일치를 확인했다. [Linux36380565956](https://github.com/FrostyCityMan/saneB/actions/runs/36380565956)은 단위·HTTP·임시DB·migration·artifact 검증 단계에서 실행 중이다. 결과가 terminal이 되기 전에는 통과로 집계하지 않는다.
+
+AWS 인증과 repo 계정/서울의 기존 배포 대상1대·SSM Online·배포9a1bb45를 확인했다. 기존 HAMAN_OBSERVATION 고정 모드를 사용해 동일41306/전체HWP1개를1.0.13으로 대조한다. 로컬 누적 보호 helper는 Windows/실패CI/서울 관측2회/구간worker1회 영수증을 모두 대조해 **23요청·15,111,080byte**를 확인했다. 이전3회 SSM의 실제 Success와 정리 상태도 재조회했으며 새로운 실행 코드 hash를 요구한다. 실패 영수증의 실행 거부를 오프라인으로 검사했다. 이번 상한6요청·24,117,248byte, 캠페인 전체60요청·100,663,296byte는 유지한다.
+
+- 실행 ID `73efbca8e9e74d27bbcbdfa340eec7e7`, 계획 `build/temporary-bbs-qa-73efbca8e9e74d27bbcbdfa340eec7e7/plan.json`.
+- package135파일/88,397,160byte, SHA256 `2414c28fcc3a0be1a1d9a16a3d0d55b1b7bf03e2b493005cb616a78384137b3b`.
+- executionCodeHash `b977b487742907b2a7ae60a0fb619c18afe74ad04faa7d8defb6643c3d03852e`, probeHash `50aad468eaac95004d376d2ec8993e19e9f9261d22c4628bce0a5f1daaa63760`.
+- 2026-09-28 14:11 KST 전송 시작, 현재 전송 handle 살아 있음/SSM 제출 전이다. 운영 설치물/DB/정책은 변경하지 않으며 서버 CPU1개·768MiB·임시1GiB·20분 제한을 유지한다. 결과·원본 정리·사용량은 실제 종료 후 기록한다.
+- Node6/Python26·로컬 누적 원장 정상/실패 케이스·PowerShell 구문3파일을 통과했다. helper/plan은 build 아래 로컬 산출물이지 Git의 공용 배포 코드가 아니다.
+
+동일 실행을 재제출하지 않는다. 전송 관측 timeout은 실행 실패가 아니므로 같은 handle/command ID를 확인한다. 이전1.0.12 DB/API 검증은 보존하며 이번1.0.13 추출 관측의 성공이나 정상 기대값으로 대체하지 않는다. 외부 수집 사용량은 결과 전까지 임의로0 또는 성공으로 확정하지 않는다.
