@@ -59,11 +59,11 @@ class AttachmentProviderQaPlanTest {
                     SaeolGetAttachmentProfileConfiguration.class,LegalBoardAttachmentProfileConfiguration.class,StandardBbsAttachmentProfileConfiguration.class,
                     ChungjuEminwonAttachmentDiscoveryProfile.class);
             context.refresh();var profiles=new ArrayList<>(context.getBeansOfType(AttachmentDiscoveryProfile.class).values());
-            assertThat(profiles).hasSize(19);
+            assertThat(profiles).hasSize(20);
             var targets=profiles.stream().filter(p->"LOCAL_GOV_NOTICE".equals(p.selectProviderCode())).flatMap(p->p.selectSourceBindings().stream())
                     .map(b->target(b.localSourceCode(),b.listParserProfileCode())).toList();
             var plan=AttachmentProviderQaPlan.selectPlan(profiles,targets);
-            assertThat(plan.summary().targetCount()).isEqualTo(20);assertThat(plan.summary().bindingMatchedCount()).isEqualTo(19);
+            assertThat(plan.summary().targetCount()).isEqualTo(21);assertThat(plan.summary().bindingMatchedCount()).isEqualTo(20);
             assertThat(plan.summary().missingProfileCount()).isEqualTo(1);assertThat(plan.unboundProfiles()).isEmpty();
             assertThat(plan.items()).filteredOn(i->i.providerCode().equals("GOV24_PUBLIC_SERVICE")).singleElement()
                     .satisfies(i->assertThat(i.statusCode()).isEqualTo("PROFILE_MISSING"));

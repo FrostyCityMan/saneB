@@ -1,7 +1,43 @@
 {
   "schemaVersion": 2,
-  "catalogVersion": "2026-09-28-hwacheon-support-reference-v2",
+  "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
+    {
+      "caseCode": "GURO-49626",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "61347eb41481f13e9fec1954b0253a7dd40477c7851bfbda97f5ade5a6b2a6c4",
+        "sourceUrl": "https://www.guro.go.kr/www/selectBbsNttGosiView.do?bbsNo=663&nttNo=49626&key=1791",
+        "localSourceCode": "LGS-000018",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GURO-39520",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9fda09e980f92c0c1edba9c6a02e2fcce5403b6852f62a961ca60e19d9061925",
+        "sourceUrl": "https://www.guro.go.kr/www/selectBbsNttGosiView.do?bbsNo=663&nttNo=39520&key=1791",
+        "localSourceCode": "LGS-000018",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GURO-35870",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fbcd5beb22b3743e17c49ee321a805b80c289feb0738eac34007e9d15a0bce97",
+        "sourceUrl": "https://www.guro.go.kr/www/selectBbsNttGosiView.do?bbsNo=663&nttNo=35870&key=1791",
+        "localSourceCode": "LGS-000018",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
     {
       "caseCode": "HWACHEON-32258",
       "profileCode": "LOCAL_HWACHEON_POST_V1",

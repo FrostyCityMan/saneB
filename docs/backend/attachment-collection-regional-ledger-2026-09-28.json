@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 18,
-    "missingProfileRegionCount": 205,
-    "collectionVerifiedRegionCount": 3,
-    "remainingRegionCount": 220
+    "registeredRegionCount": 19,
+    "missingProfileRegionCount": 204,
+    "collectionVerifiedRegionCount": 4,
+    "remainingRegionCount": 219
   },
   "regions": [
     {
@@ -254,14 +254,48 @@
       "sourceCode": "LGS-000018",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000018",
+          "caseCode": "GURO-35870",
+          "profileCode": "LOCAL_GURO_GOSI_V1",
+          "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+          "receiptHash": "703e783c0c3f5ba40777cb0c9d296a192fe1c5aeedbf6ff0c0bd84e07ac91939",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000018",
+          "caseCode": "GURO-39520",
+          "profileCode": "LOCAL_GURO_GOSI_V1",
+          "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+          "receiptHash": "629a3372fbbc49dbfe7ac4b3428a96616afead25ccb54f87a09db44835a5a693",
+          "fileCount": 5,
+          "downloadedFileCount": 5,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000018",
+          "caseCode": "GURO-49626",
+          "profileCode": "LOCAL_GURO_GOSI_V1",
+          "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+          "receiptHash": "a54ae447bf5405e307e628020662dd99c23ba731339e4d361389991e3081f96f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000019",
@@ -3396,7 +3430,11 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "f1b3bbbd20fcbff4edaee84073d4fcda4981264ed938153a5bfbfa455437d8cc",
-  "evidenceImportStatus": "LOCAL_TEMPORARY_RECEIPTS_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 36
+  "inputInventorySha256": "41d2ebf237c64589500d9408b60ccff07f2513840c27c59ff9cc6e47f5c75d06",
+  "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
+  "importedReceiptCount": 39,
+  "newLocalRunRequestReservations": 16,
+  "newLocalRunReservedBytes": 11945051,
+  "localCampaignRequestReservations": 48,
+  "localCampaignReservedBytes": 32887664
 }

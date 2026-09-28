@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "scope": "LOCAL_ARCHIVED_COLLECTION_RECEIPTS",
+  "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "f1b3bbbd20fcbff4edaee84073d4fcda4981264ed938153a5bfbfa455437d8cc",
+  "inventorySha256": "41d2ebf237c64589500d9408b60ccff07f2513840c27c59ff9cc6e47f5c75d06",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -251,6 +251,30 @@
       "receiptHash": "061bb58686adb0a42157abe85aaf7c0fe6a3b64a92f554516d721188cc7af560",
       "status": "IMPORTED",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GURO-49626.json",
+      "receiptHash": "a54ae447bf5405e307e628020662dd99c23ba731339e4d361389991e3081f96f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GURO-39520.json",
+      "receiptHash": "629a3372fbbc49dbfe7ac4b3428a96616afead25ccb54f87a09db44835a5a693",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GURO-35870.json",
+      "receiptHash": "703e783c0c3f5ba40777cb0c9d296a192fe1c5aeedbf6ff0c0bd84e07ac91939",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4"
     }
   ],
   "samples": [
@@ -469,6 +493,119 @@
           "locatorHash": "894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d",
           "status": "FAILED",
           "bytes": 0
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000018",
+      "caseCode": "GURO-35870",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+      "receiptHash": "703e783c0c3f5ba40777cb0c9d296a192fe1c5aeedbf6ff0c0bd84e07ac91939",
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4",
+      "observedAt": "2026-09-28T10:02:51.649290400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2ec39182723abbb9da984316a6cc8b5a5efbc8272750a3c9503ba1a35954ff5a",
+          "status": "SUCCEEDED",
+          "bytes": 110592,
+          "format": "HWP",
+          "binaryHash": "7dd5e772bf1724937ce6c01d9c2f9c1ec6e0c6c22effe204ecad6e9c6f8b61a3",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000018",
+      "caseCode": "GURO-39520",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+      "receiptHash": "629a3372fbbc49dbfe7ac4b3428a96616afead25ccb54f87a09db44835a5a693",
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4",
+      "observedAt": "2026-09-28T10:02:34.753938100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 5,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f9fbe55469979bb2ee5e920735d0247823320b7bc5c8f6aa4539aad85a3530ec",
+          "status": "SUCCEEDED",
+          "bytes": 49205,
+          "format": "HWPX",
+          "binaryHash": "fd75b8406e7628b315d07f32c9497621f6b0c32ee9b13156c005be3caf6b98ba",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "f1e25d46ecf2c5148a6005f8eeee9bc1e3eaad4b388a5021251ba44fbd8f1133",
+          "status": "SUCCEEDED",
+          "bytes": 90124,
+          "format": "HWPX",
+          "binaryHash": "c50a39bc01df1067e6ee29ed8c6573f80d2715cf0699567890789d8e36efc35d",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "cbd59ddf66d61cb14a0c226ec7aef28b08cf3bda56c72f46858721942b38b948",
+          "status": "SUCCEEDED",
+          "bytes": 30913,
+          "format": "HWPX",
+          "binaryHash": "3981d25df310e6195a08665ddfdfc63107ee6771d8657f8ff496d39cb733bbf0",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "456c6f8a792411ca84bc542e8ae59e5c5cbf1027ff99d318abca71687eda88e4",
+          "status": "SUCCEEDED",
+          "bytes": 3644317,
+          "format": "PDF",
+          "binaryHash": "e87cfa045c56987fb572eab970c10f48b84612c1e0eeb4f313596c93d06a17c9",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "66ce14f5ba31d3a34fd93141fb85bea84aae1934f8c6361ccd11370d92b12a6b",
+          "status": "SUCCEEDED",
+          "bytes": 50942,
+          "format": "HWPX",
+          "binaryHash": "b9bb2a58aced8af5e227ffce2fe01ebd4c334feba45bfb98a5b86397867de7da",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000018",
+      "caseCode": "GURO-49626",
+      "profileCode": "LOCAL_GURO_GOSI_V1",
+      "profileHash": "e343a6066c10ec3d41dedf80babdb6d42efa6b10b7f93821291779468f40f86e",
+      "receiptHash": "a54ae447bf5405e307e628020662dd99c23ba731339e4d361389991e3081f96f",
+      "producerClassHash": "a658bf4dd08bb6e4d4417c6eb833272383d332d420d7389328b9b19fc0b355a4",
+      "observedAt": "2026-09-28T10:02:18.862908200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "622473ea3195803cc944a132c7dd3db46acdecac868753b5d1999a5a59da7760",
+          "status": "SUCCEEDED",
+          "bytes": 325822,
+          "format": "PDF",
+          "binaryHash": "55d13d63ce702e331cd2b3658318d706288671fb5c221ccaf574d95eb4edeb82",
+          "signatureVerified": true
         }
       ]
     },
@@ -760,5 +897,15 @@
       ]
     }
   ],
-  "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS"
+  "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS",
+  "newLocalCollectionRun": {
+    "group": "GURO",
+    "junitReportHash": "2bcb29d5dbe1295f8c78576758be7ba0a5f1acaae0d1365ef530b9e4e677ce74",
+    "tests": 3,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true
+  }
 }

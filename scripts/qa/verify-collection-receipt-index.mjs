@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
-import {importReceipt,selectLatestSamples} from './attachment-collection-receipts.mjs';
+import {importReceipt,selectLatestSamples,importLocalCollectionReport} from './attachment-collection-receipts.mjs';
 import {buildCollectionPlan} from './attachment-collection-stage.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const index=JSON.parse(fs.readFileSync('docs/backend/attachment-collection-receipt-index-2026-09-28.json','utf8'));
@@ -10,10 +10,11 @@ const inventoryBytes=fs.readFileSync(index.inventoryPath);
 assert.equal(sha(inventoryBytes),index.inventorySha256,'INVENTORY_HASH_CHANGED');
 const inventory=JSON.parse(inventoryBytes);
 const receipts=index.receipts.map(entry=>{
-  assert.match(entry.path,/^build\/temporary-bbs-qa-[a-f0-9]{32}\/result(?:-utf8)?\.json$/);
+  if(entry.kind==='LOCAL_COLLECTION_ONLY') assert.match(entry.path,/^build\/reports\/attachment-regional-collection\/[A-Z0-9_-]+\.json$/);
+  else assert.match(entry.path,/^build\/temporary-bbs-qa-[a-f0-9]{32}\/result(?:-utf8)?\.json$/);
   const bytes=fs.readFileSync(entry.path);
   assert.equal(sha(bytes),entry.receiptHash,'RECEIPT_HASH_CHANGED');
-  const imported=importReceipt(bytes,inventory);
+  const imported=entry.kind==='LOCAL_COLLECTION_ONLY'?importLocalCollectionReport(bytes,inventory,entry.producerClassHash):importReceipt(bytes,inventory);
   assert.equal(imported.status,entry.status);assert.equal(imported.samples.length,entry.sampleCount);
   return imported;
 });

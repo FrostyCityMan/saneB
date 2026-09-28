@@ -7,6 +7,21 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void guroCollectionUsesThreeOfficialEligibleSamplesAndBoundedRequests() throws Exception {
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("GURO").toList();
+        assertThat(samples).hasSize(3);assertThat(samples).extracting(s->s.listedFileCount()).containsExactly(1,5,1);
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(var sample:samples) {
+            var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                    "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                    com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+            assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).as(sample.code()).isTrue();
+            var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile());
+            assertThat(budget.maximumRequests).isEqualTo(8);assertThat(budget.maximumBytes).isEqualTo(23L*1024*1024);
+        }
+    }
     @Test void hamanUsesOneVerifiedReferenceWithoutClaimingThreeOrBypassingTitleGate() throws Exception {
         var cases=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HAMAN").toList();
         assertThat(cases).hasSize(1);var sample=cases.getFirst();

@@ -8,4 +8,5 @@ import org.springframework.context.annotation.Configuration;
 public class LegalBoardAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectBusanLegalProfileDetails() { return new LegalBoardAttachmentDiscoveryProfile(true); }
     @Bean public AttachmentDiscoveryProfile selectGangbukLegalProfileDetails() { return new LegalBoardAttachmentDiscoveryProfile(false); }
+    @Bean public AttachmentDiscoveryProfile selectGuroLegalProfileDetails() { return new GuroGosiAttachmentDiscoveryProfile(); }
 }

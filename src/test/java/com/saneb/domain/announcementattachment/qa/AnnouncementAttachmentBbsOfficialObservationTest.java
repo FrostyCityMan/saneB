@@ -54,6 +54,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("GURO".equals(group)) return Stream.of(
+                selectGuroCase("49626","2026년 구로구 중소기업・소상공인 1년 무이자 특별보증 융자지원 공고",1),
+                selectGuroCase("39520","소상공인 버팀목 고용장려금 지원 시행계획 공고",5),
+                selectGuroCase("35870","구로구 소기업 소상공인 방역물품지원 사업 변경 공고",1));
         if("HWACHEON".equals(group)) {
             String url="https://eminwon.ihc.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=32258&subCheck=N";
             return Stream.of(new ObservationCase("HWACHEON-32258","2026년 화천군 중소기업 및 소상공인 육성자금 융자추천 및 이차보전 지원계획 공고",
@@ -159,6 +163,13 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000139","HEURISTIC_NOTICE"),
                 new StandardBbsAttachmentProfileConfiguration().selectBoeunProfileDetails(),
                 "https://www.boeun.go.kr/www/selectBbsNttList.do?bbsNo=66&key=194",1,TitleLayout.COMPACT_SUBJECT);
+    }
+    private static ObservationCase selectGuroCase(String id,String title,int count) {
+        String url="https://www.guro.go.kr/www/selectBbsNttGosiView.do?bbsNo=663&nttNo="+id+"&key=1791";
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("GURO-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                n.hash(n.canonicalizeUrl(url)),url,"LGS-000018","SAEOL_GOSI"),new GuroGosiAttachmentDiscoveryProfile(),
+                "https://www.guro.go.kr/www/selectBbsNttList.do?bbsNo=663&key=1791",count,TitleLayout.COMPACT_SUBJECT);
     }
     private static ObservationCase selectChungjuCase(String id,String title) {
         String url="https://www.chungju.go.kr/www/selectEminwonView.do?key=510&ancmt_mgt_no="+id;
@@ -439,7 +450,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
             boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1").contains(profile.selectProfileCode());
             boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
-            maximumRequests=gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
+            boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
+            maximumRequests=guro?8:gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(guro?23:gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {importReceipt,selectLatestSamples} from './attachment-collection-receipts.mjs';
+import {importReceipt,selectLatestSamples,importLocalCollectionReport} from './attachment-collection-receipts.mjs';
 import {assessSample} from './attachment-collection-stage.mjs';
 const hash='a'.repeat(64);
 const inventory={targets:[{providerCode:'LOCAL_GOV_NOTICE',localSourceCode:'LGS-000001',profiles:[{profileCode:'PROFILE'}]}]};
@@ -55,4 +55,15 @@ test('verified title stop is kept as non-download evidence',()=>{
   delete r.discoveryStatus;
   assert.equal(run(r).samples[0].titleStatus,'NOT_ELIGIBLE');
   assert.equal(assessSample(run(r).samples[0]).collectionVerified,false);
+});
+
+test('local download report stays distinct from remote worker evidence',()=>{
+  const r={...observation(),collectionOnly:true,isExtractionVerified:false,isWholeTextAnalysisComplete:false,
+    isPolicyQaPassed:false,isExpectationApproved:false,collectionStageComplete:true,status:'COLLECTION_ONLY_OBSERVED_NOT_APPROVED'};
+  r.files[0].status='DOWNLOADED';delete r.files[0].quality;
+  const runLocal=()=>importLocalCollectionReport(Buffer.from(JSON.stringify(r)),inventory,hash);
+  const result=runLocal();assert.equal(assessSample(result.samples[0]).collectionVerified,true);
+  assert.equal(result.samples[0].evidenceScope,'LOCAL_COLLECTION_ONLY_REPORT');
+  r.files[0].quality='COMPLETE_TEXT';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);delete r.files[0].quality;
+  r.collectionOnly=false;assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
 });

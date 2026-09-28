@@ -82,3 +82,36 @@ export function selectLatestSamples(receipts) {
   }
   return [...selected.values()].sort((a,b) => a.caseCode.localeCompare(b.caseCode));
 }
+
+/** 별도 수집 전용 Gradle 보고서. 원격 SSM/worker 검증으로 위장하지 않는다. */
+export function importLocalCollectionReport(bytes, inventory, producerClassHash) {
+  let report;
+  try { report=JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,'')); } catch { fail(); }
+  if (!hash(producerClassHash) || report.scope !== 'OFFICIAL_THREE_STAGE_OBSERVATION_V1'
+      || report.collectionOnly !== true || report.isExtractionVerified !== false
+      || report.isWholeTextAnalysisComplete !== false || report.isPolicyQaPassed !== false
+      || report.isExpectationApproved !== false || report.productionWriteCount !== 0
+      || !Array.isArray(report.files) || typeof report.observedAt !== 'string'
+      || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/.test(report.observedAt)
+      || !Number.isFinite(Date.parse(report.observedAt))) fail();
+  const targets=inventory.targets.filter(t=>t.providerCode==='LOCAL_GOV_NOTICE'
+    && t.profiles.some(p=>p.profileCode===report.profileCode));
+  if (targets.length!==1) fail();
+  const files=report.files.map(f=>{
+    if (f.quality!==undefined || f.extractorVersion!==undefined || f.textHash!==undefined) fail();
+    const success=f.status==='DOWNLOADED' && f.downloadAllowed===true;
+    return {locatorHash:f.locatorHash, status:success?'SUCCEEDED':f.status==='UNSUPPORTED_NOT_DOWNLOADED'?'UNSUPPORTED'
+      :f.status==='NOT_RUN'?'NOT_RUN':'FAILED',bytes:f.bytes??0,
+      ...(success?{format:f.format,binaryHash:f.binaryHash,signatureVerified:true}:{})};
+  });
+  const sample={sourceCode:targets[0].localSourceCode,caseCode:report.caseCode,profileCode:report.profileCode,
+    profileHash:report.profileHash,receiptHash:sha(bytes),producerClassHash,observedAt:report.observedAt,
+    evidenceScope:'LOCAL_COLLECTION_ONLY_REPORT',expectedFileCount:report.expectedListedFileCount,
+    titleStatus:['COMBINATION_MATCHED','GROUP_A_MATCHED'].includes(report.titleStage)?'ELIGIBLE':'NOT_CHECKED',
+    detailIdentityVerified:['FOUND','NO_FILES'].includes(report.discoveryStatus),discoveryStatus:report.discoveryStatus??'NOT_RUN',
+    discoveryComplete:report.discoveryComplete===true,originalFilesRemoved:report.originalFilesRemoved===true,
+    productionWriteCount:0,files};
+  const assessed=assessSample(sample);
+  if (assessed.collectionVerified && (report.status!=='COLLECTION_ONLY_OBSERVED_NOT_APPROVED' || report.collectionStageComplete!==true)) fail();
+  return {receiptHash:sha(bytes),samples:[sample],status:'IMPORTED_LOCAL_COLLECTION_ONLY'};
+}

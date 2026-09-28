@@ -419,6 +419,14 @@ tasks.register('attachmentRegionalCollectionObservation', Test) {
     maxParallelForks = 1
     maxHeapSize = '384m'
     systemProperty 'saneb.attachment-observation.collection-only', 'true'
+    // 로컬 Windows QA만 OS 신뢰 저장소를 명시적으로 사용한다. 인증서/호스트 검증은 유지한다.
+    if (providers.gradleProperty('sanebCollectionWindowsTrust').orElse('false').get() == 'true') {
+        if (!System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+            throw new GradleException('Windows 신뢰 저장소 선택은 Windows 로컬 수집 QA에서만 사용할 수 있습니다.')
+        }
+        systemProperty 'javax.net.ssl.trustStoreType', 'Windows-ROOT'
+        systemProperty 'javax.net.ssl.trustStore', 'NONE'
+    }
     systemProperty 'saneb.attachment-observation.group', providers.gradleProperty('sanebBbsObservationGroup').getOrElse('UNSPECIFIED')
     systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-regional-collection').get().asFile.absolutePath
     doFirst {
