@@ -16,13 +16,14 @@ final class HwpSectionText {
     private static final int SECTION = 0x73656364, COLUMN = 0x636f6c64;
     private static final int HYPERLINK = 0x25686c6b;
     private static final int FOOTNOTE = 0x666e2020, ENDNOTE = 0x656e2020;
+    private static final int HEADER = 0x68656164, FOOTER = 0x666f6f74;
     private static final int AUTO_NUMBER = 0x61746e6f;
     private static final int PAGE_NUMBER = 0x70676e70;
     private static final int MAX_NODES = 20_000, MAX_DEPTH = 64, MAX_TABLE_POSITIONS = 20_000;
     private final String section;
     private final TextEvidence evidence;
     private final ArrayDeque<Frame> frames = new ArrayDeque<>();
-    private int paragraphIndex, tableIndex, noteIndex, numberIndex, nodes, textUnits;
+    private int paragraphIndex, tableIndex, noteIndex, headerFooterIndex, numberIndex, nodes, textUnits;
 
     HwpSectionText(String section, TextEvidence evidence) { this.section=section; this.evidence=evidence; }
 
@@ -68,13 +69,18 @@ final class HwpSectionText {
             control.insertCell(data);
         } else if (tag==72 && parent instanceof Control control && control.selectNote()) {
             control.insertNoteList(data,level);
+        } else if (tag==72 && parent instanceof Control control && control.selectHeaderFooter()) {
+            control.insertHeaderFooterList(data,level);
         } else if (tag<66 || tag>75 || tag==72) {
             // 알려지지 않은 도형/그림/수식/캡션 등의 텍스트 완전성을 주장하지 않는다.
             evidence.updateHwpPartial(UNSUPPORTED_RECORD);
             if (parent instanceof Control control && control.selectNote()) control.invalidNote=true;
+            if (parent instanceof Control control && control.selectHeaderFooter()) control.invalidHeaderFooter=true;
         } else if (parent instanceof Control control && control.selectNote()) {
             // 문단 밖의 미해석 레코드를 각주 배치 정보로 추정하지 않는다.
             control.invalidNote=true;
+        } else if (parent instanceof Control control && control.selectHeaderFooter()) {
+            control.invalidHeaderFooter=true;
         }
     }
 
@@ -186,6 +192,8 @@ final class HwpSectionText {
                 if (control==null) evidence.updateHwpPartial(MISSING_CONTROL);
                 else {
                     if (control.selectNote() && piece.characterCode()!=17) control.invalidNote=true;
+                    if (control.selectHeaderFooter())
+                        control.headerFooterAnchorValid=piece.characterCode()==16 && control.level==level+1;
                     if (control.id==AUTO_NUMBER) {
                         control.numberAnchorValid=piece.characterCode()==18 && control.level==level+1;
                         control.numberLocation=section+cellLocation+":paragraph:"+index+":auto-number:"+control.numberIndex;
@@ -253,6 +261,10 @@ final class HwpSectionText {
         boolean validHeader, tableSeen, passiveHyperlink;
         boolean validNoteHeader, noteListSeen, invalidNote;
         int noteParagraphCount;
+        final int headerFooterNumber;
+        final boolean validHeaderFooterHeader;
+        boolean headerFooterListSeen, invalidHeaderFooter, headerFooterAnchorValid;
+        int headerFooterParagraphCount;
         final java.util.EnumSet<ExtractionResult.HwpPartialCause> invalidTableReasons = java.util.EnumSet.noneOf(ExtractionResult.HwpPartialCause.class);
         int rows, columns;
         int[] rowCellCounts;
@@ -260,6 +272,10 @@ final class HwpSectionText {
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
             noteNumber=selectNote()?++noteIndex:0;
+            headerFooterNumber=selectHeaderFooter()?++headerFooterIndex:0;
+            // 공개 읽기 구현의 구형8byte와 작성기의12byte(createIndex 포함)만 지원한다.
+            validHeaderFooterHeader=selectHeaderFooter() && (data.length==8 || data.length==12)
+                    && integer(data,4)>=0 && integer(data,4)<=2;
             numberIndex=id==AUTO_NUMBER?++HwpSectionText.this.numberIndex:0;
             numberText=id==AUTO_NUMBER?selectStoredNumberText(data):null;
             validPageNumberLayout=id==PAGE_NUMBER && selectPageNumberLayoutValid(data);
@@ -285,6 +301,26 @@ final class HwpSectionText {
         boolean selectLayoutOnly() { return (id==SECTION || id==COLUMN) && paragraphs.isEmpty() && loose.isEmpty(); }
         boolean selectPassiveHyperlink() { return passiveHyperlink && paragraphs.isEmpty() && loose.isEmpty(); }
         boolean selectNote() { return id==FOOTNOTE || id==ENDNOTE; }
+        boolean selectHeaderFooter() { return id==HEADER || id==FOOTER; }
+
+        void insertHeaderFooterList(byte[] data,int recordLevel) {
+            if (headerFooterListSeen || !paragraphs.isEmpty() || recordLevel!=level+1) invalidHeaderFooter=true;
+            headerFooterListSeen=true;
+            // INT32 문단수/UINT32 속성/폭/높이 + 작성기의 예약0 18byte. 미해석 확장은 버리지 않는다.
+            if (data.length!=34) { invalidHeaderFooter=true; return; }
+            headerFooterParagraphCount=integer(data,0); int flags=integer(data,4);
+            if (headerFooterParagraphCount<1 || headerFooterParagraphCount>MAX_NODES || (flags&~0x7f)!=0
+                    || (flags&7)!=0 || ((flags>>>3)&3)>2 || ((flags>>>5)&3)>2) invalidHeaderFooter=true;
+            for (int i=16;i<data.length;i++) if (data[i]!=0) invalidHeaderFooter=true;
+        }
+
+        boolean selectHeaderFooterValid() {
+            if (!validHeaderFooterHeader || !headerFooterAnchorValid || invalidHeaderFooter
+                    || !headerFooterListSeen || !loose.isEmpty() || headerFooterParagraphCount!=paragraphs.size()) return false;
+            for (int i=0;i<paragraphs.size();i++)
+                if (!paragraphs.get(i).selectListParagraphHeaderValid(i==paragraphs.size()-1)) return false;
+            return true;
+        }
 
         void insertNoteList(byte[] data,int recordLevel) {
             if (noteListSeen || !paragraphs.isEmpty() || recordLevel!=level+1) invalidNote=true;
@@ -309,6 +345,9 @@ final class HwpSectionText {
             if (selectNote()) {
                 if (!noteListSeen || paragraph.level!=level+1) invalidNote=true;
                 paragraph.cellLocation=(id==FOOTNOTE?":footnote:":":endnote:")+noteNumber;
+            } else if (selectHeaderFooter()) {
+                if (!headerFooterListSeen || paragraph.level!=level+1) invalidHeaderFooter=true;
+                paragraph.cellLocation=(id==HEADER?":header:":":footer:")+headerFooterNumber;
             } else if (paragraph.level!=level+1) invalidateTable(TABLE_PARAGRAPH_LEVEL);
             paragraphs.add(paragraph);
             if (id==TABLE && currentCell!=null) {
@@ -370,7 +409,7 @@ final class HwpSectionText {
         boolean tableFailure(ExtractionResult.HwpPartialCause cause) { evidence.updateHwpPartial(cause); return false; }
 
         @Override void save(boolean reliable) throws IOException {
-            boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():id==AUTO_NUMBER?
+            boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():selectHeaderFooter()?selectHeaderFooterValid():id==AUTO_NUMBER?
                     numberText!=null && numberAnchorValid && !invalidNumber && paragraphs.isEmpty() && loose.isEmpty():id==PAGE_NUMBER?
                     validPageNumberLayout && pageNumberAnchorValid && !invalidPageNumber && paragraphs.isEmpty() && loose.isEmpty():selectLayoutOnly();
             if (!valid && id!=TABLE) evidence.updateHwpPartial(UNSUPPORTED_CONTROL);

@@ -116,11 +116,11 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15").contains(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14", "1.0.15", "1.0.16").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
         selectPdfStructureDetails(result);
-        if("PDF".equals(result.path("format").asText())&&List.of("1.0.14","1.0.15").contains(result.path("extractorVersion").asText())
+        if("PDF".equals(result.path("format").asText())&&List.of("1.0.14","1.0.15","1.0.16").contains(result.path("extractorVersion").asText())
                 &&!result.has("pdfStructure"))throw new IOException("INVALID_PDF_STRUCTURE_DIAGNOSTIC");
     }
     private static final List<String> HWP_PARTIAL_CAUSES = List.of(
