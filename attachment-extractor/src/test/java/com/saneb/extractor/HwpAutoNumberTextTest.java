@@ -28,7 +28,7 @@ class HwpAutoNumberTextTest {
     void compressedAndPlainOlePreserveStoredNumberDecorationsAndIndependentScopes(boolean compressed) throws Exception {
         for(int kind:List.of(1,2,3,4,5)) {
             var result=AttachmentExtractorMain.selectExtraction(file(source(header(kind,42,'(',')')),compressed));
-            assertEquals("1.0.13",result.extractorVersion());
+            assertEquals(ExtractionResult.VERSION,result.extractorVersion());
             assertEquals("COMPLETE_TEXT",result.qualityCode());
             assertEquals("대상 소상공인 😀\n(42)\n지원금 안내",result.text());
             assertEquals(3,result.blocks().size());

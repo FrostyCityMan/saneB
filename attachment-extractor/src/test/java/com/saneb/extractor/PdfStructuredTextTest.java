@@ -25,6 +25,7 @@ class PdfStructuredTextTest {
             var result=extract(fixture);assertEquals("COMPLETE_TEXT",result.qualityCode());
             assertEquals("Target: small business\nSupport: grant",result.text());assertEquals(2,result.blocks().size());
             assertTrue(result.blocks().stream().allMatch(ExtractionResult.Block::scopeReliable));
+            assertEquals(new ExtractionResult.PdfStructure(1,1,0,0,0,0),result.pdfStructure());
             assertEquals(2,result.blocks().stream().map(ExtractionResult.Block::evidenceScopeId).distinct().count());validateOffsets(result);
             render(fixture,"paragraphs");
         }

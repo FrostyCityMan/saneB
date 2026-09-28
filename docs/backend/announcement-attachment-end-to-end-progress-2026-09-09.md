@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-28 PDF1.0.14 부분 추출 원인 수치 진단
+
+- [x] 중구 PDF 부분 추출의 원인을 단정하지 않고 Do/BI 실행·빈 페이지·대체문자·구조 신뢰 페이지 수를 격리 IPC와 QA metadata에 추가했다. [계약·검증·후속 경계](announcement-pdf-diagnostics-v1.0.14-2026-09-28.md)를 따른다. Do는 Form도 포함하므로 이미지 개수로 표현하지 않는다.
+- [x] 원문/파일명/리소스명 비노출, 수치 범위/품질 정합성, 신구 IPC 호환 검사를 추가했다. 기존 PARTIAL_TEXT/검수와 문단 구조 신뢰 기준은 그대로다. 공개 API/DB schema/정책 변경은 없다.
+- [x] 로컬 extractor190·패키징20 통과, root288건 중281통과/7Linux 조건부 생략·실패0, bootJar 검증 성공이다. Node32통과/Windows symlink3생략·실패0이다. 직전b88a6fd Linux36383959813도 completed/success이며 보관 XML root2777통과/294생략 및 DB/migration/runtime/worker의 실패0을 확인했다.
+- [~] 새 소스 Linux 계약·실파일 확인은 별도다. 새 실파일 요청0이며1.0.13의 중구 영수증을1.0.14 성공으로 사용하지 않는다. 남은8회 안의33626 단일 관측 경로가 후속이다. 전체9Gate=8부분/1차단·goal active를 유지한다.
+
 ### 2026-09-28 중구 서울 격리 실제 세 단계 관측 완료
 
 - [x] 직전 세 단계 연결은 progress다. 소스b88a6fd의 실행c2ca9c52f36342e6afd7818ac199e9e7/SSM9703133d-d9d8-4eb5-b94c-8c6859b729cc가 Success/exit0,47.46초/3검사 통과다. [영수증·표본별 품질·누적예산·정리](announcement-junggu-support-qa-2026-09-28.md)에 기록했다.

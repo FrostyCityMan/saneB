@@ -11,7 +11,7 @@ import org.apache.pdfbox.text.TextPosition;
 /** 페이지 출력은 항상 보존한다. 구조·글자·좌표·읽기 순서 중 하나라도 불명확하면 페이지 전체를 비신뢰로 남긴다. */
 final class PdfStructuredTextStripper extends PDFTextStripper {
     record Part(PdfStructureScopes.Scope scope,String text) { }
-    record Page(String text,List<Part> parts,boolean reliable,boolean partial) { }
+    record Page(String text,List<Part> parts,boolean reliable,boolean partial,int externalObjectInvocations,int inlineImageInvocations) { }
     private final Map<Integer,PdfStructureScopes.Binding> bindings;
     private final Map<TextPosition,Integer> identifiers=new IdentityHashMap<>();
     private final Deque<Integer> marked=new ArrayDeque<>();
@@ -25,6 +25,7 @@ final class PdfStructuredTextStripper extends PDFTextStripper {
     private int lastId=-1, operators, glyphCount, rawLength;
     private float lastY=-1,lastRight=-1,lastHeight=1;
     private boolean reliable=true,partial;
+    private int externalObjectInvocations,inlineImageInvocations;
 
     PdfStructuredTextStripper(Map<Integer,PdfStructureScopes.Binding> bindings) {
         this.bindings=bindings;setSortByPosition(true);setSuppressDuplicateOverlappingText(false);
@@ -41,7 +42,8 @@ final class PdfStructuredTextStripper extends PDFTextStripper {
             });
         } catch(EvidenceLimit exception) {throw new IOException("LIMIT_EXCEEDED");}
         if(!marked.isEmpty() || !order.equals(new ArrayList<>(bindings.keySet())) || opened.size()!=bindings.size())reliable=false;
-        return new Page(raw.toString(),parts.stream().map(p->new Part(p.scope,p.text.toString())).toList(),reliable&&!partial,partial);
+        return new Page(raw.toString(),parts.stream().map(p->new Part(p.scope,p.text.toString())).toList(),reliable&&!partial,partial,
+                externalObjectInvocations,inlineImageInvocations);
     }
     private void save(String text) throws IOException {
         rawLength+=text.codePointCount(0,text.length());if(rawLength>TextEvidence.MAX_CHARACTERS)throw new IOException("LIMIT_EXCEEDED");
@@ -57,6 +59,8 @@ final class PdfStructuredTextStripper extends PDFTextStripper {
     @Override protected void processOperator(Operator operator,List<COSBase> operands) throws IOException {
         if(++operators>200000)throw new IOException("LIMIT_EXCEEDED");
         String name=operator.getName();
+        if("Do".equals(name))externalObjectInvocations++;
+        if("BI".equals(name))inlineImageInvocations++;
         if("Do".equals(name) || "BI".equals(name)){partial=true;reliable=false;}
         if("W".equals(name) || "W*".equals(name))reliable=false;
         super.processOperator(operator,operands);

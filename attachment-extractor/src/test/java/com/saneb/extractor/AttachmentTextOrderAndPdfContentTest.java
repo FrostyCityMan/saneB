@@ -28,7 +28,8 @@ class AttachmentTextOrderAndPdfContentTest {
             page.setResources(new PDResources());
             page.getResources().add(LosslessFactory.createFromImage(pdf, new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB)));
             insertText(pdf,page);
-            assertEquals("COMPLETE_TEXT",selectPdf(pdf).qualityCode());
+            var result=selectPdf(pdf);assertEquals("COMPLETE_TEXT",result.qualityCode());
+            assertEquals(new ExtractionResult.PdfStructure(1,0,0,0,0,0),result.pdfStructure());
         }
     }
 
@@ -38,7 +39,8 @@ class AttachmentTextOrderAndPdfContentTest {
             try (var content = new PDPageContentStream(pdf,page,PDPageContentStream.AppendMode.APPEND,true)) {
                 content.drawImage(LosslessFactory.createFromImage(pdf,new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB)),20,20);
             }
-            assertEquals("PARTIAL_TEXT",selectPdf(pdf).qualityCode());
+            var result=selectPdf(pdf);assertEquals("PARTIAL_TEXT",result.qualityCode());
+            assertEquals(new ExtractionResult.PdfStructure(1,0,1,0,0,0),result.pdfStructure());
         }
     }
 
@@ -49,7 +51,8 @@ class AttachmentTextOrderAndPdfContentTest {
                     new java.io.ByteArrayInputStream("BI /W 1 /H 1 /BPC 8 /CS /RGB ID abc EI\n".getBytes(StandardCharsets.US_ASCII)));
             var streams = new java.util.ArrayList<org.apache.pdfbox.pdmodel.common.PDStream>();
             page.getContentStreams().forEachRemaining(streams::add); streams.add(stream); page.setContents(streams);
-            assertEquals("PARTIAL_TEXT",selectPdf(pdf).qualityCode());
+            var result=selectPdf(pdf);assertEquals("PARTIAL_TEXT",result.qualityCode());
+            assertEquals(new ExtractionResult.PdfStructure(1,0,0,1,0,0),result.pdfStructure());
         }
     }
 
@@ -61,7 +64,9 @@ class AttachmentTextOrderAndPdfContentTest {
             form.setBBox(new org.apache.pdfbox.pdmodel.common.PDRectangle(100,100));
             try (var output = form.getContentStream().createOutputStream()) { output.write("q Q".getBytes(StandardCharsets.US_ASCII)); }
             try (var content = new PDPageContentStream(pdf,page,PDPageContentStream.AppendMode.APPEND,true)) { content.drawForm(form); }
-            assertEquals("PARTIAL_TEXT",selectPdf(pdf).qualityCode());
+            var result=selectPdf(pdf);assertEquals("PARTIAL_TEXT",result.qualityCode());
+            // 외부 객체 수는 이미지 개수가 아니다. 내용이 빈 Form도 기존 품질을 그대로 유지한다.
+            assertEquals(new ExtractionResult.PdfStructure(1,0,1,0,0,0),result.pdfStructure());
         }
     }
 
@@ -73,6 +78,28 @@ class AttachmentTextOrderAndPdfContentTest {
             var streams = new java.util.ArrayList<org.apache.pdfbox.pdmodel.common.PDStream>();
             page.getContentStreams().forEachRemaining(streams::add); streams.add(stream); page.setContents(streams);
             assertNotEquals("COMPLETE_TEXT",selectPdf(pdf).qualityCode());
+        }
+    }
+
+    @Test void pdfBlankPagesAndRepeatedDrawsAreCountedWithoutResourceNames() throws Exception {
+        try(var pdf=new PDDocument()) {
+            var page=new PDPage();pdf.addPage(page);insertText(pdf,page);pdf.addPage(new PDPage());
+            var image=LosslessFactory.createFromImage(pdf,new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB));
+            try(var content=new PDPageContentStream(pdf,page,PDPageContentStream.AppendMode.APPEND,true)) {
+                content.drawImage(image,20,20);content.drawImage(image,30,30);
+            }
+            var result=selectPdf(pdf);
+            assertEquals("PARTIAL_TEXT",result.qualityCode());assertEquals(new ExtractionResult.PdfStructure(2,0,2,0,1,0),result.pdfStructure());
+            var json=new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result.pdfStructure());
+            assertEquals(6,json.size());assertFalse(json.toString().contains("imageName"));
+        }
+    }
+    @Test void emptyPdfKeepsOcrQualityAndZeroOrBlankPageDiagnostics() throws Exception {
+        try(var pdf=new PDDocument()) {
+            var empty=selectPdf(pdf);assertEquals("OCR_REQUIRED",empty.qualityCode());
+            assertEquals(new ExtractionResult.PdfStructure(0,0,0,0,0,0),empty.pdfStructure());
+            pdf.addPage(new PDPage());var blank=selectPdf(pdf);
+            assertEquals("OCR_REQUIRED",blank.qualityCode());assertEquals(new ExtractionResult.PdfStructure(1,0,0,0,1,0),blank.pdfStructure());
         }
     }
 

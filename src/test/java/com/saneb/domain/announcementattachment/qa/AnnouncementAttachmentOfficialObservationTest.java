@@ -186,6 +186,8 @@ class AnnouncementAttachmentOfficialObservationTest {
         if (hwpPartialCauses != null) observation.put("hwpPartialCauses", hwpPartialCauses);
         var hwpxStructure = IsolatedAttachmentExtractor.selectHwpxStructureDetails(actual);
         if (hwpxStructure != null) observation.put("hwpxStructure", hwpxStructure);
+        var pdfStructure = IsolatedAttachmentExtractor.selectPdfStructureDetails(actual);
+        if (pdfStructure != null) observation.put("pdfStructure", pdfStructure);
         if (!"COMPLETE_TEXT".equals(actual.path("qualityCode").asText())) return observation;
         var blocks = new ArrayList<AttachmentSetEvidence.Block>();
         for (var block : actual.path("blocks")) blocks.add(JSON.treeToValue(block, AttachmentSetEvidence.Block.class));

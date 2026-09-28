@@ -97,6 +97,22 @@ class AnnouncementAttachmentOfficialObservationContractTest {
         assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input))
                 .isInstanceOf(java.io.IOException.class).hasMessage("INVALID_HWPX_STRUCTURE_DIAGNOSTIC");
     }
+    @Test void pdfPartialDiagnosticsDoNotExposeTextOrCreateSuccessfulRoleEvidence() throws Exception {
+        var input=JSON.createObjectNode().put("format","PDF").put("qualityCode","PARTIAL_TEXT").put("text","PRIVATE_CANARY").put("pageCount",1);
+        input.putArray("blocks");
+        var structure=input.putObject("pdfStructure").put("pageCount",1).put("reliablePageCount",0)
+                .put("externalObjectInvocationCount",1).put("inlineImageInvocationCount",0).put("blankPageCount",0).put("replacementCharacterCount",0);
+        var result=AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input);
+        assertThat(result).containsKey("pdfStructure").doesNotContainKeys("roleAssessment","segmentAnalysis","segmentAnalysisHash");
+        var output=JSON.valueToTree(result);
+        assertThat(output.path("pdfStructure")).isEqualTo(structure);
+        assertThat(output.toString()).doesNotContain("PRIVATE_CANARY","ACCEPTED","isPolicyQaPassed","isExpectationApproved");
+        structure.put("externalObjectInvocationCount",2);
+        assertThat(output.at("/pdfStructure/externalObjectInvocationCount").asInt()).isEqualTo(1);
+        structure.put("rawResourceName","PRIVATE_CANARY");
+        assertThatThrownBy(()->AnnouncementAttachmentOfficialObservationTest.selectTextObservation(input))
+                .isInstanceOf(java.io.IOException.class).hasMessage("INVALID_PDF_STRUCTURE_DIAGNOSTIC");
+    }
     @Test void unknownRoleRemainsUnknownAndBrokenLocationProofFails() throws Exception {
         var input=JSON.valueToTree(Map.of("qualityCode","COMPLETE_TEXT","text","일반자료","blocks",List.of(
                 Map.of("index",0,"startOffset",0,"endOffset",4,"evidenceScopeId","p1","scopeReliable",true,"locator","page:1"))));

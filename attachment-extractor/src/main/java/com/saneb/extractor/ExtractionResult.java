@@ -10,8 +10,10 @@ public record ExtractionResult(String format, String extractorVersion, String qu
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
         HwpxStructure hwpxStructure,
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-        List<PartialCause> hwpPartialCauses) {
-    public static final String VERSION = "1.0.13";
+        List<PartialCause> hwpPartialCauses,
+        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+        PdfStructure pdfStructure) {
+    public static final String VERSION = "1.0.14";
     /** 고정된 검증 실패 종류다. 원본 문자열이나 컨트롤 ID를 코드로 사용하지 않는다. */
     public enum HwpPartialCause {
         UNATTACHED_PARAGRAPH, PARAGRAPH_LEVEL_GAP, UNATTACHED_TEXT, CONTROL_LEVEL_GAP,
@@ -38,7 +40,15 @@ public record ExtractionResult(String format, String extractorVersion, String qu
     /** 원문/속성/파일명 없이 부분 추출 원인을 구분하는 수치 진단이다. */
     public record HwpxStructure(int sectionCount, int paragraphCount, int pictureCount,
             int oleCount, int equationCount, int replacementCharacterCount) { }
+    /** 실행된 연산 수만 기록한다. Do는 이미지뿐 아니라 Form도 포함하므로 이미지 개수로 표현하지 않는다. */
+    public record PdfStructure(int pageCount, int reliablePageCount, int externalObjectInvocationCount,
+            int inlineImageInvocationCount, int blankPageCount, int replacementCharacterCount) { }
     public ExtractionResult { blocks = List.copyOf(blocks); if (hwpPartialCauses != null) hwpPartialCauses = List.copyOf(hwpPartialCauses); }
+    public ExtractionResult(String format, String extractorVersion, String qualityCode,
+            String text, List<Block> blocks, Integer pageCount, String errorCode, HwpStructure hwpStructure,
+            HwpxStructure hwpxStructure, List<PartialCause> hwpPartialCauses) {
+        this(format, extractorVersion, qualityCode, text, blocks, pageCount, errorCode, hwpStructure, hwpxStructure, hwpPartialCauses, null);
+    }
     public ExtractionResult(String format, String extractorVersion, String qualityCode,
             String text, List<Block> blocks, Integer pageCount, String errorCode, HwpStructure hwpStructure, HwpxStructure hwpxStructure) {
         this(format, extractorVersion, qualityCode, text, blocks, pageCount, errorCode, hwpStructure, hwpxStructure, null);

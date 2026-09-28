@@ -116,9 +116,12 @@ public class IsolatedAttachmentExtractor {
             throw new IOException("INVALID_EXTRACTOR_RESULT");
         selectHwpStructureDetails(result);
         selectHwpPartialCauseList(result);
-        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13").contains(result.path("extractorVersion").asText())
+        if ("HWP".equals(result.path("format").asText()) && List.of("1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10", "1.0.11", "1.0.12", "1.0.13", "1.0.14").contains(result.path("extractorVersion").asText())
                 && !result.has("hwpPartialCauses")) throw new IOException("INVALID_HWP_PARTIAL_DIAGNOSTIC");
         selectHwpxStructureDetails(result);
+        selectPdfStructureDetails(result);
+        if("PDF".equals(result.path("format").asText())&&"1.0.14".equals(result.path("extractorVersion").asText())
+                &&!result.has("pdfStructure"))throw new IOException("INVALID_PDF_STRUCTURE_DIAGNOSTIC");
     }
     private static final List<String> HWP_PARTIAL_CAUSES = List.of(
             "UNATTACHED_PARAGRAPH", "PARAGRAPH_LEVEL_GAP", "UNATTACHED_TEXT", "CONTROL_LEVEL_GAP",
@@ -231,6 +234,27 @@ public class IsolatedAttachmentExtractor {
                 || value.path("replacementCharacterCount").intValue() != text.codePoints().filter(point -> point == 0xfffd).count()
                 || !(text.isEmpty() ? "OCR_REQUIRED" : causes > 0 ? "PARTIAL_TEXT" : "COMPLETE_TEXT").equals(quality))
             throw new IOException(code);
+        return value.deepCopy();
+    }
+    /** 진단은 원문이나 리소스명을 포함하지 않는다. 구조 신뢰와 텍스트 완전성은 서로 다른 값이다. */
+    public static JsonNode selectPdfStructureDetails(JsonNode result) throws IOException {
+        if(result==null||!result.has("pdfStructure"))return null;
+        final String code="INVALID_PDF_STRUCTURE_DIAGNOSTIC";
+        var value=result.path("pdfStructure");
+        var fields=List.of("pageCount","reliablePageCount","externalObjectInvocationCount","inlineImageInvocationCount","blankPageCount","replacementCharacterCount");
+        if(!"PDF".equals(result.path("format").asText())||!value.isObject()||value.size()!=fields.size()
+                ||!result.path("text").isTextual()||!result.path("pageCount").isIntegralNumber()||!result.path("pageCount").canConvertToInt())throw new IOException(code);
+        for(String field:fields) {
+            var number=value.path(field);int maximum=field.endsWith("InvocationCount")?40_000_000:"replacementCharacterCount".equals(field)?1_000_000:200;
+            if(!number.isIntegralNumber()||!number.canConvertToInt()||number.intValue()<0||number.intValue()>maximum)throw new IOException(code);
+        }
+        int pages=value.path("pageCount").intValue(),reliable=value.path("reliablePageCount").intValue(),blank=value.path("blankPageCount").intValue();
+        long invocations=(long)value.path("externalObjectInvocationCount").intValue()+value.path("inlineImageInvocationCount").intValue();
+        String text=result.path("text").textValue();int replacements=value.path("replacementCharacterCount").intValue();
+        if(result.path("pageCount").intValue()!=pages||reliable>pages||blank>pages||invocations>200_000L*pages
+                ||invocations>0&&reliable==pages||replacements!=text.codePoints().filter(point->point==0xfffd).count()
+                ||(pages==0&&!text.isEmpty())
+                ||!(text.isEmpty()?"OCR_REQUIRED":invocations>0||blank>0||replacements>0?"PARTIAL_TEXT":"COMPLETE_TEXT").equals(result.path("qualityCode").asText()))throw new IOException(code);
         return value.deepCopy();
     }
     private JsonNode selectFailure(String code) { return mapper.createObjectNode().put("qualityCode",code).put("errorCode",code); }
