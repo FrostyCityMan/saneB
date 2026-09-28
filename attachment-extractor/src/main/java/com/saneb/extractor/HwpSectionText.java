@@ -15,11 +15,12 @@ final class HwpSectionText {
     private static final int TABLE = 0x74626c20; // MAKE4CHID('t','b','l',' '), little endian payload
     private static final int SECTION = 0x73656364, COLUMN = 0x636f6c64;
     private static final int HYPERLINK = 0x25686c6b;
+    private static final int FOOTNOTE = 0x666e2020, ENDNOTE = 0x656e2020;
     private static final int MAX_NODES = 20_000, MAX_DEPTH = 64, MAX_TABLE_POSITIONS = 20_000;
     private final String section;
     private final TextEvidence evidence;
     private final ArrayDeque<Frame> frames = new ArrayDeque<>();
-    private int paragraphIndex, tableIndex, nodes, textUnits;
+    private int paragraphIndex, tableIndex, noteIndex, nodes, textUnits;
 
     HwpSectionText(String section, TextEvidence evidence) { this.section=section; this.evidence=evidence; }
 
@@ -60,9 +61,15 @@ final class HwpSectionText {
             control.insertTable(data);
         } else if (tag==72 && parent instanceof Control control && control.id==TABLE && level==control.level+1) {
             control.insertCell(data);
+        } else if (tag==72 && parent instanceof Control control && control.selectNote()) {
+            control.insertNoteList(data,level);
         } else if (tag<66 || tag>75 || tag==72) {
             // 알려지지 않은 도형/그림/수식/캡션 등의 텍스트 완전성을 주장하지 않는다.
             evidence.updateHwpPartial(UNSUPPORTED_RECORD);
+            if (parent instanceof Control control && control.selectNote()) control.invalidNote=true;
+        } else if (parent instanceof Control control && control.selectNote()) {
+            // 문단 밖의 미해석 레코드를 각주 배치 정보로 추정하지 않는다.
+            control.invalidNote=true;
         }
     }
 
@@ -144,7 +151,7 @@ final class HwpSectionText {
             pieces.add(new Piece(text.toString(),null));
         }
 
-        boolean selectCellHeaderValid(boolean last) {
+        boolean selectListParagraphHeaderValid(boolean last) {
             if ((headerLength!=22 && headerLength!=24) || textRecords>1) return false;
             int count=headerFlags&0x7fffffff;
             return (headerFlags<0)==last && count>0 && (count==characterUnits || (count==1 && characterUnits==0));
@@ -172,7 +179,10 @@ final class HwpSectionText {
                 }
                 saveText(text,split?++segment:0,reliable);
                 if (control==null) evidence.updateHwpPartial(MISSING_CONTROL);
-                else if (!(fieldsValid && piece.characterCode()==3 && control.selectPassiveHyperlink())) control.save(reliable);
+                else {
+                    if (control.selectNote() && piece.characterCode()!=17) control.invalidNote=true;
+                    if (!(fieldsValid && piece.characterCode()==3 && control.selectPassiveHyperlink())) control.save(reliable);
+                }
             }
             saveText(text,split?++segment:0,reliable);
             // 앵커 누락 시 텍스트를 버리지는 않지만 위치를 추정한 정상 근거로 사용하지 않는다.
@@ -220,16 +230,24 @@ final class HwpSectionText {
     }
 
     private final class Control extends Frame {
-        final int id, tableNumber;
+        final int id, tableNumber, noteNumber;
         final List<Paragraph> paragraphs=new ArrayList<>();
         final List<Cell> cells=new ArrayList<>();
         boolean validHeader, tableSeen, passiveHyperlink;
+        boolean validNoteHeader, noteListSeen, invalidNote;
+        int noteParagraphCount;
         final java.util.EnumSet<ExtractionResult.HwpPartialCause> invalidTableReasons = java.util.EnumSet.noneOf(ExtractionResult.HwpPartialCause.class);
         int rows, columns;
         int[] rowCellCounts;
         Cell currentCell;
         Control(int level,byte[] data) {
             super(level); id=data.length>=4?integer(data,0):0; tableNumber=id==TABLE?++tableIndex:0;
+            noteNumber=selectNote()?++noteIndex:0;
+            // 공개 읽기/쓰기 구현의 각주·미주 헤더: ID 포함16byte, 선택 instance ID4byte.
+            if (selectNote() && (data.length==16 || data.length==20)) {
+                int shape=integer(data,12);
+                validNoteHeader=(shape>=0 && shape<=16) || shape==0x80 || shape==0x81;
+            }
             // 개체 공통 필드는 ctrl ID 포함40바이트다. 뒤의 분할 방지/설명은 선택 영역이다.
             validHeader=id!=TABLE || data.length==40 || data.length==44 || (data.length>=46 && data.length==46+2*unsigned(data,44))
                     // 실제 고정 공고에서 검증한 빈 설명 뒤 0값2바이트 확장만 추가 지원한다.
@@ -245,9 +263,32 @@ final class HwpSectionText {
         void invalidateTable(ExtractionResult.HwpPartialCause cause) { validHeader=false; invalidTableReasons.add(cause); }
         boolean selectLayoutOnly() { return (id==SECTION || id==COLUMN) && paragraphs.isEmpty() && loose.isEmpty(); }
         boolean selectPassiveHyperlink() { return passiveHyperlink && paragraphs.isEmpty() && loose.isEmpty(); }
+        boolean selectNote() { return id==FOOTNOTE || id==ENDNOTE; }
+
+        void insertNoteList(byte[] data,int recordLevel) {
+            if (noteListSeen || !paragraphs.isEmpty() || recordLevel!=level+1) invalidNote=true;
+            noteListSeen=true;
+            // 공개 작성기의 INT32 문단수/UINT32 속성 + 예약0 8byte만 지원한다.
+            if (data.length!=16) { invalidNote=true; return; }
+            noteParagraphCount=integer(data,0); int flags=integer(data,4);
+            if (noteParagraphCount<1 || noteParagraphCount>MAX_NODES || (flags&~0x7f)!=0
+                    || (flags&7)!=0 || ((flags>>>3)&3)>2 || ((flags>>>5)&3)>2
+                    || integer(data,8)!=0 || integer(data,12)!=0) invalidNote=true;
+        }
+
+        boolean selectNoteValid() {
+            if (!validNoteHeader || invalidNote || !noteListSeen || !loose.isEmpty()
+                    || noteParagraphCount!=paragraphs.size()) return false;
+            for (int i=0;i<paragraphs.size();i++)
+                if (!paragraphs.get(i).selectListParagraphHeaderValid(i==paragraphs.size()-1)) return false;
+            return true;
+        }
 
         void insertParagraph(Paragraph paragraph) throws IOException {
-            if (paragraph.level!=level+1) invalidateTable(TABLE_PARAGRAPH_LEVEL);
+            if (selectNote()) {
+                if (!noteListSeen || paragraph.level!=level+1) invalidNote=true;
+                paragraph.cellLocation=(id==FOOTNOTE?":footnote:":":endnote:")+noteNumber;
+            } else if (paragraph.level!=level+1) invalidateTable(TABLE_PARAGRAPH_LEVEL);
             paragraphs.add(paragraph);
             if (id==TABLE && currentCell!=null) {
                 currentCell.paragraphs.add(paragraph);
@@ -292,7 +333,7 @@ final class HwpSectionText {
                 if (position<=previous) return tableFailure(CELL_ORDER_INVALID);
                 previous=position; counts[cell.row]++; paragraphCount+=cell.paragraphs.size();
                 for (int i=0;i<cell.paragraphs.size();i++)
-                    if (!cell.paragraphs.get(i).selectCellHeaderValid(i==cell.paragraphs.size()-1)) return tableFailure(CELL_PARAGRAPH_HEADER);
+                    if (!cell.paragraphs.get(i).selectListParagraphHeaderValid(i==cell.paragraphs.size()-1)) return tableFailure(CELL_PARAGRAPH_HEADER);
                 for (int row=cell.row;row<cell.row+cell.rowSpan;row++) {
                     int start=row*columns+cell.column, end=start+cell.columnSpan;
                     int occupied=covered.nextSetBit(start);
@@ -308,7 +349,7 @@ final class HwpSectionText {
         boolean tableFailure(ExtractionResult.HwpPartialCause cause) { evidence.updateHwpPartial(cause); return false; }
 
         @Override void save(boolean reliable) throws IOException {
-            boolean valid=id==TABLE?selectTableValid():selectLayoutOnly();
+            boolean valid=id==TABLE?selectTableValid():selectNote()?selectNoteValid():selectLayoutOnly();
             if (!valid && id!=TABLE) evidence.updateHwpPartial(UNSUPPORTED_CONTROL);
             for (Paragraph paragraph:paragraphs) paragraph.save(reliable && valid);
             saveLoose();
