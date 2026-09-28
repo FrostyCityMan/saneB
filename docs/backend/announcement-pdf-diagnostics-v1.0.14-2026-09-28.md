@@ -1,5 +1,16 @@
 # PDF 부분 추출 수치 진단 v1.0.14
 
+## 실제 서울 관측·정리 완료
+
+- 소스 `8e56931e30e71a50959d5d59bf36065eeea9bf21`, 실행 `6aa2931a32f148559969b70b0a367323`, SSM `25104c81-e5d1-43ad-9a59-f92fe299aa2e` Success/exit0,28.434초·1발견/1통과·실패/생략/중단/컨테이너실패0이다. 최초 패키지 업로드 세션70041을 재제출하지 않고 추적했다. 전송 중 읽기 전용 exact-key 조회에서는 당시 완성 객체가 없었고, 이후 기존 세션이 정상 제출됐음을 확인했다.
+- 본문 AVAILABLE/127자·전체 첨부2개 발견·다운로드/추출 완료. HWP는 COMPLETE_TEXT/3,120자/178블록, PDF는 PARTIAL_TEXT/4,241자/5블록이다. 두 파일의 binaryHash/textHash 및 품질은 선행1.0.13과 모두 동일하다. HWP 구간은 여전히 기본1.0.0 UNKNOWN3/FORM1이며1.0.4 worker 저장 증거가 아니다.
+- PDF 진단: pageCount5, reliablePageCount0, externalObjectInvocationCount1, inlineImageInvocationCount0, blankPageCount0, replacementCharacterCount0. 현재 품질 코드에서 확인된 부분 추출 요인은 Do 호출1회다. 객체 유형(이미지/Form)·실제 시각 정보·장식 여부는 미확인이므로 COMPLETE_TEXT로 완화하지 않는다. 구조 신뢰0페이지는 별도의 자동 문단/표 결합 한계다.
+- 본문 ACCEPTED와 달리 종합 REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE·isWholeTextAnalysisComplete=false·requiresFinalAdminVerification=true다. isPolicyQaPassed/isExpectationApproved=false·productionDatabaseUsed=false·productionWriteCount0이다.
+- 이번 예약5회/2,439,945byte, 실제 본문 시도1회. 누적 **27/30회·14,051,834/81,788,928예약byte**이며 남은3회로 전체 본문/두파일 실행을 반복할 수 없다. 최대6회 예약의 최종 사용량 정산 근거는 아래 영수증이다. 예약 파일은 삭제하지 않는다.
+- 영수증 `build/temporary-bbs-qa-6aa2931a32f148559969b70b0a367323/result-utf8.json`, SHA256 `6b3cb92728f400d65afd1e4484734c927eaf64710e3a42e7e3d4f885f9d8fbfa`. unitInactive/installedJarUnchanged/healthUp/probeCleanupSucceeded/transportTemporaryFilesRemoved/originalFilesRemoved=true다. 소유 S3 객체 삭제·로컬 package.zip 정리 완료, plan/영수증/예약 보존. 운영 객체 삭제0·운영 설치/DB/정책/worker 변경0이다. 사용한 AWS/Java 프로세스는 종료됐고 기존 사용자Java PID35696은 보존했다.
+- PDF 진단 소스3053028의 Linux36385233189 completed/success. 보관XML root3078=2784통과/294조건부 생략·실패/오류0, extractor190·패키지20·jobDB209·migration18·정책부모2·runtime5·worker12·Flyway3 실패/오류/생략0이다. 단일 모드 추가 소스8e56931의 Linux36385736473은 현재 실행 중이며 별도다.
+- 다음 구현 판단은 실행된 객체 유형/시각 정보 및 신뢰할 수 없는 PDF 구조 확인이다. OCR은 기존 설계의 후속 범위이며 근거 없이 로고로 간주하지 않는다. 공고 정상화·전체 catalog 기대값·구간worker DB/API·정책 게시·운영E2E는 미완료다. 브라우저는 현재 사용자 명시 요청 정책상 미실행이다.
+
 ## 목적과 완료 경계
 
 중구33626의 실제 PDF는 extractor1.0.13에서 PARTIAL_TEXT/4,241자/5블록이었다. 당시 영수증에는 PDF 부분 추출 원인 수치가 없으므로 이미지 때문이라고 단정하지 않는다. 이번 변경은 원인을 구분할 수 있는 격리 IPC 및 QA 관측 metadata 추가다. 텍스트 추출·구조 신뢰·부분 품질·관리자 검수 정책을 완화하지 않는다.
@@ -36,8 +47,8 @@
 1. [x] 합성 PDF의 미사용/실행 이미지·인라인 이미지·Form·반복 호출·빈/0페이지·태그 문단 수치를 검증한다.
 2. [x] IPC 입력의 필드·범위·품질·신구 호환 및 원문 비노출 회귀를 작성한다.
 3. [x] 전체 extractor, 관련 Java 회귀, 패키징, bootJar 결과를 아래 실행 기록으로 확정했다.
-4. [ ] 동일 소스 Linux 전체 계약 결과를 별도로 확인한다.
-5. [ ] 중구 동일 binaryHash 실파일의1.0.14 수치를 확인한다. 이전1.0.13 성공을 재사용하지 않는다.
+4. [x] 진단 구현3053028 Linux 전체 계약 결과를 별도로 확인했다. 단일 QA 모드8e56931의 후속 CI는 실행 중이다.
+5. [x] 중구 동일 binaryHash 실파일의1.0.14 수치를 새 서울 실행으로 확인했다. 이전1.0.13 성공을 재사용하지 않았다.
 
 실패 기준은 부분 품질 완화, 합성 시험을 실파일 증거로 표현, 임의 진단 필드 통과, 운영 변경, 누적 요청 예산 초기화다.
 
@@ -65,4 +76,4 @@ node --test scripts/qa/attachment-contract-release.test.mjs scripts/qa/attachmen
 - [x] 전송 helper는 직전 실행c2ca9c52f36342e6afd7818ac199e9e7의 최종 영수증 SHA256·서버/S3 정리·누적 예약·다른 미확인 실행 부재를 검사한다. 별도 CreateNew 예약으로 중복 제출을 막고 CheckOnly 검사는 파일을 생성하지 않는다. 오프라인 정상1/거부8=9건 통과·외부 호출0·plan변경0이다.
 - [x] 단일 모드 추가 후 Java 확대168건 중167통과/Linux seed1생략·실패/오류0, 패키지20통과·bootJar 및 probe JAR 검증1분5초 성공이다. Node8/Python30 통과와 PowerShell4개 구문 오류0, git diff --check 오류0이다.
 - [x] 실행 전 로컬 package135파일/88,402,823byte 생성, archiveHash `ec4373bc739ebf28659ca68155edc933411d5e26563b10ef6d76a1e726585869`, codeHash `a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549`. plan은 `build/temporary-bbs-qa-6aa2931a32f148559969b70b0a367323/plan.json`이다. 이 시점 서버 전송/공고 재요청은 아직0이다.
-- [ ] 실제 서울 실행과 정리 결과는 새 영수증 확인 후 기록한다. AWS 읽기 전용 inventory에서 서울/root 대상 일치·Ubuntu1대/SSM Online·기존운영revision9a1bb45를 확인했다.
+- [x] 실제 서울 실행과 정리 결과는 문서 최상단의 새 영수증으로 확인했다. AWS 읽기 전용 inventory에서 서울/root 대상 일치·Ubuntu1대/SSM Online·기존운영revision9a1bb45를 재확인했다.
