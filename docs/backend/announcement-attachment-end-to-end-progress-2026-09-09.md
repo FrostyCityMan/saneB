@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-28 강북 실제 본문·4첨부 관측 실패 분리와 정리
+
+- [x] 소스21b5833/실행63e2cb23/SSM64189da9의 서울 QA31.455초 결과를 확인했다. 본문435자 AVAILABLE·전체4locator 확인, HWPX2개 COMPLETE_TEXT·HWP1개 PARTIAL_TEXT·4번째HWPX 다운로드HTTP400이다. [영수증·파일별 결과](announcement-gangbuk-support-preflight-2026-09-28.md)에 기록했다.
+- [!] 종합 REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE·관측INCOMPLETE, JUnit1실패다. 파일3개 추출을 전체4개/정상 기대값/DB/API 완료로 표시하지 않는다. HTTP400 원인과 HWP미지원control1을 별도로 진단해야 한다.
+- [x] 원본/임시unit/서버 전송 파일/S3 객체/로컬ZIP 정리, plan/영수증/예약 보존·운영JAR불변/healthUP·운영DB쓰기0 확인. 이번13회, 누적14/21요청·2,957,650byte로 잔여7회다. 전체20회 관측을 반복하지 않는다.
+- [x] 로컬전체3,101개=2,805통과/296조건부생략·실패0·7분26초 성공. 전체9Gate8부분/1차단·catalog40/정상0을 유지하고 명시1.0.4 worker DB/API·정상 기대값·운영E2E를 계속 남긴다.
+
 ### 2026-09-28 강북 단일 본문·전체 첨부 관측 경로 연결
 
 - [x] 직전162f5cf의 실제 상세 확인은 진척이다. 후속으로179490 단일 GANGBUK_OBSERVATION을 Java/Bash/Python에 연결했다. 제목→본문→실측4locator 전체 첨부→격리 추출/구간→종합 판정과 부분 추출 검수 유지를 검증한다.

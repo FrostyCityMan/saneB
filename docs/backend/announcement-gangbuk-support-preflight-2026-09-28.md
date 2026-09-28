@@ -61,3 +61,32 @@ catalog40참조/14프로필·저장 기대값1/정상0은 변경하지 않았다
 - [x] Java 표적52통과/외부 상세1생략·패키징20통과·Python33통과·Node9통과. 최초 Node의 이전 모드 문자열 고정 비교1건은 신규 명시 모드/전체 기존 분기 검증으로 갱신 후 통과했다. 관측 JAR 재생성·bootJar UP-TO-DATE 성공. 전체 root 재실행/신규 Linux CI 결과는 별도다.
 - [x] AWS root 계정/저장소 대상 일치·서울1인스턴스·SSM online·기존9a1bb45/Succeeded 확인. 이 조회만으로 실파일/운영 DB 상태를 성공 처리하지 않는다.
 - [~] 실제 서울 관측·원본/임시 자원 정리 영수증은 실행 후 별도로 기록한다. 준비 상태를 실파일 성공이나 DB/API 저장 성공으로 표현하지 않는다. 기본 관측 구간 분석과 명시1.0.4 worker DB/API 검증은 분리한다.
+
+### 실행 추적
+
+- 소스 `21b5833504ef7d5ae2a445359a5f48a540624343`, QA 브랜치 원격 일치. 운영 배포 없음.
+- 단일 실행 `63e2cb239ec24b70921e61601b692f34`, plan `build/temporary-bbs-qa-63e2cb239ec24b70921e61601b692f34/plan.json`.
+- 135파일/88,406,161byte, archive SHA256 `86539512d82afb5c6a0255a5e8f8faf96705e1b9d782b8d74a0b0559d5f0beb9`, application codeHash `a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549`. 제품 코드가 변하지 않아 application 지문은 이전과 같고 QA probe와 소스 revision은 별도로 고정했다.
+- `build/qa-results/gangbuk-observation-179490-reservation.json`에 이전1회/278,528byte와 신규20회/32MiB를 원자적으로 예약했다. 전송 지연/관측 timeout을 이유로 새 실행을 만들지 않고 기존 핸들과 commandId를 추적한다.
+- 후속 로컬 `:test` 전체3,101개=2,805통과/296조건부 생략·실패/오류0,7분26초 성공. 앞의 표적 검사 이후 전체 회귀 결과이며 생략된 외부/운영 QA를 성공으로 세지 않는다.
+
+### 서울 실제 결과 — 미완료 및 정리 완료
+
+- SSM `64189da9-8226-4dc6-b5a4-52f5d541f384`, Failed/exit1. 서버 실행31.455초, JUnit1개 중 실패1/생략0/컨테이너 실패0. 패키지 전송 시간과 실제 QA 시간은 구분한다.
+- 영수증 `build/temporary-bbs-qa-63e2cb239ec24b70921e61601b692f34/result-utf8.json`, SHA256 `bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e`.
+- 제목 조합 통과, 실제 본문 AVAILABLE/시도1/redirect0/435자, 본문 단독ACCEPTED다. 본문 hash `7a5dd488606054bd68d36675ee402408171ed686c8ced3ef112ad69ee23bd0bd`.
+- 첨부4개 모두 발견하고 locator/형식 대조 후3개 다운로드·격리 추출. 네 번째HWPX는 `FILE_DOWNLOAD/ATTACHMENT_HTTP_400`으로 실패했다. 기존 영수증에는 bridge/기간/최종 전송 하위 단계가 없으므로 세부 원인이나 영구 장애를 단정하지 않는다.
+
+| 발견 순서 | 형식 | 실제 bytes | 추출 문자/block | 결과 |
+|---|---|---:|---|---|
+| 1 | HWPX | 84,397 | 1,696 / 41 | COMPLETE_TEXT, 파일FORM·기본구간1개FORM |
+| 2 | HWP | 140,800 | 1,221 / 51 | PARTIAL_TEXT, UNSUPPORTED_CONTROL1 |
+| 3 | HWPX | 70,441 | 706 / 61 | COMPLETE_TEXT, 파일/기본구간UNKNOWN·INITIAL_HEADING_REQUIRED |
+| 4 | HWPX 형식 힌트 | 미확인 | 미실행 | HTTP400, 다운로드 실패 |
+
+- 관측 runtime1.0.14, 기본 구간 분석1.0.0이다. 명시1.0.4 worker DB/API 또는 정상 기대값 검증이 아니다.
+- 앞3개 binary hash는 순서대로 `5c1ab6a267430b7644ea5851c373722116e44fc1de6f03ce39dff26fd23872eb`, `049a173ab67f08e031f811100ad762ace20ea3eb9cade0f986165f80df6fb8fb`, `99b8a2729756577944e6dfc72ddf80963f65eb54acc67ead336d3fa428f6fcdd`다. text/분석 hash는 영수증에 보존한다.
+- 종합 `REVIEW_REQUIRED/ATTACHMENT_INCOMPLETE`, 전체 관측 `INCOMPLETE`, isWholeTextAnalysisComplete=false다. 일부 파일 성공을 전체 통과로 숨기지 않았다. 파일4개 중3개 처리와2개 완전 텍스트는 기관 지원 완료가 아니다.
+- 이번13요청/2,679,122예약byte, 선행 상세 포함 **14/21요청·2,957,650/34,603,008byte**, 잔여7요청이다. 전체20요청 실행을 그대로 반복할 수 없다. 다음은 실패 파일의 전달 하위 단계 진단과 HWP unsupported control 원인 분리다. 단일 파일 진단도 전체4개 분모를 대체하지 않는다.
+- 원본 제거·probe 정리·서버 전송 임시 파일 제거·unit inactive, 운영 DB미사용·쓰기0·운영JAR불변·healthUP 확인. 자기 실행의S3 객체 삭제/부재 확인·plan.cleaned=true, 지문/절대 경로 확인 후 로컬ZIP 삭제. plan/영수증/예약은 보존했다.
+- 소유 Gradle/Node/AWS 실행은 종료했으며 기존 사용자 Java35696은 종료하지 않았다. 브라우저/운영 정책 게시/배포/ENFORCE/기존 데이터 적용은 하지 않았다.
