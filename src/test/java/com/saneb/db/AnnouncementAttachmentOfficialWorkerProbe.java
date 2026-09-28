@@ -29,11 +29,12 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "JECHEON" -> List.of("JECHEON-403587","JECHEON-403530","JECHEON-403490");
             case "BOEUN", "BOEUN_SEGMENT", "BOEUN_STRUCTURAL" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
             case "BOEUN_LONG_FORM" -> List.of("BOEUN-221497");
+            case "HAMAN_SEGMENT" -> List.of("HAMAN-41306");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
     static boolean selectTitleStopExpected(String code) {
-        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON","BOEUN")
+        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON","BOEUN","HAMAN_SEGMENT")
                 .flatMap(group->selectCaseCodes(group).stream()).anyMatch(code::equals);
         if(!known)throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
         return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039","JECHEON-403587").contains(code);
@@ -52,13 +53,14 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     }
     static boolean selectSegmentMode(String group) {
         selectCaseCodes(group);
-        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM").contains(group);
+        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM","HAMAN_SEGMENT").contains(group);
     }
     static String selectSegmentVersion(String group) {
         if(!selectSegmentMode(group))throw new IllegalArgumentException("SEGMENT_MODE_REQUIRED");
-        return "BOEUN_LONG_FORM".equals(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
+        return Set.of("BOEUN_LONG_FORM","HAMAN_SEGMENT").contains(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
     }
     static String selectObservationGroup(String group) {
+        if("HAMAN_SEGMENT".equals(group))return "HAMAN";
         return selectSegmentMode(group) ? "BOEUN" : group;
     }
     static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 5 : 44; }
@@ -90,6 +92,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
         return "9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f";
     }
     static boolean selectSegmentReportComplete(String group,com.fasterxml.jackson.databind.JsonNode report) {
+        if("HAMAN_SEGMENT".equals(group))return selectHamanSegmentReportComplete(report);
         String version=selectSegmentVersion(group);
         boolean structural="BOEUN_STRUCTURAL".equals(group);
         boolean longForm="BOEUN_LONG_FORM".equals(group);
@@ -120,6 +123,41 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                         && selectTrue(file,"otherVersionReadOnlyVerified") && !file.has("structuralCandidate")
                         && selectStructuralCounts(report,file)
                     : selectTrue(file,"quarterObservedHashMatched") && selectStructuralComparisonComplete(file.path("structuralCandidate")));
+    }
+    /** 부분 추출의 저장 경로 검증이다. 사전 승인된 정상 구간 기대값으로 표현하지 않는다. */
+    static boolean selectHamanSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
+        if(!"HAMAN-41306".equals(report.path("caseCode").asText())
+                || !"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
+                || !"segment-role-1.0.4".equals(report.path("segmentRuleVersion").asText())
+                || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH.equals(report.path("segmentRulesHash").asText())
+                || !"1.0.12".equals(report.path("extractorVersion").asText())
+                || !"REVIEW_REQUIRED".equals(report.path("decisionStatus").asText())
+                || !"AVAILABLE".equals(report.path("bodyStatus").asText())
+                || !selectTrue(report,"bodyStageComplete") || !selectTrue(report,"discoveryComplete")
+                || !selectBounded(report,"discoveredFileCount",1,1) || !selectBounded(report,"processedFileCount",1,1)
+                || !selectTrue(report,"segmentDatabaseApiVerified") || !selectTrue(report,"segmentReviewContextVerified")
+                || !selectTrue(report,"manualSourceCheckRequired") || !selectTrue(report,"requiresFinalAdminVerification")
+                || !selectFalse(report,"isWholeTextAnalysisComplete") || !selectFalse(report,"isPolicyQaPassed")
+                || !selectFalse(report,"isExpectationApproved") || !selectFalse(report,"isAuthenticatedBrowserE2e")
+                || !selectBounded(report,"productionWriteCount",0,0)
+                || !selectBounded(report,"maximumRequestReservations",5,5) || !selectBounded(report,"maximumReservedBytes",25165824L,25165824L)
+                || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,5) || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,25165824L)
+                || !report.path("files").isArray() || report.path("files").size()!=1)return false;
+        var file=report.path("files").get(0);
+        return "HWP".equals(file.path("format").asText()) && "PARTIAL_TEXT".equals(file.path("quality").asText())
+                && "c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97".equals(file.path("binaryHash").asText())
+                && "ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7".equals(file.path("textHash").asText())
+                && selectBounded(file,"bytes",101888,101888) && selectBounded(file,"characterCount",4644,4644) && selectBounded(file,"blockCount",213,213)
+                && file.path("segmentAnalysisHash").asText().matches("[a-f0-9]{64}")
+                && selectBounded(file,"segmentCount",1,1) && selectBounded(file,"unknownSegmentCount",1,1) && selectBounded(file,"noticeSegmentCount",0,0)
+                && "COMPLETE_TEXT_REQUIRED".equals(file.path("segmentReason").asText())
+                && selectTrue(file,"segmentEvaluationInputBound") && selectTrue(file,"segmentApiProjectionMatched")
+                && selectTrue(file,"legacyDefaultReadOnlyVerified") && selectTrue(file,"evaluationBoundApiVerified")
+                && selectTrue(file,"otherVersionReadOnlyVerified") && selectTrue(file,"partialFullCoverageVerified")
+                && !file.has("longFormObservedHashMatched") && !file.has("longFormCandidate") && !file.has("structuralCandidate");
+    }
+    private static boolean selectFalse(com.fasterxml.jackson.databind.JsonNode node,String key) {
+        return node.path(key).isBoolean() && !node.path(key).booleanValue();
     }
     private static boolean selectLongFormStorageComplete(com.fasterxml.jackson.databind.JsonNode report,com.fasterxml.jackson.databind.JsonNode file) {
         return selectTrue(file,"longFormObservedHashMatched") && selectTrue(file,"evaluationBoundApiVerified")

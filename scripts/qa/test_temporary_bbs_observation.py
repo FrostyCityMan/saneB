@@ -20,6 +20,52 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_haman_segment_worker_keeps_partial_review_and_strict_stored_evidence(self):
+        import copy
+        mode='HAMAN_SEGMENT';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('HAMAN-41306',['HAMAN-41306'],5,25165824),scope)
+        self.assertLessEqual(19+scope[2],60);self.assertLessEqual(12906174+scope[3],100663296)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        for cases in ([],['HAMAN-41307'],['HAMAN-41306','HAMAN-41306']):
+            with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+                self.unit['validate_manifest_scope'](dict(manifest,caseCodes=cases),mode)
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+        file=dict(format='HWP',quality='PARTIAL_TEXT',segmentReason='COMPLETE_TEXT_REQUIRED',bytes=101888,characterCount=4644,blockCount=213,
+            binaryHash='c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97',textHash='ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7',
+            segmentAnalysisHash='b'*64,segmentCount=1,unknownSegmentCount=1,noticeSegmentCount=0,
+            segmentEvaluationInputBound=True,segmentApiProjectionMatched=True,legacyDefaultReadOnlyVerified=True,
+            evaluationBoundApiVerified=True,otherVersionReadOnlyVerified=True,partialFullCoverageVerified=True)
+        case=dict(caseCode='HAMAN-41306',scope='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1',status='WORKER_DB_API_OBSERVED_NOT_APPROVED',
+            engineVersion='attachment-segment-1.0.0',segmentRuleVersion='segment-role-1.0.4',segmentRulesHash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',
+            extractorVersion='1.0.12',profileCode='LOCAL_HAMAN_GET_V1',workerStatus='EVALUATED',bodyStatus='AVAILABLE',decisionStatus='REVIEW_REQUIRED',
+            bodyStageComplete=True,discoveryComplete=True,segmentDatabaseApiVerified=True,segmentReviewContextVerified=True,
+            manualSourceCheckRequired=True,requiresFinalAdminVerification=True,originalFilesRemoved=True,
+            isWholeTextAnalysisComplete=False,isPolicyQaPassed=False,isExpectationApproved=False,isAuthenticatedBrowserE2e=False,
+            productionWriteCount=0,remainingResourceLeases=0,discoveredFileCount=1,processedFileCount=1,maximumRequestReservations=5,maximumReservedBytes=25165824,
+            requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2204906,files=[file])
+        report=dict(kind='OFFICIAL_WORKER_PROBE',caseGroup=mode,productionDatabaseUsed=False,isPolicyQaPassed=False,isAuthenticatedBrowserE2e=False,
+            status='PASSED',found=1,passed=1,failed=0,skipped=0,aborted=0,failedContainers=0,cases=[case])
+        self.unit['validate_probe_scope'](report,mode)
+        for key,value in [('caseCode','HAMAN-41307'),('workerStatus','PENDING'),('decisionStatus','ACCEPTED'),('extractorVersion','1.0.11'),
+                ('segmentRuleVersion','segment-role-1.0.3'),('manualSourceCheckRequired',False),('isWholeTextAnalysisComplete',True),
+                ('isExpectationApproved',True),('segmentDatabaseApiVerified','true'),('remainingResourceLeases',True),
+                ('requestReservationsIncludingBodyUpperBound',6),('reservedBytesIncludingBodyUpperBound',25165825)]:
+            invalid=copy.deepcopy(report);invalid['cases'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('binaryHash','a'*64),('textHash','a'*64),('quality','COMPLETE_TEXT'),('segmentReason','ROLE_TEXT_STRUCTURE_MATCHED'),
+                ('bytes','101888'),('segmentCount',True),('unknownSegmentCount',0),('segmentAnalysisHash','bad'),('partialFullCoverageVerified','true'),('longFormObservedHashMatched',True)]:
+            invalid=copy.deepcopy(report);invalid['cases'][0]['files'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+        for key,value in [('passed',True),('found',2),('skipped',1),('failed',1),('aborted',1),('failedContainers',1)]:
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](dict(report,**{key:value}),mode)
+        for key in ('partialFullCoverageVerified','segmentEvaluationInputBound','segmentApiProjectionMatched','evaluationBoundApiVerified','otherVersionReadOnlyVerified','legacyDefaultReadOnlyVerified'):
+            invalid=copy.deepcopy(report);del invalid['cases'][0]['files'][0][key]
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
+
     def test_haman_one_notice_uses_existing_budget_and_rejects_changed_file_or_false_completion(self):
         import copy
         mode='HAMAN_OBSERVATION';scope=self.runner['SCOPES'][mode]

@@ -327,8 +327,21 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         var input=new AttachmentSetEvidence.Extraction(file.qualityCode(),actual.path("text").asText(),Arrays.asList(blocks),actual.path("pageCount").isIntegralNumber()?actual.path("pageCount").intValue():null,0);
         var expected=new AttachmentSegmentRoleAnalyzer().selectAnalysis(input,version,execution.segmentRulesHash());
         assertEquals("ANALYZED",stored.analysisState());assertEquals(expected,stored.analysis());
-        assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
+        boolean haman="HAMAN-41306".equals(caseCode);
+        if(!haman)assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
                 selectCanonicalHash(expected),"PREVIOUS_SEGMENT_OBSERVATION_CHANGED");
+        else {
+            assertEquals(AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,version);
+            assertEquals("PARTIAL_TEXT",file.qualityCode());
+            assertEquals("c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",file.binaryHash());
+            assertEquals("ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7",expected.textHash());
+            assertEquals(4644,expected.textLength());assertEquals(213,blocks.length);
+            assertEquals("REVIEW_REQUIRED",expected.statusCode());assertEquals("COMPLETE_TEXT_REQUIRED",expected.reasonCode());
+            assertEquals(1,expected.segments().size());var segment=expected.segments().getFirst();
+            assertEquals("UNKNOWN",segment.roleCode());assertEquals("COMPLETE_TEXT_REQUIRED",segment.reasonCode());
+            assertEquals(0,segment.startOffset());assertEquals(expected.textLength(),segment.endOffset());assertTrue(segment.evidence().isEmpty());
+            row.put("partialFullCoverageVerified",true);row.put("segmentReason",expected.reasonCode());
+        }
         assertEquals(file.fileId(),stored.fileId());assertEquals(file.setId(),stored.setId());
         assertEquals(file.documentRoleCode(),stored.fileRoleCode());assertEquals(file.roleOriginCode(),stored.fileRoleOriginCode());
         assertEquals(1,sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs i JOIN announcement_source_attachment_evaluations e ON e.id=i.evaluation_id WHERE e.source_id=? AND e.is_current AND i.extraction_id=? AND i.segment_analysis_id=?",Integer.class,source,file.extractionId(),stored.analysisId()));
@@ -351,10 +364,12 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                 assertEquals("NOT_ANALYZED",prior.analysisState(),"STRUCTURAL_GET_MUST_NOT_FALL_BACK");
                 assertEquals(selectWireTree(prior),selectApi(http,baseUrl+"?analysisVersion="+AttachmentSegmentRoleAnalyzer.STRUCTURAL_VERSION));
                 assertEquals(before,sql.queryForObject("SELECT count(1) FROM announcement_attachment_segment_analyses WHERE source_id=?",Integer.class,source));
-                assertEquals("6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04",file.binaryHash());
-                assertEquals("ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066",expected.textHash());
-                assertEquals(List.of("UNKNOWN","NOTICE","FORM","FORM"),expected.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList());
-                row.put("longFormObservedHashMatched",true);
+                if(!haman) {
+                    assertEquals("6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04",file.binaryHash());
+                    assertEquals("ff601753dc73037f6287d69b5fd261976b14f4e210377db81085bd5917fc2066",expected.textHash());
+                    assertEquals(List.of("UNKNOWN","NOTICE","FORM","FORM"),expected.segments().stream().map(AttachmentSegmentRoleAnalyzer.Segment::roleCode).toList());
+                    row.put("longFormObservedHashMatched",true);
+                }
             } else {
                 row.put("structuralObservedHashMatched",true);row.put("longFormCandidate",selectLongFormComparison(input,expected));
             }
