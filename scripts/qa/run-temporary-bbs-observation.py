@@ -10,6 +10,7 @@ CONFIG = json.loads(sys.argv[1]) if __name__ == '__main__' else {}
 
 # 코드의 지원 범위이며 실행 승인 자체가 아니다. 다른 기관/표본/예산은 받지 않는다.
 SCOPES = {
+    'HWACHEON_SEGMENT': ('HWACHEON-32258', ['HWACHEON-32258'], 5, 25165824),
     'GANGBUK_SELECTED_DOWNLOAD': ('GANGBUK-179490', ['GANGBUK-179490'], 5, 25165824),
     'GANGBUK_OBSERVATION': ('GANGBUK-179490', ['GANGBUK-179490'], 20, 33554432),
     'OBSERVATION': ('TAEBAEK-184816', ['TAEBAEK-184816'], 44, 83886080),
@@ -64,7 +65,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -301,8 +302,44 @@ def validate_junggu_segment(report):
             if (file.get('partialFullCoverageVerified') is not True or file.get('segmentReason')!='COMPLETE_TEXT_REQUIRED'
                     or file['segmentCount']!=1 or file['unknownSegmentCount']!=1 or file['noticeSegmentCount']!=0):raise ValueError('PROBE_OUTPUT_INVALID')
 
+def validate_hwacheon_segment(report):
+    cases=report.get('cases')
+    if not isinstance(cases,list) or len(cases)!=1 or not isinstance(cases[0],dict):raise ValueError('PROBE_OUTPUT_INVALID')
+    row=cases[0]
+    for key,value in {'caseCode':'HWACHEON-32258','scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','status':'WORKER_DB_API_OBSERVED_NOT_APPROVED',
+            'profileCode':'LOCAL_HWACHEON_POST_V1','profileHash':'4e34a0852383aad7ab5c20635340c845acc0bc43683df3d7fdf6d44429271e84',
+            'engineVersion':'attachment-segment-1.0.0','segmentRuleVersion':'segment-role-1.0.4','extractorVersion':'1.0.15',
+            'segmentRulesHash':'27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',
+            'titleStage':'COMBINATION_MATCHED','bodyStatus':'AVAILABLE','workerStatus':'EVALUATED'}.items():
+        if row.get(key)!=value:raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('isPolicyQaPassed','isExpectationApproved','isAuthenticatedBrowserE2e'):
+        if row.get(key) is not False:raise ValueError('PROBE_OUTPUT_INVALID')
+    for key in ('bodyStageComplete','discoveryComplete','originalFilesRemoved','segmentDatabaseApiVerified','segmentReviewContextVerified','requiresFinalAdminVerification'):
+        if row.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
+    for node,ranges in ((row,[('productionWriteCount',0,0),('remainingResourceLeases',0,0),('discoveredFileCount',1,1),('processedFileCount',1,1),('extractorCalls',1,1),
+            ('maximumRequestReservations',5,5),('maximumReservedBytes',25165824,25165824),('requestReservationsIncludingBodyUpperBound',4,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]),
+            (report,[('found',1,1),('passed',1,1),('failed',0,0),('skipped',0,0),('aborted',0,0),('failedContainers',0,0)])):
+        if any(type(node.get(k)) is not int or not low<=node[k]<=high for k,low,high in ranges):raise ValueError('PROBE_OUTPUT_INVALID')
+    files=row.get('files')
+    if not isinstance(files,list) or len(files)!=1 or not isinstance(files[0],dict):raise ValueError('PROBE_OUTPUT_INVALID')
+    file=files[0]
+    for key,value in {'format':'HWP','downloadStatus':'SUCCEEDED','binaryHash':'dbeba265406d420c2a396e6f7d40368f499ab5ec25bc510004e4f27b964d3ea0',
+            'locatorHash':'5ea8a8ffafeb7e36cd0a438eff350f6cfc6bc31b2ac1369ab0316ce0627baf88'}.items():
+        if file.get(key)!=value:raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(type(file.get(k)) is not int or not low<=file[k]<=high for k,low,high in [('bytes',82944,82944),('characterCount',1,1000000),('blockCount',1,10000),('segmentCount',1,200)]):raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(type(file.get(k)) is not int or not 0<=file[k]<=file['segmentCount'] for k in ('unknownSegmentCount','noticeSegmentCount')):raise ValueError('PROBE_OUTPUT_INVALID')
+    if file['unknownSegmentCount']+file['noticeSegmentCount']>file['segmentCount']:raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(not isinstance(file.get(k),str) or not re.fullmatch('[a-f0-9]{64}',file[k]) for k in ('textHash','segmentAnalysisHash')):raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(file.get(k) is not True for k in ('pinnedInputAndCoverageVerified','segmentEvaluationInputBound','segmentApiProjectionMatched','legacyDefaultReadOnlyVerified','evaluationBoundApiVerified','otherVersionReadOnlyVerified')):raise ValueError('PROBE_OUTPUT_INVALID')
+    if any(k in file for k in ('longFormObservedHashMatched','longFormCandidate','structuralCandidate')):raise ValueError('PROBE_OUTPUT_INVALID')
+    if file.get('quality') not in ('PARTIAL_TEXT','COMPLETE_TEXT') or row.get('decisionStatus') not in ('REVIEW_REQUIRED','ACCEPTED'):raise ValueError('PROBE_OUTPUT_INVALID')
+    partial=file['quality']=='PARTIAL_TEXT'
+    if row.get('isWholeTextAnalysisComplete') is not (not partial) or type(row.get('manualSourceCheckRequired')) is not bool:raise ValueError('PROBE_OUTPUT_INVALID')
+    if partial and (file['segmentCount']!=1 or file['unknownSegmentCount']!=1 or file['noticeSegmentCount']!=0 or file.get('partialFullCoverageVerified') is not True or file.get('segmentReason')!='COMPLETE_TEXT_REQUIRED'):raise ValueError('PROBE_OUTPUT_INVALID')
+    if (partial or file['unknownSegmentCount']>0) and (row.get('manualSourceCheckRequired') is not True or row['decisionStatus']!='REVIEW_REQUIRED'):raise ValueError('PROBE_OUTPUT_INVALID')
+
 def validate_probe_scope(report,mode):
-    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT'):
+    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_SEGMENT'):
         if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!=mode
                 or report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
                 or report.get('isAuthenticatedBrowserE2e') is not False):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -312,6 +349,7 @@ def validate_probe_scope(report,mode):
         if len(codes)!=len(set(codes)) or any(c not in SCOPES[mode][1] for c in codes):raise ValueError('PROBE_OUTPUT_INVALID')
         if report.get('status')=='PASSED' and codes!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
         if mode=='HAMAN_SEGMENT' and report.get('status')=='PASSED':validate_haman_segment(report)
+        if mode=='HWACHEON_SEGMENT' and report.get('status')=='PASSED':validate_hwacheon_segment(report)
         if mode=='HAMAN_LAYOUT_SEGMENT' and report.get('status')=='PASSED':validate_haman_segment(report,layout=True)
         if mode=='JUNGGU_SEGMENT' and report.get('status')=='PASSED':validate_junggu_segment(report)
         if mode in ('BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM') and report.get('status')=='PASSED':
@@ -462,7 +500,7 @@ def main():
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
-        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT') else 650)
+        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_SEGMENT') else 650)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid,signal.SIGTERM)
             try:out,err=proc.communicate(timeout=5)
@@ -476,7 +514,7 @@ def main():
                 report=json.loads(line)
                 validate_probe_scope(report,mode)
         result['probe']=report
-        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
+        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_SEGMENT') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
         result['probeCleanupSucceeded']=cleanup_marker in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
         return result

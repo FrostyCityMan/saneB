@@ -20,6 +20,42 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_hwacheon_worker_pins_sample_and_preserves_partial_review(self):
+        import copy
+        mode='HWACHEON_SEGMENT';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('HWACHEON-32258',['HWACHEON-32258'],5,25165824),scope)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'MANIFEST_SCOPE_INVALID'):self.unit['validate_manifest_scope'](dict(manifest,caseCodes=['HWACHEON-32259']),mode)
+        file=dict(format='HWP',downloadStatus='SUCCEEDED',quality='PARTIAL_TEXT',bytes=82944,characterCount=100,blockCount=2,
+            binaryHash='dbeba265406d420c2a396e6f7d40368f499ab5ec25bc510004e4f27b964d3ea0',locatorHash='5ea8a8ffafeb7e36cd0a438eff350f6cfc6bc31b2ac1369ab0316ce0627baf88',
+            textHash='a'*64,segmentAnalysisHash='b'*64,segmentCount=1,unknownSegmentCount=1,noticeSegmentCount=0,
+            partialFullCoverageVerified=True,segmentReason='COMPLETE_TEXT_REQUIRED')
+        for key in ('pinnedInputAndCoverageVerified','segmentEvaluationInputBound','segmentApiProjectionMatched','legacyDefaultReadOnlyVerified','evaluationBoundApiVerified','otherVersionReadOnlyVerified'):file[key]=True
+        row=dict(caseCode=scope[0],scope='OFFICIAL_WORKER_EPHEMERAL_DB_API_V1',status='WORKER_DB_API_OBSERVED_NOT_APPROVED',
+            profileCode='LOCAL_HWACHEON_POST_V1',profileHash='4e34a0852383aad7ab5c20635340c845acc0bc43683df3d7fdf6d44429271e84',
+            engineVersion='attachment-segment-1.0.0',segmentRuleVersion='segment-role-1.0.4',extractorVersion='1.0.15',
+            segmentRulesHash='27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',
+            titleStage='COMBINATION_MATCHED',bodyStatus='AVAILABLE',workerStatus='EVALUATED',decisionStatus='REVIEW_REQUIRED',
+            productionWriteCount=0,remainingResourceLeases=0,discoveredFileCount=1,processedFileCount=1,extractorCalls=1,
+            maximumRequestReservations=5,maximumReservedBytes=25165824,requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2200000,
+            files=[file],manualSourceCheckRequired=True,isWholeTextAnalysisComplete=False)
+        for key in ('bodyStageComplete','discoveryComplete','originalFilesRemoved','segmentDatabaseApiVerified','segmentReviewContextVerified','requiresFinalAdminVerification'):row[key]=True
+        for key in ('isPolicyQaPassed','isExpectationApproved','isAuthenticatedBrowserE2e'):row[key]=False
+        report=dict(kind='OFFICIAL_WORKER_PROBE',caseGroup=mode,productionDatabaseUsed=False,isPolicyQaPassed=False,isAuthenticatedBrowserE2e=False,
+            status='PASSED',found=1,passed=1,failed=0,skipped=0,aborted=0,failedContainers=0,cases=[row])
+        self.unit['validate_probe_scope'](report,mode)
+        for key,value in [('segmentRulesHash','a'*64),('isWholeTextAnalysisComplete',True),('decisionStatus','ACCEPTED'),('manualSourceCheckRequired',False),
+                ('extractorVersion','1.0.14'),('isPolicyQaPassed',True),('requestReservationsIncludingBodyUpperBound',6),('productionWriteCount',True)]:
+            changed=copy.deepcopy(report);changed['cases'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        for key,value in [('binaryHash','a'*64),('locatorHash','b'*64),('bytes',82945),('pinnedInputAndCoverageVerified',False),('segmentCount',True),('quality','UNSUPPORTED')]:
+            changed=copy.deepcopy(report);changed['cases'][0]['files'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+
     def gangbuk_selected_report(self):
         report=self.gangbuk_report();report['verificationMode']='GANGBUK_SELECTED_DOWNLOAD';row=report['reports'][0]
         row.update(scope='SELECTED_ATTACHMENT_DOWNLOAD_DIAGNOSTIC_V1',status='SELECTED_FILE_OBSERVED_NOT_WHOLE_NOTICE',

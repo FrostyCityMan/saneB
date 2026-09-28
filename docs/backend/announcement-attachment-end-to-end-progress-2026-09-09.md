@@ -11,6 +11,13 @@
 
 ## 기준선
 
+### 2026-09-28 화천 구간 worker·DB/API 검증 준비
+
+- [x] 32258 단일HWP·추출기1.0.15/구간1.0.4의 별도 worker 모드를 구현했다. [고정 입력·요청 원장·검증](announcement-hwacheon-worker-qa-2026-09-28.md)을 따른다. 부분 품질/UNKNOWN 검수, 자동확정 금지와 운영 미변경을 보존한다.
+- [x] 최초 worker48건·화천 포함 준비/제목39건·패키징20·Node14·Python37 통과. 외부 HTTP1조건부 생략은 실행 성공이 아니다.
+- [!] 선행 a034d02 Linux36400704333은 스냅샷 참조 수40기대 때문에 실패했다.41참조·화천 미승격 회귀를 보강했으며 새 CI 결과와 구분한다.
+- [~] 서울 실제 실행·동일입력 저장/API 결과·자원 정리는 아직 미검증이다. 전체9Gate8부분/1차단·catalog41/정상0 유지.
+
 ### 2026-09-28 화천 지원사업 참조 1건·POST 검증
 
 - [x] 화천32258은 제목 COMBINATION_MATCHED, 공식 첨부 FOUND/complete·HWP1개 POST/signature 확인. 신규2요청·92,910byte, 파일82,944byte·원본 정리 확인. [실행 제한·영수증](announcement-hwacheon-support-reference-2026-09-28.md)을 따른다.

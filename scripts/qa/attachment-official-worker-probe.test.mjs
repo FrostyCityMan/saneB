@@ -18,9 +18,9 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
 });
-test('공식 그룹은 양평 기본값과 고정 태백·충주·제천·보은·함안 표본만 허용한다', () => {
+test('공식 그룹은 양평 기본값과 등록된 고정 지역 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL || "$case_group" == BOEUN_LONG_FORM || "$case_group" == HAMAN_SEGMENT || "$case_group" == HAMAN_LAYOUT_SEGMENT || "$case_group" == JUNGGU_SEGMENT ]] || exit 1'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL || "$case_group" == BOEUN_LONG_FORM || "$case_group" == HAMAN_SEGMENT || "$case_group" == HAMAN_LAYOUT_SEGMENT || "$case_group" == HWACHEON_SEGMENT || "$case_group" == JUNGGU_SEGMENT ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
 });
@@ -93,6 +93,17 @@ test('함안 최신 추출기 worker는 과거 실행과 분리하고 외부 요
   assert(source.includes('"$case_group" == HAMAN_LAYOUT_SEGMENT'));
   const java=readFileSync('src/test/java/com/saneb/db/AnnouncementAttachmentOfficialWorkerIntegrationTest.java','utf8');
   assert(java.indexOf('validatePinnedExtractor(')<java.indexOf('startDatabase();'));
+});
+
+test('화천 worker는 고정 한 건과 별도 보고서·추출기 지문으로 제한한다',()=>{
+  assert(source.includes('"$case_group" == HWACHEON_SEGMENT'));
+  const gradle=readFileSync('build.gradle','utf8');
+  const start=gradle.indexOf("tasks.register('attachmentHwacheonWorkerIntegrationTest'");assert(start>=0);
+  const task=gradle.slice(start,gradle.indexOf("tasks.register('attachmentJungguSegmentWorkerIntegrationTest'",start));
+  for(const text of ["'HWACHEON_SEGMENT'",'reports/attachment-hwacheon-worker','test-results/attachmentHwacheonWorkerIntegrationTest','maxParallelForks = 1'])assert(task.includes(text));
+  assert(gradle.includes("include 'com/saneb/db/HwacheonOfficialWorkerContract.class'"));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml','utf8').includes('HWACHEON_SEGMENT'));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml','utf8').includes('attachmentHwacheonWorkerIntegrationTest'));
 });
 
 test('화천 지원사업 사전 확인은 명시 task만 사용하고 자동 CI 외부 호출은 없다',()=>{

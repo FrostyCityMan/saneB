@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -54,6 +54,12 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("HWACHEON".equals(group)) {
+            String url="https://eminwon.ihc.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=32258&subCheck=N";
+            return Stream.of(new ObservationCase("HWACHEON-32258","2026년 화천군 중소기업 및 소상공인 육성자금 융자추천 및 이차보전 지원계획 공고",
+                    new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE","adef30798671fe61ce7a68021b596a06e86d843e483807d7c2a16e6c269a8d40",url,"LGS-000130","SAFE_SAEOL_EMINWON_LEGACY"),
+                    new HwacheonPostAttachmentDiscoveryProfile(),url,1,TitleLayout.HWACHEON_LABEL));
+        }
         if("GANGBUK".equals(group)) {
             String url="https://child.gangbuk.go.kr/portal/bbs/B0000245/view.do?menuNo=200082&nttId=179490";
             var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
@@ -302,6 +308,15 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
         Objects.requireNonNull(layout);
+        if(layout==TitleLayout.HWACHEON_LABEL) {
+            var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
+            var tables=forms.getFirst().select("table[width=100%][border=0][cellspacing=1][cellpadding=0]");
+            assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
+            var labels=table.select("th").stream().filter(e->e.closest("table")==table&&e.select("table").isEmpty()&&"제목".equals(e.text().strip())).toList();
+            assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");var cell=labels.getFirst().nextElementSibling();
+            assertTrue(cell!=null&&"td".equals(cell.tagName())&&cell.select("table,script,input").isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertTrue(normalized(expected).equals(normalized(cell.text())),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.GANGBUK_SUBJECT) {
             var forms=page.select("form#board");assertEquals(1,forms.size(),"DETAIL_IDENTITY_CHANGED");var form=forms.getFirst();
             var ids=form.children().stream().filter(e->"input".equals(e.tagName())&&"nttId".equals(e.attr("name"))).toList();

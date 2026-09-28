@@ -31,12 +31,13 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "BOEUN_LONG_FORM" -> List.of("BOEUN-221497");
             case "HAMAN_SEGMENT" -> List.of("HAMAN-41306");
             case "HAMAN_LAYOUT_SEGMENT" -> List.of("HAMAN-41306");
+            case "HWACHEON_SEGMENT" -> List.of("HWACHEON-32258");
             case "JUNGGU_SEGMENT" -> List.of("JUNGGU-33626");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
     }
     static boolean selectTitleStopExpected(String code) {
-        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON","BOEUN","HAMAN_SEGMENT","JUNGGU_SEGMENT")
+        boolean known=java.util.stream.Stream.of("YANGPYEONG","TAEBAEK","TAEBAEK_HWP","CHUNGJU","JECHEON","BOEUN","HAMAN_SEGMENT","JUNGGU_SEGMENT","HWACHEON_SEGMENT")
                 .flatMap(group->selectCaseCodes(group).stream()).anyMatch(code::equals);
         if(!known)throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
         return Set.of("YANGPYEONG-311507","CHUNGJU-72625","CHUNGJU-72039","JECHEON-403587").contains(code);
@@ -55,13 +56,14 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     }
     static boolean selectSegmentMode(String group) {
         selectCaseCodes(group);
-        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT").contains(group);
+        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT","HWACHEON_SEGMENT").contains(group);
     }
     static String selectSegmentVersion(String group) {
         if(!selectSegmentMode(group))throw new IllegalArgumentException("SEGMENT_MODE_REQUIRED");
-        return Set.of("BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT").contains(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
+        return Set.of("BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT","HWACHEON_SEGMENT").contains(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
     }
     static String selectObservationGroup(String group) {
+        if("HWACHEON_SEGMENT".equals(group))return "HWACHEON";
         if("JUNGGU_SEGMENT".equals(group))return "JUNGGU_PDF";
         if(Set.of("HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT").contains(group))return "HAMAN";
         return selectSegmentMode(group) ? "BOEUN" : group;
@@ -70,6 +72,8 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 24L : 80L)*1024*1024; }
     /** 명시한 새 검증에서 다른 추출기를 사용해 외부 요청을 소비하지 않는다. 기존 관측은 별도로 보존한다. */
     static void validatePinnedExtractor(String group,String version) {
+        if("HWACHEON_SEGMENT".equals(group)&&!"1.0.15".equals(version))
+            throw new IllegalArgumentException("HWACHEON_EXTRACTOR_VERSION_REQUIRED");
         if("HAMAN_LAYOUT_SEGMENT".equals(group)&&!"1.0.15".equals(version))
             throw new IllegalArgumentException("HAMAN_LAYOUT_EXTRACTOR_VERSION_REQUIRED");
     }
@@ -100,6 +104,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
         return "9ba9e2ea3391599cb34de6b3dd8eeb394ef3a35d23954f52e16a6ac2061d1d9f";
     }
     static boolean selectSegmentReportComplete(String group,com.fasterxml.jackson.databind.JsonNode report) {
+        if("HWACHEON_SEGMENT".equals(group))return HwacheonOfficialWorkerContract.selectComplete(report);
         if("JUNGGU_SEGMENT".equals(group))return selectJungguSegmentReportComplete(report);
         if("HAMAN_SEGMENT".equals(group))return selectHamanSegmentReportComplete(report);
         if("HAMAN_LAYOUT_SEGMENT".equals(group))return selectHamanSegmentReportComplete(report,true);

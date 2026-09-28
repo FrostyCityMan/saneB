@@ -596,6 +596,27 @@ tasks.register('attachmentHamanLayoutWorkerIntegrationTest', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentHamanLayoutWorkerIntegrationTest')
 }
 
+// 신규 화천 참조를 실제 worker/임시 DB/API에 연결한다. 실행은 별도 일회 예약 후에만 한다.
+tasks.register('attachmentHwacheonWorkerIntegrationTest', Test) {
+    description = '화천32258 전체HWP1개 1.0.15/구간1.0.4 worker·임시 DB/API. 최대5요청/24MiB, 별도 예약 필요.'
+    group = 'verification'
+    dependsOn ':attachment-extractor:installDist'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentOfficialWorkerIntegrationTest.class'
+    environment 'SANEB_ATTACHMENT_OFFICIAL_WORKER_QA', 'true'
+    systemProperty 'saneb.attachment-official-worker.group', 'HWACHEON_SEGMENT'
+    systemProperty 'saneb.attachment-qa.extractor-root', project(':attachment-extractor').layout.buildDirectory.dir('install/attachment-extractor').get().asFile.absolutePath
+    systemProperty 'saneb.attachment-official-worker.report', layout.buildDirectory.dir('reports/attachment-hwacheon-worker').get().asFile.absolutePath
+    systemProperty 'logback.configurationFile', layout.projectDirectory.file('src/attachmentContractQa/config/logback-qa.xml').asFile.absolutePath
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentHwacheonWorkerIntegrationTest')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentHwacheonWorkerIntegrationTest')
+}
+
 // 중구33626의 전체HWP/PDF를 명시1.0.4 worker와 임시 DB/API에 연결한다. 누적 한도 확대 승인 전 실행하지 않는다.
 tasks.register('attachmentJungguSegmentWorkerIntegrationTest', Test) {
     description = '중구 고정1건 전체2첨부 구간 worker/임시 DB/API 검증. 최대5요청/24MiB, 별도 승인 및 누적 예산 확인 필요.'
@@ -627,6 +648,7 @@ tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
     from(sourceSets.test.output.classesDirs) {
         include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerIntegrationTest*.class'
         include 'com/saneb/db/AnnouncementAttachmentOfficialWorkerProbe.class'
+        include 'com/saneb/db/HwacheonOfficialWorkerContract.class'
         include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsOfficialObservationTest*.class'
         include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'
         include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentOfficialObservationTest*.class'
