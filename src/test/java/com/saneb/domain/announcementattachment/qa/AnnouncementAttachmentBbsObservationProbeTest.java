@@ -11,6 +11,67 @@ import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsObservationProbeTest {
     private static final Instant START = Instant.parse("2026-09-22T01:00:00Z");
+    private List<JsonNode> jungguReports() throws Exception {
+        var rows=new ArrayList<JsonNode>();
+        for(int index=0;index<3;index++) {
+            var row=(ObjectNode)(index==1?dalseongReports().getFirst():dalseongReports().get(1));
+            String code=AnnouncementAttachmentBbsObservationProbe.JUNGGU_CASES.get(index);
+            row.put("caseCode",code).put("profileCode","LOCAL_DAEGU_JUNGGU_GET_V1")
+                    .put("profileHash","e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef")
+                    .put("rulesSource","EPHEMERAL_DB_DRAFT_SEED").put("rulesHash","a".repeat(64)).put("titleInputSource","FIXED_OFFICIAL_SAMPLE");
+            if(index==2) {
+                row.put("status","TITLE_NOT_ELIGIBLE_NOT_FETCHED").put("titleStage","COMBINATION_NOT_MATCHED")
+                        .put("titleReason","TITLE_COMBINATION_NOT_MATCHED").put("isWholeTextAnalysisComplete",false)
+                        .put("requiresFinalAdminVerification",false).put("requestReservationsIncludingBodyUpperBound",0).put("reservedBytesIncludingBodyUpperBound",0);
+                row.remove(List.of("bodyStatus","bodyStageComplete","bodyHash","discoveryStatus","discoveryComplete","discoveredFileCount","decisionStatus"));
+                row.putArray("files");
+            } else {
+                var hashes=AnnouncementAttachmentBbsObservationProbe.selectJungguBinaryHashes(code);
+                for(int f=0;f<hashes.size();f++) {
+                    var file=(ObjectNode)row.path("files").get(f);
+                    file.put("binaryHash",hashes.get(f)).put("format",index==0?"HWPX":f==0?"HWP":"PDF");
+                }
+            }
+            rows.add(row);
+        }
+        return rows;
+    }
+    private boolean validJunggu(List<JsonNode> rows) {
+        return AnnouncementAttachmentBbsObservationProbe.selectThreeReportsComplete(rows,START,START.plusSeconds(60),"JUNGGU",false);
+    }
+    @Test void jungguPinsAllThreeCasesIncludingNoRequestNegative() throws Exception {
+        assertEquals("JUNGGU_OBSERVATION",AnnouncementAttachmentBbsObservationProbe.selectMode(new String[]{"a".repeat(64),"JUNGGU_OBSERVATION"}));
+        assertTrue(validJunggu(jungguReports()));
+        assertFalse(validJunggu(jungguReports().subList(0,2)));
+        assertFalse(validJunggu(dalseongReports()));
+        var reordered=jungguReports();java.util.Collections.swap(reordered,0,1);assertFalse(validJunggu(reordered));
+        for(String key:List.of("profileHash","rulesHash","rulesSource","titleInputSource","caseCode","observedAt")) {
+            var rows=jungguReports();((ObjectNode)rows.getFirst()).put(key,"changed");assertFalse(validJunggu(rows),key);
+        }
+    }
+    @Test void jungguTitleStopCannotContainAnyRequestOrDownstreamCompletion() throws Exception {
+        for(String key:List.of("requestReservationsIncludingBodyUpperBound","reservedBytesIncludingBodyUpperBound","productionWriteCount")) {
+            var rows=jungguReports();((ObjectNode)rows.get(2)).put(key,1);assertFalse(validJunggu(rows),key);
+        }
+        for(String key:List.of("bodyStatus","bodyHash","bodyStageComplete","discoveryStatus","discoveredFileCount","decisionStatus")) {
+            var rows=jungguReports();((ObjectNode)rows.get(2)).putNull(key);assertFalse(validJunggu(rows),key);
+        }
+        for(String key:List.of("isWholeTextAnalysisComplete","requiresFinalAdminVerification","isPolicyQaPassed","isExpectationApproved")) {
+            var rows=jungguReports();((ObjectNode)rows.get(2)).put(key,true);assertFalse(validJunggu(rows),key);
+        }
+        var rows=jungguReports();((ObjectNode)rows.get(2)).withArray("files").addObject();assertFalse(validJunggu(rows));
+    }
+    @Test void jungguWholeSetRejectsChangedBinaryMissingFileOrFalseApproval() throws Exception {
+        for(String key:List.of("format","binaryHash","extractorVersion","quality","segmentAnalysisHash")) {
+            var rows=jungguReports();((ObjectNode)rows.get(1).at("/files/1")).put(key,"changed");assertFalse(validJunggu(rows),key);
+        }
+        var rows=jungguReports();((ObjectNode)rows.get(1)).withArray("files").remove(1);assertFalse(validJunggu(rows));
+        for(String key:List.of("isExpectationApproved","isPolicyQaPassed")) {
+            rows=jungguReports();((ObjectNode)rows.getFirst()).put(key,true);assertFalse(validJunggu(rows),key);
+        }
+        rows=jungguReports();((ObjectNode)rows.getFirst()).put("requestReservationsIncludingBodyUpperBound",7);assertFalse(validJunggu(rows));
+        rows=jungguReports();((ObjectNode)rows.getFirst()).put("bodyStageComplete",false);assertFalse(validJunggu(rows));
+    }
     private List<JsonNode> okcheonReports() {
         var reports = new ArrayList<JsonNode>();
         for (String code : AnnouncementAttachmentBbsObservationProbe.OKCHEON_CASES) {

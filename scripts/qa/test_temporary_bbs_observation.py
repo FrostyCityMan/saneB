@@ -20,6 +20,66 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def junggu_report(self):
+        hashes=[['4a544f3c98451eb7c002c626157c2b92468962c14756f7b38e3e218954b1b554'],
+                ['ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6','6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c'],[]]
+        rows=[]
+        for index,code in enumerate(self.runner['SCOPES']['JUNGGU_OBSERVATION'][1]):
+            count=2 if index==1 else 1
+            row=dict(caseCode=code,scope='OFFICIAL_THREE_STAGE_OBSERVATION_V1',profileCode='LOCAL_DAEGU_JUNGGU_GET_V1',
+                profileHash='e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef',
+                rulesSource='EPHEMERAL_DB_DRAFT_SEED',rulesHash='a'*64,titleInputSource='FIXED_OFFICIAL_SAMPLE',
+                productionWriteCount=0,isPolicyQaPassed=False,isExpectationApproved=False,originalFilesRemoved=True,
+                expectedListedFileCount=count,maximumRequestReservations=6,maximumReservedBytes=24117248)
+            if index==2:
+                row.update(status='TITLE_NOT_ELIGIBLE_NOT_FETCHED',titleStage='COMBINATION_NOT_MATCHED',titleReason='TITLE_COMBINATION_NOT_MATCHED',
+                    requiresFinalAdminVerification=False,isWholeTextAnalysisComplete=False,requestReservationsIncludingBodyUpperBound=0,reservedBytesIncludingBodyUpperBound=0,files=[])
+            else:
+                row.update(status='OBSERVED_NOT_VALIDATED',titleStage='COMBINATION_MATCHED',requiresFinalAdminVerification=True,
+                    bodyStatus='AVAILABLE',bodyStageComplete=True,discoveryStatus='FOUND',discoveryComplete=True,discoveredFileCount=count,
+                    requestReservationsIncludingBodyUpperBound=count+3,reservedBytesIncludingBodyUpperBound=3000000,
+                    isWholeTextAnalysisComplete=True,decisionStatus='REVIEW_REQUIRED',
+                    files=[dict(binaryHash=value,status='OBSERVED',quality='COMPLETE_TEXT',format='HWPX' if index==0 else 'HWP' if number==0 else 'PDF') for number,value in enumerate(hashes[index])])
+            rows.append(row)
+        return dict(kind='BBS_OBSERVATION_PROBE',verificationMode='JUNGGU_OBSERVATION',status='PASSED',productionDatabaseUsed=False,
+            isPolicyQaPassed=False,isExpectationApproved=False,found=3,passed=3,failed=0,skipped=0,aborted=0,failedContainers=0,reports=rows)
+
+    def test_junggu_scope_keeps_all_references_and_prior_budget_without_operating_installation(self):
+        mode='JUNGGU_OBSERVATION';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('JUNGGU-THREE-NOTICES',['JUNGGU-34196','JUNGGU-33626','JUNGGU-33315'],12,48234496),scope)
+        self.assertLessEqual(13+scope[2],30);self.assertLessEqual(6908001+scope[3],78*1024*1024)
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'^MANIFEST_SCOPE_INVALID$'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=scope[1][:2]),mode)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+        self.assertEqual([mode],self.unit['select_probe_arguments'](mode))
+        self.unit['validate_probe_scope'](self.junggu_report(),mode)
+
+    def test_junggu_negative_rejects_network_budget_files_or_downstream_fields(self):
+        for key,value in [('requestReservationsIncludingBodyUpperBound',1),('reservedBytesIncludingBodyUpperBound',1),
+                ('productionWriteCount',True),('bodyStatus',None),('bodyHash',None),('bodyStageComplete',False),('discoveryStatus','FOUND'),
+                ('discoveredFileCount',0),('decisionStatus','ACCEPTED'),('files',[{}]),('isWholeTextAnalysisComplete',True),
+                ('requiresFinalAdminVerification',True),('isExpectationApproved',True),('rulesHash','bad')]:
+            report=self.junggu_report();report['reports'][2][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+
+    def test_junggu_whole_set_rejects_wrong_fingerprint_missing_file_and_false_success(self):
+        for key,value in [('binaryHash','a'*64),('format','HWP'),('quality','FAILED'),('status','FAILED')]:
+            report=self.junggu_report();report['reports'][1]['files'][1][key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+        for key,value in [('found',2),('passed',True),('skipped',1),('productionDatabaseUsed',True)]:
+            report=self.junggu_report();report[key]=value
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+        report=self.junggu_report();report['reports'][1]['files'].pop()
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+        report=self.junggu_report();report['reports'][0]['files'][0]['quality']='PARTIAL_TEXT';report['reports'][0]['isWholeTextAnalysisComplete']=False
+        self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+        report['reports'][0]['decisionStatus']='ACCEPTED'
+        with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,'JUNGGU_OBSERVATION')
+
     def test_haman_segment_worker_keeps_partial_review_and_strict_stored_evidence(self):
         import copy
         mode='HAMAN_SEGMENT';scope=self.runner['SCOPES'][mode]

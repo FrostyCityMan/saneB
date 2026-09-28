@@ -88,7 +88,10 @@ test('고정 관측과 남구 단일 구조 진단 모드만 호출한다', () =
   assert(java.includes('"saneb.attachment-observation.diagnostic-budget", Boolean.toString(diagnostic)'));
   assert(java.includes('System.setProperty("saneb.attachment-observation.group", group)'));
   assert(source.includes('"$5" == NAMGU_OBSERVATION'));
-  assert(java.includes('String group = haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK"'));
+  assert(java.includes('String group = junggu?"JUNGGU":haman?"HAMAN":header?"DALSEONG_HEADER":dalseong?"DALSEONG":structure?"NAMGU_STRUCTURE":namgu ? "NAMGU" : boeun ? "BOEUN" : okcheon ? "OKCHEON" : "TAEBAEK"'));
+  assert(source.includes('"$5" == JUNGGU_OBSERVATION'));
+  assert(java.includes('junggu?JUNGGU_CASES:haman?List.of("HAMAN-41306")'));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml', 'utf8').includes('JUNGGU_OBSERVATION'));
   assert(java.includes('structure||header||haman?selectComplete'));
   assert(source.includes('"$5" == DALSEONG_HEADER'));
   assert(source.includes('"$5" == DALSEONG_OBSERVATION'));

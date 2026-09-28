@@ -61,7 +61,14 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThat(value.path("schemaVersion").asInt()).isEqualTo(6);
         assertThat(value.path("providerQaPlan").path("summary").path("targetCount").asInt()).isEqualTo(3);
         assertThat(value.path("providerQaCatalog").path("catalogHash").asText()).matches("[0-9a-f]{64}");
-        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(37);
+        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(40);
+        var junggu=java.util.stream.StreamSupport.stream(value.path("providerQaCatalog").path("cases").spliterator(),false)
+                .filter(row->row.path("caseCode").asText().startsWith("JUNGGU-")).toList();
+        assertThat(junggu).extracting(row->row.path("caseCode").asText()).containsExactly("JUNGGU-33315","JUNGGU-33626","JUNGGU-34196");
+        assertThat(junggu).allSatisfy(row->{
+            assertThat(row.path("statusCode").asText()).isEqualTo("TARGET_OUTSIDE_SCOPE");
+            assertThat(row.hasNonNull("inputHash")).isFalse();assertThat(row.path("normalNotice").asBoolean()).isFalse();
+        });
         assertThat(value.path("providerQaCatalog").path("executableCount").asInt()).isZero();
         assertThat(value.path("providerQaCatalog").path("isQaPassed").asBoolean()).isFalse();
         assertThat(value.path("installed").path("workerDbQa").path("caseIds").size()).isEqualTo(4);

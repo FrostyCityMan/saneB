@@ -53,17 +53,8 @@ class SaeolAttachmentProfileLiveQaTest {
 
     static void validateJungguTitle(org.jsoup.nodes.Document page,String expected) {
         assertTrue(expected!=null && JUNGGU_SUPPORT_TITLES.containsValue(expected),"FIXED_TITLE_REQUIRED");
-        var forms=page.select("form[name=form1][method=post]");
-        assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
-        var tables=forms.getFirst().select("table.boardView");
-        assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");
-        var table=tables.getFirst();
-        var labels=table.select("th").stream().filter(e -> e.closest("table")==table
-                && e.select("table").isEmpty() && "제목".equals(e.text().strip())).toList();
-        assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");
-        var cell=labels.getFirst().nextElementSibling();
-        assertTrue(cell!=null && "td".equals(cell.tagName()) && cell.select("table").isEmpty(),"TITLE_STRUCTURE_CHANGED");
-        assertEquals(expected.replaceAll("\\s+"," ").strip(),cell.text().replaceAll("\\s+"," ").strip(),"TITLE_CHANGED");
+        com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,expected,
+                com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.JUNGGU_LABEL);
     }
 
     static final Map<String, String> NAMGU_SUPPORT_TITLES = com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NAMGU")
