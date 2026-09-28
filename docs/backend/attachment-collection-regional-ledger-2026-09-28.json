@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 22,
-    "missingProfileRegionCount": 201,
-    "collectionVerifiedRegionCount": 8,
-    "remainingRegionCount": 215
+    "registeredRegionCount": 24,
+    "missingProfileRegionCount": 199,
+    "collectionVerifiedRegionCount": 9,
+    "remainingRegionCount": 214
   },
   "regions": [
     {
@@ -723,27 +723,95 @@
       "sourceCode": "LGS-000041",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000041",
+          "caseCode": "SUYEONG-38884",
+          "profileCode": "LOCAL_SUYEONG_GET_V1",
+          "profileHash": "5e2a236471b37107850cc60927e986aef3f482cb690ea5c67e3a69709210e241",
+          "receiptHash": "3d1da10972d5d514098f06311e0dcde58b8d84637afe8d136beb7635d01e1584",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000041",
+          "caseCode": "SUYEONG-39601",
+          "profileCode": "LOCAL_SUYEONG_GET_V1",
+          "profileHash": "5e2a236471b37107850cc60927e986aef3f482cb690ea5c67e3a69709210e241",
+          "receiptHash": "83fdfe4f6c32a77153959740e589b31057559a9935049e20f70aeabc9a70bc94",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000041",
+          "caseCode": "SUYEONG-40142",
+          "profileCode": "LOCAL_SUYEONG_GET_V1",
+          "profileHash": "5e2a236471b37107850cc60927e986aef3f482cb690ea5c67e3a69709210e241",
+          "receiptHash": "3ed6b33550a62f0fa4eb5ed3b9cc5e944555a379b5e708c39d1b56415d5128a4",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000042",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 2,
+      "downloadedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000042",
+          "caseCode": "SASANG-40426",
+          "profileCode": "LOCAL_SASANG_GET_V1",
+          "profileHash": "de92fea2368dc95631ff69bc6bdeaa1e0faad2360f03517b7bb3282d81d80159",
+          "receiptHash": "4bbc444d41e4146dc53db8cbed02269f5b538a47cd33e7a43d3b4ba3dcbccd12",
+          "fileCount": 3,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000042",
+          "caseCode": "SASANG-40734",
+          "profileCode": "LOCAL_SASANG_GET_V1",
+          "profileHash": "de92fea2368dc95631ff69bc6bdeaa1e0faad2360f03517b7bb3282d81d80159",
+          "receiptHash": "0d30b8c7b0b03d3857606852c78fc179155a456d82eb9225c2aeea51635ef9df",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000042",
+          "caseCode": "SASANG-40870",
+          "profileCode": "LOCAL_SASANG_GET_V1",
+          "profileHash": "de92fea2368dc95631ff69bc6bdeaa1e0faad2360f03517b7bb3282d81d80159",
+          "receiptHash": "387427190a8a82b60db7ad9e4db0ab458fb8581fe342f25cd08677cf5245d711",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000043",
@@ -3622,9 +3690,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "d0d3c3de8adb83e00273688e899731edf500e1835c6cfc1145b8b766ecb4ddb2",
+  "inputInventorySha256": "099b00fd55e840adda5756c47529fef130edef2ad44af15f4ec188908fe7fba1",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 56,
+  "importedReceiptCount": 62,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -3688,6 +3756,30 @@
     "junitReportHashes": {
       "BUSANJIN": "c79d7f57bb52e8d64ca49e59817490d2a813a194f616270f2dfc48bd9a627de4",
       "GEUMJEONG": "c45bbd7781b5443a4467437878ba50b911327a985b55e872627d285a7ebcf842"
+    }
+  },
+  "busanStructuredCollectionRun": {
+    "groups": [
+      "SUYEONG",
+      "SASANG"
+    ],
+    "tests": 6,
+    "failures": 1,
+    "skipped": 0,
+    "failureCase": "SASANG-40426",
+    "failureReason": "UNSUPPORTED_JPEG_WHOLE_SET_INCOMPLETE",
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 17,
+    "surveyStoredHtmlBytes": 158908,
+    "requestReservations": 27,
+    "reservedBytes": 13341500,
+    "downloadedFiles": 9,
+    "downloadedBytes": 724745,
+    "junitReportHashes": {
+      "SUYEONG": "aacb2355202e4825f90ba80cdbf682376e32914fac6633635efc6be9f60e72ae",
+      "SASANG": "a59c113705dee6a4091ef2147460edb9286861286eb7631023afaaae49acadb4"
     }
   }
 }

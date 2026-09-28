@@ -387,7 +387,11 @@
             "quality": "COMPLETE_TEXT",
             "minimumCharacters": 2041,
             "minimumBlocks": 62,
-            "requiredPhrases": ["청년농업인", "취업농", "신청서"],
+            "requiredPhrases": [
+              "청년농업인",
+              "취업농",
+              "신청서"
+            ],
             "roleExpectation": {
               "ruleVersion": "document-role-1.0.2",
               "rulesHash": "64f2b87552384a1f786226e12179016dff00b6555f55dce27af50ad279853357",
@@ -406,7 +410,12 @@
             "quality": "COMPLETE_TEXT",
             "minimumCharacters": 1994,
             "minimumBlocks": 117,
-            "requiredPhrases": ["청년농업인", "취업농", "신청서", "서명"],
+            "requiredPhrases": [
+              "청년농업인",
+              "취업농",
+              "신청서",
+              "서명"
+            ],
             "roleExpectation": {
               "ruleVersion": "document-role-1.0.2",
               "rulesHash": "64f2b87552384a1f786226e12179016dff00b6555f55dce27af50ad279853357",
@@ -686,6 +695,78 @@
         "sourceUrl": "https://eminwon.busanjin.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=45554&subCheck=Y",
         "localSourceCode": "LGS-000032",
         "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SUYEONG-40142",
+      "profileCode": "LOCAL_SUYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b57cb4174b64dc09544fde317da6c7d773e4663554feea0b41cdda74768077dc",
+        "sourceUrl": "https://eminwon.suyeong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=40142&subCheck=Y",
+        "localSourceCode": "LGS-000041",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SUYEONG-39601",
+      "profileCode": "LOCAL_SUYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8a965a6b0c9d139207ed68c04cec5b182eed5b1207b6a9381bc8fd2a2ec48550",
+        "sourceUrl": "https://eminwon.suyeong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=39601&subCheck=Y",
+        "localSourceCode": "LGS-000041",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SUYEONG-38884",
+      "profileCode": "LOCAL_SUYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "58cfdda115044dae665672c77c9427909fc36e6a8391b3f3852614366eb2efc3",
+        "sourceUrl": "https://eminwon.suyeong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=38884&subCheck=Y",
+        "localSourceCode": "LGS-000041",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SASANG-40870",
+      "profileCode": "LOCAL_SASANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "5d37fff60a8910548957d7f9e6c91706a45c871d5b1f2ce7bd5041a9c03e58ed",
+        "sourceUrl": "https://eminwon.sasang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=40870&subCheck=Y",
+        "localSourceCode": "LGS-000042",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SASANG-40734",
+      "profileCode": "LOCAL_SASANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fd5d0c92fb65e66c7fbcee592d4dc6dcbf0516490a692e982da6f40f5504aa5e",
+        "sourceUrl": "https://eminwon.sasang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=40734&subCheck=Y",
+        "localSourceCode": "LGS-000042",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SASANG-40426",
+      "profileCode": "LOCAL_SASANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "64ced1cdacd3d49255337cfa7a4503cbb278617bd12ef4855376ea850a03dc70",
+        "sourceUrl": "https://eminwon.sasang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=40426&subCheck=Y",
+        "localSourceCode": "LGS-000042",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
     }

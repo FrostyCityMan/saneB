@@ -137,7 +137,7 @@ class SaeolGetAttachmentDiscoveryProfileTest {
     @Test void springRegistryContainsSevenSeparateImmutableSystemProfiles() {
         try (var context = new AnnotationConfigApplicationContext(SaeolGetAttachmentProfileConfiguration.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(7);
+            assertThat(registry.selectProfileList()).hasSize(9);
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             registry.selectProfileList().forEach(profile -> {
                 assertThat(profile.selectProfileHash()).matches("[0-9a-f]{64}");

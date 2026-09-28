@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -54,6 +54,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("SUYEONG".equals(group)) return Stream.of(
+                selectBusanStructuredCase(group,"40142","2026년 소상공인 영업용 전기차(전기이륜차포함) 구입비 지원 사업 변경 공고",1),
+                selectBusanStructuredCase(group,"39601","2026년 소상공인 영업용 전기차(전기이륜차포함) 구입비 지원 사업 시행 공고",1),
+                selectBusanStructuredCase(group,"38884","「2026년 수영구 청년 자격증 등 시험 응시료 지원 사업」지원대상자 접수 공고",2));
+        if("SASANG".equals(group)) return Stream.of(
+                selectBusanStructuredCase(group,"40870","2026년 동네 청년활동공간 활성화 지원사업(사상청년브릿지) 보조사업자 선정 공고",1),
+                selectBusanStructuredCase(group,"40734","「동네 청년 활동공간 활성화 지원사업」 보조사업자 모집공고",2),
+                selectBusanStructuredCase(group,"40426","「2026년 사상구 청년활동지원공모사업」참여단체 모집 공고",3));
         if("BUSANJIN".equals(group)) return Stream.of(
                 selectBusanSupportCase(group,"51342","부산진구 청년 취업역량강화 자격시험 응시료 지원사업 공고",1),
                 selectBusanSupportCase(group,"50698","2026년 부산진구 노인일자리 및 사회활동 지원사업 참여자 모집 공고",1),
@@ -148,6 +156,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectBusanStructuredCase(String group,String id,String title,int count) {
+        boolean suyeong="SUYEONG".equals(group);
+        if(!suyeong&&!"SASANG".equals(group))throw new IllegalArgumentException("UNKNOWN_BUSAN_STRUCTURED_GROUP");
+        String host=suyeong?"eminwon.suyeong.go.kr":"eminwon.sasang.go.kr";
+        String url="https://"+host+"/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        var config=new SaeolGetAttachmentProfileConfiguration();
+        return new ObservationCase(group+"-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                n.hash(n.canonicalizeUrl(url)),url,suyeong?"LGS-000041":"LGS-000042",suyeong?"SAFE_SAEOL_EMINWON_COMPACT":"SAFE_SAEOL_EMINWON"),
+                suyeong?config.selectSuyeongProfileDetails():config.selectSasangProfileDetails(),url,count,
+                suyeong?TitleLayout.SUYEONG_HEADING:TitleLayout.SASANG_HEADER);
     }
     private static ObservationCase selectBusanSupportCase(String group,String id,String title,int count) {
         boolean busanjin="BUSANJIN".equals(group);
@@ -394,6 +414,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        if(layout==TitleLayout.SUYEONG_HEADING||layout==TitleLayout.SASANG_HEADER) {
+            var forms=page.select("form");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");var form=forms.getFirst();
+            assertEquals("form1",form.attr("name"),"TITLE_STRUCTURE_CHANGED");assertEquals("post",form.attr("method").toLowerCase(Locale.ROOT),"TITLE_STRUCTURE_CHANGED");
+            var containers=form.select(layout==TitleLayout.SUYEONG_HEADING?"div.view01":"table.basic");assertEquals(1,containers.size(),"TITLE_STRUCTURE_CHANGED");
+            var titles=containers.getFirst().select(layout==TitleLayout.SUYEONG_HEADING?":root > h3":"thead.tb > tr > th.fi_la[colspan=2]");
+            assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");assertTrue(titles.getFirst().children().isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertEquals(normalized(expected),normalized(titles.getFirst().text()),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.BUSANJIN_LABEL) {
             var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
             var tables=forms.getFirst().select("table.jin_gosi_table");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");
@@ -522,7 +550,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
-            boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1","LOCAL_DONGNAE_GET_V1","LOCAL_BUSANJIN_GET_V1","LOCAL_GEUMJEONG_GET_V1").contains(profile.selectProfileCode());
+            boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1","LOCAL_DONGNAE_GET_V1","LOCAL_BUSANJIN_GET_V1","LOCAL_GEUMJEONG_GET_V1","LOCAL_SUYEONG_GET_V1","LOCAL_SASANG_GET_V1").contains(profile.selectProfileCode());
             boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
             boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
             boolean standardCollection=Set.of("LOCAL_HOENGSEONG_BBS_V1","LOCAL_YEONGWOL_BBS_V1").contains(profile.selectProfileCode());
