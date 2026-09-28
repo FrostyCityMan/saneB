@@ -11,6 +11,14 @@
 
 ## 기준선
 
+### 2026-09-28 HWP1.0.13 동일 실파일 개선 확인·Linux 회귀 종료
+
+- [x] 직전 전송/CI 대기는 종료됐다. 기존 실행73efbca8e9e74d27bbcbdfa340eec7e7만 추적하여 SSM db885cf7-1780-4057-9158-ed953e2b20d4 Success/exit0, probe25.285초/1통과를 확인했다. [대조표·지문·누적예산·정리](announcement-hwp-auto-number-v1.0.13-2026-09-28.md)에 기록했다.
+- [x] 동일 본문89자·HWP101,888byte/binary/locator 유지, 추출4644→4647자·213→214블록·미지원control3→2다. 미지원record2와 PARTIAL_TEXT/REVIEW_REQUIRED는 유지한다. 새 정상 기대값·정책QA·구간worker DB/API 성공으로 확대하지 않는다.
+- [x] 소스385eab7 Linux36380565956 completed/success. 보관XML root3053=2760통과/293조건부생략·실패/오류0, 추출기188·패키지20·jobDB209·migration18·정책부모2·runtime5·worker12·Flyway3 실패/오류/생략0을 확인했다.
+- [x] 함안 누적27/60요청·17,315,986/100,663,296byte. 원본/임시자원/unit/서버전송·소유S3/localZIP 정리, plan/result 보존, 운영JAR불변/healthUP·운영DB미사용/쓰기0이다. QA용 전송ZIP만 제거했으며 사용자 output/·scripts/qa/__pycache__/와 기존 프로세스는 보존했다.
+- [~] catalog37참조/13지역/기대값1/정상0, 전체9Gate=8부분/1차단·goal active. 부분 추출/구간 검수·전체 수집원 정상 기대값·운영 적용/기존 데이터/동일SHA E2E가 남는다. 현재 정책상 브라우저 미실행, 운영 배포·정책/재분류 변경0이다.
+
 ### 2026-09-28 HWP1.0.13 실파일 대조 착수·한글 영수증 복원
 
 - [x] 직전 자동 번호 복원 구현은 progress다. 동일 소스385eab7/원격SHA 일치와 Linux36380565956 실행 중을 확인했다. AWS 인증·서울 대상/기존 배포를 재확인하고 고정 함안1건 대조 전송을 시작했다. [실행 계획·지문·상한·중복 제출 방지](announcement-hwp-auto-number-v1.0.13-2026-09-28.md)에 기록했다.

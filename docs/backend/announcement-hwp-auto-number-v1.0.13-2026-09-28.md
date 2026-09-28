@@ -46,3 +46,24 @@ AWS 인증과 repo 계정/서울의 기존 배포 대상1대·SSM Online·배포
 - Node6/Python26·로컬 누적 원장 정상/실패 케이스·PowerShell 구문3파일을 통과했다. helper/plan은 build 아래 로컬 산출물이지 Git의 공용 배포 코드가 아니다.
 
 동일 실행을 재제출하지 않는다. 전송 관측 timeout은 실행 실패가 아니므로 같은 handle/command ID를 확인한다. 이전1.0.12 DB/API 검증은 보존하며 이번1.0.13 추출 관측의 성공이나 정상 기대값으로 대체하지 않는다. 외부 수집 사용량은 결과 전까지 임의로0 또는 성공으로 확정하지 않는다.
+
+## 2026-09-28 서울 대조 종료·동일 소스 Linux 결과
+
+- [x] 위 실행의 SSM `db885cf7-1780-4057-9158-ed953e2b20d4`는 Success/exit0이다. 전송 대기 후 같은 실행만 추적했으며 실제 probe는25.285초/1통과·실패/생략0이다. 관측시각은2026-09-28T05:21:37.148440825Z다.
+- [x] 이전1.0.12 영수증과 직접 대조했다. 본문89자/본문hash·전체HWP1개101,888byte/binaryhash·locatorhash는 동일하다. 새1.0.13 결과는 아래와 같다.
+
+| 비교 항목 | 1.0.12 | 1.0.13 |
+|---|---:|---:|
+| 추출 문자 수 | 4,644 | 4,647 |
+| 근거 블록 수 | 213 | 214 |
+| UNSUPPORTED_RECORD | 2 | 2 |
+| UNSUPPORTED_CONTROL | 3 | 2 |
+| 추출 품질 | PARTIAL_TEXT | PARTIAL_TEXT |
+
+- 새 textHash는 `88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a`다. 자동 번호 지원 증분에서 같은 파일의3자/1블록 증가를 확인했다. 원문은 보관하지 않았으며 구조 metadata의 GSO/쪽 번호와 남은 부분 사유를 개별 일대일 원인으로 확정하지 않는다. BODY_COMBINATION_NOT_CONFIRMED·ATTACHMENT_INCOMPLETE/REVIEW_REQUIRED를 유지한다. 전체문자분석·정책QA·기대값승인은 false다.
+- [x] 사용량4요청/2,204,906byte를 기존 원장에 더해 누적 **27/60요청·17,315,986/100,663,296byte**다. 예산 초기화나 모드 변경으로 사용량을 숨기지 않는다. 다음 외부 실행 전 이번 영수증을 누적 보호 조건에 추가해야 한다.
+- [x] result.json SHA256 `fbaebd9e87f89b94c8d4e889b8bf2adc4c64ac89b9b9739a93bad7308bbcda1a`. 원본/probe 임시 자원·unit·서버 전송파일 정리, 운영JAR불변/healthUP, 운영DB미사용/쓰기0을 확인했다. 소유 S3 객체 정리 후 plan.cleaned=true와 정확한 경로/ZIP hash를 확인하여 이번 local package.zip만 삭제했다. plan/result는 보존했다. 사용한 Node/AWS 프로세스도 종료했다.
+- [x] [동일 소스 Linux36380565956](https://github.com/FrostyCityMan/saneB/actions/runs/36380565956)은 completed/success다. `build/qa-results/linux-36380565956`의 보관 XML: root249suite/3053건=2760통과·293조건부생략·실패/오류0. 추출기188·패키지20·jobDB209·migration18·정책부모2·runtime5·worker12·Flyway3은 실패/오류/생략0이다. Windows AppControl 실패 이력은 보존하며 Linux 결과로 덮어쓰지 않는다.
+- [~] 이 실행은 전체1파일 관측이며 새1.0.13 구간 worker 저장/DB/API 및 인증 브라우저 검증이 아니다. 정상 기대값을 추가하지 않았다. catalog는37참조/13지역/기대값1/정상0이다. 미등록참조6프로필과 각 프로필 정상3건·해당파일형식 검증, 부분 추출·구간 검수 해소, 운영 적용·기존데이터·동일SHA E2E가 남는다. 전체9Gate=8부분/1차단과 장기 goal active를 유지한다.
+
+실행 명령: 기존 `TemporaryRun` handle 회수 → 같은 plan의 `TemporaryPoll` → terminal 확인 후 `TemporaryCleanup`, `gh run view/download 36380565956`, Node JSON 대조/JUnit 집계. 운영 배포·정책 게시·ENFORCE·기존데이터 재분류는 수행하지 않았다. 브라우저는 현재 명시 요청 정책상 미실행이다.
