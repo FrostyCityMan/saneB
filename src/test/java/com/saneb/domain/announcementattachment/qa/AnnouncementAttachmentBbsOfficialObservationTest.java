@@ -186,6 +186,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
 
     @ParameterizedTest(name="{0}") @MethodSource("selectConfiguredCases") @Timeout(420)
     void observesTitleBodyAndWholeAttachmentSetWithoutPublication(ObservationCase sample) throws Exception {
+        boolean collectionOnly=Boolean.getBoolean("saneb.attachment-observation.collection-only");
         var profile=sample.profile();var source=sample.source();
         var report=new LinkedHashMap<String,Object>();
         report.put("scope","OFFICIAL_THREE_STAGE_OBSERVATION_V1");report.put("caseCode",sample.code());report.put("observedAt",Instant.now().toString());
@@ -193,11 +194,12 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         report.put("profileCode",profile.selectProfileCode());report.put("profileHash",profile.selectProfileHash());
         report.put("isPolicyQaPassed",false);report.put("isExpectationApproved",false);report.put("productionWriteCount",0);
         report.put("status","INCOMPLETE");report.put("expectedListedFileCount",sample.listedFileCount());
+        report.put("collectionOnly",collectionOnly);report.put("isExtractionVerified",false);
         report.put("isWholeTextAnalysisComplete",false);
         var rows=new ArrayList<Map<String,Object>>();report.put("files",rows);
         var budget=new Budget(profile, Boolean.getBoolean("saneb.attachment-observation.diagnostic-budget"));Path temporary=null;String stage="RUNTIME";
         try(var client=new AttachmentPinnedDownloadClient()) {
-            assertTrue(System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")
+            assertTrue(collectionOnly || System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")
                     &&Files.isExecutable(Path.of("/usr/bin/bwrap"))&&Files.isExecutable(Path.of("/usr/bin/prlimit")),"LINUX_ISOLATION_REQUIRED");
             var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
             report.put("rulesSource","EPHEMERAL_DB_DRAFT_SEED");report.put("rulesHash",AnnouncementAttachmentOfficialObservationTest.selectHash(rules));
@@ -249,7 +251,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 assertEquals(GANGBUK_LOCATORS,rows.stream().map(row->row.get("locatorHash")).toList(),"OFFICIAL_FILE_LIST_CHANGED");
                 assertEquals(List.of("HWPX","HWP","HWPX","HWPX"),rows.stream().map(row->row.get("formatHint")).toList(),"OFFICIAL_FILE_FORMAT_CHANGED");
             }
-            var extractor=new IsolatedAttachmentExtractor(JSON,System.getProperty("saneb.attachment-observation.extractor"));var files=new ArrayList<FileInput>();
+            var extractor=collectionOnly?null:new IsolatedAttachmentExtractor(JSON,System.getProperty("saneb.attachment-observation.extractor"));var files=new ArrayList<FileInput>();
             for(int i=0;i<discovered.descriptors().size();i++) {
                 var descriptor=discovered.descriptors().get(i);var row=rows.get(i);Path binary=temporary.resolve(UUID.randomUUID()+".bin");
                 if(!descriptor.downloadAllowed()) {row.put("status","UNSUPPORTED_NOT_DOWNLOADED");files.add(incompleteFile("UNSUPPORTED"));continue;}
@@ -259,7 +261,9 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                     var bytes=selectFileDownload(profile,fileRequest,binary,budget,client,transfer);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
                     String format=new AttachmentFileTypeValidator().selectFormat(binary,bytes,descriptor.expectedFormat(),profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
-                    row.put("format",format);stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
+                    row.put("format",format);
+                    if(collectionOnly) {row.put("status","DOWNLOADED");continue;}
+                    stage="ISOLATED_EXTRACTION";var actual=extractor.selectExtraction(binary);
                     assertEquals(format,actual.path("format").asText(),"EXTRACTED_FORMAT_CHANGED");
                     row.put("quality",actual.path("qualityCode").asText());
                     row.put("extractorVersion",actual.path("extractorVersion").asText());
@@ -268,6 +272,11 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                     files.add(selectFileInput(actual,JSON.valueToTree(observation)));row.put("status","OBSERVED");
                 } catch(Exception|AssertionError failure) {row.put("status","FAILED");row.put("failedStage",stage);row.put("failureCode",AnnouncementAttachmentOfficialObservationTest.selectFailureCode(failure));files.add(incompleteFile("EXTRACTION_FAILED"));}
                 finally {row.put("downloadTrace",transfer.selectSnapshot());Files.deleteIfExists(binary);}
+            }
+            if(collectionOnly) {
+                stage="COLLECTION_COMPLETENESS";
+                saveCollectionOnlySummary(report,rows,sample.listedFileCount());
+                return;
             }
             stage="COMBINED_CLASSIFICATION";
             var decision=new AnnouncementAttachmentClassificationEngine().selectDecision(new Input(base,rules,true,discovered.status(),discovered.complete(),files,null,List.of()));
@@ -288,6 +297,16 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             Path output=Path.of(System.getProperty("saneb.attachment-observation.report")).toAbsolutePath().normalize();Files.createDirectories(output);
             JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
         }
+    }
+    static void saveCollectionOnlySummary(Map<String,Object> report,List<Map<String,Object>> rows,int expectedCount) {
+        assertEquals(expectedCount,rows.size(),"OFFICIAL_FILE_LIST_CHANGED");
+        assertTrue(rows.stream().allMatch(row->"DOWNLOADED".equals(row.get("status"))),"WHOLE_SET_DOWNLOAD_INCOMPLETE");
+        report.put("status","COLLECTION_ONLY_OBSERVED_NOT_APPROVED");
+        report.put("collectionStageComplete",true);
+        report.put("isWholeTextAnalysisComplete",false);
+        report.put("isExtractionVerified",false);
+        report.put("isPolicyQaPassed",false);
+        report.put("isExpectationApproved",false);
     }
     public static boolean selectTitleMayProceed(AnnouncementSourceClassificationResult result) {return result.semanticStatusCode()!=SemanticStatusCode.EXCLUDED
             &&Set.of(TitleStageCode.GROUP_A_MATCHED,TitleStageCode.COMBINATION_MATCHED).contains(result.titleStageCode());}

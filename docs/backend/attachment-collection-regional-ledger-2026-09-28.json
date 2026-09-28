@@ -13,8 +13,8 @@
     "inactiveRegionCount": 21,
     "registeredRegionCount": 18,
     "missingProfileRegionCount": 205,
-    "collectionVerifiedRegionCount": 0,
-    "remainingRegionCount": 223
+    "collectionVerifiedRegionCount": 3,
+    "remainingRegionCount": 220
   },
   "regions": [
     {
@@ -140,12 +140,24 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000010",
+          "caseCode": "GANGBUK-179490",
+          "profileCode": "LOCAL_GANGBUK_LEGAL_GET_V1",
+          "profileHash": "6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158",
+          "receiptHash": "bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e",
+          "fileCount": 4,
+          "downloadedFileCount": 3,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000011",
@@ -451,13 +463,47 @@
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_LEGACY",
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
-      "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000034",
+          "caseCode": "NAMGU-42871",
+          "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+          "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+          "receiptHash": "87f225cd2a02b268b1ca1d67b9a025ca45604769bbb5b40a84aa6d9d9b6a5bf8",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000034",
+          "caseCode": "NAMGU-44381",
+          "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+          "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+          "receiptHash": "20904ff659b8c41e17fb0800197edfd8a58767f3d4e1f2dfeeb103547009564e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000034",
+          "caseCode": "NAMGU-44466",
+          "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+          "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+          "receiptHash": "87f225cd2a02b268b1ca1d67b9a025ca45604769bbb5b40a84aa6d9d9b6a5bf8",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000035",
@@ -595,12 +641,46 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 2,
+      "downloadedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000045",
+          "caseCode": "JUNGGU-33315",
+          "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+          "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+          "receiptHash": "c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000045",
+          "caseCode": "JUNGGU-33626",
+          "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+          "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+          "receiptHash": "22a14695905a658ee36baef274769d93584ce68685887534eaf652234a28935b",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000045",
+          "caseCode": "JUNGGU-34196",
+          "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+          "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+          "receiptHash": "c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000046",
@@ -685,13 +765,47 @@
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
-      "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000052",
+          "caseCode": "DALSEONG-51022",
+          "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+          "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+          "receiptHash": "4efa47a3eb9a86250fead7c52e8f0a30b6928bb95263f3445b007f84a77a41e7",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000052",
+          "caseCode": "DALSEONG-51075",
+          "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+          "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+          "receiptHash": "a7da3d5245a144734747526f46a9fa328cadb8f0b58f97ca9435c6a759b01120",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000052",
+          "caseCode": "DALSEONG-52145",
+          "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+          "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+          "receiptHash": "a7da3d5245a144734747526f46a9fa328cadb8f0b58f97ca9435c6a759b01120",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000053",
@@ -1701,11 +1815,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000130",
+          "caseCode": "HWACHEON-32258",
+          "profileCode": "LOCAL_HWACHEON_POST_V1",
+          "profileHash": "4e34a0852383aad7ab5c20635340c845acc0bc43683df3d7fdf6d44429271e84",
+          "receiptHash": "704b95716be252947dcf1fae5c060f4c88178e011be43207c490c1257135d90f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000131",
@@ -1816,13 +1942,47 @@
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
-      "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000139",
+          "caseCode": "BOEUN-218812",
+          "profileCode": "LOCAL_BOEUN_BBS_V1",
+          "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+          "receiptHash": "92a7400611516739645b2eff0e160cd0688efa0d0cb81a46a27e3beb47c5de00",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000139",
+          "caseCode": "BOEUN-221497",
+          "profileCode": "LOCAL_BOEUN_BBS_V1",
+          "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+          "receiptHash": "fcf9a50ef2c3471b20515b96d96ec7097dd497bba534d13a6d152e7458de28e2",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000139",
+          "caseCode": "BOEUN-221499",
+          "profileCode": "LOCAL_BOEUN_BBS_V1",
+          "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+          "receiptHash": "92a7400611516739645b2eff0e160cd0688efa0d0cb81a46a27e3beb47c5de00",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000140",
@@ -1830,12 +1990,46 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 2,
+      "downloadedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000140",
+          "caseCode": "OKCHEON-193187",
+          "profileCode": "LOCAL_OKCHEON_BBS_V1",
+          "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+          "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000140",
+          "caseCode": "OKCHEON-193297",
+          "profileCode": "LOCAL_OKCHEON_BBS_V1",
+          "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+          "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000140",
+          "caseCode": "OKCHEON-193369",
+          "profileCode": "LOCAL_OKCHEON_BBS_V1",
+          "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+          "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000141",
@@ -3040,11 +3234,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000233",
+          "caseCode": "HAMAN-41306",
+          "profileCode": "LOCAL_HAMAN_GET_V1",
+          "profileHash": "c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513",
+          "receiptHash": "468900d40bbddccb4777f17f1d8acd5b7af12a2824d6f63505b0b8a50cb5ca4d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000234",
@@ -3191,5 +3397,6 @@
     }
   ],
   "inputInventorySha256": "f1b3bbbd20fcbff4edaee84073d4fcda4981264ed938153a5bfbfa455437d8cc",
-  "evidenceImportStatus": "PRIOR_RECEIPTS_NOT_IMPORTED"
+  "evidenceImportStatus": "LOCAL_TEMPORARY_RECEIPTS_IMPORTED_CI_ARTIFACTS_PENDING",
+  "importedReceiptCount": 36
 }

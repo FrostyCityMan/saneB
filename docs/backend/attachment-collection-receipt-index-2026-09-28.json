@@ -1,0 +1,764 @@
+{
+  "schemaVersion": 1,
+  "scope": "LOCAL_ARCHIVED_COLLECTION_RECEIPTS",
+  "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
+  "inventorySha256": "f1b3bbbd20fcbff4edaee84073d4fcda4981264ed938153a5bfbfa455437d8cc",
+  "currentHttpRequests": 0,
+  "productionWriteCount": 0,
+  "receipts": [
+    {
+      "path": "build/temporary-bbs-qa-0bb7506bece84c729b58391e61a980cb/result.json",
+      "receiptHash": "68b2faea4de5817d32afdd027d41be57f7e326bcd0c4b960a1a3a2a8291e328f",
+      "status": "UNSUPPORTED_REPORT_SCHEMA",
+      "sampleCount": 0
+    },
+    {
+      "path": "build/temporary-bbs-qa-0d283126b08f488693ab2a831e416e3d/result.json",
+      "receiptHash": "e4ca625258edc1c8a627c4a68c9330ec192dd1a90f0e8e03c4a85aae98cb5646",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-194388c3e3bf4da58dedecba5030c641/result.json",
+      "receiptHash": "4efa47a3eb9a86250fead7c52e8f0a30b6928bb95263f3445b007f84a77a41e7",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-1c25284886454085b39e272799932bd7/result.json",
+      "receiptHash": "da510babce7f19eceb449e225d7e3b80490a93b4077bb4bf6608a399ca0b535f",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-24283053367d4b44be39750b2bd2d65e/result.json",
+      "receiptHash": "036a2b078bd3d1870fd34a09639043994e95f580c298a04580213e1e6782d98f",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-2c7cc3ace7404142983932c905f1be45/result.json",
+      "receiptHash": "3710288e8b998df723b5a4eab93da698ccb2f26edd641e3dda67a1463925f3c0",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-3c38378daf3745ac96ee3a19815c5b57/result.json",
+      "receiptHash": "0a5e7adeaf4132d558ded0ad24b863ebe9fba22e4c411ac29b2697739a2201f2",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-3fdb2e7468864e0bab68142a1fdcb3eb/result.json",
+      "receiptHash": "1541f13b6aa90345b465a352f4e8a097810643c60a6c7dcc0c6606af7e1d5b00",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-41fc277ff44d49289f6f1066e67baf9c/result.json",
+      "receiptHash": "02e18094fa4038706c5c3d4783e85c13f94daa7280c0b9b460b70143c6d1a9c8",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-456802d2371442d9b78afbc07050fc63/result.json",
+      "receiptHash": "20904ff659b8c41e17fb0800197edfd8a58767f3d4e1f2dfeeb103547009564e",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-4b3409d6de39411689693af41184453c/result.json",
+      "receiptHash": "92a7400611516739645b2eff0e160cd0688efa0d0cb81a46a27e3beb47c5de00",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-51446298d341474fb6ea0aeaa8b3f5b6/result.json",
+      "receiptHash": "704b95716be252947dcf1fae5c060f4c88178e011be43207c490c1257135d90f",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-51fcfdc4112940db8c6f03a47216adba/result-utf8.json",
+      "receiptHash": "3e9216e2065c9beb93af46a3daf64738895a0bc16ec36f42fd3542a313d93607",
+      "status": "UNSUPPORTED_REPORT_SCHEMA",
+      "sampleCount": 0
+    },
+    {
+      "path": "build/temporary-bbs-qa-56fd6b7de295458b9c48190f3baa2e21/result.json",
+      "receiptHash": "ad29a2854259c80667d194d860f9d7cb360fad1336c6acac8290853efaefc5d7",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-5b81a5c5ee0d437fb4d368b7ba68aef9/result.json",
+      "receiptHash": "92282d70d30b679708f827b301ebf076b0b65c24fe50bfb1156aff5e91855e17",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-606f67bbd6e14dbda50b40d280350e86/result.json",
+      "receiptHash": "656ee462f36bf46dc6c6c5ca59cf5a40ebf993a2c4253e6dfa0776a3598b90cb",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-6294ca42fe97455a96d6760e0b0c20f8/result.json",
+      "receiptHash": "87f225cd2a02b268b1ca1d67b9a025ca45604769bbb5b40a84aa6d9d9b6a5bf8",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-62f16ff545f64bb9ac3b58cd9c2f1a33/result-utf8.json",
+      "receiptHash": "8f3ffe989a958bef4c6c3b9ce594bd2b1ad81a58a300b970fa648e0fe05f4a28",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-63e2cb239ec24b70921e61601b692f34/result-utf8.json",
+      "receiptHash": "bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-64aba96111d042d49e268ceb6b19e3da/result.json",
+      "receiptHash": "d376df5e09e275d9d22c95d4dd11ede098e306039641e7e314ec40830d81e36e",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-698cde56f7274380ba8a97716ff25ad4/result.json",
+      "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-6aa2931a32f148559969b70b0a367323/result-utf8.json",
+      "receiptHash": "6b3cb92728f400d65afd1e4484734c927eaf64710e3a42e7e3d4f885f9d8fbfa",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-6e52839b7dbf4cfdac5ebe38e92c0b7a/result.json",
+      "receiptHash": "468900d40bbddccb4777f17f1d8acd5b7af12a2824d6f63505b0b8a50cb5ca4d",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-6f2c30cd17a64f9e94507f4b19fcbd38/result.json",
+      "receiptHash": "a610115f9e464c089dfea262b31ff97d131052a1791cf257d4c8965a034847fd",
+      "status": "NO_PROBE_EVIDENCE",
+      "sampleCount": 0
+    },
+    {
+      "path": "build/temporary-bbs-qa-73efbca8e9e74d27bbcbdfa340eec7e7/result.json",
+      "receiptHash": "fbaebd9e87f89b94c8d4e889b8bf2adc4c64ac89b9b9739a93bad7308bbcda1a",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-7aaaee228eda4381a56f18f6bc23f273/result.json",
+      "receiptHash": "3f9a4a6c053ba3426f82b96a1e5dde54ffd9a76bbee0adc444ce330727c6ddcb",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-8b16f4142b644f47b7cc171a9402096d/result.json",
+      "receiptHash": "e1a4865486ce6e50cb8ace0ab3f00d46d7ca6156d155f3ee10fc7511d3752486",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-93bb0f9ee3ca4a73bbf1612152acbc2c/result.json",
+      "receiptHash": "a0c3f58cc8369979f746b01bc8cc6614af9b15f47adeff1dfe57f2b00bc3f0e3",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-961ca0f905f34272861d1369d3744dfd/result.json",
+      "receiptHash": "1f102392097130cb532fd283d55ca1ed9bdcaebd5a5bec52041fa3765e7875e6",
+      "status": "UNSUPPORTED_REPORT_SCHEMA",
+      "sampleCount": 0
+    },
+    {
+      "path": "build/temporary-bbs-qa-affdcce8d1824c738742c179a9a4ba56/result.json",
+      "receiptHash": "ba91bcee4b1aa8870fe4fecb6f7aba0b7f1357ad292bb87273a1762daf1d6405",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-b174a010edd941e483173d6e48c17ad0/result-utf8.json",
+      "receiptHash": "22a14695905a658ee36baef274769d93584ce68685887534eaf652234a28935b",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-bd32a37c51634a6e84f1653bd60034e8/result.json",
+      "receiptHash": "fcf9a50ef2c3471b20515b96d96ec7097dd497bba534d13a6d152e7458de28e2",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-bfc3baf61e684f22bb839c2a9d7fb305/result.json",
+      "receiptHash": "2197e556563a8c9f967f0fba0273c325320007357f2ddc2991ad357b06adc7a1",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-c2ca9c52f36342e6afd7818ac199e9e7/result-utf8.json",
+      "receiptHash": "c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-d6682645ef9d4c34b65faba75b0bd485/result.json",
+      "receiptHash": "333c0111dd591971fc8e7e09af4b65d9bea08f0b0bbfc90528c905897da52c3c",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-dc11d4e01ef3475aa64c5197a08f875f/result.json",
+      "receiptHash": "2d6f24183f18210444db86e45794c7cf676d0047be0333f08412fe4361a6e9e1",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-e91c2c0e03b147318aef324068ff3cc7/result.json",
+      "receiptHash": "7065a752f642b6a6b68e535425aaae2133d7ff177ac075444bfdefa79c32e631",
+      "status": "NO_PROBE_EVIDENCE",
+      "sampleCount": 0
+    },
+    {
+      "path": "build/temporary-bbs-qa-eee537febbe04841afbed1c53bb5fa27/result.json",
+      "receiptHash": "a7da3d5245a144734747526f46a9fa328cadb8f0b58f97ca9435c6a759b01120",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-f5bada861ef2444fb0cacad8543804ff/result.json",
+      "receiptHash": "b17ed4482fe2d570344e9d842a633447ca2aa07596b96f992cf4f0e375299db3",
+      "status": "IMPORTED",
+      "sampleCount": 3
+    },
+    {
+      "path": "build/temporary-bbs-qa-fb465b13f469423e9fae3945583bde6e/result.json",
+      "receiptHash": "871b870d51918f825d1ddf2163f0817078ca072e840b5255f7926d71144fd513",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-ffb5e067825e418cabca1c41b642a69f/result.json",
+      "receiptHash": "061bb58686adb0a42157abe85aaf7c0fe6a3b64a92f554516d721188cc7af560",
+      "status": "IMPORTED",
+      "sampleCount": 1
+    }
+  ],
+  "samples": [
+    {
+      "sourceCode": "LGS-000139",
+      "caseCode": "BOEUN-218812",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+      "receiptHash": "92a7400611516739645b2eff0e160cd0688efa0d0cb81a46a27e3beb47c5de00",
+      "observedAt": "2026-09-24T15:03:31.036492257Z",
+      "executionCodeHash": "3711db9ffe7b69f0f0711a300b43da52b55e48821edb6dd2f11c1e3525824ba2",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "b323fe7e2b68bcd9f3c2b281678120be4837126089d8fdaefa9099e0de2b820c",
+          "status": "SUCCEEDED",
+          "bytes": 219929,
+          "format": "PDF",
+          "binaryHash": "7415fdf7c89ea318694c6e1cd00c919f91f36503bc5f82acecfbfdfd7e9917b9",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000139",
+      "caseCode": "BOEUN-221497",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+      "receiptHash": "fcf9a50ef2c3471b20515b96d96ec7097dd497bba534d13a6d152e7458de28e2",
+      "observedAt": "2026-09-24T15:31:50.936231244Z",
+      "executionCodeHash": "a04904b74ab7c9196b3ac5b7b9642b521d7e08c970d6ee9feef5e04c9d0128c0",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "b9dcaed077ceb39d93e2a59825f16800447a44cf8d08a9f5265dff50aa1480cb",
+          "status": "SUCCEEDED",
+          "bytes": 95092,
+          "format": "HWPX",
+          "binaryHash": "6bf01402eaeedc655d89ef45cf4a3afb01dd3953e60685c7954a43a9faa9bf04",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000139",
+      "caseCode": "BOEUN-221499",
+      "profileCode": "LOCAL_BOEUN_BBS_V1",
+      "profileHash": "2565589ac1cd8f508107741bbfae680ce42bf7de4e9614dde7a9d9aa8e2baea3",
+      "receiptHash": "92a7400611516739645b2eff0e160cd0688efa0d0cb81a46a27e3beb47c5de00",
+      "observedAt": "2026-09-24T15:02:54.995404243Z",
+      "executionCodeHash": "3711db9ffe7b69f0f0711a300b43da52b55e48821edb6dd2f11c1e3525824ba2",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "82e4605f91d488e6cb251de86244ae44f5082f855e57cc8a39f9bb236a7df39d",
+          "status": "SUCCEEDED",
+          "bytes": 97068,
+          "format": "HWPX",
+          "binaryHash": "7e1ef10adc3531a21897de01e5ccf538620cf7873674a073fbe0fca67398e59e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000052",
+      "caseCode": "DALSEONG-51022",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+      "receiptHash": "4efa47a3eb9a86250fead7c52e8f0a30b6928bb95263f3445b007f84a77a41e7",
+      "observedAt": "2026-09-24T16:57:59.454534534Z",
+      "executionCodeHash": "562cf6bdb16519015981b9348ccb4f8d8ef5a9ccd744db2ab8ae862d623e7c1e",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "bdeba5e43e51ca38ba75447c2a59929db6e203d3e77c1f9dfe07509f6124411e",
+          "status": "SUCCEEDED",
+          "bytes": 1242737,
+          "format": "PDF",
+          "binaryHash": "1dc0fd0deeb1d892bb125ec567c71bc3111fb9ecf861f52e7107c6877ec88fdb",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "e94dc42e30b0def21945295e96d99ec174937ceeab01ed85ee8be6fcfcceaabc",
+          "status": "SUCCEEDED",
+          "bytes": 141824,
+          "format": "HWP",
+          "binaryHash": "6dd8d582a0c8d6cbe2f22376002d737eb15aab98a28ac0e8f612bdc1e1837fb4",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000052",
+      "caseCode": "DALSEONG-51075",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+      "receiptHash": "a7da3d5245a144734747526f46a9fa328cadb8f0b58f97ca9435c6a759b01120",
+      "observedAt": "2026-09-24T16:22:32.404203955Z",
+      "executionCodeHash": "277718e5e2723c56713f3f2bff23f795019fc06109701ff45cca25d6d065489f",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d0c15336e5a4b6fce7ae3ad891dc2ae964c13f6f8f9e3d588ad6bb67cbacfbc8",
+          "status": "SUCCEEDED",
+          "bytes": 124416,
+          "format": "HWP",
+          "binaryHash": "f400d97b469c0473a78d10a91ec0d9bc2956d0ecbba2df6546a8191564b729ad",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000052",
+      "caseCode": "DALSEONG-52145",
+      "profileCode": "LOCAL_DAEGU_DALSEONG_GET_V1",
+      "profileHash": "762db71421004b6f7689ef5cfcd9cd45e595e85219886292d83559949005d162",
+      "receiptHash": "a7da3d5245a144734747526f46a9fa328cadb8f0b58f97ca9435c6a759b01120",
+      "observedAt": "2026-09-24T16:22:21.523933318Z",
+      "executionCodeHash": "277718e5e2723c56713f3f2bff23f795019fc06109701ff45cca25d6d065489f",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "110bd89ec44b44af080b4a5ec7a6ea88ce3ae6fd6a3a0f833fdc70088bd8686c",
+          "status": "SUCCEEDED",
+          "bytes": 250880,
+          "format": "HWP",
+          "binaryHash": "c3488feba7f7b3addafb0e6037be47f1e34193e8137769b514ed2453bd27e98c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000010",
+      "caseCode": "GANGBUK-179490",
+      "profileCode": "LOCAL_GANGBUK_LEGAL_GET_V1",
+      "profileHash": "6aa8ef570fdaf1dcc94e6e66b85d326a197de1057b6564368e97dc87ae781158",
+      "receiptHash": "bbe9144fb7462bb094104a093e4a0b94b60d07cd77a45cc7e661629354721a7e",
+      "observedAt": "2026-09-28T07:30:32.095663806Z",
+      "executionCodeHash": "a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 4,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
+          "status": "SUCCEEDED",
+          "bytes": 84397,
+          "format": "HWPX",
+          "binaryHash": "5c1ab6a267430b7644ea5851c373722116e44fc1de6f03ce39dff26fd23872eb",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
+          "status": "SUCCEEDED",
+          "bytes": 140800,
+          "format": "HWP",
+          "binaryHash": "049a173ab67f08e031f811100ad762ace20ea3eb9cade0f986165f80df6fb8fb",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "00cbd4c75b4c32b3a21a206cdfb39dd5b50928b6501d13faf0bcefee7af868f3",
+          "status": "SUCCEEDED",
+          "bytes": 70441,
+          "format": "HWPX",
+          "binaryHash": "99b8a2729756577944e6dfc72ddf80963f65eb54acc67ead336d3fa428f6fcdd",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d",
+          "status": "FAILED",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000233",
+      "caseCode": "HAMAN-41306",
+      "profileCode": "LOCAL_HAMAN_GET_V1",
+      "profileHash": "c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513",
+      "receiptHash": "468900d40bbddccb4777f17f1d8acd5b7af12a2824d6f63505b0b8a50cb5ca4d",
+      "observedAt": "2026-09-28T08:47:44.228235863Z",
+      "executionCodeHash": "eb49922fe4ad08c3a1eefa1b8328478100aac353dc49d0c0f6a3f9eff7d629ea",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f741d39d5f5c77750b1e26aafd65396f1ad1010d1adbf307b63d8d470910bb02",
+          "status": "SUCCEEDED",
+          "bytes": 101888,
+          "format": "HWP",
+          "binaryHash": "c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000130",
+      "caseCode": "HWACHEON-32258",
+      "profileCode": "LOCAL_HWACHEON_POST_V1",
+      "profileHash": "4e34a0852383aad7ab5c20635340c845acc0bc43683df3d7fdf6d44429271e84",
+      "receiptHash": "704b95716be252947dcf1fae5c060f4c88178e011be43207c490c1257135d90f",
+      "observedAt": "2026-09-28T09:20:27.959330056Z",
+      "executionCodeHash": "bb17a531479d43b43d489a6fb6b09155348afce7ed5ad2f23b76cc44adffb3ca",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "5ea8a8ffafeb7e36cd0a438eff350f6cfc6bc31b2ac1369ab0316ce0627baf88",
+          "status": "SUCCEEDED",
+          "bytes": 82944,
+          "format": "HWP",
+          "binaryHash": "dbeba265406d420c2a396e6f7d40368f499ab5ec25bc510004e4f27b964d3ea0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000045",
+      "caseCode": "JUNGGU-33315",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+      "receiptHash": "c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4",
+      "observedAt": "2026-09-28T05:59:53.781163723Z",
+      "executionCodeHash": "1100eadaef230a75068a0f465a59ac66280360781b107dbf807a6447471e509c",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
+      "sourceCode": "LGS-000045",
+      "caseCode": "JUNGGU-33626",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+      "receiptHash": "22a14695905a658ee36baef274769d93584ce68685887534eaf652234a28935b",
+      "observedAt": "2026-09-28T06:50:57.845626072Z",
+      "executionCodeHash": "a15049147cd15f81eb45d07615e5b20c87c3785659b850d41641f39c19c8d549",
+      "evidenceScope": "OFFICIAL_WORKER_EPHEMERAL_DB_API_V1",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7f0bdda6f459ce26a4de35043551fb3c34643eb8582fbe8a210bf04345dccd72",
+          "status": "SUCCEEDED",
+          "bytes": 127488,
+          "format": "HWP",
+          "binaryHash": "ae74fb4881522239bcb91a6f64dc137e1af55a207050ecfdc7e5a01f2a7026d6",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "b998fd68176abf8dbc366c683894148351d544975c6ce29e70149be63c608e4a",
+          "status": "SUCCEEDED",
+          "bytes": 209769,
+          "format": "PDF",
+          "binaryHash": "6a57302609860d5332ccf95650cd754999270d6e6308acae19f06bd74104326c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000045",
+      "caseCode": "JUNGGU-34196",
+      "profileCode": "LOCAL_DAEGU_JUNGGU_GET_V1",
+      "profileHash": "e648e332e85e22fd2a6818eaf48b1a5d7ae58d4cad50b9e9ee0da847d73541ef",
+      "receiptHash": "c0c5b6b4ff79ab82fafba1dfe2802149951a19fcc38b29db392fadd352bb3dc4",
+      "observedAt": "2026-09-28T05:59:20.070705150Z",
+      "executionCodeHash": "1100eadaef230a75068a0f465a59ac66280360781b107dbf807a6447471e509c",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "bdfd90393ca229267f70aa2740e734a5db058aaa75bdece370b7792b1af60801",
+          "status": "SUCCEEDED",
+          "bytes": 159994,
+          "format": "HWPX",
+          "binaryHash": "4a544f3c98451eb7c002c626157c2b92468962c14756f7b38e3e218954b1b554",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000034",
+      "caseCode": "NAMGU-42871",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+      "receiptHash": "87f225cd2a02b268b1ca1d67b9a025ca45604769bbb5b40a84aa6d9d9b6a5bf8",
+      "observedAt": "2026-09-24T14:18:18.883213551Z",
+      "executionCodeHash": "cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f41b7a5f474f30f2d2699a96ca830b4573305faa4ab5ecfcac0084febc5e47c5",
+          "status": "SUCCEEDED",
+          "bytes": 77312,
+          "format": "HWP",
+          "binaryHash": "c070358609cff5dce722b53b4c8a9ddc31ff177134d05a4146dd9fdc0e275a74",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000034",
+      "caseCode": "NAMGU-44381",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+      "receiptHash": "20904ff659b8c41e17fb0800197edfd8a58767f3d4e1f2dfeeb103547009564e",
+      "observedAt": "2026-09-24T14:32:58.463489565Z",
+      "executionCodeHash": "cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "249900430d1fad181d15399ff7583d87e99c50549a47a2c797cc9153dec8a61f",
+          "status": "SUCCEEDED",
+          "bytes": 78336,
+          "format": "HWP",
+          "binaryHash": "69f7738308da99a68f528d2c08dae175e9880c0bb0764d6c5bcffd6e333548c8",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000034",
+      "caseCode": "NAMGU-44466",
+      "profileCode": "LOCAL_BUSAN_NAMGU_GET_V1",
+      "profileHash": "9d090e82be0976f38f0f86479fde1f1645bc073c96606df8380d4d473d27bfc4",
+      "receiptHash": "87f225cd2a02b268b1ca1d67b9a025ca45604769bbb5b40a84aa6d9d9b6a5bf8",
+      "observedAt": "2026-09-24T14:17:46.874726297Z",
+      "executionCodeHash": "cf0f5142efdbffec88d0f824fd266c19702922c90c28419ce9fdb93d191e6981",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "fb9728cbd63fcad080cd20151ceaeb342bda1039f791c48352fb1c66336fe3c4",
+          "status": "SUCCEEDED",
+          "bytes": 77312,
+          "format": "HWP",
+          "binaryHash": "d276239a8e14ebae385c6b5aef98792edf1eebc8f48f74657551c4d5bc402e2d",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000140",
+      "caseCode": "OKCHEON-193187",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+      "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+      "observedAt": "2026-09-24T09:09:53.673473219Z",
+      "executionCodeHash": "5f76392be3eb0cfcd2c5db52a61f6d6d7af0c7b0b777d2fbab859ef2114115b3",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
+      "sourceCode": "LGS-000140",
+      "caseCode": "OKCHEON-193297",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+      "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+      "observedAt": "2026-09-24T09:09:38.380009307Z",
+      "executionCodeHash": "5f76392be3eb0cfcd2c5db52a61f6d6d7af0c7b0b777d2fbab859ef2114115b3",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7d0c9afb406c91d0544ed1f3ff236b91e318955b3d9313157e253e4f66e310e9",
+          "status": "SUCCEEDED",
+          "bytes": 382264,
+          "format": "HWPX",
+          "binaryHash": "fd1e6ea502c097b9a5c39d148413319d37dfdb1a5bc62c1d9a47c0501f67b7b0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000140",
+      "caseCode": "OKCHEON-193369",
+      "profileCode": "LOCAL_OKCHEON_BBS_V1",
+      "profileHash": "4b51fc10501e1d622d69aff6b0b6c2c43ab9c3e2d915e8e4644708e4379e5403",
+      "receiptHash": "a781ac2850b3309a73ea2f8e1887eec5ebfa94c31739ea434ff3273777ce1687",
+      "observedAt": "2026-09-24T09:09:16.197937122Z",
+      "executionCodeHash": "5f76392be3eb0cfcd2c5db52a61f6d6d7af0c7b0b777d2fbab859ef2114115b3",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "3c06a68e78bde7070e527d548e6b0f13d5d9f3957f1d69c8223f9205f67f8418",
+          "status": "SUCCEEDED",
+          "bytes": 87388,
+          "format": "HWPX",
+          "binaryHash": "41ca40464eacc65659e5e0bcf722b94c93fd6632ffec701273bc4a96b263887b",
+          "signatureVerified": true
+        }
+      ]
+    }
+  ],
+  "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS"
+}

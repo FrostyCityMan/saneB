@@ -28,6 +28,8 @@ export function assessSample(sample) {
     downloadedFileCount: sample.files.filter(f => f.status === 'SUCCEEDED').length,
     status: 'INCOMPLETE', collectionVerified: false};
   if (!sample.originalFilesRemoved) return {...base, status: 'CLEANUP_PENDING'};
+  if (sample.titleStatus === 'NOT_ELIGIBLE' && sample.files.length === 0 && !sample.discoveryComplete)
+    return {...base, status: 'TITLE_STOPPED_NOT_FETCHED'};
   if (sample.titleStatus !== 'ELIGIBLE') return {...base, status: 'TITLE_NOT_ELIGIBLE_OR_UNVERIFIED'};
   if (!sample.detailIdentityVerified || !sample.discoveryComplete
       || sample.files.length !== sample.expectedFileCount) return base;
@@ -63,7 +65,7 @@ export function buildCollectionPlan(inventory, samples = []) {
     const fileCases = passed.filter(s => s.status === 'ALL_FILES_DOWNLOADED');
     // 정상 추출3건과 다르다. 공식 표본3건·최소1건 실제 파일·미해결 관측0을 수집 Gate로만 사용한다.
     const verified = passed.length >= 3 && fileCases.length > 0 && matched.length === own.length
-      && matched.every(s => s.collectionVerified);
+      && matched.every(s => s.collectionVerified || s.status === 'TITLE_STOPPED_NOT_FETCHED');
     return {sourceCode: target.localSourceCode, listParserProfileCode: target.listParserProfileCode,
       enabled: target.enabled, bindingStatus: target.bindingStatus, collectionVerified: verified,
       status: !target.enabled ? 'INACTIVE_NOT_ACTIVATED' : verified ? 'COLLECTION_VERIFIED'

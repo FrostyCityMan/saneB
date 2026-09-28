@@ -70,3 +70,11 @@ test('duplicate cases targets or out-of-scope evidence fail instead of inflating
     ()=>buildCollectionPlan(inventory(),[sample({sourceCode:'LGS-000099'})]),
     ()=>buildCollectionPlan(inventory([target({enabled:'true'})]))]) assert.throws(run,/COLLECTION_EVIDENCE_INVALID/);
 });
+
+test('policy title stops do not count as downloads or invalidate three eligible samples',()=>{
+  const samples=[1,2,3].map(i=>sample({caseCode:`CASE-${i}`}));
+  samples.push(sample({caseCode:'CASE-4',titleStatus:'NOT_ELIGIBLE',files:[],expectedFileCount:1,discoveryComplete:false}));
+  const report=buildCollectionPlan(inventory(),samples);
+  assert.equal(report.summary.collectionVerifiedRegionCount,1);
+  assert.equal(report.regions[0].verifiedSampleCount,3);
+});

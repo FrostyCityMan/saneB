@@ -408,6 +408,29 @@ tasks.register('attachmentBbsOfficialFileObservation', Test) {
     reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentBbsOfficialFileObservation')
 }
 
+tasks.register('attachmentRegionalCollectionObservation', Test) {
+    description = '명시한 공식 고정 표본의 첨부 발견·다운로드만 검증합니다. 추출기·운영 DB·정책 게시는 실행하지 않습니다.'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/AnnouncementAttachmentBbsOfficialObservationTest.class'
+    environment 'SANEB_ATTACHMENT_BBS_OFFICIAL_OBSERVATION', 'true'
+    maxParallelForks = 1
+    maxHeapSize = '384m'
+    systemProperty 'saneb.attachment-observation.collection-only', 'true'
+    systemProperty 'saneb.attachment-observation.group', providers.gradleProperty('sanebBbsObservationGroup').getOrElse('UNSPECIFIED')
+    systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-regional-collection').get().asFile.absolutePath
+    doFirst {
+        if (!providers.gradleProperty('sanebBbsObservationGroup').isPresent()) {
+            throw new GradleException('첨부 수집 검증 지역과 기존 요청 예산을 먼저 확인하고 sanebBbsObservationGroup을 지정하십시오.')
+        }
+    }
+    outputs.upToDateWhen { false }
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/attachmentRegionalCollectionObservation')
+    reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/attachmentRegionalCollectionObservation')
+}
+
 tasks.register('attachmentOfficialWorkerIntegrationTest', Test) {
     description = '고정 양평3건의 제목·실제 본문·첨부를 worker/임시 PostgreSQL/API까지 검증합니다. 전체132요청/240MiB, 운영 쓰기·정책 승인은 없습니다.'
     group = 'verification'
