@@ -13,8 +13,8 @@
     "inactiveRegionCount": 21,
     "registeredRegionCount": 19,
     "missingProfileRegionCount": 204,
-    "collectionVerifiedRegionCount": 4,
-    "remainingRegionCount": 219
+    "collectionVerifiedRegionCount": 6,
+    "remainingRegionCount": 217
   },
   "regions": [
     {
@@ -1782,26 +1782,116 @@
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
-      "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000125",
+          "caseCode": "HOENGSEONG-424077",
+          "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+          "profileHash": "9dba11edfb9a339c1e128753b888601ec51f9a56c6e2a6bda21ebc5a0a231fff",
+          "receiptHash": "6baf941db7297f39f0c1a06a7d47decbab7a19f279e6812ae03be9eb98077a80",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000125",
+          "caseCode": "HOENGSEONG-424078",
+          "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+          "profileHash": "9dba11edfb9a339c1e128753b888601ec51f9a56c6e2a6bda21ebc5a0a231fff",
+          "receiptHash": "af476ec3945afde271babba820f6c7a851ce3c909d71dc75b9324ff482f304a1",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000125",
+          "caseCode": "HOENGSEONG-424679",
+          "profileCode": "LOCAL_HOENGSEONG_BBS_V1",
+          "profileHash": "9dba11edfb9a339c1e128753b888601ec51f9a56c6e2a6bda21ebc5a0a231fff",
+          "receiptHash": "6a75acb50de65e9ad00b5cb2227be5b9fc3605ee4cd370a98b5d20fbf25f909b",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000126",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
-      "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 5,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000126",
+          "caseCode": "YEONGWOL-147676",
+          "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+          "profileHash": "ac948a2135ed7675125ca386f603a3fd29f161e7ffd4f9551c7d91890dc7fe27",
+          "receiptHash": "1564c893d07bf756939daa056281dc3c6abbbfcfff0dbbf31f9991e27d0c333e",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000126",
+          "caseCode": "YEONGWOL-150619",
+          "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+          "profileHash": "ac948a2135ed7675125ca386f603a3fd29f161e7ffd4f9551c7d91890dc7fe27",
+          "receiptHash": "8512e38a929b1e7d40dcd63e3786755c01755ebb0692b8bb484cbffa0f4ab56a",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000126",
+          "caseCode": "YEONGWOL-156846",
+          "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+          "profileHash": "ac948a2135ed7675125ca386f603a3fd29f161e7ffd4f9551c7d91890dc7fe27",
+          "receiptHash": "35070d0810e46326f1a97ea80826d03d6179c0d3e66831db5f5beb144166e60b",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000126",
+          "caseCode": "YEONGWOL-157016",
+          "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+          "profileHash": "ac948a2135ed7675125ca386f603a3fd29f161e7ffd4f9551c7d91890dc7fe27",
+          "receiptHash": "9ed4c47ba6d0f66c37e5ce5ea3c24b6f38366f16283cacc874101d62c6d826bc",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000126",
+          "caseCode": "YEONGWOL-157529",
+          "profileCode": "LOCAL_YEONGWOL_BBS_V1",
+          "profileHash": "ac948a2135ed7675125ca386f603a3fd29f161e7ffd4f9551c7d91890dc7fe27",
+          "receiptHash": "711488ad6bb0111025bbfdeaa0a7f2a1a974c4e6451914a137ff27046a6be4e9",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000127",
@@ -3432,9 +3522,31 @@
   ],
   "inputInventorySha256": "41d2ebf237c64589500d9408b60ccff07f2513840c27c59ff9cc6e47f5c75d06",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 39,
+  "importedReceiptCount": 47,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
-  "localCampaignReservedBytes": 32887664
+  "localCampaignReservedBytes": 32887664,
+  "standardBbsCollectionRun": {
+    "groups": [
+      "HOENGSEONG",
+      "YEONGWOL"
+    ],
+    "tests": 8,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsStored": false,
+    "surveyRequests": 13,
+    "surveyDecodedUtf8Bytes": 1705978,
+    "requestReservations": 28,
+    "reservedBytes": 15323337,
+    "downloadedFiles": 10,
+    "downloadedBytes": 1978569,
+    "junitReportHashes": {
+      "HOENGSEONG": "5fea89cd908f6ce9fdc4e1780ff457207d337cf202c96577466c51756d27ebf7",
+      "YEONGWOL": "7c0879e1a1a10aff4d30272f9974ad4aab4d23a118e03f4d1d9e6269f87bd950"
+    }
+  }
 }

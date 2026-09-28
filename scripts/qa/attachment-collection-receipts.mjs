@@ -104,10 +104,15 @@ export function importLocalCollectionReport(bytes, inventory, producerClassHash)
       :f.status==='NOT_RUN'?'NOT_RUN':'FAILED',bytes:f.bytes??0,
       ...(success?{format:f.format,binaryHash:f.binaryHash,signatureVerified:true}:{})};
   });
+  const stopped=['TITLE_NOT_ELIGIBLE_NOT_FETCHED','TITLE_EXCLUDED_NOT_FETCHED'].includes(report.status);
+  const eligible=['COMBINATION_MATCHED','GROUP_A_MATCHED'].includes(report.titleStage);
+  if(stopped&&(!['COMBINATION_NOT_MATCHED','GROUP_B_MATCHED'].includes(report.titleStage)
+      ||eligible||report.files.length!==0||report.discoveryComplete===true
+      || report.discoveryStatus!==undefined||report.requestReservationsIncludingBodyUpperBound!==0))fail();
   const sample={sourceCode:targets[0].localSourceCode,caseCode:report.caseCode,profileCode:report.profileCode,
     profileHash:report.profileHash,receiptHash:sha(bytes),producerClassHash,observedAt:report.observedAt,
     evidenceScope:'LOCAL_COLLECTION_ONLY_REPORT',expectedFileCount:report.expectedListedFileCount,
-    titleStatus:['COMBINATION_MATCHED','GROUP_A_MATCHED'].includes(report.titleStage)?'ELIGIBLE':'NOT_CHECKED',
+    titleStatus:eligible?'ELIGIBLE':stopped?'NOT_ELIGIBLE':'NOT_CHECKED',
     detailIdentityVerified:['FOUND','NO_FILES'].includes(report.discoveryStatus),discoveryStatus:report.discoveryStatus??'NOT_RUN',
     discoveryComplete:report.discoveryComplete===true,originalFilesRemoved:report.originalFilesRemoved===true,
     productionWriteCount:0,files};

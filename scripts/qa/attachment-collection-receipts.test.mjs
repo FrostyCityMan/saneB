@@ -67,3 +67,16 @@ test('local download report stays distinct from remote worker evidence',()=>{
   r.files[0].quality='COMPLETE_TEXT';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);delete r.files[0].quality;
   r.collectionOnly=false;assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
 });
+
+test('local title stop requires no requests or discovery and cannot count as download',()=>{
+  const r={...observation(),collectionOnly:true,isExtractionVerified:false,isWholeTextAnalysisComplete:false,
+    isPolicyQaPassed:false,isExpectationApproved:false,status:'TITLE_NOT_ELIGIBLE_NOT_FETCHED',
+    titleStage:'COMBINATION_NOT_MATCHED',files:[],requestReservationsIncludingBodyUpperBound:0};
+  delete r.discoveryStatus;delete r.discoveryComplete;
+  const runLocal=()=>importLocalCollectionReport(Buffer.from(JSON.stringify(r)),inventory,hash);
+  assert.equal(assessSample(runLocal().samples[0]).status,'TITLE_STOPPED_NOT_FETCHED');
+  assert.equal(assessSample(runLocal().samples[0]).collectionVerified,false);
+  r.requestReservationsIncludingBodyUpperBound=1;assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);r.requestReservationsIncludingBodyUpperBound=0;
+  r.titleStage='COMBINATION_MATCHED';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
+  r.titleStage='UNKNOWN';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
+});

@@ -54,6 +54,16 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("HOENGSEONG".equals(group)) return Stream.of(
+                selectStandardCollectionCase(group,"424679","2026년 신혼부부 주거자금 대출이자 지원 대상자 2차 모집 공고",1),
+                selectStandardCollectionCase(group,"424078","2026년 횡성군 중소기업 특례보증 지원 공고",2),
+                selectStandardCollectionCase(group,"424077","2026년 횡성군 중소기업육성자금 이차보전 지원 공고（3차）",2));
+        if("YEONGWOL".equals(group)) return Stream.of(
+                selectStandardCollectionCase(group,"157529","「2026 지역사랑 휴가지원 사업」 영월형 반값여행 추가 운영(5차) 공고",2),
+                selectStandardCollectionCase(group,"157016","2026년 청년 창업육성 지원사업 하반기 공고문(제3차)(수정)",1),
+                selectStandardCollectionCase(group,"156846","2026년 과수분야 지원사업 추가 공고",1),
+                selectStandardCollectionCase(group,"150619","2026년 영월군 소상공인 경영환경개선 지원사업 공고",2),
+                selectStandardCollectionCase(group,"147676","2025년 영월군 소상공인 시설개선 지원사업 추가 공고",2));
         if("GURO".equals(group)) return Stream.of(
                 selectGuroCase("49626","2026년 구로구 중소기업・소상공인 1년 무이자 특별보증 융자지원 공고",1),
                 selectGuroCase("39520","소상공인 버팀목 고용장려금 지원 시행계획 공고",5),
@@ -163,6 +173,21 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000139","HEURISTIC_NOTICE"),
                 new StandardBbsAttachmentProfileConfiguration().selectBoeunProfileDetails(),
                 "https://www.boeun.go.kr/www/selectBbsNttList.do?bbsNo=66&key=194",1,TitleLayout.COMPACT_SUBJECT);
+    }
+    private static ObservationCase selectStandardCollectionCase(String group,String id,String title,int count) {
+        boolean hoengseong="HOENGSEONG".equals(group);
+        if(!hoengseong&&!"YEONGWOL".equals(group))throw new IllegalArgumentException("UNKNOWN_STANDARD_COLLECTION_GROUP");
+        String host=hoengseong?"www.hsg.go.kr":"www.yw.go.kr";
+        String query=hoengseong?"bbsNo=65&key=821":"bbsNo=17&key=273";
+        String url="https://"+host+"/www/selectBbsNttView.do?"+query+"&nttNo="+id;
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        var configuration=new StandardBbsAttachmentProfileConfiguration();
+        return new ObservationCase(group+"-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                n.hash(n.canonicalizeUrl(url)),url,hoengseong?"LGS-000125":"LGS-000126","SPRING_BBS"),
+                hoengseong?configuration.selectHoengseongProfileDetails():configuration.selectYeongwolProfileDetails(),
+                "https://"+host+"/www/selectBbsNttList.do?"+query,count,
+                hoengseong?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL,
+                !hoengseong&&Set.of("157529","156846").contains(id)?TitleStageCode.COMBINATION_NOT_MATCHED:null);
     }
     private static ObservationCase selectGuroCase(String id,String title,int count) {
         String url="https://www.guro.go.kr/www/selectBbsNttGosiView.do?bbsNo=663&nttNo="+id+"&key=1791";
@@ -451,7 +476,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1").contains(profile.selectProfileCode());
             boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
             boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
-            maximumRequests=guro?8:gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(guro?23:gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
+            boolean standardCollection=Set.of("LOCAL_HOENGSEONG_BBS_V1","LOCAL_YEONGWOL_BBS_V1").contains(profile.selectProfileCode());
+            maximumRequests=standardCollection?5:guro?8:gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}

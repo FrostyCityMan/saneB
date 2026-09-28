@@ -7,6 +7,32 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AnnouncementAttachmentBbsOfficialObservationContractTest {
+    @Test void standardCollectionSamplesKeepTitleGateAndFiniteBudgets() throws Exception {
+        var rules=AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet();
+        var engine=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine();
+        for(String group:List.of("HOENGSEONG","YEONGWOL")) {
+            var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).toList();
+            assertThat(samples).hasSize("HOENGSEONG".equals(group)?3:5);
+            for(var sample:samples) {
+                var title=engine.selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput(
+                        "LOCAL_GOV_NOTICE",sample.title(),null,null,List.of(),
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),rules);
+                if(sample.expectedTitleStopStage()==null) {
+                    assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).as(sample.code()).isTrue();
+                } else {
+                    assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(title)).as(sample.code()).isFalse();
+                    assertThat(title.titleStageCode()).isEqualTo(sample.expectedTitleStopStage());
+                }
+                for(boolean diagnostic:List.of(false,true)) {
+                    var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(sample.profile(),diagnostic);
+                    assertThat(budget.maximumRequests).isEqualTo(5);
+                    assertThat(budget.maximumBytes).isEqualTo(43L*1024*1024);
+                }
+                assertThat(sample.profile().selectDetailUri(sample.source())).isNotNull();
+            }
+        }
+    }
     @Test void guroCollectionUsesThreeOfficialEligibleSamplesAndBoundedRequests() throws Exception {
         var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("GURO").toList();
         assertThat(samples).hasSize(3);assertThat(samples).extracting(s->s.listedFileCount()).containsExactly(1,5,1);
