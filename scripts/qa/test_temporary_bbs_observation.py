@@ -239,10 +239,16 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
 
     def test_haman_segment_worker_keeps_partial_review_and_strict_stored_evidence(self):
+        self.validate_haman_worker_fixture(False)
+
+    def test_haman_layout_worker_keeps_new_input_and_partial_diagnostics_separate(self):
+        self.validate_haman_worker_fixture(True)
+
+    def validate_haman_worker_fixture(self,layout):
         import copy
-        mode='HAMAN_SEGMENT';scope=self.runner['SCOPES'][mode]
+        mode='HAMAN_LAYOUT_SEGMENT' if layout else 'HAMAN_SEGMENT';scope=self.runner['SCOPES'][mode]
         self.assertEqual(('HAMAN-41306',['HAMAN-41306'],5,25165824),scope)
-        self.assertLessEqual(19+scope[2],60);self.assertLessEqual(12906174+scope[3],100663296)
+        self.assertLessEqual((31 if layout else 19)+scope[2],60);self.assertLessEqual((19520892 if layout else 12906174)+scope[3],100663296)
         self.unit['cfg']={'codeHash':'a'*64}
         manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
         self.unit['validate_manifest_scope'](manifest,mode)
@@ -267,6 +273,18 @@ class TemporaryBbsObservationTest(unittest.TestCase):
             requestReservationsIncludingBodyUpperBound=4,reservedBytesIncludingBodyUpperBound=2204906,files=[file])
         report=dict(kind='OFFICIAL_WORKER_PROBE',caseGroup=mode,productionDatabaseUsed=False,isPolicyQaPassed=False,isAuthenticatedBrowserE2e=False,
             status='PASSED',found=1,passed=1,failed=0,skipped=0,aborted=0,failedContainers=0,cases=[case])
+        if layout:
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](report,mode)
+            case['extractorVersion']='1.0.15'
+            case.update(profileHash='c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513',decisionReason='ATTACHMENT_INCOMPLETE',extractorCalls=1)
+            file.update(characterCount=4647,blockCount=214,downloadStatus='SUCCEEDED',textHash='88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a',
+                hwpPartialCauses=[{'code':'UNSUPPORTED_RECORD','count':2},{'code':'UNSUPPORTED_CONTROL','count':1}])
+            with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_haman_segment'](report)
+            for causes in (None,[],[{'code':'UNSUPPORTED_RECORD','count':2},{'code':'UNSUPPORTED_CONTROL','count':True}],
+                    [{'code':'UNSUPPORTED_RECORD','count':2},{'code':'UNSUPPORTED_CONTROL','count':2}],
+                    [{'code':'UNSUPPORTED_CONTROL','count':1},{'code':'UNSUPPORTED_RECORD','count':2}]):
+                invalid=copy.deepcopy(report);invalid['cases'][0]['files'][0]['hwpPartialCauses']=causes
+                with self.assertRaisesRegex(ValueError,'^PROBE_OUTPUT_INVALID$'):self.unit['validate_probe_scope'](invalid,mode)
         self.unit['validate_probe_scope'](report,mode)
         for key,value in [('caseCode','HAMAN-41307'),('workerStatus','PENDING'),('decisionStatus','ACCEPTED'),('extractorVersion','1.0.11'),
                 ('segmentRuleVersion','segment-role-1.0.3'),('manualSourceCheckRequired',False),('isWholeTextAnalysisComplete',True),

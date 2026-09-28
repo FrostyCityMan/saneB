@@ -79,7 +79,10 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
     @BeforeAll static void start() throws Exception {
         distribution=System.getProperty("saneb.attachment-qa.extractor-root");
         assertNotNull(distribution,"INSTALLED_EXTRACTOR_REQUIRED");
-        runtime=new AttachmentRuntimeIdentity(distribution);runtime.selectIdentity();
+        runtime=new AttachmentRuntimeIdentity(distribution);
+        var installed=runtime.selectIdentity();
+        AnnouncementAttachmentOfficialWorkerProbe.validatePinnedExtractor(
+                System.getProperty("saneb.attachment-official-worker.group","YANGPYEONG"),installed.extractorVersion());
         startDatabase();
     }
     static void startDatabase() throws Exception {
@@ -208,6 +211,8 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
                         var hwpStructure=IsolatedAttachmentExtractor.selectHwpStructureDetails(actual);
                         if("HWP".equals(file.detectedTypeCode()))assertNotNull(hwpStructure,"HWP_STRUCTURE_DIAGNOSTIC_MISSING");
                         if(hwpStructure!=null)row.put("hwpStructure",hwpStructure);
+                        var hwpPartialCauses=IsolatedAttachmentExtractor.selectHwpPartialCauseList(actual);
+                        if(hwpPartialCauses!=null)row.put("hwpPartialCauses",hwpPartialCauses);
                         var pdfStructure=IsolatedAttachmentExtractor.selectPdfStructureDetails(actual);
                         if(pdfStructure!=null)row.put("pdfStructure",pdfStructure);
                         row.put("reviewPhrasePresence",selectReviewPhrasePresence(storedText));
@@ -292,6 +297,7 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         }
     }
     static AttachmentExecutionSnapshot selectExecution(String group,ObservationCase sample,String version,String configHash) {
+        AnnouncementAttachmentOfficialWorkerProbe.validatePinnedExtractor(group,version);
         boolean segment=AnnouncementAttachmentOfficialWorkerProbe.selectSegmentMode(group);
         if(!AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(group).contains(sample.code()))throw new IllegalArgumentException("OFFICIAL_WORKER_CASE_INVALID");
         return new AttachmentExecutionSnapshot(sample.profile().selectProfileCode(),sample.profile().selectProfileHash(),
@@ -333,11 +339,13 @@ class AnnouncementAttachmentOfficialWorkerIntegrationTest {
         if(!haman&&!junggu)assertEquals(longForm?AnnouncementAttachmentOfficialWorkerProbe.selectLongFormObservedHash(caseCode):structural?AnnouncementAttachmentOfficialWorkerProbe.selectStructuralObservedHash(caseCode):AnnouncementAttachmentOfficialWorkerProbe.selectQuarterObservedHash(caseCode),
                 selectCanonicalHash(expected),"PREVIOUS_SEGMENT_OBSERVATION_CHANGED");
         else if(haman) {
+            boolean layout="1.0.15".equals(execution.extractorVersion());
             assertEquals(AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,version);
             assertEquals("PARTIAL_TEXT",file.qualityCode());
             assertEquals("c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",file.binaryHash());
-            assertEquals("ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7",expected.textHash());
-            assertEquals(4644,expected.textLength());assertEquals(213,blocks.length);
+            assertEquals(layout?"88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a":"ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7",expected.textHash());
+            assertEquals(layout?4647:4644,expected.textLength());assertEquals(layout?214:213,blocks.length);
+            if(layout)assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectHamanLayoutDiagnosticsComplete(JSON.valueToTree(row)),"HAMAN_LAYOUT_DIAGNOSTICS_CHANGED");
             assertEquals("REVIEW_REQUIRED",expected.statusCode());assertEquals("COMPLETE_TEXT_REQUIRED",expected.reasonCode());
             assertEquals(1,expected.segments().size());var segment=expected.segments().getFirst();
             assertEquals("UNKNOWN",segment.roleCode());assertEquals("COMPLETE_TEXT_REQUIRED",segment.reasonCode());

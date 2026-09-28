@@ -81,6 +81,50 @@ class AnnouncementAttachmentHamanWorkerProbeTest {
         invalid=report.deepCopy();invalid.withArray("files").removeAll();assertFalse(valid(invalid));
     }
     private boolean valid(ObjectNode value){return AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(MODE,value);}
+    @Test void layoutModePinsNewInputBeforeRequestsAndKeepsHistoricalReportSeparate() {
+        String mode="HAMAN_LAYOUT_SEGMENT";
+        assertEquals(List.of("HAMAN-41306"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(mode));
+        var sample=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectFixedCases(mode).findFirst().orElseThrow();
+        assertEquals(5,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumRequests(mode));
+        assertEquals(25165824,AnnouncementAttachmentOfficialWorkerProbe.selectMaximumBytes(mode));
+        var execution=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution(mode,sample,"1.0.15","b".repeat(64));
+        assertEquals(AttachmentSegmentRoleAnalyzer.LONG_FORM_VERSION,execution.segmentRuleVersion());
+        for(String version:List.of("1.0.12","1.0.14","1.0.16"))
+            assertThrows(IllegalArgumentException.class,()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectExecution(mode,sample,version,"b".repeat(64)));
+        assertTrue(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,layoutReport()));
+        assertFalse(valid(layoutReport()));
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,report()));
+    }
+    @Test void layoutReportRejectsChangedPartialCausesAndPromotionClaims() {
+        String mode="HAMAN_LAYOUT_SEGMENT";
+        for(String key:List.of("isWholeTextAnalysisComplete","isPolicyQaPassed","isExpectationApproved","isAuthenticatedBrowserE2e"))
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,layoutReport().put(key,true)),key);
+        for(String key:List.of("characterCount","blockCount","textHash","quality","partialFullCoverageVerified")) {
+            var invalid=layoutReport();file(invalid).remove(key);
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid),key);
+        }
+        for(String field:List.of("count","code")) {
+            var invalid=layoutReport();((ObjectNode)file(invalid).path("hwpPartialCauses").get(1)).put(field,"1");
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid),field);
+        }
+        for(int count:List.of(0,2)) {
+            var invalid=layoutReport();((ObjectNode)file(invalid).path("hwpPartialCauses").get(1)).put("count",count);
+            assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid));
+        }
+        var invalid=layoutReport();file(invalid).remove("hwpPartialCauses");
+        assertFalse(AnnouncementAttachmentOfficialWorkerProbe.selectSegmentReportComplete(mode,invalid));
+    }
+    private ObjectNode layoutReport() {
+        var report=report().put("extractorVersion","1.0.15").put("profileCode","LOCAL_HAMAN_GET_V1")
+                .put("profileHash","c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513")
+                .put("workerStatus","EVALUATED").put("decisionReason","ATTACHMENT_INCOMPLETE").put("extractorCalls",1);
+        var file=file(report).put("characterCount",4647).put("blockCount",214).put("downloadStatus","SUCCEEDED")
+                .put("textHash","88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a");
+        var causes=file.putArray("hwpPartialCauses");
+        causes.addObject().put("code","UNSUPPORTED_RECORD").put("count",2);
+        causes.addObject().put("code","UNSUPPORTED_CONTROL").put("count",1);
+        return report;
+    }
     private ObjectNode file(ObjectNode value){return (ObjectNode)value.path("files").get(0);}
     private ObjectNode report() {
         var report=new ObjectMapper().createObjectNode().put("caseCode","HAMAN-41306").put("engineVersion","attachment-segment-1.0.0")

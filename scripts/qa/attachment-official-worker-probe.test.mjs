@@ -20,7 +20,7 @@ test('인자 없는 실행은 DB나 파일 작업 전에 거부한다', () => {
 });
 test('공식 그룹은 양평 기본값과 고정 태백·충주·제천·보은·함안 표본만 허용한다', () => {
   assert(source.includes('case_group="${5:-YANGPYEONG}"'));
-  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL || "$case_group" == BOEUN_LONG_FORM || "$case_group" == HAMAN_SEGMENT || "$case_group" == JUNGGU_SEGMENT ]] || exit 1'));
+  assert(source.includes('[[ "$case_group" == YANGPYEONG || "$case_group" == TAEBAEK || "$case_group" == TAEBAEK_HWP || "$case_group" == CHUNGJU || "$case_group" == JECHEON || "$case_group" == BOEUN || "$case_group" == BOEUN_SEGMENT || "$case_group" == BOEUN_STRUCTURAL || "$case_group" == BOEUN_LONG_FORM || "$case_group" == HAMAN_SEGMENT || "$case_group" == HAMAN_LAYOUT_SEGMENT || "$case_group" == JUNGGU_SEGMENT ]] || exit 1'));
   assert(source.indexOf('"$case_group" == YANGPYEONG') < source.indexOf('mktemp'));
   assert(source.includes('AnnouncementAttachmentOfficialWorkerProbe "$4" "$case_group"'));
 });
@@ -81,6 +81,18 @@ test('함안 구간 worker는 고정1개·별도 보고서·명시 실행이며 
   const java=readFileSync('src/test/java/com/saneb/db/AnnouncementAttachmentOfficialWorkerProbe.java','utf8');
   assert(java.includes('case "HAMAN_SEGMENT" -> List.of("HAMAN-41306")'));
   assert(source.includes('"$case_group" == HAMAN_SEGMENT'));
+});
+
+test('함안 최신 추출기 worker는 과거 실행과 분리하고 외부 요청 전에 버전을 고정한다',()=>{
+  const gradle=readFileSync('build.gradle','utf8');
+  const start=gradle.indexOf("tasks.register('attachmentHamanLayoutWorkerIntegrationTest'");
+  assert(start>=0);
+  const task=gradle.slice(start,gradle.indexOf("tasks.register('attachmentJungguSegmentWorkerIntegrationTest'",start));
+  for(const value of ["'HAMAN_LAYOUT_SEGMENT'",'reports/attachment-haman-layout-worker','test-results/attachmentHamanLayoutWorkerIntegrationTest','maxParallelForks = 1'])assert(task.includes(value));
+  assert(!readFileSync('.github/workflows/attachment-contract-qa.yml','utf8').includes('HAMAN_LAYOUT_SEGMENT'));
+  assert(source.includes('"$case_group" == HAMAN_LAYOUT_SEGMENT'));
+  const java=readFileSync('src/test/java/com/saneb/db/AnnouncementAttachmentOfficialWorkerIntegrationTest.java','utf8');
+  assert(java.indexOf('validatePinnedExtractor(')<java.indexOf('startDatabase();'));
 });
 
 test('중구 두 파일 구간 worker는 명시 실행과 별도 보고서이며 자동 외부 호출하지 않는다',()=>{

@@ -30,6 +30,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
             case "BOEUN", "BOEUN_SEGMENT", "BOEUN_STRUCTURAL" -> List.of("BOEUN-221499","BOEUN-221497","BOEUN-218812");
             case "BOEUN_LONG_FORM" -> List.of("BOEUN-221497");
             case "HAMAN_SEGMENT" -> List.of("HAMAN-41306");
+            case "HAMAN_LAYOUT_SEGMENT" -> List.of("HAMAN-41306");
             case "JUNGGU_SEGMENT" -> List.of("JUNGGU-33626");
             default -> throw new IllegalArgumentException("OFFICIAL_WORKER_GROUP_INVALID");
         };
@@ -54,19 +55,24 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     }
     static boolean selectSegmentMode(String group) {
         selectCaseCodes(group);
-        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM","HAMAN_SEGMENT","JUNGGU_SEGMENT").contains(group);
+        return Set.of("BOEUN_SEGMENT","BOEUN_STRUCTURAL","BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT").contains(group);
     }
     static String selectSegmentVersion(String group) {
         if(!selectSegmentMode(group))throw new IllegalArgumentException("SEGMENT_MODE_REQUIRED");
-        return Set.of("BOEUN_LONG_FORM","HAMAN_SEGMENT","JUNGGU_SEGMENT").contains(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
+        return Set.of("BOEUN_LONG_FORM","HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT","JUNGGU_SEGMENT").contains(group)?"segment-role-1.0.4":"BOEUN_STRUCTURAL".equals(group)?"segment-role-1.0.3":"segment-role-1.0.2";
     }
     static String selectObservationGroup(String group) {
         if("JUNGGU_SEGMENT".equals(group))return "JUNGGU_PDF";
-        if("HAMAN_SEGMENT".equals(group))return "HAMAN";
+        if(Set.of("HAMAN_SEGMENT","HAMAN_LAYOUT_SEGMENT").contains(group))return "HAMAN";
         return selectSegmentMode(group) ? "BOEUN" : group;
     }
     static long selectMaximumRequests(String group) { return selectSegmentMode(group) ? 5 : 44; }
     static long selectMaximumBytes(String group) { return (selectSegmentMode(group) ? 24L : 80L)*1024*1024; }
+    /** 명시한 새 검증에서 다른 추출기를 사용해 외부 요청을 소비하지 않는다. 기존 관측은 별도로 보존한다. */
+    static void validatePinnedExtractor(String group,String version) {
+        if("HAMAN_LAYOUT_SEGMENT".equals(group)&&!"1.0.15".equals(version))
+            throw new IllegalArgumentException("HAMAN_LAYOUT_EXTRACTOR_VERSION_REQUIRED");
+    }
     /** 9/24 고정 실파일의 메모리 1.0.2 관측 지문이다. Provider catalog 승인이나 운영 정책 QA를 대신하지 않는다. */
     static String selectQuarterObservedHash(String caseCode) {
         return switch(caseCode) {
@@ -96,6 +102,7 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     static boolean selectSegmentReportComplete(String group,com.fasterxml.jackson.databind.JsonNode report) {
         if("JUNGGU_SEGMENT".equals(group))return selectJungguSegmentReportComplete(report);
         if("HAMAN_SEGMENT".equals(group))return selectHamanSegmentReportComplete(report);
+        if("HAMAN_LAYOUT_SEGMENT".equals(group))return selectHamanSegmentReportComplete(report,true);
         String version=selectSegmentVersion(group);
         boolean structural="BOEUN_STRUCTURAL".equals(group);
         boolean longForm="BOEUN_LONG_FORM".equals(group);
@@ -129,11 +136,14 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
     }
     /** 부분 추출의 저장 경로 검증이다. 사전 승인된 정상 구간 기대값으로 표현하지 않는다. */
     static boolean selectHamanSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {
+        return selectHamanSegmentReportComplete(report,false);
+    }
+    static boolean selectHamanSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report,boolean layout) {
         if(!"HAMAN-41306".equals(report.path("caseCode").asText())
                 || !"attachment-segment-1.0.0".equals(report.path("engineVersion").asText())
                 || !"segment-role-1.0.4".equals(report.path("segmentRuleVersion").asText())
                 || !com.saneb.domain.announcementattachment.classification.AttachmentSegmentRoleAnalyzer.LONG_FORM_RULES_HASH.equals(report.path("segmentRulesHash").asText())
-                || !"1.0.12".equals(report.path("extractorVersion").asText())
+                || !(layout?"1.0.15":"1.0.12").equals(report.path("extractorVersion").asText())
                 || !"REVIEW_REQUIRED".equals(report.path("decisionStatus").asText())
                 || !"AVAILABLE".equals(report.path("bodyStatus").asText())
                 || !selectTrue(report,"bodyStageComplete") || !selectTrue(report,"discoveryComplete")
@@ -147,10 +157,15 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 || !selectBounded(report,"requestReservationsIncludingBodyUpperBound",3,5) || !selectBounded(report,"reservedBytesIncludingBodyUpperBound",1,25165824L)
                 || !report.path("files").isArray() || report.path("files").size()!=1)return false;
         var file=report.path("files").get(0);
+        if(layout&&(!"LOCAL_HAMAN_GET_V1".equals(report.path("profileCode").asText())
+                ||!"c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513".equals(report.path("profileHash").asText())
+                ||!"EVALUATED".equals(report.path("workerStatus").asText())||!"ATTACHMENT_INCOMPLETE".equals(report.path("decisionReason").asText())
+                ||!selectBounded(report,"extractorCalls",1,1)||!"SUCCEEDED".equals(file.path("downloadStatus").asText())))return false;
         return "HWP".equals(file.path("format").asText()) && "PARTIAL_TEXT".equals(file.path("quality").asText())
                 && "c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97".equals(file.path("binaryHash").asText())
-                && "ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7".equals(file.path("textHash").asText())
-                && selectBounded(file,"bytes",101888,101888) && selectBounded(file,"characterCount",4644,4644) && selectBounded(file,"blockCount",213,213)
+                && (layout?"88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a":"ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7").equals(file.path("textHash").asText())
+                && selectBounded(file,"bytes",101888,101888) && selectBounded(file,"characterCount",layout?4647:4644,layout?4647:4644) && selectBounded(file,"blockCount",layout?214:213,layout?214:213)
+                && (!layout || selectHamanLayoutDiagnosticsComplete(file))
                 && file.path("segmentAnalysisHash").asText().matches("[a-f0-9]{64}")
                 && selectBounded(file,"segmentCount",1,1) && selectBounded(file,"unknownSegmentCount",1,1) && selectBounded(file,"noticeSegmentCount",0,0)
                 && "COMPLETE_TEXT_REQUIRED".equals(file.path("segmentReason").asText())
@@ -158,6 +173,14 @@ public final class AnnouncementAttachmentOfficialWorkerProbe {
                 && selectTrue(file,"legacyDefaultReadOnlyVerified") && selectTrue(file,"evaluationBoundApiVerified")
                 && selectTrue(file,"otherVersionReadOnlyVerified") && selectTrue(file,"partialFullCoverageVerified")
                 && !file.has("longFormObservedHashMatched") && !file.has("longFormCandidate") && !file.has("structuralCandidate");
+    }
+    static boolean selectHamanLayoutDiagnosticsComplete(com.fasterxml.jackson.databind.JsonNode file) {
+        var causes=file.path("hwpPartialCauses");
+        if(!causes.isArray()||causes.size()!=2)return false;
+        return causes.get(0).size()==2&&"UNSUPPORTED_RECORD".equals(causes.get(0).path("code").asText())
+                && selectBounded(causes.get(0),"count",2,2)
+                && causes.get(1).size()==2&&"UNSUPPORTED_CONTROL".equals(causes.get(1).path("code").asText())
+                && selectBounded(causes.get(1),"count",1,1);
     }
     /** 정상 기대값 승인이 아닌 두 형식의 실제 저장/조회 결합 검증이다. 입력 지문은1.0.14 관측에 고정한다. */
     static boolean selectJungguSegmentReportComplete(com.fasterxml.jackson.databind.JsonNode report) {

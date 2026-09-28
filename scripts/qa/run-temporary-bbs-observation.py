@@ -30,6 +30,7 @@ SCOPES = {
     'DALSEONG_HEADER': ('DALSEONG-51022', ['DALSEONG-51022'], 6, 24117248),
     'HAMAN_OBSERVATION': ('HAMAN-41306', ['HAMAN-41306'], 6, 24117248),
     'HAMAN_SEGMENT': ('HAMAN-41306', ['HAMAN-41306'], 5, 25165824),
+    'HAMAN_LAYOUT_SEGMENT': ('HAMAN-41306', ['HAMAN-41306'], 5, 25165824),
     # 세 번째 제목은 현재 seed와 달라져도 요청 전에 실패한다. 네트워크 상한은 통과2건만 합산한다.
     'JUNGGU_OBSERVATION': ('JUNGGU-THREE-NOTICES', ['JUNGGU-34196', 'JUNGGU-33626', 'JUNGGU-33315'], 12, 48234496),
     'JUNGGU_PDF': ('JUNGGU-33626', ['JUNGGU-33626'], 6, 24117248),
@@ -63,7 +64,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
     return [] if mode=='OBSERVATION' else [mode]
@@ -156,7 +157,7 @@ def validate_gangbuk_observation(report):
     whole=all(f['quality']=='COMPLETE_TEXT' for f in files)
     if row.get('isWholeTextAnalysisComplete') is not whole or row.get('decisionStatus') not in ('ACCEPTED','REVIEW_REQUIRED') or (not whole and row['decisionStatus']!='REVIEW_REQUIRED'):raise ValueError('PROBE_OUTPUT_INVALID')
 
-def validate_haman_segment(report):
+def validate_haman_segment(report,layout=False):
     # 부분 추출 결과가 실제 worker/임시 DB/API에 결합됐는지만 검증한다. 정상 기대값 승인이 아니다.
     cases=report.get('cases')
     if not isinstance(cases,list) or len(cases)!=1 or not isinstance(cases[0],dict):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -166,10 +167,17 @@ def validate_haman_segment(report):
     expected_case={'caseCode':'HAMAN-41306','scope':'OFFICIAL_WORKER_EPHEMERAL_DB_API_V1','status':'WORKER_DB_API_OBSERVED_NOT_APPROVED',
         'engineVersion':'attachment-segment-1.0.0','segmentRuleVersion':'segment-role-1.0.4',
         'segmentRulesHash':'27dfa69f39bea3c47e1bf40b20bf01471f2432bc08ee143355e4e849089406fe',
-        'extractorVersion':'1.0.12','profileCode':'LOCAL_HAMAN_GET_V1','workerStatus':'EVALUATED','bodyStatus':'AVAILABLE','decisionStatus':'REVIEW_REQUIRED'}
+        'extractorVersion':'1.0.15' if layout else '1.0.12','profileCode':'LOCAL_HAMAN_GET_V1','workerStatus':'EVALUATED','bodyStatus':'AVAILABLE','decisionStatus':'REVIEW_REQUIRED'}
     expected_file={'format':'HWP','quality':'PARTIAL_TEXT','segmentReason':'COMPLETE_TEXT_REQUIRED',
         'binaryHash':'c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97',
-        'textHash':'ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7'}
+        'textHash':'88bb6aebc74813186f8d9f3ac32b457e4a674c98bbf3649e3a1435077435542a' if layout else 'ea24e32e9c049cf8a2a7d3ffae300ffdee864ac33939a78ef520cbfa334fb5f7'}
+    if layout:
+        expected_case.update(profileHash='c7cb4961b49e97449fe09afb77c5a4d009d3bf2df93d611c6c547046ad926513',decisionReason='ATTACHMENT_INCOMPLETE')
+        expected_file['downloadStatus']='SUCCEEDED'
+        if type(case.get('extractorCalls')) is not int or case['extractorCalls']!=1:raise ValueError('PROBE_OUTPUT_INVALID')
+        causes=file.get('hwpPartialCauses')
+        if (causes!=[{'code':'UNSUPPORTED_RECORD','count':2},{'code':'UNSUPPORTED_CONTROL','count':1}]
+                or any(type(cause.get('count')) is not int for cause in causes)):raise ValueError('PROBE_OUTPUT_INVALID')
     if any(case.get(k)!=v for k,v in expected_case.items()) or any(file.get(k)!=v for k,v in expected_file.items()):raise ValueError('PROBE_OUTPUT_INVALID')
     for key in ('bodyStageComplete','discoveryComplete','segmentDatabaseApiVerified','segmentReviewContextVerified',
                 'manualSourceCheckRequired','requiresFinalAdminVerification','originalFilesRemoved'):
@@ -180,7 +188,7 @@ def validate_haman_segment(report):
                 'evaluationBoundApiVerified','otherVersionReadOnlyVerified','partialFullCoverageVerified'):
         if file.get(key) is not True:raise ValueError('PROBE_OUTPUT_INVALID')
     for node,values in ((case,{'productionWriteCount':0,'remainingResourceLeases':0,'discoveredFileCount':1,'processedFileCount':1,'maximumRequestReservations':5,'maximumReservedBytes':25165824}),
-                        (file,{'bytes':101888,'characterCount':4644,'blockCount':213,'segmentCount':1,'unknownSegmentCount':1,'noticeSegmentCount':0}),
+                        (file,{'bytes':101888,'characterCount':4647 if layout else 4644,'blockCount':214 if layout else 213,'segmentCount':1,'unknownSegmentCount':1,'noticeSegmentCount':0}),
                         (report,{'found':1,'passed':1,'failed':0,'skipped':0,'aborted':0,'failedContainers':0})):
         if any(type(node.get(k)) is not int or node[k]!=v for k,v in values.items()):raise ValueError('PROBE_OUTPUT_INVALID')
     for key,low,high in [('requestReservationsIncludingBodyUpperBound',3,5),('reservedBytesIncludingBodyUpperBound',1,25165824)]:
@@ -294,7 +302,7 @@ def validate_junggu_segment(report):
                     or file['segmentCount']!=1 or file['unknownSegmentCount']!=1 or file['noticeSegmentCount']!=0):raise ValueError('PROBE_OUTPUT_INVALID')
 
 def validate_probe_scope(report,mode):
-    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','JUNGGU_SEGMENT'):
+    if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT'):
         if (report.get('kind')!='OFFICIAL_WORKER_PROBE' or report.get('caseGroup')!=mode
                 or report.get('productionDatabaseUsed') is not False or report.get('isPolicyQaPassed') is not False
                 or report.get('isAuthenticatedBrowserE2e') is not False):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -304,6 +312,7 @@ def validate_probe_scope(report,mode):
         if len(codes)!=len(set(codes)) or any(c not in SCOPES[mode][1] for c in codes):raise ValueError('PROBE_OUTPUT_INVALID')
         if report.get('status')=='PASSED' and codes!=SCOPES[mode][1]:raise ValueError('PROBE_OUTPUT_INVALID')
         if mode=='HAMAN_SEGMENT' and report.get('status')=='PASSED':validate_haman_segment(report)
+        if mode=='HAMAN_LAYOUT_SEGMENT' and report.get('status')=='PASSED':validate_haman_segment(report,layout=True)
         if mode=='JUNGGU_SEGMENT' and report.get('status')=='PASSED':validate_junggu_segment(report)
         if mode in ('BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM') and report.get('status')=='PASSED':
             long_form=mode=='BOEUN_LONG_FORM'
@@ -453,7 +462,7 @@ def main():
         started=time.monotonic()
         source_work_started=True
         proc=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
-        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','JUNGGU_SEGMENT') else 650)
+        try:out,err=proc.communicate(timeout=900 if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT') else 650)
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid,signal.SIGTERM)
             try:out,err=proc.communicate(timeout=5)
@@ -467,7 +476,7 @@ def main():
                 report=json.loads(line)
                 validate_probe_scope(report,mode)
         result['probe']=report
-        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','JUNGGU_SEGMENT') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
+        cleanup_marker=b'OFFICIAL_WORKER_PROBE_CLEANUP=SUCCEEDED' if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','JUNGGU_SEGMENT') else b'BBS_OBSERVATION_PROBE_CLEANUP=SUCCEEDED'
         result['probeCleanupSucceeded']=cleanup_marker in out
         result['status']='PASSED' if proc.returncode==0 and result['probeCleanupSucceeded'] and report and report.get('status')=='PASSED' else 'INCOMPLETE'
         return result
