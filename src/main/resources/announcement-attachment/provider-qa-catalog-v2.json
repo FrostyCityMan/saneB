@@ -1057,6 +1057,42 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONGDO-36435",
+      "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "46473481f9ff9f15b70d2dbbeeb3a9ead48a9ee974bfb51f8a41cc6adae82c16",
+        "sourceUrl": "https://www.yeongdo.go.kr/00000/00007/00013.web?amode=view&not_ancmt_mgt_no=36435&type=A",
+        "localSourceCode": "LGS-000031",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGDO-36164",
+      "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "20c33b04644518601a42ab44d0d56d302d40a4e65d53f8f56d3feba493bf90f2",
+        "sourceUrl": "https://www.yeongdo.go.kr/00000/00007/00013.web?amode=view&not_ancmt_mgt_no=36164&type=A",
+        "localSourceCode": "LGS-000031",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGDO-35633",
+      "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "5fca66d579c700ce2ef15863fa3a2e2b0fc1afdcbdc87640e7da52ac80f1e970",
+        "sourceUrl": "https://www.yeongdo.go.kr/00000/00007/00013.web?amode=view&not_ancmt_mgt_no=35633&type=A",
+        "localSourceCode": "LGS-000031",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

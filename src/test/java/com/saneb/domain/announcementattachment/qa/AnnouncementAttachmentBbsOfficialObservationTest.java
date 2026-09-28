@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -54,6 +54,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("YEONGDO".equals(group)) return Stream.of(
+                selectYeongdoCase("36435","2026년 영도구 소상공인 보증료 지원사업 공고",3),
+                selectYeongdoCase("36164","2026년 영도구 청년 면접수당 지원사업 공고(수정)",4),
+                selectYeongdoCase("35633","2026년 영도구 청년 면접수당 지원사업 공고",4));
         if("BSJUNGGU".equals(group)) return Stream.of(
                 selectBusanJungguSeoguCase(group,"29433","「2026년 중구 청년 1인가구 호신용품 지원사업」 신청 공고",1),
                 selectBusanJungguSeoguCase(group,"29432","「2026년 중구 청년 자격증 등 시험 응시료 지원사업」 신청 공고",2),
@@ -188,6 +192,12 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectYeongdoCase(String id,String title,int count) {
+        String url="https://www.yeongdo.go.kr/00000/00007/00013.web?amode=view&not_ancmt_mgt_no="+id+"&type=A";
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("YEONGDO-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",n.hash(n.canonicalizeUrl(url)),url,
+                "LGS-000031","SCMS_CARD_NOTICE"),new YeongdoAttachmentDiscoveryProfile(),"https://www.yeongdo.go.kr/00000/00007/00013.web",count,TitleLayout.YEONGDO_HEADING);
     }
     private static ObservationCase selectBusanJungguSeoguCase(String group,String id,String title,int count) {
         boolean junggu="BSJUNGGU".equals(group);
@@ -490,6 +500,11 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        if(layout==TitleLayout.YEONGDO_HEADING){
+            var titles=page.select("form#saeolGosiVO[name=saeolGosiVO][method=get] > div.bbs1view1 > h1.h1");
+            assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");assertTrue(titles.getFirst().children().isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertEquals(normalized(expected),normalized(titles.getFirst().text()),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.BUSAN_SEOGU_LABEL){
             var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
             var tables=forms.getFirst().select("table[width=100%][border=0][cellspacing=1][cellpadding=0]");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
@@ -671,7 +686,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
             boolean boundedSaeol=Set.of("LOCAL_BUSAN_JUNGGU_GET_V1","LOCAL_BUSAN_SEOGU_GET_V1","LOCAL_BUSAN_DONGGU_GET_V1","LOCAL_SAHA_GET_V1","LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1","LOCAL_DONGNAE_GET_V1","LOCAL_BUSANJIN_GET_V1","LOCAL_GEUMJEONG_GET_V1","LOCAL_SUYEONG_GET_V1","LOCAL_SASANG_GET_V1","LOCAL_HAEUNDAE_GET_V1","LOCAL_BUSAN_BUKGU_POST_V1","LOCAL_BUSAN_GANGSEO_GET_V1").contains(profile.selectProfileCode());
-            boolean gijang="LOCAL_GIJANG_GET_V1".equals(profile.selectProfileCode());
+            boolean gijang=Set.of("LOCAL_GIJANG_GET_V1",YeongdoAttachmentDiscoveryProfile.CODE).contains(profile.selectProfileCode());
             boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
             boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
             boolean standardCollection=Set.of("LOCAL_HOENGSEONG_BBS_V1","LOCAL_YEONGWOL_BBS_V1").contains(profile.selectProfileCode());

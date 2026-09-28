@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 32,
-    "missingProfileRegionCount": 191,
+    "registeredRegionCount": 33,
+    "missingProfileRegionCount": 190,
     "collectionVerifiedRegionCount": 15,
     "remainingRegionCount": 208
   },
@@ -559,14 +559,48 @@
       "sourceCode": "LGS-000031",
       "listParserProfileCode": "SCMS_CARD_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000031",
+          "caseCode": "YEONGDO-35633",
+          "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+          "profileHash": "4946b945448284bed947a415159bcc212dbe52de9f819643400041ec1a8fa836",
+          "receiptHash": "0c8427ec049bb790534974ea95bc820ea6bf768a428c9ee9dcee035deefe84b3",
+          "fileCount": 4,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000031",
+          "caseCode": "YEONGDO-36164",
+          "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+          "profileHash": "4946b945448284bed947a415159bcc212dbe52de9f819643400041ec1a8fa836",
+          "receiptHash": "7371de19e0f9c5e1b3d89b04268026f4dcfb1e5cfc8a4e3aa4c02960cabf8c59",
+          "fileCount": 4,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000031",
+          "caseCode": "YEONGDO-36435",
+          "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
+          "profileHash": "4946b945448284bed947a415159bcc212dbe52de9f819643400041ec1a8fa836",
+          "receiptHash": "f88fa72f7f97d1bb55e90779a6c183e8cd0f64e286e6bb2607017f0e94d2b261",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000032",
@@ -3962,9 +3996,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "dc91a81b6babd821c93690e1ae3c5ab0ecf199b3a2769bfee00c30ea6714847d",
+  "inputInventorySha256": "b8657b20a515907bc6a2dba5324d32e54f63588fcb54e1c0994053ae442a84b9",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 86,
+  "importedReceiptCount": 89,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4188,6 +4222,44 @@
     "junitReportHashes": {
       "BSJUNGGU": "667f06c43c01de6cbad0502f5163bf078a4e0bc3909152df7771cf2eec404134",
       "BSSEOGU": "44091c9a8ea0b5cd5d9cd5b7980f3003f4e0e75960f2a441cc9a5491bf1f124b"
+    }
+  },
+  "yeongdoYeonjeCollectionRun": {
+    "groups": [
+      "YEONGDO"
+    ],
+    "tests": 3,
+    "failures": 2,
+    "skipped": 0,
+    "failureCases": [
+      "YEONGDO-36164",
+      "YEONGDO-35633"
+    ],
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 9,
+    "surveyStoredHtmlBytes": 1110837,
+    "requestReservations": 20,
+    "reservedBytes": 7206782,
+    "downloadedFiles": 7,
+    "uniqueDownloadedBinaryCount": 7,
+    "downloadedBytes": 546686,
+    "failedFileCount": 4,
+    "fileFailureCode": "ATTACHMENT_HTTP_400",
+    "regionRequestReservations": {
+      "YEONGDO": 25,
+      "YEONJE": 4
+    },
+    "unconnectedSurvey": {
+      "sourceCode": "LGS-000040",
+      "status": "OFFICIAL_SEARCH_HTTP_403",
+      "requests": 4,
+      "automaticRedirects": false,
+      "authenticationBypass": false
+    },
+    "junitReportHashes": {
+      "YEONGDO": "8406d5219f9fcf34ddf42133b2f3c5046d474ea4671cb02412e73aa15aa1d1f4"
     }
   }
 }
