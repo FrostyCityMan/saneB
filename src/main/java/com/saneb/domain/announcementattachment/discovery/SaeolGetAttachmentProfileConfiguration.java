@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 /** 운영/관리자 입력으로 host를 확장하지 않는다. 추가 기관은 실측 후 코드와 해당 hash로 배포한다. */
 @Configuration(proxyBeanMethods = false)
 public class SaeolGetAttachmentProfileConfiguration {
+    @Bean public AttachmentDiscoveryProfile selectBusanGangseoProfileDetails() {
+        return new BusanGangseoAttachmentDiscoveryProfile();
+    }
     @Bean public AttachmentDiscoveryProfile selectHaeundaeProfileDetails() {
         return new SaeolGetAttachmentDiscoveryProfile("LOCAL_HAEUNDAE_GET_V1", "LGS-000036", "eminwon.haeundae.go.kr",
                 "SAFE_SAEOL_EMINWON_COMPACT", "th", false);

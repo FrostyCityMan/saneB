@@ -841,6 +841,78 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "BSBUKGU-37638",
+      "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b1f797fe74e387584a52ebdc7c6731ee80514681c4c282fcb09b4b4d7c573a6b",
+        "sourceUrl": "https://eminwon.bsbukgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=37638&subCheck=Y",
+        "localSourceCode": "LGS-000035",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BSBUKGU-35578",
+      "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "485cbf422b20a897700f67c3c02a96bf09e836cddce0dd708f3d75a3e15b1672",
+        "sourceUrl": "https://eminwon.bsbukgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=35578&subCheck=Y",
+        "localSourceCode": "LGS-000035",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BSBUKGU-35116",
+      "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e2e6b5aba269423b0f3db55b625a2f32983aa07c37c1defc0b9c7b6229c4334f",
+        "sourceUrl": "https://eminwon.bsbukgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=35116&subCheck=Y",
+        "localSourceCode": "LGS-000035",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BSGANGSEO-40497",
+      "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9faf84e83d24856dbad9b58700ae6d6c5e7ecc1ec8ef0236d524b0dae197afd6",
+        "sourceUrl": "https://eminwon.bsgangseo.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=40497&subCheck=Y",
+        "localSourceCode": "LGS-000039",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BSGANGSEO-39570",
+      "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b7736ea47e23f133ccc708b5ab6be6ce1b775a8fcc2073f1bed46e2d1ab6977c",
+        "sourceUrl": "https://eminwon.bsgangseo.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=39570&subCheck=Y",
+        "localSourceCode": "LGS-000039",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BSGANGSEO-39045",
+      "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "87cb845d1fbea6852691b3384e05d4c94a3d3de399ed103a39123e644b8aee3a",
+        "sourceUrl": "https://eminwon.bsgangseo.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=39045&subCheck=Y",
+        "localSourceCode": "LGS-000039",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
     }
   ]
 }

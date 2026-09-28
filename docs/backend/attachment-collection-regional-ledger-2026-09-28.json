@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 26,
-    "missingProfileRegionCount": 197,
-    "collectionVerifiedRegionCount": 10,
-    "remainingRegionCount": 213
+    "registeredRegionCount": 28,
+    "missingProfileRegionCount": 195,
+    "collectionVerifiedRegionCount": 11,
+    "remainingRegionCount": 212
   },
   "regions": [
     {
@@ -633,14 +633,48 @@
       "sourceCode": "LGS-000035",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 2,
+      "downloadedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000035",
+          "caseCode": "BSBUKGU-35116",
+          "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+          "profileHash": "61237b7f7898d2a7c798fb10e8cb5dd42f297dd4c99de60ec4ae00b008aa8425",
+          "receiptHash": "0e752692c6ff5841e52bf67b832f97610e6ed982b880f99f37ed3f5777cc7e04",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000035",
+          "caseCode": "BSBUKGU-35578",
+          "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+          "profileHash": "61237b7f7898d2a7c798fb10e8cb5dd42f297dd4c99de60ec4ae00b008aa8425",
+          "receiptHash": "1a0b5657bad8296496b206d0e78c0f0abd945caa24e8c65f01e45ee7d4b979b8",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000035",
+          "caseCode": "BSBUKGU-37638",
+          "profileCode": "LOCAL_BUSAN_BUKGU_POST_V1",
+          "profileHash": "61237b7f7898d2a7c798fb10e8cb5dd42f297dd4c99de60ec4ae00b008aa8425",
+          "receiptHash": "2b370c0f3457e7c7339209485b7d80bb554f4ab15529f92fe1eaee769c5d5f91",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000036",
@@ -731,14 +765,48 @@
       "sourceCode": "LGS-000039",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000039",
+          "caseCode": "BSGANGSEO-39045",
+          "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+          "profileHash": "29022422cf48c576818523163faaba9d6551f61e63c173dd7d85690c5c99e3d2",
+          "receiptHash": "4d23f1520de81f4927c3a8580f2a2fe0b24ffb5b76c7a760604df8adbbf54ffe",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000039",
+          "caseCode": "BSGANGSEO-39570",
+          "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+          "profileHash": "29022422cf48c576818523163faaba9d6551f61e63c173dd7d85690c5c99e3d2",
+          "receiptHash": "6d6f8f52aadc595ecd1d832c339972ba97cfe2da575efb4b4bab0d9cb1ffaac2",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000039",
+          "caseCode": "BSGANGSEO-40497",
+          "profileCode": "LOCAL_BUSAN_GANGSEO_GET_V1",
+          "profileHash": "29022422cf48c576818523163faaba9d6551f61e63c173dd7d85690c5c99e3d2",
+          "receiptHash": "f15e9997935bca40ccafa8a8645be9ba6f741a24b4e42eb319c6540c954c9c36",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000040",
@@ -3758,9 +3826,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "b86efdd4b21429be755d6223f1c0010cb79a22aeab3c8411be2a7e07919d1b2c",
+  "inputInventorySha256": "f987929b85fdb75aa836aa34c44371d174330f135bec6dd7990db02fcd9b56df",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 68,
+  "importedReceiptCount": 74,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -3899,6 +3967,44 @@
     "junitReportHashes": {
       "HAEUNDAE": "569006759e61347b003b8ced87641008ec1f562a9087b71ca65cbcc369e89679",
       "GIJANG": "7bcf5c8fada0714c230167eece4adcb746b361ea9de8cce3cdb8cdf691156b20"
+    }
+  },
+  "busanNorthWestCollectionRun": {
+    "groups": [
+      "BSBUKGU",
+      "BSGANGSEO"
+    ],
+    "tests": 6,
+    "failures": 1,
+    "skipped": 0,
+    "failureCases": [
+      "BSBUKGU-35116"
+    ],
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 15,
+    "surveyStoredHtmlBytes": 722322,
+    "requestReservations": 26,
+    "reservedBytes": 13758742,
+    "downloadedFiles": 7,
+    "downloadedBytes": 975242,
+    "diagnostics": [
+      {
+        "caseCode": "BSBUKGU-35116",
+        "requestCount": 1,
+        "bytes": 148988,
+        "binaryHash": "2d4df65a8b94a657417167160a4b36f26fc752e7cccb54b23e886b47c517830d",
+        "firstEightBytes": "5343445341303034",
+        "declaredFormat": "HWP",
+        "signatureStatus": "NOT_SUPPORTED_HWP_SIGNATURE",
+        "matchesOriginalReceipt": true,
+        "collectionVerified": false
+      }
+    ],
+    "junitReportHashes": {
+      "BSBUKGU": "15f710a65c99c5890fb4be168fab63d5a6480017220977ff4da635b8c4b63899",
+      "BSGANGSEO": "3382c69565c9b243ffb3e090a9fe523455a7decdbbb4d69d8ba6c68f9eb09436"
     }
   }
 }
