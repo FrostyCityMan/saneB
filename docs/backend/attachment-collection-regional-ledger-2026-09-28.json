@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 28,
-    "missingProfileRegionCount": 195,
-    "collectionVerifiedRegionCount": 11,
-    "remainingRegionCount": 212
+    "registeredRegionCount": 30,
+    "missingProfileRegionCount": 193,
+    "collectionVerifiedRegionCount": 13,
+    "remainingRegionCount": 210
   },
   "regions": [
     {
@@ -444,14 +444,48 @@
       "sourceCode": "LGS-000030",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000030",
+          "caseCode": "BSDONGGU-30095",
+          "profileCode": "LOCAL_BUSAN_DONGGU_GET_V1",
+          "profileHash": "bbbe0080e77f1aed2c46fb8805ad8a166327056d507870e75894b8d9224f5938",
+          "receiptHash": "eff892d3ccbdf01caed8ed4d9fd3285f6061fcd8c6a3a1f76c1d60ae05cf49e3",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000030",
+          "caseCode": "BSDONGGU-30868",
+          "profileCode": "LOCAL_BUSAN_DONGGU_GET_V1",
+          "profileHash": "bbbe0080e77f1aed2c46fb8805ad8a166327056d507870e75894b8d9224f5938",
+          "receiptHash": "e7b137465b03baf0e320e23ed80e7626e96eeea0778547309a6973c7488768cf",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000030",
+          "caseCode": "BSDONGGU-32674",
+          "profileCode": "LOCAL_BUSAN_DONGGU_GET_V1",
+          "profileHash": "bbbe0080e77f1aed2c46fb8805ad8a166327056d507870e75894b8d9224f5938",
+          "receiptHash": "c69a833c51db17637546f2bc40ef415ae79bfa10e0293c8230e1cfac87460dba",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000031",
@@ -727,14 +761,48 @@
       "sourceCode": "LGS-000037",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000037",
+          "caseCode": "SAHA-43993",
+          "profileCode": "LOCAL_SAHA_GET_V1",
+          "profileHash": "5e9b26ad4644a186984e1d7665b3d34a5d14391f9b0492c21ec445555aaaf4eb",
+          "receiptHash": "4d0e32862b844036d876a266b6ce1a04e1c74145ce8f3e85d910600fe2cd40c7",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "NO_FILES_VERIFIED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000037",
+          "caseCode": "SAHA-45847",
+          "profileCode": "LOCAL_SAHA_GET_V1",
+          "profileHash": "5e9b26ad4644a186984e1d7665b3d34a5d14391f9b0492c21ec445555aaaf4eb",
+          "receiptHash": "178cbb58b0c654083b59292ab98dcd5208ee9698fca56824bd814bb3281ab165",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000037",
+          "caseCode": "SAHA-46096",
+          "profileCode": "LOCAL_SAHA_GET_V1",
+          "profileHash": "5e9b26ad4644a186984e1d7665b3d34a5d14391f9b0492c21ec445555aaaf4eb",
+          "receiptHash": "0e5e6737f137a220545b012abafd41d25ade3eb6951c439aa9997d9c506d12e9",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000038",
@@ -3826,9 +3894,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "f987929b85fdb75aa836aa34c44371d174330f135bec6dd7990db02fcd9b56df",
+  "inputInventorySha256": "8765ccfaa1c5e14d2142cbfe5f5367596956e338c6e4b80bbe995b0a7cef735b",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 74,
+  "importedReceiptCount": 80,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4005,6 +4073,29 @@
     "junitReportHashes": {
       "BSBUKGU": "15f710a65c99c5890fb4be168fab63d5a6480017220977ff4da635b8c4b63899",
       "BSGANGSEO": "3382c69565c9b243ffb3e090a9fe523455a7decdbbb4d69d8ba6c68f9eb09436"
+    }
+  },
+  "busanDongguSahaCollectionRun": {
+    "groups": [
+      "BSDONGGU",
+      "SAHA"
+    ],
+    "tests": 6,
+    "failures": 0,
+    "skipped": 0,
+    "failureCases": [],
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 16,
+    "surveyStoredHtmlBytes": 553540,
+    "requestReservations": 24,
+    "reservedBytes": 13106940,
+    "downloadedFiles": 6,
+    "downloadedBytes": 479662,
+    "junitReportHashes": {
+      "BSDONGGU": "d9a0cdd9b93c266203a0cfb9e0b3d5cb51e87f153a3ef43149edaa1a8fa8423d",
+      "SAHA": "dc8e6da45b55fe307d84f767164d6e8024d4d04010c251076bb66792c883ad40"
     }
   }
 }
