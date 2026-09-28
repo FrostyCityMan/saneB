@@ -11,10 +11,10 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 24,
-    "missingProfileRegionCount": 199,
-    "collectionVerifiedRegionCount": 9,
-    "remainingRegionCount": 214
+    "registeredRegionCount": 26,
+    "missingProfileRegionCount": 197,
+    "collectionVerifiedRegionCount": 10,
+    "remainingRegionCount": 213
   },
   "regions": [
     {
@@ -646,14 +646,48 @@
       "sourceCode": "LGS-000036",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000036",
+          "caseCode": "HAEUNDAE-53170",
+          "profileCode": "LOCAL_HAEUNDAE_GET_V1",
+          "profileHash": "63ebbebac5d4b3eebd46a44fc28b586b8b9f4854eb52de88ad5a250c11b701de",
+          "receiptHash": "bf1ce0b5072f8f50833deb5dfeca08d396131447f9045767153686b03636df7d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000036",
+          "caseCode": "HAEUNDAE-53342",
+          "profileCode": "LOCAL_HAEUNDAE_GET_V1",
+          "profileHash": "63ebbebac5d4b3eebd46a44fc28b586b8b9f4854eb52de88ad5a250c11b701de",
+          "receiptHash": "9107f3bc8d2fbfbd09cb72ddd9ffd0bb705df9b2b51a46d01ab997cb87f9829b",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000036",
+          "caseCode": "HAEUNDAE-53828",
+          "profileCode": "LOCAL_HAEUNDAE_GET_V1",
+          "profileHash": "63ebbebac5d4b3eebd46a44fc28b586b8b9f4854eb52de88ad5a250c11b701de",
+          "receiptHash": "a2cd94dbad139c93bc3c57ee3b39af1bf1838a4a1952db24bb03b11977d08f92",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000037",
@@ -817,14 +851,48 @@
       "sourceCode": "LGS-000043",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
-      "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
+      "collectionVerified": true,
+      "status": "COLLECTION_VERIFIED",
+      "verifiedSampleCount": 3,
+      "downloadedSampleCount": 3,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000043",
+          "caseCode": "GIJANG-50405",
+          "profileCode": "LOCAL_GIJANG_GET_V1",
+          "profileHash": "5b9abb208ad799bbae500446cb93ed9dae92e065e6ed53f145cea0b8a93f47e1",
+          "receiptHash": "1cdbc1629b00e491912c5b737be97717b881cb48f157ed9e38ff26d9679a4044",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000043",
+          "caseCode": "GIJANG-50406",
+          "profileCode": "LOCAL_GIJANG_GET_V1",
+          "profileHash": "5b9abb208ad799bbae500446cb93ed9dae92e065e6ed53f145cea0b8a93f47e1",
+          "receiptHash": "182d2d8d54d3f20bc3916f16c5bdd3f9954dc8986b2633856e2934094f62439f",
+          "fileCount": 4,
+          "downloadedFileCount": 4,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000043",
+          "caseCode": "GIJANG-51576",
+          "profileCode": "LOCAL_GIJANG_GET_V1",
+          "profileHash": "5b9abb208ad799bbae500446cb93ed9dae92e065e6ed53f145cea0b8a93f47e1",
+          "receiptHash": "987640c136361cb79d6d2a5c17dd3924722b8a9d4cfb6623178214a79eb643c4",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000044",
@@ -3690,9 +3758,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "099b00fd55e840adda5756c47529fef130edef2ad44af15f4ec188908fe7fba1",
+  "inputInventorySha256": "b86efdd4b21429be755d6223f1c0010cb79a22aeab3c8411be2a7e07919d1b2c",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 62,
+  "importedReceiptCount": 68,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -3780,6 +3848,57 @@
     "junitReportHashes": {
       "SUYEONG": "aacb2355202e4825f90ba80cdbf682376e32914fac6633635efc6be9f60e72ae",
       "SASANG": "a59c113705dee6a4091ef2147460edb9286861286eb7631023afaaae49acadb4"
+    }
+  },
+  "busanEastCollectionRun": {
+    "groups": [
+      "HAEUNDAE",
+      "GIJANG"
+    ],
+    "tests": 6,
+    "failures": 2,
+    "skipped": 0,
+    "failureCases": [
+      "HAEUNDAE-53828",
+      "HAEUNDAE-53342"
+    ],
+    "failureReason": "DECLARED_HWPX_ACTUAL_HWP_SIGNATURE_MISMATCH",
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 14,
+    "surveyStoredHtmlBytes": 217008,
+    "requestReservations": 29,
+    "reservedBytes": 16597871,
+    "downloadedFiles": 9,
+    "downloadedBytes": 3763996,
+    "diagnostics": [
+      {
+        "caseCode": "HAEUNDAE-53828",
+        "requestCount": 1,
+        "bytes": 103424,
+        "binaryHash": "2ec8e2098b19c68642a52351d7339dd15067d3e5ab991a2947141b79e382d08d",
+        "headerHash": "4aac868355a4d319a7b368e8d1197c2ea754f442369e3967d563a8d3d1749b6e",
+        "declaredFormat": "HWPX",
+        "signatureFormat": "HWP",
+        "matchesOriginalReceipt": true,
+        "collectionVerified": false
+      },
+      {
+        "caseCode": "HAEUNDAE-53342",
+        "requestCount": 1,
+        "bytes": 101888,
+        "binaryHash": "750b7863afde0d8eded2c1e5d0890b580140c42c1fba7aef907d846ace4f77ad",
+        "headerHash": "0d2eb6eddde3189e29073b86bc40de9d370ef49b98e2aa91ca6848bc449ba3d0",
+        "declaredFormat": "HWPX",
+        "signatureFormat": "HWP",
+        "matchesOriginalReceipt": true,
+        "collectionVerified": false
+      }
+    ],
+    "junitReportHashes": {
+      "HAEUNDAE": "569006759e61347b003b8ced87641008ec1f562a9087b71ca65cbcc369e89679",
+      "GIJANG": "7bcf5c8fada0714c230167eece4adcb746b361ea9de8cce3cdb8cdf691156b20"
     }
   }
 }

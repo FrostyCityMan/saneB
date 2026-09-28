@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -54,6 +54,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("HAEUNDAE".equals(group)) return Stream.of(
+                selectBusanEastCase(group,"53828","해운대구 청년 구직활동비 지원사업 참여자 모집 공고(3차)",1),
+                selectBusanEastCase(group,"53342","해운대구 청년 구직활동비 지원사업 참여자 모집 공고",1),
+                selectBusanEastCase(group,"53170","2026년『해운대 청년채움공간』가상오피스 지원사업 모집공고(3차)",1));
+        if("GIJANG".equals(group)) return Stream.of(
+                selectBusanEastCase(group,"51576","2026년 청년농업인영농정착지원사업 2차 선발 시행 공고",1),
+                selectBusanEastCase(group,"50406","「2026년 기장군 청년 면접수당 지원사업」 대상자 모집 공고",4),
+                selectBusanEastCase(group,"50405","「2026년 기장군 청년 자격시험 응시료 지원사업」 대상자 모집 공고",3));
         if("SUYEONG".equals(group)) return Stream.of(
                 selectBusanStructuredCase(group,"40142","2026년 소상공인 영업용 전기차(전기이륜차포함) 구입비 지원 사업 변경 공고",1),
                 selectBusanStructuredCase(group,"39601","2026년 소상공인 영업용 전기차(전기이륜차포함) 구입비 지원 사업 시행 공고",1),
@@ -156,6 +164,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                         "2026년 중소기업 제품디자인개발 지원사업 참여기업 모집 공고",2),
                 selectYangpyeongCase("311507","7d571058a83135abdb528156f40ef0e1c396dcd6f2a4731255ed960c5a7b65c5",
                         "『2026년 귀농인 정착지원 주택임대 사업』 대상자(빈집 소유자) 모집 3차 공고",2));
+    }
+    private static ObservationCase selectBusanEastCase(String group,String id,String title,int count) {
+        boolean haeundae="HAEUNDAE".equals(group);
+        if(!haeundae&&!"GIJANG".equals(group))throw new IllegalArgumentException("UNKNOWN_BUSAN_EAST_GROUP");
+        String host=haeundae?"eminwon.haeundae.go.kr":"eminwon.gijang.go.kr";
+        String url="https://"+host+"/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        var config=new SaeolGetAttachmentProfileConfiguration();
+        return new ObservationCase(group+"-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",
+                n.hash(n.canonicalizeUrl(url)),url,haeundae?"LGS-000036":"LGS-000043",haeundae?"SAFE_SAEOL_EMINWON_COMPACT":"SAFE_SAEOL_EMINWON"),
+                haeundae?config.selectHaeundaeProfileDetails():config.selectGijangProfileDetails(),url,count,
+                haeundae?TitleLayout.HAEUNDAE_HEADING:TitleLayout.GIJANG_HEADER);
     }
     private static ObservationCase selectBusanStructuredCase(String group,String id,String title,int count) {
         boolean suyeong="SUYEONG".equals(group);
@@ -414,6 +434,19 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        if(layout==TitleLayout.HAEUNDAE_HEADING||layout==TitleLayout.GIJANG_HEADER) {
+            boolean haeundae=layout==TitleLayout.HAEUNDAE_HEADING;
+            var forms=page.select("form");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");var form=forms.getFirst();
+            assertEquals(haeundae?"form1":"form",form.attr("name"),"TITLE_STRUCTURE_CHANGED");assertEquals("post",form.attr("method").toLowerCase(Locale.ROOT),"TITLE_STRUCTURE_CHANGED");
+            var containers=form.select(haeundae?"article.news_view":"table.tb_board_read");assertEquals(1,containers.size(),"TITLE_STRUCTURE_CHANGED");
+            var titles=containers.getFirst().select(haeundae?":root > h2.newsTitle":"thead > tr > th[scope=col]");assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");
+            var title=titles.getFirst();
+            if(haeundae){assertEquals(1,title.childrenSize(),"TITLE_STRUCTURE_CHANGED");var date=title.child(0);
+                assertTrue("p".equals(date.tagName())&&date.hasClass("small")&&date.children().isEmpty(),"TITLE_STRUCTURE_CHANGED");
+                assertTrue(normalized(date.text()).matches("등록일\\s*"+normalized("ㅣ")+"\\s*[0-9]{4}-[0-9]{2}-[0-9]{2}"),"TITLE_STRUCTURE_CHANGED");
+            }else assertTrue(title.children().isEmpty(),"TITLE_STRUCTURE_CHANGED");
+            assertEquals(normalized(expected),normalized(title.ownText()),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.SUYEONG_HEADING||layout==TitleLayout.SASANG_HEADER) {
             var forms=page.select("form");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");var form=forms.getFirst();
             assertEquals("form1",form.attr("name"),"TITLE_STRUCTURE_CHANGED");assertEquals("post",form.attr("method").toLowerCase(Locale.ROOT),"TITLE_STRUCTURE_CHANGED");
@@ -550,11 +583,12 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         Budget(AttachmentDiscoveryProfile profile){this(profile,false);}
         Budget(AttachmentDiscoveryProfile profile,boolean diagnostic){this.profile=Objects.requireNonNull(profile);
             boolean namgu=diagnostic && "LOCAL_BUSAN_NAMGU_GET_V1".equals(profile.selectProfileCode());
-            boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1","LOCAL_DONGNAE_GET_V1","LOCAL_BUSANJIN_GET_V1","LOCAL_GEUMJEONG_GET_V1","LOCAL_SUYEONG_GET_V1","LOCAL_SASANG_GET_V1").contains(profile.selectProfileCode());
+            boolean boundedSaeol=Set.of("LOCAL_DAEGU_DALSEONG_GET_V1","LOCAL_HAMAN_GET_V1","LOCAL_DAEGU_JUNGGU_GET_V1","LOCAL_DONGNAE_GET_V1","LOCAL_BUSANJIN_GET_V1","LOCAL_GEUMJEONG_GET_V1","LOCAL_SUYEONG_GET_V1","LOCAL_SASANG_GET_V1","LOCAL_HAEUNDAE_GET_V1").contains(profile.selectProfileCode());
+            boolean gijang="LOCAL_GIJANG_GET_V1".equals(profile.selectProfileCode());
             boolean gangbuk="LOCAL_GANGBUK_LEGAL_GET_V1".equals(profile.selectProfileCode());
             boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
             boolean standardCollection=Set.of("LOCAL_HOENGSEONG_BBS_V1","LOCAL_YEONGWOL_BBS_V1").contains(profile.selectProfileCode());
-            maximumRequests=standardCollection?5:guro?8:gangbuk?20:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
+            maximumRequests=standardCollection?5:guro?8:gangbuk?20:gijang?7:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:gijang?23:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}
