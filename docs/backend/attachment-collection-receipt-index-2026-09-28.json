@@ -814,7 +814,7 @@
     },
     {
       "kind": "LOCAL_COLLECTION_ONLY",
-      "path": "build/reports/attachment-regional-collection/BUAN-363827.json",
+      "path": "build/reports/attachment-regional-collection/BUAN-363827-BEFORE-PATH-RECHECK.json",
       "receiptHash": "c5ea5fed7309840007558dd40f43966ed6c961c909c4d4a62e92a2a6cb184ee0",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
@@ -2163,6 +2163,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUAN-363827.json",
+      "receiptHash": "e04440020fa2b6e49a7f5ceccc093cccc37b4a304a1a9d1dd3cb0d400833265d",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -2935,9 +2943,9 @@
       "caseCode": "BUAN-363827",
       "profileCode": "LOCAL_BUAN_GET_V1",
       "profileHash": "390cceb4d63b25307da64933a0d03b1577d8fe73276251413208941deb730f78",
-      "receiptHash": "c5ea5fed7309840007558dd40f43966ed6c961c909c4d4a62e92a2a6cb184ee0",
-      "producerClassHash": "956995c57adc9bf2b92840efd2d7197889b58e1923c1cad975bd92762d09e23e",
-      "observedAt": "2026-09-29T02:43:02.200863700Z",
+      "receiptHash": "e04440020fa2b6e49a7f5ceccc093cccc37b4a304a1a9d1dd3cb0d400833265d",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T23:44:04.876229300Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -2949,8 +2957,11 @@
       "files": [
         {
           "locatorHash": "f62e6f14d0d28cc492647eef5dfab47da965093556cb576f9976ad5b05d1b412",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 82795,
+          "format": "HWPX",
+          "binaryHash": "2dec4ab835470c4097bb7f55897c55b2d4f6e4b1644f4f54c8c5f8ead807e461",
+          "signatureVerified": true
         }
       ]
     },

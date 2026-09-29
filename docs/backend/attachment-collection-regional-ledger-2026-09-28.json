@@ -4444,9 +4444,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -4455,11 +4455,11 @@
           "caseCode": "BUAN-363827",
           "profileCode": "LOCAL_BUAN_GET_V1",
           "profileHash": "390cceb4d63b25307da64933a0d03b1577d8fe73276251413208941deb730f78",
-          "receiptHash": "c5ea5fed7309840007558dd40f43966ed6c961c909c4d4a62e92a2a6cb184ee0",
+          "receiptHash": "e04440020fa2b6e49a7f5ceccc093cccc37b4a304a1a9d1dd3cb0d400833265d",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5829,7 +5829,7 @@
   ],
   "inputInventorySha256": "1bf3c17b79ea8499ecd52324b584357233359a27e579dee16d0187ba3dcd9596",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 280,
+  "importedReceiptCount": 281,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,65 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "buanPathRecheckRun": {
+    "scope": "BUAN_FIXED_SAMPLE_PATH_RECHECK_COLLECTION_ONLY",
+    "observedAt": "2026-09-29T23:44:04.876229300Z",
+    "sourceCode": "LGS-000177",
+    "surveyRequestCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      "Official detail and file HTTP200; current local fixture passes unchanged profile and validator.",
+      "Prior run exhausted six reservations; exact earlier transport cause unproven. No path-policy change or budget increase."
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-buan-path-20260930/detail-head.txt",
+        "bytes": 452,
+        "sha256": "35ffb2eacf52eea7d70660fe14fce688318abb30df4584e065a767b7bfaa9375"
+      },
+      {
+        "path": "build/qa-buan-path-20260930/detail.html",
+        "bytes": 85344,
+        "sha256": "6f2e77d06788d8b3bef3f4a0d9e4da687414a2e869fdb400ffd0fbd5de29f058"
+      },
+      {
+        "path": "build/qa-buan-path-20260930/file-head.txt",
+        "bytes": 560,
+        "sha256": "7a383598970bd690bccdf629dab99712ddf8786d009ea1ac9c1fdc6c805bf7c1"
+      },
+      {
+        "path": "build/qa-buan-path-20260930/file.bin",
+        "bytes": 82795,
+        "sha256": "2dec4ab835470c4097bb7f55897c55b2d4f6e4b1644f4f54c8c5f8ead807e461"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "BUAN-363827",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "preservedFailureReports": [
+      "build/reports/attachment-regional-collection/BUAN-363827-BEFORE-PATH-RECHECK.json"
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/BUAN-363827.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2270059,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 6,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 82795,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
