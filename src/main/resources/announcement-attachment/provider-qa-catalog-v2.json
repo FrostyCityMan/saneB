@@ -2269,6 +2269,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ASAN-80727",
+      "profileCode": "LOCAL_ASAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0107319786212a629525885d1a628b56e8754605d6fbdf95b8555a361c0d6823",
+        "sourceUrl": "https://www.asan.go.kr/main/cms/?no=257&m_mode=view&mgt_no=80727",
+        "localSourceCode": "LGS-000151",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEOSAN-65309",
+      "profileCode": "LOCAL_SEOSAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6819247007aa2ceeff54a6542b146c3d0547c237e830be6f5c0dc0c66c793dbe",
+        "sourceUrl": "https://www.seosan.go.kr/common/program/eminwonView.jsp?jndinm=OfrNotAncmtEJB&context=NTIS&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=65309&homepage_pbs_yn=Y&subCheck=Y",
+        "localSourceCode": "LGS-000152",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

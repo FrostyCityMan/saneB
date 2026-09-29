@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 128,
-    "missingProfileRegionCount": 95,
+    "registeredRegionCount": 130,
+    "missingProfileRegionCount": 93,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3324,27 +3324,51 @@
       "sourceCode": "LGS-000151",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000151",
+          "caseCode": "ASAN-80727",
+          "profileCode": "LOCAL_ASAN_BOARD_V1",
+          "profileHash": "a9e450ec622c3a5de15c1bd96dc310d2c1ebc6dee762330837f50dd7117a8e14",
+          "receiptHash": "ee743c6ba4a6f7efdc8c501a58279642405ac3c4f0a972fb9ba1c3fb509c64db",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000152",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000152",
+          "caseCode": "SEOSAN-65309",
+          "profileCode": "LOCAL_SEOSAN_BOARD_V1",
+          "profileHash": "a5989157b581386797ef29803128e88791278d6c98c8d4bc7867ee6076ea1919",
+          "receiptHash": "9367843e5c30a69ac45c3c5df33000a3ecf5f4701225ccfe669c136c61cbae9c",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000153",
@@ -8754,6 +8778,106 @@
         "sourceCode": "LGS-000157",
         "requests": 4,
         "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_AND_REFERENCED_DOWNLOAD_SCRIPT_PLAIN_POST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chungcheongSixthDownloadRun": {
+    "scope": "CHUNGCHEONG_SIXTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 10,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "ASAN-detail.html",
+        "bytes": 152379,
+        "sha256": "dc64e3ce54f0ed30791186153eb4f7036d45efbd80df307dd06e14f532264117"
+      },
+      {
+        "name": "ASAN-list.html",
+        "bytes": 157356,
+        "sha256": "5dda31991ecc2b75b9ae2b170450c7df8b95e883646357a95e2f44971a3c385e"
+      },
+      {
+        "name": "ASAN-search.html",
+        "bytes": 149848,
+        "sha256": "32ad967882ad038089d7467f94700e4328dd83f51733271602e67836188476a1"
+      },
+      {
+        "name": "ASAN-support.html",
+        "bytes": 158067,
+        "sha256": "0bc0c49842017d85d84c24039fc2ab30f453ffc9a426811ad1c8deb83ac4b950"
+      },
+      {
+        "name": "ASAN-www-detail.html",
+        "bytes": 152391,
+        "sha256": "28a14ce6a5e4386a1940c9f31f813c78643da6c3ea4e1da09c5f5c557717d045"
+      },
+      {
+        "name": "CHEONAN-list.html",
+        "bytes": 146,
+        "sha256": "32f2fa940d4b4fe19aca1e53a24e5aac29c57b7c5ee78588325b87f1b649c864"
+      },
+      {
+        "name": "SEOSAN-detail.html",
+        "bytes": 10858,
+        "sha256": "3ca41675cc8b9a6a0bf98d8acf83086c21b8e285f17e09ef6803fdeb4e356f2a"
+      },
+      {
+        "name": "SEOSAN-frame.html",
+        "bytes": 24142,
+        "sha256": "a3e18ceae57dee34e429946372b2a5104e04a2dfe336d933bb61f363955a9692"
+      },
+      {
+        "name": "SEOSAN-list.html",
+        "bytes": 97555,
+        "sha256": "1c4f10dd2d3114d212fa386036f9d8394a520e93029329d039bdcbdc8a82ce5a"
+      },
+      {
+        "name": "SEOSAN-search.html",
+        "bytes": 15198,
+        "sha256": "48f2ce39a4a767cec7e9477061cde86fd6420ebcc8fea266c2363fd4af9f7faa"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ASAN-80727",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "SEOSAN-65309",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ASAN-80727.json",
+      "build/reports/attachment-regional-collection/SEOSAN-65309.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 10,
+    "reservedBytesIncludingBodyUpperBound": 4838476,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000148",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_403_NOT_BYPASSED"
+      },
+      {
+        "sourceCode": "LGS-000151",
+        "requests": 5,
+        "result": "OFFICIAL_LIST_TWO_TITLE_SEARCHES_AND_APEX_WWW_DETAILS_PLAIN_POST"
+      },
+      {
+        "sourceCode": "LGS-000152",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_FRAME_TITLE_SEARCH_DETAIL_FIXED_THREE_ARGUMENT_GET"
       }
     ],
     "originalsRemoved": true,

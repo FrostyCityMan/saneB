@@ -38,6 +38,22 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void chungcheongSixthBodySeparatesFilesAndKeepsSameHostBoundary() {
+        for(var site:ChungcheongSixthNoticePage.Site.values()) {
+            boolean asan=site==ChungcheongSixthNoticePage.Site.ASAN;String body="청년농업인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            String page=asan?"<div class='customContents'><div class='viewForm'><dl class='ct_th04'><dt>청년농업인 지원</dt><dd>담당자</dd></dl><div class='ct_tc14'><div class='ct_btn04'><b>첨부파일</b>특허 첨부</div><div class='ct_tc14'><div class='field-name-body'><div class='field-items'>"+body+"</div></div></div></div></div></div>"
+                    :"<form name='form1'><table class='bbs_default view'><tbody><tr class='subject'><th>제목</th><td><span class='subject_text'>청년농업인 지원</span></td></tr><tr><td title='내용' class='bbs_content'>"+body+"</td></tr><tr><th>첨부파일</th><td>특허 첨부</td></tr></tbody></table></form>";
+            String url="https://"+site.host+site.path+(asan?"?no=257&m_mode=view&mgt_no=80727":"?jndinm=OfrNotAncmtEJB&context=NTIS&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=65309&homepage_pbs_yn=Y&subCheck=Y");
+            for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+                var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년농업인 지원금 수출기업 제외");}
+                else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+            }
+            if(asan){var transport=new StubTransport();var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.asan.go.kr/main/cms/?no=257",url.replace("www.asan.go.kr","asan.go.kr")));assertThat(result.failureCode()).isEqualTo(FailureCode.DETAIL_HOST_NOT_ALLOWED);}
+        }
+    }
+
     @Test void chungcheongFifthBodyPreservesConditionsAndExcludesFiles() {
         for(var site:ChungcheongFifthNoticePage.Site.values()) {
             String body="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
