@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void sejongBodyExcludesFilesAndDepartment() {
+        String good="<div id=txt><div class=table-responsive><table class='table table-bordered'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>파일첨부</th><td>수출 특허.hwp</td></tr><tr><td class='tbl_cnts cell_left'>소상공인 지원금</td></tr></table></div></div>";
+        String url="https://www.sejong.go.kr/prog/publicNotice/kor/sub02_030301/C1_1/view.do?not_ancmt_mgt_no=68219";
+        for(String page:List.of(good,good+good,good.replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(page.equals(good)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void daejeonNextBodiesExcludeFilesAndMetadata() {
         String y="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>소상공인 지원</h2><span>수출 부서</span></div><div class='ui bbs--view--file'>수출 특허.hwp</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>소상공인 지원금</div></div></div></div></div>";
         String d="<table class=table2023><tr><th class=tit00>소상공인 지원</th></tr><tr><th>부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>수출 특허.hwp</td></tr><tr><td class=cont_area>소상공인 지원금</td></tr></table>";

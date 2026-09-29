@@ -2641,6 +2641,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SEJONG-68219",
+      "profileCode": "LOCAL_SEJONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "66eaa39487663d18bbe6374f9353943fa1f0a7fefca44147e6d81d4ae7479a34",
+        "sourceUrl": "https://www.sejong.go.kr/prog/publicNotice/kor/sub02_030301/C1_1/view.do?not_ancmt_mgt_no=68219&pageIndex=1",
+        "localSourceCode": "LGS-000083",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

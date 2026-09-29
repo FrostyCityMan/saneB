@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 159,
-    "missingProfileRegionCount": 64,
+    "registeredRegionCount": 160,
+    "missingProfileRegionCount": 63,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2141,14 +2141,26 @@
       "sourceCode": "LGS-000083",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000083",
+          "caseCode": "SEJONG-68219",
+          "profileCode": "LOCAL_SEJONG_BOARD_V1",
+          "profileHash": "eedf85a413bf20b5240c4ff78a1fa1ccd9a0a91df15922447808ffcb948a6042",
+          "receiptHash": "41692fb0d9511e8cb0b989a5fb853cf6618e29ca4bfe55e50b07fbaa16e1bcb0",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000084",
@@ -10721,6 +10733,79 @@
         "sourceCode": "LGS-000076",
         "requests": 3,
         "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_HWP_1_PDF_2_FIXED_FORM"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "sejongDownloadRun": {
+    "scope": "SEJONG_COLLECTION_ONLY_WITH_PENDING_ULJU",
+    "surveyRequestCount": 7,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "SEJONG-detail.html",
+        "bytes": 217269,
+        "sha256": "54dae59c3b659d3b2f597663c822d051ea2fe209ac4eacae1e1debaf6de617bc"
+      },
+      {
+        "name": "SEJONG-list.html",
+        "bytes": 225647,
+        "sha256": "56544245ebfaa2ab7be9488cf4dd8c33e73a60a8c93895394ca7b793ae266e79"
+      },
+      {
+        "name": "SEJONG-search.html",
+        "bytes": 223825,
+        "sha256": "651c2a0e93292ec87a58cc8350fcf0bb5978a6e894793de7c6e767bba07f448f"
+      },
+      {
+        "name": "ULJU-list.html",
+        "bytes": 918,
+        "sha256": "b9a00ee147cc0f5944994384a9c05457dbda0b53209be879c13c339b80b17c9a"
+      },
+      {
+        "name": "ULJU-official-list.html",
+        "bytes": 260970,
+        "sha256": "a13dee10816aa06ceeca86128214f857c20801552bfc64f1967f5420c3e01b31"
+      },
+      {
+        "name": "ULJU-search.html",
+        "bytes": 254212,
+        "sha256": "e0b328dfb5ccd7a697e70961d851ae3012f713d2bb0604f99cc1c0b7e5d4277b"
+      },
+      {
+        "name": "ULJU-support.html",
+        "bytes": 255362,
+        "sha256": "2e9e28d00a1ad6457a8622295099d32274948045877232f59bce78ea90c0f755"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEJONG-68219",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEJONG-68219.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2383872,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000083",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_HWP_1_DIRECT_GET"
+      },
+      {
+        "sourceCode": "LGS-000082",
+        "requests": 4,
+        "result": "OFFICIAL_MENU_REDIRECT_LIST_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_ADMINISTRATIVE_TITLES_NO_DETAIL_OR_FILE_REQUEST"
       }
     ],
     "originalsRemoved": true,
