@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 102,
-    "missingProfileRegionCount": 121,
+    "registeredRegionCount": 104,
+    "missingProfileRegionCount": 119,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1904,14 +1904,26 @@
       "sourceCode": "LGS-000086",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000086",
+          "caseCode": "YONGIN-145475",
+          "profileCode": "LOCAL_YONGIN_GET_V1",
+          "profileHash": "cd03c2c38066ca53b84aa038045716bf06fe19bf16e005dc6a6003d592751ded",
+          "receiptHash": "307eaa3cb0743a56654bd738815283c8e21541f6d7b5c14507b1769fdfac7e65",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000087",
@@ -2203,14 +2215,26 @@
       "sourceCode": "LGS-000109",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000109",
+          "caseCode": "UIWANG-38883",
+          "profileCode": "LOCAL_UIWANG_POST_V1",
+          "profileHash": "19cc70f9f0e568efc2635a194a4c508199b654a6846545ea891a7ed44c07214b",
+          "receiptHash": "c5f7a1462344cf413f9ac5f2d83934c9de2d2c28916652bb3076f349c4a6aac6",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000110",
@@ -7341,6 +7365,79 @@
         "sourceCode": "LGS-000162",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_DETAIL_SUBCHECK_N"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalNextDownloadRun": {
+    "scope": "CAPITAL_NEXT_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 7,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "SEONGNAM-list.html",
+        "bytes": 1076,
+        "sha256": "ca6d931428fba71d90b37c39ad91ebe0a7bcc3d961f082dc24077c571de33a3f"
+      },
+      {
+        "name": "UIWANG-detail.html",
+        "bytes": 10561,
+        "sha256": "feda0a27e103186d88eec08be425c865328c30f8592f26c6988a30e2775f9049"
+      },
+      {
+        "name": "UIWANG-list.html",
+        "bytes": 38414,
+        "sha256": "35bfd4c50e5df8d718bc2c739b95b67178793f2065ee6af166d5e7b1a02dd495"
+      },
+      {
+        "name": "UIWANG-search.html",
+        "bytes": 34435,
+        "sha256": "654255b764d44abe73ec8151fd99f21c69325281fe11919475513824c200317e"
+      },
+      {
+        "name": "YONGIN-detail.html",
+        "bytes": 15519,
+        "sha256": "3ba49530537cb5fccefe7930f1cde19ea5cdfa1099cc5a7c92b2c316c3c8a522"
+      },
+      {
+        "name": "YONGIN-list.html",
+        "bytes": 37628,
+        "sha256": "b3289919ad6cf0fecc38017dc32197cb90b310adacb20efb556449e3f9bb1728"
+      },
+      {
+        "name": "YONGIN-search.html",
+        "bytes": 36526,
+        "sha256": "6cc35fe0d7ffa94f597227f3ba260f8c4570dbd97ce815273e1d116e20d9e543"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YONGIN-145475.json",
+      "build/reports/attachment-regional-collection/UIWANG-38883.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 4751088,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000086",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_GET"
+      },
+      {
+        "sourceCode": "LGS-000109",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_SUBCHECK_N_POST"
+      },
+      {
+        "sourceCode": "LGS-000089",
+        "requests": 1,
+        "result": "PORTAL_LIST_HTTP404_1076_BYTES"
       }
     ],
     "originalsRemoved": true,
