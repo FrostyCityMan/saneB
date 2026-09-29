@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 48,
-    "missingProfileRegionCount": 175,
+    "registeredRegionCount": 53,
+    "missingProfileRegionCount": 170,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3065,14 +3065,26 @@
       "sourceCode": "LGS-000165",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000165",
+          "caseCode": "GUNSAN-71315",
+          "profileCode": "LOCAL_GUNSAN_GET_V1",
+          "profileHash": "3263dbdc97c48ae6df6c5eae29fdf1232a5a4cc230a6888d3ad398fc63460281",
+          "receiptHash": "20d56aa70b339bd7de53276789800295e494aac836b2e76f8ccd5e2bfebc1de5",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000166",
@@ -3103,27 +3115,51 @@
       "sourceCode": "LGS-000167",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000167",
+          "caseCode": "JEONGEUP-50232",
+          "profileCode": "LOCAL_JEONGEUP_GET_V1",
+          "profileHash": "589f1663102ee386ff39cfe1f2ccde4901f5284cdc27a5a0773cd7e01a7aac8c",
+          "receiptHash": "4494ec79af707c08f4206b7dcd7522778608f9d3e4a85ba1da630f17bd84ff85",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000168",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000168",
+          "caseCode": "NAMWON-33037092911B4BD8BE3B8C15657D8AEF",
+          "profileCode": "LOCAL_NAMWON_GET_V1",
+          "profileHash": "4bc1a4aa08f3e7bd2357febd09eb62a6db7075dc3552a9c9a39760b4efce69d7",
+          "receiptHash": "aff8f39b91ad49a44303ea569d33631cc67a9dc0079a9fe8faab20648be0c162",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000169",
@@ -3292,27 +3328,51 @@
       "sourceCode": "LGS-000176",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000176",
+          "caseCode": "GOCHANG-807493",
+          "profileCode": "LOCAL_GOCHANG_GET_V1",
+          "profileHash": "69686c094eb8bcb526cc7d853c5c8e870916ec99203f3a894315ab04c565a3f8",
+          "receiptHash": "6b49bf8e275eb94d8253b69b1a23b13733f3464b2fab599fef3149185a941ba6",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000177",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000177",
+          "caseCode": "BUAN-363827",
+          "profileCode": "LOCAL_BUAN_GET_V1",
+          "profileHash": "390cceb4d63b25307da64933a0d03b1577d8fe73276251413208941deb730f78",
+          "receiptHash": "c5ea5fed7309840007558dd40f43966ed6c961c909c4d4a62e92a2a6cb184ee0",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000178",

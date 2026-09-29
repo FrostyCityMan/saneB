@@ -80,7 +80,7 @@ class AttachmentProviderInventoryAuditTest {
             var report=selectReport(selectFixture(),JSON.readTree("{\"notices\":[]}"),List.copyOf(context.getBeansOfType(AttachmentDiscoveryProfile.class).values()));
             assertThat(report.path("allUndeletedSummary").path("targetCount").asInt()).isEqualTo(5);
             assertThat(report.path("enabledSummary").path("targetCount").asInt()).isEqualTo(4);
-            assertThat(report.path("allUndeletedSummary").path("registeredProfileCount").asInt()).isEqualTo(49);
+            assertThat(report.path("allUndeletedSummary").path("registeredProfileCount").asInt()).isEqualTo(54);
             assertThat(report.at("/targets/3/bindingStatus").asText()).isEqualTo("LIST_PARSER_MISMATCH");
             assertThat(report.at("/targets/3/enabled").asBoolean()).isFalse();
             assertThat(report.at("/targets/4/bindingStatus").asText()).isEqualTo("PROFILE_MISSING");

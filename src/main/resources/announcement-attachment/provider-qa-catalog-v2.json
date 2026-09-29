@@ -3,6 +3,66 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "GUNSAN-71315",
+      "profileCode": "LOCAL_GUNSAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cbd9522f542b4ac535371401003bc7c98bbbd4f768981671d5ffd2c0d1e0f320",
+        "sourceUrl": "http://eminwon.gunsan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=71315&subCheck=Y",
+        "localSourceCode": "LGS-000165",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JEONGEUP-50232",
+      "profileCode": "LOCAL_JEONGEUP_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "40f31013577747cdb36a4fb685f00bca87b9322b0ba039dd27dc528881007542",
+        "sourceUrl": "http://eminwon.jeongeup.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=50232&subCheck=Y",
+        "localSourceCode": "LGS-000167",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NAMWON-33037092911B4BD8BE3B8C15657D8AEF",
+      "profileCode": "LOCAL_NAMWON_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6aa315ddf13e49f7d8d15c90aafc62474a0aa1ba546dabb4850db6f7323c0343",
+        "sourceUrl": "https://www.namwon.go.kr/board/post/view.do?boardUid=ff8080818ea1fec5018ea24137680031&menuUid=ff8080818e3beff0018e4077131b007a&postUid=33037092911b4bd8be3b8c15657d8aef",
+        "localSourceCode": "LGS-000168",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUAN-363827",
+      "profileCode": "LOCAL_BUAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6a369c3526ed7cff99068aa1cffb05ce97c5493b185227628601e653e2defcaa",
+        "sourceUrl": "https://www.buan.go.kr/board/view.buan?boardId=BBS_0000054&menuCd=DOM_000000103001003000&dataSid=363827",
+        "localSourceCode": "LGS-000177",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GOCHANG-807493",
+      "profileCode": "LOCAL_GOCHANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9428b2238dc3cf024e30a88b6a6773588078cb6629f3f697af1367d710eb0a3a",
+        "sourceUrl": "https://www.gochang.go.kr/board/view.gochang?boardId=BBS_0000180&menuCd=DOM_000000102003007000&dataSid=807493",
+        "localSourceCode": "LGS-000176",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "GURO-49626",
       "profileCode": "LOCAL_GURO_GOSI_V1",
       "source": {
