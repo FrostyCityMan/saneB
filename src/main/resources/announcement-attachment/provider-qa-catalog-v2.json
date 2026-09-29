@@ -2017,6 +2017,42 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "NAMYANGJU-84824",
+      "profileCode": "LOCAL_NAMYANGJU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0384a4fbc5454cd7703387aae754a73bb369c6ac59ca80608a2a9eda45ec6888",
+        "sourceUrl": "https://www.nyj.go.kr/www/selectEminwonWebView.do?key=2492&pk=84824&sa1Join=01;02;04;05&sc4=2024",
+        "localSourceCode": "LGS-000091",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "HANAM-51521",
+      "profileCode": "LOCAL_HANAM_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "963532acffc589421ea593083d490264a7b381a613d09ef3847b3b044aadbedc",
+        "sourceUrl": "https://www.hanam.go.kr/www/selectGosiData.do?key=171&not_ancmt_mgt_no=51521&not_ancmt_se_code=01,04",
+        "localSourceCode": "LGS-000100",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GURI-46706",
+      "profileCode": "LOCAL_GURI_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "bcc81c4d0a9058819f45ed7a2ba14e4d72eb4e41a820494a797e4f27452a1bcd",
+        "sourceUrl": "https://www.guri.go.kr/www/selectGosiNttView.do?key=387&gosiNttNo=46706&searchGosiSe=01,04,06",
+        "localSourceCode": "LGS-000107",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

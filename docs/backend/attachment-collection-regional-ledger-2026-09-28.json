@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 107,
-    "missingProfileRegionCount": 116,
+    "registeredRegionCount": 110,
+    "missingProfileRegionCount": 113,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1981,14 +1981,26 @@
       "sourceCode": "LGS-000091",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000091",
+          "caseCode": "NAMYANGJU-84824",
+          "profileCode": "LOCAL_NAMYANGJU_PORTAL_V1",
+          "profileHash": "f35dc8d85097184195c44b01dbf88bb87a36cc1c26e5f8e287db6a5df7c80f90",
+          "receiptHash": "4c199d9ab9efb74c4563a57a89369084004f911a9f0731377bf856ea42a45b0e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000092",
@@ -2098,14 +2110,26 @@
       "sourceCode": "LGS-000100",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000100",
+          "caseCode": "HANAM-51521",
+          "profileCode": "LOCAL_HANAM_PORTAL_V1",
+          "profileHash": "ab767a754fa6b58ebc2dbf83a08ee5fb340a10bdecf0d9342cfcabd80a0cbaa2",
+          "receiptHash": "39fd5357a71071ec796a4cbf6ffaf08b4dd2eba0b842575b4f6473ebb393259c",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000101",
@@ -2213,14 +2237,26 @@
       "sourceCode": "LGS-000107",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000107",
+          "caseCode": "GURI-46706",
+          "profileCode": "LOCAL_GURI_PORTAL_V1",
+          "profileHash": "a815a9c26b085fd70b87c3456d3c4d7e71068bd76cd669a028965676c48ee034",
+          "receiptHash": "9b84b42952766a7fc64b23e4e477d7a74f210f59d797fdc8ae0f08c9e6259215",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000108",
@@ -7573,6 +7609,90 @@
         "sourceCode": "LGS-000111",
         "requests": 5,
         "result": "SUBJECT_SOSANGGONGIN_EMPTY_SUPPORT_SEARCH_DETAIL_GET"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalThirdDownloadRun": {
+    "scope": "CAPITAL_THIRD_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GURI-detail.html",
+        "bytes": 264885,
+        "sha256": "57ad9912f6f636342528904e9e054ae401f4e33158177a7b510f55932112fa48"
+      },
+      {
+        "name": "GURI-list.html",
+        "bytes": 272612,
+        "sha256": "17ac0398ae6d9792668fc2c3ba443a746abbef453dddca7d2e78aae00e48d935"
+      },
+      {
+        "name": "GURI-search.html",
+        "bytes": 269927,
+        "sha256": "91dab475224ae63cd8888aceb8d93b7f088a8f1ec0bbaa41a1f7dad70642d3f4"
+      },
+      {
+        "name": "HANAM-detail.html",
+        "bytes": 229843,
+        "sha256": "16d42c478428ac6926f89cd2e935eb6fcff1f5f52fbfc98075b8cdf2d058b103"
+      },
+      {
+        "name": "HANAM-list.html",
+        "bytes": 235570,
+        "sha256": "1b03cda200127f595d5791fb681b933d9324673216e92cdcc391cff59a3b0413"
+      },
+      {
+        "name": "HANAM-search.html",
+        "bytes": 230921,
+        "sha256": "764a7ed2a96649d4ab5ca4a7be3bbebec646ccd44a0767e6c6cdfbdaba769fff"
+      },
+      {
+        "name": "NAMYANGJU-detail.html",
+        "bytes": 303786,
+        "sha256": "9f34bf12055ee656bafeb3f402e61d189ca0deca1c42b537f845aa6d212faf5b"
+      },
+      {
+        "name": "NAMYANGJU-list.html",
+        "bytes": 310971,
+        "sha256": "682dddd099553f9ce1d8c87229fa46a9a4814348e2b79bf06ccb75ab0c9114f7"
+      },
+      {
+        "name": "NAMYANGJU-search.html",
+        "bytes": 306983,
+        "sha256": "52d50f84cf0d5d5380ade809d714e7d2ffa0fef4573d292750e50c69111f6e9c"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/NAMYANGJU-84824.json",
+      "build/reports/attachment-regional-collection/HANAM-51521.json",
+      "build/reports/attachment-regional-collection/GURI-46706.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 13,
+    "reservedBytesIncludingBodyUpperBound": 7417178,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000091",
+        "requests": 3,
+        "result": "OFFICIAL_SEARCH_DETAIL_PLAIN3_POST"
+      },
+      {
+        "sourceCode": "LGS-000100",
+        "requests": 3,
+        "result": "OFFICIAL_SEARCH_DETAIL_LITERAL_GOURl_GET"
+      },
+      {
+        "sourceCode": "LGS-000107",
+        "requests": 3,
+        "result": "OFFICIAL_SEARCH_DETAIL_DIRECT_GET"
       }
     ],
     "originalsRemoved": true,

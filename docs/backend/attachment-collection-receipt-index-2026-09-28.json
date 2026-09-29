@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "eaf8caa23c95f692a99cfb536293ea035ada7dbb0430278c7a8a65c6c184299b",
+  "inventorySha256": "db0ee393e9909ba9db7dc7c8421ebde24b0492c903775ddf8b09f46b2cfaf5b2",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1443,6 +1443,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "88d5d050b56b8e42572184b2712d8462fc47f7901f56c76845e4945be39644b9"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/NAMYANGJU-84824.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "4c199d9ab9efb74c4563a57a89369084004f911a9f0731377bf856ea42a45b0e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/HANAM-51521.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "39fd5357a71071ec796a4cbf6ffaf08b4dd2eba0b842575b4f6473ebb393259c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GURI-46706.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "9b84b42952766a7fc64b23e4e477d7a74f210f59d797fdc8ae0f08c9e6259215",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc"
     }
   ],
   "samples": [
@@ -3297,6 +3321,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000107",
+      "caseCode": "GURI-46706",
+      "profileCode": "LOCAL_GURI_PORTAL_V1",
+      "profileHash": "a815a9c26b085fd70b87c3456d3c4d7e71068bd76cd669a028965676c48ee034",
+      "receiptHash": "9b84b42952766a7fc64b23e4e477d7a74f210f59d797fdc8ae0f08c9e6259215",
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc",
+      "observedAt": "2026-09-29T08:46:58.777804900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "0277f04c1e8476162ea27cbac786b466fcb501d3afb81a2d3ae35f5e70507233",
+          "status": "SUCCEEDED",
+          "bytes": 65519,
+          "format": "HWPX",
+          "binaryHash": "0e6149a7e4df5e4aca650704e510dbd831bc6edf41628212cbe107bb6474bda3",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000018",
       "caseCode": "GURO-35870",
       "profileCode": "LOCAL_GURO_GOSI_V1",
@@ -3682,6 +3733,41 @@
           "bytes": 101888,
           "format": "HWP",
           "binaryHash": "c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000100",
+      "caseCode": "HANAM-51521",
+      "profileCode": "LOCAL_HANAM_PORTAL_V1",
+      "profileHash": "ab767a754fa6b58ebc2dbf83a08ee5fb340a10bdecf0d9342cfcabd80a0cbaa2",
+      "receiptHash": "39fd5357a71071ec796a4cbf6ffaf08b4dd2eba0b842575b4f6473ebb393259c",
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc",
+      "observedAt": "2026-09-29T08:46:56.202892200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "cde7d9dfff976abee3a9f9081f96a6ae13634525ebf129c9c145a78f0330ed9f",
+          "status": "SUCCEEDED",
+          "bytes": 61440,
+          "format": "HWP",
+          "binaryHash": "f3d3dc7a1d8690785faa7874215a94b79406054a6e2e3147aa3b1a3dd3e54ade",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "b3632551332c352bf1f239fe3a0a27a8ebb5ac4da08b4dc4f70ae208c0e979d5",
+          "status": "SUCCEEDED",
+          "bytes": 104299,
+          "format": "PDF",
+          "binaryHash": "b3e597533946b619f1185900fd91aaa817e992dbae20c7825d62ccdd4b1b1b71",
           "signatureVerified": true
         }
       ]
@@ -4517,6 +4603,33 @@
           "bytes": 64490,
           "format": "HWPX",
           "binaryHash": "822a50a05348cfe0160faeb4d31e92a6ef01c7e78d8697199ea7a77414734b7b",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000091",
+      "caseCode": "NAMYANGJU-84824",
+      "profileCode": "LOCAL_NAMYANGJU_PORTAL_V1",
+      "profileHash": "f35dc8d85097184195c44b01dbf88bb87a36cc1c26e5f8e287db6a5df7c80f90",
+      "receiptHash": "4c199d9ab9efb74c4563a57a89369084004f911a9f0731377bf856ea42a45b0e",
+      "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc",
+      "observedAt": "2026-09-29T08:46:40.562943700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2d5310a2468d050b3e59f62da9ae7e90cee8a96662f0da23d11211c212e84dc3",
+          "status": "SUCCEEDED",
+          "bytes": 75264,
+          "format": "HWP",
+          "binaryHash": "32f7486561a9b6292264dc45dab2b8b421512dbfd63443b51e7e7b130ed6f40c",
           "signatureVerified": true
         }
       ]
