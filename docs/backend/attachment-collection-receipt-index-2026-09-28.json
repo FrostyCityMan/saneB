@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "f31c4a7598c56e7f5597d1a3db52fa1b4ea682ce2346e337cca7a089151876b9",
+  "inventorySha256": "ef0309ae4952d5d13a78f8d758228af5cacfe31dbe3eead4327a1c5f42c92a5d",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1947,6 +1947,22 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "06bd3cf8850fef8c6ff76a9cd226c0169da4d0198906491f12e9bf6d0f9797c3"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SAMCHEOK-36177-MIME-INITIAL.json",
+      "receiptHash": "f70cd6126e79be2407b57113c0e9e3d24c3f43b596994a048c1611ab29094dc7",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "06bd3cf8850fef8c6ff76a9cd226c0169da4d0198906491f12e9bf6d0f9797c3"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SAMCHEOK-36177.json",
+      "receiptHash": "b7c0ad489c25484a8a8e6948a0e9c3af947eb1df902c3faa4ac92227c700349e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "85d23f6d826958c24a4033f27bd3ec53db34a9b5b2d69f14f3fa308401fa7fbe"
     }
   ],
   "samples": [
@@ -6363,6 +6379,33 @@
           "bytes": 73547,
           "format": "HWPX",
           "binaryHash": "a8b19efe17febd6fb94fb475ef18e9f2ad4cdd1df5caea8b9bc783ce47d605d9",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000123",
+      "caseCode": "SAMCHEOK-36177",
+      "profileCode": "LOCAL_SAMCHEOK_SCMS_V1",
+      "profileHash": "83cc28264b983a005adce08793ecc672209529a1e10ddb259252ea79452bb26c",
+      "receiptHash": "b7c0ad489c25484a8a8e6948a0e9c3af947eb1df902c3faa4ac92227c700349e",
+      "producerClassHash": "85d23f6d826958c24a4033f27bd3ec53db34a9b5b2d69f14f3fa308401fa7fbe",
+      "observedAt": "2026-09-29T18:37:59.637784500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "c19936a3ab3ac6d227337ab35f18fb1ecad8925df5ebca2fc6ac57fea3fec34a",
+          "status": "SUCCEEDED",
+          "bytes": 77312,
+          "format": "HWP",
+          "binaryHash": "60a745d3fdb0b8ebd7959e64c7b8ffedbf5382a2cf084c9b531d5251ca32124e",
           "signatureVerified": true
         }
       ]

@@ -75,6 +75,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
         if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
+        if("SAMCHEOK".equals(group))return Stream.of(SamcheokDownloadCases.selectCase());
         if("PYEONGCHANG".equals(group))return Stream.of(PyeongchangDownloadCases.selectCase());
         if("CHUNCHEON".equals(group))return Stream.of(ChuncheonDownloadCases.selectCase());
         if(GangwonProvinceDownloadCases.GROUPS.contains(group))return Stream.of(GangwonProvinceDownloadCases.selectCase(group));
@@ -982,6 +983,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_SOKCHO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_MAPO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_SEODAEMUN_BOARD_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_SAMCHEOK_SCMS_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_PYEONGCHANG_BOARD_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_CHUNCHEON_JSON_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_GANGWON_PROVINCE_BOARD_V1".equals(profile.selectProfileCode());

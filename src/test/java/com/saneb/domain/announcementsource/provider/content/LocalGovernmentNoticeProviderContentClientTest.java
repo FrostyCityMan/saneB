@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void samcheokBodyExcludesFilesAndMetadata() {
+        String page="<form id=saeolGosiVO name=saeolGosiVO method=get><div class=bbs1view1><h1 class=h1>소상공인 지원</h1><div class=info1>수출 담당부서</div><div class=attach1>특허.hwp</div><div class=substance>소상공인 지원금</div></div></form>";
+        String url="https://www.samcheok.go.kr/media/00084/00095.web?amode=view&mgtNo=36177&cd=01";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("substance","unknown"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void chuncheonJsonBodyUsesFixedApiAndExcludesMetadata() {
         String url="https://www.chuncheon.go.kr/cityhall/administrative-info/notice-info/notice-announcement/view/?notAncmtMgtNo=73071";
         String json="{\"board\":{\"not_ancmt_mgt_no\":\"73071\",\"not_ancmt_sj\":\"소상공인 지원\",\"not_ancmt_cn\":\"<p>소상공인 지원금</p><nav>수출 메뉴</nav><script>특허</script>\",\"dep_nm\":\"수출 부서\",\"chr_nm\":\"합성 담당자\"},\"file\":[{\"file_nm\":\"특허.pdf\"}]}";

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 165,
-    "missingProfileRegionCount": 58,
+    "registeredRegionCount": 166,
+    "missingProfileRegionCount": 57,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2995,14 +2995,26 @@
       "sourceCode": "LGS-000123",
       "listParserProfileCode": "SCMS_CARD_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000123",
+          "caseCode": "SAMCHEOK-36177",
+          "profileCode": "LOCAL_SAMCHEOK_SCMS_V1",
+          "profileHash": "83cc28264b983a005adce08793ecc672209529a1e10ddb259252ea79452bb26c",
+          "receiptHash": "b7c0ad489c25484a8a8e6948a0e9c3af947eb1df902c3faa4ac92227c700349e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000124",
@@ -11159,6 +11171,66 @@
         "sourceCode": "LGS-000123",
         "requests": 3,
         "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_HWP_1_DESCRIPTOR_SURVEY_ONLY_NO_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "samcheokDownloadRun": {
+    "scope": "SAMCHEOK_SCMS_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "priorSurveyLedgerKey": "pyeongchangDownloadRun",
+    "priorSurveyRequests": 3,
+    "surveyRequestCount": 2,
+    "surveyMaximumBytesPerDetailRequest": 2097152,
+    "surveyMaximumSecondsPerDetailRequest": 15,
+    "diagnosticFileMaximumBytes": 20971520,
+    "diagnosticFileMaximumSeconds": 20,
+    "surveyRawFiles": [
+      {
+        "name": "samcheok-detail.html",
+        "bytes": 134566,
+        "sha256": "3d326b93d7a0ded06eb54eac5842dda1ce1579a375cfbfc94b26732521dd89d9"
+      },
+      {
+        "name": "samcheok-probe.hwp",
+        "bytes": 77312,
+        "sha256": "60a745d3fdb0b8ebd7959e64c7b8ffedbf5382a2cf084c9b531d5251ca32124e"
+      },
+      {
+        "name": "samcheok-probe.headers",
+        "bytes": 556,
+        "sha256": "21738f7be130930f59e3ef8c6bfdcd79399f10de4a347d01b4f9cb37f00f0735"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SAMCHEOK-36177",
+        "attempts": 2,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SAMCHEOK-36177-MIME-INITIAL.json",
+      "build/reports/attachment-regional-collection/SAMCHEOK-36177.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4636672,
+    "cumulativeRequestReservationsIncludingPriorSurveyUpperBound": 13,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000123",
+        "requests": 1,
+        "result": "OFFICIAL_DETAIL_FIXTURE_REOBSERVED_MGTNO_CD01_SCMS_DOWNLOAD_PROXY_HWP_1"
+      },
+      {
+        "sourceCode": "LGS-000123",
+        "requests": 1,
+        "result": "FIXED_FILE_DIAGNOSTIC_SAME_BINARY_HASH_OLE_SIGNATURE_X_MSDOWNLOAD_UTF8_DISPOSITION"
       }
     ],
     "originalsRemoved": true,

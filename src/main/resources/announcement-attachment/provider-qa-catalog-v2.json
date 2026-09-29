@@ -2713,6 +2713,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SAMCHEOK-36177",
+      "profileCode": "LOCAL_SAMCHEOK_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "391e81b8fea86c297c999417304267a94bd36fc86d9b69317072aa0d6a8192cb",
+        "sourceUrl": "https://www.samcheok.go.kr/media/00084/00095.web?amode=view&mgtNo=36177&cd=01",
+        "localSourceCode": "LGS-000123",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
