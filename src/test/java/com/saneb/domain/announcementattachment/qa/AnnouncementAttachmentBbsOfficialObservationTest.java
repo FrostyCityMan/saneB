@@ -75,6 +75,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
         if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
+        if("OSAN".equals(group))return Stream.of(OsanDownloadCases.selectCase());
         if("DAEJEON_AGGREGATOR".equals(group))return Stream.of(DaejeonAggregatorDownloadCases.selectCase());
         if("INCHEON_CITY".equals(group))return Stream.of(IncheonCityDownloadCases.selectCase());
         if("DAEGU_CITY".equals(group))return Stream.of(DaeguCityDownloadCases.selectCase());
@@ -1004,6 +1005,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_SEODAEMUN_BOARD_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_SEOGU_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_DONGGU_PORTAL_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_OSAN_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEJEON_AGGREGATOR_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_INCHEON_CITY_CITYNET_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_CITY_GOSI_V1".equals(profile.selectProfileCode());

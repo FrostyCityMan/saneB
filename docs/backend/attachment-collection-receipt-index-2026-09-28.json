@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "219e297667c28fc016b9e0602a555fa3e9c0b436af432eb4e9ca5d59027fe46a",
+  "inventorySha256": "a75dbcd4abd1bf90132e5354e6b201dcbfc097faa4b937bf803edf1f61422a7e",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2059,6 +2059,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "ebc34571f637ba0367de5bb970a7dee1e1645013be852007f4ca8a69e2bb103f"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/OSAN-50603.json",
+      "receiptHash": "d104d21bee51d27f498fbd025cc844cfd93347161eb35cbbe90a1ec788369e57",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "d4ca4fe1ee027a5fea19557b6527339ba0b9d6909b8ccbbda8e30da3b393bcc6"
     }
   ],
   "samples": [
@@ -6584,6 +6592,35 @@
           "format": "HWPX",
           "binaryHash": "41ca40464eacc65659e5e0bcf722b94c93fd6632ffec701273bc4a96b263887b",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000104",
+      "caseCode": "OSAN-50603",
+      "profileCode": "LOCAL_OSAN_PORTAL_V1",
+      "profileHash": "c8c9f4bcceba369ed102fe0035d2a6f5df47a98d54a811bb8e3282f00291c13a",
+      "receiptHash": "d104d21bee51d27f498fbd025cc844cfd93347161eb35cbbe90a1ec788369e57",
+      "producerClassHash": "d4ca4fe1ee027a5fea19557b6527339ba0b9d6909b8ccbbda8e30da3b393bcc6",
+      "observedAt": "2026-09-29T21:38:34.112410600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "ccc6cf111e34a3228d276f21625fb9292b48b0f4b823d57b18cb4d7f83c2b856",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "ccfd81b5ae5508b4e438d4c6abec04e35948e3ad97a25712347c01c285cffaad",
+          "status": "FAILED",
+          "bytes": 0
         }
       ]
     },

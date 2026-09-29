@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void osanBodyExcludesMetadataFilesAndRejectsChangedStructure() {
+        String page="<form id=detailForm name=detailForm method=post><div class=bod_view><h4>소상공인 지원</h4><div class=view_info>수출 부서</div><div class=view_cont>소상공인 지원금</div><dl class=view_file><dt>첨부 파일</dt><dd>특허.hwp</dd></dl></div></form>";
+        String url="https://www.osan.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=50603&mId=0302010000";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("class=view_cont","class=unknown"))) {
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of("text/html;charset=UTF-8")),value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void daejeonAggregatorBridgeIsExactAndKeepsBodyIsolated() {
         String detail="https://eminwon.seogu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?subCheck=Y&jndinm=OfrNotAncmtEJB&context=NTIS&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=49944";
         String source="https://www.daejeon.go.kr/drh/MediaList.do?notiType=NOTI_06&menuSeq=2564";

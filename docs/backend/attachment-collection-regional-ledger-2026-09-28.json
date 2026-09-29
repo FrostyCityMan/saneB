@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 177,
-    "missingProfileRegionCount": 46,
+    "registeredRegionCount": 178,
+    "missingProfileRegionCount": 45,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2666,14 +2666,26 @@
       "sourceCode": "LGS-000104",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000104",
+          "caseCode": "OSAN-50603",
+          "profileCode": "LOCAL_OSAN_PORTAL_V1",
+          "profileHash": "c8c9f4bcceba369ed102fe0035d2a6f5df47a98d54a811bb8e3282f00291c13a",
+          "receiptHash": "d104d21bee51d27f498fbd025cc844cfd93347161eb35cbbe90a1ec788369e57",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000105",
@@ -5791,9 +5803,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "219e297667c28fc016b9e0602a555fa3e9c0b436af432eb4e9ca5d59027fe46a",
+  "inputInventorySha256": "a75dbcd4abd1bf90132e5354e6b201dcbfc097faa4b937bf803edf1f61422a7e",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 267,
+  "importedReceiptCount": 268,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12119,6 +12131,71 @@
     "requestReservationsIncludingBodyUpperBound": 4,
     "reservedBytesIncludingBodyUpperBound": 2215752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 12,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "osanDownloadRun": {
+    "scope": "OSAN_SHARED_PORTAL_COLLECTION_ONLY",
+    "surveyRequestCount": 3,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000104",
+        "requests": 3,
+        "result": "LIST_SEARCH_DETAIL200_HWP2_OFFICIAL_GET"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-osan-20260930/detail-head.txt",
+        "bytes": 522,
+        "sha256": "079047a213949617f857801c5807fd16c5445bb357300266156f2965724f27b9"
+      },
+      {
+        "path": "build/qa-osan-20260930/detail.html",
+        "bytes": 404931,
+        "sha256": "152ed9a8cdda2d395ddab8f257490b8a3bb60735fe4c3c4b0edfa00030648bac"
+      },
+      {
+        "path": "build/qa-osan-20260930/list-head.txt",
+        "bytes": 522,
+        "sha256": "5c7a7d243bf56e7b4c82f6b7f67469190f88a5e60814809367240cafdd8b0a39"
+      },
+      {
+        "path": "build/qa-osan-20260930/list.html",
+        "bytes": 409366,
+        "sha256": "9b76631a5bc042da59e3084d8d766f774e5b68cf98d5039dd08ca1da1df067cd"
+      },
+      {
+        "path": "build/qa-osan-20260930/search-head.txt",
+        "bytes": 522,
+        "sha256": "984529f7b8403bf0d15043d97ae73f2479381080223dca7ac2bf74c347f97f71"
+      },
+      {
+        "path": "build/qa-osan-20260930/search.html",
+        "bytes": 404187,
+        "sha256": "0159491a65c9f447121e86835d59edcc9c00e44d3e3cc1b2a333f4691ed0643b"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "OSAN-50603",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/OSAN-50603.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 5,
+    "reservedBytesIncludingBodyUpperBound": 2506752,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

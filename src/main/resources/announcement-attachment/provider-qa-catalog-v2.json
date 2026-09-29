@@ -2857,6 +2857,18 @@
         "listParserProfileCode": "DAEJEON_EMINWON_AGGREGATOR"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "OSAN-50603",
+      "profileCode": "LOCAL_OSAN_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9d909b262edbdd12e06f97eababb1863eeef45912757b00d1bd60edb49c43ca9",
+        "sourceUrl": "https://www.osan.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=50603&mId=0302010000",
+        "localSourceCode": "LGS-000104",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
