@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 113,
-    "missingProfileRegionCount": 110,
+    "registeredRegionCount": 116,
+    "missingProfileRegionCount": 107,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2108,27 +2108,51 @@
       "sourceCode": "LGS-000098",
       "listParserProfileCode": "SAFE_PORTAL_SAEOL_BOARD_VIEW",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000098",
+          "caseCode": "UIJEONGBU-66681",
+          "profileCode": "LOCAL_UIJEONGBU_PORTAL_V1",
+          "profileHash": "e6a1508edaf8fc04f64e7f8c4e7bf2da3fc3790a5a10aa1e070da1f52a3dc74b",
+          "receiptHash": "82b90da80add1273e73a1ad964a44f13deb3a8e6e22f8821910c243540338f5f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000099",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000099",
+          "caseCode": "GG_GWANGJU-75337",
+          "profileCode": "LOCAL_GG_GWANGJU_PORTAL_V1",
+          "profileHash": "c3ad18062c8ca44255d1b39e387380aff968861bfaea7b71bacc3a22551eefbb",
+          "receiptHash": "4419de7b46e6cc78f3af92da73be61338f6b344140211c247113deac4e6cc03c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000100",
@@ -2248,14 +2272,26 @@
       "sourceCode": "LGS-000106",
       "listParserProfileCode": "SAFE_PORTAL_SAEOL_BOARD_VIEW",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000106",
+          "caseCode": "ANSEONG-72476",
+          "profileCode": "LOCAL_ANSEONG_PORTAL_V1",
+          "profileHash": "140ba1d16e1b5f51b67dafbdb8250ebaff754b92b12675c09ceb4057a52eb4e4",
+          "receiptHash": "9e43c4398dd1bb9b27f060faaf63055b57c7eb0157d5d4fa0581a980dca22339",
+          "fileCount": 3,
+          "downloadedFileCount": 1,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000107",
@@ -7828,6 +7864,115 @@
         "sourceCode": "LGS-000093",
         "requests": 5,
         "result": "TWO_SAME_HOST_REDIRECTS_LIST_SEARCH_ARCHIVED_2024_DETAIL"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalFifthDownloadRun": {
+    "scope": "CAPITAL_FIFTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 16,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "ANSEONG-detail-retry.html",
+        "bytes": 298499,
+        "sha256": "982bf0933da759020d3b43b067d4de63237950a4fd01df50aff91e0b17405ec3"
+      },
+      {
+        "name": "ANSEONG-list.html",
+        "bytes": 299587,
+        "sha256": "7b055dd0095ff04a881b3be47509a731b922dab6ebc2b6d2f3ff9cbb59dc5765"
+      },
+      {
+        "name": "ANSEONG-search-retry.html",
+        "bytes": 297638,
+        "sha256": "24da91e93541f0b3ccce58375e568fffc1ab01abf0ef20e64249afeb549d1035"
+      },
+      {
+        "name": "GG_GWANGJU-board.html",
+        "bytes": 290100,
+        "sha256": "ae834d897ec624281be44f0306a20deaa140e1bab547ab189f8864303523319f"
+      },
+      {
+        "name": "GG_GWANGJU-detail.html",
+        "bytes": 287601,
+        "sha256": "4ef9c79dcbb9c7f02788b71d30df87601493f69edc2b210870f515cca2109128"
+      },
+      {
+        "name": "GG_GWANGJU-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GG_GWANGJU-redirect.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GG_GWANGJU-search.html",
+        "bytes": 288616,
+        "sha256": "6bc3a29a8dd8cbc1508f6be3384c977c711e87251aff540e5aceb321d3156756"
+      },
+      {
+        "name": "UIJEONGBU-board.html",
+        "bytes": 273935,
+        "sha256": "43565d7efddcfb33fdba2e7e6b32a38e8f0c07864e2178b636f0b0d50b3bcd30"
+      },
+      {
+        "name": "UIJEONGBU-detail.html",
+        "bytes": 271194,
+        "sha256": "3205dcab7f329ca6057d3647ec0b5d675e4474b00086761a07f91338f3777205"
+      },
+      {
+        "name": "UIJEONGBU-list.html",
+        "bytes": 897,
+        "sha256": "2b71dd53fe7ab03044de73294bbedd62a564749f2545c4f634eed2356e1e6e5e"
+      },
+      {
+        "name": "UIJEONGBU-search.html",
+        "bytes": 268171,
+        "sha256": "a37896b140e81807340518ecb95c93fcd76b485d947f4bad4d486158f8c0efdd"
+      },
+      {
+        "name": "UIJEONGBU-support.html",
+        "bytes": 273637,
+        "sha256": "a10a2748799857a137bdd0ca9e85f61efb96080e687f1c6c4927510809a620c7"
+      },
+      {
+        "name": "UIJEONGBU-youth.html",
+        "bytes": 273671,
+        "sha256": "557286ff0a8519d771f0a7ebce181c4e22c661a72330e6dba0a0f91691c327d1"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ANSEONG-72476.json",
+      "build/reports/attachment-regional-collection/UIJEONGBU-66681.json",
+      "build/reports/attachment-regional-collection/GG_GWANGJU-75337.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 7368278,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000106",
+        "requests": 5,
+        "result": "LIST_AND_SEARCH_DETAIL_WITH_TWO_CONNECT_TIMEOUTS_AND_ONE_RETRY_EACH"
+      },
+      {
+        "sourceCode": "LGS-000098",
+        "requests": 6,
+        "result": "SAME_HOST_REDIRECT_OFFICIAL_TITLE_SEARCH_YOUTH_DETAIL_PLAIN3_POST"
+      },
+      {
+        "sourceCode": "LGS-000099",
+        "requests": 5,
+        "result": "TWO_REDIRECT_OBSERVATIONS_OFFICIAL_LIST_WITHOUT_REDIRECT_TOKEN_SEARCH_DETAIL_GET"
       }
     ],
     "originalsRemoved": true,

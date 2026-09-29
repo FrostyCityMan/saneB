@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "c15ec6020147455853c8134731007d4c4989b8bcd0a6b8fced8b8113cdc15697",
+  "inventorySha256": "50140bd260282dc1e60dd08caf0aeae3ec63bc778c2c6be4002ee392aea0dbab",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1491,9 +1491,70 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ANSEONG-72476.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "9e43c4398dd1bb9b27f060faaf63055b57c7eb0157d5d4fa0581a980dca22339",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/UIJEONGBU-66681.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "82b90da80add1273e73a1ad964a44f13deb3a8e6e22f8821910c243540338f5f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GG_GWANGJU-75337.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "4419de7b46e6cc78f3af92da73be61338f6b344140211c247113deac4e6cc03c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3"
     }
   ],
   "samples": [
+    {
+      "sourceCode": "LGS-000106",
+      "caseCode": "ANSEONG-72476",
+      "profileCode": "LOCAL_ANSEONG_PORTAL_V1",
+      "profileHash": "140ba1d16e1b5f51b67dafbdb8250ebaff754b92b12675c09ceb4057a52eb4e4",
+      "receiptHash": "9e43c4398dd1bb9b27f060faaf63055b57c7eb0157d5d4fa0581a980dca22339",
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3",
+      "observedAt": "2026-09-29T09:27:27.773415100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "b31036239e48782da526e9e7ec8fa522cb14bbf262d8bbaf1ac0034ec6f71b9c",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "1aa83eeeb3b5aaa59829e8d5ad90ce62dcf9123a2f8fbc3300a9d283dbf75ba6",
+          "status": "SUCCEEDED",
+          "bytes": 61805,
+          "format": "HWPX",
+          "binaryHash": "7bdb80bb5a2a52d6eb2c02fdd3417b36faece80b0070797c8fdb2a8d9a08585d",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "7291f75f979f5525669719d983665e55bed08170bfe578063e7dfccb2b46f062",
+          "status": "FAILED",
+          "bytes": 0
+        }
+      ]
+    },
     {
       "sourceCode": "LGS-000139",
       "caseCode": "BOEUN-218812",
@@ -3005,6 +3066,33 @@
           "bytes": 28438,
           "format": "HWPX",
           "binaryHash": "1c344bdd8fd4b0f937f0fe85495dc4a07679caae37905a179b0dc5b1e8cb86be",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000099",
+      "caseCode": "GG_GWANGJU-75337",
+      "profileCode": "LOCAL_GG_GWANGJU_PORTAL_V1",
+      "profileHash": "c3ad18062c8ca44255d1b39e387380aff968861bfaea7b71bacc3a22551eefbb",
+      "receiptHash": "4419de7b46e6cc78f3af92da73be61338f6b344140211c247113deac4e6cc03c",
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3",
+      "observedAt": "2026-09-29T09:28:02.258206100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "830985bb6944aedb2d2690ba843e65eee4fbcac650857e20d37c0fe90f1c5195",
+          "status": "SUCCEEDED",
+          "bytes": 66048,
+          "format": "HWP",
+          "binaryHash": "3bcf8ef34f1d5f5d9ed1bbec3d268a0175bb3b93ea474247bff8f10a4b1a3c6b",
           "signatureVerified": true
         }
       ]
@@ -5267,6 +5355,33 @@
           "locatorHash": "cb015f4fb3d665580ce15f04b80b8750317ef9b600ba530baeb6321a164fb87a",
           "status": "FAILED",
           "bytes": 2596
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000098",
+      "caseCode": "UIJEONGBU-66681",
+      "profileCode": "LOCAL_UIJEONGBU_PORTAL_V1",
+      "profileHash": "e6a1508edaf8fc04f64e7f8c4e7bf2da3fc3790a5a10aa1e070da1f52a3dc74b",
+      "receiptHash": "82b90da80add1273e73a1ad964a44f13deb3a8e6e22f8821910c243540338f5f",
+      "producerClassHash": "3e388d7974923391f9cd58c69a6b6a472f17b9b3f53086709be7ea99f83564c3",
+      "observedAt": "2026-09-29T09:27:56.459495200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7f0a6a79ab20fc5154235ba40a5f523c9a12a2441cbd41850af16911e48a2be6",
+          "status": "SUCCEEDED",
+          "bytes": 72425,
+          "format": "PDF",
+          "binaryHash": "636e86331457b642e142a3db490f7782a9ca99f8a8a126015653f2aa1332edab",
+          "signatureVerified": true
         }
       ]
     },

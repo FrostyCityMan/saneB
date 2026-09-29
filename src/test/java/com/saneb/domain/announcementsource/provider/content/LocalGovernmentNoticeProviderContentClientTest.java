@@ -38,6 +38,23 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void capitalFifthBodyPreservesConditionsButExcludesNavigationAndFiles() {
+        for(var site:CapitalFifthNoticePage.Site.values()) {
+            boolean post=site==CapitalFifthNoticePage.Site.UIJEONGBU;
+            String page="<main><nav>특허 메뉴</nav><form id='detailForm' name='detailForm' method='post'>"+(post?"":"<div class='bod_wrap'>")
+                    +"<div class='bod_view'><h4>소상공인 지원</h4><div class='view_info'>담당부서</div><div class='view_cont'>사업자 지원금 <table><tr><td>수출기업 제외</td></tr></table></div><dl class='view_file'><dt>첨부 파일</dt><dd>스타트업 신청서</dd></dl></div>"
+                    +(post?"":"</div>")+"</form><footer>푸터</footer></main>";
+            String url="https://"+site.host+site.path+"?mId="+site.menu+"&notAncmtMgtNo=1";
+            for(String selected:List.of(page,page+page,page.replace("class='view_cont'","class='changed'"))) {
+                var transport=new StubTransport();transport.enqueue(html(selected));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE); assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED); assertThat(result.bodyText()).isNull(); }
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void capitalFourthBodyDoesNotUseMenusMetadataOrExpiredPageFallback() {
         for(var s:CapitalFourthNoticePage.Site.values()) {
             boolean pt=s==CapitalFourthNoticePage.Site.PYEONGTAEK,gimpo=s==CapitalFourthNoticePage.Site.GIMPO;

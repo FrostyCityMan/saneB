@@ -2089,6 +2089,42 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ANSEONG-72476",
+      "profileCode": "LOCAL_ANSEONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fe943a617c35918ced13985b0f1135e346c65537759140f9ba8b688990dacfbb",
+        "sourceUrl": "https://www.anseong.go.kr/portal/saeol/gosiView.do?mId=0501040000&notAncmtMgtNo=72476",
+        "localSourceCode": "LGS-000106",
+        "listParserProfileCode": "SAFE_PORTAL_SAEOL_BOARD_VIEW"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "UIJEONGBU-66681",
+      "profileCode": "LOCAL_UIJEONGBU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b0eac4c1a8cf09cc25d3e9f04c0acfe6344ec13cfcc9ef24aa0fc3881503a882",
+        "sourceUrl": "https://www.ui4u.go.kr/portal/saeol/gosiView.do?mId=0301040000&notAncmtMgtNo=66681",
+        "localSourceCode": "LGS-000098",
+        "listParserProfileCode": "SAFE_PORTAL_SAEOL_BOARD_VIEW"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GG_GWANGJU-75337",
+      "profileCode": "LOCAL_GG_GWANGJU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c6799d28cea9196376d658fe95a18fb01873d5e02f224ab653c9203046f5c571",
+        "sourceUrl": "https://www.gjcity.go.kr/portal/saeol/gosi/view.do?mId=0202010000&notAncmtMgtNo=75337",
+        "localSourceCode": "LGS-000099",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
