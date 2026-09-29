@@ -2173,6 +2173,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YANGGU-IHINR260828133751437",
+      "profileCode": "LOCAL_YANGGU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1a95932a81768d5aeb0214c93e651b2fa6382a38dd2641eef51e2fbdf112c1ff",
+        "sourceUrl": "https://www.yanggu.go.kr/user_sub?gfnc=www&bk=IHINR260828133751437&mu_idx=226&bt=rd&bcd=announcement",
+        "localSourceCode": "LGS-000131",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "INJE-245926",
+      "profileCode": "LOCAL_INJE_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e9abc0169c5f8c7da493fbcc9a6f2c427a2a8b92a62a2fe8efe0e451d6136794",
+        "sourceUrl": "https://www.inje.go.kr/portal/adm/bulletin?articleSeq=245926",
+        "localSourceCode": "LGS-000132",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

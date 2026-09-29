@@ -38,6 +38,23 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void gangwonSecondBodySeparatesMetadataFilesAndNavigation() {
+        for(var site:GangwonSecondNoticePage.Site.values()) {
+            String content="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            boolean yang=site==GangwonSecondNoticePage.Site.YANGGU;
+            String page=yang?"<div id='user_board_whole'><form id='registform' name='registform' method='post'><fieldset><div id='user_board_read_title'>소상공인 지원</div><div class='read_information'>담당자</div><div id='user_board_read_view'><div class='user_board_read_view_pre'>"+content+"</div></div><div id='user_board_read_file'>특허 첨부</div></fieldset></form></div>"
+                    :"<div class='skinTb skinTb-data-resList skinTb-data-bgSbj'><div class='skinTb-tr'><div class='skinTb-th'>제목</div><div class='skinTb-td skinTb-sbj'>소상공인 지원</div></div><div class='skinTb-tr'><div class='skinTb-conts'>"+content+"</div></div><div class='skinTb-tr'><div class='skinTb-th'>첨부파일</div><div class='skinTb-td'>특허 첨부</div></div></div>";
+            String url="https://"+site.host+site.path+(yang?"?gfnc=www&bk=IHINR260828133751437&mu_idx=226&bt=rd&bcd=announcement":"?articleSeq=245926");
+            for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+                var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void capitalSeventhBodyPreservesConditionsButExcludesNavigationAndFiles() {
         for(var site:CapitalSeventhNoticePage.Site.values()) {
             String content="사업자 지원금 <table><tr><td>수출기업 제외</td></tr></table>";

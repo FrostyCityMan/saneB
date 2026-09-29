@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 120,
-    "missingProfileRegionCount": 103,
+    "registeredRegionCount": 122,
+    "missingProfileRegionCount": 101,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2876,27 +2876,51 @@
       "sourceCode": "LGS-000131",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000131",
+          "caseCode": "YANGGU-IHINR260828133751437",
+          "profileCode": "LOCAL_YANGGU_BOARD_V1",
+          "profileHash": "ad236849cd3a20da25b4dc4c32e66a94927478258b1fb0e205a392dccd0e3a37",
+          "receiptHash": "a409fd88c7938f10ced09e5117fe2085a41bed248b96555d8ff13bc55a25b8c3",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000132",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "EVIDENCE_VERSION_MISMATCH",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000132",
+          "caseCode": "INJE-245926",
+          "profileCode": "LOCAL_INJE_BOARD_V1",
+          "profileHash": "ba9fd311a916933bd5dd2d83736a7ad41be036ca51237a4e03b56034bf50daac",
+          "receiptHash": "32bf54568e16fd9ae928dcc43ce021dc29ef01c6e818da95be8ec44eb9c66d61",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000133",
@@ -8282,6 +8306,113 @@
         "sourceCode": "LGS-000105",
         "requests": 1,
         "result": "REGISTERED_LIST_HTTP_400"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gangwonSecondDownloadRun": {
+    "scope": "GANGWON_SECOND_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 11,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "HONGCHEON-list.html",
+        "bytes": 180149,
+        "sha256": "6a216424314e55c02650d674991da71d3ad48e1999ceeb7b41a235c5c557af62"
+      },
+      {
+        "name": "INJE-detail.html",
+        "bytes": 95965,
+        "sha256": "5c82b059be87b75b5aa20364fdeaea048025b53cc486f8ab673df8fa82b461d0"
+      },
+      {
+        "name": "INJE-list.html",
+        "bytes": 78481,
+        "sha256": "1b4780199ade7bdfeacf783efd1b446c8a2b1aa39e0a4dc32f6c558161c4d28c"
+      },
+      {
+        "name": "INJE-search.html",
+        "bytes": 77179,
+        "sha256": "50fb5ee3b2ada177a66ccf6271d34206b5e6ba37680f6547243e771f541e5ac8"
+      },
+      {
+        "name": "YANGGU-detail.html",
+        "bytes": 123986,
+        "sha256": "c972510aad6ab8d9f0fff66d4bc9576328c19736789ad9d07376189936006622"
+      },
+      {
+        "name": "YANGGU-list.html",
+        "bytes": 110062,
+        "sha256": "80bca9302403100c0a05cf42b3cd7bfbbb0fae55fd9f2fee360d377e11c43e1c"
+      },
+      {
+        "name": "YANGGU-search.html",
+        "bytes": 110389,
+        "sha256": "3c7171eac51cb492461f8c9e7b3e482b95e3dec9970db4b59d5501a28eb18c10"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YANGGU-IHINR260828133751437-MIME-INITIAL.json",
+      "build/reports/attachment-regional-collection/INJE-245926.json",
+      "build/reports/attachment-regional-collection/YANGGU-IHINR260828133751437-DISPOSITION-INITIAL.json",
+      "build/reports/attachment-regional-collection/YANGGU-IHINR260828133751437.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 16,
+    "reservedBytesIncludingBodyUpperBound": 9191424,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000124",
+        "requests": 2,
+        "result": "LIST_200_TITLE_SEARCH_CONNECT_TIMEOUT_NO_SEARCH_RAW"
+      },
+      {
+        "sourceCode": "LGS-000131",
+        "requests": 5,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_FIXED_DOWNLOAD_ARGS_AND_MIME_UTF8_HEADER_DIAGNOSTICS"
+      },
+      {
+        "sourceCode": "LGS-000132",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_FILESEQ_GET_AND_MIME_DIAGNOSTIC"
+      }
+    ],
+    "responseDiagnostics": [
+      {
+        "sourceCode": "LGS-000131",
+        "method": "GET",
+        "status": 200,
+        "responseBytes": 72208,
+        "contentType": "application/octer-stream;charset=UTF-8",
+        "requests": 2,
+        "validUtf8DispositionObserved": true,
+        "isAttachment": true,
+        "hasFilename": true,
+        "endsWithExpectedExtension": true,
+        "rawSaved": false
+      },
+      {
+        "sourceCode": "LGS-000132",
+        "method": "GET",
+        "status": 200,
+        "responseBytes": 81920,
+        "contentType": "application/x-tika-msoffice;charset=UTF-8",
+        "rawSaved": false
+      }
+    ],
+    "versionNotes": [
+      {
+        "sourceCode": "LGS-000132",
+        "status": "EVIDENCE_VERSION_MISMATCH",
+        "reason": "SHARED_NEW_PROFILE_CLASS_CHANGED_FOR_YANGGU_HEADERS_ONLY_INJE_NOT_REOBSERVED",
+        "observedProfileHash": "ba9fd311a916933bd5dd2d83736a7ad41be036ca51237a4e03b56034bf50daac",
+        "currentProfileHash": "14563ede7348fc868570105841a5d5bce5d93134e9aeba6b1bb0c0ca15a2ba40"
       }
     ],
     "originalsRemoved": true,
