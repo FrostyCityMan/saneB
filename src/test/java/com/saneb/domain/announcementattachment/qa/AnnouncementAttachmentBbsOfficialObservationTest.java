@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD, JEONNAM_VIEW_TITLE, JEONNAM_NAJU_TITLE, JEONNAM_MUAN_TITLE, GOKSEONG_BOARD, JINDO_BOARD, JANGSEONG_BOARD, GYEONGBUK_HEADING, GYEONGBUK_SUBJECT, GYEONGBUK_BOARD, UISEONG_BOARD, YEONGJU_BOARD, SEONGJU_BOARD, YECHEON_BOARD, YEONGDEOK_BOARD, ULJIN_BOARD, CHEONGSONG_BOARD, GORYEONG_BOARD, JINJU_BOARD, GOSEONG_BOARD, CHANGWON_BOARD, JEJUSI_BOARD, EUNPYEONG_BOARD, SEOCHO_BOARD, DAEGU_NAMGU_BOARD, GWANGJU_DONGGU_BOARD, GWANGJU_BUKGU_BOARD, ULSAN_JUNGGU_BOARD, DONGHAE_BOARD, GW_GOSEONG_BOARD, GANGWON_SKIN_BOARD, JINCHEON_BOARD, YONGIN_BOARD, YANGJU_PORTAL, GUNPO_PORTAL, YEOJU_PORTAL, NAMYANGJU_PORTAL, HANAM_PORTAL, GURI_PORTAL, GIMPO_PORTAL, DONGDUCHEON_PORTAL, PYEONGTAEK_PORTAL, ANSEONG_PORTAL, UIJEONGBU_PORTAL, GG_GWANGJU_PORTAL, SIHEUNG_PORTAL, ANSAN_PORTAL, POCHEON_PORTAL, GANGNEUNG_PORTAL, YANGGU_BOARD, INJE_BOARD, CHUNGBUK_BOARD, GONGJU_BOARD, HONGSEONG_BOARD, YESAN_BOARD, GEUMSAN_BOARD, BUYEO_BOARD, ASAN_BOARD, SEOSAN_BOARD }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD, JEONNAM_VIEW_TITLE, JEONNAM_NAJU_TITLE, JEONNAM_MUAN_TITLE, GOKSEONG_BOARD, JINDO_BOARD, JANGSEONG_BOARD, GYEONGBUK_HEADING, GYEONGBUK_SUBJECT, GYEONGBUK_BOARD, UISEONG_BOARD, YEONGJU_BOARD, SEONGJU_BOARD, YECHEON_BOARD, YEONGDEOK_BOARD, ULJIN_BOARD, CHEONGSONG_BOARD, GORYEONG_BOARD, JINJU_BOARD, GOSEONG_BOARD, CHANGWON_BOARD, JEJUSI_BOARD, EUNPYEONG_BOARD, SEOCHO_BOARD, DAEGU_NAMGU_BOARD, GWANGJU_DONGGU_BOARD, GWANGJU_BUKGU_BOARD, ULSAN_JUNGGU_BOARD, DONGHAE_BOARD, GW_GOSEONG_BOARD, GANGWON_SKIN_BOARD, JINCHEON_BOARD, YONGIN_BOARD, YANGJU_PORTAL, GUNPO_PORTAL, YEOJU_PORTAL, NAMYANGJU_PORTAL, HANAM_PORTAL, GURI_PORTAL, GIMPO_PORTAL, DONGDUCHEON_PORTAL, PYEONGTAEK_PORTAL, ANSEONG_PORTAL, UIJEONGBU_PORTAL, GG_GWANGJU_PORTAL, SIHEUNG_PORTAL, ANSAN_PORTAL, POCHEON_PORTAL, GANGNEUNG_PORTAL, YANGGU_BOARD, INJE_BOARD, CHUNGBUK_BOARD, GONGJU_BOARD, HONGSEONG_BOARD, YESAN_BOARD, GEUMSAN_BOARD, BUYEO_BOARD, ASAN_BOARD, SEOSAN_BOARD, JEONJU_THIRD_BOARD, JEONBUK_THIRD_BOARD }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -73,6 +73,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(GyeongbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukFirstDownloadCases.selectCase(group));
         if(CapitalBoardDownloadCases.GROUPS.contains(group))return Stream.of(CapitalBoardDownloadCases.selectCase(group));
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
+        if(JeonbukThirdDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukThirdDownloadCases.selectCase(group));
         if(ChungcheongSixthDownloadCases.GROUPS.contains(group))return Stream.of(ChungcheongSixthDownloadCases.selectCase(group));
         if(ChungcheongFifthDownloadCases.GROUPS.contains(group))return Stream.of(ChungcheongFifthDownloadCases.selectCase(group));
         if(ChungcheongFourthDownloadCases.GROUPS.contains(group))return Stream.of(ChungcheongFourthDownloadCases.selectCase(group));
@@ -727,6 +728,11 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             var labels=root.select(dong?"td":skin?"div.skinTb-th":"th").stream().filter(e->(skin||e.closest("table")==root)&&e.children().isEmpty()&&"제목".equals(e.text().strip())).toList();assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");var cell=labels.getFirst().nextElementSibling();
             assertTrue(cell!=null&&(skin?cell.hasClass("skinTb-td"):"td".equals(cell.tagName()))&&cell.select("table,script,input").isEmpty(),"TITLE_STRUCTURE_CHANGED");assertEquals(normalized(expected),normalized(cell.text()),"TITLE_CHANGED");return;
         }
+        if(Set.of(TitleLayout.JEONJU_THIRD_BOARD,TitleLayout.JEONBUK_THIRD_BOARD).contains(layout)) {
+            var site=com.saneb.domain.announcementsource.provider.content.JeonbukThirdNoticePage.Site.valueOf(layout.name().replace("_THIRD_BOARD",""));
+            var root=com.saneb.domain.announcementsource.provider.content.JeonbukThirdNoticePage.selectRoot(site,page);
+            assertEquals(normalized(expected),normalized(com.saneb.domain.announcementsource.provider.content.JeonbukThirdNoticePage.selectTitle(site,root).text()),"TITLE_CHANGED");return;
+        }
         if(Set.of(TitleLayout.ASAN_BOARD,TitleLayout.SEOSAN_BOARD).contains(layout)) {
             var site=com.saneb.domain.announcementsource.provider.content.ChungcheongSixthNoticePage.Site.valueOf(layout.name().replace("_BOARD",""));
             var root=com.saneb.domain.announcementsource.provider.content.ChungcheongSixthNoticePage.selectRoot(site,page);
@@ -925,6 +931,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|=CapitalBoardDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_PORTAL_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=CapitalThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_PORTAL_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=ChungcheongSixthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
+            boundedSaeol|=JeonbukThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=ChungcheongFifthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=ChungcheongFourthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=ChungcheongThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));

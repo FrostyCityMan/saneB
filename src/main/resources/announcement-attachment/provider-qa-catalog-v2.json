@@ -2293,6 +2293,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JEONJU-7C37D618236741A28B133AA279D05C63",
+      "profileCode": "LOCAL_JEONJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "52f6a16283cce93fb2711ccb7a7c8a6fb736463361fd66a61252fa3e047f390c",
+        "sourceUrl": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=9be517a7914528ce01930aa3ddc26cf0&contentUid=ff8080818990c349018b041a879f395a&dataUid=7c37d618236741a28b133aa279d05c63",
+        "localSourceCode": "LGS-000164",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JEONBUK-670379",
+      "profileCode": "LOCAL_JEONBUK_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e4c206290e4f0a4057ff243bb87c47e97352e17c868eb9108f59d741f95f515b",
+        "sourceUrl": "https://www.jeonbuk.go.kr/board/view.jeonbuk?boardId=BBS_0000129&menuCd=DOM_000000102002005000&dataSid=670379",
+        "localSourceCode": "LGS-000163",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

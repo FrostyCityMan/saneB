@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 130,
-    "missingProfileRegionCount": 93,
+    "registeredRegionCount": 132,
+    "missingProfileRegionCount": 91,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3600,27 +3600,51 @@
       "sourceCode": "LGS-000163",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000163",
+          "caseCode": "JEONBUK-670379",
+          "profileCode": "LOCAL_JEONBUK_BOARD_V1",
+          "profileHash": "b95df7b69e7081c253c4f67bdc5619c574d3c429d9f4a0faa6872de19fdfa756",
+          "receiptHash": "dff75e00ad654349f12baa9280279e4c9646581536aee588b6cd9e49a729c345",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000164",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000164",
+          "caseCode": "JEONJU-7C37D618236741A28B133AA279D05C63",
+          "profileCode": "LOCAL_JEONJU_BOARD_V1",
+          "profileHash": "0ecfb5a0dd4c9b3b2311d62ea193b3c74067bf9c650cd7f10a01c8effee16dc6",
+          "receiptHash": "a3e7bfd9ad0dfb53562a604b0453c5f10083541fa16e227f6f0190288d93b9e5",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000165",
@@ -8878,6 +8902,106 @@
         "sourceCode": "LGS-000152",
         "requests": 4,
         "result": "OFFICIAL_LIST_FRAME_TITLE_SEARCH_DETAIL_FIXED_THREE_ARGUMENT_GET"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "jeonbukThirdDownloadRun": {
+    "scope": "JEONBUK_THIRD_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 10,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GIMJE-list.html",
+        "bytes": 890,
+        "sha256": "3066929cbe7bfa509b51eff64a55098caf7e9290503a841416314f8a7ad1cee3"
+      },
+      {
+        "name": "JEONBUK-board.html",
+        "bytes": 197275,
+        "sha256": "3f7f741955a8a36d8cc123194b68541dd9a8aa1a815e777db99c2b3105dcd9f2"
+      },
+      {
+        "name": "JEONBUK-detail.html",
+        "bytes": 184580,
+        "sha256": "030c54418a39c77c2321c340894519b2f869a9330fbbb8712ecd052d5a181419"
+      },
+      {
+        "name": "JEONBUK-list.html",
+        "bytes": 942,
+        "sha256": "bb1de5f8ab3a55adc4fec648ea732165352f05879c214d0a10daa25419c7ae68"
+      },
+      {
+        "name": "JEONBUK-search.html",
+        "bytes": 196074,
+        "sha256": "b5219db91d20fbf4ffc043506cef0b2b81bfba18033f1e2c8dfba508b14490dd"
+      },
+      {
+        "name": "JEONBUK-support.html",
+        "bytes": 198026,
+        "sha256": "a9cd5a0c1bf9114b98f0cea46291b3eba0f2c5291d01c6be48d0e9bb89c12357"
+      },
+      {
+        "name": "JEONJU-board.html",
+        "bytes": 192455,
+        "sha256": "73d1af43dcefae5fc626fabb073106b8941ae9156cb5dfa2c38054d2b91f37a7"
+      },
+      {
+        "name": "JEONJU-detail.html",
+        "bytes": 175639,
+        "sha256": "ccaa06bcd6f8a18c01ef68b55ff03548c8629b82e274cc131c80abceea43c8d5"
+      },
+      {
+        "name": "JEONJU-list.html",
+        "bytes": 1011,
+        "sha256": "04464e385f25c2296a9fc8542ab1d788f49be79d0390e34d2102d4851d927db3"
+      },
+      {
+        "name": "JEONJU-search.html",
+        "bytes": 189504,
+        "sha256": "fef7a441bdad05fb0eac96316f193cb121a5b0b054748c1b8270a661148baa1a"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "JEONJU-7C37D618236741A28B133AA279D05C63",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "JEONBUK-670379",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JEONJU-7C37D618236741A28B133AA279D05C63.json",
+      "build/reports/attachment-regional-collection/JEONBUK-670379.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4976125,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000164",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_REDIRECT_TITLE_SEARCH_DETAIL_DIRECT_GET"
+      },
+      {
+        "sourceCode": "LGS-000163",
+        "requests": 5,
+        "result": "OFFICIAL_LIST_REDIRECT_TWO_TITLE_SEARCHES_DETAIL_DIRECT_GET"
+      },
+      {
+        "sourceCode": "LGS-000169",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_302_SELF_REDIRECT_NOT_REPEATED"
       }
     ],
     "originalsRemoved": true,

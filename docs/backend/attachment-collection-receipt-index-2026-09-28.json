@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d65a56a5d545e77bb048fd40bd41c7396d4ece03844ce19b7ced46e6411cb74e",
+  "inventorySha256": "89049f76195f89271b874bd7b5340e35c37ff64263f08e062bff569f8b632ca5",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1667,6 +1667,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "4b64077c60c364610cd20590d8a27baa7de3b83e37d914663e3fbd2d0b369a85"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEONJU-7C37D618236741A28B133AA279D05C63.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "a3e7bfd9ad0dfb53562a604b0453c5f10083541fa16e227f6f0190288d93b9e5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "88912baa20debda7dfa12ba00686f907f30be9610738b9a54cf5fe0cd91966d3"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEONBUK-670379.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "dff75e00ad654349f12baa9280279e4c9646581536aee588b6cd9e49a729c345",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "88912baa20debda7dfa12ba00686f907f30be9610738b9a54cf5fe0cd91966d3"
     }
   ],
   "samples": [
@@ -4611,6 +4627,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000163",
+      "caseCode": "JEONBUK-670379",
+      "profileCode": "LOCAL_JEONBUK_BOARD_V1",
+      "profileHash": "b95df7b69e7081c253c4f67bdc5619c574d3c429d9f4a0faa6872de19fdfa756",
+      "receiptHash": "dff75e00ad654349f12baa9280279e4c9646581536aee588b6cd9e49a729c345",
+      "producerClassHash": "88912baa20debda7dfa12ba00686f907f30be9610738b9a54cf5fe0cd91966d3",
+      "observedAt": "2026-09-29T12:11:25.296377400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "b12a3665e866952d1d331665ea8abf586723d290136e7c65ee41dcea1ee51069",
+          "status": "SUCCEEDED",
+          "bytes": 318756,
+          "format": "HWPX",
+          "binaryHash": "f6d15641e8118b0cab943e850b11a5cf352f0f9ba4df03652a4af6e66594890b",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000167",
       "caseCode": "JEONGEUP-50232",
       "profileCode": "LOCAL_JEONGEUP_GET_V1",
@@ -4689,6 +4732,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000164",
+      "caseCode": "JEONJU-7C37D618236741A28B133AA279D05C63",
+      "profileCode": "LOCAL_JEONJU_BOARD_V1",
+      "profileHash": "0ecfb5a0dd4c9b3b2311d62ea193b3c74067bf9c650cd7f10a01c8effee16dc6",
+      "receiptHash": "a3e7bfd9ad0dfb53562a604b0453c5f10083541fa16e227f6f0190288d93b9e5",
+      "producerClassHash": "88912baa20debda7dfa12ba00686f907f30be9610738b9a54cf5fe0cd91966d3",
+      "observedAt": "2026-09-29T12:11:10.006546600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2922ff431d025e8f0e8c82fd85facb8ea29be3d40cf49c7b18ac0b65cd5ba2b9",
+          "status": "SUCCEEDED",
+          "bytes": 94425,
+          "format": "HWPX",
+          "binaryHash": "fabba96d0a7d11cf5fef5c6fbfe9089cb6f474676c5fa5f76d3be50c76cce438",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000142",
