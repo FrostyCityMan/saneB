@@ -2869,6 +2869,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ULSAN_CITY-47059",
+      "profileCode": "LOCAL_ULSAN_CITY_CITYNET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8f83cd31660e82d95ea38b423f3d4d64b452f18a557bc9c2a5cac6d3a539309e",
+        "sourceUrl": "https://www.ulsan.go.kr/u/rep/transfer/notice/47059.ulsan?mId=001004002000000000&gosiGbn=A",
+        "localSourceCode": "LGS-000077",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

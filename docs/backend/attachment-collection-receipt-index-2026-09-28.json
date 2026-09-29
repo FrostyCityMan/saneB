@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "a75dbcd4abd1bf90132e5354e6b201dcbfc097faa4b937bf803edf1f61422a7e",
+  "inventorySha256": "bfe7279cfc80f7f16d54254c0e7656811617f76869b8790c7a5f64e00143f92a",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2067,6 +2067,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "d4ca4fe1ee027a5fea19557b6527339ba0b9d6909b8ccbbda8e30da3b393bcc6"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ULSAN_CITY-47059.json",
+      "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "0d438e76112aa6292aa44bf9ddefa35da653868617b0e4fe996ea4eef01595c1"
     }
   ],
   "samples": [
@@ -7723,6 +7731,30 @@
           "format": "HWPX",
           "binaryHash": "a32fe88221b50ff38bd889fa4c8e2ca813fbe9572f38c3d4d0e4f675afab3bc2",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000077",
+      "caseCode": "ULSAN_CITY-47059",
+      "profileCode": "LOCAL_ULSAN_CITY_CITYNET_V1",
+      "profileHash": "49a1e7cce49a42003534da0d59752cfc05b1f5c6c075d31a32be3b62bec15c4a",
+      "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
+      "producerClassHash": "0d438e76112aa6292aa44bf9ddefa35da653868617b0e4fe996ea4eef01595c1",
+      "observedAt": "2026-09-29T21:53:28.147427500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "11c80f850950f6ff84dc2c7d15b9387b57ca28667a3878648a92392ca27f5261",
+          "status": "FAILED",
+          "bytes": 70212
         }
       ]
     },

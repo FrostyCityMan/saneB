@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 178,
-    "missingProfileRegionCount": 45,
+    "registeredRegionCount": 179,
+    "missingProfileRegionCount": 44,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2123,14 +2123,26 @@
       "sourceCode": "LGS-000077",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000077",
+          "caseCode": "ULSAN_CITY-47059",
+          "profileCode": "LOCAL_ULSAN_CITY_CITYNET_V1",
+          "profileHash": "49a1e7cce49a42003534da0d59752cfc05b1f5c6c075d31a32be3b62bec15c4a",
+          "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000078",
@@ -5803,9 +5815,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "a75dbcd4abd1bf90132e5354e6b201dcbfc097faa4b937bf803edf1f61422a7e",
+  "inputInventorySha256": "bfe7279cfc80f7f16d54254c0e7656811617f76869b8790c7a5f64e00143f92a",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 268,
+  "importedReceiptCount": 269,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12196,6 +12208,126 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "ulsanCityDownloadRun": {
+    "scope": "ULSAN_CITY_CITYNET_COLLECTION_ONLY_WITH_TWO_SURVEY_ERRORS",
+    "surveyRequestCount": 8,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000077",
+        "requests": 4,
+        "result": "REGISTERED302_OFFICIAL_LIST_SEARCH_DETAIL200_HWPX1"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requests": 2,
+        "result": "OFFICIAL_MENU200_FRAME_TRANSPORT_TIMEOUT_ZERO_BYTES"
+      },
+      {
+        "sourceCode": "LGS-000080",
+        "requests": 2,
+        "result": "OFFICIAL_MENU200_FRAME200_ERROR_PAGE"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-ulsan-next-20260930/city-actual-list-head.txt",
+        "bytes": 1970,
+        "sha256": "5a8fbed4182f021a5149757d938e47b32039b1e0d3e156b516bc0bf05159278e"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-actual-list.html",
+        "bytes": 159204,
+        "sha256": "cc65cc66334ddbbc362abc422d9cd4d10974c5fc102228ede5dddfa296735c8c"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-detail-head.txt",
+        "bytes": 1970,
+        "sha256": "5fae3416fd1c416a01fd567e64d55a6042c8a20e538482aabbf2c9b24e85433b"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-detail.html",
+        "bytes": 155060,
+        "sha256": "68b4438301e48c4bb10cb1f00b57ccee9f25275b5f38eca1c8e8279887891a39"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-list-head.txt",
+        "bytes": 2031,
+        "sha256": "ca271fb36f55f45b2ce48131d605508e48f1d163bfeb7eb9183b3d12f6741e78"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-list.html",
+        "bytes": 903,
+        "sha256": "b640328715b32364239c819c385d6ccff486fc64ff9ef07b4948401cd05abdd3"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-search-head.txt",
+        "bytes": 1970,
+        "sha256": "53dc23f59ba7634a5d486530da6ead89ec48049d0616e8d5aaf3e48f79fdc7fe"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/city-search.html",
+        "bytes": 159130,
+        "sha256": "b72ed60eb6749099bfd3f930441a75f4509f2f4ecb057ec5166da9c82d92f6c1"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/donggu-frame-head.txt",
+        "bytes": 192,
+        "sha256": "446c48d930173c35faa87c06964478f3657812fc7f121ca7ab811e0d57b168dd"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/donggu-frame.html",
+        "bytes": 1937,
+        "sha256": "2b7de452793dd0dc8e60f98dc77ed1754eb90a323400d663ebcc0ffa223f3a94"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/donggu-list-head.txt",
+        "bytes": 530,
+        "sha256": "00c9b5d966fcff11b2726740aa67f9ba9771990958a26ab609679a2a37173b22"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/donggu-list.html",
+        "bytes": 318979,
+        "sha256": "f5371c8be6be0865ab3c3b681f8db51b476a0e320759db7bf6df3fe49e891167"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/namgu-frame-head.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/namgu-list-head.txt",
+        "bytes": 379,
+        "sha256": "7b400f138cf6992c3fcf8005fd2da45f8851a3fbdebaedab0354b06de801a72d"
+      },
+      {
+        "path": "build/qa-ulsan-next-20260930/namgu-list.html",
+        "bytes": 163874,
+        "sha256": "e9861c25c9677dbf8be86b176e363d1b477f530e63f2be9d60843d146fbdff82"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ULSAN_CITY-47059",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ULSAN_CITY-47059.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2323012,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 12,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
