@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "aa7e994386a4a36649462c0f2b476f247a9c50c9e44d73504c171134a64798dd",
+  "inventorySha256": "0de6f1c8537c39ea9c6146ccccc63496514b8e22be875566d90497347197b5eb",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1525,7 +1525,7 @@
       "producerClassHash": "7fc6abb90cefd456272ae141d05bcc0e3b6fc826676877337c50d97385f0700d"
     },
     {
-      "path": "build/reports/attachment-regional-collection/ANSAN-1660335.json",
+      "path": "build/reports/attachment-regional-collection/ANSAN-1660335-BEFORE-MIME.json",
       "kind": "LOCAL_COLLECTION_ONLY",
       "receiptHash": "1969ea2043f7e694f397a925b1b2b434567774ca60456637c78cfa727bab77a0",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
@@ -1581,7 +1581,7 @@
       "producerClassHash": "7bc4331056406c20341458311fdcad9d4bfa7cec2f79e9519ea79cd10d55697b"
     },
     {
-      "path": "build/reports/attachment-regional-collection/INJE-245926.json",
+      "path": "build/reports/attachment-regional-collection/INJE-245926-BEFORE-MIME.json",
       "kind": "LOCAL_COLLECTION_ONLY",
       "receiptHash": "32bf54568e16fd9ae928dcc43ce021dc29ef01c6e818da95be8ec44eb9c66d61",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
@@ -2107,6 +2107,22 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ANSAN-1660335.json",
+      "receiptHash": "ea0e47b73e9e006f47913f5366e7dee09396086490ae7ea7be17d41a288f4108",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/INJE-245926.json",
+      "receiptHash": "455bea2ffb87f63b37f1d4f8aede72a8979eafbd9cdb7e643931299be2398ebe",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
     }
   ],
   "samples": [
@@ -2157,10 +2173,10 @@
       "sourceCode": "LGS-000092",
       "caseCode": "ANSAN-1660335",
       "profileCode": "LOCAL_ANSAN_PORTAL_V1",
-      "profileHash": "c03d4d363352dffd3b7fe9966acfac11f9c32e3ed505af7f6d18b6ba40b93c9a",
-      "receiptHash": "1969ea2043f7e694f397a925b1b2b434567774ca60456637c78cfa727bab77a0",
-      "producerClassHash": "7fc6abb90cefd456272ae141d05bcc0e3b6fc826676877337c50d97385f0700d",
-      "observedAt": "2026-09-29T09:45:01.820029700Z",
+      "profileHash": "a1b1b1c5432a5dfb1e18a786d0d55c7c0e39d3236c2cf635bbb46b7d0ef8f7f1",
+      "receiptHash": "ea0e47b73e9e006f47913f5366e7dee09396086490ae7ea7be17d41a288f4108",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T23:02:54.259916300Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -2172,8 +2188,11 @@
       "files": [
         {
           "locatorHash": "4b5dfbb3c7f9fe1298bec14163d8a70c2eefbd3ebd983fcd2bca4756919b0c7f",
-          "status": "FAILED",
-          "bytes": 110080
+          "status": "SUCCEEDED",
+          "bytes": 110080,
+          "format": "HWP",
+          "binaryHash": "039bf09bedc5e08627b65db14d83a2155c54b9db518520db9c1b98e5f03aa08e",
+          "signatureVerified": true
         }
       ]
     },
@@ -5697,10 +5716,10 @@
       "sourceCode": "LGS-000132",
       "caseCode": "INJE-245926",
       "profileCode": "LOCAL_INJE_BOARD_V1",
-      "profileHash": "ba9fd311a916933bd5dd2d83736a7ad41be036ca51237a4e03b56034bf50daac",
-      "receiptHash": "32bf54568e16fd9ae928dcc43ce021dc29ef01c6e818da95be8ec44eb9c66d61",
-      "producerClassHash": "7bc4331056406c20341458311fdcad9d4bfa7cec2f79e9519ea79cd10d55697b",
-      "observedAt": "2026-09-29T10:25:01.337879Z",
+      "profileHash": "98a22d2fd986339652447d6048d6adc93c353f84c1b8aeeefec1cf27ba156186",
+      "receiptHash": "455bea2ffb87f63b37f1d4f8aede72a8979eafbd9cdb7e643931299be2398ebe",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T23:03:08.208465500Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -5712,8 +5731,11 @@
       "files": [
         {
           "locatorHash": "36ab685645eb804c2e0b5a98d82434ba28fe02be828a72900a8d5ea8b82b2feb",
-          "status": "FAILED",
-          "bytes": 81920
+          "status": "SUCCEEDED",
+          "bytes": 81920,
+          "format": "HWP",
+          "binaryHash": "3e7feb24bb08de48abe8d485af783e83cd8d94eede3ad7cc4b4673d44c1087cf",
+          "signatureVerified": true
         }
       ]
     },

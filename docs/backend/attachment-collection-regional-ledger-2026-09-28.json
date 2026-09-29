@@ -2404,9 +2404,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -2414,12 +2414,12 @@
           "sourceCode": "LGS-000092",
           "caseCode": "ANSAN-1660335",
           "profileCode": "LOCAL_ANSAN_PORTAL_V1",
-          "profileHash": "c03d4d363352dffd3b7fe9966acfac11f9c32e3ed505af7f6d18b6ba40b93c9a",
-          "receiptHash": "1969ea2043f7e694f397a925b1b2b434567774ca60456637c78cfa727bab77a0",
+          "profileHash": "a1b1b1c5432a5dfb1e18a786d0d55c7c0e39d3236c2cf635bbb46b7d0ef8f7f1",
+          "receiptHash": "ea0e47b73e9e006f47913f5366e7dee09396086490ae7ea7be17d41a288f4108",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -3407,9 +3407,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "EVIDENCE_VERSION_MISMATCH",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -3417,12 +3417,12 @@
           "sourceCode": "LGS-000132",
           "caseCode": "INJE-245926",
           "profileCode": "LOCAL_INJE_BOARD_V1",
-          "profileHash": "ba9fd311a916933bd5dd2d83736a7ad41be036ca51237a4e03b56034bf50daac",
-          "receiptHash": "32bf54568e16fd9ae928dcc43ce021dc29ef01c6e818da95be8ec44eb9c66d61",
+          "profileHash": "98a22d2fd986339652447d6048d6adc93c353f84c1b8aeeefec1cf27ba156186",
+          "receiptHash": "455bea2ffb87f63b37f1d4f8aede72a8979eafbd9cdb7e643931299be2398ebe",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "aa7e994386a4a36649462c0f2b476f247a9c50c9e44d73504c171134a64798dd",
+  "inputInventorySha256": "0de6f1c8537c39ea9c6146ccccc63496514b8e22be875566d90497347197b5eb",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 273,
+  "importedReceiptCount": 275,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,103 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "ansanInjeMimeRecoveryRun": {
+    "scope": "ANSAN_INJE_MEASURED_BINARY_MIME_RECOVERY_COLLECTION_ONLY",
+    "surveyRequestCount": 4,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000092",
+        "requests": 2,
+        "result": "DETAIL200_FILE200_HWP_OLE_UTF8_DISPOSITION",
+        "observedContentType": "application/unknown;charset=UTF-8"
+      },
+      {
+        "sourceCode": "LGS-000132",
+        "requests": 2,
+        "result": "DETAIL200_FILE200_HWP_OLE_DISPOSITION",
+        "observedContentType": "application/x-tika-msoffice;charset=UTF-8"
+      }
+    ],
+    "normalizedContentType": "application/x-msdownload",
+    "normalizationMeaning": "INTERNAL_LEGACY_VALIDATION_REPRESENTATION_NOT_SERVER_HEADER",
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-ansan-mime-20260930/detail-head.txt",
+        "bytes": 606,
+        "sha256": "740cee4068f8ad0b498beab22c071c01ac6b920381ea525aeb85c3a46b53b18f"
+      },
+      {
+        "path": "build/qa-ansan-mime-20260930/detail.html",
+        "bytes": 621233,
+        "sha256": "1c8c74e2e14cd2a2eb9714fe42a75bb5720926e58c183ffcf67bb53ad42f0cad"
+      },
+      {
+        "path": "build/qa-ansan-mime-20260930/file-head.txt",
+        "bytes": 541,
+        "sha256": "af3d2b455eda9076983451a40cdab7c8a6af61e85572f0466a2aaad2a6173b84"
+      },
+      {
+        "path": "build/qa-ansan-mime-20260930/file.bin",
+        "bytes": 110080,
+        "sha256": "039bf09bedc5e08627b65db14d83a2155c54b9db518520db9c1b98e5f03aa08e"
+      },
+      {
+        "path": "build/qa-inje-mime-20260930/detail-head.txt",
+        "bytes": 4980,
+        "sha256": "050ebc0c1cc2ace01b325da6fd00fdd1239bac03e427ec945d7832480f19a37b"
+      },
+      {
+        "path": "build/qa-inje-mime-20260930/detail.html",
+        "bytes": 95965,
+        "sha256": "8c3dfe95fd5334d541c026c94b7a93826fcfafd3fae77c1d22fdf39a43a77491"
+      },
+      {
+        "path": "build/qa-inje-mime-20260930/file-head.txt",
+        "bytes": 4500,
+        "sha256": "dabc2669cef3143e0e1faf45961d6f631034668b4cf3025e3ea49f3d0661402e"
+      },
+      {
+        "path": "build/qa-inje-mime-20260930/file.bin",
+        "bytes": 81920,
+        "sha256": "3e7feb24bb08de48abe8d485af783e83cd8d94eede3ad7cc4b4673d44c1087cf"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ANSAN-1660335",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "INJE-245926",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReports": [
+      "build/reports/attachment-regional-collection/ANSAN-1660335-BEFORE-MIME.json",
+      "build/reports/attachment-regional-collection/INJE-245926-BEFORE-MIME.json"
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ANSAN-1660335.json",
+      "build/reports/attachment-regional-collection/INJE-245926.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 5115392,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 12,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

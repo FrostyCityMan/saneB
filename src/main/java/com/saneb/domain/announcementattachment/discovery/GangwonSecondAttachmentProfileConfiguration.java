@@ -7,5 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods=false)
 public class GangwonSecondAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectYangguProfileDetails(){return new GangwonSecondAttachmentDiscoveryProfile(Site.YANGGU);}
-    @Bean public AttachmentDiscoveryProfile selectInjeProfileDetails(){return new GangwonSecondAttachmentDiscoveryProfile(Site.INJE);}
+    @Bean public AttachmentDiscoveryProfile selectInjeProfileDetails(){
+        return new ObservedBinaryMimeAttachmentDiscoveryProfile(new GangwonSecondAttachmentDiscoveryProfile(Site.INJE),
+                "application/x-tika-msoffice");
+    }
 }

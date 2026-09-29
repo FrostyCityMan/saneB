@@ -32,7 +32,7 @@ class GangwonSecondDownloadContractTest {
     }
     @ParameterizedTest @MethodSource("selectGroups") void keepsGoodFilesAndSeparatesUnknownAndUnsupported(String group){
         var s=GangwonSecondDownloadCases.selectCase(group);var p=s.profile();String files=selectItem(group,1,"hwp")+selectItem(group,2,"pdf")+selectItem(group,3,"hwpx");
-        assertThat(p.selectLegacyBinaryContentTypes()).isEqualTo(group.equals("YANGGU")?Set.of("application/octer-stream"):Set.of());
+        assertThat(p.selectLegacyBinaryContentTypes()).isEqualTo(group.equals("YANGGU")?Set.of("application/octer-stream"):Set.of("application/x-msdownload"));
         assertThat(p.selectUtf8DispositionOctets()).isEqualTo(group.equals("YANGGU"));
         var r=p.selectDescriptors(s.source(),selectPage(group,files));assertThat(r.complete()).isTrue();assertThat(r.descriptors()).hasSize(3);r.descriptors().forEach(d->{assertThat(d.documentRole()).isEqualTo("UNKNOWN");assertThat(d.downloadAllowed()).isTrue();assertThat(p.selectApprovedRequest(d.selectRequest())).isTrue();});
         for(String extra:List.of("<a href='/unknown'>다른 첨부</a>","<button>파일</button>","<img src='/unknown'>")){var partial=p.selectDescriptors(s.source(),selectPage(group,files+extra));assertThat(partial.complete()).isFalse();assertThat(partial.descriptors()).hasSize(3);}

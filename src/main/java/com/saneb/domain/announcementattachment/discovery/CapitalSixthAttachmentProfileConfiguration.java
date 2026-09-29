@@ -7,5 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods=false)
 public class CapitalSixthAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectSiheungProfileDetails() { return new CapitalSixthAttachmentDiscoveryProfile(Site.SIHEUNG); }
-    @Bean public AttachmentDiscoveryProfile selectAnsanProfileDetails() { return new CapitalSixthAttachmentDiscoveryProfile(Site.ANSAN); }
+    @Bean public AttachmentDiscoveryProfile selectAnsanProfileDetails() {
+        return new ObservedBinaryMimeAttachmentDiscoveryProfile(
+                new Utf8DispositionAttachmentDiscoveryProfile(new CapitalSixthAttachmentDiscoveryProfile(Site.ANSAN)),
+                "application/unknown");
+    }
 }
