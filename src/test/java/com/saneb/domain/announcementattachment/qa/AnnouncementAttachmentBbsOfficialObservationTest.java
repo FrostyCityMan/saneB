@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -65,6 +65,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selected.values().stream();
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if(Set.of("EUMSEONG","NONSAN","DANGJIN","CHEONGYANG").contains(group))return Stream.of(selectChungcheongCase(group));
         if("JEUNGPYEONG".equals(group)||"DANYANG".equals(group)) {
             boolean jp="JEUNGPYEONG".equals(group);String id=jp?"31159":"32263";
             var config=new ChungbukLegacyAttachmentProfileConfiguration();var profile=jp?config.selectJeungpyeongProfileDetails():config.selectDanyangProfileDetails();
@@ -319,6 +320,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000045","SAFE_SAEOL_EMINWON_LEGACY"),
                 new SaeolGetAttachmentProfileConfiguration().selectDaeguJungguProfileDetails(),url,count,TitleLayout.JUNGGU_LABEL,expectedStop);
     }
+    private static ObservationCase selectChungcheongCase(String group) {
+        var config=new ChungcheongAttachmentProfileConfiguration();
+        var profile=switch(group){case "EUMSEONG"->config.selectEumseongProfileDetails();case "NONSAN"->config.selectNonsanProfileDetails();case "DANGJIN"->config.selectDangjinProfileDetails();default->config.selectCheongyangProfileDetails();};
+        String id=switch(group){case "EUMSEONG"->"52473";case "NONSAN"->"50928";case "DANGJIN"->"57265";default->"37758";};
+        String title=switch(group){case "EUMSEONG"->"2026년도 음성형 소상공인 지원자금 지원계획 공고(3차)";case "NONSAN"->"2026년 소상공인 노란우산 공제가입 장려금 지원사업 공고";case "DANGJIN"->"2026년 소상공인 화재보험료 지원사업(2차) 공고";default->"2026년 청양군 하반기 소상공인 화재보험료 지원사업 공고";};
+        String host=profile.selectApprovedHosts().iterator().next();
+        String url="https://"+host+"/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+        String list=switch(group){case "EUMSEONG"->"https://eminwon.eumseong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectListOfrNotAncmt&methodnm=selectListOfrNotAncmtHomepage&not_ancmt_se_code=01%2C04&pageIndex=1&subCheck=Y&yyyy=";case "NONSAN"->"https://www.nonsan.go.kr/kor/html/sub03/03010201.html";case "DANGJIN"->"https://www.dangjin.go.kr/kor/sub03_02_01_01.do";default->"https://www.cheongyang.go.kr/kor/sub04_02_03.do";};
+        var binding=profile.selectSourceBindings().getFirst();var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase(group+"-"+id,title,new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,binding.localSourceCode(),binding.listParserProfileCode()),profile,list,
+                Set.of("DANGJIN","CHEONGYANG").contains(group)?2:1,group.equals("EUMSEONG")?TitleLayout.EUMSEONG_LABEL:group.equals("NONSAN")?TitleLayout.NONSAN_LABEL:TitleLayout.DANYANG_LABEL);
+    }
     private static ObservationCase selectDalseongCase(String id,String title,int count) {
         String url="https://eminwon.dalseong.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
         var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
@@ -547,6 +560,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        if(layout==TitleLayout.EUMSEONG_LABEL||layout==TitleLayout.NONSAN_LABEL){
+            boolean nonsan=layout==TitleLayout.NONSAN_LABEL;var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
+            var tables=forms.getFirst().select(nonsan?"table.bbs_view":"table.board_view");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
+            var labels=table.select(nonsan?"thead > tr.head > th[scope=row]":"th.first[scope=row]").stream()
+                    .filter(e->e.closest("table")==table&&e.children().isEmpty()&&"제목".equals(e.text().replaceAll("\\s+",""))).toList();assertEquals(1,labels.size(),"TITLE_STRUCTURE_CHANGED");
+            var title=labels.getFirst().nextElementSibling();assertTrue(title!=null&&"td".equals(title.tagName())&&title.children().isEmpty()&&(nonsan?"5":"3").equals(title.attr("colspan")),"TITLE_STRUCTURE_CHANGED");
+            assertEquals(normalized(expected),normalized(title.text()),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.SUSEONG_LABEL||layout==TitleLayout.DALSEO_LABEL){
             boolean suseong=layout==TitleLayout.SUSEONG_LABEL;var forms=page.select("form[name=form1][method=post]");
             assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");var containers=forms.getFirst().select(suseong?"table.readtype2":"div#bbsView");
@@ -748,6 +769,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boolean guro=GuroGosiAttachmentDiscoveryProfile.CODE.equals(profile.selectProfileCode());
             boolean standardCollection=Set.of("LOCAL_HOENGSEONG_BBS_V1","LOCAL_YEONGWOL_BBS_V1").contains(profile.selectProfileCode());
             boundedSaeol|=Set.of("LOCAL_JEUNGPYEONG_GET_V1","LOCAL_DANYANG_GET_V1").contains(profile.selectProfileCode());
+            boundedSaeol|=Set.of("LOCAL_EUMSEONG_GET_V1","LOCAL_NONSAN_GET_V1","LOCAL_DANGJIN_GET_V1","LOCAL_CHEONGYANG_GET_V1").contains(profile.selectProfileCode());
             maximumRequests=standardCollection?5:guro?8:gangbuk?20:gijang?7:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:gijang?23:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}

@@ -19,7 +19,7 @@ class AttachmentProviderInventoryAuditTest {
     private AnnotationConfigApplicationContext selectContext() {
         return new AnnotationConfigApplicationContext(BizInfoAttachmentDiscoveryProfile.class,SeoguSaeolAttachmentDiscoveryProfile.class,
                 HwacheonPostAttachmentDiscoveryProfile.class,BusanBukguPostAttachmentDiscoveryProfile.class,SaeolGetAttachmentProfileConfiguration.class,LegalBoardAttachmentProfileConfiguration.class,
-                StandardBbsAttachmentProfileConfiguration.class,ChungjuEminwonAttachmentDiscoveryProfile.class,YeongdoAttachmentDiscoveryProfile.class,DalseoPostAttachmentDiscoveryProfile.class,ChungbukLegacyAttachmentProfileConfiguration.class);
+                StandardBbsAttachmentProfileConfiguration.class,ChungjuEminwonAttachmentDiscoveryProfile.class,YeongdoAttachmentDiscoveryProfile.class,DalseoPostAttachmentDiscoveryProfile.class,ChungbukLegacyAttachmentProfileConfiguration.class,ChungcheongAttachmentProfileConfiguration.class);
     }
     private List<Target> selectTargets(JsonNode input,boolean enabledOnly) {
         if(!"LOCAL_TARGET_INVENTORY".equals(input.path("kind").asText())||!"on".equals(input.path("readOnly").asText())
@@ -80,7 +80,7 @@ class AttachmentProviderInventoryAuditTest {
             var report=selectReport(selectFixture(),JSON.readTree("{\"notices\":[]}"),List.copyOf(context.getBeansOfType(AttachmentDiscoveryProfile.class).values()));
             assertThat(report.path("allUndeletedSummary").path("targetCount").asInt()).isEqualTo(5);
             assertThat(report.path("enabledSummary").path("targetCount").asInt()).isEqualTo(4);
-            assertThat(report.path("allUndeletedSummary").path("registeredProfileCount").asInt()).isEqualTo(38);
+            assertThat(report.path("allUndeletedSummary").path("registeredProfileCount").asInt()).isEqualTo(42);
             assertThat(report.at("/targets/3/bindingStatus").asText()).isEqualTo("LIST_PARSER_MISMATCH");
             assertThat(report.at("/targets/3/enabled").asBoolean()).isFalse();
             assertThat(report.at("/targets/4/bindingStatus").asText()).isEqualTo("PROFILE_MISSING");
