@@ -196,6 +196,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     request.registeredSourceUrl(),
                     request.officialDetailUrl()
             );
+            if (IncheonCityNoticePage.selectMatches(validatedRequest.detailUri())) {
+                try {
+                    validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
+                            IncheonCityNoticePage.selectDetailUri(validatedRequest.detailUri()).toASCIIString());
+                } catch (IllegalArgumentException exception) { throw new ProviderContentValidationException(FailureCode.DETAIL_URL_INVALID); }
+            }
             if (ChuncheonNoticePage.selectPageMatches(validatedRequest.detailUri()) || ChuncheonNoticePage.selectApiMatches(validatedRequest.detailUri())) {
                 try {
                     validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
@@ -300,7 +306,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
-                    if (ChuncheonNoticePage.selectApiMatches(initialUri)) {
+                    if (ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri)) {
                         return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
                     }
                     if (redirectCount >= maxRedirects) {
@@ -446,6 +452,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     private Element selectContentElement(Document document, URI sourceUri) {
         // 실측된 기관의 정확한 게시판만 좁힌다. 같은 parser의 다른 기관까지 지원한다고 추정하지 않는다.
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
+        if (IncheonCityNoticePage.selectMatches(sourceUri)) {
+            try { return IncheonCityNoticePage.selectContent(document, sourceUri); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
         if (DaeguCityNoticePage.selectMatches(sourceUri)) {
             try { return DaeguCityNoticePage.selectContent(document, sourceUri); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }

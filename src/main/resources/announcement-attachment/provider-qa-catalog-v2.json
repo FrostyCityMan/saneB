@@ -2833,6 +2833,18 @@
         "listParserProfileCode": "SAFE_DAEGU_LEGAL_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "INCHEON_CITY-66970",
+      "profileCode": "LOCAL_INCHEON_CITY_CITYNET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "f21f9bfaeff7e2f37f54b89836b6acf913fd2b7413b8f35bd347b9ee786beffa",
+        "sourceUrl": "http://announce.incheon.go.kr/citynet/jsp/sap/SAPGosiBizProcess.do?command=searchDetail&flag=gosiGL&svp=Y&sido=ic&sno=66970&gosiGbn=A",
+        "localSourceCode": "LGS-000054",
+        "listParserProfileCode": "SAFE_INCHEON_CITYNET_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

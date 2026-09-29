@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "1e2469c9a93db5734ffe1016d52dc18e7e812d909f566a248e61fbc5797cf55b",
+  "inventorySha256": "db03edeccd14b641070e1811148fa594d21fafe4bd0d4c3fbcba6614a80fc101",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2043,6 +2043,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "7ef3d39a096bbc5c39a3057e3ec0927eb00396137843b21fcb1413bdc57c3aca"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/INCHEON_CITY-66970.json",
+      "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "d999d040d9b0956763440d5e693430dd5d9c2268c38da20b3d8209865e266e89"
     }
   ],
   "samples": [
@@ -5581,6 +5589,30 @@
           "format": "HWPX",
           "binaryHash": "01894ed9e88d953dbb4bad42b66c39cec867f372f61768339a3c247bfe139181",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000054",
+      "caseCode": "INCHEON_CITY-66970",
+      "profileCode": "LOCAL_INCHEON_CITY_CITYNET_V1",
+      "profileHash": "62ef746d7f8b4a9fcd820e0dc448a191683a03b3ff8a7c46d302a3025ab497fa",
+      "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
+      "producerClassHash": "d999d040d9b0956763440d5e693430dd5d9c2268c38da20b3d8209865e266e89",
+      "observedAt": "2026-09-29T21:04:18.784863600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d32d3743cef6c65f0d38e5439d44c48e444916a27d62ccfaede59002936c0bb1",
+          "status": "FAILED",
+          "bytes": 74696
         }
       ]
     },

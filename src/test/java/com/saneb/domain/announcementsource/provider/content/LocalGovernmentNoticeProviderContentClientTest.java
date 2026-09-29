@@ -31,6 +31,24 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void incheonCityBodyDoesNotFollowRedirectOrDowngrade() {
+        String url="http://announce.incheon.go.kr/citynet/jsp/sap/SAPGosiBizProcess.do?command=searchDetail&flag=gosiGL&svp=Y&sido=ic&sno=66970&gosiGbn=A";
+        for(String location:List.of(url,url.replace("http:","https:"),"https://evil.example/")){
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(302,Map.of("location",List.of(location)),new byte[0]));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            assertThat(result.failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);assertThat(result.redirectCount()).isZero();assertThat(result.attemptCount()).isEqualTo(1);
+        }
+    }
+    @Test void incheonCityEucKrBodyUsesHttpsAndExcludesMetadata() {
+        String page="<html><head><meta http-equiv='Content-Type' content='text/html; charset=euc-kr'></head><body><form name=myform><input type=hidden name=sno value=66970><input type=hidden name=gosiGbn value=A><input type=hidden name=flag value=gosiGL><table><tbody><tr><th class=tb_tit_center>제목</th><td class=tb_left colspan=3>소상공인 지원</td></tr><tr><th class=tb_tit_center>담당부서</th><td class=tb_left>수출 부서</td></tr><tr><th class=tb_tit_center colspan=4>내 용</th></tr><tr><td class=board_line></td></tr><tr><td class=tb_left colspan=4 wrap=VIRTUAL>소상공인 지원금</td></tr><tr><th class=tb_tit_center>첨부파일</th><td class=tb_left>특허.hwpx</td></tr></tbody></table></form></body></html>";
+        String url="http://announce.incheon.go.kr/citynet/jsp/sap/SAPGosiBizProcess.do?command=searchDetail&flag=gosiGL&svp=Y&sido=ic&sno=66970&gosiGbn=A";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("wrap=VIRTUAL","wrap=other"),page.replace("value=66970","value=999"))){
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of("text/html; charset=euc-kr")),value.getBytes(java.nio.charset.Charset.forName("EUC-KR"))));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");assertThat(result.finalUrl()).startsWith("https://announce.incheon.go.kr/");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void daeguCityBodyExcludesFilesAndMetadataAndChecksIdentity() {
         String page="<form id=sidoGosiAPIVO><input type=hidden name=sno value=33505><input type=hidden name=gosi_gbn value=A><div id=bbsView><div class=form_group><dl class=title><dt>제목</dt><dd>소상공인 지원</dd></dl></div><div class=form_group><dl><dt>담당부서</dt><dd>수출 부서</dd></dl></div><div class=form_group><dl class=content><dt>내용</dt><dd>소상공인 지원금</dd></dl></div><div class=form_group><dl class=attfile><dt>첨부파일</dt><dd>특허.hwp</dd></dl></div></div></form>";
         String url="https://www.daegu.go.kr/index.do?menu_id=00940170&menu_link=/front/daeguSidoGosi/daeguSidoGosiView.do&sno=33505&gosi_gbn=A";

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 175,
-    "missingProfileRegionCount": 48,
+    "registeredRegionCount": 176,
+    "missingProfileRegionCount": 47,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1644,14 +1644,26 @@
       "sourceCode": "LGS-000054",
       "listParserProfileCode": "SAFE_INCHEON_CITYNET_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000054",
+          "caseCode": "INCHEON_CITY-66970",
+          "profileCode": "LOCAL_INCHEON_CITY_CITYNET_V1",
+          "profileHash": "62ef746d7f8b4a9fcd820e0dc448a191683a03b3ff8a7c46d302a3025ab497fa",
+          "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000055",
@@ -5767,9 +5779,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "1e2469c9a93db5734ffe1016d52dc18e7e812d909f566a248e61fbc5797cf55b",
+  "inputInventorySha256": "db03edeccd14b641070e1811148fa594d21fafe4bd0d4c3fbcba6614a80fc101",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 265,
+  "importedReceiptCount": 266,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11919,6 +11931,78 @@
     ],
     "initialFailureCode": "ATTACHMENT_CONTENT_TYPE_MISMATCH",
     "retryReason": "SITE_SPECIFIC_EXISTING_LEGACY_MIME_AND_UTF8_DISPOSITION_COMPATIBILITY",
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "incheonCityDownloadRun": {
+    "scope": "INCHEON_CITY_CITYNET_HTTPS_EUCKR_COLLECTION_ONLY",
+    "priorSurveyRequests": 0,
+    "surveyRequestCount": 5,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "diagnosticDownloadMaximumBytes": 1048576,
+    "surveyRawFiles": [
+      {
+        "name": "detail.html",
+        "bytes": 13340,
+        "sha256": "ba77b7f05535d976649a464acc2e0680e44cf9f41b57aac3322f765966039a26"
+      },
+      {
+        "name": "diagnostic.hwpx",
+        "bytes": 74696,
+        "sha256": "220ba26656d6626505bcb896efacb01d682330feda18627dc80202f5ce102fa5"
+      },
+      {
+        "name": "file-get-head.txt",
+        "bytes": 406,
+        "sha256": "9a35e438048a67d0f5b977dc9d8d254ce4d42c03f723e6fc7d47902fb5e5eefa"
+      },
+      {
+        "name": "https-list.html",
+        "bytes": 26267,
+        "sha256": "802c0e16f0cf566d6b79ea2c6a85e194f7a1d746f67b07536caa38aef9962966"
+      },
+      {
+        "name": "list-head.txt",
+        "bytes": 343,
+        "sha256": "4b877652e47f226ee5d0dea58c962572845c0ef32914e45ebae3967c9de26d2a"
+      },
+      {
+        "name": "list.html",
+        "bytes": 26267,
+        "sha256": "b0cc147a07b452288f5da8e57e072c10e9b385858e38f50adc3cb87a120696ce"
+      },
+      {
+        "name": "search.html",
+        "bytes": 23486,
+        "sha256": "afd98e7d2d9f72cc492561ca4f994115f813eac90fca75fd926219197d5d287a"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "INCHEON_CITY-66970",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/INCHEON_CITY-66970.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2188232,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000054",
+        "requests": 5,
+        "result": "HTTP_LIST_HTTPS_LIST_SEARCH_DETAIL200_EUCKR_HWPX1_DISCOVERED_APPLICATION_FILE_MIME_FAILED_NON_UTF8_DISPOSITION"
+      }
+    ],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
