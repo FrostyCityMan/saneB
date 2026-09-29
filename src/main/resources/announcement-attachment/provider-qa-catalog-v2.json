@@ -1669,6 +1669,30 @@
         "listParserProfileCode": "GUNWI_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GORYEONG-42015",
+      "profileCode": "LOCAL_GORYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "917e7d94f693afe40bda0a3496ed679ea455a465636977115a08db179d391f2e",
+        "sourceUrl": "http://www.goryeong.go.kr/kor/boardView.do?IDX=154&BRD_ID=1023&BOARD_IDX=42015",
+        "localSourceCode": "LGS-000216",
+        "listParserProfileCode": "SAFE_GORYEONG_BOARD"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JINJU-64420",
+      "profileCode": "LOCAL_JINJU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e17f9a7be5e747498cbe5fdd52f595f8f2300a17bf000a8d6fc1d9bbcf4274ab",
+        "sourceUrl": "https://www.jinju.go.kr/00130/02730/05586.web?amode=view&not_ancmt_mgt_no=64420",
+        "localSourceCode": "LGS-000225",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
