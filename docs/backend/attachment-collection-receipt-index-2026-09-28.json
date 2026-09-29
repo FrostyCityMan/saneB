@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d11e2b3cba79f153a98800f9ae5719bedcb787ab5ddce848797ef96eb5692364",
+  "inventorySha256": "4c4d08d5293a0b12100e1094bc40fd137970cb8677e0f100b000012bd2f433ab",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1099,6 +1099,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "785da7bf3c41399e30954992c2e8536e6f17c802216cafe429b6999ef4ffffcf"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/CHEONGDO-24118.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "dd617b1e9175fcdd7850e923695e82fc7eed13514b810e62501ace0f3c73ef24",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/CHILGOK-34056.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "d11c8793438c25b04bb335f364b3c54e1912b67324f4ba7890b4546a0fa46478",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/BONGHWA-32956.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "079832b3de75a23d34efedc93dca7d1e4a16ce8c151fcfb13561905b9add1e8d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf"
     }
   ],
   "samples": [
@@ -1179,6 +1203,46 @@
           "bytes": 97068,
           "format": "HWPX",
           "binaryHash": "7e1ef10adc3531a21897de01e5ccf538620cf7873674a073fbe0fca67398e59e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000220",
+      "caseCode": "BONGHWA-32956",
+      "profileCode": "LOCAL_BONGHWA_PORTAL_V1",
+      "profileHash": "7378d3f9ed19c17c1cc3131833867edbe0143dd4d66d0995679ba181a882dc86",
+      "receiptHash": "079832b3de75a23d34efedc93dca7d1e4a16ce8c151fcfb13561905b9add1e8d",
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf",
+      "observedAt": "2026-09-29T04:55:23.037026700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FAILED",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d4c7cf56f79932def3e5e21c45dbe3dde03c521513e63f10a881b631bf6b91cd",
+          "status": "UNSUPPORTED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "7e5544a3ce530835a1fc78ceb0db4f6fd1f83eeeb2d2c47af120faaa901d3ed0",
+          "status": "SUCCEEDED",
+          "bytes": 1482436,
+          "format": "HWPX",
+          "binaryHash": "8accbaee85c266f816f643b0e74515302bcb1abf941d44859f67841883fcbbb7",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "b91a2ea905e6c76982b0a9cae37959d97f3d5b671d307abc20a7ac2f762daac0",
+          "status": "SUCCEEDED",
+          "bytes": 168448,
+          "format": "HWP",
+          "binaryHash": "869786959c6e649f8987bd6e1468b6dbaa4326700437a3861720446d8d9fd8b1",
           "signatureVerified": true
         }
       ]
@@ -1799,6 +1863,41 @@
       ]
     },
     {
+      "sourceCode": "LGS-000215",
+      "caseCode": "CHEONGDO-24118",
+      "profileCode": "LOCAL_CHEONGDO_PORTAL_V1",
+      "profileHash": "43375612d242945575d435115002399130a5ced760aed5f7db3d4790c84e7ef7",
+      "receiptHash": "dd617b1e9175fcdd7850e923695e82fc7eed13514b810e62501ace0f3c73ef24",
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf",
+      "observedAt": "2026-09-29T04:55:07.375738800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "06c9216c68d8107db8e1f7b49d5b12cb0ed0a97c5e2ad6a8b3ddf0d87b352789",
+          "status": "SUCCEEDED",
+          "bytes": 66923,
+          "format": "HWPX",
+          "binaryHash": "d112812775e8e55562b06d8acbf412355f31d04b6a33641dff32ad862327c0ee",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "da96bc1c67c8f928d3db31f0e60c960f1aead72f691e5a7e3c35e8ab841190ce",
+          "status": "SUCCEEDED",
+          "bytes": 64193,
+          "format": "HWPX",
+          "binaryHash": "0f6ae42a8e67465dde25d536e355e5421724796ae405011f87e9929cc9baeebf",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000159",
       "caseCode": "CHEONGYANG-37758",
       "profileCode": "LOCAL_CHEONGYANG_GET_V1",
@@ -1829,6 +1928,33 @@
           "bytes": 96213,
           "format": "HWPX",
           "binaryHash": "7737af86d055ee10620996c973915bc00c5ca0e6da696bf9831216610a587cae",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000218",
+      "caseCode": "CHILGOK-34056",
+      "profileCode": "LOCAL_CHILGOK_PORTAL_V1",
+      "profileHash": "2a99ea3fb537af9f1c81162de25dc84b0a213d732ca233e16f95bb60c52c50f5",
+      "receiptHash": "d11c8793438c25b04bb335f364b3c54e1912b67324f4ba7890b4546a0fa46478",
+      "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf",
+      "observedAt": "2026-09-29T04:55:21.732817100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "6574d6f0af831163d44bbe6bacc1153e71b9451ea1280c7fe26ec04c46f8b692",
+          "status": "SUCCEEDED",
+          "bytes": 97762,
+          "format": "HWPX",
+          "binaryHash": "b43ad81605481103343da77dcd9d8be4647dda55c6457fd3db81b11260f5d210",
           "signatureVerified": true
         }
       ]
@@ -5753,6 +5879,136 @@
         "sourceCode": "LGS-000219",
         "result": "OFFICIAL_POST_FORM_THREE_FIELDS_AND_DECLARATIVE_DOWNLOAD_ARGUMENTS",
         "requests": 4
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isExpectationApproved": false
+  },
+  "gyeongbukFourthDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITES",
+    "surveyRequests": 17,
+    "surveyGetRequests": 10,
+    "surveyPostRequests": 4,
+    "surveyHeadRequests": 3,
+    "surveyFiles": [
+      {
+        "name": "bonghwa-detail.html",
+        "bytes": 239090,
+        "sha256": "e279badc6fd0e6cd2269b3f672345ec0916daa1117b26fa876265a901013827a"
+      },
+      {
+        "name": "bonghwa-gosi.html",
+        "bytes": 239179,
+        "sha256": "c64dc07a548630861e92db63ca3fec3206439769a8756fd4cd6f41e8020418e1"
+      },
+      {
+        "name": "bonghwa-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "bonghwa-redirect.headers",
+        "bytes": 454,
+        "sha256": "e5ca133ff43af1a547c5d780933afd63c318e4adf8efcd4c99234d1d1f0445bb"
+      },
+      {
+        "name": "bonghwa-search.html",
+        "bytes": 234059,
+        "sha256": "e8960347d0cb4bcfc1a3c99d223b623ff0620dcb4e89f4f0f16337a7cee37438"
+      },
+      {
+        "name": "cheongdo-detail.html",
+        "bytes": 177000,
+        "sha256": "8836adb4b18d1ba07c0151415d449a226babffbc1c0d9e04af589f8d784accd8"
+      },
+      {
+        "name": "cheongdo-gosi.html",
+        "bytes": 180878,
+        "sha256": "5c4d2232cafdd5372f6c3762b9dde8575c3e414d000cc2c367f45a22b7ab6a68"
+      },
+      {
+        "name": "cheongdo-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "cheongdo-redirect.headers",
+        "bytes": 444,
+        "sha256": "0f792971444fb03de7a3c47eb6159361de10dec9a2787d7a1b07981d8326efaf"
+      },
+      {
+        "name": "cheongdo-search.html",
+        "bytes": 174912,
+        "sha256": "a0217e81c0d250d1512c2c9ed0cce8619e785da70e27aaa009f3a2c7c3a7c86c"
+      },
+      {
+        "name": "chilgok-detail.html",
+        "bytes": 580922,
+        "sha256": "b6fe7b17d0dee7e13bc3843fa35bc50a0c6627ce17665a52ddcc68a19d4e0365"
+      },
+      {
+        "name": "chilgok-get.headers",
+        "bytes": 510,
+        "sha256": "00ac3318f4a1ec7cda6d3e6eb58ef265394becc28388bcdcc082c7cc70fdea21"
+      },
+      {
+        "name": "chilgok-gosi.html",
+        "bytes": 584824,
+        "sha256": "6475208d316d08e5204a23c501996b8506e152f551240a29d2925ba40dcedc0e"
+      },
+      {
+        "name": "chilgok-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "chilgok-redirect.headers",
+        "bytes": 248,
+        "sha256": "6b26186ff873c0ff0cabb68cab28d3d09aec0e8c9f2be1c34ebc2040aab27fb5"
+      },
+      {
+        "name": "chilgok-redirect.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "chilgok-search.html",
+        "bytes": 578218,
+        "sha256": "33af4cc14ed421e3a46bc5a68c93c5a2d8e79cc22b31b93dafb0aba2c54ea82c"
+      },
+      {
+        "name": "chilgok-support.html",
+        "bytes": 583611,
+        "sha256": "254303714609ca952f3db057afe609e2e9ca787628d2018d241af2acb9a80e74"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/CHEONGDO-24118.json",
+      "build/reports/attachment-regional-collection/CHILGOK-34056.json",
+      "build/reports/attachment-regional-collection/BONGHWA-32956.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 9178834,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000215",
+        "result": "OFFICIAL_SUBJECT_PORTAL_AND_GET_DOWNLOAD",
+        "requests": 5
+      },
+      {
+        "sourceCode": "LGS-000218",
+        "result": "OFFICIAL_HEADING_PORTAL_AND_GET_DOWNLOAD_HEAD_403_NOT_USED_AS_GET_RESULT",
+        "requests": 7
+      },
+      {
+        "sourceCode": "LGS-000220",
+        "result": "OFFICIAL_SUBJECT_PORTAL_EXTERNAL_PREVIEW_UNRESOLVED_JPG_UNSUPPORTED_GOOD_FILES_CONTINUE",
+        "requests": 5
       }
     ],
     "originalsRemoved": true,

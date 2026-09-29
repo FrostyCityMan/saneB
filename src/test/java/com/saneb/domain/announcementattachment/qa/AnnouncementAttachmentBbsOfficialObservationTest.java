@@ -71,6 +71,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(JeonnamSecondDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamSecondDownloadCases.selectCase(group));
         if("JANGSEONG".equals(group))return Stream.of(JeonnamThirdDownloadCases.selectJangseongCase());
         if(GyeongbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukFirstDownloadCases.selectCase(group));
+        if(GyeongbukFourthDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukFourthDownloadCases.selectCase(group));
         if(GyeongbukThirdDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukThirdDownloadCases.selectCase(group));
         if(GyeongbukSecondDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukSecondDownloadCases.selectCase(group));
         if(Set.of("EUMSEONG","NONSAN","DANGJIN","CHEONGYANG").contains(group))return Stream.of(selectChungcheongCase(group));
@@ -808,6 +809,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_JANGSEONG_POST_V1".equals(profile.selectProfileCode());
             boundedSaeol|=GyeongbukThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongbukSecondDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
+            boundedSaeol|=GyeongbukFourthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_PORTAL_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongbukFirstDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_PORTAL_V1").equals(profile.selectProfileCode()));
             maximumRequests="LOCAL_YEONGJU_BOARD_V1".equals(profile.selectProfileCode())?7:standardCollection?5:guro?8:gangbuk?20:gijang?7:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:gijang?23:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;

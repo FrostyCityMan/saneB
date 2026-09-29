@@ -1573,6 +1573,42 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "CHEONGDO-24118",
+      "profileCode": "LOCAL_CHEONGDO_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "504caee5af8a44b79bd7fd31060f9470521b614089cb89b83b23833dd798aae8",
+        "sourceUrl": "https://www.cheongdo.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=24118&mid=0301020000",
+        "localSourceCode": "LGS-000215",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHILGOK-34056",
+      "profileCode": "LOCAL_CHILGOK_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "95d3d3805cdbfad70500a47ef3c2f3ee50bbcb6168f12335f1c1c18c6861889c",
+        "sourceUrl": "https://www.chilgok.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=34056&mId=0201030000",
+        "localSourceCode": "LGS-000218",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BONGHWA-32956",
+      "profileCode": "LOCAL_BONGHWA_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3f69fa38e9de7d3621ad98ddfcdbf18a44e605280e4bb1374e3143786ef8948e",
+        "sourceUrl": "https://www.bonghwa.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=32956&mid=0201030000",
+        "localSourceCode": "LGS-000220",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
