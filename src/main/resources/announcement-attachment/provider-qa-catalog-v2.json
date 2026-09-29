@@ -2797,6 +2797,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "POHANG-73525",
+      "profileCode": "LOCAL_POHANG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4838ad2a48ef55838ac0524d62eed08298619e3150fb618450b490132abfa1c1",
+        "sourceUrl": "https://www.pohang.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=73525&mid=0202010000",
+        "localSourceCode": "LGS-000201",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

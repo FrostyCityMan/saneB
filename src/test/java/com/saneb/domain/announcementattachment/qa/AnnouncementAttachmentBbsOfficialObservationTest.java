@@ -75,6 +75,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
         if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
+        if("POHANG".equals(group))return Stream.of(PohangDownloadCases.selectCase());
         if("ANDONG".equals(group))return Stream.of(AndongDownloadCases.selectCase());
         if("SANGJU".equals(group))return Stream.of(SangjuDownloadCases.selectCase());
         if("GUNWI".equals(group))return Stream.of(GunwiDownloadCases.selectCase());
@@ -995,6 +996,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_SEODAEMUN_BOARD_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_SEOGU_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_DONGGU_PORTAL_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_POHANG_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_ANDONG_TABLE_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_SANGJU_GOSI_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_GUNWI_BOARD_V1".equals(profile.selectProfileCode());

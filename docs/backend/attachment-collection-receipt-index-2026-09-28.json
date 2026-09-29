@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "104ea002f6f428e2b0e4c246b2c3d4345721255bd6bafd4c80f5aa331ce8b054",
+  "inventorySha256": "0b77dd7c9f8fe8da20ec7fbac60efbcaf28c4ef02c05b41f6919b14551d5f132",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2011,6 +2011,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "7f26322d1b8b009907593076f5db22dd1baee6b5ee63598a146e36cdb537f614"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/POHANG-73525.json",
+      "receiptHash": "5fd85db4db07ec7a8f32a150c3a00dc528893730b32c7cd710a0f2e905523a48",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7e07fa8c5ace369ed536689dec683e45622c48df942a5fd6b87f420c0562f59a"
     }
   ],
   "samples": [
@@ -6459,6 +6467,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000201",
+      "caseCode": "POHANG-73525",
+      "profileCode": "LOCAL_POHANG_PORTAL_V1",
+      "profileHash": "f00c02333673443becb486234911ab66ce14e55f5076b7dbb723d5a2c58a7ed2",
+      "receiptHash": "5fd85db4db07ec7a8f32a150c3a00dc528893730b32c7cd710a0f2e905523a48",
+      "producerClassHash": "7e07fa8c5ace369ed536689dec683e45622c48df942a5fd6b87f420c0562f59a",
+      "observedAt": "2026-09-29T20:17:10.666744500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2d52dd60b4caa11adfaef7fe90017f5fcf48dee2117261e72e164c3206071e3d",
+          "status": "SUCCEEDED",
+          "bytes": 136459,
+          "format": "HWPX",
+          "binaryHash": "33c29766f51b56853769b95ca93ab41e5d8779a2d548d2f32b8b47eaf19cc687",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000127",

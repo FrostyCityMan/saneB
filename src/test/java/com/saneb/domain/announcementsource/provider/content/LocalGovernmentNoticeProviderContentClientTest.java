@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void pohangBodyExcludesFilesAndMetadata() {
+        String page="<form id=detailForm name=detailForm method=post><div class=bod_view><div class=subject>소상공인 지원</div><div class=view_info>수출 담당부서</div><dl class=view_file><dt>첨부파일</dt><dd>특허.hwpx</dd></dl><div class=view_cont>소상공인 지원금</div></div></form>";
+        String url="https://www.pohang.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=73525&mid=0202010000";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("view_cont","unknown"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void andongBodyExcludesFilesAndMetadata() {
         String page="<form id=detailForm name=detailForm method=post></form><h4 class=hidden>전체 게시판 내용보기</h4><table class=bod_view><tr><th scope=col colspan=4 class=title>소상공인 지원</th></tr><tr><td>수출 담당부서</td></tr><tr><th scope=row class=list_file>첨부파일</th><td colspan=3 class=box_file><ul class=list_file>특허.pdf</ul></td></tr><tr><td colspan=4 class=cont><div class=cont_box>소상공인 지원금</div></td></tr></table>";
         String url="https://www.andong.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=63386&isLinkage=Y&mId=0401020100";
