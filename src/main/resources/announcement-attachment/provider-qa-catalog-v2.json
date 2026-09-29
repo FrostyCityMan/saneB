@@ -2881,6 +2881,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SEOHAE-42495",
+      "profileCode": "LOCAL_SEOHAE_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "d6d1e875832247b40320d929d422d0cd4254cba0b92f74cca29cd66812ca9faa",
+        "sourceUrl": "https://seohae.go.kr/open_content/main/bbs/bbsMsgDetail.do?msg_seq=42495&bcd=gosi",
+        "localSourceCode": "LGS-000062",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

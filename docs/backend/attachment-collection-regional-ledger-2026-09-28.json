@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 179,
-    "missingProfileRegionCount": 44,
+    "registeredRegionCount": 180,
+    "missingProfileRegionCount": 43,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1808,14 +1808,26 @@
       "sourceCode": "LGS-000062",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000062",
+          "caseCode": "SEOHAE-42495",
+          "profileCode": "LOCAL_SEOHAE_BOARD_V1",
+          "profileHash": "e3501c7052d74c3e971c97d84dc6d7833ceb05412868bc4589a97fe528158323",
+          "receiptHash": "6be3bf1ab61969b361895d55fc3ff4ff498e7332fc86a39b8d696788217883d3",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000063",
@@ -5815,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "bfe7279cfc80f7f16d54254c0e7656811617f76869b8790c7a5f64e00143f92a",
+  "inputInventorySha256": "64b3da24834afd8aa49a21ac77e92d20ad2a5e5c9ed68a585bbe95a83d191575",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 269,
+  "importedReceiptCount": 270,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12208,6 +12220,71 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seohaeDownloadRun": {
+    "scope": "SEOHAE_OFFICIAL_BOARD_COLLECTION_ONLY",
+    "surveyRequestCount": 3,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000062",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL200_HWP1_2025_REFERENCE_NOTICE"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-seohae-20260930/detail-head.txt",
+        "bytes": 248,
+        "sha256": "62a4c533dcefffdd7d784ac156d74f760b056c57535667ecb75980c31a7aa4ba"
+      },
+      {
+        "path": "build/qa-seohae-20260930/detail.html",
+        "bytes": 114676,
+        "sha256": "77a745aa364c309a5cca4fa4143dba048cb257b27b509e3ab2a3ad4fbcb07dd5"
+      },
+      {
+        "path": "build/qa-seohae-20260930/list-head.txt",
+        "bytes": 248,
+        "sha256": "0d6a296edc797427e0a8b73695b80922b4460bb33fa945e5ab9743e43ef0b603"
+      },
+      {
+        "path": "build/qa-seohae-20260930/list.html",
+        "bytes": 125290,
+        "sha256": "ef1beb147b6ce8f8eedcdd4e8386efc1ec42acbf5f80f7a5e06a66682ad32f8c"
+      },
+      {
+        "path": "build/qa-seohae-20260930/search-head.txt",
+        "bytes": 248,
+        "sha256": "5da4372a911c5e56ac3d98ad46e87f621f5e99341665169c7482df1cfb66b8f5"
+      },
+      {
+        "path": "build/qa-seohae-20260930/search.html",
+        "bytes": 123364,
+        "sha256": "a6fca2997a051d35faec4b15959b5b03d871f570eefcf5be19af6841adc68a15"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEOHAE-42495",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEOHAE-42495.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2272256,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 7,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

@@ -31,6 +31,15 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seohaeBodyExcludesMetadataFilesAndRejectsChangedStructure() {
+        String page="<div class=board_view><h4 class=title>소상공인 지원</h4><ul class=datalist><li><dl><dt>담당부서</dt><dd>수출 부서</dd></dl></li><li><dl><dt>첨부파일</dt><dd>특허.hwp</dd></dl></li></ul><div class=con>소상공인 지원금</div></div>";
+        String url="https://seohae.go.kr/open_content/main/bbs/bbsMsgDetail.do?msg_seq=42495&bcd=gosi";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("class=con","class=unknown"))){
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of("text/html;charset=UTF-8")),value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void ulsanCityBodySeparatesContactAndAttachments() {
         String page="<div id=contents_inner><table class=tbl_bd_view><tr><th scope=row>제목</th><td colspan=3>소상공인 지원</td></tr><tr><th scope=row>담당부서</th><td>수출 부서</td></tr><tr><th scope=row>첨부파일</th><td colspan=3>특허.hwpx</td></tr><tr><th scope=row colspan=4>내용</th></tr><tr><td colspan=4>소상공인 지원금</td></tr></table></div>";
         String url="https://www.ulsan.go.kr/u/rep/transfer/notice/47059.ulsan?mId=001004002000000000&gosiGbn=A";
