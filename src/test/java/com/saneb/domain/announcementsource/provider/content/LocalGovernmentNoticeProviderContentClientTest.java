@@ -38,6 +38,17 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void boseongBodyPreservesConditionsAndExcludesFiles() {
+        String page="<div id='content'><div id='board_basic_view'><div class='news_tit'><h3>청년 지원</h3><dl><dd>담당자</dd></dl></div><div class='file_attach'>특허 첨부</div><div class='board_cont'>청년 지원금 <table><tr><td>수출기업 제외</td></tr></table></div></div></div>";
+        String list="https://www.boseong.go.kr/www/open_administration/city_news/notification";
+        for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,list,list+"?idx=37905&mode=view"));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금 수출기업 제외");}
+            else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+        }
+    }
+
     @Test void jeonbukThirdBodyPreservesConditionsAndExcludesAttachmentMetadata() {
         for(var site:JeonbukThirdNoticePage.Site.values()) {
             String body="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";

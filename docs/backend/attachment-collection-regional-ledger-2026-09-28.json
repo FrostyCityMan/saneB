@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 132,
-    "missingProfileRegionCount": 91,
+    "registeredRegionCount": 133,
+    "missingProfileRegionCount": 90,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4128,14 +4128,26 @@
       "sourceCode": "LGS-000187",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000187",
+          "caseCode": "BOSEONG-37905",
+          "profileCode": "LOCAL_BOSEONG_NOTICE_V1",
+          "profileHash": "c340ba8013242c118a3893ea637ea926e611afb645eba6bfa510a2cec9f248ce",
+          "receiptHash": "64fe52856b06718c99911dc2e9750561851d6d5f3c74b3b35ccfe7974dbbb0c2",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000188",
@@ -9002,6 +9014,109 @@
         "sourceCode": "LGS-000169",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP_302_SELF_REDIRECT_NOT_REPEATED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "jeonnamFourthDownloadRun": {
+    "scope": "JEONNAM_FOURTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 10,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "BOSEONG-detail.html",
+        "bytes": 156518,
+        "sha256": "e91255317f04b7bf4043ddd59499e1aadf94171df7f9b0afaac2d3d41e6e86a7"
+      },
+      {
+        "name": "BOSEONG-list.html",
+        "bytes": 162749,
+        "sha256": "77201343aeeada91612ca8b9da549cb8f45cee56b3a000082a7e0742aef34ca6"
+      },
+      {
+        "name": "BOSEONG-search.html",
+        "bytes": 154756,
+        "sha256": "1adc339a6af773de8433c772c03095229befd54ab15bac286db8f3eee1dad6dd"
+      },
+      {
+        "name": "BOSEONG-support.html",
+        "bytes": 162258,
+        "sha256": "e32e0a6d54af60723424be8e40dcc8c45991bdfc631ff486a3341591c0376bce"
+      },
+      {
+        "name": "GWANGYANG-board.html",
+        "bytes": 178981,
+        "sha256": "9cfabad81fe969c4af9f4f8adc3bb6cb1166fcc792a68921cbef199725d14900"
+      },
+      {
+        "name": "GWANGYANG-headers.txt",
+        "bytes": 437,
+        "sha256": "950126283a91c14c35d852f1139e2883687ad4e7810d9cfb2be2685351c090f9"
+      },
+      {
+        "name": "GWANGYANG-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GWANGYANG-list2.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GWANGYANG-search.html",
+        "bytes": 177972,
+        "sha256": "5e04e12e2075abe55b7c92fd1144da66136b2f25b30c1551216bf91ee37aafc1"
+      },
+      {
+        "name": "JANGHEUNG-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "WANDO-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "BOSEONG-37905",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/BOSEONG-37905.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2390623,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000187",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_POST_TITLE_SEARCHES_DETAIL_OPAQUE_POST_FILES"
+      },
+      {
+        "sourceCode": "LGS-000182",
+        "requests": 4,
+        "result": "OFFICIAL_REDIRECT_GOSI_ONLY_LIST_SEARCH_SCOPE_REVIEW_REQUIRED"
+      },
+      {
+        "sourceCode": "LGS-000189",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_400_NOT_REPEATED"
+      },
+      {
+        "sourceCode": "LGS-000197",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_400_NOT_REPEATED"
       }
     ],
     "originalsRemoved": true,

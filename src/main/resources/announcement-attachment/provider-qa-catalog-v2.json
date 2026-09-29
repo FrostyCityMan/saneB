@@ -2317,6 +2317,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "BOSEONG-37905",
+      "profileCode": "LOCAL_BOSEONG_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "62df495fe06a5cf96ea1ea273c8c32516e885eb8db46575b9b5cc3fbb0db05c2",
+        "sourceUrl": "https://www.boseong.go.kr/www/open_administration/city_news/notification?idx=37905&mode=view",
+        "localSourceCode": "LGS-000187",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
