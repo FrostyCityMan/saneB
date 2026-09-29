@@ -1646,9 +1646,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -1656,12 +1656,12 @@
           "sourceCode": "LGS-000054",
           "caseCode": "INCHEON_CITY-66970",
           "profileCode": "LOCAL_INCHEON_CITY_CITYNET_V1",
-          "profileHash": "62ef746d7f8b4a9fcd820e0dc448a191683a03b3ff8a7c46d302a3025ab497fa",
-          "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
+          "profileHash": "5f55ebcf48f54b6259fc76481d0f96d8d74162487db30798400d839d2b76be51",
+          "receiptHash": "d08dca3d50123c6c19f20769d7c2c93778880583db6e3137c0bcc7e61e0e8c61",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -2137,9 +2137,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -2147,12 +2147,12 @@
           "sourceCode": "LGS-000077",
           "caseCode": "ULSAN_CITY-47059",
           "profileCode": "LOCAL_ULSAN_CITY_CITYNET_V1",
-          "profileHash": "49a1e7cce49a42003534da0d59752cfc05b1f5c6c075d31a32be3b62bec15c4a",
-          "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
+          "profileHash": "4f953bb3e91989217a116aeefdc0a30be8b12c67549a6a5865f36b926b7888f8",
+          "receiptHash": "c7854b7329b11f98baf9868797d85b8ec0dfca7e811a601b77f0ac234c5d4c78",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "87faf6dbc0fad6816e2f0796b851691817082ac51249506c107b008516d348fb",
+  "inputInventorySha256": "1bf3c17b79ea8499ecd52324b584357233359a27e579dee16d0187ba3dcd9596",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 278,
+  "importedReceiptCount": 280,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,107 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "citynetMimeRecoveryRun": {
+    "scope": "INCHEON_ULSAN_CITYNET_FILE_MIME_EUCKR_RECOVERY_COLLECTION_ONLY",
+    "surveyRequestCount": 4,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000054",
+        "requests": 2,
+        "observedContentType": "application/file",
+        "measuredDispositionCharset": "EUC-KR",
+        "decodedFilenameMatchesOfficialLink": true,
+        "result": "DETAIL200_FILE200_ZIP_SIGNATURE_NOT_EXTRACTION_VERIFIED"
+      },
+      {
+        "sourceCode": "LGS-000077",
+        "requests": 2,
+        "observedContentType": "application/file",
+        "measuredDispositionCharset": "EUC-KR",
+        "decodedFilenameMatchesOfficialLink": true,
+        "result": "DETAIL200_FILE200_ZIP_SIGNATURE_NOT_EXTRACTION_VERIFIED"
+      }
+    ],
+    "normalizedContentType": "application/x-msdownload",
+    "normalizationMeaning": "INTERNAL_LEGACY_VALIDATION_REPRESENTATION_NOT_SERVER_HEADER",
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-incheon-city-mime-20260930/detail-head.txt",
+        "bytes": 344,
+        "sha256": "dd6fe151426705005ee1577393a10b20e976c10e34079e8797c9353e05ed4bc7"
+      },
+      {
+        "path": "build/qa-incheon-city-mime-20260930/detail.html",
+        "bytes": 13340,
+        "sha256": "695d4148d91c7fecf8c5d180405ac0611739cca231c3f37c0487e7a5147bc5c2"
+      },
+      {
+        "path": "build/qa-incheon-city-mime-20260930/file-head.txt",
+        "bytes": 406,
+        "sha256": "7fce4713e1e2aba08b5fc11c38a439093ec7fe73f6ec23f655d3fe9df73c6fc6"
+      },
+      {
+        "path": "build/qa-incheon-city-mime-20260930/file.bin",
+        "bytes": 74696,
+        "sha256": "220ba26656d6626505bcb896efacb01d682330feda18627dc80202f5ce102fa5"
+      },
+      {
+        "path": "build/qa-ulsan-city-mime-20260930/detail-head.txt",
+        "bytes": 1970,
+        "sha256": "708bc4408836f17064a3ec87c79309d2d2fab6755a5a8e7040cb8f7695e2f31a"
+      },
+      {
+        "path": "build/qa-ulsan-city-mime-20260930/detail.html",
+        "bytes": 155060,
+        "sha256": "269f8f9dbc0c3b7f3ace1528433f5b0e6db6e0df7aed3a427bde7dce2dc71d51"
+      },
+      {
+        "path": "build/qa-ulsan-city-mime-20260930/file-head.txt",
+        "bytes": 375,
+        "sha256": "ddeadcea232a31a5587545c41aaf44b32004ec68520fc90f25e0bba1cca3efdb"
+      },
+      {
+        "path": "build/qa-ulsan-city-mime-20260930/file.bin",
+        "bytes": 70212,
+        "sha256": "11739be61c8f6aebe974c25ab3ffd84b2409fa3e50adb762310846bba92baa68"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "INCHEON_CITY-66970",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "ULSAN_CITY-47059",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReports": [
+      "build/reports/attachment-regional-collection/INCHEON_CITY-66970-BEFORE-MIME.json",
+      "build/reports/attachment-regional-collection/ULSAN_CITY-47059-BEFORE-MIME.json"
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/INCHEON_CITY-66970.json",
+      "build/reports/attachment-regional-collection/ULSAN_CITY-47059.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4511244,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 12,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

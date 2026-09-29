@@ -13,15 +13,21 @@ import org.springframework.stereotype.Component;
 
 /** 시티넷 첨부의 고정 경로와 네 매개변수만 허용한다. 불투명 식별값은 해시로 기록한다. */
 @Component
-public final class IncheonCityAttachmentDiscoveryProfile implements AttachmentDiscoveryProfile {
+public final class IncheonCityAttachmentDiscoveryProfile implements AttachmentDownloadFlowProfile {
     private static final String CODE = "LOCAL_INCHEON_CITY_CITYNET_V1", DOWNLOAD = "/citynet/jsp/cmm/attach/download.jsp";
     private final AnnouncementSourceIdentityNormalizer normalizer = new AnnouncementSourceIdentityNormalizer();
-    private final String hash = AttachmentProfileFingerprint.selectHash("INCHEON_CITY:1|http-source-https-fetch|citynet-fixed-get|partial-preserved|no-preview|limit10|unknown-role|"
+    private final String hash = AttachmentProfileFingerprint.selectHash("INCHEON_CITY:2|http-source-https-fetch|citynet-fixed-get|partial-preserved|no-preview|limit10|unknown-role|"
+            + AttachmentProfileFingerprint.selectHash("CITYNET_RESPONSE:1", CitynetAttachmentFileResponse.class) + "|"
             + AttachmentProfileFingerprint.selectHash("PAGE:1", IncheonCityNoticePage.class)
             + "|" + AttachmentProfileFingerprint.selectHash("QUERY:1", CapitalThirdNoticePage.class), getClass());
     @Override public String selectProviderCode() { return "LOCAL_GOV_NOTICE"; }
     @Override public String selectProfileCode() { return CODE; }
     @Override public String selectProfileHash() { return hash; }
+    @Override public Set<String> selectLegacyBinaryContentTypes() { return Set.of(CitynetAttachmentFileResponse.LEGACY_MIME); }
+    @Override public com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Download selectDownload(
+            Request initial, java.nio.file.Path output, long maximumBytes, Operation operation) throws java.io.IOException {
+        return CitynetAttachmentFileResponse.selectNormalized(operation.selectDownload(initial, maximumBytes), output);
+    }
     @Override public List<SourceBinding> selectSourceBindings() { return List.of(new SourceBinding("LGS-000054", "SAFE_INCHEON_CITYNET_NOTICE")); }
     @Override public Set<String> selectApprovedHosts() { return Set.of(IncheonCityNoticePage.HOST); }
     @Override public URI selectDetailUri(String id) { throw new IllegalArgumentException("PROFILE_REQUIRED"); }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "87faf6dbc0fad6816e2f0796b851691817082ac51249506c107b008516d348fb",
+  "inventorySha256": "1bf3c17b79ea8499ecd52324b584357233359a27e579dee16d0187ba3dcd9596",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2045,7 +2045,7 @@
       "producerClassHash": "7ef3d39a096bbc5c39a3057e3ec0927eb00396137843b21fcb1413bdc57c3aca"
     },
     {
-      "path": "build/reports/attachment-regional-collection/INCHEON_CITY-66970.json",
+      "path": "build/reports/attachment-regional-collection/INCHEON_CITY-66970-BEFORE-MIME.json",
       "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
@@ -2069,7 +2069,7 @@
       "producerClassHash": "d4ca4fe1ee027a5fea19557b6527339ba0b9d6909b8ccbbda8e30da3b393bcc6"
     },
     {
-      "path": "build/reports/attachment-regional-collection/ULSAN_CITY-47059.json",
+      "path": "build/reports/attachment-regional-collection/ULSAN_CITY-47059-BEFORE-MIME.json",
       "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
@@ -2143,6 +2143,22 @@
     {
       "path": "build/reports/attachment-regional-collection/CHANGWON-211423.json",
       "receiptHash": "5d19d9e8c86988c6d4ba45fe3f7da0ed4ab666b11a7dd50b074521da408ba8be",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/INCHEON_CITY-66970.json",
+      "receiptHash": "d08dca3d50123c6c19f20769d7c2c93778880583db6e3137c0bcc7e61e0e8c61",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ULSAN_CITY-47059.json",
+      "receiptHash": "c7854b7329b11f98baf9868797d85b8ec0dfca7e811a601b77f0ac234c5d4c78",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
@@ -5725,10 +5741,10 @@
       "sourceCode": "LGS-000054",
       "caseCode": "INCHEON_CITY-66970",
       "profileCode": "LOCAL_INCHEON_CITY_CITYNET_V1",
-      "profileHash": "62ef746d7f8b4a9fcd820e0dc448a191683a03b3ff8a7c46d302a3025ab497fa",
-      "receiptHash": "f3e6a79407f137fd006659c8493a9b7df2611cbfc04c8663878ab874b5136f5c",
-      "producerClassHash": "d999d040d9b0956763440d5e693430dd5d9c2268c38da20b3d8209865e266e89",
-      "observedAt": "2026-09-29T21:04:18.784863600Z",
+      "profileHash": "5f55ebcf48f54b6259fc76481d0f96d8d74162487db30798400d839d2b76be51",
+      "receiptHash": "d08dca3d50123c6c19f20769d7c2c93778880583db6e3137c0bcc7e61e0e8c61",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T23:30:42.056393Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -5740,8 +5756,11 @@
       "files": [
         {
           "locatorHash": "d32d3743cef6c65f0d38e5439d44c48e444916a27d62ccfaede59002936c0bb1",
-          "status": "FAILED",
-          "bytes": 74696
+          "status": "SUCCEEDED",
+          "bytes": 74696,
+          "format": "HWPX",
+          "binaryHash": "220ba26656d6626505bcb896efacb01d682330feda18627dc80202f5ce102fa5",
+          "signatureVerified": true
         }
       ]
     },
@@ -7858,10 +7877,10 @@
       "sourceCode": "LGS-000077",
       "caseCode": "ULSAN_CITY-47059",
       "profileCode": "LOCAL_ULSAN_CITY_CITYNET_V1",
-      "profileHash": "49a1e7cce49a42003534da0d59752cfc05b1f5c6c075d31a32be3b62bec15c4a",
-      "receiptHash": "9a1df7284273eb8b2ecdd2375252ec8e1e70258f5436c0c9c899a4051c33d0ba",
-      "producerClassHash": "0d438e76112aa6292aa44bf9ddefa35da653868617b0e4fe996ea4eef01595c1",
-      "observedAt": "2026-09-29T21:53:28.147427500Z",
+      "profileHash": "4f953bb3e91989217a116aeefdc0a30be8b12c67549a6a5865f36b926b7888f8",
+      "receiptHash": "c7854b7329b11f98baf9868797d85b8ec0dfca7e811a601b77f0ac234c5d4c78",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T23:30:54.486610700Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -7873,8 +7892,11 @@
       "files": [
         {
           "locatorHash": "11c80f850950f6ff84dc2c7d15b9387b57ca28667a3878648a92392ca27f5261",
-          "status": "FAILED",
-          "bytes": 70212
+          "status": "SUCCEEDED",
+          "bytes": 70212,
+          "format": "HWPX",
+          "binaryHash": "11739be61c8f6aebe974c25ab3ffd84b2409fa3e50adb762310846bba92baa68",
+          "signatureVerified": true
         }
       ]
     },
