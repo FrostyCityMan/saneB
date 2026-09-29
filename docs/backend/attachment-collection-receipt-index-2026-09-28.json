@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "254a5f793707cc9e32b542db2d80302963f4383b7d4141c6265cc25cce3b042d",
+  "inventorySha256": "4a37f390688327b8ebe342f5053ed610ba074f67276e9caf2cc8461943146adb",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -971,6 +971,38 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "e3860c3ce4eddaf8d574d929a4ffe945da95b90e2c10cc9e64f4de2bb678cf77"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GIMCHEON-41691.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "9e97d7eaf099d75a61d928033c61199c13fe8183db872f35b9ce96694040f1c6",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GUMI-65352.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "5211b976cbfa34e24cb6b3f007fb8afc0b03065b20ed0ca2c448d8f727a40505",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/YEONGCHEON-36723.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "01cc28843cbfc384cfd68cb088538229bc84b667fc55d7afd918be836270492a",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/MUNGYEONG-44422.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "d09e21b235e8e60a38761a2a5b07d9127e0407b8a36098ecd3c4d6ef3ab8d978",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267"
     }
   ],
   "samples": [
@@ -2285,6 +2317,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000203",
+      "caseCode": "GIMCHEON-41691",
+      "profileCode": "LOCAL_GIMCHEON_PORTAL_V1",
+      "profileHash": "45c5c9307ef6c0cb443e7828589f6259befe52256c5968e45c3a62e5160bbad5",
+      "receiptHash": "9e97d7eaf099d75a61d928033c61199c13fe8183db872f35b9ce96694040f1c6",
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267",
+      "observedAt": "2026-09-29T04:00:34.468037900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "39d0834c68d4a1a55884bfc3e016b25edee50609eaaf996e1771ddc630261c8f",
+          "status": "SUCCEEDED",
+          "bytes": 112241,
+          "format": "HWPX",
+          "binaryHash": "1d2ca5e0d131f678c55159652ccc16b19666916735be16b86c51c7007a2c2426",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000176",
       "caseCode": "GOCHANG-807493",
       "profileCode": "LOCAL_GOCHANG_GET_V1",
@@ -2334,6 +2393,33 @@
           "bytes": 85169,
           "format": "HWPX",
           "binaryHash": "49b376a018b2faa3d419ff4fb898325434e49cfe6cee6cb41a3d7483129b6cda",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000205",
+      "caseCode": "GUMI-65352",
+      "profileCode": "LOCAL_GUMI_PORTAL_V1",
+      "profileHash": "fd242ea581b0df24d9a97b7db4a09618511b5a83868991107b00213e9b5e6bf5",
+      "receiptHash": "5211b976cbfa34e24cb6b3f007fb8afc0b03065b20ed0ca2c448d8f727a40505",
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267",
+      "observedAt": "2026-09-29T04:00:50.871612300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "15f5897b6065bbf1c59b0ded749bde74b747586f4a6ecc9dc68a1783574039d0",
+          "status": "SUCCEEDED",
+          "bytes": 163840,
+          "format": "HWP",
+          "binaryHash": "1422b77dcca5e55e73ab9f12f53d178d085a635ad39c4d272a1308e8b89ec89a",
           "signatureVerified": true
         }
       ]
@@ -3084,6 +3170,41 @@
       ]
     },
     {
+      "sourceCode": "LGS-000209",
+      "caseCode": "MUNGYEONG-44422",
+      "profileCode": "LOCAL_MUNGYEONG_PORTAL_V1",
+      "profileHash": "29f4ece3360554a4f9aa508602afb32c8a14a86cdb311bfe7fb55c0e09cde000",
+      "receiptHash": "d09e21b235e8e60a38761a2a5b07d9127e0407b8a36098ecd3c4d6ef3ab8d978",
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267",
+      "observedAt": "2026-09-29T04:00:52.829367400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f01091d0269f72d0004d1eebab2624ef21f8895b259bee41d9ef43023407d3dc",
+          "status": "SUCCEEDED",
+          "bytes": 553470,
+          "format": "PDF",
+          "binaryHash": "7d0b7120f06ee265445271e7a9a0ac99448f155ec898a38b8148fdb13970efd7",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "ed0e7ed334b10d0c7a631fdd618ce9039bd574e1bd46bf4ba07475e764219f5c",
+          "status": "SUCCEEDED",
+          "bytes": 94862,
+          "format": "HWPX",
+          "binaryHash": "5992289e47f5101ededce3132bb2ff5b7f1dd53739c21a91080d01f689c69f6c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000181",
       "caseCode": "NAJU-40288",
       "profileCode": "LOCAL_NAJU_NOTICE_V1",
@@ -3656,6 +3777,33 @@
           "bytes": 84480,
           "format": "HWP",
           "binaryHash": "5ec62af420d2d09965eb4f21517c2f698668682fde66c61d2f1e8d0b99ff625d",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000207",
+      "caseCode": "YEONGCHEON-36723",
+      "profileCode": "LOCAL_YEONGCHEON_PORTAL_V1",
+      "profileHash": "1f4c29ae1bde416b6d8696608b3cec0ebb48173b4791c0bb96964b44a1257ac0",
+      "receiptHash": "01cc28843cbfc384cfd68cb088538229bc84b667fc55d7afd918be836270492a",
+      "producerClassHash": "78fd751395d22fe26e8b6ccce048a73bcbc771acd6c838073c1f347c1939c267",
+      "observedAt": "2026-09-29T04:00:52.121987700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "73de9b65625a947814565ef9598931ef6f88ed73c0ef01882b0fd8b0f34b3820",
+          "status": "SUCCEEDED",
+          "bytes": 106496,
+          "format": "HWP",
+          "binaryHash": "2a3a1c4495865e726985f942a740690697af01081dc4321e099781f785644570",
           "signatureVerified": true
         }
       ]
@@ -4918,6 +5066,162 @@
       {
         "sourceCode": "LGS-000199",
         "result": "LIST_HTTP_400",
+        "requests": 1
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isExpectationApproved": false
+  },
+  "gyeongbukFirstDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITES",
+    "surveyRequests": 31,
+    "surveyGetRequests": 23,
+    "surveyHeadRequests": 4,
+    "surveyPostRequests": 4,
+    "surveyHtmlFiles": [
+      {
+        "name": "gimcheon-detail.html",
+        "bytes": 449897,
+        "sha256": "ddfcc269dcf704fe89c0af3bef6c31580246b4ef8c7c0b532f2a74f905a9cba3"
+      },
+      {
+        "name": "gimcheon-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gimcheon-resolved.html",
+        "bytes": 452755,
+        "sha256": "b564eab63c84e9ac8b04c570f5486581e491c108deb81bbec22a2ef71ef026ab"
+      },
+      {
+        "name": "gimcheon-search.html",
+        "bytes": 451734,
+        "sha256": "5ed50b3fb3e13a947a5374be43976dc9dae34bf124a39a88837744e6bcc3f770"
+      },
+      {
+        "name": "gumi-detail.html",
+        "bytes": 355563,
+        "sha256": "db757a9e13107cdef53cab6856ba212bd51fc3c7fd35049557f8c0c0de9c07fd"
+      },
+      {
+        "name": "gumi-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gumi-resolved.html",
+        "bytes": 363816,
+        "sha256": "643cdae627f4eae0c1bedc902d4d8b74d9bacaabe3a4c6d4396705720bbfa854"
+      },
+      {
+        "name": "gumi-search.html",
+        "bytes": 363455,
+        "sha256": "0fda777bb5ff17e046c1813097804a2891a52db4788cf916acd7f40e4c4ffd6d"
+      },
+      {
+        "name": "gyeongju-list.html",
+        "bytes": 249554,
+        "sha256": "c88d872cce5e8796cf8ccd7a3e721d539f829dc550d574d3602fb27c6a76bbe7"
+      },
+      {
+        "name": "gyeongsan-list.html",
+        "bytes": 146612,
+        "sha256": "624e4cce51e4d393e46df2bba65c60702fe92ec4d7923d97131ede9680fe5fe3"
+      },
+      {
+        "name": "mungyeong-detail.html",
+        "bytes": 406508,
+        "sha256": "9feca2f0fcc14aeca4451de2354ed8c80751e9643ca69d55672e2d54674300b2"
+      },
+      {
+        "name": "mungyeong-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "mungyeong-resolved.html",
+        "bytes": 408525,
+        "sha256": "c64a96af932de773ae3268accd3edd425787a2ddbeadb37b3c8ae04b65967021"
+      },
+      {
+        "name": "mungyeong-search.html",
+        "bytes": 407284,
+        "sha256": "081a959b999f546ecb00ca3d66a399fc381b8f336c51cb174211c434dad98601"
+      },
+      {
+        "name": "uiseong-list.html",
+        "bytes": 200065,
+        "sha256": "b28330cc4ebcd2c5bff76c21d2e9f6c4e4a872247af65ec32dbca9051c1aa57d"
+      },
+      {
+        "name": "yeongcheon-detail.html",
+        "bytes": 202649,
+        "sha256": "8826b9e228c7d5d902cc89aea5e0f582ef831e5fba0ee18516931e026d600609"
+      },
+      {
+        "name": "yeongcheon-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "yeongcheon-resolved.html",
+        "bytes": 204601,
+        "sha256": "bb2e3c07da970aa62c6a092a6eff0e7712ba9673bc660b1d53ec6011e6b6d173"
+      },
+      {
+        "name": "yeongcheon-search.html",
+        "bytes": 203475,
+        "sha256": "a8e99bb34f1ecfb5bf975add6789b718f263d746ae85a6340da5681d8394706d"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GIMCHEON-41691.json",
+      "build/reports/attachment-regional-collection/GUMI-65352.json",
+      "build/reports/attachment-regional-collection/YEONGCHEON-36723.json",
+      "build/reports/attachment-regional-collection/MUNGYEONG-44422.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 17,
+    "reservedBytesIncludingBodyUpperBound": 10844925,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000203",
+        "result": "OFFICIAL_REDIRECT_GET_FOUND_POST_SEARCH_AND_DETAIL_CONFIRMED_HEAD_403_NOT_A_GET_FAILURE",
+        "requests": 7
+      },
+      {
+        "sourceCode": "LGS-000205",
+        "result": "OFFICIAL_REDIRECT_GET_FOUND_TRANSIENT_QUERY_NOT_RETAINED_HEAD_403_NOT_A_GET_FAILURE",
+        "requests": 7
+      },
+      {
+        "sourceCode": "LGS-000207",
+        "result": "OFFICIAL_DETAIL_FOUND_HTTPS_DOWNLOAD_USED_INSTEAD_OF_LEGACY_HTTP_LINK",
+        "requests": 7
+      },
+      {
+        "sourceCode": "LGS-000209",
+        "result": "OFFICIAL_GOSIVIEW_ARGUMENTS_DETAIL_CONFIRMED_LIST_PARSER_FOLLOWUP",
+        "requests": 7
+      },
+      {
+        "sourceCode": "LGS-000202",
+        "result": "LIST_ONLY_NO_FIXED_DOWNLOAD_SAMPLE",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000210",
+        "result": "LIST_ONLY_NO_FIXED_DOWNLOAD_SAMPLE",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000211",
+        "result": "LIST_ONLY_NO_FIXED_DOWNLOAD_SAMPLE",
         "requests": 1
       }
     ],

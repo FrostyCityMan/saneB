@@ -1453,6 +1453,54 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GIMCHEON-41691",
+      "profileCode": "LOCAL_GIMCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7936932a735f02cef49454653a4328646d2171c977e6c86a6f40163b3498f0d5",
+        "sourceUrl": "https://www.gc.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=41691&mId=1202180100",
+        "localSourceCode": "LGS-000203",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GUMI-65352",
+      "profileCode": "LOCAL_GUMI_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a63217d9c926fb59e7d6abb28a545beae720389cfc75800abcb6b255f92b5c9c",
+        "sourceUrl": "https://www.gumi.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=65352&mid=0401040000",
+        "localSourceCode": "LGS-000205",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGCHEON-36723",
+      "profileCode": "LOCAL_YEONGCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "849d1f69228166f8c256e7e55337a181d0ed89bb7f6f4f1dc7014fc80864f929",
+        "sourceUrl": "https://www.yc.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=36723&mId=0301040000",
+        "localSourceCode": "LGS-000207",
+        "listParserProfileCode": "YEONGCHEON_LEGAL_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "MUNGYEONG-44422",
+      "profileCode": "LOCAL_MUNGYEONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ed9d775ca2e085b22f492a2453847316661a77425be681dc3fa1f6c7a6e8fb1d",
+        "sourceUrl": "https://www.gbmg.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=44422&mId=0301060000",
+        "localSourceCode": "LGS-000209",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
