@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "496a559fe15e793088a4ece68d3d5a512ffec26352f976dd5e8d2ddb0e2953ed",
+  "inventorySha256": "1e2469c9a93db5734ffe1016d52dc18e7e812d909f566a248e61fbc5797cf55b",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2027,6 +2027,22 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "fcd301530b4bfb0a64a033f37cfd9c1c7b91e70f1d4cda890642ae99e621a124"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEGU_CITY-33505-INITIAL.json",
+      "receiptHash": "f5fcb8db44f15f2e513bf5892f3c040554ad69fa8318721edf6c0e18b3f92184",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7ef3d39a096bbc5c39a3057e3ec0927eb00396137843b21fcb1413bdc57c3aca"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEGU_CITY-33505.json",
+      "receiptHash": "831cc3a7d35658df19216d7c396dc3c6e7bf79af3aaa426c15f788d7b13dac43",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7ef3d39a096bbc5c39a3057e3ec0927eb00396137843b21fcb1413bdc57c3aca"
     }
   ],
   "samples": [
@@ -3234,6 +3250,33 @@
           "bytes": 116224,
           "format": "HWP",
           "binaryHash": "64152f780eb16be2bdf8f2028f9f366d674b1d96c68a76798b46205c5b498591",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000044",
+      "caseCode": "DAEGU_CITY-33505",
+      "profileCode": "LOCAL_DAEGU_CITY_GOSI_V1",
+      "profileHash": "b0e7be108b67440356780e5c1927ae5691240001e9e20558db5c03c7a72adfbb",
+      "receiptHash": "831cc3a7d35658df19216d7c396dc3c6e7bf79af3aaa426c15f788d7b13dac43",
+      "producerClassHash": "7ef3d39a096bbc5c39a3057e3ec0927eb00396137843b21fcb1413bdc57c3aca",
+      "observedAt": "2026-09-29T20:50:39.192105900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "eede1b69b215cdc469f7ac7accf3ce8e65efa3c7078ad7ec1449534c15e650c0",
+          "status": "SUCCEEDED",
+          "bytes": 37376,
+          "format": "HWP",
+          "binaryHash": "ddcf9f1032c5e5dc07751c1411b36ca60c10fc53cebdcd3ab78f765f57cce379",
           "signatureVerified": true
         }
       ]

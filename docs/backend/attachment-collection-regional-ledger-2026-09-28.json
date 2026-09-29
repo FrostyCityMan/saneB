@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 174,
-    "missingProfileRegionCount": 49,
+    "registeredRegionCount": 175,
+    "missingProfileRegionCount": 48,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1328,14 +1328,26 @@
       "sourceCode": "LGS-000044",
       "listParserProfileCode": "SAFE_DAEGU_LEGAL_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000044",
+          "caseCode": "DAEGU_CITY-33505",
+          "profileCode": "LOCAL_DAEGU_CITY_GOSI_V1",
+          "profileHash": "b0e7be108b67440356780e5c1927ae5691240001e9e20558db5c03c7a72adfbb",
+          "receiptHash": "831cc3a7d35658df19216d7c396dc3c6e7bf79af3aaa426c15f788d7b13dac43",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000045",
@@ -5755,9 +5767,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "496a559fe15e793088a4ece68d3d5a512ffec26352f976dd5e8d2ddb0e2953ed",
+  "inputInventorySha256": "1e2469c9a93db5734ffe1016d52dc18e7e812d909f566a248e61fbc5797cf55b",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 263,
+  "importedReceiptCount": 265,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11832,6 +11844,81 @@
         "result": "OFFICIAL_LIST_SEARCH_DETAIL200_HWP3_GET_VERIFIED_OLD_NOTICE_NOT_CURRENT_ELIGIBILITY"
       }
     ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "daeguCityDownloadRun": {
+    "scope": "DAEGU_CITY_FIXED_GET_LEGACY_MIME_COLLECTION_ONLY",
+    "priorSurveyRequests": 0,
+    "surveyRequestCount": 5,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "diagnosticDownloadMaximumBytes": 1048576,
+    "surveyRawFiles": [
+      {
+        "name": "detail.html",
+        "bytes": 207352,
+        "sha256": "3c4ed7fb566e8cc7f27214ed65bdbda2336a84f224bc092e8a9dad6e9c99801d"
+      },
+      {
+        "name": "diagnostic.hwp",
+        "bytes": 37376,
+        "sha256": "ddcf9f1032c5e5dc07751c1411b36ca60c10fc53cebdcd3ab78f765f57cce379"
+      },
+      {
+        "name": "file-get-head.txt",
+        "bytes": 726,
+        "sha256": "65c790360a778978742b5e3da3d53afa5914a21cb2c2ecd1c66e78ce7bb424a4"
+      },
+      {
+        "name": "file-head.txt",
+        "bytes": 175,
+        "sha256": "affa4294b4336821cd8c9439ae02386961e0b7061f631f018aaa8c3f0e3db1b5"
+      },
+      {
+        "name": "list-head.txt",
+        "bytes": 925,
+        "sha256": "27fca6c9f40afc5387353512493e166e24f14f7218d91822507ac9fd9f5e1e3d"
+      },
+      {
+        "name": "list.html",
+        "bytes": 214128,
+        "sha256": "48312ecc1346e7797bfc7329f778b081b91d06db7e2f67dc59dfcf843b41541d"
+      },
+      {
+        "name": "search.html",
+        "bytes": 213084,
+        "sha256": "ded7251cad1eb12b7a1f99100ed13052660bb7103c35aa0ed580388177317eb9"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DAEGU_CITY-33505",
+        "attempts": 2,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAEGU_CITY-33505-INITIAL.json",
+      "build/reports/attachment-regional-collection/DAEGU_CITY-33505.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4695040,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 13,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000044",
+        "requests": 5,
+        "result": "LIST_SEARCH_DETAIL200_HEAD405_GET200_HWP_LEGACY_MIME_CONFIRMED"
+      }
+    ],
+    "initialFailureCode": "ATTACHMENT_CONTENT_TYPE_MISMATCH",
+    "retryReason": "SITE_SPECIFIC_EXISTING_LEGACY_MIME_AND_UTF8_DISPOSITION_COMPATIBILITY",
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

@@ -2821,6 +2821,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAEGU_CITY-33505",
+      "profileCode": "LOCAL_DAEGU_CITY_GOSI_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "f84292128ecfcca44cd81fda0dc9380055cae889ecb13ffe82f5aafb5567de24",
+        "sourceUrl": "https://www.daegu.go.kr/index.do?menu_id=00940170&menu_link=/front/daeguSidoGosi/daeguSidoGosiView.do&sno=33505&gosi_gbn=A",
+        "localSourceCode": "LGS-000044",
+        "listParserProfileCode": "SAFE_DAEGU_LEGAL_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

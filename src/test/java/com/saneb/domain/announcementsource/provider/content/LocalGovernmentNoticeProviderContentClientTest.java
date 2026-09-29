@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void daeguCityBodyExcludesFilesAndMetadataAndChecksIdentity() {
+        String page="<form id=sidoGosiAPIVO><input type=hidden name=sno value=33505><input type=hidden name=gosi_gbn value=A><div id=bbsView><div class=form_group><dl class=title><dt>제목</dt><dd>소상공인 지원</dd></dl></div><div class=form_group><dl><dt>담당부서</dt><dd>수출 부서</dd></dl></div><div class=form_group><dl class=content><dt>내용</dt><dd>소상공인 지원금</dd></dl></div><div class=form_group><dl class=attfile><dt>첨부파일</dt><dd>특허.hwp</dd></dl></div></div></form>";
+        String url="https://www.daegu.go.kr/index.do?menu_id=00940170&menu_link=/front/daeguSidoGosi/daeguSidoGosiView.do&sno=33505&gosi_gbn=A";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("class=content","class=unknown"),page.replace("value=33505","value=999"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void geumcheonBodyExcludesFilesAndMetadata() {
         String page="<div id=contents class=cts294><div class=program><div class='veterinary_contract view'><div class='p-wrap bbs bbs__view'><table class='p-table block'><tbody><tr><td colspan=4 data-brl-flag=1>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><td colspan=4 data-brl-flag=7>소상공인 지원금</td></tr><tr><th>첨부파일</th><td colspan=3>특허.hwp</td></tr></tbody></table></div></div></div></div>";
         String url="https://www.geumcheon.go.kr/portal/tblSeolGosiDetailView.do?key=294&notAncmtMgtNo=27579";
