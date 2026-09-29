@@ -2521,6 +2521,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GYEYANG-53151",
+      "profileCode": "LOCAL_GYEYANG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "95bbc686ebc391c06ab317cbbb4dbcaf3b16040bb1d915173ecb3589f4b67247",
+        "sourceUrl": "https://www.gyeyang.go.kr/open_content/main/eminwon/announce/eminwonDetail.do?seq=53151",
+        "localSourceCode": "LGS-000061",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GANGHWA-52786",
+      "profileCode": "LOCAL_GANGHWA_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "d0380304bcb3dafec99c51e615b679c19bad79f84723060345a8a3a58ad5daee",
+        "sourceUrl": "https://www.ganghwa.go.kr/open_content/main/eminwon/announce/eminwonDetail.do?seq=52786",
+        "localSourceCode": "LGS-000064",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

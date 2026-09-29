@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "76311379aa3bada59e4754a1176ef0b962b337c80fee15f421fffc14f0e2f429",
+  "inventorySha256": "5091502a2ded77c070233bc0c398e13d1ad61d46e0b35ec3094d9f2f4320e79e",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1819,6 +1819,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GYEYANG-53151.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "124169e4cca22f30a75c616016b1b3f2424fead72426ad241747a159431c11c9",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GANGHWA-52786.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "7aa2df23e8fa723235425cb8fd40a728d56a2507ae45348b1fc48d589fd724e5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db"
     }
   ],
   "samples": [
@@ -3479,6 +3495,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000064",
+      "caseCode": "GANGHWA-52786",
+      "profileCode": "LOCAL_GANGHWA_PORTAL_V1",
+      "profileHash": "534e0edcdc09cdcd83f2c468d82190cfd76ea11d2e75459afc56d6a1d4e94c37",
+      "receiptHash": "7aa2df23e8fa723235425cb8fd40a728d56a2507ae45348b1fc48d589fd724e5",
+      "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db",
+      "observedAt": "2026-09-29T15:26:34.652457600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "24b5273e619339525f63aa32da1f4c8bd09e21c69b45ff15049928907fd01592",
+          "status": "SUCCEEDED",
+          "bytes": 102720,
+          "format": "HWPX",
+          "binaryHash": "915f0f08c92c698db9ce38e71eb28499331afbc42e8fb37dfe45ea56ec33be7e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000190",
       "caseCode": "GANGJIN-28097",
       "profileCode": "LOCAL_GANGJIN_NOTICE_V1",
@@ -4410,6 +4453,54 @@
           "format": "HWP",
           "binaryHash": "76d372da723e0b86b8a99ba9d22ae54fb26f218e4b2478911df5416a982f0852",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000061",
+      "caseCode": "GYEYANG-53151",
+      "profileCode": "LOCAL_GYEYANG_PORTAL_V1",
+      "profileHash": "55aec8432a9a7524f24ed3cd09b5177e1ea116517d19ab722aaed05bcc32063a",
+      "receiptHash": "124169e4cca22f30a75c616016b1b3f2424fead72426ad241747a159431c11c9",
+      "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db",
+      "observedAt": "2026-09-29T15:26:21.030458300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 4,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "68f5658b0aa73d04fd7247cd85981eee7c10c733f4a07fa7ad7393cce4b992d4",
+          "status": "SUCCEEDED",
+          "bytes": 173568,
+          "format": "HWP",
+          "binaryHash": "fc7672242977da8fb7d3d08afb42a910292b3258ec282d3b3375c17ea8b04a9c",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "4cff590bd20f13e34c8de18ae4c9b151bfb3d691da253c38eb261235f67c14d3",
+          "status": "SUCCEEDED",
+          "bytes": 62976,
+          "format": "HWP",
+          "binaryHash": "4fdb43117d445f42e144245ae9d035ffeb45b25834ed3f746b98e8d91f1e4b13",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "b52375b912b884bc0a0e62ba401cbb17e43d28fa9ea164ccd83065639489983b",
+          "status": "SUCCEEDED",
+          "bytes": 64512,
+          "format": "HWP",
+          "binaryHash": "401b3c34ebd280dd74198a03f38309cf1330c5f35511fdf81d6569d9c6ed9607",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "809ab7922000662046f7c5b7055f6eaaab1b2b22c7510bdf65a09b45a4917f2a",
+          "status": "FAILED",
+          "bytes": 0
         }
       ]
     },
