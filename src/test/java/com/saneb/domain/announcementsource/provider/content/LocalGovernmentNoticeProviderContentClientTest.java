@@ -38,6 +38,23 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void capitalSeventhBodyPreservesConditionsButExcludesNavigationAndFiles() {
+        for(var site:CapitalSeventhNoticePage.Site.values()) {
+            String content="사업자 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            String page=site==CapitalSeventhNoticePage.Site.POCHEON
+                    ?"<div class='p-wrap bbs bbs__view uiux_type'><div class='bbs_viewbox'><div class='subjectbox'><span class='subject'>소상공인 지원</span><div class='fieldlistbox'>담당자</div></div><div class='viewcontentbox'><div class='viewcontent'><div class='contenttext'>"+content+"</div></div><div class='viewcontent'><div class='attachedfile'>특허 첨부</div></div></div></div></div>"
+                    :"<table class='bbs_default view'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>내용</th><td>"+content+"</td></tr><tr><th>파일</th><td>특허 첨부</td></tr></table>";
+            String url="https://"+site.host+site.path+"?key="+site.menu+"&"+site.idKey+"=1&"+site.typeKey+"="+site.type;
+            for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+                var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull(); }
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void capitalSixthBodyPreservesConditionsButExcludesNavigationAndFiles() {
         for(var site:CapitalSixthNoticePage.Site.values()) {
             String content="사업자 지원금 <table><tr><td>수출기업 제외</td></tr></table>";

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "2e3c3f015113fc0b84a974d3490daee515c1bd4da1b59c031a26be251f67db17",
+  "inventorySha256": "7944ff3d606d6bc279542ca34d83ce06bed2274632a2bf8374f7c25ceb5bcaac",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1555,6 +1555,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "7fc6abb90cefd456272ae141d05bcc0e3b6fc826676877337c50d97385f0700d"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/POCHEON-64129.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "83ea1fd5ada7d5f5341d5164fbf244c9305cb5f5e1eb62f8ef00c6ac48c1763b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GANGNEUNG-60798.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "f703031916f382833381734a48ec0b61c7b1152aca0690728620764c7655f852",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc"
     }
   ],
   "samples": [
@@ -3090,6 +3106,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000119",
+      "caseCode": "GANGNEUNG-60798",
+      "profileCode": "LOCAL_GANGNEUNG_PORTAL_V1",
+      "profileHash": "713f360e094825cf01a9b2bfc877978cce709c585c18a997aa974ebbf67bcb7d",
+      "receiptHash": "f703031916f382833381734a48ec0b61c7b1152aca0690728620764c7655f852",
+      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc",
+      "observedAt": "2026-09-29T10:06:33.151786Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000038",
@@ -4953,6 +4987,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000108",
+      "caseCode": "POCHEON-64129",
+      "profileCode": "LOCAL_POCHEON_PORTAL_V1",
+      "profileHash": "9ca7ff2c5220b6bcc75813ad30c6485369d8db18f177a94a1564d9ec83c2ecf3",
+      "receiptHash": "83ea1fd5ada7d5f5341d5164fbf244c9305cb5f5e1eb62f8ef00c6ac48c1763b",
+      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc",
+      "observedAt": "2026-09-29T10:06:21.251112700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000093",

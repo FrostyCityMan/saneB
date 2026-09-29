@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 118,
-    "missingProfileRegionCount": 105,
+    "registeredRegionCount": 120,
+    "missingProfileRegionCount": 103,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2346,14 +2346,26 @@
       "sourceCode": "LGS-000108",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000108",
+          "caseCode": "POCHEON-64129",
+          "profileCode": "LOCAL_POCHEON_PORTAL_V1",
+          "profileHash": "9ca7ff2c5220b6bcc75813ad30c6485369d8db18f177a94a1564d9ec83c2ecf3",
+          "receiptHash": "83ea1fd5ada7d5f5341d5164fbf244c9305cb5f5e1eb62f8ef00c6ac48c1763b",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000109",
@@ -2559,14 +2571,26 @@
       "sourceCode": "LGS-000119",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000119",
+          "caseCode": "GANGNEUNG-60798",
+          "profileCode": "LOCAL_GANGNEUNG_PORTAL_V1",
+          "profileHash": "713f360e094825cf01a9b2bfc877978cce709c585c18a997aa974ebbf67bcb7d",
+          "receiptHash": "f703031916f382833381734a48ec0b61c7b1152aca0690728620764c7655f852",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000120",
@@ -8180,6 +8204,84 @@
         "contentType": "application/unknown;charset=UTF-8",
         "rawSaved": false,
         "isDownloadApproved": false
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalSeventhDownloadRun": {
+    "scope": "CAPITAL_SEVENTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GANGNEUNG-detail.html",
+        "bytes": 221458,
+        "sha256": "4f19b9ac0eb3289cc410f7f867f3713f281873b98802dec71fa0843741c63fb7"
+      },
+      {
+        "name": "GANGNEUNG-list.html",
+        "bytes": 226629,
+        "sha256": "00d0093d8b5238998da1d7c394685e665e98d1204630a4b22966558917dcd108"
+      },
+      {
+        "name": "GANGNEUNG-search.html",
+        "bytes": 225253,
+        "sha256": "3ba964a3133f14f7cbca3d3bc176688e3d4479b0bcf5d20d465b49806574bc50"
+      },
+      {
+        "name": "ICHEON-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "POCHEON-board.html",
+        "bytes": 247279,
+        "sha256": "0b869a502160c88a2925f6398fada6cdea7dce5c5182f5c7fe3d497f7f380c51"
+      },
+      {
+        "name": "POCHEON-detail.html",
+        "bytes": 237022,
+        "sha256": "5da6ba374adc71fbcd06d675de3e77d7b0c28f946bcdf84eaa81fb55960338e4"
+      },
+      {
+        "name": "POCHEON-list.html",
+        "bytes": 164,
+        "sha256": "008abef3f3956daf7fb637b5b2f58baee99208f76ff64b83e3808aae23246a56"
+      },
+      {
+        "name": "POCHEON-search.html",
+        "bytes": 239369,
+        "sha256": "c30c30e70ccf086089b787fab4353ce51c15f4ccedc4f2d157998e976707c13f"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/POCHEON-64129.json",
+      "build/reports/attachment-regional-collection/GANGNEUNG-60798.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 4194304,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000108",
+        "requests": 5,
+        "result": "OFFICIAL_WWW_REDIRECT_LIST_SEARCH_DETAIL_HTTPS_PLAIN3_GET"
+      },
+      {
+        "sourceCode": "LGS-000119",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_HTTPS_GET_PREVIEW_NOT_EXECUTED"
+      },
+      {
+        "sourceCode": "LGS-000105",
+        "requests": 1,
+        "result": "REGISTERED_LIST_HTTP_400"
       }
     ],
     "originalsRemoved": true,

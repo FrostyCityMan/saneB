@@ -2149,6 +2149,30 @@
         "listParserProfileCode": "SAFE_ANSAN_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "POCHEON-64129",
+      "profileCode": "LOCAL_POCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7b3fec162767b6f92caaf65b875faa71c4b1323d4fb60ac45619fd6e83a2e72f",
+        "sourceUrl": "https://www.pocheon.go.kr/www/selectEminwonView.do?key=3712&notAncmtMgtNo=64129&notAncmtSeCode=01",
+        "localSourceCode": "LGS-000108",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GANGNEUNG-60798",
+      "profileCode": "LOCAL_GANGNEUNG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b337a256d659ae6ed6484520daacfe8c0594ae5fbb110017ab51bf28541a1971",
+        "sourceUrl": "https://www.gn.go.kr/www/selectGosiNttView.do?key=263&gosiNttNo=60798&searchGosiSe=01,04,06",
+        "localSourceCode": "LGS-000119",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
