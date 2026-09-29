@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 135,
-    "missingProfileRegionCount": 88,
+    "registeredRegionCount": 136,
+    "missingProfileRegionCount": 87,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2634,14 +2634,26 @@
       "sourceCode": "LGS-000122",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000122",
+          "caseCode": "SOKCHO-32983",
+          "profileCode": "LOCAL_SOKCHO_PORTAL_V1",
+          "profileHash": "6ce11fbcaccea38d64f53ea20b318d7b6cadce5ec45b823ff7138a437cdaeae8",
+          "receiptHash": "30d652ee8da33b3cb21a1b9050abf25bb30f7f455b552a0377f8b271e8cc764e",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000123",
@@ -9277,6 +9289,79 @@
         "sourceCode": "LGS-000188",
         "requests": 3,
         "result": "OFFICIAL_LIST_REDIRECT_SEARCH_POST_DETAIL_GET_SHARED_SAEOL_ENGINE"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "sokchoDownloadRun": {
+    "scope": "SOKCHO_PORTAL_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 6,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "SOKCHO-detail.html",
+        "bytes": 618853,
+        "sha256": "4a588ad8bf16d198a1283cffeda13949b2246fd6a76bb0806f5ce65602e82028"
+      },
+      {
+        "name": "SOKCHO-headers.txt",
+        "bytes": 2420,
+        "sha256": "06fb7b02fb184a887970c5ff674da5f6a2853e35dc44f57d2e1877a0f130a188"
+      },
+      {
+        "name": "SOKCHO-list.html",
+        "bytes": 617625,
+        "sha256": "eecee6c58742b308d0e7a91fe2f23e9c449a392bca2a99281b148e4b44860694"
+      },
+      {
+        "name": "SOKCHO-title-search-corrected.html",
+        "bytes": 610188,
+        "sha256": "c2274b9727b37d5e92a51fd36ecf53f1488f3a2252b97e704b2483e27d46f890"
+      },
+      {
+        "name": "SOKCHO-title-search.html",
+        "bytes": 617637,
+        "sha256": "090a3eba58b86c1f2e3d5030cc629f21c7a102a757d1caa8408e8d875adfde64"
+      },
+      {
+        "name": "YEONGDONG-headers.txt",
+        "bytes": 343,
+        "sha256": "000085d057bc5b39b1bdf389450d3120a6db7fc223d1193f85d818b6cd4ca6e0"
+      },
+      {
+        "name": "YEONGDONG-list.html",
+        "bytes": 146,
+        "sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SOKCHO-32983",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SOKCHO-32983.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 3,
+    "reservedBytesIncludingBodyUpperBound": 2097152,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000122",
+        "requests": 5,
+        "result": "PORTAL_LIST_OK_SAEOL_LIST_TIMEOUT_SEARCH_CONDITION_CORRECTED_TO_OBSERVED_TITLE_DETAIL_OK"
+      },
+      {
+        "sourceCode": "LGS-000141",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_404_NOT_REPEATED"
       }
     ],
     "originalsRemoved": true,

@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD, JEONNAM_VIEW_TITLE, JEONNAM_NAJU_TITLE, JEONNAM_MUAN_TITLE, GOKSEONG_BOARD, JINDO_BOARD, JANGSEONG_BOARD, GYEONGBUK_HEADING, GYEONGBUK_SUBJECT, GYEONGBUK_BOARD, UISEONG_BOARD, YEONGJU_BOARD, SEONGJU_BOARD, YECHEON_BOARD, YEONGDEOK_BOARD, ULJIN_BOARD, CHEONGSONG_BOARD, GORYEONG_BOARD, JINJU_BOARD, GOSEONG_BOARD, CHANGWON_BOARD, JEJUSI_BOARD, EUNPYEONG_BOARD, SEOCHO_BOARD, DAEGU_NAMGU_BOARD, GWANGJU_DONGGU_BOARD, GWANGJU_BUKGU_BOARD, ULSAN_JUNGGU_BOARD, DONGHAE_BOARD, GW_GOSEONG_BOARD, GANGWON_SKIN_BOARD, JINCHEON_BOARD, YONGIN_BOARD, YANGJU_PORTAL, GUNPO_PORTAL, YEOJU_PORTAL, NAMYANGJU_PORTAL, HANAM_PORTAL, GURI_PORTAL, GIMPO_PORTAL, DONGDUCHEON_PORTAL, PYEONGTAEK_PORTAL, ANSEONG_PORTAL, UIJEONGBU_PORTAL, GG_GWANGJU_PORTAL, SIHEUNG_PORTAL, ANSAN_PORTAL, POCHEON_PORTAL, GANGNEUNG_PORTAL, YANGGU_BOARD, INJE_BOARD, CHUNGBUK_BOARD, GONGJU_BOARD, HONGSEONG_BOARD, YESAN_BOARD, GEUMSAN_BOARD, BUYEO_BOARD, ASAN_BOARD, SEOSAN_BOARD, JEONJU_THIRD_BOARD, JEONBUK_THIRD_BOARD, BOSEONG_BOARD, HAMPYEONG_BOARD }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD, JEONNAM_VIEW_TITLE, JEONNAM_NAJU_TITLE, JEONNAM_MUAN_TITLE, GOKSEONG_BOARD, JINDO_BOARD, JANGSEONG_BOARD, GYEONGBUK_HEADING, GYEONGBUK_SUBJECT, GYEONGBUK_BOARD, UISEONG_BOARD, YEONGJU_BOARD, SEONGJU_BOARD, YECHEON_BOARD, YEONGDEOK_BOARD, ULJIN_BOARD, CHEONGSONG_BOARD, GORYEONG_BOARD, JINJU_BOARD, GOSEONG_BOARD, CHANGWON_BOARD, JEJUSI_BOARD, EUNPYEONG_BOARD, SEOCHO_BOARD, DAEGU_NAMGU_BOARD, GWANGJU_DONGGU_BOARD, GWANGJU_BUKGU_BOARD, ULSAN_JUNGGU_BOARD, DONGHAE_BOARD, GW_GOSEONG_BOARD, GANGWON_SKIN_BOARD, JINCHEON_BOARD, YONGIN_BOARD, YANGJU_PORTAL, GUNPO_PORTAL, YEOJU_PORTAL, NAMYANGJU_PORTAL, HANAM_PORTAL, GURI_PORTAL, GIMPO_PORTAL, DONGDUCHEON_PORTAL, PYEONGTAEK_PORTAL, ANSEONG_PORTAL, UIJEONGBU_PORTAL, GG_GWANGJU_PORTAL, SIHEUNG_PORTAL, ANSAN_PORTAL, POCHEON_PORTAL, GANGNEUNG_PORTAL, YANGGU_BOARD, INJE_BOARD, CHUNGBUK_BOARD, GONGJU_BOARD, HONGSEONG_BOARD, YESAN_BOARD, GEUMSAN_BOARD, BUYEO_BOARD, ASAN_BOARD, SEOSAN_BOARD, JEONJU_THIRD_BOARD, JEONBUK_THIRD_BOARD, BOSEONG_BOARD, HAMPYEONG_BOARD, SOKCHO_BOARD }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -74,6 +74,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalBoardDownloadCases.GROUPS.contains(group))return Stream.of(CapitalBoardDownloadCases.selectCase(group));
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
+        if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
         if(JeonnamFifthDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamFifthDownloadCases.selectCase(group));
         if(JeonnamFourthDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamFourthDownloadCases.selectCase(group));
         if(JeonbukThirdDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukThirdDownloadCases.selectCase(group));
@@ -597,6 +598,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         validateTitle(page,expected,compact?TitleLayout.COMPACT_SUBJECT:TitleLayout.CLASSIC_LABEL);
     }
     public static void validateTitle(org.jsoup.nodes.Document page,String expected,TitleLayout layout) {
+        if(layout==TitleLayout.SOKCHO_BOARD){var root=com.saneb.domain.announcementsource.provider.content.SokchoNoticePage.selectRoot(page);assertEquals(normalized(expected),normalized(com.saneb.domain.announcementsource.provider.content.SokchoNoticePage.selectTitle(root).text()),"TITLE_CHANGED");return;}
         if(layout==TitleLayout.FILEBOX_LABEL||layout==TitleLayout.SUNCHANG_LABEL){
             var forms=page.select("form[name=form1][method=post]");assertEquals(1,forms.size(),"TITLE_STRUCTURE_CHANGED");
             var tables=forms.getFirst().select(layout==TitleLayout.FILEBOX_LABEL?"table.tstyle":"table.bbs_view");assertEquals(1,tables.size(),"TITLE_STRUCTURE_CHANGED");var table=tables.getFirst();
@@ -944,6 +946,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|=ChungcheongSixthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|="LOCAL_HAMPYEONG_NOTICE_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_HWASUN_GET_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_SOKCHO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_BOSEONG_NOTICE_V1".equals(profile.selectProfileCode());
             boundedSaeol|=JeonbukThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=ChungcheongFifthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));

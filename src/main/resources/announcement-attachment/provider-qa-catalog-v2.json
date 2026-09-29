@@ -2353,6 +2353,18 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SOKCHO-32983",
+      "profileCode": "LOCAL_SOKCHO_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "12b3a129d5e8e0ed703847a195ba0c5391d5d057adb800fe008d73e47e065340",
+        "sourceUrl": "https://www.sokcho.go.kr/sc/portal/sokchonews/notification?notAncmtMgtNo=32983",
+        "localSourceCode": "LGS-000122",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "7d44729d139b91ff1201bf251b1958b1d1783553bd919ba816191e21cbacb8fa",
+  "inventorySha256": "71bd8e077697d63a969179c7d7d4703e103ce93e28e34d6c2fd8bf984dda2a99",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1707,6 +1707,14 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "b848a3fb230cf79038dc18a4f6eab7125fbe0d5b2ab3127861fb8646ea744668"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SOKCHO-32983.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "30d652ee8da33b3cb21a1b9050abf25bb30f7f455b552a0377f8b271e8cc764e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "77d3cac1095e56f12c5e45f41a849baffcb28e69841363dd1f456be1410ea862"
     }
   ],
   "samples": [
@@ -5807,6 +5815,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000122",
+      "caseCode": "SOKCHO-32983",
+      "profileCode": "LOCAL_SOKCHO_PORTAL_V1",
+      "profileHash": "6ce11fbcaccea38d64f53ea20b318d7b6cadce5ec45b823ff7138a437cdaeae8",
+      "receiptHash": "30d652ee8da33b3cb21a1b9050abf25bb30f7f455b552a0377f8b271e8cc764e",
+      "producerClassHash": "77d3cac1095e56f12c5e45f41a849baffcb28e69841363dd1f456be1410ea862",
+      "observedAt": "2026-09-29T13:07:07.802620100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000175",
