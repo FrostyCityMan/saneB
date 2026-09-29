@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8738f8ac3df88b830b1782170f6ffaa7f45334f4bc3f830a26234cb3cf0b87ab",
+  "inventorySha256": "73861e9a28f5c1ad7df1798f699487a90de3680e1efdb4ed51dc68a09ca4a636",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1731,6 +1731,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "13fea75abaa3efc2c46ae590be2ba20a9fafa88083ad2a11ff4e54bd8a32c0c9"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SEONGDONG-356569.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "ac3384e3be96408395a794f7389a74e489ca6e14592984524b53a43521bb68a5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SONGPA-33174.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "c70ec2337b3414e3d670ed897861d92c0079bad580fb130678e70eeb12d27c25",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GWANGJIN-6415244.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "ca74d1dd0d1f445278d2771ca2cb6b0982a1346fd2b7f3fcf94064b96b2519cb",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f"
     }
   ],
   "samples": [
@@ -4073,6 +4097,49 @@
       ]
     },
     {
+      "sourceCode": "LGS-000006",
+      "caseCode": "GWANGJIN-6415244",
+      "profileCode": "LOCAL_GWANGJIN_BOARD_V1",
+      "profileHash": "4113dbb00715de51de43c097caa044c41ebf2a9915e8069ebc897a9feb27e28a",
+      "receiptHash": "ca74d1dd0d1f445278d2771ca2cb6b0982a1346fd2b7f3fcf94064b96b2519cb",
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f",
+      "observedAt": "2026-09-29T13:57:20.269722300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "f0477b067eef9d14ccabcec31ff8bcb746dbb2eb160669b583209d55d4ba5474",
+          "status": "SUCCEEDED",
+          "bytes": 326660,
+          "format": "PDF",
+          "binaryHash": "a69a7dc26aab0a8225ef945be5bd920ea77f815ce239bd1aef4663a579ad965f",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "d74789c48f37207a169ec48e666ccd36893939f2264eaf34ecda3c59b04e8549",
+          "status": "SUCCEEDED",
+          "bytes": 84509,
+          "format": "HWPX",
+          "binaryHash": "6984006080f75b04845507e2e45e7527fe7707a50e0eafb8e3381676a5a71ed8",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "5378cce8445e56a816cf536ce7ee66c0f06bfde7405e718695aadcaeb02d4f35",
+          "status": "SUCCEEDED",
+          "bytes": 187683,
+          "format": "PDF",
+          "binaryHash": "6d6b932b4d46293671a557c660e33e14569506974c314f120f610fc1b069e535",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000069",
       "caseCode": "GWANGJU_BUKGU-56519",
       "profileCode": "LOCAL_GWANGJU_BUKGU_GET_V1",
@@ -5808,6 +5875,41 @@
       ]
     },
     {
+      "sourceCode": "LGS-000005",
+      "caseCode": "SEONGDONG-356569",
+      "profileCode": "LOCAL_SEONGDONG_BOARD_V1",
+      "profileHash": "05a27757315d00228114bbb1d14c1bb09ba3b0450eec28149747542860108cb2",
+      "receiptHash": "ac3384e3be96408395a794f7389a74e489ca6e14592984524b53a43521bb68a5",
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f",
+      "observedAt": "2026-09-29T13:57:02.481114Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "9fdad0c09049525e60ae4800d665e7298fd2ead8964fc1e6840a48e526966549",
+          "status": "SUCCEEDED",
+          "bytes": 48640,
+          "format": "HWP",
+          "binaryHash": "6e9b30094343c0000f1abeaf67810f9dc9c09d79b19c72cc1aac711bfba64ae4",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "c16a65b93a3e0cbe67b98cb8e89466091ff2407ddc9c902f4bbf22be84a207ae",
+          "status": "SUCCEEDED",
+          "bytes": 16384,
+          "format": "HWP",
+          "binaryHash": "0de9f9585d3406230911ec0996e030f2a742997c3d94c7c1f65c3eaf4cc50c95",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000217",
       "caseCode": "SEONGJU-586507",
       "profileCode": "LOCAL_SEONGJU_BOARD_V1",
@@ -5908,6 +6010,24 @@
       "observedAt": "2026-09-29T13:07:07.802620100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
+      "sourceCode": "LGS-000025",
+      "caseCode": "SONGPA-33174",
+      "profileCode": "LOCAL_SONGPA_BOARD_V1",
+      "profileHash": "2b681462d8406be07b00d949f60992a7e486140ad5a5f7d6fb8a9f6a26dc51a6",
+      "receiptHash": "c70ec2337b3414e3d670ed897861d92c0079bad580fb130678e70eeb12d27c25",
+      "producerClassHash": "cc712f6c825be484e2776fea9adbd0f53f8a95e92a5df9a61067a9268dcc750f",
+      "observedAt": "2026-09-29T13:57:19.233192500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
       "discoveryStatus": "NOT_RUN",

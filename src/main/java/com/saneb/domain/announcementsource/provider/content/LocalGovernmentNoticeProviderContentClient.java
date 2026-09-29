@@ -430,6 +430,13 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     private Element selectContentElement(Document document, URI sourceUri) {
         // 실측된 기관의 정확한 게시판만 좁힌다. 같은 parser의 다른 기관까지 지원한다고 추정하지 않는다.
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
+        var seoulFourthSite = SeoulFourthNoticePage.selectSite(sourceUri);
+        if (seoulFourthSite != null) {
+            try {
+                SeoulFourthNoticePage.selectDetailUri(seoulFourthSite, sourceUri);
+                return SeoulFourthNoticePage.selectContent(seoulFourthSite, document);
+            } catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
         if (SeodaemunNoticePage.selectSite(sourceUri)) {
             try {
                 SeodaemunNoticePage.selectDetailUri(sourceUri);

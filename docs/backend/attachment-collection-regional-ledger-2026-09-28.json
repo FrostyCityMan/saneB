@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 138,
-    "missingProfileRegionCount": 85,
+    "registeredRegionCount": 141,
+    "missingProfileRegionCount": 82,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -73,27 +73,51 @@
       "sourceCode": "LGS-000005",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000005",
+          "caseCode": "SEONGDONG-356569",
+          "profileCode": "LOCAL_SEONGDONG_BOARD_V1",
+          "profileHash": "05a27757315d00228114bbb1d14c1bb09ba3b0450eec28149747542860108cb2",
+          "receiptHash": "ac3384e3be96408395a794f7389a74e489ca6e14592984524b53a43521bb68a5",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000006",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000006",
+          "caseCode": "GWANGJIN-6415244",
+          "profileCode": "LOCAL_GWANGJIN_BOARD_V1",
+          "profileHash": "4113dbb00715de51de43c097caa044c41ebf2a9915e8069ebc897a9feb27e28a",
+          "receiptHash": "ca74d1dd0d1f445278d2771ca2cb6b0982a1346fd2b7f3fcf94064b96b2519cb",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000007",
@@ -427,14 +451,26 @@
       "sourceCode": "LGS-000025",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000025",
+          "caseCode": "SONGPA-33174",
+          "profileCode": "LOCAL_SONGPA_BOARD_V1",
+          "profileHash": "2b681462d8406be07b00d949f60992a7e486140ad5a5f7d6fb8a9f6a26dc51a6",
+          "receiptHash": "c70ec2337b3414e3d670ed897861d92c0079bad580fb130678e70eeb12d27c25",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000026",
@@ -9537,6 +9573,118 @@
         "sourceCode": "LGS-000012",
         "requests": 2,
         "result": "OFFICIAL_LIST_OK_SINGLE_TITLE_SEARCH_EMPTY_SAMPLE_NOT_SELECTED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulFourthDownloadRun": {
+    "scope": "SEONGDONG_SONGPA_GWANGJIN_COLLECTION_ONLY",
+    "surveyRequestCount": 11,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "SEONGDONG-list.html",
+        "bytes": 221581,
+        "sha256": "f4beb432e605559f3c526b59aaf64244c85ffecfe7d825aca6186e6b191b41d9"
+      },
+      {
+        "name": "SEONGDONG-search.html",
+        "bytes": 211706,
+        "sha256": "2612d59cb52879579b04a586fb7eb7c55ad8ee490e3bb04007dee5a266eaf1a7"
+      },
+      {
+        "name": "SEONGDONG-support.html",
+        "bytes": 220851,
+        "sha256": "1598d3a39570694f44d8dccfd678d16fccd82ff9988ba00f48ca542162f0a540"
+      },
+      {
+        "name": "SEONGDONG-detail.html",
+        "bytes": 211176,
+        "sha256": "9b1fa3a08ab07ac36d0198aa7f6a9fbfe4c1fed80a48702ef829111fec4062b4"
+      },
+      {
+        "name": "SONGPA-list.html",
+        "bytes": 480688,
+        "sha256": "7c97c3e7b276fca249d96501a3cb8d891b8e3dafd8bd86b96b248cefc3e75ff8"
+      },
+      {
+        "name": "SONGPA-search.html",
+        "bytes": 472487,
+        "sha256": "4f67638fb408d0dd13ca0c12049e433ba2fbb03c1e9577fb8ab47a79035e1eec"
+      },
+      {
+        "name": "SONGPA-support.html",
+        "bytes": 478758,
+        "sha256": "f4baf675c531f8c57d3c0cdb7134c2bd70fe29ad3d048159123f07e949ef2372"
+      },
+      {
+        "name": "SONGPA-detail.html",
+        "bytes": 476965,
+        "sha256": "e495bfffa3d35afbede7adb36d63f92fa3568127a07db4b1fa9c4b4839b01452"
+      },
+      {
+        "name": "GWANGJIN-list.html",
+        "bytes": 179015,
+        "sha256": "a2ced5919598a17ad3ded5fbcc11d85d7e1f32a4dc05bc64ecb19bbfd11c89e3"
+      },
+      {
+        "name": "GWANGJIN-search.html",
+        "bytes": 179464,
+        "sha256": "89c0908ae3ab426963703530157501cdec3f90f62614857064006e87282111f1"
+      },
+      {
+        "name": "GWANGJIN-detail.html",
+        "bytes": 222146,
+        "sha256": "21a4050a3ecc3c9fbb992b4407d87f3e42ae6cc3b5c462645bf7ac252ce45884"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEONGDONG-356569",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "SONGPA-33174",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "GWANGJIN-6415244",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEONGDONG-356569.json",
+      "build/reports/attachment-regional-collection/SONGPA-33174.json",
+      "build/reports/attachment-regional-collection/GWANGJIN-6415244.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 7881028,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000005",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_TITLE_SEARCHES_DETAIL_HWP_2"
+      },
+      {
+        "sourceCode": "LGS-000025",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_TITLE_SEARCHES_DETAIL_HWPX_3"
+      },
+      {
+        "sourceCode": "LGS-000006",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_2025_ARCHIVED_DETAIL_PDF_2_HWPX_1"
       }
     ],
     "originalsRemoved": true,

@@ -2389,6 +2389,42 @@
         "listParserProfileCode": "SAFE_SEODAEMUN_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SEONGDONG-356569",
+      "profileCode": "LOCAL_SEONGDONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "357d841575c2bda04910d4e6a92ac382687fa1920ed02108048900229e2b8b8d",
+        "sourceUrl": "https://www.sd.go.kr/main/selectBbsNttView.do?bbsNo=184&nttNo=356569&key=1473",
+        "localSourceCode": "LGS-000005",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SONGPA-33174",
+      "profileCode": "LOCAL_SONGPA_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7697de3a2eafb83fbc03b737d2b16a1fca3c9cc06964ed105c94387a2d1f3c9d",
+        "sourceUrl": "https://www.songpa.go.kr/www/selectGosiData.do?not_ancmt_mgt_no=33174&key=2776",
+        "localSourceCode": "LGS-000025",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GWANGJIN-6415244",
+      "profileCode": "LOCAL_GWANGJIN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "5e5dbe8ea6375f4c6566e1b593709d68fc999c5325fbbacbdee278f4a5dff5f9",
+        "sourceUrl": "https://www.gwangjin.go.kr/portal/bbs/B0000003/view.do?nttId=6415244&menuNo=200192",
+        "localSourceCode": "LGS-000006",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
