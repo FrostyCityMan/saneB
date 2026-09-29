@@ -1141,6 +1141,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JEUNGPYEONG-31159",
+      "profileCode": "LOCAL_JEUNGPYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "707dd97bc5c4d3b920a9b6576d070223993474ea1b829ec4be281cc6b9b4b3fa",
+        "sourceUrl": "https://eminwon.jp.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=31159&subCheck=Y",
+        "localSourceCode": "LGS-000142",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DANYANG-32263",
+      "profileCode": "LOCAL_DANYANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "456fc2c9f2b43d94bc0ba04a00955e0c05527866e7b8fafe3074aa1b657d81ec",
+        "sourceUrl": "https://eminwon.danyang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=32263&subCheck=Y",
+        "localSourceCode": "LGS-000146",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

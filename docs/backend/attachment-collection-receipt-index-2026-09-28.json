@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "2e4b8e5fb10274d59a4d1a4f9763d8d648b5035a65f7a4f2ee0f388c6756d387",
+  "inventorySha256": "f012e9f051e62a022ea67dbb800cec8f847715de778b8f79b2c9a895122275f6",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -705,6 +705,22 @@
       "path": "build/reports/attachment-regional-collection/DALSEO-42293.json",
       "producerClassHash": "8289edf309ff4f1243fe962e19ba5888e6f02020cba11861fb73bbf62a848695",
       "receiptHash": "0002bd7a3196edc51fe20c9aec31a17d018b5fb8536a6eb7d538389b93a20aa5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEUNGPYEONG-31159.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "e989ae99e0e9a4eb03a990214434dd32caa055886b1d439afc4546b06140cb93",
+      "producerClassHash": "cee71e9b15d6bd8545f212229a0246afe4657e9710bed5d37b0738a4ec74b740",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DANYANG-32263.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "63be7db0474d13c3c468b17699baca908da89bfa3645bee6cb087e179865d571",
+      "producerClassHash": "cee71e9b15d6bd8545f212229a0246afe4657e9710bed5d37b0738a4ec74b740",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -1553,6 +1569,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000146",
+      "caseCode": "DANYANG-32263",
+      "profileCode": "LOCAL_DANYANG_GET_V1",
+      "profileHash": "ec00e7516979e5ab9deb32faad9ad440a6eda95f3130b3882b1196fd035ac293",
+      "receiptHash": "63be7db0474d13c3c468b17699baca908da89bfa3645bee6cb087e179865d571",
+      "producerClassHash": "cee71e9b15d6bd8545f212229a0246afe4657e9710bed5d37b0738a4ec74b740",
+      "observedAt": "2026-09-29T01:39:33.385335Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8f5f3245db7c193b51ea6f6995f0790d853a68d7cc16ac54b8c6b3f8f2cabe4a",
+          "status": "SUCCEEDED",
+          "bytes": 118272,
+          "format": "HWP",
+          "binaryHash": "5b7ca4323801427837cc82eab011ebbff7164f3099e3045610cd3be5a19ca6e3",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000033",
       "caseCode": "DONGNAE-43686",
       "profileCode": "LOCAL_DONGNAE_GET_V1",
@@ -2180,6 +2223,33 @@
           "bytes": 82944,
           "format": "HWP",
           "binaryHash": "dbeba265406d420c2a396e6f7d40368f499ab5ec25bc510004e4f27b964d3ea0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000142",
+      "caseCode": "JEUNGPYEONG-31159",
+      "profileCode": "LOCAL_JEUNGPYEONG_GET_V1",
+      "profileHash": "ac00285e5219023848aa72c59b59b0f72bc7537a28cdc2e590fe3b372b58ac4a",
+      "receiptHash": "e989ae99e0e9a4eb03a990214434dd32caa055886b1d439afc4546b06140cb93",
+      "producerClassHash": "cee71e9b15d6bd8545f212229a0246afe4657e9710bed5d37b0738a4ec74b740",
+      "observedAt": "2026-09-29T01:39:21.255205800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "ec7f06e73b0a74cadda8dd3fdd16a0f198ff52af6cff2a8b87345e1c86bcc4ff",
+          "status": "SUCCEEDED",
+          "bytes": 81836,
+          "format": "HWPX",
+          "binaryHash": "59571f34dc3baa4466de15b527763386a86a87e52209d7ac5424572810478ba5",
           "signatureVerified": true
         }
       ]
@@ -3280,5 +3350,58 @@
       "SUSEONG": "4c943c606b984b4fb3cb83f772013183b83527f5ba8750a4db272df119814d3e",
       "DALSEO": "12941ad07e88b78ab50327211bcbd2a4145b6635d8bb165393c8180712599208"
     }
+  },
+  "chungbukFirstDownloadRun": {
+    "groups": [
+      "JEUNGPYEONG",
+      "DANYANG"
+    ],
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 13,
+    "surveyStoredHtmlBytes": 592709,
+    "requestReservations": 8,
+    "reservedBytes": 4406504,
+    "actualTransportInvocations": 4,
+    "downloadedFiles": 2,
+    "downloadedBytes": 200108,
+    "regionRequestReservations": {
+      "JEUNGPYEONG": 8,
+      "DANYANG": 8,
+      "JINCHEON": 3,
+      "GOESAN": 2
+    },
+    "bodyErrors": [
+      {
+        "caseCode": "JEUNGPYEONG-31159",
+        "status": "FETCH_FAILED",
+        "failureCode": "DETAIL_HOST_NOT_ALLOWED",
+        "attempts": 0
+      },
+      {
+        "caseCode": "DANYANG-32263",
+        "status": "FETCH_FAILED",
+        "failureCode": "DETAIL_HOST_NOT_ALLOWED",
+        "attempts": 0
+      }
+    ],
+    "unconnectedSurveys": [
+      {
+        "sourceCode": "LGS-000143",
+        "status": "NO_ELIGIBLE_NOTICE_IN_OFFICIAL_GOSI_SEARCH",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000144",
+        "status": "OFFICIAL_LIST_WAF_BLOCKED",
+        "httpStatus": 201,
+        "requests": 2
+      }
+    ],
+    "junitReportHash": "b3bb078ba5e7fc29f6f5e47124af6da2431c1673c7473c69158119816593db78"
   }
 }

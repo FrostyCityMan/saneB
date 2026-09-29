@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 35,
-    "missingProfileRegionCount": 188,
+    "registeredRegionCount": 37,
+    "missingProfileRegionCount": 186,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2694,14 +2694,26 @@
       "sourceCode": "LGS-000142",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000142",
+          "caseCode": "JEUNGPYEONG-31159",
+          "profileCode": "LOCAL_JEUNGPYEONG_GET_V1",
+          "profileHash": "ac00285e5219023848aa72c59b59b0f72bc7537a28cdc2e590fe3b372b58ac4a",
+          "receiptHash": "e989ae99e0e9a4eb03a990214434dd32caa055886b1d439afc4546b06140cb93",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000143",
@@ -2746,14 +2758,26 @@
       "sourceCode": "LGS-000146",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000146",
+          "caseCode": "DANYANG-32263",
+          "profileCode": "LOCAL_DANYANG_GET_V1",
+          "profileHash": "ec00e7516979e5ab9deb32faad9ad440a6eda95f3130b3882b1196fd035ac293",
+          "receiptHash": "63be7db0474d13c3c468b17699baca908da89bfa3645bee6cb087e179865d571",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000147",
@@ -4042,9 +4066,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "2e4b8e5fb10274d59a4d1a4f9763d8d648b5035a65f7a4f2ee0f388c6756d387",
+  "inputInventorySha256": "f012e9f051e62a022ea67dbb800cec8f847715de778b8f79b2c9a895122275f6",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 93,
+  "importedReceiptCount": 95,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4336,5 +4360,58 @@
       "SUSEONG": "4c943c606b984b4fb3cb83f772013183b83527f5ba8750a4db272df119814d3e",
       "DALSEO": "12941ad07e88b78ab50327211bcbd2a4145b6635d8bb165393c8180712599208"
     }
+  },
+  "chungbukFirstDownloadRun": {
+    "groups": [
+      "JEUNGPYEONG",
+      "DANYANG"
+    ],
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyOriginalsRemoved": true,
+    "surveyRequests": 13,
+    "surveyStoredHtmlBytes": 592709,
+    "requestReservations": 8,
+    "reservedBytes": 4406504,
+    "actualTransportInvocations": 4,
+    "downloadedFiles": 2,
+    "downloadedBytes": 200108,
+    "regionRequestReservations": {
+      "JEUNGPYEONG": 8,
+      "DANYANG": 8,
+      "JINCHEON": 3,
+      "GOESAN": 2
+    },
+    "bodyErrors": [
+      {
+        "caseCode": "JEUNGPYEONG-31159",
+        "status": "FETCH_FAILED",
+        "failureCode": "DETAIL_HOST_NOT_ALLOWED",
+        "attempts": 0
+      },
+      {
+        "caseCode": "DANYANG-32263",
+        "status": "FETCH_FAILED",
+        "failureCode": "DETAIL_HOST_NOT_ALLOWED",
+        "attempts": 0
+      }
+    ],
+    "unconnectedSurveys": [
+      {
+        "sourceCode": "LGS-000143",
+        "status": "NO_ELIGIBLE_NOTICE_IN_OFFICIAL_GOSI_SEARCH",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000144",
+        "status": "OFFICIAL_LIST_WAF_BLOCKED",
+        "httpStatus": 201,
+        "requests": 2
+      }
+    ],
+    "junitReportHash": "b3bb078ba5e7fc29f6f5e47124af6da2431c1673c7473c69158119816593db78"
   }
 }
