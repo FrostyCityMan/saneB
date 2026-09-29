@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 65,
-    "missingProfileRegionCount": 158,
+    "registeredRegionCount": 68,
+    "missingProfileRegionCount": 155,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3786,14 +3786,26 @@
       "sourceCode": "LGS-000202",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000202",
+          "caseCode": "GYEONGJU-240954",
+          "profileCode": "LOCAL_GYEONGJU_BOARD_V1",
+          "profileHash": "efb5cc06013ef9050d1e06a12b3dd7edbf307a3ddaae8388f64f2c752aabd956",
+          "receiptHash": "1ce7336101a4e1644bb9ffcdbc33a6f97c733aae8c8303fbaf69055a2eacce6d",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000203",
@@ -3938,27 +3950,51 @@
       "sourceCode": "LGS-000210",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000210",
+          "caseCode": "GYEONGSAN-250988",
+          "profileCode": "LOCAL_GYEONGSAN_BOARD_V1",
+          "profileHash": "0584203ae4ddcebb957e71337e35a590c392f90dc6092835d1044ccbc4a3ff3d",
+          "receiptHash": "c70c7becb0d71b39443e9a98b4739b3ef652ba4c2f08de70cebe0d39441e10ac",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000211",
       "listParserProfileCode": "GUNWI_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000211",
+          "caseCode": "UISEONG-39093",
+          "profileCode": "LOCAL_UISEONG_BOARD_V1",
+          "profileHash": "c59e5fc427dde44effdb872a7bef619f3cbcd0017eb6c28cd07546923161fcb2",
+          "receiptHash": "04a31a5ab80e62b33b41eb59e320e43788cebe724768c759c9ab49f9188fee3e",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000212",
@@ -4402,9 +4438,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "4a37f390688327b8ebe342f5053ed610ba074f67276e9caf2cc8461943146adb",
+  "inputInventorySha256": "e0dbba941f9783fe976cf4ab6694a1f868d4be53acfda508e8d2de02cd877526",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 135,
+  "importedReceiptCount": 141,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -5294,6 +5330,113 @@
         "sourceCode": "LGS-000211",
         "result": "LIST_ONLY_NO_FIXED_DOWNLOAD_SAMPLE",
         "requests": 1
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isExpectationApproved": false
+  },
+  "gyeongbukSecondDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITES",
+    "surveyRequests": 11,
+    "surveyGetRequests": 9,
+    "surveyPostRequests": 2,
+    "surveyFiles": [
+      {
+        "name": "gyeongju-detail.html",
+        "bytes": 234063,
+        "sha256": "1ebcb6a06a37638da954603739362d63a724a9f5ab6dc12b5698f6b4703e8a74"
+      },
+      {
+        "name": "gyeongju-file.bin",
+        "bytes": 88064,
+        "sha256": "c263f26e0253c0d54c6faa59e1eb922dfa7567de7dddbe047a3030b0321d84a5"
+      },
+      {
+        "name": "gyeongju-file.headers",
+        "bytes": 399,
+        "sha256": "c2ddc89be11e18dfe18e27c996075b0a0bee6ff4108223ec296d40cd4d3ef65a"
+      },
+      {
+        "name": "gyeongju-search.html",
+        "bytes": 243260,
+        "sha256": "6dead494a25914aef73b8de2346a83445d8921df7eeab420a15f569d75505897"
+      },
+      {
+        "name": "gyeongju-utility.js",
+        "bytes": 22186,
+        "sha256": "da7688cd30168bb4b73bef99d9435d66afaa774e103281374b013be8e8bf3767"
+      },
+      {
+        "name": "gyeongsan-detail.html",
+        "bytes": 135822,
+        "sha256": "a8ad60a8aa130065d6debf2e35679b3ce990bacb92c36f97211f122432f73b25"
+      },
+      {
+        "name": "gyeongsan-file.bin",
+        "bytes": 67584,
+        "sha256": "76d372da723e0b86b8a99ba9d22ae54fb26f218e4b2478911df5416a982f0852"
+      },
+      {
+        "name": "gyeongsan-file.headers",
+        "bytes": 396,
+        "sha256": "2a190d20953fae5cfdb5766422d8b8bdc80c04f7543b0ef6cf189c5763cc2576"
+      },
+      {
+        "name": "gyeongsan-search.html",
+        "bytes": 139825,
+        "sha256": "f8d4e3e049f8950d77639ec93489d3b810d37c767dbf5bcc7d9ae4a9e8c91f7c"
+      },
+      {
+        "name": "gyeongsan-utility.js",
+        "bytes": 18943,
+        "sha256": "27f9397ed2d22435d6599216f75ea53a98a632283c1a01d5f20c6b16c6aa060f"
+      },
+      {
+        "name": "uiseong-detail.html",
+        "bytes": 192139,
+        "sha256": "7546e15a2aeb13607ba05390d62fe5d64adfb075b20e23cb01b0110e1f8a05f0"
+      },
+      {
+        "name": "uiseong-file.headers",
+        "bytes": 912,
+        "sha256": "5e621eccaf266774007916e31f5f4fc03ccc9000cb2208a1ff843c209f3da77c"
+      },
+      {
+        "name": "uiseong-search.html",
+        "bytes": 192384,
+        "sha256": "d1236eba31313ef672d78d90f3868f2ae8ca70565b239987bbdb1665ea67f461"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GYEONGJU-240954-INITIAL.json",
+      "build/reports/attachment-regional-collection/GYEONGSAN-250988-INITIAL.json",
+      "build/reports/attachment-regional-collection/UISEONG-39093-INITIAL.json",
+      "build/reports/attachment-regional-collection/GYEONGJU-240954.json",
+      "build/reports/attachment-regional-collection/GYEONGSAN-250988.json",
+      "build/reports/attachment-regional-collection/UISEONG-39093.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 29,
+    "reservedBytesIncludingBodyUpperBound": 15114240,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000202",
+        "result": "SEARCH_DETAIL_OFFICIAL_NUMERIC_DOWNLOAD_MENU_423_AND_UTF8_HWP_DISPOSITION_CONFIRMED",
+        "requests": 4
+      },
+      {
+        "sourceCode": "LGS-000210",
+        "result": "THREE_NUMERIC_ARGUMENT_DOWNLOAD_UTF8_HWP_DISPOSITION_CONFIRMED_DYNAMIC_BODY_NOT_EXECUTED",
+        "requests": 4
+      },
+      {
+        "sourceCode": "LGS-000211",
+        "result": "SAME_NOTICE_DOWNLOAD_REDIRECT_TO_OFFICIAL_EMINWON_HOST_CONFIRMED",
+        "requests": 3
       }
     ],
     "originalsRemoved": true,

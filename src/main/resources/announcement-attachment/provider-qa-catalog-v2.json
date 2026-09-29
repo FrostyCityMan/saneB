@@ -1501,6 +1501,42 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GYEONGJU-240954",
+      "profileCode": "LOCAL_GYEONGJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a0c887849b07078e4171e592e4cddf55b04e1c60a14e61b75ef4b1c1b9d1d724",
+        "sourceUrl": "https://www.gyeongju.go.kr/open_content/ko/page.do?step=258&parm_bod_uid=240954&mnu_uid=423",
+        "localSourceCode": "LGS-000202",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GYEONGSAN-250988",
+      "profileCode": "LOCAL_GYEONGSAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6e4dfb5b49b554f5ff7659aa642d12687fb71d370191640d9f49517a3f022a30",
+        "sourceUrl": "https://www.gbgs.go.kr/open_content/ko/page.do?step=258&parm_bod_uid=250988&mnu_uid=2160",
+        "localSourceCode": "LGS-000210",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "UISEONG-39093",
+      "profileCode": "LOCAL_UISEONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a143d57ac682e9166cd9b8eac6b52c2e133209c84c6869d58082f6984eda3212",
+        "sourceUrl": "https://www.usc.go.kr/ko/page.do?mnu_uid=157&not_ancmt_mgt_no=39093&cmd=2",
+        "localSourceCode": "LGS-000211",
+        "listParserProfileCode": "GUNWI_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

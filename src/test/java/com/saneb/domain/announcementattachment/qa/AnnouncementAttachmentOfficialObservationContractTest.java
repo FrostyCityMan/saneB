@@ -10,6 +10,10 @@ class AnnouncementAttachmentOfficialObservationContractTest {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     @Test void diagnosticFailureCodePreservesOnlyKnownCodesAndNeverExternalErrorText() {
+        for(String code:List.of("ATTACHMENT_SIGNATURE_UNSUPPORTED","ATTACHMENT_FORMAT_MISMATCH","ATTACHMENT_CONTENT_TYPE_MISMATCH","ATTACHMENT_DISPOSITION_INVALID","ATTACHMENT_DISPOSITION_MISMATCH")){
+            assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException(code))).isEqualTo(code);
+            assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException(code+" PRIVATE_CANARY"))).isEqualTo("TRANSPORT_FAILED");
+        }
         assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException("ATTACHMENT_DNS_TIMEOUT")))
                 .isEqualTo("ATTACHMENT_DNS_TIMEOUT");
         assertThat(AnnouncementAttachmentOfficialObservationTest.selectFailureCode(new java.io.IOException("ATTACHMENT_DNS_LOOKUP_FAILED")))
