@@ -212,11 +212,17 @@ class AttachmentProviderQaCatalogTest {
         JeonbukSecondDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonbukSecondDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
         JeonnamFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonnamFirstDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
         JeonnamSecondDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonnamSecondDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
+        legacyProfiles.add(JeonnamThirdDownloadCases.selectJangseongCase().profile());profiles=List.copyOf(legacyProfiles);
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
         rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
                 rule("SUPPORT",RuleGroupKindCode.SUPPORT_TYPE,"육성지원",null,SupportTypeCode.GRANT_SUBSIDY)));
         return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles));
+    }
+    @Test void jangseongRemainsExactUnapprovedReference()throws Exception{
+        var selected=packagedCatalog();var sample=JeonnamThirdDownloadCases.selectJangseongCase();var notice=packagedDefinition().notices().stream().filter(n->n.caseCode().equals(sample.code())).findFirst().orElseThrow();
+        assertThat(notice.expectation()).isNull();assertThat(notice.source()).isEqualTo(sample.source());assertThat(notice.profileCode()).isEqualTo(sample.profile().selectProfileCode());var plan=selected.selectPrepared(scope,rules,runtimeHash,now).plan();
+        assertThat(plan.cases().stream().filter(c->c.caseCode().equals(sample.code()))).hasSize(1).allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();});assertThat(plan.isQaPassed()).isFalse();
     }
     @Test void jeonnamSecondDownloadsRemainExactUnapprovedReferences()throws Exception{
         var selected=packagedCatalog();var groups=JeonnamSecondDownloadCases.GROUPS;
@@ -361,7 +367,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
-        assertThat(result.plan().cases()).hasSize(115);
+        assertThat(result.plan().cases()).hasSize(116);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -396,9 +402,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(59);assertThat(result.plan().cases()).hasSize(115);
+        assertThat(result.plan().targets()).hasSize(60);assertThat(result.plan().cases()).hasSize(116);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(114).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(115).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 /** 실측한 공식 게시판과 공개 파일 서버를 시스템에서 고정한다. */
 @Configuration(proxyBeanMethods=false)
 public class JeonnamAttachmentProfileConfiguration {
+    @Bean public AttachmentDiscoveryProfile selectJangseongProfileDetails(){return new JangseongPostAttachmentDiscoveryProfile();}
     @Bean public AttachmentDiscoveryProfile selectGokseongProfileDetails(){return new JeonnamCountyAttachmentDiscoveryProfile(JeonnamCountyAttachmentDiscoveryProfile.Site.GOKSEONG);}
     @Bean public AttachmentDiscoveryProfile selectJindoProfileDetails(){return new JeonnamCountyAttachmentDiscoveryProfile(JeonnamCountyAttachmentDiscoveryProfile.Site.JINDO);}
     @Bean public AttachmentDiscoveryProfile selectMokpoProfileDetails(){return new JeonnamNoticeAttachmentDiscoveryProfile(JeonnamNoticeAttachmentDiscoveryProfile.Site.MOKPO);}

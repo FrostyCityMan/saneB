@@ -1441,6 +1441,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JANGSEONG-29332",
+      "profileCode": "LOCAL_JANGSEONG_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4940d787c3087ee94f8692efc6283eb40eb03b009d0edde5b2d8ca65f999ea13",
+        "sourceUrl": "https://www.jangseong.go.kr/home/www/news/jangseong/announcement/show/29332?page=1",
+        "localSourceCode": "LGS-000196",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
