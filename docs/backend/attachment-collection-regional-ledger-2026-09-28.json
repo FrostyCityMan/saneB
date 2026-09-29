@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 85,
-    "missingProfileRegionCount": 138,
+    "registeredRegionCount": 87,
+    "missingProfileRegionCount": 136,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4619,27 +4619,51 @@
       "sourceCode": "LGS-000243",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000243",
+          "caseCode": "JEJUSI-108927",
+          "profileCode": "LOCAL_JEJUSI_GET_V1",
+          "profileHash": "df7cb5ce17aad7cffe1e30047a20fd1c09302a0ebd134d73d4dbd35481795e59",
+          "receiptHash": "3b0dbb0335589bd8e8361a84f108f883d010625bb19332f78769be366d347006",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000244",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000244",
+          "caseCode": "SEOGWIPO-71884",
+          "profileCode": "LOCAL_SEOGWIPO_GET_V1",
+          "profileHash": "73a96e316b485f1bdb86c1fc8bdc8c75a6bb28d60714980f7392da1b57fb5eea",
+          "receiptHash": "a2571e6fdc3c00b31f8a0e8503b867c6a8af8189b9bba192238867611fe20fca",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     }
   ],
   "inputInventorySha256": "c8637cb4549b1b8c6a998dde4c82008f0c9daf1dc681fda87a7c2865fcfa6d8b",
@@ -6509,6 +6533,79 @@
         "requests": 1
       }
     ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "jejuFirstDownloadRun": {
+    "scope": "JEJU_FIRST_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyGetCount": 8,
+    "surveyPostCount": 1,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "JEJUSI-detail.html",
+        "bytes": 159265,
+        "sha256": "35843c73145c24d0d324058c7970204dea4625d8ec50bd6286ffa8c277b434d9"
+      },
+      {
+        "name": "JEJUSI-list.html",
+        "bytes": 169408,
+        "sha256": "50078bfaf221f7df51fffc50cee5ef052d8eabede37e8716b1604c485447d490"
+      },
+      {
+        "name": "JEJUSI-search.html",
+        "bytes": 162168,
+        "sha256": "df1fe7d5971c1f9bbd64fea3710bac1165baaf3262fd82d098109d1235c8d832"
+      },
+      {
+        "name": "SEOGWIPO-board.html",
+        "bytes": 117088,
+        "sha256": "375db6b3c8361bc1a0036365e2395a3c1077e4f0440cf5a89984440eda52b3c7"
+      },
+      {
+        "name": "SEOGWIPO-detail.html",
+        "bytes": 8212,
+        "sha256": "db1250c7ccd60a62feaeebbdebe1dff394bdad943be66b6fa2432b6ac62c72a1"
+      },
+      {
+        "name": "SEOGWIPO-eminwon-list.html",
+        "bytes": 12519,
+        "sha256": "5a51be00f165d9bb4b49fe782d8889faba50220acb29e24adf304b309bfd2a47"
+      },
+      {
+        "name": "SEOGWIPO-headers.txt",
+        "bytes": 410,
+        "sha256": "2dac2bb554a5bd0dd4be8fa122d45569d44897fc52edf00ca4ca1f7d98932b33"
+      },
+      {
+        "name": "SEOGWIPO-list.html",
+        "bytes": 868,
+        "sha256": "7f06a7541e5b0788c2bd46b0ef9cf9ee4d0632d836c658d7c5d58da46e879927"
+      },
+      {
+        "name": "SEOGWIPO-repeat.html",
+        "bytes": 868,
+        "sha256": "7f06a7541e5b0788c2bd46b0ef9cf9ee4d0632d836c658d7c5d58da46e879927"
+      },
+      {
+        "name": "SEOGWIPO-search.html",
+        "bytes": 16648,
+        "sha256": "e5fb14d9367c763eae7ad3961159aecdf42d5b80fd58a4c075c82d34aa7d1f5e"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JEJUSI-108927.json",
+      "build/reports/attachment-regional-collection/SEOGWIPO-71884.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 4913073,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

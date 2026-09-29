@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "835605af7b9c26257cdd26e03cf5ff54714035a50d7140a3e61cabc0180b4caa",
+  "inventorySha256": "c9dfe8e41846f1672f73f4b544425879c6e9926071587ff6a10ee0a39006330b",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1251,6 +1251,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "19ae6b4f7e0b1a619350a13ce0560f38dbda4c48f0ae4b6529eb892f48a2beb6"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEJUSI-108927.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "3b0dbb0335589bd8e8361a84f108f883d010625bb19332f78769be366d347006",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "18922b43388135fba820cc0e111c76d60ea1f173df8784929e1ee368c8d17ded"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SEOGWIPO-71884.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "a2571e6fdc3c00b31f8a0e8503b867c6a8af8189b9bba192238867611fe20fca",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "18922b43388135fba820cc0e111c76d60ea1f173df8784929e1ee368c8d17ded"
     }
   ],
   "samples": [
@@ -3482,6 +3498,41 @@
       ]
     },
     {
+      "sourceCode": "LGS-000243",
+      "caseCode": "JEJUSI-108927",
+      "profileCode": "LOCAL_JEJUSI_GET_V1",
+      "profileHash": "df7cb5ce17aad7cffe1e30047a20fd1c09302a0ebd134d73d4dbd35481795e59",
+      "receiptHash": "3b0dbb0335589bd8e8361a84f108f883d010625bb19332f78769be366d347006",
+      "producerClassHash": "18922b43388135fba820cc0e111c76d60ea1f173df8784929e1ee368c8d17ded",
+      "observedAt": "2026-09-29T06:27:52.322731200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8bb9d3be8f21e51dca610e0e9792ffe879f34f69a7aadc01c89c367b099e1e95",
+          "status": "SUCCEEDED",
+          "bytes": 121897,
+          "format": "HWPX",
+          "binaryHash": "f266b42c25ad4f1611b0a082fd0610082378c69f9df500310fefa04d4087b8b8",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "296031892df2eb81c78c6f978272cac456e8a6e47e45ab2a4836b4da1e4740f4",
+          "status": "SUCCEEDED",
+          "bytes": 77684,
+          "format": "HWPX",
+          "binaryHash": "f04c3de629f6271c0ac7a80ff53375876718dffff7d0c187d30dba5c7e36fa0a",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000167",
       "caseCode": "JEONGEUP-50232",
       "profileCode": "LOCAL_JEONGEUP_GET_V1",
@@ -4212,6 +4263,33 @@
           "bytes": 47104,
           "format": "HWP",
           "binaryHash": "0a488700ba3dc0bc00c2e1b34f690f8a99fd6ce02d45526b77770098a4e37e20",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000244",
+      "caseCode": "SEOGWIPO-71884",
+      "profileCode": "LOCAL_SEOGWIPO_GET_V1",
+      "profileHash": "73a96e316b485f1bdb86c1fc8bdc8c75a6bb28d60714980f7392da1b57fb5eea",
+      "receiptHash": "a2571e6fdc3c00b31f8a0e8503b867c6a8af8189b9bba192238867611fe20fca",
+      "producerClassHash": "18922b43388135fba820cc0e111c76d60ea1f173df8784929e1ee368c8d17ded",
+      "observedAt": "2026-09-29T06:28:08.511605500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "901d08fccaeb9be15341249eaf2eeb3278f969e7a7d1e34a3ce5682fb8546056",
+          "status": "SUCCEEDED",
+          "bytes": 347136,
+          "format": "HWP",
+          "binaryHash": "8d45a61c0faa5e130becd0a9eb4dd2b830b62b851176fca3060a11d53e6dd37a",
           "signatureVerified": true
         }
       ]

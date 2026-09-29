@@ -1741,6 +1741,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JEJUSI-108927",
+      "profileCode": "LOCAL_JEJUSI_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cdc31d959b95de64a1b125405a93d452c295c9ea4fff2e8cec32a92135920ea1",
+        "sourceUrl": "https://www.jejusi.go.kr/information/intro/notice.do?mode=detail&ancmnt_pbanc_mng_no=108927&currentPageNo=1",
+        "localSourceCode": "LGS-000243",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEOGWIPO-71884",
+      "profileCode": "LOCAL_SEOGWIPO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0532f3bbae97c473715f09bb7284abe93cff8dda316c4a45f6bab1af21bee76c",
+        "sourceUrl": "https://eminwon.seogwipo.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=71884&subCheck=Y",
+        "localSourceCode": "LGS-000244",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
