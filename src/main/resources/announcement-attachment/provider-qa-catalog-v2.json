@@ -2365,6 +2365,18 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "MAPO-19775",
+      "profileCode": "LOCAL_MAPO_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "abfdf7a959eb751b56b1933b9bace163d0db77d5bf45da72d164d078144cba9e",
+        "sourceUrl": "https://www.mapo.go.kr/site/main/nPortal/detail?bcId=19775",
+        "localSourceCode": "LGS-000015",
+        "listParserProfileCode": "MAPO_LEGAL_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

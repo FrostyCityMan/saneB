@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 136,
-    "missingProfileRegionCount": 87,
+    "registeredRegionCount": 137,
+    "missingProfileRegionCount": 86,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -227,14 +227,26 @@
       "sourceCode": "LGS-000015",
       "listParserProfileCode": "MAPO_LEGAL_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000015",
+          "caseCode": "MAPO-19775",
+          "profileCode": "LOCAL_MAPO_PORTAL_V1",
+          "profileHash": "637228782395cbbe19891d9e852a9358f0511e7422ea000cb41b7f896b9bde90",
+          "receiptHash": "370cd27854e5ad7b8bf62c030a94203eab7edafe8009ee40093af6ead21b730a",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000016",
@@ -9362,6 +9374,94 @@
         "sourceCode": "LGS-000141",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP_404_NOT_REPEATED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulSecondDownloadRun": {
+    "scope": "MAPO_PORTAL_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DOBONG-board.html",
+        "bytes": 180727,
+        "sha256": "65b8d3356877398d249509cc9113d386b131e25c5c4f081cff39d5b2a947c7f2"
+      },
+      {
+        "name": "DOBONG-current-list.html",
+        "bytes": 115,
+        "sha256": "fbbfd1b8599de9856d4c864c83ec2057e2880fe557670e56d3716f683e8ea35e"
+      },
+      {
+        "name": "DOBONG-list.html",
+        "bytes": 121,
+        "sha256": "78e9783bfdfafde52d7d29cb82cd1b32eeefc2bf7a0dd7908ba422fbc575b6b7"
+      },
+      {
+        "name": "DOBONG-search.html",
+        "bytes": 173127,
+        "sha256": "8c30da069a4316dde1822f987b2c9e3e92e0198e220f9e8807bb7c45bd533382"
+      },
+      {
+        "name": "GANGNAM-list.html",
+        "bytes": 457472,
+        "sha256": "405f8dbedd93e5efb6255993ee00acc24cb37062f6e5b9898ec0a395a9f1e6a8"
+      },
+      {
+        "name": "GANGNAM-search.html",
+        "bytes": 451120,
+        "sha256": "a5b8a7bcea6a974bf857abaddf7cc84422cde04017489110686932e631785527"
+      },
+      {
+        "name": "MAPO-detail.html",
+        "bytes": 151482,
+        "sha256": "308b0bf4ec24574901d60ed7628649b9f4cca9e50592a05ac44259fb56128d53"
+      },
+      {
+        "name": "MAPO-list.html",
+        "bytes": 152183,
+        "sha256": "c17e2493bfb6b2a4081e4ca41fb28d631c3e61239eac1f1f6ba266c6bdad5c99"
+      },
+      {
+        "name": "MAPO-search.html",
+        "bytes": 148277,
+        "sha256": "c920ffa69ec8cd1369acb89256e9907e9b7c82e2c93cda1c51096d3034a8f266"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "MAPO-19775",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/MAPO-19775.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2319872,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000015",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_CURRENT_ATTACHMENT_LIST_HWP_1"
+      },
+      {
+        "sourceCode": "LGS-000024",
+        "requests": 2,
+        "result": "OFFICIAL_LIST_OK_SINGLE_TITLE_SEARCH_EMPTY_SAMPLE_NOT_SELECTED"
+      },
+      {
+        "sourceCode": "LGS-000011",
+        "requests": 4,
+        "result": "OFFICIAL_REDIRECTS_NEW_LIST_OK_SINGLE_TITLE_SEARCH_EMPTY_SAMPLE_NOT_SELECTED"
       }
     ],
     "originalsRemoved": true,
