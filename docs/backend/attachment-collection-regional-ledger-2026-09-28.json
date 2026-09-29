@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 110,
-    "missingProfileRegionCount": 113,
+    "registeredRegionCount": 113,
+    "missingProfileRegionCount": 110,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2019,14 +2019,26 @@
       "sourceCode": "LGS-000093",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000093",
+          "caseCode": "PYEONGTAEK-95902",
+          "profileCode": "LOCAL_PYEONGTAEK_PORTAL_V1",
+          "profileHash": "01aab9c08f03fbf82b7ad27e91570ba653dc1a50c9b8c095ec62fdee8746be21",
+          "receiptHash": "5ca8314f1b43b3669daf0ae1f5687b511534b46a128b4c0ddc07b417df99ac9a",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000094",
@@ -2071,14 +2083,26 @@
       "sourceCode": "LGS-000097",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000097",
+          "caseCode": "GIMPO-73069",
+          "profileCode": "LOCAL_GIMPO_PORTAL_V1",
+          "profileHash": "239327e732d3f36c6eab1020d55d7e1be6396f62a751f73eac4e4cf8bfb0be0a",
+          "receiptHash": "382b9015df19bd7538be7614e8fe362a004f15c1069f41353a3e4f5986a1124d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000098",
@@ -2338,14 +2362,26 @@
       "sourceCode": "LGS-000112",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000112",
+          "caseCode": "DONGDUCHEON-44784",
+          "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+          "profileHash": "1b9ee82ed5a680f879c075fe9d8d7d8430fe199773445f106b7e775b293d53a5",
+          "receiptHash": "a45018d41fe51b58bfab80fc6ce9ac5412314e13c5d8539615fcf3cac46b114e",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000113",
@@ -7693,6 +7729,105 @@
         "sourceCode": "LGS-000107",
         "requests": 3,
         "result": "OFFICIAL_SEARCH_DETAIL_DIRECT_GET"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalFourthDownloadRun": {
+    "scope": "CAPITAL_FOURTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 12,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DONGDUCHEON-detail.html",
+        "bytes": 570824,
+        "sha256": "d83aedee248881963e594c2da16119280912a34d11e37fb60959d3e1b1be8462"
+      },
+      {
+        "name": "DONGDUCHEON-list.html",
+        "bytes": 573101,
+        "sha256": "9ddbf7e916399f4fe93c457f364c5de5b6c3aa76c40c77dd274905174194352d"
+      },
+      {
+        "name": "DONGDUCHEON-search.html",
+        "bytes": 571219,
+        "sha256": "c6e045acad1fa0d8cd217b9e903d0337c6916016c7a07d02938662c36a5b5677"
+      },
+      {
+        "name": "GIMPO-detail.html",
+        "bytes": 260032,
+        "sha256": "787b4e93f54f35cf0cbdf42eeea2e0db9093b9320ada3412029119a8ea5a73fb"
+      },
+      {
+        "name": "GIMPO-list.html",
+        "bytes": 272106,
+        "sha256": "78bc6059a871280447d5b5e1368054be0342e67f428b74894ad7069f0fccea6f"
+      },
+      {
+        "name": "GIMPO-loan-detail.html",
+        "bytes": 263270,
+        "sha256": "1ff292ca13a654899c0e8894908269ea1711ddc430f29507bbbde6d4e6c590a3"
+      },
+      {
+        "name": "GIMPO-search.html",
+        "bytes": 271410,
+        "sha256": "4b0de0701c628add7643633a556e293ed79c286dc9db6e61251f5ef4d2db0727"
+      },
+      {
+        "name": "PYEONGTAEK-board.html",
+        "bytes": 341301,
+        "sha256": "db29e1a3069f6dc80823b76f4bf8f696c615e172ec8df448f960ddde595ecffd"
+      },
+      {
+        "name": "PYEONGTAEK-detail.html",
+        "bytes": 338202,
+        "sha256": "e09417f7945fedcf037fad90c7dd2428cb0a3ef661e7b170bb63f2c8c6ae0df3"
+      },
+      {
+        "name": "PYEONGTAEK-list-current.html",
+        "bytes": 927,
+        "sha256": "eff3667cf1c23f0a54ea61f0fdd7e093485025ae9095ad734136e072659337d6"
+      },
+      {
+        "name": "PYEONGTAEK-list.html",
+        "bytes": 890,
+        "sha256": "1ab475d57aee422dda11f8e77830d06ca8e860b829d39825bded2442a15de58d"
+      },
+      {
+        "name": "PYEONGTAEK-search.html",
+        "bytes": 334938,
+        "sha256": "81f9ff775ee5f0a3dffc89e0cd4c5bee6b8a2278e2697ceda2daa892be840696"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GIMPO-73069.json",
+      "build/reports/attachment-regional-collection/DONGDUCHEON-44784.json",
+      "build/reports/attachment-regional-collection/PYEONGTAEK-95902.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 7,
+    "reservedBytesIncludingBodyUpperBound": 4595200,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000097",
+        "requests": 4,
+        "result": "FIRST_DETAIL_EXPIRED_ALTERNATE_LISTED_ANNUAL_NOTICE"
+      },
+      {
+        "sourceCode": "LGS-000112",
+        "requests": 3,
+        "result": "HTTPS_PORTAL_DETAIL_WITH_PUBLICATION_EXPIRY_WARNING"
+      },
+      {
+        "sourceCode": "LGS-000093",
+        "requests": 5,
+        "result": "TWO_SAME_HOST_REDIRECTS_LIST_SEARCH_ARCHIVED_2024_DETAIL"
       }
     ],
     "originalsRemoved": true,

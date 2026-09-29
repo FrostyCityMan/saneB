@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "db0ee393e9909ba9db7dc7c8421ebde24b0492c903775ddf8b09f46b2cfaf5b2",
+  "inventorySha256": "c15ec6020147455853c8134731007d4c4989b8bcd0a6b8fced8b8113cdc15697",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1467,6 +1467,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "b9a75a19d5021b40e5c4cc9693531391147ddd228f3640921b3ca5f1f11796bc"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GIMPO-73069.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "382b9015df19bd7538be7614e8fe362a004f15c1069f41353a3e4f5986a1124d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DONGDUCHEON-44784.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "a45018d41fe51b58bfab80fc6ce9ac5412314e13c5d8539615fcf3cac46b114e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/PYEONGTAEK-95902.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "5ca8314f1b43b3669daf0ae1f5687b511534b46a128b4c0ddc07b417df99ac9a",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078"
     }
   ],
   "samples": [
@@ -2676,6 +2700,24 @@
       ]
     },
     {
+      "sourceCode": "LGS-000112",
+      "caseCode": "DONGDUCHEON-44784",
+      "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+      "profileHash": "1b9ee82ed5a680f879c075fe9d8d7d8430fe199773445f106b7e775b293d53a5",
+      "receiptHash": "a45018d41fe51b58bfab80fc6ce9ac5412314e13c5d8539615fcf3cac46b114e",
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078",
+      "observedAt": "2026-09-29T09:04:54.073055700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
       "sourceCode": "LGS-000120",
       "caseCode": "DONGHAE-36513",
       "profileCode": "LOCAL_DONGHAE_GET_V1",
@@ -3111,6 +3153,33 @@
           "bytes": 112241,
           "format": "HWPX",
           "binaryHash": "1d2ca5e0d131f678c55159652ccc16b19666916735be16b86c51c7007a2c2426",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000097",
+      "caseCode": "GIMPO-73069",
+      "profileCode": "LOCAL_GIMPO_PORTAL_V1",
+      "profileHash": "239327e732d3f36c6eab1020d55d7e1be6396f62a751f73eac4e4cf8bfb0be0a",
+      "receiptHash": "382b9015df19bd7538be7614e8fe362a004f15c1069f41353a3e4f5986a1124d",
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078",
+      "observedAt": "2026-09-29T09:04:28.574845800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "5385fdaa9e53a542018e8ba9af56d73cd4219ceae936e35bc48be11594ad592c",
+          "status": "SUCCEEDED",
+          "bytes": 130560,
+          "format": "HWP",
+          "binaryHash": "e6f9e4d0fad95ea43a74480e6137fe7e6a7f988cfd8bc8d4a6c77215c17b4007",
           "signatureVerified": true
         }
       ]
@@ -4732,6 +4801,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000093",
+      "caseCode": "PYEONGTAEK-95902",
+      "profileCode": "LOCAL_PYEONGTAEK_PORTAL_V1",
+      "profileHash": "01aab9c08f03fbf82b7ad27e91570ba653dc1a50c9b8c095ec62fdee8746be21",
+      "receiptHash": "5ca8314f1b43b3669daf0ae1f5687b511534b46a128b4c0ddc07b417df99ac9a",
+      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078",
+      "observedAt": "2026-09-29T09:04:54.100106700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000037",

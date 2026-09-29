@@ -38,6 +38,20 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void capitalFourthBodyDoesNotUseMenusMetadataOrExpiredPageFallback() {
+        for(var s:CapitalFourthNoticePage.Site.values()) {
+            boolean pt=s==CapitalFourthNoticePage.Site.PYEONGTAEK,gimpo=s==CapitalFourthNoticePage.Site.GIMPO;
+            String body="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            String page="<main><header>특허 메뉴</header>"+(pt?"<form id='detailForm' name='detailForm' method='post'><div class='bod_wrap'><div class='bod_view'><h4>소상공인 지원</h4><div class='view_info'>담당부서</div><div class='view_cont'>"+body+"</div></div></div></form>":"<div id='contents'><table class='"+(gimpo?"p-table block":"bbs_default view")+"'><tr><th>"+(gimpo?"제목":"제 목")+"</th><td>소상공인 지원</td></tr>"+(gimpo?"<tr><td colspan='4'><div>"+body+"</div></td></tr>":"<tr><th>내용</th><td>"+body+"</td></tr>")+"<tr><th>첨부파일</th><td>스타트업 신청서</td></tr></table></div>")+"<footer>푸터</footer></main>";
+            String url="https://"+s.host+s.path+"?"+s.menuKey+"="+s.menu+"&"+s.idKey+"=1"+(gimpo?"&cate_cd=1":!pt?"&not_ancmt_se_code=04":"");
+            for(String selected:List.of(page,page+page,"<main>게시기간이 아닙니다.</main>")) {
+                var t=new StubTransport();t.enqueue(html(selected));var r=client(true,t,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+s.host+"/list",url));
+                if(selected.equals(page)){assertThat(r.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(r.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                else {assertThat(r.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(r.bodyText()).isNull();}assertThat(t.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void capitalThirdBodyUsesOnlyOfficialContentIncludingDisabledTextarea() {
         for(var site:CapitalThirdNoticePage.Site.values()) {
             boolean hanam=site==CapitalThirdNoticePage.Site.HANAM, nyj=site==CapitalThirdNoticePage.Site.NAMYANGJU;

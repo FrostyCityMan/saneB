@@ -2053,6 +2053,42 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GIMPO-73069",
+      "profileCode": "LOCAL_GIMPO_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "657943739c016fc3d7b9dec2f9e8f9590fbe6415619336b1b26bae1ba939b581",
+        "sourceUrl": "https://www.gimpo.go.kr/portal/ntfcPblancView.do?key=1004&ntcn_no=73069&cate_cd=1",
+        "localSourceCode": "LGS-000097",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DONGDUCHEON-44784",
+      "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fe6e483b56c3e5094aa8f1bce6ed79620bd6c9f2e5c7418879208c827884a6e2",
+        "sourceUrl": "https://www.ddc.go.kr/ddc/selectGosiData.do?key=340&not_ancmt_mgt_no=44784&not_ancmt_se_code=04",
+        "localSourceCode": "LGS-000112",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "PYEONGTAEK-95902",
+      "profileCode": "LOCAL_PYEONGTAEK_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "490c0221da610e874ed4b3d3396c8a1b3c2414905b1552f63cbb2e917ea31078",
+        "sourceUrl": "https://www.pyeongtaek.go.kr/pyeongtaek/saeol/gosi/view.do?mid=0401020100&notAncmtMgtNo=95902",
+        "localSourceCode": "LGS-000093",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
