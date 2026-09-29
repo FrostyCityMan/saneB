@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "64b3da24834afd8aa49a21ac77e92d20ad2a5e5c9ed68a585bbe95a83d191575",
+  "inventorySha256": "5a3f01eb9b07f553754ac779b07c576d679fff8a13d9da890b11510721777cd7",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1853,7 +1853,7 @@
       "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196"
     },
     {
-      "path": "build/reports/attachment-regional-collection/GEOMDAN-235.json",
+      "path": "build/reports/attachment-regional-collection/GEOMDAN-235-BEFORE-UTF8.json",
       "kind": "LOCAL_COLLECTION_ONLY",
       "receiptHash": "bf1fdda256642aaff5c869cc93d8aece4afa2c5d675cede3a7fa2984d4dd60df",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
@@ -2079,6 +2079,14 @@
     {
       "path": "build/reports/attachment-regional-collection/SEOHAE-42495.json",
       "receiptHash": "6be3bf1ab61969b361895d55fc3ff4ff498e7332fc86a39b8d696788217883d3",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GEOMDAN-235.json",
+      "receiptHash": "5112cfe29bc4c715005729a4bb315faddd98b47452224bcccaeabf353d7a5002",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
@@ -4093,25 +4101,19 @@
       "sourceCode": "LGS-000063",
       "caseCode": "GEOMDAN-235",
       "profileCode": "LOCAL_GEOMDAN_BOARD_V1",
-      "profileHash": "811350257855cd256ef813ff10d10b64e2d24e6b42fc312dcde54d9bed8b3681",
-      "receiptHash": "bf1fdda256642aaff5c869cc93d8aece4afa2c5d675cede3a7fa2984d4dd60df",
-      "producerClassHash": "6e2c8e2c9fc06f2b3897fc507d01d6327bc6632351581acb4b66d7bbab9b764e",
-      "observedAt": "2026-09-29T16:02:21.781103Z",
+      "profileHash": "6f86deccb84b4b84153f83d3ee9a440671ab56ff34c354c006d8b9818ddf0f7a",
+      "receiptHash": "5112cfe29bc4c715005729a4bb315faddd98b47452224bcccaeabf353d7a5002",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T22:23:18.958924300Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": true,
-      "discoveryStatus": "FOUND",
-      "discoveryComplete": true,
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": [
-        {
-          "locatorHash": "c7094caad4fde081d9e850b2940c3f3b95683fc3fadd7b9e5b67f73952f41e42",
-          "status": "FAILED",
-          "bytes": 46390
-        }
-      ]
+      "files": []
     },
     {
       "sourceCode": "LGS-000019",

@@ -1845,9 +1845,9 @@
           "sourceCode": "LGS-000063",
           "caseCode": "GEOMDAN-235",
           "profileCode": "LOCAL_GEOMDAN_BOARD_V1",
-          "profileHash": "811350257855cd256ef813ff10d10b64e2d24e6b42fc312dcde54d9bed8b3681",
-          "receiptHash": "bf1fdda256642aaff5c869cc93d8aece4afa2c5d675cede3a7fa2984d4dd60df",
-          "fileCount": 1,
+          "profileHash": "6f86deccb84b4b84153f83d3ee9a440671ab56ff34c354c006d8b9818ddf0f7a",
+          "receiptHash": "5112cfe29bc4c715005729a4bb315faddd98b47452224bcccaeabf353d7a5002",
+          "fileCount": 0,
           "downloadedFileCount": 0,
           "status": "INCOMPLETE",
           "collectionVerified": false
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "64b3da24834afd8aa49a21ac77e92d20ad2a5e5c9ed68a585bbe95a83d191575",
+  "inputInventorySha256": "5a3f01eb9b07f553754ac779b07c576d679fff8a13d9da890b11510721777cd7",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 270,
+  "importedReceiptCount": 271,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,108 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "geomdanHeaderRecoveryRun": {
+    "scope": "GEOMDAN_UTF8_HEADER_RECOVERY_WITH_GWANGJU_SEOGU_SEARCH_ERROR",
+    "surveyRequestCount": 6,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000067",
+        "requests": 4,
+        "result": "REGISTERED302_OFFICIAL_LIST200_SEARCH205404_SAME_WITH_COMPLETE_FORM_NO_FURTHER_RETRY"
+      },
+      {
+        "sourceCode": "LGS-000063",
+        "requests": 2,
+        "result": "DETAIL200_FILE200_UTF8_OCTETS_MISREAD_AS_LATIN1_CONTROL_CHARACTERS"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-gwangju-seogu-20260930/form-search-head.txt",
+        "bytes": 739,
+        "sha256": "83b03c00b72cca3f06ed63b63998bfe7054bb844ac491e8c7abf29c8718b26ec"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/form-search.html",
+        "bytes": 781,
+        "sha256": "3b2d01b27d120743679223131ae874e97a2ee120d89391a51554c97b2c373593"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/list-head.txt",
+        "bytes": 754,
+        "sha256": "5029975c446a7ac70a24d93c0e81fe051c42670421094852ae80bd2fe92706a3"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/official-list-head.txt",
+        "bytes": 611,
+        "sha256": "047817425025937291f89fb33658916883fa1bbc04f5ab6888855eea4cf1fbd2"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/official-list.html",
+        "bytes": 95573,
+        "sha256": "87cabeccdf39253c4d6583d388f266f940890058c8f5d8774f8bfbb49f7612b8"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/search-head.txt",
+        "bytes": 739,
+        "sha256": "f9ef1c3858753e8537089728c052d36612138df1ea92f03e0075157c090420ff"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/search.html",
+        "bytes": 781,
+        "sha256": "3b2d01b27d120743679223131ae874e97a2ee120d89391a51554c97b2c373593"
+      },
+      {
+        "path": "build/qa-geomdan-header-20260930/detail-head.txt",
+        "bytes": 511,
+        "sha256": "bc3e4b23a98a0d39e2b5b9581badcfdf46c3da92628c4e41d6184f0d92d3d1ab"
+      },
+      {
+        "path": "build/qa-geomdan-header-20260930/detail.html",
+        "bytes": 201973,
+        "sha256": "46026f93b592fe943b5d5776ac500f6ecb5b95aba030a6a0f0afcd93a8ff5fd6"
+      },
+      {
+        "path": "build/qa-geomdan-header-20260930/file-head.txt",
+        "bytes": 351,
+        "sha256": "e9f3dc414882f35929669288ee947056bb1d660b19a38ae62420d6a9e087c853"
+      },
+      {
+        "path": "build/qa-geomdan-header-20260930/file.bin",
+        "bytes": 46390,
+        "sha256": "65dd3e7db2539988ff81734bffc8d8576c63501a3eedd3e67800b57fbdb0820b"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GEOMDAN-235",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReport": "build/reports/attachment-regional-collection/GEOMDAN-235-BEFORE-UTF8.json",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GEOMDAN-235.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 3,
+    "reservedBytesIncludingBodyUpperBound": 2097152,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 9,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
