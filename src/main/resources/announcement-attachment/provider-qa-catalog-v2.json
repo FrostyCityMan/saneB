@@ -1537,6 +1537,42 @@
         "listParserProfileCode": "GUNWI_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONGJU-24194",
+      "profileCode": "LOCAL_YEONGJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "84eddea3d14d5aa40c6ec4f33cb9dc8aa938b90295769144794bd97c8e1ff815",
+        "sourceUrl": "https://www.yeongju.go.kr/open_content/main/page.do?mnu_uid=10619&not_ancmt_mgt_no=24194&cmd=2",
+        "localSourceCode": "LGS-000206",
+        "listParserProfileCode": "SUBJECT_NOTICE_TABLE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEONGJU-586507",
+      "profileCode": "LOCAL_SEONGJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ca6c3bb11a52e220b057d38569f993acbe8a3824759883f919426314a244ff65",
+        "sourceUrl": "https://www.sj.go.kr/page.do?mnu_uid=1044&bod_uid=586507&cmd=258",
+        "localSourceCode": "LGS-000217",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YECHEON-30761",
+      "profileCode": "LOCAL_YECHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "88e04229ea0b577ead0f610f30ec191abfaa9d893b43337efda222a4609d4970",
+        "sourceUrl": "https://www.ycg.kr/open.content/ko/administrative/news/announcement/?id=30761",
+        "localSourceCode": "LGS-000219",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
