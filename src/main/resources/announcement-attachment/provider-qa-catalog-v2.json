@@ -2749,6 +2749,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAEGU_SEOGU-26070",
+      "profileCode": "LOCAL_DAEGU_SEOGU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c6e6b0e2145a41bb11e1e958f7facd005242e251440d3404a1ee80ca3313d153",
+        "sourceUrl": "https://www.dgs.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=26070&mid=0601020200",
+        "localSourceCode": "LGS-000047",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

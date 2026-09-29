@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 168,
-    "missingProfileRegionCount": 55,
+    "registeredRegionCount": 169,
+    "missingProfileRegionCount": 54,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1401,14 +1401,26 @@
       "sourceCode": "LGS-000047",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000047",
+          "caseCode": "DAEGU_SEOGU-26070",
+          "profileCode": "LOCAL_DAEGU_SEOGU_PORTAL_V1",
+          "profileHash": "be14fb35752e9194dcb2abacc45c9feccad8c7e1af70beef6ec1e7b3c466a7b7",
+          "receiptHash": "bec5dfa09948599787fff780cf378d630b39ce59fcb4a2693246e1661dbb1ceb",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000048",
@@ -5683,9 +5695,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "637e1374028d14811b07a4d90d72831c6b00a030c4da3192a24b381728d61bda",
+  "inputInventorySha256": "f1cfacd350987c4b53878a7dbb094bbe3b0c0648a37b190b24c6834862cea52e",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 257,
+  "importedReceiptCount": 258,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11406,6 +11418,70 @@
         "result": "OFFICIAL_MENU_REDIRECT_ACTIVE_PERIOD_TITLE_SEARCH_NO_RESULTS_NO_DETAIL_REQUEST"
       }
     ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "daeguSeoguDownloadRun": {
+    "scope": "DAEGU_SEOGU_CURRENT_PAST_MENU_COLLECTION_ONLY",
+    "priorSurveyLedgerKey": "daeguDongguDownloadRun",
+    "priorSurveyRequests": 4,
+    "surveyRequestCount": 4,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "menu-head.txt",
+        "bytes": 466,
+        "sha256": "ba19e040f1c26d12eb0d731e6379f5ee74474abff5e62606cc505db50de6837e"
+      },
+      {
+        "name": "menu.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "past-list.html",
+        "bytes": 498939,
+        "sha256": "46aa58a228dcbd30e8c607af52e64ebf7cf782b806a4e5845f6f473e0a32b920"
+      },
+      {
+        "name": "search.html",
+        "bytes": 493108,
+        "sha256": "9929659cdab9d47fff1aaf8f8731dcf47846829e19c40e1b1cfb0c97ebe6d3e8"
+      },
+      {
+        "name": "detail.html",
+        "bytes": 493605,
+        "sha256": "7980973a5e6045b9d6a82928809ff1a3f70fb6c29f82de757407442df3c7c0ae"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DAEGU_SEOGU-26070",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAEGU_SEOGU-26070.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2630656,
+    "cumulativeRequestReservationsIncludingPriorSurveyUpperBound": 12,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000047",
+        "requests": 4,
+        "result": "OFFICIAL_PAST_MENU_LIST_SEARCH_DETAIL200_ARCHIVED_SUPPORT_NOTICE_HWP_1"
+      }
+    ],
+    "sampleUse": "ARCHIVED_NOTICE_TRANSPORT_QA_NOT_CURRENT_ELIGIBILITY",
+    "currentMenuFileObservation": false,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

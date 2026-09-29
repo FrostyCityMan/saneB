@@ -75,6 +75,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
         if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
+        if("DAEGU_SEOGU".equals(group))return Stream.of(DaeguSeoguDownloadCases.selectCase());
         if("DAEGU_DONGGU".equals(group))return Stream.of(DaeguDongguDownloadCases.selectCase());
         if("HONGCHEON".equals(group))return Stream.of(HongcheonDownloadCases.selectCase());
         if("SAMCHEOK".equals(group))return Stream.of(SamcheokDownloadCases.selectCase());
@@ -986,6 +987,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_SOKCHO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_MAPO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_SEODAEMUN_BOARD_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_DAEGU_SEOGU_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_DAEGU_DONGGU_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_HONGCHEON_BOARD_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_SAMCHEOK_SCMS_V1".equals(profile.selectProfileCode());
