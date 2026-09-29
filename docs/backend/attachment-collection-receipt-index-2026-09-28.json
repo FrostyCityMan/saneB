@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "c8637cb4549b1b8c6a998dde4c82008f0c9daf1dc681fda87a7c2865fcfa6d8b",
+  "inventorySha256": "b2c056a5615f5fcc311d4ef529354d2e208fdf1880844d618036a1caa6caa9b9",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1187,6 +1187,38 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "64786b8937043f4e4f21134e0d29f2650bb79db73c334ea9004ae65f80756828"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GOSEONG-5733464-INITIAL.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "b7f10a38a1ea530170ff454a593ba7cc920e4282b94e857bf192d76a1604dd10",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/CHANGWON-211423-INITIAL.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "13e8d20954510fa8cc17e58dedfe19e1391d181e56432cac8ec2fb2fc4ed343f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GOSEONG-5733464.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "3b167c39570ebf5b5f3def510a5ae63be6cf719cadee5cfa6334101769921ed3",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/CHANGWON-211423.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "61023ba9688d902ef9dc271ac67e9ebc8685b4ee581e614a8ee7bff3c5df5778",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27"
     }
   ],
   "samples": [
@@ -1923,6 +1955,30 @@
           "format": "HWP",
           "binaryHash": "6c605d8aedf864a54fccf6b8ebab33840f3d66c20259eb5f2dae822271133470",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000224",
+      "caseCode": "CHANGWON-211423",
+      "profileCode": "LOCAL_CHANGWON_BOARD_V1",
+      "profileHash": "9daeaaf0a2b52b891b4e13d79cb3f1b37b0df401bbeb2cd3cadd92e07c6737cd",
+      "receiptHash": "61023ba9688d902ef9dc271ac67e9ebc8685b4ee581e614a8ee7bff3c5df5778",
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27",
+      "observedAt": "2026-09-29T05:57:23.220364500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "5d051f56236b32d63ef4806029931d1196c2ede1622fba9284cfe2628da61bf5",
+          "status": "FAILED",
+          "bytes": 99491
         }
       ]
     },
@@ -2757,6 +2813,33 @@
           "bytes": 1507328,
           "format": "HWP",
           "binaryHash": "68d3af84595d704824b96179f2f1b09d9dc1acb14e043106d7c1baf0292021bf",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000235",
+      "caseCode": "GOSEONG-5733464",
+      "profileCode": "LOCAL_GOSEONG_BOARD_V1",
+      "profileHash": "f6c332adf2309602116b0bb6383d98fc756790498532efbb0db98f8705f5beaf",
+      "receiptHash": "3b167c39570ebf5b5f3def510a5ae63be6cf719cadee5cfa6334101769921ed3",
+      "producerClassHash": "c5a0ba71cc7189156bf192b863403f86d9d8f9dc5ae4f2eb8d5aab32f3606a27",
+      "observedAt": "2026-09-29T05:57:08.056986200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FAILED",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "bd6eb9e64469557d7beee36257407e2cdc49d89169d966e26bb4cec742ddb00a",
+          "status": "SUCCEEDED",
+          "bytes": 107520,
+          "format": "HWP",
+          "binaryHash": "776c17a7245a8914d64bfda2fe3b6c8403dde8429b4572eb02a2f895f040f774",
           "signatureVerified": true
         }
       ]
@@ -6618,6 +6701,129 @@
       {
         "sourceCode": "LGS-000234",
         "result": "LIST_HTTP_400_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gyeongnamSecondDownloadRun": {
+    "scope": "BEST_EFFORT_COLLECTION_ONLY",
+    "surveyRequests": 12,
+    "surveyGetRequests": 12,
+    "surveyPostRequests": 0,
+    "maximumSurveySecondsPerRequest": 15,
+    "maximumSurveyBytesPerRequest": 1048576,
+    "automaticSurveyRedirects": 0,
+    "rawSurveyFiles": [
+      {
+        "name": "CHANGWON-detail.html",
+        "bytes": 148935,
+        "sha256": "cf469a3e9e37104c831d46429571cb0b54a4418779e5a8e71608fcb3bd4d2eb2"
+      },
+      {
+        "name": "CHANGWON-list.html",
+        "bytes": 155764,
+        "sha256": "9550d133be9c10531df6897f6a7afeebbefeee02431d192de5687571809b2fa7"
+      },
+      {
+        "name": "CHANGWON-search.html",
+        "bytes": 155787,
+        "sha256": "991eba78bea1ca705926a35b004ca17c3ca6312dcd58297b5c8f6dd9640c689f"
+      },
+      {
+        "name": "GEOJE-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "GOSEONG-board.html",
+        "bytes": 210264,
+        "sha256": "36f991e152581c36c5fef0ae7d06c610c25d332e0f34735aeb898c312c0d12be"
+      },
+      {
+        "name": "GOSEONG-detail.html",
+        "bytes": 192558,
+        "sha256": "9a3cccc9a8610517f2280a14329bd8892d9c507ebf151e1bc9070e1226cf5803"
+      },
+      {
+        "name": "GOSEONG-headers.txt",
+        "bytes": 577,
+        "sha256": "20f12b92df94aa0b2c09420cd78f5704e1abcc4d35e0ab79201b0418b3517704"
+      },
+      {
+        "name": "GOSEONG-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GOSEONG-repeat.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "GOSEONG-search.html",
+        "bytes": 209158,
+        "sha256": "38909ea988d83fe8a4f22a157be9e09b7d43dcfc2ba4f28bfc1354cadb5a8f35"
+      },
+      {
+        "name": "HADONG-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "NAMHAE-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "SANCHEONG-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GOSEONG-5733464-INITIAL.json",
+      "build/reports/attachment-regional-collection/CHANGWON-211423-INITIAL.json",
+      "build/reports/attachment-regional-collection/GOSEONG-5733464.json",
+      "build/reports/attachment-regional-collection/CHANGWON-211423.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 15,
+    "reservedBytesIncludingBodyUpperBound": 9414656,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000235",
+        "result": "OFFICIAL_BOARD_REDIRECT_AND_DIRECT_FILE",
+        "requests": 5
+      },
+      {
+        "sourceCode": "LGS-000224",
+        "result": "OFFICIAL_PROXY_WITH_FIXED_NESTED_FILE_URL",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000236",
+        "result": "LIST_HTTP_400_REQUEST_BLOCKED_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000237",
+        "result": "LIST_HTTP_400_REQUEST_BLOCKED_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000238",
+        "result": "LIST_HTTP_400_REQUEST_BLOCKED_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000230",
+        "result": "LIST_HTTP_400_REQUEST_BLOCKED_PROFILE_NOT_REGISTERED",
         "requests": 1
       }
     ],

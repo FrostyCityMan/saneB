@@ -1693,6 +1693,30 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GOSEONG-5733464",
+      "profileCode": "LOCAL_GOSEONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7444cd9aae0dacae6c049f747d31b2f24680731594fa0331a5c0019f1e3151dc",
+        "sourceUrl": "https://www.goseong.go.kr/board/view.goseong?boardId=BBS_0000015&menuCd=DOM_000000103001014000&paging=ok&startPage=1&dataSid=5733464",
+        "localSourceCode": "LGS-000235",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHANGWON-211423",
+      "profileCode": "LOCAL_CHANGWON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "25a651da0f0b1501bd5df1213072dfe778217fcca440d0443dfea7e0ec689235",
+        "sourceUrl": "https://www.changwon.go.kr/cwportal/10310/10438/10439.web?amode=view&not_ancmt_mgt_no=211423&section=gosi",
+        "localSourceCode": "LGS-000224",
+        "listParserProfileCode": "CHANGWON_GOSI_TABLE"
+      },
+      "expectation": null
     }
   ]
 }
