@@ -2569,6 +2569,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GEOMDAN-235",
+      "profileCode": "LOCAL_GEOMDAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "bc17b8d27a67df7249bf1f5c10ac662a6348b1d5f653951d7ebaade2c46fb234",
+        "sourceUrl": "https://www.geomdan.go.kr/main/bbs/bbsMsgDetail.do?msg_seq=235&bcd=notice",
+        "localSourceCode": "LGS-000063",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGJONG-332418",
+      "profileCode": "LOCAL_YEONGJONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0e0e7d2fc84a8861a153c76d2fa2e8b6200c75edd40b17a72863d8ffc11d6b8a",
+        "sourceUrl": "https://www.yeongjong.go.kr/main/pst/view.do?pst_id=mn_pub_ntc&pst_sn=332418",
+        "localSourceCode": "LGS-000056",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

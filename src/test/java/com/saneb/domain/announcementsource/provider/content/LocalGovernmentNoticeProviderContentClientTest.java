@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void incheonThirdBodiesExcludeAttachmentAndDepartmentText() {
+        String gd="<div class=board-view><div class=title>청년 지원</div><ul class=info-data><li>수출 특허.hwpx</li></ul><div class=con-box><div class=detail>청년 지원금</div></div></div>";
+        String yj="<div class=cm_board_detail1><div class=board_header_wrap><div class=board_header><div class=board_title>청년 지원</div></div><div>수출 부서</div></div><div class=board_content><div class=editor_content>청년 지원금</div></div><ul class=cm_file_list2><li>수출 특허.hwpx</li></ul></div>";
+        var samples=List.of(new String[]{gd,"https://www.geomdan.go.kr/main/bbs/bbsMsgDetail.do?bcd=notice&msg_seq=235"},new String[]{yj,"https://www.yeongjong.go.kr/main/pst/view.do?pst_id=mn_pub_ntc&pst_sn=332418"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("청년 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void incheonSecondBodiesExcludeFilesMetadataAndNestedDuplication() {
         String je="<div class=board-view><div class=title>소상공인 지원</div><ul class=info-data><li>수출 특허.hwpx</li></ul><div class=con-box><div class=detail>소상공인 지원금</div></div></div>";
         String mi="<div class=board-view-s1><h3 class=board-title>소상공인 지원</h3><div class=file-area>수출 특허.hwpx</div><div class='content editor_content'><div class='content editor_content'>소상공인 지원금</div></div></div>";

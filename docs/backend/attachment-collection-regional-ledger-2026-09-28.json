@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 153,
-    "missingProfileRegionCount": 70,
+    "registeredRegionCount": 155,
+    "missingProfileRegionCount": 68,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1622,14 +1622,26 @@
       "sourceCode": "LGS-000056",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000056",
+          "caseCode": "YEONGJONG-332418",
+          "profileCode": "LOCAL_YEONGJONG_BOARD_V1",
+          "profileHash": "c2dc7616d6be80e3b9494fed91d321cc227d45a67d7f06356be8f675140d9318",
+          "receiptHash": "10e35217d3f80df5b164642d6ba785b487e9ffaca59e966740977380985057d8",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000057",
@@ -1737,14 +1749,26 @@
       "sourceCode": "LGS-000063",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000063",
+          "caseCode": "GEOMDAN-235",
+          "profileCode": "LOCAL_GEOMDAN_BOARD_V1",
+          "profileHash": "811350257855cd256ef813ff10d10b64e2d24e6b42fc312dcde54d9bed8b3681",
+          "receiptHash": "bf1fdda256642aaff5c869cc93d8aece4afa2c5d675cede3a7fa2984d4dd60df",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000064",
@@ -10348,6 +10372,92 @@
         "sourceCode": "LGS-000060",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP400_NO_DETAIL_OR_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "incheonThirdDownloadRun": {
+    "scope": "GEOMDAN_YEONGJONG_COLLECTION_ONLY_NAMDONG_DNS_FAILURE",
+    "surveyRequestAttempts": 8,
+    "surveyCompletedHttpRequests": 7,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GEOMDAN-detail.html",
+        "bytes": 201973,
+        "sha256": "df433852661588ec84542f23516927e65dfb7779f6288d59b0baeb34d00da99f"
+      },
+      {
+        "name": "GEOMDAN-list.html",
+        "bytes": 208844,
+        "sha256": "20e0b58f004ce53595df8c13010c0bfbcc0a6a1a6ac7133aca23c2d449b2a3d3"
+      },
+      {
+        "name": "GEOMDAN-search.html",
+        "bytes": 208886,
+        "sha256": "9d85ddf550fa18e0e66bf7c606849b45cc7ab10514056048e5b51ef213f5c062"
+      },
+      {
+        "name": "YEONGJONG-detail.html",
+        "bytes": 152878,
+        "sha256": "67544408039a272e45f2ed11f16279752c51383a9e65ac44bb334664bb2fe980"
+      },
+      {
+        "name": "YEONGJONG-list.html",
+        "bytes": 162432,
+        "sha256": "5fe5a05c6a2c43c6376fce9d1ced8aefd1bea936dd2911c0ce18da2f2baaa2a3"
+      },
+      {
+        "name": "YEONGJONG-search.html",
+        "bytes": 156441,
+        "sha256": "04e57d298a51f9a0d9ca8bd72a927adb78fce720fde3b8bd943fd33975f1a648"
+      },
+      {
+        "name": "YEONGJONG-support.html",
+        "bytes": 162082,
+        "sha256": "e0c9db7edc038f1ae0bd35bbd9a4ed626acdb081821f720c352081d6520c0817"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GEOMDAN-235",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "YEONGJONG-332418",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GEOMDAN-235.json",
+      "build/reports/attachment-regional-collection/YEONGJONG-332418.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4674870,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000063",
+        "attempts": 3,
+        "result": "OFFICIAL_LIST_SUPPORT_SEARCH_DETAIL_HWPX_1_PREVIEW_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000056",
+        "attempts": 4,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_ARCHIVE_SUPPORT_SEARCH_DETAIL_HWPX_1_PREVIEW_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000059",
+        "attempts": 1,
+        "result": "REGISTERED_LIST_DNS_FAILURE_ZERO_BYTES_NO_RETRY"
       }
     ],
     "originalsRemoved": true,
