@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 144,
-    "missingProfileRegionCount": 79,
+    "registeredRegionCount": 146,
+    "missingProfileRegionCount": 77,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -312,14 +312,26 @@
       "sourceCode": "LGS-000016",
       "listParserProfileCode": "SAFE_YANGCHEON_SEOL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000016",
+          "caseCode": "YANGCHEON-46207",
+          "profileCode": "LOCAL_YANGCHEON_BOARD_V1",
+          "profileHash": "82a0249242ed8a9caeca04a170a8843f0914bc91b8dc4557b0d43a27bbbe5552",
+          "receiptHash": "a9fab30052ef32fc46a7aa12864e78843b30d669743ad413ac17855c524c29f2",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000017",
@@ -436,14 +448,26 @@
       "sourceCode": "LGS-000022",
       "listParserProfileCode": "SAFE_GWANAK_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000022",
+          "caseCode": "GWANAK-41842",
+          "profileCode": "LOCAL_GWANAK_BOARD_V1",
+          "profileHash": "775f5e3a00ca8626808886bd8343ecb9ea19e89302341f8a39bc5c1eb95f5b4a",
+          "receiptHash": "516550cbf9797dac2fa634c313809eda7948ef4250acb1e5598dc23d68271390",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000023",
@@ -9843,6 +9867,96 @@
         "sourceCode": "LGS-000020",
         "requests": 4,
         "result": "OFFICIAL_LIST_TWO_SEARCHES_DETAIL_PDF_1_XLSX_1_UNSUPPORTED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulSixthDownloadRun": {
+    "scope": "YANGCHEON_GWANAK_COLLECTION_ONLY_GANGSEO_SEARCH_TIMEOUT",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GWANAK-detail.html",
+        "bytes": 174195,
+        "sha256": "31007574dbceb410963eb0ab4e31f35abae1408fedd9772c18706a89b106f60d"
+      },
+      {
+        "name": "GWANAK-list.html",
+        "bytes": 185615,
+        "sha256": "eae95174ba60c4896d6d6b7843305cc5fb54ffe365983fb163704d2109c1a08f"
+      },
+      {
+        "name": "SEOUL_GANGSEO-list.html",
+        "bytes": 164065,
+        "sha256": "e49a65243cd40e99261621ff6d1f5745c64f95ed44957c07c678240293f8a98e"
+      },
+      {
+        "name": "SEOUL_GANGSEO-search.html",
+        "bytes": 157806,
+        "sha256": "0346fd06a28bf0e0a2b24000258c0a34905e410615b871c5d0327b1c2213048c"
+      },
+      {
+        "name": "YANGCHEON-detail.html",
+        "bytes": 245637,
+        "sha256": "84d36a97275ef74932551e091b3485e9ece25c985df22effb9e7a64f31c6664b"
+      },
+      {
+        "name": "YANGCHEON-list.html",
+        "bytes": 247782,
+        "sha256": "014b3579b942f11eb92697e9ea57fd8e9bd9043497133a1a7aa7ab2a10c07a10"
+      },
+      {
+        "name": "YANGCHEON-search.html",
+        "bytes": 242429,
+        "sha256": "807bfd1eb0e1d145bb3cb67bf9263d4e89bdc447c509b25b89b5413b1fcc8aac"
+      },
+      {
+        "name": "YANGCHEON-support.html",
+        "bytes": 246906,
+        "sha256": "1b9cd601be77ce0af7a8a6ece78f59ae0bda70b215b66aa56ecfaa40524e1a16"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YANGCHEON-46207",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "GWANAK-41842",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YANGCHEON-46207.json",
+      "build/reports/attachment-regional-collection/GWANAK-41842.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 11,
+    "reservedBytesIncludingBodyUpperBound": 5860976,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000016",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_SEARCHES_DETAIL_HWP_3"
+      },
+      {
+        "sourceCode": "LGS-000022",
+        "requests": 2,
+        "result": "OFFICIAL_LIST_DETAIL_HWPX_2_PREVIEW_VOICE_BRAILLE_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000017",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_OK_SINGLE_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_TIMEOUT_15S_NO_DETAIL_SELECTED"
       }
     ],
     "originalsRemoved": true,

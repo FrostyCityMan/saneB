@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seoulSixthBodiesExcludeAttachmentsAndMetadata() {
+        String yc="<form id=SeolCollectVo><div class='new-basic-view basic-view'><div class=view-subj><div id=bbsTitle>소상공인 지원</div></div><div class=view-info>수출 부서</div><div class=view-content><div class=txt-area>소상공인 지원금</div></div><div class=view-attachment>수출 특허.hwp</div></div></form>";
+        String ga="<div class=board><div class=board-view><div class=tit><strong>소상공인 지원</strong></div><div class=view-info>수출 부서</div><div class=view-attachment>수출 특허.hwpx</div><div class=view_contents><div class=txt-area><pre>소상공인 지원금</pre></div></div></div></div>";
+        var samples=List.of(new String[]{yc,"https://www.yangcheon.go.kr/site/yangcheon/ex/seol/seolContentDeailView.do?not_ancmt_mgt_no=46207"},new String[]{ga,"https://www.gwanak.go.kr/site/gwanak/ex/bbsNew/View.do?typeCode=1&not_ancmt_mgt_no=41842"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void seoulFifthBodiesExcludeAttachmentNamesAndMetadata() {
         String ddm="<div class='p-wrap bbs bbs__view'><div class=table-responsive><table class='p-table scroll'><tr><th>고시공고명</th><td>소상공인 지원</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr><tr><th>첨부파일</th><td>수출 첨부.hwpx</td></tr></table></div></div>";
         String sb="<table class='p-table block'><tr><th>제목</th><td>소상공인 지원</td><th>담당부서</th><td>메타데이터</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr><tr><th>첨부파일</th><td>수출 첨부.hwp</td></tr></table>";

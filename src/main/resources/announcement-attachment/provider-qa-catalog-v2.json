@@ -2461,6 +2461,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YANGCHEON-46207",
+      "profileCode": "LOCAL_YANGCHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cfdb6a79bba59dc034b48a7825c6e0de78fffc9175970e7f6f90d81691f22c4e",
+        "sourceUrl": "https://www.yangcheon.go.kr/site/yangcheon/ex/seol/seolContentDeailView.do?not_ancmt_mgt_no=46207",
+        "localSourceCode": "LGS-000016",
+        "listParserProfileCode": "SAFE_YANGCHEON_SEOL"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GWANAK-41842",
+      "profileCode": "LOCAL_GWANAK_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2d43a254b8fe52a8d55baec3651752bd751d9ff1c9e5a58875b4be79da7defd0",
+        "sourceUrl": "https://www.gwanak.go.kr/site/gwanak/ex/bbsNew/View.do?typeCode=1&not_ancmt_mgt_no=41842",
+        "localSourceCode": "LGS-000022",
+        "listParserProfileCode": "SAFE_GWANAK_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
