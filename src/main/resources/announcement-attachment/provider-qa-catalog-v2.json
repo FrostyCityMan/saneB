@@ -2485,6 +2485,42 @@
         "listParserProfileCode": "SAFE_GWANAK_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SEOUL-466130",
+      "profileCode": "LOCAL_SEOUL_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "82cdec130fb00303719680680952dc13851031355dd9b6f21d79e83d098645aa",
+        "sourceUrl": "https://www.seoul.go.kr/news/news_notice.do?bbsNo=277&nttNo=466130",
+        "localSourceCode": "LGS-000001",
+        "listParserProfileCode": "SAFE_SEOUL_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEOUL_JUNGGU-1475799545",
+      "profileCode": "LOCAL_SEOUL_JUNGGU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6eb2a66fc52a8d4dcafb1788eaba6a2ecf8cffbacfeb9efef3e40ea14a3b5b1b",
+        "sourceUrl": "https://www.junggu.seoul.kr/content.do?cmsid=14232&mode=view&cid=1475799545",
+        "localSourceCode": "LGS-000003",
+        "listParserProfileCode": "JUNGGU_NOTICE_TABLE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YONGSAN-766830",
+      "profileCode": "LOCAL_YONGSAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2a02f0feb54957ba21f1808439c838456d5786bef62f159e851773459acea550",
+        "sourceUrl": "https://health.yongsan.go.kr/portal/bbs/B0000095/view.do?nttId=766830&menuNo=200233",
+        "localSourceCode": "LGS-000004",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

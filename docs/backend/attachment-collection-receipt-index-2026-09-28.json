@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "6f7cb6bc41bee0740eed09539fcbc766fef2ce6b1e277713a472742a8ba9f3fa",
+  "inventorySha256": "76311379aa3bada59e4754a1176ef0b962b337c80fee15f421fffc14f0e2f429",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1795,6 +1795,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "bba1a856f22ca2440806422526f4080ed711b42259396fa68f626912db1967fb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SEOUL-466130.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "eb80736610b305504b7832bcde6e9207da82a37106c263af8e8b3e0b2b2be8ef",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SEOUL_JUNGGU-1475799545.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "dd189b84bc419143d511f6d80f7f79add13fcb212081710bbfd3f14e3355562d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/YONGSAN-766830.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "24d9b9878307ac2dee8aec111e3d9d8a1e87f5ea4e7775bddd401270edba692c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1"
     }
   ],
   "samples": [
@@ -6127,6 +6151,84 @@
       ]
     },
     {
+      "sourceCode": "LGS-000003",
+      "caseCode": "SEOUL_JUNGGU-1475799545",
+      "profileCode": "LOCAL_SEOUL_JUNGGU_BOARD_V1",
+      "profileHash": "b58c862d6922fa5cddab006b0ba5f70ba76fc35907cd2e1141fcdc578a047ae6",
+      "receiptHash": "dd189b84bc419143d511f6d80f7f79add13fcb212081710bbfd3f14e3355562d",
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1",
+      "observedAt": "2026-09-29T15:06:04.771657300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7a575c99ecf9968b5319ffef1e29d1a9e38e9e18becac28241eb78795619e642",
+          "status": "SUCCEEDED",
+          "bytes": 259640,
+          "format": "PDF",
+          "binaryHash": "c484fe26688a05f01660e2609429f5a8b327448c7304354621cde845f67eaf37",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "f1165b102ee1955feab2b46331c76f75d5f1a60ab43f1496dc30d0ee52e6a3fd",
+          "status": "SUCCEEDED",
+          "bytes": 86528,
+          "format": "HWP",
+          "binaryHash": "84d96f60c66034a8a243a908dfa17cf10c33294b9dc8561d626f121dbda5a5a1",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "e8ca0c7037f7cedbf1c9c581ce466039f7b4b9a777ccd7873f6743ae9ddd142b",
+          "status": "SUCCEEDED",
+          "bytes": 145920,
+          "format": "HWP",
+          "binaryHash": "fd12aa2e66d6064ffbe2dba7cb3d752e4849e48e5ac720ce46876e9fc92b6bb3",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000001",
+      "caseCode": "SEOUL-466130",
+      "profileCode": "LOCAL_SEOUL_BOARD_V1",
+      "profileHash": "9913bc326c21ccd1eb0335c1c333d5eac3c1b0106e95c9a507543e1e5a9b7258",
+      "receiptHash": "eb80736610b305504b7832bcde6e9207da82a37106c263af8e8b3e0b2b2be8ef",
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1",
+      "observedAt": "2026-09-29T15:05:52.053886600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "32f6d3a7f38321ccba349620bdaa31ef993402590242a7965479c69f3f7fcdb1",
+          "status": "SUCCEEDED",
+          "bytes": 62891,
+          "format": "HWPX",
+          "binaryHash": "ae6e8461663f66299092fb897e1ad77a0b9caf58fd9b2db92d355eae1cd862fd",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "c22c70c1cf49a2bc456c7dac20dd80e7ac10f6c4a8eaa6b6f97c4c9caa1e916f",
+          "status": "SUCCEEDED",
+          "bytes": 474722,
+          "format": "PDF",
+          "binaryHash": "e851dde0ebbaae3c90daeec39279e7eb55b006ec53ba0434cb789062e620077e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000095",
       "caseCode": "SIHEUNG-82127",
       "profileCode": "LOCAL_SIHEUNG_PORTAL_V1",
@@ -7352,6 +7454,40 @@
           "format": "HWPX",
           "binaryHash": "fe89b09a086e051b3e89499698fa0e8f1a83cf0729e921f4eecf8f7e6a8939e4",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000004",
+      "caseCode": "YONGSAN-766830",
+      "profileCode": "LOCAL_YONGSAN_BOARD_V1",
+      "profileHash": "120740f23281e6a22618624eebd830535d8280d9f68801c482a2408920ec5a5f",
+      "receiptHash": "24d9b9878307ac2dee8aec111e3d9d8a1e87f5ea4e7775bddd401270edba692c",
+      "producerClassHash": "2cb724ca99a02befc20e0094bf132e18955e3cc3c2a7e5b9a7d67929562f0de1",
+      "observedAt": "2026-09-29T15:06:07.353201100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "0f3cb5fb8d09860a4588f26988c09f4255063ce199e35aa6c5077cf361df4bad",
+          "status": "FAILED",
+          "bytes": 113152
+        },
+        {
+          "locatorHash": "6a9db27303b5d8d674c9571ffdd14f43fba37eefb672fc54d0e199909a7db49c",
+          "status": "FAILED",
+          "bytes": 50688
+        },
+        {
+          "locatorHash": "361d802285cb83c8f25becbed8fddfdfa539a7cec7735673b16da225a2221c5b",
+          "status": "FAILED",
+          "bytes": 57856
         }
       ]
     }

@@ -31,6 +31,13 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seoulSeventhBodiesExcludeAttachmentMetadataAndViewer() {
+        String seoul="<div class=sib-viw-type-basic><h3>소상공인 지원</h3><div class=sib-viw-file-list>수출 특허.hwp</div><div class=sib-viw-type-basic-content><iframe src='https://invalid.example/viewer'></iframe><div id=scrabArea>소상공인 지원금</div></div></div>";
+        String jj="<div class=board_view_02><table><tr><th class=view_tit>소상공인 지원</th></tr><tr><th>첨부</th><td>수출 특허.hwp</td></tr><tr><td class=article_body>소상공인 지원금</td></tr></table></div>";
+        String ys="<div id=content><div class=bd-view><h2 class=subject>소상공인 지원</h2><div class=table-dl>수출 부서</div><div class=dbdata>소상공인 지원금</div></div></div>";
+        var samples=List.of(new String[]{seoul,"https://www.seoul.go.kr/news/news_notice.do?bbsNo=277&nttNo=466130"},new String[]{jj,"https://www.junggu.seoul.kr/content.do?cmsid=14232&mode=view&cid=1475799545"},new String[]{ys,"https://health.yongsan.go.kr/portal/bbs/B0000095/view.do?nttId=766830&menuNo=200233"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void seoulSixthBodiesExcludeAttachmentsAndMetadata() {
         String yc="<form id=SeolCollectVo><div class='new-basic-view basic-view'><div class=view-subj><div id=bbsTitle>소상공인 지원</div></div><div class=view-info>수출 부서</div><div class=view-content><div class=txt-area>소상공인 지원금</div></div><div class=view-attachment>수출 특허.hwp</div></div></form>";
         String ga="<div class=board><div class=board-view><div class=tit><strong>소상공인 지원</strong></div><div class=view-info>수출 부서</div><div class=view-attachment>수출 특허.hwpx</div><div class=view_contents><div class=txt-area><pre>소상공인 지원금</pre></div></div></div></div>";

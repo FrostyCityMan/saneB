@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 146,
-    "missingProfileRegionCount": 77,
+    "registeredRegionCount": 149,
+    "missingProfileRegionCount": 74,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -21,14 +21,26 @@
       "sourceCode": "LGS-000001",
       "listParserProfileCode": "SAFE_SEOUL_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000001",
+          "caseCode": "SEOUL-466130",
+          "profileCode": "LOCAL_SEOUL_BOARD_V1",
+          "profileHash": "9913bc326c21ccd1eb0335c1c333d5eac3c1b0106e95c9a507543e1e5a9b7258",
+          "receiptHash": "eb80736610b305504b7832bcde6e9207da82a37106c263af8e8b3e0b2b2be8ef",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000002",
@@ -47,27 +59,51 @@
       "sourceCode": "LGS-000003",
       "listParserProfileCode": "JUNGGU_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000003",
+          "caseCode": "SEOUL_JUNGGU-1475799545",
+          "profileCode": "LOCAL_SEOUL_JUNGGU_BOARD_V1",
+          "profileHash": "b58c862d6922fa5cddab006b0ba5f70ba76fc35907cd2e1141fcdc578a047ae6",
+          "receiptHash": "dd189b84bc419143d511f6d80f7f79add13fcb212081710bbfd3f14e3355562d",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000004",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000004",
+          "caseCode": "YONGSAN-766830",
+          "profileCode": "LOCAL_YONGSAN_BOARD_V1",
+          "profileHash": "120740f23281e6a22618624eebd830535d8280d9f68801c482a2408920ec5a5f",
+          "receiptHash": "24d9b9878307ac2dee8aec111e3d9d8a1e87f5ea4e7775bddd401270edba692c",
+          "fileCount": 3,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000005",
@@ -9957,6 +9993,128 @@
         "sourceCode": "LGS-000017",
         "requests": 3,
         "result": "OFFICIAL_LIST_OK_SINGLE_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_TIMEOUT_15S_NO_DETAIL_SELECTED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulSeventhDownloadRun": {
+    "scope": "SEOUL_SEOUL_JUNGGU_YONGSAN_COLLECTION_ONLY",
+    "surveyRequestCount": 13,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "SEOUL-detail.html",
+        "bytes": 96506,
+        "sha256": "67c8d3b492f31fd8aadf174a8e061e22a46cf495b2cb8f362e5ba0812b5e8444"
+      },
+      {
+        "name": "SEOUL-list.html",
+        "bytes": 88510,
+        "sha256": "86ed6606db6a216752f23b422c1e922691446ad00b9b49525186a449d0b91c93"
+      },
+      {
+        "name": "SEOUL-search.html",
+        "bytes": 88124,
+        "sha256": "29029632b35de6fb83e0f19c2330098ee5f2f118f4d543b19c7cedc3baf742b9"
+      },
+      {
+        "name": "SEOUL-youth-detail.html",
+        "bytes": 98030,
+        "sha256": "48be012f945566ba9672a080baad180c5db37be6b417bd322f20708a0777ce2a"
+      },
+      {
+        "name": "SEOUL-youth.html",
+        "bytes": 88857,
+        "sha256": "3e0413e89326603f57a6e8296e3dd8c4b18a5a2822bd65d822373440938567aa"
+      },
+      {
+        "name": "SEOUL_JUNGGU-detail.html",
+        "bytes": 119699,
+        "sha256": "115cbf5ab02cbd747e1d1c8d9cb0f6473291856a96465abc349b80f786b86e36"
+      },
+      {
+        "name": "SEOUL_JUNGGU-list.html",
+        "bytes": 132834,
+        "sha256": "f4311fb8436df788cfa97ed4d0c6c4d6df35a249b4931c6a4a011f900a69050b"
+      },
+      {
+        "name": "SEOUL_JUNGGU-search.html",
+        "bytes": 122180,
+        "sha256": "58bed405266a872cf5faf0765423e869040c03d57f1422ac8e60bdbe15c01969"
+      },
+      {
+        "name": "SEOUL_JUNGGU-support.html",
+        "bytes": 129558,
+        "sha256": "cf1a3512381586895bdec8b70c121873f7d8bddf062c250f86e322ec3cd10d1c"
+      },
+      {
+        "name": "YONGSAN-detail.html",
+        "bytes": 159593,
+        "sha256": "ce697a3e211711543985fe98a76563365cb979c5c78e4e22acff2ae2997bab67"
+      },
+      {
+        "name": "YONGSAN-list.html",
+        "bytes": 182221,
+        "sha256": "cd60267a4c3bb08ab4bbbc17c28c0d82f8c455bf4c1b669b4a0fdbb29f7ce31d"
+      },
+      {
+        "name": "YONGSAN-search.html",
+        "bytes": 186773,
+        "sha256": "2cfb23b521a13ca7c6a50dc7fea75ab85fa64852f8391b074c7edf46bfb0f705"
+      },
+      {
+        "name": "YONGSAN-support.html",
+        "bytes": 190712,
+        "sha256": "291e8c072c57ddf230dec17164dd28777606393bb39e7576038a3df61877739b"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEOUL-466130",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "SEOUL_JUNGGU-1475799545",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "YONGSAN-766830",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEOUL-466130.json",
+      "build/reports/attachment-regional-collection/SEOUL_JUNGGU-1475799545.json",
+      "build/reports/attachment-regional-collection/YONGSAN-766830.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 17,
+    "reservedBytesIncludingBodyUpperBound": 7930936,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000001",
+        "requests": 5,
+        "result": "LIST_TWO_SEARCHES_TWO_DETAILS_DOCX_NOT_DOWNLOADED_YOUTH_HWPX_PDF_VIEWER_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000003",
+        "requests": 4,
+        "result": "LIST_TWO_SEARCHES_DETAIL_PDF_HWP_2_PREVIEW_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000004",
+        "requests": 4,
+        "result": "LIST_TWO_SEARCHES_DETAIL_HWP_3_CONVERSION_NOT_REQUESTED"
       }
     ],
     "originalsRemoved": true,
