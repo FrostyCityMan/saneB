@@ -2737,6 +2737,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAEGU_DONGGU-60818",
+      "profileCode": "LOCAL_DAEGU_DONGGU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8061a59ad3779291ee35853899d6b8d7339ebe420fff435d1375e269b38ff37a",
+        "sourceUrl": "https://www.dong.daegu.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=60818&mid=0201020000",
+        "localSourceCode": "LGS-000046",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

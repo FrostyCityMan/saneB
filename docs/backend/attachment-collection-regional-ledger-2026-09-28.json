@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 167,
-    "missingProfileRegionCount": 56,
+    "registeredRegionCount": 168,
+    "missingProfileRegionCount": 55,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1376,14 +1376,26 @@
       "sourceCode": "LGS-000046",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000046",
+          "caseCode": "DAEGU_DONGGU-60818",
+          "profileCode": "LOCAL_DAEGU_DONGGU_PORTAL_V1",
+          "profileHash": "73c777cceeb67c4b4792d85f252090a4c44870343bfc6402bdc5cdb0e99372a5",
+          "receiptHash": "9e6f48776a8d10600dd8107ca2f4c2a2f07f1414309df40b5655acbf6277f536",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000047",
@@ -5671,9 +5683,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "7c88ad7a2119e4ea74abebf881c4ca4b767134ec36ef007e0d4756aaae466ca5",
+  "inputInventorySha256": "637e1374028d14811b07a4d90d72831c6b00a030c4da3192a24b381728d61bda",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 256,
+  "importedReceiptCount": 257,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11295,6 +11307,103 @@
         "sourceCode": "LGS-000124",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_DETAIL_200_TITLE53249_BODY_AND_DIRECT_HWP_1"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "daeguDongguDownloadRun": {
+    "scope": "DAEGU_DONGGU_SHARED_PORTAL_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "surveyRequestCount": 10,
+    "surveyHtmlRequestCount": 8,
+    "surveyHeadRequestCount": 2,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "chungnam-list.html",
+        "bytes": 391,
+        "sha256": "d4662f62111a69987902edcd5a2585992721a5897ea29e45f115305a424809b8"
+      },
+      {
+        "name": "daegu-donggu-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "daegu-donggu-head.txt",
+        "bytes": 437,
+        "sha256": "aa9181f8928b0588a017e96c99ee35cff00565cbc1955c27b52f97ba1a53dadd"
+      },
+      {
+        "name": "daegu-donggu-board.html",
+        "bytes": 400428,
+        "sha256": "66e8118779a70370baa4729e7e01e150cbd37218915c4a43508a92a904a14193"
+      },
+      {
+        "name": "daegu-donggu-search.html",
+        "bytes": 395572,
+        "sha256": "f99a2cbe87ebe58c93e3f5c2f017d460268aa87a34fe5752929ef9f305ba45f2"
+      },
+      {
+        "name": "daegu-donggu-detail.html",
+        "bytes": 397154,
+        "sha256": "2efed0a244d6a8b4f7ed484c94ea08d85787e7886c4e25b893480f94373468c5"
+      },
+      {
+        "name": "daegu-seogu-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "daegu-seogu-head.txt",
+        "bytes": 447,
+        "sha256": "58f6b783f4d1911190873450d218a02ee003c7aab14b550841a8959e3e57389d"
+      },
+      {
+        "name": "daegu-seogu-board.html",
+        "bytes": 499025,
+        "sha256": "b870b7b09bfe3ef0b03968908a086fa9282a012568f556b0478b699a8e9f9c87"
+      },
+      {
+        "name": "daegu-seogu-search.html",
+        "bytes": 491151,
+        "sha256": "b9af97fdabcfcc40f22dfa462ff620f924e16654497c0cd4ce89407289a67e53"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DAEGU_DONGGU-60818",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAEGU_DONGGU-60818.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2556421,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 14,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000147",
+        "requests": 1,
+        "result": "REGISTERED_CHUNGNAM_LIST_HTTP404_NO_RETRY"
+      },
+      {
+        "sourceCode": "LGS-000046",
+        "requests": 5,
+        "result": "OFFICIAL_MENU_REDIRECT_SAME_HOST_BOARD_SEARCH_DETAIL200_HWPX_1"
+      },
+      {
+        "sourceCode": "LGS-000047",
+        "requests": 4,
+        "result": "OFFICIAL_MENU_REDIRECT_ACTIVE_PERIOD_TITLE_SEARCH_NO_RESULTS_NO_DETAIL_REQUEST"
       }
     ],
     "originalsRemoved": true,
