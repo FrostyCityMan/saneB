@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "5091502a2ded77c070233bc0c398e13d1ad61d46e0b35ec3094d9f2f4320e79e",
+  "inventorySha256": "91d3cc54756cd4559431ff153054c63b61fa42b3a2c600217d80cb2532af3015",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1835,6 +1835,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEMULPO-14094.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/MICHUHOL-309943.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "54db8f9a77a486464e52794e8cad692aca5e320f314d3c92305916e831df64eb",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196"
     }
   ],
   "samples": [
@@ -5048,6 +5064,40 @@
       ]
     },
     {
+      "sourceCode": "LGS-000055",
+      "caseCode": "JEMULPO-14094",
+      "profileCode": "LOCAL_JEMULPO_BOARD_V1",
+      "profileHash": "b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb",
+      "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
+      "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196",
+      "observedAt": "2026-09-29T15:42:00.188228500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "90a214e7fe7e3ac0fdb35abc360379225100c9f2feaca85da10fa4bcb0e993f2",
+          "status": "FAILED",
+          "bytes": 70106
+        },
+        {
+          "locatorHash": "a6498d67cb6d91ee2c53e9e84cbbd6b50df7b76e5b17471d30b994097964125f",
+          "status": "FAILED",
+          "bytes": 43372
+        },
+        {
+          "locatorHash": "f753f69a857d8008fec3d22e9981fb61461bb7ef270e5c74bb28058120b581a9",
+          "status": "FAILED",
+          "bytes": 53406
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000163",
       "caseCode": "JEONBUK-670379",
       "profileCode": "LOCAL_JEONBUK_BOARD_V1",
@@ -5407,6 +5457,49 @@
           "bytes": 67072,
           "format": "HWP",
           "binaryHash": "ee25f70e59424e4388cfeecceaf910f53f323400f46729e409de0eea877d473d",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000057",
+      "caseCode": "MICHUHOL-309943",
+      "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+      "profileHash": "80d669d61bfcdc6d92ea1af53c73cde316a228cbb4317c97b17bf5f59d49006e",
+      "receiptHash": "54db8f9a77a486464e52794e8cad692aca5e320f314d3c92305916e831df64eb",
+      "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196",
+      "observedAt": "2026-09-29T15:42:12.947465Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "90f880eb8f92a4456cca5ccda487684e6fb54cf499b04d231433bb8aecc24f84",
+          "status": "SUCCEEDED",
+          "bytes": 70746,
+          "format": "HWPX",
+          "binaryHash": "df06049029cce909b7a090ea5510df665237d109a73059a9aa4576d5750d429c",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "e6b847910bcd08bc620782e9528ce4af5565f6f383c137274869acbe999531d1",
+          "status": "SUCCEEDED",
+          "bytes": 86050,
+          "format": "HWPX",
+          "binaryHash": "7603888e357db1cd82103a3899087f5f860ed14059bd9247a6210908000ac3ea",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "042302f291c494bfa922a4dbffa8c5df6a922b26aa7d6cabe65aac555528734b",
+          "status": "SUCCEEDED",
+          "bytes": 67729,
+          "format": "HWPX",
+          "binaryHash": "d7c695fa578a70388f1bef6d72b6b43f6c102bf332d684a468f043a76ca7975f",
           "signatureVerified": true
         }
       ]

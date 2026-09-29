@@ -2545,6 +2545,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JEMULPO-14094",
+      "profileCode": "LOCAL_JEMULPO_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6e13dab9b6bfe4fb527d0d91ea3677ffbe0aa67a030d0b79e8a136d3a30a04cc",
+        "sourceUrl": "https://www.jemulpo.go.kr/main/bbs/bbsMsgDetail.do?msg_seq=14094&bcd=announce",
+        "localSourceCode": "LGS-000055",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "MICHUHOL-309943",
+      "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e00829984c0fbe2874659d77a1d55f91c55a7cb23c9c257d03a9485becdcf593",
+        "sourceUrl": "https://www.michuhol.go.kr/main/board/view.do?sq=309943&board_code=board_13",
+        "localSourceCode": "LGS-000057",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

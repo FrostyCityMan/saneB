@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 151,
-    "missingProfileRegionCount": 72,
+    "registeredRegionCount": 153,
+    "missingProfileRegionCount": 70,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1597,14 +1597,26 @@
       "sourceCode": "LGS-000055",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000055",
+          "caseCode": "JEMULPO-14094",
+          "profileCode": "LOCAL_JEMULPO_BOARD_V1",
+          "profileHash": "b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb",
+          "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
+          "fileCount": 3,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000056",
@@ -1623,14 +1635,26 @@
       "sourceCode": "LGS-000057",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000057",
+          "caseCode": "MICHUHOL-309943",
+          "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+          "profileHash": "80d669d61bfcdc6d92ea1af53c73cde316a228cbb4317c97b17bf5f59d49006e",
+          "receiptHash": "54db8f9a77a486464e52794e8cad692aca5e320f314d3c92305916e831df64eb",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000058",
@@ -10227,6 +10251,101 @@
       },
       {
         "sourceCode": "LGS-000065",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP400_NO_DETAIL_OR_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "incheonSecondDownloadRun": {
+    "scope": "JEMULPO_MICHUHOL_COLLECTION_ONLY_BUPYEONG_LIST_HTTP400",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "BUPYEONG-list.html",
+        "bytes": 154,
+        "sha256": "61232743a1a887eee2d4d2ff8df6f2477097a7ed3b6df5ffa7bef01a062a4d65"
+      },
+      {
+        "name": "JEMULPO-detail.html",
+        "bytes": 208303,
+        "sha256": "0639478de29fbfec7b74b6d2de47a5ac6bbe76798b0bc0f8c30ebe56874aeb0f"
+      },
+      {
+        "name": "JEMULPO-list.html",
+        "bytes": 215523,
+        "sha256": "38d7939d69152a38752f1e9fac8d09541071e688dac909d2feca0ba538312f1d"
+      },
+      {
+        "name": "JEMULPO-search.html",
+        "bytes": 207238,
+        "sha256": "ecc4d7ad5625952322117515b65d6858b81cfd8ed1dec5c0a909de0115677fba"
+      },
+      {
+        "name": "JEMULPO-support.html",
+        "bytes": 216290,
+        "sha256": "bc2780fc7fe40a198f5b86b8dcc58f1888114829aa9ee94ab6923e4864420e39"
+      },
+      {
+        "name": "MICHUHOL-detail.html",
+        "bytes": 134180,
+        "sha256": "29c91cdfce948b4b7d0f121fbea961964de569d3f27b3f07ccf32a060a089b81"
+      },
+      {
+        "name": "MICHUHOL-list.html",
+        "bytes": 137914,
+        "sha256": "bce0f0ce86ffad5c0a5ea15bc35a850458622a212cd72eeabebb6938cd4c506d"
+      },
+      {
+        "name": "MICHUHOL-search.html",
+        "bytes": 131750,
+        "sha256": "5c093e64ded664f5b5989fccd16177c9166e64a0f843a7b0f85c2a340ecbe989"
+      },
+      {
+        "name": "MICHUHOL-support.html",
+        "bytes": 138221,
+        "sha256": "6593007cccb7e01f8ee6dd8226ba997ef820a3c448d99c0b5e1fc3af83ba3205"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "JEMULPO-14094",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "MICHUHOL-309943",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JEMULPO-14094.json",
+      "build/reports/attachment-regional-collection/MICHUHOL-309943.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 12,
+    "reservedBytesIncludingBodyUpperBound": 4937969,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000055",
+        "requests": 4,
+        "result": "LIST_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_DETAIL_HWPX_3_PREVIEW_BULK_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000057",
+        "requests": 4,
+        "result": "LIST_TARGET_SEARCH_ARCHIVE_SUPPORT_SEARCH_DETAIL_HWPX_3_FIXED_DESTINATION_PROXY_FORM"
+      },
+      {
+        "sourceCode": "LGS-000060",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP400_NO_DETAIL_OR_FILE_REQUEST"
       }

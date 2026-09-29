@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void incheonSecondBodiesExcludeFilesMetadataAndNestedDuplication() {
+        String je="<div class=board-view><div class=title>소상공인 지원</div><ul class=info-data><li>수출 특허.hwpx</li></ul><div class=con-box><div class=detail>소상공인 지원금</div></div></div>";
+        String mi="<div class=board-view-s1><h3 class=board-title>소상공인 지원</h3><div class=file-area>수출 특허.hwpx</div><div class='content editor_content'><div class='content editor_content'>소상공인 지원금</div></div></div>";
+        var samples=List.of(new String[]{je,"https://www.jemulpo.go.kr/main/bbs/bbsMsgDetail.do?bcd=announce&msg_seq=14094"},new String[]{mi,"https://www.michuhol.go.kr/main/board/view.do?board_code=board_13&sq=309943"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void incheonPortalBodiesExcludeFilesAndMetadata() {
         String gy="<div class='general_board board_view'><div class=tit><p class=title>소상공인 지원</p><dl class=file><dt>첨부파일</dt><dd>수출 특허.hwp</dd></dl></div><div class=con>소상공인 지원금</div></div>";
         String gh="<div class=board_view><p class=title>소상공인 지원</p><dl class=data><dt>부서</dt><dd>수출 부서</dd></dl><dl class=file><dt>첨부파일</dt><dd>수출 특허.hwpx</dd></dl><div class=con>소상공인 지원금</div></div>";
