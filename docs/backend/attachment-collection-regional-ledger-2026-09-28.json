@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 89,
-    "missingProfileRegionCount": 134,
+    "registeredRegionCount": 91,
+    "missingProfileRegionCount": 132,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1246,27 +1246,51 @@
       "sourceCode": "LGS-000048",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000048",
+          "caseCode": "DAEGU_NAMGU-38607",
+          "profileCode": "LOCAL_DAEGU_NAMGU_GET_V1",
+          "profileHash": "8061574eae7865f37de929761a7fcfb6c16841cf09fe88831b6f8eefb716cd5d",
+          "receiptHash": "88d26a5d2257780c5b8374dcc239da4077627f42dfad40c802086012471d9ba0",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000049",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000049",
+          "caseCode": "DAEGU_BUKGU-55924",
+          "profileCode": "LOCAL_DAEGU_BUKGU_POST_V1",
+          "profileHash": "9ee12e417dfc5bf57e5ab521819fad8ab98e291b535d03a35503fe79b9fa99ed",
+          "receiptHash": "ab7b8d4cdc2669063290ae66d986b3ccc5e06908bd826437bd9a805207c76272",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000050",
@@ -6714,6 +6738,89 @@
         "sourceCode": "LGS-000026",
         "requests": 1,
         "result": "HTTPS_TIMEOUT_PROFILE_NOT_REGISTERED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "metroSaeolFirstDownloadRun": {
+    "scope": "METRO_SAEOL_FIRST_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DAEGU_BUKGU-detail.html",
+        "bytes": 7429,
+        "sha256": "c243d1f9cd38e72d8222f85f4d960bf1855981898f196a493da9e7d6ca94bcce"
+      },
+      {
+        "name": "DAEGU_BUKGU-eligible.html",
+        "bytes": 8084,
+        "sha256": "9233093c6f91851308cf6c9ce8da86a9c89ca00163ff97095d63e370c2e09f31"
+      },
+      {
+        "name": "DAEGU_BUKGU-list.html",
+        "bytes": 25767,
+        "sha256": "05e697cb7e76f3415b76e9a4e084e113da5d702c13ef8b55d10190b4255d3172"
+      },
+      {
+        "name": "DAEGU_BUKGU-search.html",
+        "bytes": 11480,
+        "sha256": "af4170419ad8bc7a469a2cf8ebecc8367b5d1f37c5645b9be997cec2fbc07fad"
+      },
+      {
+        "name": "DAEGU_BUKGU-support.html",
+        "bytes": 24581,
+        "sha256": "90d6a640187d50beeaca8fba9dc48c8909744c0473b3b6bf80ae19e745b98f80"
+      },
+      {
+        "name": "DAEGU_NAMGU-detail.html",
+        "bytes": 4837,
+        "sha256": "64499e7a18198fdd2bd87dd3cdd40cca4d00eac116467a50171898af75e537e9"
+      },
+      {
+        "name": "DAEGU_NAMGU-list.html",
+        "bytes": 34042,
+        "sha256": "8a63465bfdb37a0323851139e9858722a8a824b80d8af1435a52657c1f5d3972"
+      },
+      {
+        "name": "DAEGU_NAMGU-search.html",
+        "bytes": 10932,
+        "sha256": "c33dcd0ddd15ca83ca071faacd7e05631a217e974a92c9d1be69a1e3a0c44043"
+      },
+      {
+        "name": "YEONGJONG-list.html",
+        "bytes": 20,
+        "sha256": "dc6e0c81b28cbcaad4b3112202a16ffb5da17615cd9a026f70e402c17800b95a"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAEGU_NAMGU-38607.json",
+      "build/reports/attachment-regional-collection/DAEGU_BUKGU-55924.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4384377,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000048",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_GET"
+      },
+      {
+        "sourceCode": "LGS-000049",
+        "requests": 5,
+        "result": "OFFICIAL_OPAQUE_POST_DISCOVERY_2023_ELIGIBLE_SAMPLE"
+      },
+      {
+        "sourceCode": "LGS-000056",
+        "requests": 1,
+        "result": "HTTP_200_NON_LIST_20_BYTES_PROFILE_NOT_REGISTERED"
       }
     ],
     "originalsRemoved": true,

@@ -1789,6 +1789,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAEGU_NAMGU-38607",
+      "profileCode": "LOCAL_DAEGU_NAMGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3a81e2e2da3a4a02d62819b9d2ff25de9c34ed46b26721486b39c174813c06be",
+        "sourceUrl": "https://eminwon.nam.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=38607&subCheck=Y",
+        "localSourceCode": "LGS-000048",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DAEGU_BUKGU-55924",
+      "profileCode": "LOCAL_DAEGU_BUKGU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1b03f3559c1fae9089c6e36cf346be46763c4a865f7ca1e20bbca3da17e0d95b",
+        "sourceUrl": "https://eminwon.buk.daegu.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=55924&subCheck=Y",
+        "localSourceCode": "LGS-000049",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

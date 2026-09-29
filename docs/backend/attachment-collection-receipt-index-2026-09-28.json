@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "79fdc03b78500f88f40bcc0af2942c41cfde1f576bf17e5f2a65270e75e7d0b3",
+  "inventorySha256": "2d27d4559fc18b4dce7f985482109909a7410973d96e9605c1996d0df188ed74",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1283,6 +1283,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "bf4fd04861ad8ac523cbc768f535828de5b1ef4626a96445b189ad134545d4c0"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEGU_NAMGU-38607.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "88d26a5d2257780c5b8374dcc239da4077627f42dfad40c802086012471d9ba0",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "f89f1a000402def00888382191ddcfeefbde170c7bbdd99d131009b616f52d2c"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEGU_BUKGU-55924.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "ab7b8d4cdc2669063290ae66d986b3ccc5e06908bd826437bd9a805207c76272",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "f89f1a000402def00888382191ddcfeefbde170c7bbdd99d131009b616f52d2c"
     }
   ],
   "samples": [
@@ -2174,6 +2190,60 @@
           "bytes": 97762,
           "format": "HWPX",
           "binaryHash": "b43ad81605481103343da77dcd9d8be4647dda55c6457fd3db81b11260f5d210",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000049",
+      "caseCode": "DAEGU_BUKGU-55924",
+      "profileCode": "LOCAL_DAEGU_BUKGU_POST_V1",
+      "profileHash": "9ee12e417dfc5bf57e5ab521819fad8ab98e291b535d03a35503fe79b9fa99ed",
+      "receiptHash": "ab7b8d4cdc2669063290ae66d986b3ccc5e06908bd826437bd9a805207c76272",
+      "producerClassHash": "f89f1a000402def00888382191ddcfeefbde170c7bbdd99d131009b616f52d2c",
+      "observedAt": "2026-09-29T06:57:49.171118600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "ecffe6c9744cd3f789c2f7addcf98aff14093f5fb36f3808e3145824a7f9242e",
+          "status": "SUCCEEDED",
+          "bytes": 116224,
+          "format": "HWP",
+          "binaryHash": "64152f780eb16be2bdf8f2028f9f366d674b1d96c68a76798b46205c5b498591",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000048",
+      "caseCode": "DAEGU_NAMGU-38607",
+      "profileCode": "LOCAL_DAEGU_NAMGU_GET_V1",
+      "profileHash": "8061574eae7865f37de929761a7fcfb6c16841cf09fe88831b6f8eefb716cd5d",
+      "receiptHash": "88d26a5d2257780c5b8374dcc239da4077627f42dfad40c802086012471d9ba0",
+      "producerClassHash": "f89f1a000402def00888382191ddcfeefbde170c7bbdd99d131009b616f52d2c",
+      "observedAt": "2026-09-29T06:57:35.281991700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "62dd0d312993540093a41f89f05311f62569eb9ca3e08d6f7314b2d3f0322f16",
+          "status": "SUCCEEDED",
+          "bytes": 60928,
+          "format": "HWP",
+          "binaryHash": "82a0070c98f251f8cc7ac3f45894e6e5e24dafec6e461243e952a8b35541599f",
           "signatureVerified": true
         }
       ]
