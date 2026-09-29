@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 160,
-    "missingProfileRegionCount": 63,
+    "registeredRegionCount": 162,
+    "missingProfileRegionCount": 61,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2382,14 +2382,26 @@
       "sourceCode": "LGS-000096",
       "listParserProfileCode": "SAFE_PAJU_SUMMARY",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000096",
+          "caseCode": "PAJU-20260119101158902",
+          "profileCode": "LOCAL_PAJU_BOARD_V1",
+          "profileHash": "1cd76e6edda78e6cf879fe81597a399bd0c29a0641e238f336eb7c6a1b635d1b",
+          "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000097",
@@ -2520,14 +2532,26 @@
       "sourceCode": "LGS-000102",
       "listParserProfileCode": "SAFE_GWANGMYEONG_LEGAL_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000102",
+          "caseCode": "GWANGMYEONG-65908",
+          "profileCode": "LOCAL_GWANGMYEONG_BOARD_V1",
+          "profileHash": "1c53827f824f0f270c3133cebb905ef5cc4525ea5d15694ef24ebb875b7c9ba7",
+          "receiptHash": "b96c14b5aae13086b73e4f3fcf35b310b8ac8f564b752bada15608d341940b89",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000103",
@@ -10806,6 +10830,101 @@
         "sourceCode": "LGS-000082",
         "requests": 4,
         "result": "OFFICIAL_MENU_REDIRECT_LIST_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_ADMINISTRATIVE_TITLES_NO_DETAIL_OR_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalEighthDownloadRun": {
+    "scope": "PAJU_GWANGMYEONG_COLLECTION_ONLY_WITH_PENDING_HWASEONG",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GWANGMYEONG-detail.html",
+        "bytes": 855367,
+        "sha256": "03e5b4fbe71836b39bc890fa0ea240e278bae877eed24ca85bb2524ad1162a77"
+      },
+      {
+        "name": "GWANGMYEONG-list.html",
+        "bytes": 869019,
+        "sha256": "7ff57a3e1dbd921b7aa8314ced64d5245994098c5f115bddaca4bc04777cf34c"
+      },
+      {
+        "name": "GWANGMYEONG-search.html",
+        "bytes": 868968,
+        "sha256": "ee03eed6ee416b7c00ebb5e23cabea245168df2e44785ab7860a813c537acfc8"
+      },
+      {
+        "name": "HWASEONG-list.html",
+        "bytes": 530375,
+        "sha256": "5c5ebcead8a779adaf967575f010eff110dfdf88cad6c3e4e8be609d6dd815bd"
+      },
+      {
+        "name": "HWASEONG-search.html",
+        "bytes": 520679,
+        "sha256": "c6e589b72ca9d5ce87d13a21d2a01bf66c10070ab2f08450ab3e6f1ad8648c03"
+      },
+      {
+        "name": "PAJU-board.js",
+        "bytes": 29423,
+        "sha256": "36dcc726f60b0111e1a6d67c280a0572c0bb35c88031e29fdca8c47a01becbfa"
+      },
+      {
+        "name": "PAJU-detail.html",
+        "bytes": 291922,
+        "sha256": "b2368b2f38419fbb8f1145205b4cdaa1c37e92d0c7a72b30a34628cde4a11aa6"
+      },
+      {
+        "name": "PAJU-list.html",
+        "bytes": 331187,
+        "sha256": "717ed0a12c07c469e9414eefa6925d6ca148173193c9e6fa658763c017016278"
+      },
+      {
+        "name": "PAJU-search.html",
+        "bytes": 327592,
+        "sha256": "9019d69f1e592005ebb2f177c41dd0068174f5f8d61b9575665c4df8e72e075e"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "PAJU-20260119101158902",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "GWANGMYEONG-65908",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/PAJU-20260119101158902.json",
+      "build/reports/attachment-regional-collection/GWANGMYEONG-65908.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 10,
+    "reservedBytesIncludingBodyUpperBound": 5755757,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000096",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_STATIC_BOARD_SCRIPT_DETAIL_PDF_1_NO_PREVIEW_EXECUTION"
+      },
+      {
+        "sourceCode": "LGS-000102",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_STATIC_JSON_MANIFEST_HWP_3_NO_SCRIPT_EXECUTION"
+      },
+      {
+        "sourceCode": "LGS-000088",
+        "requests": 2,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_NO_SAMPLE_NO_DETAIL_OR_FILE_REQUEST"
       }
     ],
     "originalsRemoved": true,

@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void capitalEighthBodiesExcludeAttachmentAndMetadata() {
+        String p="<article id=content><div class=content-body><div class=container><div class=article-view><div class=article-header><div class=info-area><h1 class=article-subject><span class=category-label>고시공고</span>소상공인 지원</h1></div><ul class='file-list file-shortcut'>수출 파일.pdf</ul></div><div class=article-body><div class=article-conetnt>소상공인 지원금</div></div></div></div></div></article>";
+        String g="<div class=sub_content_cont_rt_cont><table class='table_style2 bbsView'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>수출 파일.hwp</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr></table></div>";
+        var samples=List.of(new String[]{p,"https://www.paju.go.kr/user/board/BD_board.view.do?bbsCd=1022&seq=20260119101158902&q_ctgCd=4063"},new String[]{g,"https://www.gm.go.kr/pt/user/nftcBbs/BD_selectNftcBbsDetail.do?q_nftcBbsCode=1001&q_nftcBbsMgtno=65908"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void sejongBodyExcludesFilesAndDepartment() {
         String good="<div id=txt><div class=table-responsive><table class='table table-bordered'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>파일첨부</th><td>수출 특허.hwp</td></tr><tr><td class='tbl_cnts cell_left'>소상공인 지원금</td></tr></table></div></div>";
         String url="https://www.sejong.go.kr/prog/publicNotice/kor/sub02_030301/C1_1/view.do?not_ancmt_mgt_no=68219";

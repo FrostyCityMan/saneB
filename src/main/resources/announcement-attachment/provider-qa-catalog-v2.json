@@ -2653,6 +2653,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "PAJU-20260119101158902",
+      "profileCode": "LOCAL_PAJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "84f40f724e2cfe0d84e90d23b149c2ba415ed0d199829265cd32a4149618ff7e",
+        "sourceUrl": "https://www.paju.go.kr/user/board/BD_board.view.do?bbsCd=1022&seq=20260119101158902&q_ctgCd=4063",
+        "localSourceCode": "LGS-000096",
+        "listParserProfileCode": "SAFE_PAJU_SUMMARY"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GWANGMYEONG-65908",
+      "profileCode": "LOCAL_GWANGMYEONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3cfb3b774449e18e35033dfd66adab246dbfe510d74f9dd44c246e21ea607977",
+        "sourceUrl": "https://www.gm.go.kr/pt/user/nftcBbs/BD_selectNftcBbsDetail.do?q_nftcBbsCode=1001&q_nftcBbsMgtno=65908&q_currPage=1",
+        "localSourceCode": "LGS-000102",
+        "listParserProfileCode": "SAFE_GWANGMYEONG_LEGAL_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

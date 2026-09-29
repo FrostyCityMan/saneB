@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "7b2744e2e5c84d188098283295e787cc9ea4c25c351154858aa449c866a09da2",
+  "inventorySha256": "e970e7c5ba50ec791dc6db9e17df63690092e62a73f73c87835a40046c1b4f79",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1907,6 +1907,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "8c718ecdf1b3aa36a87dbcfccb0a1996e8bce9f99640c486ec7cc45e030819b0"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/PAJU-20260119101158902.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GWANGMYEONG-65908.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "b96c14b5aae13086b73e4f3fcf35b310b8ac8f564b752bada15608d341940b89",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2"
     }
   ],
   "samples": [
@@ -4588,6 +4604,49 @@
       ]
     },
     {
+      "sourceCode": "LGS-000102",
+      "caseCode": "GWANGMYEONG-65908",
+      "profileCode": "LOCAL_GWANGMYEONG_BOARD_V1",
+      "profileHash": "1c53827f824f0f270c3133cebb905ef5cc4525ea5d15694ef24ebb875b7c9ba7",
+      "receiptHash": "b96c14b5aae13086b73e4f3fcf35b310b8ac8f564b752bada15608d341940b89",
+      "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2",
+      "observedAt": "2026-09-29T17:11:14.028291400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "c682a128a6a082552bf8b02df98a624c37d67de9d508f6cd83116d22f41d0127",
+          "status": "SUCCEEDED",
+          "bytes": 121344,
+          "format": "HWP",
+          "binaryHash": "be07923de848eca4d4af605ab55c90e903d35bfc8683d42c903ec062e3443fb8",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "4ef1b9d4ba973825f681293620a5de724680191ebaff240b079e81bc331e732f",
+          "status": "SUCCEEDED",
+          "bytes": 98816,
+          "format": "HWP",
+          "binaryHash": "bb1e27a17ff349e21e7e643914f4403e4736d444f50273b62fd8f484cc8709c9",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "89095cc17e69135f93ddbc8416e941bc85d33af2683dd2ad6276ece5fd5a399a",
+          "status": "SUCCEEDED",
+          "bytes": 93184,
+          "format": "HWP",
+          "binaryHash": "aa2aac83ab6844f068e696d410e9c5a6dbec738b27fd8b99f942e5b4b9641043",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000202",
       "caseCode": "GYEONGJU-240954",
       "profileCode": "LOCAL_GYEONGJU_BOARD_V1",
@@ -6063,6 +6122,30 @@
           "format": "HWPX",
           "binaryHash": "41ca40464eacc65659e5e0bcf722b94c93fd6632ffec701273bc4a96b263887b",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000096",
+      "caseCode": "PAJU-20260119101158902",
+      "profileCode": "LOCAL_PAJU_BOARD_V1",
+      "profileHash": "1cd76e6edda78e6cf879fe81597a399bd0c29a0641e238f336eb7c6a1b635d1b",
+      "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
+      "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2",
+      "observedAt": "2026-09-29T17:11:00.514041700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "5bd69c1898615556d2630f0bc72d2c4f619c009496bebf2e94e3b245ceb33782",
+          "status": "FAILED",
+          "bytes": 93037
         }
       ]
     },
