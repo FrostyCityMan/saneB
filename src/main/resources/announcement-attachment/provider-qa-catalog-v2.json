@@ -2773,6 +2773,18 @@
         "listParserProfileCode": "GUNWI_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SANGJU-27590",
+      "profileCode": "LOCAL_SANGJU_GOSI_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "feb583cb3d9e309fa858674f927ad01ad150065f6559152ddef7452d944ef4d3",
+        "sourceUrl": "https://www.sangju.go.kr/gosi/detail.tc?mn=10297&mgtNo=27590",
+        "localSourceCode": "LGS-000208",
+        "listParserProfileCode": "SAFE_SANGJU_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
