@@ -71,6 +71,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(JeonnamSecondDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamSecondDownloadCases.selectCase(group));
         if("JANGSEONG".equals(group))return Stream.of(JeonnamThirdDownloadCases.selectJangseongCase());
         if(GyeongbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukFirstDownloadCases.selectCase(group));
+        if(GyeongnamThirdDownloadCases.GROUPS.contains(group))return Stream.of(GyeongnamThirdDownloadCases.selectCase(group));
         if(GyeongnamSecondDownloadCases.GROUPS.contains(group))return Stream.of(GyeongnamSecondDownloadCases.selectCase(group));
         if(GyeongnamFirstDownloadCases.GROUPS.contains(group))return Stream.of(GyeongnamFirstDownloadCases.selectCase(group));
         if(GyeongbukSixthDownloadCases.GROUPS.contains(group))return Stream.of(GyeongbukSixthDownloadCases.selectCase(group));
@@ -817,6 +818,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_JANGSEONG_POST_V1".equals(profile.selectProfileCode());
             boundedSaeol|=GyeongbukThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongbukSecondDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
+            boundedSaeol|=GyeongnamThirdDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_SCMS_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongnamSecondDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongnamFirstDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_GET_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=GyeongbukSixthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_COUNTY_V1").equals(profile.selectProfileCode()));

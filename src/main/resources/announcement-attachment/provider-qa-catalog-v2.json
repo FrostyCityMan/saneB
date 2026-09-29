@@ -1717,6 +1717,30 @@
         "listParserProfileCode": "CHANGWON_GOSI_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "TONGYEONG-49251",
+      "profileCode": "LOCAL_TONGYEONG_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "48c84f6a92c255b537675c00880705bd5f2aecf9be3535f90c482c77ac403c94",
+        "sourceUrl": "https://www.tongyeong.go.kr/00852/00853/00858.web?amode=view&not_ancmt_mgt_no=49251",
+        "localSourceCode": "LGS-000226",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "HAPCHEON-44432",
+      "profileCode": "LOCAL_HAPCHEON_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "5766f401180c33b798412841bb8edbea86b20a19aa1ad8cc2afd980cfd8b1dc9",
+        "sourceUrl": "https://www.hc.go.kr/04923/04924/04948.web?amode=view&not_ancmt_mgt_no=44432",
+        "localSourceCode": "LGS-000241",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL"
+      },
+      "expectation": null
     }
   ]
 }

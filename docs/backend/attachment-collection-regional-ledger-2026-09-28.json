@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 83,
-    "missingProfileRegionCount": 140,
+    "registeredRegionCount": 85,
+    "missingProfileRegionCount": 138,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4350,14 +4350,26 @@
       "sourceCode": "LGS-000226",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000226",
+          "caseCode": "TONGYEONG-49251",
+          "profileCode": "LOCAL_TONGYEONG_SCMS_V1",
+          "profileHash": "2b5887cf6c2c421cbfe2c37f9d29aacefb71790aeb27506c97adfb62b24e1691",
+          "receiptHash": "1744da91318819317c0e6ae39efdf7887bcabc49b216eaa638d3d1ba65eed7c8",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000227",
@@ -4569,14 +4581,26 @@
       "sourceCode": "LGS-000241",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000241",
+          "caseCode": "HAPCHEON-44432",
+          "profileCode": "LOCAL_HAPCHEON_SCMS_V1",
+          "profileHash": "07b0fb1e4ec45de734ad841d070ac9c80b7343b25f2f87ae6b9b9e6a5482dcd2",
+          "receiptHash": "05758452cd5ed4aef9344c51a4f440b97f425d4f842ae54a9cf27c15c407025c",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000242",
@@ -6351,6 +6375,137 @@
       {
         "sourceCode": "LGS-000230",
         "result": "LIST_HTTP_400_REQUEST_BLOCKED_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gyeongnamThirdDownloadRun": {
+    "scope": "BEST_EFFORT_COLLECTION_ONLY",
+    "surveyRequests": 13,
+    "surveyGetRequests": 13,
+    "surveyPostRequests": 0,
+    "diagnosticFileRequests": 1,
+    "diagnosticFileMaximumSeconds": 20,
+    "diagnosticFileMaximumBytes": 2097152,
+    "maximumSurveySecondsPerRequest": 15,
+    "maximumSurveyBytesPerRequest": 1048576,
+    "automaticSurveyRedirects": 0,
+    "rawSurveyFiles": [
+      {
+        "name": "GEOCHANG-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "GYEONGNAM-list.html",
+        "bytes": 1290,
+        "sha256": "fb2ddd4e94e477818c8b410e7ca8462ea82af8e08eea4405e303d4b8aaf1b767"
+      },
+      {
+        "name": "HAPCHEON-detail.html",
+        "bytes": 85250,
+        "sha256": "eb7cf19c73f23358f04f3f7523a2e7497e4734e6195ef1eec589de0f55cb1dd3"
+      },
+      {
+        "name": "HAPCHEON-file-headers.txt",
+        "bytes": 759,
+        "sha256": "2d56f376b27faff46adbbce6459ceacf51fedc7a4935a2d6f2c8d8473097fc4a"
+      },
+      {
+        "name": "HAPCHEON-file-probe.bin",
+        "bytes": 87214,
+        "sha256": "f129885d3ecea8354d46a341ce4c27d074adc7ef514dfc6549a9b45a2e437af1"
+      },
+      {
+        "name": "HAPCHEON-list.html",
+        "bytes": 90465,
+        "sha256": "45706de3f2a28b459b7cea45ef130a684a27ab72ae1288f71cf94cce7f25a32d"
+      },
+      {
+        "name": "HAPCHEON-search.html",
+        "bytes": 85161,
+        "sha256": "993bac76e573c6131edb924357ce492e8b5c55c7f64adc47a9355887d49d36ec"
+      },
+      {
+        "name": "TONGYEONG-board.html",
+        "bytes": 189109,
+        "sha256": "3ccfa6f738c1cced45364f8113d67daa03854e095b2a0665b5ab0754637aa698"
+      },
+      {
+        "name": "TONGYEONG-detail.html",
+        "bytes": 183778,
+        "sha256": "e63bb8556938b96a843c4510955e913f6588365e29ee85aee25d8da4ea80ecb6"
+      },
+      {
+        "name": "TONGYEONG-eminwon.html",
+        "bytes": 5848,
+        "sha256": "0f0db9dbad97793502585518a5b6ff2f3681211d3610fe3a0d847b793a70ff72"
+      },
+      {
+        "name": "TONGYEONG-headers.txt",
+        "bytes": 326,
+        "sha256": "ab3f0641fbc32316ac2111697820f2d4e4877e07d81722705dbce5551c445f01"
+      },
+      {
+        "name": "TONGYEONG-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "TONGYEONG-repeat.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "TONGYEONG-search.html",
+        "bytes": 183239,
+        "sha256": "27f472ad077a2e09d447154548a2e3804aae4717b80c9dd42084347d0f768509"
+      },
+      {
+        "name": "UIRYEONG-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/TONGYEONG-49251-INITIAL.json",
+      "build/reports/attachment-regional-collection/HAPCHEON-44432-INITIAL.json",
+      "build/reports/attachment-regional-collection/TONGYEONG-49251.json",
+      "build/reports/attachment-regional-collection/HAPCHEON-44432.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 18,
+    "reservedBytesIncludingBodyUpperBound": 9204808,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000226",
+        "result": "OFFICIAL_SCMS_AND_SAEOL_DETAIL_SAME_NOTICE_TITLE_FILE",
+        "requests": 6
+      },
+      {
+        "sourceCode": "LGS-000241",
+        "result": "OFFICIAL_SCMS_PROXY_SAEOL_DETAIL_TIMEOUT_LEGACY_IDENTITY_NOT_BOUND",
+        "requests": 4
+      },
+      {
+        "sourceCode": "LGS-000223",
+        "result": "LIST_HTTP_400_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000232",
+        "result": "LIST_HTTP_400_PROFILE_NOT_REGISTERED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000240",
+        "result": "LIST_HTTP_400_PROFILE_NOT_REGISTERED",
         "requests": 1
       }
     ],
