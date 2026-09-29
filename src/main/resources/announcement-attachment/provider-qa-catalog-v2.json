@@ -1981,6 +1981,42 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YANGJU-65326",
+      "profileCode": "LOCAL_YANGJU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "147d308c408d91b3b3de47e73c15fc494f01c907cb79600707b4299194874445",
+        "sourceUrl": "https://www.yangju.go.kr/www/selectEminwonView.do?key=4075&not_ancmt_mgt_no=65326",
+        "localSourceCode": "LGS-000101",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GUNPO-43659",
+      "profileCode": "LOCAL_GUNPO_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e150c374fa21f3ff2c813ec1cedef0e3ade7ced16bdcd73ee0f6d10697fea15e",
+        "sourceUrl": "https://www.gunpo.go.kr/www/selectEminwonView.do?key=3907&not_ancmt_mgt_no=43659&Not_ancmt_se_code=01&notAncmtSeCd=01",
+        "localSourceCode": "LGS-000103",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEOJU-51859",
+      "profileCode": "LOCAL_YEOJU_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4ff9dd40d6970de6a57a8882acc41dc6b7d615c4f76b91826c32184e7ad2fc5b",
+        "sourceUrl": "https://www.yeoju.go.kr/www/selectEminwonView.do?key=413&not_ancmt_mgt_no=51859",
+        "localSourceCode": "LGS-000111",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 104,
-    "missingProfileRegionCount": 119,
+    "registeredRegionCount": 107,
+    "missingProfileRegionCount": 116,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2111,14 +2111,26 @@
       "sourceCode": "LGS-000101",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000101",
+          "caseCode": "YANGJU-65326",
+          "profileCode": "LOCAL_YANGJU_PORTAL_V1",
+          "profileHash": "0b8ef5c8eb7af1c1286594b8e5065354351f6a04fcb728c9629090246428e34d",
+          "receiptHash": "22a56640aa7426023188124e41f7fb4eb8258a75218e86b078f0ac79b75f5591",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000102",
@@ -2137,14 +2149,26 @@
       "sourceCode": "LGS-000103",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000103",
+          "caseCode": "GUNPO-43659",
+          "profileCode": "LOCAL_GUNPO_PORTAL_V1",
+          "profileHash": "9f2d406dea21fe49c3ccea84887787da2ebd7089e7d955664f6467e4a37b5b90",
+          "receiptHash": "9dca540688337d6c32c15a8a6df7b24ff3116056719e3350431b89c3aa0155fb",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000104",
@@ -2253,14 +2277,26 @@
       "sourceCode": "LGS-000111",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000111",
+          "caseCode": "YEOJU-51859",
+          "profileCode": "LOCAL_YEOJU_PORTAL_V1",
+          "profileHash": "e6da970bea85b8e49ea4db6d114fb002d4f909498a5b48f017a3989365576dc8",
+          "receiptHash": "d0cb4db027bd013f7167de76ef51d8b6ddf7ede3cf20b212fcaff4223c1567ee",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000112",
@@ -7438,6 +7474,105 @@
         "sourceCode": "LGS-000089",
         "requests": 1,
         "result": "PORTAL_LIST_HTTP404_1076_BYTES"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalBoardDownloadRun": {
+    "scope": "CAPITAL_BOARD_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 12,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GUNPO-detail.html",
+        "bytes": 298039,
+        "sha256": "6a5accc67a8e50f4b10725f7472d11ab3f40da8e4451af3f325a8e3473dc9b82"
+      },
+      {
+        "name": "GUNPO-list.html",
+        "bytes": 302211,
+        "sha256": "5106d7a49c804d3670086681876517c34d97dc058ee30243277dc85115a4ecc1"
+      },
+      {
+        "name": "GUNPO-search.html",
+        "bytes": 296103,
+        "sha256": "b252ec77e63c7985ff9647c40bacf1daa7cf122a9837f37c5393b85398888c5e"
+      },
+      {
+        "name": "YANGJU-detail.html",
+        "bytes": 213485,
+        "sha256": "5b5b900f4d28cebdeaad2b60fcb7ee0da74690eac7ea3b8c965b0551e0c7bb64"
+      },
+      {
+        "name": "YANGJU-list.html",
+        "bytes": 220282,
+        "sha256": "047f4d3a5141d11c872cd0daf9c14ce2569d09b338f0c7d6675adde9fa0958a1"
+      },
+      {
+        "name": "YANGJU-search.html",
+        "bytes": 221138,
+        "sha256": "c5d13c567fd5af3ffc85a54b52676164ad17cec3471a82a4ae16a505b2e7570d"
+      },
+      {
+        "name": "YANGJU-subject.html",
+        "bytes": 217828,
+        "sha256": "1733279d296c1c5f14f977b95230c1494d91638a5d871f659d28f32a529e90dc"
+      },
+      {
+        "name": "YEOJU-detail.html",
+        "bytes": 174453,
+        "sha256": "f3695de877fa4528f336df8c934bfc857611d540939fb25749c3c156728b87e7"
+      },
+      {
+        "name": "YEOJU-list.html",
+        "bytes": 181505,
+        "sha256": "34ff73fd0be54ae5d9b12a7f205b85dce181716e253c40f627e2c041da5db76e"
+      },
+      {
+        "name": "YEOJU-search.html",
+        "bytes": 182217,
+        "sha256": "9457b3802730877059687ef4a58a084ad5382993995fd71c34ab48febf6d83d5"
+      },
+      {
+        "name": "YEOJU-subject.html",
+        "bytes": 176178,
+        "sha256": "a62d7276cb680688078ba7eb6eb6ebb3e3e9aae86cfa7a1cfad116624e0f60eb"
+      },
+      {
+        "name": "YEOJU-support.html",
+        "bytes": 181662,
+        "sha256": "0f3aadeae4b03981a576bb57afc9eb9e08a397f037689379f33ef14d234cb46d"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YANGJU-65326.json",
+      "build/reports/attachment-regional-collection/GUNPO-43659.json",
+      "build/reports/attachment-regional-collection/YEOJU-51859.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 12,
+    "reservedBytesIncludingBodyUpperBound": 7269571,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000101",
+        "requests": 4,
+        "result": "OFFICIAL_SUBJECT_SEARCH_DETAIL_GET"
+      },
+      {
+        "sourceCode": "LGS-000103",
+        "requests": 3,
+        "result": "OFFICIAL_SEARCH_DETAIL_POST"
+      },
+      {
+        "sourceCode": "LGS-000111",
+        "requests": 5,
+        "result": "SUBJECT_SOSANGGONGIN_EMPTY_SUPPORT_SEARCH_DETAIL_GET"
       }
     ],
     "originalsRemoved": true,

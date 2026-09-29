@@ -38,6 +38,25 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void capitalEminwonBodyDoesNotIncludeMenuMetadataOrAttachments() {
+        for(var site:CapitalEminwonNoticePage.Site.values()) {
+            boolean yang=site==CapitalEminwonNoticePage.Site.YANGJU, yeo=site==CapitalEminwonNoticePage.Site.YEOJU;
+            String page="<main><header>수출 특허 메뉴</header><div class='p-wrap bbs bbs__view'><table class='"+(yang?"bbs_default view":"p-table block")+"'>"
+                    +(yeo?"<tr><td><span class='p-table__subject_text'>청년 지원 공고</span></td></tr>":"<tr><th>제목</th><td>청년 지원 공고</td></tr>")
+                    +"<tr><th>담당자</th><td>메타데이터</td></tr><tr>"+(yeo?"":"<th>"+(yang?"내용":"상세내용")+"</th>")
+                    +"<td title='내용' class='"+(yang?"bbs_content":"p-table__content")+"'>사업자 지원금 <table><tr><th>대상</th><td>청년</td></tr></table> 수출기업 제외</td></tr>"
+                    +"<tr><td class='p-table--attach'>스타트업 첨부</td></tr></table></div><footer>특허 푸터</footer></main>";
+            for(String selected:List.of(page,page.replace("title='내용'","title='변경'"),page+page)) {
+                var transport=new StubTransport();transport.enqueue(html(selected));
+                String url="https://"+site.host+CapitalEminwonNoticePage.DETAIL+"?key="+site.menu+"&not_ancmt_mgt_no=1"+(site==CapitalEminwonNoticePage.Site.GUNPO?"&Not_ancmt_se_code=01&notAncmtSeCd=01":"");
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/www/selectEminwonList.do?key="+site.menu,url));
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 대상 청년 수출기업 제외");}
+                else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     private ProviderContentResult chungjuResult(String query, String html) {
         var transport = new StubTransport(); transport.enqueue(html(html));
         var result = client(true, transport, publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE", SOURCE_ID,
