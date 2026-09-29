@@ -51,6 +51,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
         var ordinary=new StubTransport();ordinary.enqueue(response(200,"",json.getBytes(StandardCharsets.UTF_8)));
         assertThat(client(true,ordinary,publicValidator()).selectContent(request("42")).failureCode()).isEqualTo(FailureCode.CONTENT_TYPE_UNSUPPORTED);
     }
+    @Test void pyeongchangBodyExcludesFileAndDepartment() {
+        String page="<div id=contentsArea><div class='skinTb skinTb-data-resList skinTb-data-bgSbj'><div class=skinTb-tr><div class=skinTb-th>제목</div><div class=skinTb-td>소상공인 지원</div></div><div class=skinTb-tr><div class=skinTb-th>부서</div><div class=skinTb-td>수출 부서</div></div><div class=skinTb-tr><div class=skinTb-th>첨부파일</div><div class=skinTb-td>특허.hwp</div></div><div class=skinTb-tr><div class=skinTb-th>내용</div><div class='skinTb-td skinTb-conts'>소상공인 지원금</div></div></div></div>";
+        String url="https://www.pc.go.kr/portal/government/government-notification?noticeMgrNo=41378";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void gangwonProvinceBodyExcludesFileAndDepartment() {
         String page="<div id=content-bx><div class='skinTb skinTb-data-resList skinTb-data-bgSbj'><div class=skinTb-tr><div class=skinTb-th>제목</div><div class=skinTb-td>소상공인 지원</div></div><div class=skinTb-tr><div class=skinTb-th>부서</div><div class=skinTb-td>수출 부서</div></div><div class=skinTb-tr><div class=skinTb-th>첨부파일</div><div class=skinTb-td>특허.hwp</div></div><div class=skinTb-tr><div class=skinTb-th>내용</div><div class='skinTb-td skinTb-conts'>소상공인 지원금</div></div></div></div>";
         String url="https://state.gwd.go.kr/portal/bulletin/notification?articleSeq=272329";

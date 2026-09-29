@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 164,
-    "missingProfileRegionCount": 59,
+    "registeredRegionCount": 165,
+    "missingProfileRegionCount": 58,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3137,14 +3137,26 @@
       "sourceCode": "LGS-000127",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000127",
+          "caseCode": "PYEONGCHANG-41378",
+          "profileCode": "LOCAL_PYEONGCHANG_BOARD_V1",
+          "profileHash": "51edcffa23c759ef14eca52db6129f62d9556ef895b6ede38393d25636643d0d",
+          "receiptHash": "2f4aad03983ffcb4838770312e944bde09798f321bb0228fb086c2fb6d46c60b",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000128",
@@ -11073,6 +11085,80 @@
         "sourceCode": "LGS-000117",
         "requests": 1,
         "result": "OFFICIAL_JSON_REOBSERVED_FOR_IMPLEMENTATION_FIXTURE_MISSING_CONTENT_TYPE_UTF8_JSON"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "pyeongchangDownloadRun": {
+    "scope": "PYEONGCHANG_BODY_ATTACHMENT_COLLECTION_ONLY_AND_SAMCHEOK_SURVEY",
+    "surveyRequestCount": 7,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "samcheok-list.html",
+        "bytes": 139984,
+        "sha256": "ba6e2c317b384095114a014079894594ceb419b6686804679df65ec702bafdc7"
+      },
+      {
+        "name": "samcheok-search.html",
+        "bytes": 134243,
+        "sha256": "56f4405b1ee032ebd7a12a3f6295d08bed2e443e4df39760fa9b5f2b970f79fc"
+      },
+      {
+        "name": "samcheok-detail.html",
+        "bytes": 134566,
+        "sha256": "592e310614de17b8725d5572209892ef18fc4466025f3b78d50b7d75df80ffac"
+      },
+      {
+        "name": "pyeongchang-list.html",
+        "bytes": 155263,
+        "sha256": "ec1d49138a72c5d47fd7b12f8a251fb2210e3f3f01d2bd5cd49d6e7189f72950"
+      },
+      {
+        "name": "pyeongchang-detail.html",
+        "bytes": 155940,
+        "sha256": "1fc5941c8eb86a407318b4303eb97fb470f477e519c051b9e0a94be66204e97e"
+      },
+      {
+        "name": "pyeongchang-search.html",
+        "bytes": 146955,
+        "sha256": "78cbdeab90be1ce7c406e75aea9ae27179997e58a2078da2df3f14c5f2ec4398"
+      },
+      {
+        "name": "pyeongchang-support.html",
+        "bytes": 154704,
+        "sha256": "7ad050303ad37417ad90b248e7d9d6c682429ed3def05b1f8303b69ea4886ed0"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "PYEONGCHANG-41378",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/PYEONGCHANG-41378.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2252800,
+    "cumulativeRequestReservationsIncludingSurveyUpperBound": 11,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000127",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_DETAIL_TITLE_SEARCH_READ_ONLY_POST_AND_SUPPORT_DETAIL_HWP_1"
+      },
+      {
+        "sourceCode": "LGS-000123",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_HWP_1_DESCRIPTOR_SURVEY_ONLY_NO_FILE_REQUEST"
       }
     ],
     "originalsRemoved": true,

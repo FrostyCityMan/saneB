@@ -2701,6 +2701,18 @@
         "listParserProfileCode": "CHUNCHEON_NOTICE_JSON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "PYEONGCHANG-41378",
+      "profileCode": "LOCAL_PYEONGCHANG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "dda587f43b75dfe757f68966cf2bff28d547ab9633798aea547ee1895094f8fd",
+        "sourceUrl": "https://www.pc.go.kr/portal/government/government-notification?noticeMgrNo=41378",
+        "localSourceCode": "LGS-000127",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

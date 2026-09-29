@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d83ddffb05c9f770cbe4e5f6d81e56501f91419ed2690efd5ef43d76a9c99376",
+  "inventorySha256": "f31c4a7598c56e7f5597d1a3db52fa1b4ea682ce2346e337cca7a089151876b9",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1939,6 +1939,14 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "bd37305ae85f996af61e243a596cf4d295f3fa24ca85d88347f5e09008a2538d"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/PYEONGCHANG-41378.json",
+      "receiptHash": "2f4aad03983ffcb4838770312e944bde09798f321bb0228fb086c2fb6d46c60b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "06bd3cf8850fef8c6ff76a9cd226c0169da4d0198906491f12e9bf6d0f9797c3"
     }
   ],
   "samples": [
@@ -6236,6 +6244,30 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000127",
+      "caseCode": "PYEONGCHANG-41378",
+      "profileCode": "LOCAL_PYEONGCHANG_BOARD_V1",
+      "profileHash": "51edcffa23c759ef14eca52db6129f62d9556ef895b6ede38393d25636643d0d",
+      "receiptHash": "2f4aad03983ffcb4838770312e944bde09798f321bb0228fb086c2fb6d46c60b",
+      "producerClassHash": "06bd3cf8850fef8c6ff76a9cd226c0169da4d0198906491f12e9bf6d0f9797c3",
+      "observedAt": "2026-09-29T18:19:09.855693200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "bab8ca19b028476f504c884a2fbde0c21546efb7d06282647679e5d8b19e40ba",
+          "status": "FAILED",
+          "bytes": 0
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000093",
