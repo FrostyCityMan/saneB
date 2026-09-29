@@ -1765,6 +1765,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "EUNPYEONG-48267",
+      "profileCode": "LOCAL_EUNPYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7ec150ef70558810201fde5927643f08a5d8753202991a6c24feb7289428aee7",
+        "sourceUrl": "https://eminwon.ep.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=48267&subCheck=Y",
+        "localSourceCode": "LGS-000013",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEOCHO-43962",
+      "profileCode": "LOCAL_SEOCHO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "811b1642f57410ea4157a7272699cf1904e5901f7fc60e6e61d05a0d064978d1",
+        "sourceUrl": "https://eminwon.seocho.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43962&subCheck=Y",
+        "localSourceCode": "LGS-000023",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
