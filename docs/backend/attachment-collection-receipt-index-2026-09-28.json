@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "0360b876af1b19d6f5e4edd015203e7e94f8439b79ce45d6d0d7d65daad007d2",
+  "inventorySha256": "8738f8ac3df88b830b1782170f6ffaa7f45334f4bc3f830a26234cb3cf0b87ab",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1723,6 +1723,14 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "693038f71d9fd497349ffbfcf6620a57351af8f06b8492f0301c0a9a27f9097b"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/SEODAEMUN-313956.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "7cd9d4e307dd9b50f6862df334eea670a1b38d7a85c74fbb4e503358542ebab5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "13fea75abaa3efc2c46ae590be2ba20a9fafa88083ad2a11ff4e54bd8a32c0c9"
     }
   ],
   "samples": [
@@ -5730,6 +5738,45 @@
           "format": "HWP",
           "binaryHash": "4cd2fdb0aaf76bb91041894a93fd81ef44ff68f909ad5a1da19e0c3c1297b8f0",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000014",
+      "caseCode": "SEODAEMUN-313956",
+      "profileCode": "LOCAL_SEODAEMUN_BOARD_V1",
+      "profileHash": "a738a794f4ad9bf8c82e0bc5c59a871e580f70c42bc9823be7a4c7f19eecba36",
+      "receiptHash": "7cd9d4e307dd9b50f6862df334eea670a1b38d7a85c74fbb4e503358542ebab5",
+      "producerClassHash": "13fea75abaa3efc2c46ae590be2ba20a9fafa88083ad2a11ff4e54bd8a32c0c9",
+      "observedAt": "2026-09-29T13:37:10.551154Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 4,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "3b2f4c9a148ae91cbd93438b671c8912568a24867aefee920bf9bcc8095c6b68",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "e8cb3a669c7a5468e455e10418ae943184a8e8630d5e4ed8069069406fd75dbb",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "f2feceb79a7f4d844bc56c526c3c24d55c1d9a05d774a0ebdd1442505034da15",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "ebfd4a4343192d190b1b2fd13b4d35cc74c3838fdbeb29a13a24ba49de08264d",
+          "status": "FAILED",
+          "bytes": 0
         }
       ]
     },

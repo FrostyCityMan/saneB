@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seodaemunBoardSeparatesBodyAndDoesNotFetchImagesOrAttachments() {
+        String selected="<table class=boardWrite><tbody><tr><td class=subject>소상공인 지원</td></tr><tr><th>담당부서</th><td>메타데이터</td></tr><tr><td id=viewCon class=viewCon colspan=4>소상공인 지원금<img src='/image'></td></tr><tr><th scope=row>첨부파일</th><td colspan=3><a href='/downloadFile.do'>수출 특허.pdf</a></td></tr></tbody></table>";
+        String url="https://www.sdm.go.kr/news/notice/notice.do?sdmBoardConfSeq=82&mode=view&sdmBoardSeq=313956";
+        for(String page:List.of(selected,selected+selected,selected.replace("id=viewCon","id=changed"))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.sdm.go.kr/news/notice/notice.do",url));if(page.equals(selected)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void mapoPortalSeparatesBodyFromMetadataAndCommentedAttachments() {
         String selected="<div class=bbs_view><div class=bbs_view_body><div class=tbl_wrap3><table><tbody><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>메타데이터</td></tr><tr><td colspan=4>소상공인 지원금</td></tr><!-- <tr><td colspan=4>과거 수출 첨부</td></tr> --></tbody></table></div></div><div class=bbs_view_file>수출 특허.pdf</div></div>";
         String url="https://www.mapo.go.kr/site/main/nPortal/detail?bcId=19775";

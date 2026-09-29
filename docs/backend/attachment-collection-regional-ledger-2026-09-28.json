@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 137,
-    "missingProfileRegionCount": 86,
+    "registeredRegionCount": 138,
+    "missingProfileRegionCount": 85,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -214,14 +214,26 @@
       "sourceCode": "LGS-000014",
       "listParserProfileCode": "SAFE_SEODAEMUN_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000014",
+          "caseCode": "SEODAEMUN-313956",
+          "profileCode": "LOCAL_SEODAEMUN_BOARD_V1",
+          "profileHash": "a738a794f4ad9bf8c82e0bc5c59a871e580f70c42bc9823be7a4c7f19eecba36",
+          "receiptHash": "7cd9d4e307dd9b50f6862df334eea670a1b38d7a85c74fbb4e503358542ebab5",
+          "fileCount": 4,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000015",
@@ -9462,6 +9474,69 @@
         "sourceCode": "LGS-000011",
         "requests": 4,
         "result": "OFFICIAL_REDIRECTS_NEW_LIST_OK_SINGLE_TITLE_SEARCH_EMPTY_SAMPLE_NOT_SELECTED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulThirdDownloadRun": {
+    "scope": "SEODAEMUN_BOARD_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 5,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "NOWON-list.html",
+        "bytes": 400620,
+        "sha256": "9106f20cde46d5bcb6ebcbdfddfebe4db80b1fd0381aaf49a4316e25dffac5f8"
+      },
+      {
+        "name": "NOWON-search.html",
+        "bytes": 393219,
+        "sha256": "408ea42d0472122dd3ffc467de8433d56b6d84850183ff7cd752c1dd335d1420"
+      },
+      {
+        "name": "SEODAEMUN-detail.html",
+        "bytes": 92519,
+        "sha256": "c20d72cf617bdf65f84643ccf6799e535c5533343c8a78de3619c375bcea1af8"
+      },
+      {
+        "name": "SEODAEMUN-list.html",
+        "bytes": 107357,
+        "sha256": "ef6190265dcd3b1ea48773d3f0ff6e09abd71fcb6ba6fad4cc0ae890adc27e1d"
+      },
+      {
+        "name": "SEODAEMUN-search.html",
+        "bytes": 106241,
+        "sha256": "20a9a4eaa145bff8ac5b956f7193e9fee8d62ba374b995f00f83bc62ba2b5e4a"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEODAEMUN-313956",
+        "maximumRequests": 7,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEODAEMUN-313956.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 7,
+    "reservedBytesIncludingBodyUpperBound": 2195456,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000014",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_ATTACHMENT_LIST_HWPX_4"
+      },
+      {
+        "sourceCode": "LGS-000012",
+        "requests": 2,
+        "result": "OFFICIAL_LIST_OK_SINGLE_TITLE_SEARCH_EMPTY_SAMPLE_NOT_SELECTED"
       }
     ],
     "originalsRemoved": true,
