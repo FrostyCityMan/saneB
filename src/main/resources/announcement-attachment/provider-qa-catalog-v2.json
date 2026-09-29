@@ -2425,6 +2425,42 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DONGDAEMUN-22587",
+      "profileCode": "LOCAL_DONGDAEMUN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b2729444e704b16c83cfbb2411e39846e9592bd892e8766a8b74c21674eeb337",
+        "sourceUrl": "https://www.ddm.go.kr/www/selectEminwonWebView.do?key=3291&searchNotAncmtSeCode=01%2C02%2C04%2C05%2C06%2C07&notAncmtMgtNo=22587",
+        "localSourceCode": "LGS-000007",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SEONGBUK-43006",
+      "profileCode": "LOCAL_SEONGBUK_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ce3dba0b129a6ec849bdbd58ee977e80c7750fa1c79d8d8d941e64f776016f76",
+        "sourceUrl": "https://www.sb.go.kr/www/selectEminwonView.do?key=6920&notAncmtMgtNo=43006",
+        "localSourceCode": "LGS-000009",
+        "listParserProfileCode": "SEONGBUK_EMINWON_TABLE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGDEUNGPO-38256",
+      "profileCode": "LOCAL_YEONGDEUNGPO_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "d84471d0fa3694f058e76ef5b82c73b6583ce61050d7425e6fab3a8ed450b5aa",
+        "sourceUrl": "https://www.ydp.go.kr/www/selectEminwonView.do?menuFlag=01&notAncmtMgtNo=38256&key=2851",
+        "localSourceCode": "LGS-000020",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

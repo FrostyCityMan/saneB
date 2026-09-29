@@ -31,6 +31,13 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seoulFifthBodiesExcludeAttachmentNamesAndMetadata() {
+        String ddm="<div class='p-wrap bbs bbs__view'><div class=table-responsive><table class='p-table scroll'><tr><th>고시공고명</th><td>소상공인 지원</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr><tr><th>첨부파일</th><td>수출 첨부.hwpx</td></tr></table></div></div>";
+        String sb="<table class='p-table block'><tr><th>제목</th><td>소상공인 지원</td><th>담당부서</th><td>메타데이터</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr><tr><th>첨부파일</th><td>수출 첨부.hwp</td></tr></table>";
+        String ydp="<div class='p-wrap bbs bbs__view'><table class='p-table block'><tr class=p-table__subject><td><span class=p-table__subject_text>소상공인 지원</span></td></tr><tr><td class=p-table__content colspan=4>소상공인 지원금</td></tr><tr><th>파일</th><td>수출 첨부.pdf</td></tr></table></div>";
+        var samples=List.of(new String[]{ddm,"https://www.ddm.go.kr/www/selectEminwonWebView.do?key=3291&notAncmtMgtNo=22587&searchNotAncmtSeCode=01%2C02%2C04%2C05%2C06%2C07"},new String[]{sb,"https://www.sb.go.kr/www/selectEminwonView.do?key=6920&notAncmtMgtNo=43006"},new String[]{ydp,"https://www.ydp.go.kr/www/selectEminwonView.do?key=2851&menuFlag=01&notAncmtMgtNo=38256"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void seoulFourthBodiesExcludeAttachmentsMetadataAndPreviewFrames() {
         String sd="<div class='p-wrap bbs bbs__view'><table class='p-table block'><tr class=p-table__subject><td><span class=p-table__subject_text>소상공인 지원</span></td></tr><tr><th>첨부파일</th><td>수출 첨부.pdf</td></tr><tr><td class=p-table__content><div class=preview_frame><iframe src='/preview'></iframe></div><div class=ntt_cn_container>소상공인 지원금</div></td></tr></table></div>";
         String sp="<div class='p-wrap bbs bbs__view'><form name=gosiFrm><table class='p-table block'><tr><th>제목</th><td>소상공인 지원</td><th>담당부서</th><td>메타데이터</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr><tr><th>파일</th><td>수출 첨부.pdf</td></tr></table></form></div>";

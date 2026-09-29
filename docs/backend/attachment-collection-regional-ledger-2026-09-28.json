@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 141,
-    "missingProfileRegionCount": 82,
+    "registeredRegionCount": 144,
+    "missingProfileRegionCount": 79,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -123,14 +123,26 @@
       "sourceCode": "LGS-000007",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000007",
+          "caseCode": "DONGDAEMUN-22587",
+          "profileCode": "LOCAL_DONGDAEMUN_BOARD_V1",
+          "profileHash": "aeeb056109ee0f3e0bf79f36d5a20e6ead2e7764f0ce9745e3e852e8371db7ac",
+          "receiptHash": "f3b5e77ddc5f79a26b44012e31701245598bfc189739ce401bea0116e6f7b2f1",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000008",
@@ -149,14 +161,26 @@
       "sourceCode": "LGS-000009",
       "listParserProfileCode": "SEONGBUK_EMINWON_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000009",
+          "caseCode": "SEONGBUK-43006",
+          "profileCode": "LOCAL_SEONGBUK_BOARD_V1",
+          "profileHash": "75a02fae81ec644a68f60af9b6a435ecec8d34b75254555a2422d737791ba3d1",
+          "receiptHash": "f80a5eb4f9c2431fae5700f16241e02b918fc2db8fa3766c81dbacc4db09df9f",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000010",
@@ -374,14 +398,26 @@
       "sourceCode": "LGS-000020",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000020",
+          "caseCode": "YEONGDEUNGPO-38256",
+          "profileCode": "LOCAL_YEONGDEUNGPO_BOARD_V1",
+          "profileHash": "687d03dccf0ccf7cd35338e1307c292d73ee538fb7233c36951a844807f492a3",
+          "receiptHash": "7a168eab9cc9075f49a6ae2689c08572ed43b9a48eba6995217917f5a9388f47",
+          "fileCount": 2,
+          "downloadedFileCount": 1,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000021",
@@ -9685,6 +9721,128 @@
         "sourceCode": "LGS-000006",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_2025_ARCHIVED_DETAIL_PDF_2_HWPX_1"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulFifthDownloadRun": {
+    "scope": "DONGDAEMUN_SEONGBUK_YEONGDEUNGPO_COLLECTION_ONLY",
+    "surveyRequestCount": 13,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DONGDAEMUN-detail.html",
+        "bytes": 381499,
+        "sha256": "ca0951b4bb75770e63f272e2bfeb78dc258623d806b57f1d38d25cf1c4a4122f"
+      },
+      {
+        "name": "DONGDAEMUN-list.html",
+        "bytes": 401761,
+        "sha256": "6ff6a210be59593f1545668b0c11de3f84c0e07c68fe5de9398c77724f5dd4ba"
+      },
+      {
+        "name": "DONGDAEMUN-search.html",
+        "bytes": 398075,
+        "sha256": "92c2be251ff3397582ce43430f10e9344a6ed503c2a20c6b8463c3ac4d062c52"
+      },
+      {
+        "name": "DONGDAEMUN-support.html",
+        "bytes": 403065,
+        "sha256": "4c5fb88f88afff36719ad6aa81d190b3031651cb986ebfa90353394e4f902e8a"
+      },
+      {
+        "name": "SEONGBUK-corrected-search.html",
+        "bytes": 227528,
+        "sha256": "c6b992d0610eb01830c48801d90a82f812cc3c22016b7c9270d6c1fbfbf48256"
+      },
+      {
+        "name": "SEONGBUK-detail.html",
+        "bytes": 222267,
+        "sha256": "2a3a1c4fe848acc242d26f5ee493807354d0c65ce2a1d3362a95919d44238412"
+      },
+      {
+        "name": "SEONGBUK-list.html",
+        "bytes": 229476,
+        "sha256": "8a71a128940f331aa35b547113a580416e4317962f6d3d3ae5463a350292dfbd"
+      },
+      {
+        "name": "SEONGBUK-search.html",
+        "bytes": 229445,
+        "sha256": "1e28a18ec35a5361c0f0671ac5b3dd0ad2d9fb2220c8b581a7f0c7a7f5b33cff"
+      },
+      {
+        "name": "SEONGBUK-support.html",
+        "bytes": 229289,
+        "sha256": "2ddbb44f02b7cc634c23817cc8efb8a33cdb4c56bd24d376b0a86bef02185249"
+      },
+      {
+        "name": "YEONGDEUNGPO-detail.html",
+        "bytes": 142176,
+        "sha256": "1dc1c921c1db4c1764aaba12eff6a5bb193b03bd9385c608725ed3301070a9a0"
+      },
+      {
+        "name": "YEONGDEUNGPO-list.html",
+        "bytes": 144562,
+        "sha256": "7710ca75d1bed34f9623756744f16f57d732098bca45e21b264ead21ae4d8f01"
+      },
+      {
+        "name": "YEONGDEUNGPO-search.html",
+        "bytes": 138861,
+        "sha256": "13d22b53560028b8da10a28235e498a1f5e1dc3a015e776f6747f30714853358"
+      },
+      {
+        "name": "YEONGDEUNGPO-support.html",
+        "bytes": 142947,
+        "sha256": "85878c185b1f4f2d472c877f8bae6a33596a31cf4e7ac5d603904bad1f0a1b21"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DONGDAEMUN-22587",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "SEONGBUK-43006",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "YEONGDEUNGPO-38256",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DONGDAEMUN-22587.json",
+      "build/reports/attachment-regional-collection/SEONGBUK-43006.json",
+      "build/reports/attachment-regional-collection/YEONGDEUNGPO-38256.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 15,
+    "reservedBytesIncludingBodyUpperBound": 8014072,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000007",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_SEARCHES_DETAIL_HWPX_2_PRIVATE_PREVIEW_NOT_REQUESTED"
+      },
+      {
+        "sourceCode": "LGS-000009",
+        "requests": 5,
+        "result": "OFFICIAL_LIST_TWO_IGNORED_SEARCHES_CORRECTED_SEARCH_DETAIL_HWPX_2_HWP_1"
+      },
+      {
+        "sourceCode": "LGS-000020",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TWO_SEARCHES_DETAIL_PDF_1_XLSX_1_UNSUPPORTED"
       }
     ],
     "originalsRemoved": true,
