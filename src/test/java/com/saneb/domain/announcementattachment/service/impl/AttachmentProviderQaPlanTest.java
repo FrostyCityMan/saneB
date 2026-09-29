@@ -53,17 +53,17 @@ class AttachmentProviderQaPlanTest {
         var plan=AttachmentProviderQaPlan.selectPlan(List.of(p),List.of(target("LGS-000001","PARSER")));
         assertThat(plan.summary().bindingMatchedCount()).isZero();assertThat(plan.summary().unboundProfileCount()).isEqualTo(1);
     }
-    @Test void allActualRegisteredProfilesDeclareTheirOwnInstitutionWithoutStartingApplicationOrNetwork() {
+    @Test void configuredProfilesDeclareTheirOwnInstitutionWithoutStartingApplicationOrNetwork() {
         try(var context=new AnnotationConfigApplicationContext()) {
             context.register(BizInfoAttachmentDiscoveryProfile.class,SeoguSaeolAttachmentDiscoveryProfile.class,HwacheonPostAttachmentDiscoveryProfile.class,
                     SaeolGetAttachmentProfileConfiguration.class,LegalBoardAttachmentProfileConfiguration.class,StandardBbsAttachmentProfileConfiguration.class,
                     ChungjuEminwonAttachmentDiscoveryProfile.class);
             context.refresh();var profiles=new ArrayList<>(context.getBeansOfType(AttachmentDiscoveryProfile.class).values());
-            assertThat(profiles).hasSize(20);
+            assertThat(profiles).hasSize(33);
             var targets=profiles.stream().filter(p->"LOCAL_GOV_NOTICE".equals(p.selectProviderCode())).flatMap(p->p.selectSourceBindings().stream())
                     .map(b->target(b.localSourceCode(),b.listParserProfileCode())).toList();
             var plan=AttachmentProviderQaPlan.selectPlan(profiles,targets);
-            assertThat(plan.summary().targetCount()).isEqualTo(21);assertThat(plan.summary().bindingMatchedCount()).isEqualTo(20);
+            assertThat(plan.summary().targetCount()).isEqualTo(34);assertThat(plan.summary().bindingMatchedCount()).isEqualTo(33);
             assertThat(plan.summary().missingProfileCount()).isEqualTo(1);assertThat(plan.unboundProfiles()).isEmpty();
             assertThat(plan.items()).filteredOn(i->i.providerCode().equals("GOV24_PUBLIC_SERVICE")).singleElement()
                     .satisfies(i->assertThat(i.statusCode()).isEqualTo("PROFILE_MISSING"));

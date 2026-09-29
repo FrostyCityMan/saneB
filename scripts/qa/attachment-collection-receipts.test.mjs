@@ -80,3 +80,14 @@ test('local title stop requires no requests or discovery and cannot count as dow
   r.titleStage='COMBINATION_MATCHED';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
   r.titleStage='UNKNOWN';assert.throws(runLocal,/COLLECTION_RECEIPT_INVALID/);
 });
+
+test('partial discovery retains independently verified detail identity and successful binaries',()=>{
+  const r={...observation(),collectionOnly:true,isExtractionVerified:false,isWholeTextAnalysisComplete:false,
+    isPolicyQaPassed:false,isExpectationApproved:false,collectionStageComplete:false,
+    status:'COLLECTION_ONLY_PARTIAL_NOT_APPROVED',detailIdentityVerified:true,discoveryStatus:'FAILED',discoveryComplete:false};
+  r.files[0].status='DOWNLOADED';delete r.files[0].quality;
+  const result=importLocalCollectionReport(Buffer.from(JSON.stringify(r)),inventory,hash);
+  assert.equal(result.samples[0].detailIdentityVerified,true);
+  assert.equal(assessSample(result.samples[0]).downloadedFileCount,1);
+  assert.equal(assessSample(result.samples[0]).collectionVerified,false);
+});

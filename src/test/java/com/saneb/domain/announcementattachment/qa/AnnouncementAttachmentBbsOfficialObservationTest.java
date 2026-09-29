@@ -51,7 +51,18 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         @Override public String toString(){return code;}
     }
     static Stream<ObservationCase> selectConfiguredCases() {
-        return selectCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
+        return selectBatchCases(System.getProperty("saneb.attachment-observation.group","TAEBAEK"));
+    }
+    public static Stream<ObservationCase> selectBatchCases(String groups) {
+        // 명시한 지역만 한 JVM에서 순차 실행한다. 각 표본의 기존 요청/용량 상한은 그대로다.
+        String[] names=groups.split(",",-1);
+        if(names.length>8)throw new IllegalArgumentException("COLLECTION_BATCH_GROUP_LIMIT");
+        var selected=new LinkedHashMap<String,ObservationCase>();
+        for(String name:names) {
+            if(!name.strip().matches("[A-Z0-9_]+"))throw new IllegalArgumentException("COLLECTION_BATCH_GROUP_INVALID");
+            selectCases(name.strip()).forEach(sample->selected.putIfAbsent(sample.code(),sample));
+        }
+        return selected.values().stream();
     }
     public static Stream<ObservationCase> selectCases(String group) {
         if("SUSEONG".equals(group)) return Stream.of(
@@ -431,12 +442,15 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             AttachmentDiscoveryProfile.Result discovered;
             try(var input=Files.newInputStream(detail)) {
                 var page=Jsoup.parse(input,null,uri.toASCIIString());stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.titleLayout());
+                report.put("detailIdentityVerified",true);
                 stage="DETAIL_DISCOVERY";discovered=profile.selectDescriptors(source,page.outerHtml());
             } finally {Files.deleteIfExists(detail);}
             report.put("discoveryStatus",discovered.status());report.put("discoveryComplete",discovered.complete());report.put("discoveredFileCount",discovered.descriptors().size());
+            report.put("discoveryWarningCodes",discovered.warnings());
             for(var d:discovered.descriptors()) {var row=new LinkedHashMap<String,Object>();rows.add(row);row.put("locatorHash",AnnouncementAttachmentOfficialObservationTest.selectHash(d.locator()));
                 row.put("formatHint",d.expectedFormat());row.put("downloadAllowed",d.downloadAllowed());row.put("status","NOT_RUN");}
-            assertTrue(discovered.complete()&&Set.of("FOUND","NO_FILES").contains(discovered.status()),"DISCOVERY_INCOMPLETE");
+            // 부분 파싱 결과에도 프로필이 검증한 descriptor는 수집한다. 미확인 링크는 실행하지 않는다.
+            report.put("discoveryError",!discovered.complete()||!Set.of("FOUND","NO_FILES").contains(discovered.status()));
             if("GANGBUK-179490".equals(sample.code())) {
                 assertEquals(GANGBUK_LOCATORS,rows.stream().map(row->row.get("locatorHash")).toList(),"OFFICIAL_FILE_LIST_CHANGED");
                 assertEquals(List.of("HWPX","HWP","HWPX","HWPX"),rows.stream().map(row->row.get("formatHint")).toList(),"OFFICIAL_FILE_FORMAT_CHANGED");
@@ -469,6 +483,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 return;
             }
             stage="COMBINED_CLASSIFICATION";
+            assertTrue(discovered.complete()&&Set.of("FOUND","NO_FILES").contains(discovered.status()),"DISCOVERY_INCOMPLETE");
             var decision=new AnnouncementAttachmentClassificationEngine().selectDecision(new Input(base,rules,true,discovered.status(),discovered.complete(),files,null,List.of()));
             report.put("decisionStatus",decision.status());report.put("decisionReason",decision.reason());report.put("warningCodes",decision.warnings());
             report.put("targetCodes",decision.targetCodes());report.put("supportCodes",decision.supportCodes());report.put("matchCount",decision.matches().size());
@@ -489,10 +504,16 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         }
     }
     static void saveCollectionOnlySummary(Map<String,Object> report,List<Map<String,Object>> rows,int expectedCount) {
-        assertEquals(expectedCount,rows.size(),"OFFICIAL_FILE_LIST_CHANGED");
-        assertTrue(rows.stream().allMatch(row->"DOWNLOADED".equals(row.get("status"))),"WHOLE_SET_DOWNLOAD_INCOMPLETE");
-        report.put("status","COLLECTION_ONLY_OBSERVED_NOT_APPROVED");
-        report.put("collectionStageComplete",true);
+        boolean complete=Boolean.TRUE.equals(report.get("discoveryComplete"))
+                && Set.of("FOUND","NO_FILES").contains(report.getOrDefault("discoveryStatus","NOT_RUN"))
+                && expectedCount==rows.size() && rows.stream().allMatch(row->"DOWNLOADED".equals(row.get("status")));
+        report.put("status",complete?"COLLECTION_ONLY_OBSERVED_NOT_APPROVED":"COLLECTION_ONLY_PARTIAL_NOT_APPROVED");
+        report.put("collectionStageComplete",complete);
+        report.put("downloadedFileCount",rows.stream().filter(row->"DOWNLOADED".equals(row.get("status"))).count());
+        report.put("failedFileCount",rows.stream().filter(row->"FAILED".equals(row.get("status"))).count());
+        report.put("unsupportedFileCount",rows.stream().filter(row->"UNSUPPORTED_NOT_DOWNLOADED".equals(row.get("status"))).count());
+        report.put("notRunFileCount",rows.stream().filter(row->"NOT_RUN".equals(row.get("status"))).count());
+        report.put("fileListChanged",expectedCount!=rows.size());
         report.put("isWholeTextAnalysisComplete",false);
         report.put("isExtractionVerified",false);
         report.put("isPolicyQaPassed",false);

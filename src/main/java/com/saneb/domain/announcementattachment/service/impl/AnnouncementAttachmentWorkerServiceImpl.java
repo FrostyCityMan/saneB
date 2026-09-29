@@ -104,7 +104,11 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                     try (var stream = Files.newInputStream(workspace.selectDetailPath())) {
                         html = Jsoup.parse(stream,null,detail.toASCIIString()).outerHtml();
                     }
-                    discovery = profile.selectDescriptors(source.selectDiscoverySource(),html);
+                    try { discovery = profile.selectDescriptors(source.selectDiscoverySource(),html); }
+                    catch (IllegalArgumentException exception) {
+                        // 문서 파싱 오류는 고정 코드로 분리한다. 외부 원문을 작업 오류에 복사하지 않는다.
+                        discovery = new AttachmentDiscoveryProfile.Result("FAILED",false,List.of(),List.of("DISCOVERY_FAILED"));
+                    }
                 } catch (IOException exception) {
                     AttachmentFailureCode code = selectFailureCode(exception);
                     if (code.retryable() && job.attemptCount()<3) retry = code;
@@ -153,7 +157,9 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                             && !evidence.saveFileCheckpoint(job.jobId(),job.leaseToken(),file))
                         throw new AttachmentDownloadGateway.Deferred();
                     files.add(file);
-                    if (file.failureCode()!=null && file.failureCode().retryable() && job.attemptCount()<3) retry=file.failureCode();
+                    // 일반 수집은 성공/실패 근거를 즉시 함께 봉인한다. 파일 하나의 일시 오류로
+                    // 성공 자료 공개를 늦추지 않는다. 명시적인 파일 재시도 작업의 기존 상한은 유지한다.
+                    if (fileRetry && file.failureCode()!=null && file.failureCode().retryable() && job.attemptCount()<3) retry=file.failureCode();
                 }
                 result = new AttachmentSetEvidence(discovery.status(),discovery.complete(),files,discovery.warnings());
             }
@@ -198,10 +204,10 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
             try {
                 JsonNode output;
                 try { output = extractor.selectExtraction(workspace.selectBinaryPath()); }
-                catch (IOException exception) { output=mapper.createObjectNode().put("qualityCode","FAILED"); }
+                catch (IOException | IllegalArgumentException exception) { output=mapper.createObjectNode().put("qualityCode","FAILED"); }
                 long duration = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);
-                if (duration>35000) throw new IOException("ATTACHMENT_EXTRACTION_TIMEOUT");
-                extracted = selectExtraction(output,format,(int)duration);
+                if (duration>35000) output=mapper.createObjectNode().put("qualityCode","TIMEOUT");
+                extracted = selectExtraction(output,format,(int)Math.min(duration,35000));
             } finally { jobs.deleteResourceLease(lease); }
             return new AttachmentSetEvidence.File(descriptor.locator(),descriptor.displayName(),"UNSUPPORTED".equals(extracted.quality()) ? null : format,descriptor.documentRole(),origin,
                     "SUCCEEDED",downloaded.bytes(),downloaded.sha256(),null,extracted);

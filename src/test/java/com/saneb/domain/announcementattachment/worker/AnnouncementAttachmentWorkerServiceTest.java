@@ -395,7 +395,7 @@ class AnnouncementAttachmentWorkerServiceTest {
         assertTemporaryEmpty();
         verifyNoInteractions(evaluations);
     }
-    @Test void restartRetriesFailedFileOnlyAndPreservesOriginalSuccessfulExtractionTime() throws Exception {
+    @Test void ordinaryCollectionPublishesSuccessAndTransientFailureWithoutWaitingForRetry() throws Exception {
         var cache=insertCheckpointStore();
         var failedOnce=new java.util.concurrent.atomic.AtomicBoolean(false);
         // 두 번째 파일만 첫 회차 503. 기존 mock의 정상 응답은 delegate로 유지한다.
@@ -409,18 +409,53 @@ class AnnouncementAttachmentWorkerServiceTest {
             return successfulDownloads.selectDownload(call.getArgument(0),call.getArgument(1),call.getArgument(2),call.getArgument(3),call.getArgument(4),call.getArgument(5));
         });
         worker=selectWorker(gateway);
-        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("HTTP_SERVER_ERROR");
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
         assertThat(cache).hasSize(2);
         var originalTimes=cache.values().stream().map(f -> f.extraction().completedAtEpochMs()).toList();
-        verify(evidence,never()).saveAttachmentSet(any(),any(),any());
-        job=selectRetriedJob();
-        worker=selectWorker(gateway);
-        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
-        assertThat(selectSaved().files()).hasSize(3);
-        assertThat(selectSaved().files().stream().map(f -> f.extraction().completedAtEpochMs()).toList()).containsAll(originalTimes);
-        verify(gateway,times(6)).selectDownload(any(),any(),any(),any(),anyLong(),any());
-        verify(extractor,times(3)).selectExtraction(any());
+        var saved=selectSaved();assertThat(saved.files()).hasSize(3);
+        assertThat(saved.files()).extracting(AttachmentSetEvidence.File::downloadStatus).containsExactly("SUCCEEDED","FAILED","SUCCEEDED");
+        assertThat(saved.files().get(1).failureCode()).isEqualTo(AttachmentFailureCode.HTTP_SERVER_ERROR);
+        assertThat(saved.files().stream().filter(f->f.extraction()!=null).map(f -> f.extraction().completedAtEpochMs()).toList()).containsAll(originalTimes);
+        verify(jobs,never()).saveJobFailure(any(),any(),any());
+        verify(gateway,times(4)).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        verify(extractor,times(2)).selectExtraction(any());
         assertTemporaryEmpty();
+    }
+    @Test void partialDiscoveryStillDownloadsKnownFilesAndPreservesDiscoveryError() throws Exception {
+        page=page.replace("</ul>","<li><span class='file_name'>찾지 못한 파일.pdf</span></li></ul>");
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var saved=selectSaved();assertThat(saved.discoveryComplete()).isFalse();
+        assertThat(saved.warningCodes()).contains("ATTACHMENT_LINK_UNRESOLVED");
+        assertThat(saved.files()).hasSize(3).allSatisfy(f->assertThat(f.downloadStatus()).isEqualTo("SUCCEEDED"));
+        verify(downloads,times(4)).selectDownload(any(),any(),any(),any(),anyLong(),any());assertTemporaryEmpty();
+    }
+    @Test void leaseDeferralStillReusesCheckpointsOnRestartWithoutRedownloadingSuccess() throws Exception {
+        var cache=insertCheckpointStore();var deferred=new java.util.concurrent.atomic.AtomicBoolean();
+        var gateway=mock(AttachmentDownloadGateway.class);
+        when(gateway.selectDownload(any(),any(),any(),any(),anyLong(),any())).thenAnswer(call->{
+            var request=call.getArgument(2,AttachmentPinnedDownloadClient.Request.class);
+            if(request.uri().getRawQuery().endsWith("fileSn=1")&&!deferred.getAndSet(true))throw new AttachmentDownloadGateway.Deferred();
+            return downloads.selectDownload(call.getArgument(0),call.getArgument(1),call.getArgument(2),call.getArgument(3),call.getArgument(4),call.getArgument(5));
+        });
+        worker=selectWorker(gateway);assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("DEFERRED");
+        assertThat(cache).hasSize(1);long firstCompletedAt=cache.values().iterator().next().extraction().completedAtEpochMs();
+        job=selectRetriedJob();worker=selectWorker(gateway);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        assertThat(selectSaved().files().getFirst().extraction().completedAtEpochMs()).isEqualTo(firstCompletedAt);
+        verify(extractor,times(3)).selectExtraction(any());
+        verify(downloads,times(5)).selectDownload(any(),any(),any(),any(),anyLong(),any());assertTemporaryEmpty();
+    }
+    @Test void extractionParsingFailurePreservesDownloadAndContinuesNextFiles() throws Exception {
+        doThrow(new IllegalArgumentException("PRIVATE_CANARY"))
+                .doReturn(mapper.readTree("{\"qualityCode\":\"OCR_REQUIRED\",\"format\":\"HWP\"}"))
+                .doReturn(mapper.readTree("{\"qualityCode\":\"OCR_REQUIRED\",\"format\":\"HWPX\"}"))
+                .when(extractor).selectExtraction(any());
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var saved=selectSaved();assertThat(saved.files()).hasSize(3)
+                .allSatisfy(f->assertThat(f.downloadStatus()).isEqualTo("SUCCEEDED"));
+        assertThat(saved.files()).extracting(f->f.extraction().quality()).containsExactly("FAILED","OCR_REQUIRED","OCR_REQUIRED");
+        assertThat(mapper.writeValueAsString(saved)).doesNotContain("PRIVATE_CANARY");
+        verify(extractor,times(3)).selectExtraction(any());assertTemporaryEmpty();
     }
     @Test void newJobGenerationDoesNotReusePriorJobEvenWithSameLocator() throws Exception {
         insertCheckpointStore();

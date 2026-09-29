@@ -115,11 +115,11 @@ class LegalBoardAttachmentDiscoveryProfileTest {
             assertThat(r.complete() && r.descriptors().stream().anyMatch(AttachmentDiscoveryProfile.Descriptor::downloadAllowed)).isFalse();
         }
     }
-    @Test void registersNineDistinctProfilesWithBoundHashes() {
+    @Test void registersTwentyThreeDistinctProfilesWithBoundHashes() {
         try(var c=new AnnotationConfigApplicationContext(LegalBoardAttachmentProfileConfiguration.class,SaeolGetAttachmentProfileConfiguration.class,
                 HwacheonPostAttachmentDiscoveryProfile.class,BizInfoAttachmentDiscoveryProfile.class,SeoguSaeolAttachmentDiscoveryProfile.class,AttachmentDiscoveryProfileRegistry.class)) {
-            var registry=c.getBean(AttachmentDiscoveryProfileRegistry.class);assertThat(registry.selectProfileList()).hasSize(9);
-            assertThat(registry.selectProfileList().stream().map(AttachmentDiscoveryProfile::selectProfileCode).distinct().count()).isEqualTo(9);
+            var registry=c.getBean(AttachmentDiscoveryProfileRegistry.class);assertThat(registry.selectProfileList()).hasSize(23);
+            assertThat(registry.selectProfileList().stream().map(AttachmentDiscoveryProfile::selectProfileCode).distinct().count()).isEqualTo(23);
             registry.selectProfileList().forEach(p->assertThat(registry.selectProfileDetails(p.selectProviderCode(),p.selectProfileCode(),p.selectProfileHash())).contains(p));
             assertThat(selectProfile(true).selectProfileHash()).matches("[0-9a-f]{64}").isNotEqualTo(selectProfile(false).selectProfileHash());
             assertThat(selectProfile(true).selectUtf8DispositionOctets()).isTrue();assertThat(selectProfile(false).selectUtf8DispositionOctets()).isFalse();

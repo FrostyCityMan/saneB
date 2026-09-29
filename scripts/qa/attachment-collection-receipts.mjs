@@ -58,7 +58,7 @@ export function importReceipt(bytes, inventory) {
       observedAt: report.observedAt, executionCodeHash: probe.executionCodeHash,
       evidenceScope: report.scope, expectedFileCount: worker ? report.discoveredFileCount ?? 0 : report.expectedListedFileCount,
       titleStatus: eligible ? 'ELIGIBLE' : stopped ? 'NOT_ELIGIBLE' : 'NOT_CHECKED',
-      detailIdentityVerified: worker ? workerCompleted : ['FOUND', 'NO_FILES'].includes(discovery),
+      detailIdentityVerified: worker ? workerCompleted : report.detailIdentityVerified === true || ['FOUND', 'NO_FILES'].includes(discovery),
       discoveryStatus: discovery, discoveryComplete: complete,
       originalFilesRemoved: report.originalFilesRemoved === true && run.probeCleanupSucceeded === true
         && run.transportTemporaryFilesRemoved === true && terminal.unitInactive === true,
@@ -113,7 +113,7 @@ export function importLocalCollectionReport(bytes, inventory, producerClassHash)
     profileHash:report.profileHash,receiptHash:sha(bytes),producerClassHash,observedAt:report.observedAt,
     evidenceScope:'LOCAL_COLLECTION_ONLY_REPORT',expectedFileCount:report.expectedListedFileCount,
     titleStatus:eligible?'ELIGIBLE':stopped?'NOT_ELIGIBLE':'NOT_CHECKED',
-    detailIdentityVerified:['FOUND','NO_FILES'].includes(report.discoveryStatus),discoveryStatus:report.discoveryStatus??'NOT_RUN',
+    detailIdentityVerified:report.detailIdentityVerified===true||['FOUND','NO_FILES'].includes(report.discoveryStatus),discoveryStatus:report.discoveryStatus??'NOT_RUN',
     discoveryComplete:report.discoveryComplete===true,originalFilesRemoved:report.originalFilesRemoved===true,
     productionWriteCount:0,files};
   const assessed=assessSample(sample);

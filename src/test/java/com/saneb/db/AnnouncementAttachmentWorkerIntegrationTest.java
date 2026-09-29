@@ -201,18 +201,17 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         assertThat(sql.queryForObject("SELECT decision_status_code FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current", String.class, request.sourceId())).isEqualTo("REVIEW_REQUIRED");
         assertTemporaryEmpty();
     }
-    @Test void restartedWorkerReusesCommittedCheckpointsAndOnlyDownloadsFailedFileAgain() throws Exception {
+    @Test void transientFileFailureSealsPartialResultsImmediatelyAndLeavesNextJobUnblocked() throws Exception {
         client.samples = List.of(new Sample("AR-003", "first.hwp"), new Sample("AR-006", "second.hwpx"));client.failureIndex = 1;
         var request = selectRequest();var job = reserve(request);
-        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("HTTP_SERVER_ERROR");
-        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("RETRY_WAIT");
-        assertThat(bean(AnnouncementAttachmentReadService.class).selectAttachmentSetList(request.sourceId(), 1, 20).items()).isEmpty();
-        assertTemporaryEmpty();
-        client.failureIndex = -1;
-        sql.update("UPDATE announcement_attachment_jobs SET next_attempt_at=clock_timestamp()-interval '1 second' WHERE id=?", job.jobId());
-        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
-        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(client.fileRequests.get(1)).isEqualTo(2);
-        assertThat(extractor.calls).isEqualTo(2);assertThat(files(request.sourceId())).hasSize(2);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
+        assertThat(files(request.sourceId())).hasSize(2);
+        assertThat(files(request.sourceId()).getFirst().qualityCode()).isEqualTo("COMPLETE_TEXT");
+        assertThat(files(request.sourceId()).getLast().downloadErrorCode()).isEqualTo("HTTP_SERVER_ERROR");
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("IDLE");
+        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(client.fileRequests.get(1)).isEqualTo(1);
+        assertThat(extractor.calls).isEqualTo(1);
         assertTemporaryEmpty();
     }
     @Test void sourceDeletedDuringRealExtractionCannotBeRecreatedByLateWorkerResult() throws Exception {
@@ -301,18 +300,16 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,request.sourceId())).isZero();
         assertTemporaryEmpty();
     }
-    @Test void restartedWorkerPreservesTextRoleCheckpointAndDoesNotInferSuccessFromIncompleteEvidence() throws Exception {
+    @Test void partialCollectionPreservesSuccessfulTextRoleAndDoesNotInferWholeSetSuccess() throws Exception {
         enableRoleRules();client.samples=List.of(new Sample("AR-003","first.hwp"),new Sample("AR-006","second.hwpx"));client.failureIndex=1;
         var request=selectRequest();var job=reserve(request);
-        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("HTTP_SERVER_ERROR");
-        client.failureIndex=-1;
-        sql.update("UPDATE announcement_attachment_jobs SET next_attempt_at=clock_timestamp()-interval '1 second' WHERE id=?",job.jobId());
-        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
-        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(extractor.calls).isEqualTo(2);
-        assertThat(files(request.sourceId())).allSatisfy(file->{
-            assertThat(file.roleOriginCode()).isEqualTo("TEXT_RULE");assertThat(file.documentRoleCode()).isEqualTo("UNKNOWN");
-            assertThat(file.roleAssessment()).isNotNull();assertThat(file.roleExtractionId()).isEqualTo(file.extractionId());
-        });
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(extractor.calls).isEqualTo(1);
+        var file=files(request.sourceId()).getFirst();
+        assertThat(file.roleOriginCode()).isEqualTo("TEXT_RULE");assertThat(file.documentRoleCode()).isEqualTo("UNKNOWN");
+        assertThat(file.roleAssessment()).isNotNull();assertThat(file.roleExtractionId()).isEqualTo(file.extractionId());
+        assertThat(files(request.sourceId()).getLast().downloadErrorCode()).isEqualTo("HTTP_SERVER_ERROR");
+        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
         assertThat(sql.queryForObject("SELECT decision_status_code FROM announcement_source_attachment_evaluations WHERE source_id=? AND is_current",String.class,request.sourceId())).isEqualTo("REVIEW_REQUIRED");
         assertTemporaryEmpty();
     }

@@ -73,7 +73,16 @@ class AnnouncementAttachmentRealFileQaTest {
         @Override public String toString() { return "DraftQaContext[EPHEMERAL_SEED_ONLY]"; }
     }
 
-    static DraftQaContext selectDraftQaContext() throws Exception {
+    private static DraftQaContext cachedDraftContext;
+
+    static synchronized DraftQaContext selectDraftQaContext() throws Exception {
+        // 같은 JVM의 지역별 검사에서 불변 seed만 공유한다. DB/connection은 첫 읽기 직후 닫는다.
+        // 실패한 초기화는 캐시하지 않으며 다른 실행/운영 규칙과 공유하지 않는다.
+        if(cachedDraftContext==null)cachedDraftContext=selectUncachedDraftQaContext();
+        return cachedDraftContext;
+    }
+
+    private static DraftQaContext selectUncachedDraftQaContext() throws Exception {
         // 이 테스트가 생성한 별도 loopback DB에만 migration을 적용한다. 실제 DB 설정은 받지 않는다.
         try (var pg = EmbeddedPostgres.builder().setPort(0).setServerConfig("listen_addresses", "127.0.0.1").start()) {
             Flyway.configure().dataSource(pg.getPostgresDatabase()).locations("classpath:db/migration").load().migrate();
