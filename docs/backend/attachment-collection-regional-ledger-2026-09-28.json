@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 171,
-    "missingProfileRegionCount": 52,
+    "registeredRegionCount": 172,
+    "missingProfileRegionCount": 51,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4877,14 +4877,26 @@
       "sourceCode": "LGS-000204",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000204",
+          "caseCode": "ANDONG-63386",
+          "profileCode": "LOCAL_ANDONG_TABLE_V1",
+          "profileHash": "96c13247c83fe0218e20bb571dc54680f817e0dff7d10b2dc1bafbd206abd7b4",
+          "receiptHash": "90de2b1fb0dbf9552da6163050f3bebcc70970d6fea251f027d7c68b9a43c6bd",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000205",
@@ -5719,9 +5731,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "3746afb6cc5a74da0fbc42775a21b56e1ca70a65781b3782e6ff5f261f26f8ed",
+  "inputInventorySha256": "104ea002f6f428e2b0e4c246b2c3d4345721255bd6bafd4c80f5aa331ce8b054",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 260,
+  "importedReceiptCount": 261,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11621,6 +11633,67 @@
         "sourceCode": "LGS-000208",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_DETAIL200_HWP_PDF_TWO_FILE_POST_FORM"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "andongDownloadRun": {
+    "scope": "ANDONG_OFFICIAL_TABLE_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "priorSurveyRequests": 0,
+    "surveyRequestCount": 4,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "detail.html",
+        "bytes": 850081,
+        "sha256": "a59348cecc67d2c88d1d05f27476b9f781b0a64c879121cb54a88f167aeefdf5"
+      },
+      {
+        "name": "list-head.txt",
+        "bytes": 820,
+        "sha256": "f5bd4c99e36579e1cdf149e2944eef6de1bd57b977081808daf81193ad9fde89"
+      },
+      {
+        "name": "list.html",
+        "bytes": 847919,
+        "sha256": "068166c98ee39ea7afb1de47b761ff30334b871a4875cd1d0d7470a4b0b0bd41"
+      },
+      {
+        "name": "search-title.html",
+        "bytes": 846351,
+        "sha256": "bfd11cb8f48f1b6b74f21988d0914ad9e851de53b15e8a2096d65ac4e04d5608"
+      },
+      {
+        "name": "search.html",
+        "bytes": 847931,
+        "sha256": "784fb3c06d3d045c4b9e84af0a3b5d82e5578cc849fc9b13375d6d508b74726b"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ANDONG-63386",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ANDONG-63386.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 4073042,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 10,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000204",
+        "requests": 4,
+        "result": "OFFICIAL_LIST200_SEARCH_TYPE_CORRECTED_TO_TIT_DETAIL200_HWPX2_PDF1_PAIRED_PREVIEWS"
       }
     ],
     "originalsRemoved": true,

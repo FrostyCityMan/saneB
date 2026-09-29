@@ -2785,6 +2785,18 @@
         "listParserProfileCode": "SAFE_SANGJU_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ANDONG-63386",
+      "profileCode": "LOCAL_ANDONG_TABLE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "254f486f8ec72454dc3b08374519f60d1794aa91178217332dbfda134a686c0a",
+        "sourceUrl": "https://www.andong.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=63386&isLinkage=Y&mId=0401020100",
+        "localSourceCode": "LGS-000204",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

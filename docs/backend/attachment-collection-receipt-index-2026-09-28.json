@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "3746afb6cc5a74da0fbc42775a21b56e1ca70a65781b3782e6ff5f261f26f8ed",
+  "inventorySha256": "104ea002f6f428e2b0e4c246b2c3d4345721255bd6bafd4c80f5aa331ce8b054",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2003,9 +2003,60 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "37b5c9ead53309b61ed91d6fa1b51466e31f0a13cc50085214e73dde1d328dc8"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ANDONG-63386.json",
+      "receiptHash": "90de2b1fb0dbf9552da6163050f3bebcc70970d6fea251f027d7c68b9a43c6bd",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7f26322d1b8b009907593076f5db22dd1baee6b5ee63598a146e36cdb537f614"
     }
   ],
   "samples": [
+    {
+      "sourceCode": "LGS-000204",
+      "caseCode": "ANDONG-63386",
+      "profileCode": "LOCAL_ANDONG_TABLE_V1",
+      "profileHash": "96c13247c83fe0218e20bb571dc54680f817e0dff7d10b2dc1bafbd206abd7b4",
+      "receiptHash": "90de2b1fb0dbf9552da6163050f3bebcc70970d6fea251f027d7c68b9a43c6bd",
+      "producerClassHash": "7f26322d1b8b009907593076f5db22dd1baee6b5ee63598a146e36cdb537f614",
+      "observedAt": "2026-09-29T20:06:00.784780300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2e2e9a0dd49677ef883544c4dd1177ded54d458cb1bda0cdb661be403b8e7bc3",
+          "status": "SUCCEEDED",
+          "bytes": 514981,
+          "format": "HWPX",
+          "binaryHash": "46231ca1cd737f889d800bd55453a3291c0a2ed9a7e2e0633207423e13879fe0",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "126b24959cc68d3f1486f618b611e68788b304dac8485ed70adc4eed5d44f25d",
+          "status": "SUCCEEDED",
+          "bytes": 67216,
+          "format": "HWPX",
+          "binaryHash": "51802627791b5ecae9912b11166771844978fb6b0da6118e09bc51b1b44cfc63",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "11bc424f17e5e32d37f63adb0a52f6a14b4bedc8220820bae1019ec6f7a00eaf",
+          "status": "SUCCEEDED",
+          "bytes": 541725,
+          "format": "PDF",
+          "binaryHash": "c84f25b5aac52bdc9efc377dc9b7f02bab93520d4ad14ca5ac3e493f4569253b",
+          "signatureVerified": true
+        }
+      ]
+    },
     {
       "sourceCode": "LGS-000092",
       "caseCode": "ANSAN-1660335",
