@@ -96,7 +96,7 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                 try {
                     validateExecution(job);
                     var response = downloads.selectDownload(job,profile,AttachmentPinnedDownloadClient.Request.selectGet(detail),
-                            workspace.selectDetailPath(),1024L*1024,() -> requestStarted[0]=true);
+                            workspace.selectDetailPath(),com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile),() -> requestStarted[0]=true);
                     String contentType = response.contentType() == null ? "" : response.contentType().toLowerCase(java.util.Locale.ROOT);
                     if (!contentType.isBlank() && !contentType.startsWith("text/html") && !contentType.startsWith("application/xhtml+xml"))
                         throw new IOException("ATTACHMENT_DETAIL_CONTENT_TYPE");

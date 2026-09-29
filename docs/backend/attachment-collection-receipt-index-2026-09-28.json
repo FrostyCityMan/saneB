@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "77a0a0c45d053f707bd64f5b6d2f12112b243a18592cfa13073c2b217bf01a27",
+  "inventorySha256": "d6db7d3e0ca4ad83288fcd2fdc59141e1b5c56213e1b2f271da7a5e84fb42bf8",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1619,6 +1619,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/HONGSEONG-44858.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "ec610522d92fb8fdddbcbf0c5f3a4114f5c38f70e2f33b020c18c7358589bc40",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "6eaeb9245d0e760a29b40bb38aaf5d431c543b94355c5442ebbdf29860431a52"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/YESAN-47075.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "30443c07fca43db8edb48496baa0ac5449ed7df869e04b00c8e99ecb0b7638ea",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "6eaeb9245d0e760a29b40bb38aaf5d431c543b94355c5442ebbdf29860431a52"
     }
   ],
   "samples": [
@@ -4238,6 +4254,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000160",
+      "caseCode": "HONGSEONG-44858",
+      "profileCode": "LOCAL_HONGSEONG_BOARD_V1",
+      "profileHash": "8048d2a3423d6e6756abfe9b913de4aeaf242ef57363d39f273205f772a02a9c",
+      "receiptHash": "ec610522d92fb8fdddbcbf0c5f3a4114f5c38f70e2f33b020c18c7358589bc40",
+      "producerClassHash": "6eaeb9245d0e760a29b40bb38aaf5d431c543b94355c5442ebbdf29860431a52",
+      "observedAt": "2026-09-29T11:10:49.833691Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "daf5230d4bb45e527260436555cca8a65fe1c40603d712065ab2d083dce04b94",
+          "status": "SUCCEEDED",
+          "bytes": 132470,
+          "format": "HWPX",
+          "binaryHash": "decca6d0c10d46d0cc217e426da1d4c08c99e16f899eafb43c681e58aaaf2c0a",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000130",
       "caseCode": "HWACHEON-32258",
       "profileCode": "LOCAL_HWACHEON_POST_V1",
@@ -6441,6 +6484,41 @@
           "bytes": 102353,
           "format": "HWPX",
           "binaryHash": "b072ee088712a55a414b435cfad570c73958dea89589c66834075886e051eedc",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000161",
+      "caseCode": "YESAN-47075",
+      "profileCode": "LOCAL_YESAN_BOARD_V1",
+      "profileHash": "7426cde146c61645277bda3fc33f6ace087e49ed04df08db2f7e5b69e1854c1e",
+      "receiptHash": "30443c07fca43db8edb48496baa0ac5449ed7df869e04b00c8e99ecb0b7638ea",
+      "producerClassHash": "6eaeb9245d0e760a29b40bb38aaf5d431c543b94355c5442ebbdf29860431a52",
+      "observedAt": "2026-09-29T11:11:04.235184900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "1a98dfdd7787e31f42b19220d716caa535c2cc88135494e1a492136915d71ed3",
+          "status": "SUCCEEDED",
+          "bytes": 125169,
+          "format": "HWPX",
+          "binaryHash": "2c7f6f860704a95b3df5ccaa1ed85b28e66118cf9264a9be233794ae6bc59d10",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "73b498dd13baefaf13fe670ace3db9df205fd47a7df347a22be0622cadca14ef",
+          "status": "SUCCEEDED",
+          "bytes": 96891,
+          "format": "HWPX",
+          "binaryHash": "44579e7b982a0af52959f4173d99c735b8fe76a6e3a55410cd734403964c5aa0",
           "signatureVerified": true
         }
       ]

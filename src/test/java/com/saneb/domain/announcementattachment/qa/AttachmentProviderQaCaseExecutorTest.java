@@ -353,6 +353,15 @@ class AttachmentProviderQaCaseExecutorTest {
         var result=executor.selectResult(input(descriptors),control);
         assertThat(result.status()).isEqualTo("PASSED");assertThat(result.requestReservations()).isEqualTo(5);cleaned();
     }
+    @ParameterizedTest @ValueSource(longs={1048576L,2097152L})
+    void detailLimitOptInIsPassedToTransportWithoutChangingFileLimit(long limit) throws Exception {
+        var selected=mock(AttachmentDiscoveryProfile.class,withSettings().extraInterfaces(AttachmentDetailLimitProfile.class).defaultAnswer(call->call.getMethod().invoke(profile,call.getArguments())));
+        doReturn(limit).when((AttachmentDetailLimitProfile)selected).selectDetailMaximumBytes();
+        resetExecutor(selected);var result=executor.selectResult(input(descriptors),control);
+        assertThat(result.status()).isEqualTo("PASSED");
+        verify(client).selectDownload(argThat((AttachmentPinnedDownloadClient.Request r)->r.uri().getPath().equals("/detail")),anySet(),any(),any(Path.class),eq(limit),any());
+        verify(client,times(2)).selectDownload(argThat((AttachmentPinnedDownloadClient.Request r)->r.uri().getPath().startsWith("/file/")),anySet(),any(),any(Path.class),eq(20L*1024*1024),any());cleaned();
+    }
     @Test void forgedBinaryMimeFailsProductionSignatureValidation() throws Exception {
         var base=input(descriptors);
         when(client.selectDownload(any(AttachmentPinnedDownloadClient.Request.class),anySet(),any(),any(Path.class),anyLong(),any()))

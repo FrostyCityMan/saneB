@@ -113,7 +113,7 @@ public final class AttachmentProviderQaCaseExecutor {
                 workspace=temporary.insertWorkspace(UUID.randomUUID(),UUID.randomUUID()); cleaned=false;
                 AttachmentDiscoveryProfile.Result discovery;
                 try {
-                    var downloaded=selectDownload(profile,AttachmentPinnedDownloadClient.Request.selectGet(detail),workspace.selectDetailPath(),MIB,state);
+                    var downloaded=selectDownload(profile,AttachmentPinnedDownloadClient.Request.selectGet(detail),workspace.selectDetailPath(),com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile),state);
                     String mime=downloaded.contentType()==null?"":downloaded.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT);
                     if (!Set.of("text/html","application/xhtml+xml").contains(mime)) throw failure("DETAIL_CONTENT_TYPE_CHANGED");
                     try (var stream=Files.newInputStream(workspace.selectDetailPath())) {

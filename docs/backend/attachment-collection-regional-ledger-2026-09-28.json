@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 124,
-    "missingProfileRegionCount": 99,
+    "registeredRegionCount": 126,
+    "missingProfileRegionCount": 97,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3477,27 +3477,51 @@
       "sourceCode": "LGS-000160",
       "listParserProfileCode": "SAFE_EGOV_DETAIL_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000160",
+          "caseCode": "HONGSEONG-44858",
+          "profileCode": "LOCAL_HONGSEONG_BOARD_V1",
+          "profileHash": "8048d2a3423d6e6756abfe9b913de4aeaf242ef57363d39f273205f772a02a9c",
+          "receiptHash": "ec610522d92fb8fdddbcbf0c5f3a4114f5c38f70e2f33b020c18c7358589bc40",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000161",
       "listParserProfileCode": "SAFE_EGOV_DATA_LIST_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000161",
+          "caseCode": "YESAN-47075",
+          "profileCode": "LOCAL_YESAN_BOARD_V1",
+          "profileHash": "7426cde146c61645277bda3fc33f6ace087e49ed04df08db2f7e5b69e1854c1e",
+          "receiptHash": "30443c07fca43db8edb48496baa0ac5449ed7df869e04b00c8e99ecb0b7638ea",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000162",
@@ -8536,6 +8560,101 @@
         "responseBytes": 98782,
         "contentType": "application/octet-stream",
         "rawSaved": false
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chungcheongFourthDownloadRun": {
+    "scope": "CHUNGCHEONG_FOURTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GEUMSAN-list-full.html",
+        "bytes": 1992853,
+        "sha256": "d13ff333cb8e57d4eabc959d0d2292bcd89ae86d6b2f0e8d3ba49341dc957ff2"
+      },
+      {
+        "name": "GEUMSAN-list.html",
+        "bytes": 1048576,
+        "sha256": "c119985f4ef2c574ff24608d1e908d2be9c5020ddf7e727664f49a9b5f3491fa"
+      },
+      {
+        "name": "HONGSEONG-detail.html",
+        "bytes": 565432,
+        "sha256": "4b2624b5bef6988d87ad9464245fd043aa9b9e6861fe8524be340e817e7a9a4e"
+      },
+      {
+        "name": "HONGSEONG-list.html",
+        "bytes": 574676,
+        "sha256": "cc8626256a74404511d7e677b4e81a13bf6224b2fce3fdec02ecc618abca12fc"
+      },
+      {
+        "name": "HONGSEONG-search.html",
+        "bytes": 572934,
+        "sha256": "f10712606b99fb2ed2774bc0b97c6b428ee3b626ac954e9d3feb7840da401794"
+      },
+      {
+        "name": "YESAN-detail.html",
+        "bytes": 1145882,
+        "sha256": "779955b2b68b2de087393fc6070a8f3dd6f1cd9e03f828f76ac81d665c5c4009"
+      },
+      {
+        "name": "YESAN-list-full.html",
+        "bytes": 1163079,
+        "sha256": "a4d43d21e524e594dd20877c7063a04abf1b452b03196b4fe75538af43615e7e"
+      },
+      {
+        "name": "YESAN-list.html",
+        "bytes": 1048576,
+        "sha256": "5f45bddc916119a4c5a1b6adebaf45ae101a4418e753df6c98e381aec54f3bb9"
+      },
+      {
+        "name": "YESAN-search.html",
+        "bytes": 1160976,
+        "sha256": "2fa2448b4cb823fe69b171b973108774e51221049b58d8f1a66aaef66ad4dc27"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "HONGSEONG-44858",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "YESAN-47075",
+        "maximumRequests": 6,
+        "maximumBytes": 27262976,
+        "detailMaximumBytes": 2097152
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/HONGSEONG-44858.json",
+      "build/reports/attachment-regional-collection/YESAN-47075.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 8366306,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000160",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_DOUBLE_ENCODED_POST_NAME"
+      },
+      {
+        "sourceCode": "LGS-000161",
+        "requests": 4,
+        "result": "LIST_TRUNCATED_AT_1MIB_THEN_FULL_LIST_SEARCH_DETAIL_WITHIN_2MIB"
+      },
+      {
+        "sourceCode": "LGS-000156",
+        "requests": 2,
+        "result": "LIST_TRUNCATED_AT_1MIB_THEN_FULL_LIST_WITHIN_2MIB_DETAIL_CONNECTION_PENDING"
       }
     ],
     "originalsRemoved": true,

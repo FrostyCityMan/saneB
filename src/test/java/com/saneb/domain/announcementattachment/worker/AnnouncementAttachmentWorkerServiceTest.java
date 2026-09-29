@@ -97,6 +97,23 @@ class AnnouncementAttachmentWorkerServiceTest {
                 """.formatted(format));
         });
     }
+    @Test void workerUsesMeasuredYesanDetailLimitWithoutChangingFileOrOtherProfilesLimits() throws Exception {
+        var selected=new com.saneb.domain.announcementattachment.discovery.ChungcheongFourthAttachmentProfileConfiguration().selectYesanProfileDetails();
+        var execution=new AttachmentExecutionSnapshot(selected.selectProfileCode(),selected.selectProfileHash(),AnnouncementAttachmentClassificationEngine.VERSION,"1.0.0","b".repeat(64));
+        job=new AttachmentJobRow(job.jobId(),job.sourceId(),job.contentVersionId(),job.baseEvaluationId(),job.ruleReleaseId(),job.policyId(),null,null,1,0,1,"RUNNING",1,null,job.leaseToken(),job.leaseExpiresAt(),null,job.idempotencyKey(),job.requestHash(),mapper.writeValueAsString(execution),80L*1024*1024,0L,0);
+        String url="https://www.yesan.go.kr/prog/saeolGosi/GOSI/kor/sub04_03_01/view.do?notAncmtMgtNo=47075";
+        var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        when(jobs.selectWorkerSourceDetails(any(),any())).thenReturn(Optional.of(new AttachmentWorkerSourceRow("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000161","SAFE_EGOV_DATA_LIST_NOTICE")));
+        worker=new AnnouncementAttachmentWorkerServiceImpl(jobs,evidence,evaluations,retries,new AttachmentDiscoveryProfileRegistry(List.of(selected)),runtime,new AttachmentTemporaryStorage(directory.toString()),downloads,new AttachmentFileTypeValidator(),extractor,mapper);
+        doAnswer(call->{
+            assertThat(call.getArgument(4,Long.class)).isEqualTo(2L*1024*1024);((Runnable)call.getArgument(5)).run();Path target=call.getArgument(3);
+            Files.writeString(target,"<!--"+"x".repeat(1_100_000)+"--><div class='card program--view'><div class='card-body prog bucket-form'><div class='form-group'><div class='control-label'><label for='notAncmtSj'>제목</label></div><div><span id='notAncmtSj'>소상공인 지원</span></div></div><div class='form-group'><div class='control-label'><label>파일</label></div><div class='col-sm-9'><div class='ui bbs--view--file'></div></div></div></div></div><form id='fileForm' name='fileForm' method='post' action=''><input type='hidden' name='user_file_nm' value=''><input type='hidden' name='sys_file_nm' value=''><input type='hidden' name='file_path' value=''></form>");
+            assertThat(Files.size(target)).isGreaterThan(1024L*1024).isLessThan(2L*1024*1024);
+            return new AttachmentPinnedDownloadClient.Download(Files.size(target),"a".repeat(64),"text/html;charset=UTF-8");
+        }).when(downloads).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");assertThat(selectSaved().discoveryStatus()).isEqualTo("NO_FILES");assertThat(selectSaved().discoveryComplete()).isTrue();verifyNoInteractions(extractor);assertTemporaryEmpty();
+        assertThat(com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile)).isEqualTo(1024L*1024);
+    }
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {true, false})
     void workerUsesOnlySelectedProfilesLegacyMimeAndKeepsUnknownRole(boolean approvedMime) throws Exception {
