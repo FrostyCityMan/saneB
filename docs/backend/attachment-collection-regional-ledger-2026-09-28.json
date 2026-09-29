@@ -86,9 +86,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -96,12 +96,12 @@
           "sourceCode": "LGS-000004",
           "caseCode": "YONGSAN-766830",
           "profileCode": "LOCAL_YONGSAN_BOARD_V1",
-          "profileHash": "120740f23281e6a22618624eebd830535d8280d9f68801c482a2408920ec5a5f",
-          "receiptHash": "24d9b9878307ac2dee8aec111e3d9d8a1e87f5ea4e7775bddd401270edba692c",
+          "profileHash": "4945232776a2d587abecd5386844103ac0d9eea391933eac85cc7e109c7e5619",
+          "receiptHash": "a4f4e870a7038da612349fac129a6d57d26ff38f96dd304ce847456c43da92dd",
           "fileCount": 3,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -3943,9 +3943,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -3953,12 +3953,12 @@
           "sourceCode": "LGS-000156",
           "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
           "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
-          "profileHash": "9b03d6e9ca1520d84b6af3927a54797e454800ef3b571016b48e21920ca800a3",
-          "receiptHash": "bad73396beff510fc42bd49fe773e2bc79d47945bf893081b082459115277550",
+          "profileHash": "a70d4e5ddd9c3c7ae0e368937dbd4519103bcf85fec8502f65ea759ba22efca2",
+          "receiptHash": "9bca033a41fed93e124bbf52a477c75bf4acb8e07bfb8f8fac42fd5fe2f9e607",
           "fileCount": 2,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5463,9 +5463,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -5473,12 +5473,12 @@
           "sourceCode": "LGS-000224",
           "caseCode": "CHANGWON-211423",
           "profileCode": "LOCAL_CHANGWON_BOARD_V1",
-          "profileHash": "9daeaaf0a2b52b891b4e13d79cb3f1b37b0df401bbeb2cd3cadd92e07c6737cd",
-          "receiptHash": "61023ba9688d902ef9dc271ac67e9ebc8685b4ee581e614a8ee7bff3c5df5778",
+          "profileHash": "204f11de6eb694fa04b837520bd88478465b1fb0f7055b78de80b47aab0cce50",
+          "receiptHash": "5d19d9e8c86988c6d4ba45fe3f7da0ed4ab666b11a7dd50b074521da408ba8be",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "0de6f1c8537c39ea9c6146ccccc63496514b8e22be875566d90497347197b5eb",
+  "inputInventorySha256": "87faf6dbc0fad6816e2f0796b851691817082ac51249506c107b008516d348fb",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 275,
+  "importedReceiptCount": 278,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,142 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "legacyThreeMimeRecoveryRun": {
+    "scope": "YONGSAN_GEUMSAN_CHANGWON_MEASURED_FILE_RESPONSE_COLLECTION_ONLY",
+    "surveyRequestCount": 6,
+    "surveyMaximumSecondsPerRequest": 15,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000004",
+        "requests": 2,
+        "detailMaximumBytes": 2097152,
+        "observedContentType": "application/x-msdownload;charset=UTF-8",
+        "utf8DispositionPasses": 1,
+        "result": "DETAIL200_FILE200_SIGNATURE_OBSERVED_NOT_EXTRACTION_VERIFIED"
+      },
+      {
+        "sourceCode": "LGS-000156",
+        "requests": 2,
+        "detailMaximumBytes": 3145728,
+        "observedContentType": "hwpx",
+        "utf8DispositionPasses": 0,
+        "result": "DETAIL200_FILE200_SIGNATURE_OBSERVED_NOT_EXTRACTION_VERIFIED"
+      },
+      {
+        "sourceCode": "LGS-000224",
+        "requests": 2,
+        "detailMaximumBytes": 2097152,
+        "observedContentType": "application/x-msdownload;charset=UTF-8",
+        "utf8DispositionPasses": 2,
+        "result": "DETAIL200_FILE200_SIGNATURE_OBSERVED_NOT_EXTRACTION_VERIFIED"
+      }
+    ],
+    "normalizationMeaning": "GEUMSAN_BARE_HWPX_TO_INTERNAL_LEGACY_VALIDATION_REPRESENTATION_NOT_SERVER_HEADER",
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-yongsan-mime-20260930/detail-head.txt",
+        "bytes": 572,
+        "sha256": "5659f686abe5d40e32887245ac7847f790c3c7c4e70294860a2f35c569e152a5"
+      },
+      {
+        "path": "build/qa-yongsan-mime-20260930/detail.html",
+        "bytes": 159595,
+        "sha256": "6f39ea525972d5293f8a44a8ffa26882ea7f61a6a7e962b3d284b11afad93cb0"
+      },
+      {
+        "path": "build/qa-yongsan-mime-20260930/file-head.txt",
+        "bytes": 679,
+        "sha256": "44151fa1e0682f2cb6fa90c9c10f3acab2cde46bf20cc126b0ca827ab9419c09"
+      },
+      {
+        "path": "build/qa-yongsan-mime-20260930/file.bin",
+        "bytes": 113152,
+        "sha256": "867ecac352614598a3ba7b602c352bcb12a56c43ff4c2894697049c15d731d22"
+      },
+      {
+        "path": "build/qa-geumsan-mime-20260930/detail-head.txt",
+        "bytes": 536,
+        "sha256": "c6391301926c05eb8a17a03ec295956e5d660497cdba02f5cd84a1e6661b1cf3"
+      },
+      {
+        "path": "build/qa-geumsan-mime-20260930/detail.html",
+        "bytes": 1985278,
+        "sha256": "a4c5d3483cee4f4f10078cd5fc88c378f76e44bf49000fc260c1db4d922d295e"
+      },
+      {
+        "path": "build/qa-geumsan-mime-20260930/file-head.txt",
+        "bytes": 774,
+        "sha256": "dfdc9d3b6ff3dbe18c05d1815decee53c379df58aeef83823082ccae72951df0"
+      },
+      {
+        "path": "build/qa-geumsan-mime-20260930/file.bin",
+        "bytes": 131940,
+        "sha256": "d9622e86b6f694757cd46bfcb635661c0be2d670a47a6a5b0cb090bdd1d13519"
+      },
+      {
+        "path": "build/qa-changwon-mime-20260930/detail-head.txt",
+        "bytes": 569,
+        "sha256": "97aed65f48e23efe6ed40867b6fa6eeb2137a32259edea72ff5a3aa2dbed14d6"
+      },
+      {
+        "path": "build/qa-changwon-mime-20260930/detail.html",
+        "bytes": 148935,
+        "sha256": "41d459a2254a63faf37b084543f5122ccd0afa38827171a0eb90c076bb38c8f6"
+      },
+      {
+        "path": "build/qa-changwon-mime-20260930/file-head.txt",
+        "bytes": 684,
+        "sha256": "811a5912410e9270a3b958346c11348fde2c01c60f4bbf67d55d7777243cb956"
+      },
+      {
+        "path": "build/qa-changwon-mime-20260930/file.bin",
+        "bytes": 99491,
+        "sha256": "1c10a6a20697b7ec0969bb310ee4cba391eef4cddef02e3c36c31752a8fbf9d5"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YONGSAN-766830",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 27262976,
+        "detailMaximumBytes": 2097152
+      },
+      {
+        "caseCode": "CHANGWON-211423",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReports": [
+      "build/reports/attachment-regional-collection/YONGSAN-766830-BEFORE-MIME.json",
+      "build/reports/attachment-regional-collection/GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43-BEFORE-MIME.json",
+      "build/reports/attachment-regional-collection/CHANGWON-211423-BEFORE-MIME.json"
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YONGSAN-766830.json",
+      "build/reports/attachment-regional-collection/GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43.json",
+      "build/reports/attachment-regional-collection/CHANGWON-211423.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 15,
+    "reservedBytesIncludingBodyUpperBound": 11255785,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 21,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

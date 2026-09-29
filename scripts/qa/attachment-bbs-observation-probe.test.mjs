@@ -130,6 +130,7 @@ test('새 JAR는 고정 시험 클래스만 포함하고 운영 classpath·리�
   const build = readFileSync('build.gradle', 'utf8');
   const block = build.slice(build.indexOf("tasks.register('attachmentBbsObservationProbeJar'"), build.indexOf("tasks.register('attachmentBbsFixedCaseQa'"));
   assert(block.includes('sourceSets.test.output.classesDirs'));
+  assert(block.includes("include 'com/saneb/domain/announcementattachment/qa/*DownloadCases*.class'"));
   for (const text of ['sourceSets.main.output', 'testRuntimeClasspath', 'resources', '${name}*.class']) assert(!block.includes(text), text);
   assert(block.includes('preserveFileTimestamps = false'));
   assert(block.includes("'ObservationDownloadTrace'"));

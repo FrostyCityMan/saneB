@@ -319,21 +319,33 @@ class AnnouncementAttachmentOfficialWorkerProbeTest {
     }
     @Test void chungjuCaseDefinitionLoadsWithoutTheUnpackagedLiveQaClass() throws Exception {
         String definition="com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest";
-        var location=getClass().getProtectionDomain().getCodeSource().getLocation();
-        try(var loader=new java.net.URLClassLoader(new java.net.URL[]{location},getClass().getClassLoader()) {
-            @Override protected Class<?> loadClass(String name,boolean resolve) throws ClassNotFoundException {
-                synchronized(getClassLoadingLock(name)) {
-                    if(name.startsWith("com.saneb.domain.announcementattachment.qa.ChungjuEminwonProfileLiveQaTest"))throw new ClassNotFoundException("LIVE_QA_NOT_PACKAGED");
-                    if(name.equals(definition)||name.startsWith(definition+"$")) {
-                        Class<?> type=findLoadedClass(name);if(type==null)type=findClass(name);if(resolve)resolveClass(type);return type;
+        String qaPackage="com.saneb.domain.announcementattachment.qa.";
+        var testClasses=java.nio.file.Path.of(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+        for(String jarPath:java.util.List.of("build/official-worker-probe/official-worker-probe.jar","build/bbs-observation-probe/bbs-observation-probe.jar")) {
+            var path=java.nio.file.Path.of(jarPath);assertTrue(java.nio.file.Files.isRegularFile(path),jarPath);
+            try(var archive=new java.util.jar.JarFile(path.toFile());
+                var loader=new java.net.URLClassLoader(new java.net.URL[]{path.toUri().toURL()},getClass().getClassLoader()) {
+                @Override protected Class<?> loadClass(String name,boolean resolve) throws ClassNotFoundException {
+                    synchronized(getClassLoadingLock(name)) {
+                        String entry=name.replace('.','/')+".class";
+                        if(name.startsWith(qaPackage)) {
+                            if(archive.getJarEntry(entry)!=null) {
+                                Class<?> type=findLoadedClass(name);if(type==null)type=findClass(name);if(resolve)resolveClass(type);return type;
+                            }
+                            // 상위 테스트 classpath가 누락된 package-private 의존성을 숨기지 못하게 한다.
+                            if(java.nio.file.Files.isRegularFile(testClasses.resolve(entry)))throw new ClassNotFoundException("QA_CLASS_NOT_PACKAGED");
+                        }
+                        return super.loadClass(name,resolve);
                     }
-                    return super.loadClass(name,resolve);
                 }
-            }
-        }) {
-            var type=Class.forName(definition,true,loader);
-            try(var samples=(java.util.stream.Stream<?>)type.getMethod("selectCases",String.class).invoke(null,"CHUNGJU")) {
-                assertEquals(3,samples.count());
+            }) {
+                assertNull(archive.getJarEntry(qaPackage.replace('.','/')+"ChungjuEminwonProfileLiveQaTest.class"));
+                var type=Class.forName(definition,true,loader);assertSame(loader,type.getClassLoader());
+                for(var entry:java.util.Map.of("CHUNGJU",3L,"TAEBAEK",1L,"YONGSAN",1L,"GEUMSAN",1L,"CHANGWON",1L,"ANSAN",1L,"INJE",1L).entrySet()) {
+                    try(var samples=(java.util.stream.Stream<?>)type.getMethod("selectCases",String.class).invoke(null,entry.getKey())) {
+                        assertEquals(entry.getValue(),samples.count(),jarPath+":"+entry.getKey());
+                    }
+                }
             }
         }
     }

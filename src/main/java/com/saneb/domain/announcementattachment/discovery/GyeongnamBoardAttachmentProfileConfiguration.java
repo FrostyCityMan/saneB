@@ -9,6 +9,7 @@ public class GyeongnamBoardAttachmentProfileConfiguration {
         return new GyeongnamBoardAttachmentDiscoveryProfile(GyeongnamBoardAttachmentDiscoveryProfile.Site.GOSEONG);
     }
     @Bean public AttachmentDiscoveryProfile selectChangwonProfileDetails() {
-        return new GyeongnamBoardAttachmentDiscoveryProfile(GyeongnamBoardAttachmentDiscoveryProfile.Site.CHANGWON);
+        return new LegacyFileResponseAttachmentDiscoveryProfile(
+                new GyeongnamBoardAttachmentDiscoveryProfile(GyeongnamBoardAttachmentDiscoveryProfile.Site.CHANGWON), "LEGACY_BINARY_UTF8");
     }
 }

@@ -68,6 +68,7 @@ test('별도 probe JAR는 운영 코드·설정·JUnit 의존성을 포함하지
   const task = gradle.slice(gradle.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"), gradle.indexOf("tasks.register('attachmentBbsFixedCaseQa'"));
   assert(task.includes("layout.buildDirectory.dir('official-worker-probe')"));
   assert(task.includes('sourceSets.test.output.classesDirs'));
+  assert(task.includes("include 'com/saneb/domain/announcementattachment/qa/*DownloadCases*.class'"));
   assert(!task.includes('sourceSets.main.output'));
   assert(!task.includes('testRuntimeClasspath'));
   assert(!task.includes('resources'));
