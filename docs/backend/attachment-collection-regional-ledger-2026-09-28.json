@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 155,
-    "missingProfileRegionCount": 68,
+    "registeredRegionCount": 157,
+    "missingProfileRegionCount": 66,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1850,14 +1850,26 @@
       "sourceCode": "LGS-000068",
       "listParserProfileCode": "SAFE_GWANGJU_NAMGU_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000068",
+          "caseCode": "GWANGJU_NAMGU-45698",
+          "profileCode": "LOCAL_GWANGJU_NAMGU_BOARD_V1",
+          "profileHash": "92f619f3895e262d90a7a650c17d025c486ae47a8c6692026766df7408196319",
+          "receiptHash": "57a53210307a3bdb19b37ce6f5aeb394b6a4633f0d316f1ba2e32ef354c26775",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000069",
@@ -1939,14 +1951,26 @@
       "sourceCode": "LGS-000073",
       "listParserProfileCode": "SAFE_EGOV_DETAIL_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000073",
+          "caseCode": "DAEJEON_JUNGGU-46404",
+          "profileCode": "LOCAL_DAEJEON_JUNGGU_BOARD_V1",
+          "profileHash": "bc79b270b2b2c8a3b3d8a6e3333382f2d3bd289e8448fa23ff3e137b93f47ece",
+          "receiptHash": "8b105246ad974889c077e6e2a924c40c92bdf46194eabeca202b09d5cac47eaa",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000074",
@@ -10458,6 +10482,133 @@
         "sourceCode": "LGS-000059",
         "attempts": 1,
         "result": "REGISTERED_LIST_DNS_FAILURE_ZERO_BYTES_NO_RETRY"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "metroNextDownloadRun": {
+    "scope": "GWANGJU_NAMGU_DAEJEON_JUNGGU_COLLECTION_ONLY_WITH_PENDING_GWANGJU_SEOGU_YUSEONG",
+    "surveyRequestCount": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DJ_JUNGGU-detail.html",
+        "bytes": 173738,
+        "sha256": "6e8548c83bfe1736a0831a15d004096fe3a16e75e44f0bf43809ef750ca6b19d"
+      },
+      {
+        "name": "DJ_JUNGGU-list.html",
+        "bytes": 181336,
+        "sha256": "7f24284df57509fba1d37b1ba1526cbda4b92aee920d1524167285a8e464b424"
+      },
+      {
+        "name": "DJ_JUNGGU-search.html",
+        "bytes": 179487,
+        "sha256": "944ed3d47144d11c0cda6994868d38203a230c10345acb7f68203eef0162f528"
+      },
+      {
+        "name": "GW_NAMGU-detail.html",
+        "bytes": 9969,
+        "sha256": "b0c59f76b2e44183199ef90ea5d6a35221b3b75f385398542a22c3812db0f1d2"
+      },
+      {
+        "name": "GW_NAMGU-iframe.html",
+        "bytes": 12808,
+        "sha256": "a11c9e3f59c503465a4e8df8d6ed0510cfe3868d07ee79de3faa618ae1933656"
+      },
+      {
+        "name": "GW_NAMGU-list.html",
+        "bytes": 162830,
+        "sha256": "56116647471cfdcc660be3ab21897f6b008c45c3a01cf13eff8a8b271b0e18cc"
+      },
+      {
+        "name": "GW_NAMGU-search.html",
+        "bytes": 13387,
+        "sha256": "26f400d18185d44935af60afa44b09b46a9410977f19d325d6d0fb81108e8039"
+      },
+      {
+        "name": "GW_NAMGU-support.html",
+        "bytes": 21398,
+        "sha256": "09c8eec3cab8288b8601b9820fb624720dbd5ef14eacc801324476e97276f36c"
+      },
+      {
+        "name": "GW_SEOGU-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "YUSEONG-list.html",
+        "bytes": 1219397,
+        "sha256": "229fb81c0568421c0b9261e415af7eb5e6483db1a75c9f6ccdb3c858e21330ef"
+      },
+      {
+        "name": "YUSEONG-search.html",
+        "bytes": 1202422,
+        "sha256": "2a84943d815eae3f67eece84b289990cc6ec2c881def81840b25729649eb65bf"
+      },
+      {
+        "name": "YUSEONG-support.html",
+        "bytes": 1217254,
+        "sha256": "903d603a7e985885d06fedadd93317875dbc2d661de09986f231d17fc42429dd"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GWANGJU_NAMGU-45698",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      },
+      {
+        "caseCode": "DAEJEON_JUNGGU-46404",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GWANGJU_NAMGU-45698.json",
+      "build/reports/attachment-regional-collection/DAEJEON_JUNGGU-46404.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 4869861,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000068",
+        "requests": 5,
+        "result": "OFFICIAL_MENU_IFRAME_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_DETAIL_PDF_HWPX"
+      },
+      {
+        "sourceCode": "LGS-000073",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_HWPX_FIXED_FORM"
+      },
+      {
+        "sourceCode": "LGS-000067",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP302_NOT_FOLLOWED_NO_DETAIL_OR_FILE_REQUEST"
+      },
+      {
+        "sourceCode": "LGS-000075",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_EMPTY_SUPPORT_SEARCH_REFERENCES_DETAIL_NOT_REQUESTED",
+        "pendingNoticeIds": [
+          "54600",
+          "54605",
+          "54535",
+          "54286",
+          "53994",
+          "52916",
+          "52835",
+          "52705",
+          "52659",
+          "52536"
+        ]
       }
     ],
     "originalsRemoved": true,

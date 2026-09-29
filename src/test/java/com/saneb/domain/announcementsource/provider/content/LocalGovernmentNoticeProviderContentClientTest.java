@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void metroNextBodiesExcludeAttachmentAndMetadata() {
+        String gw="<form name=form1 method=post><div class=tstyle_view><div class=title>청년 지원</div><ul class=head><li>수출 부서</li></ul><div class=tb_contents>청년 지원금</div><div class=add_file>수출 특허.hwpx</div></div></form>";
+        String dj="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>청년 지원</h2><span>수출 부서</span></div><div class='ui bbs--view--file'>수출 특허.hwpx</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>청년 지원금</div></div></div></div></div>";
+        var samples=List.of(new String[]{gw,"https://eminwon.namgu.gwangju.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=45698&subCheck=Y"},new String[]{dj,"https://www.djjunggu.go.kr/prog/saeolGosi/GOSI/sub03_06/view.do?notAncmtMgtNo=46404"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("청년 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void incheonThirdBodiesExcludeAttachmentAndDepartmentText() {
         String gd="<div class=board-view><div class=title>청년 지원</div><ul class=info-data><li>수출 특허.hwpx</li></ul><div class=con-box><div class=detail>청년 지원금</div></div></div>";
         String yj="<div class=cm_board_detail1><div class=board_header_wrap><div class=board_header><div class=board_title>청년 지원</div></div><div>수출 부서</div></div><div class=board_content><div class=editor_content>청년 지원금</div></div><ul class=cm_file_list2><li>수출 특허.hwpx</li></ul></div>";

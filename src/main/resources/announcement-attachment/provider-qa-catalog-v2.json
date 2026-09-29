@@ -2593,6 +2593,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GWANGJU_NAMGU-45698",
+      "profileCode": "LOCAL_GWANGJU_NAMGU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cc1c783e4063272605dec61a0860aa9c29dff5ac42956dbbeeb3abdb572e0860",
+        "sourceUrl": "https://eminwon.namgu.gwangju.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=45698&subCheck=Y",
+        "localSourceCode": "LGS-000068",
+        "listParserProfileCode": "SAFE_GWANGJU_NAMGU_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DAEJEON_JUNGGU-46404",
+      "profileCode": "LOCAL_DAEJEON_JUNGGU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "316089568a21769dbc516c98a0a2fb137b918661afabed7636b1a83ee5dd66c0",
+        "sourceUrl": "https://www.djjunggu.go.kr/prog/saeolGosi/GOSI/sub03_06/view.do?notAncmtMgtNo=46404",
+        "localSourceCode": "LGS-000073",
+        "listParserProfileCode": "SAFE_EGOV_DETAIL_CELL"
+      },
+      "expectation": null
     }
   ]
 }
