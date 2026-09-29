@@ -31,6 +31,12 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void daejeonNextBodiesExcludeFilesAndMetadata() {
+        String y="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>소상공인 지원</h2><span>수출 부서</span></div><div class='ui bbs--view--file'>수출 특허.hwp</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>소상공인 지원금</div></div></div></div></div>";
+        String d="<table class=table2023><tr><th class=tit00>소상공인 지원</th></tr><tr><th>부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>수출 특허.hwp</td></tr><tr><td class=cont_area>소상공인 지원금</td></tr></table>";
+        var samples=List.of(new String[]{y,"https://www.yuseong.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=35533"},new String[]{d,"https://www.daedeok.go.kr/dpt/dpt04/DPT040204_cmmBoardView.do?boardId=DPT_000087&ntatcSeq=1102472206"});
+        for(var sample:samples)for(String page:List.of(sample[0],sample[0]+sample[0],sample[0].replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+page+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,sample[1],sample[1]));if(page.equals(sample[0])){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void metroNextBodiesExcludeAttachmentAndMetadata() {
         String gw="<form name=form1 method=post><div class=tstyle_view><div class=title>청년 지원</div><ul class=head><li>수출 부서</li></ul><div class=tb_contents>청년 지원금</div><div class=add_file>수출 특허.hwpx</div></div></form>";
         String dj="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>청년 지원</h2><span>수출 부서</span></div><div class='ui bbs--view--file'>수출 특허.hwpx</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>청년 지원금</div></div></div></div></div>";

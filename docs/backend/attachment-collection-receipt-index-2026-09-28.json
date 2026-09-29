@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "dcec633b6372a56168465d7c81a547c278aa671d55cf7d8d557c2709bc3d3d8f",
+  "inventorySha256": "ad3b4ff0a58ae3c01bb3cd004ff85ab45eb747f9a4f0e12b7a4d135464238b7d",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1883,6 +1883,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "040589107899794733f9937877bcab5f1726dd2d7cb00baddf8da95b52a6ac18"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/YUSEONG-35533.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "244ea3050451bd93e250782c5f692740dc1e0f381e100830ef21dc3bb4a39241",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "8e643d9392d5160b481a9cdac86d2070f2997ff706c5ba1e0dc05b1a6440f147"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEDEOK-1102472206.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "5ecb2de8baab5361657b570c3a9492c0b27fc5571919a6e4456b7c4df32cf4cd",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "8e643d9392d5160b481a9cdac86d2070f2997ff706c5ba1e0dc05b1a6440f147"
     }
   ],
   "samples": [
@@ -2953,6 +2969,49 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000076",
+      "caseCode": "DAEDEOK-1102472206",
+      "profileCode": "LOCAL_DAEDEOK_BOARD_V1",
+      "profileHash": "dce81282a890b291e5d0421fc06e9f09ace58f669f0281b4ff51c5261d10bfd7",
+      "receiptHash": "5ecb2de8baab5361657b570c3a9492c0b27fc5571919a6e4456b7c4df32cf4cd",
+      "producerClassHash": "8e643d9392d5160b481a9cdac86d2070f2997ff706c5ba1e0dc05b1a6440f147",
+      "observedAt": "2026-09-29T16:36:42.835893300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 3,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "b8effd9fb2ffa9aea15a9622b8eb8550085ec49317f1ee6dc6c5ad2080f81a95",
+          "status": "SUCCEEDED",
+          "bytes": 138752,
+          "format": "HWP",
+          "binaryHash": "9c2b7ee1d783878938ab001fdb5abf70f9483eb064d8efffbe48b07d73582fd4",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "fe5a8830b02397a99bc9bd6c56427db5caf382b692e3fbe922ece5deb2156794",
+          "status": "SUCCEEDED",
+          "bytes": 2757765,
+          "format": "PDF",
+          "binaryHash": "3c971a9e69da5fca8b394d12af07edfe4433ed66bf96bde8b1ced5a986bd50fa",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "4bfb6c1ad643573b92064051baf6ec22845f668e0018ab6fa38bd290917fa6ec",
+          "status": "SUCCEEDED",
+          "bytes": 2773443,
+          "format": "PDF",
+          "binaryHash": "5360bfa64962aa4649b1c6ec7b17d0a23e066ba492f0554fc77b40ed31343ef6",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000049",
@@ -7819,6 +7878,24 @@
           "bytes": 57856
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000075",
+      "caseCode": "YUSEONG-35533",
+      "profileCode": "LOCAL_YUSEONG_BOARD_V1",
+      "profileHash": "7bf701682b9c3bac42dc4719e3ad34edf8b2db7411234c6fd03f4b4fb70fb2d7",
+      "receiptHash": "244ea3050451bd93e250782c5f692740dc1e0f381e100830ef21dc3bb4a39241",
+      "producerClassHash": "8e643d9392d5160b481a9cdac86d2070f2997ff706c5ba1e0dc05b1a6440f147",
+      "observedAt": "2026-09-29T16:36:32.053780100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 4,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     }
   ],
   "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS",

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 157,
-    "missingProfileRegionCount": 66,
+    "registeredRegionCount": 159,
+    "missingProfileRegionCount": 64,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1989,27 +1989,51 @@
       "sourceCode": "LGS-000075",
       "listParserProfileCode": "SAFE_YUSEONG_LEGAL_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000075",
+          "caseCode": "YUSEONG-35533",
+          "profileCode": "LOCAL_YUSEONG_BOARD_V1",
+          "profileHash": "7bf701682b9c3bac42dc4719e3ad34edf8b2db7411234c6fd03f4b4fb70fb2d7",
+          "receiptHash": "244ea3050451bd93e250782c5f692740dc1e0f381e100830ef21dc3bb4a39241",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000076",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000076",
+          "caseCode": "DAEDEOK-1102472206",
+          "profileCode": "LOCAL_DAEDEOK_BOARD_V1",
+          "profileHash": "dce81282a890b291e5d0421fc06e9f09ace58f669f0281b4ff51c5261d10bfd7",
+          "receiptHash": "5ecb2de8baab5361657b570c3a9492c0b27fc5571919a6e4456b7c4df32cf4cd",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000077",
@@ -10609,6 +10633,94 @@
           "52659",
           "52536"
         ]
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "daejeonNextDownloadRun": {
+    "scope": "YUSEONG_TITLE_STOP_DAEDEOK_COLLECTION_ONLY",
+    "surveyRequestCount": 8,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "DAEDEOK-detail.html",
+        "bytes": 140304,
+        "sha256": "2d16bb70148f2ad256be23e6569ff95bea5313fd09b9662898e74783c4f2c303"
+      },
+      {
+        "name": "DAEDEOK-list.html",
+        "bytes": 148805,
+        "sha256": "31d87c9acc7d1882274548bfadc6df0a5d3c7a99053441b384b1c59726066a8d"
+      },
+      {
+        "name": "DAEDEOK-search.html",
+        "bytes": 143087,
+        "sha256": "c6e3a2c5caa291a80a4777f38be8d2442cda20c72f075003cc8f8a86dd5f9547"
+      },
+      {
+        "name": "YUSEONG-detail.html",
+        "bytes": 1203055,
+        "sha256": "0f7a982d97c1fa4c86d09a8d40225af709e5ae5445be5427db4c0eb7fd04179a"
+      },
+      {
+        "name": "YUSEONG-disability.html",
+        "bytes": 1214067,
+        "sha256": "ff25b56a86be1592169a61ecac66cf2e5e4cd955a5fb53fff788eb9e4aa3a544"
+      },
+      {
+        "name": "YUSEONG-housing-detail.html",
+        "bytes": 1206798,
+        "sha256": "a9385a69d5b6e15bc963aeb334359043aa6b1f97aab14ef91b2955db61a56f96"
+      },
+      {
+        "name": "YUSEONG-teen.html",
+        "bytes": 1205218,
+        "sha256": "f29f79ee98849231c210339a7a0dcc1579faeef221d631e96918ab0f12698b38"
+      },
+      {
+        "name": "YUSEONG-youth.html",
+        "bytes": 1203711,
+        "sha256": "48a9508bf7192a5b9d4914994d59d43ff7ea44ea85f2f6040c6c3b6862c5c9b5"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YUSEONG-35533",
+        "maximumRequests": 7,
+        "maximumBytes": 27262976,
+        "detailMaximumBytes": 2097152
+      },
+      {
+        "caseCode": "DAEDEOK-1102472206",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YUSEONG-35533.json",
+      "build/reports/attachment-regional-collection/DAEDEOK-1102472206.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 7914568,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000075",
+        "requests": 5,
+        "previousSurveyRequests": 3,
+        "previousRunKey": "metroNextDownloadRun",
+        "cumulativeSurveyRequests": 8,
+        "result": "TRAVEL_DETAIL_YOUTH_SEARCH_HOUSING_DETAIL_DISABILITY_SEARCH_TEEN_SEARCH_TITLE_NOT_ELIGIBLE_NO_FILE_DOWNLOAD"
+      },
+      {
+        "sourceCode": "LGS-000076",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_HWP_1_PDF_2_FIXED_FORM"
       }
     ],
     "originalsRemoved": true,
