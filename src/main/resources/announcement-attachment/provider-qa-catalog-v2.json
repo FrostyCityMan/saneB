@@ -2761,6 +2761,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GUNWI-25554",
+      "profileCode": "LOCAL_GUNWI_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c94d8850c725cd48feb2639bd082652cfd74eb34c30badcffdf6952f4f73e469",
+        "sourceUrl": "https://www.gunwi.go.kr/ko/page.do?mnu_uid=666&not_ancmt_mgt_no=25554&cmd=2",
+        "localSourceCode": "LGS-000053",
+        "listParserProfileCode": "GUNWI_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

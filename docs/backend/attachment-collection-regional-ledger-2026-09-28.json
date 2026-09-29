@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 169,
-    "missingProfileRegionCount": 54,
+    "registeredRegionCount": 170,
+    "missingProfileRegionCount": 53,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1595,14 +1595,26 @@
       "sourceCode": "LGS-000053",
       "listParserProfileCode": "GUNWI_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000053",
+          "caseCode": "GUNWI-25554",
+          "profileCode": "LOCAL_GUNWI_BOARD_V1",
+          "profileHash": "5793704940063960a864465a58565cb03c0b8adf1b9b7878ea28603f621a3e89",
+          "receiptHash": "4d299ad0f36f7ee9e2435c396b6c7b03a02de05d9d630b9886dd6e15e29cb447",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000054",
@@ -5695,9 +5707,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f1cfacd350987c4b53878a7dbb094bbe3b0c0648a37b190b24c6834862cea52e",
+  "inputInventorySha256": "a5219eb14ef855ab02b17da7bf5241b1ad68622ad0f5453aacbb7fb5c1aab4fd",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 258,
+  "importedReceiptCount": 259,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11482,6 +11494,67 @@
     ],
     "sampleUse": "ARCHIVED_NOTICE_TRANSPORT_QA_NOT_CURRENT_ELIGIBILITY",
     "currentMenuFileObservation": false,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gunwiDownloadRun": {
+    "scope": "GUNWI_OFFICIAL_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "priorSurveyRequests": 0,
+    "surveyRequestCount": 4,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "detail.html",
+        "bytes": 206900,
+        "sha256": "51bfe01166f608d6f989fcfd5354932a487f42006d52f6a5e16ea37e1f3be7f7"
+      },
+      {
+        "name": "download-head.txt",
+        "bytes": 784,
+        "sha256": "bbdf61bcb8fcdcdc60153f5663efeeb90408f933925207f6fc1deebe6201156d"
+      },
+      {
+        "name": "list-head.txt",
+        "bytes": 264,
+        "sha256": "ecbfee5afe5b67cb7f80f792006da1439506370e65937cb8fcd719bfe05b6262"
+      },
+      {
+        "name": "list.html",
+        "bytes": 215719,
+        "sha256": "be7c6f5b2a8eb4c1974edf56a17ffa07ba6cbcf5934842bae8c4095c622ca7c6"
+      },
+      {
+        "name": "search.html",
+        "bytes": 214421,
+        "sha256": "c17638a5eb689563b6be2d406f917f1c012b8e5454dcfa28376255a7598a55f4"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GUNWI-25554",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GUNWI-25554.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 5,
+    "reservedBytesIncludingBodyUpperBound": 2519040,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000053",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL200_HWP_1_NUMERIC_DOWNLOAD_HEAD302_OFFICIAL_EMINWON"
+      }
+    ],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

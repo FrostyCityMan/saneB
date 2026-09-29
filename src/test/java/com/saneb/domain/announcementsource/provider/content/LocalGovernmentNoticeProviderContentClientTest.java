@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gunwiBodyExcludesFilesAndMetadata() {
+        String page="<div class=boardView><div class=title><h4>소상공인 지원</h4><div><dl>수출 부서</dl></div><div><ul><li>특허.hwp</li></ul></div></div><div class=cont><div class=board_content>소상공인 지원금</div></div></div>";
+        String url="https://www.gunwi.go.kr/ko/page.do?mnu_uid=666&not_ancmt_mgt_no=25554&cmd=2";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("board_content","unknown"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void daeguSeoguBothMenusExcludeMetadataAndFileNamesFromBody() {
         String page="<form id=detailForm name=detailForm method=post><div class=bod_view><div class=subject>소상공인 지원</div><div class=view_info>수출 담당부서</div><dl class=view_file><dt>첨부파일</dt><dd>특허.hwp</dd></dl><div class=view_cont>소상공인 지원금</div></div></form>";
         for(String menu:List.of("0601020100","0601020200"))for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("view_cont","unknown"))){
