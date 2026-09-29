@@ -679,6 +679,20 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 + "</table></form><footer>고시 의회 감사</footer></main>";
     }
 
+    @Test void hwasunReusesMeasuredPlainBodyBoundaryWithoutRelaxingRegisteredHost() {
+        String valid=saeolPlainCellHtml(false,"청년 지원금 <nav>메뉴</nav>");
+        var result=saeolResult("eminwon.hwasun.go.kr",SAEOL_QUERY,valid);
+        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+        assertThat(result.bodyText()).isEqualTo("청년 지원금");
+        for(String invalid:List.of(valid+valid,valid.replace("word-break:break-all;","word-break:normal;"),valid.replace("name='form1'","name='other'")))
+            assertThat(saeolResult("eminwon.hwasun.go.kr",SAEOL_QUERY,invalid).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        var transport=new StubTransport();
+        var mismatch=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,
+                "https://www.hwasun.go.kr/contents.do?S=S01&M=020104000000",
+                "https://eminwon.hwasun.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?"+SAEOL_QUERY));
+        assertThat(mismatch.failureCode()).isEqualTo(FailureCode.DETAIL_HOST_NOT_ALLOWED);
+    }
+
     @Test void measuredPlainCellsExcludeMetadataAndPreserveNestedBodyAndRealKeywordContext() {
         for (boolean junggu : List.of(true,false)) {
             String host = junggu ? "eminwon.jung.daegu.kr" : "eminwon.haman.go.kr";

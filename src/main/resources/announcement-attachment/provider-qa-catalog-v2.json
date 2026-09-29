@@ -2341,6 +2341,18 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "HWASUN-39230",
+      "profileCode": "LOCAL_HWASUN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c842991177c3b951f91d950311545856d547e0565bae4470e32aabed9b61cccd",
+        "sourceUrl": "https://eminwon.hwasun.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&subCheck=Y&not_ancmt_mgt_no=39230",
+        "localSourceCode": "LGS-000188",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

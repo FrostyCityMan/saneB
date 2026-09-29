@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 134,
-    "missingProfileRegionCount": 89,
+    "registeredRegionCount": 135,
+    "missingProfileRegionCount": 88,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4153,14 +4153,26 @@
       "sourceCode": "LGS-000188",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000188",
+          "caseCode": "HWASUN-39230",
+          "profileCode": "LOCAL_HWASUN_GET_V1",
+          "profileHash": "c0d4fb0b2ccbcfcff85e7528a20e41841c8e2c7ec61bace99ac931d0dc3936e7",
+          "receiptHash": "130f7317378150c0076c56a168df3633d52fd623feb84a061f278e70cd9f29d7",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000189",
@@ -9212,6 +9224,59 @@
         "sourceCode": "LGS-000199",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP_400_NOT_REPEATED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "hwasunDownloadRun": {
+    "scope": "HWASUN_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 3,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "list-headers.txt",
+        "bytes": 525,
+        "sha256": "e26c17c3a85a261a899055100461625139f3872b2feba256a18c9ee0c90dcad5"
+      },
+      {
+        "name": "search.html",
+        "bytes": 26066,
+        "sha256": "ca04fc763ccc602d5b47f4f7e46be5db1deea64abb26851a0c9cabb1f47551d8"
+      },
+      {
+        "name": "detail.html",
+        "bytes": 7826,
+        "sha256": "47bdb35a9287011884ae11b82e4b5f7b2e686b898f90d997ba236adc8ff0fc14"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "HWASUN-39230",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/HWASUN-39230.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2239522,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000188",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_REDIRECT_SEARCH_POST_DETAIL_GET_SHARED_SAEOL_ENGINE"
       }
     ],
     "originalsRemoved": true,

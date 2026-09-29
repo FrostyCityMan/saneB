@@ -542,7 +542,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolContentElement(document, sourceUri, "eminwon.bsnamgu.go.kr".equals(host));
         }
-        if (("eminwon.jung.daegu.kr".equals(host) || "eminwon.haman.go.kr".equals(host) || "eminwon.ihc.go.kr".equals(host))
+        if (("eminwon.jung.daegu.kr".equals(host) || "eminwon.haman.go.kr".equals(host) || "eminwon.ihc.go.kr".equals(host)
+                || "eminwon.hwasun.go.kr".equals(host))
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolPlainCellContentElement(document, sourceUri, "eminwon.jung.daegu.kr".equals(host));
         }
