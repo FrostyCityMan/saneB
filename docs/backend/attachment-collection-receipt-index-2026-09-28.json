@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "56e7fad256265627ac23706c44f4a2acba5cf613a53c81fc9170cfe7f4b25b6e",
+  "inventorySha256": "77a0a0c45d053f707bd64f5b6d2f12112b243a18592cfa13073c2b217bf01a27",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1603,6 +1603,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "7bc4331056406c20341458311fdcad9d4bfa7cec2f79e9519ea79cd10d55697b"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/CHUNGBUK-67302.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "297af086709770483924a7e6bfc494966eeac8bb6260ff103b04100b8340244b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GONGJU-59971.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "4898321247d9e2b8237e9372ff2a8c4ecc82889f1b205872af33f36d0fae3a43",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c"
     }
   ],
   "samples": [
@@ -2560,6 +2576,24 @@
       ]
     },
     {
+      "sourceCode": "LGS-000135",
+      "caseCode": "CHUNGBUK-67302",
+      "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
+      "profileHash": "ee61af8fb3b5f76d8a23d9934a65b8ec51429d34410ed54246ec1150b654af4f",
+      "receiptHash": "297af086709770483924a7e6bfc494966eeac8bb6260ff103b04100b8340244b",
+      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c",
+      "observedAt": "2026-09-29T10:50:42.970058Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
+    },
+    {
       "sourceCode": "LGS-000049",
       "caseCode": "DAEGU_BUKGU-55924",
       "profileCode": "LOCAL_DAEGU_BUKGU_POST_V1",
@@ -3455,6 +3489,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000149",
+      "caseCode": "GONGJU-59971",
+      "profileCode": "LOCAL_GONGJU_BOARD_V1",
+      "profileHash": "88efa874fced2213dde423db73b19ad38af9aec3fe33b6104c14f088324c7b07",
+      "receiptHash": "4898321247d9e2b8237e9372ff2a8c4ecc82889f1b205872af33f36d0fae3a43",
+      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c",
+      "observedAt": "2026-09-29T10:50:55.040240100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000216",

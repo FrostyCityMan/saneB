@@ -2197,6 +2197,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "CHUNGBUK-67302",
+      "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6f0a5307e3e26ddefb774468c7fc15117c2f77b98f9d995dc6f95b048a00d609",
+        "sourceUrl": "https://www.chungbuk.go.kr/www/selectGosiPblancView.do?key=422&no=67302",
+        "localSourceCode": "LGS-000135",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GONGJU-59971",
+      "profileCode": "LOCAL_GONGJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9dae7ce69bd8708fade49aab45433cc29aac6dd0eac8065ee530046fe41006a9",
+        "sourceUrl": "https://www.gongju.go.kr/prog/saeolGosi/GOSI_03/sub04_03_03/view.do?notAncmtMgtNo=59971",
+        "localSourceCode": "LGS-000149",
+        "listParserProfileCode": "SAFE_EGOV_DETAIL_CELL"
+      },
+      "expectation": null
     }
   ]
 }
