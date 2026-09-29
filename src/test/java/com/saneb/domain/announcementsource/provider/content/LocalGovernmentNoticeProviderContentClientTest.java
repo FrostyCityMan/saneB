@@ -38,6 +38,16 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void hampyeongBodyPreservesConditionsAndExcludesFiles() {
+        String page="<div id='board_view'><table class='basic_table'><tbody><tr><th>제목</th><td colspan='3'>소상공인 지원</td></tr><tr><th>담당부서</th><td>담당자</td></tr><tr><td colspan='4'>소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table></td></tr><tr><th>첨부파일</th><td colspan='3'>특허 첨부</td></tr></tbody></table></div>";
+        for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.hampyeong.go.kr/pg/GosiList.do?pageId=www273","https://www.hampyeong.go.kr/pg/GosiDetail.do?SEQ=32368&pageId=www273&notAncmtSeCode=01,02,03,04"));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+            else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+        }
+    }
+
     @Test void boseongBodyPreservesConditionsAndExcludesFiles() {
         String page="<div id='content'><div id='board_basic_view'><div class='news_tit'><h3>청년 지원</h3><dl><dd>담당자</dd></dl></div><div class='file_attach'>특허 첨부</div><div class='board_cont'>청년 지원금 <table><tr><td>수출기업 제외</td></tr></table></div></div></div>";
         String list="https://www.boseong.go.kr/www/open_administration/city_news/notification";

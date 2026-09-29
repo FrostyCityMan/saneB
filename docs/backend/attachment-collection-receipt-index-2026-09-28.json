@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "db0a789501c4a91c7b474cf8133a3da7b8f53547804a557a7e3154b7ae802991",
+  "inventorySha256": "eea5b7f950f9d842760b51759fb4f2bc4c48f1f7a574b137f5b74b63e7e7201f",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1691,6 +1691,14 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "1ed9f7c1b9573650552cb9666baf76d721098ce83db9598fcabac87633c65b25"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/HAMPYEONG-32368.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "9907fdda288036a2ed6063a347d4f59d001076a0d8104186c2fe9b17def867a4",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "758bb4866da7dc4e7e7e5720ffdc8401cf49f4d10d5667c8a8df46bcc9dfffa7"
     }
   ],
   "samples": [
@@ -4270,6 +4278,33 @@
           "bytes": 101888,
           "format": "HWP",
           "binaryHash": "c8d37ea0142d19f7270c8231cde80028e8e40a3b1a73d02038dca01207a5bb97",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000194",
+      "caseCode": "HAMPYEONG-32368",
+      "profileCode": "LOCAL_HAMPYEONG_NOTICE_V1",
+      "profileHash": "eb7e2f28dba16274b62b1d63dc816d251eb65962ace8e50cf0d07c9749a2ea4a",
+      "receiptHash": "9907fdda288036a2ed6063a347d4f59d001076a0d8104186c2fe9b17def867a4",
+      "producerClassHash": "758bb4866da7dc4e7e7e5720ffdc8401cf49f4d10d5667c8a8df46bcc9dfffa7",
+      "observedAt": "2026-09-29T12:37:41.653692900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8b6f953247efb5c90507252677499d1c9a806f22d4fb853bb334d9eedd16453c",
+          "status": "SUCCEEDED",
+          "bytes": 81510,
+          "format": "HWPX",
+          "binaryHash": "640d8bfc76c4cceeb99f121e1d241979dcf635e6d50b78eccbcdb6e7daa5f6f7",
           "signatureVerified": true
         }
       ]

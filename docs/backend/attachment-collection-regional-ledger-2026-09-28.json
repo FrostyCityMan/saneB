@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 133,
-    "missingProfileRegionCount": 90,
+    "registeredRegionCount": 134,
+    "missingProfileRegionCount": 89,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4255,14 +4255,26 @@
       "sourceCode": "LGS-000194",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000194",
+          "caseCode": "HAMPYEONG-32368",
+          "profileCode": "LOCAL_HAMPYEONG_NOTICE_V1",
+          "profileHash": "eb7e2f28dba16274b62b1d63dc816d251eb65962ace8e50cf0d07c9749a2ea4a",
+          "receiptHash": "9907fdda288036a2ed6063a347d4f59d001076a0d8104186c2fe9b17def867a4",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000195",
@@ -9115,6 +9127,89 @@
       },
       {
         "sourceCode": "LGS-000197",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP_400_NOT_REPEATED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "jeonnamFifthDownloadRun": {
+    "scope": "JEONNAM_FIFTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 7,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GURYE-list.html",
+        "bytes": 314824,
+        "sha256": "8cc565c896520f408861f79138262f1c6d04aac671ee5637108830c0aac217d0"
+      },
+      {
+        "name": "GURYE-search.html",
+        "bytes": 1174,
+        "sha256": "ffe28c910f9308d940ba1fe705d419b63321797762001d604d23abf0799221cb"
+      },
+      {
+        "name": "HAMPYEONG-detail.html",
+        "bytes": 112484,
+        "sha256": "2bfb9be6ba0fccd5139885001a8cf17a047eb2ab48ae3b0fa0ac663538dc134b"
+      },
+      {
+        "name": "HAMPYEONG-list.html",
+        "bytes": 116923,
+        "sha256": "32271cddac8673e8a9f67a81c5f4834e395d07d124f6113f91e972e4bb023973"
+      },
+      {
+        "name": "HAMPYEONG-search.html",
+        "bytes": 113383,
+        "sha256": "3d0ce4b48b7c436c6491b460501f7f05d325529e66836a5e5e42e592dc7d3772"
+      },
+      {
+        "name": "SHINAN-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "YEONGGWANG-list.html",
+        "bytes": 965,
+        "sha256": "8fce8a10c1df0533e723458ccd2240b1392882cccf553e50672b62e6be84d68a"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "HAMPYEONG-32368",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/HAMPYEONG-32368.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2293350,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000194",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_OPAQUE_POST_WITH_EMPTY_SEQ"
+      },
+      {
+        "sourceCode": "LGS-000185",
+        "requests": 2,
+        "result": "OFFICIAL_LIST_HTTP_200_SEARCH_POST_HTTP_403_NOT_REPEATED"
+      },
+      {
+        "sourceCode": "LGS-000195",
+        "requests": 1,
+        "result": "HTTP_200_FILTER_BLOCK_PAGE_NOT_LIST_SUCCESS"
+      },
+      {
+        "sourceCode": "LGS-000199",
         "requests": 1,
         "result": "OFFICIAL_LIST_HTTP_400_NOT_REPEATED"
       }

@@ -2329,6 +2329,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "HAMPYEONG-32368",
+      "profileCode": "LOCAL_HAMPYEONG_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "56502314cf5b0009d965d3d0eec77b61189c9a961afb23007be9ea1e010c72c8",
+        "sourceUrl": "https://www.hampyeong.go.kr/pg/GosiDetail.do?SEQ=32368&pageId=www273&notAncmtSeCode=01,02,03,04",
+        "localSourceCode": "LGS-000194",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
