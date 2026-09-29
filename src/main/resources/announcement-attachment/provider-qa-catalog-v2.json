@@ -1213,6 +1213,90 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "IKSAN-74400",
+      "profileCode": "LOCAL_IKSAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1b86fee2fc5398225580f19856f0e890345e60a40dbb5ac12231cbb6b1b40c2e",
+        "sourceUrl": "https://eminwon.iksan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=74400&subCheck=Y",
+        "localSourceCode": "LGS-000166",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "WANJU-43355",
+      "profileCode": "LOCAL_WANJU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "aff081b8af5202952bc26fc726902928b5469d3adc8c23806829def7e38fc59f",
+        "sourceUrl": "https://eminwon.wanju.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43355&subCheck=Y",
+        "localSourceCode": "LGS-000170",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JINAN-33307",
+      "profileCode": "LOCAL_JINAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b8d634aabaaf036941f60b4b34779ca39191c49f10cc69d0e4145e06ec843622",
+        "sourceUrl": "https://eminwon.jinan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=33307&subCheck=Y",
+        "localSourceCode": "LGS-000171",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "MUJU-34488",
+      "profileCode": "LOCAL_MUJU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "f69e46f95bfe270ea9eaefa7644d2336ee28b86dbad27fbe94c7f72c070a8462",
+        "sourceUrl": "https://eminwon.muju.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=34488&subCheck=Y",
+        "localSourceCode": "LGS-000172",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JANGSU-32491",
+      "profileCode": "LOCAL_JANGSU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "104a6ad361ac92e96449da8502e50d68e444c23efd54a85d9451cfc372be3add",
+        "sourceUrl": "https://eminwon.jangsu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=32491&subCheck=Y",
+        "localSourceCode": "LGS-000173",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "IMSIL-33179",
+      "profileCode": "LOCAL_IMSIL_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2761c9480e3569e152dbbd66e9d6f7dc586c2c3c863cc4a6b5486d0f3eed1bd2",
+        "sourceUrl": "https://eminwon.imsil.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=33179&subCheck=Y",
+        "localSourceCode": "LGS-000174",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "SUNCHANG-31739",
+      "profileCode": "LOCAL_SUNCHANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9abd716803bb09b042643e4dbc72d460ed23dac7284129b1e35370e1c9e2e72a",
+        "sourceUrl": "https://eminwon.sunchang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=31739&subCheck=Y",
+        "localSourceCode": "LGS-000175",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
