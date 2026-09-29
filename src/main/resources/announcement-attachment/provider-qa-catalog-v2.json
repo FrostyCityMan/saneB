@@ -2245,6 +2245,30 @@
         "listParserProfileCode": "SAFE_EGOV_DATA_LIST_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
+      "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3e9174bc42b8ba763db6276326c663b09c3b57f7f21f4bb8244bbc4361b2922e",
+        "sourceUrl": "https://www.geumsan.go.kr/site/kr/html/sub03/030302.html?mode=V&site_dvs_cd=kr&mng_no=ea6a4e53c07c7f05a9e9240dbb006d43",
+        "localSourceCode": "LGS-000156",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "BUYEO-2125452",
+      "profileCode": "LOCAL_BUYEO_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "99cf707f82231fbb712e31b278689ddb4f3faef33714694c2d22918b49d2fdb7",
+        "sourceUrl": "https://www.buyeo.go.kr/html/kr/news/news_040202.html?mode=V&mng_no=2125452",
+        "localSourceCode": "LGS-000157",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

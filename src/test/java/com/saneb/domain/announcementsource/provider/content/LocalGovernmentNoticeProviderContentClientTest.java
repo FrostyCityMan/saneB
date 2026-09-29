@@ -38,6 +38,21 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void chungcheongFifthBodyPreservesConditionsAndExcludesFiles() {
+        for(var site:ChungcheongFifthNoticePage.Site.values()) {
+            String body="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            String page=site==ChungcheongFifthNoticePage.Site.GEUMSAN?"<div class='program--contents'><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>소상공인 지원</h2><span>담당자</span></div><div class='ui bbs--view--file'>특허 첨부</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>"+body+"</div></div></div></div></div>"
+                    :"<section id='con_body'><div id='txt'><div class='board_viewTit'><h4>소상공인 지원</h4></div><ul class='board_viewInfo'><li>담당자</li></ul><div class='board_viewDetail'>"+body+"</div><ul class='board_viewInfo'><li class='file'><span>파일</span><div>특허 첨부</div></li></ul></div></section>";
+            String url="https://"+site.host+site.path+"?mode=V&mng_no="+(site==ChungcheongFifthNoticePage.Site.GEUMSAN?"ea6a4e53c07c7f05a9e9240dbb006d43&site_dvs_cd=kr":"2125452");
+            for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+                var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+site.listPath,url));
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
+            }
+        }
+    }
+
     @Test void chungcheongFourthBodyPreservesConditionsAndExcludesFiles() {
         for(var site:ChungcheongFourthNoticePage.Site.values()) {
             String body="소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table>";

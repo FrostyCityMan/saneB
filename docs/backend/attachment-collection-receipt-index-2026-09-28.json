@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d6db7d3e0ca4ad83288fcd2fdc59141e1b5c56213e1b2f271da7a5e84fb42bf8",
+  "inventorySha256": "e28de860ffd355fe580bd8d10e14945fd905e9dcbbd86efaac571b8ec70bb4df",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1635,6 +1635,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "6eaeb9245d0e760a29b40bb38aaf5d431c543b94355c5442ebbdf29860431a52"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "bad73396beff510fc42bd49fe773e2bc79d47945bf893081b082459115277550",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "5e5870792496eeae8455d8cc8907e56e57292c1a2e2b9b190e0d43647d9f97dc"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/BUYEO-2125452.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "e2d81e63cc90d042b4b95e8fe13d58ff23fb286460177f453d99168b3d515017",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "5e5870792496eeae8455d8cc8907e56e57292c1a2e2b9b190e0d43647d9f97dc"
     }
   ],
   "samples": [
@@ -2431,6 +2447,41 @@
           "bytes": 63488,
           "format": "HWP",
           "binaryHash": "6c605d8aedf864a54fccf6b8ebab33840f3d66c20259eb5f2dae822271133470",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000157",
+      "caseCode": "BUYEO-2125452",
+      "profileCode": "LOCAL_BUYEO_BOARD_V1",
+      "profileHash": "80091b38b74952c8a14acb3d5d6df68b92848f2b789da09c0eb6b0b1a22f0090",
+      "receiptHash": "e2d81e63cc90d042b4b95e8fe13d58ff23fb286460177f453d99168b3d515017",
+      "producerClassHash": "5e5870792496eeae8455d8cc8907e56e57292c1a2e2b9b190e0d43647d9f97dc",
+      "observedAt": "2026-09-29T11:34:05.247054100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "669c5c2945374d22c536c352207f625332acf81a23569c1d5776804a56c2b717",
+          "status": "SUCCEEDED",
+          "bytes": 177683,
+          "format": "HWPX",
+          "binaryHash": "2d392abca3d17bb507bdcef20b3f68201f93ad197607d283ab9730efdaefeba3",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "5a5256f69eeaa48936e026a7c91c6b78212471387095fdacec99df6acdbe37a1",
+          "status": "SUCCEEDED",
+          "bytes": 86944,
+          "format": "HWPX",
+          "binaryHash": "7eb3ba999b7cd85b0566b28c16c325b0f896958d68974a7cb76e459a5365d791",
           "signatureVerified": true
         }
       ]
@@ -3247,6 +3298,35 @@
           "format": "HWPX",
           "binaryHash": "1c344bdd8fd4b0f937f0fe85495dc4a07679caae37905a179b0dc5b1e8cb86be",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000156",
+      "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
+      "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
+      "profileHash": "9b03d6e9ca1520d84b6af3927a54797e454800ef3b571016b48e21920ca800a3",
+      "receiptHash": "bad73396beff510fc42bd49fe773e2bc79d47945bf893081b082459115277550",
+      "producerClassHash": "5e5870792496eeae8455d8cc8907e56e57292c1a2e2b9b190e0d43647d9f97dc",
+      "observedAt": "2026-09-29T11:33:51.552147100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "6f003f63f958e2fe846a61e4742e7e634c487d996cf579921ed3af85d205369a",
+          "status": "FAILED",
+          "bytes": 131940
+        },
+        {
+          "locatorHash": "3935284284de7b664a2a9a5b66a927a61f1e7db20ec5a0e411c6748f3e2caad0",
+          "status": "FAILED",
+          "bytes": 96901
         }
       ]
     },

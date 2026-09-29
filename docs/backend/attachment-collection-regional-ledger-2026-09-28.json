@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 126,
-    "missingProfileRegionCount": 97,
+    "registeredRegionCount": 128,
+    "missingProfileRegionCount": 95,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3413,27 +3413,51 @@
       "sourceCode": "LGS-000156",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000156",
+          "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
+          "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
+          "profileHash": "9b03d6e9ca1520d84b6af3927a54797e454800ef3b571016b48e21920ca800a3",
+          "receiptHash": "bad73396beff510fc42bd49fe773e2bc79d47945bf893081b082459115277550",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000157",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000157",
+          "caseCode": "BUYEO-2125452",
+          "profileCode": "LOCAL_BUYEO_BOARD_V1",
+          "profileHash": "80091b38b74952c8a14acb3d5d6df68b92848f2b789da09c0eb6b0b1a22f0090",
+          "receiptHash": "e2d81e63cc90d042b4b95e8fe13d58ff23fb286460177f453d99168b3d515017",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000158",
@@ -8655,6 +8679,81 @@
         "sourceCode": "LGS-000156",
         "requests": 2,
         "result": "LIST_TRUNCATED_AT_1MIB_THEN_FULL_LIST_WITHIN_2MIB_DETAIL_CONNECTION_PENDING"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chungcheongFifthDownloadRun": {
+    "scope": "CHUNGCHEONG_FIFTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 6,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "BUYEO-detail.html",
+        "bytes": 102645,
+        "sha256": "301c443c6a519204a893be6b2be4a5e36342c5ef26edffaeca8902f97beecd0a"
+      },
+      {
+        "name": "BUYEO-list.html",
+        "bytes": 105433,
+        "sha256": "4aaa841b9b8ca659be622cc4a6c9c1a20ce14bf66f369633062fa8dd361a876f"
+      },
+      {
+        "name": "BUYEO-script.js",
+        "bytes": 1483,
+        "sha256": "130954b280dc0d27e13ddbacb74db5aede2b542acfc39259238aae5487f8e694"
+      },
+      {
+        "name": "BUYEO-search.html",
+        "bytes": 105180,
+        "sha256": "6b327d628ccbe578ff8ad30fcf4ab4b8086043a651cf9976a992a4a453e636b6"
+      },
+      {
+        "name": "GEUMSAN-detail.html",
+        "bytes": 1985278,
+        "sha256": "72ea0f2c489251419bd4bc30310a90a975c83dca48fd9afd6e0788678799d73c"
+      },
+      {
+        "name": "GEUMSAN-search.html",
+        "bytes": 1992668,
+        "sha256": "17db0e92e2a8576194726c40b186cade8187530709932d752df4401945395966"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
+        "maximumRequests": 6,
+        "maximumBytes": 27262976,
+        "detailMaximumBytes": 2097152
+      },
+      {
+        "caseCode": "BUYEO-2125452",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43.json",
+      "build/reports/attachment-regional-collection/BUYEO-2125452.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 10,
+    "reservedBytesIncludingBodyUpperBound": 8882076,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000156",
+        "requests": 2,
+        "result": "OFFICIAL_TITLE_SEARCH_DETAIL_WITHIN_2MIB_DIRECT_GET_FILES"
+      },
+      {
+        "sourceCode": "LGS-000157",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_DETAIL_AND_REFERENCED_DOWNLOAD_SCRIPT_PLAIN_POST"
       }
     ],
     "originalsRemoved": true,
