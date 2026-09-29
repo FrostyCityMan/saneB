@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gangwonProvinceBodyExcludesFileAndDepartment() {
+        String page="<div id=content-bx><div class='skinTb skinTb-data-resList skinTb-data-bgSbj'><div class=skinTb-tr><div class=skinTb-th>제목</div><div class=skinTb-td>소상공인 지원</div></div><div class=skinTb-tr><div class=skinTb-th>부서</div><div class=skinTb-td>수출 부서</div></div><div class=skinTb-tr><div class=skinTb-th>첨부파일</div><div class=skinTb-td>특허.hwp</div></div><div class=skinTb-tr><div class=skinTb-th>내용</div><div class='skinTb-td skinTb-conts'>소상공인 지원금</div></div></div></div>";
+        String url="https://state.gwd.go.kr/portal/bulletin/notification?articleSeq=272329";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""))){var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);}
+    }
     @Test void capitalEighthBodiesExcludeAttachmentAndMetadata() {
         String p="<article id=content><div class=content-body><div class=container><div class=article-view><div class=article-header><div class=info-area><h1 class=article-subject><span class=category-label>고시공고</span>소상공인 지원</h1></div><ul class='file-list file-shortcut'>수출 파일.pdf</ul></div><div class=article-body><div class=article-conetnt>소상공인 지원금</div></div></div></div></div></article>";
         String g="<div class=sub_content_cont_rt_cont><table class='table_style2 bbsView'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>수출 파일.hwp</td></tr><tr><th>내용</th><td>소상공인 지원금</td></tr></table></div>";

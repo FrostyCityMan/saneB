@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 162,
-    "missingProfileRegionCount": 61,
+    "registeredRegionCount": 163,
+    "missingProfileRegionCount": 60,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2844,14 +2844,26 @@
       "sourceCode": "LGS-000116",
       "listParserProfileCode": "SAFE_GWD_BULLETIN",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000116",
+          "caseCode": "GANGWON_PROVINCE-272329",
+          "profileCode": "LOCAL_GANGWON_PROVINCE_BOARD_V1",
+          "profileHash": "21e8029aa925dd7a5f1bac378b3909ccf69be51e9f7b4c4bac6fa9d38c477498",
+          "receiptHash": "be9093a12391d67db4e8de6728195b93e6daf7f66d1112d94028d877fed183c3",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000117",
@@ -5611,9 +5623,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "c8637cb4549b1b8c6a998dde4c82008f0c9daf1dc681fda87a7c2865fcfa6d8b",
+  "inputInventorySha256": "efafc9dc23cfd5d291fc7310a8222360147d7f823ce6a2e31369007b0cd2a901",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 158,
+  "importedReceiptCount": 251,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -10925,6 +10937,89 @@
         "sourceCode": "LGS-000088",
         "requests": 2,
         "result": "OFFICIAL_LIST_TITLE_SEARCH_NO_SAMPLE_NO_DETAIL_OR_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gangwonProvinceDownloadRun": {
+    "scope": "GANGWON_PROVINCE_COLLECTION_ONLY_WITH_CHUNCHEON_JSON_SURVEY_AND_ICHEON_ERROR",
+    "surveyRequestCount": 8,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "ICHEON-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "GANGWON-list.html",
+        "bytes": 177812,
+        "sha256": "cf1bb35987b27c62247f3cb012e1c0380c1962757c016732777b361d1e25bdd2"
+      },
+      {
+        "name": "GANGWON-search.html",
+        "bytes": 173569,
+        "sha256": "185829f914689af5e2194f72564d5d0ab0b1a310505224e7a08a839a5d8a2bfd"
+      },
+      {
+        "name": "GANGWON-detail.html",
+        "bytes": 179792,
+        "sha256": "f50dd4d0bedad6f9ba3e218f26921405252c56e5709f88024d0394c53408b466"
+      },
+      {
+        "name": "CHUNCHEON-list.html",
+        "bytes": 242519,
+        "sha256": "0a81360b727dcbbd6ed6ccea9b62739ac3a0416a145d6f0e91acc2cd4d9397af"
+      },
+      {
+        "name": "CHUNCHEON-search.json",
+        "bytes": 5258,
+        "sha256": "4c7893a971a0941afdca055f845bea0416364f3a1be0396d8c0838fd428bf839"
+      },
+      {
+        "name": "CHUNCHEON-detail.html",
+        "bytes": 241654,
+        "sha256": "14f0a5429260f21ffe5a716d71dd24dbe3747be461f0195d5ccaeb05903869e2"
+      },
+      {
+        "name": "CHUNCHEON-view.json",
+        "bytes": 2304,
+        "sha256": "25a206ea3c1337cf90fc1e3610e9686c19571ffdbe278fd7a92c629750598ebf"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GANGWON_PROVINCE-272329",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GANGWON_PROVINCE-272329.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2433024,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000116",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_TARGET_SEARCH_DETAIL_HWPX_1_NO_PREVIEW_EXECUTION"
+      },
+      {
+        "sourceCode": "LGS-000117",
+        "requests": 4,
+        "result": "OFFICIAL_HTML_LIST_JSON_SEARCH_DETAIL_JSON_VIEW_HWP_1_DESCRIPTOR_SURVEY_ONLY_NO_FILE_REQUEST"
+      },
+      {
+        "sourceCode": "LGS-000105",
+        "requests": 1,
+        "result": "REGISTERED_LIST_HTTP_400_NO_REPEAT_DETAIL_OR_FILE_REQUEST"
       }
     ],
     "originalsRemoved": true,

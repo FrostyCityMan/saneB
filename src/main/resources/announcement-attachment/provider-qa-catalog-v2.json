@@ -2677,6 +2677,18 @@
         "listParserProfileCode": "SAFE_GWANGMYEONG_LEGAL_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GANGWON_PROVINCE-272329",
+      "profileCode": "LOCAL_GANGWON_PROVINCE_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "68da203327700f62f9bcb5d76b677ccc1603fd6175c10c03f460648509481544",
+        "sourceUrl": "https://state.gwd.go.kr/portal/bulletin/notification?articleSeq=272329",
+        "localSourceCode": "LGS-000116",
+        "listParserProfileCode": "SAFE_GWD_BULLETIN"
+      },
+      "expectation": null
     }
   ]
 }

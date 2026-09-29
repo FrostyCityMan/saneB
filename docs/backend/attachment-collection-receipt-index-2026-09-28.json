@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "e970e7c5ba50ec791dc6db9e17df63690092e62a73f73c87835a40046c1b4f79",
+  "inventorySha256": "efafc9dc23cfd5d291fc7310a8222360147d7f823ce6a2e31369007b0cd2a901",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1923,6 +1923,14 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GANGWON_PROVINCE-272329.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "be9093a12391d67db4e8de6728195b93e6daf7f66d1112d94028d877fed183c3",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "9b6e5f3b17551c2ecd6c830b52af107e3dc7a954ab59016376a3fb8212bdc8fb"
     }
   ],
   "samples": [
@@ -3723,6 +3731,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000116",
+      "caseCode": "GANGWON_PROVINCE-272329",
+      "profileCode": "LOCAL_GANGWON_PROVINCE_BOARD_V1",
+      "profileHash": "21e8029aa925dd7a5f1bac378b3909ccf69be51e9f7b4c4bac6fa9d38c477498",
+      "receiptHash": "be9093a12391d67db4e8de6728195b93e6daf7f66d1112d94028d877fed183c3",
+      "producerClassHash": "9b6e5f3b17551c2ecd6c830b52af107e3dc7a954ab59016376a3fb8212bdc8fb",
+      "observedAt": "2026-09-29T17:31:14.226302300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "0037d256d7bd831e6806ad4ad3b0bf48996eb3d292432825efe46e210fb49d9e",
+          "status": "SUCCEEDED",
+          "bytes": 150256,
+          "format": "HWPX",
+          "binaryHash": "e400bcf0023de05df9e52c7a1c4727fe2df95be2bd2a508f07236e5fec8cb2f5",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000063",
