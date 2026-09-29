@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void geumcheonBodyExcludesFilesAndMetadata() {
+        String page="<div id=contents class=cts294><div class=program><div class='veterinary_contract view'><div class='p-wrap bbs bbs__view'><table class='p-table block'><tbody><tr><td colspan=4 data-brl-flag=1>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><td colspan=4 data-brl-flag=7>소상공인 지원금</td></tr><tr><th>첨부파일</th><td colspan=3>특허.hwp</td></tr></tbody></table></div></div></div></div>";
+        String url="https://www.geumcheon.go.kr/portal/tblSeolGosiDetailView.do?key=294&notAncmtMgtNo=27579";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("data-brl-flag=7","data-brl-flag=9"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void pohangBodyExcludesFilesAndMetadata() {
         String page="<form id=detailForm name=detailForm method=post><div class=bod_view><div class=subject>소상공인 지원</div><div class=view_info>수출 담당부서</div><dl class=view_file><dt>첨부파일</dt><dd>특허.hwpx</dd></dl><div class=view_cont>소상공인 지원금</div></div></form>";
         String url="https://www.pohang.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=73525&mid=0202010000";

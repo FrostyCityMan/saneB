@@ -2809,6 +2809,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GEUMCHEON-27579",
+      "profileCode": "LOCAL_GEUMCHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "94bd107352493d9482f71ab00889860ee0723da87b41101ec60adb054bddf9eb",
+        "sourceUrl": "https://www.geumcheon.go.kr/portal/tblSeolGosiDetailView.do?key=294&notAncmtMgtNo=27579",
+        "localSourceCode": "LGS-000019",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

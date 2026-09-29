@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 173,
-    "missingProfileRegionCount": 50,
+    "registeredRegionCount": 174,
+    "missingProfileRegionCount": 49,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -433,14 +433,26 @@
       "sourceCode": "LGS-000019",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000019",
+          "caseCode": "GEUMCHEON-27579",
+          "profileCode": "LOCAL_GEUMCHEON_BOARD_V1",
+          "profileHash": "ed094c9033072892502ce49d4aa9524817807ef45228984a02a7c1d0f93c22ab",
+          "receiptHash": "efdf21ba0d12173dcfe2b9686aed6c55d598d05dbff1edaa691f42c6e082e547",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000020",
@@ -5743,9 +5755,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "0b77dd7c9f8fe8da20ec7fbac60efbcaf28c4ef02c05b41f6919b14551d5f132",
+  "inputInventorySha256": "496a559fe15e793088a4ece68d3d5a512ffec26352f976dd5e8d2ddb0e2953ed",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 262,
+  "importedReceiptCount": 263,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11767,6 +11779,57 @@
         "sourceCode": "LGS-000201",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_DETAIL200_HWPX1_NUMERIC_PAIRED_PREVIEW_GET_VERIFIED"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "geumcheonDownloadRun": {
+    "scope": "GEUMCHEON_FIXED_OFFICIAL_AREA_HWP3_COLLECTION_ONLY",
+    "priorSurveyRequests": 0,
+    "surveyRequestCount": 3,
+    "surveyMaximumHtmlBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "detail.html",
+        "bytes": 321702,
+        "sha256": "1fefbc2b3561bb08052115da42077c8a2ba60cd6e0b4c9b7c45dab88dea400c9"
+      },
+      {
+        "name": "list.html",
+        "bytes": 323512,
+        "sha256": "db89a9235a35ad78ed6e40a2e383232de879f52c1931da83983e1324e369d110"
+      },
+      {
+        "name": "search.html",
+        "bytes": 318059,
+        "sha256": "11127f6353cff61ceaeaeac59b836e61b28d231219372e6563f4ef70a0fe2750"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GEUMCHEON-27579",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GEUMCHEON-27579.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 2723840,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000019",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL200_HWP3_GET_VERIFIED_OLD_NOTICE_NOT_CURRENT_ELIGIBILITY"
       }
     ],
     "originalsRemoved": true,
