@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "2b3387a73534ca5800a830cf896708bcff360a4324ae7fb17e39ed672d85c2be",
+  "inventorySha256": "aa7e994386a4a36649462c0f2b476f247a9c50c9e44d73504c171134a64798dd",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1909,7 +1909,7 @@
       "producerClassHash": "8c718ecdf1b3aa36a87dbcfccb0a1996e8bce9f99640c486ec7cc45e030819b0"
     },
     {
-      "path": "build/reports/attachment-regional-collection/PAJU-20260119101158902.json",
+      "path": "build/reports/attachment-regional-collection/PAJU-20260119101158902-BEFORE-UTF8.json",
       "kind": "LOCAL_COLLECTION_ONLY",
       "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
@@ -2095,6 +2095,14 @@
     {
       "path": "build/reports/attachment-regional-collection/JEMULPO-14094.json",
       "receiptHash": "3f5a324b8e4b78ce163b0414a489eca7ee2e38e410ef3436c895dcee1defd63d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/PAJU-20260119101158902.json",
+      "receiptHash": "f90e43f8e5c32c6640647686077fe2fcc1bf5e063a9686b972c933a30453d8fc",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
@@ -6663,10 +6671,10 @@
       "sourceCode": "LGS-000096",
       "caseCode": "PAJU-20260119101158902",
       "profileCode": "LOCAL_PAJU_BOARD_V1",
-      "profileHash": "1cd76e6edda78e6cf879fe81597a399bd0c29a0641e238f336eb7c6a1b635d1b",
-      "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
-      "producerClassHash": "e36a69ea7b1abf0fbb9e399b0ce695b8cf2fad5049a6fd42925f0e1b8a82cdb2",
-      "observedAt": "2026-09-29T17:11:00.514041700Z",
+      "profileHash": "8020910ad3b864c3553617812b44243ee18af212385f613b232c79846e40098e",
+      "receiptHash": "f90e43f8e5c32c6640647686077fe2fcc1bf5e063a9686b972c933a30453d8fc",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T22:40:21.391336500Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -6678,8 +6686,11 @@
       "files": [
         {
           "locatorHash": "5bd69c1898615556d2630f0bc72d2c4f619c009496bebf2e94e3b245ceb33782",
-          "status": "FAILED",
-          "bytes": 93037
+          "status": "SUCCEEDED",
+          "bytes": 93037,
+          "format": "PDF",
+          "binaryHash": "25c6b8002fc63f61c1b0d48e456317433aabfa4398adb905a1a006c1e0a5d7f5",
+          "signatureVerified": true
         }
       ]
     },

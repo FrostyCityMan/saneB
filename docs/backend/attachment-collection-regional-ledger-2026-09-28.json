@@ -2492,9 +2492,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -2502,12 +2502,12 @@
           "sourceCode": "LGS-000096",
           "caseCode": "PAJU-20260119101158902",
           "profileCode": "LOCAL_PAJU_BOARD_V1",
-          "profileHash": "1cd76e6edda78e6cf879fe81597a399bd0c29a0641e238f336eb7c6a1b635d1b",
-          "receiptHash": "e3b66ba06dbade3eab14665eb21547a74093763c014677c1789904e69f9a190c",
+          "profileHash": "8020910ad3b864c3553617812b44243ee18af212385f613b232c79846e40098e",
+          "receiptHash": "f90e43f8e5c32c6640647686077fe2fcc1bf5e063a9686b972c933a30453d8fc",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "2b3387a73534ca5800a830cf896708bcff360a4324ae7fb17e39ed672d85c2be",
+  "inputInventorySha256": "aa7e994386a4a36649462c0f2b476f247a9c50c9e44d73504c171134a64798dd",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 272,
+  "importedReceiptCount": 273,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12220,63 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "pajuHeaderRecoveryRun": {
+    "scope": "PAJU_UTF8_DISPOSITION_RECOVERY_COLLECTION_ONLY",
+    "surveyRequestCount": 2,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000096",
+        "requests": 2,
+        "result": "DETAIL200_FILE200_UTF8_OCTETS_MISREAD_AS_LATIN1_CONTROL_CHARACTERS_NO_CONTENT_TYPE_HEADER"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-paju-header-20260930/detail-head.txt",
+        "bytes": 762,
+        "sha256": "2998473dee0f53943ddc5c2819bc5263e994ab222713817b6f4d3c5a1770dae5"
+      },
+      {
+        "path": "build/qa-paju-header-20260930/detail.html",
+        "bytes": 291922,
+        "sha256": "ebffc7a8ac4041e2ea84601dcb13ebad09d89ec6e9af05a16b6bce7201422bad"
+      },
+      {
+        "path": "build/qa-paju-header-20260930/file-head.txt",
+        "bytes": 703,
+        "sha256": "37f245a69088ead803f035dfd86f4fb858e87f62ba5fdd71f8feac80735e54d1"
+      },
+      {
+        "path": "build/qa-paju-header-20260930/file.bin",
+        "bytes": 93037,
+        "sha256": "25c6b8002fc63f61c1b0d48e456317433aabfa4398adb905a1a006c1e0a5d7f5"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "PAJU-20260119101158902",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReport": "build/reports/attachment-regional-collection/PAJU-20260119101158902-BEFORE-UTF8.json",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/PAJU-20260119101158902.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2485101,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 6,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
