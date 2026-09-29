@@ -1633,6 +1633,42 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "CHEONGSONG-22287",
+      "profileCode": "LOCAL_CHEONGSONG_COUNTY_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7e520c7e91026f663ba54d28584f2b533fcf4b3dc0f5b4fbbe096218ac971ac4",
+        "sourceUrl": "https://www.cs.go.kr/news/00002679/00006203.web?amode=view&not_ancmt_mgt_no=22287&withPast=Y",
+        "localSourceCode": "LGS-000212",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGYANG-26774",
+      "profileCode": "LOCAL_YEONGYANG_COUNTY_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3772a9b85bc38bd917190e8c8dc2fd4cb8803985e91e702c386565bc81f181a0",
+        "sourceUrl": "https://www.yyg.go.kr/www/organization/yyg_news/notification?idx=26774&mode=view",
+        "localSourceCode": "LGS-000213",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ULLEUNG-23003",
+      "profileCode": "LOCAL_ULLEUNG_COUNTY_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "00e937b449fca0f7a37981e6266663475ba206fb6e3ff87c5dd16b8eaf87bfe7",
+        "sourceUrl": "https://www.ulleung.go.kr/ko/page.do?mnu_uid=571&not_ancmt_mgt_no=23003&cmd=2",
+        "localSourceCode": "LGS-000222",
+        "listParserProfileCode": "GUNWI_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

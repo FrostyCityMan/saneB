@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 76,
-    "missingProfileRegionCount": 147,
+    "registeredRegionCount": 79,
+    "missingProfileRegionCount": 144,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4012,27 +4012,51 @@
       "sourceCode": "LGS-000212",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000212",
+          "caseCode": "CHEONGSONG-22287",
+          "profileCode": "LOCAL_CHEONGSONG_COUNTY_V1",
+          "profileHash": "87edc4c1da61ab626e6f1a0957b3906d658fa9f5ec1f3be7a82538f400b005ed",
+          "receiptHash": "4e5d0bf298296aa45020c8144d59575e6d02259987c56480e0397ebc99af4f62",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000213",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000213",
+          "caseCode": "YEONGYANG-26774",
+          "profileCode": "LOCAL_YEONGYANG_COUNTY_V1",
+          "profileHash": "3fe7617d8d19568b1cf31e312ad22f144827848cac36758fdb23c464f225b031",
+          "receiptHash": "e6873f59cf9407fb7c2a54ec779ce1d56bf6d372dad584596f599665f3cc89d1",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000214",
@@ -4226,14 +4250,26 @@
       "sourceCode": "LGS-000222",
       "listParserProfileCode": "GUNWI_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000222",
+          "caseCode": "ULLEUNG-23003",
+          "profileCode": "LOCAL_ULLEUNG_COUNTY_V1",
+          "profileHash": "929cc57b9af496ad8ff93bf85dbd1604e2c176d9e62710fdf4daf66ff11d4afe",
+          "receiptHash": "4045fce4528852d8211fea4b28a9b28dc913a1c11e866ea876939e8b7dc5893c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000223",
@@ -4534,9 +4570,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "f3f828f02fcb65dbefdca5065c36fd3dea9d2072fcf33c34b0a55cec3f2c046c",
+  "inputInventorySha256": "53ed7f02f8d67725f3763de60f43e5c3f4c1fd32ef51bf72cbb401538972d6a8",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 152,
+  "importedReceiptCount": 155,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -5949,6 +5985,71 @@
         "sourceCode": "LGS-000222",
         "result": "OFFICIAL_DETAIL_FOUND_DOWNLOAD_TRANSITION_PENDING",
         "requests": 3
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gyeongbukSixthDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITE",
+    "surveyRequestCount": 4,
+    "surveyMethods": {
+      "GET": 4
+    },
+    "surveyFiles": [
+      {
+        "name": "CHEONGSONG-detail.html",
+        "bytes": 153711,
+        "sha256": "340758c105b27e40d7687e07e47feec9e07a43473c2d16b5912fa5c794166401"
+      },
+      {
+        "name": "ULLEUNG-detail.html",
+        "bytes": 144822,
+        "sha256": "6698560b2447c96ea7c2609cd6616cd84f7ec3f4d09bef0444fd03a19b7e4fad"
+      },
+      {
+        "name": "ULLEUNG-download.body",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "ULLEUNG-download.headers",
+        "bytes": 647,
+        "sha256": "7a36fa06ae44cc544d20c91edc4e2f7c415b0746abfc66319e8160f589d6f2b1"
+      },
+      {
+        "name": "YEONGYANG-detail.html",
+        "bytes": 118101,
+        "sha256": "cefd3089d340d149452cb0c59d353e042f9490a646d686d6fd9c805636df0f56"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/CHEONGSONG-22287.json",
+      "build/reports/attachment-regional-collection/YEONGYANG-26774.json",
+      "build/reports/attachment-regional-collection/ULLEUNG-23003.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 7171584,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000212",
+        "result": "OFFICIAL_GET_LINK_AND_UNEXECUTED_PREVIEW_SCRIPT",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000213",
+        "result": "OFFICIAL_EPHEMERAL_POST_FORM_FOUR_FIELDS",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000222",
+        "result": "OFFICIAL_BOARD_TO_EMINWON_302",
+        "requests": 2
       }
     ],
     "originalsRemoved": true,
