@@ -1609,6 +1609,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONGDEOK-366709",
+      "profileCode": "LOCAL_YEONGDEOK_DIRECT_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b156fb839fbe7d418f8a37f0388d407669e3b90a2bcb9968b8c30bc11312866c",
+        "sourceUrl": "https://www.yd.go.kr/?page_id=763&uid=366709&mod=document",
+        "localSourceCode": "LGS-000214",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ULJIN-35041",
+      "profileCode": "LOCAL_ULJIN_DIRECT_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7d04be5ae1024c43876560acafac079a9c6968bc8d3ab94dd88b7fdaaa462e68",
+        "sourceUrl": "https://www.uljin.go.kr/index.uljin?menuCd=DOM_000000103002007001&type=view&ancmtMgtNo=35041",
+        "localSourceCode": "LGS-000221",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

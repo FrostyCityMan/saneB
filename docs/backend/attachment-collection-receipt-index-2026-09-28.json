@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "4c4d08d5293a0b12100e1094bc40fd137970cb8677e0f100b000012bd2f433ab",
+  "inventorySha256": "f3f828f02fcb65dbefdca5065c36fd3dea9d2072fcf33c34b0a55cec3f2c046c",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1123,6 +1123,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "7241efed0454a673708292664f3dea727d37d9dd71e81cbaf86b7ec03ab11baf"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/YEONGDEOK-366709.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "cc3905e84a5a6c7fad9a4dea3b700f5e303d516bd775ef85348b13f8da6dfbf5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "68a8ea59cf626a1f06f36b725155c6030a2b059625c1904d5f111598742eccd7"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/ULJIN-35041.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "b9d01ada8f256680ea3f7d4531087082523de9589f93ad7db689e7dd75f768e8",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "68a8ea59cf626a1f06f36b725155c6030a2b059625c1904d5f111598742eccd7"
     }
   ],
   "samples": [
@@ -4100,6 +4116,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000221",
+      "caseCode": "ULJIN-35041",
+      "profileCode": "LOCAL_ULJIN_DIRECT_V1",
+      "profileHash": "35b76f101dcdfddfc44690cd4e2895503fe62eec7067860b6f65b5a2310901c3",
+      "receiptHash": "b9d01ada8f256680ea3f7d4531087082523de9589f93ad7db689e7dd75f768e8",
+      "producerClassHash": "68a8ea59cf626a1f06f36b725155c6030a2b059625c1904d5f111598742eccd7",
+      "observedAt": "2026-09-29T05:11:43.563943200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FAILED",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "6d36a974c8389d448a743793405046004867e741fa48c3602f474e6b6be73fc3",
+          "status": "SUCCEEDED",
+          "bytes": 84480,
+          "format": "HWP",
+          "binaryHash": "07369683695fdc8a908b03c45925a0565a93be6be6bd2341bf2d229a454a16c0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000170",
       "caseCode": "WANJU-43355",
       "profileCode": "LOCAL_WANJU_GET_V1",
@@ -4177,6 +4220,30 @@
           "format": "HWP",
           "binaryHash": "2a3a1c4495865e726985f942a740690697af01081dc4321e099781f785644570",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000214",
+      "caseCode": "YEONGDEOK-366709",
+      "profileCode": "LOCAL_YEONGDEOK_DIRECT_V1",
+      "profileHash": "4c1336ba4051960d9b2b3549db58dcc2be879a75525922912e276f1c645e5835",
+      "receiptHash": "cc3905e84a5a6c7fad9a4dea3b700f5e303d516bd775ef85348b13f8da6dfbf5",
+      "producerClassHash": "68a8ea59cf626a1f06f36b725155c6030a2b059625c1904d5f111598742eccd7",
+      "observedAt": "2026-09-29T05:11:27.622510800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8be287c6ec52c139213fa3ebd3daf12b9c62c970f965bf6bbf8fdb5aa2d8c417",
+          "status": "FAILED",
+          "bytes": 364
         }
       ]
     },
@@ -6016,5 +6083,154 @@
     "isExtractionVerified": false,
     "isPolicyQaPassed": false,
     "isExpectationApproved": false
+  },
+  "gyeongbukFifthDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITE",
+    "surveyRequestCount": 15,
+    "surveyMethods": {
+      "GET": 15
+    },
+    "surveyFiles": [
+      {
+        "name": "CHEONGSONG-detail.html",
+        "bytes": 153711,
+        "sha256": "2a99cc0701ab75d59f30ee90739df117c182538694dfa12e58e02a45b90fd042"
+      },
+      {
+        "name": "cheongsong-list.headers",
+        "bytes": 444,
+        "sha256": "b00ee763cad1df92ba434c10df4ada3be46374cad7039d60a6282a026cb157ed"
+      },
+      {
+        "name": "cheongsong-list.html",
+        "bytes": 153462,
+        "sha256": "47eb9cbe8239b702869e61b4bf137c9b07f779d8925d578ef68999194bb47a6c"
+      },
+      {
+        "name": "CHEONGSONG-search.html",
+        "bytes": 153666,
+        "sha256": "a7d6642a3b683db0caa34d63d2cea03d18eeea070ad3ab19266daa4fc1d3039d"
+      },
+      {
+        "name": "ULJIN-detail.html",
+        "bytes": 115574,
+        "sha256": "a96775eb996cea21ab3471addfe3e5cf2c3f7540318eaadb11d4677c4be6860a"
+      },
+      {
+        "name": "uljin-list.headers",
+        "bytes": 368,
+        "sha256": "67a2b241a35f5cee5367236792247fefe16172f157abd397237f540a6d41b8ff"
+      },
+      {
+        "name": "uljin-list.html",
+        "bytes": 123377,
+        "sha256": "3954e4f516a812f39081df9fd4980bfb4a423219c3586cd1de4b213c96e9acd9"
+      },
+      {
+        "name": "ULJIN-search.html",
+        "bytes": 120086,
+        "sha256": "10d9935ff11d5975f20171f56461fbca99f87b052d79e612d7b26584f275880e"
+      },
+      {
+        "name": "ULLEUNG-detail.html",
+        "bytes": 144822,
+        "sha256": "a58d62d1ef5e469a248e646854757d42895aec2dd81f8101125ac95e1e84096a"
+      },
+      {
+        "name": "ulleung-list.headers",
+        "bytes": 257,
+        "sha256": "a1c27e54c82192d13d3669b77b72b8d32daa2ca7f4d658bea0970f371ffc9434"
+      },
+      {
+        "name": "ulleung-list.html",
+        "bytes": 151363,
+        "sha256": "ca35c36ccb89f362952868b99a66e502e3d2bec53d8936b6bb16ecc8dbd0cc08"
+      },
+      {
+        "name": "ULLEUNG-search.html",
+        "bytes": 149338,
+        "sha256": "79b160fddc83e1a5e2d694d832f0900fe16d0988d2bb2a6bd9a029eb50efd3b1"
+      },
+      {
+        "name": "YEONGDEOK-detail.html",
+        "bytes": 186763,
+        "sha256": "0cb4d0d93e7adf5a37e75058dc2cb37cd823060c369d07271f8de37d59319df2"
+      },
+      {
+        "name": "yeongdeok-list.headers",
+        "bytes": 605,
+        "sha256": "5998d4327784290c6ea50e64121c341c36247c60d889abda5cb95dccb031a7eb"
+      },
+      {
+        "name": "yeongdeok-list.html",
+        "bytes": 197768,
+        "sha256": "cb6a7bb891954caa7ac7d262f308a9d3389c997c726e7f1aecc02353b6aeadf1"
+      },
+      {
+        "name": "YEONGDEOK-search.html",
+        "bytes": 196356,
+        "sha256": "254cb86a81aa12d3994f848851c053b87fe52a72e8f8a493e04f3ce9d17dec46"
+      },
+      {
+        "name": "YEONGYANG-detail.html",
+        "bytes": 118101,
+        "sha256": "b383a97562477d5c833829f24cebc5d0fc0e594df471e7cf575bd91f63f2a63b"
+      },
+      {
+        "name": "yeongyang-list.headers",
+        "bytes": 1555,
+        "sha256": "b68a6f62c749e8f996a8f1a1625e6a2ac28efc8e6ab7e106657d2f81c26dc93d"
+      },
+      {
+        "name": "yeongyang-list.html",
+        "bytes": 128383,
+        "sha256": "e6b1cff66820d55b13e969175ed2aab522fb63660395a9dec3dec2e8181b8cd7"
+      },
+      {
+        "name": "YEONGYANG-search.html",
+        "bytes": 120761,
+        "sha256": "f3c464634eb2c2a7f4c7f9db150fdd204c04a67b6db716748c7700f7d25f1c6c"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YEONGDEOK-366709.json",
+      "build/reports/attachment-regional-collection/ULJIN-35041.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 4590444,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000212",
+        "result": "OFFICIAL_DETAIL_FOUND_DIRECT_DOWNLOAD_AND_PREVIEW_PENDING",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000213",
+        "result": "OFFICIAL_DETAIL_FOUND_ENCRYPTED_POST_FORM_PENDING",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000214",
+        "result": "OFFICIAL_KBOARD_DIRECT_DOWNLOAD",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000221",
+        "result": "OFFICIAL_TABLE_DIRECT_DOWNLOAD_PREVIEW_UNRESOLVED",
+        "requests": 3
+      },
+      {
+        "sourceCode": "LGS-000222",
+        "result": "OFFICIAL_DETAIL_FOUND_DOWNLOAD_TRANSITION_PENDING",
+        "requests": 3
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
   }
 }
