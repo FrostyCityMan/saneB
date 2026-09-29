@@ -2725,6 +2725,18 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "HONGCHEON-53249",
+      "profileCode": "LOCAL_HONGCHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c487f3467475c2d947493958605178da0b511d60ef2989d0259508a2ef728c04",
+        "sourceUrl": "https://www.hongcheon.go.kr/www/selectEminwonView.do?key=278&not_ancmt_mgt_no=53249",
+        "localSourceCode": "LGS-000124",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

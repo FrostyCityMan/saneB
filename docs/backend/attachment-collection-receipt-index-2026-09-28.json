@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "ef0309ae4952d5d13a78f8d758228af5cacfe31dbe3eead4327a1c5f42c92a5d",
+  "inventorySha256": "7c88ad7a2119e4ea74abebf881c4ca4b767134ec36ef007e0d4756aaae466ca5",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1963,6 +1963,14 @@
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
       "producerClassHash": "85d23f6d826958c24a4033f27bd3ec53db34a9b5b2d69f14f3fa308401fa7fbe"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/HONGCHEON-53249.json",
+      "receiptHash": "76372ca7b0391855f43ca609c6a18e8bd218421cb077c779aabcedffc8dc196f",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "6b89dcd091ca64e4c608338d954f2c9eabc517083c1f2c8837aba387eae8595d"
     }
   ],
   "samples": [
@@ -5144,6 +5152,33 @@
           "bytes": 172876,
           "format": "HWPX",
           "binaryHash": "e11d2e310b518192cf5f7070c4a107850be598f4eac7c4a81659f74bac35c74e",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000124",
+      "caseCode": "HONGCHEON-53249",
+      "profileCode": "LOCAL_HONGCHEON_BOARD_V1",
+      "profileHash": "2fa5d20310abcb2809a277f5a6a9fe135cf821b14f831b6118a468b2790eee15",
+      "receiptHash": "76372ca7b0391855f43ca609c6a18e8bd218421cb077c779aabcedffc8dc196f",
+      "producerClassHash": "6b89dcd091ca64e4c608338d954f2c9eabc517083c1f2c8837aba387eae8595d",
+      "observedAt": "2026-09-29T18:57:03.640462800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "188194a1980d86a420ef0ee937c71b7bd4370703dd5082e861bc2ce7668b84ec",
+          "status": "SUCCEEDED",
+          "bytes": 131584,
+          "format": "HWP",
+          "binaryHash": "8b6bbe09b4dc0b44fa7494a35e0ce16b2861c454ded6679917089b32806b5f61",
           "signatureVerified": true
         }
       ]

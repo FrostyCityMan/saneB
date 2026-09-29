@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void hongcheonBodyExcludesFilesAndMetadata() {
+        String page="<div class='p-wrap bbs bbs__view'><table class='p-table block'><tbody><tr class=p-table__subject><th>제목</th><td colspan=3><span class=p-table__subject_text>소상공인 지원</span></td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><td colspan=4>소상공인 지원금</td></tr><tr><th>첨부파일</th><td colspan=3>특허.hwp</td></tr></tbody></table></div>";
+        String url="https://www.hongcheon.go.kr/www/selectEminwonView.do?key=278&not_ancmt_mgt_no=53249";
+        for(String value:List.of(page,page+page,page.replace("소상공인 지원금",""),page.replace("colspan=4","colspan=2"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+value+"<footer>푸터</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void samcheokBodyExcludesFilesAndMetadata() {
         String page="<form id=saeolGosiVO name=saeolGosiVO method=get><div class=bbs1view1><h1 class=h1>소상공인 지원</h1><div class=info1>수출 담당부서</div><div class=attach1>특허.hwp</div><div class=substance>소상공인 지원금</div></div></form>";
         String url="https://www.samcheok.go.kr/media/00084/00095.web?amode=view&mgtNo=36177&cd=01";

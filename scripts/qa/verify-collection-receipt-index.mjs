@@ -22,6 +22,8 @@ const samples=selectLatestSamples(receipts);
 assert.deepEqual(samples,index.samples,'IMPORTED_EVIDENCE_CHANGED');
 const actual=buildCollectionPlan(inventory,samples);
 const ledger=JSON.parse(fs.readFileSync('docs/backend/attachment-collection-regional-ledger-2026-09-28.json','utf8'));
+assert.equal(ledger.inputInventorySha256,index.inventorySha256,'LEDGER_INVENTORY_HASH_CHANGED');
+assert.equal(ledger.importedReceiptCount,receipts.length,'LEDGER_RECEIPT_COUNT_CHANGED');
 assert.deepEqual(actual.summary,ledger.summary);
 assert.deepEqual(actual.regions,ledger.regions);
 console.log(JSON.stringify({status:'ARCHIVED_EVIDENCE_REPRODUCED',currentHttpRequests:0,

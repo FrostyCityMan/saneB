@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 166,
-    "missingProfileRegionCount": 57,
+    "registeredRegionCount": 167,
+    "missingProfileRegionCount": 56,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3020,14 +3020,26 @@
       "sourceCode": "LGS-000124",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000124",
+          "caseCode": "HONGCHEON-53249",
+          "profileCode": "LOCAL_HONGCHEON_BOARD_V1",
+          "profileHash": "2fa5d20310abcb2809a277f5a6a9fe135cf821b14f831b6118a468b2790eee15",
+          "receiptHash": "76372ca7b0391855f43ca609c6a18e8bd218421cb077c779aabcedffc8dc196f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000125",
@@ -5659,9 +5671,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "d83ddffb05c9f770cbe4e5f6d81e56501f91419ed2690efd5ef43d76a9c99376",
+  "inputInventorySha256": "7c88ad7a2119e4ea74abebf881c4ca4b767134ec36ef007e0d4756aaae466ca5",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 252,
+  "importedReceiptCount": 256,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11231,6 +11243,58 @@
         "sourceCode": "LGS-000123",
         "requests": 1,
         "result": "FIXED_FILE_DIAGNOSTIC_SAME_BINARY_HASH_OLE_SIGNATURE_X_MSDOWNLOAD_UTF8_DISPOSITION"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "hongcheonDownloadRun": {
+    "scope": "HONGCHEON_OFFICIAL_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "priorSurveyLedgerKey": "gangwonSecondDownloadRun",
+    "priorSurveyRequests": 2,
+    "surveyRequestCount": 3,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "hongcheon-list.html",
+        "bytes": 180098,
+        "sha256": "d66c5fef63d8147deff675c7ec950b987315ef3f61cb54f7b09e84cfb0b25815"
+      },
+      {
+        "name": "hongcheon-search.html",
+        "bytes": 174339,
+        "sha256": "41e75663b1d21fdefd366232e01b0bf08a96e444b6e36e86ad92b50c206913ab"
+      },
+      {
+        "name": "hongcheon-detail.html",
+        "bytes": 172660,
+        "sha256": "fc48025851febb51cb5e094683cce768ccbf8628813175b229f9099ef1e5744d"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "HONGCHEON-53249",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/HONGCHEON-53249.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2408960,
+    "cumulativeRequestReservationsIncludingPriorSurveyUpperBound": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000124",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_200_TITLE53249_BODY_AND_DIRECT_HWP_1"
       }
     ],
     "originalsRemoved": true,
