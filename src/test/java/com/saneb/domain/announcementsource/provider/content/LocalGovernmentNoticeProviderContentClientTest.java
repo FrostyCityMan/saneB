@@ -38,6 +38,23 @@ class LocalGovernmentNoticeProviderContentClientTest {
     private static final String DETAIL_URL = "https://" + HOST + "/notices/42";
     private static final UUID SOURCE_ID = UUID.fromString("77000000-0000-0000-0000-000000000001");
 
+    @Test void capitalSixthBodyPreservesConditionsButExcludesNavigationAndFiles() {
+        for(var site:CapitalSixthNoticePage.Site.values()) {
+            String content="사업자 지원금 <table><tr><td>수출기업 제외</td></tr></table>";
+            String page=site==CapitalSixthNoticePage.Site.SIHEUNG
+                    ?"<form id='detailForm' name='detailForm' method='post'><div class='bod_wrap'><div class='bod_view'><h4>소상공인 지원</h4><div class='view_info'>메타데이터</div><div class='view_cont'>"+content+"</div><dl class='view_file'>특허 첨부</dl></div></div></form>"
+                    :"<form id='aform' method='get'><div class='p-wrap bbs bbs__view'><table class='p-table'><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>내용</th><td>"+content+"</td></tr><tr><th>파일</th><td>특허 첨부</td></tr></table></div></form>";
+            String url="https://"+site.host+site.path+"?"+site.menuKey+"="+site.menu+"&"+site.idKey+"=1";
+            for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
+                var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
+                var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull(); }
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void capitalFifthBodyPreservesConditionsButExcludesNavigationAndFiles() {
         for(var site:CapitalFifthNoticePage.Site.values()) {
             boolean post=site==CapitalFifthNoticePage.Site.UIJEONGBU;

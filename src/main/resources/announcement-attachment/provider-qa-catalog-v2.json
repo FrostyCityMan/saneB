@@ -2125,6 +2125,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SIHEUNG-82127",
+      "profileCode": "LOCAL_SIHEUNG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e6af6e96ee95a9fa95ccc91191cfb1686ab7675a61db3cae2f753b5d5bb45c20",
+        "sourceUrl": "https://www.siheung.go.kr/main/saeol/gosi/view.do?mId=0401040100&notAncmtMgtNo=82127",
+        "localSourceCode": "LGS-000095",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ANSAN-1660335",
+      "profileCode": "LOCAL_ANSAN_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "f4f5e86f31b85d2376c549cbb7eb45d37340620ebaf426a9fdd1b8b026b9d5d5",
+        "sourceUrl": "https://www.ansan.go.kr/www/common/bbs/selectBbsDetail.do?bbs_code=WWW13&bbs_seq=1660335",
+        "localSourceCode": "LGS-000092",
+        "listParserProfileCode": "SAFE_ANSAN_BBS"
+      },
+      "expectation": null
     }
   ]
 }

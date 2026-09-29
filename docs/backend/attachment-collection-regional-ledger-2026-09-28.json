@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 116,
-    "missingProfileRegionCount": 107,
+    "registeredRegionCount": 118,
+    "missingProfileRegionCount": 105,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2006,14 +2006,26 @@
       "sourceCode": "LGS-000092",
       "listParserProfileCode": "SAFE_ANSAN_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000092",
+          "caseCode": "ANSAN-1660335",
+          "profileCode": "LOCAL_ANSAN_PORTAL_V1",
+          "profileHash": "c03d4d363352dffd3b7fe9966acfac11f9c32e3ed505af7f6d18b6ba40b93c9a",
+          "receiptHash": "1969ea2043f7e694f397a925b1b2b434567774ca60456637c78cfa727bab77a0",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000093",
@@ -2057,14 +2069,26 @@
       "sourceCode": "LGS-000095",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000095",
+          "caseCode": "SIHEUNG-82127",
+          "profileCode": "LOCAL_SIHEUNG_PORTAL_V1",
+          "profileHash": "322e1bcba46d62483cecbbaab6a7f6102602cb173d28f22bf5227d5929fb320f",
+          "receiptHash": "abf237360cd05b4827a66f516a25042f69e3392074df3b501747d3420a984d49",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000096",
@@ -2362,12 +2386,46 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000110",
+          "caseCode": "YANGPYEONG-311507",
+          "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+          "profileHash": "5d89388d094f4e1acad26fec725b36d7c41f65e112cf9ea60fa0b29e10a23a02",
+          "receiptHash": "3f5aee743191499eb1ef751b1c9a47e054c2394bc36ee5408591a4311f69dfc6",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000110",
+          "caseCode": "YANGPYEONG-311846",
+          "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+          "profileHash": "5d89388d094f4e1acad26fec725b36d7c41f65e112cf9ea60fa0b29e10a23a02",
+          "receiptHash": "a7b1a8e4eebed1ec18045ae4405586d41d4f7711ae8a607310cf9625fe3ce297",
+          "fileCount": 2,
+          "downloadedFileCount": 1,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000110",
+          "caseCode": "YANGPYEONG-312241",
+          "profileCode": "LOCAL_YANGPYEONG_BBS_V1",
+          "profileHash": "5d89388d094f4e1acad26fec725b36d7c41f65e112cf9ea60fa0b29e10a23a02",
+          "receiptHash": "d079231e275ef1c0ce72753b0cb4d67336bc360be10f3a2026730fc35d1e655d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000111",
@@ -7973,6 +8031,155 @@
         "sourceCode": "LGS-000099",
         "requests": 5,
         "result": "TWO_REDIRECT_OBSERVATIONS_OFFICIAL_LIST_WITHOUT_REDIRECT_TOKEN_SEARCH_DETAIL_GET"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "capitalSixthDownloadRun": {
+    "scope": "CAPITAL_SIXTH_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 13,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "ANSAN-detail.html",
+        "bytes": 621233,
+        "sha256": "4fdab14487c5d0a31b77de89fce4f2f0957535d8e214027df794cbab6d8f2cdb"
+      },
+      {
+        "name": "ANSAN-list.html",
+        "bytes": 614009,
+        "sha256": "d279da82b5c139cfd2456ac40a4af17e28dbc265ee9236df2956d9d3ce06d1d1"
+      },
+      {
+        "name": "ANSAN-search.html",
+        "bytes": 610321,
+        "sha256": "228c500bb786044df5c2094763a2eefa8b0ebf8697619d88e216f8a61067dcdb"
+      },
+      {
+        "name": "GAPYEONG-list.html",
+        "bytes": 241022,
+        "sha256": "deb2ad5ecafc1f3a11761716fbea19b612d7a6275be77977271ff00cbb53c3ea"
+      },
+      {
+        "name": "GWACHEON-list.html",
+        "bytes": 102,
+        "sha256": "18561a338ba3cf22ccf308749d5d25fbd1fd4373ddb1e95ee0ee9193238a8b08"
+      },
+      {
+        "name": "SIHEUNG-board.html",
+        "bytes": 185370,
+        "sha256": "6260e0baa30bd4bef042c2d55a1375c00c89d1dd643e6dad8b84089d79e26ee9"
+      },
+      {
+        "name": "SIHEUNG-detail.html",
+        "bytes": 180429,
+        "sha256": "88a45795aeeba67a90d0307d0f208ec97d7b0e24067506b86c8ce96107b670c7"
+      },
+      {
+        "name": "SIHEUNG-list.html",
+        "bytes": 102,
+        "sha256": "ebaca9141bed63975fe768b269156adf840dc4483d8bd85961c2ec7448779d49"
+      },
+      {
+        "name": "SIHEUNG-search.html",
+        "bytes": 183748,
+        "sha256": "d04c00663b92268b3dafd0870c9dbea2c56d8974cbd6c49942d6413a0a0a9f1c"
+      },
+      {
+        "name": "YANGPYEONG-detail.html",
+        "bytes": 312298,
+        "sha256": "83b50d9ee93325cfcab072c2e2506f054a73ae0a1fb817dc4d21245cd51b3e66"
+      },
+      {
+        "name": "YANGPYEONG-list.html",
+        "bytes": 321902,
+        "sha256": "7baaf59101f678f0ac3cbb132039096c17945daef14bed62128ebc544fe3a82c"
+      },
+      {
+        "name": "YANGPYEONG-search.html",
+        "bytes": 320847,
+        "sha256": "08a1dd2502ffa84b9768d0d867afcfc6696301893f188684c962a09d03d7a616"
+      }
+    ],
+    "maximumRequestsPerObservation": 44,
+    "maximumBytesPerObservation": 83886080,
+    "observationBudgets": [
+      {
+        "caseCode": "SIHEUNG-82127",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248
+      },
+      {
+        "caseCode": "ANSAN-1660335",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248
+      },
+      {
+        "caseCode": "YANGPYEONG-312241",
+        "maximumRequests": 44,
+        "maximumBytes": 83886080
+      },
+      {
+        "caseCode": "YANGPYEONG-311846",
+        "maximumRequests": 44,
+        "maximumBytes": 83886080
+      },
+      {
+        "caseCode": "YANGPYEONG-311507",
+        "maximumRequests": 44,
+        "maximumBytes": 83886080
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SIHEUNG-82127.json",
+      "build/reports/attachment-regional-collection/ANSAN-1660335.json",
+      "build/reports/attachment-regional-collection/YANGPYEONG-312241.json",
+      "build/reports/attachment-regional-collection/YANGPYEONG-311846.json",
+      "build/reports/attachment-regional-collection/YANGPYEONG-311507.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 16,
+    "reservedBytesIncludingBodyUpperBound": 10420482,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000095",
+        "requests": 4,
+        "result": "SAME_HOST_REDIRECT_OFFICIAL_SEARCH_DETAIL_PLAIN3_GET"
+      },
+      {
+        "sourceCode": "LGS-000092",
+        "requests": 4,
+        "result": "OFFICIAL_BBS_SEARCH_DETAIL_FILE_ID_GET_AND_MIME_DIAGNOSTIC"
+      },
+      {
+        "sourceCode": "LGS-000110",
+        "requests": 3,
+        "result": "EXISTING_PROFILE_LIST_DETAIL_AND_TITLE_SEARCH"
+      },
+      {
+        "sourceCode": "LGS-000113",
+        "requests": 1,
+        "result": "INACTIVE_MANUAL_ONLY_NOT_ACTIVATED_REDIRECT_OBSERVED"
+      },
+      {
+        "sourceCode": "LGS-000114",
+        "requests": 1,
+        "result": "INACTIVE_NOT_ACTIVATED_LIST_OBSERVED"
+      }
+    ],
+    "responseDiagnostics": [
+      {
+        "sourceCode": "LGS-000092",
+        "method": "GET",
+        "status": 200,
+        "responseBytes": 110080,
+        "contentType": "application/unknown;charset=UTF-8",
+        "rawSaved": false,
+        "isDownloadApproved": false
       }
     ],
     "originalsRemoved": true,
