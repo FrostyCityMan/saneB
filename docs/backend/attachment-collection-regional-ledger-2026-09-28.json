@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 176,
-    "missingProfileRegionCount": 47,
+    "registeredRegionCount": 177,
+    "missingProfileRegionCount": 46,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1985,14 +1985,26 @@
       "sourceCode": "LGS-000071",
       "listParserProfileCode": "DAEJEON_EMINWON_AGGREGATOR",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000071",
+          "caseCode": "DAEJEON_AGGREGATOR-49944",
+          "profileCode": "LOCAL_DAEJEON_AGGREGATOR_V1",
+          "profileHash": "4b4464183655f7d4fdf4eaf66ce06c2c5abe95dac59e45e65bea56adc0f0bf47",
+          "receiptHash": "90ac76a62cbcd5db061d459b097f64744eee4b435e8b95163dd280056f379bc6",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000072",
@@ -5779,9 +5791,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "db03edeccd14b641070e1811148fa594d21fafe4bd0d4c3fbcba6614a80fc101",
+  "inputInventorySha256": "219e297667c28fc016b9e0602a555fa3e9c0b436af432eb4e9ca5d59027fe46a",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 266,
+  "importedReceiptCount": 267,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12003,6 +12015,110 @@
         "result": "HTTP_LIST_HTTPS_LIST_SEARCH_DETAIL200_EUCKR_HWPX1_DISCOVERED_APPLICATION_FILE_MIME_FAILED_NON_UTF8_DISPOSITION"
       }
     ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "daejeonAggregatorDownloadRun": {
+    "scope": "DAEJEON_AGGREGATOR_SEOGU_BRANCH_COLLECTION_ONLY",
+    "surveyRequestCount": 8,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000040",
+        "requests": 4,
+        "result": "REGISTERED302_TWICE_OFFICIAL_LIST200_SEARCH403_NO_RETRY"
+      },
+      {
+        "sourceCode": "LGS-000071",
+        "requests": 4,
+        "result": "LIST200_CITY_FILTER_REDIRECT_ALL_FILTER200_SEOGU_DETAIL200"
+      }
+    ],
+    "implementedBranches": [
+      "seogu"
+    ],
+    "unverifiedBranches": [
+      "donggu",
+      "djjunggu",
+      "yuseonggu",
+      "daedeokgu"
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-yeonje-20260930/actual-list.html",
+        "bytes": 496088,
+        "sha256": "9843451669b08217792d176e4b37404c9390a93876829f8a083e09d24305a1cb"
+      },
+      {
+        "path": "build/qa-yeonje-20260930/list-head.txt",
+        "bytes": 653,
+        "sha256": "687ddee0717a671837bbc287ac44d8ffb1f191e484e5bc12a4fe08437c0ef203"
+      },
+      {
+        "path": "build/qa-yeonje-20260930/list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/qa-yeonje-20260930/search.html",
+        "bytes": 325,
+        "sha256": "7374fdf8c262154782887b48c02a6c23deb4c9f6c53408765538398ddece7f9f"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/detail-head.txt",
+        "bytes": 255,
+        "sha256": "43f1e38d68cb9db9f3fffb371079a7ef13d424ea2b180dbfa71cdf547a9d5442"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/detail.html",
+        "bytes": 11592,
+        "sha256": "bf5a2197d7f3463686db4e1d7cdb1eb34d8789e57bd99ffabbbae3b4a6684621"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/list-head.txt",
+        "bytes": 380,
+        "sha256": "df8dd8041cea6527bd3d512865ae7e1b06c6c38d82b6f9b08457589d4a6ebb08"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/list.html",
+        "bytes": 153965,
+        "sha256": "80dee3309e279c5c2122eacf3d27e1182d150a8b93842d47730fab57e7eee00f"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/search-all-head.txt",
+        "bytes": 380,
+        "sha256": "798937ba764c316bcfb91246501bca99888ce96c4ef48ad8953b7d3bf3de8395"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/search-all.html",
+        "bytes": 153150,
+        "sha256": "eb1f0ebd636ffb9aa9ff1c9bbee50b1f022feb652c89c0aba0c9af1e2f2bf541"
+      },
+      {
+        "path": "build/qa-daejeon-city-20260930/search.html",
+        "bytes": 891,
+        "sha256": "fccfa0261fad90fd40c1efcd6ec62591ca99d8de74601b1e631e74d107bd1e60"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DAEJEON_AGGREGATOR-49944",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAEJEON_AGGREGATOR-49944.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2215752,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 12,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

@@ -31,6 +31,19 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void daejeonAggregatorBridgeIsExactAndKeepsBodyIsolated() {
+        String detail="https://eminwon.seogu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?subCheck=Y&jndinm=OfrNotAncmtEJB&context=NTIS&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=49944";
+        String source="https://www.daejeon.go.kr/drh/MediaList.do?notiType=NOTI_06&menuSeq=2564";
+        String page="<form name=form1 method=post><table class=tbl_board><tr><th>제목</th><td colspan=3>소상공인 지원</td></tr><tr><td class='aleft end' colspan=4>소상공인 지원금</td></tr><tr><th>첨부파일</th><td colspan=3>특허.hwp</td></tr></table></form>";
+        for(String url:List.of(source,source.replace("2564","9999"),source.replace("www.daejeon.go.kr","evil.example"),source+"&extra=1")) {
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of("text/html;charset=UTF-8")),page.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,detail));
+            if(url.equals(source)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.DETAIL_HOST_NOT_ALLOWED);
+        }
+        var redirect=new StubTransport();redirect.enqueue(new ProviderContentHttpResponse(302,Map.of("location",List.of(detail)),new byte[0]));
+        assertThat(client(true,redirect,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,source,detail)).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);
+    }
     @Test void incheonCityBodyDoesNotFollowRedirectOrDowngrade() {
         String url="http://announce.incheon.go.kr/citynet/jsp/sap/SAPGosiBizProcess.do?command=searchDetail&flag=gosiGL&svp=Y&sido=ic&sno=66970&gosiGbn=A";
         for(String location:List.of(url,url.replace("http:","https:"),"https://evil.example/")){

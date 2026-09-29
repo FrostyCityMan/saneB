@@ -2845,6 +2845,18 @@
         "listParserProfileCode": "SAFE_INCHEON_CITYNET_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAEJEON_AGGREGATOR-49944",
+      "profileCode": "LOCAL_DAEJEON_AGGREGATOR_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a5ee43e50c017ea0e3319c73b7b821cd4badf985b3ec621936282134ad4a0fe9",
+        "sourceUrl": "https://eminwon.seogu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?subCheck=Y&jndinm=OfrNotAncmtEJB&context=NTIS&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=49944",
+        "localSourceCode": "LGS-000071",
+        "listParserProfileCode": "DAEJEON_EMINWON_AGGREGATOR"
+      },
+      "expectation": null
     }
   ]
 }

@@ -192,8 +192,14 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
 
         ProviderContentUrlValidator.ValidatedRequest validatedRequest;
         try {
+            String validationSource = request.registeredSourceUrl();
+            if (DaejeonAggregatorNoticePage.selectRegisteredBridge(validationSource, request.officialDetailUrl())) {
+                // 고정된 대전 통합 목록과 실측 서구 상세만 연결하며 양쪽 DNS의 공개 주소 검증을 유지한다.
+                urlValidator.selectValidatedRequest(validationSource, validationSource);
+                validationSource = request.officialDetailUrl();
+            }
             validatedRequest = urlValidator.selectValidatedRequest(
-                    request.registeredSourceUrl(),
+                    validationSource,
                     request.officialDetailUrl()
             );
             if (IncheonCityNoticePage.selectMatches(validatedRequest.detailUri())) {
@@ -306,7 +312,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
-                    if (ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri)) {
+                    if (ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
                         return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
                     }
                     if (redirectCount >= maxRedirects) {
@@ -452,6 +458,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     private Element selectContentElement(Document document, URI sourceUri) {
         // 실측된 기관의 정확한 게시판만 좁힌다. 같은 parser의 다른 기관까지 지원한다고 추정하지 않는다.
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
+        if (DaejeonAggregatorNoticePage.selectMatches(sourceUri)) {
+            try { return DaejeonAggregatorNoticePage.selectContent(document, sourceUri); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
         if (IncheonCityNoticePage.selectMatches(sourceUri)) {
             try { return IncheonCityNoticePage.selectContent(document, sourceUri); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
