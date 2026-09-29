@@ -1671,9 +1671,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -1681,12 +1681,12 @@
           "sourceCode": "LGS-000055",
           "caseCode": "JEMULPO-14094",
           "profileCode": "LOCAL_JEMULPO_BOARD_V1",
-          "profileHash": "b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb",
-          "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
+          "profileHash": "d5d18183fd183745100c9ea92bd355a4394418048601f0f379176ad4fba701d5",
+          "receiptHash": "3f5a324b8e4b78ce163b0414a489eca7ee2e38e410ef3436c895dcee1defd63d",
           "fileCount": 3,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5827,9 +5827,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "5a3f01eb9b07f553754ac779b07c576d679fff8a13d9da890b11510721777cd7",
+  "inputInventorySha256": "2b3387a73534ca5800a830cf896708bcff360a4324ae7fb17e39ed672d85c2be",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 271,
+  "importedReceiptCount": 272,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12219,6 +12219,63 @@
     ],
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "jemulpoHeaderRecoveryRun": {
+    "scope": "JEMULPO_UTF8_DISPOSITION_RECOVERY_COLLECTION_ONLY",
+    "surveyRequestCount": 2,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000055",
+        "requests": 2,
+        "result": "DETAIL200_FILE200_UTF8_OCTETS_MISREAD_AS_LATIN1_CONTROL_CHARACTERS"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-jemulpo-header-20260930/detail-head.txt",
+        "bytes": 530,
+        "sha256": "bef762352e9a53c7d7f2757706ed119ac6bc522c56ffd85e2e6f38d04f41aa8d"
+      },
+      {
+        "path": "build/qa-jemulpo-header-20260930/detail.html",
+        "bytes": 208303,
+        "sha256": "0f35744386674a16ae6f6f4b01a4ea4276d5391fb69625356dfbc8ad6a0fa890"
+      },
+      {
+        "path": "build/qa-jemulpo-header-20260930/file-head.txt",
+        "bytes": 470,
+        "sha256": "867bf5f7f178e866242642e9457069cb80422ebfe68fc0ee91659c998a0e47c3"
+      },
+      {
+        "path": "build/qa-jemulpo-header-20260930/file.bin",
+        "bytes": 70106,
+        "sha256": "e078acdada2c0b70bb0cd3448c858a0605208c01dc0c1fb86ac3ef0319c448c0"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "JEMULPO-14094",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "preservedFailureReport": "build/reports/attachment-regional-collection/JEMULPO-14094-BEFORE-UTF8.json",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JEMULPO-14094.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 2477028,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
     "productionWriteCount": 0,

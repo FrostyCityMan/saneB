@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "5a3f01eb9b07f553754ac779b07c576d679fff8a13d9da890b11510721777cd7",
+  "inventorySha256": "2b3387a73534ca5800a830cf896708bcff360a4324ae7fb17e39ed672d85c2be",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1837,7 +1837,7 @@
       "producerClassHash": "93978e41c520d77280b97a71647f297e7a573d02071046194e240c6e839d95db"
     },
     {
-      "path": "build/reports/attachment-regional-collection/JEMULPO-14094.json",
+      "path": "build/reports/attachment-regional-collection/JEMULPO-14094-BEFORE-UTF8.json",
       "kind": "LOCAL_COLLECTION_ONLY",
       "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
@@ -2087,6 +2087,14 @@
     {
       "path": "build/reports/attachment-regional-collection/GEOMDAN-235.json",
       "receiptHash": "5112cfe29bc4c715005729a4bb315faddd98b47452224bcccaeabf353d7a5002",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JEMULPO-14094.json",
+      "receiptHash": "3f5a324b8e4b78ce163b0414a489eca7ee2e38e410ef3436c895dcee1defd63d",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "kind": "LOCAL_COLLECTION_ONLY",
@@ -5799,10 +5807,10 @@
       "sourceCode": "LGS-000055",
       "caseCode": "JEMULPO-14094",
       "profileCode": "LOCAL_JEMULPO_BOARD_V1",
-      "profileHash": "b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb",
-      "receiptHash": "e3240f3dd27557d89fbce243dfb517fa44bf7e42e9f245448ac18c9d51b53432",
-      "producerClassHash": "d422b2132cbe3fd5189ace55a4db42042dcb8157571ace5c3c48fdaa42c35196",
-      "observedAt": "2026-09-29T15:42:00.188228500Z",
+      "profileHash": "d5d18183fd183745100c9ea92bd355a4394418048601f0f379176ad4fba701d5",
+      "receiptHash": "3f5a324b8e4b78ce163b0414a489eca7ee2e38e410ef3436c895dcee1defd63d",
+      "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "observedAt": "2026-09-29T22:31:40.408349100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 3,
       "titleStatus": "ELIGIBLE",
@@ -5814,18 +5822,27 @@
       "files": [
         {
           "locatorHash": "90a214e7fe7e3ac0fdb35abc360379225100c9f2feaca85da10fa4bcb0e993f2",
-          "status": "FAILED",
-          "bytes": 70106
+          "status": "SUCCEEDED",
+          "bytes": 70106,
+          "format": "HWPX",
+          "binaryHash": "e078acdada2c0b70bb0cd3448c858a0605208c01dc0c1fb86ac3ef0319c448c0",
+          "signatureVerified": true
         },
         {
           "locatorHash": "a6498d67cb6d91ee2c53e9e84cbbd6b50df7b76e5b17471d30b994097964125f",
-          "status": "FAILED",
-          "bytes": 43372
+          "status": "SUCCEEDED",
+          "bytes": 43372,
+          "format": "HWPX",
+          "binaryHash": "cdd5c8975b17df5932f2e497ad9a5496f60e720246652a4408b64a8c66472808",
+          "signatureVerified": true
         },
         {
           "locatorHash": "f753f69a857d8008fec3d22e9981fb61461bb7ef270e5c74bb28058120b581a9",
-          "status": "FAILED",
-          "bytes": 53406
+          "status": "SUCCEEDED",
+          "bytes": 53406,
+          "format": "HWPX",
+          "binaryHash": "c111b08170f61a8efa05b491ea404ee30a30e13acb894255514196054af0048b",
+          "signatureVerified": true
         }
       ]
     },
