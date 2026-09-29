@@ -3,6 +3,66 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "MOKPO-54011",
+      "profileCode": "LOCAL_MOKPO_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9a94775f365a887670ee755fe3b676074a9c602aec558268fc8318e8bcb2e108",
+        "sourceUrl": "https://www.mokpo.go.kr/www/mokpo_news/notification/public_notice?idx=54011&mode=view",
+        "localSourceCode": "LGS-000178",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEOSU-79153",
+      "profileCode": "LOCAL_YEOSU_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "72eed9f3e9d0e4c768d39b380a6315c52a096cae067c918aff58f7bd96c1428f",
+        "sourceUrl": "https://www.yeosu.go.kr/www/govt/news/notify/new_notifys/new_notify?idx=79153&mode=view",
+        "localSourceCode": "LGS-000179",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NAJU-40288",
+      "profileCode": "LOCAL_NAJU_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "f51af455883b3a6085a4160d49d5126bf3ae6508aaab198c5cba7cd0ea08423b",
+        "sourceUrl": "https://www.naju.go.kr/www/administration/notice/gosi_new?idx=40288&mode=view",
+        "localSourceCode": "LGS-000181",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GANGJIN-28097",
+      "profileCode": "LOCAL_GANGJIN_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "518c6a9e3ba7e3de6c6bd98b54b0ed8c0e9ac311fa740c84c92c4f9c370de9af",
+        "sourceUrl": "https://www.gangjin.go.kr/www/government/notice/gosi?idx=28097&mode=view",
+        "localSourceCode": "LGS-000190",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "MUAN-33617",
+      "profileCode": "LOCAL_MUAN_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b943f55b6e633b59e7a83ad291ff3af81e83619783b1a5683436bd80dd427150",
+        "sourceUrl": "https://www.muan.go.kr/www/openmuan/new/announcement?idx=33617&mode=view",
+        "localSourceCode": "LGS-000193",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "GUNSAN-71315",
       "profileCode": "LOCAL_GUNSAN_GET_V1",
       "source": {

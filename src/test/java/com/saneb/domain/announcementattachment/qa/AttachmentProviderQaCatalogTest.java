@@ -210,6 +210,7 @@ class AttachmentProviderQaCatalogTest {
         var chungcheong=new ChungcheongAttachmentProfileConfiguration();legacyProfiles.addAll(List.of(chungcheong.selectEumseongProfileDetails(),chungcheong.selectNonsanProfileDetails(),chungcheong.selectDangjinProfileDetails(),chungcheong.selectCheongyangProfileDetails()));profiles=List.copyOf(legacyProfiles);
         JeonbukFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonbukFirstDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
         JeonbukSecondDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonbukSecondDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
+        JeonnamFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonnamFirstDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
         var targets=profiles.stream().flatMap(p->p.selectSourceBindings().stream()).map(b->new Target(UUID.randomUUID(),b.localSourceCode(),b.listParserProfileCode(),"https://example.go.kr/list","{}")).toList();scope=AttachmentProviderQaPlan.selectPlan(profiles,targets);
         // 정적 계획 계약용 최소 규칙. 실제 seed/HTTP는 별도 fixed-case 시험에서 검증한다.
         rules=new AnnouncementSourceClassificationRuleSet("QA",List.of(rule("TARGET",RuleGroupKindCode.TARGET,"청년농업인",TargetCategoryCode.BUSINESS,null),
@@ -233,6 +234,16 @@ class AttachmentProviderQaCatalogTest {
         assertThat(plan.isQaPassed()).isFalse();
     }
     private static final Instant TAEBAEK_OBSERVED=Instant.parse("2026-09-21T16:32:11.928279006Z");
+    @Test void jeonnamFirstDownloadsKeepExactSourceIdentityWithoutApprovingExpectations()throws Exception{
+        var selected=packagedCatalog();var groups=JeonnamFirstDownloadCases.GROUPS;
+        var notices=packagedDefinition().notices().stream().filter(n->groups.contains(n.caseCode().split("-")[0])).toList();assertThat(notices).hasSize(5);
+        for(var notice:notices){var sample=JeonnamFirstDownloadCases.selectCase(notice.caseCode().split("-")[0]);
+            assertThat(notice.expectation()).isNull();assertThat(notice.source()).isEqualTo(sample.source());assertThat(notice.profileCode()).isEqualTo(sample.profile().selectProfileCode());}
+        var plan=selected.selectPrepared(scope,rules,runtimeHash,now).plan();
+        assertThat(plan.cases().stream().filter(c->groups.contains(c.caseCode().split("-")[0]))).hasSize(5)
+                .allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();});
+        assertThat(plan.isQaPassed()).isFalse();
+    }
     @Test void jeonbukSecondDownloadsRemainUnapprovedReferencesWithExactSourceIdentity()throws Exception{
         var selected=packagedCatalog();var groups=JeonbukSecondDownloadCases.GROUPS;
         var notices=packagedDefinition().notices().stream().filter(n->groups.contains(n.caseCode().split("-")[0])).toList();assertThat(notices).hasSize(5);
@@ -341,7 +352,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
-        assertThat(result.plan().cases()).hasSize(108);
+        assertThat(result.plan().cases()).hasSize(113);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -376,9 +387,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(52);assertThat(result.plan().cases()).hasSize(108);
+        assertThat(result.plan().targets()).hasSize(57);assertThat(result.plan().cases()).hasSize(113);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(107).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(112).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

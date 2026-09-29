@@ -35,7 +35,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             "4435df8486622964d09488f35efd579bac83f51eb07b104faf02e5b7bd486492",
             "https://www.taebaek.go.kr/www/selectBbsNttView.do?key=352&bbsNo=25&nttNo=184816","LGS-000121","SPRING_BBS");
 
-    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD }
+    public enum TitleLayout { CLASSIC_LABEL, COMPACT_SUBJECT, COMPACT_LABEL, NAMGU_HEADER, DALSEONG_LABEL, HAMAN_LABEL, JUNGGU_LABEL, GANGBUK_SUBJECT, HWACHEON_LABEL, DONGNAE_LABEL, BUSANJIN_LABEL, GEUMJEONG_HEADER, SUYEONG_HEADING, SASANG_HEADER, HAEUNDAE_HEADING, GIJANG_HEADER, BUSAN_BUKGU_LABEL, BUSAN_GANGSEO_HEADING, SAHA_LABEL, BUSAN_SEOGU_LABEL, YEONGDO_HEADING, SUSEONG_LABEL, DALSEO_LABEL, DANYANG_LABEL, EUMSEONG_LABEL, NONSAN_LABEL, FILEBOX_LABEL, SUNCHANG_LABEL, NAMWON_BOARD, JEONBUK_BOARD, JEONNAM_VIEW_TITLE, JEONNAM_NAJU_TITLE, JEONNAM_MUAN_TITLE }
     static final List<String> GANGBUK_LOCATORS=List.of(
             "abef5eff5d1f72128387e8bc15bc114a2a94bf2d22b1bd2ebd9cae04bc51bf4f",
             "20d878c543d793289cbf7845a07cf4bd9c60c20618a6df1a08d3c3e1e3d70672",
@@ -67,6 +67,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     public static Stream<ObservationCase> selectCases(String group) {
         if(JeonbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukFirstDownloadCases.selectCase(group));
         if(JeonbukSecondDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukSecondDownloadCases.selectCase(group));
+        if(JeonnamFirstDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamFirstDownloadCases.selectCase(group));
         if(Set.of("EUMSEONG","NONSAN","DANGJIN","CHEONGYANG").contains(group))return Stream.of(selectChungcheongCase(group));
         if("JEUNGPYEONG".equals(group)||"DANYANG".equals(group)) {
             boolean jp="JEUNGPYEONG".equals(group);String id=jp?"31159":"32263";
@@ -661,6 +662,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             assertTrue(normalized(expected).equals(normalized(cell.text())),"TITLE_CHANGED");return;
         }
         Objects.requireNonNull(layout);
+        if(Set.of(TitleLayout.JEONNAM_VIEW_TITLE,TitleLayout.JEONNAM_NAJU_TITLE,TitleLayout.JEONNAM_MUAN_TITLE).contains(layout)){
+            var titles=page.select(layout==TitleLayout.JEONNAM_NAJU_TITLE?"div.view_title > p.title":layout==TitleLayout.JEONNAM_MUAN_TITLE?"#board_basic_view > div.news_tit > h3":"div.view_titlebox > h3");
+            assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");assertEquals(normalized(expected),normalized(titles.getFirst().text()),"TITLE_CHANGED");return;
+        }
         if(layout==TitleLayout.NAMWON_BOARD||layout==TitleLayout.JEONBUK_BOARD){
             var titles=page.select(layout==TitleLayout.NAMWON_BOARD?"table.view_table > thead > tr > td.title > strong":"div.bbs_view > div.bbs_vtop > h4");
             assertEquals(1,titles.size(),"TITLE_STRUCTURE_CHANGED");assertEquals(normalized(expected),normalized(titles.getFirst().text()),"TITLE_CHANGED");return;
@@ -785,6 +790,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|=Set.of("LOCAL_EUMSEONG_GET_V1","LOCAL_NONSAN_GET_V1","LOCAL_DANGJIN_GET_V1","LOCAL_CHEONGYANG_GET_V1").contains(profile.selectProfileCode());
             boundedSaeol|=JeonbukFirstDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_GET_V1").equals(profile.selectProfileCode()));
             boundedSaeol|=JeonbukSecondDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_GET_V1").equals(profile.selectProfileCode()));
+            boundedSaeol|=JeonnamFirstDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_NOTICE_V1").equals(profile.selectProfileCode()));
             maximumRequests=standardCollection?5:guro?8:gangbuk?20:gijang?7:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(standardCollection?43:guro?23:gangbuk?32:gijang?23:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB;}
         long requests,bytes;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*MIB;}

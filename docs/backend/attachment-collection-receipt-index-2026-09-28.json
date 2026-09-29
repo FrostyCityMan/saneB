@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8f8a39c40d841e1e0903012cc59ccc7cfb7fd3cc77b14e2260f25c211c31915f",
+  "inventorySha256": "38ff8264b2d8f0d74643a896776686b8933fb51bfc29d21eb41b34102a050aae",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -851,6 +851,86 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "956995c57adc9bf2b92840efd2d7197889b58e1923c1cad975bd92762d09e23e"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GANGJIN-28097-INITIAL.json",
+      "receiptHash": "07dd94e353e94f26b3accea4c31ae3766c9555cb661cbb18cc20951b53dcee88",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/MOKPO-54011-INITIAL.json",
+      "receiptHash": "ca3d69b411aa3bea2a495c16b4e74eab18d27bd6189dcaf9c67749176ade7175",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/MUAN-33617-INITIAL.json",
+      "receiptHash": "fd2c11c8a3d3c9f09c691542f8f4b2f151cd596e32624c48deac2e5adec91d62",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/NAJU-40288-INITIAL.json",
+      "receiptHash": "9f42925173118500d40daa49850286841cb6d2975350b41504174209d3ef7013",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEOSU-79153-INITIAL.json",
+      "receiptHash": "f299948849c75ccbd1764d018dad818c8ab5e3a7d92a8060380cd6ac0938a59d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GANGJIN-28097.json",
+      "receiptHash": "b34a7e78ffcce218e5d2cd7578e36a856cdccaed17d3eba4d0c4f63e5e3eac6c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/MOKPO-54011.json",
+      "receiptHash": "c8e444e89fada825b37ba1a660dc3199d0910984726cd79d076fe3b9037d11e1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/MUAN-33617.json",
+      "receiptHash": "aec8675901110530defaf8de7ab0be3b3c79981e87e53106811edbc83e5c8adc",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/NAJU-40288.json",
+      "receiptHash": "1764968408caee81cfe25981eb7a189fff78ec1582b79451c79d07211fefec0d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEOSU-79153.json",
+      "receiptHash": "faa38a2cf8b712d8649628e5b72af2102b8f01156032f0c1d5b5fd2a3e0c2ba7",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9"
     }
   ],
   "samples": [
@@ -1974,6 +2054,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000190",
+      "caseCode": "GANGJIN-28097",
+      "profileCode": "LOCAL_GANGJIN_NOTICE_V1",
+      "profileHash": "739767458621ad8e003ca4d4d27ba261ef235bf5784b0c7a679b9380ccd82656",
+      "receiptHash": "b34a7e78ffcce218e5d2cd7578e36a856cdccaed17d3eba4d0c4f63e5e3eac6c",
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9",
+      "observedAt": "2026-09-29T03:07:05.536254100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "c53050e59a25772f64d2a6cc5d441ceb63cd58833e977b3383fd8490864a9004",
+          "status": "SUCCEEDED",
+          "bytes": 109056,
+          "format": "HWP",
+          "binaryHash": "d071b710ee36822c3062f9418fa3f26dd841c06f665af8b5ce4bbd4a887b39c2",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000038",
       "caseCode": "GEUMJEONG-43289",
       "profileCode": "LOCAL_GEUMJEONG_GET_V1",
@@ -2778,6 +2885,60 @@
       ]
     },
     {
+      "sourceCode": "LGS-000178",
+      "caseCode": "MOKPO-54011",
+      "profileCode": "LOCAL_MOKPO_NOTICE_V1",
+      "profileHash": "c03658eda4d70c8fb169c2c5f9c32f4d126ad267f11529d47a2dad7347a6212b",
+      "receiptHash": "c8e444e89fada825b37ba1a660dc3199d0910984726cd79d076fe3b9037d11e1",
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9",
+      "observedAt": "2026-09-29T03:06:42.699361900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8916c525475ef665b99b80d79882635ba12cb7f909344b7de348e50c9a3c978f",
+          "status": "SUCCEEDED",
+          "bytes": 155136,
+          "format": "HWP",
+          "binaryHash": "6875f4e57c7a8262015e74607821a3bb02bc3883a1b6fe3a12d46219a45780bc",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000193",
+      "caseCode": "MUAN-33617",
+      "profileCode": "LOCAL_MUAN_NOTICE_V1",
+      "profileHash": "eba650c6fa0423b774d4d83b8e81fe2e78b0a9c8bd6e98777a6014a2db971ad7",
+      "receiptHash": "aec8675901110530defaf8de7ab0be3b3c79981e87e53106811edbc83e5c8adc",
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9",
+      "observedAt": "2026-09-29T03:07:07.131137100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7990f39d750c7873f6de24a9d897034d58185ecaebec53e1bea73bee2810dc6e",
+          "status": "SUCCEEDED",
+          "bytes": 165376,
+          "format": "HWP",
+          "binaryHash": "d7788814cc66056295b57b73798a36cb29241e63eb3260b73410cc4fdac95f98",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000172",
       "caseCode": "MUJU-34488",
       "profileCode": "LOCAL_MUJU_GET_V1",
@@ -2800,6 +2961,33 @@
           "bytes": 70168,
           "format": "HWPX",
           "binaryHash": "0cbe7793d2967028c86de07563b9ced6949f839d4c5776887acdb930797497d8",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000181",
+      "caseCode": "NAJU-40288",
+      "profileCode": "LOCAL_NAJU_NOTICE_V1",
+      "profileHash": "ae4ba15f3365354925844516f8054180ba5eef04e04f57571cfc0d5873797023",
+      "receiptHash": "1764968408caee81cfe25981eb7a189fff78ec1582b79451c79d07211fefec0d",
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9",
+      "observedAt": "2026-09-29T03:07:03.870736100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7d6da247501c6c6817bc59cddca731d9ef86237e52cb999c9017da8c79a4b823",
+          "status": "SUCCEEDED",
+          "bytes": 180736,
+          "format": "HWP",
+          "binaryHash": "49470b33b8d77a2f128bccf9e4edbb33dd586a3c07c05634ec5cd74f444f03f9",
           "signatureVerified": true
         }
       ]
@@ -3619,6 +3807,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000179",
+      "caseCode": "YEOSU-79153",
+      "profileCode": "LOCAL_YEOSU_NOTICE_V1",
+      "profileHash": "67c1842d59531d7cc247cca2a9f07a7a9dddd30692ef0fda16c36d90c03ca245",
+      "receiptHash": "faa38a2cf8b712d8649628e5b72af2102b8f01156032f0c1d5b5fd2a3e0c2ba7",
+      "producerClassHash": "c154d68ad3f0e78339b2ea7a317b7566f961b5f9462dde6920307f900ed4b9b9",
+      "observedAt": "2026-09-29T03:07:01.858574Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "1df9b230ed8e571b5d840a77e59471ea53c49537867d4106f64225f30cbb3abe",
+          "status": "SUCCEEDED",
+          "bytes": 102353,
+          "format": "HWPX",
+          "binaryHash": "b072ee088712a55a414b435cfad570c73958dea89589c66834075886e051eedc",
+          "signatureVerified": true
+        }
+      ]
     }
   ],
   "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS",
@@ -4256,8 +4471,8 @@
       {
         "caseCode": "BUAN-363827",
         "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
-      "failedStage": "FILE_DOWNLOAD",
-      "failureCode": "ATTACHMENT_PATH_NOT_APPROVED",
+        "failedStage": "FILE_DOWNLOAD",
+        "failureCode": "ATTACHMENT_PATH_NOT_APPROVED",
         "downloadedFileCount": 0
       }
     ],
@@ -4272,5 +4487,133 @@
     ],
     "casesClassHash": "c2acbae51ed0070fb8000151b671ef91eff4fb7bae446ccfb2862082b3d3ca5d",
     "junitReportHash": "6f994b50ff0b2d5a36301ae577e2e526c67f94c0d27548a2d5349305f60635a2"
+  },
+  "jeonnamFirstDownloadRun": {
+    "groups": [
+      "MOKPO",
+      "YEOSU",
+      "NAJU",
+      "GANGJIN",
+      "MUAN"
+    ],
+    "tests": 5,
+    "failures": 0,
+    "skipped": 0,
+    "collectionCompleteCases": 5,
+    "partialCollectionCases": 0,
+    "zeroDownloadIncompleteCases": 0,
+    "extractionExecuted": false,
+    "operatingWriteCount": 0,
+    "surveyRequests": 18,
+    "surveyStoredHtmlFiles": 18,
+    "surveyStoredHtmlBytes": 2676984,
+    "surveyMethodCounts": {
+      "GET": 12,
+      "POST": 6
+    },
+    "surveyOriginalsRemoved": true,
+    "requestReservations": 20,
+    "reservedBytes": 11976657,
+    "bodyAttemptCount": 5,
+    "fileTransportCount": 5,
+    "downloadedFiles": 5,
+    "downloadedBytes": 712657,
+    "regionRequestReservations": {
+      "MOKPO": 7,
+      "YEOSU": 7,
+      "NAJU": 7,
+      "GANGJIN": 7,
+      "MUAN": 7,
+      "BOSEONG": 2,
+      "JANGHEUNG": 1
+    },
+    "bodyStatuses": [
+      {
+        "caseCode": "GANGJIN-28097",
+        "status": "AVAILABLE",
+        "failureCode": null,
+        "attempts": 1,
+        "stageComplete": true
+      },
+      {
+        "caseCode": "MOKPO-54011",
+        "status": "AVAILABLE",
+        "failureCode": null,
+        "attempts": 1,
+        "stageComplete": true
+      },
+      {
+        "caseCode": "MUAN-33617",
+        "status": "AVAILABLE",
+        "failureCode": null,
+        "attempts": 1,
+        "stageComplete": true
+      },
+      {
+        "caseCode": "NAJU-40288",
+        "status": "AVAILABLE",
+        "failureCode": null,
+        "attempts": 1,
+        "stageComplete": true
+      },
+      {
+        "caseCode": "YEOSU-79153",
+        "status": "AVAILABLE",
+        "failureCode": null,
+        "attempts": 1,
+        "stageComplete": true
+      }
+    ],
+    "unresolvedCases": [],
+    "surveyErrors": [
+      {
+        "sourceCode": "LGS-000189",
+        "region": "JANGHEUNG",
+        "status": "HTTP_400",
+        "requests": 1,
+        "downloadObserved": false
+      },
+      {
+        "sourceCode": "LGS-000187",
+        "region": "BOSEONG",
+        "status": "SEARCH_NO_RESULTS",
+        "requests": 2,
+        "downloadObserved": false
+      }
+    ],
+    "casesClassHash": "2883fbd79952d2a332aa7da077bdea75dc839acb0df2db1b502b5ef1e366d1f3",
+    "junitReportHash": "5d3a29fbd24aab590620ee374572992a0a578819d88c50ad905d2f5f7b86bc38"
+  },
+  "jeonnamFirstDownloadValidationRefreshRun": {
+    "reason": "MALFORMED_HTTPS_LINK_REJECTION_FIXED",
+    "groups": [
+      "MOKPO",
+      "YEOSU",
+      "NAJU",
+      "GANGJIN",
+      "MUAN"
+    ],
+    "tests": 5,
+    "failures": 0,
+    "skipped": 0,
+    "originalReceiptsPreserved": 5,
+    "requestReservations": 20,
+    "reservedBytes": 11976657,
+    "downloadedFiles": 5,
+    "downloadedBytes": 712657,
+    "cumulativeRegionReservations": {
+      "MOKPO": 11,
+      "YEOSU": 11,
+      "NAJU": 11,
+      "GANGJIN": 11,
+      "MUAN": 11,
+      "BOSEONG": 2,
+      "JANGHEUNG": 1
+    },
+    "collectionCompleteCases": 5,
+    "operatingWriteCount": 0,
+    "extractionExecuted": false,
+    "casesClassHash": "2883fbd79952d2a332aa7da077bdea75dc839acb0df2db1b502b5ef1e366d1f3",
+    "junitReportHash": "2beefdce254e4a5205ec944ae25a617b326dee736dd81bf3bdbdecd7460eea93"
   }
 }

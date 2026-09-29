@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 53,
-    "missingProfileRegionCount": 170,
+    "registeredRegionCount": 58,
+    "missingProfileRegionCount": 165,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3378,27 +3378,51 @@
       "sourceCode": "LGS-000178",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000178",
+          "caseCode": "MOKPO-54011",
+          "profileCode": "LOCAL_MOKPO_NOTICE_V1",
+          "profileHash": "c03658eda4d70c8fb169c2c5f9c32f4d126ad267f11529d47a2dad7347a6212b",
+          "receiptHash": "c8e444e89fada825b37ba1a660dc3199d0910984726cd79d076fe3b9037d11e1",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000179",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000179",
+          "caseCode": "YEOSU-79153",
+          "profileCode": "LOCAL_YEOSU_NOTICE_V1",
+          "profileHash": "67c1842d59531d7cc247cca2a9f07a7a9dddd30692ef0fda16c36d90c03ca245",
+          "receiptHash": "faa38a2cf8b712d8649628e5b72af2102b8f01156032f0c1d5b5fd2a3e0c2ba7",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000180",
@@ -3417,14 +3441,26 @@
       "sourceCode": "LGS-000181",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000181",
+          "caseCode": "NAJU-40288",
+          "profileCode": "LOCAL_NAJU_NOTICE_V1",
+          "profileHash": "ae4ba15f3365354925844516f8054180ba5eef04e04f57571cfc0d5873797023",
+          "receiptHash": "1764968408caee81cfe25981eb7a189fff78ec1582b79451c79d07211fefec0d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000182",
@@ -3534,14 +3570,26 @@
       "sourceCode": "LGS-000190",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000190",
+          "caseCode": "GANGJIN-28097",
+          "profileCode": "LOCAL_GANGJIN_NOTICE_V1",
+          "profileHash": "739767458621ad8e003ca4d4d27ba261ef235bf5784b0c7a679b9380ccd82656",
+          "receiptHash": "b34a7e78ffcce218e5d2cd7578e36a856cdccaed17d3eba4d0c4f63e5e3eac6c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000191",
@@ -3573,14 +3621,26 @@
       "sourceCode": "LGS-000193",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000193",
+          "caseCode": "MUAN-33617",
+          "profileCode": "LOCAL_MUAN_NOTICE_V1",
+          "profileHash": "eba650c6fa0423b774d4d83b8e81fe2e78b0a9c8bd6e98777a6014a2db971ad7",
+          "receiptHash": "aec8675901110530defaf8de7ab0be3b3c79981e87e53106811edbc83e5c8adc",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000194",
