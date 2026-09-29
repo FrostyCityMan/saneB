@@ -1849,6 +1849,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ULSAN_JUNGGU-21392",
+      "profileCode": "LOCAL_ULSAN_JUNGGU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "7068628ba8078acb5706b35213ddbed173f0d92d5c731be468e926f6d4e816f7",
+        "sourceUrl": "https://eminwon.junggu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=21392&subCheck=Y",
+        "localSourceCode": "LGS-000078",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ULSAN_BUKGU-44394",
+      "profileCode": "LOCAL_ULSAN_BUKGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6ca213e8f0f3bc71d03643b3b1b1e32168c5d648ee1815f61c4df434b6701fad",
+        "sourceUrl": "https://eminwon.bukgu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=44394&subCheck=Y",
+        "localSourceCode": "LGS-000081",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

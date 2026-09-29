@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 94,
-    "missingProfileRegionCount": 129,
+    "registeredRegionCount": 96,
+    "missingProfileRegionCount": 127,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1776,14 +1776,26 @@
       "sourceCode": "LGS-000078",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000078",
+          "caseCode": "ULSAN_JUNGGU-21392",
+          "profileCode": "LOCAL_ULSAN_JUNGGU_POST_V1",
+          "profileHash": "f94bb8b19b3bd6533e49e9e47c1b0eb7ff9ee3b62f0883d12bdcb81816f3597a",
+          "receiptHash": "43441232202479aff210d20f14b2d9870fca6ebd21c5875269ff14a448b0716f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000079",
@@ -1815,14 +1827,26 @@
       "sourceCode": "LGS-000081",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000081",
+          "caseCode": "ULSAN_BUKGU-44394",
+          "profileCode": "LOCAL_ULSAN_BUKGU_GET_V1",
+          "profileHash": "1bda70ba677e0fd94c23281085745fd01dce1da1fe63ce43a5fafbadfca886d1",
+          "receiptHash": "e04c1ec2cedb06dcc586518afb1098134c2ea9ecaffdb00db4649a2fa92b30da",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000082",
@@ -6946,6 +6970,90 @@
         "sourceCode": "LGS-000072",
         "requests": 4,
         "result": "OFFICIAL_SUPPORT_SEARCH_2021_ELIGIBLE_SAMPLE"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "ulsanFirstDownloadRun": {
+    "scope": "ULSAN_FIRST_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 10,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "BUKGU-all-search.html",
+        "bytes": 32036,
+        "sha256": "31c58ed906625bde95940740b1e46027e8495225bd6c33bb0b77e87ebf4b6842"
+      },
+      {
+        "name": "BUKGU-current-detail.html",
+        "bytes": 10135,
+        "sha256": "ed25133afe52c00e3d2cc2d775926af8bc6d1d0949683584b9214aa8a30b4fc6"
+      },
+      {
+        "name": "BUKGU-detail.html",
+        "bytes": 9772,
+        "sha256": "2d88b1e64a90ac1d5ad4198e7b04a87a1908b7711ae38aa5aa4461c370eba4e9"
+      },
+      {
+        "name": "BUKGU-list.html",
+        "bytes": 32941,
+        "sha256": "45af2197643821ea23a56f06e542203382e61799e361495e3f25235b6274eacd"
+      },
+      {
+        "name": "BUKGU-search.html",
+        "bytes": 12313,
+        "sha256": "74d113ae4cdcf776878e446a24e1caf46ee7c6577941010873f55391639bb046"
+      },
+      {
+        "name": "JUNGGU-archived-detail.html",
+        "bytes": 8579,
+        "sha256": "18f058e9143f876d9f99b23a52baae812e4d37cf9acddf7f5d41879144707f9b"
+      },
+      {
+        "name": "JUNGGU-detail.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "JUNGGU-list.html",
+        "bytes": 33625,
+        "sha256": "770964f705d3929b18f776636b0dfe3a99882285fcdc2ac206338148fd9e1534"
+      },
+      {
+        "name": "JUNGGU-search.html",
+        "bytes": 16062,
+        "sha256": "c8b25458f524ed2fe83e7636c73e0fc0d8258a1c0188cbb6b6e6442ff254e54d"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ULSAN_JUNGGU-21392-INITIAL-FORM-ERROR.json",
+      "build/reports/attachment-regional-collection/ULSAN_JUNGGU-21392.json",
+      "build/reports/attachment-regional-collection/ULSAN_BUKGU-44394.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 11,
+    "reservedBytesIncludingBodyUpperBound": 6530955,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000078",
+        "requests": 4,
+        "result": "LATEST_36951_DETAIL_HTTP_400_ARCHIVED_21392_DETAIL_OK"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requests": 1,
+        "result": "LIST_TRANSPORT_TIMEOUT_15S_ZERO_BYTES"
+      },
+      {
+        "sourceCode": "LGS-000081",
+        "requests": 5,
+        "result": "OFFICIAL_ALL_PERIOD_SEARCH_CURRENT_44394_SELECTED_OLD_17056_NOT_DOWNLOADED"
       }
     ],
     "originalsRemoved": true,
