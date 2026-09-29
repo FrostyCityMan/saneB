@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 100,
-    "missingProfileRegionCount": 123,
+    "registeredRegionCount": 102,
+    "missingProfileRegionCount": 121,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2886,14 +2886,26 @@
       "sourceCode": "LGS-000143",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000143",
+          "caseCode": "JINCHEON-29107",
+          "profileCode": "LOCAL_JINCHEON_GET_V1",
+          "profileHash": "b4dd90b947644c2164fc42e47d5cc2da65eddb70a9c212132f3e6b3b19198ab6",
+          "receiptHash": "5d90d1a07089c43974ca592f6a33b5d4d0638e89c83318802e4dd789f5d0448e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000144",
@@ -3193,14 +3205,26 @@
       "sourceCode": "LGS-000162",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000162",
+          "caseCode": "TAEAN-44242",
+          "profileCode": "LOCAL_TAEAN_POST_V1",
+          "profileHash": "dfb4cbcb3a592471dd9b525c669e1f20a77bafc57047053ed647a650bd6a5715",
+          "receiptHash": "a08d33904a37c888e2d58c5527737d60d1605d1a8d9a690540bae43fe45b12f9",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000163",
@@ -7229,6 +7253,94 @@
         "sourceCode": "LGS-000134",
         "requests": 3,
         "result": "OFFICIAL_LIST_SEARCH_DETAIL"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chungcheongNextDownloadRun": {
+    "scope": "CHUNGCHEONG_NEXT_DOWNLOAD_COLLECTION_ONLY",
+    "surveyRequestCount": 9,
+    "surveyMaximumBytesPerRequest": 1048576,
+    "surveyTimeoutSeconds": 15,
+    "surveyRawFiles": [
+      {
+        "name": "GOESAN-list.html",
+        "bytes": 223,
+        "sha256": "8aa9c8ee1d4d662dd1e431060825c69ce5854275adbfa84e83e60acc36a6671a"
+      },
+      {
+        "name": "JINCHEON-detail.html",
+        "bytes": 10625,
+        "sha256": "465a50303f11a9d10f3c6131a16c3caf3625ea5dd46e629cadfb109cbbca2cbd"
+      },
+      {
+        "name": "JINCHEON-list.html",
+        "bytes": 28824,
+        "sha256": "c71e0403d3dfb1d91b12f7a76e133add555833a2faaab5ccf00660b54933184b"
+      },
+      {
+        "name": "JINCHEON-search.html",
+        "bytes": 12825,
+        "sha256": "f8af33cb55215712cf2bf0bfa3e3325486b5f694827cf2b6cdeeaa881d83a3f9"
+      },
+      {
+        "name": "JINCHEON-support.html",
+        "bytes": 17392,
+        "sha256": "b82d3365c9b2268b07e30fcd0328a58355a3342472e31f7fad8c7f57dc191332"
+      },
+      {
+        "name": "SEOCHEON-list.html",
+        "bytes": 31,
+        "sha256": "26c46eb4ad9443d70a7ec7dbc4263f47f31a92dc6d5f9056632f5072d35b333c"
+      },
+      {
+        "name": "TAEAN-detail.html",
+        "bytes": 10621,
+        "sha256": "84f43b4c3166fe6a42bf4af6fd602876878ac4dea0774eee583bad19f58651e5"
+      },
+      {
+        "name": "TAEAN-list.html",
+        "bytes": 38796,
+        "sha256": "1ca22b2c9e073ddd40ed6fcb683ea5a3384b4da7ae1f0dbc962e46965b16ef12"
+      },
+      {
+        "name": "TAEAN-search.html",
+        "bytes": 37256,
+        "sha256": "69564dba7870de62411e38079eb43be9bee30d19575b4ab908bb3bf83190cbe3"
+      }
+    ],
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JINCHEON-29107.json",
+      "build/reports/attachment-regional-collection/TAEAN-44242.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 4406264,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000143",
+        "requests": 4,
+        "result": "CATEGORY01_SOSANGGONGIN_EMPTY_SUPPORT_SEARCH_2021_NOTICE"
+      },
+      {
+        "sourceCode": "LGS-000144",
+        "requests": 1,
+        "result": "LIST_HTTP201_SECURITY_BLOCK_223_BYTES"
+      },
+      {
+        "sourceCode": "LGS-000158",
+        "requests": 1,
+        "result": "LIST_HTTP200_REQUEST_BLOCKED_31_BYTES"
+      },
+      {
+        "sourceCode": "LGS-000162",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_SUBCHECK_N"
       }
     ],
     "originalsRemoved": true,

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d850383c51a7ef11d63e79947d4f10d7e31670672432dacf6801796631d51331",
+  "inventorySha256": "94d5e314feb767cd1ef27d8008b14e346208f934a295b306cf5bfab0422d9dcf",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1387,6 +1387,22 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "1a2f016a6bd56f4cef153186576fc55fa3c7eb9cba99ee77ea081c5113e0b532"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/JINCHEON-29107.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "5d90d1a07089c43974ca592f6a33b5d4d0638e89c83318802e4dd789f5d0448e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "6a551ccf96f79315ba37714d312cdf53069a90ad571a69a44849e3b86a51cd60"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/TAEAN-44242.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "a08d33904a37c888e2d58c5527737d60d1605d1a8d9a690540bae43fe45b12f9",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "6a551ccf96f79315ba37714d312cdf53069a90ad571a69a44849e3b86a51cd60"
     }
   ],
   "samples": [
@@ -4039,6 +4055,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000143",
+      "caseCode": "JINCHEON-29107",
+      "profileCode": "LOCAL_JINCHEON_GET_V1",
+      "profileHash": "b4dd90b947644c2164fc42e47d5cc2da65eddb70a9c212132f3e6b3b19198ab6",
+      "receiptHash": "5d90d1a07089c43974ca592f6a33b5d4d0638e89c83318802e4dd789f5d0448e",
+      "producerClassHash": "6a551ccf96f79315ba37714d312cdf53069a90ad571a69a44849e3b86a51cd60",
+      "observedAt": "2026-09-29T07:56:50.613621Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "777b5009a5c2f181e7de121a018c45fe9d1ae9ea0a750953e0ed603719ff10d5",
+          "status": "SUCCEEDED",
+          "bytes": 75264,
+          "format": "HWP",
+          "binaryHash": "0fc0fc5149ba132a4259a64954c126e3b5aa2d57084eacdecc4e7045825c3aff",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000198",
       "caseCode": "JINDO-25159",
       "profileCode": "LOCAL_JINDO_NOTICE_V1",
@@ -4905,6 +4948,33 @@
           "bytes": 68905,
           "format": "HWPX",
           "binaryHash": "1f48da7f898a3965403acef64975020c6d5ebcfb33f8a2f77601c80f780b032c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000162",
+      "caseCode": "TAEAN-44242",
+      "profileCode": "LOCAL_TAEAN_POST_V1",
+      "profileHash": "dfb4cbcb3a592471dd9b525c669e1f20a77bafc57047053ed647a650bd6a5715",
+      "receiptHash": "a08d33904a37c888e2d58c5527737d60d1605d1a8d9a690540bae43fe45b12f9",
+      "producerClassHash": "6a551ccf96f79315ba37714d312cdf53069a90ad571a69a44849e3b86a51cd60",
+      "observedAt": "2026-09-29T07:57:04.483118100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "fd022c04f29eca4c55ea2928f7f461eb3f845475f6523aae77a2230f479ee701",
+          "status": "SUCCEEDED",
+          "bytes": 115450,
+          "format": "HWPX",
+          "binaryHash": "8b234c1628aba035bfecd8f75a0ca994e7c69d3e6a66276e04f841af014e3279",
           "signatureVerified": true
         }
       ]

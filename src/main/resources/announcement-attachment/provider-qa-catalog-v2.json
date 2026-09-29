@@ -1933,6 +1933,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "JINCHEON-29107",
+      "profileCode": "LOCAL_JINCHEON_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4f9edd514dbb2c12905f9e7e696241cbf268cbf57d838141eb66af248a1a02e3",
+        "sourceUrl": "https://eminwon.jincheon.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29107&subCheck=Y",
+        "localSourceCode": "LGS-000143",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "TAEAN-44242",
+      "profileCode": "LOCAL_TAEAN_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "329737b33fbb77ffe6b4c07213d06a4c950f3ae894722752ee6bc70a81daa236",
+        "sourceUrl": "https://eminwon.taean.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=44242&subCheck=N",
+        "localSourceCode": "LGS-000162",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
