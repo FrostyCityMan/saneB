@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 58,
-    "missingProfileRegionCount": 165,
+    "registeredRegionCount": 60,
+    "missingProfileRegionCount": 163,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3492,14 +3492,26 @@
       "sourceCode": "LGS-000184",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000184",
+          "caseCode": "GOKSEONG-34854",
+          "profileCode": "LOCAL_GOKSEONG_NOTICE_V1",
+          "profileHash": "8d30e29990369f09d504d6ef39c55f7ba018a3692cf16066895696c89979369a",
+          "receiptHash": "6c210929bcd5fa095a752300d60fc3197ddeca47c4822723a4f0af50746c3947",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000185",
@@ -3698,14 +3710,26 @@
       "sourceCode": "LGS-000198",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000198",
+          "caseCode": "JINDO-25159",
+          "profileCode": "LOCAL_JINDO_NOTICE_V1",
+          "profileHash": "7d5af1dfe9bffe733f9c59536423557fcd9cbb76e62861b404cd24b62ccf785f",
+          "receiptHash": "b5d15bbe2a9a956629b107b496e6205ceb2ecefdef50a09f86f05c48c269a76f",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000199",
@@ -4318,9 +4342,9 @@
       "samples": []
     }
   ],
-  "inputInventorySha256": "c772de86392fd8bb0bc299f1787a6362b56973d18da7dcf184447874c326368f",
+  "inputInventorySha256": "63d1e7c1da569bfb38dc1519916be147dc072d431fc35242ace583c94d3a5090",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 106,
+  "importedReceiptCount": 130,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -4868,5 +4892,96 @@
     ],
     "casesClassHash": "8c056944e4b0d8fe574076dfcab6ba5cd39c45adbfcec8d671302f2b770c7740",
     "junitReportHash": "b5902a50d20a6d433480652ba2e3258ea788070bdda82d03d2e441af9290abb5"
+  },
+  "jeonnamSecondDownloadRun": {
+    "scope": "LOCAL_COLLECTION_ONLY_NO_PRODUCTION_WRITES",
+    "surveyRequests": 10,
+    "surveyGetRequests": 9,
+    "surveyPostRequests": 1,
+    "surveyHtmlFiles": [
+      {
+        "name": "gokseong-detail.html",
+        "bytes": 125361,
+        "sha256": "31818d34e04da6051a840912086f14c46c07afc2450594b7f1c9cb888291e926"
+      },
+      {
+        "name": "gokseong-list.html",
+        "bytes": 132869,
+        "sha256": "9e7964a87c7e12234ff4dbaf26804144888a966d34b02d5e07d8d827f6b3349e"
+      },
+      {
+        "name": "gurye-list.html",
+        "bytes": 313883,
+        "sha256": "11540dbba9a42cf778435263bbb1545b56f46489ded79fe9d358ba7e3f7fe7fc"
+      },
+      {
+        "name": "haenam-list.html",
+        "bytes": 166,
+        "sha256": "c5a118c00b71ef99347780f9233c5c5b37402ab5b811922e89b80d2f7572ef1f"
+      },
+      {
+        "name": "hampyeong-list.html",
+        "bytes": 116920,
+        "sha256": "edc86c7a240f90decc2edb0237659a929b20c1825b540e502b01b536f6a125bb"
+      },
+      {
+        "name": "hwasun-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "jindo-detail.html",
+        "bytes": 74553,
+        "sha256": "4bf95b02625876ccb140b5a251cd682d267f0efcb748b373fe1bc0351d498a73"
+      },
+      {
+        "name": "jindo-list.html",
+        "bytes": 77917,
+        "sha256": "ce771a18a6d4e66e35b245a3d89a71715d9e05844b63731fa9cb05ab85fae45f"
+      },
+      {
+        "name": "jindo-search.html",
+        "bytes": 78391,
+        "sha256": "b6faedeb9bb7e820773a750a37f3ba53955a6918a2d402f580954c474aa1f045"
+      }
+    ],
+    "surveyTimeoutRequests": 1,
+    "maximumRequestsPerObservation": 6,
+    "maximumBytesPerObservation": 24117248,
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GOKSEONG-34854-INITIAL.json",
+      "build/reports/attachment-regional-collection/JINDO-25159-INITIAL.json",
+      "build/reports/attachment-regional-collection/GOKSEONG-34854.json",
+      "build/reports/attachment-regional-collection/JINDO-25159.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 16,
+    "reservedBytesIncludingBodyUpperBound": 9296226,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000185",
+        "result": "SEARCH_CONNECTION_TIMEOUT",
+        "requests": 2
+      },
+      {
+        "sourceCode": "LGS-000188",
+        "result": "LIST_HTTP_302_NOT_FOLLOWED",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000191",
+        "result": "LIST_HTTP_400",
+        "requests": 1
+      },
+      {
+        "sourceCode": "LGS-000194",
+        "result": "LIST_OBSERVED_SAMPLE_NOT_SELECTED",
+        "requests": 1
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isExpectationApproved": false
   }
 }

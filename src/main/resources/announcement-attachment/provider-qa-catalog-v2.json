@@ -1417,6 +1417,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GOKSEONG-34854",
+      "profileCode": "LOCAL_GOKSEONG_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "28532a54b092f9dbc7e6185623be92826cb26a49a1a6d6ad8cf9783c8f96e7cf",
+        "sourceUrl": "https://www.gokseong.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=34854&subCheck=Y",
+        "localSourceCode": "LGS-000184",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "JINDO-25159",
+      "profileCode": "LOCAL_JINDO_NOTICE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "494f235b89687ddb73973063750d36a9855c9985d454cafe74c288a83a6b7dbe",
+        "sourceUrl": "https://www.jindo.go.kr/home/gosi/general.cs?act=view&notAncmtMgtNo=25159",
+        "localSourceCode": "LGS-000198",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
