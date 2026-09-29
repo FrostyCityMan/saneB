@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "2d27d4559fc18b4dce7f985482109909a7410973d96e9605c1996d0df188ed74",
+  "inventorySha256": "c5779060909018017b77db957ed0eca7a0ac813212bc7e46c74d35849b6ba6b2",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -1299,6 +1299,30 @@
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1,
       "producerClassHash": "f89f1a000402def00888382191ddcfeefbde170c7bbdd99d131009b616f52d2c"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GWANGJU_DONGGU-43109.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "f4b8e521c5e32ff7f2f0e31b13f55f6748f013bbcc5f1095613e2d6b4f57eed0",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/GWANGJU_BUKGU-56519.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "33e16a337d0766bd08427c082f1ddcb2acb37c899b67adc85685ad35569e5213",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb"
+    },
+    {
+      "path": "build/reports/attachment-regional-collection/DAEJEON_DONGGU-36677.json",
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "receiptHash": "3cc3d8aa3481941e49afc32363196324d12661d30e8c78d479600d3394629f4a",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1,
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb"
     }
   ],
   "samples": [
@@ -2249,6 +2273,33 @@
       ]
     },
     {
+      "sourceCode": "LGS-000072",
+      "caseCode": "DAEJEON_DONGGU-36677",
+      "profileCode": "LOCAL_DAEJEON_DONGGU_GET_V1",
+      "profileHash": "ae354b28b89d6906e6a1deb55e37cbb76ef9031517b1d5cbb62fd68b0084aea2",
+      "receiptHash": "3cc3d8aa3481941e49afc32363196324d12661d30e8c78d479600d3394629f4a",
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb",
+      "observedAt": "2026-09-29T07:09:13.488346400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "bebd93c596824a788bf9193a68282add0790681dc98e9de33808cdc3c3c32ecc",
+          "status": "SUCCEEDED",
+          "bytes": 27648,
+          "format": "HWP",
+          "binaryHash": "43ffb713c05af28fd0816ea912ec159b7c37ef427efddfb37983b11b82dedfc4",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
       "sourceCode": "LGS-000051",
       "caseCode": "DALSEO-42293",
       "profileCode": "LOCAL_DALSEO_POST_V1",
@@ -3180,6 +3231,76 @@
           "bytes": 325822,
           "format": "PDF",
           "binaryHash": "55d13d63ce702e331cd2b3658318d706288671fb5c221ccaf574d95eb4edeb82",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000069",
+      "caseCode": "GWANGJU_BUKGU-56519",
+      "profileCode": "LOCAL_GWANGJU_BUKGU_GET_V1",
+      "profileHash": "000df0197d91c9911b9ac41dfd743ae6519e188db22978c655e098ce8e4fb642",
+      "receiptHash": "33e16a337d0766bd08427c082f1ddcb2acb37c899b67adc85685ad35569e5213",
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb",
+      "observedAt": "2026-09-29T07:09:12.457071800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "91034b6913b3d31eeabd2d7b544f1313b208cc83b1a692e419b7553e576aa440",
+          "status": "SUCCEEDED",
+          "bytes": 71168,
+          "format": "HWP",
+          "binaryHash": "ffc01460a86cc4cb8364f251990f5668eb358e3847935e8c28a4bddff3b50b27",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "2ba725676ecf61f865257d3aa4b80343cee1bec4ebd3f6bb1de86ea1fce43c9c",
+          "status": "SUCCEEDED",
+          "bytes": 91648,
+          "format": "HWP",
+          "binaryHash": "3ff15df92156b6f9a8d2db2a45a78699309b350db48d2662d1a86cdbf9e66760",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000066",
+      "caseCode": "GWANGJU_DONGGU-43109",
+      "profileCode": "LOCAL_GWANGJU_DONGGU_GET_V1",
+      "profileHash": "68c59733a0f6f155423901083ba8c467767efb07cbfc9f5d70d5e3d7995c6a11",
+      "receiptHash": "f4b8e521c5e32ff7f2f0e31b13f55f6748f013bbcc5f1095613e2d6b4f57eed0",
+      "producerClassHash": "5fff78a2744028aeafd5b1504407255b83749ece77ccd985fe7cefe092629fcb",
+      "observedAt": "2026-09-29T07:08:58.223433600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7ff2b53172c5a7e61db59c0b8bfd5bb60aa1cb40fe32d79d792471c8e5e2e520",
+          "status": "SUCCEEDED",
+          "bytes": 379775,
+          "format": "PDF",
+          "binaryHash": "b8d6cba29a846c06f6a5edaccb06913b5124e6b2acc848314b8737e980a061e9",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "363be27aa548a505c5d8eed27aa0b8c59bfc3e2628398f7912f47d5b835c34e6",
+          "status": "SUCCEEDED",
+          "bytes": 71928,
+          "format": "PDF",
+          "binaryHash": "e46a8a25b33363234b23b83ced4a964cfd216f52de69e12d1234d1b93edce1c0",
           "signatureVerified": true
         }
       ]

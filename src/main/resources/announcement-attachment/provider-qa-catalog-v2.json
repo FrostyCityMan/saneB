@@ -1813,6 +1813,42 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GWANGJU_DONGGU-43109",
+      "profileCode": "LOCAL_GWANGJU_DONGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "00a82e8f033249cda559d7b7baa5d429df74a322d8599ef3aa2d68ef1e052411",
+        "sourceUrl": "https://eminwon.donggu.gwangju.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=43109&subCheck=Y",
+        "localSourceCode": "LGS-000066",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_LIST"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GWANGJU_BUKGU-56519",
+      "profileCode": "LOCAL_GWANGJU_BUKGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ea788cd1165f46a7e772a28ceb127327a01df514baa781646ab8bfe49550393e",
+        "sourceUrl": "https://eminwon.bukgu.gwangju.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=56519&subCheck=Y",
+        "localSourceCode": "LGS-000069",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DAEJEON_DONGGU-36677",
+      "profileCode": "LOCAL_DAEJEON_DONGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "de9aa1d950f3d107060300f487af2fed133a69db2e99b5d19828c7edd1e4d075",
+        "sourceUrl": "https://eminwon.donggu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=36677&subCheck=Y",
+        "localSourceCode": "LGS-000072",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
