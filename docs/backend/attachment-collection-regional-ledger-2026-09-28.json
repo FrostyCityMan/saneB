@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 163,
-    "missingProfileRegionCount": 60,
+    "registeredRegionCount": 164,
+    "missingProfileRegionCount": 59,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2869,14 +2869,26 @@
       "sourceCode": "LGS-000117",
       "listParserProfileCode": "CHUNCHEON_NOTICE_JSON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000117",
+          "caseCode": "CHUNCHEON-73071",
+          "profileCode": "LOCAL_CHUNCHEON_JSON_V1",
+          "profileHash": "8ed23a6c233504cb788e7098f3625a3a289314a20046848a72f7ee6339384b73",
+          "receiptHash": "5fd4dc9ca0fbdcbdae7bd11dfa93aaa4fb2d80962758dde472282b98f78d3a8e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000118",
@@ -5623,9 +5635,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "efafc9dc23cfd5d291fc7310a8222360147d7f823ce6a2e31369007b0cd2a901",
+  "inputInventorySha256": "d83ddffb05c9f770cbe4e5f6d81e56501f91419ed2690efd5ef43d76a9c99376",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 251,
+  "importedReceiptCount": 252,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -11020,6 +11032,47 @@
         "sourceCode": "LGS-000105",
         "requests": 1,
         "result": "REGISTERED_LIST_HTTP_400_NO_REPEAT_DETAIL_OR_FILE_REQUEST"
+      }
+    ],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chuncheonDownloadRun": {
+    "scope": "CHUNCHEON_JSON_BODY_ATTACHMENT_COLLECTION_ONLY",
+    "priorSurveyLedgerKey": "gangwonProvinceDownloadRun",
+    "priorSurveyRequests": 4,
+    "surveyRequestCount": 1,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyRawFiles": [
+      {
+        "name": "CHUNCHEON-view.json",
+        "bytes": 2304,
+        "sha256": "862ac7a67bafd8742b77cc8f50cc523268c09d02d3cb9c3852835c97c0a7f4af"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "CHUNCHEON-73071",
+        "maximumRequests": 6,
+        "maximumBytes": 24117248,
+        "detailMaximumBytes": 1048576
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/CHUNCHEON-73071.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2204416,
+    "cumulativeRequestReservationsIncludingPriorSurveyUpperBound": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000117",
+        "requests": 1,
+        "result": "OFFICIAL_JSON_REOBSERVED_FOR_IMPLEMENTATION_FIXTURE_MISSING_CONTENT_TYPE_UTF8_JSON"
       }
     ],
     "originalsRemoved": true,

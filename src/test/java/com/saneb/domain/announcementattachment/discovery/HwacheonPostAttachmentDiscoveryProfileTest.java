@@ -149,12 +149,13 @@ class HwacheonPostAttachmentDiscoveryProfileTest {
         var result = profile.selectDescriptors(selectSource(URL), selectPage(selectLink("공고.pdf", large)));
         assertThat(result.status()).isEqualTo("FAILED"); assertThat(result.descriptors()).isEmpty();
     }
-    @Test void springRegistryResolvesHwacheonAmongTwentyConfiguredProfilesByExactHash() {
+    @Test void springRegistryResolvesHwacheonAmongTwentyOneConfiguredProfilesByExactHash() {
         try (var context = new AnnotationConfigApplicationContext(SaeolGetAttachmentProfileConfiguration.class,
                 HwacheonPostAttachmentDiscoveryProfile.class, BizInfoAttachmentDiscoveryProfile.class,
                 SeoguSaeolAttachmentDiscoveryProfile.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(20);
+            assertThat(registry.selectProfileList()).hasSize(21);
+            assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileCode).contains("LOCAL_HWASUN_GET_V1");
             assertThat(registry.selectProfileDetails("LOCAL_GOV_NOTICE", profile.selectProfileCode(), profile.selectProfileHash())).isPresent();
             assertThat(registry.selectProfileDetails("LOCAL_GOV_NOTICE", profile.selectProfileCode(), "a".repeat(64))).isEmpty();
         }

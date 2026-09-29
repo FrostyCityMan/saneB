@@ -98,11 +98,13 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                     var response = downloads.selectDownload(job,profile,AttachmentPinnedDownloadClient.Request.selectGet(detail),
                             workspace.selectDetailPath(),com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile),() -> requestStarted[0]=true);
                     String contentType = response.contentType() == null ? "" : response.contentType().toLowerCase(java.util.Locale.ROOT);
-                    if (!contentType.isBlank() && !contentType.startsWith("text/html") && !contentType.startsWith("application/xhtml+xml"))
+                    if (!(profile instanceof com.saneb.domain.announcementattachment.discovery.AttachmentJsonDetailProfile)
+                            && !contentType.isBlank() && !contentType.startsWith("text/html") && !contentType.startsWith("application/xhtml+xml"))
                         throw new IOException("ATTACHMENT_DETAIL_CONTENT_TYPE");
                     String html;
                     try (var stream = Files.newInputStream(workspace.selectDetailPath())) {
-                        html = Jsoup.parse(stream,null,detail.toASCIIString()).outerHtml();
+                        html = profile instanceof com.saneb.domain.announcementattachment.discovery.AttachmentJsonDetailProfile json
+                                ? json.selectJsonPayload(stream,response.contentType()) : Jsoup.parse(stream,null,detail.toASCIIString()).outerHtml();
                     }
                     try { discovery = profile.selectDescriptors(source.selectDiscoverySource(),html); }
                     catch (IllegalArgumentException exception) {

@@ -115,9 +115,12 @@ public final class AttachmentProviderQaCaseExecutor {
                 try {
                     var downloaded=selectDownload(profile,AttachmentPinnedDownloadClient.Request.selectGet(detail),workspace.selectDetailPath(),com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile),state);
                     String mime=downloaded.contentType()==null?"":downloaded.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT);
-                    if (!Set.of("text/html","application/xhtml+xml").contains(mime)) throw failure("DETAIL_CONTENT_TYPE_CHANGED");
+                    if (!(profile instanceof AttachmentJsonDetailProfile) && !Set.of("text/html","application/xhtml+xml").contains(mime)) throw failure("DETAIL_CONTENT_TYPE_CHANGED");
                     try (var stream=Files.newInputStream(workspace.selectDetailPath())) {
-                        discovery=profile.selectDescriptors(input.source(),Jsoup.parse(stream,null,detail.toASCIIString()).outerHtml());
+                        String payload=profile instanceof AttachmentJsonDetailProfile json
+                                ? json.selectJsonPayload(stream,downloaded.contentType()) : Jsoup.parse(stream,null,detail.toASCIIString()).outerHtml();
+                        if(profile instanceof AttachmentJsonDetailProfile json && !json.selectJsonTitle(input.source(),payload).strip().equals(input.title().strip())) throw failure("TITLE_CHANGED");
+                        discovery=profile.selectDescriptors(input.source(),payload);
                     }
                 } finally { Files.deleteIfExists(workspace.selectDetailPath()); }
                 state.check(0);

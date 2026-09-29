@@ -30,6 +30,31 @@ import org.mockito.ArgumentCaptor;
 
 /** 연결/순서/정리 회귀. HTTP와 Linux 추출은 mock이며 실제 파일 운영 QA와 구분한다. */
 class AnnouncementAttachmentWorkerServiceTest {
+    @Test void jsonResponseIsNotAcceptedByExistingHtmlWorkerProfile() throws Exception {
+        doAnswer(call->{((Runnable)call.getArgument(5)).run();Path path=call.getArgument(3);Files.writeString(path,"{}");return new AttachmentPinnedDownloadClient.Download(2,"a".repeat(64),"application/json");}).when(downloads).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");var saved=selectSaved();assertThat(saved.discoveryComplete()).isFalse();assertThat(saved.files()).isEmpty();assertThat(saved.warningCodes()).contains("DISCOVERY_FAILED");verifyNoInteractions(extractor);assertTemporaryEmpty();
+    }
+    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void chuncheonJsonWorkerPreservesValidFileAndSeparatesManifestFailure(boolean wrongId) throws Exception {
+        var selected=new com.saneb.domain.announcementattachment.discovery.ChuncheonAttachmentDiscoveryProfile();
+        var execution=new AttachmentExecutionSnapshot(selected.selectProfileCode(),selected.selectProfileHash(),AnnouncementAttachmentClassificationEngine.VERSION,"1.0.0","b".repeat(64));
+        job=new AttachmentJobRow(job.jobId(),job.sourceId(),job.contentVersionId(),job.baseEvaluationId(),job.ruleReleaseId(),job.policyId(),null,null,1,0,1,"RUNNING",1,null,job.leaseToken(),job.leaseExpiresAt(),null,job.idempotencyKey(),job.requestHash(),mapper.writeValueAsString(execution),80L*1024*1024,0L,0);
+        String url="https://www.chuncheon.go.kr/cityhall/administrative-info/notice-info/notice-announcement/view/?notAncmtMgtNo=73071";
+        var n=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
+        when(jobs.selectWorkerSourceDetails(any(),any())).thenReturn(Optional.of(new AttachmentWorkerSourceRow("LOCAL_GOV_NOTICE",n.hash(n.canonicalizeUrl(url)),url,"LGS-000117","CHUNCHEON_NOTICE_JSON")));
+        worker=new AnnouncementAttachmentWorkerServiceImpl(jobs,evidence,evaluations,retries,new AttachmentDiscoveryProfileRegistry(List.of(selected)),runtime,new AttachmentTemporaryStorage(directory.toString()),downloads,new AttachmentFileTypeValidator(),extractor,mapper);
+        doAnswer(call->{var request=call.getArgument(2,AttachmentPinnedDownloadClient.Request.class);assertThat(selected.selectApprovedRequest(request)).isTrue();((Runnable)call.getArgument(5)).run();Path path=call.getArgument(3);
+            if(request.uri().getPath().equals("/_chuncheon/noticeView.do")){
+                Files.writeString(path,"{\"board\":{\"not_ancmt_mgt_no\":\""+(wrongId?"999":"73071")+"\",\"not_ancmt_sj\":\"소상공인 지원\",\"not_ancmt_cn\":\"소상공인 지원금\"},\"file\":[{\"file_seq\":\"1\",\"file_nm\":\"공고.pdf\",\"sys_file_nm\":\"notice.pdf\",\"file_path\":\"/ntishome/file/upload/ofr/ofr/20260115\"},{}]}");
+                return new AttachmentPinnedDownloadClient.Download(Files.size(path),"a".repeat(64),"");
+            }
+            Files.writeString(path,"%PDF-1.7");return new AttachmentPinnedDownloadClient.Download(Files.size(path),"a".repeat(64),"application/pdf","attachment; filename=notice.pdf");
+        }).when(downloads).selectDownload(any(),any(),any(),any(),anyLong(),any());
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");var saved=selectSaved();assertThat(saved.discoveryComplete()).isFalse();assertThat(saved.discoveryStatus()).isEqualTo("FAILED");
+        if(wrongId){assertThat(saved.files()).isEmpty();verifyNoInteractions(extractor);verify(downloads,times(1)).selectDownload(any(),any(),any(),any(),anyLong(),any());}
+        else {assertThat(saved.files()).hasSize(1);assertThat(saved.files().getFirst().downloadStatus()).isEqualTo("SUCCEEDED");verify(extractor).selectExtraction(any());verify(downloads,times(2)).selectDownload(any(),any(),any(),any(),anyLong(),any());}
+        assertTemporaryEmpty();
+    }
     @TempDir Path directory;
     private final ObjectMapper mapper=new ObjectMapper();
     private final AnnouncementAttachmentJobService jobs=mock(AnnouncementAttachmentJobService.class);

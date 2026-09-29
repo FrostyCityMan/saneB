@@ -35,6 +35,23 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /** production flow/형식 검사/임시 저장을 쓰되 HTTP와 Linux 추출만 대역이다. 실제 사이트/격리 성공 증거가 아니다. */
 class AttachmentProviderQaCaseExecutorTest {
+    @Test void jsonResponseIsNotAcceptedByExistingHtmlQaProfile() throws Exception {
+        doAnswer(call->{Files.writeString(call.getArgument(3,Path.class),"{}");return new AttachmentPinnedDownloadClient.Download(2,sha("{}".getBytes(StandardCharsets.UTF_8)),"application/json");}).when(client).selectDownload(any(AttachmentPinnedDownloadClient.Request.class),anySet(),any(),any(Path.class),anyLong(),any());
+        var result=executor.selectResult(input(descriptors),control);assertThat(result.status()).isEqualTo("FAILED");assertThat(result.reasonCode()).isEqualTo("DETAIL_CONTENT_TYPE_CHANGED");assertThat(result.originalFilesRemoved()).isTrue();verifyNoInteractions(extractor);verify(profile,never()).selectDescriptors(any(AttachmentDiscoveryProfile.Source.class),anyString());
+    }
+    @ParameterizedTest @ValueSource(booleans={false,true})
+    void chuncheonJsonQaUsesSameParserAndChecksTitleBeforeFile(boolean wrongTitle) throws Exception {
+        var sample=ChuncheonDownloadCases.selectCase();var selected=sample.profile();String fixtureTitle="소상공인 지원금";
+        String payload=mapper.writeValueAsString(Map.of("board",Map.of("not_ancmt_mgt_no","73071","not_ancmt_sj",wrongTitle?"다른 공고":fixtureTitle,"not_ancmt_cn","소상공인 지원금"),"file",List.of(Map.of("file_seq","1","file_nm","공고.pdf","sys_file_nm","notice.pdf","file_path","/ntishome/file/upload/ofr/ofr/20260115"))));
+        var descriptor=selected.selectDescriptors(sample.source(),payload).descriptors().getFirst();
+        var expected=new ExpectedFile(executor.selectHash(descriptor.locator()),true,"PDF",sha(binary),"COMPLETE_TEXT",3,1,List.of("소상공인"));
+        resetExecutor(selected);
+        var input=new AttachmentProviderQaCase(sample.code(),selected.selectProfileCode(),selected.selectProfileHash(),sample.source(),fixtureTitle,rules(),runtimeHash,"FOUND",true,List.of(expected),new Limits(420,6,23L*1024*1024));
+        doAnswer(call->{var request=call.getArgument(0,AttachmentPinnedDownloadClient.Request.class);Predicate<AttachmentPinnedDownloadClient.Request> approved=call.getArgument(2);assertThat(approved.test(request)).isTrue();Path path=call.getArgument(3);boolean detail=request.uri().getPath().equals("/_chuncheon/noticeView.do");byte[] bytes=detail?payload.getBytes(StandardCharsets.UTF_8):binary;assertThat(call.getArgument(5,AttachmentPinnedDownloadClient.ByteReservation.class).reserve(bytes.length)).isTrue();Files.write(path,bytes,StandardOpenOption.CREATE_NEW);return new AttachmentPinnedDownloadClient.Download(bytes.length,sha(bytes),detail?"":"application/pdf",detail?null:"attachment; filename=notice.pdf");}).when(client).selectDownload(any(AttachmentPinnedDownloadClient.Request.class),anySet(),any(),any(Path.class),anyLong(),any());
+        var result=executor.selectResult(input,control);assertThat(result.originalFilesRemoved()).isTrue();
+        if(wrongTitle){assertThat(result.status()).isEqualTo("FAILED");assertThat(result.reasonCode()).isEqualTo("TITLE_CHANGED");assertThat(result.files()).hasSize(1).allSatisfy(file->assertThat(file.status()).isEqualTo("NOT_RUN"));verifyNoInteractions(extractor);verify(client,times(1)).selectDownload(any(AttachmentPinnedDownloadClient.Request.class),anySet(),any(),any(Path.class),anyLong(),any());}
+        else {assertThat(result.status()).as(result.reasonCode()).isEqualTo("PASSED");assertThat(result.files()).hasSize(1);assertThat(result.files().getFirst().format()).isEqualTo("PDF");}
+    }
     @TempDir Path directory;
     final ObjectMapper mapper=new ObjectMapper().findAndRegisterModules();
     final String profileHash="a".repeat(64), runtimeHash="b".repeat(64);

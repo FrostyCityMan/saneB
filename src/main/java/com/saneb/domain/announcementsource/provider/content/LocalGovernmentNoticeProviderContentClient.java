@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 등록된 지자체 source와 같은 공식 host의 정적 HTML 상세본문만 조회합니다.
+ * 등록된 지자체 source와 같은 공식 host의 정적 HTML 또는 명시적으로 연결한 JSON 본문을 조회합니다.
  */
 @Component
 public class LocalGovernmentNoticeProviderContentClient implements ProviderContentClient {
@@ -196,6 +196,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     request.registeredSourceUrl(),
                     request.officialDetailUrl()
             );
+            if (ChuncheonNoticePage.selectPageMatches(validatedRequest.detailUri()) || ChuncheonNoticePage.selectApiMatches(validatedRequest.detailUri())) {
+                try {
+                    validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
+                            ChuncheonNoticePage.selectApiUri(validatedRequest.detailUri()).toASCIIString());
+                } catch (IllegalArgumentException exception) { throw new ProviderContentValidationException(FailureCode.DETAIL_URL_INVALID); }
+            }
         } catch (ProviderContentValidationException exception) {
             return ProviderContentResult.failure(
                     request,
@@ -294,6 +300,9 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
+                    if (ChuncheonNoticePage.selectApiMatches(initialUri)) {
+                        return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
+                    }
                     if (redirectCount >= maxRedirects) {
                         return FetchAttempt.failure(
                                 FailureCode.REDIRECT_LIMIT_EXCEEDED,
@@ -321,7 +330,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 String contentType = response.selectFirstHeader("content-type");
-                if (!selectHtmlContentType(contentType)) {
+                if (ChuncheonNoticePage.selectApiMatches(currentUri)
+                        ? !ChuncheonNoticePage.selectJsonContentType(contentType) : !selectHtmlContentType(contentType)) {
                     return FetchAttempt.failure(
                             FailureCode.CONTENT_TYPE_UNSUPPORTED,
                             currentUri,
@@ -408,15 +418,21 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     }
 
     private String selectBodyText(byte[] body, String contentType, URI sourceUri) {
-        Charset charset = selectCharset(body, contentType);
-        String html = selectDecodedText(body, charset);
+        boolean chuncheonJson = ChuncheonNoticePage.selectApiMatches(sourceUri);
+        String html;
+        if (chuncheonJson) {
+            try {
+                String payload = ChuncheonNoticePage.selectJsonPayload(new ByteArrayInputStream(body),contentType);
+                html = ChuncheonNoticePage.selectEnvelope(payload,sourceUri).path("board").path("not_ancmt_cn").textValue();
+            } catch (IOException | IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        } else { html = selectDecodedText(body,selectCharset(body,contentType)); }
         Document document = Jsoup.parse(html, sourceUri.toASCIIString());
         document.select("script, style, noscript, template, iframe, object, embed").remove();
         // main 내부 또는 body 대체 경로에서도 메뉴의 키워드를 공고 본문 근거로 사용하지 않는다.
         // 일반 링크·문장·기관명은 유지하며, 명시된 탐색 역할만 제거한다.
         document.select("nav, [role=navigation]").remove();
         deleteAttachmentLinkElements(document);
-        Element contentElement = selectContentElement(document, sourceUri);
+        Element contentElement = chuncheonJson ? document.body() : selectContentElement(document, sourceUri);
         String bodyText = contentElement.text()
                 .replace('\u00a0', ' ')
                 .replaceAll("\\s+", " ")

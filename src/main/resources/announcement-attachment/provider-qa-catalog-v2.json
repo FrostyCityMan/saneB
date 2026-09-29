@@ -2689,6 +2689,18 @@
         "listParserProfileCode": "SAFE_GWD_BULLETIN"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "CHUNCHEON-73071",
+      "profileCode": "LOCAL_CHUNCHEON_JSON_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e5fb3d0822806ae78a509d10d3e482cda72dbec45adccd503f17ecc7f9e15265",
+        "sourceUrl": "https://www.chuncheon.go.kr/cityhall/administrative-info/notice-info/notice-announcement/view/?notAncmtMgtNo=73071",
+        "localSourceCode": "LGS-000117",
+        "listParserProfileCode": "CHUNCHEON_NOTICE_JSON"
+      },
+      "expectation": null
     }
   ]
 }

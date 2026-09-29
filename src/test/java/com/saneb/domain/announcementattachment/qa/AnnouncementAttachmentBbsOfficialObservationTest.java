@@ -75,6 +75,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if(CapitalThirdDownloadCases.GROUPS.contains(group))return Stream.of(CapitalThirdDownloadCases.selectCase(group));
         if("HWASUN".equals(group))return Stream.of(HwasunDownloadCases.selectCase());
         if("SOKCHO".equals(group))return Stream.of(SokchoDownloadCases.selectCase());
+        if("CHUNCHEON".equals(group))return Stream.of(ChuncheonDownloadCases.selectCase());
         if(GangwonProvinceDownloadCases.GROUPS.contains(group))return Stream.of(GangwonProvinceDownloadCases.selectCase(group));
         if(CapitalEighthDownloadCases.GROUPS.contains(group))return Stream.of(CapitalEighthDownloadCases.selectCase(group));
         if("SEJONG".equals(group))return Stream.of(SejongDownloadCases.selectCase());
@@ -513,12 +514,14 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             var detailRequest=AttachmentPinnedDownloadClient.Request.selectGet(uri);
             var download=client.selectDownload(detailRequest,profile.selectApprovedHosts(),
                     r->budget.selectRequestAllowed(detailRequest,r),detail,com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile),budget::saveBytes);
-            assertTrue(Set.of("text/html","application/xhtml+xml").contains(download.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT)),"DETAIL_CONTENT_TYPE_CHANGED");
+            if(!(profile instanceof AttachmentJsonDetailProfile))assertTrue(Set.of("text/html","application/xhtml+xml").contains(download.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT)),"DETAIL_CONTENT_TYPE_CHANGED");
             AttachmentDiscoveryProfile.Result discovered;
             try(var input=Files.newInputStream(detail)) {
-                var page=Jsoup.parse(input,null,uri.toASCIIString());stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.titleLayout());
+                String payload;
+                if(profile instanceof AttachmentJsonDetailProfile json){payload=json.selectJsonPayload(input,download.contentType());stage="TITLE_CONFIRMATION";assertEquals(normalized(sample.title()),normalized(json.selectJsonTitle(source,payload)),"TITLE_CHANGED");}
+                else {var page=Jsoup.parse(input,null,uri.toASCIIString());payload=page.outerHtml();stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.titleLayout());}
                 report.put("detailIdentityVerified",true);
-                stage="DETAIL_DISCOVERY";discovered=profile.selectDescriptors(source,page.outerHtml());
+                stage="DETAIL_DISCOVERY";discovered=profile.selectDescriptors(source,payload);
             } finally {Files.deleteIfExists(detail);}
             report.put("discoveryStatus",discovered.status());report.put("discoveryComplete",discovered.complete());report.put("discoveredFileCount",discovered.descriptors().size());
             report.put("discoveryWarningCodes",discovered.warnings());
@@ -977,6 +980,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|="LOCAL_SOKCHO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_MAPO_PORTAL_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_SEODAEMUN_BOARD_V1".equals(profile.selectProfileCode());
+            boundedSaeol|="LOCAL_CHUNCHEON_JSON_V1".equals(profile.selectProfileCode());
             boundedSaeol|="LOCAL_GANGWON_PROVINCE_BOARD_V1".equals(profile.selectProfileCode());
             boundedSaeol|=CapitalEighthDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_BOARD_V1").equals(profile.selectProfileCode()));
             boundedSaeol|="LOCAL_SEJONG_BOARD_V1".equals(profile.selectProfileCode());

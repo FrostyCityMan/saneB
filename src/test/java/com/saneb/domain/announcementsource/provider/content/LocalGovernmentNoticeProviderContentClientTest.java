@@ -31,6 +31,26 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void chuncheonJsonBodyUsesFixedApiAndExcludesMetadata() {
+        String url="https://www.chuncheon.go.kr/cityhall/administrative-info/notice-info/notice-announcement/view/?notAncmtMgtNo=73071";
+        String json="{\"board\":{\"not_ancmt_mgt_no\":\"73071\",\"not_ancmt_sj\":\"소상공인 지원\",\"not_ancmt_cn\":\"<p>소상공인 지원금</p><nav>수출 메뉴</nav><script>특허</script>\",\"dep_nm\":\"수출 부서\",\"chr_nm\":\"합성 담당자\"},\"file\":[{\"file_nm\":\"특허.pdf\"}]}";
+        for(String mime:List.of("","application/json; charset=UTF-8")){
+            var transport=new StubTransport();transport.enqueue(response(200,mime,json.getBytes(StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");
+            assertThat(transport.requestTargets).hasSize(1);assertThat(transport.requestTargets.getFirst().uri().toString()).isEqualTo("https://www.chuncheon.go.kr/_chuncheon/noticeView.do?notAncmtMgtNo=73071");
+        }
+        for(String bad:List.of(json.replace("73071","999"),json+"{}",json.replace("\"board\":","\"board\":{},\"board\":"),"<html>접근 오류</html>")){
+            var transport=new StubTransport();transport.enqueue(response(200,"",bad.getBytes(StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(transport.requestTargets).hasSize(1);
+        }
+        var badUrl=new StubTransport();assertThat(client(true,badUrl,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url+"&other=1")).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);assertThat(badUrl.requestTargets).isEmpty();
+        var redirectTransport=new StubTransport();redirectTransport.enqueue(redirect("/_chuncheon/noticeView.do?notAncmtMgtNo=999"));
+        assertThat(client(true,redirectTransport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url)).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);assertThat(redirectTransport.requestTargets).hasSize(1);
+        var ordinary=new StubTransport();ordinary.enqueue(response(200,"",json.getBytes(StandardCharsets.UTF_8)));
+        assertThat(client(true,ordinary,publicValidator()).selectContent(request("42")).failureCode()).isEqualTo(FailureCode.CONTENT_TYPE_UNSUPPORTED);
+    }
     @Test void gangwonProvinceBodyExcludesFileAndDepartment() {
         String page="<div id=content-bx><div class='skinTb skinTb-data-resList skinTb-data-bgSbj'><div class=skinTb-tr><div class=skinTb-th>제목</div><div class=skinTb-td>소상공인 지원</div></div><div class=skinTb-tr><div class=skinTb-th>부서</div><div class=skinTb-td>수출 부서</div></div><div class=skinTb-tr><div class=skinTb-th>첨부파일</div><div class=skinTb-td>특허.hwp</div></div><div class=skinTb-tr><div class=skinTb-th>내용</div><div class='skinTb-td skinTb-conts'>소상공인 지원금</div></div></div></div>";
         String url="https://state.gwd.go.kr/portal/bulletin/notification?articleSeq=272329";
