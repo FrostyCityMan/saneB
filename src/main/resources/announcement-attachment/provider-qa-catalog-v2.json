@@ -3591,6 +3591,18 @@
       "expectation": null
     },
     {
+      "caseCode": "DONGDUCHEON-44176",
+      "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1e71b351dcaf8b6a64907454003da78efe959e9aa69b3c80c8b3b9d95aa53dc9",
+        "sourceUrl": "https://www.ddc.go.kr/ddc/selectGosiData.do?key=340&not_ancmt_mgt_no=44176&not_ancmt_se_code=04",
+        "localSourceCode": "LGS-000112",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "CHEONAN-113864",
       "profileCode": "LOCAL_CHEONAN_GET_V1",
       "source": {

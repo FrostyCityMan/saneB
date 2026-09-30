@@ -3209,9 +3209,20 @@
       "status": "EVIDENCE_VERSION_MISMATCH",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 2,
+      "observedSampleCount": 3,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000112",
+          "caseCode": "DONGDUCHEON-44176",
+          "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+          "profileHash": "adedefd94a81f19069c7c47c018ec671077887847643601a26a05561aacf1207",
+          "receiptHash": "8cc2e72ae279189efecf57c60d0606fc63a8df18d7166a0a62913a6c6900a06a",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
         {
           "sourceCode": "LGS-000112",
           "caseCode": "DONGDUCHEON-44784",
@@ -6579,9 +6590,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f28945ff0a1164dde2940d5268853d2d553edb339687ab8d46474c5d5aa6e3a5",
+  "inputInventorySha256": "31d6fabfa89aca60fc7d141bf32740b9453135b038d2bc7b70ab0f9e4a4749b0",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 665,
+  "importedReceiptCount": 666,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12973,6 +12984,73 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "dongducheonPdfNonFileResponseRun": {
+    "scope": "DONGDUCHEON_ELIGIBLE_PDF_NON_FILE_RESPONSE",
+    "baselineGitHead": "335c5ff007cc474d683241c7f44e5242a84c516e",
+    "applicationJavaChanged": false,
+    "profileHashesUnchanged": true,
+    "catalogChanged": true,
+    "catalogReferencesBefore": 295,
+    "catalogReferencesAfter": 296,
+    "previousInventorySha256": "f28945ff0a1164dde2940d5268853d2d553edb339687ab8d46474c5d5aa6e3a5",
+    "currentInventorySha256": "31d6fabfa89aca60fc7d141bf32740b9453135b038d2bc7b70ab0f9e4a4749b0",
+    "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DONGDUCHEON-44176-DONGDUCHEON-SUPPORT-20261001.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 203,
+      "noObservedDownloadRegionCount": 20,
+      "regionsWithErrors": 33,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 206,
+    "historicalNeverDownloadedRegionCount": 17,
+    "observedCaseCount": 1,
+    "downloadedCaseCount": 0,
+    "downloadedFileCount": 0,
+    "downloadedBytes": 0,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2673188,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "titleStops": [],
+    "bodyFailures": [],
+    "partialCases": [
+      {
+        "caseCode": "DONGDUCHEON-44176",
+        "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
+        "discoveryWarningCodes": [],
+        "failureCode": null,
+        "failedStage": null
+      }
+    ],
+    "fileIssues": [
+      {
+        "caseCode": "DONGDUCHEON-44176",
+        "status": "FAILED",
+        "failureCode": "ATTACHMENT_SIGNATURE_UNSUPPORTED"
+      }
+    ],
+    "publicDiagnosticRequests": 3,
+    "officialSearchQueries": 0,
+    "officialSearchOpens": 0,
+    "rootTests": 146,
+    "rootTestSkipped": 0,
+    "rootTestFailed": 0,
+    "observationPassed": 1,
+    "observationFailed": 0,
+    "nativeOriginalFilesWritten": 0,
+    "previousFailuresPreserved": true,
+    "previousTitleStopPreserved": true,
+    "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,
