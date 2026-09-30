@@ -275,11 +275,22 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000012",
+          "caseCode": "NOWON-20260824152519260",
+          "profileCode": "LOCAL_NOWON_BOARD_V1",
+          "profileHash": "bd4805169a14fc3ec760f201eac9bce4e8b34197f127aa2bbd36eead1ede3ca0",
+          "receiptHash": "3b125435eb74d7b960664410bd814395dc1389c62313595b548288232479cd6f",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
         {
           "sourceCode": "LGS-000012",
           "caseCode": "NOWON-20260915151630474",
@@ -302,7 +313,7 @@
       "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
         {
@@ -311,6 +322,17 @@
           "profileCode": "LOCAL_EUNPYEONG_GET_V1",
           "profileHash": "1a8524e32e6e677733d4d590095c083bd30cfb18eb50e0cf67943031367faa9d",
           "receiptHash": "2292aacaa391c56ee6d946e3cd457721a13c72d6f8d85ce6f8f4f3c2d8c13900",
+          "fileCount": 4,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000013",
+          "caseCode": "EUNPYEONG-50607",
+          "profileCode": "LOCAL_EUNPYEONG_GET_V1",
+          "profileHash": "1a8524e32e6e677733d4d590095c083bd30cfb18eb50e0cf67943031367faa9d",
+          "receiptHash": "850490dd6a1fc846e42666c387806845258fd9a77cd251563f63ecc6a9f7fe06",
           "fileCount": 4,
           "downloadedFileCount": 0,
           "status": "INCOMPLETE",
@@ -6387,9 +6409,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "8468fcb03c59896b933dcc495696e179909f50c830eab51e05d14e14bfc9a85c",
+  "inputInventorySha256": "c0ca4034e4b17fcef1fe526a45e0efb4afe5ceb0d43e93356f9fb13369f98c0f",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 335,
+  "importedReceiptCount": 337,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12785,6 +12807,70 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "nowonEunpyeongAdditionalDownloadRun": {
+    "scope": "NOWON_EUNPYEONG_ADDITIONAL_OFFICIAL_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/NOWON-20260824152519260.json",
+      "build/reports/attachment-regional-collection/EUNPYEONG-50607.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "NOWON-20260824152519260",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "EUNPYEONG-50607",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 7,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 13,
+    "reservedBytesIncludingBodyUpperBound": 5214823,
+    "surveyRequestCount": 10,
+    "surveyGetCount": 9,
+    "surveyPostCount": 1,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000012",
+        "requestCount": 5,
+        "result": "OFFICIAL_LIST_TITLE_SEARCH_AND_SUPPORT_DETAIL200_BODY_IMAGES_PRESENT_TEXT_EMPTY"
+      },
+      {
+        "sourceCode": "LGS-000013",
+        "requestCount": 4,
+        "result": "OFFICIAL_LIST_SUPPORT_SEARCH_AND_DETAIL50607_200_OFFICIAL_ENCODEURI_FILE_ALSO_404"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requestCount": 1,
+        "result": "REGISTERED_PUBLIC_POST_12_SECOND_TIMEOUT",
+        "isDownloadVerified": false
+      }
+    ],
+    "downloadedFileCount": 3,
+    "downloadedBytes": 602727,
+    "profileImplementationChanged": false,
+    "oldFailureSamplesPreserved": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 190,
+      "noObservedDownloadRegionCount": 33,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 5
+    }
   },
   "seoulGangseoDownloadRun": {
     "scope": "SEOUL_GANGSEO_OFFICIAL_GET_COLLECTION_ONLY",

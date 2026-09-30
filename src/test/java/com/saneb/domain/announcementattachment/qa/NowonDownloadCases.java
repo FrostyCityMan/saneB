@@ -5,6 +5,11 @@ import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceId
 import com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.*;
 
 final class NowonDownloadCases {
+    static ObservationCase selectSupportCase(){
+        String url="https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260824152519260";
+        var normalizer=new AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("NOWON-20260824152519260","2026년 노원구 청년 창업기업 인증 및 지원계획 공고",new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,"LGS-000012","NOWON_NOTICE_TABLE"),new NowonAttachmentDiscoveryProfile(),"https://www.nowon.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11",3,TitleLayout.NOWON_BOARD);
+    }
     static ObservationCase selectCase(){
         String url="https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260915151630474";
         var normalizer=new AnnouncementSourceIdentityNormalizer();

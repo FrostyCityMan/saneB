@@ -7,6 +7,15 @@ import java.util.Set;
 
 final class SeoulFirstDownloadCases {
     static final Set<String> GROUPS = Set.of("EUNPYEONG", "SEOCHO");
+    static ObservationCase selectEunpyeongSupportCase() {
+        var old=selectCase("EUNPYEONG");
+        String url=old.source().sourceUrl().replace("not_ancmt_mgt_no=48267","not_ancmt_mgt_no=50607");
+        var n=new AnnouncementSourceIdentityNormalizer();
+        return new ObservationCase("EUNPYEONG-50607","2026년 4분기 중소기업육성기금 융자지원 계획 공고",
+                new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",n.hash(n.canonicalizeUrl(url)),url,
+                        old.source().localSourceCode(),old.source().listParserProfileCode()),
+                old.profile(),old.listUrl(),4,old.titleLayout());
+    }
     static ObservationCase selectCase(String group) {
         if (!GROUPS.contains(group)) throw new IllegalArgumentException("GROUP_REQUIRED");
         boolean ep = group.equals("EUNPYEONG"); var c = new SeoulSaeolAttachmentProfileConfiguration();

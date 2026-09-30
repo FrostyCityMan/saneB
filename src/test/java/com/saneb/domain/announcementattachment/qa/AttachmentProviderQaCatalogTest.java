@@ -445,9 +445,9 @@ class AttachmentProviderQaCatalogTest {
     @Test void nowonReferenceIsBoundToItsTargetWithoutApprovingExtraction()throws Exception{
         var selected=packagedCatalog();var result=selected.selectPrepared(scope,rules,runtimeHash,now);
         assertThat(result.plan().targets().stream().filter(t->"LOCAL_GOV_NOTICE:LGS-000012".equals(t.targetKey()))).singleElement()
-                .satisfies(t->{assertThat(t.referenceCount()).isEqualTo(1);assertThat(t.executableCount()).isZero();assertThat(t.isExpectationCoverageComplete()).isFalse();});
-        assertThat(result.plan().cases().stream().filter(c->"NOWON-20260915151630474".equals(c.caseCode()))).singleElement()
-                .satisfies(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();});
+                .satisfies(t->{assertThat(t.referenceCount()).isEqualTo(2);assertThat(t.executableCount()).isZero();assertThat(t.isExpectationCoverageComplete()).isFalse();});
+        assertThat(result.plan().cases().stream().filter(c->c.caseCode().startsWith("NOWON-"))).hasSize(2)
+                .allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();});
     }
     @Test void metroSecondReferencesRemainExactAndUnapproved()throws Exception{
         var selected=packagedCatalog();var groups=MetroSecondDownloadCases.GROUPS;
@@ -463,9 +463,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void seoulFirstReferencesRemainExactAndUnapproved()throws Exception{
         var selected=packagedCatalog();var groups=SeoulFirstDownloadCases.GROUPS;
-        var notices=packagedDefinition().notices().stream().filter(n->groups.contains(n.caseCode().split("-")[0])).toList();assertThat(notices).hasSize(2);
-        for(var notice:notices){var sample=SeoulFirstDownloadCases.selectCase(notice.caseCode().split("-")[0]);assertThat(notice.expectation()).isNull();assertThat(notice.source()).isEqualTo(sample.source());assertThat(notice.profileCode()).isEqualTo(sample.profile().selectProfileCode());}
-        var plan=selected.selectPrepared(scope,rules,runtimeHash,now).plan();assertThat(plan.cases().stream().filter(c->groups.contains(c.caseCode().split("-")[0]))).hasSize(2).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));assertThat(plan.isQaPassed()).isFalse();
+        var notices=packagedDefinition().notices().stream().filter(n->groups.contains(n.caseCode().split("-")[0])).toList();assertThat(notices).hasSize(3);
+        for(var notice:notices){var sample="EUNPYEONG-50607".equals(notice.caseCode())?SeoulFirstDownloadCases.selectEunpyeongSupportCase():SeoulFirstDownloadCases.selectCase(notice.caseCode().split("-")[0]);assertThat(notice.expectation()).isNull();assertThat(notice.source()).isEqualTo(sample.source());assertThat(notice.profileCode()).isEqualTo(sample.profile().selectProfileCode());}
+        var plan=selected.selectPrepared(scope,rules,runtimeHash,now).plan();assertThat(plan.cases().stream().filter(c->groups.contains(c.caseCode().split("-")[0]))).hasSize(3).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));assertThat(plan.isQaPassed()).isFalse();
     }
     @Test void jejuFirstReferencesRemainExactAndUnapproved()throws Exception{
         var selected=packagedCatalog();var groups=JejuFirstDownloadCases.GROUPS;
@@ -675,7 +675,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
-        assertThat(result.plan().cases()).hasSize(280);
+        assertThat(result.plan().cases()).hasSize(282);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -710,9 +710,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(218);assertThat(result.plan().cases()).hasSize(280);
+        assertThat(result.plan().targets()).hasSize(218);assertThat(result.plan().cases()).hasSize(282);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(279).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(281).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

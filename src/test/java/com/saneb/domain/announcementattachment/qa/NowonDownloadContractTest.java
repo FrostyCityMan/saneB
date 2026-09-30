@@ -65,6 +65,25 @@ class NowonDownloadContractTest {
     @Test void catalogIsReferenceOnly() throws Exception {
         var mapper=new com.fasterxml.jackson.databind.ObjectMapper();var refs=mapper.readTree(Files.readString(Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");var ref=StreamSupport.stream(refs.spliterator(),false).filter(r->sample.code().equals(r.path("caseCode").asText())).findFirst().orElseThrow();assertThat(ref.path("source")).isEqualTo(mapper.valueToTree(sample.source()));assertThat(ref.hasNonNull("expectation")).isFalse();
     }
+    @Test void additionalSupportSampleKeepsTheOldFailureIndependentAndUsesExistingTitlePolicy() throws Exception {
+        var support=NowonDownloadCases.selectSupportCase();
+        assertThat(support.code()).isNotEqualTo(sample.code());
+        assertThat(support.source().providerNoticeId()).isNotEqualTo(sample.source().providerNoticeId());
+        assertThat(support.profile().selectProfileHash()).isEqualTo(sample.profile().selectProfileHash());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NOWON_SUPPORT").map(s->s.code())).containsExactly(support.code());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases("NOWON").map(s->s.code())).containsExactly(sample.code());
+        var decision=new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationEngine().selectDecision(new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",support.title(),null,null,List.of(),com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.NONE,com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(decision)).isTrue();
+        var result=support.profile().selectDescriptors(support.source(),page(item(1,"pdf")+item(2,"hwp")+item(3,"hwp")));
+        assertThat(result.complete()).isTrue();assertThat(result.descriptors()).hasSize(support.listedFileCount());
+        assertThat(result.descriptors()).extracting(d->d.expectedFormat()).containsExactly("PDF","HWP","HWP");
+        assertThat(result.descriptors()).allSatisfy(d->assertThat(d.downloadAllowed()).isTrue());
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(support.profile());
+        assertThat(budget.maximumRequests).isEqualTo(6);assertThat(budget.maximumBytes).isEqualTo(23L*1024*1024);
+        var mapper=new com.fasterxml.jackson.databind.ObjectMapper();var refs=mapper.readTree(Files.readString(Path.of("src/main/resources/announcement-attachment/provider-qa-catalog-v2.json"))).path("notices");
+        var ref=StreamSupport.stream(refs.spliterator(),false).filter(r->support.code().equals(r.path("caseCode").asText())).findFirst().orElseThrow();
+        assertThat(ref.path("source")).isEqualTo(mapper.valueToTree(support.source()));assertThat(ref.hasNonNull("expectation")).isFalse();
+    }
     @Test @EnabledIfEnvironmentVariable(named="SANEB_NOWON_SURVEY_FIXTURE",matches="true")
     void observedZipSignatureWithHwpFilenameRemainsASeparateFormatFailure() throws Exception {
         var path=Path.of("build/qa-nowon-damyang-20260930/NOWON-file.bin");

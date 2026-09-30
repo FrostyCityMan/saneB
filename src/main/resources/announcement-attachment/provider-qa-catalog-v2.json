@@ -3,6 +3,30 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "EUNPYEONG-50607",
+      "profileCode": "LOCAL_EUNPYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a71ab8757fe847a0ed2fb56bcf625ed826b5c0ccfcd82e166537b4bbe6c908b0",
+        "sourceUrl": "https://eminwon.ep.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=50607&subCheck=Y",
+        "localSourceCode": "LGS-000013",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NOWON-20260824152519260",
+      "profileCode": "LOCAL_NOWON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0b89f9d91d577384112fdafb1bf6b6df0bb87452034c44449c5101ab9174cadb",
+        "sourceUrl": "https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260824152519260",
+        "localSourceCode": "LGS-000012",
+        "listParserProfileCode": "NOWON_NOTICE_TABLE"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "SEOUL-GANGSEO-66840",
       "profileCode": "LOCAL_SEOUL_GANGSEO_GET_V1",
       "source": {

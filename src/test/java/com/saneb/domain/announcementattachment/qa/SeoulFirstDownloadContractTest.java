@@ -72,4 +72,19 @@ class SeoulFirstDownloadContractTest {
         assertThat(s.profile().selectDescriptors(s.source(),page.replace("board2","other")).warnings()).contains("ATTACHMENT_SELECTOR_CHANGED");
         assertThat(s.profile().selectDescriptors(s.source(),page.replace("첨부파일", "관련 링크")).descriptors()).isEmpty();
     }
+    @Test void newEunpyeongSupportSampleUsesSameProfileWithoutReplacingFailedSample() throws Exception {
+        var s=SeoulFirstDownloadCases.selectEunpyeongSupportCase();var old=SeoulFirstDownloadCases.selectCase("EUNPYEONG");
+        assertThat(s.code()).isNotEqualTo(old.code());assertThat(s.source().providerNoticeId()).isNotEqualTo(old.source().providerNoticeId());
+        assertThat(s.profile().selectProfileHash()).isEqualTo(old.profile().selectProfileHash());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases("EUNPYEONG_SUPPORT").map(c->c.code())).containsExactly(s.code());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases("EUNPYEONG").map(c->c.code())).containsExactly(old.code());
+        assertThat(s.profile().selectDetailUri(s.source()).toString()).isEqualTo(s.source().sourceUrl());
+        var decision=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput("LOCAL_GOV_NOTICE",s.title(),null,null,List.of(),BodySourceCode.NONE,BodyAvailabilityCode.UNAVAILABLE),AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet());
+        assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(decision)).isTrue();
+        String html=selectPage("EUNPYEONG",IntStream.rangeClosed(1,4).mapToObj(i->selectLink(i,"hwpx")).collect(Collectors.joining())).replace(old.title(),s.title());
+        AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(html),s.title(),s.titleLayout());
+        var result=s.profile().selectDescriptors(s.source(),html);assertThat(result.complete()).isTrue();assertThat(result.descriptors()).hasSize(s.listedFileCount());
+        assertThat(result.descriptors()).allSatisfy(d->{assertThat(d.expectedFormat()).isEqualTo("HWPX");assertThat(d.downloadAllowed()).isTrue();});
+        var budget=new AnnouncementAttachmentBbsOfficialObservationTest.Budget(s.profile());assertThat(budget.maximumRequests).isEqualTo(7);assertThat(budget.maximumBytes).isEqualTo(23L*1024*1024);
+    }
 }
