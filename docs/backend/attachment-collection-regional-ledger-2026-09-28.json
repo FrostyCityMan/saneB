@@ -2111,11 +2111,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000074",
+          "caseCode": "DAEJEON_SEOGU-49944",
+          "profileCode": "LOCAL_DAEJEON_SEOGU_V1",
+          "profileHash": "1a258c07f7b62770b03a208cbb1bf5d3b252e240105c0bcb7c326dccca51226b",
+          "receiptHash": "f20063117cd24284f4f6edfe4a0ac655a992f49cc2f350e28b2861b08f9ba472",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000075",
@@ -3053,11 +3065,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000118",
+          "caseCode": "WONJU-482226",
+          "profileCode": "LOCAL_WONJU_BBS_V1",
+          "profileHash": "4b6d502a100f0b1f46283b9ffba8f89922079a1cc8514f0cdd840d658dfab7df",
+          "receiptHash": "7e22c5ff55c80547b86bb0dbf8cea7964ca593144db28d83eae272740ad73d63",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000119",
@@ -5923,9 +5947,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "11ee73fc75f2fed75ba56d5e9e0913b0196cdfb2416b375fe193b778e8cb3d8f",
+  "inputInventorySha256": "797587370b0bf23ad548febf825599a69e984339f0f0d4dbbe628ef91c113d73",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 291,
+  "importedReceiptCount": 293,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12316,6 +12340,114 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "existingSecondDownloadRun": {
+    "scope": "EXISTING_SECOND_PROFILES_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/WONJU-482226.json",
+      "build/reports/attachment-regional-collection/DAEJEON_SEOGU-49944.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "WONJU-482226",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "DAEJEON_SEOGU-49944",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 6481920,
+    "surveyRequestCount": 10,
+    "surveyGetCount": 8,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000027",
+        "requests": 1,
+        "result": "OFFICIAL_LIST_HTTP401",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000118",
+        "requests": 4,
+        "result": "OLD_REFERENCE_IS_RESULT_NOTICE_NEW_SMALL_BUSINESS_SAMPLE_SELECTED",
+        "selectedNoticeId": "482226",
+        "isDownloadVerified": true
+      },
+      {
+        "sourceCode": "LGS-000074",
+        "requests": 5,
+        "result": "PREGNANCY_TITLE_COMBINATION_NOT_MATCHED_NO_FILE_FETCH_REPLACED_WITH_SMALL_BUSINESS_SAMPLE",
+        "rejectedNoticeId": "51908",
+        "selectedNoticeId": "49944",
+        "isDownloadVerified": true
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-existing-second-20260930/BUSAN-list.html",
+        "bytes": 481,
+        "sha256": "ae7191524218a4acc29f50c77219dba0ae8c198afe234a594e412676c6ff3f51"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/SEOGU-49944.html",
+        "bytes": 968187,
+        "sha256": "60c0929f7f41f3d280707f7d74009476fa99df7dd38b7c7928952a4ef0aa590e"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/SEOGU-51908.html",
+        "bytes": 971061,
+        "sha256": "27771507181d8dbde2ef403f1ceb7a2ebb04fd4065fbdf5db5bbb955d1760577"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/SEOGU-list.html",
+        "bytes": 977247,
+        "sha256": "12fcebfb0b8d2efef6b01aa3b911e4b6594b3721e4c7cb0b26495b275bd9530c"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/SEOGU-search.html",
+        "bytes": 975497,
+        "sha256": "4fdf46d5b3f6770e5736a4013dbdeae7981b8e8ac1c29b199ef02ff3716f4666"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/SEOGU-smallbusiness.html",
+        "bytes": 974239,
+        "sha256": "aa63671bfd8722ef8401f1d1f59ca9f3cf13a4189fd1a131c2a438408fa45b83"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/WONJU-482226.html",
+        "bytes": 276979,
+        "sha256": "bd872308771f0b59193dc6b28194f4cea192e1baaefa470e402c1c4f453ea0c9"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/WONJU-491340.html",
+        "bytes": 277684,
+        "sha256": "4608f72e2451a86f344f3309ace77e0c6c146aea03cf01c30f83f798e4c7a144"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/WONJU-list.html",
+        "bytes": 285607,
+        "sha256": "0eca2f079b8c0e70aa95688c692b8cb90c97f912b5320d9ead1d85f51600c0c6"
+      },
+      {
+        "path": "build/qa-existing-second-20260930/WONJU-search.html",
+        "bytes": 284875,
+        "sha256": "0fdef6e2678a5fac406eb51e15f8cd2f0b0a33b7f66e37c51ec415f8534dc7ff"
+      }
+    ],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

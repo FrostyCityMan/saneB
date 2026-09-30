@@ -2953,6 +2953,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "WONJU-482226",
+      "profileCode": "LOCAL_WONJU_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6e9f6fa5e0460797f1e122f66668efd0885d99fd99ab9d4d0efeac10bcee4502",
+        "sourceUrl": "https://www.wonju.go.kr/www/selectBbsNttView.do?key=216&bbsNo=140&nttNo=482226",
+        "localSourceCode": "LGS-000118",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DAEJEON_SEOGU-49944",
+      "profileCode": "LOCAL_DAEJEON_SEOGU_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cbce48e21aebecca34900dbecd3dece1630fcd32f478aaf2ffff6896dad8bddf",
+        "sourceUrl": "https://www.seogu.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=49944",
+        "localSourceCode": "LGS-000074",
+        "listParserProfileCode": "SAFE_DAEJEON_DATA_KEY_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

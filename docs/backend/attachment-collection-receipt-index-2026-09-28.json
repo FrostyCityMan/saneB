@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "11ee73fc75f2fed75ba56d5e9e0913b0196cdfb2416b375fe193b778e8cb3d8f",
+  "inventorySha256": "797587370b0bf23ad548febf825599a69e984339f0f0d4dbbe628ef91c113d73",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2251,6 +2251,22 @@
       "producerClassHash": "f880cfa9bcde418254a58bc064b07818eff9de936a49b0c6d00ed6a6ab592d6d",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/WONJU-482226.json",
+      "receiptHash": "7e22c5ff55c80547b86bb0dbf8cea7964ca593144db28d83eae272740ad73d63",
+      "producerClassHash": "746ebad15f66f8f7a4f901e5072ea2c73c6a549107a52bf34c7e9be18918f1c9",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DAEJEON_SEOGU-49944.json",
+      "receiptHash": "f20063117cd24284f4f6edfe4a0ac655a992f49cc2f350e28b2861b08f9ba472",
+      "producerClassHash": "746ebad15f66f8f7a4f901e5072ea2c73c6a549107a52bf34c7e9be18918f1c9",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3680,6 +3696,33 @@
           "bytes": 66848,
           "format": "HWPX",
           "binaryHash": "1609fef7212ee7a121538f87e7d0118c2c0283d5954effe84143cb738f9b010b",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000074",
+      "caseCode": "DAEJEON_SEOGU-49944",
+      "profileCode": "LOCAL_DAEJEON_SEOGU_V1",
+      "profileHash": "1a258c07f7b62770b03a208cbb1bf5d3b252e240105c0bcb7c326dccca51226b",
+      "receiptHash": "f20063117cd24284f4f6edfe4a0ac655a992f49cc2f350e28b2861b08f9ba472",
+      "producerClassHash": "746ebad15f66f8f7a4f901e5072ea2c73c6a549107a52bf34c7e9be18918f1c9",
+      "observedAt": "2026-09-30T01:58:09.072559900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "74ea7dd8d8261cec3f4628b9e0ec01615c3fc79f7079def11db89f54fcb97cba",
+          "status": "SUCCEEDED",
+          "bytes": 107008,
+          "format": "HWP",
+          "binaryHash": "aec927743b661eb27f96606f84d9f61e27df1d98e5f25663aef8b54ae5ab3d1a",
           "signatureVerified": true
         }
       ]
@@ -8288,6 +8331,33 @@
           "bytes": 84480,
           "format": "HWP",
           "binaryHash": "5ec62af420d2d09965eb4f21517c2f698668682fde66c61d2f1e8d0b99ff625d",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000118",
+      "caseCode": "WONJU-482226",
+      "profileCode": "LOCAL_WONJU_BBS_V1",
+      "profileHash": "4b6d502a100f0b1f46283b9ffba8f89922079a1cc8514f0cdd840d658dfab7df",
+      "receiptHash": "7e22c5ff55c80547b86bb0dbf8cea7964ca593144db28d83eae272740ad73d63",
+      "producerClassHash": "746ebad15f66f8f7a4f901e5072ea2c73c6a549107a52bf34c7e9be18918f1c9",
+      "observedAt": "2026-09-30T01:57:51.686798200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "04c0982166fc94cb69384233502e5d1d7850912d9edb9fdba3b7c0e26dbbad07",
+          "status": "SUCCEEDED",
+          "bytes": 927232,
+          "format": "HWP",
+          "binaryHash": "1c89b25c3b85f0a504a9e7e8875921bfe09e28decc06c990c9fbbce18845f320",
           "signatureVerified": true
         }
       ]
