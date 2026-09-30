@@ -3229,6 +3229,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ONGJIN-36423",
+      "profileCode": "LOCAL_ONGJIN_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "05300e10d89125406c367021a271997bd0cf6b279ef5fb6ff45db9d28bf50f41",
+        "sourceUrl": "https://www.ongjin.go.kr/open_content/main/eminwon/eminwonAnnounceDetail.do?mgt_no=36423",
+        "localSourceCode": "LGS-000065",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ONGJIN-36422",
+      "profileCode": "LOCAL_ONGJIN_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "4ed48e826a5fe239086ef11d78ea000ef2188e639b53a5afb5ef9ddf6cd0440c",
+        "sourceUrl": "https://www.ongjin.go.kr/open_content/main/eminwon/eminwonAnnounceDetail.do?mgt_no=36422",
+        "localSourceCode": "LGS-000065",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

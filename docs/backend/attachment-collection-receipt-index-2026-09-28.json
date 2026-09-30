@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d943068c70ea19cda05e7d5845377d9ab06d4afbfc32b637c56fb02ff63f9de8",
+  "inventorySha256": "afde2c1a38608752aa5afb08179904ec3e3b2a1c48729f3deaa6cfca70c503ac",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2465,6 +2465,22 @@
       "path": "build/reports/attachment-regional-collection/CHUNGNAM_PROVINCE-2182547.json",
       "receiptHash": "a13b8a41f0e49ef9806b178912d737a9c30774bda7b0e928f86993582420fc08",
       "producerClassHash": "9c2a2fa3b8480d6badc3f6d9bd2788e7569c9436b8613927283c3a1cac085e81",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/ONGJIN-36423.json",
+      "receiptHash": "b4952285ac7e4a45bcfd7ff2e4c16ebd0743b498d667aae5416adb53c7d4dbcb",
+      "producerClassHash": "747e860f580c5882a43d98b91e7632ccf741756a7de491eb4fdf2cf824bbc957",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/ONGJIN-36422.json",
+      "receiptHash": "f54842f673d97ba11bc7eaf5fdcf3af0de8abf7c76ed65b908ccb40d3cc69af0",
+      "producerClassHash": "747e860f580c5882a43d98b91e7632ccf741756a7de491eb4fdf2cf824bbc957",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -7599,6 +7615,51 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000065",
+      "caseCode": "ONGJIN-36422",
+      "profileCode": "LOCAL_ONGJIN_PORTAL_V1",
+      "profileHash": "29bb91d5952324f1720a7b271b5420511113da3c025311d4e0c0589432c13e10",
+      "receiptHash": "f54842f673d97ba11bc7eaf5fdcf3af0de8abf7c76ed65b908ccb40d3cc69af0",
+      "producerClassHash": "747e860f580c5882a43d98b91e7632ccf741756a7de491eb4fdf2cf824bbc957",
+      "observedAt": "2026-09-30T07:35:25.025860900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "5a31e7a6d2ed593d96ef6370f5504ce2ff5806b84fe99ed65631ff17a76c371d",
+          "status": "SUCCEEDED",
+          "bytes": 71680,
+          "format": "HWP",
+          "binaryHash": "1d7709dea198268bba75b2dab062da01902c60a1463f56787cf41e8f4786f769",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000065",
+      "caseCode": "ONGJIN-36423",
+      "profileCode": "LOCAL_ONGJIN_PORTAL_V1",
+      "profileHash": "29bb91d5952324f1720a7b271b5420511113da3c025311d4e0c0589432c13e10",
+      "receiptHash": "b4952285ac7e4a45bcfd7ff2e4c16ebd0743b498d667aae5416adb53c7d4dbcb",
+      "producerClassHash": "747e860f580c5882a43d98b91e7632ccf741756a7de491eb4fdf2cf824bbc957",
+      "observedAt": "2026-09-30T07:26:58.097200900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000104",

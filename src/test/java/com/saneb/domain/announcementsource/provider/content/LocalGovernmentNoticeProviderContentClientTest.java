@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void ongjinBodyExcludesMetadataAndFileNames(){
+        String url="https://www.ongjin.go.kr/open_content/main/eminwon/eminwonAnnounceDetail.do?mgt_no=36423";
+        String page="<div class=board_view><p class=title>소상공인 지원</p><dl class=data>수출 부서</dl><dl class=file>투자 파일</dl><div class=con>소상공인 경영환경 개선지원<script>x()</script></div></div>";
+        for(String content:List.of(page,page+page,page.replace("class=con","class=other"),page.replace("<p class=title>소상공인 지원</p>",""))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 경영환경 개선지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void provinceBodiesExcludeMetadataAndFileNames(){
         for(boolean gn:List.of(true,false)){
             String url=gn?"https://www.gyeongnam.go.kr/index.gyeong?menuCd=DOM_000000135003009001&mode=view&sno=54749&gosiGbn=A":"https://www.chungnam.go.kr/cnportal/province/province/view.do?nttId=2182547&menuNo=500487";
