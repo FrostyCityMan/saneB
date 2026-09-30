@@ -39,15 +39,21 @@ class AnsanInjeMimeCompatibilityTest {
         assertThat(normalized.contentDisposition()).isEqualTo(disposition);
         return new AttachmentFileTypeValidator().selectFormat(output,normalized,expected,p.selectUtf8DispositionOctets(),p.selectLegacyBinaryContentTypes());
     }
-    @Test void optInIsLimitedToMeasuredSourcesAndOtherProfileHashesStayUnchanged() {
+    @Test void optInIsLimitedToMeasuredSourcesAndOtherProfilesKeepRevalidatedHashes() {
         var ansan=CapitalSixthDownloadCases.selectCase("ANSAN").profile();
         var inje=GangwonSecondDownloadCases.selectCase("INJE").profile();
         assertThat(ansan.selectLegacyBinaryContentTypes()).containsExactly("application/x-msdownload");
         assertThat(ansan.selectUtf8DispositionOctets()).isTrue();
         assertThat(inje.selectLegacyBinaryContentTypes()).containsExactly("application/x-msdownload");
         assertThat(inje.selectUtf8DispositionOctets()).isFalse();
-        assertThat(CapitalSixthDownloadCases.selectCase("SIHEUNG").profile().selectProfileHash()).isEqualTo("322e1bcba46d62483cecbbaab6a7f6102602cb173d28f22bf5227d5929fb320f");
-        assertThat(GangwonSecondDownloadCases.selectCase("YANGGU").profile().selectProfileHash()).isEqualTo("ad236849cd3a20da25b4dc4c32e66a94927478258b1fb0e205a392dccd0e3a37");
+        // 공통 전송 코드 변경 후 실파일이 확인된 지문이며 MIME 허용을 다른 기관으로 넓히지 않는다.
+        var siheung=CapitalSixthDownloadCases.selectCase("SIHEUNG").profile();
+        var yanggu=GangwonSecondDownloadCases.selectCase("YANGGU").profile();
+        assertThat(siheung.selectProfileHash()).isEqualTo("e7a34770b1cd3d5ec7eb6faf7d7a5daa79b439c3a3566ea7c75cb9e12cc36636");
+        assertThat(yanggu.selectProfileHash()).isEqualTo("21c912c9d737795fec9016f6ceb61e6a638740a9302815825d90662513a6a6f0");
+        assertThat(siheung.selectLegacyBinaryContentTypes()).isEmpty();
+        // 양구는 자체 실측 MIME 오기만 유지하며 인제의 x-msdownload 허용을 상속하지 않는다.
+        assertThat(yanggu.selectLegacyBinaryContentTypes()).containsExactly("application/octer-stream");
     }
     @ParameterizedTest @ValueSource(strings={"ANSAN","INJE"})
     @EnabledIfEnvironmentVariable(named="SANEB_ANSAN_INJE_MIME_FIXTURE",matches="true")

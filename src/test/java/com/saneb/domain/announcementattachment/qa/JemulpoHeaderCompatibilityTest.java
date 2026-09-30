@@ -18,14 +18,14 @@ class JemulpoHeaderCompatibilityTest {
     private String selectOctets(String value) {
         return new String(value.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
     }
-    @Test void onlyMeasuredSourceOptsInAndMichuholFingerprintIsPreserved() {
+    @Test void onlyMeasuredSourceOptsInAndMichuholKeepsRevalidatedFingerprint() {
         var profile = IncheonSecondDownloadCases.selectCase("JEMULPO").profile();
         assertThat(profile.selectUtf8DispositionOctets()).isTrue();
         assertThat(profile.selectLegacyBinaryContentTypes()).isEmpty();
         assertThat(profile.selectProfileHash()).isNotEqualTo("b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb");
         var other = IncheonSecondDownloadCases.selectCase("MICHUHOL").profile();
         assertThat(other.selectUtf8DispositionOctets()).isFalse();
-        assertThat(other.selectProfileHash()).isEqualTo("80d669d61bfcdc6d92ea1af53c73cde316a228cbb4317c97b17bf5f59d49006e");
+        assertThat(other.selectProfileHash()).isEqualTo("eca41b21c32d6d7a0160bfd6fa34a8069db4948d1dad816449c40db792bdb43e");
     }
     @Test void headerRecoveryDoesNotApproveMismatchControlsPathsOrHtml() throws Exception {
         var profile = IncheonSecondDownloadCases.selectCase("JEMULPO").profile();

@@ -18,14 +18,14 @@ class PajuHeaderCompatibilityTest {
     private String selectOctets(String value) {
         return new String(value.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
     }
-    @Test void onlyMeasuredSourceOptsInAndGwangmyeongFingerprintIsPreserved() {
+    @Test void onlyMeasuredSourceOptsInAndGwangmyeongKeepsRevalidatedFingerprint() {
         var profile = CapitalEighthDownloadCases.selectCase("PAJU").profile();
         assertThat(profile.selectUtf8DispositionOctets()).isTrue();
         assertThat(profile.selectLegacyBinaryContentTypes()).isEmpty();
         assertThat(profile.selectProfileHash()).isNotEqualTo("1cd76e6edda78e6cf879fe81597a399bd0c29a0641e238f336eb7c6a1b635d1b");
         var other = CapitalEighthDownloadCases.selectCase("GWANGMYEONG").profile();
         assertThat(other.selectUtf8DispositionOctets()).isFalse();
-        assertThat(other.selectProfileHash()).isEqualTo("1c53827f824f0f270c3133cebb905ef5cc4525ea5d15694ef24ebb875b7c9ba7");
+        assertThat(other.selectProfileHash()).isEqualTo("24eb801bbedca297d5a03b2d2d254cf98051491ba682dc20a516608e43f1cb33");
     }
     @Test void headerRecoveryDoesNotApproveMismatchControlsPathsOrHtml() throws Exception {
         var profile = CapitalEighthDownloadCases.selectCase("PAJU").profile();

@@ -18,14 +18,16 @@ class GeomdanHeaderCompatibilityTest {
     private String selectOctets(String value) {
         return new String(value.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
     }
-    @Test void onlyMeasuredSourceOptsInAndYeongjongFingerprintIsPreserved() {
+    @Test void onlyMeasuredSourceOptsInAndYeongjongKeepsRevalidatedFingerprint() {
         var profile = IncheonThirdDownloadCases.selectCase("GEOMDAN").profile();
         assertThat(profile.selectUtf8DispositionOctets()).isTrue();
         assertThat(profile.selectLegacyBinaryContentTypes()).isEmpty();
         assertThat(profile.selectProfileHash()).isNotEqualTo("811350257855cd256ef813ff10d10b64e2d24e6b42fc312dcde54d9bed8b3681");
         var other = IncheonThirdDownloadCases.selectCase("YEONGJONG").profile();
         assertThat(other.selectUtf8DispositionOctets()).isFalse();
-        assertThat(other.selectProfileHash()).isEqualTo("c2dc7616d6be80e3b9494fed91d321cc227d45a67d7f06356be8f675140d9318");
+        // bf623a0의 공통 Request 변경 이후 실제 파일 재검증된 영종 지문이다.
+        // 검단의 헤더 복원 옵션을 영종에 적용하거나 과거 지문을 현재 지문으로 간주하지 않는다.
+        assertThat(other.selectProfileHash()).isEqualTo("72bf1bfccd2dfd76839c936d680cf302b0d75860c348df1174c61b357f6ede35");
     }
     @Test void headerRecoveryDoesNotApproveMismatchControlsPathsOrHtml() throws Exception {
         var profile = IncheonThirdDownloadCases.selectCase("GEOMDAN").profile();
@@ -34,6 +36,9 @@ class GeomdanHeaderCompatibilityTest {
         var response=new Download(8,"a".repeat(64),"application/octet-stream;charset=UTF-8",good);
         assertThatThrownBy(()->validator.selectFormat(binary,response,"HWPX")).hasMessage("ATTACHMENT_DISPOSITION_INVALID");
         assertThat(validator.selectFormat(binary,response,"HWPX",profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes())).isEqualTo("HWPX");
+        var other=IncheonThirdDownloadCases.selectCase("YEONGJONG").profile();
+        assertThatThrownBy(()->validator.selectFormat(binary,response,"HWPX",other.selectUtf8DispositionOctets(),other.selectLegacyBinaryContentTypes()))
+                .hasMessage("ATTACHMENT_DISPOSITION_INVALID");
         for(String bad:List.of("../지원.hwpx","경로/지원.hwpx","지원\u0085.hwpx","지원\r\n.hwpx")){
             var invalid=new Download(8,"a".repeat(64),"application/octet-stream",selectOctets("attachment; filename=\""+bad+"\""));
             assertThatThrownBy(()->validator.selectFormat(binary,invalid,"HWPX",true)).hasMessage("ATTACHMENT_DISPOSITION_INVALID");
