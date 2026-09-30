@@ -1361,6 +1361,36 @@ class LocalGovernmentNoticeProviderContentClientTest {
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
     }
 
+    @Test void busanBodyAcceptsOnlyBoundedOfficialListSearchContext() {
+        String detail="?sno=79622&gosiGbn=A&curPage=1";
+        String search="&conIfmStdt=2026-04-01&conIfmEnddt=2026-10-01&conGosiGbn=A&schKeyType=A&srchText=%EC%86%8C%EC%83%81%EA%B3%B5%EC%9D%B8";
+        for(String query:List.of(detail+"&conGosiGbn=",detail+search)) {
+            var result=legalBodyResult(true,query,busanBodyHtml("소상공인 자금지원"),true);
+            assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
+            assertThat(result.bodyText()).isEqualTo("소상공인 자금지원");
+        }
+        for(String suffix:List.of("&unknown=1","&conGosiGbn=X","&schKeyType=Q","&conIfmStdt=2026-02-30","&srchText=%00","&srchText=x&srchText=y")) {
+            var result=legalBodyResult(true,detail+suffix,busanBodyHtml("소상공인 자금지원"),true);
+            assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(result.bodyText()).isNull();
+        }
+    }
+
+    @Test void busanBodyRedirectKeepsTheSameNoticeAndNeverFetchesAnotherNoticeOrDownload() {
+        String initial="https://www.busan.go.kr/nbgosi/view?sno=79622&gosiGbn=A&curPage=1&conGosiGbn=";
+        for(String next:List.of("/nbgosi/view?sno=79622&gosiGbn=A", "/nbgosi/view?sno=79644&gosiGbn=A",
+                "/nbgosi/view?sno=79622&gosiGbn=N", "/nbgosi/download?fileId=F26091517382020184&seq=0")) {
+            var transport=new StubTransport();transport.enqueue(redirect(next));transport.enqueue(html(busanBodyHtml("소상공인 자금지원")));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.busan.go.kr/nbgosi",initial));
+            if(next.equals("/nbgosi/view?sno=79622&gosiGbn=A")) {
+                assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(transport.callCount()).isEqualTo(2);
+            } else {
+                assertThat(result.failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);assertThat(result.bodyText()).isNull();
+                assertThat(transport.callCount()).isEqualTo(1);
+            }
+        }
+    }
+
     @Test void busanBodyRejectsMissingDuplicatedAndChangedDefinitions() {
         String valid = busanBodyHtml("소상공인 지원금");
         for (String page : List.of(valid.replace("class='boardView'", "class='changed'"),

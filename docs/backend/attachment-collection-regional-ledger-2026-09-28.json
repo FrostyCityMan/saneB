@@ -703,8 +703,8 @@
           "sourceCode": "LGS-000027",
           "caseCode": "BUSAN_CITY-79622",
           "profileCode": "LOCAL_BUSAN_LEGAL_GET_V1",
-          "profileHash": "88231b1721d8d60526efc38a28fe95e036556e63b753dc434939f2bf0887403c",
-          "receiptHash": "69d0a64706d7c359213eed1689f5ca1493a2bd4654f9fba8c09abb47e672617a",
+          "profileHash": "0ee023aa9e9f6f2250932fe76a74125ecd9d754c1343cdc309008a9a90efdd57",
+          "receiptHash": "68e25991cef0eeaf356fffa4cdf99c099bfe15d3ef59d76efbe2a2a7eb5a694c",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -6502,9 +6502,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "2e2f0a9dca6e8f81b03303a41eef24870c2999bbfd2456c8c2fd4603d32b5cdf",
+  "inputInventorySha256": "7a0dcd6a6497bb792c4bfd8b89801e43f828df2c87c987412fa352a4888d878d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 415,
+  "importedReceiptCount": 416,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12900,6 +12900,44 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "busanListQueryCompatibilityRun": {
+    "scope": "BUSAN_OFFICIAL_LIST_QUERY_COMPATIBILITY_COLLECTION_ONLY",
+    "baselineGitHead": "06e7dca6c3a00b01e5d0e7d8aeb7314ad81aeb88",
+    "applicationJavaChanged": true,
+    "inventorySha256": "7a0dcd6a6497bb792c4bfd8b89801e43f828df2c87c987412fa352a4888d878d",
+    "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+    "changedProfileSourceCodes": [
+      "LGS-000010",
+      "LGS-000027"
+    ],
+    "observationReport": "build/reports/attachment-regional-collection/BUSAN_CITY-79622-BUSAN-QUERY-20261001.json",
+    "receiptHash": "68e25991cef0eeaf356fffa4cdf99c099bfe15d3ef59d76efbe2a2a7eb5a694c",
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 36,
+      "noObservedDownloadRegionCount": 187,
+      "regionsWithErrors": 9,
+      "wholeSetVerifiedRegionCount": 0,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 202,
+    "historicalNeverDownloadedRegionCount": 21,
+    "historicalMilestoneIsNotCurrentCodeCoverage": true,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2896289,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 692641,
+    "bodyCharacterCount": 146,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "operatingListQueryCompatibility": "LOCAL_COLLECTOR_CONTRACT_AND_FIXED_LIVE_SOURCE_URL_VERIFIED",
+    "gangbukLiveRevalidation": "PENDING"
   },
   "busanCitySupportCollectionRun": {
     "scope": "FIXED_TITLE_ELIGIBLE_BUSAN_CITY_COLLECTION",

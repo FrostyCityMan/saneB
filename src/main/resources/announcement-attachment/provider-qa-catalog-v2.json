@@ -3499,8 +3499,8 @@
       "profileCode": "LOCAL_BUSAN_LEGAL_GET_V1",
       "source": {
         "providerCode": "LOCAL_GOV_NOTICE",
-        "providerNoticeId": "bfcbc57d99b1d97592375cedb55e12f24cd9b2329ca37e500409f7bf91da6e16",
-        "sourceUrl": "https://www.busan.go.kr/nbgosi/view?sno=79622&gosiGbn=A&curPage=1",
+        "providerNoticeId": "0eb2b0069b98edf245b40d9a29565f708a23f90956a40010b53253ddd0363f22",
+        "sourceUrl": "https://www.busan.go.kr/nbgosi/view?conGosiGbn=A&conIfmEnddt=2026-10-01&conIfmStdt=2026-04-01&curPage=1&gosiGbn=A&schKeyType=A&sno=79622&srchText=%25EC%2586%258C%25EC%2583%2581%25EA%25B3%25B5%25EC%259D%25B8",
         "localSourceCode": "LGS-000027",
         "listParserProfileCode": "SPRING_BBS"
       },

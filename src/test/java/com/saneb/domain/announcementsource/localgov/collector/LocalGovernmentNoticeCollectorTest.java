@@ -36,6 +36,32 @@ class LocalGovernmentNoticeCollectorTest {
 
     private LocalGovernmentNoticeCollector collector;
 
+    @Test void busanOfficialSearchLinksReachAttachmentProfileWithUnchangedCollectorIdentity() {
+        var source=org.mockito.Mockito.mock(LocalGovernmentNoticeSourceRow.class);
+        org.mockito.Mockito.when(source.sourceId()).thenReturn(UUID.randomUUID());
+        org.mockito.Mockito.when(source.institutionName()).thenReturn("부산광역시");
+        var parser=new LocalGovernmentNoticeParserProfileRow("SPRING_BBS","표준 게시판","SPRING_BBS",
+                "table tbody tr","td a","td:nth-last-child(2)","td a","yyyy-MM-dd","HTML",null,null,null,null,null,"AUTO",null,null,null,true);
+        String detail="/nbgosi/view?sno=79622&gosiGbn=A&curPage=1";
+        String search="&conIfmStdt=2026-04-01&conIfmEnddt=2026-10-01&conGosiGbn=A&schKeyType=A&srchText=%EC%86%8C%EC%83%81%EA%B3%B5%EC%9D%B8";
+        for(String suffix:java.util.List.of("&conGosiGbn=",search)) {
+            var page=Jsoup.parse("<table><tbody><tr><td>2026-2780</td><td><a href='"+detail+suffix+"'>소상공인 자금지원</a></td><td>"
+                    +LocalDate.now(ZoneId.of("Asia/Seoul"))+"</td><td>1</td></tr></tbody></table>","https://www.busan.go.kr/nbgosi/list");
+            var result=collector.parseDocument(source,parser,page,200,null,null,"qa-fingerprint");
+            assertThat(result.resultStatusCode()).isEqualTo("SUCCESS");
+            assertThat(result.items()).singleElement().satisfies(item->{
+                var normalizer=new AnnouncementSourceIdentityNormalizer();
+                assertThat(item.sourceUrl()).isEqualTo(normalizer.canonicalizeUrl("https://www.busan.go.kr"+detail+suffix));
+                assertThat(item.providerNoticeId()).isEqualTo(normalizer.hash(item.sourceUrl()));
+                var profile=new com.saneb.domain.announcementattachment.discovery.LegalBoardAttachmentProfileConfiguration().selectBusanLegalProfileDetails();
+                var stored=new com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile.Source(item.providerCode(),item.providerNoticeId(),item.sourceUrl(),"LGS-000027","SPRING_BBS");
+                assertThat(profile.selectDetailUri(stored).toASCIIString()).isEqualTo(item.sourceUrl());
+                assertThat(com.saneb.domain.announcementsource.provider.content.BusanLegalNoticePage.selectDetailParameters(profile.selectDetailUri(stored)))
+                        .containsEntry("sno","79622").containsEntry("gosiGbn","A");
+            });
+        }
+    }
+
     @Test void sancheongObservedTableMatchesExistingSaeolListContract(){
         var source=org.mockito.Mockito.mock(LocalGovernmentNoticeSourceRow.class);org.mockito.Mockito.when(source.sourceId()).thenReturn(UUID.randomUUID());org.mockito.Mockito.when(source.institutionName()).thenReturn("산청군");
         var profile=new LocalGovernmentNoticeParserProfileRow("SAEOL_GOSI","새올 고시공고","SAEOL_GOSI","table tbody tr","td a","td:last-child","td a","yyyy-MM-dd","HTML",null,null,null,null,null,"AUTO",null,null,null,true);

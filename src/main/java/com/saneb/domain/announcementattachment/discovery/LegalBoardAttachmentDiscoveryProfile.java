@@ -2,6 +2,7 @@ package com.saneb.domain.announcementattachment.discovery;
 
 import com.saneb.domain.announcementattachment.vo.AttachmentSetEvidence;
 import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer;
+import com.saneb.domain.announcementsource.provider.content.BusanLegalNoticePage;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -31,7 +32,8 @@ public final class LegalBoardAttachmentDiscoveryProfile implements AttachmentDow
         detailPath = busan ? "/nbgosi/view" : GANGBUK_DETAIL;
         downloadPath = busan ? "/nbgosi/download" : SAEOL_DOWNLOAD;
         hash = AttachmentProfileFingerprint.selectHash(String.join("|", "LEGAL_BOARD_GET:1", code, sourceCode,
-                detailHost, downloadHost, detailPath, downloadPath, "SPRING_BBS|https443|exact-query|unknown-role|all-files|limit10"), getClass());
+                detailHost, downloadHost, detailPath, downloadPath, "SPRING_BBS|https443|exact-query|unknown-role|all-files|limit10")
+                + (busan ? AttachmentProfileFingerprint.selectHash("BUSAN_LIST_CONTEXT:1",BusanLegalNoticePage.class) : ""), getClass());
     }
     @Override public String selectProviderCode() { return "LOCAL_GOV_NOTICE"; }
     @Override public List<SourceBinding> selectSourceBindings() { return List.of(new SourceBinding(sourceCode,"SPRING_BBS")); }
@@ -41,12 +43,25 @@ public final class LegalBoardAttachmentDiscoveryProfile implements AttachmentDow
     @Override public boolean selectUtf8DispositionOctets() { return busan; }
     @Override public boolean selectApprovedRequest(com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request request) {
         if(request==null) return false;
+        if(busan && (request.referer()!=null || request.utf8RedirectOctets())) return false;
         if("GET".equals(request.method())) return selectApprovedRequest(request.uri());
         URI uri=request.uri();
         return !busan && "POST".equals(request.method()) && "https".equals(uri.getScheme()) && downloadHost.equals(uri.getHost())
                 && (uri.getPort()==-1 || uri.getPort()==443) && uri.getUserInfo()==null && uri.getFragment()==null && uri.getRawQuery()==null
                 && uri.equals(uri.normalize()) && uri.getRawPath().equals(uri.getPath())
                 && Set.of(GANGBUK_PERIOD,GANGBUK_FINAL).contains(uri.getPath()) && selectValidForm(request.form());
+    }
+
+    @Override public boolean selectApprovedRequest(
+            com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request initial,
+            com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Request next) {
+        if(!busan) return selectApprovedRequest(next);
+        if(initial==null || !selectApprovedRequest(initial) || !selectApprovedRequest(next)
+                || !initial.uri().getPath().equals(next.uri().getPath())) return false;
+        var first=selectParameters(initial.uri().getRawQuery());var second=selectParameters(next.uri().getRawQuery());
+        return detailPath.equals(initial.uri().getPath())
+                ? BusanLegalNoticePage.selectSameNotice(initial.uri(),next.uri())
+                : first.equals(second);
     }
 
     @Override public com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.Download selectDownload(
@@ -114,10 +129,15 @@ public final class LegalBoardAttachmentDiscoveryProfile implements AttachmentDow
     @Override public URI selectDetailUri(Source source) {
         try {
             if (source == null || !selectProviderCode().equals(source.providerCode()) || !sourceCode.equals(source.localSourceCode())
-                    || !"SPRING_BBS".equals(source.listParserProfileCode()) || source.sourceUrl() == null || source.sourceUrl().length() > 4096
-                    || !normalizer.hash(normalizer.canonicalizeUrl(source.sourceUrl())).equals(source.providerNoticeId())) throw new IllegalArgumentException();
+                    || !"SPRING_BBS".equals(source.listParserProfileCode()) || source.sourceUrl() == null || source.sourceUrl().length() > 4096)
+                throw new IllegalArgumentException();
             URI uri = URI.create(source.sourceUrl());
             if (!detailHost.equals(uri.getHost()) || !detailPath.equals(uri.getPath()) || !selectApprovedRequest(uri)) throw new IllegalArgumentException();
+            // 목록 수집기의 저장 URL hash와 기존 원문 URL canonical hash를 모두 검증한다.
+            // 검색어의 percent encoding을 다시 정규화하여 기존 DB 식별자를 변경하지 않는다.
+            if(!normalizer.hash(normalizer.canonicalizeUrl(source.sourceUrl())).equals(source.providerNoticeId())
+                    && !(busan && normalizer.hash(source.sourceUrl()).equals(source.providerNoticeId())))
+                throw new IllegalArgumentException();
             return uri;
         } catch (IllegalArgumentException exception) { throw new IllegalArgumentException("PROFILE_REQUIRED"); }
     }
@@ -127,10 +147,7 @@ public final class LegalBoardAttachmentDiscoveryProfile implements AttachmentDow
                 || !uri.equals(uri.normalize()) || !uri.getRawPath().equals(uri.getPath())) return false;
         Map<String, String> values = selectParameters(uri.getRawQuery());
         if (detailHost.equals(uri.getHost()) && detailPath.equals(uri.getPath())) {
-            if (busan) return values.keySet().containsAll(Set.of("sno", "gosiGbn"))
-                    && Set.of("sno", "gosiGbn", "curPage").containsAll(values.keySet())
-                    && values.get("sno").matches("[0-9]{1,15}") && values.get("gosiGbn").matches("[A-Z]")
-                    && (!values.containsKey("curPage") || values.get("curPage").matches("[1-9][0-9]{0,6}"));
+            if (busan) return BusanLegalNoticePage.selectApprovedDetail(uri);
             return values.keySet().equals(Set.of("menuNo", "nttId")) && "200082".equals(values.get("menuNo"))
                     && values.get("nttId").matches("[0-9]{1,15}");
         }

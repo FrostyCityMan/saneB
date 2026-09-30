@@ -336,11 +336,15 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                                 redirectCount
                         );
                     }
-                    currentUri = urlValidator.selectRedirectUri(
+                    URI nextUri = urlValidator.selectRedirectUri(
                             currentUri,
                             response.selectFirstHeader("location"),
                             allowedHost
                     );
+                    if("www.busan.go.kr".equals(initialUri.getHost()) && "/nbgosi/view".equals(initialUri.getPath())
+                            && !BusanLegalNoticePage.selectSameNotice(initialUri,nextUri))
+                        return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
+                    currentUri=nextUri;
                     redirectCount++;
                     continue;
                 }
@@ -1068,11 +1072,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
     }
 
     private Element selectBusanContentElement(Document document, URI sourceUri) {
-        var parameters = selectBodyDetailParameters(sourceUri);
-        if (!parameters.keySet().containsAll(java.util.Set.of("sno", "gosiGbn"))
-                || !java.util.Set.of("sno", "gosiGbn", "curPage").containsAll(parameters.keySet())
-                || !parameters.get("sno").matches("[0-9]{1,15}") || !"A".equals(parameters.get("gosiGbn"))
-                || (parameters.containsKey("curPage") && !parameters.get("curPage").matches("[1-9][0-9]{0,6}")))
+        if (!BusanLegalNoticePage.selectApprovedDetail(sourceUri)
+                || !"A".equals(BusanLegalNoticePage.selectDetailParameters(sourceUri).get("gosiGbn")))
             throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
         var views = document.select("div.boardView");
         if (views.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
