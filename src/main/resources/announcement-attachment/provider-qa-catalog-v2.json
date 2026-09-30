@@ -3495,6 +3495,18 @@
       "expectation": null
     },
     {
+      "caseCode": "BUSAN_CITY-79622",
+      "profileCode": "LOCAL_BUSAN_LEGAL_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "bfcbc57d99b1d97592375cedb55e12f24cd9b2329ca37e500409f7bf91da6e16",
+        "sourceUrl": "https://www.busan.go.kr/nbgosi/view?sno=79622&gosiGbn=A&curPage=1",
+        "localSourceCode": "LGS-000027",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "DONGDUCHEON-45339",
       "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
       "source": {

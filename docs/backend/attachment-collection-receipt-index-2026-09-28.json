@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "7f6d6881f8b2f70781a955d5ab9e31174735bd1455400c43b6742bf7e89b419c",
+  "inventorySha256": "2e2f0a9dca6e8f81b03303a41eef24870c2999bbfd2456c8c2fd4603d32b5cdf",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -3235,6 +3235,14 @@
       "producerClassHash": "1df3a2ac93ee2d0e73aa1894eb42df316589e7a3209c1d9fa4e920415ae2a7cc",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUSAN_CITY-79622-BUSAN-CITY-20261001.json",
+      "receiptHash": "69d0a64706d7c359213eed1689f5ca1493a2bd4654f9fba8c09abb47e672617a",
+      "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -4052,6 +4060,33 @@
           "bytes": 84859,
           "format": "HWPX",
           "binaryHash": "a424970f62fb1f77195ee0265cb13ac14c71ac3579a39b824434be32daaeba39",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000027",
+      "caseCode": "BUSAN_CITY-79622",
+      "profileCode": "LOCAL_BUSAN_LEGAL_GET_V1",
+      "profileHash": "88231b1721d8d60526efc38a28fe95e036556e63b753dc434939f2bf0887403c",
+      "receiptHash": "69d0a64706d7c359213eed1689f5ca1493a2bd4654f9fba8c09abb47e672617a",
+      "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+      "observedAt": "2026-09-30T15:47:41.339392600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "a6d6f11e6b6b6cb6143739ba00b0610ca169e2d7aecdb4e8785c5d017a3097c8",
+          "status": "SUCCEEDED",
+          "bytes": 692641,
+          "format": "HWPX",
+          "binaryHash": "775f683ea8802d4b90a7fde915b587c0579626cbda984b0c471e768cc1b9b567",
           "signatureVerified": true
         }
       ]

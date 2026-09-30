@@ -694,11 +694,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000027",
+          "caseCode": "BUSAN_CITY-79622",
+          "profileCode": "LOCAL_BUSAN_LEGAL_GET_V1",
+          "profileHash": "88231b1721d8d60526efc38a28fe95e036556e63b753dc434939f2bf0887403c",
+          "receiptHash": "69d0a64706d7c359213eed1689f5ca1493a2bd4654f9fba8c09abb47e672617a",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000028",
@@ -6490,9 +6502,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "7f6d6881f8b2f70781a955d5ab9e31174735bd1455400c43b6742bf7e89b419c",
+  "inputInventorySha256": "2e2f0a9dca6e8f81b03303a41eef24870c2999bbfd2456c8c2fd4603d32b5cdf",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 414,
+  "importedReceiptCount": 415,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12888,6 +12900,41 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "busanCitySupportCollectionRun": {
+    "scope": "FIXED_TITLE_ELIGIBLE_BUSAN_CITY_COLLECTION",
+    "baselineGitHead": "bbd34f8ec61c99f200a5e492ab8c85cc8ca727d9",
+    "applicationJavaChanged": false,
+    "inventorySha256": "2e2f0a9dca6e8f81b03303a41eef24870c2999bbfd2456c8c2fd4603d32b5cdf",
+    "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+    "allProfileHashesUnchanged": true,
+    "observationReport": "build/reports/attachment-regional-collection/BUSAN_CITY-79622-BUSAN-CITY-20261001.json",
+    "receiptHash": "69d0a64706d7c359213eed1689f5ca1493a2bd4654f9fba8c09abb47e672617a",
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 36,
+      "noObservedDownloadRegionCount": 187,
+      "regionsWithErrors": 9,
+      "wholeSetVerifiedRegionCount": 0,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 202,
+    "historicalNeverDownloadedRegionCount": 21,
+    "historicalMilestoneIsNotCurrentCodeCoverage": true,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2896289,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 692641,
+    "bodyCharacterCount": 146,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "operatingListQueryCompatibility": "FOLLOW_UP_REQUIRED",
+    "localOfficialSurveyRequests": 5
   },
   "jeonnamCurrentCodeRecheckRun": {
     "scope": "CURRENT_CODE_JEONNAM_PLUS_GIMJE_RECHECK",

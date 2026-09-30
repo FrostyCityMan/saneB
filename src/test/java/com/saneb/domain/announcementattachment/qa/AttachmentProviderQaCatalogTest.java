@@ -206,6 +206,7 @@ class AttachmentProviderQaCatalogTest {
         var config=new StandardBbsAttachmentProfileConfiguration();profiles=List.of(config.selectTaebaekProfileDetails(),config.selectHoengseongProfileDetails(),config.selectYeongwolProfileDetails(),config.selectWonjuProfileDetails(),config.selectJecheonProfileDetails(),config.selectBoeunProfileDetails(),config.selectOkcheonProfileDetails(),config.selectYangpyeongProfileDetails(),config.selectCheorwonProfileDetails(),new ChungjuEminwonAttachmentDiscoveryProfile(),new SaeolGetAttachmentProfileConfiguration().selectBusanNamguProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguDalseongProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectHamanProfileDetails(),new SaeolGetAttachmentProfileConfiguration().selectDaeguJungguProfileDetails());
         var packagedProfiles=new ArrayList<>(profiles);packagedProfiles.add(new HwacheonPostAttachmentDiscoveryProfile());packagedProfiles.add(new GuroGosiAttachmentDiscoveryProfile());packagedProfiles.add(new DongnaeSaeolAttachmentDiscoveryProfile());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectBusanjinProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectGeumjeongProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectSuyeongProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectSasangProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectHaeundaeProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectGijangProfileDetails());packagedProfiles.add(new BusanBukguPostAttachmentDiscoveryProfile());packagedProfiles.add(new BusanGangseoAttachmentDiscoveryProfile());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectBusanDongguProfileDetails());packagedProfiles.add(new SahaSaeolAttachmentDiscoveryProfile());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectBusanJungguProfileDetails());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectBusanSeoguProfileDetails());packagedProfiles.add(new YeongdoAttachmentDiscoveryProfile());packagedProfiles.add(new SaeolGetAttachmentProfileConfiguration().selectSuseongProfileDetails());packagedProfiles.add(new DalseoPostAttachmentDiscoveryProfile());profiles=List.copyOf(packagedProfiles);
         var legacyConfig=new ChungbukLegacyAttachmentProfileConfiguration();var legacyProfiles=new ArrayList<>(profiles);
+        legacyProfiles.add(new LegalBoardAttachmentProfileConfiguration().selectBusanLegalProfileDetails());
         legacyProfiles.add(legacyConfig.selectJeungpyeongProfileDetails());legacyProfiles.add(legacyConfig.selectDanyangProfileDetails());profiles=List.copyOf(legacyProfiles);
         var chungcheong=new ChungcheongAttachmentProfileConfiguration();legacyProfiles.addAll(List.of(chungcheong.selectEumseongProfileDetails(),chungcheong.selectNonsanProfileDetails(),chungcheong.selectDangjinProfileDetails(),chungcheong.selectCheongyangProfileDetails()));profiles=List.copyOf(legacyProfiles);
         JeonbukFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(JeonbukFirstDownloadCases.selectCase(group).profile()));profiles=List.copyOf(legacyProfiles);
@@ -675,7 +676,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().executableCount()).isZero();
-        assertThat(result.plan().cases()).hasSize(287);
+        assertThat(result.plan().cases()).hasSize(288);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("PROFILE_CHANGED");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -710,9 +711,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(222);assertThat(result.plan().cases()).hasSize(287);
+        assertThat(result.plan().targets()).hasSize(223);assertThat(result.plan().cases()).hasSize(288);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(286).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(287).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });
