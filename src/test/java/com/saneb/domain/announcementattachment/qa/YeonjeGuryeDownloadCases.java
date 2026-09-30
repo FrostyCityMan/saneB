@@ -6,6 +6,14 @@ import com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceId
 import com.saneb.domain.announcementattachment.qa.AnnouncementAttachmentBbsOfficialObservationTest.*;
 
 final class YeonjeGuryeDownloadCases {
+    static ObservationCase selectYeonjeFirstHalfCase(){
+        var old=selectCase(true);var n=new AnnouncementSourceIdentityNormalizer();
+        String url=old.source().sourceUrl().replace("notAncmtMgtNo=43358","notAncmtMgtNo=42552");
+        return new ObservationCase("YEONJE-42552","2026년 상반기 연제구 다자녀가구 전세자금 대출이자 지원사업 시행 공고",
+                new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",n.hash(n.canonicalizeUrl(url)),url,
+                        old.source().localSourceCode(),old.source().listParserProfileCode()),
+                old.profile(),old.listUrl(),1,old.titleLayout());
+    }
     static Stream<ObservationCase> selectCases(){return Stream.of(selectCase(true),selectCase(false));}
     static ObservationCase selectCase(boolean yeonje){
         String url=yeonje?"https://www.yeonje.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=43358&mId=0206030000":"https://www.gurye.go.kr/board/GosiView.do?pageIndex=1&menuNo=115004002001&not_ancmt_se_code=01,04,06,07&not_ancmt_mgt_no=25440";

@@ -98,6 +98,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         if("EXISTING_SECOND".equals(group))return ExistingSecondDownloadCases.selectCases();
         if("SEONGNAM".equals(group))return Stream.of(SeongnamDownloadCases.selectCase());
         if("YEONJE_GURYE".equals(group))return YeonjeGuryeDownloadCases.selectCases();
+        if("YEONJE_FIRST_HALF".equals(group))return Stream.of(YeonjeGuryeDownloadCases.selectYeonjeFirstHalfCase());
         if("GWANGJU_SEOGU".equals(group))return Stream.of(GwangjuSeoguDownloadCases.selectCase());
         if(JeonbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukFirstDownloadCases.selectCase(group));
         if(JeonbukSecondDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukSecondDownloadCases.selectCase(group));

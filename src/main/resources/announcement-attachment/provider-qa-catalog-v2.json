@@ -3517,6 +3517,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONJE-42552",
+      "profileCode": "LOCAL_YEONJE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "61ec1a325a38c0904d3855c104927c218b68f5d4001b3c7b420bb64ab99102be",
+        "sourceUrl": "https://www.yeonje.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=42552&mId=0206030000",
+        "localSourceCode": "LGS-000040",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
