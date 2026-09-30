@@ -23,7 +23,7 @@ public interface AttachmentDiscoveryProfile {
     URI selectDetailUri(String providerNoticeId);
     boolean selectApprovedRequest(URI uri);
     default boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request request) {
-        return request != null && request.referer() == null && !request.utf8RedirectOctets()
+        return request != null && request.publicSession() == null && request.referer() == null && !request.utf8RedirectOctets()
                 && "GET".equals(request.method()) && selectApprovedRequest(request.uri());
     }
     /** 최초 요청에 결합된 기관은 redirect에서도 공고/파일 소속을 보존한다. 기존 기관의 계약은 유지한다. */
@@ -31,6 +31,10 @@ public interface AttachmentDiscoveryProfile {
         return selectApprovedRequest(request);
     }
     Result selectDescriptors(String providerNoticeId, String html);
+    /** 발견한 파일의 시스템 다운로드 절차. 외부 입력으로 세션·헤더를 지정하지 않는다. */
+    default AttachmentPinnedDownloadClient.Request selectDownloadRequest(Descriptor descriptor) {
+        return descriptor.selectRequest();
+    }
 
     /** URL hash를 notice ID로 쓰는 지자체는 시스템 source 연결과 실제 상세 주소를 함께 검증한다. */
     default URI selectDetailUri(Source source) {

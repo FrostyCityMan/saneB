@@ -12,6 +12,26 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class GyeongbukThirdDownloadContractTest {
+    @org.junit.jupiter.api.Test void seongjuUsesFreshPublicDetailAndOnlyItsExactRecognizedFile(){
+        var s=GyeongbukThirdDownloadCases.selectCase("SEONGJU");var p=s.profile();
+        String html=selectPage("SEONGJU",selectLink("SEONGJU",1,"hwp"));
+        var descriptor=p.selectDescriptors(s.source(),html).descriptors().getFirst();var request=p.selectDownloadRequest(descriptor);
+        assertThat(request.publicSession()).isNotNull();assertThat(p.selectApprovedRequest(request)).isTrue();
+        assertThat(p.selectApprovedRequest(request,Request.selectGet(p.selectDetailUri(s.source())))).isTrue();
+        assertThat(p.selectApprovedRequest(request,Request.selectGet(URI.create(s.source().sourceUrl().replace("586507","999"))))).isFalse();
+        assertThat(request.publicSession().approvedDocument().test(html)).isTrue();
+        assertThat(request.publicSession().approvedDocument().test(html.replace("file_uid=1","file_uid=2"))).isFalse();
+        assertThat(request.publicSession().approvedDocument().test(html.replace("공고1","다른파일"))).isFalse();
+        assertThat(request.publicSession().approvedDocument().test("<a href='"+descriptor.fetchUri()+"'>공고1.hwp</a>")).isFalse();
+        assertThat(request.toString()).doesNotContain("586507","file_uid");
+        assertThat(request.publicSession().toString()).doesNotContain("586507","JSESSIONID");
+        var budget=AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(p,true,false);
+        assertThat(budget.maximumRequests).isEqualTo(7);assertThat(budget.maximumBytes).isEqualTo(23L*1024*1024);
+        for(String group:List.of("YEONGJU","YECHEON")){
+            var other=GyeongbukThirdDownloadCases.selectCase(group);var d=other.profile().selectDescriptors(other.source(),selectPage(group,selectLink(group,1,"pdf"))).descriptors().getFirst();
+            assertThat(other.profile().selectDownloadRequest(d).publicSession()).isNull();
+        }
+    }
     @org.junit.jupiter.api.Test void yeongjuRedirectRequiresItsOfficialDownloadAndFixedPublicDirectory(){
         var s=GyeongbukThirdDownloadCases.selectCase("YEONGJU");var p=s.profile();var initial=p.selectDescriptors(s.source(),selectPage("YEONGJU",selectLink("YEONGJU",1,"pdf"))).descriptors().getFirst().selectRequest();
         var next=Request.selectGet(URI.create("https://eminwon.yeongju.go.kr/emwp/jsp/ofr/FileDown.jsp?user_file_nm=notice.pdf&sys_file_nm=stored.pdf&file_path=%2Fntishome%2Ffile%2Fupload%2Fofr%2Fofr%2F20260929"));

@@ -58,13 +58,40 @@ final class GyeongbukThirdAttachmentDiscoveryProfile implements AttachmentDiscov
         return site==Site.YEONGJU?q.keySet().equals(Set.of(fileKey,idKey))&&selectId(q.get(idKey)):q.keySet().equals(Set.of(fileKey));
     }
     @Override public boolean selectApprovedRequest(Request r){
-        if(r==null)return false;if("GET".equals(r.method()))return selectApprovedRequest(r.uri());
+        if(r==null||r.referer()!=null||r.utf8RedirectOctets())return false;
+        if(r.publicSession()!=null){
+            var plan=r.publicSession();
+            if(site!=Site.SEONGJU||!"GET".equals(r.method())||!downloadPath.equals(r.uri().getPath())
+                    ||!plan.cookieNames().equals(Set.of("JSESSIONID","LENA-UID","L-VISITOR"))
+                    ||!selectApprovedRequest(plan.detailUri())||!detailPath.equals(plan.detailUri().getPath())
+                    ||!"258".equals(selectQuery(plan.detailUri().getRawQuery()).get("cmd")))return false;
+        }
+        if("GET".equals(r.method()))return selectApprovedRequest(r.uri());
         var f=r.form();return site==Site.YECHEON&&"POST".equals(r.method())&&selectSafeUri(r.uri())&&"eminwon.ycg.kr".equals(r.uri().getHost())&&downloadPath.equals(r.uri().getPath())&&r.uri().getRawQuery()==null&&f.keySet().equals(FIELDS)&&selectName(f.get("user_file_nm"))&&selectOpaque(f.get("sys_file_nm"))&&f.get("file_path").matches("/ntisho[A-Za-z0-9+/]{43,}={0,2}");
     }
     @Override public boolean selectApprovedRequest(Request initial,Request next){
         if(initial==null||next==null||!selectApprovedRequest(initial)||!selectApprovedRequest(next))return false;
         if(initial.equals(next))return true;
+        if(site==Site.SEONGJU&&initial.publicSession()!=null)return next.publicSession()==null
+                &&next.equals(Request.selectGet(initial.publicSession().detailUri()));
         return site==Site.YEONGJU&&host.equals(initial.uri().getHost())&&downloadPath.equals(initial.uri().getPath())&&"eminwon.yeongju.go.kr".equals(next.uri().getHost())&&"/emwp/jsp/ofr/FileDown.jsp".equals(next.uri().getPath());
+    }
+    @Override public Request selectDownloadRequest(Descriptor descriptor){
+        if(site!=Site.SEONGJU)return descriptor.selectRequest();
+        if(descriptor==null||!descriptor.downloadAllowed()||!code.equals(descriptor.locator().profileCode())
+                ||!downloadPath.equals(descriptor.locator().path())||!downloadPath.equals(descriptor.fetchUri().getPath())
+                ||!selectApprovedRequest(descriptor.selectRequest()))throw new IllegalArgumentException("PROFILE_REQUIRED");
+        var ids=descriptor.locator().identifiers();
+        if(!ids.keySet().equals(Set.of("noticeId","attachmentId"))||!selectId(ids.get("noticeId"))
+                ||!Objects.equals(ids.get("attachmentId"),selectQuery(descriptor.fetchUri().getRawQuery()).get(fileKey)))
+            throw new IllegalArgumentException("PROFILE_REQUIRED");
+        URI detail=URI.create("https://"+host+detailPath+"?mnu_uid="+menu+"&bod_uid="+ids.get("noticeId")+"&cmd=258");
+        var source=new Source(selectProviderCode(),normalizer.hash(normalizer.canonicalizeUrl(detail.toString())),detail.toString(),sourceCode,parserCode);
+        var plan=new com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDownloadClient.PublicSessionPlan(
+                detail,Set.of("JSESSIONID","LENA-UID","L-VISITOR"),html->selectDescriptors(source,html).descriptors().stream()
+                    .anyMatch(found->found.downloadAllowed()&&found.fetchUri().equals(descriptor.fetchUri())
+                            &&found.locator().equals(descriptor.locator())&&found.displayName().equals(descriptor.displayName())));
+        return new Request(descriptor.fetchUri(),"GET",Map.of(),null,false,plan);
     }
     @Override public Result selectDescriptors(Source source,String html){
         URI detail=selectDetailUri(source);if(html==null||html.length()>1_000_000)return selectFailed("ATTACHMENT_DETAIL_UNAVAILABLE");

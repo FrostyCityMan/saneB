@@ -30,6 +30,28 @@ import org.mockito.ArgumentCaptor;
 
 /** 연결/순서/정리 회귀. HTTP와 Linux 추출은 mock이며 실제 파일 운영 QA와 구분한다. */
 class AnnouncementAttachmentWorkerServiceTest {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "ATTACHMENT_PUBLIC_SESSION_LINK_CHANGED,DISCOVERY_CHANGED",
+            "ATTACHMENT_PUBLIC_SESSION_DETAIL_INVALID,DISCOVERY_FAILED",
+            "ATTACHMENT_PUBLIC_SESSION_EXPIRED,NETWORK_TIMEOUT",
+            "ATTACHMENT_PUBLIC_SESSION_COOKIE_MISSING,DOWNLOAD_BLOCKED",
+            "ATTACHMENT_PUBLIC_SESSION_HEADER_LIMIT,LIMIT_EXCEEDED"})
+    void publicSessionFailureKeepsItsStageAndOtherSuccessfulFiles(String message, AttachmentFailureCode expected) throws Exception {
+        var gateway=mock(AttachmentDownloadGateway.class);
+        when(gateway.selectDownload(any(),any(),any(),any(),anyLong(),any())).thenAnswer(call->{
+            var request=call.getArgument(2,AttachmentPinnedDownloadClient.Request.class);
+            if(request.uri().getRawQuery()!=null&&request.uri().getRawQuery().endsWith("fileSn=1")){
+                ((Runnable)call.getArgument(5)).run();throw new IOException(message);
+            }
+            return downloads.selectDownload(call.getArgument(0),call.getArgument(1),call.getArgument(2),call.getArgument(3),call.getArgument(4),call.getArgument(5));
+        });
+        worker=selectWorker(gateway);
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var files=selectSaved().files();assertThat(files).hasSize(3);
+        assertThat(files.get(0).downloadStatus()).isEqualTo("SUCCEEDED");assertThat(files.get(2).downloadStatus()).isEqualTo("SUCCEEDED");
+        assertThat(files.get(1).failureCode()).isEqualTo(expected);verify(extractor,times(2)).selectExtraction(any());assertTemporaryEmpty();
+    }
     @Test void jsonResponseIsNotAcceptedByExistingHtmlWorkerProfile() throws Exception {
         doAnswer(call->{((Runnable)call.getArgument(5)).run();Path path=call.getArgument(3);Files.writeString(path,"{}");return new AttachmentPinnedDownloadClient.Download(2,"a".repeat(64),"application/json");}).when(downloads).selectDownload(any(),any(),any(),any(),anyLong(),any());
         assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");var saved=selectSaved();assertThat(saved.discoveryComplete()).isFalse();assertThat(saved.files()).isEmpty();assertThat(saved.warningCodes()).contains("DISCOVERY_FAILED");verifyNoInteractions(extractor);assertTemporaryEmpty();

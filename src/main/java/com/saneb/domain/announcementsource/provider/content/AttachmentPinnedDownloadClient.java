@@ -46,7 +46,19 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         @Override public String toString() { return "Download[bytes=" + bytes + ",sha256=" + sha256 + "]"; }
     }
     /** 검증된 시스템 프로필만 생성하는 일회성 요청. POST 본문/URL은 저장하거나 로그로 출력하지 않는다. */
-    public record Request(URI uri, String method, Map<String, String> form, URI referer, boolean utf8RedirectOctets) {
+    public record PublicSessionPlan(URI detailUri, Set<String> cookieNames, Predicate<String> approvedDocument) {
+        public PublicSessionPlan {
+            if (detailUri == null || cookieNames == null || approvedDocument == null)
+                throw new IllegalArgumentException("ATTACHMENT_PUBLIC_SESSION_INVALID");
+            cookieNames = Set.copyOf(cookieNames);
+        }
+        @Override public String toString() { return "PublicSessionPlan[requestValues=REDACTED]"; }
+    }
+    public record Request(URI uri, String method, Map<String, String> form, URI referer, boolean utf8RedirectOctets,
+                          PublicSessionPlan publicSession) {
+        public Request(URI uri, String method, Map<String, String> form, URI referer, boolean utf8RedirectOctets) {
+            this(uri, method, form, referer, utf8RedirectOctets, null);
+        }
         public Request(URI uri, String method, Map<String, String> form) { this(uri, method, form, null, false); }
         public Request(URI uri, String method, Map<String, String> form, URI referer) { this(uri, method, form, referer, false); }
         public Request {
@@ -67,6 +79,13 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
                 throw new IllegalArgumentException("ATTACHMENT_REFERER_INVALID");
             if (utf8RedirectOctets && (referer == null || !"GET".equals(method)))
                 throw new IllegalArgumentException("ATTACHMENT_REDIRECT_ENCODING_INVALID");
+            if (publicSession != null) {
+                if (!"GET".equals(method) || referer != null || utf8RedirectOctets)
+                    throw new IllegalArgumentException("ATTACHMENT_PUBLIC_SESSION_INVALID");
+                try (var boundary = new AttachmentPublicSessionCookies(publicSession.detailUri(), uri, publicSession.cookieNames())) {
+                    // URI·동일 origin·이름 제한을 요청 생성 시에도 확인한다. 쿠키 값은 요청 객체에 넣지 않는다.
+                }
+            }
             int bytes = 0;
             for (var entry : form.entrySet()) {
                 if (entry.getKey() == null || !entry.getKey().matches("[A-Za-z_][A-Za-z0-9_]{0,63}")
@@ -92,17 +111,27 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
     @FunctionalInterface interface RequestTransport {
         Reply selectResponse(ProviderContentRequestTarget target, Request request, Duration remaining, ResponseHandler handler) throws IOException;
     }
+    @FunctionalInterface interface SessionTransport {
+        Reply selectResponse(ProviderContentRequestTarget target, Request request, Duration remaining,
+                             ResponseHandler handler, String cookieHeader) throws IOException;
+    }
     record Response(int status, String redirect, long contentLength, String contentType,
-                    String encoding, InputStream body, String contentDisposition) {
+                    String encoding, InputStream body, String contentDisposition, java.util.List<String> cookies) {
+        Response(int status, String redirect, long contentLength, String contentType, String encoding,
+                 InputStream body, String contentDisposition) {
+            this(status, redirect, contentLength, contentType, encoding, body, contentDisposition, java.util.List.of());
+        }
         Response(int status, String redirect, long contentLength, String contentType, String encoding, InputStream body) {
             this(status, redirect, contentLength, contentType, encoding, body, null);
         }
+        @Override public String toString() { return "AttachmentResponse[status=" + status + ",headers=REDACTED]"; }
     }
     record Reply(String redirect, Download download) { }
 
     private static final long FILE_BYTE_LIMIT = 20L * 1024 * 1024;
     private final ProviderContentUrlValidator validator;
     private final RequestTransport transport;
+    private final SessionTransport sessionTransport;
     private final Duration totalTimeout;
     // 지연된 OS DNS 호출은 HTTP로 이어지지 않으며 대기열/스레드를 무제한 생성하지 않습니다.
     private final ThreadPoolExecutor resolvers = new ThreadPoolExecutor(0, 2, 1, TimeUnit.SECONDS,
@@ -112,7 +141,8 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         this(new ProviderContentUrlValidator(InetAddress::getAllByName));
     }
     AttachmentPinnedDownloadClient(ProviderContentUrlValidator validator) {
-        this(validator, AttachmentPinnedDownloadClient::selectHttpResponse, Duration.ofSeconds(30));
+        this(validator, AttachmentPinnedDownloadClient::selectHttpResponse,
+                AttachmentPinnedDownloadClient::selectHttpResponse, Duration.ofSeconds(30));
     }
     AttachmentPinnedDownloadClient(ProviderContentUrlValidator validator, Transport transport, Duration totalTimeout) {
         this(validator, (target, request, remaining, handler) -> {
@@ -121,10 +151,21 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         }, totalTimeout);
     }
     AttachmentPinnedDownloadClient(ProviderContentUrlValidator validator, RequestTransport transport, Duration totalTimeout) {
+        this(validator, transport, (target, request, remaining, handler, cookies) -> {
+            throw new IOException("ATTACHMENT_PUBLIC_SESSION_TRANSPORT_REQUIRED");
+        }, totalTimeout);
+    }
+    AttachmentPinnedDownloadClient(ProviderContentUrlValidator validator, SessionTransport transport, Duration totalTimeout) {
+        this(validator, (target, request, remaining, handler) -> transport.selectResponse(target, request, remaining, handler, null),
+                transport, totalTimeout);
+    }
+    private AttachmentPinnedDownloadClient(ProviderContentUrlValidator validator, RequestTransport transport,
+                                           SessionTransport sessionTransport, Duration totalTimeout) {
         if (totalTimeout.isNegative() || totalTimeout.isZero() || totalTimeout.compareTo(Duration.ofSeconds(30)) > 0)
             throw new IllegalArgumentException("첨부 요청 제한시간은 0초 초과 30초 이하여야 합니다.");
         this.validator = validator;
         this.transport = transport;
+        this.sessionTransport = sessionTransport;
         this.totalTimeout = totalTimeout;
     }
 
@@ -141,6 +182,8 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
 
     public Download selectDownload(Request initial, Set<String> approvedHosts, Predicate<Request> approvedRequest,
                                    Path output, long remainingSourceBytes, ByteReservation budget) throws IOException {
+        if (initial.publicSession() != null)
+            return selectPublicSessionDownload(initial, approvedHosts, approvedRequest, output, remainingSourceBytes, budget);
         long byteLimit = Math.min(FILE_BYTE_LIMIT, remainingSourceBytes);
         if (byteLimit <= 0) throw new IOException("SOURCE_BYTE_LIMIT");
         long deadline = System.nanoTime() + totalTimeout.toNanos();
@@ -185,6 +228,100 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         } finally {
             // DB callback/검증 오류에서도 이 호출이 만든 부분파일만 정리합니다.
             if (!succeeded && createdOutput[0]) Files.deleteIfExists(output);
+        }
+    }
+
+    /** 공개 상세와 파일을 합쳐 30초·2요청·원래 바이트 예산 안에서 처리한다. redirect는 허용하지 않는다. */
+    private Download selectPublicSessionDownload(Request initial, Set<String> hosts, Predicate<Request> approved,
+                                                 Path output, long maximumBytes, ByteReservation budget) throws IOException {
+        long limit = Math.min(FILE_BYTE_LIMIT, maximumBytes);
+        if (limit <= 0) throw new IOException("SOURCE_BYTE_LIMIT");
+        if (Files.exists(output, java.nio.file.LinkOption.NOFOLLOW_LINKS)) throw new IOException("ATTACHMENT_OUTPUT_EXISTS");
+        long deadline = System.nanoTime() + totalTimeout.toNanos();
+        boolean[] created = {false};
+        boolean success = false;
+        var plan = initial.publicSession();
+        try (var cookies = new AttachmentPublicSessionCookies(plan.detailUri(), initial.uri(), plan.cookieNames())) {
+            Request bootstrap = Request.selectGet(plan.detailUri());
+            validatePublicSessionRequest(bootstrap, hosts, approved);
+            long[] detailBytes = {0};
+            sessionTransport.selectResponse(selectTarget(bootstrap.uri(), deadline), bootstrap, selectRemaining(deadline), response -> {
+                validatePublicSessionResponse(response);
+                if (response.contentType() == null || !"text/html".equalsIgnoreCase(response.contentType().split(";", 2)[0].strip()))
+                    throw new IOException("ATTACHMENT_PUBLIC_SESSION_DETAIL_INVALID");
+                byte[] bytes = selectPublicDetailBytes(response, Math.min(2L * 1024 * 1024, limit), budget, deadline);
+                detailBytes[0] = bytes.length;
+                String html;
+                try {
+                    html = StandardCharsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                            .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(bytes)).toString();
+                } catch (java.nio.charset.CharacterCodingException failure) {
+                    throw new IOException("ATTACHMENT_PUBLIC_SESSION_DETAIL_INVALID");
+                }
+                if (!plan.approvedDocument().test(html)) throw new IOException("ATTACHMENT_PUBLIC_SESSION_LINK_CHANGED");
+                cookies.saveBootstrapCookies(bootstrap.uri(), response.cookies());
+                return new Reply(null, null);
+            }, null);
+            selectRemaining(deadline);
+            long fileLimit = limit - detailBytes[0];
+            if (fileLimit <= 0) throw new IOException("SOURCE_BYTE_LIMIT");
+            validatePublicSessionRequest(initial, hosts, approved);
+            String header = cookies.selectDownloadCookieHeader(initial.uri());
+            Reply reply = sessionTransport.selectResponse(selectTarget(initial.uri(), deadline), initial, selectRemaining(deadline), response -> {
+                validatePublicSessionResponse(response);
+                if (response.contentLength() > fileLimit || response.contentDisposition() != null && response.contentDisposition().length() > 2000)
+                    throw new IOException("ATTACHMENT_BYTE_LIMIT");
+                return new Reply(null, saveBody(response, output, fileLimit, budget, deadline, created));
+            }, header);
+            selectRemaining(deadline);
+            if (reply.download() == null) throw new IOException("ATTACHMENT_PUBLIC_SESSION_FILE_INVALID");
+            success = true;
+            return reply.download();
+        } catch (ProviderContentValidationException | IllegalArgumentException failure) {
+            throw new IOException("ATTACHMENT_PUBLIC_SESSION_INVALID");
+        } finally {
+            if (!success && created[0]) Files.deleteIfExists(output);
+        }
+    }
+
+    private void validatePublicSessionRequest(Request request, Set<String> hosts, Predicate<Request> approved) throws IOException {
+        if (!hosts.contains(request.uri().getHost().toLowerCase(Locale.ROOT))) throw new IOException("ATTACHMENT_HOST_NOT_APPROVED");
+        if (!approved.test(request)) throw new IOException("ATTACHMENT_PATH_NOT_APPROVED");
+    }
+
+    private void validatePublicSessionResponse(Response response) throws IOException {
+        if (response.status() != 200) throw new IOException("ATTACHMENT_HTTP_" + response.status());
+        if (response.body() == null) throw new IOException("ATTACHMENT_EMPTY_FILE");
+        if (response.encoding() != null && !"identity".equalsIgnoreCase(response.encoding()))
+            throw new IOException("ATTACHMENT_ENCODING_UNSUPPORTED");
+    }
+
+    private byte[] selectPublicDetailBytes(Response response, long limit, ByteReservation budget, long deadline) throws IOException {
+        if (response.contentLength() > limit) throw new IOException("ATTACHMENT_BYTE_LIMIT");
+        try (var bytes = new java.io.ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            long reserved = 0;
+            long credit = 0;
+            while (response.contentLength() < 0 || bytes.size() < response.contentLength()) {
+                selectRemaining(deadline);
+                if (credit == 0) {
+                    long count = Math.min(buffer.length, limit - reserved);
+                    if (response.contentLength() >= 0) count = Math.min(count, response.contentLength() - bytes.size());
+                    if (count <= 0 || !budget.reserve(count)) throw new IOException("SOURCE_BYTE_LIMIT");
+                    reserved += count;
+                    credit = count;
+                }
+                int read = response.body().read(buffer, 0, (int) Math.min(buffer.length, credit));
+                if (read < 0) {
+                    if (response.contentLength() >= 0 && response.contentLength() != bytes.size())
+                        throw new IOException("ATTACHMENT_TRUNCATED_FILE");
+                    break;
+                }
+                bytes.write(buffer, 0, read);
+                credit -= read;
+            }
+            if (bytes.size() == 0) throw new IOException("ATTACHMENT_EMPTY_FILE");
+            return bytes.toByteArray();
         }
     }
 
@@ -273,6 +410,10 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
 
     private static Reply selectHttpResponse(ProviderContentRequestTarget target, Request selected, Duration remaining,
                                              ResponseHandler handler) throws IOException {
+        return selectHttpResponse(target, selected, remaining, handler, null);
+    }
+    private static Reply selectHttpResponse(ProviderContentRequestTarget target, Request selected, Duration remaining,
+                                             ResponseHandler handler, String cookieHeader) throws IOException {
         long timeoutMillis = Math.max(1, remaining.toMillis());
         var manager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setDnsResolver(new PinnedProviderContentHttpTransport.PinnedDnsResolver(target))
@@ -293,6 +434,7 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         request.setHeader("Accept-Encoding", "identity");
         request.setHeader("User-Agent", "saneB-attachment-collector/1.0");
         if (selected.referer() != null) request.setHeader("Referer", selected.referer().toASCIIString());
+        if (cookieHeader != null) request.setHeader("Cookie", cookieHeader);
         try (var watchdog = Executors.newSingleThreadScheduledExecutor();
              var client = HttpClients.custom().setConnectionManager(manager).disableRedirectHandling()
                      .disableAutomaticRetries().disableCookieManagement().disableContentCompression().build()) {
@@ -307,7 +449,8 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
                         return handler.handle(new Response(response.getCode(), redirect == null ? null : redirect.getValue(),
                                 entity == null ? 0 : entity.getContentLength(), entity == null ? null : entity.getContentType(),
                                 encoding == null ? null : encoding.getValue(), entity == null ? null : entity.getContent(),
-                                disposition == null ? null : disposition.getValue()));
+                                disposition == null ? null : disposition.getValue(),
+                                java.util.Arrays.stream(response.getHeaders("Set-Cookie")).map(org.apache.hc.core5.http.Header::getValue).toList()));
                     } finally {
                         // redirect/오류 body를 라이브러리의 연결 재사용 정리 단계에서 무제한 drain하지 않습니다.
                         request.cancel();

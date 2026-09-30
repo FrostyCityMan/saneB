@@ -19,7 +19,8 @@ public final class AttachmentProfileFingerprint {
                     com.saneb.domain.announcementattachment.worker.AttachmentFileTypeValidator.class,
                     com.saneb.domain.announcementattachment.worker.AttachmentDownloadGateway.class,
                     AttachmentDownloadFlowProfile.class, AttachmentDownloadFlowProfile.Operation.class, AttachmentProfileDownloadFlow.class, AttachmentProfileDownloadFlow.Transport.class,
-                    AttachmentPinnedDownloadClient.class, AttachmentPinnedDownloadClient.Request.class));
+                    AttachmentPinnedDownloadClient.class, AttachmentPinnedDownloadClient.Request.class,
+                    AttachmentPinnedDownloadClient.PublicSessionPlan.class));
             for (Class<?> type : classes) {
                 String binaryName = type.getName().substring(type.getName().lastIndexOf('.') + 1) + ".class";
                 try (var stream = type.getResourceAsStream(binaryName)) {
@@ -31,11 +32,14 @@ public final class AttachmentProfileFingerprint {
                 }
             }
             // package-private 검증기의 가시성을 넓히지 않고 같은 패키지의 class resource를 고정한다.
-            try (var stream = AttachmentPinnedDownloadClient.class.getResourceAsStream("ProviderContentUrlValidator.class")) {
+            for(String resource : List.of("ProviderContentUrlValidator.class", "AttachmentPublicSessionCookies.class",
+                    "AttachmentPublicSessionCookies$Entry.class", "AttachmentPublicSessionCookies$State.class",
+                    "AttachmentPinnedDownloadClient$Response.class", "AttachmentPinnedDownloadClient$SessionTransport.class"))
+            try (var stream = AttachmentPinnedDownloadClient.class.getResourceAsStream(resource)) {
                 if (stream == null) throw new IllegalStateException("첨부 URL 검증 코드를 확인할 수 없습니다.");
                 byte[] bytes = stream.readNBytes(1024 * 1024 + 1);
                 if (bytes.length > 1024 * 1024) throw new IllegalStateException("첨부 URL 검증 코드가 한도를 초과했습니다.");
-                digest.update("ProviderContentUrlValidator".getBytes(StandardCharsets.UTF_8));
+                digest.update(resource.getBytes(StandardCharsets.UTF_8));
                 digest.update(bytes);
             }
             return HexFormat.of().formatHex(digest.digest());

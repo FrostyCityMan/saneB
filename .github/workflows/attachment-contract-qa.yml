@@ -86,7 +86,7 @@ jobs:
       - name: 충북 고정1공고 파일 호환 재검증 — 최대 6요청·23MiB
         if: ${{ contains(github.event.head_commit.message, '[chungbuk-file-recheck-01]') && !contains(github.event.head_commit.message, '[regional-transport-observation-01]') && !contains(github.event.head_commit.message, '[pending-regions-linux-01]') }}
         run: bash ./gradlew :attachmentRegionalCollectionObservation -PsanebBbsObservationGroup=CHUNGBUK -PsanebCollectionReportLabel=CHUNGBUK-FILE-01 --no-daemon --console=plain --max-workers=1
-      - name: 잔여 12수집원 파일 관측 — 최대 74요청·276MiB
+      - name: 잔여 12수집원 파일 관측 — 최대 75요청·276MiB
         if: ${{ contains(github.event.head_commit.message, '[pending-regions-linux-01]') && !contains(github.event.head_commit.message, '[regional-transport-observation-01]') && !contains(github.event.head_commit.message, '[chungbuk-file-recheck-01]') }}
         run: |
           set -uo pipefail

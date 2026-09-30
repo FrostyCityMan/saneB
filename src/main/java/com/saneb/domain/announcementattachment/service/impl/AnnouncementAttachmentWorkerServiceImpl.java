@@ -195,7 +195,7 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
                 descriptor.documentRole(),origin,"BLOCKED",0,null,AttachmentFailureCode.UNSUPPORTED_FORMAT,null);
         AttachmentPinnedDownloadClient.Download downloaded = null;
         try {
-            downloaded = downloads.selectDownload(job,profile,descriptor.selectRequest(),workspace.selectBinaryPath(),20L*1024*1024,
+            downloaded = downloads.selectDownload(job,profile,profile.selectDownloadRequest(descriptor),workspace.selectBinaryPath(),20L*1024*1024,
                     () -> requestStarted[0]=true);
             String format = types.selectFormat(workspace.selectBinaryPath(),downloaded,descriptor.expectedFormat(),
                     profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
@@ -264,6 +264,10 @@ public class AnnouncementAttachmentWorkerServiceImpl implements AnnouncementAtta
         if (code.matches("ATTACHMENT_HTTP_5[0-9]{2}")) return AttachmentFailureCode.HTTP_SERVER_ERROR;
         if (code.contains("TIMEOUT") || exception instanceof java.net.SocketTimeoutException) return AttachmentFailureCode.NETWORK_TIMEOUT;
         if (code.contains("LIMIT")) return AttachmentFailureCode.LIMIT_EXCEEDED;
+        if (code.equals("ATTACHMENT_PUBLIC_SESSION_LINK_CHANGED")) return AttachmentFailureCode.DISCOVERY_CHANGED;
+        if (code.equals("ATTACHMENT_PUBLIC_SESSION_DETAIL_INVALID")) return AttachmentFailureCode.DISCOVERY_FAILED;
+        if (code.equals("ATTACHMENT_PUBLIC_SESSION_EXPIRED")) return AttachmentFailureCode.NETWORK_TIMEOUT;
+        if (code.startsWith("ATTACHMENT_PUBLIC_SESSION_")) return AttachmentFailureCode.DOWNLOAD_BLOCKED;
         if (code.contains("SIGNATURE_UNSUPPORTED")) return AttachmentFailureCode.UNSUPPORTED_FORMAT;
         if (code.contains("MISMATCH") || code.contains("BLOCKED") || code.contains("NOT_APPROVED")
                 || code.contains("DISPOSITION") || code.contains("REDIRECT")) return AttachmentFailureCode.DOWNLOAD_BLOCKED;

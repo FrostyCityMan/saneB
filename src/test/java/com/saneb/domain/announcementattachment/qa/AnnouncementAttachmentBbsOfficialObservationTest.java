@@ -616,7 +616,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                 if(!descriptor.downloadAllowed()) {row.put("status","UNSUPPORTED_NOT_DOWNLOADED");files.add(incompleteFile("UNSUPPORTED"));continue;}
                 var transfer=new ObservationDownloadTrace();
                 try {
-                    stage="FILE_DOWNLOAD";var fileRequest=descriptor.selectRequest();
+                    stage="FILE_DOWNLOAD";var fileRequest=profile.selectDownloadRequest(descriptor);
                     var bytes=selectFileDownload(profile,fileRequest,binary,budget,client,transfer);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
                     row.put("responseMetadata",ObservationResponseMetadata.selectDetails(binary,bytes));
@@ -1096,6 +1096,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
 
     static Budget selectBudget(AttachmentDiscoveryProfile profile,boolean collectionOnly,boolean diagnostic){
+        // 본문 예약2 + 상세1 + 공식 첨부2개 각각의 익명 상세/파일2요청. 파일·시간·바이트 한도는 유지한다.
+        if(collectionOnly&&"LOCAL_SEONGJU_BOARD_V1".equals(profile.selectProfileCode()))return new Budget(profile,7,23*MIB);
         if("LOCAL_SONGPA_BOARD_V1".equals(profile.selectProfileCode()))return new Budget(profile,7,23*MIB);
         if(collectionOnly&&"LOCAL_GANGDONG_POST_V1".equals(profile.selectProfileCode()))return new Budget(profile,9,23*MIB);
         if(collectionOnly&&Set.of("LOCAL_TAEBAEK_BBS_V1","LOCAL_JECHEON_BBS_V1","LOCAL_CHUNGJU_EMINWON_V1","LOCAL_WONJU_BBS_V1","LOCAL_DAEJEON_SEOGU_V1","LOCAL_GWANGJU_SEOGU_GET_V1","LOCAL_YEONJE_GET_V1","LOCAL_GURYE_POST_V1","LOCAL_SEONGNAM_GET_V1","LOCAL_YEONGDONG_BOARD_V1","LOCAL_GIMJE_BOARD_V1","LOCAL_WANDO_POST_V1","LOCAL_SHINAN_POST_V1","LOCAL_JANGHEUNG_GET_V1","LOCAL_GIMHAE_SCMS_GET_V1","LOCAL_CHANGNYEONG_SCMS_GET_V1","LOCAL_SACHEON_BOARD_V1","LOCAL_HADONG_SCMS_V1","LOCAL_GEOCHANG_SCMS_V1","LOCAL_NAMHAE_SCMS_V1","LOCAL_SANCHEONG_BBS_V1","LOCAL_UIRYEONG_GET_V1","LOCAL_GEOJE_GET_V1","LOCAL_GYEONGNAM_PROVINCE_V1","LOCAL_CHUNGNAM_PROVINCE_V1","LOCAL_ONGJIN_PORTAL_V1","LOCAL_BUPYEONG_PORTAL_V1","LOCAL_DONGJAK_POST_DETAIL_V1","LOCAL_ULSAN_DONGGU_GET_V1","LOCAL_HWASEONG_BOARD_V1","LOCAL_ULJU_BOARD_V1","LOCAL_GWANGYANG_POST_V1","LOCAL_CHEONGJU_POST_V1","LOCAL_ICHEON_BOARD_V1","LOCAL_YEONGGWANG_GET_V1","LOCAL_GYEONGBUK_PROVINCE_V1","LOCAL_NAMDONG_PORTAL_V1","LOCAL_SEOUL_GANGSEO_GET_V1","LOCAL_GANGDONG_POST_V1").contains(profile.selectProfileCode()))return new Budget(profile,6,23*MIB);

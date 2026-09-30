@@ -28,7 +28,7 @@ class RegionalTransportLinuxContractTest {
             org.junit.jupiter.api.Assertions.assertTrue(budget.maximumRequests <= 7, sample.code());
             assertEquals(23L * 1024 * 1024, budget.maximumBytes, sample.code());
         }
-        assertEquals(74, requests);
+        assertEquals(75, requests); // 성주 공개 세션: 본문2 + 상세1 + 2파일×2 = 7예약
         assertEquals(276L * 1024 * 1024, bytes);
     }
     @Test

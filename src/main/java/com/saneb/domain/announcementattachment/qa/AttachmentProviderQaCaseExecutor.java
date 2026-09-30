@@ -177,7 +177,7 @@ public final class AttachmentProviderQaCaseExecutor {
         AttachmentPinnedDownloadClient.Download downloaded=null;
         String actualQuality=null;
         try {
-            downloaded=selectDownload(profile,descriptor.selectRequest(),workspace.selectBinaryPath(),20*MIB,state);
+            downloaded=selectDownload(profile,profile.selectDownloadRequest(descriptor),workspace.selectBinaryPath(),20*MIB,state);
             if (!expected.binaryHash().equals(downloaded.sha256())) throw failure("BINARY_CHANGED");
             String format=types.selectFormat(workspace.selectBinaryPath(),downloaded,expected.format(),
                     profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
