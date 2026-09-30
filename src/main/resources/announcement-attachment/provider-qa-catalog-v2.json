@@ -2905,6 +2905,18 @@
         "listParserProfileCode": "NOWON_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DAMYANG-37086",
+      "profileCode": "LOCAL_DAMYANG_JSON_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "72eefab31e02172b6d3b0d5a5935f847b4a831ce5b0b46449a99a42b5e259d5d",
+        "sourceUrl": "https://www.damyang.go.kr/eminwon/searchDetail?notAncmtMgtNo=37086&domainId=DOM_0000001&menuCd=DOM_000000190001002001&contentsSid=2&listType=01",
+        "localSourceCode": "LGS-000183",
+        "listParserProfileCode": "DAMYANG_NOTICE_JSON"
+      },
+      "expectation": null
     }
   ]
 }

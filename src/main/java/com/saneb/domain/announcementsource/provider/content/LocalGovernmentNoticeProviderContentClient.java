@@ -208,6 +208,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                             IncheonCityNoticePage.selectDetailUri(validatedRequest.detailUri()).toASCIIString());
                 } catch (IllegalArgumentException exception) { throw new ProviderContentValidationException(FailureCode.DETAIL_URL_INVALID); }
             }
+            if (DamyangNoticePage.selectPageMatches(validatedRequest.detailUri()) || DamyangNoticePage.selectApiMatches(validatedRequest.detailUri())) {
+                try {
+                    validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
+                            DamyangNoticePage.selectApiUri(validatedRequest.detailUri()).toASCIIString());
+                } catch (IllegalArgumentException exception) { throw new ProviderContentValidationException(FailureCode.DETAIL_URL_INVALID); }
+            }
             if (ChuncheonNoticePage.selectPageMatches(validatedRequest.detailUri()) || ChuncheonNoticePage.selectApiMatches(validatedRequest.detailUri())) {
                 try {
                     validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
@@ -312,7 +318,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
-                    if (ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
+                    if (DamyangNoticePage.selectApiMatches(initialUri) || ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
                         return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
                     }
                     if (redirectCount >= maxRedirects) {
@@ -343,7 +349,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 }
                 String contentType = response.selectFirstHeader("content-type");
                 if (ChuncheonNoticePage.selectApiMatches(currentUri)
-                        ? !ChuncheonNoticePage.selectJsonContentType(contentType) : !selectHtmlContentType(contentType)) {
+                        ? !ChuncheonNoticePage.selectJsonContentType(contentType) : DamyangNoticePage.selectApiMatches(currentUri)
+                        ? !DamyangNoticePage.selectJsonContentType(contentType) : !selectHtmlContentType(contentType)) {
                     return FetchAttempt.failure(
                             FailureCode.CONTENT_TYPE_UNSUPPORTED,
                             currentUri,
@@ -431,11 +438,17 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
 
     private String selectBodyText(byte[] body, String contentType, URI sourceUri) {
         boolean chuncheonJson = ChuncheonNoticePage.selectApiMatches(sourceUri);
+        boolean damyangJson = DamyangNoticePage.selectApiMatches(sourceUri);
         String html;
         if (chuncheonJson) {
             try {
                 String payload = ChuncheonNoticePage.selectJsonPayload(new ByteArrayInputStream(body),contentType);
                 html = ChuncheonNoticePage.selectEnvelope(payload,sourceUri).path("board").path("not_ancmt_cn").textValue();
+            } catch (IOException | IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        } else if (damyangJson) {
+            try {
+                String payload = DamyangNoticePage.selectJsonPayload(new ByteArrayInputStream(body),contentType);
+                html = DamyangNoticePage.selectDetail(payload,sourceUri).path("col8").textValue();
             } catch (IOException | IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
         } else { html = selectDecodedText(body,selectCharset(body,contentType)); }
         Document document = Jsoup.parse(html, sourceUri.toASCIIString());
@@ -444,7 +457,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         // 일반 링크·문장·기관명은 유지하며, 명시된 탐색 역할만 제거한다.
         document.select("nav, [role=navigation]").remove();
         deleteAttachmentLinkElements(document);
-        Element contentElement = chuncheonJson ? document.body() : selectContentElement(document, sourceUri);
+        Element contentElement = chuncheonJson || damyangJson ? document.body() : selectContentElement(document, sourceUri);
         String bodyText = contentElement.text()
                 .replace('\u00a0', ' ')
                 .replaceAll("\\s+", " ")

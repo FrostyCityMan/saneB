@@ -31,6 +31,32 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void damyangFreshJsonBodyExcludesMetadataAndKeepsAttachmentFailuresSeparate() throws Exception {
+        String url="https://www.damyang.go.kr/eminwon/searchDetail?notAncmtMgtNo=37086&listType=01";
+        String json=new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(Map.of("RSLT_CD","0000","RSLT_DATA",Map.of("searchDetail",Map.of(
+                "col4","소상공인 지원","col5","수출 담당부서","col8","<nav>특허 메뉴</nav><p>소상공인 지원금</p><script>투자</script>","fileNameArrList","깨진 첨부 목록"))));
+        for(String value:List.of(json,json+"{}",json.replace("0000","9999"),json.replace("\"col8\":","\"col8\":\"duplicate\",\"col8\":"))){
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of("application/json;charset=UTF-8")),value.getBytes(StandardCharsets.UTF_8)));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(json)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            assertThat(transport.requestTargets).extracting(ProviderContentRequestTarget::uri)
+                    .containsExactly(URI.create("https://www.damyang.go.kr/eminwon/refreshSearchDetail?notAncmtMgtNo=37086"));
+        }
+    }
+    @Test void damyangRejectsUnexpectedQueryMimeAndRedirectWithoutFallback() {
+        String url="https://www.damyang.go.kr/eminwon/searchDetail?notAncmtMgtNo=37086";
+        var invalid=new StubTransport();
+        assertThat(client(true,invalid,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url+"&extra=1")).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);
+        assertThat(invalid.requestTargets).isEmpty();
+        for(String type:List.of("","text/html","application/json;charset=EUC-KR")){
+            var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(200,Map.of("content-type",List.of(type)),"{}".getBytes(StandardCharsets.UTF_8)));
+            assertThat(client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url)).failureCode()).isEqualTo(FailureCode.CONTENT_TYPE_UNSUPPORTED);
+        }
+        var redirect=new StubTransport();redirect.enqueue(new ProviderContentHttpResponse(302,Map.of("location",List.of(url)),new byte[0]));
+        assertThat(client(true,redirect,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url)).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);
+        assertThat(redirect.requestTargets).hasSize(1);
+    }
     @Test void nowonBodyExcludesMetadataAndDoesNotTreatImagesAsText() {
         String page="<nav>수출 메뉴</nav><div class=article-view><h1 class=article-subject>청년 응시료 지원</h1><table class=table-article><tr><th>첨부파일</th><td>특허.hwp</td></tr></table><div class=article-body><div class=txt>청년 지원금</div></div></div>";
         String url="https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260915151630474";

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 181,
-    "missingProfileRegionCount": 42,
+    "registeredRegionCount": 182,
+    "missingProfileRegionCount": 41,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4580,14 +4580,26 @@
       "sourceCode": "LGS-000183",
       "listParserProfileCode": "DAMYANG_NOTICE_JSON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000183",
+          "caseCode": "DAMYANG-37086",
+          "profileCode": "LOCAL_DAMYANG_JSON_V1",
+          "profileHash": "20c0c8a254ece53f9ee914d1596500e65dfcd26be3c9945acc3f872ba7d96058",
+          "receiptHash": "9f20e807fc53ec4395bdff391da77efe63933b7c2dd655fb11dcaea33c265744",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000184",
@@ -5839,9 +5851,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "fd5f11ba4e91328982475df44b1073d2d99a3e8092f5270f9793e03c9f4b7c87",
+  "inputInventorySha256": "a1912f0bc0ea4bb36ad390ed16cd130c2bfb32090d6c2cd5dc4881f9f1968fae",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 282,
+  "importedReceiptCount": 283,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12232,6 +12244,66 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "damyangDownloadRun": {
+    "scope": "DAMYANG_FRESH_JSON_PROFILE_COLLECTION_ONLY",
+    "observedAt": "2026-09-30T00:29:59.684739900Z",
+    "surveyRequestCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000183",
+        "requests": 2,
+        "result": "OFFICIAL_DETAIL_AND_FRESH_JSON200",
+        "selectedNoticeId": "37086",
+        "listedFileCount": 1,
+        "responseNoticeIdPresent": false,
+        "refreshRequested": true,
+        "isDownloadVerified": true
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-damyang-json-20260930/detail-head.txt",
+        "bytes": 532,
+        "sha256": "51446936cf831a5907e1f8722d8ae1b2206a73901e7bf031ed2ffd2319370081"
+      },
+      {
+        "path": "build/qa-damyang-json-20260930/detail.html",
+        "bytes": 151205,
+        "sha256": "bb7f8456afa790d4bec7bf8c96d5f39bee1781f94216bf8971f8b66ba39ddb63"
+      },
+      {
+        "path": "build/qa-damyang-json-20260930/refresh-head.txt",
+        "bytes": 335,
+        "sha256": "d65ec324a97af81e9e3e4235fafa6410886bfc11e43f535dabfa010cf0ad6570"
+      },
+      {
+        "path": "build/qa-damyang-json-20260930/refresh.json",
+        "bytes": 3394,
+        "sha256": "53caf1f8e522a55b94b1615b7109436da182af5b6f73db5874135d813301e128"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "DAMYANG-37086",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DAMYANG-37086.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2159616,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 6,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

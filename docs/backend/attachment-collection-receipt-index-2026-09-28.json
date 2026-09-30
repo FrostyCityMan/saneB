@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "fd5f11ba4e91328982475df44b1073d2d99a3e8092f5270f9793e03c9f4b7c87",
+  "inventorySha256": "a1912f0bc0ea4bb36ad390ed16cd130c2bfb32090d6c2cd5dc4881f9f1968fae",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2179,6 +2179,14 @@
       "producerClassHash": "b004a7d84b842ed4d518131b0b0d1e8a85c27a9b0ab60dcc1251d94bcde0c630",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DAMYANG-37086.json",
+      "receiptHash": "9f20e807fc53ec4395bdff391da77efe63933b7c2dd655fb11dcaea33c265744",
+      "producerClassHash": "bbee515251604dc49b3aed48fbf9e94d31a6871c036e6de969be6ddf2c57d5f4",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3754,6 +3762,33 @@
           "bytes": 250880,
           "format": "HWP",
           "binaryHash": "c3488feba7f7b3addafb0e6037be47f1e34193e8137769b514ed2453bd27e98c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000183",
+      "caseCode": "DAMYANG-37086",
+      "profileCode": "LOCAL_DAMYANG_JSON_V1",
+      "profileHash": "20c0c8a254ece53f9ee914d1596500e65dfcd26be3c9945acc3f872ba7d96058",
+      "receiptHash": "9f20e807fc53ec4395bdff391da77efe63933b7c2dd655fb11dcaea33c265744",
+      "producerClassHash": "bbee515251604dc49b3aed48fbf9e94d31a6871c036e6de969be6ddf2c57d5f4",
+      "observedAt": "2026-09-30T00:29:59.684739900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "625b5a1c7e46e172db875cd873611394737fd7d9b4d8b97f452516bbce42b5ee",
+          "status": "SUCCEEDED",
+          "bytes": 54272,
+          "format": "HWP",
+          "binaryHash": "5ba68b191a88202fc0b506c0143a1e30043a2ee49fcc2eb0b332bbc35c9eeecb",
           "signatureVerified": true
         }
       ]
