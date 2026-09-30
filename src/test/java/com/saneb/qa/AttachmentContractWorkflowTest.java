@@ -13,6 +13,26 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void separateTls12ControlDoesNotQueueDatabaseBuildsOrEnableInsecureFallback() throws Exception {
+        String raw=Files.readString(Path.of(".github/workflows/attachment-tls-diagnostic.yml"));
+        Map<?,?> flow=new Yaml(new SafeConstructor(new LoaderOptions())).load(raw);
+        assertThat(flow.get("permissions")).isEqualTo(Map.of("contents","read"));
+        assertThat(((Map<?,?>)((Map<?,?>)flow.get("on")).get("push")).get("branches"))
+                .isEqualTo(List.of("codex/attachment-three-stage-linux-qa"));
+        var jobs=(Map<?,?>)flow.get("jobs");
+        assertThat(jobs.size()).isEqualTo(1);
+        var control=(Map<?,?>)jobs.get("tls12");
+        assertThat(control.get("if")).isEqualTo("${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-tls12-only-01]') }}");
+        assertThat(control.get("timeout-minutes")).isEqualTo(2);
+        assertThat(control.get("runs-on")).isEqualTo("ubuntu-22.04");
+        var all=steps(control).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"diagnostic".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("env")).isEqualTo(Map.of("SANEB_REGIONAL_TLS_MODE","TLS12"));
+        assertThat(String.valueOf(run.get("run"))).contains("timeout --signal=TERM --kill-after=5s 35s python3 -B scripts/qa/probe-regional-tls.py");
+        assertThat(raw).doesNotContain("secrets.","aws ","gradlew","continue-on-error","|| true","workflow_dispatch");
+        assertThat(raw).contains("persist-credentials: false","if-no-files-found: error",
+                "python3 -B -m unittest discover -s scripts/qa -p test_regional_tls_probe.py -v");
+    }
     @Test void tlsOnlyDiagnosisRequiresFirstPushAndDoesNotFetchHttpOrUseOperatingAccess() throws Exception {
         var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
         var run=all.stream().filter(item->"regional-tls-only".equals(item.get("id"))).findFirst().orElseThrow();

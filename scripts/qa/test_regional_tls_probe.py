@@ -104,29 +104,63 @@ class RegionalTlsProbeTest(unittest.TestCase):
         resource = MagicMock()
         output = io.StringIO()
         with patch.dict(sys.modules, {'resource': resource}), \
+                patch.dict(os.environ, {'SANEB_REGIONAL_TLS_MODE': 'DEFAULT'}), \
                 patch.object(os, 'sched_getaffinity', return_value={1, 3}, create=True), \
                 patch.object(os, 'sched_setaffinity', create=True) as affinity, \
                 patch.object(signal, 'SIGALRM', 14, create=True), \
                 patch.object(signal, 'signal') as handler, \
                 patch.object(signal, 'alarm', create=True) as alarm, \
-                patch.object(probe, 'probe', side_effect=lambda code: {'caseCode': code, 'status': 'FAILED'}) as run, \
+                patch.object(probe, 'probe', side_effect=lambda code, **options: {'caseCode': code, 'status': 'FAILED'}) as run, \
                 contextlib.redirect_stdout(output):
             probe.main()
         resource.setrlimit.assert_any_call(resource.RLIMIT_AS, (134217728, 134217728))
         resource.setrlimit.assert_any_call(resource.RLIMIT_CPU, (5, 5))
         affinity.assert_called_once_with(0, {1})
         self.assertEqual([call.args[0] for call in run.call_args_list], list(probe.TARGETS))
+        self.assertTrue(all(call.kwargs == {'tls12': False} for call in run.call_args_list))
         self.assertEqual([call.args[0] for call in alarm.call_args_list], [10, 0, 10, 0, 10, 0])
         with self.assertRaises(TimeoutError):
             handler.call_args.args[1](None, None)
         result = json.loads(output.getvalue())
         self.assertEqual(result['maximumConnections'], 3)
+        self.assertEqual(result['tlsMode'], 'DEFAULT')
         self.assertRegex(result['observedAt'], r'^\d{4}-\d{2}-\d{2}T.*\+00:00$')
         self.assertEqual(result['opensslVersion'], ssl.OPENSSL_VERSION)
         self.assertEqual(result['maximumSeconds'], 30)
         self.assertEqual(result['httpRequests'], 0)
         self.assertEqual(result['productionWrites'], 0)
         self.assertFalse(result['isAttachmentCollectionVerified'])
+
+    @patch.object(probe.ssl, 'create_default_context')
+    @patch.object(probe.socket, 'create_connection')
+    @patch.object(probe.socket, 'getaddrinfo')
+    def test_tls12_control_keeps_default_trust_and_ciphers(self, resolve, connect, context):
+        resolve.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('8.8.8.8', 443))]
+        ctx = context.return_value
+        ctx.check_hostname = True
+        ctx.verify_mode = ssl.CERT_REQUIRED
+        secure = ctx.wrap_socket.return_value.__enter__.return_value
+        secure.version.return_value = 'TLSv1.2'
+        secure.cipher.return_value = ('ECDHE-RSA-AES256-GCM-SHA384', 'TLSv1.2', 256)
+        result = probe.probe('SOKCHO', tls12=True)
+        context.assert_called_once_with()
+        self.assertEqual(ctx.minimum_version, ssl.TLSVersion.TLSv1_2)
+        self.assertEqual(ctx.maximum_version, ssl.TLSVersion.TLSv1_2)
+        self.assertTrue(ctx.check_hostname)
+        self.assertEqual(ctx.verify_mode, ssl.CERT_REQUIRED)
+        ctx.set_ciphers.assert_not_called()
+        ctx.load_verify_locations.assert_not_called()
+        self.assertEqual(connect.call_count, 1)
+        self.assertEqual(result['tlsMode'], 'TLS12')
+        self.assertEqual(result['httpRequests'], 0)
+
+    @patch.object(probe.socket, 'getaddrinfo')
+    def test_invalid_mode_never_connects(self, resolve):
+        with patch.dict(sys.modules, {'resource': MagicMock()}), \
+                patch.dict(os.environ, {'SANEB_REGIONAL_TLS_MODE': 'INSECURE'}):
+            with self.assertRaisesRegex(ValueError, 'TLS_MODE_INVALID'):
+                probe.main()
+        resolve.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,42 @@
+name: 고정 지역 TLS 1.2 비교 — HTTP 요청 없음
+
+'on':
+  push:
+    branches:
+      - codex/attachment-three-stage-linux-qa
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saneb-attachment-tls-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  tls12:
+    if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-tls12-only-01]') }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    steps:
+      - name: QA 소스 확인
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 고정 호스트·검증 유지·요청0 계약 테스트
+        run: python3 -B -m unittest discover -s scripts/qa -p test_regional_tls_probe.py -v
+      - name: TLS 1.2 고정 비교 — 최대 3연결·HTTP0
+        id: diagnostic
+        env:
+          SANEB_REGIONAL_TLS_MODE: TLS12
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/attachment-regional-tls
+          timeout --signal=TERM --kill-after=5s 35s python3 -B scripts/qa/probe-regional-tls.py > build/reports/attachment-regional-tls/result.json
+      - name: 협상 metadata 보관 — 원문 없음
+        if: ${{ always() && steps.diagnostic.outcome != 'skipped' && steps.diagnostic.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-regional-tls12-${{ github.sha }}
+          path: build/reports/attachment-regional-tls/result.json
+          if-no-files-found: error
+          retention-days: 7

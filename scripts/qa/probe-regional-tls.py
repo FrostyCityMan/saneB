@@ -24,12 +24,13 @@ TLS_REASONS = frozenset({
 })
 
 
-def probe(case_code):
+def probe(case_code, *, tls12=False):
     if case_code not in TARGETS:
         raise ValueError('FIXED_TARGET_REQUIRED')
     source, host = TARGETS[case_code]
     started = time.monotonic()
     report = dict(caseCode=case_code, sourceCode=source, phase='DNS', status='FAILED',
+                  tlsMode='TLS12' if tls12 else 'DEFAULT',
                   maximumConnections=1, tcpConnections=0, httpRequests=0,
                   filesDownloaded=0, productionWrites=0, originalSaved=False,
                   isAttachmentCollectionVerified=False)
@@ -45,7 +46,11 @@ def probe(case_code):
         with socket.create_connection((addresses[0], 443), timeout=3) as tcp:
             report['phase'] = 'TLS'
             # 시스템 신뢰 저장소·hostname 검증을 유지하며 선택한 공개 주소에 SNI를 보낸다.
-            with ssl.create_default_context().wrap_socket(tcp, server_hostname=host) as secure:
+            context = ssl.create_default_context()
+            if tls12:
+                context.minimum_version = ssl.TLSVersion.TLSv1_2
+                context.maximum_version = ssl.TLSVersion.TLSv1_2
+            with context.wrap_socket(tcp, server_hostname=host) as secure:
                 report['tlsVersion'] = secure.version()
                 report['cipher'] = secure.cipher()[0]
                 report['status'] = 'TLS_CONNECTED_NOT_COLLECTION_VERIFIED'
@@ -70,6 +75,9 @@ def main():
     import os
     import resource
     import signal
+    mode = os.environ.get('SANEB_REGIONAL_TLS_MODE', 'DEFAULT')
+    if mode not in ('DEFAULT', 'TLS12'):
+        raise ValueError('TLS_MODE_INVALID')
     resource.setrlimit(resource.RLIMIT_AS, (128 * 1024 * 1024, 128 * 1024 * 1024))
     resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
     os.sched_setaffinity(0, {min(os.sched_getaffinity(0))})
@@ -81,9 +89,10 @@ def main():
     reports = []
     for case_code in TARGETS:
         signal.alarm(10)
-        reports.append(probe(case_code))
+        reports.append(probe(case_code, tls12=mode == 'TLS12'))
         signal.alarm(0)
     print(json.dumps(dict(kind='REGIONAL_TLS_ONLY_DIAGNOSTIC', reports=reports,
+                         tlsMode=mode,
                          observedAt=datetime.now(timezone.utc).isoformat(),
                          opensslVersion=ssl.OPENSSL_VERSION,
                          maximumConnections=3, maximumSeconds=30, maximumMemoryMiB=128,
