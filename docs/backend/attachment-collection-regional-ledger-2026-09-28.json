@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 185,
-    "missingProfileRegionCount": 38,
+    "registeredRegionCount": 186,
+    "missingProfileRegionCount": 37,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1957,14 +1957,26 @@
       "sourceCode": "LGS-000067",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000067",
+          "caseCode": "GWANGJU_SEOGU-53423",
+          "profileCode": "LOCAL_GWANGJU_SEOGU_GET_V1",
+          "profileHash": "a9d8eddea3d402e8368f576390605b73800d03fcc23b2cb036d7499dbb10edd6",
+          "receiptHash": "60fc7ac28e5a3b775b2ec82c6164a435f41d0ca45bf79b1a5a615bf7bee121f1",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000068",
@@ -5947,9 +5959,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "797587370b0bf23ad548febf825599a69e984339f0f0d4dbbe628ef91c113d73",
+  "inputInventorySha256": "8462c435c91c5007991f09cb4319640b17da0450b89a8abfb741e5d5f9c433b1",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 293,
+  "importedReceiptCount": 294,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12340,6 +12352,85 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "gwangjuSeoguDownloadRun": {
+    "scope": "GWANGJU_SEOGU_PUBLIC_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GWANGJU_SEOGU-53423.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GWANGJU_SEOGU-53423",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2365952,
+    "surveyRequestCount": 9,
+    "surveyGetCount": 6,
+    "surveyPostCount": 3,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyCurlMaximumBytesPerRequest": 2097152,
+    "surveyWebSessionResponseBytesLessThan": 102400,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000067",
+        "result": "OFFICIAL_SESSION_FORM_SEARCH200_AFTER_POST205_DETAIL53423_SELECTED",
+        "selectedNoticeId": "53423",
+        "isDownloadVerified": true,
+        "operatingReuseApproved": false,
+        "reuseNotice": "KOGL_TYPE_4_ATTRIBUTION_NONCOMMERCIAL_NO_DERIVATIVES_OBSERVED"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-gwangju-seogu-20260930/detail53423.html",
+        "bytes": 87430,
+        "sha256": "860df7b59ecea501b134175e9059b69bc149081a2befd2c68b5d3728c18e56ba"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/detail56101.html",
+        "bytes": 85959,
+        "sha256": "1d2744a299f5212b8256325d09ac36bc28b1a0a207d5f0f0d6d67af037c07bdb"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/detail56115.html",
+        "bytes": 86004,
+        "sha256": "f6daa6c8245c48399538f60926d1610bef7228de69d71ec164f7f15803a1e3d7"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/form-search.html",
+        "bytes": 91566,
+        "sha256": "52863cf91bc90114daf402b08d58db0bb927192e591fce95535d156d72f44693"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/list.html",
+        "bytes": 95573,
+        "sha256": "700715b214678fbc71ea013757334efc314cd0cb632e2ee426ffb991047e5787"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/page2.html",
+        "bytes": 781,
+        "sha256": "3b2d01b27d120743679223131ae874e97a2ee120d89391a51554c97b2c373593"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/session-list.html",
+        "bytes": 95573,
+        "sha256": "34a84c46cf6a43cd1291995cfdaf40d18ab8bfe81844603f9603a090e90f6b9a"
+      },
+      {
+        "path": "build/qa-gwangju-seogu-20260930/session-search.html",
+        "bytes": 781,
+        "sha256": "3b2d01b27d120743679223131ae874e97a2ee120d89391a51554c97b2c373593"
+      }
+    ],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

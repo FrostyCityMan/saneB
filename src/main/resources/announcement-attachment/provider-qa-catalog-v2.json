@@ -2977,6 +2977,18 @@
         "listParserProfileCode": "SAFE_DAEJEON_DATA_KEY_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GWANGJU_SEOGU-53423",
+      "profileCode": "LOCAL_GWANGJU_SEOGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a827ae133912df46dd02041e3072b7849d482f7ba378ab5950078b976a553521",
+        "sourceUrl": "https://www.seogu.gwangju.kr/api/eminwon/gosiXmlView.es?mid=a10807010000&not_ancmt_mgt_no=53423&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst",
+        "localSourceCode": "LGS-000067",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
