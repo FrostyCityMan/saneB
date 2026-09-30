@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 211,
-    "missingProfileRegionCount": 12,
+    "registeredRegionCount": 212,
+    "missingProfileRegionCount": 11,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4828,14 +4828,26 @@
       "sourceCode": "LGS-000182",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000182",
+          "caseCode": "GWANGYANG-61869",
+          "profileCode": "LOCAL_GWANGYANG_POST_V1",
+          "profileHash": "83f59ac92c8808984f34db3ddee3a29e7871ce912b4d8de0db3790fe055b2a45",
+          "receiptHash": "3f81b38aa54ac773b9ab839ebedcaab83208b1cbe304479afeef0c24006c576b",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000183",
@@ -6292,9 +6304,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "690f8e92de2ec874504ea8404a0d4ce81b12a4bb91d82199cfe22df80ffc4c90",
+  "inputInventorySha256": "19b9edeaadad7072d972a8635d7a10d3c778a3da56ee6a13c41e1d2caaf43e71",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 327,
+  "importedReceiptCount": 328,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12690,6 +12702,64 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "gwangyangDownloadRun": {
+    "scope": "GWANGYANG_OFFICIAL_POST_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GWANGYANG-61869.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GWANGYANG-61869",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2379191,
+    "surveyRequestCount": 6,
+    "surveyGetCount": 6,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000182",
+        "requestCount": 2,
+        "result": "DETAIL_STRUCTURE200_PERSISTED_CANONICAL_QUERY200_SAME_TITLE_AND_FILE"
+      },
+      {
+        "sourceCode": "LGS-000136",
+        "requestCount": 3,
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL200_SUPPORT_NOTICE150057_PDF_POST_LINK",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000148",
+        "requestCount": 1,
+        "result": "REGISTERED_LIST_HTTP403_NO_BYPASS"
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 101815,
+    "bodyCharacterCount": 620,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "registeredSourceCorrectionRequiredForGeneralNotices": true,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 184,
+      "noObservedDownloadRegionCount": 39,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 11
+    }
   },
   "uljuDownloadRun": {
     "scope": "ULJU_OFFICIAL_BOARD_COLLECTION_ONLY",

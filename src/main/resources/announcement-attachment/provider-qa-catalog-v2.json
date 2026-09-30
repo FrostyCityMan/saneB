@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "GWANGYANG-61869",
+      "profileCode": "LOCAL_GWANGYANG_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e2271ef0c460ceadc31c965d27970f6cd214327a86fc431b3a457c4b9df771ec",
+        "sourceUrl": "https://gwangyang.go.kr/saeol/gosi.es?act=view&mid=a10909020000&nPage=1&seq=61869&type_code=02%252C04",
+        "localSourceCode": "LGS-000182",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "ULJU-67082",
       "profileCode": "LOCAL_ULJU_BOARD_V1",
       "source": {

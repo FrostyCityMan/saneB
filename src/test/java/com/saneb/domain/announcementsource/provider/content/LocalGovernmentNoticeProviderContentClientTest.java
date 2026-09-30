@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void gwangyangCanonicalBodyExcludesMetadataAndAttachmentCells(){
+        String url="https://gwangyang.go.kr/saeol/gosi.es?act=view&mid=a10909020000&nPage=1&seq=61869&type_code=02%252C04";
+        String page="<div class=\"p-wrap bbs bbs_view\"><table class=\"p-table block\"><tr><th class=bbs_tit>소상공인 지원</th></tr><tr><td>수출 부서</td></tr><tr><td class=view_content>소상공인 융자금 지원<script>x()</script></td></tr><tr><td class=view_file>투자 파일</td></tr></table></div>";
+        for(String content:List.of(page,page+page,page.replace("class=view_content","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 융자금 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void uljuBodyExcludesMetadataAndAttachmentAreas(){
         String url="https://www.ulju.ulsan.kr/ulju/saeol/gosi/view.do?notAncmtMgtNo=67082&mId=0403020000";
         String page="<form id=detailForm><div class=bod_wrap><div class=bod_view><h4>소상공인 지원</h4><div class=view_info>수출 부서</div><div class=view_cont>소상공인 자금지원<script>x()</script></div><dl class=view_file>투자 파일</dl></div></div></form>";
