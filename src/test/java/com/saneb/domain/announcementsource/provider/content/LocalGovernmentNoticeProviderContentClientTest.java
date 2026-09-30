@@ -31,6 +31,17 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gangdongBodyExcludesContactMetadataAndUnrelatedAttachments(){
+        String url="https://www.gangdong.go.kr/web/newportal/notice/01/37327";
+        String page="<form id=frmNotice method=get action=/web/newportal/notice/01><table><tbody><tr><th>담당자/연락처</th><td>수출 담당</td></tr><tr><th>제목</th><td colspan=3>소상공인 융자 지원</td></tr><tr><td colspan=4>소상공인 금융 지원<script>viewer()</script></td></tr><tr><th>첨부파일</th><td colspan=3>특허 파일</td></tr></tbody></table></form>";
+        for(String selected:List.of(page,page+page,page.replace("colspan=4","colspan=2"),page.replace("소상공인 금융 지원<script>","<script>"))){
+            var transport=new StubTransport();transport.enqueue(html("<main><nav>수출 투자</nav>"+selected+"<footer>행정 메뉴</footer></main>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 금융 지원");}
+            else if(selected.contains("colspan=4><script>"))assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void jinjuBodyUsesOnlyOfficialSubstanceAndNeverFallsBackToMenuKeywords(){
         String url="https://www.jinju.go.kr/00130/02730/05586.web?amode=view&not_ancmt_mgt_no=64420";
         String notice="<form id=saeolGosiVO method=get><div class=bbs1view1><h1 class=h1>소상공인 육성자금 지원 공고</h1><div class=info1>수출 담당부서</div><div class=attach1>특허 파일</div><div class=substance>소상공인 육성자금 지원<script>viewer()</script></div><div class=infomenu1>투자 메뉴</div></div></form>";

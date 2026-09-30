@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "efceaba1d9d816577704da3e25ddea834f64a4b487f5a63c9c386b3b383c5aca",
+  "inventorySha256": "c23026eb0fdac8afd069de7e3846e83d37400befe79ab2e7fce618a492755417",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2699,6 +2699,22 @@
       "producerClassHash": "74741db360c9121f2f3b84459d5aef1c6bce8df8ba12069f37e26d19affe856a",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GANGDONG-37327.json",
+      "receiptHash": "9eb6e0ba0fe49d9249e597c98d196390ad3291eb3840a189308177555f5b8810",
+      "producerClassHash": "88836aed736902d59fb702197c8b9988cc8603c62c179d002cef72ea9307dd75",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GANGDONG-37327-FLOW-20260930.json",
+      "receiptHash": "9fc79d0c870c5865ce3f6628f020aea71e6a332a50fdca3d9929a67345aa4f9c",
+      "producerClassHash": "cc62b0598d8b09ddbeb65699e2e5273a2a2535d54218941ca392ad0a0850034d",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -4920,6 +4936,41 @@
           "locatorHash": "894fb3c93a8a1eabfd630e31c1062875c3075a3895aa72e51f8411223394d40d",
           "status": "FAILED",
           "bytes": 0
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000026",
+      "caseCode": "GANGDONG-37327",
+      "profileCode": "LOCAL_GANGDONG_POST_V1",
+      "profileHash": "e225f458c3b792a34fc8b1c51737f6a7b0ff385843a0b1279f19c22c7d48405b",
+      "receiptHash": "9fc79d0c870c5865ce3f6628f020aea71e6a332a50fdca3d9929a67345aa4f9c",
+      "producerClassHash": "cc62b0598d8b09ddbeb65699e2e5273a2a2535d54218941ca392ad0a0850034d",
+      "observedAt": "2026-09-30T12:42:35.701197500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FAILED",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "cd491c0c3dda7a77fa8550f2e56ff597d4b2703a50f5f62997350fa77a044eaa",
+          "status": "SUCCEEDED",
+          "bytes": 17408,
+          "format": "HWP",
+          "binaryHash": "54db9a04b29009784f850052613c29626b1035ab763281a2ee47b3cba0d28f55",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "01a2ab95852796b36a20579b82f93ac916d18318eeba5921cd11bd5402e2f14b",
+          "status": "SUCCEEDED",
+          "bytes": 33280,
+          "format": "HWP",
+          "binaryHash": "bf61982f9d39b993c7f38ba0eb2839ec4a8d2ad289e4e4a34e5e7255b5849785",
+          "signatureVerified": true
         }
       ]
     },

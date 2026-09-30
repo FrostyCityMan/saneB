@@ -3435,6 +3435,18 @@
       "expectation": null
     },
     {
+      "caseCode": "GANGDONG-37327",
+      "profileCode": "LOCAL_GANGDONG_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1c00f9e7ef45aaa38e74c0ce4a1de54baa2a6ed4624923e9018e19ca9078ce26",
+        "sourceUrl": "https://www.gangdong.go.kr/web/newportal/notice/01/37327",
+        "localSourceCode": "LGS-000026",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_HREF"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "HWASEONG-141781",
       "profileCode": "LOCAL_HWASEONG_BOARD_V1",
       "source": {

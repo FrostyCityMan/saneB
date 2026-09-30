@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 218,
-    "missingProfileRegionCount": 5,
+    "registeredRegionCount": 219,
+    "missingProfileRegionCount": 4,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -666,14 +666,26 @@
       "sourceCode": "LGS-000026",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_HREF",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000026",
+          "caseCode": "GANGDONG-37327",
+          "profileCode": "LOCAL_GANGDONG_POST_V1",
+          "profileHash": "e225f458c3b792a34fc8b1c51737f6a7b0ff385843a0b1279f19c22c7d48405b",
+          "receiptHash": "9fc79d0c870c5865ce3f6628f020aea71e6a332a50fdca3d9929a67345aa4f9c",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000027",
@@ -6409,9 +6421,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "efceaba1d9d816577704da3e25ddea834f64a4b487f5a63c9c386b3b383c5aca",
+  "inputInventorySha256": "c23026eb0fdac8afd069de7e3846e83d37400befe79ab2e7fce618a492755417",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 347,
+  "importedReceiptCount": 349,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12807,6 +12819,77 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "gangdongDownloadRun": {
+    "scope": "GANGDONG_OFFICIAL_PORTAL_ATTACHMENT_POST",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GANGDONG-37327.json",
+      "build/reports/attachment-regional-collection/GANGDONG-37327-FLOW-20260930.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GANGDONG-37327",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "GANGDONG-37327",
+        "maximumRequestsPerAttempt": 9,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 4583004,
+    "surveyRequestCount": 20,
+    "surveyGetCount": 18,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000026",
+        "requestCount": 10,
+        "result": "OFFICIAL_PORTAL_LIST_SEARCH_2021_NOTICE_AND_TWO_BRIDGE_POST_DIAGNOSTICS_NO_PERIOD_BYPASS"
+      },
+      {
+        "sourceCode": "LGS-000144",
+        "requestCount": 4,
+        "result": "OFFICIAL_PORTAL_AND_EMBEDDED_LIST_200_FOLLOWUP_LIST_400"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requestCount": 4,
+        "result": "OFFICIAL_PORTAL_AND_EMBEDDED_LIST_200_FOLLOWUP_LIST_400"
+      },
+      {
+        "sourceCode": "LGS-000148",
+        "requestCount": 1,
+        "result": "OFFICIAL_LIST_HTTP_403"
+      },
+      {
+        "sourceCode": "LGS-000158",
+        "requestCount": 1,
+        "result": "OFFICIAL_LIST_HTTP_502"
+      }
+    ],
+    "downloadedFileCount": 2,
+    "downloadedBytes": 50688,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "archivedNoticeYear": 2021,
+    "operatingListEndpointChanged": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 193,
+      "noObservedDownloadRegionCount": 30,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 4
+    }
   },
   "osanJinjuRecheckRun": {
     "scope": "OSAN_JINJU_RECHECK_AND_REPORT_ARCHIVE",
