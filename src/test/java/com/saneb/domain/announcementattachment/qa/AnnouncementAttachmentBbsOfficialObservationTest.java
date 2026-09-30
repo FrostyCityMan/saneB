@@ -65,6 +65,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selected.values().stream();
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("EXISTING_FIRST".equals(group))return ExistingProfileDownloadCases.selectCases();
         if(JeonbukFirstDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukFirstDownloadCases.selectCase(group));
         if(JeonbukSecondDownloadCases.GROUPS.contains(group))return Stream.of(JeonbukSecondDownloadCases.selectCase(group));
         if(JeonnamFirstDownloadCases.GROUPS.contains(group))return Stream.of(JeonnamFirstDownloadCases.selectCase(group));
@@ -494,7 +495,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         report.put("collectionOnly",collectionOnly);report.put("isExtractionVerified",false);
         report.put("isWholeTextAnalysisComplete",false);
         var rows=new ArrayList<Map<String,Object>>();report.put("files",rows);
-        var budget=new Budget(profile, Boolean.getBoolean("saneb.attachment-observation.diagnostic-budget"));Path temporary=null;String stage="RUNTIME";
+        var budget=selectBudget(profile,collectionOnly,Boolean.getBoolean("saneb.attachment-observation.diagnostic-budget"));Path temporary=null;String stage="RUNTIME";
         try(var client=new AttachmentPinnedDownloadClient()) {
             assertTrue(collectionOnly || System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("linux")
                     &&Files.isExecutable(Path.of("/usr/bin/bwrap"))&&Files.isExecutable(Path.of("/usr/bin/prlimit")),"LINUX_ISOLATION_REQUIRED");
@@ -977,6 +978,10 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         trace.saveComplete();return result;
     }
 
+    static Budget selectBudget(AttachmentDiscoveryProfile profile,boolean collectionOnly,boolean diagnostic){
+        if(collectionOnly&&Set.of("LOCAL_TAEBAEK_BBS_V1","LOCAL_JECHEON_BBS_V1","LOCAL_CHUNGJU_EMINWON_V1").contains(profile.selectProfileCode()))return new Budget(profile,6,23*MIB);
+        return new Budget(profile,diagnostic);
+    }
     static final class Budget {
         private final AttachmentDiscoveryProfile profile;
         final int maximumRequests;

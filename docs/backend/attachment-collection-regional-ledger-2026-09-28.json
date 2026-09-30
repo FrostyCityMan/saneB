@@ -3116,11 +3116,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000121",
+          "caseCode": "TAEBAEK-184816",
+          "profileCode": "LOCAL_TAEBAEK_BBS_V1",
+          "profileHash": "8cf428f1ca718f67960130dc0398aa354679179d3cc2638cd6d47f51ffc17e88",
+          "receiptHash": "7eb5ca97fb938c1467bf73a293e4d0ed10feb443ea038cf69dd3ec5298020976",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000122",
@@ -3556,12 +3568,24 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "SAMPLES_REQUIRED",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000137",
+          "caseCode": "CHUNGJU-70852",
+          "profileCode": "LOCAL_CHUNGJU_EMINWON_V1",
+          "profileHash": "7ddbcaadb0a72e01e48d50bb165fe56bf89e88179e4161de08e4fa5d37829d4b",
+          "receiptHash": "0a02d0b2cdee6213ed8e0ef998e17965649446292b00884b530c70bd1e1661e6",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000138",
@@ -3570,11 +3594,23 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "SAMPLES_REQUIRED",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000138",
+          "caseCode": "JECHEON-403530",
+          "profileCode": "LOCAL_JECHEON_BBS_V1",
+          "profileHash": "0a6eb2bc74ad11e049126d522483661ec29a0684a76d93c55eb727cc2e0fc0b7",
+          "receiptHash": "7c3b69da12030ede00ff7f19bbf4934daae1b23f3e90617cac0ad2c68b75e48c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000139",
@@ -5889,7 +5925,7 @@
   ],
   "inputInventorySha256": "11ee73fc75f2fed75ba56d5e9e0913b0196cdfb2416b375fe193b778e8cb3d8f",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 288,
+  "importedReceiptCount": 291,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12280,6 +12316,59 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "existingFirstDownloadRun": {
+    "scope": "EXISTING_PROFILES_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/TAEBAEK-184816.json",
+      "build/reports/attachment-regional-collection/JECHEON-403530.json",
+      "build/reports/attachment-regional-collection/CHUNGJU-70852.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "TAEBAEK-184816",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "JECHEON-403530",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "CHUNGJU-70852",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 13,
+    "reservedBytesIncludingBodyUpperBound": 7169939,
+    "surveyRequestCount": 1,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000118",
+        "noticeId": "491704",
+        "result": "DETAIL200_TITLE_AND_FOUR_HWPX_LINKS_OBSERVED_NO_BINARY_REQUEST",
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-existing-first-20260930/WONJU-detail.html",
+        "bytes": 279234,
+        "sha256": "7ce4a4e709cbb339fc3dba08143f8250d73a21f59d886387f4460c4eb0dcd817"
+      }
+    ],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
