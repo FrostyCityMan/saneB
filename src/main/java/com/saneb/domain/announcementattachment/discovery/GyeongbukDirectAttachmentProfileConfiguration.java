@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods=false)
 public class GyeongbukDirectAttachmentProfileConfiguration {
-    @Bean public AttachmentDiscoveryProfile selectYeongdeokProfileDetails(){return new GyeongbukDirectAttachmentDiscoveryProfile(GyeongbukDirectAttachmentDiscoveryProfile.Site.YEONGDEOK);}
+    @Bean public AttachmentDiscoveryProfile selectYeongdeokProfileDetails(){return new YeongdeokRefererAttachmentDiscoveryProfile();}
     @Bean public AttachmentDiscoveryProfile selectUljinProfileDetails(){return new GyeongbukDirectAttachmentDiscoveryProfile(GyeongbukDirectAttachmentDiscoveryProfile.Site.ULJIN);}
 }

@@ -46,11 +46,27 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         @Override public String toString() { return "Download[bytes=" + bytes + ",sha256=" + sha256 + "]"; }
     }
     /** 검증된 시스템 프로필만 생성하는 일회성 요청. POST 본문/URL은 저장하거나 로그로 출력하지 않는다. */
-    public record Request(URI uri, String method, Map<String, String> form) {
+    public record Request(URI uri, String method, Map<String, String> form, URI referer, boolean utf8RedirectOctets) {
+        public Request(URI uri, String method, Map<String, String> form) { this(uri, method, form, null, false); }
+        public Request(URI uri, String method, Map<String, String> form, URI referer) { this(uri, method, form, referer, false); }
         public Request {
             if (uri == null || method == null || !Set.of("GET", "POST").contains(method) || form == null || form.size() > 10
                     || ("GET".equals(method) && !form.isEmpty()) || ("POST".equals(method) && form.isEmpty()))
                 throw new IllegalArgumentException("ATTACHMENT_REQUEST_INVALID");
+            // 시스템 프로필에서 실측한 공개 상세만 전달한다. 다른 origin·인증정보·fragment는 헤더로 보내지 않는다.
+            if (referer != null && (!"GET".equals(method) || !"https".equals(uri.getScheme())
+                    || !"https".equals(referer.getScheme()) || uri.getHost() == null
+                    || !uri.getHost().equals(referer.getHost()) || (uri.getPort() != -1 && uri.getPort() != 443)
+                    || (referer.getPort() != -1 && referer.getPort() != 443) || referer.getUserInfo() != null
+                    || referer.getFragment() != null || referer.toASCIIString().length() > 2048
+                    || !referer.equals(referer.normalize())
+                    || referer.getPath() == null || referer.getPath().contains("..") || referer.getPath().contains("\\")
+                    || referer.getPath().codePoints().anyMatch(Character::isISOControl)
+                    || (referer.getQuery() != null && referer.getQuery().codePoints().anyMatch(Character::isISOControl))
+                    || referer.toString().codePoints().anyMatch(Character::isISOControl)))
+                throw new IllegalArgumentException("ATTACHMENT_REFERER_INVALID");
+            if (utf8RedirectOctets && (referer == null || !"GET".equals(method)))
+                throw new IllegalArgumentException("ATTACHMENT_REDIRECT_ENCODING_INVALID");
             int bytes = 0;
             for (var entry : form.entrySet()) {
                 if (entry.getKey() == null || !entry.getKey().matches("[A-Za-z_][A-Za-z0-9_]{0,63}")
@@ -137,7 +153,7 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
                         || (current.getPort() != -1 && current.getPort() != 443)
                         || !approvedHosts.contains(current.getHost().toLowerCase(Locale.ROOT)))
                     throw new IOException("ATTACHMENT_HOST_NOT_APPROVED");
-                Request selected = new Request(current, initial.method(), initial.form());
+                Request selected = new Request(current, initial.method(), initial.form(), initial.referer(), initial.utf8RedirectOctets());
                 if (current.getUserInfo() != null || current.getFragment() != null || !approvedRequest.test(selected))
                     throw new IOException("ATTACHMENT_PATH_NOT_APPROVED");
                 ProviderContentRequestTarget target = selectTarget(current, deadline);
@@ -161,7 +177,7 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
                 });
                 selectRemaining(deadline);
                 if (reply.download() != null) { succeeded = true; return reply.download(); }
-                current = current.resolve(reply.redirect());
+                current = current.resolve(selectRedirectLocation(reply.redirect(), initial.utf8RedirectOctets()));
             }
             throw new IOException("ATTACHMENT_REDIRECT_LIMIT");
         } catch (ProviderContentValidationException | IllegalArgumentException exception) {
@@ -169,6 +185,24 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
         } finally {
             // DB callback/검증 오류에서도 이 호출이 만든 부분파일만 정리합니다.
             if (!succeeded && createdOutput[0]) Files.deleteIfExists(output);
+        }
+    }
+
+    /** 공식 서버에서 확인한 UTF-8 원시 Location만 명시적으로 해석한다. URL percent decoding은 하지 않는다. */
+    static String selectRedirectLocation(String location, boolean utf8Octets) throws IOException {
+        if (!utf8Octets || location.chars().allMatch(c -> c < 128)) return location;
+        if (location.length() > 4096 || location.chars().anyMatch(c -> c > 255))
+            throw new IOException("ATTACHMENT_REDIRECT_ENCODING_INVALID");
+        try {
+            String decoded = StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                    .decode(java.nio.ByteBuffer.wrap(location.getBytes(StandardCharsets.ISO_8859_1))).toString();
+            if (decoded.codePoints().anyMatch(Character::isISOControl))
+                throw new IOException("ATTACHMENT_REDIRECT_ENCODING_INVALID");
+            return decoded;
+        } catch (java.nio.charset.CharacterCodingException exception) {
+            throw new IOException("ATTACHMENT_REDIRECT_ENCODING_INVALID");
         }
     }
 
@@ -258,6 +292,7 @@ public class AttachmentPinnedDownloadClient implements AutoCloseable {
                 .setRedirectsEnabled(false).build());
         request.setHeader("Accept-Encoding", "identity");
         request.setHeader("User-Agent", "saneB-attachment-collector/1.0");
+        if (selected.referer() != null) request.setHeader("Referer", selected.referer().toASCIIString());
         try (var watchdog = Executors.newSingleThreadScheduledExecutor();
              var client = HttpClients.custom().setConnectionManager(manager).disableRedirectHandling()
                      .disableAutomaticRetries().disableCookieManagement().disableContentCompression().build()) {

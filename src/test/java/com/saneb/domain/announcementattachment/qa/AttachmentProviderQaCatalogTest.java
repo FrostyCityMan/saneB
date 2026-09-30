@@ -667,17 +667,17 @@ class AttachmentProviderQaCatalogTest {
         }).toList();
         return new AttachmentProviderQaCatalog(mapper,new AttachmentDiscoveryProfileRegistry(profiles),new Definition(2,"TEST-REVIEWED-FIXTURE",notices));
     }
-    @Test void packagedRevalidatedExpectationKeepsWholeSetAndDoesNotCompleteCoverage() throws Exception {
+    @Test void packagedHistoricalExpectationRequiresRevalidationAfterTransportContractChange() throws Exception {
         var catalog=packagedCatalog();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
         var reviewed=packagedDefinition().notices().stream().filter(n->"TAEBAEK-184816".equals(n.caseCode())).findFirst().orElseThrow();
         assertThat(reviewed.expectation().profileHash()).isEqualTo("8cf428f1ca718f67960130dc0398aa354679179d3cc2638cd6d47f51ffc17e88");
-        assertThat(reviewed.expectation().profileHash()).isEqualTo(profiles.getFirst().selectProfileHash());
+        assertThat(reviewed.expectation().profileHash()).isNotEqualTo(profiles.getFirst().selectProfileHash());
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
-        assertThat(result.inputs()).hasSize(1);assertThat(result.plan().executableCount()).isEqualTo(1);
+        assertThat(result.inputs()).isEmpty();assertThat(result.plan().executableCount()).isZero();
         assertThat(result.plan().cases()).hasSize(286);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
-                .satisfies(c->{assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();});
+                .satisfies(c->{assertThat(c.statusCode()).isEqualTo("PROFILE_CHANGED");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
         assertThat(result.plan().isQaPassed()).isFalse();assertThat(result.plan().isExpectationCoverageComplete()).isFalse();
     }

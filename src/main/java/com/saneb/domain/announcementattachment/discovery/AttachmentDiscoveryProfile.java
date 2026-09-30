@@ -23,7 +23,8 @@ public interface AttachmentDiscoveryProfile {
     URI selectDetailUri(String providerNoticeId);
     boolean selectApprovedRequest(URI uri);
     default boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request request) {
-        return request != null && "GET".equals(request.method()) && selectApprovedRequest(request.uri());
+        return request != null && request.referer() == null && !request.utf8RedirectOctets()
+                && "GET".equals(request.method()) && selectApprovedRequest(request.uri());
     }
     /** 최초 요청에 결합된 기관은 redirect에서도 공고/파일 소속을 보존한다. 기존 기관의 계약은 유지한다. */
     default boolean selectApprovedRequest(AttachmentPinnedDownloadClient.Request initial, AttachmentPinnedDownloadClient.Request request) {
