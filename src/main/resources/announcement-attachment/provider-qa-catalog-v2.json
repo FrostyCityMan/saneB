@@ -3121,6 +3121,18 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SACHEON-2106170",
+      "profileCode": "LOCAL_SACHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fca186719851611deeaef5e9316c02d7ddb8d5c223c21e05e9fb61bb816cd449",
+        "sourceUrl": "https://www.sacheon.go.kr/news/00009/00014.web?gcode=2017&idx=2106170&amode=view",
+        "localSourceCode": "LGS-000227",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

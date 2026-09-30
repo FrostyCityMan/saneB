@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "89e969181dd35fc3c829b6b9887151f84a649d81981c4701f8ff9a730b0e7f6a",
+  "inventorySha256": "c6613beaf71500fdc2197fb03e6ce781903cbe7622f54b88f8860c9e0010a337",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2393,6 +2393,14 @@
       "path": "build/reports/attachment-regional-collection/CHANGNYEONG-46407.json",
       "receiptHash": "d4d87748c1e59e92b025b45f32a63945dba29ad6ef765ba8e7f5b17636f4a193",
       "producerClassHash": "034246af5e7894d4f96fec755fd882336a6429e534d249f6f0965e7de15ad165",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/SACHEON-2106170.json",
+      "receiptHash": "d891898465cd401d138539f464a3598b7426d0a13079197924e0e2af03763bb5",
+      "producerClassHash": "faae15792e7b4fa6e85b99bbb9baa18ae2f2da5e4cc3019e9edf3749b72195b0",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -7503,6 +7511,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000227",
+      "caseCode": "SACHEON-2106170",
+      "profileCode": "LOCAL_SACHEON_BOARD_V1",
+      "profileHash": "a306bbe07b69e57c1e5ad9b2001347f36b49e823778f1e62c699d82438e37132",
+      "receiptHash": "d891898465cd401d138539f464a3598b7426d0a13079197924e0e2af03763bb5",
+      "producerClassHash": "faae15792e7b4fa6e85b99bbb9baa18ae2f2da5e4cc3019e9edf3749b72195b0",
+      "observedAt": "2026-09-30T05:18:03.868924800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "a2f6907fc3dd35739d2f5119f2b29b185272a2b8b531fb4fe40a618f5c486aa4",
+          "status": "SUCCEEDED",
+          "bytes": 89353,
+          "format": "HWPX",
+          "binaryHash": "af5df8afe98e7a3d346b400196e73950d2a93db8bb9802a2d21e8cf2e40ccf7e",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000037",

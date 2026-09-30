@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 196,
-    "missingProfileRegionCount": 27,
+    "registeredRegionCount": 197,
+    "missingProfileRegionCount": 26,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5775,14 +5775,26 @@
       "sourceCode": "LGS-000227",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000227",
+          "caseCode": "SACHEON-2106170",
+          "profileCode": "LOCAL_SACHEON_BOARD_V1",
+          "profileHash": "a306bbe07b69e57c1e5ad9b2001347f36b49e823778f1e62c699d82438e37132",
+          "receiptHash": "d891898465cd401d138539f464a3598b7426d0a13079197924e0e2af03763bb5",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000228",
@@ -6090,9 +6102,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "89e969181dd35fc3c829b6b9887151f84a649d81981c4701f8ff9a730b0e7f6a",
+  "inputInventorySha256": "c6613beaf71500fdc2197fb03e6ce781903cbe7622f54b88f8860c9e0010a337",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 309,
+  "importedReceiptCount": 310,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12488,6 +12500,66 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "sacheonDownloadRun": {
+    "scope": "SACHEON_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SACHEON-2106170.json"
+    ],
+    "observationBudget": {
+      "caseCode": "SACHEON-2106170",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2366729,
+    "surveyRequestCount": 9,
+    "surveyGetCount": 9,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000227",
+        "result": "OFFICIAL_SESSION_FILE_HEADER_AND_SIGNATURE",
+        "ephemeralSessionPersisted": false
+      },
+      {
+        "sourceCode": "LGS-000236",
+        "result": "SAME_SITE_REDIRECT_WITH_EPHEMERAL_FORM_FIELDS",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000237",
+        "result": "OFFICIAL_LIST_SEARCH_SUPPORT_DETAIL_HTTP200",
+        "candidateNoticeId": "45193",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000240",
+        "result": "OFFICIAL_LIST_SEARCH_HTTP200_SAMPLE_NOT_SELECTED",
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 89353,
+    "bodyStatus": "AVAILABLE",
+    "bodyCharacterCount": 70,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 169,
+      "noObservedDownloadRegionCount": 54,
+      "regionsWithErrors": 44,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 26
+    }
   },
   "gyeongnamNextDownloadRun": {
     "scope": "GIMHAE_CHANGNYEONG_REGISTERED_BOARDS_COLLECTION_ONLY",
