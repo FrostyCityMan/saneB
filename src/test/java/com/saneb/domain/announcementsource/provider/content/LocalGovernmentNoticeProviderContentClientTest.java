@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void cheongjuBodyExcludesMetadataAndAttachmentRows(){
+        String url="https://www.cheongju.go.kr/www/selectEminwonNoticeView.do?key=281&notAncmtMgtNo=150057&notAncmtSeCd=&nowDongGn=";
+        String page="<div id=board class=\"p-wrap bbs bbs__view\"><table class=bbs_basic><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>내용</th><td><div>소상공인 융자금 지원<script>x()</script></div></td></tr><tr><th>파일</th><td>투자 파일</td></tr></table></div>";
+        for(String content:List.of(page,page+page,page.replace("<th>내용</th>","<th>기타</th>"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 융자금 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void gwangyangCanonicalBodyExcludesMetadataAndAttachmentCells(){
         String url="https://gwangyang.go.kr/saeol/gosi.es?act=view&mid=a10909020000&nPage=1&seq=61869&type_code=02%252C04";
         String page="<div class=\"p-wrap bbs bbs_view\"><table class=\"p-table block\"><tr><th class=bbs_tit>소상공인 지원</th></tr><tr><td>수출 부서</td></tr><tr><td class=view_content>소상공인 융자금 지원<script>x()</script></td></tr><tr><td class=view_file>투자 파일</td></tr></table></div>";

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 212,
-    "missingProfileRegionCount": 11,
+    "registeredRegionCount": 213,
+    "missingProfileRegionCount": 10,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3718,14 +3718,26 @@
       "sourceCode": "LGS-000136",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000136",
+          "caseCode": "CHEONGJU-150057",
+          "profileCode": "LOCAL_CHEONGJU_POST_V1",
+          "profileHash": "416704ccaa2bc6811441924e844b6b60a46a5e538daabf9f530707b3cf66d326",
+          "receiptHash": "1e35185d8320d07831afd70dc98d295f697143a2e30bb5211cdeb761477cc167",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000137",
@@ -6304,9 +6316,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "19b9edeaadad7072d972a8635d7a10d3c778a3da56ee6a13c41e1d2caaf43e71",
+  "inputInventorySha256": "304891513b6010cbb6a158aa115d79188c936249e5697fbbd185e63613c71bb4",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 328,
+  "importedReceiptCount": 329,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12702,6 +12714,64 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "cheongjuDownloadRun": {
+    "scope": "CHEONGJU_OFFICIAL_POST_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/CHEONGJU-150057.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "CHEONGJU-150057",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2595246,
+    "surveyRequestCount": 11,
+    "surveyGetCount": 9,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000136",
+        "requestCount": 1,
+        "result": "OFFICIAL_DETAIL_STRUCTURE200_PDF_POST_FORM"
+      },
+      {
+        "sourceCode": "LGS-000105",
+        "requestCount": 6,
+        "result": "REGISTERED_AND_GENERAL_MENU302_STABLE_LISTS200_OFFICIAL_POST_SEARCH200_DETAIL70639_200_HWPX_LINK",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000195",
+        "requestCount": 4,
+        "result": "LIST200_SUBJECT_SEARCH200_DETAIL29278_200_HWPX_LINK",
+        "isDownloadVerified": false
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 276910,
+    "bodyCharacterCount": 65,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 185,
+      "noObservedDownloadRegionCount": 38,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 10
+    }
   },
   "gwangyangDownloadRun": {
     "scope": "GWANGYANG_OFFICIAL_POST_COLLECTION_ONLY",

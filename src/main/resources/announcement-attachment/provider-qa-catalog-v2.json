@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "CHEONGJU-150057",
+      "profileCode": "LOCAL_CHEONGJU_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "880f00c3a77760b66cf894806b5e4273a8a6af3581feeda5816254aace7781a4",
+        "sourceUrl": "https://www.cheongju.go.kr/www/selectEminwonNoticeView.do?key=281&notAncmtMgtNo=150057&notAncmtSeCd=&nowDongGn=",
+        "localSourceCode": "LGS-000136",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "GWANGYANG-61869",
       "profileCode": "LOCAL_GWANGYANG_POST_V1",
       "source": {
