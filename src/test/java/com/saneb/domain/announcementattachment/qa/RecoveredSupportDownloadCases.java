@@ -7,7 +7,7 @@ import java.util.Set;
 
 /** 공식 목록에서 확인한 추가 표본. 이전 상세 실패·정책 기대값은 변경하지 않는다. */
 final class RecoveredSupportDownloadCases {
-    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT", "MICHUHOL_SUPPORT", "ASAN_SUPPORT");
+    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT", "MICHUHOL_SUPPORT", "ASAN_SUPPORT", "CHEONAN_SUPPORT");
 
     static ObservationCase selectCase(String group) {
         ObservationCase old;
@@ -48,6 +48,13 @@ final class RecoveredSupportDownloadCases {
                 title="2026년 친환경농산물 인증비 지원사업 신청 공고";
                 url="https://www.asan.go.kr/main/cms/?no=257&m_mode=view&mgt_no="+id;
                 files=2;
+            }
+            case "CHEONAN_SUPPORT" -> {
+                old=CheonanDownloadCases.selectCase();
+                id="113864";
+                title="(재공고)청소년 인성교육 및 고3 수능이후 생활지도 사업 지방보조금 지원계획";
+                url="https://eminwon.cheonan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no="+id+"&subCheck=Y";
+                files=1;
             }
             default -> throw new IllegalArgumentException("QA_GROUP_REQUIRED");
         }

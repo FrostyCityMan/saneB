@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "ca5a704917e3d434f97ea44e3e55a40a7d4686500bce11d69bf3b0fb30e03743",
+  "inventorySha256": "f28945ff0a1164dde2940d5268853d2d553edb339687ab8d46474c5d5aa6e3a5",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -5235,6 +5235,14 @@
       "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/CHEONAN-113864-CHEONAN-SUPPORT-20261001.json",
+      "receiptHash": "5afb9d7d721acab952c78a32c2a9780e2ea9b8954e3a3fc3d82dde7d01b3d4c2",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -6315,6 +6323,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000148",
+      "caseCode": "CHEONAN-113864",
+      "profileCode": "LOCAL_CHEONAN_GET_V1",
+      "profileHash": "6c4e76f4fc5a3134e82ecc083893fcf78dc845959fd9ee02a3967c82514d9179",
+      "receiptHash": "5afb9d7d721acab952c78a32c2a9780e2ea9b8954e3a3fc3d82dde7d01b3d4c2",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T19:56:59.620357100Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2bf264a85ff75cab80467dae9602d07abe4ec84908456712c3579a904fa3d42d",
+          "status": "SUCCEEDED",
+          "bytes": 69648,
+          "format": "HWPX",
+          "binaryHash": "35ceb853aea803f60154029b6a78286aa87d665b7819f4b6a797eee2108ee021",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000215",
