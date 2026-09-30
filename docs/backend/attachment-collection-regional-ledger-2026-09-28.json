@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 199,
-    "missingProfileRegionCount": 24,
+    "registeredRegionCount": 200,
+    "missingProfileRegionCount": 23,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5952,14 +5952,26 @@
       "sourceCode": "LGS-000236",
       "listParserProfileCode": "SCMS_CARD_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000236",
+          "caseCode": "NAMHAE-35694",
+          "profileCode": "LOCAL_NAMHAE_SCMS_V1",
+          "profileHash": "d27029a27c738f97d7d78b00b925353fd612a5a6523917c034fdbf32ea3b1126",
+          "receiptHash": "3e8ae2eef69411a9a62dfd33019003f16575482e9f371736a1275b159ac54e5d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000237",
@@ -6126,9 +6138,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f0ecb1dbc9c06c69ada2c1576e411f9c5bfe1cd134e325a88abe1414f78ab6ea",
+  "inputInventorySha256": "7e724c63eb2975589c966f650a365e4734bfb83d3b85cd818d5835cdf7fbc398",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 312,
+  "importedReceiptCount": 313,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12524,6 +12536,63 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "namhaeDownloadRun": {
+    "scope": "NAMHAE_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/NAMHAE-35694.json"
+    ],
+    "observationBudget": {
+      "caseCode": "NAMHAE-35694",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2240659,
+    "surveyRequestCount": 8,
+    "surveyGetCount": 8,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000236",
+        "result": "STABLE_DETAIL_AND_FILE_PREFIX_TWO_GETS",
+        "isFullFileVerified": false
+      },
+      {
+        "sourceCode": "LGS-000232",
+        "result": "OFFICIAL_LIST_HTTP302_NOT_FOLLOWED",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000238",
+        "result": "OFFICIAL_LIST_FORM_TITLE_SEARCH_AND_DETAIL_FIVE_GETS",
+        "candidateNoticeId": "164021",
+        "fileLinkCount": 2,
+        "isDownloadVerified": false,
+        "unrecognizedSearchConditionDidNotFilter": true
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 102547,
+    "bodyStatus": "AVAILABLE",
+    "bodyCharacterCount": 286,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 172,
+      "noObservedDownloadRegionCount": 51,
+      "regionsWithErrors": 44,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 23
+    }
   },
   "geochangDownloadRun": {
     "scope": "GEOCHANG_REGISTERED_BOARD_COLLECTION_ONLY",

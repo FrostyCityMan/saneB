@@ -1571,6 +1571,11 @@ public class LocalGovernmentNoticeCollector {
             if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
                 return null;
             }
+            if (com.saneb.domain.announcementsource.provider.content.NamhaeNoticePage.selectMatches(resolvedUri)) {
+                String stable = com.saneb.domain.announcementsource.provider.content.NamhaeNoticePage.selectCanonicalDetail(resolvedUri, true).toString();
+                // 원본 href에도 일회성 값이 있으므로 rawLink와 저장 URL 모두 고정 주소로 바꾼다.
+                return new ResolvedLink(stable, stable);
+            }
             return new ResolvedLink(candidate, resolvedUri.toString());
         } catch (RuntimeException exception) {
             return null;

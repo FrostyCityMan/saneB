@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "f0ecb1dbc9c06c69ada2c1576e411f9c5bfe1cd134e325a88abe1414f78ab6ea",
+  "inventorySha256": "7e724c63eb2975589c966f650a365e4734bfb83d3b85cd818d5835cdf7fbc398",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2417,6 +2417,14 @@
       "path": "build/reports/attachment-regional-collection/GEOCHANG-47689.json",
       "receiptHash": "c7d286457d820953e90b5251f92d911af4d3b57e97d6c1c5b7a2fb4cc5bf128d",
       "producerClassHash": "3b15148090881ff39dffe9ccbb9054f3174593f2327ce3b7d1e7de776529cea2",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/NAMHAE-35694.json",
+      "receiptHash": "3e8ae2eef69411a9a62dfd33019003f16575482e9f371736a1275b159ac54e5d",
+      "producerClassHash": "26bae44f34028007bd341dbba89c5a123545cc8fd028fedda5aa8f0fa402758a",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -7253,6 +7261,33 @@
           "bytes": 77312,
           "format": "HWP",
           "binaryHash": "d276239a8e14ebae385c6b5aef98792edf1eebc8f48f74657551c4d5bc402e2d",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000236",
+      "caseCode": "NAMHAE-35694",
+      "profileCode": "LOCAL_NAMHAE_SCMS_V1",
+      "profileHash": "d27029a27c738f97d7d78b00b925353fd612a5a6523917c034fdbf32ea3b1126",
+      "receiptHash": "3e8ae2eef69411a9a62dfd33019003f16575482e9f371736a1275b159ac54e5d",
+      "producerClassHash": "26bae44f34028007bd341dbba89c5a123545cc8fd028fedda5aa8f0fa402758a",
+      "observedAt": "2026-09-30T05:56:12.031699Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7fe661ccdcb3fa3658f671aafa3b1a8e63f641e0ac6a158b07c95c4c2c95a924",
+          "status": "SUCCEEDED",
+          "bytes": 102547,
+          "format": "HWPX",
+          "binaryHash": "d771f64e215a36acec6cdb2cb70f190e85c24eef65c68960ea817d2ac896500a",
           "signatureVerified": true
         }
       ]

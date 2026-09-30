@@ -36,6 +36,38 @@ class LocalGovernmentNoticeCollectorTest {
 
     private LocalGovernmentNoticeCollector collector;
 
+    @Test void namhaeListPayloadAndNoticeHashUseOnlyStableFields() {
+        var source=org.mockito.Mockito.mock(LocalGovernmentNoticeSourceRow.class);
+        org.mockito.Mockito.when(source.sourceId()).thenReturn(UUID.randomUUID());
+        org.mockito.Mockito.when(source.institutionName()).thenReturn("남해군");
+        var profile=new LocalGovernmentNoticeParserProfileRow("SCMS_CARD_NOTICE","남해","GENERIC_LIST",
+                "ul.lst1 > li.li1","strong.t1","span.t3","a","yyyy-MM-dd","HTML",null,null,null,null,null,"AUTO",null,null,null,true);
+        String stable="https://www.namhae.go.kr/modules/saeol/gosi.do?amode=_view&not_ancmt_mgt_no=35694&scd=01&pageCd=SM010110000&siteGubun=socialm";
+        var ids=new java.util.HashSet<String>();
+        for(String value:java.util.List.of("qa-first","qa-second")){
+            var page=Jsoup.parse("<ul class=lst1><li class=li1><a href='"+stable+"&_csrf_parameterName=_csrf&_csrf_token="+value+"'><strong class=t1>소상공인 지원</strong></a><span class=t3>"+LocalDate.now(ZoneId.of("Asia/Seoul"))+"</span></li></ul>",stable);
+            var result=collector.parseDocument(source,profile,page,200,null,null,"qa-fingerprint");
+            assertThat(result.resultStatusCode()).isEqualTo("SUCCESS");
+            assertThat(result.items()).singleElement().satisfies(item->{assertThat(item.sourceUrl()).isEqualTo(new AnnouncementSourceIdentityNormalizer().canonicalizeUrl(stable));assertThat(item.rawPayloadJson()).doesNotContain("csrf","qa-first","qa-second");ids.add(item.providerNoticeId());});
+        }
+        assertThat(ids).hasSize(1);
+    }
+
+    @Test void namhaeLinksDropEphemeralValuesBeforeIdentityAndPayload() {
+        String stable="https://www.namhae.go.kr/modules/saeol/gosi.do?amode=_view&not_ancmt_mgt_no=35694&scd=01&pageCd=SM010110000&siteGubun=socialm";
+        for(String value:java.util.List.of("qa-first","qa-second")) {
+            var page=Jsoup.parse("<a href='"+stable+"&_csrf_parameterName=_csrf&_csrf_token="+value+"&cpage=2&sstring=지원&stype=title'>공고</a>",stable);
+            var link=collector.selectResolvedLink(page.selectFirst("a"));
+            assertThat(link.absoluteLink()).isEqualTo(stable);assertThat(link.rawLink()).isEqualTo(stable);
+            assertThat(new AnnouncementSourceIdentityNormalizer().canonicalizeUrl(link.absoluteLink())).doesNotContain("csrf","qa-","cpage","sstring");
+        }
+        for(String bad:java.util.List.of(stable+"&unknown=x",stable.replace("scd=01","scd=02"),stable+"&not_ancmt_mgt_no=1")){
+            var page=Jsoup.parse("<a href='"+bad+"'>공고</a>",stable);assertThat(collector.selectResolvedLink(page.selectFirst("a"))).isNull();
+        }
+        String other="https://www.example.go.kr/detail?id=1&_csrf_token=qa-other";
+        assertThat(collector.selectResolvedLink(Jsoup.parse("<a href='"+other+"'>공고</a>",other).selectFirst("a")).absoluteLink()).isEqualTo(other);
+    }
+
     /**
      * 네트워크 호출 없이 파서 보조 규칙을 검사할 수집기를 준비합니다.
      */

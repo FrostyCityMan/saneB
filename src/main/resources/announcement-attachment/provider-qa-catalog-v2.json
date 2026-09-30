@@ -3157,6 +3157,18 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "NAMHAE-35694",
+      "profileCode": "LOCAL_NAMHAE_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "53b7ee004e3bf2c0f0e1c6fa805e1079008733f3cfcbe622cb2e5dde18f4e17b",
+        "sourceUrl": "https://www.namhae.go.kr/modules/saeol/gosi.do?amode=_view&not_ancmt_mgt_no=35694&scd=01&pageCd=SM010110000&siteGubun=socialm",
+        "localSourceCode": "LGS-000236",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
