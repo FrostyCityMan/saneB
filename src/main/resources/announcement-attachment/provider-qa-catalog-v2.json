@@ -3049,6 +3049,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GIMJE-310426",
+      "profileCode": "LOCAL_GIMJE_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "5b98a5b3140688749ea2be919f01bd3a0276084510bbaabd8592a02c88a99cb2",
+        "sourceUrl": "https://www.gimje.go.kr/board/view.gimje?boardId=BBS_0000044&menuCd=DOM_000000104003000000&paging=ok&startPage=1&dataSid=310426",
+        "localSourceCode": "LGS-000169",
+        "listParserProfileCode": "SUBJECT_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

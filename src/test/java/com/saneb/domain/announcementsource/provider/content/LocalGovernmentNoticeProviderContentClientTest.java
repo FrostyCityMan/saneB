@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gimjeBodyExcludesAttachmentsAndDetectsChangedStructure() {
+        String url="https://www.gimje.go.kr/board/view.gimje?boardId=BBS_0000044&menuCd=DOM_000000104003000000&paging=ok&startPage=1&dataSid=310426";
+        String page="<div class=bbs_skin><div class=bbs_view><div class=bbs_vtop><h4>소상공인 지원</h4></div><div class=bbs_con>소상공인 카드수수료 지원</div><div class=bbs_filedown><dl><dt>첨부파일</dt><dd>특허.hwp</dd></dl></div></div></div>";
+        for(String content:List.of(page,page+page,page.replace("bbs_con","other"))) {
+            var transport=new StubTransport(); transport.enqueue(html("<nav>수출 메뉴</nav>"+content));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 카드수수료 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void yeongdongBodyExcludesAttachmentsAndDetectsChangedStructure() {
         String url="https://www.yd21.go.kr/kr/html/sub02/020103.html?mode=V&no=759fdcd35933d6237c5cf16b4908416b&GotoPage=1";
         String page="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>소상공인 지원</h2></div><div class='ui bbs--view--file'>특허.hwp</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>소상공인 이차보전금 지원</div></div></div></div></div>";

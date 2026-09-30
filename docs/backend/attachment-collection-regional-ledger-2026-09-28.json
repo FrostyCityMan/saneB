@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 190,
-    "missingProfileRegionCount": 33,
+    "registeredRegionCount": 191,
+    "missingProfileRegionCount": 32,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4409,14 +4409,26 @@
       "sourceCode": "LGS-000169",
       "listParserProfileCode": "SUBJECT_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000169",
+          "caseCode": "GIMJE-310426",
+          "profileCode": "LOCAL_GIMJE_BOARD_V1",
+          "profileHash": "ce100ee16081a7f73900ca9d7207da185230c4c8b5a8d3f1780a9c0c794ddc3b",
+          "receiptHash": "e2e371af4fb0f357436bb727b30f99d8e84ae62761404027e860af6023917d9d",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000170",
@@ -6018,9 +6030,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "9b7f40cff64248edf3b7167ba361bf94ef9d7b18cd37b3d696ff5530bdf9f4d3",
+  "inputInventorySha256": "5f3f7e4f5686dce76412f88e51c1233fbb38b15a49a9a55a1109b24db4c56f1a",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 300,
+  "importedReceiptCount": 302,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12416,6 +12428,55 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "gimjeDownloadRun": {
+    "scope": "GIMJE_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GIMJE-310426-ATTEMPT1.json",
+      "build/reports/attachment-regional-collection/GIMJE-310426.json"
+    ],
+    "observationBudget": {
+      "caseCode": "GIMJE-310426",
+      "attempts": 2,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 12,
+    "reservedBytesIncludingBodyUpperBound": 4593455,
+    "surveyRequestCount": 13,
+    "surveyGetCount": 13,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000169",
+        "result": "OFFICIAL_BOARD_AND_SAME_URI_REDIRECT_OR_BINARY_HTTP200",
+        "isCookieRequirementProven": false,
+        "isUserAgentChangedToBypass": false,
+        "isSourceScopeChanged": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 2,
+    "downloadedBytes": 186159,
+    "firstObservationBodyStatus": "AVAILABLE",
+    "firstObservationBodyCharacterCount": 620,
+    "latestBodyStatus": "FETCH_FAILED",
+    "latestBodyFailureCode": "REDIRECT_LIMIT_EXCEEDED",
+    "isBodyErrorResolved": false,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 163,
+      "noObservedDownloadRegionCount": 60,
+      "regionsWithErrors": 43,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 32
+    }
   },
   "yeongdongDownloadRun": {
     "scope": "YEONGDONG_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",

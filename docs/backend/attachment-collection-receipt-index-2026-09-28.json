@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "9b7f40cff64248edf3b7167ba361bf94ef9d7b18cd37b3d696ff5530bdf9f4d3",
+  "inventorySha256": "5f3f7e4f5686dce76412f88e51c1233fbb38b15a49a9a55a1109b24db4c56f1a",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2321,6 +2321,22 @@
       "path": "build/reports/attachment-regional-collection/YEONGDONG-759FDCD3.json",
       "receiptHash": "bf9702ea1ec4e1a5baa9be0d913c9876e9328967116a1b96db3a5fb66e56c074",
       "producerClassHash": "1cc0802730ecaa5c80691d5369b14e663274939c2a750bb52f20067d6325c537",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GIMJE-310426-ATTEMPT1.json",
+      "receiptHash": "115496b008144ab7a479af786260d063ab9a45aab43a61a6923ad1503d8599d3",
+      "producerClassHash": "b5982084366217a19fa0f3ec11662c16f0a8d5ba8b30a3c2013d2ea9af231333",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GIMJE-310426.json",
+      "receiptHash": "e2e371af4fb0f357436bb727b30f99d8e84ae62761404027e860af6023917d9d",
+      "producerClassHash": "b5982084366217a19fa0f3ec11662c16f0a8d5ba8b30a3c2013d2ea9af231333",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -4828,6 +4844,41 @@
           "bytes": 112241,
           "format": "HWPX",
           "binaryHash": "1d2ca5e0d131f678c55159652ccc16b19666916735be16b86c51c7007a2c2426",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000169",
+      "caseCode": "GIMJE-310426",
+      "profileCode": "LOCAL_GIMJE_BOARD_V1",
+      "profileHash": "ce100ee16081a7f73900ca9d7207da185230c4c8b5a8d3f1780a9c0c794ddc3b",
+      "receiptHash": "e2e371af4fb0f357436bb727b30f99d8e84ae62761404027e860af6023917d9d",
+      "producerClassHash": "b5982084366217a19fa0f3ec11662c16f0a8d5ba8b30a3c2013d2ea9af231333",
+      "observedAt": "2026-09-30T04:08:59.493276300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "781d8f4413c9388b65865b9d22bd1fda7a5d0bb48eb430cd65d6e68a5eae5da9",
+          "status": "SUCCEEDED",
+          "bytes": 103215,
+          "format": "HWPX",
+          "binaryHash": "57a49784952a542e617d0a1ae23ac1cf011469f3114652be0805d39c11d52ed2",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "70a1548be6ac52412c63540dcaaa397b58a298edcd1a0c07a5d8e4ffea6a73d4",
+          "status": "SUCCEEDED",
+          "bytes": 82944,
+          "format": "HWP",
+          "binaryHash": "511f5424c9579cb1eb51a18e0821dba0a8cf6af7c5eff409e4aeefd21d4b20b4",
           "signatureVerified": true
         }
       ]
