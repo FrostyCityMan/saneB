@@ -83,6 +83,8 @@ git -c core.safecrlf=false diff --check
 3. 나머지 연결/TLS/시간 초과는 동일 요청을 무한 반복하지 않는다. 새로운 공식 표본·공식 경로·승인된 접근 환경을 근거로 검증한다. 서울 서버 AWS 인증·인증서 문제는 별도 미해결이다.
 4. 확인된 성공 파일과 지역 오류를 병행 유지한다. 전체 worker·DB/API/UI·운영 E2E 완료를 이번 파일 수집 통계로 대신하지 않는다.
 
+TLS 후속 비교는 [성남·속초·의성 Linux TLS 원인 구분](announcement-regional-tls-linux-2026-10-01.md)에 기록했다. 기본 협상과TLS1.2 고정 모두 세 호스트에서handshake alert로 종료되어 버전 고정만으로 복구된다는 근거는 없다. HTTP0·파일0·운영쓰기0이며 인증서 예외·약한 암호군·HTTP 강등 없이 동일 요청 반복을 중단했다. 다운로드204/223·잔여19개는 유지한다.
+
 ## 후속 오류 집계 보정
 
 영동·아산·남해의 봉인된 최신 보고서는 본문 오류를`TIMEOUT`으로 기록했으나, 읽기 전용 진단기의 허용 목록 누락으로`UNCLASSIFIED_ERROR`로 표시됐다. `ProviderContentCodes.FailureCode.TIMEOUT`과 실제 보고서를 확인하여 본문 단계에서만 원래 코드를 보존하도록 수정했다. 상세/파일의`TRANSPORT_TIMEOUT`과는 구분하고 임의 오류 문자열 마스킹은 유지한다.
