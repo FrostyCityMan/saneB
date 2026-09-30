@@ -238,7 +238,7 @@ class AttachmentContractWorkflowTest {
         var flow=workflow();
         var regional=(Map<?,?>)((Map<?,?>)flow.get("jobs")).get("regional-transport-observation");
         assertThat(regional.get("needs")).isEqualTo("contracts");
-        assertThat(regional.get("if")).isEqualTo("${{ !cancelled() && github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-transport-observation-01]') }}");
+        assertThat(regional.get("if")).isEqualTo("${{ !cancelled() && github.event_name == 'push' && github.run_attempt == 1 && (contains(github.event.head_commit.message, '[regional-transport-observation-01]') || contains(github.event.head_commit.message, '[chungbuk-response-observation-01]')) }}");
         assertThat(regional.get("timeout-minutes")).isEqualTo(20);
         assertThat(regional.get("runs-on")).isEqualTo("ubuntu-22.04");
         assertThat(regional.get("env")).isEqualTo(Map.of("SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED","false"));

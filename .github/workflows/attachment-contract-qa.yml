@@ -57,11 +57,11 @@ concurrency:
 
 jobs:
   regional-transport-observation:
-    name: 고정 6지역 파일 전송 비교 — 추출·배포 없음
+    name: 고정 지역 파일 전송 비교 — 추출·배포 없음
     # HWP worker 기준값 실패와 파일 전송 관측을 분리한다. 기존 계약 job의 실패는 보존한다.
     # 계약 job 종료 후 순차 실행하며, 재실행으로 외부 요청을 반복하지 않는다.
     needs: contracts
-    if: ${{ !cancelled() && github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-transport-observation-01]') }}
+    if: ${{ !cancelled() && github.event_name == 'push' && github.run_attempt == 1 && (contains(github.event.head_commit.message, '[regional-transport-observation-01]') || contains(github.event.head_commit.message, '[chungbuk-response-observation-01]')) }}
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     env:
@@ -77,11 +77,15 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: 고정 대상·요청 예산 검증 — 외부 요청 없음
-        run: bash ./gradlew :test --tests '*RegionalTransportLinuxContractTest' --no-daemon --console=plain --max-workers=1
+        run: bash ./gradlew :test --tests '*RegionalTransportLinuxContractTest' --tests '*ObservationResponseMetadataTest' --no-daemon --console=plain --max-workers=1
       - name: 고정 6공고 파일 발견·다운로드 — 최대 36요청·138MiB
+        if: ${{ contains(github.event.head_commit.message, '[regional-transport-observation-01]') && !contains(github.event.head_commit.message, '[chungbuk-response-observation-01]') }}
         run: |
           set -euo pipefail
           bash ./gradlew :attachmentRegionalCollectionObservation -PsanebBbsObservationGroup=POCHEON,GANGNEUNG,CHUNGBUK,GONGJU,PYEONGTAEK,SEONGNAM -PsanebCollectionReportLabel=LINUX-TRANSPORT-01 --no-daemon --console=plain --max-workers=1
+      - name: 충북 고정1공고 응답 형식 관측 — 최대 6요청·23MiB
+        if: ${{ contains(github.event.head_commit.message, '[chungbuk-response-observation-01]') && !contains(github.event.head_commit.message, '[regional-transport-observation-01]') }}
+        run: bash ./gradlew :attachmentRegionalCollectionObservation -PsanebBbsObservationGroup=CHUNGBUK -PsanebCollectionReportLabel=CHUNGBUK-RESPONSE-01 --no-daemon --console=plain --max-workers=1
       - name: 보고서 생산 코드 지문 확인
         if: always()
         run: sha256sum build/classes/java/test/com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentBbsOfficialObservationTest.class
@@ -92,6 +96,7 @@ jobs:
           name: attachment-regional-transport-${{ github.sha }}
           path: |
             build/reports/attachment-regional-collection/*-LINUX-TRANSPORT-01.json
+            build/reports/attachment-regional-collection/CHUNGBUK-67302-CHUNGBUK-RESPONSE-01.json
             build/test-results/attachmentRegionalCollectionObservation/TEST-*.xml
             build/test-results/test/TEST-*RegionalTransportLinuxContractTest.xml
           if-no-files-found: error

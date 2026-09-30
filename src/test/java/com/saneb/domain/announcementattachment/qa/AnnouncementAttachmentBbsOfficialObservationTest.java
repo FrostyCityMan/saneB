@@ -619,6 +619,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
                     stage="FILE_DOWNLOAD";var fileRequest=descriptor.selectRequest();
                     var bytes=selectFileDownload(profile,fileRequest,binary,budget,client,transfer);
                     row.put("bytes",bytes.bytes());row.put("binaryHash",bytes.sha256());stage="FILE_SIGNATURE";
+                    row.put("responseMetadata",ObservationResponseMetadata.selectDetails(binary,bytes));
                     String format=new AttachmentFileTypeValidator().selectFormat(binary,bytes,descriptor.expectedFormat(),profile.selectUtf8DispositionOctets(),profile.selectLegacyBinaryContentTypes());
                     row.put("format",format);
                     if(collectionOnly) {row.put("status","DOWNLOADED");continue;}
