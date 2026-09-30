@@ -3493,6 +3493,18 @@
         "listParserProfileCode": "SAFE_HWASEONG_LEGAL_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "DONGDUCHEON-45339",
+      "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "af736af342a7d5f717e1940b52861aff37b8afac37128a6ccae76e4cab1f590a",
+        "sourceUrl": "https://www.ddc.go.kr/ddc/selectGosiData.do?key=340&not_ancmt_mgt_no=45339&not_ancmt_se_code=04",
+        "localSourceCode": "LGS-000112",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

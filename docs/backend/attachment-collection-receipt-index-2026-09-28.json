@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8c63e502b0db2e121dd65955708cd0b182638de88ec39f363fd426f3c47e2496",
+  "inventorySha256": "7f6d6881f8b2f70781a955d5ab9e31174735bd1455400c43b6742bf7e89b419c",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -3163,6 +3163,14 @@
       "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGDUCHEON-45339-DONGDUCHEON-YOUTH-20261001.json",
+      "receiptHash": "0c419891a82f5c86476f074f260a4aa537792fbed89060549e2f89b248076281",
+      "producerClassHash": "1df3a2ac93ee2d0e73aa1894eb42df316589e7a3209c1d9fa4e920415ae2a7cc",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -5155,6 +5163,30 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000112",
+      "caseCode": "DONGDUCHEON-45339",
+      "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
+      "profileHash": "adedefd94a81f19069c7c47c018ec671077887847643601a26a05561aacf1207",
+      "receiptHash": "0c419891a82f5c86476f074f260a4aa537792fbed89060549e2f89b248076281",
+      "producerClassHash": "1df3a2ac93ee2d0e73aa1894eb42df316589e7a3209c1d9fa4e920415ae2a7cc",
+      "observedAt": "2026-09-30T15:15:00.505181900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "42725ba956c10e12bee0cbe483fce1d93b811be36e5677ef76838edab86a47cd",
+          "status": "FAILED",
+          "bytes": 2596
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000120",
