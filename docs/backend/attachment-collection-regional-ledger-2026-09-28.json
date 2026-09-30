@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 203,
-    "missingProfileRegionCount": 20,
+    "registeredRegionCount": 205,
+    "missingProfileRegionCount": 18,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3919,14 +3919,26 @@
       "sourceCode": "LGS-000147",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000147",
+          "caseCode": "CHUNGNAM_PROVINCE-2182547",
+          "profileCode": "LOCAL_CHUNGNAM_PROVINCE_V1",
+          "profileHash": "ba023595785f3630268551f8de8facffc3619aed6804327fd49e9e44b61a2d72",
+          "receiptHash": "a13b8a41f0e49ef9806b178912d737a9c30774bda7b0e928f86993582420fc08",
+          "fileCount": 2,
+          "downloadedFileCount": 1,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000148",
@@ -5687,14 +5699,26 @@
       "sourceCode": "LGS-000223",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000223",
+          "caseCode": "GYEONGNAM_PROVINCE-54749",
+          "profileCode": "LOCAL_GYEONGNAM_PROVINCE_V1",
+          "profileHash": "fc085c7c46f5d1f2de19676d6ccffd134fdd835bd4faa0d43e3e2d283d3ec128",
+          "receiptHash": "9d950e24cf74c0bec010694a4b9aaf1a5a1edaa122cc63848d00428a064656b2",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000224",
@@ -6174,9 +6198,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "d32eecb863f6000b2a1bc61a22d2bab141764039bd28b62fdf19e3f675f3754d",
+  "inputInventorySha256": "d943068c70ea19cda05e7d5845377d9ab06d4afbfc32b637c56fb02ff63f9de8",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 316,
+  "importedReceiptCount": 318,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12572,6 +12596,99 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "provinceNextDownloadRun": {
+    "scope": "PROVINCE_NEXT_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GYEONGNAM_PROVINCE-54749.json",
+      "build/reports/attachment-regional-collection/CHUNGNAM_PROVINCE-2182547.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GYEONGNAM_PROVINCE-54749",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "CHUNGNAM_PROVINCE-2182547",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 5126790,
+    "surveyRequestCount": 20,
+    "surveyGetCount": 20,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000223",
+        "result": "DETAIL_STRUCTURE_LABEL_TWO_GETS"
+      },
+      {
+        "sourceCode": "LGS-000147",
+        "result": "OFFICIAL_LIST_FORM_SEARCH_DETAIL_AND_TWO_FILE_PREFIX_EIGHT_GETS",
+        "isFullFileVerified": false
+      },
+      {
+        "sourceCode": "LGS-000021",
+        "result": "REGISTERED_LIST_HTTP_200_ONE_GET",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000060",
+        "result": "REGISTERED_LIST_FORM_SEARCH_FOUR_GETS",
+        "matchingSupportNoticeFound": false,
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000065",
+        "result": "REGISTERED_LIST_FORM_SEARCH_DETAIL_FIVE_GETS",
+        "candidateNoticeId": "36423",
+        "fileLinkCount": 1,
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 2,
+    "downloadedBytes": 197992,
+    "fileFailures": [
+      {
+        "caseCode": "CHUNGNAM_PROVINCE-2182547",
+        "stage": "FILE_DOWNLOAD",
+        "code": "ATTACHMENT_HTTP_400",
+        "locatorHash": "9c807e060e543719607abc8d3e9e484b220701da532d32be05c77038f6335669"
+      }
+    ],
+    "bodyResults": [
+      {
+        "caseCode": "GYEONGNAM_PROVINCE-54749",
+        "status": "AVAILABLE",
+        "characterCount": 359
+      },
+      {
+        "caseCode": "CHUNGNAM_PROVINCE-2182547",
+        "status": "AVAILABLE",
+        "characterCount": 858
+      }
+    ],
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 177,
+      "noObservedDownloadRegionCount": 46,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 18
+    }
   },
   "geojeDownloadRun": {
     "scope": "GEOJE_REGISTERED_BOARD_COLLECTION_ONLY",

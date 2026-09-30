@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d32eecb863f6000b2a1bc61a22d2bab141764039bd28b62fdf19e3f675f3754d",
+  "inventorySha256": "d943068c70ea19cda05e7d5845377d9ab06d4afbfc32b637c56fb02ff63f9de8",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2451,6 +2451,22 @@
       "producerClassHash": "926d022781e7d54420a6ce11072e488e364d0d2981ccc1ac042960ae4c32611c",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GYEONGNAM_PROVINCE-54749.json",
+      "receiptHash": "9d950e24cf74c0bec010694a4b9aaf1a5a1edaa122cc63848d00428a064656b2",
+      "producerClassHash": "9c2a2fa3b8480d6badc3f6d9bd2788e7569c9436b8613927283c3a1cac085e81",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/CHUNGNAM_PROVINCE-2182547.json",
+      "receiptHash": "a13b8a41f0e49ef9806b178912d737a9c30774bda7b0e928f86993582420fc08",
+      "producerClassHash": "9c2a2fa3b8480d6badc3f6d9bd2788e7569c9436b8613927283c3a1cac085e81",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3649,6 +3665,38 @@
           "locatorHash": "b0f7a5f81563549fb1d902bb5a5e2c0ac21f231c700ca7aa4948f78bfb5a3d7c",
           "status": "FAILED",
           "bytes": 0
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000147",
+      "caseCode": "CHUNGNAM_PROVINCE-2182547",
+      "profileCode": "LOCAL_CHUNGNAM_PROVINCE_V1",
+      "profileHash": "ba023595785f3630268551f8de8facffc3619aed6804327fd49e9e44b61a2d72",
+      "receiptHash": "a13b8a41f0e49ef9806b178912d737a9c30774bda7b0e928f86993582420fc08",
+      "producerClassHash": "9c2a2fa3b8480d6badc3f6d9bd2788e7569c9436b8613927283c3a1cac085e81",
+      "observedAt": "2026-09-30T07:06:03.249116700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "9c807e060e543719607abc8d3e9e484b220701da532d32be05c77038f6335669",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "a6b0546aac018f71149f5e9ea2691dde373bb795061ca620386ab287201fa50f",
+          "status": "SUCCEEDED",
+          "bytes": 96902,
+          "format": "HWPX",
+          "binaryHash": "5062e3399ec51ef29cdb7976fcb2946740042591bfeb2a09a4d01388c5e65749",
+          "signatureVerified": true
         }
       ]
     },
@@ -5882,6 +5930,33 @@
           "bytes": 88064,
           "format": "HWP",
           "binaryHash": "4d38563674de5055c7d0c4908fd2a6c3489da15c74bee54bc1c2167462b9bed9",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000223",
+      "caseCode": "GYEONGNAM_PROVINCE-54749",
+      "profileCode": "LOCAL_GYEONGNAM_PROVINCE_V1",
+      "profileHash": "fc085c7c46f5d1f2de19676d6ccffd134fdd835bd4faa0d43e3e2d283d3ec128",
+      "receiptHash": "9d950e24cf74c0bec010694a4b9aaf1a5a1edaa122cc63848d00428a064656b2",
+      "producerClassHash": "9c2a2fa3b8480d6badc3f6d9bd2788e7569c9436b8613927283c3a1cac085e81",
+      "observedAt": "2026-09-30T07:05:35.843673900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d8fb6435e5d9b6ae95cea919e27759f18865ca2424937303c593916e91365bf5",
+          "status": "SUCCEEDED",
+          "bytes": 101090,
+          "format": "HWPX",
+          "binaryHash": "4ebc9fbcb97c9654a717df8fe70c99a4877af34641d392681947bdfa197e4ba0",
           "signatureVerified": true
         }
       ]

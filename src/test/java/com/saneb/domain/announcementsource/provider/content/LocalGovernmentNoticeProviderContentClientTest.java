@@ -31,6 +31,13 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void provinceBodiesExcludeMetadataAndFileNames(){
+        for(boolean gn:List.of(true,false)){
+            String url=gn?"https://www.gyeongnam.go.kr/index.gyeong?menuCd=DOM_000000135003009001&mode=view&sno=54749&gosiGbn=A":"https://www.chungnam.go.kr/cnportal/province/province/view.do?nttId=2182547&menuNo=500487";
+            String page=gn?"<div class='basicView view-v2'><div class=titleField><h4>소상공인 지원</h4></div><div class=conField>수출 부서 투자 파일</div><div class=conText>소상공인 정책자금 지원<script>x()</script></div></div>":"<div class=board-view><div class=board-view-title_wr><p class=board-view-title>소상공인 지원</p></div><ul class=board-view-ul><li><div class=board-view-inner><div class=k>첨부파일</div><div class=v>투자 파일</div></div></li><li><div class=board-view-inner><div class=content>소상공인 정책자금 지원<script>x()</script></div></div></li></ul></div>";
+            for(String content:List.of(page,page+page,page.replace(gn?"class=conText":"class=content","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 정책자금 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+        }
+    }
     @Test void geojeBodyExcludesMetadataFilesAndPreviewIframe(){
         String url="https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001&m=D&idx=67219";
         String page="<div class=board-view><div class=view01><div class=title>소상공인 지원</div><div class=info>수출 부서</div><div class=attach>투자 파일</div><div class=substan>소상공인 디지털 인프라 지원<script>x()</script></div><div><iframe src='/synap/skin/doc.html'></iframe></div></div></div>";

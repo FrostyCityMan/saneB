@@ -3205,6 +3205,30 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GYEONGNAM_PROVINCE-54749",
+      "profileCode": "LOCAL_GYEONGNAM_PROVINCE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "fec57a7736b9e083f6cd38e50c560dbc3fd8895c90976c17482ae80c6b1e264c",
+        "sourceUrl": "https://www.gyeongnam.go.kr/index.gyeong?menuCd=DOM_000000135003009001&mode=view&sno=54749&gosiGbn=A",
+        "localSourceCode": "LGS-000223",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "CHUNGNAM_PROVINCE-2182547",
+      "profileCode": "LOCAL_CHUNGNAM_PROVINCE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b890fd7300e2dcb580b82b3fa0e3f83f49057c0034d2c9ce003a3d58b4200edd",
+        "sourceUrl": "https://www.chungnam.go.kr/cnportal/province/province/view.do?nttId=2182547&menuNo=500487",
+        "localSourceCode": "LGS-000147",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
