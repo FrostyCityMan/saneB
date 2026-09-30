@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const workflow = readFileSync(new URL('../../.github/workflows/attachment-contract-qa.yml', import.meta.url), 'utf8');
+const workflow = readFileSync(new URL('../../.github/workflows/attachment-contract-qa.yml', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const job = workflow.split('  regional-transport-observation:\n')[1]?.split('\n  contracts:')[0];
 
 test('파일 전송 QA는 계약 종료 후 명시한 최초 push에서만 실행한다', () => {

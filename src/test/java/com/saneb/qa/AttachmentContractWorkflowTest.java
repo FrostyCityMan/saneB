@@ -228,10 +228,28 @@ class AttachmentContractWorkflowTest {
         assertThat(((Map<?,?>)flow.get("on")).get("push"))
                 .isEqualTo(Map.of("branches", List.of("codex/attachment-three-stage-linux-qa")));
         assertThat(flow.get("permissions")).isEqualTo(Map.of("contents","read"));
-        assertThat(((Map<?,?>)flow.get("jobs")).size()).isEqualTo(1);
+        assertThat(((Map<?,?>)flow.get("jobs")).keySet().stream().map(String::valueOf).toList())
+                .containsExactlyInAnyOrder("contracts", "regional-transport-observation");
         assertThat(job(flow).get("timeout-minutes")).isEqualTo(30);
         String raw=Files.readString(Path.of(".github/workflows/attachment-contract-qa.yml"));
         assertThat(raw).doesNotContain("secrets.","id-token", "aws-actions/", "aws ", "DB_URL", "environment:", "workflow_call:");
+    }
+    @Test void regionalTransportIsSequentialExplicitAndDoesNotWeakenContracts() throws Exception {
+        var flow=workflow();
+        var regional=(Map<?,?>)((Map<?,?>)flow.get("jobs")).get("regional-transport-observation");
+        assertThat(regional.get("needs")).isEqualTo("contracts");
+        assertThat(regional.get("if")).isEqualTo("${{ !cancelled() && github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-transport-observation-01]') }}");
+        assertThat(regional.get("timeout-minutes")).isEqualTo(20);
+        assertThat(regional.get("runs-on")).isEqualTo("ubuntu-22.04");
+        assertThat(regional.get("env")).isEqualTo(Map.of("SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED","false"));
+        assertThat(regional.containsKey("continue-on-error")).isFalse();
+        assertThat(job(flow).containsKey("continue-on-error")).isFalse();
+        var commands=steps(regional).stream().map(item->(Map<?,?>)item).filter(item->item.containsKey("run"))
+                .map(item->String.valueOf(item.get("run"))).toList();
+        assertThat(commands).anySatisfy(command->assertThat(command).contains(":attachmentRegionalCollectionObservation",
+                "-PsanebBbsObservationGroup=POCHEON,GANGNEUNG,CHUNGBUK,GONGJU,PYEONGTAEK,SEONGNAM",
+                "-PsanebCollectionReportLabel=LINUX-TRANSPORT-01", "--max-workers=1"));
+        assertThat(commands).allSatisfy(command->assertThat(command).doesNotContain("installDist", "bootJar", "|| true", "-x "));
     }
     @Test void runsActualIsolatedDatabaseTasksWithoutEnablingExternalProviders() throws Exception {
         var job=job(workflow());

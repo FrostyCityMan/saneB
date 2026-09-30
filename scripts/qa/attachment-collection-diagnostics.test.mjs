@@ -48,6 +48,12 @@ test('discovery warnings and file transport failures remain distinct', () => {
     [['ATTACHMENT_DISCOVERY', 'ATTACHMENT_LINK_UNRESOLVED'], ['FILE_DOWNLOAD', 'TRANSPORT_TIMEOUT']]);
   assert.equal(result.availabilitySummary.observedDownloadRegionCount, 0);
 });
+test('Content-Type mismatch remains a signature-stage error, not a verified download', () => {
+  const result = fixture([{...base, status: 'COLLECTION_ONLY_PARTIAL_NOT_APPROVED', collectionStageComplete: false,
+    files: [{locatorHash: hash, status: 'FAILED', bytes: 512, failedStage: 'FILE_SIGNATURE', failureCode: 'ATTACHMENT_CONTENT_TYPE_MISMATCH'}]}]).run();
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount, 0);
+  assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]), [['FILE_SIGNATURE', 'ATTACHMENT_CONTENT_TYPE_MISMATCH']]);
+});
 test('raw text, filenames, URLs and arbitrary error strings are not copied', () => {
   const result = fixture([{...base, bodyStatus: 'FETCH_FAILED', bodyFailureCode: 'PRIVATE_CANARY',
     rawText: 'PRIVATE_CANARY', url: 'https://private.invalid/PRIVATE_CANARY', filename: 'PRIVATE_CANARY',

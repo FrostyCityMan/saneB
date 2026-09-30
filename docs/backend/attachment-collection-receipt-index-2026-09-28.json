@@ -5251,6 +5251,102 @@
       "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/CHUNGBUK-67302-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "244f49da0ffca71848b7ed034b062b7e42240b24a9edc191cffac3af3d753fe5",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/GANGNEUNG-60798-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "388d8c894f3885541976f3daea763a75bf94a75c48aa53ecc862403d352e73c4",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/GONGJU-59971-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "b0cfb96afbc4264a22ccedeee5dee579aa251d0a8bbe32594360ca9421f95e81",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/POCHEON-64129-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "36c7660cf1b9607eba8ac3c42bc27c3a7654b4b1239f955c202c7b8f32f58797",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/PYEONGTAEK-95902-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "9c208e552ba547eca9eeba0871169980bfc37765f0894c22420b57e871d065b4",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36775945586/reports/attachment-regional-collection/SEONGNAM-144735-LINUX-TRANSPORT-01.json",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      },
+      "receiptHash": "39cdcdeed705131f22490ef92cdfb62bec81556355fe1b271b0e67b11e491324",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -6549,19 +6645,33 @@
       "sourceCode": "LGS-000135",
       "caseCode": "CHUNGBUK-67302",
       "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
-      "profileHash": "ee61af8fb3b5f76d8a23d9934a65b8ec51429d34410ed54246ec1150b654af4f",
-      "receiptHash": "e703ca13b92474c043fa11065723cf0fce88affe44d537c039b0304c7490a2d1",
-      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
-      "observedAt": "2026-09-30T13:26:12.569931900Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683",
+      "receiptHash": "244f49da0ffca71848b7ed034b062b7e42240b24a9edc191cffac3af3d753fe5",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:04:11.284384574Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "bc31bacb8ae79a4ba4ecfc7b176c2384a60bd0e77466223e183a5eecc6ae43ba",
+          "status": "FAILED",
+          "bytes": 179201
+        }
+      ],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000137",
@@ -7795,11 +7905,11 @@
       "sourceCode": "LGS-000119",
       "caseCode": "GANGNEUNG-60798",
       "profileCode": "LOCAL_GANGNEUNG_PORTAL_V1",
-      "profileHash": "713f360e094825cf01a9b2bfc877978cce709c585c18a997aa974ebbf67bcb7d",
-      "receiptHash": "ead374c0c8d8f73c5e0b2a1e829e60c3dff6f6f43bf2fbe0e469894695deca4b",
-      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
-      "observedAt": "2026-09-30T13:26:11.128285400Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "e2afd29c947de9c5c9b733f7e84cef225df65e9f43861ac3b6c5e774d8ecbb38",
+      "receiptHash": "388d8c894f3885541976f3daea763a75bf94a75c48aa53ecc862403d352e73c4",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:04:04.433299067Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
@@ -7807,7 +7917,15 @@
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000116",
@@ -8411,11 +8529,11 @@
       "sourceCode": "LGS-000149",
       "caseCode": "GONGJU-59971",
       "profileCode": "LOCAL_GONGJU_BOARD_V1",
-      "profileHash": "88efa874fced2213dde423db73b19ad38af9aec3fe33b6104c14f088324c7b07",
-      "receiptHash": "5148312e5ed490c709629772660305ea12bf5269ad31d6b2e380d88b1c456641",
-      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
-      "observedAt": "2026-09-30T13:26:12.711841600Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "5dba7cc4fb710cf9070db27442cb558c41dde92459689a44654e99357ad496fd",
+      "receiptHash": "b0cfb96afbc4264a22ccedeee5dee579aa251d0a8bbe32594360ca9421f95e81",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:04:17.486168653Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
@@ -8423,7 +8541,15 @@
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000216",
@@ -11078,11 +11204,11 @@
       "sourceCode": "LGS-000108",
       "caseCode": "POCHEON-64129",
       "profileCode": "LOCAL_POCHEON_PORTAL_V1",
-      "profileHash": "9ca7ff2c5220b6bcc75813ad30c6485369d8db18f177a94a1564d9ec83c2ecf3",
-      "receiptHash": "1077f99121f78082b5f184a261c0f591f1024900c6ef34f0b0196b43914432f3",
-      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
-      "observedAt": "2026-09-30T13:26:10.923426600Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "566d315c2e41d39a53f899b9773ae66fcf2c1eb61dd0d6ab12bd19c2471355e0",
+      "receiptHash": "36c7660cf1b9607eba8ac3c42bc27c3a7654b4b1239f955c202c7b8f32f58797",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:03:57.599068551Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
@@ -11090,7 +11216,15 @@
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000201",
@@ -11150,11 +11284,11 @@
       "sourceCode": "LGS-000093",
       "caseCode": "PYEONGTAEK-95902",
       "profileCode": "LOCAL_PYEONGTAEK_PORTAL_V1",
-      "profileHash": "01aab9c08f03fbf82b7ad27e91570ba653dc1a50c9b8c095ec62fdee8746be21",
-      "receiptHash": "a92bf54db7f75872085e02d26886f362ebf80b2801b7dfe685ea0773549d040e",
-      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
-      "observedAt": "2026-09-30T13:25:59.431951600Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "134e2848a8ad6f82d64f3fe95cd7a4109ebba94e9051943db95de1bdd89bfb89",
+      "receiptHash": "9c208e552ba547eca9eeba0871169980bfc37765f0894c22420b57e871d065b4",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:04:19.096300694Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
@@ -11162,7 +11296,15 @@
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000227",
@@ -11755,11 +11897,11 @@
       "sourceCode": "LGS-000089",
       "caseCode": "SEONGNAM-144735",
       "profileCode": "LOCAL_SEONGNAM_GET_V1",
-      "profileHash": "375c79e82ecfbeb378aeb45c90d7c29067a051d9a66697fb6477f58d03eec60b",
-      "receiptHash": "abcd8f1742ee4f1c3137e6a578ecd71fd3584efc7de06b9ccf43a39efd356494",
-      "producerClassHash": "8ef440e2b7baa1e8f5811d0ed478490235aed2e95bdba8e48789fea669655fc0",
-      "observedAt": "2026-09-30T02:57:38.023507800Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "dfdef284427bde61ae90e2558722dc2661f43ef00c0db980f4ee2518402cb5a3",
+      "receiptHash": "39cdcdeed705131f22490ef92cdfb62bec81556355fe1b271b0e67b11e491324",
+      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
+      "observedAt": "2026-09-30T21:04:21.044426488Z",
+      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": false,
@@ -11767,7 +11909,15 @@
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [],
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36775945586,
+        "runAttempt": 1,
+        "jobId": 110096466110,
+        "artifactId": 11125864406,
+        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+      }
     },
     {
       "sourceCode": "LGS-000152",

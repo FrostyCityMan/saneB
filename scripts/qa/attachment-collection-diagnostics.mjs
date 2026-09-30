@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {importReceipt, importLocalCollectionReport, selectLatestSamples} from './attachment-collection-receipts.mjs';
 import {buildCollectionAvailability} from './attachment-collection-availability.mjs';
+import {importGithubCollectionReport, validateGithubCollectionEntry} from './attachment-github-collection-receipts.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const codes = new Set(['BODY_SELECTOR_CHANGED', 'NETWORK_ERROR', 'HTTP_STATUS_ERROR', 'DETAIL_HOST_NOT_ALLOWED',
-  'BODY_TEXT_EMPTY', 'TRANSPORT_TIMEOUT', 'ATTACHMENT_SIGNATURE_UNSUPPORTED', 'ATTACHMENT_PATH_NOT_APPROVED',
+  'BODY_TEXT_EMPTY', 'TRANSPORT_TIMEOUT', 'ATTACHMENT_SIGNATURE_UNSUPPORTED', 'ATTACHMENT_CONTENT_TYPE_MISMATCH', 'ATTACHMENT_PATH_NOT_APPROVED',
   'ATTACHMENT_FORMAT_MISMATCH', 'TLS_FAILED', 'OBSERVATION_FAILED', 'TRANSPORT_FAILED',
   'OBSERVATION_ASSERTION_FAILED', 'ATTACHMENT_LINK_UNRESOLVED', 'ATTACHMENT_DETAIL_TITLE_UNAVAILABLE',
   'ATTACHMENT_SELECTOR_CHANGED', 'UNSUPPORTED_FORMAT']);
@@ -24,17 +25,20 @@ export function readCollectionDiagnostics(index, readBytes) {
   const rawByReceipt = new Map();
   const receipts = index.receipts.map(entry => {
     const local = entry.kind === 'LOCAL_COLLECTION_ONLY';
-    assert.match(entry.path, local ? /^build\/reports\/attachment-regional-collection\/[A-Z0-9_-]+\.json$/
+    const github = entry.kind === 'GITHUB_COLLECTION_ONLY';
+    if (github) validateGithubCollectionEntry(entry);
+    else assert.match(entry.path, local ? /^build\/reports\/attachment-regional-collection\/[A-Z0-9_-]+\.json$/
       : /^build\/temporary-bbs-qa-[a-f0-9]{32}\/result(?:-utf8)?\.json$/);
     const bytes = readBytes(entry.path);
     assert.equal(sha(bytes), entry.receiptHash, 'RECEIPT_HASH_CHANGED');
-    const imported = local ? importLocalCollectionReport(bytes, inventory, entry.producerClassHash)
+    const imported = github ? importGithubCollectionReport(bytes, inventory, entry)
+      : local ? importLocalCollectionReport(bytes, inventory, entry.producerClassHash)
       : importReceipt(bytes, inventory);
     assert.equal(imported.status, entry.status);
     assert.equal(imported.samples.length, entry.sampleCount);
     const raw = JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/, ''));
-    const probe = local ? null : raw.reports?.find(r => r.kind === 'TEMPORARY_QA_RESULT')?.report?.probe;
-    rawByReceipt.set(entry.receiptHash, local ? [raw] : probe?.cases ?? probe?.reports ?? []);
+    const probe = local || github ? null : raw.reports?.find(r => r.kind === 'TEMPORARY_QA_RESULT')?.report?.probe;
+    rawByReceipt.set(entry.receiptHash, local || github ? [raw] : probe?.cases ?? probe?.reports ?? []);
     return imported;
   });
   const samples = selectLatestSamples(receipts);

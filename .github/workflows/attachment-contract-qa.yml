@@ -127,7 +127,7 @@ jobs:
         run: node --test scripts/qa/attachment-backfill-ui.test.mjs scripts/qa/attachment-batch-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-segments-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/attachment-provider-coverage-ui.test.mjs scripts/qa/attachment-provider-qa-ui.test.mjs scripts/qa/attachment-queue-ui.test.mjs scripts/qa/attachment-contract-report.test.mjs scripts/qa/attachment-taebaek-hwp-report.test.mjs scripts/qa/attachment-jecheon-observation-report.test.mjs scripts/qa/attachment-chungju-observation-report.test.mjs
 
       - name: 전 지역 첨부 발견·다운로드 단계 판정기 검증
-        run: node --test scripts/qa/attachment-collection-stage.test.mjs scripts/qa/attachment-collection-receipts.test.mjs scripts/qa/attachment-collection-availability.test.mjs scripts/qa/attachment-collection-diagnostics.test.mjs scripts/qa/attachment-regional-linux-workflow.test.mjs
+        run: node --test scripts/qa/attachment-collection-stage.test.mjs scripts/qa/attachment-collection-receipts.test.mjs scripts/qa/attachment-collection-availability.test.mjs scripts/qa/attachment-collection-diagnostics.test.mjs scripts/qa/attachment-regional-linux-workflow.test.mjs scripts/qa/attachment-github-collection-receipts.test.mjs
 
       - name: 임시 runner 격리 도구 준비
         run: |
