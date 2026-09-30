@@ -5,7 +5,8 @@
 - [x] 이전 Linux 응답이 Content-Type 불일치였음을 코드·보고서로 확인
 - [x] 정제된 응답 형식 metadata 추가 및 로컬 집중 검증
 - [x] 충북67302 단일 Linux 응답 관측·원인 확인·영수증 반영
-- [!] 실제 MIME 확인·호환성 수정·실파일 재검증 전 정상 수집으로 집계하지 않음
+- [x] 기존 Citynet 정규화기를 충북에만 연결하고 로컬 검증
+- [~] 새 프로필의 실파일 재검증 전 정상 수집으로 집계하지 않음
 
 기준 HEAD `73c7d9f08935474e4af9f8a334e881c81e00d1bb`. 파일 확인203/223, 잔여20. 전체 goal은 미완료다. HWP 추출 고도화 보류·정상 파일 보존·오류 별도 기록·운영 자동 활성화 금지를 유지한다.
 
@@ -51,6 +52,20 @@ node --test scripts/qa/attachment-regional-linux-workflow.test.mjs scripts/qa/at
 
 현재 검사기는 프로필이 명시적으로 선택한 `application/x-msdownload`와 `application/octer-stream`만 구형 MIME 예외로 허용한다. `application/file`은 단순 프로필 설정만으로 허용되지 않는다. 충북에만 적용되도록 예상 형식·signature·attachment disposition·확장자 일치를 유지하는 변경이 필요하다.
 
-`AttachmentProfileFingerprint`는 공통 `AttachmentFileTypeValidator.class`도 포함하므로 이 파일 변경은 전체 프로필 지문에 영향을 준다. 공통 변경과 개별 사이트 변경을 구분해 재검증 계획을 세워야 한다. 기존 영수증 지문 치환이나 전역 MIME 허용으로 검증을 우회하지 않는다. 이번 회차에서는 애플리케이션 검사기·프로필·기존 migration·운영 설정을 변경하지 않았다.
+`AttachmentProfileFingerprint`는 공통 `AttachmentFileTypeValidator.class`도 포함하므로 이 파일을 직접 변경하면 전체 프로필 지문에 영향을 준다. 기존 영수증 지문 치환이나 전역 MIME 허용으로 검증을 우회하지 않는다. 아래 추가 점검에서 공통 파일 변경을 피할 수 있는 기존 Citynet 정규화기를 찾았다.
 
 최종 Node50개 통과, 영수증673개/289표본 재현 통과. QA 패키지 helper 추가는 로컬에 검증했으며 해당 패키지 수정본을 운영 설치하거나 실제 worker로 실행한 것은 아니다.
+
+## 충북 전용 호환 구현
+
+추가 검색에서 인천·울산·충남 프로필이 이미 사용하는 `CitynetAttachmentFileResponse`를 확인했다. 이 코드는 `application/file`의 실제 signature·attachment disposition·파일명 확장자를 검증한 뒤 내부 legacy-binary 표현으로 정규화한다. `application/x-msdownload`라는 원래 응답을 무조건 수용하지 않는다.
+
+새 `ChungbukCitynetResponseAttachmentProfile`은 기존 충북 프로필만 감싸고 이 helper를 재사용한다. URL·호스트·query·본문·첨부 발견 계약은 기존 delegate에 남긴다. 공통 `AttachmentFileTypeValidator`, 기존 Citynet helper, 공주 프로필 본체는 변경하지 않는다. 공주의 기존 지문 유지, 위험한 응답 및 목적지 차단, 네트워크 호출1회 보존을 단위 검증한다.
+
+집중 Gradle34초 종료0 및 bootJar 실제 실행 통과. 파일 관측 전용 job에는 새 호환 검증도 필수로 추가했다. `[chungbuk-file-recheck-01]` 최초 실행에서 기존 충북67302 한 건만 최대6요청/23MiB로 재검증한다. `responseMetadata`는 downloader 반환값을 관측하므로 새 성공 보고서의 MIME은 정규화 후 내부 값일 수 있다. 원래 `application/file` 응답 근거는 이전 영수증에 보존한다.
+
+새 프로필의 실제 파일 성공은 아직 확인 전이다. 기존 수집 실패를 코드 수정만으로 성공으로 변경하지 않는다. HWP 추출·운영 DB/API·규칙·worker 설정·배포는 이번에도 변경하지 않는다.
+
+기존2026-09-28 읽기 전용 운영 수집원 receipt로 inventory만 다시 생성했다(현재 운영 조회 아님). 전체 target 대조 결과 충북1개만 바뀌었고 나머지는 동일하다. 충북 프로필은 `a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683` → `5054c6ec088190c2d510ace225659e9f6d1d936ba82f5da1864c77150529de12`, inventory SHA는 `31d6fabfa89aca60fc7d141bf32740b9453135b038d2bc7b70ab0f9e4a4749b0` → `bcb1f65eeab9daab01c832a390f948256e3eda7b5930cb062405592f3e01cab2`다. 대장 입력 hash를 갱신하고 기존 충북 영수증의 지문은 그대로 보존했다. 현재 코드와 일치하지 않는 과거 실패 근거로 분리되므로 오류 포함 지역 수39→38은 오류 해결을 뜻하지 않는다.
+
+inventory 테스트25초 종료0, Node50개 및 대장673영수증/289표본 재현 통과. 파일 확인203/223과 미확보20개는 유지한다.

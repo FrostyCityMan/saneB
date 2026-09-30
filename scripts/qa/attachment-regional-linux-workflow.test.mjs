@@ -20,9 +20,9 @@ test('고정 지역 또는 충북 단일 공고만 수집 전용 task로 순차 
   assert.match(job, /-PsanebCollectionReportLabel=LINUX-TRANSPORT-01 --no-daemon --console=plain --max-workers=1/);
   assert.match(job, /persist-credentials: false/);
   assert.doesNotMatch(job, /attachmentOfficialWorkerIntegrationTest|installDist|bootJar/);
-  assert.match(job, /-PsanebBbsObservationGroup=CHUNGBUK -PsanebCollectionReportLabel=CHUNGBUK-RESPONSE-01/);
-  assert.match(job, /contains\(github.event.head_commit.message, '\[chungbuk-response-observation-01\]'\) && !contains\(github.event.head_commit.message, '\[regional-transport-observation-01\]'\)/);
-  assert.match(job, /contains\(github.event.head_commit.message, '\[regional-transport-observation-01\]'\) && !contains\(github.event.head_commit.message, '\[chungbuk-response-observation-01\]'\)/);
+  assert.match(job, /-PsanebBbsObservationGroup=CHUNGBUK -PsanebCollectionReportLabel=CHUNGBUK-FILE-01/);
+  assert.match(job, /contains\(github.event.head_commit.message, '\[chungbuk-file-recheck-01\]'\) && !contains\(github.event.head_commit.message, '\[regional-transport-observation-01\]'\)/);
+  assert.match(job, /contains\(github.event.head_commit.message, '\[regional-transport-observation-01\]'\) && !contains\(github.event.head_commit.message, '\[chungbuk-file-recheck-01\]'\)/);
 });
 
 test('실패 여부와 무관하게 지문과 JSON·JUnit metadata만 보존한다', () => {

@@ -38,7 +38,7 @@ class ChungcheongThirdDownloadContractTest {
         var unsupported=p.selectDescriptors(s.source(),selectPage(group,files+selectItem(group,4,"jpg")));assertThat(unsupported.descriptors()).hasSize(4);assertThat(unsupported.descriptors().getLast().downloadAllowed()).isFalse();
         assertThat(p.selectDescriptors(s.source(),selectPage(group,"")).status()).isEqualTo("NO_FILES");assertThat(p.selectDescriptors(s.source(),"<main>첨부 없음</main>").complete()).isFalse();
         var limit=p.selectDescriptors(s.source(),selectPage(group,IntStream.rangeClosed(1,11).mapToObj(i->selectItem(group,i,"hwp")).collect(Collectors.joining())));assertThat(limit.status()).isEqualTo("LIMIT_EXCEEDED");assertThat(limit.descriptors()).hasSize(10);
-        assertThat(p.selectLegacyBinaryContentTypes()).isEmpty();assertThat(p.selectUtf8DispositionOctets()).isFalse();
+        assertThat(p.selectLegacyBinaryContentTypes()).isEqualTo(group.equals("CHUNGBUK")?Set.of("application/x-msdownload"):Set.of());assertThat(p.selectUtf8DispositionOctets()).isFalse();
     }
     @ParameterizedTest @MethodSource("selectGroups") void bindsSourceMethodsPreviewDuplicatesAndBody(String group){
         var s=ChungcheongThirdDownloadCases.selectCase(group);var p=s.profile();String one=selectItem(group,1,"hwp");

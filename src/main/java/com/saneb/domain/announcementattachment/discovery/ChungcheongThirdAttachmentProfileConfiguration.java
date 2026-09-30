@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods=false)
 public class ChungcheongThirdAttachmentProfileConfiguration {
-    @Bean public AttachmentDiscoveryProfile selectChungbukProfileDetails(){return new ChungcheongThirdAttachmentDiscoveryProfile(Site.CHUNGBUK);}
+    @Bean public AttachmentDiscoveryProfile selectChungbukProfileDetails(){return new ChungbukCitynetResponseAttachmentProfile(new ChungcheongThirdAttachmentDiscoveryProfile(Site.CHUNGBUK));}
     @Bean public AttachmentDiscoveryProfile selectGongjuProfileDetails(){return new ChungcheongThirdAttachmentDiscoveryProfile(Site.GONGJU);}
 }
