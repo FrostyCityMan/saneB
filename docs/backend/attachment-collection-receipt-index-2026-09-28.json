@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8fe55b716b8cb1cfe018407122986fe3c8ef1f7725ad1ff9a7b25f4134a90880",
+  "inventorySha256": "d32eecb863f6000b2a1bc61a22d2bab141764039bd28b62fdf19e3f675f3754d",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2443,6 +2443,14 @@
       "producerClassHash": "11ad2eb711c115b93e04d936cb5782bc3f6a895b43fbd91ea5955d54d2d74991",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GEOJE-67219.json",
+      "receiptHash": "5a58aa87573b0d18ca60dfbf875586d9ba5f3021d1ea26dcda85c785650cc387",
+      "producerClassHash": "926d022781e7d54420a6ce11072e488e364d0d2981ccc1ac042960ae4c32611c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -4688,6 +4696,33 @@
           "bytes": 97676,
           "format": "HWPX",
           "binaryHash": "d8b50e425075e9f6f11ed1ccddd7a194882b6ec42a2bc65d630d83e109ee74e2",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000230",
+      "caseCode": "GEOJE-67219",
+      "profileCode": "LOCAL_GEOJE_GET_V1",
+      "profileHash": "7ac467ba2d9477f1114233cdb466e0e90eeb7fecdf1ab4cbe07a575e8b355e8b",
+      "receiptHash": "5a58aa87573b0d18ca60dfbf875586d9ba5f3021d1ea26dcda85c785650cc387",
+      "producerClassHash": "926d022781e7d54420a6ce11072e488e364d0d2981ccc1ac042960ae4c32611c",
+      "observedAt": "2026-09-30T06:45:59.012887300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "2279fffdef6252a84db74ecad1cbfab426c84108f2c0bf1722b61451a5f46926",
+          "status": "SUCCEEDED",
+          "bytes": 121856,
+          "format": "HWP",
+          "binaryHash": "84b63a4f066fa43c6e8db2f7cd3ad64dd43b818af7093e3aba462154dd0f8a05",
           "signatureVerified": true
         }
       ]

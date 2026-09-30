@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void geojeBodyExcludesMetadataFilesAndPreviewIframe(){
+        String url="https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001&m=D&idx=67219";
+        String page="<div class=board-view><div class=view01><div class=title>소상공인 지원</div><div class=info>수출 부서</div><div class=attach>투자 파일</div><div class=substan>소상공인 디지털 인프라 지원<script>x()</script></div><div><iframe src='/synap/skin/doc.html'></iframe></div></div></div>";
+        for(String content:List.of(page,page+page,page.replace("class=substan","class=other"),page.replace("<div class=title>소상공인 지원</div>",""))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 디지털 인프라 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void uiryeongBodyExcludesMetadataFilesAndScripts(){
         String url="https://www.uiryeong.go.kr/board/view.uiryeong?boardId=BBS_0000070&menuCd=DOM_000000203003001001&startPage=1&dataSid=316445&gosiNo=35341";
         String page="<div class=boardViewWrap><div class=bdvTitWrap><p class=bdvTit>소상공인 지원</p></div><div class=bdvInfo>수출 부서 투자 파일</div><div class=bdvCntWrap>소상공인 육성지원<script>x()</script></div></div>";

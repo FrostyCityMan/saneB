@@ -3193,6 +3193,18 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GEOJE-67219",
+      "profileCode": "LOCAL_GEOJE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "cf7c1e7fd6af4e0b2e5fe3b97e8cf0b6f7a3ebae76b5556435081e23388e4c50",
+        "sourceUrl": "https://www.geoje.go.kr/index.geoje?menuCd=DOM_000008902001002001&m=D&idx=67219",
+        "localSourceCode": "LGS-000230",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

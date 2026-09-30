@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 202,
-    "missingProfileRegionCount": 21,
+    "registeredRegionCount": 203,
+    "missingProfileRegionCount": 20,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5838,14 +5838,26 @@
       "sourceCode": "LGS-000230",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000230",
+          "caseCode": "GEOJE-67219",
+          "profileCode": "LOCAL_GEOJE_GET_V1",
+          "profileHash": "7ac467ba2d9477f1114233cdb466e0e90eeb7fecdf1ab4cbe07a575e8b355e8b",
+          "receiptHash": "5a58aa87573b0d18ca60dfbf875586d9ba5f3021d1ea26dcda85c785650cc387",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000231",
@@ -6162,9 +6174,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "8fe55b716b8cb1cfe018407122986fe3c8ef1f7725ad1ff9a7b25f4134a90880",
+  "inputInventorySha256": "d32eecb863f6000b2a1bc61a22d2bab141764039bd28b62fdf19e3f675f3754d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 315,
+  "importedReceiptCount": 316,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12560,6 +12572,62 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "geojeDownloadRun": {
+    "scope": "GEOJE_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GEOJE-67219.json"
+    ],
+    "observationBudget": {
+      "caseCode": "GEOJE-67219",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2440192,
+    "surveyRequestCount": 12,
+    "surveyGetCount": 10,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000230",
+        "result": "DETAIL_FUNCTION_AND_FILE_PREFIX_HEADER_SIX_GETS",
+        "isFullFileVerified": false
+      },
+      {
+        "sourceCode": "LGS-000223",
+        "result": "LIST_DETAIL_FILE_PREFIX_THREE_GETS_AND_TWO_OFFICIAL_SEARCH_POSTS",
+        "candidateNoticeId": "54749",
+        "fileLinkCount": 1,
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000147",
+        "result": "REGISTERED_LIST_FORM_HTTP_200_ONE_GET",
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 121856,
+    "bodyStatus": "AVAILABLE",
+    "bodyCharacterCount": 248,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 175,
+      "noObservedDownloadRegionCount": 48,
+      "regionsWithErrors": 44,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 20
+    }
   },
   "uiryeongDownloadRun": {
     "scope": "UIRYEONG_REGISTERED_BOARD_COLLECTION_ONLY",
