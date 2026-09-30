@@ -56,7 +56,7 @@ class SeoulFourthDownloadContractTest {
         if(group.equals("SONGPA")){
             // 공식 상세의 제목 셀이 비어 있다. 목록 제목을 상세 검증 성공으로 대체하지 않는다.
             assertThatThrownBy(()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,s.title(),s.titleLayout())).hasMessage("SEOUL_FOURTH_STRUCTURE_CHANGED");
-            var failed=s.profile().selectDescriptors(s.source(),html);assertThat(failed.complete()).isFalse();assertThat(failed.descriptors()).isEmpty();assertThat(failed.warnings()).contains("ATTACHMENT_SELECTOR_CHANGED");return;
+            var failed=s.profile().selectDescriptors(s.source(),html);assertThat(failed.complete()).isFalse();assertThat(failed.descriptors()).hasSize(3);assertThat(failed.warnings()).contains("ATTACHMENT_DETAIL_TITLE_UNAVAILABLE");return;
         }
         AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(page,s.title(),s.titleLayout());var r=s.profile().selectDescriptors(s.source(),html);assertThat(r.complete()).isTrue();assertThat(r.descriptors()).hasSize(group.equals("SEONGDONG")?2:3);assertThat(r.descriptors()).allSatisfy(d->assertThat(d.downloadAllowed()).isTrue());assertThat(SeoulFourthNoticePage.selectContent(Site.valueOf(group),page).text()).isNotBlank();
     }

@@ -63,7 +63,7 @@ test('detail page gates review-context reads and explains missing body without d
 });
 test('discovery failures have distinct Korean reasons rather than no-files or raw-code fallback', () => {
     const codes = ['ATTACHMENT_DETAIL_UNAVAILABLE', 'ATTACHMENT_SELECTOR_CHANGED', 'ATTACHMENT_DOWNLOAD_FORM_CHANGED',
-        'ATTACHMENT_LINK_UNRESOLVED', 'ATTACHMENT_FILE_LIMIT'];
+        'ATTACHMENT_LINK_UNRESOLVED', 'ATTACHMENT_FILE_LIMIT', 'ATTACHMENT_DETAIL_TITLE_UNAVAILABLE'];
     assert.equal(new Set(codes.map(C.label)).size, codes.length);
     for (const code of codes) {
         assert.match(C.label(code), /[가-힣]/);

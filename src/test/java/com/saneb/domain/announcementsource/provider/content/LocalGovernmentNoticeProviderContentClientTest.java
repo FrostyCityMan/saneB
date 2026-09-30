@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void songpaMissingTitleStillCollectsBodyOnlyWhenDetailIdMatches() {
+        String url="https://www.songpa.go.kr/www/selectGosiData.do?key=2776&not_ancmt_mgt_no=33174";
+        String page="<div class='p-wrap bbs bbs__view'><form name=gosiFrm><input type=hidden name=not_ancmt_mgt_no value=33174><table class='p-table block'><tr><th>제목</th><td></td><th>담당부서</th><td>수출</td></tr><tr><th>내용</th><td>중소기업 자금 지원</td></tr><tr><th>파일</th><td>특허 첨부.hwpx</td></tr></table></form></div>";
+        for(String selected:List.of(page,page.replace("value=33174","value=33175"),page.replace("type=hidden","type=text"))) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자</nav>"+selected+"<footer>행정 메뉴</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("중소기업 자금 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void cheonanBodyExcludesNestedAttachmentsAndMetadata(){
         String url="https://eminwon.cheonan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=107953&subCheck=Y";
         String page="<form name=form method=post><table width=98% border=0 cellspacing=1 cellpadding=0><tr><td>제목</td><td>소상공인 지원</td><td>담당부서</td><td>수출</td></tr><tr><td colspan=4 style='word-break:break-all;'>소상공인 자금 지원<script>viewer()</script></td></tr><tr><td colspan=4><table><tr><td>첨부파일</td><td>특허</td></tr></table></td></tr></table></form>";

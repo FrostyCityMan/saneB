@@ -29,7 +29,7 @@ public final class SeoulFourthNoticePage {
         if(!allowed.containsAll(q.keySet())||!s.menu.equals(q.get(menuKey))||!q.getOrDefault(s.idKey,"").matches("[1-9][0-9]{0,14}"))throw invalid();
         return URI.create("https://"+s.host+s.path+"?"+menuKey+"="+s.menu+(s==Site.SEONGDONG?"&bbsNo=184":"")+"&"+s.idKey+"="+q.get(s.idKey));
     }
-    public static Element selectRoot(Site s,Document p){Element root=selectSingle(p,s==Site.GWANGJIN?"div.view > div.t":s==Site.SONGPA?"div.p-wrap.bbs.bbs__view > form[name=gosiFrm] > table.p-table.block":"div.p-wrap.bbs.bbs__view > table.p-table.block");if(selectTitle(s,root).text().isBlank())throw invalid();return root;}
+    public static Element selectRoot(Site s,Document p){Element root=selectSingle(p,s==Site.GWANGJIN?"div.view > div.t":s==Site.SONGPA?"div.p-wrap.bbs.bbs__view > form[name=gosiFrm] > table.p-table.block":"div.p-wrap.bbs.bbs__view > table.p-table.block");if(selectTitle(s,root).text().isBlank()){if(s!=Site.SONGPA)throw invalid();SongpaNoticeIdentity.validateDetail(p,root);}return root;}
     public static Element selectTitle(Site s,Element root){return s==Site.SEONGDONG?selectSingle(root,":root > tbody > tr.p-table__subject > td > span.p-table__subject_text"):selectCell(s,root,s==Site.GWANGJIN?"공고명":"제목");}
     public static Element selectContent(Site s,Document p){var root=selectRoot(s,p);return s==Site.SEONGDONG?selectSingle(root,":root > tbody > tr > td.p-table__content > div.ntt_cn_container"):selectCell(s,root,"내용");}
     public static Element selectAttachments(Site s,Document p){return selectCell(s,selectRoot(s,p),s==Site.SONGPA?"파일":"첨부파일");}

@@ -1199,6 +1199,9 @@ class AnnouncementAttachmentJobIntegrationTest {
     @Test void att013DownloadFormWarningIsBoundToImmutableManifestAndReadApi() {
         assertDiscoveryWarningBoundToImmutableManifestAndReadApi("ATTACHMENT_DOWNLOAD_FORM_CHANGED");
     }
+    @Test void att013MissingDetailTitleWarningIsBoundToImmutableManifestAndReadApi() {
+        assertDiscoveryWarningBoundToImmutableManifestAndReadApi("ATTACHMENT_DETAIL_TITLE_UNAVAILABLE");
+    }
     private void assertDiscoveryWarningBoundToImmutableManifestAndReadApi(String warning) {
         service.insertAttachmentJob(selectRequest());
         var job=service.saveNextJobClaim().orElseThrow();

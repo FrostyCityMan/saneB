@@ -6,6 +6,7 @@ import com.saneb.domain.announcementsource.provider.content.AttachmentPinnedDown
 import com.saneb.domain.announcementsource.provider.content.CapitalThirdNoticePage;
 import com.saneb.domain.announcementsource.provider.content.SeoulFourthNoticePage;
 import com.saneb.domain.announcementsource.provider.content.SeoulFourthNoticePage.Site;
+import com.saneb.domain.announcementsource.provider.content.SongpaNoticeIdentity;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +25,7 @@ final class SeoulFourthAttachmentDiscoveryProfile implements AttachmentDiscovery
     private final SaeolGetAttachmentDiscoveryProfile saeol;
     SeoulFourthAttachmentDiscoveryProfile(Site s){site=s;code="LOCAL_"+s+"_BOARD_V1";download=s==Site.SEONGDONG?"/main/downloadBbsFile.do":s==Site.SONGPA?SONGPA_DOWNLOAD:"/portal/cmmn/file/fileDown.do";
         saeol=new SaeolGetAttachmentDiscoveryProfile(code,s.sourceCode,SONGPA_HOST,s.parser,"td",false);
-        hash=AttachmentProfileFingerprint.selectHash("SEOUL_FOURTH:1|"+s+"|"+s.sourceCode+"|"+s.parser+"|"+s.host+"|https443|same-request|paired-preview-no-fetch|limit10|unknown-role|"+saeol.selectProfileHash()+"|"+AttachmentProfileFingerprint.selectHash("PAGE:1",SeoulFourthNoticePage.class)+"|"+AttachmentProfileFingerprint.selectHash("QUERY:1",CapitalThirdNoticePage.class),getClass());}
+        hash=AttachmentProfileFingerprint.selectHash("SEOUL_FOURTH:2|"+s+"|"+s.sourceCode+"|"+s.parser+"|"+s.host+"|https443|same-request|paired-preview-no-fetch|limit10|unknown-role|"+saeol.selectProfileHash()+"|"+AttachmentProfileFingerprint.selectHash("PAGE:1",SeoulFourthNoticePage.class)+"|"+AttachmentProfileFingerprint.selectHash("SONGPA_ID:1",SongpaNoticeIdentity.class)+"|"+AttachmentProfileFingerprint.selectHash("QUERY:1",CapitalThirdNoticePage.class),getClass());}
     @Override public String selectProviderCode(){return "LOCAL_GOV_NOTICE";}
     @Override public String selectProfileCode(){return code;}
     @Override public String selectProfileHash(){return hash;}
@@ -57,7 +58,8 @@ final class SeoulFourthAttachmentDiscoveryProfile implements AttachmentDiscovery
         if(!q.keySet().equals(Set.of("atchmnflNo","user_file_nm","sys_file_nm","file_path"))||!selectNumber(q.remove("atchmnflNo")))return false;return q.equals(fileQ);
     }catch(IllegalArgumentException e){return false;}}
     @Override public Result selectDescriptors(Source s,String html){URI detail=selectDetailUri(s);if(html==null||html.length()>1_000_000)return selectFailed("ATTACHMENT_DETAIL_UNAVAILABLE");Element cell;
-        try{cell=SeoulFourthNoticePage.selectAttachments(site,Jsoup.parse(html,detail.toASCIIString())).clone();}catch(IllegalArgumentException e){return selectFailed("ATTACHMENT_SELECTOR_CHANGED");}
+        boolean titleMissing;
+        try{var page=Jsoup.parse(html,detail.toASCIIString());var root=SeoulFourthNoticePage.selectRoot(site,page);titleMissing=SeoulFourthNoticePage.selectTitle(site,root).text().isBlank();cell=SeoulFourthNoticePage.selectAttachments(site,page).clone();}catch(IllegalArgumentException e){return selectFailed("ATTACHMENT_SELECTOR_CHANGED");}
         // 광진 첨부 셀의 뷰어용 script/style은 실행하지 않고 제거한다.
         if(site==Site.GWANGJIN)cell.select("script,style,link[rel=stylesheet]").remove();
         String itemSelector=site==Site.SEONGDONG?":root > ul.p-attach > li.p-attach__item":site==Site.SONGPA?":root > ul.view_attach > li":":root > div.fileList > div";
@@ -69,7 +71,7 @@ final class SeoulFourthAttachmentDiscoveryProfile implements AttachmentDiscovery
             var remainder=item.clone();remainder.select(downloadSelector).remove();for(var preview:remainder.select("a"))if(selectPairedPreview(preview,fetch,name,detail))preview.remove();
             if(!remainder.text().isBlank()||!remainder.select("a,button,input,img,iframe,form,object,embed,script,[onclick],[href]").isEmpty()||!a.select("script,input,button,img,iframe,object,embed,[onclick]").isEmpty())unresolved=true;
         }catch(IllegalArgumentException e){unresolved=true;}
-        if(exceeded)return new Result("LIMIT_EXCEEDED",false,List.copyOf(found.values()),List.of("ATTACHMENT_FILE_LIMIT"));if(unresolved)return new Result("FAILED",false,List.copyOf(found.values()),List.of("ATTACHMENT_LINK_UNRESOLVED"));return new Result(found.isEmpty()?"NO_FILES":"FOUND",true,List.copyOf(found.values()),List.of());
+        if(exceeded)return new Result("LIMIT_EXCEEDED",false,List.copyOf(found.values()),List.of("ATTACHMENT_FILE_LIMIT"));if(unresolved)return new Result("FAILED",false,List.copyOf(found.values()),titleMissing?List.of("ATTACHMENT_LINK_UNRESOLVED","ATTACHMENT_DETAIL_TITLE_UNAVAILABLE"):List.of("ATTACHMENT_LINK_UNRESOLVED"));if(titleMissing)return new Result("FAILED",false,List.copyOf(found.values()),List.of("ATTACHMENT_DETAIL_TITLE_UNAVAILABLE"));return new Result(found.isEmpty()?"NO_FILES":"FOUND",true,List.copyOf(found.values()),List.of());
     }
     private Result selectFailed(String code){return new Result("FAILED",false,List.of(),List.of(code));}
 }

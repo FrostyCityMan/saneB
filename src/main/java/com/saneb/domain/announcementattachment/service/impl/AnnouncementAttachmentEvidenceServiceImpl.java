@@ -350,7 +350,7 @@ public class AnnouncementAttachmentEvidenceServiceImpl implements AnnouncementAt
     private boolean selectAllowed(String value, String... allowed) { return value != null && List.of(allowed).contains(value); }
     private boolean selectAllowedWarning(String code) {
         if (Set.of("ATTACHMENT_DETAIL_UNAVAILABLE", "ATTACHMENT_SELECTOR_CHANGED", "ATTACHMENT_DOWNLOAD_FORM_CHANGED",
-                "ATTACHMENT_LINK_UNRESOLVED", "ATTACHMENT_FILE_LIMIT").contains(code)) return true;
+                "ATTACHMENT_LINK_UNRESOLVED", "ATTACHMENT_FILE_LIMIT", "ATTACHMENT_DETAIL_TITLE_UNAVAILABLE").contains(code)) return true;
         try { com.saneb.domain.announcementattachment.vo.AttachmentFailureCode.valueOf(code); return true; }
         catch (IllegalArgumentException exception) { return false; }
     }

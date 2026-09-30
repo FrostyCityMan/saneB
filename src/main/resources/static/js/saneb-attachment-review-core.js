@@ -15,6 +15,7 @@
         FOUND: "첨부 발견", NO_FILES: "첨부 없음 확인", DISCOVERY_FAILED: "첨부 발견 실패", OPEN: "집합 처리 중", SEALED: "집합 처리 종료",
         ATTACHMENT_DETAIL_UNAVAILABLE: "공식 상세 내용 확인 실패", ATTACHMENT_SELECTOR_CHANGED: "첨부 영역 구조 변경 · 원문 확인 필요",
         ATTACHMENT_DOWNLOAD_FORM_CHANGED: "다운로드 폼 변경 · 시스템 수집 방식 재검증 필요",
+        ATTACHMENT_DETAIL_TITLE_UNAVAILABLE: "상세 제목 누락 · 공고번호로 첨부 수집, 제목 확인 필요",
         ATTACHMENT_LINK_UNRESOLVED: "첨부 링크 확인 실패 · 원문 확인 필요", ATTACHMENT_FILE_LIMIT: "공고별 첨부 파일 수 한도 초과",
         NOTICE: "공고문", GUIDE: "안내문", FORM: "신청 양식 · 문맥 보조", REFERENCE: "참고자료 · 문맥 보조", UNKNOWN: "역할 미확정",
         ROLE_TEXT_STRUCTURE_MATCHED: "문서 제목과 필수 본문 구조 확인", STRUCTURE_UNCERTAIN: "텍스트 문맥 범위 불확실 · 역할 미확정",

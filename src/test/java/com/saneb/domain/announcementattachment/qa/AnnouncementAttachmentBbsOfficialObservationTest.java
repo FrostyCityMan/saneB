@@ -583,7 +583,20 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             try(var input=Files.newInputStream(detail)) {
                 String payload;
                 if(profile instanceof AttachmentJsonDetailProfile json){payload=json.selectJsonPayload(input,download.contentType());stage="TITLE_CONFIRMATION";assertEquals(normalized(sample.title()),normalized(json.selectJsonTitle(source,payload)),"TITLE_CHANGED");}
-                else {var page=Jsoup.parse(input,null,uri.toASCIIString());payload=page.outerHtml();stage="TITLE_CONFIRMATION";validateTitle(page,sample.title(),sample.titleLayout());}
+                else {var page=Jsoup.parse(input,null,uri.toASCIIString());payload=page.outerHtml();stage="TITLE_CONFIRMATION";
+                    if(sample.titleLayout()==TitleLayout.SONGPA_BOARD && SeoulFourthNoticePage.selectTitle(SeoulFourthNoticePage.Site.SONGPA,SeoulFourthNoticePage.selectRoot(SeoulFourthNoticePage.Site.SONGPA,page)).text().isBlank()) {
+                        // 상세 제목을 만들어 넣지 않는다. 현재 공식 목록의 제목/ID와 상세 hidden ID를 독립적으로 대조한다.
+                        var listUri=SongpaNoticeIdentity.selectListUri(sample.title());var listRequest=AttachmentPinnedDownloadClient.Request.selectGet(listUri);
+                        Path listFile=temporary.resolve("identity-list.bin");
+                        try {
+                            var listDownload=client.selectDownload(listRequest,Set.of("www.songpa.go.kr"),
+                                    next->budget.selectSongpaIdentityListRequestAllowed(listRequest,next),listFile,MIB,budget::saveBytes);
+                            assertTrue(Set.of("text/html","application/xhtml+xml").contains(listDownload.contentType().split(";",2)[0].strip().toLowerCase(Locale.ROOT)),"IDENTITY_LIST_CONTENT_TYPE_CHANGED");
+                            try(var listInput=Files.newInputStream(listFile)){SongpaNoticeIdentity.validateListTitle(Jsoup.parse(listInput,null,listUri.toASCIIString()),uri,sample.title());}
+                            report.put("detailIdentityMethod","OFFICIAL_LIST_TITLE_AND_DETAIL_ID");report.put("detailTitleAvailable",false);report.put("identityListHash",listDownload.sha256());
+                        } finally {Files.deleteIfExists(listFile);}
+                    } else validateTitle(page,sample.title(),sample.titleLayout());
+                }
                 report.put("detailIdentityVerified",true);
                 stage="DETAIL_DISCOVERY";discovered=profile.selectDescriptors(source,payload);
             } finally {Files.deleteIfExists(detail);}
@@ -1082,6 +1095,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     }
 
     static Budget selectBudget(AttachmentDiscoveryProfile profile,boolean collectionOnly,boolean diagnostic){
+        if("LOCAL_SONGPA_BOARD_V1".equals(profile.selectProfileCode()))return new Budget(profile,7,23*MIB);
         if(collectionOnly&&"LOCAL_GANGDONG_POST_V1".equals(profile.selectProfileCode()))return new Budget(profile,9,23*MIB);
         if(collectionOnly&&Set.of("LOCAL_TAEBAEK_BBS_V1","LOCAL_JECHEON_BBS_V1","LOCAL_CHUNGJU_EMINWON_V1","LOCAL_WONJU_BBS_V1","LOCAL_DAEJEON_SEOGU_V1","LOCAL_GWANGJU_SEOGU_GET_V1","LOCAL_YEONJE_GET_V1","LOCAL_GURYE_POST_V1","LOCAL_SEONGNAM_GET_V1","LOCAL_YEONGDONG_BOARD_V1","LOCAL_GIMJE_BOARD_V1","LOCAL_WANDO_POST_V1","LOCAL_SHINAN_POST_V1","LOCAL_JANGHEUNG_GET_V1","LOCAL_GIMHAE_SCMS_GET_V1","LOCAL_CHANGNYEONG_SCMS_GET_V1","LOCAL_SACHEON_BOARD_V1","LOCAL_HADONG_SCMS_V1","LOCAL_GEOCHANG_SCMS_V1","LOCAL_NAMHAE_SCMS_V1","LOCAL_SANCHEONG_BBS_V1","LOCAL_UIRYEONG_GET_V1","LOCAL_GEOJE_GET_V1","LOCAL_GYEONGNAM_PROVINCE_V1","LOCAL_CHUNGNAM_PROVINCE_V1","LOCAL_ONGJIN_PORTAL_V1","LOCAL_BUPYEONG_PORTAL_V1","LOCAL_DONGJAK_POST_DETAIL_V1","LOCAL_ULSAN_DONGGU_GET_V1","LOCAL_HWASEONG_BOARD_V1","LOCAL_ULJU_BOARD_V1","LOCAL_GWANGYANG_POST_V1","LOCAL_CHEONGJU_POST_V1","LOCAL_ICHEON_BOARD_V1","LOCAL_YEONGGWANG_GET_V1","LOCAL_GYEONGBUK_PROVINCE_V1","LOCAL_NAMDONG_PORTAL_V1","LOCAL_SEOUL_GANGSEO_GET_V1","LOCAL_GANGDONG_POST_V1").contains(profile.selectProfileCode()))return new Budget(profile,6,23*MIB);
         return new Budget(profile,diagnostic);
@@ -1180,10 +1194,19 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             boundedSaeol|=GyeongbukFirstDownloadCases.GROUPS.stream().anyMatch(group->("LOCAL_"+group+"_PORTAL_V1").equals(profile.selectProfileCode()));
             maximumRequests="LOCAL_DOBONG_BOARD_V1".equals(profile.selectProfileCode())?12:"LOCAL_GANGNAM_BOARD_V1".equals(profile.selectProfileCode())?8:Set.of("LOCAL_GYEYANG_PORTAL_V1","LOCAL_YEONGJU_BOARD_V1","LOCAL_EUNPYEONG_GET_V1","LOCAL_SEODAEMUN_BOARD_V1","LOCAL_YUSEONG_BOARD_V1").contains(profile.selectProfileCode())?7:standardCollection?5:guro?8:gangbuk?20:gijang?7:boundedSaeol?6:namgu?5:diagnostic?20:44;maximumBytes=(Set.of("LOCAL_GANGNAM_BOARD_V1","LOCAL_DOBONG_BOARD_V1").contains(profile.selectProfileCode())?43:standardCollection?43:guro?23:gangbuk?32:gijang?23:boundedSaeol?23:namgu?24:diagnostic?32:80)*MIB+3*(com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile)-MIB);}
         long requests,bytes;
+        boolean songpaIdentityListRequested;
         void reserveBody(){if(requests!=0||bytes!=0)throw new IllegalStateException("BODY_BUDGET_ALREADY_RESERVED");requests=2;bytes=2*com.saneb.domain.announcementattachment.discovery.AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(profile);}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request r){if(!profile.selectApprovedRequest(r)||requests>=maximumRequests||Thread.currentThread().isInterrupted())return false;requests++;return true;}
         boolean selectRequestAllowed(AttachmentPinnedDownloadClient.Request initial,AttachmentPinnedDownloadClient.Request r){
             return profile.selectApprovedRequest(initial,r)&&selectRequestAllowed(r);
+        }
+        boolean selectSongpaIdentityListRequestAllowed(AttachmentPinnedDownloadClient.Request initial,AttachmentPinnedDownloadClient.Request next){
+            if(!"LOCAL_SONGPA_BOARD_V1".equals(profile.selectProfileCode()) || initial==null || !initial.equals(next)
+                    || !"GET".equals(initial.method()) || initial.referer()!=null || initial.utf8RedirectOctets() || !initial.form().isEmpty())return false;
+            var uri=initial.uri();
+            try {var q=CapitalThirdNoticePage.selectParameters(uri.getRawQuery());if(!SongpaNoticeIdentity.selectListUri(q.get("searchKrwd")).equals(uri))return false;}
+            catch(IllegalArgumentException exception){return false;}
+            if(songpaIdentityListRequested || requests>=maximumRequests || Thread.currentThread().isInterrupted())return false;songpaIdentityListRequested=true;requests++;return true;
         }
         boolean saveBytes(long count){if(count<0||bytes>maximumBytes-count||Thread.currentThread().isInterrupted())return false;bytes+=count;return true;}
     }

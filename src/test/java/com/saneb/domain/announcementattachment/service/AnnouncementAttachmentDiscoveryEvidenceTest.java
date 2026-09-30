@@ -46,7 +46,7 @@ class AnnouncementAttachmentDiscoveryEvidenceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"ATTACHMENT_DETAIL_UNAVAILABLE", "ATTACHMENT_SELECTOR_CHANGED", "ATTACHMENT_DOWNLOAD_FORM_CHANGED",
-            "ATTACHMENT_LINK_UNRESOLVED", "ATTACHMENT_FILE_LIMIT"})
+            "ATTACHMENT_LINK_UNRESOLVED", "ATTACHMENT_FILE_LIMIT", "ATTACHMENT_DETAIL_TITLE_UNAVAILABLE"})
     void storesFixedDiscoveryReasonWithoutInventingFilesOrExtraction(String warning) throws Exception {
         when(evidence.insertSet(any())).thenReturn(1);
         when(evidence.updateSetSealed(any(), anyString(), anyString(), anyBoolean(), anyInt(), anyString())).thenAnswer(call -> {
