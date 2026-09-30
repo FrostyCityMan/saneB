@@ -33,3 +33,19 @@ test('실패 여부와 무관하게 지문과 JSON·JUnit metadata만 보존한�
   assert.match(job, /retention-days: 7/);
   assert.doesNotMatch(job, /path:.*(?:\.bin|\.pdf|\.hwp)/i);
 });
+
+test('잔여12개는 두 순차 묶음 모두 관측하고 어떤 실패도 성공으로 바꾸지 않는다', () => {
+  const block = job.split('      - name: 잔여 12수집원 파일 관측')[1]?.split('      - name: 보고서 생산')[0];
+  assert(block);
+  assert.match(block, /\[pending-regions-linux-01\]/);
+  assert.match(block, /!contains\(github.event.head_commit.message, '\[regional-transport-observation-01\]'\)/);
+  assert.match(block, /!contains\(github.event.head_commit.message, '\[chungbuk-file-recheck-01\]'\)/);
+  assert.match(block, /EUNPYEONG_SUPPORT,SEODAEMUN,GEOMDAN,ICHEON,DONGDUCHEON_YOUTH,SOKCHO/);
+  assert.match(block, /YEONGDONG,ASAN_SUPPORT,UISEONG,SEONGJU,BONGHWA,NAMHAE/);
+  assert.equal((block.match(/if ! bash /g) ?? []).length, 2);
+  assert.equal((block.match(/result=1/g) ?? []).length, 4);
+  assert.match(block, /exit "\$result"/);
+  assert.doesNotMatch(block, /\|\| true|continue-on-error| &\s*$/m);
+  assert.match(job, /\*-PENDING-LINUX-A-01.json/);
+  assert.match(job, /\*-PENDING-LINUX-B-01.json/);
+});
