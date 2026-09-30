@@ -3169,6 +3169,18 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SANCHEONG-164021",
+      "profileCode": "LOCAL_SANCHEONG_BBS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "375f87d2afcc5dae280f5d95a00b39f62b492b976ac1de07497f1843f2386f06",
+        "sourceUrl": "https://www.sancheong.go.kr/www/selectBbsNttView.do?key=158&bbsNo=118&nttNo=164021",
+        "localSourceCode": "LGS-000238",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

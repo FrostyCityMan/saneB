@@ -36,6 +36,16 @@ class LocalGovernmentNoticeCollectorTest {
 
     private LocalGovernmentNoticeCollector collector;
 
+    @Test void sancheongObservedTableMatchesExistingSaeolListContract(){
+        var source=org.mockito.Mockito.mock(LocalGovernmentNoticeSourceRow.class);org.mockito.Mockito.when(source.sourceId()).thenReturn(UUID.randomUUID());org.mockito.Mockito.when(source.institutionName()).thenReturn("산청군");
+        var profile=new LocalGovernmentNoticeParserProfileRow("SAEOL_GOSI","새올 고시공고","SAEOL_GOSI","table tbody tr","td a","td:last-child","td a","yyyy-MM-dd","HTML",null,null,null,null,null,"AUTO",null,null,null,true);
+        String url="https://www.sancheong.go.kr/www/selectBbsNttList.do?bbsNo=118&key=158";
+        String date=LocalDate.now(ZoneId.of("Asia/Seoul")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd."));
+        var page=Jsoup.parse("<table><tbody><tr><td>일반공고</td><td>공고 번호</td><td class=subject><a href='./selectBbsNttView.do?key=158&bbsNo=118&nttNo=164021&searchCtgry=&searchCnd=all&searchKrwd=&pageIndex=1&integrDeptCode='>소상공인 지원<img src='/common/images/board/ico_new.gif' alt='새글'></a></td><td>담당부서</td><td>"+date+"</td></tr></tbody></table>",url);
+        var result=collector.parseDocument(source,profile,page,200,null,null,"qa-fingerprint");assertThat(result.resultStatusCode()).isEqualTo("SUCCESS");
+        assertThat(result.items()).singleElement().satisfies(item->{assertThat(item.title()).isEqualTo("소상공인 지원");assertThat(item.postedAt().toLocalDate()).isEqualTo(LocalDate.now(ZoneId.of("Asia/Seoul")));var p=new com.saneb.domain.announcementattachment.discovery.SancheongAttachmentDiscoveryProfile();assertThat(p.selectDetailUri(new com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile.Source(item.providerCode(),item.providerNoticeId(),item.sourceUrl(),"LGS-000238","SAEOL_GOSI")).toString()).isEqualTo("https://www.sancheong.go.kr/www/selectBbsNttView.do?key=158&bbsNo=118&nttNo=164021");});
+    }
+
     @Test void namhaeListPayloadAndNoticeHashUseOnlyStableFields() {
         var source=org.mockito.Mockito.mock(LocalGovernmentNoticeSourceRow.class);
         org.mockito.Mockito.when(source.sourceId()).thenReturn(UUID.randomUUID());

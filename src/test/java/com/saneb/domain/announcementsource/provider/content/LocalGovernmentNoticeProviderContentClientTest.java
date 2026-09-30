@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void sancheongBodyExcludesFileAndDepartmentCells(){
+        String url="https://www.sancheong.go.kr/www/selectBbsNttView.do?key=158&bbsNo=118&nttNo=164021";
+        String page="<table class=bbs_default_view><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>내용</th><td class=subject>소상공인 경영환경 개선지원<script>x()</script></td></tr><tr><th>파일</th><td>투자 파일</td></tr></table>";
+        for(String content:List.of(page,page+page,page.replace("<th>내용</th>","<th>기타</th>"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 경영환경 개선지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void namhaeBodyExcludesDepartmentAndAttachmentText(){
         String url="https://www.namhae.go.kr/modules/saeol/gosi.do?amode=_view&not_ancmt_mgt_no=35694&scd=01&pageCd=SM010110000&siteGubun=socialm";
         String page="<form id=saeolGosiVO><div class=bbs1view1><h1 class=h1>소상공인 지원</h1><div class=info1>수출 부서</div><div class=attach1>투자 파일</div><div class=substance>소상공인 디지털 인프라 지원<script>viewer()</script></div></div></form>";
