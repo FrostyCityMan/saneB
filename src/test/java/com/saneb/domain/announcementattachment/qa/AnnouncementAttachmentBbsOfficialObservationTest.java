@@ -516,6 +516,9 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
     @ParameterizedTest(name="{0}") @MethodSource("selectConfiguredCases") @Timeout(420)
     void observesTitleBodyAndWholeAttachmentSetWithoutPublication(ObservationCase sample) throws Exception {
         boolean collectionOnly=Boolean.getBoolean("saneb.attachment-observation.collection-only");
+        Path output=Path.of(System.getProperty("saneb.attachment-observation.report")).toAbsolutePath().normalize();
+        // HTTP 요청 전에 중복 경로를 거부한다. 공고 ID는 유지하고 보고서 파일에만 실행 식별자를 붙인다.
+        Path reportFile=collectionOnly?selectCollectionReportFile(output,sample.code(),System.getProperty("saneb.attachment-observation.report-label","")):output.resolve(sample.code()+".json");
         var profile=sample.profile();var source=sample.source();
         var report=new LinkedHashMap<String,Object>();
         report.put("scope","OFFICIAL_THREE_STAGE_OBSERVATION_V1");report.put("caseCode",sample.code());report.put("observedAt",Instant.now().toString());
@@ -632,8 +635,23 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             if(temporary!=null)try(var paths=Files.walk(temporary)){for(Path path:paths.sorted(Comparator.reverseOrder()).toList())Files.deleteIfExists(path);}
             report.put("originalFilesRemoved",temporary==null||!Files.exists(temporary));report.put("maximumRequestReservations",budget.maximumRequests);report.put("maximumReservedBytes",budget.maximumBytes);
             report.put("requestReservationsIncludingBodyUpperBound",budget.requests);report.put("reservedBytesIncludingBodyUpperBound",budget.bytes);
-            Path output=Path.of(System.getProperty("saneb.attachment-observation.report")).toAbsolutePath().normalize();Files.createDirectories(output);
-            JSON.writerWithDefaultPrettyPrinter().writeValue(output.resolve(sample.code()+".json").toFile(),report);
+            Files.createDirectories(output);
+            if(collectionOnly)saveCollectionReport(reportFile,report);
+            else JSON.writerWithDefaultPrettyPrinter().writeValue(reportFile.toFile(),report);
+        }
+    }
+    static Path selectCollectionReportFile(Path output,String caseCode,String label) {
+        if(caseCode==null||!caseCode.matches("[A-Z0-9][A-Z0-9_-]{0,99}")
+                ||label==null||!label.isEmpty()&&!label.matches("[A-Z0-9][A-Z0-9_-]{0,63}"))
+            throw new IllegalArgumentException("COLLECTION_REPORT_IDENTIFIER_INVALID");
+        Path report=output.resolve(caseCode+(label.isEmpty()?"":"-"+label)+".json");
+        if(Files.exists(report,LinkOption.NOFOLLOW_LINKS))throw new IllegalArgumentException("COLLECTION_REPORT_ALREADY_EXISTS_USE_NEW_LABEL");
+        return report;
+    }
+    static void saveCollectionReport(Path path,Map<String,Object> report) throws java.io.IOException {
+        // 사전 검사 이후 다른 실행이 파일을 만들더라도 원자적 CREATE_NEW로 기존 근거를 보존한다.
+        try(var stream=Files.newOutputStream(path,StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE)) {
+            JSON.writerWithDefaultPrettyPrinter().writeValue(stream,report);
         }
     }
     static void saveCollectionOnlySummary(Map<String,Object> report,List<Map<String,Object>> rows,int expectedCount) {

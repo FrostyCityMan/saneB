@@ -479,6 +479,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
         if (("www.tongyeong.go.kr".equals(host) && "/00852/00853/00858.web".equals(sourceUri.getPath()))
                 || ("www.hadong.go.kr".equals(host) && "/media/00012.web".equals(sourceUri.getPath()))
+                || ("www.jinju.go.kr".equals(host) && "/00130/02730/05586.web".equals(sourceUri.getPath()))
                 || ("www.geochang.go.kr".equals(host) && "/00445/00451.web".equals(sourceUri.getPath()))) {
             var roots=document.select("form#saeolGosiVO > div.bbs1view1");
             if(roots.size()!=1)throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);

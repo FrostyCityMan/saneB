@@ -31,6 +31,17 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void jinjuBodyUsesOnlyOfficialSubstanceAndNeverFallsBackToMenuKeywords(){
+        String url="https://www.jinju.go.kr/00130/02730/05586.web?amode=view&not_ancmt_mgt_no=64420";
+        String notice="<form id=saeolGosiVO method=get><div class=bbs1view1><h1 class=h1>소상공인 육성자금 지원 공고</h1><div class=info1>수출 담당부서</div><div class=attach1>특허 파일</div><div class=substance>소상공인 육성자금 지원<script>viewer()</script></div><div class=infomenu1>투자 메뉴</div></div></form>";
+        for(String changed:List.of(notice,notice+notice,notice.replace("class=substance","class=other"),notice.replace("<h1 class=h1>소상공인 육성자금 지원 공고</h1>",""),notice.replace("소상공인 육성자금 지원<script>","<script>"))){
+            var transport=new StubTransport();transport.enqueue(html("<main><div class=menu>수출 투자 ESG 공무원 채용</div>"+changed+"<footer>기관 행정 메뉴</footer></main>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(changed.equals(notice)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 육성자금 지원");}
+            else if(changed.contains("<div class=substance><script>"))assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void metroRemainderBodiesExcludeMetadataAndAttachments(){
         for(boolean bp:List.of(true,false)){
             String url=bp?"https://www.icbp.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=50550":"https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y";

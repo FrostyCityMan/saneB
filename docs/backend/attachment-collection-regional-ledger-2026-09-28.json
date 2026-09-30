@@ -357,7 +357,7 @@
           "caseCode": "SEODAEMUN-313956",
           "profileCode": "LOCAL_SEODAEMUN_BOARD_V1",
           "profileHash": "a738a794f4ad9bf8c82e0bc5c59a871e580f70c42bc9823be7a4c7f19eecba36",
-          "receiptHash": "7cd9d4e307dd9b50f6862df334eea670a1b38d7a85c74fbb4e503358542ebab5",
+          "receiptHash": "2260eff0ac6d810d350ef4ded5a8d6c5596840bd80c309afefe828cb183842f7",
           "fileCount": 4,
           "downloadedFileCount": 0,
           "status": "INCOMPLETE",
@@ -2927,9 +2927,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -2938,11 +2938,11 @@
           "caseCode": "OSAN-50603",
           "profileCode": "LOCAL_OSAN_PORTAL_V1",
           "profileHash": "c8c9f4bcceba369ed102fe0035d2a6f5df47a98d54a811bb8e3282f00291c13a",
-          "receiptHash": "d104d21bee51d27f498fbd025cc844cfd93347161eb35cbbe90a1ec788369e57",
+          "receiptHash": "d5c5391e17fe8cf4e5be0157f52ca907abef46aa503208c6db2963234e6b8b23",
           "fileCount": 2,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -5747,8 +5747,8 @@
           "sourceCode": "LGS-000216",
           "caseCode": "GORYEONG-42015",
           "profileCode": "LOCAL_GORYEONG_GET_V1",
-          "profileHash": "0e42d2d3ecd6529f86cdf58deee8432fd1faab86902086b5e634d32ceb22fe48",
-          "receiptHash": "4f71be73ecbe986027747ca3704103e4040e5a6d6049668b8a2463610bb9bf69",
+          "profileHash": "514d25ee8b01c639704716be6c073060a7e7ef2e4423dabbb27decb79a00b659",
+          "receiptHash": "be3500246d4799b8493df9d679927d7b4068bddb6c783a645987a2cde8adc9a2",
           "fileCount": 3,
           "downloadedFileCount": 3,
           "status": "ALL_FILES_DOWNLOADED",
@@ -5972,10 +5972,10 @@
           "sourceCode": "LGS-000225",
           "caseCode": "JINJU-64420",
           "profileCode": "LOCAL_JINJU_GET_V1",
-          "profileHash": "ee96d34af9e4abb2217eaa07aedbd22a973b09e28a25702fab2d2367190c091b",
-          "receiptHash": "34931a11b2c1909e63f649143ba185c50c4c3579760268b33551d0fba0a73a04",
-          "fileCount": 0,
-          "downloadedFileCount": 0,
+          "profileHash": "3431c5b41d324215f765e298ad6acbb5ea2f3640bdd88684941f9c67b3ece887",
+          "receiptHash": "f0dc3eb4069313497794332ee1d58f04493fa289cbed5209a038f51a7fd8877f",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
           "status": "INCOMPLETE",
           "collectionVerified": false
         }
@@ -6409,9 +6409,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "c0ca4034e4b17fcef1fe526a45e0efb4afe5ceb0d43e93356f9fb13369f98c0f",
+  "inputInventorySha256": "efceaba1d9d816577704da3e25ddea834f64a4b487f5a63c9c386b3b383c5aca",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 337,
+  "importedReceiptCount": 347,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12807,6 +12807,130 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "osanJinjuRecheckRun": {
+    "scope": "OSAN_JINJU_RECHECK_AND_REPORT_ARCHIVE",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEODAEMUN-313956-RECHECK-20260930-A.json",
+      "build/reports/attachment-regional-collection/OSAN-50603-RECHECK-20260930-A.json",
+      "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-A.json",
+      "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-B.json",
+      "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-C.json",
+      "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-C.json",
+      "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-D.json",
+      "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-D.json",
+      "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-E.json",
+      "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-E.json"
+    ],
+    "observationBudgets": [
+      {
+        "report": "build/reports/attachment-regional-collection/SEODAEMUN-313956-RECHECK-20260930-A.json",
+        "caseCode": "SEODAEMUN-313956",
+        "maximumRequestsPerAttempt": 7,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/OSAN-50603-RECHECK-20260930-A.json",
+        "caseCode": "OSAN-50603",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-A.json",
+        "caseCode": "JINJU-64420",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-B.json",
+        "caseCode": "JINJU-64420",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-C.json",
+        "caseCode": "GORYEONG-42015",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-C.json",
+        "caseCode": "JINJU-64420",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-D.json",
+        "caseCode": "GORYEONG-42015",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-D.json",
+        "caseCode": "JINJU-64420",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/GORYEONG-42015-RECHECK-20260930-E.json",
+        "caseCode": "GORYEONG-42015",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "report": "build/reports/attachment-regional-collection/JINJU-64420-RECHECK-20260930-E.json",
+        "caseCode": "JINJU-64420",
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 48,
+    "reservedBytesIncludingBodyUpperBound": 28451065,
+    "surveyRequestCount": 14,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCodes": [
+          "LGS-000014",
+          "LGS-000093",
+          "LGS-000104",
+          "LGS-000108",
+          "LGS-000119",
+          "LGS-000135",
+          "LGS-000149",
+          "LGS-000225"
+        ],
+        "requestCount": 8,
+        "result": "BOUNDED_PUBLIC_DETAIL_CONNECTIVITY_CHECK"
+      },
+      {
+        "sourceCode": "LGS-000225",
+        "requestCount": 6,
+        "result": "OFFICIAL_BODY_ATTACHMENT_STRUCTURE_AND_TWO_BINARY_HEADER_CHECKS_DOUBLE_UTF8_DISPOSITION",
+        "binaryBytes": 132063,
+        "binaryHash": "414f9ee23dd32e7c81e99b6391469cbf622721fd6d731003ba0a0443ab9ddd0b"
+      }
+    ],
+    "downloadedFileObservations": 12,
+    "downloadedBytes": 5581279,
+    "profileImplementationChanged": true,
+    "oldReceiptsPreserved": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "awsReadOnlyStatus": "TLS_VALIDATION_FAILED_AUTH_VALIDITY_UNKNOWN",
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 192,
+      "noObservedDownloadRegionCount": 31,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 5
+    }
   },
   "nowonEunpyeongAdditionalDownloadRun": {
     "scope": "NOWON_EUNPYEONG_ADDITIONAL_OFFICIAL_COLLECTION_ONLY",

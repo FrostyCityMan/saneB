@@ -429,6 +429,8 @@ tasks.register('attachmentRegionalCollectionObservation', Test) {
     }
     systemProperty 'saneb.attachment-observation.group', providers.gradleProperty('sanebBbsObservationGroup').getOrElse('UNSPECIFIED')
     systemProperty 'saneb.attachment-observation.report', layout.buildDirectory.dir('reports/attachment-regional-collection').get().asFile.absolutePath
+    // 같은 공고 재검증도 과거 영수증을 덮어쓰지 않고 별도 파일로 보존한다.
+    systemProperty 'saneb.attachment-observation.report-label', providers.gradleProperty('sanebCollectionReportLabel').getOrElse('')
     doFirst {
         if (!providers.gradleProperty('sanebBbsObservationGroup').isPresent()) {
             throw new GradleException('첨부 수집 검증 지역과 기존 요청 예산을 먼저 확인하고 sanebBbsObservationGroup을 지정하십시오.')
