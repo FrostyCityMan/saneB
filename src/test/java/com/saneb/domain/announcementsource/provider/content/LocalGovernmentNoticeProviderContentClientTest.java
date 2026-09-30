@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void tongyeongBodyUsesOnlySubstanceAndRejectsChangedStructure(){
+        String url="https://www.tongyeong.go.kr/00852/00853/00858.web?amode=view&not_ancmt_mgt_no=49251";
+        String page="<form id=saeolGosiVO><div class=bbs1view1><h1 class=h1>소상공인 육성자금 지원사업</h1><div class=info1>수출 담당부서</div><div class=attach1>특허.hwp</div><div class=substance>소상공인 육성자금 지원</div></div></form>";
+        for(String body:List.of(page,page+page,page.replace("class=substance","class=other"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+body));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(body.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 육성자금 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void yeongamBodyUsesOnlyOfficialContentCell(){
         String url="https://www.yeongam.go.kr/home/www/open_information/yeongam_news/announcement/announcement_01/show/40370?page=1";
         String page="<table class=show_form><tr><th scope=row>제목</th><td>청년 지원</td></tr><tr><th scope=row>담당부서</th><td>수출 부서</td></tr><tr><th scope=row>내용</th><td class=content>청년 문화복지카드 지원금</td></tr><tr><th scope=row>첨부파일</th><td>특허.hwpx</td></tr></table>";

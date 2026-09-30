@@ -5583,10 +5583,10 @@
           "sourceCode": "LGS-000226",
           "caseCode": "TONGYEONG-49251",
           "profileCode": "LOCAL_TONGYEONG_SCMS_V1",
-          "profileHash": "2b5887cf6c2c421cbfe2c37f9d29aacefb71790aeb27506c97adfb62b24e1691",
-          "receiptHash": "1744da91318819317c0e6ae39efdf7887bcabc49b216eaa638d3d1ba65eed7c8",
+          "profileHash": "8a2cd74f6eee9d7ccbcca4b38ceeb50b3d896c61cd95263c6b52a4b3d328ad6d",
+          "receiptHash": "e53afdbbd473123565926eae182bca547c24c2aba183ee877984130b9e5e277b",
           "fileCount": 1,
-          "downloadedFileCount": 0,
+          "downloadedFileCount": 1,
           "status": "INCOMPLETE",
           "collectionVerified": false
         }
@@ -5887,9 +5887,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "366368d990f2e9078bf0b00a15db0e40eba8882576ca891aaa59119958bf0560",
+  "inputInventorySha256": "11ee73fc75f2fed75ba56d5e9e0913b0196cdfb2416b375fe193b778e8cb3d8f",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 287,
+  "importedReceiptCount": 288,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -7722,7 +7722,7 @@
     "observationReports": [
       "build/reports/attachment-regional-collection/TONGYEONG-49251-INITIAL.json",
       "build/reports/attachment-regional-collection/HAPCHEON-44432-INITIAL.json",
-      "build/reports/attachment-regional-collection/TONGYEONG-49251.json",
+      "build/reports/attachment-regional-collection/TONGYEONG-49251-BEFORE-PERIOD.json",
       "build/reports/attachment-regional-collection/HAPCHEON-44432.json"
     ],
     "requestReservationsIncludingBodyUpperBound": 18,
@@ -12280,6 +12280,100 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "tongyeongPeriodRecoveryRun": {
+    "scope": "TONGYEONG_PERIOD_FLOW_AND_BODY_RECOVERY",
+    "observedAt": "2026-09-30T01:29:33.243812700Z",
+    "surveyRequestCount": 8,
+    "surveyGetCount": 6,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000226",
+        "requests": 4,
+        "result": "OFFICIAL_BRIDGE_PERIOD_FINAL_POST_HWP_OBSERVED",
+        "periodResponseCode": "EmptyYMD",
+        "periodQuerySkipped": false,
+        "isHomeOverride": false,
+        "diagnosticBinaryBytes": 165888
+      },
+      {
+        "sourceCode": "LGS-000025",
+        "requests": 4,
+        "result": "OFFICIAL_SJ_TITLE_SEARCH_NEW_DETAIL_32305_TITLE_EMPTY",
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/SONGPA-32305.html",
+        "bytes": 476806,
+        "sha256": "a7380648d00cec82a7194e14f358c757239ddf2be143c149301eac2a774a1ef6"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/SONGPA-list.html",
+        "bytes": 480604,
+        "sha256": "83f559625d3b870ba9b6e5dc265f3f536af7ea8b8f10ccfd6a7588ae6fd11373"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/SONGPA-search.html",
+        "bytes": 480754,
+        "sha256": "299adf0d648029afae5fccfacf0de6384dcbb8bf6d797ed76ea99dbbf17d236f"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/SONGPA-title-search.html",
+        "bytes": 478758,
+        "sha256": "f4baf675c531f8c57d3c0cdb7134c2bd70fe29ad3d048159123f07e949ef2372"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/TONGYEONG-detail.html",
+        "bytes": 183778,
+        "sha256": "8c59180532074b8a5b3ad45b5017e147c9901ba0cce384fb606dd3aee4534835"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/TONGYEONG-file-head.txt",
+        "bytes": 415,
+        "sha256": "fc9224b8fc9fec6d8fa8e593f82a964625b52422362b1edb823b44d71cd860ba"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/TONGYEONG-file-response.bin",
+        "bytes": 2596,
+        "sha256": "0cbc95599933297e60c994d7c4ece8f24652a3fbddcf1d0bbef91c7d42087d40"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/TONGYEONG-file.bin",
+        "bytes": 165888,
+        "sha256": "3df1f725f507ad3f63f65c8e36191dd1a3acf2797cdd1c1cc51659b2be6beb69"
+      },
+      {
+        "path": "build/qa-songpa-tongyeong-20260930/TONGYEONG-period.txt",
+        "bytes": 16,
+        "sha256": "8a7bddf1c0c2265677c9ad43266b53c6080a57ecb89a40be84e31b0c5f9b77ca"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "TONGYEONG-49251",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/TONGYEONG-49251.json"
+    ],
+    "previousFailureReceipt": "build/reports/attachment-regional-collection/TONGYEONG-49251-BEFORE-PERIOD.json",
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 2454068,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 14,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
