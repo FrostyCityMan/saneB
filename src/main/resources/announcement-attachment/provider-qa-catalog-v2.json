@@ -15,6 +15,18 @@
       "expectation": null
     },
     {
+      "caseCode": "JANGHEUNG-27081",
+      "profileCode": "LOCAL_JANGHEUNG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "73e1a4920ec140ba4f994739bef57bd55b3d6b2dfadd769312ebd433d993e3a5",
+        "sourceUrl": "https://www.jangheung.go.kr/www/organization/news/notification?idx=27081&mode=view",
+        "localSourceCode": "LGS-000189",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "YEOSU-79153",
       "profileCode": "LOCAL_YEOSU_NOTICE_V1",
       "source": {

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 193,
-    "missingProfileRegionCount": 30,
+    "registeredRegionCount": 194,
+    "missingProfileRegionCount": 29,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4873,14 +4873,26 @@
       "sourceCode": "LGS-000189",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000189",
+          "caseCode": "JANGHEUNG-27081",
+          "profileCode": "LOCAL_JANGHEUNG_GET_V1",
+          "profileHash": "4d9c4d7e5a496589b264b62edc3ab8a97a967faa8db06e80d7943bb5034e394f",
+          "receiptHash": "32f4c30555aced9c8a240c09b5d3f678ee189eca097ff7000773f815fb201fa0",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000190",
@@ -6054,9 +6066,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "974c9ed6c14fe5617d86c3f3885bd00b41714b5127d6b67fcdcff168e7f476d9",
+  "inputInventorySha256": "bfac7f5fc1ef2a8b906ac86345ac07bf053e238ea1a53c8f8d09664c9ec55813",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 304,
+  "importedReceiptCount": 305,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12452,6 +12464,52 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "jangheungDownloadRun": {
+    "scope": "JANGHEUNG_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/JANGHEUNG-27081.json"
+    ],
+    "observationBudget": {
+      "caseCode": "JANGHEUNG-27081",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2359808,
+    "surveyRequestCount": 1,
+    "surveyGetCount": 1,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 15,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000189",
+        "result": "OFFICIAL_SUPPORT_DETAIL_HTTP200_AND_PUBLIC_GET_FILE",
+        "isSourceScopeChanged": false,
+        "reuseConditions": "PAGE_DISPLAYS_KOGL_TYPE4_REQUIRES_OPERATING_REUSE_REVIEW",
+        "surveyUserAgent": "saneB-AnnouncementCollector/1.0"
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 82432,
+    "bodyStatus": "AVAILABLE",
+    "bodyCharacterCount": 483,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 166,
+      "noObservedDownloadRegionCount": 57,
+      "regionsWithErrors": 43,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 29
+    }
   },
   "shinanDownloadRun": {
     "scope": "SHINAN_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "974c9ed6c14fe5617d86c3f3885bd00b41714b5127d6b67fcdcff168e7f476d9",
+  "inventorySha256": "bfac7f5fc1ef2a8b906ac86345ac07bf053e238ea1a53c8f8d09664c9ec55813",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2353,6 +2353,14 @@
       "path": "build/reports/attachment-regional-collection/SHINAN-38211.json",
       "receiptHash": "16b45abd418130fff32ade65fb2090dacaae908afa3bdb4a2df33a181f66118e",
       "producerClassHash": "5986a72b407c01a71e88b5269065173308d64101bfb8317feaed95186744689e",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/JANGHEUNG-27081.json",
+      "receiptHash": "32f4c30555aced9c8a240c09b5d3f678ee189eca097ff7000773f815fb201fa0",
+      "producerClassHash": "e1c825022646a894076d79a1b6cd16ff6bbe345abe597446ab8de28b3b50bb6d",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -6259,6 +6267,33 @@
           "bytes": 81920,
           "format": "HWP",
           "binaryHash": "3e7feb24bb08de48abe8d485af783e83cd8d94eede3ad7cc4b4673d44c1087cf",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000189",
+      "caseCode": "JANGHEUNG-27081",
+      "profileCode": "LOCAL_JANGHEUNG_GET_V1",
+      "profileHash": "4d9c4d7e5a496589b264b62edc3ab8a97a967faa8db06e80d7943bb5034e394f",
+      "receiptHash": "32f4c30555aced9c8a240c09b5d3f678ee189eca097ff7000773f815fb201fa0",
+      "producerClassHash": "e1c825022646a894076d79a1b6cd16ff6bbe345abe597446ab8de28b3b50bb6d",
+      "observedAt": "2026-09-30T04:50:24.738993600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "317b1c4ed2dadedae8b3df4e47c04df608acb0b096d10cde286b42987032967d",
+          "status": "SUCCEEDED",
+          "bytes": 82432,
+          "format": "HWP",
+          "binaryHash": "0770934520324569096386cd894325a395ecde278108158584b16f08a4d1b25e",
           "signatureVerified": true
         }
       ]
