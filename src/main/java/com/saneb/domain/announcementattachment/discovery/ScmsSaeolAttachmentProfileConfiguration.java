@@ -5,6 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 public class ScmsSaeolAttachmentProfileConfiguration {
+    @Bean public AttachmentDiscoveryProfile selectHadongProfileDetails() {
+        return new ScmsSaeolAttachmentDiscoveryProfile("HADONG", "hadong.go.kr", "LGS-000237", "SCMS_CARD_NOTICE",
+                "/media/00012.web", "/emwp/jsp/ofr/FileDown.jsp", true, false);
+    }
     @Bean public AttachmentDiscoveryProfile selectTongyeongProfileDetails() {
         return new TongyeongPeriodAttachmentDiscoveryProfile(new ScmsSaeolAttachmentDiscoveryProfile("TONGYEONG", "tongyeong.go.kr", "LGS-000226", "SAFE_SAEOL_EMINWON",
                 "/00852/00853/00858.web", "/emwp/jsp/ofr/FileDownNewPbs.jsp", true, true));

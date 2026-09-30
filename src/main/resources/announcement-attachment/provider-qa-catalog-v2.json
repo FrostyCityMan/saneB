@@ -3133,6 +3133,18 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "HADONG-45193",
+      "profileCode": "LOCAL_HADONG_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b51d4c88603efc6c81cec7048582ac76eea20c3917f1bd3395137ee4e65af822",
+        "sourceUrl": "https://www.hadong.go.kr/media/00012.web?amode=view&not_ancmt_mgt_no=45193",
+        "localSourceCode": "LGS-000237",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

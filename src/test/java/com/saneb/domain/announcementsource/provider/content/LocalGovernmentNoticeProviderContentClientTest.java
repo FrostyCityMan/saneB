@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void hadongBodyExcludesDepartmentAndAttachmentText(){
+        String url="https://www.hadong.go.kr/media/00012.web?amode=view&not_ancmt_mgt_no=45193";
+        String page="<form id=saeolGosiVO><div class=bbs1view1><h1 class=h1>소상공인 지원</h1><div class=info1>수출 부서</div><div class=attach1>투자 파일</div><div class=substance>소상공인 디지털 인프라 지원<script>viewer()</script></div></div></form>";
+        for(String content:List.of(page,page+page,page.replace("class=substance","class=other"),page.replace("<h1 class=h1>소상공인 지원</h1>",""))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 디지털 인프라 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void sacheonBodyExcludesDepartmentAttachmentsAndScripts(){
         String url="https://www.sacheon.go.kr/news/00009/00014.web?gcode=2017&idx=2106170&amode=view";
         String page="<div class=bbs1view1><h1 class=h1 id=sns_bbs_title>소상공인 지원</h1><div class=info1>수출 부서</div><div class=substance><div class=substanceautolink>소상공인 육성자금 지원</div><script>viewer()</script></div><div class=attach1>투자 파일</div></div>";
