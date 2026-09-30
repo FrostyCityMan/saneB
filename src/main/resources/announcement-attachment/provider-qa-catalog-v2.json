@@ -2893,6 +2893,18 @@
         "listParserProfileCode": "HEURISTIC_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "NOWON-20260915151630474",
+      "profileCode": "LOCAL_NOWON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6e365cacf6262fe123952d3fecaa29454655784704a74ae98327c64cf8513657",
+        "sourceUrl": "https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260915151630474",
+        "localSourceCode": "LGS-000012",
+        "listParserProfileCode": "NOWON_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "1bf3c17b79ea8499ecd52324b584357233359a27e579dee16d0187ba3dcd9596",
+  "inventorySha256": "fd5f11ba4e91328982475df44b1073d2d99a3e8092f5270f9793e03c9f4b7c87",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2169,6 +2169,14 @@
       "path": "build/reports/attachment-regional-collection/BUAN-363827.json",
       "receiptHash": "e04440020fa2b6e49a7f5ceccc093cccc37b4a304a1a9d1dd3cb0d400833265d",
       "producerClassHash": "7c30859459a2c06524c208a446a50d4d4e6ba5dd4995e2b0bf30bf907aba5cdb",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/NOWON-20260915151630474.json",
+      "receiptHash": "746dda562c1bd6f9d7d7755adb2582f381f446a0213a5c8a7909b4989ee4e4e1",
+      "producerClassHash": "b004a7d84b842ed4d518131b0b0d1e8a85c27a9b0ab60dcc1251d94bcde0c630",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -6648,6 +6656,35 @@
           "format": "HWP",
           "binaryHash": "49557b8b6a80008d48525118c9a2e29fec3cfd239143843154712b0f7a1508e2",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000012",
+      "caseCode": "NOWON-20260915151630474",
+      "profileCode": "LOCAL_NOWON_BOARD_V1",
+      "profileHash": "bd4805169a14fc3ec760f201eac9bce4e8b34197f127aa2bbd36eead1ede3ca0",
+      "receiptHash": "746dda562c1bd6f9d7d7755adb2582f381f446a0213a5c8a7909b4989ee4e4e1",
+      "producerClassHash": "b004a7d84b842ed4d518131b0b0d1e8a85c27a9b0ab60dcc1251d94bcde0c630",
+      "observedAt": "2026-09-30T00:06:52.144117300Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "92681e7639145491981b62cb616698b436e9940b70d86661b47f2976efe34234",
+          "status": "FAILED",
+          "bytes": 51156
+        },
+        {
+          "locatorHash": "88826ab0a65ab5698d1a5cc8757b2d58b3561605039f4802ba34c3069fb97433",
+          "status": "UNSUPPORTED",
+          "bytes": 0
         }
       ]
     },

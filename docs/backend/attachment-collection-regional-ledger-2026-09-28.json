@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 180,
-    "missingProfileRegionCount": 43,
+    "registeredRegionCount": 181,
+    "missingProfileRegionCount": 42,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -260,14 +260,26 @@
       "sourceCode": "LGS-000012",
       "listParserProfileCode": "NOWON_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000012",
+          "caseCode": "NOWON-20260915151630474",
+          "profileCode": "LOCAL_NOWON_BOARD_V1",
+          "profileHash": "bd4805169a14fc3ec760f201eac9bce4e8b34197f127aa2bbd36eead1ede3ca0",
+          "receiptHash": "746dda562c1bd6f9d7d7755adb2582f381f446a0213a5c8a7909b4989ee4e4e1",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000013",
@@ -5827,9 +5839,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "1bf3c17b79ea8499ecd52324b584357233359a27e579dee16d0187ba3dcd9596",
+  "inputInventorySha256": "fd5f11ba4e91328982475df44b1073d2d99a3e8092f5270f9793e03c9f4b7c87",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 281,
+  "importedReceiptCount": 282,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12220,6 +12232,141 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "nowonDownloadRun": {
+    "scope": "NOWON_PROFILE_COLLECTION_ONLY_DAMYANG_JSON_CONTRACT_SURVEY",
+    "observedAt": "2026-09-30T00:06:52.144117300Z",
+    "surveyRequestCount": 9,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000012",
+        "requests": 5,
+        "result": "LIST_SEARCH_DETAIL200_FILE200_HWP_NAME_ZIP_SIGNATURE_MISMATCH",
+        "fileBytes": 51156,
+        "fileSha256": "f9683fedcec21ae72f244cc049188b3fb36e9010d6eefc78598bcab0c88294c4",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000183",
+        "requests": 4,
+        "result": "OFFICIAL_JSON_LIST_DETAIL200_ATTACHMENT_METADATA_ONLY",
+        "listNoticeCount": 6,
+        "selectedNoticeId": "37086",
+        "listedFileCount": 1,
+        "needsRefresh": true,
+        "refreshRequested": false,
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-detail-head.txt",
+        "bytes": 532,
+        "sha256": "f0996837a1d5aa1f3b91c085d6886791a2efe59fbe1323904254889f26a2babb"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-detail-json-head.txt",
+        "bytes": 335,
+        "sha256": "15e1e636f073f891d3a1758fe02b90e45583f49710633a089d12ab586956069e"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-detail.html",
+        "bytes": 151205,
+        "sha256": "54c574482a47435a320ac91671dc548da09ae7071b3b2d9ed740371353757e15"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-detail.json",
+        "bytes": 3733,
+        "sha256": "8b15368e2600cf9b9d148435a4e8ef8fb4700b3ce8c3afe44626d0beee0782ce"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-list-head.txt",
+        "bytes": 532,
+        "sha256": "85441b3a7dd9e09a867606c4d77492d60a833969cf28132a8365a54ba2326022"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-list.html",
+        "bytes": 160412,
+        "sha256": "6a248b238b7af6ddfc2b50681cc47f2a69f8cdc659f0372da9f42384795671d9"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-search-head.txt",
+        "bytes": 335,
+        "sha256": "c17897efc46803e8bdb28424ee044c05c47c2528f13441e8eb7990980c081e3e"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/DAMYANG-search.json",
+        "bytes": 1647,
+        "sha256": "c503414a394d5c8bf16f84f55167d87f063ae62460d9f0b6ad7f4a3e2e7c5da7"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-bbs.js",
+        "bytes": 10857,
+        "sha256": "32a76df8e47b90e9a92931b18dedad7bbc526f4209401a91d2491868f50f8a11"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-detail-head.txt",
+        "bytes": 910,
+        "sha256": "9b2dc16647aae9cd544f33149395170fd33c3de6b0074ff2dc5dbfe2765d8dcc"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-detail.html",
+        "bytes": 394601,
+        "sha256": "b309e26f99b4ce51206767bebff076d594747b77cae40e54e0294572f8dd49b3"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-file-head.txt",
+        "bytes": 978,
+        "sha256": "1ed3f839218c43c3c80ec76a38f6a57f098eab3498b769f3c8804d7b479a3597"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-file.bin",
+        "bytes": 51156,
+        "sha256": "f9683fedcec21ae72f244cc049188b3fb36e9010d6eefc78598bcab0c88294c4"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-list-head.txt",
+        "bytes": 799,
+        "sha256": "09e02c41bd5087fe765bb253aee641d116b6666b5d5ce109bbe065ee72b79fc5"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-list.html",
+        "bytes": 400705,
+        "sha256": "293fcca7998a16825fdaa2f818ed51e224a9333a655b9c8d1681545a3e0c4615"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-search-head.txt",
+        "bytes": 799,
+        "sha256": "68df6a6e585bf89a2cede4dca07b6aaf4657e7c53c48a8f5a8d13ea093bd7a97"
+      },
+      {
+        "path": "build/qa-nowon-damyang-20260930/NOWON-search.html",
+        "bytes": 397836,
+        "sha256": "894ff92b7d8a27b89362701d79530410b5f59845ad9d12291eac683ccaee63a3"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "NOWON-20260915151630474",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/NOWON-20260915151630474.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2549716,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 13,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void nowonBodyExcludesMetadataAndDoesNotTreatImagesAsText() {
+        String page="<nav>수출 메뉴</nav><div class=article-view><h1 class=article-subject>청년 응시료 지원</h1><table class=table-article><tr><th>첨부파일</th><td>특허.hwp</td></tr></table><div class=article-body><div class=txt>청년 지원금</div></div></div>";
+        String url="https://www.nowon.kr/www/user/bbs/BD_selectBbs.do?q_bbsCode=1003&q_clCode=0&q_estnColumn1=11&q_ntceSiteCode=11&q_bbscttSn=20260915151630474";
+        for(String value:List.of(page,page+page,page.replace("청년 지원금","<img src='/file.png'>"),page.replace("class=txt","class=unknown"))){
+            var transport=new StubTransport();transport.enqueue(html(value));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(value.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금");}
+            else assertThat(result.failureCode()).isIn(FailureCode.BODY_SELECTOR_CHANGED,FailureCode.BODY_TEXT_EMPTY);
+        }
+    }
     @Test void seohaeBodyExcludesMetadataFilesAndRejectsChangedStructure() {
         String page="<div class=board_view><h4 class=title>소상공인 지원</h4><ul class=datalist><li><dl><dt>담당부서</dt><dd>수출 부서</dd></dl></li><li><dl><dt>첨부파일</dt><dd>특허.hwp</dd></dl></li></ul><div class=con>소상공인 지원금</div></div>";
         String url="https://seohae.go.kr/open_content/main/bbs/bbsMsgDetail.do?msg_seq=42495&bcd=gosi";
