@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 206,
-    "missingProfileRegionCount": 17,
+    "registeredRegionCount": 208,
+    "missingProfileRegionCount": 15,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -507,14 +507,26 @@
       "sourceCode": "LGS-000021",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000021",
+          "caseCode": "DONGJAK-29506",
+          "profileCode": "LOCAL_DONGJAK_POST_DETAIL_V1",
+          "profileHash": "3fc76c9a3691cda2e9b4e9feda69063955a2a8831f08371b42d8d538bf4afd31",
+          "receiptHash": "acc52a1bfe01b648cc9573c08ffc2b2f88444484059937440db03c91973326a3",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000022",
@@ -1818,14 +1830,26 @@
       "sourceCode": "LGS-000060",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000060",
+          "caseCode": "BUPYEONG-50550",
+          "profileCode": "LOCAL_BUPYEONG_PORTAL_V1",
+          "profileHash": "4759465eee43898009b9fa9b655688fe160f4673333664e057da56f4f34c436a",
+          "receiptHash": "a3af147db32bb522f7157b31da22abeb24695049885fe706b8b6fc32bb209899",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000061",
@@ -6221,9 +6245,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "afde2c1a38608752aa5afb08179904ec3e3b2a1c48729f3deaa6cfca70c503ac",
+  "inputInventorySha256": "8fb0d4eb57468557a9ea90355f7a237060b7101f48a1c2e72c0cdee9851704b7",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 320,
+  "importedReceiptCount": 323,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12619,6 +12643,107 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "metroRemainderDownloadRun": {
+    "scope": "BUPYEONG_DONGJAK_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/BUPYEONG-50550.json",
+      "build/reports/attachment-regional-collection/DONGJAK-29506-BEFORE-ENDPOINT.json",
+      "build/reports/attachment-regional-collection/DONGJAK-29506.json"
+    ],
+    "initialDongjakArchiveReconstructedFromCapturedToolOutput": true,
+    "observationBudgets": [
+      {
+        "caseCode": "BUPYEONG-50550",
+        "reportPath": "build/reports/attachment-regional-collection/BUPYEONG-50550.json",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "DONGJAK-29506",
+        "reportPath": "build/reports/attachment-regional-collection/DONGJAK-29506-BEFORE-ENDPOINT.json",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "DONGJAK-29506",
+        "reportPath": "build/reports/attachment-regional-collection/DONGJAK-29506.json",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 12,
+    "reservedBytesIncludingBodyUpperBound": 6701353,
+    "surveyRequestCount": 14,
+    "surveyGetCount": 3,
+    "surveyPostCount": 11,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000060",
+        "result": "DETAIL_AND_OPAQUE_QUERY_SHAPE_ONE_GET"
+      },
+      {
+        "sourceCode": "LGS-000021",
+        "result": "TWO_GETS_SIX_POSTS_OFFICIAL_LIST_DETAIL_FORMS",
+        "detailGetHttpStatus": 400,
+        "detailPostHttpStatus": 200
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "result": "STORED_LIST_POST_TRANSPORT_FAILURE_ONE_REQUEST",
+        "errorClass": "MethodInvocationException",
+        "rootCauseVerified": false
+      },
+      {
+        "sourceCode": "LGS-000080",
+        "result": "LIST_SEARCH_DETAIL_STRUCTURE_FOUR_PUBLIC_POSTS_HTTP_200",
+        "candidateNoticeId": "28029",
+        "fileLinkCount": 1,
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 3,
+    "downloadedBytes": 242769,
+    "fileFailures": [],
+    "bodyResults": [
+      {
+        "caseCode": "BUPYEONG-50550",
+        "status": "AVAILABLE",
+        "characterCount": 362,
+        "failureCode": null
+      },
+      {
+        "caseCode": "DONGJAK-29506",
+        "status": "FETCH_FAILED",
+        "characterCount": 0,
+        "failureCode": "DETAIL_HOST_NOT_ALLOWED"
+      },
+      {
+        "caseCode": "DONGJAK-29506",
+        "status": "AVAILABLE",
+        "characterCount": 458,
+        "failureCode": null
+      }
+    ],
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 180,
+      "noObservedDownloadRegionCount": 43,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 15
+    }
   },
   "ongjinDownloadRun": {
     "scope": "ONGJIN_REGISTERED_BOARD_COLLECTION_ONLY",

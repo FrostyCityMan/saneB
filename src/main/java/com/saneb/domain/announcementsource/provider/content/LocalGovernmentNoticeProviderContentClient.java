@@ -318,7 +318,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
-                    if (DamyangNoticePage.selectApiMatches(initialUri) || ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
+                    if (DongjakNoticePage.selectMatches(initialUri) || DamyangNoticePage.selectApiMatches(initialUri) || ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
                         return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
                     }
                     if (redirectCount >= maxRedirects) {
@@ -482,6 +482,14 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         }
         if (OngjinNoticePage.selectMatches(sourceUri)) {
             try { OngjinNoticePage.selectDetailUri(sourceUri); return OngjinNoticePage.selectContent(document); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
+        if (BupyeongNoticePage.selectMatches(sourceUri)) {
+            try { BupyeongNoticePage.selectDetailUri(sourceUri); return BupyeongNoticePage.selectContent(document); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
+        if (DongjakNoticePage.selectMatches(sourceUri)) {
+            try { DongjakNoticePage.selectDetailUri(sourceUri); return DongjakNoticePage.selectContent(document); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
         }
         if (GyeongnamProvinceNoticePage.selectMatches(sourceUri)) {

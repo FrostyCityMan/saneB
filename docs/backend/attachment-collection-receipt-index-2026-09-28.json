@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "afde2c1a38608752aa5afb08179904ec3e3b2a1c48729f3deaa6cfca70c503ac",
+  "inventorySha256": "8fb0d4eb57468557a9ea90355f7a237060b7101f48a1c2e72c0cdee9851704b7",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2483,6 +2483,30 @@
       "producerClassHash": "747e860f580c5882a43d98b91e7632ccf741756a7de491eb4fdf2cf824bbc957",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/BUPYEONG-50550.json",
+      "receiptHash": "a3af147db32bb522f7157b31da22abeb24695049885fe706b8b6fc32bb209899",
+      "producerClassHash": "e9d3bd00f4945385ebb2543b9ebd73635061f517ea0558f4e09d509238ae2321",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGJAK-29506-BEFORE-ENDPOINT.json",
+      "receiptHash": "6f3aaa7df77349addcea7da8c6a3144718a5e3f75e3bc44f52822f92f10a85f3",
+      "producerClassHash": "e9d3bd00f4945385ebb2543b9ebd73635061f517ea0558f4e09d509238ae2321",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGJAK-29506.json",
+      "receiptHash": "acc52a1bfe01b648cc9573c08ffc2b2f88444484059937440db03c91973326a3",
+      "producerClassHash": "b2bcd7005fb71d44c508081f1c6c37b60b7557cf60a2c6faa4acb12cd3a26f68",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3273,6 +3297,33 @@
           "bytes": 82795,
           "format": "HWPX",
           "binaryHash": "2dec4ab835470c4097bb7f55897c55b2d4f6e4b1644f4f54c8c5f8ead807e461",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000060",
+      "caseCode": "BUPYEONG-50550",
+      "profileCode": "LOCAL_BUPYEONG_PORTAL_V1",
+      "profileHash": "4759465eee43898009b9fa9b655688fe160f4673333664e057da56f4f34c436a",
+      "receiptHash": "a3af147db32bb522f7157b31da22abeb24695049885fe706b8b6fc32bb209899",
+      "producerClassHash": "e9d3bd00f4945385ebb2543b9ebd73635061f517ea0558f4e09d509238ae2321",
+      "observedAt": "2026-09-30T08:00:01.538061500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "46d1b61824e0ff1a795c98c7bb8d6495d605553ce8b8e907d51a82134018d264",
+          "status": "SUCCEEDED",
+          "bytes": 84859,
+          "format": "HWPX",
+          "binaryHash": "a424970f62fb1f77195ee0265cb13ac14c71ac3579a39b824434be32daaeba39",
           "signatureVerified": true
         }
       ]
@@ -4388,6 +4439,33 @@
           "bytes": 90112,
           "format": "HWP",
           "binaryHash": "94a05c70b71e006a9bf6a7f7233f75d15ccb06903e60b2b3f23eec36a927c8f0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000021",
+      "caseCode": "DONGJAK-29506",
+      "profileCode": "LOCAL_DONGJAK_POST_DETAIL_V1",
+      "profileHash": "3fc76c9a3691cda2e9b4e9feda69063955a2a8831f08371b42d8d538bf4afd31",
+      "receiptHash": "acc52a1bfe01b648cc9573c08ffc2b2f88444484059937440db03c91973326a3",
+      "producerClassHash": "b2bcd7005fb71d44c508081f1c6c37b60b7557cf60a2c6faa4acb12cd3a26f68",
+      "observedAt": "2026-09-30T08:11:57.286973800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8785b40e05ca3f5a53067023b91a76c71c6092e271463b4f8e4a57632e055d10",
+          "status": "SUCCEEDED",
+          "bytes": 78955,
+          "format": "HWPX",
+          "binaryHash": "cbe8ee8984bd410199744741101348e5f874e9397e5737ba81b51ad110388b37",
           "signatureVerified": true
         }
       ]

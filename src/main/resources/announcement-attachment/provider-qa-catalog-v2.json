@@ -3253,6 +3253,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "BUPYEONG-50550",
+      "profileCode": "LOCAL_BUPYEONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8a52bc0a86a96102d32c69360ce59c7d1226c8e6fadf3ca031297eae2c12af0a",
+        "sourceUrl": "https://www.icbp.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=50550",
+        "localSourceCode": "LGS-000060",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DONGJAK-29506",
+      "profileCode": "LOCAL_DONGJAK_POST_DETAIL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8f6b9f333b56df2056ac5f5d11b456742017857e3a9dd8a0bb773a6eb22e7548",
+        "sourceUrl": "https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y",
+        "localSourceCode": "LGS-000021",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }

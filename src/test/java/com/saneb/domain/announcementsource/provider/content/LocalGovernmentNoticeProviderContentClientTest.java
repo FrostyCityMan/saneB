@@ -31,6 +31,18 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void metroRemainderBodiesExcludeMetadataAndAttachments(){
+        for(boolean bp:List.of(true,false)){
+            String url=bp?"https://www.icbp.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=50550":"https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y";
+            String page=bp?"<div class=board_view><div class=title><h5>신혼부부 지원</h5></div><div class=add_file>수출 파일</div><div class=con><div class=detail>신혼부부 금융지원<script>x()</script></div></div></div>":"<form name=form method=post><div class=view><p class=subject>청년 금융지원</p><dl>수출 부서</dl><div class=dbData>신혼부부 금융지원<script>x()</script></div></div></form>";
+            for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+        }
+    }
+    @Test void dongjakBodyNeverRepostsAfterRedirect(){
+        String url="https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y";
+        var transport=new StubTransport();transport.enqueue(new ProviderContentHttpResponse(302,Map.of("location",List.of(url.replace("29506","29507"))),new byte[0]));
+        assertThat(client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url)).failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);
+    }
     @Test void ongjinBodyExcludesMetadataAndFileNames(){
         String url="https://www.ongjin.go.kr/open_content/main/eminwon/eminwonAnnounceDetail.do?mgt_no=36423";
         String page="<div class=board_view><p class=title>소상공인 지원</p><dl class=data>수출 부서</dl><dl class=file>투자 파일</dl><div class=con>소상공인 경영환경 개선지원<script>x()</script></div></div>";

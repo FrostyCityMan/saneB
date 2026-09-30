@@ -49,6 +49,8 @@ final class PinnedProviderContentHttpTransport implements ProviderContentHttpTra
         Objects.requireNonNull(requestTarget, "requestTarget is required");
         Objects.requireNonNull(readTimeout, "readTimeout is required");
 
+        var request = selectRequest(requestTarget.uri());
+
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.of(connectTimeout))
                 .setSocketTimeout(Timeout.of(readTimeout))
@@ -66,7 +68,6 @@ final class PinnedProviderContentHttpTransport implements ProviderContentHttpTra
                 .setRedirectsEnabled(false)
                 .setContentCompressionEnabled(false)
                 .build();
-        HttpGet request = new HttpGet(requestTarget.uri());
         request.setConfig(requestConfig);
         request.setHeader("Accept", "text/html");
         request.setHeader("Accept-Encoding", "gzip");
@@ -88,6 +89,21 @@ final class PinnedProviderContentHttpTransport implements ProviderContentHttpTra
             TimeoutException timeoutException = new TimeoutException("detail body request timed out");
             timeoutException.initCause(exception);
             throw timeoutException;
+        }
+    }
+
+    static org.apache.hc.client5.http.classic.methods.HttpUriRequestBase selectRequest(java.net.URI uri) throws IOException {
+        if (!DongjakNoticePage.selectMatches(uri)) return new HttpGet(uri);
+        try {
+            var selected = DongjakNoticePage.selectRequest(uri);
+            var request = new org.apache.hc.client5.http.classic.methods.HttpPost(selected.uri());
+            request.setEntity(new org.apache.hc.client5.http.entity.UrlEncodedFormEntity(
+                    selected.form().entrySet().stream().sorted(Map.Entry.comparingByKey())
+                            .map(e -> new org.apache.hc.core5.http.message.BasicNameValuePair(e.getKey(), e.getValue())).toList(),
+                    java.nio.charset.StandardCharsets.UTF_8));
+            return request;
+        } catch (IllegalArgumentException exception) {
+            throw new IOException("BODY_PUBLIC_POST_REQUEST_INVALID");
         }
     }
 

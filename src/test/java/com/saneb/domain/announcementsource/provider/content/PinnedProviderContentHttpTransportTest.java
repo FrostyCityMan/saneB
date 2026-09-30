@@ -23,6 +23,15 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class PinnedProviderContentHttpTransportTest {
+    @Test void onlyDongjakOfficialReadFormUsesPost()throws Exception{
+        String url="https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y";
+        var request=PinnedProviderContentHttpTransport.selectRequest(URI.create(url));
+        assertThat(request.getMethod()).isEqualTo("POST");assertThat(request.getUri().getRawQuery()).isNull();assertThat(request.getUri().getHost()).isEqualTo(DongjakNoticePage.HOST);
+        String form=org.apache.hc.core5.http.io.entity.EntityUtils.toString(request.getEntity());
+        assertThat(CapitalThirdNoticePage.selectParameters(form)).isEqualTo(DongjakNoticePage.selectRequest(URI.create(url)).form());
+        for(String bad:List.of(url+"&extra=x",url+"&not_ancmt_mgt_no=2",url.replace("method=selectOfrNotAncmt","method=deleteOfrNotAncmt"),url.replace("https:","http:"),url+"#fragment"))assertThatThrownBy(()->PinnedProviderContentHttpTransport.selectRequest(URI.create(bad))).isInstanceOf(IOException.class).hasMessage("BODY_PUBLIC_POST_REQUEST_INVALID");
+        assertThat(PinnedProviderContentHttpTransport.selectRequest(URI.create(url.replace("dongjak.eminwon.seoul.kr","another.example"))).getMethod()).isEqualTo("GET");
+    }
 
     @Test
     void selectResponseConnectsToPinnedAddressWithoutSystemDnsResolution() throws Exception {
