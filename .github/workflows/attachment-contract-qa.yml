@@ -131,6 +131,7 @@ jobs:
         run: |
           python3 -B -m unittest discover -s scripts/qa -p test_temporary_bbs_observation.py -v
           python3 -B -m unittest discover -s scripts/qa -p test_cheorwon_transport.py -v
+          python3 -B -m unittest discover -s scripts/qa -p test_regional_tls_probe.py -v
           python3 -B -m unittest discover -s scripts/qa -p test_haman_observation_report.py -v
 
       - name: 함안 고정1공고 Linux 관측 — 운영 및 서울 서버 변경 없음
