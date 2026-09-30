@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void icheonBodyExcludesMetadataAndAttachmentRows(){
+        String url="https://www.icheon.go.kr/portal/saeol/gosi/view.do?mid=0402020000&notAncmtMgtNo=70639";
+        String page="<form id=detailForm><div class=bod_wrap><div class=bod_view><div class=subject>소상공인 지원</div><div class=view_info>수출 부서</div><div class=view_cont>소상공인 자금지원<script>x()</script></div><dl class=view_file><dt>첨부 파일</dt><dd>투자 파일</dd></dl></div></div></form>";
+        for(String content:List.of(page,page+page,page.replace("class=view_cont","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 자금지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void cheongjuBodyExcludesMetadataAndAttachmentRows(){
         String url="https://www.cheongju.go.kr/www/selectEminwonNoticeView.do?key=281&notAncmtMgtNo=150057&notAncmtSeCd=&nowDongGn=";
         String page="<div id=board class=\"p-wrap bbs bbs__view\"><table class=bbs_basic><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>내용</th><td><div>소상공인 융자금 지원<script>x()</script></div></td></tr><tr><th>파일</th><td>투자 파일</td></tr></table></div>";

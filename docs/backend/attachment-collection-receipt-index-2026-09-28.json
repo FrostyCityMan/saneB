@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "304891513b6010cbb6a158aa115d79188c936249e5697fbbd185e63613c71bb4",
+  "inventorySha256": "2546ed07bb66fc54b1bbee005a9dc5c7880262dfe21389c406132f32cde0832d",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2553,6 +2553,14 @@
       "path": "build/reports/attachment-regional-collection/CHEONGJU-150057.json",
       "receiptHash": "1e35185d8320d07831afd70dc98d295f697143a2e30bb5211cdeb761477cc167",
       "producerClassHash": "3a128ad9df79068e0586c97759697a3b9a070273c23b11cce08dfdd984d189a5",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/ICHEON-70639.json",
+      "receiptHash": "6a8e058534fc74eae25774b3f32d448baa0967c22f11b595ac927964317ff17c",
+      "producerClassHash": "80227f352907bc4f65bd3ae08212d8b75b5b89c13cd110f0a0b83a3e1d683f12",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -6681,6 +6689,30 @@
           "format": "HWPX",
           "binaryHash": "5cd830e7b89d95b9bf74f0bd2dd42858f503823a161f7caea439d44160e84d95",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000105",
+      "caseCode": "ICHEON-70639",
+      "profileCode": "LOCAL_ICHEON_BOARD_V1",
+      "profileHash": "56cd4e37fcc3b651cdb5db1097426b428f3cfbb524b8725b1fd10622deec06b0",
+      "receiptHash": "6a8e058534fc74eae25774b3f32d448baa0967c22f11b595ac927964317ff17c",
+      "producerClassHash": "80227f352907bc4f65bd3ae08212d8b75b5b89c13cd110f0a0b83a3e1d683f12",
+      "observedAt": "2026-09-30T10:20:01.877819700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "e5d80db87d90f562120e6db6a30e4eed4bd7e860ec4b4fb6c084cf927a0b37a6",
+          "status": "FAILED",
+          "bytes": 0
         }
       ]
     },

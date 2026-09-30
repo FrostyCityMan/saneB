@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 213,
-    "missingProfileRegionCount": 10,
+    "registeredRegionCount": 214,
+    "missingProfileRegionCount": 9,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2904,14 +2904,26 @@
       "sourceCode": "LGS-000105",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000105",
+          "caseCode": "ICHEON-70639",
+          "profileCode": "LOCAL_ICHEON_BOARD_V1",
+          "profileHash": "56cd4e37fcc3b651cdb5db1097426b428f3cfbb524b8725b1fd10622deec06b0",
+          "receiptHash": "6a8e058534fc74eae25774b3f32d448baa0967c22f11b595ac927964317ff17c",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000106",
@@ -6316,9 +6328,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "304891513b6010cbb6a158aa115d79188c936249e5697fbbd185e63613c71bb4",
+  "inputInventorySha256": "2546ed07bb66fc54b1bbee005a9dc5c7880262dfe21389c406132f32cde0832d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 329,
+  "importedReceiptCount": 330,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12714,6 +12726,73 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "icheonDownloadRun": {
+    "scope": "ICHEON_OFFICIAL_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ICHEON-70639.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ICHEON-70639",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2392064,
+    "surveyRequestCount": 8,
+    "surveyGetCount": 8,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "tlsDiagnosticConnectionCount": 2,
+    "tlsDiagnosticHttpRequestCount": 0,
+    "tlsDiagnostics": {
+      "windowsDefaultValidation": "PASSED_LOCAL_AVAST_INTERCEPTION_CERTIFICATE",
+      "javaWindowsRootValidation": "REMOTE_HOST_TERMINATED_HANDSHAKE",
+      "verificationDisabled": false,
+      "rootCauseConfirmed": false
+    },
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000105",
+        "requestCount": 1,
+        "result": "DETAIL_GET200_OFFICIAL_BODY_FILE_AND_PREVIEW_STRUCTURES"
+      },
+      {
+        "sourceCode": "LGS-000195",
+        "requestCount": 2,
+        "result": "DETAIL29278_200_OFFICIAL_TABLE_BODY_GET_ATTACHMENT_LINK",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000200",
+        "requestCount": 5,
+        "result": "REGISTERED_LIST302_TWICE_OFFICIAL_APEX301_CANONICAL_LIST200_TWICE_BOARD_DETAIL_CONTRACT",
+        "isDownloadVerified": false
+      }
+    ],
+    "downloadedFileCount": 0,
+    "downloadedBytes": 0,
+    "bodyCharacterCount": 115,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "registeredSourceCorrectionRequiredForGeneralNotices": true,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 185,
+      "noObservedDownloadRegionCount": 38,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 9
+    }
   },
   "cheongjuDownloadRun": {
     "scope": "CHEONGJU_OFFICIAL_POST_COLLECTION_ONLY",

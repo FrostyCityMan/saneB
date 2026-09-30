@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "ICHEON-70639",
+      "profileCode": "LOCAL_ICHEON_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b112b76eea3e814256c6ecd239543477b83dae699bd1dc12f808c5d3a68635be",
+        "sourceUrl": "https://www.icheon.go.kr/portal/saeol/gosi/view.do?mid=0402020000&notAncmtMgtNo=70639",
+        "localSourceCode": "LGS-000105",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "CHEONGJU-150057",
       "profileCode": "LOCAL_CHEONGJU_POST_V1",
       "source": {
