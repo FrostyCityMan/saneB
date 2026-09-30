@@ -316,7 +316,7 @@ class AttachmentProviderQaCatalogTest {
     @Test void geochangReferenceUsesCanonicalSourceAndNoExpectation()throws Exception{
         var sample=GeochangDownloadCases.selectCase();var catalog=packagedCatalog();
         assertThat(packagedDefinition().notices().stream().filter(n->sample.code().equals(n.caseCode()))).singleElement().satisfies(n->{assertThat(n.source()).isEqualTo(sample.source());assertThat(n.expectation()).isNull();});
-        assertThat(catalog.selectPrepared(scope,rules,runtimeHash,now).plan().targets().stream().filter(t->"LOCAL_GOV_NOTICE:LGS-000240".equals(t.targetKey()))).singleElement().satisfies(t->{assertThat(t.referenceCount()).isEqualTo(1);assertThat(t.executableCount()).isZero();});
+        assertThat(catalog.selectPrepared(scope,rules,runtimeHash,now).plan().targets().stream().filter(t->"LOCAL_GOV_NOTICE:LGS-000240".equals(t.targetKey()))).singleElement().satisfies(t->{assertThat(t.referenceCount()).isEqualTo(2);assertThat(t.executableCount()).isZero();});
     }
     @Test void hadongReferenceUsesCanonicalSourceAndNoExpectation()throws Exception{
         var sample=HadongDownloadCases.selectCase();var catalog=packagedCatalog();
@@ -431,7 +431,7 @@ class AttachmentProviderQaCatalogTest {
         var selected=packagedCatalog();var result=selected.selectPrepared(scope,rules,runtimeHash,now);
         for(var group:SeoulEighthDownloadCases.GROUPS){var sample=SeoulEighthDownloadCases.selectCase(group);
             assertThat(result.plan().targets().stream().filter(t->("LOCAL_GOV_NOTICE:"+sample.source().localSourceCode()).equals(t.targetKey()))).singleElement()
-                    .satisfies(t->{assertThat(t.referenceCount()).isEqualTo(1);assertThat(t.executableCount()).isZero();assertThat(t.isExpectationCoverageComplete()).isFalse();});
+                    .satisfies(t->{assertThat(t.referenceCount()).isEqualTo("GANGNAM".equals(group)?2:1);assertThat(t.executableCount()).isZero();assertThat(t.isExpectationCoverageComplete()).isFalse();});
             assertThat(result.plan().cases().stream().filter(c->sample.code().equals(c.caseCode()))).singleElement()
                     .satisfies(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();});
         }
@@ -676,7 +676,7 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().executableCount()).isZero();
-        assertThat(result.plan().cases()).hasSize(289);
+        assertThat(result.plan().cases()).hasSize(292);
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
                 .satisfies(c->{assertThat(c.statusCode()).isEqualTo("PROFILE_CHANGED");assertThat(c.normalNotice()).isFalse();});
         assertThat(result.plan().targets()).allSatisfy(t->assertThat(t.normalNoticeCount()).isZero());
@@ -711,9 +711,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(223);assertThat(result.plan().cases()).hasSize(289);
+        assertThat(result.plan().targets()).hasSize(223);assertThat(result.plan().cases()).hasSize(292);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(288).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(291).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

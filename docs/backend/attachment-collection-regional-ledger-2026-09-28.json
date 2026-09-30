@@ -619,11 +619,22 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000024",
+          "caseCode": "GANGNAM-61922",
+          "profileCode": "LOCAL_GANGNAM_BOARD_V1",
+          "profileHash": "d3ae6291195ec77d144ac729f8713b16af0d961c410126234097e0999170af00",
+          "receiptHash": "c449675d095633434ba5f154fed7fa1e21772f1bf063569139e6d0d945d5f28b",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
         {
           "sourceCode": "LGS-000024",
           "caseCode": "GANGNAM-64668",
@@ -4369,9 +4380,20 @@
       "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000156",
+          "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
+          "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
+          "profileHash": "e1ca2cda4cee2924bd37005d33f69a327698893215c28b407c37a40e0eff4535",
+          "receiptHash": "a00a0716b8584e362b2b99006489de84a236433cfb83ef1f531ac5d2514b2979",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
         {
           "sourceCode": "LGS-000156",
           "caseCode": "GEUMSAN-EA6A4E53C07C7F05A9E9240DBB006D43",
@@ -6406,11 +6428,22 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000240",
+          "caseCode": "GEOCHANG-45659",
+          "profileCode": "LOCAL_GEOCHANG_SCMS_V1",
+          "profileHash": "6c93919867b483beb8360ece0889532427c501f3a3d57ff9e89854a796dce2f4",
+          "receiptHash": "b9ae407f1633ec61cbab6c7ad60026ab1714782fe7cb792e4430a390b525130e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
         {
           "sourceCode": "LGS-000240",
           "caseCode": "GEOCHANG-47689",
@@ -6513,9 +6546,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "b74017aa8a20fe2c693b1fefa8346ed8b0b281bfa37df7e6af68834d5717eaf4",
+  "inputInventorySha256": "508f7f12028326fd0cd6b2b32c00ba84390c74fa02cefccdf0465bc26b2cd62e",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 652,
+  "importedReceiptCount": 655,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12907,6 +12940,81 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "officialListSupportRecoveryRun": {
+    "scope": "OFFICIAL_LIST_SUPPORT_SAMPLE_RECOVERY",
+    "baselineGitHead": "d5649e904b8e90d8dd1488707656b453347f4e15",
+    "applicationJavaChanged": false,
+    "profileHashesUnchanged": true,
+    "catalogChanged": true,
+    "catalogReferencesBefore": 289,
+    "catalogReferencesAfter": 292,
+    "previousInventorySha256": "b74017aa8a20fe2c693b1fefa8346ed8b0b281bfa37df7e6af68834d5717eaf4",
+    "currentInventorySha256": "508f7f12028326fd0cd6b2b32c00ba84390c74fa02cefccdf0465bc26b2cd62e",
+    "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GANGNAM-61922-RECOVERED-SUPPORT-20261001.json",
+      "build/reports/attachment-regional-collection/GEOCHANG-45659-RECOVERED-SUPPORT-20261001.json",
+      "build/reports/attachment-regional-collection/GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B-RECOVERED-SUPPORT-20261001.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 199,
+      "noObservedDownloadRegionCount": 24,
+      "regionsWithErrors": 33,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 204,
+    "historicalNeverDownloadedRegionCount": 19,
+    "observedCaseCount": 3,
+    "downloadedCaseCount": 2,
+    "downloadedFileCount": 3,
+    "downloadedBytes": 278224,
+    "requestReservationsIncludingBodyUpperBound": 14,
+    "reservedBytesIncludingBodyUpperBound": 11422928,
+    "maximumRequestReservations": 20,
+    "maximumReservedBytes": 96468992,
+    "titleStops": [],
+    "bodyFailures": [],
+    "partialCases": [
+      {
+        "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
+        "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
+        "discoveryWarningCodes": [],
+        "failureCode": null,
+        "failedStage": null
+      }
+    ],
+    "fileIssues": [
+      {
+        "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
+        "status": "FAILED",
+        "failureCode": "ATTACHMENT_CONTENT_TYPE_MISMATCH"
+      },
+      {
+        "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
+        "status": "FAILED",
+        "failureCode": "ATTACHMENT_CONTENT_TYPE_MISMATCH"
+      }
+    ],
+    "publicDiagnosticRequests": 26,
+    "observationPassed": 3,
+    "observationFailed": 0,
+    "rootTestCount": 186,
+    "rootTestFailed": 0,
+    "rootTestSkipped": 3,
+    "geumsanObservedRawContentType": "hwp",
+    "geumsanExpectedWrapperMode": "BARE_HWPX",
+    "geumsanNativeMatchesJavaBinaryHash": true,
+    "nativeOriginalFilesWritten": 0,
+    "previousFailuresPreserved": true,
+    "asanSupportCaseNotSecured": true,
+    "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,

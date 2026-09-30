@@ -3529,6 +3529,42 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GANGNAM-61922",
+      "profileCode": "LOCAL_GANGNAM_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e98d7c9f3e16b2e11a9ea0f61873c1e4f59055cf09b74a0dcc7a3f60bd0007bc",
+        "sourceUrl": "https://www.gangnam.go.kr/notice/view.do?not_ancmt_mgt_no=61922&mid=ID05_040201",
+        "localSourceCode": "LGS-000024",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
+      "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "493d1df4dffaf4fcf798b860c356e9ca161ef3a5f48159e8e2ffbb0e4e4f6104",
+        "sourceUrl": "https://www.geumsan.go.kr/site/kr/html/sub03/030302.html?mode=V&site_dvs_cd=kr&mng_no=4df078b6fceb5d17b3162ce865ecbf3b",
+        "localSourceCode": "LGS-000156",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GEOCHANG-45659",
+      "profileCode": "LOCAL_GEOCHANG_SCMS_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9c8368007a00cfb82ec4cc6a4abaae1c3f2c341653eff2556d6de51fe40bd5c7",
+        "sourceUrl": "https://www.geochang.go.kr/00445/00451.web?amode=view&not_ancmt_mgt_no=45659",
+        "localSourceCode": "LGS-000240",
+        "listParserProfileCode": "SCMS_CARD_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
