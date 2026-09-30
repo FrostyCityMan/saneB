@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 214,
-    "missingProfileRegionCount": 9,
+    "registeredRegionCount": 215,
+    "missingProfileRegionCount": 8,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5153,14 +5153,37 @@
       "sourceCode": "LGS-000195",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "COLLECTION_INCOMPLETE",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000195",
+          "caseCode": "YEONGGWANG-29278",
+          "profileCode": "LOCAL_YEONGGWANG_GET_V1",
+          "profileHash": "5ff945137a2f265d2b45b25a6808ddc3cd1eb6755dd4d8c7cae4c1e27f1cf738",
+          "receiptHash": "a1788577d538c75bf976763ffc8f14061a39af1d4486e1326475f75ed928d5e2",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000195",
+          "caseCode": "YEONGGWANG-29330",
+          "profileCode": "LOCAL_YEONGGWANG_GET_V1",
+          "profileHash": "5ff945137a2f265d2b45b25a6808ddc3cd1eb6755dd4d8c7cae4c1e27f1cf738",
+          "receiptHash": "4dc3a7a94b42401d71ebde96acaf945289082cc3282136431354658eaff9c60c",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000196",
@@ -6328,9 +6351,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "2546ed07bb66fc54b1bbee005a9dc5c7880262dfe21389c406132f32cde0832d",
+  "inputInventorySha256": "d28d1275a82dc94bdcb15654e3f5e616790cf4c5c7378212bfc35c94c00397b9",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 330,
+  "importedReceiptCount": 332,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12726,6 +12749,68 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "yeonggwangDownloadRun": {
+    "scope": "YEONGGWANG_TITLE_STOP_AND_OFFICIAL_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YEONGGWANG-29278.json",
+      "build/reports/attachment-regional-collection/YEONGGWANG-29330.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YEONGGWANG-29278",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "YEONGGWANG-29330",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2713685,
+    "surveyRequestCount": 8,
+    "surveyGetCount": 8,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000195",
+        "requestCount": 3,
+        "result": "OFFICIAL_SUPPORT_SEARCH200_DETAIL29330_200_STORED_CANONICAL200"
+      },
+      {
+        "sourceCode": "LGS-000200",
+        "requestCount": 5,
+        "result": "OFFICIAL_PAGE_JS200_DETAIL1370252_200_THREE_TIMES_FILE_WIDGET_JS200_PDF_LITERAL_METADATA",
+        "isDownloadVerified": false
+      }
+    ],
+    "titleStoppedCaseCodes": [
+      "YEONGGWANG-29278"
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 133205,
+    "bodyCharacterCount": 277,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 186,
+      "noObservedDownloadRegionCount": 37,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 8
+    }
   },
   "icheonDownloadRun": {
     "scope": "ICHEON_OFFICIAL_GET_COLLECTION_ONLY",

@@ -3,6 +3,30 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "YEONGGWANG-29278",
+      "profileCode": "LOCAL_YEONGGWANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "03b3ec8c14d94ed3dca9f860439d5565ff5a33ce27e6cc55e687249006928b7d",
+        "sourceUrl": "https://www.yeonggwang.go.kr/bbs?b_id=gosigonggo&bs_idx=29278&mn=9059&site=headquarter_new&type=view",
+        "localSourceCode": "LGS-000195",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "YEONGGWANG-29330",
+      "profileCode": "LOCAL_YEONGGWANG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e459912293147b3be68eb0ccc6199baf2fefac56357e0958673d4758c752f30e",
+        "sourceUrl": "https://www.yeonggwang.go.kr/bbs?b_id=gosigonggo&bs_idx=29330&mn=9059&site=headquarter_new&type=view",
+        "localSourceCode": "LGS-000195",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "ICHEON-70639",
       "profileCode": "LOCAL_ICHEON_BOARD_V1",
       "source": {
