@@ -52,3 +52,17 @@
 - `git -c core.autocrlf=false diff --check`: 통과.
 
 브라우저는 사용자 정책상 미실행이다. AWS 인증 만료와 이전 연제·구례 조사 파일 정리 미완료는 별도 후속으로 유지한다. 운영 반영·정책 활성화·재분류는 이번 단계에서 수행하지 않았다.
+
+## 재개 요청 후 다음 지역 조사
+
+화성 코드·대장 커밋 `4c98d4353557d433d9d0312fcaedd38d6ce64905`를 QA 브랜치에 푸시하고 원격 SHA 일치를 확인했다. 해당 SHA의 Actions 조회에서 실행이 반환되지 않아 CI 통과로 표시하지 않는다.
+
+추가 공개 조사 7회(5GET+2POST)를 수행했다. 앞의 화성 연결 조사4회와 별도이며 요청당 12초·2MiB·TLS 검증·수집기 User-Agent·자동 redirect 금지, 조사 원문 파일 저장0을 유지했다.
+
+1. 울주 일반공고 메뉴 `https://www.ulju.ulsan.kr/ulju/contents.do?mId=0403020000`는 범주04 목록으로 302 이동한다. 이동의 일회성 값은 출력 전에 가리고 저장하지 않았다. 일회성 값을 제외한 `/ulju/saeol/gosi/list.do?seCode=04&mId=0403020000`은 200이다.
+2. 울주 공식 목록 폼의 공개 검색 POST(`page=1`, `seCode=04`, `searchType=tit`, 소상공인 검색)는 200, 지원 공고67082·67015·66105를 반환했다. 상세 링크는 `data-action`에 있고 목록 JavaScript는 `req.post`를 사용한다.
+3. `https://www.ulju.ulsan.kr/ulju/saeol/gosi/view.do?notAncmtMgtNo=67082&mId=0403020000`는 GET200이다. 제목은 2026년 제2차 울주군 소상공인 자금 특례보증 지원 공고(수정)이며 `form#detailForm > div.bod_wrap > div.bod_view` 안의 `h4`, `div.view_cont`, `dl.view_file`로 제목·본문·첨부가 나뉜다.
+4. 울주 공식 파일 목록은 `ul#updateFileList > li`다. 내려받기 `goDownload_location`의 세 문자열 인자로 `https://eminwon.ulju.ulsan.kr/emwp/jsp/ofr/FileDown.jsp` GET을 구성한다. `downloadToHttp`는 별도 미리보기이므로 요청 대상이 아니다. HWPX 표시1개를 발견했지만 아직 다운로드·형식 검증하지 않았으며 성공 수에 포함하지 않는다.
+5. 광양 공고 메뉴 `https://gwangyang.go.kr/menu.es?mid=a10909020000`는 `/saeol/gosi.es?mid=a10909020000&type_code=02,04`로 302 이동하며 해당 목록은 200이다. 공식 검색 폼의 공개 필드 `type_code=02,04`, `nPage=1`, `keyField=T`, 소상공인 검색 POST는 404였다. 원인은 미확정이며 검색 실패를 상세/첨부 실패로 확대하지 않는다. 인증·보안 우회나 반복 재시도는 하지 않았다.
+
+울주 역시 등록된 고시 범주01과 이번 일반공고 범주04가 다르다. 후속 구현은 고정 상세 본문·첨부 연결부터 진행하되, 목록 입력·카테고리 범위와 상시 수집은 별도로 검증해야 한다. 현재 다운로드 확인182·잔여41은 변하지 않는다.
