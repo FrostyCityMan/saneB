@@ -2162,7 +2162,7 @@
       "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
         {
@@ -2174,6 +2174,17 @@
           "fileCount": 0,
           "downloadedFileCount": 0,
           "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000075",
+          "caseCode": "YUSEONG-49380",
+          "profileCode": "LOCAL_YUSEONG_BOARD_V1",
+          "profileHash": "7bf701682b9c3bac42dc4719e3ad34edf8b2db7411234c6fd03f4b4fb70fb2d7",
+          "receiptHash": "d6effe0d24d6afdbdaee3004ae2503b5fb32dfffd8a13675a295dbf674c871dd",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
           "collectionVerified": false
         }
       ]
@@ -5995,9 +6006,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "3c92879d5516423809fa242bb451dc5c0c22768e35ffb0721d798ad35f3600af",
+  "inputInventorySha256": "94cc433a7dcfca56f021999170fbbda8254630b00ebd614c4e6c27499fb51167",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 297,
+  "importedReceiptCount": 299,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12393,6 +12404,52 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "yuseongSupportDownloadRun": {
+    "scope": "YUSEONG_EXISTING_PROFILE_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YUSEONG-49380-ATTEMPT1.json",
+      "build/reports/attachment-regional-collection/YUSEONG-49380.json"
+    ],
+    "observationBudget": {
+      "caseCode": "YUSEONG-49380",
+      "attempts": 2,
+      "maximumRequestsPerAttempt": 7,
+      "maximumBytesPerAttempt": 27262976
+    },
+    "requestReservationsIncludingBodyUpperBound": 8,
+    "reservedBytesIncludingBodyUpperBound": 9641984,
+    "surveyRequestCount": 7,
+    "surveyGetCount": 7,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 15,
+    "discoverySearchQueryCount": 8,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000017",
+        "result": "OFFICIAL_LINKED_DETAIL62174_HTTP400_NO_RETRY",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000075",
+        "result": "ELDERLY51626_TITLE_NOT_ELIGIBLE_NO_FILE_REQUEST_STUDENT49380_SELECTED_WITH_UNCHANGED_RULES",
+        "isSourceScopeChanged": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 162,
+      "noObservedDownloadRegionCount": 61,
+      "regionsWithErrors": 42,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 34
+    }
   },
   "seongnamDownloadRun": {
     "scope": "SEONGNAM_EXISTING_SAEOL_GET_COLLECTION_ONLY",

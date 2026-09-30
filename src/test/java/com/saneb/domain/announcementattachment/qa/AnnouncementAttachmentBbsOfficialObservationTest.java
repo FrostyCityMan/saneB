@@ -65,6 +65,7 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
         return selected.values().stream();
     }
     public static Stream<ObservationCase> selectCases(String group) {
+        if("YUSEONG_SUPPORT".equals(group))return Stream.of(YuseongSupportDownloadCases.selectCase());
         if("EXISTING_FIRST".equals(group))return ExistingProfileDownloadCases.selectCases();
         if("EXISTING_SECOND".equals(group))return ExistingSecondDownloadCases.selectCases();
         if("SEONGNAM".equals(group))return Stream.of(SeongnamDownloadCases.selectCase());

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "3c92879d5516423809fa242bb451dc5c0c22768e35ffb0721d798ad35f3600af",
+  "inventorySha256": "94cc433a7dcfca56f021999170fbbda8254630b00ebd614c4e6c27499fb51167",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2297,6 +2297,22 @@
       "path": "build/reports/attachment-regional-collection/SEONGNAM-144735.json",
       "receiptHash": "abcd8f1742ee4f1c3137e6a578ecd71fd3584efc7de06b9ccf43a39efd356494",
       "producerClassHash": "8ef440e2b7baa1e8f5811d0ed478490235aed2e95bdba8e48789fea669655fc0",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YUSEONG-49380-ATTEMPT1.json",
+      "receiptHash": "fe3f766f389abd4ca616dd67d37638e5dfbf875a6bfb7f22524ca5a402f86e31",
+      "producerClassHash": "bc59dde81436bb8d6a1d83191f8466afcbaefee0d483b0379749b0ba1681a183",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YUSEONG-49380.json",
+      "receiptHash": "d6effe0d24d6afdbdaee3004ae2503b5fb32dfffd8a13675a295dbf674c871dd",
+      "producerClassHash": "bc59dde81436bb8d6a1d83191f8466afcbaefee0d483b0379749b0ba1681a183",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -9380,6 +9396,35 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000075",
+      "caseCode": "YUSEONG-49380",
+      "profileCode": "LOCAL_YUSEONG_BOARD_V1",
+      "profileHash": "7bf701682b9c3bac42dc4719e3ad34edf8b2db7411234c6fd03f4b4fb70fb2d7",
+      "receiptHash": "d6effe0d24d6afdbdaee3004ae2503b5fb32dfffd8a13675a295dbf674c871dd",
+      "producerClassHash": "bc59dde81436bb8d6a1d83191f8466afcbaefee0d483b0379749b0ba1681a183",
+      "observedAt": "2026-09-30T03:29:26.507336900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8cb929c51808f7c26a1c322be23bf7d4cba0219630ac52fbbe9ec48e43e8382b",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "9a1d72061f82c5e78e4d245225dabade728ca207b8a463d08dc9b80f061b9762",
+          "status": "FAILED",
+          "bytes": 0
+        }
+      ]
     }
   ],
   "unimportedScope": "FIXED_EXECUTOR_AND_DIAGNOSTIC_SCHEMAS_AND_GITHUB_ACTIONS_ARTIFACTS",

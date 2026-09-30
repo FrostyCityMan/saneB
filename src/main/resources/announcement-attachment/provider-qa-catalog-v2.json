@@ -3025,6 +3025,18 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YUSEONG-49380",
+      "profileCode": "LOCAL_YUSEONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "79bf173b87ce42baa0ca0f4784f5192a12425ab8944bd37ca6bd11abfe981b47",
+        "sourceUrl": "https://www.yuseong.go.kr/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do?notAncmtMgtNo=49380",
+        "localSourceCode": "LGS-000075",
+        "listParserProfileCode": "SAFE_YUSEONG_LEGAL_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }
