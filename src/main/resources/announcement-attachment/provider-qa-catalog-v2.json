@@ -2941,6 +2941,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONGAM-40370",
+      "profileCode": "LOCAL_YEONGAM_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9277fc37b52cbbc419c4ecced4e8d33ade4ab9fb765365c0b0cfd1fc088ff73f",
+        "sourceUrl": "https://www.yeongam.go.kr/home/www/open_information/yeongam_news/announcement/announcement_01/show/40370?page=1",
+        "localSourceCode": "LGS-000192",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }

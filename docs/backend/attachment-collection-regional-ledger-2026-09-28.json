@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 184,
-    "missingProfileRegionCount": 39,
+    "registeredRegionCount": 185,
+    "missingProfileRegionCount": 38,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4781,14 +4781,26 @@
       "sourceCode": "LGS-000192",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000192",
+          "caseCode": "YEONGAM-40370",
+          "profileCode": "LOCAL_YEONGAM_POST_V1",
+          "profileHash": "60c1f91a897dc9167c01a6205962f85bcfb1a680e6a8bd64fdd012b004cfb54a",
+          "receiptHash": "0b02d3851bda81cda455c11a1ac36511fd44fa9330db004365d064faaced2a74",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000193",
@@ -5875,9 +5887,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "be351dc5b50e58822e3a73906cfb62395abc60dc4f30d95780198cdc913a9856",
+  "inputInventorySha256": "366368d990f2e9078bf0b00a15db0e40eba8882576ca891aaa59119958bf0560",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 286,
+  "importedReceiptCount": 287,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12268,6 +12280,125 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "yeongamDownloadRun": {
+    "scope": "YEONGAM_PUBLIC_POST_COLLECTION_ONLY",
+    "observedAt": "2026-09-30T01:15:14.639064500Z",
+    "surveyRequestCount": 8,
+    "surveyGetCount": 7,
+    "surveyPostCount": 1,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000088",
+        "requests": 2,
+        "result": "REGISTERED_GOSI_01_SUPPORT_SEARCH_NO_SELECTED_ELIGIBLE_NOTICE",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000082",
+        "requests": 2,
+        "result": "REGISTERED_GOSI_01_REDIRECT_TO_OFFICIAL_LIST_GENERAL_NOTICE_SEPARATE_MENU",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000192",
+        "requests": 4,
+        "result": "OFFICIAL_LIST_SUPPORT_SEARCH_AND_TWO_DETAILS200",
+        "selectedNoticeId": "40370",
+        "listedFileCount": 1,
+        "isDownloadVerified": true,
+        "reuseNotice": "KOGL_TYPE_2_ATTRIBUTION_NONCOMMERCIAL_OBSERVED",
+        "operatingReuseApproved": false
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/HWASEONG-list-head.txt",
+        "bytes": 559,
+        "sha256": "00f496a2e67fb7c68147664a7b18bbccf1342e5174bc119365f56d6c12b295f5"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/HWASEONG-list.html",
+        "bytes": 530375,
+        "sha256": "edda4a09974fdfc6aa5d15a653f377d9988efc321acf788ff142a0a080c3d450"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/HWASEONG-search-head.txt",
+        "bytes": 559,
+        "sha256": "1755ab1caab40b4d40dda20852f65e3e0c38586944c12c2bc17826ba63c89c4e"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/HWASEONG-search.html",
+        "bytes": 528562,
+        "sha256": "38a23184ef4373851b910a9b2539626f2b07e8e1094cd9f6f3dc10a97ea0f4cc"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/ULJU-board-head.txt",
+        "bytes": 388,
+        "sha256": "47e5d77cd15380b59137d4f4a0c0e280b3c47c00b5ec1c5cfa607a3d7126ecbc"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/ULJU-board.html",
+        "bytes": 260970,
+        "sha256": "a13dee10816aa06ceeca86128214f857c20801552bfc64f1967f5420c3e01b31"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/ULJU-list-head.txt",
+        "bytes": 513,
+        "sha256": "37955df0d3106d9d3555c330330bb081e8a9911e6f4d092f3df8df06f54d296b"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/ULJU-list.html",
+        "bytes": 918,
+        "sha256": "f7537174a3b5a71e860e675a819bf8cdacabd9ed0ea6736630101fb10fb6348b"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/YEONGAM-40370.html",
+        "bytes": 83331,
+        "sha256": "eddeaba07dbd6c2ed162d514f95cd70995cc8d2e0ebee2da1ef625bb5db6939f"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/YEONGAM-detail.html",
+        "bytes": 83761,
+        "sha256": "d53c1bbe83f678c555a9e7602cd477c4bd0016dd930c6abf91f12859879f4b3c"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/YEONGAM-list-head.txt",
+        "bytes": 454,
+        "sha256": "878f7c0f2ed5111e8341e1d1043be135b64faf0f20af8828955e90be09630daa"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/YEONGAM-list.html",
+        "bytes": 86222,
+        "sha256": "b81f1483665306ca556a460c551eda549a0f9e1a4095230a9be8857d606b0515"
+      },
+      {
+        "path": "build/qa-hwaseong-ulju-20260930/YEONGAM-search.html",
+        "bytes": 85519,
+        "sha256": "6bf2880365a15c14974f9c7584e85a52cda0220134a3a9d7db20a19c2a4111f5"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YEONGAM-40370",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YEONGAM-40370.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2311745,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 12,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

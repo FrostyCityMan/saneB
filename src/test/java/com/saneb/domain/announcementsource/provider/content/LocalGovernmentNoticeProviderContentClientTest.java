@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void yeongamBodyUsesOnlyOfficialContentCell(){
+        String url="https://www.yeongam.go.kr/home/www/open_information/yeongam_news/announcement/announcement_01/show/40370?page=1";
+        String page="<table class=show_form><tr><th scope=row>제목</th><td>청년 지원</td></tr><tr><th scope=row>담당부서</th><td>수출 부서</td></tr><tr><th scope=row>내용</th><td class=content>청년 문화복지카드 지원금</td></tr><tr><th scope=row>첨부파일</th><td>특허.hwpx</td></tr></table>";
+        for(String html:List.of(page,page+page,page.replace("class=content","class=other"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+html));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(html.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 문화복지카드 지원금");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void gangnamAndDobongBodiesExcludeTitlesMetadataAndAttachments(){
         var pages=Map.of(
                 "https://www.gangnam.go.kr/notice/view.do?not_ancmt_mgt_no=64668&mid=ID05_040201","<div class='board view'><div class=bbs-view><div class=post-title>중소기업 지원<br>수출 공고번호</div><div class=post-info>특허 부서</div><div class=post-content>중소기업 지원금</div><div class=bbs-view-file>제조.hwpx</div></div></div>",

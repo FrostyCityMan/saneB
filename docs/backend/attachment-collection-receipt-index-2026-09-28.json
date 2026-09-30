@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "be351dc5b50e58822e3a73906cfb62395abc60dc4f30d95780198cdc913a9856",
+  "inventorySha256": "366368d990f2e9078bf0b00a15db0e40eba8882576ca891aaa59119958bf0560",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2209,6 +2209,14 @@
       "path": "build/reports/attachment-regional-collection/DOBONG-4734.json",
       "receiptHash": "8971f07f262bd75e8835ab8c0493171c9ad5831d71616a4c53db53ea2956dbe1",
       "producerClassHash": "950f27a05b4b253ceb4db85b1aaeb8dd1f46f14bacbdc23c2959386240217249",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONGAM-40370.json",
+      "receiptHash": "0b02d3851bda81cda455c11a1ac36511fd44fa9330db004365d064faaced2a74",
+      "producerClassHash": "d6c43012a3b16cf6c420ad5e2153cfec9abb01859c438be5a800a81252c28a88",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -8414,6 +8422,33 @@
           "bytes": 91331,
           "format": "HWPX",
           "binaryHash": "a91630aa041fd1511d00b329006aa3cd12d375b912a5afa87f3ad163de887da0",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000192",
+      "caseCode": "YEONGAM-40370",
+      "profileCode": "LOCAL_YEONGAM_POST_V1",
+      "profileHash": "60c1f91a897dc9167c01a6205962f85bcfb1a680e6a8bd64fdd012b004cfb54a",
+      "receiptHash": "0b02d3851bda81cda455c11a1ac36511fd44fa9330db004365d064faaced2a74",
+      "producerClassHash": "d6c43012a3b16cf6c420ad5e2153cfec9abb01859c438be5a800a81252c28a88",
+      "observedAt": "2026-09-30T01:15:14.639064500Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d90e54d8fd78bf1a45539ded1bd5cc017d0267380e5ba09ede77099d6ff9a1f9",
+          "status": "SUCCEEDED",
+          "bytes": 124481,
+          "format": "HWPX",
+          "binaryHash": "bddf0fde4e6b380f10edad37afe1a87bc6397b29f50e59fe592ab97d3a822d3d",
           "signatureVerified": true
         }
       ]
