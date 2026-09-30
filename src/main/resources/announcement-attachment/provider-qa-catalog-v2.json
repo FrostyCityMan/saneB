@@ -3073,6 +3073,18 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "SHINAN-38211",
+      "profileCode": "LOCAL_SHINAN_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "9f9c31a1e87bb996bef0b7be8ad3cc6634ef892fbf3ea71b5f3480820347c8ed",
+        "sourceUrl": "https://www.shinan.go.kr/home/www/openinfo/participation_07/participation_07_04/show/38211?page=1",
+        "localSourceCode": "LGS-000199",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
