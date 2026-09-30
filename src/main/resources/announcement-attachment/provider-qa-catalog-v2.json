@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "GYEONGBUK-PROVINCE-1370252",
+      "profileCode": "LOCAL_GYEONGBUK_PROVINCE_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "20769ee3bba2e5fee6db3a15201aeacee95e94e5f8a567dc944841965c331c46",
+        "sourceUrl": "https://www.gb.go.kr/page/10109/67.do?boardMngNo=71&boardNo=1370252&importUrl=%252Fboard%252Fview.do&pageDtlOrdrNo=1",
+        "localSourceCode": "LGS-000200",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "YEONGGWANG-29278",
       "profileCode": "LOCAL_YEONGGWANG_GET_V1",
       "source": {

@@ -38,6 +38,13 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void gyeongbukCanonicalBodyUsesOnlyTheFixedViewImport(){
+        String url="https://www.gb.go.kr/page/10109/67.do?boardMngNo=71&boardNo=1370252&importUrl=%252Fboard%252Fview.do&pageDtlOrdrNo=1";
+        String expected="https://www.gb.go.kr/page/10109/67.do?pageDtlOrdrNo=1&boardNo=1370252&boardMngNo=71&importUrl=%2Fboard%2Fview.do";
+        String page="<form id=boardViewForm method=get><div class=table_shape_tit><p>대학생 지원</p></div><div class=view_info>수출 부서</div><div class=board_view><div class=text>대학생 이자지원 사업<script>x()</script></div></div></form>";
+        for(String content:List.of(page,page+page,page.replace("class=text","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));assertThat(transport.requestUris()).containsExactly(URI.create(expected));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("대학생 이자지원 사업");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+        var transport=new StubTransport();var rejected=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url.replace("view.do","other.do")));assertThat(rejected.failureCode()).isEqualTo(FailureCode.DETAIL_URL_INVALID);assertThat(transport.callCount()).isZero();
+    }
     @Test void yeonggwangBodyExcludesMetadataAndAttachmentRows(){
         String url="https://www.yeonggwang.go.kr/bbs?b_id=gosigonggo&bs_idx=29330&mn=9059&site=headquarter_new&type=view";
         String page="<div id=board_view><table><tr><th>제목</th><td>청년 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부</th><td>투자 파일</td></tr><tr><td class=\"leftcell rightcell\"><div class=board_view_contents>청년 문화복지 지원<script>x()</script></div></td></tr></table></div>";

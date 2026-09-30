@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "d28d1275a82dc94bdcb15654e3f5e616790cf4c5c7378212bfc35c94c00397b9",
+  "inventorySha256": "5ae11095feabc77cdfb667d54a62c2f742e6f20242088740e4ebc7cb7b766762",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2577,6 +2577,14 @@
       "path": "build/reports/attachment-regional-collection/YEONGGWANG-29330.json",
       "receiptHash": "4dc3a7a94b42401d71ebde96acaf945289082cc3282136431354658eaff9c60c",
       "producerClassHash": "946abbedd1c6da9a969a582d622e0d755776ec56eb3f01fc814b1e843dae3ea9",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GYEONGBUK-PROVINCE-1370252.json",
+      "receiptHash": "35c6c131c4c96d8274d912850cf4811ff2cca316ecbae352f803e8e9c231e840",
+      "producerClassHash": "c11582948850d1c865eacc7d133400ff38ebae79c5d7caad38babd61ae9fbf32",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -6107,6 +6115,33 @@
           "bytes": 101815,
           "format": "HWPX",
           "binaryHash": "2661e4b3117c15019e170932a23cec4f3692a2141a826e06a663e5c8bb6eab7c",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000200",
+      "caseCode": "GYEONGBUK-PROVINCE-1370252",
+      "profileCode": "LOCAL_GYEONGBUK_PROVINCE_V1",
+      "profileHash": "c20eaa96154b1252f02953a0bd6f2a3d5272e6347b25656e925d0406717840d6",
+      "receiptHash": "35c6c131c4c96d8274d912850cf4811ff2cca316ecbae352f803e8e9c231e840",
+      "producerClassHash": "c11582948850d1c865eacc7d133400ff38ebae79c5d7caad38babd61ae9fbf32",
+      "observedAt": "2026-09-30T10:56:59.892261200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "11fe527f7f51d38f2b709208647479d4fa74fb0b1aa1003819b10b8c9113d91d",
+          "status": "SUCCEEDED",
+          "bytes": 157076,
+          "format": "PDF",
+          "binaryHash": "e816ea1730989a448cef8d8c3ec20cc450d939da9c9a86781e215a0cf780c972",
           "signatureVerified": true
         }
       ]

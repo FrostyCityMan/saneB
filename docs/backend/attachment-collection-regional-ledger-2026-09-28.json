@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 215,
-    "missingProfileRegionCount": 8,
+    "registeredRegionCount": 216,
+    "missingProfileRegionCount": 7,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5289,14 +5289,26 @@
       "sourceCode": "LGS-000200",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000200",
+          "caseCode": "GYEONGBUK-PROVINCE-1370252",
+          "profileCode": "LOCAL_GYEONGBUK_PROVINCE_V1",
+          "profileHash": "c20eaa96154b1252f02953a0bd6f2a3d5272e6347b25656e925d0406717840d6",
+          "receiptHash": "35c6c131c4c96d8274d912850cf4811ff2cca316ecbae352f803e8e9c231e840",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000201",
@@ -6351,9 +6363,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "d28d1275a82dc94bdcb15654e3f5e616790cf4c5c7378212bfc35c94c00397b9",
+  "inputInventorySha256": "5ae11095feabc77cdfb667d54a62c2f742e6f20242088740e4ebc7cb7b766762",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 332,
+  "importedReceiptCount": 333,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12749,6 +12761,52 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "gyeongbukProvinceDownloadRun": {
+    "scope": "GYEONGBUK_PROVINCE_MANIFEST_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GYEONGBUK-PROVINCE-1370252.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GYEONGBUK-PROVINCE-1370252",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2680212,
+    "surveyRequestCount": 1,
+    "surveyGetCount": 1,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000200",
+        "requestCount": 1,
+        "result": "OFFICIAL_DETAIL200_FILE_SLOT_AND_FIVE_LITERAL_MANIFEST_CONFIRMED"
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 157076,
+    "bodyCharacterCount": 90,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 187,
+      "noObservedDownloadRegionCount": 36,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 7
+    }
   },
   "yeonggwangDownloadRun": {
     "scope": "YEONGGWANG_TITLE_STOP_AND_OFFICIAL_GET_COLLECTION_ONLY",

@@ -202,6 +202,12 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     validationSource,
                     request.officialDetailUrl()
             );
+            if (GyeongbukProvinceNoticePage.selectMatches(validatedRequest.detailUri())) {
+                try {
+                    validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
+                            GyeongbukProvinceNoticePage.selectDetailUri(validatedRequest.detailUri()).toASCIIString());
+                } catch (IllegalArgumentException exception) { throw new ProviderContentValidationException(FailureCode.DETAIL_URL_INVALID); }
+            }
             if (IncheonCityNoticePage.selectMatches(validatedRequest.detailUri())) {
                 try {
                     validatedRequest = urlValidator.selectValidatedRequest(request.registeredSourceUrl(),
@@ -486,6 +492,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         }
         if (BupyeongNoticePage.selectMatches(sourceUri)) {
             try { BupyeongNoticePage.selectDetailUri(sourceUri); return BupyeongNoticePage.selectContent(document); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
+        if (GyeongbukProvinceNoticePage.selectMatches(sourceUri)) {
+            try { GyeongbukProvinceNoticePage.selectDetailUri(sourceUri); return GyeongbukProvinceNoticePage.selectContent(document); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
         }
         if (YeonggwangNoticePage.selectMatches(sourceUri)) {
