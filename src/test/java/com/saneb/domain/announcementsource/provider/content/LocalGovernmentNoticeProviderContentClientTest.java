@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gimhaeAndChangnyeongBodiesExcludeAttachmentsAndDepartmentInfo() {
+        for(String host:List.of("www.gimhae.go.kr","www.cng.go.kr")){
+            String url="https://"+host+(host.contains("gimhae")?"/03360/00023/00029.web?amode=view&not_ancmt_mgt_no=109947&section=01":"/03517/01553.web?amode=view&not_ancmt_mgt_no=46407");
+            String page="<form id="+(host.contains("gimhae")?"saeolGosiVO":"seolVO")+"><div class=bbs1view1><h1 class=h1>소상공인 지원</h1><div class=info1>특허 부서</div><div class=attach1>수출 파일</div><div class=substance>소상공인 육성자금 지원</div></div></form>";
+            for(String content:List.of(page,page+page,page.replace("class=substance","class=other"))){
+                var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+                if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 육성자금 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+            }
+        }
+    }
     @Test void jangheungBodyExcludesFilesNavigationAndMetadata() {
         String url="https://www.jangheung.go.kr/www/organization/news/notification?idx=27081&mode=view";
         String page="<div id=content><div class=view_title><p class=title>소상공인 지원</p><ul><li>특허 부서</li></ul></div><div class=view_box>소상공인 대출금 이차보전 지원</div><div class='view_box file_area'>수출.hwp</div><div class=view_navi>투자 메뉴</div></div>";

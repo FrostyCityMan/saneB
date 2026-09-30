@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 194,
-    "missingProfileRegionCount": 29,
+    "registeredRegionCount": 196,
+    "missingProfileRegionCount": 27,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5788,14 +5788,26 @@
       "sourceCode": "LGS-000228",
       "listParserProfileCode": "SCMS_CARD_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000228",
+          "caseCode": "GIMHAE-109947",
+          "profileCode": "LOCAL_GIMHAE_SCMS_GET_V1",
+          "profileHash": "14ee80dbc0ef1f136e0627a10e601fa95d331a3e5e4d7eee9ac8c0e6adbf6bda",
+          "receiptHash": "f9979deb57014427068b181bb3582ba40f7e85fb4998119f63a2513bfef01a88",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000229",
@@ -5878,14 +5890,26 @@
       "sourceCode": "LGS-000234",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000234",
+          "caseCode": "CHANGNYEONG-46407",
+          "profileCode": "LOCAL_CHANGNYEONG_SCMS_GET_V1",
+          "profileHash": "dee674cd6d3215dbd90392a45acae6198ebb791c446bae57231a8b63e7a6945d",
+          "receiptHash": "d4d87748c1e59e92b025b45f32a63945dba29ad6ef765ba8e7f5b17636f4a193",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000235",
@@ -6066,9 +6090,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "bfac7f5fc1ef2a8b906ac86345ac07bf053e238ea1a53c8f8d09664c9ec55813",
+  "inputInventorySha256": "89e969181dd35fc3c829b6b9887151f84a649d81981c4701f8ff9a730b0e7f6a",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 305,
+  "importedReceiptCount": 309,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12464,6 +12488,66 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "gyeongnamNextDownloadRun": {
+    "scope": "GIMHAE_CHANGNYEONG_REGISTERED_BOARDS_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/GIMHAE-109947-ATTEMPT1.json",
+      "build/reports/attachment-regional-collection/CHANGNYEONG-46407-ATTEMPT1.json",
+      "build/reports/attachment-regional-collection/GIMHAE-109947.json",
+      "build/reports/attachment-regional-collection/CHANGNYEONG-46407.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GIMHAE-109947",
+        "attempts": 2,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "CHANGNYEONG-46407",
+        "attempts": 2,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 16,
+    "reservedBytesIncludingBodyUpperBound": 9256960,
+    "surveyRequestCount": 18,
+    "surveyGetCount": 18,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000228",
+        "result": "OFFICIAL_SUPPORT_DETAIL_AND_LEGACY_MIME",
+        "remainingIssue": "ATTACHMENT_LINK_UNRESOLVED"
+      },
+      {
+        "sourceCode": "LGS-000234",
+        "result": "OFFICIAL_SUPPORT_DETAIL_AND_LEGACY_MIME"
+      },
+      {
+        "sourceCode": "LGS-000227",
+        "result": "OFFICIAL_LIST_SEARCH_DETAIL_HTTP200_SESSION_FILE_PATH",
+        "isDownloadVerified": false,
+        "candidateNoticeId": "2106170"
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 168,
+      "noObservedDownloadRegionCount": 55,
+      "regionsWithErrors": 44,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 27
+    }
   },
   "jangheungDownloadRun": {
     "scope": "JANGHEUNG_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",
