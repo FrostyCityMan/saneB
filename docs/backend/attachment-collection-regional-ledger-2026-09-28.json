@@ -3589,9 +3589,9 @@
       "enabled": true,
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "EVIDENCE_VERSION_MISMATCH",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
       "observedSampleCount": 1,
       "minimumSampleCount": 3,
       "samples": [
@@ -3599,12 +3599,12 @@
           "sourceCode": "LGS-000127",
           "caseCode": "PYEONGCHANG-41378",
           "profileCode": "LOCAL_PYEONGCHANG_BOARD_V1",
-          "profileHash": "51edcffa23c759ef14eca52db6129f62d9556ef895b6ede38393d25636643d0d",
-          "receiptHash": "2f4aad03983ffcb4838770312e944bde09798f321bb0228fb086c2fb6d46c60b",
+          "profileHash": "cdaf10c87fd57a8ff0de7146dcaec56f8e31a58c06e48dbd20e04c7cd4e597e2",
+          "receiptHash": "f7f65845d9183265db38de005048a3b3eaa43651eb272304f7feeaf5a6bf614a",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -6504,7 +6504,7 @@
   ],
   "inputInventorySha256": "7a0dcd6a6497bb792c4bfd8b89801e43f828df2c87c987412fa352a4888d878d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 416,
+  "importedReceiptCount": 417,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12900,6 +12900,56 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "pyeongchangDnsRecoveryRun": {
+    "scope": "PYEONGCHANG_DNS_RECOVERY_AND_PENDING_DIAGNOSTICS",
+    "baselineGitHead": "4df36519b19f1d9d12af1890ab0b70884eb4e70c",
+    "applicationCodeChanged": false,
+    "inventorySha256": "7a0dcd6a6497bb792c4bfd8b89801e43f828df2c87c987412fa352a4888d878d",
+    "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+    "observationReport": "build/reports/attachment-regional-collection/PYEONGCHANG-41378-PYEONGCHANG-DNS-20261001.json",
+    "receiptHash": "f7f65845d9183265db38de005048a3b3eaa43651eb272304f7feeaf5a6bf614a",
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 37,
+      "noObservedDownloadRegionCount": 186,
+      "regionsWithErrors": 9,
+      "wholeSetVerifiedRegionCount": 0,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 203,
+    "historicalNeverDownloadedRegionCount": 20,
+    "historicalMilestoneIsNotCurrentCodeCoverage": true,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2438144,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 185344,
+    "bodyCharacterCount": 324,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "diagnosticHttpRequests": 6,
+    "diagnosticMaximumSecondsPerRequest": 15,
+    "diagnosticHtmlMaximumBytes": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "diagnosticRawFilesWritten": 0,
+    "dnsLookupHosts": 2,
+    "diagnostics": [
+      {
+        "sourceCode": "LGS-000013",
+        "requests": 3,
+        "result": "OFFICIAL_FILE_QUERY_WITH_UNENCODED_DIRECTORY_SLASHES_STILL_HTTP404"
+      },
+      {
+        "sourceCode": "LGS-000025",
+        "requests": 3,
+        "result": "OFFICIAL_LIST_SEARCH_MATCHES_33174_DETAIL_WITH_SEARCH_CONTEXT_HAS_EMPTY_TITLE"
+      }
+    ]
   },
   "busanListQueryCompatibilityRun": {
     "scope": "BUSAN_OFFICIAL_LIST_QUERY_COMPATIBILITY_COLLECTION_ONLY",

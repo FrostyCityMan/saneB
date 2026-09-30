@@ -3251,6 +3251,14 @@
       "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/PYEONGCHANG-41378-PYEONGCHANG-DNS-20261001.json",
+      "receiptHash": "f7f65845d9183265db38de005048a3b3eaa43651eb272304f7feeaf5a6bf614a",
+      "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -9017,10 +9025,10 @@
       "sourceCode": "LGS-000127",
       "caseCode": "PYEONGCHANG-41378",
       "profileCode": "LOCAL_PYEONGCHANG_BOARD_V1",
-      "profileHash": "51edcffa23c759ef14eca52db6129f62d9556ef895b6ede38393d25636643d0d",
-      "receiptHash": "2f4aad03983ffcb4838770312e944bde09798f321bb0228fb086c2fb6d46c60b",
-      "producerClassHash": "06bd3cf8850fef8c6ff76a9cd226c0169da4d0198906491f12e9bf6d0f9797c3",
-      "observedAt": "2026-09-29T18:19:09.855693200Z",
+      "profileHash": "cdaf10c87fd57a8ff0de7146dcaec56f8e31a58c06e48dbd20e04c7cd4e597e2",
+      "receiptHash": "f7f65845d9183265db38de005048a3b3eaa43651eb272304f7feeaf5a6bf614a",
+      "producerClassHash": "c50727a1f22a1a8260cc8ab59050b178a6cf58f49b8a8762f7baafad5b32e087",
+      "observedAt": "2026-09-30T16:13:57.516233500Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -9032,8 +9040,11 @@
       "files": [
         {
           "locatorHash": "bab8ca19b028476f504c884a2fbde0c21546efb7d06282647679e5d8b19e40ba",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 185344,
+          "format": "HWP",
+          "binaryHash": "20b5f62551bdbc5b502f49a28e6f8559a21a6a764cae2415a8a105bcaf52772a",
+          "signatureVerified": true
         }
       ]
     },
