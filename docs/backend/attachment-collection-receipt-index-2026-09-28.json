@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "508f7f12028326fd0cd6b2b32c00ba84390c74fa02cefccdf0465bc26b2cd62e",
+  "inventorySha256": "f4b1e5ab5c1ed61ee1072546b1809343546555cd6497b489047f537aef07d60e",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -5163,6 +5163,14 @@
       "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B-GEUMSAN-BARE-HWP-20261001.json",
+      "receiptHash": "366a33750783d05105cdec98a1616f9d8d493755de0ebade42de8a310ebde6b8",
+      "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -7848,10 +7856,10 @@
       "sourceCode": "LGS-000156",
       "caseCode": "GEUMSAN-4DF078B6FCEB5D17B3162CE865ECBF3B",
       "profileCode": "LOCAL_GEUMSAN_BOARD_V1",
-      "profileHash": "e1ca2cda4cee2924bd37005d33f69a327698893215c28b407c37a40e0eff4535",
-      "receiptHash": "a00a0716b8584e362b2b99006489de84a236433cfb83ef1f531ac5d2514b2979",
+      "profileHash": "4000c6cd907d84c16a962fae272aa5323d8a4762ea527f299d0e3c1c4f60f1ca",
+      "receiptHash": "366a33750783d05105cdec98a1616f9d8d493755de0ebade42de8a310ebde6b8",
       "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
-      "observedAt": "2026-09-30T18:51:50.426971800Z",
+      "observedAt": "2026-09-30T19:01:20.116066600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
@@ -7863,13 +7871,19 @@
       "files": [
         {
           "locatorHash": "ee01738fc165d891cb916026b271b056c3993e780714612d5b17a6851603ac00",
-          "status": "FAILED",
-          "bytes": 190976
+          "status": "SUCCEEDED",
+          "bytes": 190976,
+          "format": "HWP",
+          "binaryHash": "b80c7a09c256e4a8781956c7a8f26b40c5afba71e445c18b6954663ecf810b8f",
+          "signatureVerified": true
         },
         {
           "locatorHash": "501474b87eb7367a3e01b3d138cf2109923faa43ffacb4d0471c8a8fcb0de6bc",
-          "status": "FAILED",
-          "bytes": 74752
+          "status": "SUCCEEDED",
+          "bytes": 74752,
+          "format": "HWP",
+          "binaryHash": "8312fca4381891f6ffb646c359b1a015fe7e4693eb0c5df86b759417d2edac66",
+          "signatureVerified": true
         }
       ]
     },
