@@ -31,6 +31,8 @@ final class JeonnamCountyAttachmentDiscoveryProfile implements AttachmentDiscove
     @Override public String selectProviderCode(){return "LOCAL_GOV_NOTICE";}
     @Override public String selectProfileCode(){return code;}
     @Override public String selectProfileHash(){return hash;}
+    // 진도 공개 파일 서버가 보낸 UTF-8 파일명 octet만 기존 엄격 복원기로 해석한다.
+    @Override public boolean selectUtf8DispositionOctets(){return site==Site.JINDO;}
     @Override public Set<String> selectApprovedHosts(){return new HashSet<>(List.of(host,fileHost));}
     @Override public List<SourceBinding> selectSourceBindings(){return List.of(new SourceBinding(sourceCode,listCode));}
     @Override public URI selectDetailUri(String id){throw new IllegalArgumentException("PROFILE_REQUIRED");}

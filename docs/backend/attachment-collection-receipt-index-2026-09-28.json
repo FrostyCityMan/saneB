@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8186842d80c326c7d7c215e59724c469c07ace7a66ab1ba9fd4e4b14403c6a28",
+  "inventorySha256": "8c63e502b0db2e121dd65955708cd0b182638de88ec39f363fd426f3c47e2496",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -3115,6 +3115,54 @@
       "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/JINDO-25159-PENDING-FOUR-20260930.json",
+      "receiptHash": "5c688728a38fcf426f45d9a9014932c2184e0f641845086fb67e831de38b2386",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/SOKCHO-32983-PENDING-FOUR-20260930.json",
+      "receiptHash": "393a28384c6aaaec7a78d1e2caab0cc61991147ac8c582dedf8a8d81543c2e14",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/SUNCHANG-31739-PENDING-FOUR-20260930.json",
+      "receiptHash": "b14134e408adf7016c0ec3c2ded65ac6f17b0c3cb498a5ce1939acfa2d3327e3",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/UISEONG-39093-PENDING-FOUR-20260930.json",
+      "receiptHash": "7527b33c9726fe4dd42d8b804df9c8e94f6ac1a8337744301785e77138834b45",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GOKSEONG-34854-JINDO-HEADER-20260930.json",
+      "receiptHash": "8a0613be529c69ffcb84eca8c0a4babcb4ee418c7be53d16b6bb3c82b982d6f3",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/JINDO-25159-JINDO-HEADER-20260930.json",
+      "receiptHash": "2c62603c7f54c7155c73db69cbe68ba0f364f51b5023909f0dac3cd8448b7302",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -6096,10 +6144,10 @@
       "sourceCode": "LGS-000184",
       "caseCode": "GOKSEONG-34854",
       "profileCode": "LOCAL_GOKSEONG_NOTICE_V1",
-      "profileHash": "8d30e29990369f09d504d6ef39c55f7ba018a3692cf16066895696c89979369a",
-      "receiptHash": "6c210929bcd5fa095a752300d60fc3197ddeca47c4822723a4f0af50746c3947",
-      "producerClassHash": "9e2d1ce2f2a59051c92bffeffede76c4e0fc56cafb2ec71ddae1fc38eac158ce",
-      "observedAt": "2026-09-29T03:28:03.852720400Z",
+      "profileHash": "35f3ce2ba570919e08eb416308e6bb78b4aa0a9a90a775f0630cc75a852de84f",
+      "receiptHash": "8a0613be529c69ffcb84eca8c0a4babcb4ee418c7be53d16b6bb3c82b982d6f3",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T15:04:35.569935700Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -7974,10 +8022,10 @@
       "sourceCode": "LGS-000198",
       "caseCode": "JINDO-25159",
       "profileCode": "LOCAL_JINDO_NOTICE_V1",
-      "profileHash": "7d5af1dfe9bffe733f9c59536423557fcd9cbb76e62861b404cd24b62ccf785f",
-      "receiptHash": "b5d15bbe2a9a956629b107b496e6205ceb2ecefdef50a09f86f05c48c269a76f",
-      "producerClassHash": "9e2d1ce2f2a59051c92bffeffede76c4e0fc56cafb2ec71ddae1fc38eac158ce",
-      "observedAt": "2026-09-29T03:28:21.196125300Z",
+      "profileHash": "e75ac285ee324534a9f0bc0ac07cf622615e87ab1ac952cdcef53288a766b77e",
+      "receiptHash": "2c62603c7f54c7155c73db69cbe68ba0f364f51b5023909f0dac3cd8448b7302",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T15:04:21.445106Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -7989,8 +8037,11 @@
       "files": [
         {
           "locatorHash": "97f74998a3fab332b1ad7255a086f9e13c0dd2c31021c3ec9577fcaf2a82bd42",
-          "status": "FAILED",
-          "bytes": 148992
+          "status": "SUCCEEDED",
+          "bytes": 148992,
+          "format": "HWP",
+          "binaryHash": "126cd3ccfff199c0d191d1da6fccf38cf64e94bddb27ed8352a6c2792163eba7",
+          "signatureVerified": true
         }
       ]
     },
@@ -9679,10 +9730,10 @@
       "sourceCode": "LGS-000122",
       "caseCode": "SOKCHO-32983",
       "profileCode": "LOCAL_SOKCHO_PORTAL_V1",
-      "profileHash": "6ce11fbcaccea38d64f53ea20b318d7b6cadce5ec45b823ff7138a437cdaeae8",
-      "receiptHash": "30d652ee8da33b3cb21a1b9050abf25bb30f7f455b552a0377f8b271e8cc764e",
-      "producerClassHash": "77d3cac1095e56f12c5e45f41a849baffcb28e69841363dd1f456be1410ea862",
-      "observedAt": "2026-09-29T13:07:07.802620100Z",
+      "profileHash": "f29496fee875af55b43fbd65e79e556282ad268d31b26c1d28ab06f11e4652ad",
+      "receiptHash": "393a28384c6aaaec7a78d1e2caab0cc61991147ac8c582dedf8a8d81543c2e14",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T14:55:38.679272900Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
@@ -9715,19 +9766,28 @@
       "sourceCode": "LGS-000175",
       "caseCode": "SUNCHANG-31739",
       "profileCode": "LOCAL_SUNCHANG_GET_V1",
-      "profileHash": "150d6543a66455beaa928bdc4e0c8f7d7e928a78e7db7602932df2a32cf8de28",
-      "receiptHash": "09e3d93757b4ceda0ad8d159cb657ce765dc7a1b889f706246f3d8fb3e0c0901",
-      "producerClassHash": "8898f3dcba87d8dee6d9ada9e2828936f6f87118bd45e8a289678430994b1222",
-      "observedAt": "2026-09-29T02:14:57.912276400Z",
+      "profileHash": "fdcc133fc47601aa743bc85ce5feb7e1149eed0c70863234d77def40326e7929",
+      "receiptHash": "b14134e408adf7016c0ec3c2ded65ac6f17b0c3cb498a5ce1939acfa2d3327e3",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T14:55:35.409414700Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "068c66a8daf9a56b2d4fb1ba0491299ff2b3e088215c938fa2122805fa49afb1",
+          "status": "SUCCEEDED",
+          "bytes": 98816,
+          "format": "HWP",
+          "binaryHash": "f644ab8b3210734d9154c4b17950b88b4d7e53f47c712b0d3997cd0675b80f61",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000050",
@@ -9992,10 +10052,10 @@
       "sourceCode": "LGS-000211",
       "caseCode": "UISEONG-39093",
       "profileCode": "LOCAL_UISEONG_BOARD_V1",
-      "profileHash": "c59e5fc427dde44effdb872a7bef619f3cbcd0017eb6c28cd07546923161fcb2",
-      "receiptHash": "04a31a5ab80e62b33b41eb59e320e43788cebe724768c759c9ab49f9188fee3e",
-      "producerClassHash": "0e5d3b2c42dd45ce0754988819ba5be89deaf0bb19da707a259ebd8814030d5f",
-      "observedAt": "2026-09-29T04:19:58.049185200Z",
+      "profileHash": "12b2a95e6f8ba2799738dcf6ca38e7c58f75673096c6b0aa2eb2b572df248b59",
+      "receiptHash": "7527b33c9726fe4dd42d8b804df9c8e94f6ac1a8337744301785e77138834b45",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T14:55:36.615016100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
