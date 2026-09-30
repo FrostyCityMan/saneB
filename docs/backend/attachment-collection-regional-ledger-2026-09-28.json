@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 188,
-    "missingProfileRegionCount": 35,
+    "registeredRegionCount": 189,
+    "missingProfileRegionCount": 34,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2423,14 +2423,26 @@
       "sourceCode": "LGS-000089",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000089",
+          "caseCode": "SEONGNAM-144735",
+          "profileCode": "LOCAL_SEONGNAM_GET_V1",
+          "profileHash": "375c79e82ecfbeb378aeb45c90d7c29067a051d9a66697fb6477f58d03eec60b",
+          "receiptHash": "abcd8f1742ee4f1c3137e6a578ecd71fd3584efc7de06b9ccf43a39efd356494",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000090",
@@ -5983,9 +5995,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f5adca4da1234afa17d9d5d50c2531ce31616f646d90ab2720e30e8d20b93077",
+  "inputInventorySha256": "3c92879d5516423809fa242bb451dc5c0c22768e35ffb0721d798ad35f3600af",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 296,
+  "importedReceiptCount": 297,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12376,6 +12388,56 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seongnamDownloadRun": {
+    "scope": "SEONGNAM_EXISTING_SAEOL_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEONGNAM-144735.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "SEONGNAM-144735",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 3,
+    "reservedBytesIncludingBodyUpperBound": 2097152,
+    "surveyRequestCount": 3,
+    "surveyGetCount": 3,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 15,
+    "successfulSurveyResponseBytesPerRequest": 7035,
+    "discoverySearchQueryCount": 9,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000017",
+        "result": "REGISTERED_PUBLIC_LIST_TIMEOUT_15_SECONDS_NO_RETRY",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000089",
+        "result": "OFFICIAL_INDEXED_DETAIL144735_CANONICAL_GET200",
+        "selectedNoticeId": "144735",
+        "isDownloadVerified": false,
+        "failureCode": "TLS_FAILED",
+        "operatingReuseApproved": false,
+        "isOperatingListRecoveryVerified": false
+      },
+      {
+        "sourceCode": "LGS-000105",
+        "result": "OFFICIAL_GENERAL_NOTICE_SEARCH_RESULT_FOUND_SEPARATE_FROM_REGISTERED_GOSI_SCOPE",
+        "isDownloadVerified": false,
+        "isSourceScopeChanged": false
+      }
+    ],
+    "surveyRawFiles": [],
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

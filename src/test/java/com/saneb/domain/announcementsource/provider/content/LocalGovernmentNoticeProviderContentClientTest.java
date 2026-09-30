@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void seongnamBodyExcludesMetadataAndAttachments(){
+        String url="https://eminwon.seongnam.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=144735&subCheck=Y";
+        String page="<form name=form1 method=post><div class=boardWrap><table class=bd00view><tr><th>제목</th><td>소상공인 특례보증</td><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>특허.hwp</td></tr><tr><td class=bd01tdC colspan=4>소상공인 특례보증 지원</td></tr></table></div></form>";
+        for(String content:List.of(page,page+page,page.replace("bd01tdC","other"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+content));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 특례보증 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void yeonjeGuryeBodyExcludesMetadataAndRejectsChangedStructure(){
         var pages=Map.of(
                 "https://www.yeonje.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=43358&mId=0206030000","<form id=detailForm><div class=bod_wrap><div class=bod_view><h4>다자녀 지원</h4><div class=view_info>수출 부서</div><div class=view_cont>다자녀 대출이자 지원금</div><dl class=view_file><dt>특허.hwpx</dt></dl></div></div></form>",
