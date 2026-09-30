@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "NAMDONG-71702",
+      "profileCode": "LOCAL_NAMDONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "81918e97407ce2f1e06e1d3a5de9ac4dbb9de8f85d740978998150a6a4d1a14b",
+        "sourceUrl": "https://www.namdong.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=71702",
+        "localSourceCode": "LGS-000059",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "GYEONGBUK-PROVINCE-1370252",
       "profileCode": "LOCAL_GYEONGBUK_PROVINCE_V1",
       "source": {

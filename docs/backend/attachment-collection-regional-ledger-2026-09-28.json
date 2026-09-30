@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 216,
-    "missingProfileRegionCount": 7,
+    "registeredRegionCount": 217,
+    "missingProfileRegionCount": 6,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1817,14 +1817,26 @@
       "sourceCode": "LGS-000059",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000059",
+          "caseCode": "NAMDONG-71702",
+          "profileCode": "LOCAL_NAMDONG_PORTAL_V1",
+          "profileHash": "232bdda97ebc3aeee465e6c6e4eeb762f8cc2fd26f7b23ecaea9a35ad65fce73",
+          "receiptHash": "0efeaf89d3d599295e6c350414ecee1a1542d713e1893454548e42841404656d",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000060",
@@ -6363,9 +6375,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "5ae11095feabc77cdfb667d54a62c2f742e6f20242088740e4ebc7cb7b766762",
+  "inputInventorySha256": "5d7cdfa63fedd396790e29dbbf4097885718ee77d8d4d444a89fe332459b1639",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 333,
+  "importedReceiptCount": 334,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12761,6 +12773,62 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "namdongDownloadRun": {
+    "scope": "NAMDONG_OFFICIAL_PORTAL_GET_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/NAMDONG-71702.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "NAMDONG-71702",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2423630,
+    "surveyRequestCount": 9,
+    "surveyGetCount": 9,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyDnsLookupCount": 2,
+    "surveyWebSearchQueryCount": 4,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000059",
+        "requestCount": 7,
+        "result": "OFFICIAL_WWW_MENU_LIST_SEARCH_DETAIL200_HWPX_LINK",
+        "registeredHostDns": "FAILED_WIN32_EXCEPTION",
+        "officialPortalDns": "RESOLVED"
+      },
+      {
+        "sourceCode": "LGS-000017",
+        "requestCount": 2,
+        "result": "NEW_FIXED_DETAIL66840_200_PDF_HWPX_GET_LINKS",
+        "isDownloadVerified": false
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 97102,
+    "bodyCharacterCount": 431,
+    "persistedCanonicalIdentityVerified": true,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 188,
+      "noObservedDownloadRegionCount": 35,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 6
+    }
   },
   "gyeongbukProvinceDownloadRun": {
     "scope": "GYEONGBUK_PROVINCE_MANIFEST_GET_COLLECTION_ONLY",

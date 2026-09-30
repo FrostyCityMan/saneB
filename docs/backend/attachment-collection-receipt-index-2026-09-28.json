@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "5ae11095feabc77cdfb667d54a62c2f742e6f20242088740e4ebc7cb7b766762",
+  "inventorySha256": "5d7cdfa63fedd396790e29dbbf4097885718ee77d8d4d444a89fe332459b1639",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2585,6 +2585,14 @@
       "path": "build/reports/attachment-regional-collection/GYEONGBUK-PROVINCE-1370252.json",
       "receiptHash": "35c6c131c4c96d8274d912850cf4811ff2cca316ecbae352f803e8e9c231e840",
       "producerClassHash": "c11582948850d1c865eacc7d133400ff38ebae79c5d7caad38babd61ae9fbf32",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/NAMDONG-71702.json",
+      "receiptHash": "0efeaf89d3d599295e6c350414ecee1a1542d713e1893454548e42841404656d",
+      "producerClassHash": "8d4bf30bfe5636ccfd40d007299bea14f3ea2371649bd1cfda11472813a6a9f9",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -7612,6 +7620,33 @@
           "bytes": 180736,
           "format": "HWP",
           "binaryHash": "49470b33b8d77a2f128bccf9e4edbb33dd586a3c07c05634ec5cd74f444f03f9",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000059",
+      "caseCode": "NAMDONG-71702",
+      "profileCode": "LOCAL_NAMDONG_PORTAL_V1",
+      "profileHash": "232bdda97ebc3aeee465e6c6e4eeb762f8cc2fd26f7b23ecaea9a35ad65fce73",
+      "receiptHash": "0efeaf89d3d599295e6c350414ecee1a1542d713e1893454548e42841404656d",
+      "producerClassHash": "8d4bf30bfe5636ccfd40d007299bea14f3ea2371649bd1cfda11472813a6a9f9",
+      "observedAt": "2026-09-30T11:11:17.676107800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7317d1883040d58100199de6d1c25f2b0d58278575e64a1d3cd91e15d6a4559b",
+          "status": "SUCCEEDED",
+          "bytes": 97102,
+          "format": "HWPX",
+          "binaryHash": "49eaa9341a6e0710c0913e154630c658430081513d0ae05fd4e42509d1eac3d3",
           "signatureVerified": true
         }
       ]

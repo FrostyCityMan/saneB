@@ -38,6 +38,12 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void namdongBodyExcludesMetadataAndKeepsRegisteredHostBoundary(){
+        String url="https://www.namdong.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=71702";
+        String page="<div class=board_view><div class=title><p>청년 지원</p></div><ul class=data_list><li>수출 부서</li></ul><div class=add_file>투자 파일</div><div class=con><div class=detail>청년 취업지원<script>x()</script></div></div></div>";
+        for(String content:List.of(page,page+page,page.replace("class=detail","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 취업지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+        var transport=new StubTransport();var rejected=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://biz.namdong.go.kr/main/news/announce.jsp",url));assertThat(rejected.failureCode()).isEqualTo(FailureCode.DETAIL_HOST_NOT_ALLOWED);assertThat(transport.callCount()).isZero();
+    }
     @Test void gyeongbukCanonicalBodyUsesOnlyTheFixedViewImport(){
         String url="https://www.gb.go.kr/page/10109/67.do?boardMngNo=71&boardNo=1370252&importUrl=%252Fboard%252Fview.do&pageDtlOrdrNo=1";
         String expected="https://www.gb.go.kr/page/10109/67.do?pageDtlOrdrNo=1&boardNo=1370252&boardMngNo=71&importUrl=%2Fboard%2Fview.do";
