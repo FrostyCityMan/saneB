@@ -2739,6 +2739,70 @@
       "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/CHUNGBUK-67302-RECOVERY-20260930-G.json",
+      "receiptHash": "e703ca13b92474c043fa11065723cf0fce88affe44d537c039b0304c7490a2d1",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GANGNEUNG-60798-RECOVERY-20260930-G.json",
+      "receiptHash": "ead374c0c8d8f73c5e0b2a1e829e60c3dff6f6f43bf2fbe0e469894695deca4b",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GONGJU-59971-RECOVERY-20260930-G.json",
+      "receiptHash": "5148312e5ed490c709629772660305ea12bf5269ad31d6b2e380d88b1c456641",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/HAPCHEON-44432-RECOVERY-20260930-G.json",
+      "receiptHash": "470de2a4f9e91474755161b4c852983d51c3e9e927b0eb5cd096399cd091d6bd",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/POCHEON-64129-RECOVERY-20260930-G.json",
+      "receiptHash": "1077f99121f78082b5f184a261c0f591f1024900c6ef34f0b0196b43914432f3",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/PYEONGTAEK-95902-RECOVERY-20260930-G.json",
+      "receiptHash": "a92bf54db7f75872085e02d26886f362ebf80b2801b7dfe685ea0773549d040e",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/SEODAEMUN-313956-RECOVERY-20260930-G.json",
+      "receiptHash": "c5455f63c6706a8f6ab17b2347bcba41a9b87ac4eab455d1325a87f917f3cb8b",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YUSEONG-49380-RECOVERY-20260930-G.json",
+      "receiptHash": "ae4d4c6bb25d57219e90428d538a88dfa1f3470b735209051da94e678bb7c621",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3957,9 +4021,9 @@
       "caseCode": "CHUNGBUK-67302",
       "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
       "profileHash": "ee61af8fb3b5f76d8a23d9934a65b8ec51429d34410ed54246ec1150b654af4f",
-      "receiptHash": "297af086709770483924a7e6bfc494966eeac8bb6260ff103b04100b8340244b",
-      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c",
-      "observedAt": "2026-09-29T10:50:42.970058Z",
+      "receiptHash": "e703ca13b92474c043fa11065723cf0fce88affe44d537c039b0304c7490a2d1",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:26:12.569931900Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -5108,9 +5172,9 @@
       "caseCode": "GANGNEUNG-60798",
       "profileCode": "LOCAL_GANGNEUNG_PORTAL_V1",
       "profileHash": "713f360e094825cf01a9b2bfc877978cce709c585c18a997aa974ebbf67bcb7d",
-      "receiptHash": "f703031916f382833381734a48ec0b61c7b1152aca0690728620764c7655f852",
-      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc",
-      "observedAt": "2026-09-29T10:06:33.151786Z",
+      "receiptHash": "ead374c0c8d8f73c5e0b2a1e829e60c3dff6f6f43bf2fbe0e469894695deca4b",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:26:11.128285400Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -5691,9 +5755,9 @@
       "caseCode": "GONGJU-59971",
       "profileCode": "LOCAL_GONGJU_BOARD_V1",
       "profileHash": "88efa874fced2213dde423db73b19ad38af9aec3fe33b6104c14f088324c7b07",
-      "receiptHash": "4898321247d9e2b8237e9372ff2a8c4ecc82889f1b205872af33f36d0fae3a43",
-      "producerClassHash": "b1b7e6d8d80a344671e425930c4348750d616d2ae85889e57c402e851333c38c",
-      "observedAt": "2026-09-29T10:50:55.040240100Z",
+      "receiptHash": "5148312e5ed490c709629772660305ea12bf5269ad31d6b2e380d88b1c456641",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:26:12.711841600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
@@ -6740,9 +6804,9 @@
       "caseCode": "HAPCHEON-44432",
       "profileCode": "LOCAL_HAPCHEON_SCMS_V1",
       "profileHash": "07b0fb1e4ec45de734ad841d070ac9c80b7343b25f2f87ae6b9b9e6a5482dcd2",
-      "receiptHash": "05758452cd5ed4aef9344c51a4f440b97f425d4f842ae54a9cf27c15c407025c",
-      "producerClassHash": "19ae6b4f7e0b1a619350a13ce0560f38dbda4c48f0ae4b6529eb892f48a2beb6",
-      "observedAt": "2026-09-29T06:15:54.558672400Z",
+      "receiptHash": "470de2a4f9e91474755161b4c852983d51c3e9e927b0eb5cd096399cd091d6bd",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:25:09.182875700Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
@@ -6754,8 +6818,11 @@
       "files": [
         {
           "locatorHash": "acd34a9c59680540ce5f328d2c8ef4cba78b9d3a0633100c852d464d9bf07e99",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 87214,
+          "format": "HWPX",
+          "binaryHash": "f129885d3ecea8354d46a341ce4c27d074adc7ef514dfc6549a9b45a2e437af1",
+          "signatureVerified": true
         },
         {
           "locatorHash": "177ebd196d725fa37f81da5da52563e2fe2e10e9caf9cc378551976180234d73",
@@ -8350,9 +8417,9 @@
       "caseCode": "POCHEON-64129",
       "profileCode": "LOCAL_POCHEON_PORTAL_V1",
       "profileHash": "9ca7ff2c5220b6bcc75813ad30c6485369d8db18f177a94a1564d9ec83c2ecf3",
-      "receiptHash": "83ea1fd5ada7d5f5341d5164fbf244c9305cb5f5e1eb62f8ef00c6ac48c1763b",
-      "producerClassHash": "3d041b3af9a19f1a7ab68e5544e5dac62a741ff0b2ea4ec1e13c64ca3b15e8bc",
-      "observedAt": "2026-09-29T10:06:21.251112700Z",
+      "receiptHash": "1077f99121f78082b5f184a261c0f591f1024900c6ef34f0b0196b43914432f3",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:26:10.923426600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -8419,9 +8486,9 @@
       "caseCode": "PYEONGTAEK-95902",
       "profileCode": "LOCAL_PYEONGTAEK_PORTAL_V1",
       "profileHash": "01aab9c08f03fbf82b7ad27e91570ba653dc1a50c9b8c095ec62fdee8746be21",
-      "receiptHash": "5ca8314f1b43b3669daf0ae1f5687b511534b46a128b4c0ddc07b417df99ac9a",
-      "producerClassHash": "71e14cefcf1209b08897123b69ef03fdcfd261aff41bf71564db9cef6f29f078",
-      "observedAt": "2026-09-29T09:04:54.100106700Z",
+      "receiptHash": "a92bf54db7f75872085e02d26886f362ebf80b2801b7dfe685ea0773549d040e",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:25:59.431951600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -8821,9 +8888,9 @@
       "caseCode": "SEODAEMUN-313956",
       "profileCode": "LOCAL_SEODAEMUN_BOARD_V1",
       "profileHash": "a738a794f4ad9bf8c82e0bc5c59a871e580f70c42bc9823be7a4c7f19eecba36",
-      "receiptHash": "2260eff0ac6d810d350ef4ded5a8d6c5596840bd80c309afefe828cb183842f7",
-      "producerClassHash": "74741db360c9121f2f3b84459d5aef1c6bce8df8ba12069f37e26d19affe856a",
-      "observedAt": "2026-09-30T11:57:39.883511100Z",
+      "receiptHash": "c5455f63c6706a8f6ab17b2347bcba41a9b87ac4eab455d1325a87f917f3cb8b",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:24:03.605225Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 4,
       "titleStatus": "ELIGIBLE",
@@ -10885,9 +10952,9 @@
       "caseCode": "YUSEONG-49380",
       "profileCode": "LOCAL_YUSEONG_BOARD_V1",
       "profileHash": "7bf701682b9c3bac42dc4719e3ad34edf8b2db7411234c6fd03f4b4fb70fb2d7",
-      "receiptHash": "d6effe0d24d6afdbdaee3004ae2503b5fb32dfffd8a13675a295dbf674c871dd",
-      "producerClassHash": "bc59dde81436bb8d6a1d83191f8466afcbaefee0d483b0379749b0ba1681a183",
-      "observedAt": "2026-09-30T03:29:26.507336900Z",
+      "receiptHash": "ae4d4c6bb25d57219e90428d538a88dfa1f3470b735209051da94e678bb7c621",
+      "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
+      "observedAt": "2026-09-30T13:24:56.754826900Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
@@ -10904,8 +10971,11 @@
         },
         {
           "locatorHash": "9a1d72061f82c5e78e4d245225dabade728ca207b8a463d08dc9b80f061b9762",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 68096,
+          "format": "HWP",
+          "binaryHash": "9cb8c8c5835fe7bbadef21acac3cf7073f82210b5cfa7220b5f28717bf158413",
+          "signatureVerified": true
         }
       ]
     }
