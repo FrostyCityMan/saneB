@@ -33,7 +33,7 @@ class AnnouncementAttachmentJungguObservationContractTest {
             assertThat(reference.hasNonNull("expectation")).isFalse();
             assertThat(sample.profile().selectProfileCode()).isEqualTo("LOCAL_DAEGU_JUNGGU_GET_V1");
             // 공통 Request 변경 후 세 고정 공고를 재관측한 지문. 정책 expectation은 계속 null이다.
-            assertThat(sample.profile().selectProfileHash()).isEqualTo("20bb0d35ea1faba2cc77dd58a5e7e62156640e9846c2737d2b5112efcccbbbcc");
+            assertThat(sample.profile().selectProfileHash()).isEqualTo("c53931447202ca450b457d7bf1e5699e63e6ffc00d865d4e7e3653e1ed069fc5");
             assertThat(sample.titleLayout()).isEqualTo(AnnouncementAttachmentBbsOfficialObservationTest.TitleLayout.JUNGGU_LABEL);
             assertThat(sample.expectedTitleStopStage()).isEqualTo(sample.code().endsWith("33315")?TitleStageCode.COMBINATION_NOT_MATCHED:null);
         }

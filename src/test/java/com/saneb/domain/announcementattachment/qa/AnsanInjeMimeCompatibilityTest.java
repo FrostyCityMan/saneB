@@ -49,8 +49,8 @@ class AnsanInjeMimeCompatibilityTest {
         // 공통 전송 코드 변경 후 실파일이 확인된 지문이며 MIME 허용을 다른 기관으로 넓히지 않는다.
         var siheung=CapitalSixthDownloadCases.selectCase("SIHEUNG").profile();
         var yanggu=GangwonSecondDownloadCases.selectCase("YANGGU").profile();
-        assertThat(siheung.selectProfileHash()).isEqualTo("e7a34770b1cd3d5ec7eb6faf7d7a5daa79b439c3a3566ea7c75cb9e12cc36636");
-        assertThat(yanggu.selectProfileHash()).isEqualTo("21c912c9d737795fec9016f6ceb61e6a638740a9302815825d90662513a6a6f0");
+        assertThat(siheung.selectProfileHash()).isEqualTo("b201660ccac717c66aa0f3f33d5276b129ecdde3926eee86ac436ad429d18449");
+        assertThat(yanggu.selectProfileHash()).isEqualTo("60c53e6908168bc5bbe631b2574fa5c7e9bd8141e9d494e1cdc738c425658275");
         assertThat(siheung.selectLegacyBinaryContentTypes()).isEmpty();
         // 양구는 자체 실측 MIME 오기만 유지하며 인제의 x-msdownload 허용을 상속하지 않는다.
         assertThat(yanggu.selectLegacyBinaryContentTypes()).containsExactly("application/octer-stream");

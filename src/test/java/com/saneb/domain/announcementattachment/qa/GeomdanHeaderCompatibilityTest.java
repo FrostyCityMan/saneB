@@ -25,9 +25,9 @@ class GeomdanHeaderCompatibilityTest {
         assertThat(profile.selectProfileHash()).isNotEqualTo("811350257855cd256ef813ff10d10b64e2d24e6b42fc312dcde54d9bed8b3681");
         var other = IncheonThirdDownloadCases.selectCase("YEONGJONG").profile();
         assertThat(other.selectUtf8DispositionOctets()).isFalse();
-        // bf623a0의 공통 Request 변경 이후 실제 파일 재검증된 영종 지문이다.
+        // cc44ebd 공개 세션 변경 후 PUBLIC-SESSION-PINS-01에서 실파일을 재검증한 영종 지문이다.
         // 검단의 헤더 복원 옵션을 영종에 적용하거나 과거 지문을 현재 지문으로 간주하지 않는다.
-        assertThat(other.selectProfileHash()).isEqualTo("72bf1bfccd2dfd76839c936d680cf302b0d75860c348df1174c61b357f6ede35");
+        assertThat(other.selectProfileHash()).isEqualTo("8f3f311bca5baf440e23c9110e9133cc43893ee0e6baee062bdf0e004395901a");
     }
     @Test void headerRecoveryDoesNotApproveMismatchControlsPathsOrHtml() throws Exception {
         var profile = IncheonThirdDownloadCases.selectCase("GEOMDAN").profile();

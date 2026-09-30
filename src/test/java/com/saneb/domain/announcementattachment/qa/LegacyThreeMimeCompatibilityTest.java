@@ -58,13 +58,13 @@ class LegacyThreeMimeCompatibilityTest {
             assertThat(p.selectUtf8DispositionOctets()).isEqualTo(!group.equals("GEUMSAN"));
             assertThat(AttachmentDetailLimitProfile.selectBoundedDetailMaximumBytes(p)).isEqualTo((group.equals("GEUMSAN")?2L:1L)*1024*1024);
         }
-        // 이번 변경 직전의 인벤토리 지문이다. 금산 외 지역은 재승인 없이 변경하지 않는다.
-        assertThat(SeoulSeventhDownloadCases.selectCase("SEOUL").profile().selectProfileHash()).isEqualTo("1fe3433f69185bc7dbbcb0e10f98855e732bbf5d62ab550b32275b8b04da9a34");
-        assertThat(SeoulSeventhDownloadCases.selectCase("SEOUL_JUNGGU").profile().selectProfileHash()).isEqualTo("d8aa7ec332aa3b37e4c3f208bef687e810ed4d96fb2ae8e04fe210d74b6f40c6");
-        assertThat(ChungcheongFifthDownloadCases.selectCase("BUYEO").profile().selectProfileHash()).isEqualTo("12057dab931bb29f7ce04db4b9d1b8efda9936fea7996807b67568c1f46fe912");
-        assertThat(GyeongnamSecondDownloadCases.selectCase("GOSEONG").profile().selectProfileHash()).isEqualTo("76d5bfd4cc98d2c87e3d74d3eb831f06db0b03f72fb2255760ad61635a98b984");
-        assertThat(SeoulSeventhDownloadCases.selectCase("YONGSAN").profile().selectProfileHash()).isEqualTo("63667d613b9c9d6083128da5f59d75cbedacce2122e37a2bc35e1ea1dec96fc4");
-        assertThat(GyeongnamSecondDownloadCases.selectCase("CHANGWON").profile().selectProfileHash()).isEqualTo("5b9fe77d80de98ee3de3f73af64757e8eda7dddd3a8d12aa6f8d80a90f9a9951");
+        // cc44ebd 공통 코드 변경 후 PUBLIC-SESSION-PINS-02 실파일 근거다. 고성 발견 경고는 별도로 보존한다.
+        assertThat(SeoulSeventhDownloadCases.selectCase("SEOUL").profile().selectProfileHash()).isEqualTo("e6bbb77f594b6ea4e365d97b2000632df6e6ef1d8f8e7fe94d6ebdf5952c38e9");
+        assertThat(SeoulSeventhDownloadCases.selectCase("SEOUL_JUNGGU").profile().selectProfileHash()).isEqualTo("e6a45e84088402fdb7a17c716d703e7afcbe100183d3c5c5de218c5e3dea0e98");
+        assertThat(ChungcheongFifthDownloadCases.selectCase("BUYEO").profile().selectProfileHash()).isEqualTo("c752bed9ca57bb249031fced9ddcd8418ae855150644c3dfb846b93879f1c29a");
+        assertThat(GyeongnamSecondDownloadCases.selectCase("GOSEONG").profile().selectProfileHash()).isEqualTo("378cd9a64f07aacf2d292c9db0d4fc6d8aaa486c15376ca76d459fe3d2e9deb8");
+        assertThat(SeoulSeventhDownloadCases.selectCase("YONGSAN").profile().selectProfileHash()).isEqualTo("84933423e9160c85a19d78ddccf9d117a6605184f6ce95ca20ebfea801ee243a");
+        assertThat(GyeongnamSecondDownloadCases.selectCase("CHANGWON").profile().selectProfileHash()).isEqualTo("dea490597a356b1b25592a49a6cfa79e150eba2aaec4bdce9e0c8753f8e9067a");
     }
 
     @ParameterizedTest @ValueSource(strings={"hwp"," HWP ","hwp; charset=UTF-8"})

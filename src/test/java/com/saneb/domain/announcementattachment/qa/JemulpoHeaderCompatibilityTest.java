@@ -25,7 +25,7 @@ class JemulpoHeaderCompatibilityTest {
         assertThat(profile.selectProfileHash()).isNotEqualTo("b0da239fac3f2020998cc25951d41e54737e3b717a56e2974ad238c9b173e7fb");
         var other = IncheonSecondDownloadCases.selectCase("MICHUHOL").profile();
         assertThat(other.selectUtf8DispositionOctets()).isFalse();
-        assertThat(other.selectProfileHash()).isEqualTo("eca41b21c32d6d7a0160bfd6fa34a8069db4948d1dad816449c40db792bdb43e");
+        assertThat(other.selectProfileHash()).isEqualTo("e6abfcd1319b8c13254348c91ee99de84fc7b2dd6535c8aa08761485ffb13342");
     }
     @Test void headerRecoveryDoesNotApproveMismatchControlsPathsOrHtml() throws Exception {
         var profile = IncheonSecondDownloadCases.selectCase("JEMULPO").profile();

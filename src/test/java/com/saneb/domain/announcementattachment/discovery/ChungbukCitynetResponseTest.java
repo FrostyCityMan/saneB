@@ -45,8 +45,17 @@ class ChungbukCitynetResponseTest {
     }
     @Test void gongjuAndGlobalValidatorAreNotOptedIn() {
         var gongju=new ChungcheongThirdAttachmentProfileConfiguration().selectGongjuProfileDetails();
-        assertThat(gongju.selectProfileHash()).isEqualTo("5dba7cc4fb710cf9070db27442cb558c41dde92459689a44654e99357ad496fd");
+        // cc44ebd의 공통 실행 코드 지문이다. 공주는 실파일 미확인이며 이 단위 검사가 수집 승인은 아니다.
+        assertThat(gongju.selectProfileHash()).isEqualTo("94c3257eb934b486e6a82d9345b8a3435116dfe1003f18b1045446ca35d4b3c2");
         assertThat(gongju.selectLegacyBinaryContentTypes()).isEmpty();assertThat(gongju).isNotInstanceOf(AttachmentDownloadFlowProfile.class);
+        var form=java.util.Map.of("user_file_nm","notice.hwp","sys_file_nm","stored.hwp","file_path","/ntishome/file/upload/ofr/ofr/20260929");
+        var descriptor=new AttachmentDiscoveryProfile.Descriptor(
+                URI.create("https://eminwon.gongju.go.kr/emwp/jsp/ofr/FileDown.jsp"),null,"notice.hwp","HWP","UNKNOWN",true,form);
+        var request=gongju.selectDownloadRequest(descriptor);
+        assertThat(request).isEqualTo(descriptor.selectRequest());
+        assertThat(request.method()).isEqualTo("POST");assertThat(request.form()).isEqualTo(form);
+        assertThat(request.publicSession()).isNull();assertThat(request.referer()).isNull();
+        assertThat(request.utf8RedirectOctets()).isFalse();assertThat(gongju.selectApprovedRequest(request)).isTrue();
         assertThatThrownBy(()->new ChungbukCitynetResponseAttachmentProfile(new ChungcheongThirdAttachmentDiscoveryProfile(Site.GONGJU))).hasMessage("CHUNGBUK_PROFILE_REQUIRED");
         assertThat(profile.selectProfileHash()).isNotEqualTo("a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683");
     }
