@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void hwaseongBodyExcludesMetadataAndAttachmentCells(){
+        String url="https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=141781";
+        String page="<div class=board_write><table><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>투자 파일</td></tr><tr><th>내용</th><td><div class=txt>소상공인 자금지원<script>x()</script></div></td></tr></table></div>";
+        for(String content:List.of(page,page+page,page.replace("<th>내용</th>","<th>기타</th>"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 자금지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void ulsanDongguBodyExcludesFileNamesAndMetadata(){
         String url="https://eminwon.donggu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=28029&not_ancmt_se_code=01%2C03%2C04%2C05&subCheck=Y";
         String page="<form name=form1 method=post><div id=viewTable1vw><div class=bbs_detail><div class=bbs_detail_tit><h2>소상공인 지원</h2><span>수출 부서</span></div><div class=bbs_detail_file id=download>투자 파일</div><div class=bbs_detail_content>소상공인 융자지원<script>x()</script></div></div></div></form>";

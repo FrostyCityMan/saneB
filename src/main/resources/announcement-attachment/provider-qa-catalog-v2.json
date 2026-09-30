@@ -3301,6 +3301,18 @@
         "listParserProfileCode": "DOBONG_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "HWASEONG-141781",
+      "profileCode": "LOCAL_HWASEONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "8e04d5e7951e1693a0c21d36e22024a8ca33b6e7dfbf224ea5823ba1c4b9f7f2",
+        "sourceUrl": "https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=141781",
+        "localSourceCode": "LGS-000088",
+        "listParserProfileCode": "SAFE_HWASEONG_LEGAL_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

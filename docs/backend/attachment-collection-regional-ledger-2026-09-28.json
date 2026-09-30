@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 209,
-    "missingProfileRegionCount": 14,
+    "registeredRegionCount": 210,
+    "missingProfileRegionCount": 13,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2491,14 +2491,26 @@
       "sourceCode": "LGS-000088",
       "listParserProfileCode": "SAFE_HWASEONG_LEGAL_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000088",
+          "caseCode": "HWASEONG-141781",
+          "profileCode": "LOCAL_HWASEONG_BOARD_V1",
+          "profileHash": "3631512c4e1cb61e6cd8a2e7a4b30d2ea789e5897c5f091ce6b3fba2ad6bc073",
+          "receiptHash": "183886e1058bc41164c8f7dcdaa5e4b1c83c4899f7c9fad72b5117010d408f2e",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000089",
@@ -6268,9 +6280,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "eb540bce0f0bba6248d3f67c660ce571340c94f7a935a570bc9a7bfda4e5ff75",
+  "inputInventorySha256": "306181b78f64d25d8f1b21f47ce84066bd6a3d4298bfcc8abc31e5069970073f",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 325,
+  "importedReceiptCount": 326,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12666,6 +12678,54 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "hwaseongDownloadRun": {
+    "scope": "HWASEONG_OFFICIAL_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/HWASEONG-141781.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2802688,
+    "surveyRequestCount": 4,
+    "surveyGetCount": 4,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000088",
+        "requestCount": 2,
+        "result": "DETAIL_WITH_CATEGORY_AND_DB_TEMPLATE_WITHOUT_CATEGORY200_SAME_NOTICE_AND_FILE"
+      },
+      {
+        "sourceCode": "LGS-000082",
+        "requestCount": 1,
+        "result": "REGISTERED_GOSI_LIST200_GENERAL_NOTICE_MENU_OBSERVED"
+      },
+      {
+        "sourceCode": "LGS-000182",
+        "requestCount": 1,
+        "result": "REGISTERED_GOSI_LIST200_GENERAL_NOTICE_MENU_OBSERVED"
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 189440,
+    "bodyCharacterCount": 429,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "registeredSourceCorrectionRequiredForGeneralNotices": true,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 182,
+      "noObservedDownloadRegionCount": 41,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 13
+    }
   },
   "ulsanDongguDownloadRun": {
     "scope": "ULSAN_DONGGU_OFFICIAL_DETAIL_AND_FILES_COLLECTION_ONLY",
