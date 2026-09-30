@@ -472,7 +472,8 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         // 실측된 기관의 정확한 게시판만 좁힌다. 같은 parser의 다른 기관까지 지원한다고 추정하지 않는다.
         String host = sourceUri.getHost().toLowerCase(Locale.ROOT);
         if (("www.tongyeong.go.kr".equals(host) && "/00852/00853/00858.web".equals(sourceUri.getPath()))
-                || ("www.hadong.go.kr".equals(host) && "/media/00012.web".equals(sourceUri.getPath()))) {
+                || ("www.hadong.go.kr".equals(host) && "/media/00012.web".equals(sourceUri.getPath()))
+                || ("www.geochang.go.kr".equals(host) && "/00445/00451.web".equals(sourceUri.getPath()))) {
             var roots=document.select("form#saeolGosiVO > div.bbs1view1");
             if(roots.size()!=1)throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
             var titles=roots.getFirst().select(":root > h1.h1");var bodies=roots.getFirst().select(":root > div.substance");
