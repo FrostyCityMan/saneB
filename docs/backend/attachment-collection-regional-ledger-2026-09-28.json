@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 186,
-    "missingProfileRegionCount": 37,
+    "registeredRegionCount": 188,
+    "missingProfileRegionCount": 35,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -1210,14 +1210,26 @@
       "sourceCode": "LGS-000040",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000040",
+          "caseCode": "YEONJE-43358",
+          "profileCode": "LOCAL_YEONJE_GET_V1",
+          "profileHash": "6bcfeaeac28eb8d2cbe8e33307a6ea247dcd843fd9ffe184e26c8f2ea4251b94",
+          "receiptHash": "9245011844828cb5573571a9d9d4005f8a42ad949092bf851e9cbe16eb8fd48c",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000041",
@@ -4726,14 +4738,26 @@
       "sourceCode": "LGS-000185",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000185",
+          "caseCode": "GURYE-25440",
+          "profileCode": "LOCAL_GURYE_POST_V1",
+          "profileHash": "bdb8a9227e77c97351428db7716822cdb0d1cf2d863020d378a119b7940081a6",
+          "receiptHash": "7b8c1b6cc952597d474a10e0d41fde88a7e207f03f2baec1209a38c5d4c599bf",
+          "fileCount": 2,
+          "downloadedFileCount": 2,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000186",
@@ -5959,9 +5983,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "8462c435c91c5007991f09cb4319640b17da0450b89a8abfb741e5d5f9c433b1",
+  "inputInventorySha256": "f5adca4da1234afa17d9d5d50c2531ce31616f646d90ab2720e30e8d20b93077",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 294,
+  "importedReceiptCount": 296,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12353,6 +12377,95 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "yeonjeGuryeDownloadRun": {
+    "scope": "YEONJE_GURYE_OFFICIAL_GET_POST_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YEONJE-43358.json",
+      "build/reports/attachment-regional-collection/GURYE-25440.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "YEONJE-43358",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "GURYE-25440",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 5727015,
+    "surveyRequestCount": 10,
+    "surveyGetCount": 8,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyCurlMaximumBytesPerRequest": 2097152,
+    "surveyWebSessionResponseBytesLessThan": 524288,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000040",
+        "result": "PUBLIC_SESSION_CSRFTOKEN_SEARCH200_DETAIL43358",
+        "selectedNoticeId": "43358",
+        "isDownloadVerified": false,
+        "failureCode": "ATTACHMENT_FORMAT_MISMATCH",
+        "operatingReuseApproved": false
+      },
+      {
+        "sourceCode": "LGS-000185",
+        "result": "PUBLIC_SESSION_CSRFTOKEN_SEARCH200_DETAIL25440",
+        "selectedNoticeId": "25440",
+        "isDownloadVerified": true,
+        "operatingReuseApproved": false,
+        "reuseNotice": "NONCOMMERCIAL_AND_NO_DERIVATIVES_TEXT_OBSERVED_REQUIRES_REVIEW"
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-yeonje-gurye-20260930/GURYE-25440.html",
+        "bytes": 311247,
+        "sha256": "4e2853ebc20d06250f58b7d244d5b16b27ac8a0fc7fc78653b1652c1a7bed35c"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/GURYE-list.html",
+        "bytes": 314870,
+        "sha256": "07f3dfc91a3efc57105f3ffd84c1122faabd7662dacc7ae83fd66407eab2b810"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/GURYE-search.html",
+        "bytes": 313361,
+        "sha256": "c7264526d24f934fed5fc4929c975ee32b613825b537ce9ff7c74ef98382d838"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/YEONJE-43358.html",
+        "bytes": 492549,
+        "sha256": "a7be03d0e88121751c53f2e0d662fac4c955e28cbd682cd254084e181ba233af"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/YEONJE-list.html",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/YEONJE-official-list.html",
+        "bytes": 496088,
+        "sha256": "32813df1742ee7b37de30b1c22a718038021b2e44bc5b8e36277ead1d199f474"
+      },
+      {
+        "path": "build/qa-yeonje-gurye-20260930/YEONJE-search.html",
+        "bytes": 495880,
+        "sha256": "4d8df714862c08f73b93aa8e8d6b575e7d4a3143ea599712bbbbfa8407af956f"
+      }
+    ],
+    "originalsRemoved": false,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,

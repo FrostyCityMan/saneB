@@ -31,6 +31,17 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void yeonjeGuryeBodyExcludesMetadataAndRejectsChangedStructure(){
+        var pages=Map.of(
+                "https://www.yeonje.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=43358&mId=0206030000","<form id=detailForm><div class=bod_wrap><div class=bod_view><h4>다자녀 지원</h4><div class=view_info>수출 부서</div><div class=view_cont>다자녀 대출이자 지원금</div><dl class=view_file><dt>특허.hwpx</dt></dl></div></div></form>",
+                "https://www.gurye.go.kr/board/GosiView.do?pageIndex=1&menuNo=115004002001&not_ancmt_se_code=01,04,06,07&not_ancmt_mgt_no=25440","<div class=boardGroup><div class=board_view><h3>청년 지원</h3><ul class=write_info><li>수출 부서</li></ul><div class=board_con>청년 문화복지카드 지원금</div><ul class=file_down><li>특허.pdf</li></ul></div></div>");
+        for(var entry:pages.entrySet())for(String page:List.of(entry.getValue(),entry.getValue()+entry.getValue(),entry.getValue().replace("class=view_cont","class=other").replace("class=board_con","class=other"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+page));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,entry.getKey(),entry.getKey()));
+            if(page.equals(entry.getValue())){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isIn("다자녀 대출이자 지원금","청년 문화복지카드 지원금");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void tongyeongBodyUsesOnlySubstanceAndRejectsChangedStructure(){
         String url="https://www.tongyeong.go.kr/00852/00853/00858.web?amode=view&not_ancmt_mgt_no=49251";
         String page="<form id=saeolGosiVO><div class=bbs1view1><h1 class=h1>소상공인 육성자금 지원사업</h1><div class=info1>수출 담당부서</div><div class=attach1>특허.hwp</div><div class=substance>소상공인 육성자금 지원</div></div></form>";

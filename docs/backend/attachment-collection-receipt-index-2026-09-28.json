@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "8462c435c91c5007991f09cb4319640b17da0450b89a8abfb741e5d5f9c433b1",
+  "inventorySha256": "f5adca4da1234afa17d9d5d50c2531ce31616f646d90ab2720e30e8d20b93077",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2273,6 +2273,22 @@
       "path": "build/reports/attachment-regional-collection/GWANGJU_SEOGU-53423.json",
       "receiptHash": "60fc7ac28e5a3b775b2ec82c6164a435f41d0ca45bf79b1a5a615bf7bee121f1",
       "producerClassHash": "4a289751416ecd8b5114295bc26522d95fe45ad70c33792974d0dafb8e1c8cd7",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONJE-43358.json",
+      "receiptHash": "9245011844828cb5573571a9d9d4005f8a42ad949092bf851e9cbe16eb8fd48c",
+      "producerClassHash": "ca860f11a008170bccc37ab597afbbb6e5c3eca891af1b4691ae73d771703cb3",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GURYE-25440.json",
+      "receiptHash": "7b8c1b6cc952597d474a10e0d41fde88a7e207f03f2baec1209a38c5d4c599bf",
+      "producerClassHash": "ca860f11a008170bccc37ab597afbbb6e5c3eca891af1b4691ae73d771703cb3",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -5197,6 +5213,41 @@
           "bytes": 325822,
           "format": "PDF",
           "binaryHash": "55d13d63ce702e331cd2b3658318d706288671fb5c221ccaf574d95eb4edeb82",
+          "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000185",
+      "caseCode": "GURYE-25440",
+      "profileCode": "LOCAL_GURYE_POST_V1",
+      "profileHash": "bdb8a9227e77c97351428db7716822cdb0d1cf2d863020d378a119b7940081a6",
+      "receiptHash": "7b8c1b6cc952597d474a10e0d41fde88a7e207f03f2baec1209a38c5d4c599bf",
+      "producerClassHash": "ca860f11a008170bccc37ab597afbbb6e5c3eca891af1b4691ae73d771703cb3",
+      "observedAt": "2026-09-30T02:43:18.107074800Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "8b0298704e51e254c6edc72785647661bc7e7d9d080bb6aab3c4681749c8308b",
+          "status": "SUCCEEDED",
+          "bytes": 127471,
+          "format": "HWPX",
+          "binaryHash": "b0d8f696f17a782ab6e67bb26e4575cb8949fe6ec9d401e848a7813f1e397c53",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "bbd42ccc30f16008ae2c28eac50424b31deded38b41a42298efa26751e8123cd",
+          "status": "SUCCEEDED",
+          "bytes": 497976,
+          "format": "PDF",
+          "binaryHash": "015a0b0760d4eb99bfc3140f0b96323d9424c74e2d3d48df5c045557642236bc",
           "signatureVerified": true
         }
       ]
@@ -9119,6 +9170,30 @@
           "format": "HWP",
           "binaryHash": "f2582361362c9fe68951e0fd5d10790023c6cd167a28ce570e365f11ca8180b0",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000040",
+      "caseCode": "YEONJE-43358",
+      "profileCode": "LOCAL_YEONJE_GET_V1",
+      "profileHash": "6bcfeaeac28eb8d2cbe8e33307a6ea247dcd843fd9ffe184e26c8f2ea4251b94",
+      "receiptHash": "9245011844828cb5573571a9d9d4005f8a42ad949092bf851e9cbe16eb8fd48c",
+      "producerClassHash": "ca860f11a008170bccc37ab597afbbb6e5c3eca891af1b4691ae73d771703cb3",
+      "observedAt": "2026-09-30T02:43:03.379967200Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "7e310f2bfe3172908f0dd0c532178449ac2c15c55ec1ab443ad378e879f9eea1",
+          "status": "FAILED",
+          "bytes": 96256
         }
       ]
     },

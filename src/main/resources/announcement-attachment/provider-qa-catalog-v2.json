@@ -2989,6 +2989,30 @@
         "listParserProfileCode": "SPRING_BBS"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONJE-43358",
+      "profileCode": "LOCAL_YEONJE_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c8db977b2f3078c7ef624e50141cc29203629bc7c81a5b1eee865ca0411312e5",
+        "sourceUrl": "https://www.yeonje.go.kr/portal/saeol/gosi/view.do?notAncmtMgtNo=43358&mId=0206030000",
+        "localSourceCode": "LGS-000040",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "GURYE-25440",
+      "profileCode": "LOCAL_GURYE_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "1690ff33a9b7b0bec5714efd8e190c791ade415b835c19a630ab082363528487",
+        "sourceUrl": "https://www.gurye.go.kr/board/GosiView.do?pageIndex=1&menuNo=115004002001&not_ancmt_se_code=01,04,06,07&not_ancmt_mgt_no=25440",
+        "localSourceCode": "LGS-000185",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON"
+      },
+      "expectation": null
     }
   ]
 }
