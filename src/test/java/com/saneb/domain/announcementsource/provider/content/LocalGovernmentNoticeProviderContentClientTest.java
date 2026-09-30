@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void wandoBodyExcludesAttachmentAreaAndMetadata() {
+        String url="https://www.wando.go.kr/wando/sub.cs?m=1031&nttId=30322";
+        String page="<div id=board_basic_view><div class=news_tit><h3><td>소상공인 지원</td></h3></div><div class=set-box>특허 부서</div><div class=file_attach>수출.hwp</div><div class=board_cont><p><td>소상공인 디지털 전환 지원</td></p></div></div>";
+        for(String content:List.of(page,page+page,page.replace("board_cont","other"))) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+content));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 디지털 전환 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void gimjeBodyExcludesAttachmentsAndDetectsChangedStructure() {
         String url="https://www.gimje.go.kr/board/view.gimje?boardId=BBS_0000044&menuCd=DOM_000000104003000000&paging=ok&startPage=1&dataSid=310426";
         String page="<div class=bbs_skin><div class=bbs_view><div class=bbs_vtop><h4>소상공인 지원</h4></div><div class=bbs_con>소상공인 카드수수료 지원</div><div class=bbs_filedown><dl><dt>첨부파일</dt><dd>특허.hwp</dd></dl></div></div></div>";

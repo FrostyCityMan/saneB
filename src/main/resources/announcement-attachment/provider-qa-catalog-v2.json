@@ -3061,6 +3061,18 @@
         "listParserProfileCode": "SUBJECT_NOTICE_TABLE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "WANDO-30322",
+      "profileCode": "LOCAL_WANDO_POST_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "ec33f5dde307cc6e61c1b940051300f2db69fce00feaed1a9a2d9aba68109061",
+        "sourceUrl": "https://www.wando.go.kr/wando/sub.cs?m=1031&nttId=30322",
+        "localSourceCode": "LGS-000197",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
