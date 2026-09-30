@@ -48,6 +48,19 @@ test('discovery warnings and file transport failures remain distinct', () => {
     [['ATTACHMENT_DISCOVERY', 'ATTACHMENT_LINK_UNRESOLVED'], ['FILE_DOWNLOAD', 'TRANSPORT_TIMEOUT']]);
   assert.equal(result.availabilitySummary.observedDownloadRegionCount, 0);
 });
+test('본문 TIMEOUT과 상세 TRANSPORT_TIMEOUT을 원래 단계별 코드로 보존한다', () => {
+  const result = fixture([{...base, bodyStatus: 'FETCH_FAILED', bodyFailureCode: 'TIMEOUT',
+    failedStage: 'DETAIL_DISCOVERY', failureCode: 'TRANSPORT_TIMEOUT'}]).run();
+  assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]),
+    [['BODY_FETCH', 'TIMEOUT'], ['DETAIL_DISCOVERY', 'TRANSPORT_TIMEOUT']]);
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount, 1);
+  assert.equal(result.diagnosticSummary.successfulDownloadRegionsWithBodyFetchFailure, 1);
+});
+test('본문 전용 TIMEOUT을 다른 단계의 임의 오류 코드로 허용하지 않는다', () => {
+  const result = fixture([{...base, failedStage: 'FILE_DOWNLOAD', failureCode: 'TIMEOUT'}]).run();
+  assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]),
+    [['FILE_DOWNLOAD', 'UNCLASSIFIED_ERROR']]);
+});
 test('Content-Type mismatch remains a signature-stage error, not a verified download', () => {
   const result = fixture([{...base, status: 'COLLECTION_ONLY_PARTIAL_NOT_APPROVED', collectionStageComplete: false,
     files: [{locatorHash: hash, status: 'FAILED', bytes: 512, failedStage: 'FILE_SIGNATURE', failureCode: 'ATTACHMENT_CONTENT_TYPE_MISMATCH'}]}]).run();

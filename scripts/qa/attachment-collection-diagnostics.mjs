@@ -11,7 +11,9 @@ const codes = new Set(['BODY_SELECTOR_CHANGED', 'NETWORK_ERROR', 'HTTP_STATUS_ER
   'ATTACHMENT_FORMAT_MISMATCH', 'TLS_FAILED', 'OBSERVATION_FAILED', 'TRANSPORT_FAILED',
   'OBSERVATION_ASSERTION_FAILED', 'ATTACHMENT_LINK_UNRESOLVED', 'ATTACHMENT_DETAIL_TITLE_UNAVAILABLE',
   'ATTACHMENT_SELECTOR_CHANGED', 'UNSUPPORTED_FORMAT']);
-const safeCode = value => codes.has(value) || /^ATTACHMENT_HTTP_[1-5][0-9]{2}$/.test(value ?? '')
+// ProviderContentCodes의 본문 TIMEOUT은 파일 전송 TRANSPORT_TIMEOUT과 별개다.
+const safeCode = (value, stage) => (stage === 'BODY_FETCH' && value === 'TIMEOUT')
+  || codes.has(value) || /^ATTACHMENT_HTTP_[1-5][0-9]{2}$/.test(value ?? '')
   ? value : 'UNCLASSIFIED_ERROR';
 const stages = new Set(['TITLE_CONFIRMATION', 'DETAIL_DISCOVERY', 'FILE_DOWNLOAD', 'FILE_SIGNATURE',
   'ISOLATED_EXTRACTION', 'TEXT_ROLE']);
@@ -57,7 +59,7 @@ export function readCollectionDiagnostics(index, readBytes) {
       assert.equal(reports.length, 1, 'EXACT_REPORT_REQUIRED');
       const report = reports[0];
       const add = (stage, code, locatorHash) => issues.push({caseCode: sample.caseCode, receiptHash: sample.receiptHash, observedAt: sample.observedAt,
-        stage, code: safeCode(code), ...(locatorHash ? {locatorHash} : {})});
+        stage, code: safeCode(code, stage), ...(locatorHash ? {locatorHash} : {})});
       if (report.bodyStatus === 'FETCH_FAILED' || report.bodyFailureCode) add('BODY_FETCH', report.bodyFailureCode);
       else if (report.bodyStatus !== 'AVAILABLE') bodyUnobservedSampleCount++;
       if (report.failureCode || report.failedStage) add(stages.has(report.failedStage) ? report.failedStage : 'OBSERVATION', report.failureCode);
