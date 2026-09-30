@@ -899,6 +899,17 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do".equals(sourceUri.getPath())) {
             return selectSeoguContentElement(document, sourceUri);
         }
+        if ("eminwon.goesan.go.kr".equals(host)
+                && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
+            var tables = selectSaeolForm(document, sourceUri).select("table.table_view");
+            if (tables.size() != 1) throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            var titles = tables.getFirst().select(":root > tbody > tr > th:matchesOwn(^제목$) + td");
+            var bodies = tables.getFirst().select(":root > tbody > tr > td.con[colspan=4]");
+            if (titles.size() != 1 || titles.getFirst().text().isBlank() || bodies.size() != 1
+                    || bodies.getFirst().parent().childrenSize() != 1)
+                throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            return bodies.getFirst();
+        }
         if (("eminwon.bsnamgu.go.kr".equals(host) || "eminwon.dalseong.daegu.kr".equals(host))
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             return selectSaeolContentElement(document, sourceUri, "eminwon.bsnamgu.go.kr".equals(host));

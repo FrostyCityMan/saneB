@@ -31,6 +31,19 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void goesanBodyKeepsOnlyOfficialContentCell() {
+        String url="https://eminwon.goesan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29655&subCheck=Y";
+        String page="<form name=form1 method=post><table class=table_view><tr><th>제목</th><td>소상공인 지원</td><th>담당부서</th><td>수출</td></tr><tr><th>첨부파일</th><td colspan=3>특허 신청서</td></tr><tr><td class=con colspan=4>소상공인 자금 지원<script>viewer()</script></td></tr></table></form>";
+        for(String selected:List.of(page,page+page,page.replace("class=con","class=unknown"),page.replace("소상공인 자금 지원<script>","<script>"))) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자</nav>"+selected+"<footer>기관 메뉴</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 자금 지원");}
+            else if(selected.contains("colspan=4><script>"))assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+        var transport=new StubTransport();transport.enqueue(html(page));
+        assertThat(client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url+"&subCheck=N")).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+    }
     @Test void gangdongBodyExcludesContactMetadataAndUnrelatedAttachments(){
         String url="https://www.gangdong.go.kr/web/newportal/notice/01/37327";
         String page="<form id=frmNotice method=get action=/web/newportal/notice/01><table><tbody><tr><th>담당자/연락처</th><td>수출 담당</td></tr><tr><th>제목</th><td colspan=3>소상공인 융자 지원</td></tr><tr><td colspan=4>소상공인 금융 지원<script>viewer()</script></td></tr><tr><th>첨부파일</th><td colspan=3>특허 파일</td></tr></tbody></table></form>";

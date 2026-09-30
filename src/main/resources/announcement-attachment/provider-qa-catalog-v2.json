@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "GOESAN-29655",
+      "profileCode": "LOCAL_GOESAN_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e77aa2913e8cbaf6ee1dd7bb9b255908d04931302cd9cbfe615e0374a64b39ce",
+        "sourceUrl": "https://eminwon.goesan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29655&subCheck=Y",
+        "localSourceCode": "LGS-000144",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "EUNPYEONG-50607",
       "profileCode": "LOCAL_EUNPYEONG_GET_V1",
       "source": {

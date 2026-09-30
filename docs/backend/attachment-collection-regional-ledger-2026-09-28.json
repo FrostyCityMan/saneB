@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 219,
-    "missingProfileRegionCount": 4,
+    "registeredRegionCount": 220,
+    "missingProfileRegionCount": 3,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4032,14 +4032,26 @@
       "sourceCode": "LGS-000144",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000144",
+          "caseCode": "GOESAN-29655",
+          "profileCode": "LOCAL_GOESAN_GET_V1",
+          "profileHash": "cda1d129f1d89339dabe8ec3672233ce0e6eb48f6b9ac642ec645d6b36ae2fdb",
+          "receiptHash": "e86fe8ffcc2c77129f568103b323a220319842a1f7acffbe34562f59f535452a",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000145",
@@ -6421,9 +6433,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "c23026eb0fdac8afd069de7e3846e83d37400befe79ab2e7fce618a492755417",
+  "inputInventorySha256": "f18b8083e16df414a5fa7fdb1535d0f0950fe30874931848dab1f81dee199545",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 349,
+  "importedReceiptCount": 350,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12819,6 +12831,48 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "goesanDownloadRun": {
+    "scope": "GOESAN_OFFICIAL_SAEOL_DOWNLOAD",
+    "observationReport": "build/reports/attachment-regional-collection/GOESAN-29655.json",
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2258432,
+    "surveyRequestCount": 6,
+    "surveyGetCount": 4,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000144",
+        "requestCount": 4,
+        "result": "OFFICIAL_LIST_GET_200_SEARCH_POST_200_DETAIL_GET_200"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requestCount": 2,
+        "result": "OFFICIAL_LIST_GET_200_SEARCH_POST_REQUEST_EXCEPTION"
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 144896,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "operatingListEndpointChanged": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 194,
+      "noObservedDownloadRegionCount": 29,
+      "regionsWithErrors": 46,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 3
+    }
   },
   "gangdongDownloadRun": {
     "scope": "GANGDONG_OFFICIAL_PORTAL_ATTACHMENT_POST",

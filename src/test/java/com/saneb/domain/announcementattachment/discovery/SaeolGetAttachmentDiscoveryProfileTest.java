@@ -30,7 +30,8 @@ class SaeolGetAttachmentDiscoveryProfileTest {
                 new Case(configuration.selectHamanProfileDetails(), "LGS-000233", "SAFE_SAEOL_EMINWON_CELL", "td", "43065", 1),
                 new Case(configuration.selectBusanjinProfileDetails(), "LGS-000032", "SAFE_SAEOL_EMINWON_COMPACT", "th", "51342", 1),
                 new Case(configuration.selectGeumjeongProfileDetails(), "LGS-000038", "SAFE_SAEOL_EMINWON_COMPACT", "th", "43289", 3),
-                new Case(configuration.selectHaeundaeProfileDetails(), "LGS-000036", "SAFE_SAEOL_EMINWON_COMPACT", "th", "53828", 1));
+                new Case(configuration.selectHaeundaeProfileDetails(), "LGS-000036", "SAFE_SAEOL_EMINWON_COMPACT", "th", "53828", 1),
+                new Case(configuration.selectGoesanProfileDetails(), "LGS-000144", "SAFE_SAEOL_EMINWON_CELL", "th", "29655", 1));
     }
     static AttachmentDiscoveryProfile.Source selectSource(Case sample, String scheme) {
         String url = scheme + "://" + sample.profile().selectApprovedHosts().iterator().next() + SaeolGetAttachmentDiscoveryProfile.DETAIL
@@ -135,10 +136,10 @@ class SaeolGetAttachmentDiscoveryProfileTest {
                 + selectPage(sample, selectLink("공고.pdf", "1.pdf")));
         assertThat(result.descriptors().getFirst().fetchUri().getHost()).isEqualTo("eminwon.bsnamgu.go.kr");
     }
-    @Test void springRegistryContainsEighteenSeparateImmutableSystemProfiles() {
+    @Test void springRegistryContainsNineteenSeparateImmutableSystemProfiles() {
         try (var context = new AnnotationConfigApplicationContext(SaeolGetAttachmentProfileConfiguration.class, AttachmentDiscoveryProfileRegistry.class)) {
             var registry = context.getBean(AttachmentDiscoveryProfileRegistry.class);
-            assertThat(registry.selectProfileList()).hasSize(18);
+            assertThat(registry.selectProfileList()).hasSize(19);
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileCode).contains("LOCAL_HWASUN_GET_V1");
             assertThat(registry.selectProfileList()).extracting(AttachmentDiscoveryProfile::selectProfileHash).doesNotHaveDuplicates();
             registry.selectProfileList().forEach(profile -> {
