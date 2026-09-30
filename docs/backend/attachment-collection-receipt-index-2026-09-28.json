@@ -5131,6 +5131,14 @@
       "producerClassHash": "230ae19f3fa90c5620da125bfcd137f96fcbbcece3363c1e7cbc0c6a6dbcf87c",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/TONGYEONG-49251-TONGYEONG-TRANSPORT-RECOVERY-20261001.json",
+      "receiptHash": "06c8c69034935b3e4c1a5f470960dd12ba5b0cd9a65cde4b0debb44706fef9ee",
+      "producerClassHash": "230ae19f3fa90c5620da125bfcd137f96fcbbcece3363c1e7cbc0c6a6dbcf87c",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -11893,9 +11901,9 @@
       "caseCode": "TONGYEONG-49251",
       "profileCode": "LOCAL_TONGYEONG_SCMS_V1",
       "profileHash": "7a4bae2420be8909d98f745117f81c91da82d973a61033c8307cae6bf78b4fbe",
-      "receiptHash": "3fc47033acdedbe7b2b6547b325fb678a0fc6b68da55b808699082d04909478d",
-      "producerClassHash": "19be9b3d87ce787eb47989f11745d39e68c6cf31da5d4c7579c0ea680385a9ab",
-      "observedAt": "2026-09-30T17:52:40.258444700Z",
+      "receiptHash": "06c8c69034935b3e4c1a5f470960dd12ba5b0cd9a65cde4b0debb44706fef9ee",
+      "producerClassHash": "230ae19f3fa90c5620da125bfcd137f96fcbbcece3363c1e7cbc0c6a6dbcf87c",
+      "observedAt": "2026-09-30T18:29:10.228658700Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -11907,8 +11915,11 @@
       "files": [
         {
           "locatorHash": "cb015f4fb3d665580ce15f04b80b8750317ef9b600ba530baeb6321a164fb87a",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 165888,
+          "format": "HWP",
+          "binaryHash": "3df1f725f507ad3f63f65c8e36191dd1a3acf2797cdd1c1cc51659b2be6beb69",
+          "signatureVerified": true
         }
       ]
     },

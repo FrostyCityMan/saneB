@@ -6102,9 +6102,9 @@
           "caseCode": "TONGYEONG-49251",
           "profileCode": "LOCAL_TONGYEONG_SCMS_V1",
           "profileHash": "7a4bae2420be8909d98f745117f81c91da82d973a61033c8307cae6bf78b4fbe",
-          "receiptHash": "3fc47033acdedbe7b2b6547b325fb678a0fc6b68da55b808699082d04909478d",
+          "receiptHash": "06c8c69034935b3e4c1a5f470960dd12ba5b0cd9a65cde4b0debb44706fef9ee",
           "fileCount": 1,
-          "downloadedFileCount": 0,
+          "downloadedFileCount": 1,
           "status": "INCOMPLETE",
           "collectionVerified": false
         }
@@ -6515,7 +6515,7 @@
   ],
   "inputInventorySha256": "b74017aa8a20fe2c693b1fefa8346ed8b0b281bfa37df7e6af68834d5717eaf4",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 651,
+  "importedReceiptCount": 652,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12907,6 +12907,61 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "tongyeongRecoveryBonghwaTransportRun": {
+    "scope": "TONGYEONG_RECOVERY_AND_BONGHWA_TRANSPORT_DIAGNOSIS",
+    "baselineGitHead": "6570b20eef5e44492a8eaaf0c001a15accc65bf0",
+    "applicationJavaChanged": false,
+    "profileHashesUnchanged": true,
+    "catalogChanged": false,
+    "producerClassHash": "230ae19f3fa90c5620da125bfcd137f96fcbbcece3363c1e7cbc0c6a6dbcf87c",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/TONGYEONG-49251-TONGYEONG-TRANSPORT-RECOVERY-20261001.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 197,
+      "noObservedDownloadRegionCount": 26,
+      "regionsWithErrors": 33,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 204,
+    "historicalNeverDownloadedRegionCount": 19,
+    "observedCaseCount": 1,
+    "downloadedCaseCount": 1,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 165888,
+    "requestReservationsIncludingBodyUpperBound": 6,
+    "reservedBytesIncludingBodyUpperBound": 2454068,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "titleStops": [],
+    "bodyFailures": [],
+    "partialCases": [
+      {
+        "caseCode": "TONGYEONG-49251",
+        "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
+        "discoveryWarningCodes": [
+          "ATTACHMENT_LINK_UNRESOLVED"
+        ],
+        "failureCode": null,
+        "failedStage": null
+      }
+    ],
+    "fileIssues": [],
+    "observationPassed": 1,
+    "observationFailed": 0,
+    "publicDiagnosticRequests": 7,
+    "tcpOnlyDiagnosticAttempts": 1,
+    "nativeOriginalFilesWritten": 0,
+    "nativeTongyeongBinaryHash": "3df1f725f507ad3f63f65c8e36191dd1a3acf2797cdd1c1cc51659b2be6beb69",
+    "bonghwaFileHostTcp443Connected": false,
+    "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,
