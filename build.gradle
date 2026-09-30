@@ -686,6 +686,8 @@ tasks.register('attachmentOfficialWorkerProbeJar', Jar) {
         // selectCases의 지역 정의 의존성. live QA 테스트나 실행 범위는 추가하지 않는다.
         include 'com/saneb/domain/announcementattachment/qa/*DownloadCases*.class'
         include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'
+        include 'com/saneb/domain/announcementattachment/qa/ObservationResponseMetadata.class'
+        include 'com/saneb/domain/announcementattachment/qa/ObservationResponseMetadata$*.class'
         include 'com/saneb/domain/announcementattachment/qa/AnnouncementAttachmentOfficialObservationTest*.class'
     }
     preserveFileTimestamps = false
@@ -702,7 +704,7 @@ tasks.register('attachmentBbsObservationProbeJar', Jar) {
     from(sourceSets.test.output.classesDirs) {
         include 'com/saneb/domain/announcementattachment/qa/*DownloadCases*.class'
         ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
-         'ObservationDownloadTrace',
+         'ObservationDownloadTrace', 'ObservationResponseMetadata',
          'GangbukSelectedDownloadDiagnosticTest',
          'AnnouncementAttachmentBbsFixedCaseQaTest',
          'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',

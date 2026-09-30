@@ -134,9 +134,12 @@ test('새 JAR는 고정 시험 클래스만 포함하고 운영 classpath·리�
   for (const text of ['sourceSets.main.output', 'testRuntimeClasspath', 'resources', '${name}*.class']) assert(!block.includes(text), text);
   assert(block.includes('preserveFileTimestamps = false'));
   assert(block.includes("'ObservationDownloadTrace'"));
+  assert(block.includes("'ObservationResponseMetadata'"));
   assert(block.includes("'GangbukSelectedDownloadDiagnosticTest'"));
   const worker = build.slice(build.indexOf("tasks.register('attachmentOfficialWorkerProbeJar'"), build.indexOf("tasks.register('attachmentBbsObservationProbeJar'"));
   assert(worker.includes("include 'com/saneb/domain/announcementattachment/qa/ObservationDownloadTrace*.class'"));
+  assert(worker.includes("include 'com/saneb/domain/announcementattachment/qa/ObservationResponseMetadata.class'"));
+  assert(worker.includes("include 'com/saneb/domain/announcementattachment/qa/ObservationResponseMetadata$*.class'"));
 });
 
 test('강북 선택 파일 진단은 전용 opt-in으로만 실행하고 전체 관측과 분리한다', () => {

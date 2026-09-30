@@ -4,7 +4,7 @@
 
 - [x] 이전 Linux 응답이 Content-Type 불일치였음을 코드·보고서로 확인
 - [x] 정제된 응답 형식 metadata 추가 및 로컬 집중 검증
-- [~] 충북67302 단일 Linux 응답 관측
+- [x] 충북67302 단일 Linux 응답 관측·원인 확인·영수증 반영
 - [!] 실제 MIME 확인·호환성 수정·실파일 재검증 전 정상 수집으로 집계하지 않음
 
 기준 HEAD `73c7d9f08935474e4af9f8a334e881c81e00d1bb`. 파일 확인203/223, 잔여20. 전체 goal은 미완료다. HWP 추출 고도화 보류·정상 파일 보존·오류 별도 기록·운영 자동 활성화 금지를 유지한다.
@@ -26,4 +26,31 @@ workflow는 `[chungbuk-response-observation-01]` 최초 push에서 CHUNGBUK-6730
 node --test scripts/qa/attachment-regional-linux-workflow.test.mjs scripts/qa/attachment-github-collection-receipts.test.mjs
 ```
 
-Gradle39초 종료0, Node7개 통과. fixture 기반 형식 검증과 외부 실제 파일 관측을 구분한다. 응답 형식 helper가 추가되어 관측 생산 클래스 SHA는 `a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6`으로 바뀌었다. 기존 영수증의 생산 지문을 바꾸지 않는다. 브라우저는 현재 지시가 없어 정책상 미실행이다.
+초기 Gradle39초 종료0, JUnit39개 중38통과/1조건부 생략, Node7개 통과. fixture 기반 형식 검증과 외부 실제 파일 관측을 구분한다. 응답 형식 helper가 추가되어 관측 생산 클래스 SHA는 `a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6`으로 바뀌었다. 기존 영수증의 생산 지문을 바꾸지 않는다. 브라우저는 현재 지시가 없어 정책상 미실행이다.
+
+추가 패키지 점검에서 두 격리 probe JAR에 helper 의존성을 포함했다. 최초 wildcard 설정은 테스트 클래스까지 포함해 새 검증이 실패했으며, helper 본체와 내부 record만 포함하도록 수정했다. 수정 후 같은 집중 Gradle27초 종료0, JUnit40개 중39통과/1조건부 생략, 관련 Node17개 통과다. 생성만 수행했고 운영 설치는 하지 않았다.
+
+직전 HEAD73c7d9f의 [run36777540085](https://github.com/FrostyCityMan/saneB/actions/runs/36777540085)는 루트4,411개 중4,090통과·1실패·320생략이다. workflow 계약 추가 실패는 해결됐고 화천 고정 worker 계약1건이 남는다. 전체 Gate 통과가 아니다.
+
+## 실제 응답 확인
+
+[run36778179658](https://github.com/FrostyCityMan/saneB/actions/runs/36778179658), HEAD `d21402866ebd3b41b9bccefdbdf8602205de2512`, 관측 job `110105196697`, artifact `11127168135`를 확인했다. 생산 클래스 지문은 위 로컬 값과 일치한다.
+
+- MIME: `application/file`
+- signature 분류: `OLE_CONTAINER`
+- disposition 분류: `ATTACHMENT`, 확장자 `HWP`
+- 응답 크기179,201바이트, SHA-256 `ffbbf95d7723a87246f811b9039c47479df7ef8140a1b868c4551a8a40f0f94a`
+- 이전 관측과 동일한 파일 해시. 본문 확보와 첨부 발견은 성공했으나 파일은 `ATTACHMENT_CONTENT_TYPE_MISMATCH`로 실패 유지
+- 원본 정리true, 운영 쓰기0, 예약4요청/2,510,020바이트. 예약값을 실제 전송량으로 보고하지 않음
+
+관측 job은 부분 실패를 기록하고 종료0이다. **job 성공은 파일 수집 성공이 아니다.** 전체 workflow는 화천 계약으로 실패했고 루트4,414개 중4,093통과·1실패·320생략이다. metadata artifact만 로컬에 보관했으며 원본 HWP는 남기지 않았다.
+
+영수증672→673개, 최신 표본289개, 파일 확인203/223·미확보20개로 재현했다. 전체 집합 수집 Gate16/223은 별도다. 잔여20개를 전부 미구현으로 해석하지 않는다. 등록 프로필은222/223이며 미확보에는 연결·파일 검증 실패가 포함된다.
+
+## 후속 구현의 영향
+
+현재 검사기는 프로필이 명시적으로 선택한 `application/x-msdownload`와 `application/octer-stream`만 구형 MIME 예외로 허용한다. `application/file`은 단순 프로필 설정만으로 허용되지 않는다. 충북에만 적용되도록 예상 형식·signature·attachment disposition·확장자 일치를 유지하는 변경이 필요하다.
+
+`AttachmentProfileFingerprint`는 공통 `AttachmentFileTypeValidator.class`도 포함하므로 이 파일 변경은 전체 프로필 지문에 영향을 준다. 공통 변경과 개별 사이트 변경을 구분해 재검증 계획을 세워야 한다. 기존 영수증 지문 치환이나 전역 MIME 허용으로 검증을 우회하지 않는다. 이번 회차에서는 애플리케이션 검사기·프로필·기존 migration·운영 설정을 변경하지 않았다.
+
+최종 Node50개 통과, 영수증673개/289표본 재현 통과. QA 패키지 helper 추가는 로컬에 검증했으며 해당 패키지 수정본을 운영 설치하거나 실제 worker로 실행한 것은 아니다.

@@ -3843,7 +3843,7 @@
           "caseCode": "CHUNGBUK-67302",
           "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
           "profileHash": "a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683",
-          "receiptHash": "244f49da0ffca71848b7ed034b062b7e42240b24a9edc191cffac3af3d753fe5",
+          "receiptHash": "15e71e18b4902304ceb71bd53a0224396805e15f2df0ab215bf5710459df4fa8",
           "fileCount": 1,
           "downloadedFileCount": 0,
           "status": "INCOMPLETE",
@@ -6592,7 +6592,7 @@
   ],
   "inputInventorySha256": "31d6fabfa89aca60fc7d141bf32740b9453135b038d2bc7b70ab0f9e4a4749b0",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 672,
+  "importedReceiptCount": 673,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12987,6 +12987,41 @@
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "chungbukResponseDiagnosisRun": {
+    "scope": "GITHUB_CHUNGBUK_RESPONSE_METADATA_ONLY",
+    "github": {
+      "repository": "FrostyCityMan/saneB",
+      "runId": 36778179658,
+      "runAttempt": 1,
+      "jobId": 110105196697,
+      "artifactId": 11127168135,
+      "headSha": "d21402866ebd3b41b9bccefdbdf8602205de2512"
+    },
+    "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
+    "observationReports": [
+      "build/qa-github-runs/36778179658/reports/attachment-regional-collection/CHUNGBUK-67302-CHUNGBUK-RESPONSE-01.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 203,
+      "noObservedDownloadRegionCount": 20,
+      "regionsWithErrors": 39,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "observedCaseCount": 1,
+    "verifiedDownloadedFiles": 0,
+    "reportedPartialCases": 1,
+    "reportedFailedCases": 0,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2510020,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
     "isOperatingE2eVerified": false
   },
   "linuxTransportComparisonRun": {

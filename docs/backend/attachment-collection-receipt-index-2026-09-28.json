@@ -5347,6 +5347,22 @@
       "receiptHash": "39cdcdeed705131f22490ef92cdfb62bec81556355fe1b271b0e67b11e491324",
       "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36778179658/reports/attachment-regional-collection/CHUNGBUK-67302-CHUNGBUK-RESPONSE-01.json",
+      "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36778179658,
+        "runAttempt": 1,
+        "jobId": 110105196697,
+        "artifactId": 11127168135,
+        "headSha": "d21402866ebd3b41b9bccefdbdf8602205de2512"
+      },
+      "receiptHash": "15e71e18b4902304ceb71bd53a0224396805e15f2df0ab215bf5710459df4fa8",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -6646,9 +6662,9 @@
       "caseCode": "CHUNGBUK-67302",
       "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
       "profileHash": "a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683",
-      "receiptHash": "244f49da0ffca71848b7ed034b062b7e42240b24a9edc191cffac3af3d753fe5",
-      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
-      "observedAt": "2026-09-30T21:04:11.284384574Z",
+      "receiptHash": "15e71e18b4902304ceb71bd53a0224396805e15f2df0ab215bf5710459df4fa8",
+      "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
+      "observedAt": "2026-09-30T21:27:40.458782653Z",
       "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -6666,11 +6682,11 @@
       ],
       "github": {
         "repository": "FrostyCityMan/saneB",
-        "runId": 36775945586,
+        "runId": 36778179658,
         "runAttempt": 1,
-        "jobId": 110096466110,
-        "artifactId": 11125864406,
-        "headSha": "9e835c595c3ae0084d1dcd27673aec9e669deb94"
+        "jobId": 110105196697,
+        "artifactId": 11127168135,
+        "headSha": "d21402866ebd3b41b9bccefdbdf8602205de2512"
       }
     },
     {

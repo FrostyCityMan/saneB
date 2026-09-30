@@ -34,4 +34,14 @@ class ObservationResponseMetadataTest {
         assertThat(select(new byte[0],"text/html\r\nPrivate: value","attachment; filename=private\r\nname.hwp").dispositionType()).isEqualTo("INVALID");
         assertThat(select(new byte[0],"a/"+"b".repeat(128),"x".repeat(2001)).mediaType()).isEqualTo("UNRECOGNIZED");
     }
+    @Test void isolatedProbeArchivesContainHelperAndNestedSnapshot()throws Exception {
+        for(String path:java.util.List.of("build/official-worker-probe/official-worker-probe.jar","build/bbs-observation-probe/bbs-observation-probe.jar")) {
+            try(var archive=new java.util.jar.JarFile(path)) {
+                String prefix="com/saneb/domain/announcementattachment/qa/ObservationResponseMetadata";
+                assertThat(archive.getJarEntry(prefix+".class")).as(path).isNotNull();
+                assertThat(archive.getJarEntry(prefix+"$Snapshot.class")).as(path).isNotNull();
+                assertThat(archive.getJarEntry(prefix+"Test.class")).as(path).isNull();
+            }
+        }
+    }
 }
