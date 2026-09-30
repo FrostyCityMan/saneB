@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 220,
-    "missingProfileRegionCount": 3,
+    "registeredRegionCount": 221,
+    "missingProfileRegionCount": 2,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4346,14 +4346,26 @@
       "sourceCode": "LGS-000158",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_CELL",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000158",
+          "caseCode": "SEOCHEON-27490",
+          "profileCode": "LOCAL_SEOCHEON_GET_V1",
+          "profileHash": "01a9e7078262e8b87eb7ad7bdf054f9f11173d5431bd7b88d2e2f43a7066b773",
+          "receiptHash": "6eb7f0bd22f66e3788a32229a71620c8a895d76d17f2519ab3c7eb552b077268",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000159",
@@ -6433,9 +6445,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f18b8083e16df414a5fa7fdb1535d0f0950fe30874931848dab1f81dee199545",
+  "inputInventorySha256": "0192c274451d544440ec998be93999dfd1cda98026433fe67692bebfd6691b60",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 350,
+  "importedReceiptCount": 352,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12831,6 +12843,52 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "seocheonDownloadRun": {
+    "scope": "SEOCHEON_OFFICIAL_LEGACY_SAEOL_DOWNLOAD",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/SEOCHEON-27490.json",
+      "build/reports/attachment-regional-collection/SEOCHEON-27490-RECHECK-20260930.json"
+    ],
+    "maximumRequestReservationsPerAttempt": 6,
+    "maximumReservedBytesPerAttempt": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 7,
+    "reservedBytesIncludingBodyUpperBound": 4200663,
+    "surveyRequestCount": 8,
+    "surveyGetCount": 6,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 20,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000158",
+        "requestCount": 7,
+        "result": "PORTAL_LIST_502_OFFICIAL_SEARCH_POST_200_LEGACY_DETAIL_GET_200_ENCODING_COMPARISON_BOTH_200"
+      },
+      {
+        "sourceCode": "LGS-000079",
+        "requestCount": 1,
+        "result": "OFFICIAL_SEARCH_POST_TIMEOUT_20_SECONDS"
+      }
+    ],
+    "downloadedFileCount": 0,
+    "downloadedBytes": 0,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "archivedNoticeYear": 2021,
+    "operatingListEndpointChanged": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 194,
+      "noObservedDownloadRegionCount": 29,
+      "regionsWithErrors": 47,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 2
+    }
   },
   "goesanDownloadRun": {
     "scope": "GOESAN_OFFICIAL_SAEOL_DOWNLOAD",
