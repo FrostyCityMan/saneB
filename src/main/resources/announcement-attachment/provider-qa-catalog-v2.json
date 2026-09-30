@@ -3181,6 +3181,18 @@
         "listParserProfileCode": "SAEOL_GOSI"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "UIRYEONG-35341",
+      "profileCode": "LOCAL_UIRYEONG_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "0933e4db99ac1d6313694116e819a35c93231a9a487e926a129922a971d34164",
+        "sourceUrl": "https://www.uiryeong.go.kr/board/view.uiryeong?boardId=BBS_0000070&menuCd=DOM_000000203003001001&startPage=1&dataSid=316445&gosiNo=35341",
+        "localSourceCode": "LGS-000232",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
     }
   ]
 }

@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 201,
-    "missingProfileRegionCount": 22,
+    "registeredRegionCount": 202,
+    "missingProfileRegionCount": 21,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -5864,14 +5864,26 @@
       "sourceCode": "LGS-000232",
       "listParserProfileCode": "HEURISTIC_NOTICE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000232",
+          "caseCode": "UIRYEONG-35341",
+          "profileCode": "LOCAL_UIRYEONG_GET_V1",
+          "profileHash": "281fd844d4d1c948623b6fb10abbc9cb5de7adc908ff546d7beef2563e0ba7c0",
+          "receiptHash": "69110d254f3243ee281b8c73949c7277a6fced712b16890907fc56a2036bd312",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000233",
@@ -6150,9 +6162,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "26f67fdfd3b24cbf78b54a71a3ac0738c6783703a0da986e252c54caafaafea3",
+  "inputInventorySha256": "8fe55b716b8cb1cfe018407122986fe3c8ef1f7725ad1ff9a7b25f4134a90880",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 314,
+  "importedReceiptCount": 315,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12548,6 +12560,67 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "uiryeongDownloadRun": {
+    "scope": "UIRYEONG_REGISTERED_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/UIRYEONG-35341.json"
+    ],
+    "observationBudget": {
+      "caseCode": "UIRYEONG-35341",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2359296,
+    "surveyRequestCount": 9,
+    "surveyGetCount": 9,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "discoverySearchQueryCount": 0,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000232",
+        "result": "DETAIL_AND_FILE_PREFIX_TWO_GETS",
+        "isFullFileVerified": false
+      },
+      {
+        "sourceCode": "LGS-000230",
+        "result": "REGISTERED_LIST_FORM_SEARCH_AND_DETAIL_FIVE_GETS",
+        "candidateNoticeId": "67219",
+        "fileLinkCount": 1,
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000223",
+        "result": "REGISTERED_LIST_HTTP_200_ONE_GET",
+        "isDownloadVerified": false
+      },
+      {
+        "sourceCode": "LGS-000147",
+        "result": "REGISTERED_LIST_HTTP_200_ONE_GET",
+        "isDownloadVerified": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 106496,
+    "bodyStatus": "AVAILABLE",
+    "bodyCharacterCount": 222,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 174,
+      "noObservedDownloadRegionCount": 49,
+      "regionsWithErrors": 44,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 21
+    }
   },
   "sancheongDownloadRun": {
     "scope": "SANCHEONG_REGISTERED_BOARD_COLLECTION_ONLY",

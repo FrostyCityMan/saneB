@@ -31,6 +31,11 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void uiryeongBodyExcludesMetadataFilesAndScripts(){
+        String url="https://www.uiryeong.go.kr/board/view.uiryeong?boardId=BBS_0000070&menuCd=DOM_000000203003001001&startPage=1&dataSid=316445&gosiNo=35341";
+        String page="<div class=boardViewWrap><div class=bdvTitWrap><p class=bdvTit>소상공인 지원</p></div><div class=bdvInfo>수출 부서 투자 파일</div><div class=bdvCntWrap>소상공인 육성지원<script>x()</script></div></div>";
+        for(String content:List.of(page,page+page,page.replace("class=bdvCntWrap","class=other"),page.replace("<p class=bdvTit>소상공인 지원</p>",""))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 육성지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void sancheongBodyExcludesFileAndDepartmentCells(){
         String url="https://www.sancheong.go.kr/www/selectBbsNttView.do?key=158&bbsNo=118&nttNo=164021";
         String page="<table class=bbs_default_view><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>내용</th><td class=subject>소상공인 경영환경 개선지원<script>x()</script></td></tr><tr><th>파일</th><td>투자 파일</td></tr></table>";
