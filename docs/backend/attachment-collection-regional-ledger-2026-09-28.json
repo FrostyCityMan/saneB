@@ -4051,7 +4051,7 @@
           "caseCode": "JEUNGPYEONG-31159",
           "profileCode": "LOCAL_JEUNGPYEONG_GET_V1",
           "profileHash": "35aa5b33f6dc81c272f6aff01501014faca09463aaffd863bb64c302dcf0d834",
-          "receiptHash": "bd20a165f08b850ce3bcf7c2c7cbad74947cdae2f9dbaa4fc110f5f0a715569a",
+          "receiptHash": "ad2ef6cdbe8a8795ffb6123058c44f0a0a61918a4d7a9919c7cf06d0f9c33fc8",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -4151,7 +4151,7 @@
           "caseCode": "DANYANG-32263",
           "profileCode": "LOCAL_DANYANG_GET_V1",
           "profileHash": "f12dca1d4d1d89fc9e9aa50512e025c2fb174e5225c6bb47ff4cb6e6e935770c",
-          "receiptHash": "69d7a50b9775cbea3ed8118fbf89add2c048f48f9cb9b23bd5d5f293d7a6ac38",
+          "receiptHash": "21ac57b89c3c483795f02fa77340536d256aed4e2ce411931b1d80bfd83ac44c",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -4727,7 +4727,7 @@
           "caseCode": "WANJU-43355",
           "profileCode": "LOCAL_WANJU_GET_V1",
           "profileHash": "b820ccb2bff64f7dd3960fe7e5a21d26858649023c769d4698affd758656834e",
-          "receiptHash": "3b917d70143c3f3eca3190a0fac5c3900d2fce34b4be9effa9da42c7e0c8dadf",
+          "receiptHash": "7d33913915c01b86009c955d44cc3cf3829bf97d18ef30cca1a4bc871d84d71b",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -4752,7 +4752,7 @@
           "caseCode": "JINAN-33307",
           "profileCode": "LOCAL_JINAN_GET_V1",
           "profileHash": "3e55da6b920d6cfa06f321521550fb0bfd8fca7c804ebc8d2ac917d7593a254d",
-          "receiptHash": "99211c720a1501044fbf0cb2042843d5b5bd917363793086e07b40669c29b76f",
+          "receiptHash": "c2765798a223ccfd7d0aa016418323306438f5593e1cf1ab0273e462637818de",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -4777,7 +4777,7 @@
           "caseCode": "MUJU-34488",
           "profileCode": "LOCAL_MUJU_GET_V1",
           "profileHash": "be27e11dd520b5fde038cf7a7ac3d239079c112683d4e56fd6ebc69d4303f2be",
-          "receiptHash": "b66e4d7e2882ad6f50226c747451374fe671cf53944935a116f82f4214516227",
+          "receiptHash": "6b8a91d276abb68377305ee1d1e90e7de9354dda869156aeae8f1c694146f2a4",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -4802,7 +4802,7 @@
           "caseCode": "JANGSU-32491",
           "profileCode": "LOCAL_JANGSU_GET_V1",
           "profileHash": "f2e5481410719588582cf059bf1e765b07c71c17b8a33c32e6416129ed7f0ce7",
-          "receiptHash": "2892d11b6c52908290882c38956eff08afe8c2122c236d4a3f64171c7de432cb",
+          "receiptHash": "6fef50e14c06b3d529390e26c98e37cc2d447e3ba80e143370e34051669d2afe",
           "fileCount": 2,
           "downloadedFileCount": 1,
           "status": "INCOMPLETE",
@@ -4827,7 +4827,7 @@
           "caseCode": "IMSIL-33179",
           "profileCode": "LOCAL_IMSIL_GET_V1",
           "profileHash": "d3706e1d3d4ae20f757634fd072f75da4cfe0fa0aeff6c3fd1092b51ba274f8c",
-          "receiptHash": "712a1efdd1a4d28ee6b9e07aae6d38bf4e21443cfdaec289eb6de5d2e70b245f",
+          "receiptHash": "26b004bec8c6c635c1c80169edb1d5f57418d3fb3b97abadbf3bed90f449aa82",
           "fileCount": 1,
           "downloadedFileCount": 1,
           "status": "ALL_FILES_DOWNLOADED",
@@ -6515,7 +6515,7 @@
   ],
   "inputInventorySha256": "b74017aa8a20fe2c693b1fefa8346ed8b0b281bfa37df7e6af68834d5717eaf4",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 644,
+  "importedReceiptCount": 651,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12907,6 +12907,114 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "registeredEndpointSevenBodyCorrectionRun": {
+    "scope": "REGISTERED_ENDPOINT_SEVEN_BODY_QA_CORRECTION",
+    "baselineGitHead": "904a15a4f4d4b79aa8b5ad807ddc93b39cc8cc53",
+    "applicationJavaChanged": false,
+    "qaInputContractChanged": true,
+    "selectedJavaTestsPassed": 186,
+    "finalContractTestsPassed": 26,
+    "bodyResults": [
+      {
+        "caseCode": "DANYANG-32263",
+        "status": "AVAILABLE",
+        "characters": 405,
+        "failureCode": null
+      },
+      {
+        "caseCode": "IMSIL-33179",
+        "status": "AVAILABLE",
+        "characters": 524,
+        "failureCode": null
+      },
+      {
+        "caseCode": "JANGSU-32491",
+        "status": "AVAILABLE",
+        "characters": 991,
+        "failureCode": null
+      },
+      {
+        "caseCode": "JEUNGPYEONG-31159",
+        "status": "AVAILABLE",
+        "characters": 193,
+        "failureCode": null
+      },
+      {
+        "caseCode": "JINAN-33307",
+        "status": "AVAILABLE",
+        "characters": 520,
+        "failureCode": null
+      },
+      {
+        "caseCode": "MUJU-34488",
+        "status": "AVAILABLE",
+        "characters": 342,
+        "failureCode": null
+      },
+      {
+        "caseCode": "WANJU-43355",
+        "status": "AVAILABLE",
+        "characters": 455,
+        "failureCode": null
+      }
+    ],
+    "profileHashesUnchanged": true,
+    "catalogChanged": false,
+    "producerClassHash": "230ae19f3fa90c5620da125bfcd137f96fcbbcece3363c1e7cbc0c6a6dbcf87c",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DANYANG-32263-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/IMSIL-33179-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/JANGSU-32491-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/JEUNGPYEONG-31159-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/JINAN-33307-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/MUJU-34488-ENDPOINT-SEVEN-RECHECK-20261001.json",
+      "build/reports/attachment-regional-collection/WANJU-43355-ENDPOINT-SEVEN-RECHECK-20261001.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 196,
+      "noObservedDownloadRegionCount": 27,
+      "regionsWithErrors": 33,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 204,
+    "historicalNeverDownloadedRegionCount": 19,
+    "observedCaseCount": 7,
+    "downloadedCaseCount": 7,
+    "downloadedFileCount": 7,
+    "downloadedBytes": 576765,
+    "requestReservationsIncludingBodyUpperBound": 28,
+    "reservedBytesIncludingBodyUpperBound": 15317324,
+    "maximumRequestReservations": 42,
+    "maximumReservedBytes": 168820736,
+    "titleStops": [],
+    "bodyFailures": [],
+    "partialCases": [
+      {
+        "caseCode": "JANGSU-32491",
+        "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
+        "discoveryWarningCodes": [],
+        "failureCode": null,
+        "failedStage": null
+      }
+    ],
+    "fileIssues": [
+      {
+        "caseCode": "JANGSU-32491",
+        "status": "UNSUPPORTED_NOT_DOWNLOADED",
+        "failureCode": null
+      }
+    ],
+    "observationPassed": 7,
+    "observationFailed": 0,
+    "publicDiagnosticRequests": 0,
+    "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,

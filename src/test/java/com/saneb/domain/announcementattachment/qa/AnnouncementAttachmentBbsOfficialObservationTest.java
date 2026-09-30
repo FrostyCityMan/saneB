@@ -182,7 +182,8 @@ public class AnnouncementAttachmentBbsOfficialObservationTest {
             var normalizer=new com.saneb.domain.announcementsource.localgov.support.AnnouncementSourceIdentityNormalizer();
             return Stream.of(new ObservationCase(group+"-"+id,jp?"증평군 소상공인 지원자금 이차보전금 신청 공고":"2026년 단양군 소상공인 이차보전금 지원 사업 공고",
                     new AttachmentDiscoveryProfile.Source("LOCAL_GOV_NOTICE",normalizer.hash(normalizer.canonicalizeUrl(url)),url,jp?"LGS-000142":"LGS-000146","SAFE_SAEOL_EMINWON"),
-                    profile,jp?"https://www.jp.go.kr/kor/sub03_01_03.do":"https://www.danyang.go.kr/dy21/976",1,jp?TitleLayout.HAMAN_LABEL:TitleLayout.DANYANG_LABEL));
+                    // 실제 서비스와 같이 V61의 collection_endpoint_url을 본문 요청의 기준으로 사용한다.
+                    profile,"https://"+(jp?"eminwon.jp.go.kr":"eminwon.danyang.go.kr")+"/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do",1,jp?TitleLayout.HAMAN_LABEL:TitleLayout.DANYANG_LABEL));
         }
         if("SUSEONG".equals(group)) return Stream.of(
                 selectSuseongDalseoCase(group,"52705","2026년 수성구 소상공인 정책자금 이차보전 지원 사업 공고",1));
