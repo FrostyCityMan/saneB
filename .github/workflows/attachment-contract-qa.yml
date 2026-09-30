@@ -237,6 +237,25 @@ jobs:
           python3 -B -m unittest discover -s scripts/qa -p test_regional_tls_probe.py -v
           python3 -B -m unittest discover -s scripts/qa -p test_haman_observation_report.py -v
 
+      - name: 고정 3기관 TLS 협상 진단 — HTTP·파일 요청 없음
+        id: regional-tls-only
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-tls-only-01]') }}
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/attachment-regional-tls
+          timeout --signal=TERM --kill-after=5s 35s python3 -B scripts/qa/probe-regional-tls.py > build/reports/attachment-regional-tls/result.json
+
+      - name: TLS 진단 metadata 보관 — 인증서·원문 없음
+        if: ${{ always() && steps.regional-tls-only.outcome != 'skipped' && steps.regional-tls-only.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-regional-tls-${{ github.sha }}
+          path: build/reports/attachment-regional-tls/result.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: 함안 고정1공고 Linux 관측 — 운영 및 서울 서버 변경 없음
         id: haman-observation
         # 재실행은 외부 요청을 반복하지 않는다. 누적8요청/6,399,210byte에 최대6요청/23MiB를 가산한다.

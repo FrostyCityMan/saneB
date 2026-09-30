@@ -81,6 +81,25 @@ class RegionalTlsProbeTest(unittest.TestCase):
         self.assertEqual(result['errorCode'], 'TimeoutError')
         self.assertEqual(connect.call_count, 1)
 
+    @patch.object(probe.ssl, 'create_default_context')
+    @patch.object(probe.socket, 'create_connection')
+    @patch.object(probe.socket, 'getaddrinfo')
+    def test_tls_reason_is_allowlisted_without_exposing_exception(self, resolve, connect, context):
+        resolve.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('8.8.8.8', 443))]
+        for reason in ['DH_KEY_TOO_SMALL', 'UNSAFE_LEGACY_RENEGOTIATION_DISABLED',
+                       'CERTIFICATE_VERIFY_FAILED', 'PRIVATE_CANARY', None]:
+            failure = ssl.SSLError('PRIVATE_CANARY')
+            failure.reason = reason
+            context.return_value.wrap_socket.side_effect = failure
+            result = probe.probe('SEONGNAM')
+            self.assertEqual(result['phase'], 'TLS')
+            self.assertEqual(result['tlsReasonCode'], reason if reason in probe.TLS_REASONS
+                             else 'TLS_REASON_UNCLASSIFIED')
+            self.assertNotIn('PRIVATE_CANARY', json.dumps(result))
+            self.assertEqual(result['tcpConnections'], 1)
+            self.assertEqual(result['httpRequests'], 0)
+
+
     def test_main_pins_cpu_memory_deadline_and_reports_no_collection(self):
         resource = MagicMock()
         output = io.StringIO()
@@ -102,6 +121,8 @@ class RegionalTlsProbeTest(unittest.TestCase):
             handler.call_args.args[1](None, None)
         result = json.loads(output.getvalue())
         self.assertEqual(result['maximumConnections'], 3)
+        self.assertRegex(result['observedAt'], r'^\d{4}-\d{2}-\d{2}T.*\+00:00$')
+        self.assertEqual(result['opensslVersion'], ssl.OPENSSL_VERSION)
         self.assertEqual(result['maximumSeconds'], 30)
         self.assertEqual(result['httpRequests'], 0)
         self.assertEqual(result['productionWrites'], 0)

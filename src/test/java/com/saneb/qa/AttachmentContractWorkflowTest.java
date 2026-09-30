@@ -13,6 +13,25 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** workflow 구조 검증이며 원격 Actions 또는 Linux PostgreSQL 실행 결과가 아니다. */
 class AttachmentContractWorkflowTest {
+    @Test void tlsOnlyDiagnosisRequiresFirstPushAndDoesNotFetchHttpOrUseOperatingAccess() throws Exception {
+        var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
+        var run=all.stream().filter(item->"regional-tls-only".equals(item.get("id"))).findFirst().orElseThrow();
+        assertThat(run.get("if")).isEqualTo("${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[regional-tls-only-01]') }}");
+        assertThat(run.get("timeout-minutes")).isEqualTo(2);
+        assertThat(run.get("shell")).isEqualTo("bash");
+        assertThat(run.containsKey("continue-on-error")).isFalse();
+        assertThat(String.valueOf(run.get("run"))).contains("set -euo pipefail",
+                "timeout --signal=TERM --kill-after=5s 35s python3 -B scripts/qa/probe-regional-tls.py",
+                "> build/reports/attachment-regional-tls/result.json")
+                .doesNotContain("aws ","curl ","gradlew","|| true");
+        var artifact=all.stream().filter(item->"TLS 진단 metadata 보관 — 인증서·원문 없음".equals(item.get("name"))).findFirst().orElseThrow();
+        assertThat(artifact.get("if")).isEqualTo("${{ always() && steps.regional-tls-only.outcome != 'skipped' && steps.regional-tls-only.outcome != '' }}");
+        assertThat(((Map<?,?>)artifact.get("with")).get("path")).isEqualTo("build/reports/attachment-regional-tls/result.json");
+        assertThat(((Map<?,?>)artifact.get("with")).get("if-no-files-found")).isEqualTo("error");
+        assertThat(((Map<?,?>)artifact.get("with")).get("retention-days")).isEqualTo(7);
+        var preflight=all.stream().filter(item->String.valueOf(item.get("run")).contains("-p test_regional_tls_probe.py -v")).findFirst().orElseThrow();
+        assertThat(all.indexOf(preflight)).isLessThan(all.indexOf(run));
+    }
     @Test void okcheonObservationRequiresExplicitMarkerPassingContractsAndAllThreeCurrentReports() throws Exception {
         var all=steps(job(workflow())).stream().map(item->(Map<?,?>)item).toList();
         var run=all.stream().filter(item->"okcheon-official-observation".equals(item.get("id"))).findFirst().orElseThrow();

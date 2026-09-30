@@ -4,12 +4,24 @@ import json
 import socket
 import ssl
 import time
+from datetime import datetime, timezone
 
 TARGETS = {
     'SEONGNAM': ('LGS-000089', 'eminwon.seongnam.go.kr'),
     'SOKCHO': ('LGS-000122', 'www.sokcho.go.kr'),
     'UISEONG_FILE': ('LGS-000211', 'eminwon.uiseong.go.kr'),
 }
+
+# OpenSSL의 제한된 원인 코드만 보관한다. 예외 메시지·인증서 원문은 반환하지 않는다.
+TLS_REASONS = frozenset({
+    'CERTIFICATE_VERIFY_FAILED', 'UNSAFE_LEGACY_RENEGOTIATION_DISABLED',
+    'DH_KEY_TOO_SMALL', 'EE_KEY_TOO_SMALL', 'CA_MD_TOO_WEAK',
+    'SSLV3_ALERT_HANDSHAKE_FAILURE', 'SSLV3_ALERT_ILLEGAL_PARAMETER',
+    'TLSV1_ALERT_PROTOCOL_VERSION', 'TLSV1_ALERT_INTERNAL_ERROR',
+    'TLSV1_ALERT_DECODE_ERROR', 'TLSV1_UNRECOGNIZED_NAME',
+    'UNSUPPORTED_PROTOCOL', 'NO_PROTOCOLS_AVAILABLE', 'WRONG_VERSION_NUMBER',
+    'UNEXPECTED_EOF_WHILE_READING',
+})
 
 
 def probe(case_code):
@@ -45,6 +57,10 @@ def probe(case_code):
             code = getattr(failure, 'verify_code', None)
             if type(code) is int:
                 report['tlsVerificationCode'] = code
+        if isinstance(failure, ssl.SSLError):
+            reason = getattr(failure, 'reason', None)
+            report['tlsReasonCode'] = (reason if reason in TLS_REASONS
+                                       else 'TLS_REASON_UNCLASSIFIED')
         # 인증서 본문·예외 메시지·DNS IP는 출력하지 않는다.
     report['elapsedSeconds'] = round(time.monotonic() - started, 3)
     return report
@@ -68,6 +84,8 @@ def main():
         reports.append(probe(case_code))
         signal.alarm(0)
     print(json.dumps(dict(kind='REGIONAL_TLS_ONLY_DIAGNOSTIC', reports=reports,
+                         observedAt=datetime.now(timezone.utc).isoformat(),
+                         opensslVersion=ssl.OPENSSL_VERSION,
                          maximumConnections=3, maximumSeconds=30, maximumMemoryMiB=128,
                          httpRequests=0, filesDownloaded=0, productionWrites=0,
                          originalSaved=False, isAttachmentCollectionVerified=False)))
