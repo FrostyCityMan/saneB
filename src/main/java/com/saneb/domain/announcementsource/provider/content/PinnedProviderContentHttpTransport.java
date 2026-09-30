@@ -93,9 +93,9 @@ final class PinnedProviderContentHttpTransport implements ProviderContentHttpTra
     }
 
     static org.apache.hc.client5.http.classic.methods.HttpUriRequestBase selectRequest(java.net.URI uri) throws IOException {
-        if (!DongjakNoticePage.selectMatches(uri)) return new HttpGet(uri);
+        if (!DongjakNoticePage.selectMatches(uri) && !UlsanDongguNoticePage.selectMatches(uri)) return new HttpGet(uri);
         try {
-            var selected = DongjakNoticePage.selectRequest(uri);
+            var selected = DongjakNoticePage.selectMatches(uri) ? DongjakNoticePage.selectRequest(uri) : UlsanDongguNoticePage.selectRequest(uri);
             var request = new org.apache.hc.client5.http.classic.methods.HttpPost(selected.uri());
             request.setEntity(new org.apache.hc.client5.http.entity.UrlEncodedFormEntity(
                     selected.form().entrySet().stream().sorted(Map.Entry.comparingByKey())

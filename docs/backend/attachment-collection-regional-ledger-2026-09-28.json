@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 208,
-    "missingProfileRegionCount": 15,
+    "registeredRegionCount": 209,
+    "missingProfileRegionCount": 14,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2328,14 +2328,37 @@
       "sourceCode": "LGS-000080",
       "listParserProfileCode": "DOBONG_NOTICE_TABLE",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "EVIDENCE_VERSION_MISMATCH",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000080",
+          "caseCode": "ULSAN_DONGGU-27835",
+          "profileCode": "LOCAL_ULSAN_DONGGU_GET_V1",
+          "profileHash": "d158aae90a879b465369365e8fd72b467c6c775efcb4213aceae57ec11b39eee",
+          "receiptHash": "90e832e53f811235d388c38d6956f1baa4d79de9c597cd8b06e7273d138375a1",
+          "fileCount": 3,
+          "downloadedFileCount": 3,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        },
+        {
+          "sourceCode": "LGS-000080",
+          "caseCode": "ULSAN_DONGGU-28029",
+          "profileCode": "LOCAL_ULSAN_DONGGU_GET_V1",
+          "profileHash": "e85d5a86036cc59b2e691839c19019cb307a7e43bf7338592f68f7f1c2971704",
+          "receiptHash": "e05780ca5444ce2e3d776fa62fad588d4bb8923d2bbfb5ac55519067c24e6c0e",
+          "fileCount": 1,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000081",
@@ -6245,9 +6268,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "8fb0d4eb57468557a9ea90355f7a237060b7101f48a1c2e72c0cdee9851704b7",
+  "inputInventorySha256": "eb540bce0f0bba6248d3f67c660ce571340c94f7a935a570bc9a7bfda4e5ff75",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 323,
+  "importedReceiptCount": 325,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12643,6 +12666,109 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "ulsanDongguDownloadRun": {
+    "scope": "ULSAN_DONGGU_OFFICIAL_DETAIL_AND_FILES_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ULSAN_DONGGU-28029.json",
+      "build/reports/attachment-regional-collection/ULSAN_DONGGU-27835.json"
+    ],
+    "firstProfileVersion": "DETAIL_GET_V1",
+    "currentProfileVersion": "DETAIL_POST_V2_FILE_GET",
+    "observationBudgets": [
+      {
+        "caseCode": "ULSAN_DONGGU-28029",
+        "reportPath": "build/reports/attachment-regional-collection/ULSAN_DONGGU-28029.json",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      },
+      {
+        "caseCode": "ULSAN_DONGGU-27835",
+        "reportPath": "build/reports/attachment-regional-collection/ULSAN_DONGGU-27835.json",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 10,
+    "reservedBytesIncludingBodyUpperBound": 4512423,
+    "surveyRequestCount": 20,
+    "surveyGetCount": 17,
+    "surveyPostCount": 3,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000080",
+        "requestCount": 6,
+        "detailGetPartial": true,
+        "officialDetailPostVerified": true,
+        "bodyAndAttachmentAreasVerified": true
+      },
+      {
+        "sourceCode": "LGS-000082",
+        "requestCount": 3,
+        "registeredRedirectHttpStatus": 302,
+        "stableListHttpStatus": 200,
+        "ephemeralRedirectValuesNotPersisted": true,
+        "registeredCategory": "01"
+      },
+      {
+        "sourceCode": "LGS-000182",
+        "requestCount": 3,
+        "registeredRedirectHttpStatus": 302,
+        "stableListHttpStatus": 200,
+        "registeredCategory": "01"
+      },
+      {
+        "sourceCode": "LGS-000088",
+        "requestCount": 8,
+        "registeredCategory": "01",
+        "registeredTitleSearchResults": 0,
+        "officialGeneralCategory": "04",
+        "candidateNoticeId": "141781",
+        "candidateFileCount": 1,
+        "isDownloadVerified": false,
+        "registeredSourceCorrectionRequiredForGeneralNotices": true
+      }
+    ],
+    "originalsRemoved": true,
+    "downloadedFileCount": 3,
+    "fileFailures": [
+      {
+        "caseCode": "ULSAN_DONGGU-28029",
+        "stage": "FILE_SIGNATURE",
+        "code": "ATTACHMENT_FORMAT_MISMATCH",
+        "locatorHash": "0b56151f452f04b6dcfab544045e0cc8e2e3c082299c54697ac79435913d2304"
+      }
+    ],
+    "bodyResults": [
+      {
+        "caseCode": "ULSAN_DONGGU-28029",
+        "status": "AVAILABLE",
+        "characterCount": 446,
+        "failureCode": null
+      },
+      {
+        "caseCode": "ULSAN_DONGGU-27835",
+        "status": "AVAILABLE",
+        "characterCount": 458,
+        "failureCode": null
+      }
+    ],
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 181,
+      "noObservedDownloadRegionCount": 42,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 14
+    }
   },
   "metroRemainderDownloadRun": {
     "scope": "BUPYEONG_DONGJAK_REGISTERED_BOARD_COLLECTION_ONLY",

@@ -23,6 +23,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class PinnedProviderContentHttpTransportTest {
+    @Test void ulsanDongguUsesOnlyItsFixedPublicReadPost()throws Exception{
+        String url="https://eminwon.donggu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=27835&not_ancmt_se_code=01%2C03%2C04%2C05&subCheck=Y";
+        var request=PinnedProviderContentHttpTransport.selectRequest(URI.create(url));
+        assertThat(request.getMethod()).isEqualTo("POST");assertThat(request.getUri().getRawQuery()).isNull();
+        assertThat(CapitalThirdNoticePage.selectParameters(org.apache.hc.core5.http.io.entity.EntityUtils.toString(request.getEntity()))).isEqualTo(UlsanDongguNoticePage.selectRequest(URI.create(url)).form());
+        for(String bad:List.of(url+"&extra=x",url+"&not_ancmt_mgt_no=2",url.replace("01%2C03%2C04%2C05","01"),url.replace("https:","http:"),url+"#fragment"))assertThatThrownBy(()->PinnedProviderContentHttpTransport.selectRequest(URI.create(bad))).isInstanceOf(IOException.class).hasMessage("BODY_PUBLIC_POST_REQUEST_INVALID");
+    }
     @Test void onlyDongjakOfficialReadFormUsesPost()throws Exception{
         String url="https://dongjak.eminwon.seoul.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=29506&subCheck=Y";
         var request=PinnedProviderContentHttpTransport.selectRequest(URI.create(url));

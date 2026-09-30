@@ -318,7 +318,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                     );
                 }
                 if (selectRedirectStatus(statusCode)) {
-                    if (DongjakNoticePage.selectMatches(initialUri) || DamyangNoticePage.selectApiMatches(initialUri) || ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
+                    if (UlsanDongguNoticePage.selectMatches(initialUri) || DongjakNoticePage.selectMatches(initialUri) || DamyangNoticePage.selectApiMatches(initialUri) || ChuncheonNoticePage.selectApiMatches(initialUri) || IncheonCityNoticePage.selectMatches(initialUri) || DaejeonAggregatorNoticePage.selectMatches(initialUri)) {
                         return FetchAttempt.failure(FailureCode.DETAIL_URL_INVALID,currentUri,statusCode,false,redirectCount);
                     }
                     if (redirectCount >= maxRedirects) {
@@ -486,6 +486,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         }
         if (BupyeongNoticePage.selectMatches(sourceUri)) {
             try { BupyeongNoticePage.selectDetailUri(sourceUri); return BupyeongNoticePage.selectContent(document); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
+        if (UlsanDongguNoticePage.selectMatches(sourceUri)) {
+            try { UlsanDongguNoticePage.selectDetailUri(sourceUri); return UlsanDongguNoticePage.selectContent(document); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
         }
         if (DongjakNoticePage.selectMatches(sourceUri)) {

@@ -3277,6 +3277,30 @@
         "listParserProfileCode": "SAFE_SAEOL_EMINWON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "ULSAN_DONGGU-28029",
+      "profileCode": "LOCAL_ULSAN_DONGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "a3f188b9efd50fa4715caccc53cefa889edbe703ccbfdb2ee688f35c1f7da8d2",
+        "sourceUrl": "https://eminwon.donggu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=28029&not_ancmt_se_code=01%2C03%2C04%2C05&subCheck=Y",
+        "localSourceCode": "LGS-000080",
+        "listParserProfileCode": "DOBONG_NOTICE_TABLE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ULSAN_DONGGU-27835",
+      "profileCode": "LOCAL_ULSAN_DONGGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c0524987db91414a09ed3282ef33d66c1473ab8e9fe0f99cc11e9e2daadebc78",
+        "sourceUrl": "https://eminwon.donggu.ulsan.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=27835&not_ancmt_se_code=01%2C03%2C04%2C05&subCheck=Y",
+        "localSourceCode": "LGS-000080",
+        "listParserProfileCode": "DOBONG_NOTICE_TABLE"
+      },
+      "expectation": null
     }
   ]
 }
