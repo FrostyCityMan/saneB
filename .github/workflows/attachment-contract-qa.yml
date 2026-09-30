@@ -141,6 +141,26 @@ jobs:
           test -x /usr/bin/bwrap
           test -x /usr/bin/prlimit
 
+      - name: 울산 남구 고정 목록 진단기 검증 — 외부 요청 없음
+        run: node --test scripts/qa/attachment-ulsan-namgu-survey.test.mjs
+
+      - name: 울산 남구 공식 목록 구조 진단 — 최대 3요청·6MiB
+        id: ulsan-namgu-list-survey
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') }}
+        timeout-minutes: 2
+        env:
+          SANEB_ULSAN_NAMGU_SURVEY: 'true'
+        run: node scripts/qa/attachment-ulsan-namgu-survey.mjs
+
+      - name: 울산 남구 목록 진단 metadata 보관 — 쿠키·원문 없음
+        if: ${{ always() && steps.ulsan-namgu-list-survey.outcome != 'skipped' && steps.ulsan-namgu-list-survey.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-ulsan-namgu-survey-${{ github.sha }}
+          path: build/reports/attachment-ulsan-namgu-survey/result.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: 제천 worker 전체 보고서 판정기 검증
         run: node --test scripts/qa/attachment-jecheon-worker-report.test.mjs
 

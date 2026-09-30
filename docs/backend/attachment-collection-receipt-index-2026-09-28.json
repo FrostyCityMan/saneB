@@ -5363,6 +5363,22 @@
       "receiptHash": "15e71e18b4902304ceb71bd53a0224396805e15f2df0ab215bf5710459df4fa8",
       "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "GITHUB_COLLECTION_ONLY",
+      "path": "build/qa-github-runs/36780624906/reports/attachment-regional-collection/CHUNGBUK-67302-CHUNGBUK-FILE-01.json",
+      "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
+      "github": {
+        "repository": "FrostyCityMan/saneB",
+        "runId": 36780624906,
+        "runAttempt": 1,
+        "jobId": 110112600033,
+        "artifactId": 11128675541,
+        "headSha": "73f38fcfef386ae463a27657f64f9c60c2539e0e"
+      },
+      "receiptHash": "579ec3d77d8c4c97dae977c69600b20adc66239a60ebc6c6cb7b6294758253b5",
+      "status": "IMPORTED_GITHUB_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -6661,32 +6677,26 @@
       "sourceCode": "LGS-000135",
       "caseCode": "CHUNGBUK-67302",
       "profileCode": "LOCAL_CHUNGBUK_BOARD_V1",
-      "profileHash": "a03ff4f3c7c294842bf51e948ba8a632dcc3159678f1820d68cccf4684e00683",
-      "receiptHash": "15e71e18b4902304ceb71bd53a0224396805e15f2df0ab215bf5710459df4fa8",
+      "profileHash": "5054c6ec088190c2d510ace225659e9f6d1d936ba82f5da1864c77150529de12",
+      "receiptHash": "579ec3d77d8c4c97dae977c69600b20adc66239a60ebc6c6cb7b6294758253b5",
       "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
-      "observedAt": "2026-09-30T21:27:40.458782653Z",
+      "observedAt": "2026-09-30T21:47:34.172494690Z",
       "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": true,
-      "discoveryStatus": "FOUND",
-      "discoveryComplete": true,
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": [
-        {
-          "locatorHash": "bc31bacb8ae79a4ba4ecfc7b176c2384a60bd0e77466223e183a5eecc6ae43ba",
-          "status": "FAILED",
-          "bytes": 179201
-        }
-      ],
+      "files": [],
       "github": {
         "repository": "FrostyCityMan/saneB",
-        "runId": 36778179658,
+        "runId": 36780624906,
         "runAttempt": 1,
-        "jobId": 110105196697,
-        "artifactId": 11127168135,
-        "headSha": "d21402866ebd3b41b9bccefdbdf8602205de2512"
+        "jobId": 110112600033,
+        "artifactId": 11128675541,
+        "headSha": "73f38fcfef386ae463a27657f64f9c60c2539e0e"
       }
     },
     {
