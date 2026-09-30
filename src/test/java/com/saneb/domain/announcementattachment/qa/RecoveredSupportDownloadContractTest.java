@@ -11,7 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class RecoveredSupportDownloadContractTest {
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT"})
     void newNoticeKeepsFailureHistoryAndExistingProfile(String group) {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
         var old=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group.replace("_SUPPORT", "")).toList().getFirst();
@@ -22,10 +22,10 @@ class RecoveredSupportDownloadContractTest {
         assertThat(sample.listUrl()).isEqualTo(old.listUrl());
         assertThat(sample.profile().selectDetailUri(sample.source()).toString()).isEqualTo(sample.source().sourceUrl());
         assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group).map(c->c.code())).containsExactly(sample.code());
-        assertThat(sample.listedFileCount()).isEqualTo(group.equals("GEOCHANG_SUPPORT")?1:2);
+        assertThat(sample.listedFileCount()).isEqualTo(java.util.Set.of("GEOCHANG_SUPPORT","MICHUHOL_SUPPORT").contains(group)?1:2);
     }
 
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT"})
     void titlePolicyAndFiniteBudgetAreNotRelaxed(String group) throws Exception {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
         var decision=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput(
@@ -33,12 +33,15 @@ class RecoveredSupportDownloadContractTest {
                 AnnouncementSourceClassificationCodes.BodySourceCode.NONE,AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNAVAILABLE),
                 AnnouncementAttachmentRealFileQaTest.selectDraftRuleSet());
         assertThat(AnnouncementAttachmentBbsOfficialObservationTest.selectTitleMayProceed(decision)).isTrue();
+        assertThat(decision.titleStageCode()).isEqualTo(group.equals("ASAN_SUPPORT")
+                ?AnnouncementSourceClassificationCodes.TitleStageCode.GROUP_A_MATCHED
+                :AnnouncementSourceClassificationCodes.TitleStageCode.COMBINATION_MATCHED);
         var budget=AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(sample.profile(),true,false);
         assertThat(budget.maximumRequests).isBetween(1,10);
         assertThat(budget.maximumBytes).isLessThanOrEqualTo(44L*1024*1024);
     }
 
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT"})
     void newCatalogReferenceCannotApprovePolicy(String group) throws Exception {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
         var json=new ObjectMapper();

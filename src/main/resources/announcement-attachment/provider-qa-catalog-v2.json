@@ -3565,6 +3565,30 @@
         "listParserProfileCode": "SCMS_CARD_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "MICHUHOL-315063",
+      "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "2d1ed5ef4d2624698fe1251b41d0429419104d421bd868e4b04b1a57356f9c85",
+        "sourceUrl": "https://www.michuhol.go.kr/main/board/view.do?board_code=board_13&sq=315063",
+        "localSourceCode": "LGS-000057",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "ASAN-76469",
+      "profileCode": "LOCAL_ASAN_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "33925b6ed8560a673b012901a89670813477c97676109dd651a4a6783ee0922d",
+        "sourceUrl": "https://www.asan.go.kr/main/cms/?no=257&m_mode=view&mgt_no=76469",
+        "localSourceCode": "LGS-000151",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }

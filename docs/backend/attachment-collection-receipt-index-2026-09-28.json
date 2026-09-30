@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "f4b1e5ab5c1ed61ee1072546b1809343546555cd6497b489047f537aef07d60e",
+  "inventorySha256": "a9cc5dfa95a7c07662f9235a27cde47847f6519dd7f6495902fb5ca9fb418726",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -5171,6 +5171,22 @@
       "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/ASAN-76469-MICHUHOL-ASAN-SUPPORT-20261001.json",
+      "receiptHash": "297551fa3bcd11e0de442e346bc8a13d7cecaa265db3436d88342a5e14093888",
+      "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/MICHUHOL-315063-MICHUHOL-ASAN-SUPPORT-20261001.json",
+      "receiptHash": "92251cd8e897801c80c32b467750b3edc62715e02556d0c0e51df83d2e108d21",
+      "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -5281,6 +5297,35 @@
           "format": "HWPX",
           "binaryHash": "9b84e0f7d5debbc8f7a62583615dad80c446e8a7e2fb16515963baa308643a42",
           "signatureVerified": true
+        }
+      ]
+    },
+    {
+      "sourceCode": "LGS-000151",
+      "caseCode": "ASAN-76469",
+      "profileCode": "LOCAL_ASAN_BOARD_V1",
+      "profileHash": "736f9051e70a189854e3a26d0573b77a68c8711f9871805d8513cadb61e35df2",
+      "receiptHash": "297551fa3bcd11e0de442e346bc8a13d7cecaa265db3436d88342a5e14093888",
+      "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+      "observedAt": "2026-09-30T19:19:42.191749400Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 2,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "47bff9eaa60cecafb5753b6727580124d4860bc0a1616e385a505037114baa62",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "17bcf2c2fd06c822aaf08ce6a9b54ee8f48c939f2e7b4e2fd29b1d2b59f75a11",
+          "status": "FAILED",
+          "bytes": 0
         }
       ]
     },
@@ -10279,6 +10324,33 @@
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
       "files": []
+    },
+    {
+      "sourceCode": "LGS-000057",
+      "caseCode": "MICHUHOL-315063",
+      "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+      "profileHash": "eca41b21c32d6d7a0160bfd6fa34a8069db4948d1dad816449c40db792bdb43e",
+      "receiptHash": "92251cd8e897801c80c32b467750b3edc62715e02556d0c0e51df83d2e108d21",
+      "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+      "observedAt": "2026-09-30T19:19:26.684481700Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": [
+        {
+          "locatorHash": "d038f32ea3bc1750533d5cccf0a60e943589028591254f07a6389a2207c30932",
+          "status": "SUCCEEDED",
+          "bytes": 56832,
+          "format": "HWP",
+          "binaryHash": "a2115646b4b8cb09ee3874f1ba4a453f38a1a8d128a3cc2c00ebf75ef474e673",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000178",

@@ -1862,9 +1862,9 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "COLLECTION_INCOMPLETE",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
         {
@@ -1877,6 +1877,17 @@
           "downloadedFileCount": 0,
           "status": "INCOMPLETE",
           "collectionVerified": false
+        },
+        {
+          "sourceCode": "LGS-000057",
+          "caseCode": "MICHUHOL-315063",
+          "profileCode": "LOCAL_MICHUHOL_BOARD_V1",
+          "profileHash": "eca41b21c32d6d7a0160bfd6fa34a8069db4948d1dad816449c40db792bdb43e",
+          "receiptHash": "92251cd8e897801c80c32b467750b3edc62715e02556d0c0e51df83d2e108d21",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -4267,9 +4278,20 @@
       "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 1,
+      "observedSampleCount": 2,
       "minimumSampleCount": 3,
       "samples": [
+        {
+          "sourceCode": "LGS-000151",
+          "caseCode": "ASAN-76469",
+          "profileCode": "LOCAL_ASAN_BOARD_V1",
+          "profileHash": "736f9051e70a189854e3a26d0573b77a68c8711f9871805d8513cadb61e35df2",
+          "receiptHash": "297551fa3bcd11e0de442e346bc8a13d7cecaa265db3436d88342a5e14093888",
+          "fileCount": 2,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        },
         {
           "sourceCode": "LGS-000151",
           "caseCode": "ASAN-80727",
@@ -6546,9 +6568,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "f4b1e5ab5c1ed61ee1072546b1809343546555cd6497b489047f537aef07d60e",
+  "inputInventorySha256": "a9cc5dfa95a7c07662f9235a27cde47847f6519dd7f6495902fb5ca9fb418726",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 656,
+  "importedReceiptCount": 658,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12940,6 +12962,83 @@
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
     "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "michuholAsanSupportRecoveryRun": {
+    "scope": "MICHUHOL_ASAN_SUPPORT_SAMPLE_RECOVERY",
+    "baselineGitHead": "b5e7cbacdb0370396b60a9ff19953a2e6b31d321",
+    "applicationJavaChanged": false,
+    "profileHashesUnchanged": true,
+    "catalogChanged": true,
+    "catalogReferencesBefore": 292,
+    "catalogReferencesAfter": 294,
+    "previousInventorySha256": "f4b1e5ab5c1ed61ee1072546b1809343546555cd6497b489047f537aef07d60e",
+    "currentInventorySha256": "a9cc5dfa95a7c07662f9235a27cde47847f6519dd7f6495902fb5ca9fb418726",
+    "producerClassHash": "caeef0d8ae1727e6b4ceb96c6ab68fa1440d7dfd7549c87b297b906e60e2b148",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ASAN-76469-MICHUHOL-ASAN-SUPPORT-20261001.json",
+      "build/reports/attachment-regional-collection/MICHUHOL-315063-MICHUHOL-ASAN-SUPPORT-20261001.json"
+    ],
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 201,
+      "noObservedDownloadRegionCount": 22,
+      "regionsWithErrors": 32,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    },
+    "historicalEverDownloadedRegionCount": 204,
+    "historicalNeverDownloadedRegionCount": 19,
+    "observedCaseCount": 2,
+    "downloadedCaseCount": 1,
+    "downloadedFileCount": 1,
+    "downloadedBytes": 56832,
+    "requestReservationsIncludingBodyUpperBound": 9,
+    "reservedBytesIncludingBodyUpperBound": 4546048,
+    "maximumRequestReservations": 12,
+    "maximumReservedBytes": 48234496,
+    "titleStops": [],
+    "bodyFailures": [],
+    "partialCases": [
+      {
+        "caseCode": "ASAN-76469",
+        "status": "COLLECTION_ONLY_PARTIAL_NOT_APPROVED",
+        "discoveryWarningCodes": [],
+        "failureCode": null,
+        "failedStage": null
+      }
+    ],
+    "fileIssues": [
+      {
+        "caseCode": "ASAN-76469",
+        "status": "FAILED",
+        "failureCode": "TRANSPORT_TIMEOUT"
+      },
+      {
+        "caseCode": "ASAN-76469",
+        "status": "FAILED",
+        "failureCode": "TRANSPORT_TIMEOUT"
+      }
+    ],
+    "publicDiagnosticRequests": 14,
+    "tcpTlsOnlyDiagnosticAttempts": 1,
+    "asanTcp443Connected": true,
+    "asanTlsValidated": true,
+    "asanTlsProtocol": "Tls12",
+    "asanNativePostTimedOut": true,
+    "asanNativePostElapsedMs": 12023,
+    "rootTests": 157,
+    "rootTestSkipped": 2,
+    "rootTestFailed": 0,
+    "observationPassed": 2,
+    "observationFailed": 0,
+    "nativeOriginalFilesWritten": 0,
+    "previousFailuresPreserved": true,
+    "asanGroupAReviewPreserved": true,
+    "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
     "isExpectationApproved": false,

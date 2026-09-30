@@ -7,7 +7,7 @@ import java.util.Set;
 
 /** 공식 목록에서 확인한 추가 표본. 이전 상세 실패·정책 기대값은 변경하지 않는다. */
 final class RecoveredSupportDownloadCases {
-    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT");
+    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT", "MICHUHOL_SUPPORT", "ASAN_SUPPORT");
 
     static ObservationCase selectCase(String group) {
         ObservationCase old;
@@ -34,6 +34,20 @@ final class RecoveredSupportDownloadCases {
                 title="2026년 거창군 청년 구직자 자격증 취득 응시료 지원사업";
                 url="https://www.geochang.go.kr/00445/00451.web?amode=view&not_ancmt_mgt_no="+id;
                 files=1;
+            }
+            case "MICHUHOL_SUPPORT" -> {
+                old=IncheonSecondDownloadCases.selectCase("MICHUHOL");
+                id="315063";
+                title="2026년도 중소기업 육성 및 소상공인 지원사업 융자계획 공고";
+                url="https://www.michuhol.go.kr/main/board/view.do?board_code=board_13&sq="+id;
+                files=1;
+            }
+            case "ASAN_SUPPORT" -> {
+                old=ChungcheongSixthDownloadCases.selectCase("ASAN");
+                id="76469";
+                title="2026년 친환경농산물 인증비 지원사업 신청 공고";
+                url="https://www.asan.go.kr/main/cms/?no=257&m_mode=view&mgt_no="+id;
+                files=2;
             }
             default -> throw new IllegalArgumentException("QA_GROUP_REQUIRED");
         }
