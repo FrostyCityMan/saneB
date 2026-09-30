@@ -31,6 +31,17 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void gangnamAndDobongBodiesExcludeTitlesMetadataAndAttachments(){
+        var pages=Map.of(
+                "https://www.gangnam.go.kr/notice/view.do?not_ancmt_mgt_no=64668&mid=ID05_040201","<div class='board view'><div class=bbs-view><div class=post-title>중소기업 지원<br>수출 공고번호</div><div class=post-info>특허 부서</div><div class=post-content>중소기업 지원금</div><div class=bbs-view-file>제조.hwpx</div></div></div>",
+                "https://www.dobong.go.kr/WDB_DEV/gosigong_go/detail.asp?idx=4734","<div class=bbsView><table class=boardView><tr><td class=title>청년 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr></table><div class=bbsCont>청년 지원금</div></div>");
+        for(var entry:pages.entrySet())for(String page:List.of(entry.getValue(),entry.getValue()+entry.getValue(),entry.getValue().replace("class=post-content","class=other").replace("class=bbsCont","class=other"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자 메뉴</nav>"+page));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,entry.getKey(),entry.getKey()));
+            if(page.equals(entry.getValue())){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isIn("중소기업 지원금","청년 지원금");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void damyangFreshJsonBodyExcludesMetadataAndKeepsAttachmentFailuresSeparate() throws Exception {
         String url="https://www.damyang.go.kr/eminwon/searchDetail?notAncmtMgtNo=37086&listType=01";
         String json=new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(Map.of("RSLT_CD","0000","RSLT_DATA",Map.of("searchDetail",Map.of(

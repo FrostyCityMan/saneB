@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 182,
-    "missingProfileRegionCount": 41,
+    "registeredRegionCount": 184,
+    "missingProfileRegionCount": 39,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -247,14 +247,26 @@
       "sourceCode": "LGS-000011",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000011",
+          "caseCode": "DOBONG-4734",
+          "profileCode": "LOCAL_DOBONG_BOARD_V1",
+          "profileHash": "600313898cdd39657b5d196dc0ca0d76e15f050dc37290be5dcf70bd0cf039a9",
+          "receiptHash": "8971f07f262bd75e8835ab8c0493171c9ad5831d71616a4c53db53ea2956dbe1",
+          "fileCount": 4,
+          "downloadedFileCount": 4,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000012",
@@ -558,14 +570,26 @@
       "sourceCode": "LGS-000024",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000024",
+          "caseCode": "GANGNAM-64668",
+          "profileCode": "LOCAL_GANGNAM_BOARD_V1",
+          "profileHash": "49df68f4390a075f790c2bb5b898d65027315d1802143ab57aa26c551a042204",
+          "receiptHash": "fc23a702458e413a5f3762a79bb702bbacf05e54b969115098b361d8d439d2f6",
+          "fileCount": 4,
+          "downloadedFileCount": 4,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000025",
@@ -5851,9 +5875,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "a1912f0bc0ea4bb36ad390ed16cd130c2bfb32090d6c2cd5dc4881f9f1968fae",
+  "inputInventorySha256": "be351dc5b50e58822e3a73906cfb62395abc60dc4f30d95780198cdc913a9856",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 283,
+  "importedReceiptCount": 286,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12244,6 +12268,168 @@
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2506752,
     "totalSurveyAndObservationRequestReservationsUpperBound": 8,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false
+  },
+  "seoulEighthDownloadRun": {
+    "scope": "GANGNAM_DOBONG_COLLECTION_ONLY_WITH_DOBONG_UTF8_RECOVERY",
+    "observedAt": "2026-09-30T00:53:41.267515800Z",
+    "surveyRequestCount": 11,
+    "surveyGetCount": 9,
+    "surveyPostCount": 2,
+    "surveyMaximumSecondsPerRequest": 15,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "diagnosticFileMaximumBytes": 10485760,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000024",
+        "requests": 3,
+        "result": "OFFICIAL_SUPPORT_SEARCH_DETAIL200_PDF2_HWPX2"
+      },
+      {
+        "sourceCode": "LGS-000011",
+        "requests": 8,
+        "result": "OFFICIAL_REDIRECT_SUPPORT_SEARCH_DETAIL_PREFLIGHT200_UTF8_DISPOSITION_DIAGNOSIS",
+        "preflightPostCount": 2
+      }
+    ],
+    "surveyRawFiles": [
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-board-head.txt",
+        "bytes": 360,
+        "sha256": "6a6c580c0acf457d22adf39abb39b07102f7bfe7a0d6dcaf8efc74a141ebbc82"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-board.html",
+        "bytes": 180734,
+        "sha256": "fe9ef44bc6b47a19aab10fffcd58aed3e1981141aa6c97e0a72924b735017bc4"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-current-head.txt",
+        "bytes": 400,
+        "sha256": "c3efc64c2e10db3cccc76bff7c42178c318b13a9bffde6ed46bf303aaf662688"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-current.html",
+        "bytes": 115,
+        "sha256": "fbbfd1b8599de9856d4c864c83ec2057e2880fe557670e56d3716f683e8ea35e"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-detail-head.txt",
+        "bytes": 360,
+        "sha256": "67413b1041f8240306367fef4e7bffc07911dc585a39d1c1a31c255348a98256"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-detail.html",
+        "bytes": 172919,
+        "sha256": "bbbffccaba169230cddb78344d14770eb84a7054eaf288f6542d5927c521cdaf"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-diagnostic-check-head.txt",
+        "bytes": 355,
+        "sha256": "511ac5537105f4a71e13be22e4a66df44ea569022fd8faa6a192ef5d07ccdb38"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-diagnostic-check.txt",
+        "bytes": 2,
+        "sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-file-head.txt",
+        "bytes": 508,
+        "sha256": "b064355d7163344bf15790b625c2ac5b27d1dc1d6b433a3f4197ed9f2d4abb65"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-file.bin",
+        "bytes": 79386,
+        "sha256": "80958d61150815ccfb16bee5f9e04daf53bdf7794aa97b7bc42a7906f3076b0e"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-list-head.txt",
+        "bytes": 406,
+        "sha256": "c462d5e6d4dad4016ab66d7d9821e0362b9d678da646074e110edec55e8652f8"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-list.html",
+        "bytes": 121,
+        "sha256": "78e9783bfdfafde52d7d29cb82cd1b32eeefc2bf7a0dd7908ba422fbc575b6b7"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-preflight-head.txt",
+        "bytes": 355,
+        "sha256": "35bb3dde1b3c6c953b84ae8252375feda6c48d7d629c1d0c8e517ee8b21425a7"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-preflight.txt",
+        "bytes": 2,
+        "sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-search-head.txt",
+        "bytes": 360,
+        "sha256": "dd24a35fd1e0f82afec50c11a12e0529fa1d0e45ef44050c64f25f4a54ad5b9d"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/DOBONG-search.html",
+        "bytes": 178691,
+        "sha256": "9ec1f91af4aa69d890f94fbe0402a2740df6aa28cea30fc9d4971b7de2f486b7"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-detail-head.txt",
+        "bytes": 484,
+        "sha256": "1aff384328ccdeb9ddf922157eeb925d2fe6d02599eb5d87c403799f2b6915f2"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-detail.html",
+        "bytes": 445280,
+        "sha256": "e3a7ebe1dfb39c8e98ed1a917effe96bb651317be68e8cd9b40e72527e183c4d"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-list-head.txt",
+        "bytes": 484,
+        "sha256": "98c5a69c0b073ac2beb5d4eab26b0721888847da8b29b41c5e53fc6181d3a284"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-list.html",
+        "bytes": 457450,
+        "sha256": "bd4909fd9700a2f65401c717dd66328f72fa9acece520bce6b5e128d3aa89cc8"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-search-head.txt",
+        "bytes": 484,
+        "sha256": "a5abc4ba2727ab8c09f08756b2f8d1bafc2fa884c5e8671a2144e646b498a904"
+      },
+      {
+        "path": "build/qa-seoul-next-20260930/GANGNAM-search.html",
+        "bytes": 457499,
+        "sha256": "4817f3eed8c3e5003692b871c20e6a2975f356bbb8c8b6567e65268e6aa335d7"
+      }
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "GANGNAM-64668",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 8,
+        "maximumBytesPerAttempt": 45088768
+      },
+      {
+        "caseCode": "DOBONG-4734",
+        "attempts": 2,
+        "maximumRequestsPerAttempt": 12,
+        "maximumBytesPerAttempt": 45088768
+      }
+    ],
+    "observationReports": [
+      "build/reports/attachment-regional-collection/DOBONG-4734-BEFORE-UTF8.json",
+      "build/reports/attachment-regional-collection/GANGNAM-64668.json",
+      "build/reports/attachment-regional-collection/DOBONG-4734.json"
+    ],
+    "requestReservationsIncludingBodyUpperBound": 29,
+    "reservedBytesIncludingBodyUpperBound": 9318394,
+    "totalSurveyAndObservationRequestReservationsUpperBound": 40,
     "originalsRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,

@@ -2917,6 +2917,30 @@
         "listParserProfileCode": "DAMYANG_NOTICE_JSON"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "GANGNAM-64668",
+      "profileCode": "LOCAL_GANGNAM_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "b1a569f9e0290abc2c5dd29567af8755153aad7ba7a3b39c1b927707125ff5ab",
+        "sourceUrl": "https://www.gangnam.go.kr/notice/view.do?not_ancmt_mgt_no=64668&mid=ID05_040201",
+        "localSourceCode": "LGS-000024",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "DOBONG-4734",
+      "profileCode": "LOCAL_DOBONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "6f63b0eaed5e1c25732a94773f71c1c370743189844d55c83eaea349ddb20a8c",
+        "sourceUrl": "https://www.dobong.go.kr/WDB_DEV/gosigong_go/detail.asp?idx=4734",
+        "localSourceCode": "LGS-000011",
+        "listParserProfileCode": "SPRING_BBS"
+      },
+      "expectation": null
     }
   ]
 }
