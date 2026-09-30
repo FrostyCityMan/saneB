@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 189,
-    "missingProfileRegionCount": 34,
+    "registeredRegionCount": 190,
+    "missingProfileRegionCount": 33,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -3781,14 +3781,26 @@
       "sourceCode": "LGS-000141",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000141",
+          "caseCode": "YEONGDONG-759FDCD3",
+          "profileCode": "LOCAL_YEONGDONG_BOARD_V1",
+          "profileHash": "a7388ece540d068476c562d34e496ba2a6695390e9dfd91dc30441e2615740f9",
+          "receiptHash": "bf9702ea1ec4e1a5baa9be0d913c9876e9328967116a1b96db3a5fb66e56c074",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "INCOMPLETE",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000142",
@@ -6006,9 +6018,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "94cc433a7dcfca56f021999170fbbda8254630b00ebd614c4e6c27499fb51167",
+  "inputInventorySha256": "9b7f40cff64248edf3b7167ba361bf94ef9d7b18cd37b3d696ff5530bdf9f4d3",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 299,
+  "importedReceiptCount": 300,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12404,6 +12416,54 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "yeongdongDownloadRun": {
+    "scope": "YEONGDONG_REGISTERED_LEGAL_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/YEONGDONG-759FDCD3.json"
+    ],
+    "observationBudget": {
+      "caseCode": "YEONGDONG-759FDCD3",
+      "attempts": 1,
+      "maximumRequestsPerAttempt": 6,
+      "maximumBytesPerAttempt": 24117248
+    },
+    "requestReservationsIncludingBodyUpperBound": 3,
+    "reservedBytesIncludingBodyUpperBound": 2097152,
+    "surveyRequestCount": 11,
+    "surveyGetCount": 10,
+    "surveyPostCount": 1,
+    "surveyMaximumSecondsPerRequest": 15,
+    "discoverySearchQueryCount": 3,
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000013",
+        "result": "OFFICIAL_AND_ENCODED_FILE_PATH_BOTH_HTTP404",
+        "isDownloadVerified": false,
+        "isSharedEngineChanged": false
+      },
+      {
+        "sourceCode": "LGS-000141",
+        "result": "DEFAULT_SURVEY_CLIENT_HTTP200_COLLECTOR_USER_AGENT_HTTP404",
+        "isDownloadVerified": false,
+        "isUserAgentChangedToBypass": false,
+        "isSourceScopeChanged": false
+      }
+    ],
+    "surveyRawFiles": [],
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 162,
+      "noObservedDownloadRegionCount": 61,
+      "regionsWithErrors": 43,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 33
+    }
   },
   "yuseongSupportDownloadRun": {
     "scope": "YUSEONG_EXISTING_PROFILE_COLLECTION_ONLY",

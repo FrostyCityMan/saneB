@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "94cc433a7dcfca56f021999170fbbda8254630b00ebd614c4e6c27499fb51167",
+  "inventorySha256": "9b7f40cff64248edf3b7167ba361bf94ef9d7b18cd37b3d696ff5530bdf9f4d3",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2313,6 +2313,14 @@
       "path": "build/reports/attachment-regional-collection/YUSEONG-49380.json",
       "receiptHash": "d6effe0d24d6afdbdaee3004ae2503b5fb32dfffd8a13675a295dbf674c871dd",
       "producerClassHash": "bc59dde81436bb8d6a1d83191f8466afcbaefee0d483b0379749b0ba1681a183",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONGDONG-759FDCD3.json",
+      "receiptHash": "bf9702ea1ec4e1a5baa9be0d913c9876e9328967116a1b96db3a5fb66e56c074",
+      "producerClassHash": "1cc0802730ecaa5c80691d5369b14e663274939c2a750bb52f20067d6325c537",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
     }
@@ -8987,6 +8995,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000141",
+      "caseCode": "YEONGDONG-759FDCD3",
+      "profileCode": "LOCAL_YEONGDONG_BOARD_V1",
+      "profileHash": "a7388ece540d068476c562d34e496ba2a6695390e9dfd91dc30441e2615740f9",
+      "receiptHash": "bf9702ea1ec4e1a5baa9be0d913c9876e9328967116a1b96db3a5fb66e56c074",
+      "producerClassHash": "1cc0802730ecaa5c80691d5369b14e663274939c2a750bb52f20067d6325c537",
+      "observedAt": "2026-09-30T03:44:35.811446600Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000056",

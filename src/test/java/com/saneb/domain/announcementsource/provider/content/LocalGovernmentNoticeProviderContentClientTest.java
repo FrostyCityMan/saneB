@@ -31,6 +31,16 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void yeongdongBodyExcludesAttachmentsAndDetectsChangedStructure() {
+        String url="https://www.yd21.go.kr/kr/html/sub02/020103.html?mode=V&no=759fdcd35933d6237c5cf16b4908416b&GotoPage=1";
+        String page="<div class=program--contents><div class='ui bbs--view'><div class='ui bbs--view--header'><h2 class='ui bbs--view--tit'>소상공인 지원</h2></div><div class='ui bbs--view--file'>특허.hwp</div><div class='ui bbs--view--cont'><div class='ui bbs--detail--cont'><div class='ui bbs--view--content'>소상공인 이차보전금 지원</div></div></div></div></div>";
+        for(String content:List.of(page,page+page,page.replace("bbs--view--content","other"))) {
+            var transport=new StubTransport(); transport.enqueue(html("<nav>수출 메뉴</nav>"+content));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 이차보전금 지원");}
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void seongnamBodyExcludesMetadataAndAttachments(){
         String url="https://eminwon.seongnam.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=144735&subCheck=Y";
         String page="<form name=form1 method=post><div class=boardWrap><table class=bd00view><tr><th>제목</th><td>소상공인 특례보증</td><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>특허.hwp</td></tr><tr><td class=bd01tdC colspan=4>소상공인 특례보증 지원</td></tr></table></div></form>";

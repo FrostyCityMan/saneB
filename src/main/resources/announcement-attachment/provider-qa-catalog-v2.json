@@ -3037,6 +3037,18 @@
         "listParserProfileCode": "SAFE_YUSEONG_LEGAL_NOTICE"
       },
       "expectation": null
+    },
+    {
+      "caseCode": "YEONGDONG-759FDCD3",
+      "profileCode": "LOCAL_YEONGDONG_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "96169806eb6b936dd2097f127268f2ec9aff014b04644437cea8bab60ea0a8c3",
+        "sourceUrl": "https://www.yd21.go.kr/kr/html/sub02/020103.html?mode=V&no=759fdcd35933d6237c5cf16b4908416b&GotoPage=1",
+        "localSourceCode": "LGS-000141",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
     }
   ]
 }
