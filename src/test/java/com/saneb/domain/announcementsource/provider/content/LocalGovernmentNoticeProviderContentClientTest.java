@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void seoulGangseoBodyExcludesMetadataAndAttachmentAreas(){
+        String url="https://www.gangseo.seoul.kr/gs040301/view?curPage=1&mgtNo=66840&srchKey=&srchPage=&srchText=";
+        String page="<div class=board-view-wrap><div class=board-view-head><div class=top-element><div class=subject>청년 지원</div></div><div class=board-info>수출 부서</div></div><div class=board-view-body><div class=view-content><div class=gosi-con><pre>청년 자격증 지원</pre><script>x()</script></div></div><div class=file-element>투자 파일</div></div></div>";
+        for(String content:List.of(page,page+page,page.replace("class=gosi-con","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 자격증 지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void namdongBodyExcludesMetadataAndKeepsRegisteredHostBoundary(){
         String url="https://www.namdong.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=71702";
         String page="<div class=board_view><div class=title><p>청년 지원</p></div><ul class=data_list><li>수출 부서</li></ul><div class=add_file>투자 파일</div><div class=con><div class=detail>청년 취업지원<script>x()</script></div></div></div>";

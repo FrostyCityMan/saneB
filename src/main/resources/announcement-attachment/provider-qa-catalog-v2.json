@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "SEOUL-GANGSEO-66840",
+      "profileCode": "LOCAL_SEOUL_GANGSEO_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "c234202499e20bc35e519cd300a00e7435258bbc29c01f2937497be4e5cc852a",
+        "sourceUrl": "https://www.gangseo.seoul.kr/gs040301/view?curPage=1&mgtNo=66840&srchKey=&srchPage=&srchText=",
+        "localSourceCode": "LGS-000017",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "NAMDONG-71702",
       "profileCode": "LOCAL_NAMDONG_PORTAL_V1",
       "source": {

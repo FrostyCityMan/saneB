@@ -494,6 +494,10 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             try { BupyeongNoticePage.selectDetailUri(sourceUri); return BupyeongNoticePage.selectContent(document); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
         }
+        if (SeoulGangseoNoticePage.selectMatches(sourceUri)) {
+            try { SeoulGangseoNoticePage.selectDetailUri(sourceUri); return SeoulGangseoNoticePage.selectContent(document); }
+            catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
         if (NamdongNoticePage.selectMatches(sourceUri)) {
             try { NamdongNoticePage.selectDetailUri(sourceUri); return NamdongNoticePage.selectContent(document); }
             catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
