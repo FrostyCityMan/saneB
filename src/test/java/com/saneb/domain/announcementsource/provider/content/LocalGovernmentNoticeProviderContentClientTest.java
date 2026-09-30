@@ -31,6 +31,17 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void cheonanBodyExcludesNestedAttachmentsAndMetadata(){
+        String url="https://eminwon.cheonan.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=107953&subCheck=Y";
+        String page="<form name=form method=post><table width=98% border=0 cellspacing=1 cellpadding=0><tr><td>제목</td><td>소상공인 지원</td><td>담당부서</td><td>수출</td></tr><tr><td colspan=4 style='word-break:break-all;'>소상공인 자금 지원<script>viewer()</script></td></tr><tr><td colspan=4><table><tr><td>첨부파일</td><td>특허</td></tr></table></td></tr></table></form>";
+        for(String selected:List.of(page,page+page,page.replace("word-break:break-all;","color:red;"),page.replace("소상공인 자금 지원<script>","<script>"))){
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자</nav>"+selected+"<footer>행정 메뉴</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 자금 지원");}
+            else if(selected.contains("break-all;'><script>"))assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void seocheonBodyExcludesNestedAttachmentsAndMetadata(){
         String url="https://eminwon.seocheon.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=27490&subCheck=Y";
         String page="<form name=form method=post><table width=98% border=0 cellspacing=1 cellpadding=0><tr><td>제목</td><td>소상공인 지원</td><td>담당부서</td><td>수출</td></tr><tr><td colspan=4 style='word-break:break-all;'>소상공인 자금 지원<script>viewer()</script></td></tr><tr><td colspan=4><table><tr><td>첨부파일</td><td>특허</td></tr></table></td></tr></table></form>";

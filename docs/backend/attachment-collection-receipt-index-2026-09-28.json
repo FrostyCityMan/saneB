@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "0192c274451d544440ec998be93999dfd1cda98026433fe67692bebfd6691b60",
+  "inventorySha256": "2d62e8d666e46afab8969eb823bbc8202f11231a4d6f70abe683b8d044163635",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -2803,6 +2803,14 @@
       "producerClassHash": "c07a99fbf6860e24060e8e381065c0622ebef2efc88ba4e0544619bdc7ca4f97",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/CHEONAN-107953.json",
+      "receiptHash": "cb472ce8e640298d51c7eef600031bdd730ba1fb9bb54ccd24c9db91d3a93dc5",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -3829,6 +3837,24 @@
           "signatureVerified": true
         }
       ]
+    },
+    {
+      "sourceCode": "LGS-000148",
+      "caseCode": "CHEONAN-107953",
+      "profileCode": "LOCAL_CHEONAN_GET_V1",
+      "profileHash": "91d5cba445384cddb1ea93e2279bdc7d93cab93882fbd45ba96b2735a9fb0a4e",
+      "receiptHash": "cb472ce8e640298d51c7eef600031bdd730ba1fb9bb54ccd24c9db91d3a93dc5",
+      "producerClassHash": "99427d305bb8148d1b4e3c41306905a1985b2de2cc733c8ce976d7a05e86fcf1",
+      "observedAt": "2026-09-30T13:43:32.888826900Z",
+      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "expectedFileCount": 1,
+      "titleStatus": "NOT_ELIGIBLE",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
+      "discoveryComplete": false,
+      "originalFilesRemoved": true,
+      "productionWriteCount": 0,
+      "files": []
     },
     {
       "sourceCode": "LGS-000215",

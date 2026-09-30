@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 221,
-    "missingProfileRegionCount": 2,
+    "registeredRegionCount": 222,
+    "missingProfileRegionCount": 1,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -4132,14 +4132,26 @@
       "sourceCode": "LGS-000148",
       "listParserProfileCode": "SPRING_BBS",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "COLLECTION_INCOMPLETE",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000148",
+          "caseCode": "CHEONAN-107953",
+          "profileCode": "LOCAL_CHEONAN_GET_V1",
+          "profileHash": "91d5cba445384cddb1ea93e2279bdc7d93cab93882fbd45ba96b2735a9fb0a4e",
+          "receiptHash": "cb472ce8e640298d51c7eef600031bdd730ba1fb9bb54ccd24c9db91d3a93dc5",
+          "fileCount": 0,
+          "downloadedFileCount": 0,
+          "status": "TITLE_STOPPED_NOT_FETCHED",
+          "collectionVerified": false
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000149",
@@ -6445,9 +6457,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "0192c274451d544440ec998be93999dfd1cda98026433fe67692bebfd6691b60",
+  "inputInventorySha256": "2d62e8d666e46afab8969eb823bbc8202f11231a4d6f70abe683b8d044163635",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 360,
+  "importedReceiptCount": 361,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12843,6 +12855,48 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "cheonanConnectionRun": {
+    "scope": "CHEONAN_OFFICIAL_LEGACY_SAEOL_CONNECTION_TITLE_STOP",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/CHEONAN-107953.json"
+    ],
+    "maximumRequestReservationsPerAttempt": 6,
+    "maximumReservedBytesPerAttempt": 24117248,
+    "requestReservationsIncludingBodyUpperBound": 0,
+    "reservedBytesIncludingBodyUpperBound": 0,
+    "surveyRequestCount": 9,
+    "surveyGetCount": 8,
+    "surveyPostCount": 1,
+    "surveyMaximumGetSeconds": 12,
+    "surveyMaximumPostSeconds": 20,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "officialWebOpenCount": 1,
+    "officialWebSearchQueryCount": 9,
+    "surveyNotes": [
+      "ENCODED_COMMA_DETAIL_400_LITERAL_COMMA_DETAIL_200",
+      "SEVEN_PARAMETER_DETAIL_200",
+      "OFFICIAL_LIST_GET_400_OR_TIMEOUT_POST_TIMEOUT"
+    ],
+    "downloadedFileCount": 0,
+    "downloadedBytes": 0,
+    "titleStage": "COMBINATION_NOT_MATCHED",
+    "titleReason": "TITLE_COMBINATION_NOT_MATCHED",
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "operatingListEndpointChanged": false,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 196,
+      "noObservedDownloadRegionCount": 27,
+      "regionsWithErrors": 47,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 1
+    }
   },
   "pendingDownloadRecoveryRun": {
     "scope": "PENDING_DOWNLOAD_FIXED_SAMPLE_RECOVERY",
