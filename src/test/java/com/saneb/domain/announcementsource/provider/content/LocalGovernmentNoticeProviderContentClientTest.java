@@ -38,6 +38,11 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String content:List.of(page,page+page,page.replace(bp?"class=detail":"class=dbData","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("신혼부부 금융지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
         }
     }
+    @Test void uljuBodyExcludesMetadataAndAttachmentAreas(){
+        String url="https://www.ulju.ulsan.kr/ulju/saeol/gosi/view.do?notAncmtMgtNo=67082&mId=0403020000";
+        String page="<form id=detailForm><div class=bod_wrap><div class=bod_view><h4>소상공인 지원</h4><div class=view_info>수출 부서</div><div class=view_cont>소상공인 자금지원<script>x()</script></div><dl class=view_file>투자 파일</dl></div></div></form>";
+        for(String content:List.of(page,page+page,page.replace("class=view_cont","class=other"))){var transport=new StubTransport();transport.enqueue(html(content));var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));if(content.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 자금지원");}else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);}
+    }
     @Test void hwaseongBodyExcludesMetadataAndAttachmentCells(){
         String url="https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=141781";
         String page="<div class=board_write><table><tr><th>제목</th><td>소상공인 지원</td></tr><tr><th>담당부서</th><td>수출 부서</td></tr><tr><th>첨부파일</th><td>투자 파일</td></tr><tr><th>내용</th><td><div class=txt>소상공인 자금지원<script>x()</script></div></td></tr></table></div>";

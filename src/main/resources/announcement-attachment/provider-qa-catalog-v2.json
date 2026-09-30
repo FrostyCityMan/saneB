@@ -3,6 +3,18 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "ULJU-67082",
+      "profileCode": "LOCAL_ULJU_BOARD_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "58f6f2f053cfa2fed4333b74249f5d807584c97f4bd1718a2cb30374e77f61ca",
+        "sourceUrl": "https://www.ulju.ulsan.kr/ulju/saeol/gosi/view.do?notAncmtMgtNo=67082&mId=0403020000",
+        "localSourceCode": "LGS-000082",
+        "listParserProfileCode": "SAEOL_GOSI"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "MOKPO-54011",
       "profileCode": "LOCAL_MOKPO_NOTICE_V1",
       "source": {

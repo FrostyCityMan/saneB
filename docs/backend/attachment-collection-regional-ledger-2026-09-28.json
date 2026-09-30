@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 210,
-    "missingProfileRegionCount": 13,
+    "registeredRegionCount": 211,
+    "missingProfileRegionCount": 12,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2389,14 +2389,26 @@
       "sourceCode": "LGS-000082",
       "listParserProfileCode": "SAEOL_GOSI",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
-      "observedSampleCount": 0,
+      "status": "SAMPLES_REQUIRED",
+      "verifiedSampleCount": 1,
+      "downloadedSampleCount": 1,
+      "observedSampleCount": 1,
       "minimumSampleCount": 3,
-      "samples": []
+      "samples": [
+        {
+          "sourceCode": "LGS-000082",
+          "caseCode": "ULJU-67082",
+          "profileCode": "LOCAL_ULJU_BOARD_V1",
+          "profileHash": "746894d85e5edb61672324a5c5429f6402f4f90a2ff1185c5f23f8e3beb201e8",
+          "receiptHash": "1df76bc271e7b01ffada20d126a74ccfd6773eff3b35172bf4ac72d94d98f3bd",
+          "fileCount": 1,
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000083",
@@ -6280,9 +6292,9 @@
       ]
     }
   ],
-  "inputInventorySha256": "306181b78f64d25d8f1b21f47ce84066bd6a3d4298bfcc8abc31e5069970073f",
+  "inputInventorySha256": "690f8e92de2ec874504ea8404a0d4ce81b12a4bb91d82199cfe22df80ffc4c90",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 326,
+  "importedReceiptCount": 327,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -12678,6 +12690,53 @@
     "isExtractionVerified": false,
     "isExpectationApproved": false,
     "isOperatingE2eVerified": false
+  },
+  "uljuDownloadRun": {
+    "scope": "ULJU_OFFICIAL_BOARD_COLLECTION_ONLY",
+    "observationReports": [
+      "build/reports/attachment-regional-collection/ULJU-67082.json"
+    ],
+    "observationBudgets": [
+      {
+        "caseCode": "ULJU-67082",
+        "attempts": 1,
+        "maximumRequestsPerAttempt": 6,
+        "maximumBytesPerAttempt": 24117248
+      }
+    ],
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2417986,
+    "surveyRequestCount": 3,
+    "surveyGetCount": 3,
+    "surveyPostCount": 0,
+    "surveyMaximumSecondsPerRequest": 12,
+    "surveyMaximumBytesPerRequest": 2097152,
+    "surveyRawFiles": [],
+    "surveyNotes": [
+      {
+        "sourceCode": "LGS-000182",
+        "requestCount": 3,
+        "result": "PUBLIC_SEARCH_GET200_SUPPORT_NOTICE61869_DETAIL200_PUBLIC_FILE_FORM_POST_OBSERVED",
+        "isDownloadVerified": false
+      }
+    ],
+    "downloadedFileCount": 1,
+    "downloadedBytes": 58690,
+    "bodyCharacterCount": 696,
+    "originalsRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isExpectationApproved": false,
+    "isOperatingE2eVerified": false,
+    "registeredSourceCorrectionRequiredForGeneralNotices": true,
+    "availabilitySummary": {
+      "activeRegionCount": 223,
+      "observedDownloadRegionCount": 183,
+      "noObservedDownloadRegionCount": 40,
+      "regionsWithErrors": 45,
+      "wholeSetVerifiedRegionCount": 16,
+      "missingProfileRegionCount": 12
+    }
   },
   "hwaseongDownloadRun": {
     "scope": "HWASEONG_OFFICIAL_BOARD_COLLECTION_ONLY",
