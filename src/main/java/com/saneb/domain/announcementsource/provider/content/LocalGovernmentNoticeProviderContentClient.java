@@ -911,6 +911,13 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
                 && "/prog/saeolGosi/GOSI/kor/sub04_02_01/view.do".equals(sourceUri.getPath())) {
             return selectSeoguContentElement(document, sourceUri);
         }
+        if ("eminwon.ulsannamgu.go.kr".equals(host)
+                && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
+            selectSaeolForm(document, sourceUri);
+            try {
+                return UlsanNamguNoticePage.selectContent(UlsanNamguNoticePage.selectRoot(document));
+            } catch (IllegalArgumentException exception) { throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED); }
+        }
         if ("eminwon.goesan.go.kr".equals(host)
                 && "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do".equals(sourceUri.getPath())) {
             var tables = selectSaeolForm(document, sourceUri).select("table.table_view");

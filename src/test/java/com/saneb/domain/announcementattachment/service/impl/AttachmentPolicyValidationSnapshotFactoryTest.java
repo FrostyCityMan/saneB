@@ -61,7 +61,7 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThat(value.path("schemaVersion").asInt()).isEqualTo(6);
         assertThat(value.path("providerQaPlan").path("summary").path("targetCount").asInt()).isEqualTo(3);
         assertThat(value.path("providerQaCatalog").path("catalogHash").asText()).matches("[0-9a-f]{64}");
-        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(298);
+        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(299);
         var recoveredReferences=java.util.stream.StreamSupport.stream(value.path("providerQaCatalog").path("cases").spliterator(),false)
                 .filter(row->Set.of("BUPYEONG-49419","NAMDONG-69607").contains(row.path("caseCode").asText())).toList();
         assertThat(recoveredReferences).extracting(row->row.path("caseCode").asText())

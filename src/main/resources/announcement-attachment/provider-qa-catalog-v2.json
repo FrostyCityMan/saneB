@@ -2079,6 +2079,18 @@
       "expectation": null
     },
     {
+      "caseCode": "ULSAN_NAMGU-53732",
+      "profileCode": "LOCAL_ULSAN_NAMGU_GET_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "db0ad356811073de48cba3a80f6bce3381eaa310dbe8120ac3eb8d2c5f0cb1d5",
+        "sourceUrl": "https://eminwon.ulsannamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&subCheck=Y&not_ancmt_mgt_no=53732",
+        "localSourceCode": "LGS-000079",
+        "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "DONGHAE-36513",
       "profileCode": "LOCAL_DONGHAE_GET_V1",
       "source": {

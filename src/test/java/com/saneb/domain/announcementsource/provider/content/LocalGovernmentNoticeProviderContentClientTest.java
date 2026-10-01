@@ -31,6 +31,21 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void ulsanNamguBodyUsesMeasuredContentWithoutAttachmentOrContactMetadata() {
+        String url="https://eminwon.ulsannamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&subCheck=Y&not_ancmt_mgt_no=53732";
+        String page="<form name=form1 method=post><div class='bbs_detail bbs_detail_basic'><div class=bbs_detail_tit><h2>소상공인 융자지원 공고</h2><ul class=info><li>담당자 수출</li></ul></div><ul class=bbs_detail_content2><li>특허 첨부파일</li></ul><ul class=bbs_detail_content2><li>행정 정보</li></ul><div class=bbs-view-content>소상공인 경영안정자금 지원<script>viewer()</script></div></div></form>";
+        for(String selected:List.of(page,page+page,page.replace("bbs-view-content","unknown"),page.replace("소상공인 경영안정자금 지원<script>","<script>"))) {
+            var transport=new StubTransport();transport.enqueue(html("<nav>투자</nav>"+selected+"<footer>기관 메뉴</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 경영안정자금 지원");}
+            else if(selected.contains("bbs-view-content><script>"))assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+        for(String changed:List.of(url+"&extra=1",url+"&subCheck=N",url.replace("subCheck=Y","subCheck=N"))) {
+            var transport=new StubTransport();transport.enqueue(html(page));
+            assertThat(client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,changed)).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void songpaMissingTitleStillCollectsBodyOnlyWhenDetailIdMatches() {
         String url="https://www.songpa.go.kr/www/selectGosiData.do?key=2776&not_ancmt_mgt_no=33174";
         String page="<div class='p-wrap bbs bbs__view'><form name=gosiFrm><input type=hidden name=not_ancmt_mgt_no value=33174><table class='p-table block'><tr><th>제목</th><td></td><th>담당부서</th><td>수출</td></tr><tr><th>내용</th><td>중소기업 자금 지원</td></tr><tr><th>파일</th><td>특허 첨부.hwpx</td></tr></table></form></div>";

@@ -271,6 +271,7 @@ class AttachmentProviderQaCatalogTest {
         ChungcheongNextDownloadCases.GROUPS.forEach(group->legacyProfiles.add(ChungcheongNextDownloadCases.selectCase(group).profile()));
         GangwonNextDownloadCases.GROUPS.forEach(group->legacyProfiles.add(GangwonNextDownloadCases.selectCase(group).profile()));
         UlsanFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(UlsanFirstDownloadCases.selectCase(group).profile()));
+        legacyProfiles.add(UlsanNamguDownloadCases.selectCase().profile());
         MetroSecondDownloadCases.GROUPS.forEach(group->legacyProfiles.add(MetroSecondDownloadCases.selectCase(group).profile()));
         MetroSaeolFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(MetroSaeolFirstDownloadCases.selectCase(group).profile()));
         SeoulFirstDownloadCases.GROUPS.forEach(group->legacyProfiles.add(SeoulFirstDownloadCases.selectCase(group).profile()));
@@ -676,7 +677,9 @@ class AttachmentProviderQaCatalogTest {
         assertThat(reviewed.expectation().files()).hasSize(2);
         assertThat(reviewed.expectation().files()).extracting(f->f.roleExpectation().roleCode()).containsExactly("UNKNOWN","FORM");
         assertThat(result.inputs()).isEmpty();assertThat(result.plan().executableCount()).isZero();
-        assertThat(result.plan().cases()).hasSize(298);
+        assertThat(result.plan().cases()).hasSize(299);
+        assertThat(result.plan().cases().stream().filter(c->"ULSAN_NAMGU-53732".equals(c.caseCode()))).singleElement()
+                .satisfies(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();assertThat(c.inputHash()).isNull();});
         assertThat(result.plan().cases().stream().filter(c->java.util.Set.of("BUPYEONG-49419","NAMDONG-69607").contains(c.caseCode())))
                 .hasSize(2).allSatisfy(c->{assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY");assertThat(c.normalNotice()).isFalse();assertThat(c.inputHash()).isNull();});
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement()
@@ -713,9 +716,9 @@ class AttachmentProviderQaCatalogTest {
     }
     @Test void reviewedExceptionFixtureKeepsAllReferencesAndCannotFillNormalCoverage() throws Exception {
         var catalog=matchingProfileFixture();var result=catalog.selectPrepared(scope,rules,runtimeHash,TAEBAEK_OBSERVED);
-        assertThat(result.plan().targets()).hasSize(223);assertThat(result.plan().cases()).hasSize(298);
+        assertThat(result.plan().targets()).hasSize(224);assertThat(result.plan().cases()).hasSize(299);
         assertThat(result.plan().cases().stream().filter(c->!"TAEBAEK-184816".equals(c.caseCode())))
-                .hasSize(297).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
+                .hasSize(298).allSatisfy(c->assertThat(c.statusCode()).isEqualTo("REFERENCE_ONLY"));
         assertThat(result.plan().cases().stream().filter(c->"TAEBAEK-184816".equals(c.caseCode()))).singleElement().satisfies(c->{
             assertThat(c.statusCode()).isEqualTo("EXPECTED_INPUT_READY");assertThat(c.normalNotice()).isFalse();assertThat(c.expectedFileCount()).isEqualTo(2);
         });

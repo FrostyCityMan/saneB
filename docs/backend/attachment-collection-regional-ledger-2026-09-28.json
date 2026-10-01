@@ -11,8 +11,8 @@
     "allRegionCount": 244,
     "activeRegionCount": 223,
     "inactiveRegionCount": 21,
-    "registeredRegionCount": 222,
-    "missingProfileRegionCount": 1,
+    "registeredRegionCount": 223,
+    "missingProfileRegionCount": 0,
     "collectionVerifiedRegionCount": 16,
     "remainingRegionCount": 207
   },
@@ -2440,9 +2440,9 @@
       "sourceCode": "LGS-000079",
       "listParserProfileCode": "SAFE_SAEOL_EMINWON_COMPACT",
       "enabled": true,
-      "bindingStatus": "PROFILE_MISSING",
+      "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
-      "status": "PROFILE_MISSING",
+      "status": "SAMPLES_REQUIRED",
       "verifiedSampleCount": 0,
       "downloadedSampleCount": 0,
       "observedSampleCount": 0,
@@ -6634,7 +6634,7 @@
       ]
     }
   ],
-  "inputInventorySha256": "5a15c0f7ffcbedf5103ca02851ffcfd969b32c84d8202bb87edab5f6da488858",
+  "inputInventorySha256": "fbad8eaab0978b4afc7bac24c50def11ab6aabc3fd86f292b63460e31ac8ed0d",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
   "importedReceiptCount": 963,
   "newLocalRunRequestReservations": 16,

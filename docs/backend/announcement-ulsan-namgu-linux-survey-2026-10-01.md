@@ -1,5 +1,24 @@
 # 울산 남구 공식 목록 Linux 진단
 
+## 2026-10-01 후보 보존 서울 재검증·로컬 수집 경로 연결
+
+기준 HEAD `116b9c5c7ca1114f124800c7fad7f88c2c87d4c4`. 갱신된 AWS 인증으로 승인된 서울 임시 QA를 수행했다. SSM `4d3ba580-6bd8-448b-9664-4b00707f65a5`, 실행 `ce9e0991b5a04adeb742f41df1023016`은 14.474초 후 `INCOMPLETE`/SSM Failed로 종료됐다. 고정53732의 공식 제목 일치·DRAFT 제목 조합 통과·본문81자·**첨부 후보1개**를 확인했다. 미해석 href 경고 `ATTACHMENT_LINK_UNRESOLVED`와 발견 `FAILED`/complete=false는 보존했다. 파일 전송 시도는 `TRANSPORT_OR_PROBE_FAILED`로 끝났으며, 정상 파일 크기·hash·signature 근거가 없어 **실파일 성공0**이다. 세부 전송 원인은 이 보고서로 확정하지 않는다.
+
+profile SHA `b4cfb3818a370924d22d170708061de2e3c155a9715ee311bc2c65a89b706a8e`, 실행 코드 SHA `193176f946e41fa357d520c040ede8ee4d9fd33e52995cc36076d6fb5a0a2284`, 패키지 SHA `4a718c2d2bb669b74e1c1ce50f9521c9ef5c1563abd73f859e42dc4e8265db2f`. 22파일/17,538,090byte 전송 패키지이며 상한8요청·22MiB·CPU1개·메모리512MiB·임시공간1GiB·20분이다. 예약24,576byte는 상세 응답 예약량이며 파일 다운로드량이 아니다. 실제 HTTP 호출 수는 계측되지 않아 상한을 실적으로 보고하지 않는다.
+
+원본·서버 전송 임시파일 정리, unit 종료, 운영 설치 JAR 불변·health UP을 확인했다. 소유 S3 패키지와 로컬 `package.zip`도 정리했으며 plan/result 영수증은 보존했다. 운영 DB·정책·worker 설정은 변경하지 않았다. 이 일회성 probe는 정규 수집 영수증 스키마가 아니므로 963영수증/293표본 대장에 성공 또는 새 표본으로 편입하지 않았다.
+
+사용자의 부분 수집 우선 원칙에 따라, 실파일 성공 전까지 로컬 연결까지 보류하던 순서를 조정했다. 이미 실측한 공식 DOM과 안전한 후보 해석을 사용하여 본문 provider·Spring 프로필 bean·고정 QA 참조 `ULSAN_NAMGU-53732`를 연결했다. 카탈로그 expectation은 null이며 정책 QA 승인/정상 추출 근거로 승격하지 않는다. 본문에서 메뉴·첨부명·담당 정보를 제외하고, 중복 form·잘못된 query·빈 본문을 별도 오류로 검증한다. 제목→본문→첨부→관리자 최종 검증, 자동 활성화 금지는 유지한다.
+
+- [x] 본문/프로필 집중165테스트·bootJar 성공(37초)
+- [x] 등록/카탈로그/본문/제목/예산 회귀299테스트, 실패·생략0(4분45초). 최초 실행의 테스트 fixture 프로필 누락2실패는 실제 등록을 fixture에도 추가해 해결했으며 기대값을 약화하지 않았다.
+- [x] Node 대장 계약27개 통과,963영수증/293표본 재현 통과
+- [x] 2026-09-28 운영 읽기 전용 snapshot을 현재 로컬 등록과 다시 비교: **223/223 연결·미연결0**, 인벤토리 SHA `fbad8eaab0978b4afc7bac24c50def11ab6aabc3fd86f292b63460e31ac8ed0d`. 현재 운영 수집 성공 수치가 아니다.
+- [!] 실파일 확보 **210/223·미확보13**, 엄격3표본/전체첨부16/223 유지. 남구는 후보 확보 후 전송 실패이며 동일 요청을 추가 반복하지 않았다.
+- [ ] 신규 등록 코드의 전체 Linux CI, 실제 상시 worker·운영 DB/API/UI·전체 E2E
+
+검증 명령은 `gradlew.bat --no-daemon --max-workers=1 :test --tests '*UlsanNamgu*Test' --tests '*UlsanFirstDownloadContractTest' --tests '*LocalGovernmentNoticeProviderContentClientTest' --tests '*AttachmentProviderInventoryAuditTest' --tests '*AttachmentProviderQaCatalogTest' --tests '*AttachmentPolicyValidationSnapshotFactoryTest' :bootJar`다. 마지막 실행에서 인벤토리 opt-in 환경변수와 보관된 `build/qa-results/target-inventory-20260928-receipt.txt`를 사용했으며 새 운영 조회는 없었다. Node는 collection stage/receipts/availability/github-receipts 테스트와 verify/report 스크립트를 실행했다. HWP 고도화는 보류하며 브라우저는 현재 명시 요청이 없어 정책상 미실행이다. 아래 기록은 연결 전 단계 이력이다.
+
 ## 2026-10-01 서울 Java 수집기 실행·클릭 링크 보완
 
 기준 HEAD `09901d74ec3618ddd51079c059ae29cc8e05373c`. 로그인 갱신 후 root 계정·저장소 대상·서울 리전·SSM Online을 다시 확인했다. 최신 운영 배포는 `d-NCB2HF3YK`/`9a1bb4569bcc3c13bf3bc30b51021b9149c67054`이며 변경하지 않았다.

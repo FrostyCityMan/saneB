@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "5a15c0f7ffcbedf5103ca02851ffcfd969b32c84d8202bb87edab5f6da488858",
+  "inventorySha256": "fbad8eaab0978b4afc7bac24c50def11ab6aabc3fd86f292b63460e31ac8ed0d",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
