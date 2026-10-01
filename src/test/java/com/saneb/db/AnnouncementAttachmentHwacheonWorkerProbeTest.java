@@ -13,7 +13,10 @@ class AnnouncementAttachmentHwacheonWorkerProbeTest {
     static final String MODE="HWACHEON_SEGMENT";
     @Test void fixedCaseVersionBudgetAndTitleDoNotExpandOtherGroups() {
         assertEquals(List.of("HWACHEON-32258"),AnnouncementAttachmentOfficialWorkerProbe.selectCaseCodes(MODE));
-        var sample=AnnouncementAttachmentOfficialWorkerIntegrationTest.selectFixedCases(MODE).findFirst().orElseThrow();
+        // 표본 구조 검증은 과거 실행 허가와 분리한다. 변경된 지문의 실행 거부는 아래에서 검증한다.
+        var samples=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HWACHEON").toList();
+        assertEquals(List.of("HWACHEON-32258"),samples.stream().map(sample->sample.code()).toList());
+        var sample=samples.getFirst();
         assertEquals(1,sample.listedFileCount());assertEquals("LGS-000130",sample.source().localSourceCode());
         assertEquals("SAFE_SAEOL_EMINWON_LEGACY",sample.source().listParserProfileCode());
         assertEquals("HWACHEON",AnnouncementAttachmentOfficialWorkerProbe.selectObservationGroup(MODE));
@@ -32,6 +35,20 @@ class AnnouncementAttachmentHwacheonWorkerProbeTest {
         AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(page),sample.title(),sample.titleLayout());
         for(String invalid:List.of(page+page,page.replace("<th>제목</th>","<td>제목</td>"),page.replace(sample.title(),"다른 공고"),page.replace("</td>","<input name='other'></td>")))
             assertThrows(AssertionError.class,()->AnnouncementAttachmentBbsOfficialObservationTest.validateTitle(Jsoup.parse(invalid),sample.title(),sample.titleLayout()));
+    }
+    @Test void changedRuntimeCannotReuseHistoricalWorkerApproval() {
+        assertEquals("4e34a0852383aad7ab5c20635340c845acc0bc43683df3d7fdf6d44429271e84",HwacheonOfficialWorkerContract.PROFILE);
+        var sample=AnnouncementAttachmentBbsOfficialObservationTest.selectCases("HWACHEON").findFirst().orElseThrow();
+        String currentProfile=sample.profile().selectProfileHash();
+        assertNotEquals(HwacheonOfficialWorkerContract.PROFILE,currentProfile);
+        var failure=assertThrows(org.opentest4j.AssertionFailedError.class,
+                ()->AnnouncementAttachmentOfficialWorkerIntegrationTest.selectFixedCases(MODE).toList());
+        assertTrue(failure.getMessage().startsWith("HWACHEON_PROFILE_CHANGED"));
+        assertEquals(HwacheonOfficialWorkerContract.PROFILE,failure.getExpected().getValue());
+        assertEquals(currentProfile,failure.getActual().getValue());
+        assertTrue(valid(report())); // 과거 영수증 계약은 보존한다. 현재 코드 실행 증거가 아니다.
+        assertFalse(valid(report().put("profileHash",currentProfile)));
+        assertFalse(valid(report().put("extractorVersion","1.0.16")));
     }
     @Test void observationAllowsMeasuredPartialQualityButNotFalsePromotion() {
         var report=report();assertTrue(valid(report));

@@ -55,3 +55,14 @@
 - [ ] 정상 표본 추가 확보·검토된 기대값·전체Provider QA·정책 승인·운영 반영/브라우저 E2E.
 
 다음 작업은 미지원 HWP 구조의 정확한 연결 분석과 지원 계약·회귀 검증이다. 관측되지 않은 payload를 추정해 허용하거나 부분 품질을 정상으로 바꾸지 않는다. 추가 외부 실행은 남은 예산 또는 별도 범위 확정 뒤 진행한다.
+
+## 2026-10-01 후속 — 과거 실행 계약과 기본 단위 테스트 분리
+
+- 위 HWP 고도화 다음 단계는 이후 사용자 지시에 따라 보류 중이다. 이번 작업은 추출기·실제 수집 코드·운영 계약을 변경하지 않는다.
+- 수정 전 `4912b2e`의 Linux CI `36795394963`은 4,144통과·화천1실패·320생략, 전체 빌드8분19초 실패로 종료됐다. 기본 단위 테스트가 `selectFixedCases(HWACHEON_SEGMENT)`를 호출하면서 과거 profileHash와 현재 코드 지문 불일치에 대한 정상 차단을 테스트 실패로 취급했다.
+- 표본 구조 검사는 관측 표본 정의를 직접 읽고, 별도 음성 테스트는 실제 worker 표본 선택 경로가 `HWACHEON_PROFILE_CHANGED`로 현재 지문을 거부하는지 검사한다. 예외의 기대값·실제값도 각각 과거 지문·현재 지문과 대조한다. 과거 profileHash·추출기1.0.15·고정 파일·예산·실행 차단 조건은 수정하지 않았다.
+- 과거 영수증 계약의 수용은 유지하며, 현재 profileHash 또는 추출기1.0.16을 대입한 영수증은 거부한다. 현재 화천 worker 재실행 허가나 검증 완료로 해석하지 않는다. 해당 실제 QA Gate는 미완료다.
+- 표적 실행: `./gradlew.bat :test --tests com.saneb.db.AnnouncementAttachmentHwacheonWorkerProbeTest --tests com.saneb.db.AnnouncementAttachmentOfficialWorkerProbeTest --tests com.saneb.domain.announcementattachment.discovery.HwacheonPostAttachmentDiscoveryProfileTest --tests com.saneb.domain.announcementattachment.qa.HwacheonSupportReferencePreflightTest --no-daemon --console=plain`: 49통과·외부 HTTP1조건부 생략,18초.
+- 전체 기본 실행: `./gradlew.bat :test --no-daemon --console=plain`: XML 합계4,524건 중 **4,146통과·실패0·생략378**,12분35초. Windows 기본 테스트 결과이며 별도 Linux 임시DB/migration suite나 운영 QA 성공이 아니다. `bootJar`는 이번 테스트 전용 변경에서 별도 실행하지 않았다. 수정 후 Linux CI 결과는 별도 확인한다.
+- Node 대장 검증은704기록/289표본을 재현했다. 과거 성공208/223·최신 표본 미확보18·현재 코드 실파일16/223은 변동 없다. 새 공고 요청·새 파일 확보·운영 쓰기는0이며 브라우저는 사용자 실행 정책에 따라 미실행이다.
+- 서울 격리 QA 준비: 현재 Windows에서 신뢰하고 유효한 공개 루트61개를 명령 한정 CA로 검증한 뒤 STS 조회는 `AUTHENTICATION_REQUIRED`였다. 인증서 검증 우회나 전역 설정 변경 없이 로그인 갱신을 기다린다.
