@@ -61,7 +61,16 @@ class AttachmentPolicyValidationSnapshotFactoryTest {
         assertThat(value.path("schemaVersion").asInt()).isEqualTo(6);
         assertThat(value.path("providerQaPlan").path("summary").path("targetCount").asInt()).isEqualTo(3);
         assertThat(value.path("providerQaCatalog").path("catalogHash").asText()).matches("[0-9a-f]{64}");
-        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(296);
+        assertThat(value.path("providerQaCatalog").path("cases").size()).isEqualTo(298);
+        var recoveredReferences=java.util.stream.StreamSupport.stream(value.path("providerQaCatalog").path("cases").spliterator(),false)
+                .filter(row->Set.of("BUPYEONG-49419","NAMDONG-69607").contains(row.path("caseCode").asText())).toList();
+        assertThat(recoveredReferences).extracting(row->row.path("caseCode").asText())
+                .containsExactlyInAnyOrder("BUPYEONG-49419","NAMDONG-69607");
+        assertThat(recoveredReferences).allSatisfy(row->{
+            assertThat(row.path("statusCode").asText()).isEqualTo("TARGET_OUTSIDE_SCOPE");
+            assertThat(row.hasNonNull("inputHash")).isFalse();
+            assertThat(row.path("normalNotice").asBoolean()).isFalse();
+        });
         var hwacheon=java.util.stream.StreamSupport.stream(value.path("providerQaCatalog").path("cases").spliterator(),false)
                 .filter(c->"HWACHEON-32258".equals(c.path("caseCode").asText())).findFirst().orElseThrow();
         assertThat(hwacheon.path("normalNotice").asBoolean()).isFalse();

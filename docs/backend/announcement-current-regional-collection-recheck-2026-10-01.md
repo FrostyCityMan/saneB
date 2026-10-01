@@ -1,5 +1,13 @@
 # 최신 프로필의 지역별 첨부 재검증
 
+## 후속 CI: 참조 카탈로그 개수 계약 보정
+
+Linux CI36829764848(SHA5220a85)는 기본 Java4,495개 중1실패·320생략으로 종료했다. 실패는 `AttachmentPolicyValidationSnapshotFactoryTest.java:64`의 오래된 카탈로그 개수296 단언이다. 부평/남동 참조2개 추가 후 실제298개가 되었으며, 운영 수집이나 DB 장애로 단정할 근거는 없다. 필수 DB 테스트 Gate도 실패했으므로 전체 CI 통과로 보고하지 않는다. 수정 전 문서커밋307a645의 CI36831408440도 실패 종료했다.
+
+예상 개수를298로 갱신하고 `BUPYEONG-49419`·`NAMDONG-69607`가 테스트의 미대상 상태·정책 입력hash 없음·normalNotice=false를 유지하는 단언을 추가했다. 참조를 승인된 정책QA로 승격하는 변경은 없다. `.\gradlew.bat --no-daemon --max-workers=1 :test --tests '*AttachmentPolicyValidationSnapshotFactoryTest' --tests '*AttachmentProviderQaCatalogTest' :bootJar`는 **120테스트(14+106) 실패/생략0·14분2초 성공**, bootJar UP-TO-DATE다. 대기 중 스택에서 카탈로그/프로필 지문 계산을 확인했으며 Gradle과 테스트 JVM은 종료됐다. 외부 요청을 재실행한 검증이 아니다.
+
+테스트 계약만 수정했으며 응용코드·리소스·migration·운영은 불변이다. 새 커밋의 Linux 전체 검증은 별도 대기이며 로컬120통과로 대체하지 않는다.
+
 ## 후속 H: 영도 부분 재확보, 현재207/223·미확보16
 
 2026-10-01 AWS 로그인 갱신 후 읽기 전용 Inventory로 서울 리전 프로젝트 계정 일치·Ubuntu 대상1대·SSM Online을 확인했다. 배포 이력은 `d-NCB2HF3YK`/`9a1bb4569bcc3c13bf3bc30b51021b9149c67054`로 이전과 같으며 이번 운영 설치·DB·정책·worker 변경은0이다. 이 조회는 현재 운영 기능 E2E의 증거가 아니다.
