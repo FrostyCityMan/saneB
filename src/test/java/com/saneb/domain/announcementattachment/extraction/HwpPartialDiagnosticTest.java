@@ -59,7 +59,8 @@ class HwpPartialDiagnosticTest {
     @org.junit.jupiter.params.provider.ValueSource(strings={"1.0.14",AttachmentRuntimeIdentity.EXTRACTOR_VERSION})
     void newHwpIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable(String version) throws Exception {
         var input=valid().put("extractorVersion",version).put("text","가");
-        input.putArray("blocks").addObject().put("startOffset",0).put("endOffset",1).put("locator","synthetic").put("scopeReliable",false);
+        input.putArray("blocks").addObject().put("index",0).put("startOffset",0).put("endOffset",1)
+                .put("evidenceScopeId","synthetic").put("locator","synthetic").put("scopeReliable",false);
         var validator=IsolatedAttachmentExtractor.class.getDeclaredMethod("validateResult",JsonNode.class);
         validator.setAccessible(true);
         var extractor=new IsolatedAttachmentExtractor(json,"unused");

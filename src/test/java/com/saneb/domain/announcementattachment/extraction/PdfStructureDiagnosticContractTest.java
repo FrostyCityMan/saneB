@@ -59,7 +59,8 @@ class PdfStructureDiagnosticContractTest {
     @org.junit.jupiter.params.provider.ValueSource(strings={"1.0.14",AttachmentRuntimeIdentity.EXTRACTOR_VERSION})
     void currentPdfIpcRequiresDiagnosticsWhileLegacyResponseRemainsReadable(String version) throws Exception {
         var root=result().put("extractorVersion",version);
-        root.putArray("blocks").addObject().put("startOffset",0).put("endOffset",5).put("locator","synthetic").put("scopeReliable",false);
+        root.putArray("blocks").addObject().put("index",0).put("startOffset",0).put("endOffset",5)
+                .put("evidenceScopeId","synthetic").put("locator","synthetic").put("scopeReliable",false);
         var validator=IsolatedAttachmentExtractor.class.getDeclaredMethod("validateResult",com.fasterxml.jackson.databind.JsonNode.class);
         validator.setAccessible(true);
         var extractor=new IsolatedAttachmentExtractor(json,"unused");

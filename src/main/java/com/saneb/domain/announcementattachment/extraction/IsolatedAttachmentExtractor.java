@@ -105,8 +105,19 @@ public class IsolatedAttachmentExtractor {
         int length=text.codePointCount(0,text.length());
         if (length>1_000_000 || text.indexOf('\0')>=0 || !result.path("blocks").isArray()
                 || result.path("blocks").size()>20000) throw new IOException("INVALID_EXTRACTOR_RESULT");
-        int previous=0;
+        int previous=0, index=0;
+        var scopes = new java.util.HashSet<String>();
         for (JsonNode block : result.path("blocks")) {
+            // DB 근거 계약과 같은 순서·범위·위치 경계를 IPC에서 먼저 검사한다.
+            // 잘못된 파일 하나가 정상 파일까지 포함한 집합 저장 실패로 번지지 않게 한다.
+            if (!block.isObject() || !block.path("index").isIntegralNumber() || !block.path("index").canConvertToInt()
+                    || block.path("index").intValue()!=index++
+                    || !block.path("startOffset").isIntegralNumber() || !block.path("startOffset").canConvertToInt()
+                    || !block.path("endOffset").isIntegralNumber() || !block.path("endOffset").canConvertToInt()
+                    || !block.path("evidenceScopeId").isTextual() || block.path("evidenceScopeId").asText().isBlank()
+                    || block.path("evidenceScopeId").asText().length()>300 || !scopes.add(block.path("evidenceScopeId").asText())
+                    || !block.path("locator").isTextual() || block.path("locator").asText().isBlank())
+                throw new IOException("INVALID_EXTRACTOR_RESULT");
             int start=block.path("startOffset").asInt(-1), end=block.path("endOffset").asInt(-1);
             if (start<previous || end<=start || end>length || block.path("locator").asText().length()>300
                     || !block.path("scopeReliable").isBoolean()) throw new IOException("INVALID_EXTRACTOR_RESULT");

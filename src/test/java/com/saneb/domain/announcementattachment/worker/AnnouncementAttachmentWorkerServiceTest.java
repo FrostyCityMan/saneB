@@ -521,6 +521,28 @@ class AnnouncementAttachmentWorkerServiceTest {
         assertThat(mapper.writeValueAsString(saved)).doesNotContain("PRIVATE_CANARY");
         verify(extractor,times(3)).selectExtraction(any());assertTemporaryEmpty();
     }
+    @Test void rejectedExtractorEvidencePreservesSuccessfulDownloadsAndNextFiles() throws Exception {
+        doReturn(mapper.readTree("{\"qualityCode\":\"FAILED\",\"errorCode\":\"FAILED\"}"))
+                .doReturn(mapper.readTree("{\"qualityCode\":\"OCR_REQUIRED\",\"format\":\"HWP\"}"))
+                .doReturn(mapper.readTree("{\"qualityCode\":\"OCR_REQUIRED\",\"format\":\"HWPX\"}"))
+                .when(extractor).selectExtraction(any());
+        assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        var saved=selectSaved();
+        assertThat(saved.files()).hasSize(3).allSatisfy(file -> {
+            assertThat(file.downloadStatus()).isEqualTo("SUCCEEDED");
+            assertThat(file.downloadedBytes()).isPositive();
+            assertThat(file.binaryHash()).isEqualTo("a".repeat(64));
+            assertThat(file.failureCode()).isNull();
+        });
+        assertThat(saved.files()).extracting(file->file.extraction().quality()).containsExactly("FAILED","OCR_REQUIRED","OCR_REQUIRED");
+        assertThat(saved.files().getFirst().extraction().text()).isNull();
+        assertThat(saved.files().getFirst().extraction().blocks()).isEmpty();
+        verify(evidence,never()).saveFileCheckpoint(any(),any(),any());
+        verify(jobs,never()).saveJobFailure(any(),any(),any());
+        verify(jobs,times(3)).deleteResourceLease(any());
+        verify(extractor,times(3)).selectExtraction(any());assertTemporaryEmpty();
+    }
+
     @Test void newJobGenerationDoesNotReusePriorJobEvenWithSameLocator() throws Exception {
         insertCheckpointStore();
         assertThat(worker.saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");

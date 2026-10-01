@@ -65,6 +65,19 @@ class AttachmentRuntimeGateIntegrationTest {
     }
 
     @Test @Timeout(60)
+    void malformedChildEvidenceBecomesFileFailureAndNextExtractionRecovers() throws Exception {
+        Path distribution = selectFaultDistribution(temporary);
+        var extractor = new IsolatedAttachmentExtractor(new ObjectMapper(), distribution.toString());
+        var storage = new AttachmentTemporaryStorage(temporary.resolve("storage").toString());
+        var rejected = selectFaultResult(extractor, storage, "INVALID_EVIDENCE");
+        assertThat(rejected.path("qualityCode").asText()).isEqualTo("FAILED");
+        assertThat(rejected.path("errorCode").asText()).isEqualTo("FAILED");
+        assertThat(rejected.toString()).doesNotContain("PRIVATE_CANARY");
+        assertThat(selectFaultResult(extractor, storage, "RECOVER").path("qualityCode").asText()).isEqualTo("COMPLETE_TEXT");
+        validateStorageEmpty();
+    }
+
+    @Test @Timeout(60)
     void childHeapExhaustionLeavesParentAliveAndOwnedOriginalsRemoved() throws Exception {
         Path distribution = selectFaultDistribution(temporary);
         var extractor = new IsolatedAttachmentExtractor(new ObjectMapper(), distribution.toString());
@@ -196,7 +209,8 @@ class AttachmentRuntimeGateIntegrationTest {
                         Files.delete(local);
                         boolean runtimeReadable = Files.isReadable(Path.of("/jre/release"));
                         System.out.println("{\\"qualityCode\\":\\"COMPLETE_TEXT\\",\\"text\\":\\"probe\\","
-                            + "\\"blocks\\":[{\\"startOffset\\":0,\\"endOffset\\":5,\\"scopeReliable\\":false}],"
+                            + "\\"blocks\\":[{\\"index\\":0,\\"startOffset\\":0,\\"endOffset\\":5,"
+                            + "\\"evidenceScopeId\\":\\"p:1\\",\\"locator\\":\\"p:1\\",\\"scopeReliable\\":false}],"
                             + "\\"parentEnvironmentAbsent\\":" + absent + ",\\"hostFileAbsent\\":" + hostAbsent
                             + ",\\"hostNetworkBlocked\\":" + blocked + ",\\"inputReadable\\":" + (lines.size() == 2)
                             + ",\\"inputReadOnly\\":" + inputReadOnly + ",\\"libraryReadOnly\\":" + libraryReadOnly
@@ -243,9 +257,16 @@ class AttachmentRuntimeGateIntegrationTest {
                                 return;
                             }
                         }
+                        if ("INVALID_EVIDENCE".equals(mode)) {
+                            System.out.println("{\\"qualityCode\\":\\"COMPLETE_TEXT\\",\\"text\\":\\"PRIVATE_CANARY\\","
+                                + "\\"blocks\\":[{\\"index\\":4,\\"startOffset\\":0,\\"endOffset\\":5,"
+                                + "\\"evidenceScopeId\\":\\"p:1\\",\\"locator\\":\\"p:1\\",\\"scopeReliable\\":false}]}");
+                            return;
+                        }
                         if (!"RECOVER".equals(mode)) throw new IllegalArgumentException("UNKNOWN_SCENARIO");
                         System.out.println("{\\"qualityCode\\":\\"COMPLETE_TEXT\\",\\"text\\":\\"probe\\","
-                            + "\\"blocks\\":[{\\"startOffset\\":0,\\"endOffset\\":5,\\"scopeReliable\\":false}]}");
+                            + "\\"blocks\\":[{\\"index\\":0,\\"startOffset\\":0,\\"endOffset\\":5,"
+                            + "\\"evidenceScopeId\\":\\"p:1\\",\\"locator\\":\\"p:1\\",\\"scopeReliable\\":false}]}");
                     }
                 }
                 """);
