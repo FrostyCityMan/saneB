@@ -7723,6 +7723,30 @@
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONGDO-36435-YEONGDO-TRANSPORT-20261001-H.json",
+      "receiptHash": "3da07737e0c911623643e4ae292c5f41e769a117593d37a52ad7cf8ee5d0ca39",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONGDO-36164-YEONGDO-TRANSPORT-20261001-H.json",
+      "receiptHash": "995f98b34ad9d2a404627eea88dc4ccb4bb1bc6e948e56f8e92c514c04320c07",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/YEONGDO-35633-YEONGDO-TRANSPORT-20261001-H.json",
+      "receiptHash": "3181b2998dd148f41b63d5ba88e38fab688de84cbeb1af9218fe9a888eb919f7",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -15674,54 +15698,136 @@
       "caseCode": "YEONGDO-35633",
       "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
       "profileHash": "76d8ece9e1014dfd5b81c6362c99dacbf04c373ff8946cfd1a4c887e2a07b06d",
-      "receiptHash": "cce0d841e5f9cb17afcde06210feb0c5dfd81d21f2678ed1303bacb591bced2d",
+      "receiptHash": "3181b2998dd148f41b63d5ba88e38fab688de84cbeb1af9218fe9a888eb919f7",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:30:11.564858Z",
+      "observedAt": "2026-10-01T07:26:48.882625100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 4,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "971fdb011929b223f1e69d4f922f23ea79b1517170b84b54fa2c4c678a456969",
+          "status": "SUCCEEDED",
+          "bytes": 158208,
+          "format": "HWP",
+          "binaryHash": "e916a323132663599cb0af5c2584ad168fb05c97c3f93a7c7a776e91f092b90a",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "b03b480372ef9f850cd9d818314258fd7d76fa66ea1c6779c0f960365780b95a",
+          "status": "SUCCEEDED",
+          "bytes": 82432,
+          "format": "HWP",
+          "binaryHash": "8bb44cbcc4150d01adb734b1c4fba1365f2400c1bd2ebcceabda14c4a8d49b4b",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "3f6d0671090ec8a300ab1fac631cce231a6055c1a6f9e7390cd2d152874a2bb0",
+          "status": "SUCCEEDED",
+          "bytes": 46592,
+          "format": "HWP",
+          "binaryHash": "cbad88717a2c38c3cce641fb80a3ad47782033354b1cdfe17dbcbabec4bf567a",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "c2d36ebda26525cd666c31eee8937d220ffc4964865a2075af727025eacb5cf5",
+          "status": "FAILED",
+          "bytes": 0
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000031",
       "caseCode": "YEONGDO-36164",
       "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
       "profileHash": "76d8ece9e1014dfd5b81c6362c99dacbf04c373ff8946cfd1a4c887e2a07b06d",
-      "receiptHash": "0eaae4ff69275b3dc7d769ab59caafe654fc9872807f4fa9b28dcca4e2af7d84",
+      "receiptHash": "995f98b34ad9d2a404627eea88dc4ccb4bb1bc6e948e56f8e92c514c04320c07",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:30:11.279198100Z",
+      "observedAt": "2026-10-01T07:26:42.838443400Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 4,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "24fe2f214cd9e311f2d68de9369aa688c8b63543b7be7cbf35aecf847c39712c",
+          "status": "SUCCEEDED",
+          "bytes": 80304,
+          "format": "HWPX",
+          "binaryHash": "aa23832ec032edc55503b76b95c772ea9e74fa0703c8bb81d3f995c2cacf48af",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "cf2d5285815d06421893cc70bfe6f82d886248a9fa454acff9627cdc0393dd13",
+          "status": "SUCCEEDED",
+          "bytes": 83439,
+          "format": "HWPX",
+          "binaryHash": "b56033c460064faba55377946d72ca78730ee5048e1bc18fe54991bf69b806f9",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "c27f2943fd3ebafe9380402386181e438b6039216dd4b4ac1272c5960b6ffa02",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "c6a727250f927a64079b89cb3c150cc3031242e71628c7660519cf60c9fb4be4",
+          "status": "SUCCEEDED",
+          "bytes": 94013,
+          "format": "HWPX",
+          "binaryHash": "fc328ae591285cedf51abc3278ac278f4df4e2d31ca082861ef0d91103c0bbe4",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000031",
       "caseCode": "YEONGDO-36435",
       "profileCode": "LOCAL_YEONGDO_SCMS_GET_V1",
       "profileHash": "76d8ece9e1014dfd5b81c6362c99dacbf04c373ff8946cfd1a4c887e2a07b06d",
-      "receiptHash": "44e3e8c225bbddf2af600f54ae5053d1e8bca4e60d50a2d53cc5e330e08f9825",
+      "receiptHash": "3da07737e0c911623643e4ae292c5f41e769a117593d37a52ad7cf8ee5d0ca39",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:30:06.526660200Z",
+      "observedAt": "2026-10-01T07:26:29.002923900Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 3,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "897322c2f5883d340a580026bc6030142cdff3f039320fb527884c9330c0910b",
+          "status": "FAILED",
+          "bytes": 0
+        },
+        {
+          "locatorHash": "7adf26ffce3ba33ee4b840f98a6c6b92858096e1ee7c0650dc4ec7a3675620b7",
+          "status": "SUCCEEDED",
+          "bytes": 61935,
+          "format": "HWPX",
+          "binaryHash": "03bd83b0091f577a0f065d846cb7bb2b3b34532f568a481d5c1755fdd3a1da53",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "9ea5b3342729e906f53c6b427148fb37b2aaef4058612c59fadac1280bd9f755",
+          "status": "SUCCEEDED",
+          "bytes": 68406,
+          "format": "HWPX",
+          "binaryHash": "c256a77c3f78681a9da57e3666ea38b8940c2eb235e23886a23ae4f306c3719d",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000141",
@@ -18806,6 +18912,25 @@
     "downloadedBytes": 326957,
     "requestReservationsIncludingBodyUpperBound": 10,
     "reservedBytesIncludingBodyUpperBound": 4906285,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false
+  },
+  "yeongdoPartialRecovery20261001H": {
+    "scope": "PARTIAL_FILE_RECOVERY_NOT_OPERATING_E2E",
+    "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+    "diagnosticHttpRequests": 3,
+    "diagnosticMaximumBytes": 3145728,
+    "maximumRequestReservations": 21,
+    "maximumReservedBytes": 72351744,
+    "samples": 3,
+    "downloadedFiles": 8,
+    "downloadedBytes": 675329,
+    "failedFiles": 3,
+    "requestReservationsIncludingBodyUpperBound": 20,
+    "reservedBytesIncludingBodyUpperBound": 7335425,
     "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
