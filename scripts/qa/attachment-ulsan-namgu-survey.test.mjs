@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {endpoints, limits, summarizePage, selectSessionCookie, fixedListBody, collectSurvey, fetchFixedPage,
-  selectSupportCandidates, summarizeDetailStructure, collectSupportSurvey} from './attachment-ulsan-namgu-survey.mjs';
+  selectSupportCandidates, summarizeDetailStructure, collectSupportSurvey, summarizeAttachmentPlacement,
+  collectKnownDetailSurvey} from './attachment-ulsan-namgu-survey.mjs';
 
 const response = (html, status = 200) => ({status, headers: {'content-type': 'text/html; charset=utf-8'}, bytes: Buffer.from(html)});
 const form = '<form action="OfrAction.do"><input name="not_ancmt_se_code"><script>selectListOfrNotAncmtHomepage</script></form>';
@@ -65,7 +66,7 @@ test('폼 확인 실패는 POST를 생략하고 예외 원문을 기록하지 �
 
 test('명시 opt-in 없는 CLI는 외부 요청과 파일 쓰기를 수행하지 않는다', () => {
   const r = spawnSync(process.execPath, ['scripts/qa/attachment-ulsan-namgu-survey.mjs'], {
-    env: {...process.env, SANEB_ULSAN_NAMGU_SURVEY: 'false', SANEB_ULSAN_NAMGU_SUPPORT_SURVEY: 'false'}, encoding: 'utf8', timeout: 10000});
+    env: {...process.env, SANEB_ULSAN_NAMGU_SURVEY: 'false', SANEB_ULSAN_NAMGU_SUPPORT_SURVEY: 'false', SANEB_ULSAN_NAMGU_KNOWN_DETAIL_SURVEY: 'false'}, encoding: 'utf8', timeout: 10000});
   assert.equal(r.status, 1); assert.equal(r.stdout, '');
 });
 
@@ -122,6 +123,49 @@ test('전송은 TLS 확인·총 시간·응답 크기를 제한하고 redirect�
   assert(source.includes('rejectUnauthorized: true')); assert(source.includes('limits.requestMs'));
   assert(source.includes('size > limits.responseBytes')); assert(source.includes("'Accept-Encoding': 'identity'"));
   assert(!source.includes('headers.location')); assert(!source.includes('NODE_TLS_REJECT_UNAUTHORIZED'));
+});
+
+test('기존 목록 ID 상세 1건만 조회하며 검색이나 첨부를 재요청하지 않는다', async () => {
+  const calls=[];
+  const result=await collectKnownDetailSurvey({fetchPage: async (key, options) => {
+    calls.push({key, options});return response('<form name="form1" method="post"></form><table><tr><th>첨부파일</th><td><a href="javascript:goDownLoad(\'secret.hwp\')">private title</a></td></tr></table>');
+  }});
+  assert.deepEqual(calls,[{key:'detail',options:{id:'54578'}}]);
+  assert.equal(result.maximumRequests,1);assert.equal(result.maximumResponseBytes,2097152);
+  assert.equal(result.page.attachmentPlacement[0].formOpenCountBeforeLabel,1);
+  assert.equal(result.page.attachmentPlacement[0].formCloseCountBeforeLabel,1);
+  assert(result.page.attachmentPlacement[0].tokens.some(t=>t.knownDownloadCall));
+  assert(!/secret|private title/.test(JSON.stringify(result)));
+  assert.equal(result.downloadedFileCount,0);assert.equal(result.isAttachmentDiscoveryVerified,false);
+});
+
+test('상세 실패는 한 번의 오류로 보존하며 재시도하지 않는다', async () => {
+  let calls=0;
+  const result=await collectKnownDetailSurvey({fetchPage: async () => {calls++;throw Object.assign(new Error('private'),{code:'REQUEST_TIMEOUT'});}});
+  assert.equal(calls,1);assert.equal(result.page.errorCode,'REQUEST_TIMEOUT');
+  assert(!JSON.stringify(result).includes('private'));assert.equal(result.productionWriteCount,0);
+});
+
+test('고정 상세 workflow는 기존 두 검색 모드와 상호 배타적이고 최초 push만 실행한다', () => {
+  const yaml=readFileSync('.github/workflows/attachment-contract-qa.yml','utf8');
+  const block=yaml.split('      - name: 울산 남구 기존 목록 ID 상세 구조')[1]?.split('      - name: 제천 worker')[0];
+  assert(block);assert(block.includes("github.event_name == 'push' && github.run_attempt == 1"));
+  for(const name of ['list-survey','support-survey'])assert(block.includes("!contains(github.event.head_commit.message, '[ulsan-namgu-"+name+"-01]')"));
+  assert(block.includes('timeout-minutes: 1'));assert(block.includes('SANEB_ULSAN_NAMGU_KNOWN_DETAIL_SURVEY'));
+  assert(block.includes('path: build/reports/attachment-ulsan-namgu-survey/known-detail.json'));
+  assert(!/secrets\.|continue-on-error|aws |deploy\.yml/.test(block));
+});
+
+test('첨부 구조는 script 문구·개인정보·원시 속성을 배제하고 크기를 제한한다', () => {
+  const page='<script>const label="첨부파일";</script><!-- 첨부파일 -->'
+    + '<form name="form1" method="post"><table><tr><td><font>첨부파일</font></td><td>'
+    + '<a href="javascript:goDownLoad(\'secret\')" onclick="secret" data-token="secret">secret</a></td></tr></table></form>';
+  const result=summarizeAttachmentPlacement(page);
+  assert.equal(result.length,1);assert.equal(result[0].formCloseCountBeforeLabel,0);
+  assert(result[0].tokens.some(t=>t.tag==='font'));
+  assert(!JSON.stringify(result).includes('secret'));
+  assert.equal(summarizeAttachmentPlacement(page.repeat(10)).length,4);
+  assert(result.every(r=>r.tokens.length<=60));
 });
 
 test('workflow는 별도 최초 push 표식으로만 진단하며 metadata만 보관한다', () => {

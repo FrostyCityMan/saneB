@@ -166,7 +166,7 @@ jobs:
 
       - name: 울산 남구 공식 목록 구조 진단 — 최대 3요청·6MiB
         id: ulsan-namgu-list-survey
-        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-support-survey-01]') }}
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-support-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-known-detail-01]') }}
         timeout-minutes: 2
         env:
           SANEB_ULSAN_NAMGU_SURVEY: 'true'
@@ -183,7 +183,7 @@ jobs:
 
       - name: 울산 남구 지원사업 후보·상세 구조 진단 — 최대 3요청·6MiB
         id: ulsan-namgu-support-survey
-        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-support-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') }}
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-support-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-known-detail-01]') }}
         timeout-minutes: 2
         env:
           SANEB_ULSAN_NAMGU_SUPPORT_SURVEY: 'true'
@@ -195,6 +195,23 @@ jobs:
         with:
           name: attachment-ulsan-namgu-support-${{ github.sha }}
           path: build/reports/attachment-ulsan-namgu-survey/support-structure.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: 울산 남구 기존 목록 ID 상세 구조 — 최대 1요청·2MiB
+        id: ulsan-namgu-known-detail
+        if: ${{ github.event_name == 'push' && github.run_attempt == 1 && contains(github.event.head_commit.message, '[ulsan-namgu-known-detail-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-list-survey-01]') && !contains(github.event.head_commit.message, '[ulsan-namgu-support-survey-01]') }}
+        timeout-minutes: 1
+        env:
+          SANEB_ULSAN_NAMGU_KNOWN_DETAIL_SURVEY: 'true'
+        run: node scripts/qa/attachment-ulsan-namgu-survey.mjs
+
+      - name: 울산 남구 고정 상세 metadata 보관 — 원문·첨부 없음
+        if: ${{ always() && steps.ulsan-namgu-known-detail.outcome != 'skipped' && steps.ulsan-namgu-known-detail.outcome != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attachment-ulsan-namgu-known-detail-${{ github.sha }}
+          path: build/reports/attachment-ulsan-namgu-survey/known-detail.json
           if-no-files-found: error
           retention-days: 7
 

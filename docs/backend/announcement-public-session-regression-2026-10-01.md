@@ -7,13 +7,15 @@
 - [x] 고정 지문 회귀 대상 12수집원·14공고 재검증
 - [x] 지문 기대값 실패 7건 재현·정정, 기존 보안 검증 보존
 - [x] 집중 Java 230통과·6조건부 생략·0실패, Node39통과, bootJar 성공
-- [!] 기존 화천 고정 worker 계약은 미해결, 전체 Linux CI 재통과 미확인
+- [!] 기존 화천 고정 worker 계약은 미해결, 후속 Linux CI에서 해당1실패만 남음
 - [~] 전체 지역 파일 연결: 최신 표본 기준 미확보18개, 현재 코드 실파일 확인16/223
 - [ ] 운영 worker·DB/API/UI·배포·브라우저 E2E
 
 기준 HEAD `cc44ebd92db59f4b1c717bcb4546b38879c8b879`. `long-goal-operating-protocol`에 따라 공통 전송 변경과 실제 사이트 실패를 구별했다. 이 회차에서는 응용 코드·Flyway V85·API·규칙·HWP 추출기1.0.16을 변경하지 않았다. 성공 파일과 발견/전송/형식 오류를 분리하며 HWP 고도화는 계속 보류한다.
 
 ## 진척 수치 정정
+
+후속 CI 확인: 커밋 `71ea615`의 [run36793638812](https://github.com/FrostyCityMan/saneB/actions/runs/36793638812), job110151973622는 루트4465개 중 **4144통과·1실패·320생략**, 전체 job8분24초 종료실패다. 남은 실패는 `AnnouncementAttachmentHwacheonWorkerProbeTest.fixedCaseVersionBudgetAndTitleDoNotExpandOtherGroups`이며 일반 지문 실패7건은 해소됐다. 전체 CI를 통과로 표시하지 않는다.
 
 분모223은 2026-09-28 운영 대상 스냅샷의 활성 수집원 수이며 고유 지자체 수가 아니다. 현재 운영 조회나 전체 goal 완료율로 사용하지 않는다.
 

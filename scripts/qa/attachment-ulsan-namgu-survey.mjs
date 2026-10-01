@@ -98,6 +98,44 @@ export function summarizeDetailStructure(html) {
     extensionMentions: Object.fromEntries(['pdf', 'hwp', 'hwpx'].map(ext => [ext.toUpperCase(), (html.match(new RegExp('\\.' + ext + '(?![a-z])', 'gi')) ?? []).length]))};
 }
 
+export function summarizeAttachmentPlacement(html) {
+  // 파서 등록용 구조 진단이다. script 안의 안내 문구를 실제 첨부 라벨로 오인하지 않는다.
+  const page = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  const labels = [...page.matchAll(/첨부\s*파일/g)].slice(0, 4);
+  return labels.map(label => {
+    const before = page.slice(0, label.index);
+    const fragment = page.slice(Math.max(0, label.index - 600), label.index + 1800);
+    const tokens = [...fragment.matchAll(/<\/?([A-Za-z][A-Za-z0-9]*)\b[^>]*>/g)].slice(0, 60).map(match => {
+      const tag = match[1].toLowerCase();
+      const attributes = Object.fromEntries([...match[0].matchAll(/\b(class|name|id|method)\s*=\s*["']([A-Za-z0-9_ -]{1,80})["']/gi)]
+        .map(value => [value[1].toLowerCase(), value[2]]));
+      return {tag, closing: match[0].startsWith('</'), attributes,
+        ...(tag === 'a' ? {knownDownloadCall: /\bgoDownLoad\s*\(/.test(match[0])} : {})};
+    });
+    return {formOpenCountBeforeLabel: (before.match(/<form\b/gi) ?? []).length,
+      formCloseCountBeforeLabel: (before.match(/<\/form\s*>/gi) ?? []).length, tokens};
+  });
+}
+
+export async function collectKnownDetailSurvey({fetchPage = fetchFixedPage, now = () => new Date().toISOString()} = {}) {
+  // run36782051228의 공식 목록에서 확보한 ID. 번호 탐색·검색 POST·다른 게시판 대체는 하지 않는다.
+  const noticeId = '54578';
+  let page;
+  try {
+    const response = await fetchPage('detail', {id: noticeId});
+    const {html, ...metadata} = decodePage(response);
+    page = {...metadata, ...(html === undefined ? {} : {
+      structure: summarizeDetailStructure(html), attachmentPlacement: summarizeAttachmentPlacement(html)})};
+  } catch (error) {
+    page = {status: 'TRANSPORT_OR_RESPONSE_FAILED', errorCode: knownErrors.has(error?.code) ? error.code : 'REQUEST_FAILED'};
+  }
+  return {scope: 'ULSAN_NAMGU_KNOWN_LIST_ID_DETAIL_SURVEY', observedAt: now(), noticeId,
+    sourceListRunId: 36782051228, status: 'DIAGNOSTIC_ONLY_NOT_COLLECTION_QA',
+    requestCount: 1, maximumRequests: 1, maximumResponseBytes: limits.responseBytes,
+    page, downloadedFileCount: 0, productionWriteCount: 0, rawFilesWritten: false,
+    isAttachmentDiscoveryVerified: false, isOperatingE2eVerified: false};
+}
+
 export function fetchFixedPage(key, options = {}) {
   if (!Object.hasOwn(endpoints, key) && key !== 'detail') throw new Error('SURVEY_TARGET_INVALID');
   if (key === 'detail' && !/^[0-9]{1,12}$/.test(options.id ?? '')) throw new Error('SURVEY_DETAIL_ID_INVALID');
@@ -196,12 +234,13 @@ export async function collectSurvey({fetchPage = fetchFixedPage, now = () => new
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const supportMode = process.env.SANEB_ULSAN_NAMGU_SUPPORT_SURVEY === 'true';
   const listMode = process.env.SANEB_ULSAN_NAMGU_SURVEY === 'true';
-  if (process.platform !== 'linux' || process.argv.length !== 2 || supportMode === listMode) {
+  const detailMode = process.env.SANEB_ULSAN_NAMGU_KNOWN_DETAIL_SURVEY === 'true';
+  if (process.platform !== 'linux' || process.argv.length !== 2 || [supportMode, listMode, detailMode].filter(Boolean).length !== 1) {
     console.error('울산 남구 목록 진단은 승인된 Linux 격리 실행에서만 가능합니다.'); process.exitCode = 1;
   } else {
     try {
-      const result = await (supportMode ? collectSupportSurvey() : collectSurvey());
-      const destination = supportMode ? output.replace('result.json', 'support-structure.json') : output;
+      const result = await (detailMode ? collectKnownDetailSurvey() : supportMode ? collectSupportSurvey() : collectSurvey());
+      const destination = detailMode ? output.replace('result.json', 'known-detail.json') : supportMode ? output.replace('result.json', 'support-structure.json') : output;
       mkdirSync(dirname(destination), {recursive: true});
       writeFileSync(destination, JSON.stringify(result, null, 2) + '\n', {flag: 'wx', mode: 0o600});
       console.log(JSON.stringify(result));
