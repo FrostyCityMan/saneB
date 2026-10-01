@@ -132,3 +132,82 @@ test('inventory, receipts and imported samples must still match their sealed evi
     const f = fixture(); mutate(f); assert.throws(f.run);
   }
 });
+
+test('과거 성공 후 최신 실패는 최초 미확인과 분리하고 지문 변경으로 숨기지 않는다', () => {
+  const old={...base,observedAt:'2026-09-30T01:00:00Z'};
+  const failed={...base,observedAt:'2026-10-01T02:00:00Z',profileHash:other,
+    collectionStageComplete:false,status:'COLLECTION_ONLY_PARTIAL_NOT_APPROVED',
+    files:[{locatorHash:hash,status:'FAILED',bytes:0,failedStage:'FILE_DOWNLOAD',failureCode:'TRANSPORT_TIMEOUT'}]};
+  const result=fixture([old,failed],[{...target,profiles:[{profileCode:'PROFILE_1',profileHash:'c'.repeat(64)}]}]).run();
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount,0);
+  assert.equal(result.diagnosticSummary.regionsWithAnyRecordedIssue,0);
+  assert.equal(result.historySummary.everDownloadedRegionCount,1);
+  assert.equal(result.historySummary.neverDownloadedRegionCount,0);
+  assert.equal(result.historySummary.latestSampleUnrecoveredRegionCount,1);
+  assert.equal(result.historySummary.recheckAfterPastDownloadRegionCount,1);
+  const history=result.regions[0].history;
+  assert.equal(history.lastSuccessfulObservedAt,old.observedAt);
+  assert.equal(history.status,'RECHECK_AFTER_PAST_DOWNLOAD');
+  assert.equal(history.latestKnownIssues[0].code,'TRANSPORT_TIMEOUT');
+  assert.equal(history.latestKnownIssues[0].profileHash,other);
+  assert.equal(history.latestKnownIssues[0].isCurrentProfile,false);
+});
+
+test('새 표본 성공이 있으면 다른 과거 표본 실패 때문에 수집원 전체를 미확보로 세지 않는다', () => {
+  const failed={...base,caseCode:'CASE-2',collectionStageComplete:false,status:'COLLECTION_ONLY_PARTIAL_NOT_APPROVED',
+    bodyStatus:'FETCH_FAILED',bodyFailureCode:'TIMEOUT',failedStage:'DETAIL_DISCOVERY',failureCode:'TRANSPORT_TIMEOUT',
+    files:[],discoveryStatus:undefined,discoveryComplete:false,detailIdentityVerified:false};
+  const result=fixture([failed,base]).run();
+  assert.equal(result.historySummary.latestSampleDownloadedRegionCount,1);
+  assert.equal(result.historySummary.latestSampleUnrecoveredRegionCount,0);
+  assert.equal(result.historySummary.recheckAfterPastDownloadRegionCount,0);
+  assert.equal(result.regions[0].history.latestKnownIssues.length,2);
+  assert(result.regions[0].history.latestKnownIssues.every(i=>i.isCurrentProfile));
+});
+
+test('원본 미정리·식별 미확인 자료는 과거 다운로드 성공에도 포함하지 않는다', () => {
+  for(const extra of [{originalFilesRemoved:false},{detailIdentityVerified:false,discoveryComplete:false,discoveryStatus:'FAILED'}]) {
+    const result=fixture([{...base,...extra,status:'COLLECTION_ONLY_PARTIAL_NOT_APPROVED',collectionStageComplete:false}]).run();
+    assert.equal(result.historySummary.everDownloadedRegionCount,0);
+    assert.equal(result.historySummary.neverDownloadedRegionCount,1);
+    assert.equal(result.regions[0].history.lastSuccessfulObservedAt,null);
+  }
+});
+
+test('이력 수집원 수는 영수증 반복·비활성 수집원으로 증가하지 않는다', () => {
+  const result=fixture([base,{...base,observedAt:'2026-10-01T02:00:00Z'}],
+    [target,{...target,localSourceCode:'LGS-000002',enabled:false,profiles:[],bindingStatus:'PROFILE_MISSING'}]).run();
+  assert.equal(result.historySummary.activeRegionCount,1);
+  assert.equal(result.historySummary.everDownloadedRegionCount,1);
+  assert.equal(result.regions[0].history.lastSuccessfulObservedAt,'2026-10-01T02:00:00Z');
+});
+
+test('제목 중단과 최신 미관측은 오류를 만들지 않고 과거 성공을 현재 성공으로 바꾸지 않는다', () => {
+  const stopped={...base,observedAt:'2026-10-01T02:00:00Z',titleStage:'GROUP_B_MATCHED',status:'TITLE_EXCLUDED_NOT_FETCHED',
+    files:[],discoveryStatus:undefined,discoveryComplete:false,collectionStageComplete:false,
+    detailIdentityVerified:false,requestReservationsIncludingBodyUpperBound:0,bodyStatus:undefined};
+  const result=fixture([base,stopped]).run();
+  assert.equal(result.regions[0].history.status,'RECHECK_AFTER_PAST_DOWNLOAD');
+  assert.deepEqual(result.regions[0].history.latestKnownIssues,[]);
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount,0);
+  const absent=fixture([]).run();
+  assert.equal(absent.regions[0].history.status,'NO_OBSERVATION');
+  assert.deepEqual(absent.regions[0].history.latestKnownIssues,[]);
+});
+
+test('과거 지문의 오류 metadata도 원문·파일명·알 수 없는 오류 문자열을 배제한다', () => {
+  const result=fixture([{...base,bodyFailureCode:'PRIVATE_CANARY',filename:'PRIVATE_CANARY'}],
+    [{...target,profiles:[{profileCode:'PROFILE_1',profileHash:other}]}]).run();
+  assert(!JSON.stringify(result).includes('PRIVATE_CANARY'));
+  assert.equal(result.regions[0].history.latestKnownIssues[0].code,'UNCLASSIFIED_ERROR');
+  assert.equal(result.regions[0].history.latestKnownIssues[0].isCurrentProfile,false);
+  assert.equal(result.historySummary.latestSampleDownloadedRegionCount,1);
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount,0);
+});
+
+test('마지막 성공 시각은 입력 순서와 무관하게 나노초까지 보존한다', () => {
+  const early={...base,observedAt:'2026-10-01T01:00:00.000000001Z'};
+  const later={...base,observedAt:'2026-10-01T01:00:00.000000002Z'};
+  for(const reports of [[early,later],[later,early]])
+    assert.equal(fixture(reports).run().regions[0].history.lastSuccessfulObservedAt,later.observedAt);
+});
