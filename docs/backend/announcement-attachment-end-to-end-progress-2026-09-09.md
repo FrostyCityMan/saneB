@@ -2,6 +2,8 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 수집 전용 계약 첫 Linux36881855740/db4fca5는 목록 projection의 이전 null 기대값을 유지한 일반1/job DB1 시험 실패로 종료됐다. migration18·runtime6·worker12·Flyway3·산출물 계약20 실패·생략0과 신규 수집 게시/ENFORCE 차단 통과는 확인했지만 전체 Gate는 미완료다. 전체 snapshot 비노출 원칙을 보존하면서 계약/모드 두 필드만 반환하는 정적 SQL·실제 DB 검증으로 시험을 보완했다. 로컬20 suite/457시험 실패·생략0·bootJar 성공이며 후속 전체 Linux CI를 진행한다. 최초 실패와 앞 단계 실패로 미실행된 독립/정책 부모 검증을 성공으로 보고하지 않는다.
+
 2026-10-02 수집 전용 계약 커밋·푸시·배포 없는 Linux CI 승인을 받았다. 현재 QA 브랜치의 이번 변경만 반영하며 V86 업그레이드·게시 DB 제약·전체 기존 내부 계약 검증 결과를 확인한다. 외부 공고 관측·운영 배포·정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·브라우저는 이 후속 범위에서 실행하지 않는다. CI 결과 확인 전 실제 DB Gate를 완료로 보고하지 않는다.
 
 2026-10-01 [승인된 수집 전용 계약 로컬 구현](attachment-collection-safety-contract-2026-10-01.md): V86과 `COLLECTION_SAFETY_V1`/`COLLECTION_VERIFIED`를 추가하고 QA 실행·게시 verifier·준비 범위·영향 API·관리자 표시에 연결했다. 기존 STRICT_V1/VERIFIED와 ENFORCE의 전체 실파일 검증은 유지한다. 로컬 Java453/Node45 실패·생략0, bootJar 성공이다. 실제 PostgreSQL 업그레이드/게시 trigger 시험은 추가했지만 Linux CI 미실행이며, Docker 엔진 미가동으로 로컬 DB 검증도 완료하지 못했다. 커밋·푸시 승인을 요청한 상태다. 운영 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·추가 배포·브라우저는 실행하지 않았다. 전체 goal과 운영 수집 시작 Gate는 미완료다. 아래 승인 요청 기록은 이번 승인 이전 이력이다.

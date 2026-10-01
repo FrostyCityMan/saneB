@@ -338,13 +338,14 @@ class AnnouncementAttachmentMapperBindingTest {
         assertThat(configuration.getMappedStatement(prefix+"selectCheckCount").getBoundSql(search).getSql()).contains("WHERE c.policy_id=?");
         assertThat(configuration.getMappedStatement(prefix+"selectCheckDetails").isFlushCacheRequired()).isTrue();
     }
-    @Test void policyQaHistoryBindsPolicyPaginationWithoutLoadingInputSnapshots() {
+    @Test void policyQaHistoryBindsPolicyPaginationAndOnlyProjectsContractMetadata() {
         String prefix="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyValidationDao.";
         var search=new com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Search(UUID.randomUUID(),20,40);
         var list=configuration.getMappedStatement(prefix+"selectRunList").getBoundSql(search);
-        assertThat(list.getSql()).contains("NULL::text AS input_snapshot_json", "p.row_version=v.policy_row_version", "r.row_version=v.rule_row_version",
+        assertThat(list.getSql()).contains("jsonb_build_object('validationContractCode',coalesce(v.input_snapshot_json->>'validationContractCode','STRICT_V1')",
+                "'modeCode',v.input_snapshot_json->>'modeCode')::text AS input_snapshot_json", "p.row_version=v.policy_row_version", "r.row_version=v.rule_row_version",
                 "WHERE v.policy_id=?", "ORDER BY v.created_at DESC,v.id DESC LIMIT ? OFFSET ?")
-                .doesNotContain("v.input_snapshot_json::text", "FOR UPDATE", "extracted_text");
+                .doesNotContain("v.input_snapshot_json::text", "FOR UPDATE", "extracted_text", "body_text", "'installed'", "'providerQaPlan'", "'settings'");
         assertThat(list.getParameterMappings()).extracting(p->p.getProperty()).containsExactly("policyId","size","offset");
         assertThat(configuration.getMappedStatement(prefix+"selectRunCount").getBoundSql(search).getSql()).contains("WHERE policy_id=?");
         assertThat(configuration.getMappedStatement(prefix+"selectRunDetails").getBoundSql(Map.of("runId",UUID.randomUUID(),"lock",true)).getSql())

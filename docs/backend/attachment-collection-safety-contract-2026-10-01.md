@@ -75,5 +75,27 @@ fixture 검증이며 외부 공고 관측 옵션은 활성화하지 않는다.
 레이아웃·키보드/초점·확인/재조회 절차는 유지했고 상태/오류/충돌 경로는 Node 대역으로 검증했다.
 실제 렌더링·접근성·반응형은 브라우저 미실행으로 미확인이다.
 
+## 2026-10-02 첫 Linux CI와 후속 보완
+
+커밋 `db4fca54d4f9ed401897cdf372e9bdece9f06ac2`를 QA 브랜치에 푸시했다.
+[Linux CI 36881855740](https://github.com/FrostyCityMan/saneB/actions/runs/36881855740)는 실패이며
+artifact `11172236202`의 XML에서 일반 시험 1건과 job DB 시험 1건의 실패를 확인했다.
+두 시험은 목록 projection 변경 전의 `inputSnapshotJson=null` 기대값을 유지하고 있었다.
+전체 snapshot 비노출 원칙은 그대로 유지하며 계약 코드·모드 두 필드만 반환하는 정적 SQL과
+실제 DB 목록을 검증하도록 보완했다. 과거 계약 기본값과 새 수집 계약도 각각 확인한다.
+시험을 삭제·생략하거나 실패를 성공으로 보고하지 않는다.
+
+첫 실행에서 migration18·runtime6·worker12·Flyway3·산출물 계약20은 실패·생략0이다.
+job DB212 중1실패, 일반4596 중1실패/조건부생략381이며 추출기 시험은 별도다.
+V85→V86 업그레이드와 새 수집 게시/ENFORCE 재사용 차단 시험은 통과했지만 전체 Gate는
+미완료다. 독립 산출물·정책 부모 실행은 앞 단계 실패로 실행되지 않았다. 후속 전체 CI가 필요하다.
+
+후속 로컬 검증은 `:test --tests 'com.saneb.db.AnnouncementAttachmentMapperBindingTest'
+--tests '*AttachmentPolicy*Test' --tests '*AnnouncementAttachmentPolicy*Test'
+--tests '*AttachmentCollectionSafetyGateTest' --tests 'com.saneb.db.MigrationContractTest'
+bootJar --no-daemon --console=plain --max-workers=1`로 실행했다. 20 suite/457시험,
+실패·오류·생략0, BUILD SUCCESSFUL(1분34초)이다. 실제 DB 두 목록 projection의 검증은
+후속 Linux CI로 확인한다. 제품 코드나 migration은 이번 실패 보완에서 변경하지 않았다.
+
 성공 기준은 승인된 로컬 구현과 검증 완료다. 운영 수집 시작은 별도 Gate다.
 일부 검증만 실행하거나 skip된 검증을 완료로 보고하지 않는다.

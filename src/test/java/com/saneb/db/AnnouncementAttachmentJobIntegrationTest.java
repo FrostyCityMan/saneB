@@ -2012,13 +2012,17 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links",Integer.class)).isZero();
         assertThatThrownBy(()->sql.update("DELETE FROM announcement_attachment_policy_publications WHERE id=?",id)).isInstanceOf(DataIntegrityViolationException.class);
     }
-    @Test void collectionContractScopesAndPublishesOnlyCollectModeWithDistinctImmutableResult() {
+    @Test void collectionContractScopesAndPublishesOnlyCollectModeWithDistinctImmutableResult() throws Exception {
         var scope=publicationDatabaseFixture(true).scope();
         assertThat(scope.qaRunId()).isNotNull();assertThat(scope.modeCode()).isEqualTo("COLLECT_ONLY");
         var observed=publicationImpactService().selectImpactDetails(reviewActor(),scope.policyId());
         assertThat(observed.latestQa().statusCode()).isEqualTo("COLLECTION_VERIFIED");
         assertThat(observed.latestQa().validationContractCode()).isEqualTo("COLLECTION_SAFETY_V1");
         assertThat(observed.blockingReasonCodes()).doesNotContain("QA_NOT_VERIFIED","QA_REQUIRED_STEPS_NOT_PASSED");
+        var runs=validationDao().selectRunList(new com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Search(scope.policyId(),20,0));
+        assertThat(runs).hasSize(1);
+        assertThat(new ObjectMapper().readTree(runs.getFirst().inputSnapshotJson())).isEqualTo(new ObjectMapper().readTree(
+                "{\"validationContractCode\":\"COLLECTION_SAFETY_V1\",\"modeCode\":\"COLLECT_ONLY\"}"));
         var tx=new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
         tx.executeWithoutResult(s->{UUID receipt=insertPublicationDatabaseReceipt(scope);
             publicationDao().updatePreviousPolicyRetired(receipt);publicationDao().updatePolicyActive(receipt);});
@@ -2666,10 +2670,13 @@ class AnnouncementAttachmentJobIntegrationTest {
         return context.getBean(SqlSessionTemplate.class).getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyValidationDao.class);
     }
     private UUID insertValidationFixture() {
+        return insertValidationFixture("{\"schemaVersion\":1}");
+    }
+    private UUID insertValidationFixture(String input) {
         UUID id=insertPolicyCheckFixture(),run=UUID.randomUUID();
         int ruleVersion=sql.queryForObject("SELECT row_version FROM announcement_source_classification_rule_releases WHERE id=?",Integer.class,release);
         assertThat(validationDao().insertRun(new com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Insert(run,id,0,release,ruleVersion,
-                "a".repeat(64),"{\"schemaVersion\":1}",actor,UUID.randomUUID(),"b".repeat(64)))).isEqualTo(1);
+                "a".repeat(64),input,actor,UUID.randomUUID(),"b".repeat(64)))).isEqualTo(1);
         return run;
     }
     private UUID claimValidation(UUID run) {
@@ -2679,12 +2686,16 @@ class AnnouncementAttachmentJobIntegrationTest {
             assertThat(validationDao().insertExtractionLease(run,token)).isEqualTo(1);
         });return token;
     }
-    @Test void validationReservationMapsMetadataAndDoesNotCreateSourceJobs() {
-        UUID run=insertValidationFixture();var row=validationDao().selectRunDetails(run,false);
+    @Test void validationReservationMapsMetadataAndDoesNotCreateSourceJobs() throws Exception {
+        UUID run=insertValidationFixture("{\"schemaVersion\":1,\"installed\":{\"runtimeHash\":\"synthetic-fixture-only\"},\"providerQaPlan\":{\"items\":[]},\"settings\":{\"fixtureOnly\":true}}");
+        var row=validationDao().selectRunDetails(run,false);
         assertThat(row.statusCode()).isEqualTo("PENDING");assertThat(row.inputVersionsCurrent()).isTrue();assertThat(row.leaseToken()).isNull();
         var search=new com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Search(row.policyId(),20,0);
-        assertThat(validationDao().selectRunCount(search)).isEqualTo(1);assertThat(validationDao().selectRunList(search)).singleElement()
-                .satisfies(v->assertThat(v.inputSnapshotJson()).isNull());
+        assertThat(validationDao().selectRunCount(search)).isEqualTo(1);
+        var runs=validationDao().selectRunList(search);assertThat(runs).hasSize(1);
+        assertThat(new ObjectMapper().readTree(runs.getFirst().inputSnapshotJson())).isEqualTo(new ObjectMapper().readTree(
+                "{\"validationContractCode\":\"STRICT_V1\",\"modeCode\":null}"));
+        assertThat(row.inputSnapshotJson()).contains("installed","providerQaPlan","settings");
         assertThat(validationDao().selectRequestDetails(row.idempotencyKey()).runId()).isEqualTo(run);
         assertThat(validationDao().selectCoolingDown(row.policyId())).isTrue();assertThat(validationDao().selectRecentCount(row.policyId())).isEqualTo(1);
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
