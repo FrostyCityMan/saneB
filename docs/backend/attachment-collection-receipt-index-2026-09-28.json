@@ -7771,6 +7771,14 @@
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/POHANG-73525-POHANG-RECOVERY-20261001-K.json",
+      "receiptHash": "cf5d00d700550a0a0a91f60d6377146a872eb1269a192456b2cd0114bb729e09",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -13761,18 +13769,27 @@
       "caseCode": "POHANG-73525",
       "profileCode": "LOCAL_POHANG_PORTAL_V1",
       "profileHash": "d693b97d4922c2ac685030d5d3e61fa1dbc9ed58fd8127ad89b3c7e46c456332",
-      "receiptHash": "407d2d20fee9657eace1ccee74810b50a5e8984af063339080e3455d189a7d30",
+      "receiptHash": "cf5d00d700550a0a0a91f60d6377146a872eb1269a192456b2cd0114bb729e09",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:13:56.745953900Z",
+      "observedAt": "2026-10-01T08:17:12.305249600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
-      "discoveryComplete": false,
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FOUND",
+      "discoveryComplete": true,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "2d52dd60b4caa11adfaef7fe90017f5fcf48dee2117261e72e164c3206071e3d",
+          "status": "SUCCEEDED",
+          "bytes": 136459,
+          "format": "HWPX",
+          "binaryHash": "33c29766f51b56853769b95ca93ab41e5d8779a2d548d2f32b8b47eaf19cc687",
+          "signatureVerified": true
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000127",
@@ -19000,6 +19017,26 @@
     "failedFiles": 1,
     "requestReservationsIncludingBodyUpperBound": 5,
     "reservedBytesIncludingBodyUpperBound": 2441216,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false
+  },
+  "pohangRecovery20261001K": {
+    "scope": "POHANG_RECOVERY_EUNPYEONG_DIAGNOSTICS_NOT_OPERATING_E2E",
+    "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+    "diagnosticHttpRequests": 6,
+    "diagnosticMaximumBytes": 20971520,
+    "diagnosticFileRequests": 2,
+    "diagnosticSuccessfulFiles": 0,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "samples": 1,
+    "downloadedFiles": 1,
+    "downloadedBytes": 136459,
+    "requestReservationsIncludingBodyUpperBound": 4,
+    "reservedBytesIncludingBodyUpperBound": 2528523,
     "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
