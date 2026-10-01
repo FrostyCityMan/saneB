@@ -1,5 +1,53 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-01 19:43 KST 승인 코드·V84/V85 운영 반영 완료
+
+**Decision: Ready to release — 승인된 코드 설치 Gate 완료.** 전체 첨부 상시 서비스/운영 E2E 완료 판정은 아니다. 정책 게시·ENFORCE·첨부 worker 활성화·기존 데이터 재처리는 실행하지 않았다.
+
+- 고정 SHA `b638ad726e81846e3a4d4a43908023d87f16f7b7`, ref `codex/redeploy-b638ad7-20261001`의 [배포 Actions36849039334](https://github.com/FrostyCityMan/saneB/actions/runs/36849039334) attempt2 success, CodeDeploy `d-26M5PJ54L` Succeeded다. attempt1의 경계 시험 실패는 아래에 보존했다. 동일 코드/시험/설정 그대로1회 재실행했으며 실패 원인은 확정되지 않았다.
+- bundle과 설치 JAR SHA256은 `7907d7bd6a4d77dc1e9f12624f4723fcfed1718685d8c284b295e93f8e4545df`로 일치한다. 실행 코드 지문 `6abaa385fd8dcdaa70681092592ab58f742f53d26dd18243016a3dcf7831d133`, 설치/실제 DB V85, 실패 migration0, service active·서버 내부 health UP이다.
+- 추출기1.0.16 JAR SHA256 `8877a2f7e0c5ecb37d4c30c9af5386e0525119c8a5150a6b3d6dcad5e9d3d43a`, library set `25b52cfc859edd0e2919aca4496d44b73bef32409e4ab4bbd2dd1b56e0214c0e`. 공용/불변 QA 설치가 일치하고 실행 worker/QA 경로는 새 웹 JAR release를 가리킨다. catalog schema2/참조299/승인 기대값1이며 단순 등록을 파일 성공으로 보지 않는다.
+- 설치 JAR의 migration82파일과 운영 Flyway82이력을 version/script/checksum/type/success까지 비교하여 누락/추가/불일치/invalid0을 확인했다. V2/V3/V5가 없으므로 최신 버전85와 파일 수82는 다르다. 읽기 전용 검사만 수행했고 repair/추가 migrate는 실행하지 않았다.
+- 첨부 worker/정책QA/ProviderQA/rollback은 UNSET→기본false, 기존 목록/BODY/분류V2/source batch/본문 재분류 worker는true로 배포 전과 같다. 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch는 모두0이다. 활성 지자체223·목록parser41·원문2945도 동일하다. 국가 채널 API key2종은 부재 상태 유지이며 값을 출력하지 않았다.
+- hook의 `ATTACHMENT_CONTRACT_INSTALL=INSTALLED`, `ATTACHMENT_SERVER_QA=NOT_REQUESTED`, 서버 파일 QA 보고서0건을 확인했다. 이전 JAR backup은 배포 전 hash `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`와 일치하고 이전 extractor release가 존재한다. 실제 rollback/DB복원 시험은 하지 않았다.
+
+검증 명령·SSM: Runtime `f9223249-dcb5-4f11-87fa-f00119f3b038`, Database `c0214e7a-5ff4-475e-8205-aeb64c61646e`, DeploymentEvidence `dc7c2cd1-e1c3-4b5e-9858-89ef211f3385`, MigrationIntegrity `5b50d5df-461e-4200-b9ee-043ed02d6004` 모두 Success. 각 DB 검사는 READ ONLY/on·ROLLBACK·쓰기0이며 소유 임시 CA/전송 파일을 정리했다. 승인된 배포 과정의 V84/V85 DDL과 서비스 재시작을 '운영 변경0'으로 보고하지 않는다.
+
+미실행/남은 위험: 운영 상시 첨부 수집 시작, 정책 게시/ENFORCE, 기존 데이터 적용, 운영 브라우저 E2E, 실제 rollback. 브라우저는 현재 명시 요청이 없어 정책상 미실행이다. 격리 QA 실파일210/223·미확보13과 현재 운영 첨부0을 분리한다. 최초 배포 시험의 간헐적 실패 원인은 후속 조사 대상이며 단순 재시도 성공을 원인 해결로 보고하지 않는다.
+
+## 2026-10-01 운영 재확인·신규 설치 조건부 승인
+
+**Decision: Ready to release — 승인된 코드 설치 범위.** 후보 `b638ad726e81846e3a4d4a43908023d87f16f7b7`의 최신 Linux CI·배포 전 검증이 통과하여 고정 ref `codex/redeploy-b638ad7-20261001`에서 Actions `36849039334`를 한 번 실행했다. `attachment_qa=false`다. 아직 배포 후 검증 전이며 전체 첨부 서비스 활성화 완료를 의미하지 않는다.
+
+기존 승인된 읽기 전용 진단으로 Runtime SSM `7674f5a4-6ca9-4c1d-9e5e-72bf933f19df`, Database SSM `308b7768-7ec1-410e-ae7e-8cd7e71ae185`를 실행했다. 둘 다 Success이며 root principal·저장소 대상 계정 일치·서울 리전·Ubuntu 대상1대·SSM Online을 확인했다. 비밀값은 출력하지 않았다.
+
+| 항목 | 확인 결과 |
+|---|---|
+| 운영 코드 | `9a1bb4569bcc3c13bf3bc30b51021b9149c67054`, CodeDeploy `d-NCB2HF3YK` Succeeded 유지 |
+| 설치 JAR | SHA256 `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`, migration V83 |
+| 가동 상태 | service active, 서버 내부 health UP. 외부 인증 업무 E2E 아님 |
+| DB | V83, migration 실패0, READ ONLY/on·ROLLBACK·쓰기0 |
+| 첨부 운영 데이터 | 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0 |
+| 플래그 | 첨부 worker/정책QA/ProviderQA UNSET→기본false. 기존 목록·BODY·분류V2·source batch true |
+| 기존 수집 범위 | 활성 지자체223·목록parser41·저장 원문2945. 첨부 적격/성공 수량 아님 |
+| 추출기/카탈로그 | 추출기1.0.3, catalog 참조30/기대값1. 기본 worker/QA 경로가 현재 JAR의 불변 release와 일치 |
+| 국가 채널 키 | 기업마당·정부24 키 부재. 값 조회·입력은 하지 않음 |
+| 원복 자원 | 이전 JAR SHA `d8696e85c2d7c5415b8a39ea9ccb33f596f264feb5a7add966a62610b3751d74`, 이전 extractor release 존재. 실제 원복 시험 아님 |
+
+이번 후보는 운영 기준본 대비 기존 migration 수정 없이 V84/V85를 추가한다. 구간 분석 테이블·평가/일치 근거 결합 컬럼과 제약이 포함되므로 단순 파일 교체로 보고하지 않는다. 추출기는1.0.16이며 HWP 추가 고도화를 재개한 것은 아니다. 설치만으로 첨부 worker/정책을 켜지 않는다. 로컬 연결223/223·실파일 확보210/223은 격리 QA 근거이고 운영 첨부0과 분리한다.
+
+사용자가 승인 질문에 **코드 설치·V84/V85 반영 승인**이라고 응답했다. 범위는 최신 Linux CI·배포 전 검증 통과를 조건으로 위 고정 SHA 코드/추출기 설치·V84/V85 migration·재시작이다. 정책 게시/ENFORCE/첨부 worker 활성화/기존 데이터 재처리 요청은 제외한다. 기존 본문 재분류 worker의 true 설정은 변경하지 않는다. 배포 후 같은 SHA/JAR·V85·health·플래그·첨부 건수를 대조해야 한다.
+
+MigrationIntegrity SSM `a525d352-8be5-47dc-a081-a056e44e4114`에서 V83까지80파일/80이력의 checksum·version·script 일치, 누락/추가/불일치/invalid0을 확인했다. 새 운영 조회는 READ ONLY/ROLLBACK·쓰기0이다. 후속 DB SSM `d37f2bce-5a9c-4a5f-96cf-57ff3616ad00`와 Runtime `54ffb1b0-8498-4774-9532-5b2ed1e84ee5`에서 같은 기준선, 첨부 rollback UNSET, 기존 본문 재분류 worker true를 확인했다. 문서의 Aurora 예시 ID는 실제 계정에 없으므로 운영 DB라고 가정하지 않고 서비스 DB endpoint hash와 일치하는 RDS 자원의 복구 정보를 따로 확인한다.
+
+서비스 DB endpoint hash와 일치하는 실제 Aurora는 `saneb-dev-aurora`다. 읽기 전용 BackupInventory에서 available·암호화/삭제방지 true·백업 보존7일, 복구 가능 구간 2026-09-24 04:04:21~2026-10-01 19:07:32 KST, 10월1일04:04 자동 snapshot available을 확인했다. 문서 예시 `saneb-prod-aurora`를 운영 대상으로 사용하지 않았다. 이는 기존 백업/PITR 가용성 확인이며 실제 복원 시험이나 새 snapshot 생성은 아니다.
+
+배포 전 실행 명령: `Invoke-SanebAwsReadOnly.ps1 -Action Runtime`, `-Action Database`, `-Action MigrationIntegrity`, `-Action BackupInventory -DatabaseEndpointSha256 <서비스 endpoint hash>`. 소유 임시 CA/전송 파일은 정리했고 사전 진단의 서비스/설정/운영 데이터 변경은0이다. 브라우저는 현재 명시 요청이 없어 정책상 미실행이다. 선행30985bd Linux run36845710045도 success였으나 승인 SHA의 최신 검증 결과로 대체하지 않았다.
+
+후속 확인: 승인 SHA의 Linux `36846492081`도 success다. artifact `11154202975`의 XML에서 일반4584건(통과4205/조건부생략379/실패0), 별도 필수271건(contract20/job210/migration18/runtime6/worker12/Flyway3/policy2) 실패·오류·생략0을 확인했다. 추가한 `transientFileFailureSealsPartialResultsImmediatelyAndLeavesNextJobUnblocked()`가 dedicated worker suite에서 실제 실행·통과했다. 로컬 배포 hook Node17건 중14통과/Windows 조건부생략3/실패0이며 프로세스가 종료됐다. 직전 Inventory에서 운영9a1bb45/d-NCB2HF3YK Succeeded·서울1대·SSM Online을 재확인했다.
+
+배포 attempt1은 `AttachmentDownloadBoundaryTest.redirectsShareOneDeadlineInsteadOfResettingTimeout()`의 IOException(117행)으로 빌드 실패했다. 일반4526건/실패1/조건부생략321이며 bundle/AWS/CodeDeploy 단계는 모두 skipped, 운영 변경은 발생하지 않았다. 로그에 상세 IOException 코드가 없으므로 DNS 실행기 경합 또는 runner 지연은 가설이지 확정 원인이 아니다. 같은 SHA의 앞선 Linux CI에서는 이 시험이0.002초에 통과했다. 로컬 대상12시험은 통과했으며, 기존 시험 메서드를 수정 없이2000회 호출한 외부 통신 없는 진단도 재현0이다. 최초 로컬 `test --tests ...` 명령은 하위 extractor 프로젝트의 해당 클래스 부재로 실패했고 `:test`로 범위를 바로잡았다. 제품/시험/플래그를 변경하거나 검증을 생략하지 않고 같은 Actions의 실패 job을1회 재실행했다. 재실패 시 무한 반복하지 않는다.
+
 ## 2026-09-22 배포 후 Flyway checksum 전수 대조
 
 - 승인 배포 `9a1bb45`/CodeDeploy `d-NCB2HF3YK`의 설치 JAR SHA256 `12985f8cd4d710f24da85d2f82c9556d719264aef5f43ac1a57239687bc9c2bc`와 운영 migration 이력을 비교했다. JAR에 포함된 Flyway10.20.1의 UTF-8/BOM/개행 처리와 동일한 계산을 사용했고 실제 Flyway 계산기로 로컬80파일·인코딩5사례·비교 판정8사례를 먼저 검증했다.

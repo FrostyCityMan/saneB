@@ -1,5 +1,22 @@
 # 첨부 부분 성공 보존과 지역 연결 우선 처리
 
+## 2026-10-01 운영 수집 전환의 계약 차이 — 결정 대기
+
+코드 설치 이후 상시 수집 진입 조건을 확인했다. **부분 성공 보존은 구현됐지만, 수집 전용 정책 게시 기준이 아직 엄격한 분류 적용 기준과 결합돼 있다.** worker 설정만 변경하면 된다고 보고하지 않는다.
+
+- `AnnouncementAttachmentCollectionServiceImpl.selectPrepared`는 worker 활성, 동일 ACTIVE 규칙의 ACTIVE 정책, `COLLECT_ONLY` 또는 `ENFORCE`, 정확한 시스템 profile/실행 지문을 요구한다.
+- `AnnouncementAttachmentPolicyPublicationServiceImpl`과 `AttachmentPolicyPublicationQaVerifier`는 모드와 관계없이 최신 VERIFIED 및 네 단계의 실제 근거를 요구한다. V77 DB 게시 trigger도 최신 VERIFIED/네 단계 PASSED를 검사하므로 서비스 분기만 바꾸거나 DB 상태를 직접 덮어써서는 안 된다.
+- `AttachmentProviderQaEvidenceGate`는 전체 대상의 기대값 완비, 대상별 정상 공고3개, 전체 파일/정상 텍스트 및 형식 근거를 요구한다. `AttachmentProviderQaPlan`은 기업마당·정부24와 모든 활성 지자체를 포함한다. 다운로드 관측 성공210/223이나 정상 파일을 남기는 부분 성공은 이 계약의 전체 QA 통과가 아니다.
+- 설치 시점 정책/작업/첨부0, worker 비활성이다. 승인된 설치는 이 계약을 변경하거나 정책을 게시하지 않았다. API key 부재인 국가2채널은 지역223개 분모와 구분한다.
+
+제안(미승인·미구현): `COLLECT_ONLY`에 수집 안전성 중심의 별도 검증 계약을 두고, `ENFORCE`의 엄격한 분류/정상 기대값 검증은 유지한다. 수집 전용은 출처별 등록/현재 지문/접근 상태, SSRF·허용 도메인·파일형식/크기·시간·격리·저장 무결성·예산·취소/원본 정리를 검증한다. 실패/미지원/첨부 없음/미실행을 분리하며 실패 대상의 수집 결과를 성공으로 승격하지 않는다. 전수 정상 추출을 다른 대상의 수집 시작 조건으로 삼지 않는다. 대상 출처와 오류를 정책의 감사 가능한 범위로 고정하고 운영자 파서 선택이나 임의 URL 입력은 허용하지 않는다.
+
+영향: DB-first additive migration과 새 검증 계약/버전·게시 영수증, `/api/v2` 정책/영향 응답, 관리자 수집 가능/분류 적용 가능 상태, 회귀·실제 DB 검증이 필요하다. V1/기존 migration과 과거 VERIFIED의 의미는 보존한다. `COLLECT_ONLY` 자료는 최종 확정·자동 활성화·기존 데이터 적용으로 연결하지 않는다. HWP 고도화는 계속 보류한다.
+
+계약 변경 설계·구현 승인이 필요하며, 그 승인 자체를 운영 정책 게시/worker 활성화/ENFORCE/기존 데이터 적용 승인으로 해석하지 않는다. 이 결정을 받기 전에는 기존 게시 Gate를 우회하지 않는다.
+
+이번 확인: 보관963영수증/293표본 재현 성공, 등록223/223·실파일210/223·미확보13·부분 오류가 있는33곳·엄격 수집16/223. 외부 요청/운영 쓰기0이다. 로컬 게시 verifier10/게시 service22/수집 service25=57시험 실패·생략0, Gradle24초 성공. 이 시험은 현재 차단 계약의 회귀 검증이며 새 수집 전용 계약 구현 증거가 아니다.
+
 ## 2026-10-01 Linux 근거 회수·다음 공고 진행 검증 보완
 
 SHA `116b9c5c7ca1114f124800c7fad7f88c2c87d4c4`의 [Linux36843364966](https://github.com/FrostyCityMan/saneB/actions/runs/36843364966)은 success다. artifact `11153295953`(487,237byte)의 전용 XML에서 실제 임시 DB worker12개·runtime6개·job210개·migration/backfill18개·Flyway3개·정책 부모2개가 실패/생략0임을 확인했다. 원래 부분 성공 즉시 저장, 정상 역할 보존, 잘못된 격리 응답의 파일 단위 실패와 다음 추출 복구가 포함된다. 기본 test의 조건부 생략과 전용 suite 실행을 구분하며 중복 합산하지 않는다. 실제 사이트 HTTP와 운영 상시 worker 성공의 증거는 아니다.
