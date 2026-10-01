@@ -1,5 +1,30 @@
 # 동두천 PDF 비파일 응답 검증과 장기 goal 재개
 
+## 2026-10-01 최종 파일 수집 확인: PDF·HWPX 2개 성공
+
+- [x] 수정본 `cc9678b8bf87b67bee777365e6b9bf8a9ef3c7b7`의 서울 격리 실행에서 공식 파일 2개, 299,468byte 확보.
+- [x] 710영수증/289표본 재집계. 과거 한 번 이상 및 최신 표본 기준 210/223수집원, 최초 미확인 **13개**.
+- [x] 원본·임시 unit·S3 전송물·로컬 전송 ZIP 정리. 운영 JAR 불변·healthUp 확인, 운영 쓰기 0.
+- [~] 현재 프로필 지문 파일 근거 21/223. 엄격한 현재 3표본·전체 파일 집합 Gate 0/223과 운영 E2E는 별도 미완료.
+- [ ] 텍스트 추출·상시 worker·운영 DB/API/UI 검증. 이번 실행은 수집 전용이며 HWP 고도화는 계속 보류.
+
+| 고정 공고 | 본문 / 첨부 결과 | 파일 SHA256 |
+|---|---|---|
+| 44176 | 본문 71자 AVAILABLE·ACCEPTED, PDF 216,452byte | `70e243e70dafa6d6a926e88b0436e9481ddf028f31d7c24fdd7bfd1d6d4665c6` |
+| 45339 | 본문 29자 AVAILABLE·REVIEW_REQUIRED, HWPX 83,016byte | `c89ea4e6bc0257be696559623d33062237514f4d2cb6e85526bfd436d1a2ddff` |
+
+45339는 본문 전송에는 성공했으나 판정에 필요한 정보가 부족하여 `BODY_UNAVAILABLE` 사유의 검수를 유지한다. 첨부 다운로드 성공을 본문·첨부 분석 또는 최종 승인으로 바꾸지 않았다. 두 파일 모두 공식 중간 폼→게재기간 조회→파일의 3회 전송이 완료됐고 발견된 파일 집합 1/1개를 확보했다. 기존 44784의 제목 단계 중단은 그대로다.
+
+실행 ID `576b69374ef64024bc883068a24c9f43`, SSM `dd8647a5-062f-4c4e-9604-1ada3500469e`, 실행 모드 `SEOUL_COLLECTION_03`, 종료 Success/0·29.085초. 실행 코드 hash `3159b5ab4a452617e65f88d0b17a465f70b838d3844cda4cff3154aa3f0d1a98`, 프로필 hash `c6b180dff41b41dd815ca04adf9fe14f63b5ad9b0e941448f6a6a7557e9dbc4d`, 결과 영수증 SHA256 `7fc03a11eb798d74b19cd99922f4a7a221af7398b0503f21c65a837746693dab`다. 기존 실패 실행과 별개의 변경 코드 실행이며 실패 이력은 보존했다.
+
+이번 상한은 12요청·46MiB·20분, CPU 1개·메모리 512MiB·임시공간 1GiB다. 영수증 예약은 12회·5,645,876byte이며 본문 예약 상한을 포함하므로 실제 wire 사용량과 구분한다. 아래 이전 후속 단계의 상한 30요청과 합쳐 이번 수정 진단 단계의 상한은 42요청이다. 더 오래된 수집 이력도 대장에 남는다. 패키지는 135파일·89,890,355byte, SHA256 `c5c3532384fae18cee148060308e0075a04a8b1728cc50e9536ac57a74b0dfd8`이며 삭제 전 정확한 경로·hash와 원격 정리 완료를 검증했다. 결과 metadata와 실행 계획은 보존했다.
+
+남은 최초 미확인 수집원은 은평·서대문·울산 남구·성남·평택·이천·포천·강릉·속초·철원·영동·공주·의성 13개다. 분모 223은 2026-09-28 활성 수집원 스냅샷이며 고유 지자체 수나 현재 운영 완료율이 아니다. 현재 지문 재검증 대기 202개와 최초 미확인 13개를 혼동하지 않는다.
+
+검증 명령: `installAttachmentContractQa attachmentBbsObservationProbeJar` 패키지 재빌드 성공. `node build/qa-tools/import-dongducheon-period-fixed.mjs`는 모든 입력 hash·종료·정리·코드 지문을 검증하고 다른 수집원 표본 불변을 확인하여 대장을 재계산했다. `node --test scripts/qa/attachment-collection-diagnostics.test.mjs scripts/qa/attachment-collection-receipts.test.mjs` 30개 통과·실패/생략 0, `node scripts/qa/verify-collection-receipt-index.mjs` 710영수증/289표본 재현, `git diff --check` 통과. 애플리케이션 코드·DB/API·Flyway·정책은 이번 결과 기록에서 변경하지 않았다. `cc9678b`의 CI [36821916064](https://github.com/FrostyCityMan/saneB/actions/runs/36821916064)는 최종 completed/success를 확인했다. 이 회차에는 CI XML 세부 개수를 회수하지 않았으며 과거 테스트 개수를 현재 값으로 쓰지 않는다. 브라우저는 현재 명시 지시가 없어 정책상 미실행이다.
+
+아래 재검증 대기·파일 0·미확인 14 표시는 이번 성공 이전의 이력이다.
+
 ## 2026-10-01 후속: 중간 폼 처리 누락 수정, 실제 파일 재검증 대기
 
 - [x] 서울에서44176의 HTML2,596byte가 오류 문구만 있는 페이지가 아니라 공식 다운로드 중간 폼임을 확인.

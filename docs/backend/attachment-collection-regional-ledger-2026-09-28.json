@@ -3207,8 +3207,8 @@
       "bindingStatus": "SYSTEM_BINDING_MATCHED",
       "collectionVerified": false,
       "status": "EVIDENCE_VERSION_MISMATCH",
-      "verifiedSampleCount": 0,
-      "downloadedSampleCount": 0,
+      "verifiedSampleCount": 2,
+      "downloadedSampleCount": 2,
       "observedSampleCount": 3,
       "minimumSampleCount": 3,
       "samples": [
@@ -3216,12 +3216,12 @@
           "sourceCode": "LGS-000112",
           "caseCode": "DONGDUCHEON-44176",
           "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
-          "profileHash": "09d9358ea4faac2125584a6ee6c081a8d9adac200d557b5342c1cef9421d5b13",
-          "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+          "profileHash": "c6b180dff41b41dd815ca04adf9fe14f63b5ad9b0e941448f6a6a7557e9dbc4d",
+          "receiptHash": "7fc03a11eb798d74b19cd99922f4a7a221af7398b0503f21c65a837746693dab",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         },
         {
           "sourceCode": "LGS-000112",
@@ -3238,12 +3238,12 @@
           "sourceCode": "LGS-000112",
           "caseCode": "DONGDUCHEON-45339",
           "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
-          "profileHash": "09d9358ea4faac2125584a6ee6c081a8d9adac200d557b5342c1cef9421d5b13",
-          "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+          "profileHash": "c6b180dff41b41dd815ca04adf9fe14f63b5ad9b0e941448f6a6a7557e9dbc4d",
+          "receiptHash": "7fc03a11eb798d74b19cd99922f4a7a221af7398b0503f21c65a837746693dab",
           "fileCount": 1,
-          "downloadedFileCount": 0,
-          "status": "INCOMPLETE",
-          "collectionVerified": false
+          "downloadedFileCount": 1,
+          "status": "ALL_FILES_DOWNLOADED",
+          "collectionVerified": true
         }
       ]
     },
@@ -6592,7 +6592,7 @@
   ],
   "inputInventorySha256": "5a15c0f7ffcbedf5103ca02851ffcfd969b32c84d8202bb87edab5f6da488858",
   "evidenceImportStatus": "LOCAL_TEMPORARY_AND_COLLECTION_ONLY_IMPORTED_CI_ARTIFACTS_PENDING",
-  "importedReceiptCount": 709,
+  "importedReceiptCount": 710,
   "newLocalRunRequestReservations": 16,
   "newLocalRunReservedBytes": 11945051,
   "localCampaignRequestReservations": 48,
@@ -20070,5 +20070,25 @@
     "isOperatingE2eVerified": false,
     "fixedProfileHash": "c6b180dff41b41dd815ca04adf9fe14f63b5ad9b0e941448f6a6a7557e9dbc4d",
     "fixedRuntimeExternalVerification": false
+  },
+  "dongducheonPeriodFixed": {
+    "scope": "DONGDUCHEON_CHANGED_CODE_COLLECTION_ONLY_NOT_EXTRACTION_OR_OPERATING_E2E",
+    "commandId": "dd8647a5-062f-4c4e-9604-1ada3500469e",
+    "executionId": "576b69374ef64024bc883068a24c9f43",
+    "receiptPath": "build/temporary-bbs-qa-576b69374ef64024bc883068a24c9f43/result-utf8.json",
+    "receiptHash": "7fc03a11eb798d74b19cd99922f4a7a221af7398b0503f21c65a837746693dab",
+    "executionCodeHash": "3159b5ab4a452617e65f88d0b17a465f70b838d3844cda4cff3154aa3f0d1a98",
+    "maximumRequestReservations": 12,
+    "maximumReservedBytes": 48234496,
+    "requestReservationsIncludingBodyUpperBound": 12,
+    "reservedBytesIncludingBodyUpperBound": 5645876,
+    "downloadedFiles": 2,
+    "downloadedBytes": 299468,
+    "originalFilesRemoved": true,
+    "transferPackageRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false
   }
 }
