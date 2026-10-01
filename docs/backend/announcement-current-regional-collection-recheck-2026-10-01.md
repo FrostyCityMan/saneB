@@ -1,5 +1,35 @@
 # 최신 프로필의 지역별 첨부 재검증
 
+## 후속 J: 합천 부분 재확보·수정본 Linux CI 확인, 현재209/223·미확보14
+
+기준 HEAD `ce9c3437d34544dcbc811c63017100573b1fc069`. 직전 합천 본문/상세TIMEOUT에 대해 고정 상세44432에서 전송 단계만 비교했다. 프록시 관련 환경변수는 없었으며 Java 고정 공개IP·호스트 검증·Windows 신뢰 저장소로 기본TLS1.3 및 TLS1.2 모두 HTTP200을 받았다(각738/435ms·상태줄만 최대1KiB). 실제 `AttachmentPinnedDownloadClient` 계측은 응답 헤더 전10,828ms 시간초과, 예약byte0·원본정리true였다. DNS 결과는 공개주소1개로 TLS 버전/다중주소/본문 파싱 탓으로 확정할 수 없다.
+
+이어 같은 Apache 클라이언트의 기본 연결과 `Connection: close`를 각1회 비교했다. 둘 다 HTTP200이었고 기본 연결에서 응답을 강제 취소한 뒤 cleanup `SocketException`이 발생했다. 초기 진단기의 FAILED 표시는 HTTP200 후 정리 오류와 구분해야 하므로 출력 분기를 보정했으며 이 보정 후 재요청하지 않았다. 이 진단을 실제 수집기 오류의 원인이나 헤더 변경 효과로 단정하지 않았다. 총진단 최대5HTTP요청·첨부다운로드0, 계측 본문저장한도1MiB·TLS대조2건은 상태줄만·Apache대조2건은 헤더만 검사했다. 요청/응답 원문·쿠키·다운로드 인자는 기록하지 않았고 임시본문은 정리했다.
+
+HTTP200 회복을 확인한 뒤 기존 수집기·기존 프로필로 고정 표본1회만 실행했다. **본문 AVAILABLE·정상 HWPX1개87,214byte**를 확보했다. 다른 파일159,232byte는 HWPX 표기와 OLE signature가 맞지 않아 `ATTACHMENT_FORMAT_MISMATCH`, 발견은 `ATTACHMENT_LINK_UNRESOLVED`를 유지한다. 전체첨부 완료false·추출/정책QA/기대값승인false다. 실패 파일을 정상으로 계산하거나 파일명을 바꾸지 않았다.
+
+실행 명령: `.\gradlew.bat --no-daemon --max-workers=1 :attachmentRegionalCollectionObservation -PsanebCollectionWindowsTrust=true -PsanebBbsObservationGroup=HAPCHEON -PsanebCollectionReportLabel=HAPCHEON-RECOVERY-20261001-J`. 26초·JUnit1개 실패/생략0이며 부분 오류 보존 검사 성공이다. 보고서는 `build/reports/attachment-regional-collection/HAPCHEON-44432-HAPCHEON-RECOVERY-20261001-J.json`, JUnit은 `build/qa-hapcheon-recovery-20261001-j/`다. 관측 상한6요청·23MiB, 실제예약5회·2,441,216byte·원본정리true·운영쓰기0이다.
+
+기존961영수증/다른292표본을 보존하여 **962영수증/293표본**, 현재 확보 **209/223(93.7%)·미확보14=최초13+포항 재확보1**이다. 최초13은 은평·서대문·울산남구·성남·평택·이천·포천·강릉·속초·철원·영동·공주·의성. 울산남구 프로필미연결1곳은 그대로이며 보조게시판 추가 질문의 답변 전 대체하지 않는다. 엄격전체첨부16/223·과거확보210/223은 유지한다. Node49개 실패/생략0·962영수증재현 확인. 응용코드·설정·DB/API·정책·운영·HWP고도화 변경0이며 브라우저 정책상미실행이다.
+
+### Linux 계약 검증 회수
+
+[CI36833040869](https://github.com/FrostyCityMan/saneB/actions/runs/36833040869)는 수정 코드SHA `058bd2f2a45ff4970c5bab36db1474e0ad1e2356`로 성공했다. artifact11148493170(`attachment-contract-qa-058bd2f2a45ff4970c5bab36db1474e0ad1e2356`,484,707byte,만료false)을 내려받아 `build/qa-github-runs/36833040869`의 XML을 확인했다. 기준HEAD와 해당SHA의 차이는 수집 증거 문서4개뿐이다. 그렇더라도 배포/운영 동일SHA 검증으로 간주하지 않는다.
+
+| 검증 묶음 | 통과 | 실패 | 생략 |
+|---|---:|---:|---:|
+| 기본 Java | 4,175 | 0 | 378 |
+| 추출기 | 251 | 0 | 0 |
+| QA 패키지 | 20 | 0 | 0 |
+| 작업 DB | 210 | 0 | 0 |
+| 첨부 migration | 18 | 0 | 0 |
+| 정책 부모 DB | 2 | 0 | 0 |
+| runtime | 5 | 0 | 0 |
+| worker | 12 | 0 | 0 |
+| Flyway | 3 | 0 | 0 |
+
+직전 실패했던 SnapshotFactory14개도 실패/생략0이다. 외부 파일 비교 job은 생략됐으며 기본 Java의378생략을 통과로 계산하지 않는다. 이번에 해소한 것은 해당 코드의 Linux 계약검증 실패이며, 실제 상시 수집·운영 DB/API/UI·승인 범위의 기존 데이터·운영브라우저 Gate는 미완료다. 문서HEAD의 별도 CI36834027576은 대기 중인 실행을 유지하고 중복 시작하지 않았다.
+
 ## 후속 I: 괴산 재확보·합천 전송 실패 보존, 현재208/223·미확보15
 
 기준 SHA `058bd2f2a45ff4970c5bab36db1474e0ad1e2356`. 괴산29655의 공식 상세와 `goDownLoad` 인코딩을 확인했다. 공식 함수는 `encodeURI`3회를 사용하지만, 현재 component 인코딩과 공식 URI 인코딩을 비교한2개 GET 모두200·동일144,896byte·OLE signature였다. 인코딩 결함으로 확정하지 않고 응용코드는 변경하지 않았다. 상세 진단은 정규식 보정 전후2회와 파일 비교에 필요한1회, 파일2회로 총5요청이다. 원문·쿠키·다운로드 인자는 저장하지 않았다.

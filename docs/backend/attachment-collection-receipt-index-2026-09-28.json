@@ -7763,6 +7763,14 @@
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/HAPCHEON-44432-HAPCHEON-RECOVERY-20261001-J.json",
+      "receiptHash": "832ffbedfb36b3b547f5fa58cac7628170f539eb5ffad07fceefb0ce798eaa38",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -12038,18 +12046,32 @@
       "caseCode": "HAPCHEON-44432",
       "profileCode": "LOCAL_HAPCHEON_SCMS_V1",
       "profileHash": "452c500e20690271708bbc469bd6bd3917f277c6eec492203fd9015c2a160f7b",
-      "receiptHash": "3d0e5ba0931b6fccde0272806e658d514fd95b191d9af6ac3ad7b7b40d2b8d7b",
+      "receiptHash": "832ffbedfb36b3b547f5fa58cac7628170f539eb5ffad07fceefb0ce798eaa38",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T07:58:49.040373100Z",
+      "observedAt": "2026-10-01T08:10:13.965207100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": false,
-      "discoveryStatus": "NOT_RUN",
+      "detailIdentityVerified": true,
+      "discoveryStatus": "FAILED",
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": []
+      "files": [
+        {
+          "locatorHash": "acd34a9c59680540ce5f328d2c8ef4cba78b9d3a0633100c852d464d9bf07e99",
+          "status": "SUCCEEDED",
+          "bytes": 87214,
+          "format": "HWPX",
+          "binaryHash": "f129885d3ecea8354d46a341ce4c27d074adc7ef514dfc6549a9b45a2e437af1",
+          "signatureVerified": true
+        },
+        {
+          "locatorHash": "177ebd196d725fa37f81da5da52563e2fe2e10e9caf9cc378551976180234d73",
+          "status": "FAILED",
+          "bytes": 159232
+        }
+      ]
     },
     {
       "sourceCode": "LGS-000125",
@@ -18958,6 +18980,26 @@
     "failedSamples": 1,
     "requestReservationsIncludingBodyUpperBound": 7,
     "reservedBytesIncludingBodyUpperBound": 4355584,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false
+  },
+  "hapcheonRecovery20261001J": {
+    "scope": "HAPCHEON_PARTIAL_RECOVERY_NOT_OPERATING_E2E",
+    "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+    "diagnosticMaximumHttpRequests": 5,
+    "diagnosticMaximumSavedBodyBytes": 1048576,
+    "diagnosticFileDownloads": 0,
+    "maximumRequestReservations": 6,
+    "maximumReservedBytes": 24117248,
+    "samples": 1,
+    "downloadedFiles": 1,
+    "downloadedBytes": 87214,
+    "failedFiles": 1,
+    "requestReservationsIncludingBodyUpperBound": 5,
+    "reservedBytesIncludingBodyUpperBound": 2441216,
     "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
