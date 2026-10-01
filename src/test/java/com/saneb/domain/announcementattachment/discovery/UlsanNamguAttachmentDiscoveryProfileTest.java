@@ -74,4 +74,42 @@ class UlsanNamguAttachmentDiscoveryProfileTest {
         assertThat(result.status()).isEqualTo("LIMIT_EXCEEDED");
         assertThat(result.descriptors()).hasSize(10);
     }
+    @Test void officialClickCallIsParsedWithoutExecutingJavascript() {
+        String direct=link(1,"hwpx");
+        for(String inert:List.of("", "#", "#none", "javascript:void(0);", "javascript:void(0)", "javascript:;", "javascript:", "javascript: void ( 0 ) ;")) {
+            String click=direct.replace("href=\"javascript:","href='"+inert+"' onclick=\"");
+            var result=profile.selectDescriptors(source(),page(click));
+            assertThat(result.complete()).isTrue();
+            assertThat(result.descriptors()).hasSize(1);
+            assertThat(result.descriptors().getFirst().fetchUri()).isEqualTo(profile.selectDescriptors(source(),page(direct)).descriptors().getFirst().fetchUri());
+            assertThat(profile.selectDescriptors(source(),page(click.replace(")\">","); return false;\">"))).complete()).isTrue();
+        }
+    }
+    @Test void unrecognizedClickLinksRemainSeparateFromSuccessfulFiles() {
+        String click=link(2,"hwpx").replace("href=\"javascript:","href='#' onclick=\"");
+        for(String bad:List.of(click.replace(")\">","); unknown();\">"),
+                click.replace("goDownLoad(","other("),click.replace("goDownLoad(","goDownLoad(encodeURI("))) {
+            var result=profile.selectDescriptors(source(),page(link(1,"hwpx")+bad));
+            assertThat(result.complete()).isFalse();
+            assertThat(result.warnings()).contains("ATTACHMENT_LINK_UNRESOLVED");
+            assertThat(result.descriptors()).hasSize(1);
+        }
+    }
+    @Test void fixedClickCandidateSurvivesUnknownHrefWithoutFollowingIt() {
+        String click=link(2,"hwpx").replace("href=\"javascript:","href='#' onclick=\"");
+        for(String href:List.of("/other","https://example.invalid/file","http://127.0.0.1/private","javascript:unknown()")) {
+            var result=profile.selectDescriptors(source(),page(link(1,"hwpx")+click.replace("href='#'","href='"+href+"'")));
+            assertThat(result.complete()).isFalse();
+            assertThat(result.warnings()).contains("ATTACHMENT_LINK_UNRESOLVED");
+            assertThat(result.descriptors()).hasSize(2);
+            assertThat(result.descriptors()).allSatisfy(file->{
+                assertThat(file.fetchUri().getHost()).isEqualTo("eminwon.ulsannamgu.go.kr");
+                assertThat(file.fetchUri().getPath()).isEqualTo("/emwp/jsp/ofr/FileDown.jsp");
+                assertThat(profile.selectApprovedRequest(file.selectRequest())).isTrue();
+            });
+        }
+        var unsafe=profile.selectDescriptors(source(),page(click.replace("href='#'","href='/other'").replace("/ntishome/file/upload/ofr/ofr/20261001","/other")));
+        assertThat(unsafe.complete()).isFalse();
+        assertThat(unsafe.descriptors()).isEmpty();
+    }
 }

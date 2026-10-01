@@ -1,5 +1,43 @@
 # 울산 남구 공식 목록 Linux 진단
 
+## 2026-10-01 서울 Java 수집기 실행·클릭 링크 보완
+
+기준 HEAD `09901d74ec3618ddd51079c059ae29cc8e05373c`. 로그인 갱신 후 root 계정·저장소 대상·서울 리전·SSM Online을 다시 확인했다. 최신 운영 배포는 `d-NCB2HF3YK`/`9a1bb4569bcc3c13bf3bc30b51021b9149c67054`이며 변경하지 않았다.
+
+- SSM `8b065a9c-d78a-4ed7-9d82-5ef1092863b7`: 실제 `AttachmentPinnedDownloadClient`로 고정53732 상세를 확보했다. 공식 목록 제목 hash 일치, 제목 `2026년도 울산 남구 소상공인 경영안정자금 융자지원계획 2차 공고`, DRAFT 제목 판정 `COMBINATION_MATCHED`, 본문81자다. 첨부는 `ATTACHMENT_LINK_UNRESOLVED`·descriptor0이므로 다운로드 성공이 아니다.
+- 원문 없는 인자 형태 진단 SSM `098cf2f9-3843-4198-b7ea-184b92a3151d`: Python 직접 상세1GET·최대2MiB가 `REQUEST_TIMEOUT`으로 끝났다. 같은 진단을 재실행하지 않았다.
+- SSM `b791e1cf-d30d-4196-a099-b054b4ebac74`: Java 진단을 보강해 동일 제목·본문을 다시 확인했다. 공식 첨부 anchor는 `onclick`을 사용하고 `href`에는 함수 문자열이 없었다. 기존 href 전용 해석이 실패한 근거다. 인자 원문·파일명·본문 원문·쿠키는 보고하지 않았다.
+
+두 Java 실행의 profile hash는 `c1343de6bbeb448d54d92848e470219fdedc36af687a306739a0a436051c2579`, 실행 코드 hash는 `8393941e8a50470ba2683f6f7da0771a6fe2b327a0550d20345027e95e8940f3`다. 로컬 임시 DB에서 내보낸 DRAFT 394규칙의 SHA는 `0514e8b4fcec106fd708c99d7615f7c8fad852a8bdf954368abe3c4143c7350c`이며 운영 활성 규칙과 동일하다고 주장하지 않는다. 서버 DB와 추출기는 실행하지 않았다.
+
+각 실행 상한8요청·22MiB, CPU1개·메모리512MiB·임시공간1GiB·20분 이내다. 첫6.494초·후속4.168초, 각각 예약24,576byte·실파일0이다. 이 probe는 실제 HTTP 호출 횟수를 계측하지 않으므로 최대 요청 수와 실제 호출 수를 혼동하지 않는다. 두 실행 모두 원본/전송 임시파일 정리·unit 종료·설치 JAR 불변·health UP을 확인했고 소유 S3 패키지도 삭제했다.
+
+`UlsanNamguAttachmentDiscoveryProfile`에서 inert href의 고정 `goDownLoad` 세 문자열 onclick만 정적으로 해석하도록 보완했다. JavaScript 실행은 없고 다른 URL·임의 후속 호출·미해석 링크는 기존 오류로 분리한다. 기존 새올 경로·호스트·파일 수·파일명 검증은 유지한다. 다른 지역 어댑터와 공통 GET 엔진은 수정하지 않았다. 아직 Spring bean·본문 provider·QA 카탈로그 연결은 하지 않았다.
+
+검증: `installAttachmentContractQa attachmentQaRuleSnapshot` 35초 성공·규칙 snapshot1통과. 클릭 링크 보완 후 `:test --tests '*UlsanNamguAttachmentDiscoveryProfileTest' --tests '*SaeolGetAttachmentDiscoveryProfileTest' --tests '*AttachmentDownloadInvocationTest' :bootJar installAttachmentContractQa` 39초·Java40통과/실패·생략0. Node 관련28개 통과,963영수증/293표본 재현 통과다. 사용한 Node/Gradle JVM은 종료했다. 변경 어댑터의 서울 재검증은 별도 결과를 확인해야 한다.
+
+### 클릭 인자 확인과 전송 경량화
+
+89,555,186byte 패키지 `b97da3a109a84a55a8199b1b1c58e132` 전송이 지연돼 해당 소유 AWS 업로드 프로세스만 종료했다. 종료 전후 읽기 전용 검사에서 완성 S3 객체 없음·uploaded=false·SSM ID 없음이었다. 서버 실행이나 공고 요청이 시작된 것으로 계산하지 않는다. 필요한 실제 수집 런타임만 남겨 17,537,591byte·22파일로 축소했고 운영 설치물은 수정하지 않았다.
+
+SSM `4ac24012-609e-4134-82f9-2fdbdb30ead4`는 축소 패키지로 3.769초 실행됐다. 제목/본문은 동일하고, onclick의 단일 인용 문자열3개·확장자 HWPX·정상 날짜별 저장 디렉터리까지 확인했다. 다만 href가 당시 무동작 허용 문자열과 일치하지 않아 `ATTACHMENT_LINK_UNRESOLVED`를 유지했다. 원문 인자/경로 값은 기록하지 않았고 실파일0·예약24,576byte다. profile SHA `4504831161b09f7c32cb278e44485cd685630d301d9325408b3fff90b888b2ba`, 코드 SHA `f3c21b56a1855418179e7583536d2817ef985686f2561e0906969c305e44728f`다. 프로세스/원본/패키지 정리·설치 JAR 불변·health UP을 확인했다.
+
+무동작 href는 ASCII 공백을 정규화하고 빈 `javascript:`/`javascript:;`도 허용하도록 보완했다. 다른 URL이나 임의 함수의 허용은 아니다. 동일 집중검증은 최종47초·40통과/실패·생략0, bootJar/별도 QA 패키지 생성 성공이다. 첨부 해석 실패3회는 그대로 기록하며 실제 파일 성공으로 바꾸지 않는다. 마지막 변경 검증도 실패하면 동일 표본을 추가 반복하지 않는다.
+
+### 최종 결과와 남은 Gate
+
+SSM `31d5a4bb-e456-4b4c-9327-faa6949f5da9`도 4.002초에 `INCOMPLETE`로 종료됐다. href는 공백 차이가 아닌 미해석 형식이며, 세 다운로드 인자와 정상 디렉터리는 그대로다. profile SHA `74264eae8e6ae8b1e2b099c0dca02174dc14ab405145b6d9818fc2249d4bec59`, 코드 SHA `77744c17b038109238de40cf4c96727f5aeb212257a87fd1d228e416ed7717cb`. 실파일0·예약24,576byte, 원본/서버 전송파일/프로세스/소유 S3 패키지 정리·설치 JAR 불변·health UP을 확인했다. 추가 네트워크 조회는 중단했다. 이번 회차 전체 상한은 Java4회×8요청/22MiB + Python1회×1요청/2MiB이며, 각 고정 실행은 재시작하지 않았다. 전송 중단은 별도이며 소스 요청0이다.
+
+- [x] AWS 갱신·서울 대상 확인, 실제 Java 제목·본문 확보, 실패 단계 분리
+- [x] 로컬 후보 보존 보완: 정확한 onclick 세 문자열에서 기존 호스트/경로/파일명 검증을 통과한 descriptor는 보존한다. 미해석 href를 따라가거나 실행하지 않으며 `FAILED`/`complete=false`/`ATTACHMENT_LINK_UNRESOLVED`를 별도 유지한다. 임의 onclick·잘못된 저장 경로는 계속 거부한다.
+- [x] 후보 보존 회귀: 다른 상대/외부/loopback href와 임의 스크립트 href가 다운로드 요청으로 사용되지 않으며, 검증된 공식 파일 후보만 유지되는지 검사했다. 최종 같은 집중 Gradle 명령35초·**41통과/실패·생략0**·bootJar 성공.
+- [!] 서울 첨부 해석 실패4회·실파일0. 마지막 후보 보존 변경은 로컬 테스트만 통과했으며 위 서버 실행에 포함되지 않았다. 운영 수집 성공·배포 완료로 표현하지 않는다.
+- [ ] 별도 실행 계획에서 후보 보존 코드의 실파일 검증 후 bean·본문 provider·카탈로그·인벤토리·영수증 연결
+
+실행 도구/영수증은 `build/qa-tools/UlsanNamguFirstFileProbe.java`, `build/qa-tools/run-ulsan-namgu-temporary.py`, 각 `build/temporary-bbs-qa-<executionId>/result-utf8.json`에 있다. 이 일회성 probe 결과는 기존 정규 수집 영수증 스키마로 자동 편입하지 않았다. 최신 코드 CI는 별도 확인해야 한다. 이번 회차에서 확인한 이전 HEAD의 Linux run36839748384는 마지막 조회 당시 실행 중이었다.
+
+확보210/223·미확보13·미연결1·엄격전체첨부16/223은 유지한다. HWP 고도화·DB/API/Flyway·운영 설정은 변경하지 않았다. 브라우저는 현재 명시 요청이 없어 정책상 미실행이며 전체 goal은 미완료다.
+
 ## 2026-10-01 서울 구조 확인·등록 전 어댑터
 
 기준 HEAD `46ea381ef7eb8790fd0b6bde3a575848d86edc8d`. 승인된 서울 임시 QA에서 운영 설치·DB·설정을 변경하지 않고 Python 표준 라이브러리로 고정 공식 경로만 조회했다. root 계정의 프로젝트 대상 일치·서울 리전·Ubuntu 1대·SSM Online, 운영 배포 `d-NCB2HF3YK`/`9a1bb4569bcc3c13bf3bc30b51021b9149c67054` 불변을 확인했다.
