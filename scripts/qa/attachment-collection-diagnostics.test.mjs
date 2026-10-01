@@ -67,6 +67,13 @@ test('Content-Type mismatch remains a signature-stage error, not a verified down
   assert.equal(result.availabilitySummary.observedDownloadRegionCount, 0);
   assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]), [['FILE_SIGNATURE', 'ATTACHMENT_CONTENT_TYPE_MISMATCH']]);
 });
+
+test('공식 다운로드 절차의 검증 중단은 파일 전송 오류로 보존하며 성공으로 승격하지 않는다', () => {
+  const result = fixture([{...base, status:'COLLECTION_ONLY_PARTIAL_NOT_APPROVED', collectionStageComplete:false,
+    files:[{locatorHash:hash,status:'FAILED',bytes:0,failedStage:'FILE_DOWNLOAD',failureCode:'ATTACHMENT_DOWNLOAD_BLOCKED'}]}]).run();
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount,0);
+  assert.deepEqual(result.regions[0].issues.map(i=>[i.stage,i.code]),[['FILE_DOWNLOAD','ATTACHMENT_DOWNLOAD_BLOCKED']]);
+});
 test('raw text, filenames, URLs and arbitrary error strings are not copied', () => {
   const result = fixture([{...base, bodyStatus: 'FETCH_FAILED', bodyFailureCode: 'PRIVATE_CANARY',
     rawText: 'PRIVATE_CANARY', url: 'https://private.invalid/PRIVATE_CANARY', filename: 'PRIVATE_CANARY',

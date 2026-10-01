@@ -18,6 +18,9 @@ import java.util.Set;
 public final class RegionalCollectionObservationProbe {
     static final String MODE = "SEOUL_COLLECTION_01";
     static final String MODE_TWO = "SEOUL_COLLECTION_02";
+    static final String MODE_THREE = "SEOUL_COLLECTION_03";
+    static final String GROUPS_THREE = "DONGDUCHEON_SUPPORT,DONGDUCHEON_YOUTH";
+    static final List<String> CASES_THREE = List.of("DONGDUCHEON-44176", "DONGDUCHEON-45339");
     static final String GROUPS = "POCHEON,GANGNEUNG,CHUNGBUK,GONGJU,PYEONGTAEK,NAMHAE";
     static final List<String> CASES = List.of("POCHEON-64129", "GANGNEUNG-60798", "CHUNGBUK-67302",
             "GONGJU-59971", "PYEONGTAEK-95902", "NAMHAE-35694");
@@ -46,13 +49,13 @@ public final class RegionalCollectionObservationProbe {
         return selectCases(MODE);
     }
 
-    static boolean selectSupportedMode(String mode) { return MODE.equals(mode) || MODE_TWO.equals(mode); }
+    static boolean selectSupportedMode(String mode) { return MODE.equals(mode) || MODE_TWO.equals(mode) || MODE_THREE.equals(mode); }
 
     static List<AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase> selectCases(String mode) {
         if (!selectSupportedMode(mode)) throw new IllegalArgumentException("COLLECTION_MODE_INVALID");
         boolean second = MODE_TWO.equals(mode);
-        var cases = AnnouncementAttachmentBbsOfficialObservationTest.selectBatchCases(second ? GROUPS_TWO : GROUPS).toList();
-        if (!(second ? CASES_TWO : CASES).equals(cases.stream().map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList()))
+        var cases = AnnouncementAttachmentBbsOfficialObservationTest.selectBatchCases(MODE_THREE.equals(mode) ? GROUPS_THREE : second ? GROUPS_TWO : GROUPS).toList();
+        if (!(MODE_THREE.equals(mode) ? CASES_THREE : second ? CASES_TWO : CASES).equals(cases.stream().map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList()))
             throw new IllegalArgumentException("COLLECTION_SCOPE_CHANGED");
         for (var sample : cases) {
             var budget = AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(sample.profile(), true, false);

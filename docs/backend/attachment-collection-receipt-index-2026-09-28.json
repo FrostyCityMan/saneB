@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "LOCAL_ARCHIVED_AND_COLLECTION_ONLY_RECEIPTS",
   "inventoryPath": "build/reports/attachment-target-inventory/operating-targets-vs-local-code.json",
-  "inventorySha256": "57ddccfedcbf0080d63111572790f83c03c01d78e29eb806626c2121551d1e70",
+  "inventorySha256": "5a15c0f7ffcbedf5103ca02851ffcfd969b32c84d8202bb87edab5f6da488858",
   "currentHttpRequests": 0,
   "productionWriteCount": 0,
   "receipts": [
@@ -5727,6 +5727,28 @@
       "receiptHash": "df6e008d3f2010833f127f6be75346366ad9e7d4fd2b91f34dabfeb0bdd7d4a2",
       "status": "IMPORTED",
       "sampleCount": 6
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGDUCHEON-44176-DONGDUCHEON-PERIOD-20261001.json",
+      "receiptHash": "9d665985472e879633a503653dcaa6f0140844d3d37f535ce448a23380a72c97",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/DONGDUCHEON-45339-DONGDUCHEON-PERIOD-20261001.json",
+      "receiptHash": "5911cf6688f16af966754dd33a61c18a410c1568a53b4d61168e54e3de2fc0c2",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "path": "build/temporary-bbs-qa-af2b9d8e90f54a49860fe6fb9bb8ccdb/result-utf8.json",
+      "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+      "status": "IMPORTED",
+      "sampleCount": 2
     }
   ],
   "samples": [
@@ -7793,11 +7815,11 @@
       "sourceCode": "LGS-000112",
       "caseCode": "DONGDUCHEON-44176",
       "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
-      "profileHash": "adedefd94a81f19069c7c47c018ec671077887847643601a26a05561aacf1207",
-      "receiptHash": "8cc2e72ae279189efecf57c60d0606fc63a8df18d7166a0a62913a6c6900a06a",
-      "producerClassHash": "9a4d2f0639349d1d81fda75aca4a8d5dd6fe2b1134b2bd966d6927187714f2f0",
-      "observedAt": "2026-09-30T20:11:40.261234Z",
-      "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
+      "profileHash": "09d9358ea4faac2125584a6ee6c081a8d9adac200d557b5342c1cef9421d5b13",
+      "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+      "observedAt": "2026-10-01T05:42:46.412805522Z",
+      "executionCodeHash": "cf1dacf7e1904d547804beede3b307141071cfc6f58bffb1b70996e207d51662",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": true,
@@ -7809,7 +7831,7 @@
         {
           "locatorHash": "391f72fff6a952eeb6feebd50f4090d5152325a2b042d6da43a599fa6ec7a550",
           "status": "FAILED",
-          "bytes": 2596
+          "bytes": 0
         }
       ]
     },
@@ -7835,11 +7857,11 @@
       "sourceCode": "LGS-000112",
       "caseCode": "DONGDUCHEON-45339",
       "profileCode": "LOCAL_DONGDUCHEON_PORTAL_V1",
-      "profileHash": "adedefd94a81f19069c7c47c018ec671077887847643601a26a05561aacf1207",
-      "receiptHash": "b96c0adc95f04bfbc94c7d0118f18a312c65a5b3f27bda210f3755b8f630727a",
-      "producerClassHash": "a16d59b5408ac8cadcaa488c35d0c64cfda324643a96378a3a29a7cfe9bfc5c6",
-      "observedAt": "2026-09-30T22:24:00.381188605Z",
-      "evidenceScope": "GITHUB_COLLECTION_ONLY_REPORT",
+      "profileHash": "09d9358ea4faac2125584a6ee6c081a8d9adac200d557b5342c1cef9421d5b13",
+      "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+      "observedAt": "2026-10-01T05:43:06.293630396Z",
+      "executionCodeHash": "cf1dacf7e1904d547804beede3b307141071cfc6f58bffb1b70996e207d51662",
+      "evidenceScope": "OFFICIAL_THREE_STAGE_OBSERVATION_V1",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
       "detailIdentityVerified": true,
@@ -7851,17 +7873,9 @@
         {
           "locatorHash": "42725ba956c10e12bee0cbe483fce1d93b811be36e5677ef76838edab86a47cd",
           "status": "FAILED",
-          "bytes": 2596
+          "bytes": 0
         }
-      ],
-      "github": {
-        "repository": "FrostyCityMan/saneB",
-        "runId": 36783836671,
-        "runAttempt": 1,
-        "jobId": 110124290940,
-        "artifactId": 11129093021,
-        "headSha": "9a6254df577032f2419e44c7e21f9ca1b6bf5925"
-      }
+      ]
     },
     {
       "sourceCode": "LGS-000120",
@@ -16440,5 +16454,25 @@
     "isExtractionVerified": false,
     "isPolicyQaPassed": false,
     "isOperatingE2eVerified": false
+  },
+  "dongducheonPeriod": {
+    "scope": "DONGDUCHEON_OFFICIAL_PERIOD_FLOW_NOT_EXTRACTION_OR_OPERATING_E2E",
+    "commandId": "352ec3b8-ef49-4138-bbe3-1754772a897b",
+    "executionId": "af2b9d8e90f54a49860fe6fb9bb8ccdb",
+    "receiptPath": "build/temporary-bbs-qa-af2b9d8e90f54a49860fe6fb9bb8ccdb/result-utf8.json",
+    "receiptHash": "e5b565c7cfa2eec304b1e54bda884af8bdb5906628a239fa2e0605efa24e984a",
+    "executionCodeHash": "cf1dacf7e1904d547804beede3b307141071cfc6f58bffb1b70996e207d51662",
+    "localFailureReceipts": 2,
+    "maximumRequestReservations": 12,
+    "maximumReservedBytes": 48234496,
+    "downloadedFiles": 0,
+    "originalFilesRemoved": true,
+    "transferPackageRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false,
+    "fixedProfileHash": "c6b180dff41b41dd815ca04adf9fe14f63b5ad9b0e941448f6a6a7557e9dbc4d",
+    "fixedRuntimeExternalVerification": false
   }
 }

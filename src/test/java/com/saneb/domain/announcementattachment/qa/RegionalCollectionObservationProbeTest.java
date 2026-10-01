@@ -40,7 +40,21 @@ class RegionalCollectionObservationProbeTest {
         assertEquals(6, cases.stream().map(sample -> sample.source().localSourceCode()).distinct().count());
         assertTrue(cases.stream().noneMatch(sample -> RegionalCollectionObservationProbe.CASES.contains(sample.code())));
         assertEquals(38, cases.stream().mapToLong(sample -> AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(sample.profile(), true, false).maximumRequests).sum());
-        assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectCases("SEOUL_COLLECTION_03"));
+        assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectCases("SEOUL_COLLECTION_04"));
+    }
+
+    @Test void dongducheonBatchKeepsTwoKnownCasesAndTwelveRequests() {
+        var mode = RegionalCollectionObservationProbe.MODE_THREE;
+        var cases = RegionalCollectionObservationProbe.selectCases(mode);
+        assertEquals(List.of("DONGDUCHEON-44176", "DONGDUCHEON-45339"), cases.stream().map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList());
+        assertEquals(12, cases.stream().mapToLong(sample -> AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(sample.profile(), true, false).maximumRequests).sum());
+        for (int i = 0; i < 2; i++) {
+            var sample = cases.get(i); var row = selectFailure(i);
+            row.put("caseCode", sample.code()).put("profileCode", sample.profile().selectProfileCode()).put("profileHash", sample.profile().selectProfileHash());
+            assertEquals(sample.code(), RegionalCollectionObservationProbe.selectReport(row, mode, i, start, end).path("caseCode").asText());
+            row.put("requestReservationsIncludingBodyUpperBound", 7); int ordinal = i;
+            assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectReport(row, mode, ordinal, start, end));
+        }
     }
 
     @Test void secondBatchReceiptsCannotBorrowFirstBatchOrExceedOwnBudget() {

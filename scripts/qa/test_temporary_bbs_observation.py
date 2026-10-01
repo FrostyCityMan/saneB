@@ -20,6 +20,26 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_dongducheon_batch_accepts_only_two_fixed_receipts_with_twelve_requests(self):
+        import copy
+        mode='SEOUL_COLLECTION_03';scope=self.runner['SCOPES'][mode]
+        self.assertEqual(('SEOUL-COLLECTION-DONGDUCHEON-TWO',['DONGDUCHEON-44176','DONGDUCHEON-45339'],12,48234496),scope)
+        self.assertEqual((512,640),self.runner['select_memory_limits'](mode))
+        self.unit['cfg']={'codeHash':'a'*64}
+        self.unit['validate_manifest_scope'](dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64),mode)
+        rows=[dict(caseCode=code,status='INCOMPLETE',collectionOnly=True,originalFilesRemoved=True,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,isWholeTextAnalysisComplete=False,
+            productionWriteCount=0,maximumRequestReservations=6,maximumReservedBytes=24117248,
+            requestReservationsIncludingBodyUpperBound=3,reservedBytesIncludingBodyUpperBound=2097152,files=[]) for code in scope[1]]
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,executionCodeHash='a'*64,
+            completionMeaning='RECEIPTS_ONLY_NOT_COLLECTION_SUCCESS',productionDatabaseUsed=False,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,status='PASSED',reports=rows,downloadedFiles=0)
+        self.unit['validate_probe_scope'](report,mode)
+        for bad in [rows[:1],list(reversed(rows)),rows+rows]:
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](dict(report,reports=bad),mode)
+        changed=copy.deepcopy(report);changed['reports'][0]['requestReservationsIncludingBodyUpperBound']=7
+        with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+
     def test_collection_six_preserves_failed_receipts_without_claiming_downloads(self):
         import copy
         mode='SEOUL_COLLECTION_01';scope=self.runner['SCOPES'][mode]

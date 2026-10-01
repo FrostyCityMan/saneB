@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods=false)
 public class CapitalFourthAttachmentProfileConfiguration {
     @Bean public AttachmentDiscoveryProfile selectGimpoProfileDetails(){return new CapitalFourthAttachmentDiscoveryProfile(Site.GIMPO);}
-    @Bean public AttachmentDiscoveryProfile selectDongducheonProfileDetails(){return new CapitalFourthAttachmentDiscoveryProfile(Site.DONGDUCHEON);}
+    @Bean public AttachmentDiscoveryProfile selectDongducheonProfileDetails(){return new DongducheonPeriodAttachmentDiscoveryProfile(new CapitalFourthAttachmentDiscoveryProfile(Site.DONGDUCHEON));}
     @Bean public AttachmentDiscoveryProfile selectPyeongtaekProfileDetails(){return new CapitalFourthAttachmentDiscoveryProfile(Site.PYEONGTAEK);}
 }

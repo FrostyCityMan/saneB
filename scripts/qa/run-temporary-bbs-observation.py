@@ -10,6 +10,7 @@ CONFIG = json.loads(sys.argv[1]) if __name__ == '__main__' else {}
 
 # 코드의 지원 범위이며 실행 승인 자체가 아니다. 다른 기관/표본/예산은 받지 않는다.
 SCOPES = {
+    'SEOUL_COLLECTION_03': ('SEOUL-COLLECTION-DONGDUCHEON-TWO', ['DONGDUCHEON-44176', 'DONGDUCHEON-45339'], 12, 48234496),
     'SEOUL_COLLECTION_02': ('SEOUL-COLLECTION-SECOND-SIX', ['EUNPYEONG-50607', 'SEODAEMUN-313956', 'ICHEON-70639', 'ASAN-76469', 'BONGHWA-32956', 'YEONGDONG-759FDCD3'], 38, 144703488),
     'SEOUL_COLLECTION_01': ('SEOUL-COLLECTION-SIX', ['POCHEON-64129', 'GANGNEUNG-60798', 'CHUNGBUK-67302', 'GONGJU-59971', 'PYEONGTAEK-95902', 'NAMHAE-35694'], 36, 144703488),
     'HWACHEON_SEGMENT': ('HWACHEON-32258', ['HWACHEON-32258'], 5, 25165824),
@@ -67,7 +68,7 @@ def digest(path):
     return h.hexdigest()
 def validate_manifest_scope(manifest,mode):
     if manifest.get('schemaVersion')!=1 or manifest.get('caseCode')!=SCOPES[mode][0] or manifest.get('executionCodeHash')!=cfg['codeHash']:raise ValueError('MANIFEST_SCOPE_INVALID')
-    if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
+    if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02','SEOUL_COLLECTION_03') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
     if mode in ('OKCHEON','BOEUN','BOEUN_OBSERVATION','BOEUN_DIAGNOSTIC','OKCHEON_DIAGNOSTIC','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','NAMGU_OBSERVATION','NAMGU_STRUCTURE','DALSEONG_OBSERVATION','DALSEONG_HEADER','HAMAN_OBSERVATION','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_OBSERVATION','JUNGGU_PDF','JUNGGU_SEGMENT','GANGBUK_OBSERVATION','GANGBUK_SELECTED_DOWNLOAD') and (manifest.get('verificationMode')!=mode or manifest.get('caseCodes')!=SCOPES[mode][1]):raise ValueError('MANIFEST_SCOPE_INVALID')
 def select_probe_arguments(mode):
     if mode not in SCOPES:raise ValueError('VERIFICATION_MODE_INVALID')
@@ -342,7 +343,7 @@ def validate_hwacheon_segment(report):
     if (partial or file['unknownSegmentCount']>0) and (row.get('manualSourceCheckRequired') is not True or row['decisionStatus']!='REVIEW_REQUIRED'):raise ValueError('PROBE_OUTPUT_INVALID')
 
 def validate_collection_receipts(report,mode):
-    # PASSED는 여섯 결과 보존 성공이다. 원격 수집/추출/정책 성공이 아니다.
+    # PASSED는 고정 표본 전체 결과 보존 성공이다. 원격 수집/추출/정책 성공이 아니다.
     if (report.get('kind')!='BBS_OBSERVATION_PROBE' or report.get('verificationMode')!=mode
             or report.get('completionMeaning')!='RECEIPTS_ONLY_NOT_COLLECTION_SUCCESS'
             or report.get('executionCodeHash')!=cfg['codeHash']):raise ValueError('PROBE_OUTPUT_INVALID')
@@ -352,7 +353,7 @@ def validate_collection_receipts(report,mode):
     if not isinstance(rows,list) or len(rows)>6 or any(not isinstance(row,dict) for row in rows):raise ValueError('PROBE_OUTPUT_INVALID')
     expected=SCOPES[mode][1]
     if [row.get('caseCode') for row in rows]!=expected[:len(rows)]:raise ValueError('PROBE_OUTPUT_INVALID')
-    if report.get('status')=='PASSED' and len(rows)!=6:raise ValueError('PROBE_OUTPUT_INVALID')
+    if report.get('status')=='PASSED' and len(rows)!=len(expected):raise ValueError('PROBE_OUTPUT_INVALID')
     downloaded=0
     for ordinal,row in enumerate(rows):
         request_limit=7 if mode=='SEOUL_COLLECTION_02' and ordinal<2 else 6
@@ -375,7 +376,7 @@ def validate_collection_receipts(report,mode):
     if report.get('status')=='PASSED' and (type(report.get('downloadedFiles')) is not int or report['downloadedFiles']!=downloaded):raise ValueError('PROBE_OUTPUT_INVALID')
 
 def validate_probe_scope(report,mode):
-    if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02'):
+    if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02','SEOUL_COLLECTION_03'):
         validate_collection_receipts(report,mode)
         return
     if mode in ('BOEUN','BOEUN_SEGMENT','BOEUN_STRUCTURAL','BOEUN_LONG_FORM','HAMAN_SEGMENT','HAMAN_LAYOUT_SEGMENT','HWACHEON_SEGMENT','JUNGGU_SEGMENT'):
@@ -587,7 +588,7 @@ def health():
 
 def select_memory_limits(mode):
     # 수집 전용은 JVM256MiB·추출/DB 미실행으로512MiB에 제한한다. 기존 worker 한도는 그대로다.
-    return (512,640) if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02') else (768,900)
+    return (512,640) if mode in ('SEOUL_COLLECTION_01','SEOUL_COLLECTION_02','SEOUL_COLLECTION_03') else (768,900)
 
 def main():
     if not re.fullmatch('[a-f0-9]{32}',CONFIG['executionId']):raise ValueError('EXECUTION_ID_INVALID')
