@@ -1,5 +1,55 @@
 # 최신 프로필의 지역별 첨부 재검증
 
+## 후속 F 묶음: 잔여 과거 성공53곳 재검증, 현재204/223·미확보19
+
+기준 HEAD `b2f9610f685b3338dd24d88e504526e097c50456`. 현재 코드 미확인71곳 중 과거 최신 표본에 정상 파일이 있던53곳의72고정 공고를8묶음으로 관측했다. **52곳·63공고·정상76파일·12,518,983byte**를 확보했다. 합천은 정상 파일0개로 재확보 대기에 추가한다. 응용 코드·프로필·정책·운영 설정 변경은 없다.
+
+| 묶음 | 확보 / 수집처 | 공고 | 정상 파일 / 바이트 | Gradle 결과 |
+|---|---:|---:|---:|---|
+| 남부1 | 8 / 8 | 8 | 8 / 951,241 | 8통과·43초 |
+| 남부2·연제 | 6 / 6 | 7 | 7 / 1,335,079 | 7통과·44초 |
+| 경남1·충남도 | 8 / 8 | 8 | 9 / 1,005,121 | 8통과·56초 |
+| 경남2·경북권 | 6 / 7 | 7 | 7 / 1,124,156 | 7통과·56초 |
+| 광역권 | 8 / 8 | 12 | 16 / 3,485,048 | 12통과·64초 |
+| 수도권·천안 | 5 / 5 | 7 | 6 / 849,166 | 6통과/1실패·37초 |
+| 강원 | 8 / 8 | 14 | 17 / 2,716,935 | 14통과·66초 |
+| 충주·보은·옥천 | 3 / 3 | 9 | 6 / 1,052,237 | 9통과·41초 |
+
+전체72관측은 **71통과/1실패·생략0**, 순차 실행기 최종 종료1이다. 양평312241은 상세 제목 확인 `OBSERVATION_ASSERTION_FAILED`로 실패했다. 파일을0개 확보한 합천도 개별 오류를 보존하는 collection-only 검사는 통과하므로 테스트 통과와 다운로드 성공을 분리한다.
+
+- `HAPCHEON-44432`: 발견 경고 `ATTACHMENT_LINK_UNRESOLVED`, 파일 `TRANSPORT_TIMEOUT`·`ATTACHMENT_FORMAT_MISMATCH`, 정상0개. 파일 종류나 전송 제한을 완화하지 않았다.
+- 연제43358은 형식 불일치지만 별도42552의 정상 파일을 보존했다. 유성49380도 정상1개와 파일 시간 초과를 함께 보존했다.
+- 양평311846은 정상1개·미지원1개,312241은 제목 확인 실패,311507은 제목 제외·요청0이다.
+- 춘천 본문TIMEOUT·곡성 본문HTTP 오류·광주 남구 본문호스트 오류는 정상 첨부와 별개다. 울진·진주·김해 발견 경고도 유지했다.
+- 제목 중단6건은 양평311507·영월156846/157529·충주72039/72625·옥천193187이며 모두 요청0이다. 파일 확보가 없는 나머지3건은 연제43358·합천44432·양평312241이다.
+
+현재 프로필 파일 확인은 **152→204/223(91.5%)·미확인19**이다. 과거 확보210/223·최초 미확인13은 유지한다. 최신 표본 성공204/223·미확보19와 현재 코드 성공 수가 같아졌지만 운영 완료를 뜻하지 않는다. 엄격3적격표본·전체 첨부 집합은 **11→16/223**으로 달서·달성·횡성·영월·보은5곳이 추가됐다. 분모는2026-09-28 활성 수집원 스냅샷223이며 전체goal 완료율이나 고유 지자체 수가 아니다.
+
+남은19곳은 다음과 같다.
+
+- 최초 미확인13: 은평·서대문·울산 남구·성남·평택·이천·포천·강릉·속초·철원·영동·공주·의성.
+- 재확보6: 포항·영도·부평·남동·괴산·합천.
+- 울산 남구는 프로필 미연결1곳이다. 다른18곳의 전송/TLS/상세/파일 오류를 미등록과 혼동하지 않는다. 같은 조건 재시도 없이 새 URL 구조·공식 표본·전송 근거가 있는 항목부터 대응한다.
+
+기존882영수증 보존·72개 추가로 **954영수증/291표본**을 재현했다. 다른219표본 불변·현재 성공152곳과 새 대상53곳 비중복·profile/inventory/생산 클래스 hash 일치를 확인했다. 모든 새 원본정리true·운영쓰기0·추출/정책QA/기대값 승인false다. 두 JSON의 `currentRegionalRecheck20261001F`에 메타데이터를 저장했다.
+
+이번에는 실행 전 실제 Java 카탈로그와 예산 함수만 HTTP 없이 호출하여 `build/qa-tools/current-regional-20261001-f-plan.json`을 생성했다. 계획 hash는 `b797c821b45b5c0ae913fa0538c47979939fd78a81bb7b4a4b58eb75e86df0c9`이며72표본 각각의 원래 프로필·예산과 실제 결과가 일치했다. 설정 상한 **767요청·2,332MiB**, 실제 예약279회·165,911,228byte다. 예약값은 본문 상한을 포함하며 실제 wire와 구분한다. B~F 합계 설정 상한1,990요청·6,571MiB, 이전 이력도 보존한다. 추가 진단·자동 반복0, 원본/임시 파일 정리를 확인했다.
+
+공통 명령은 `.\gradlew.bat --no-daemon --max-workers=1 :attachmentRegionalCollectionObservation -PsanebCollectionWindowsTrust=true -PsanebBbsObservationGroup=<그룹> -PsanebCollectionReportLabel=<라벨>`이다. 단일384MiB JVM 순차 실행·Windows 신뢰 저장소 사용·TLS 검증 유지다. 아래 각 그룹1회, 라벨 `CURRENT-<묶음>-20261001-F`를 사용했다.
+
+| 묶음 | 그룹 |
+|---|---|
+| `SOUTH-FIRST` | `MOKPO,YEOSU,NAJU,GWANGYANG,GOKSEONG,HWASUN,JANGHEUNG,GANGJIN` |
+| `SOUTH-SECOND` | `MUAN,WANDO,JINDO,SHINAN,YEONJE_GURYE,YEONJE_FIRST_HALF` |
+| `GYEONGNAM-FIRST` | `PROVINCE_NEXT,JINJU,SACHEON,GIMHAE,GEOJE,UIRYEONG,CHANGNYEONG` |
+| `GYEONGNAM-SECOND` | `HADONG,SANCHEONG,GEOCHANG_SUPPORT,HAPCHEON,GYEONGBUK_PROVINCE,YEONGDEOK,ULJIN` |
+| `METRO` | `BUSAN_CITY_SUPPORT,DALSEO,DALSEONG,GWANGJU_NAMGU,DAEJEON_AGGREGATOR,YUSEONG_SUPPORT,ULSAN_DONGGU_CARD,ULJU` |
+| `CAPITAL` | `ONGJIN,HWASEONG,OSAN,YANGPYEONG,CHEONAN_SUPPORT` |
+| `GANGWON` | `GANGWON_PROVINCE,CHUNCHEON,TAEBAEK,SAMCHEOK,HOENGSEONG,YEONGWOL,PYEONGCHANG,YANGYANG` |
+| `CHUNGBUK` | `CHUNGJU,BOEUN,OKCHEON` |
+
+JUnit은 `build/qa-current-regional-20261001-f/<묶음 소문자>`에 보존했다. Node49개 실패/생략0·대장954개 재현·공백검사 통과다. 전체 Java 단위/bootJar는 코드 불변으로 재실행하지 않았다. HWP 고도화 보류·운영 DB/worker/정책/배포 변경0·브라우저 정책상 미실행·전체goal 미완료다. 다음 Gate는19곳의 미확보/연결 문제와 전체 worker·DB/API/UI 동작을 각각 증명하는 것이다. 아래 수치는 과거 시점 기록이다.
+
 ## 후속 E 묶음: 37곳 중34곳 확보, 현재 지문152/223
 
 기준 HEAD `bb760d5d11f01e83926906296a17554300d19d99`. 서울·인천권·전북·충청37수집처의39고정 공고를5묶음으로 순차 관측하여 **34곳·35공고·정상54파일·6,516,679byte**를 확보했다. 응용 코드·프로필·규칙·운영 설정은 변경하지 않았다. 성공/오류를 함께 기록하며 파일 확보가 없는 수집처를 성공으로 처리하지 않는다.
