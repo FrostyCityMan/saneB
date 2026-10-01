@@ -1,5 +1,24 @@
 # 최신 프로필의 지역별 첨부 재검증
 
+## 후속 I: 괴산 재확보·합천 전송 실패 보존, 현재208/223·미확보15
+
+기준 SHA `058bd2f2a45ff4970c5bab36db1474e0ad1e2356`. 괴산29655의 공식 상세와 `goDownLoad` 인코딩을 확인했다. 공식 함수는 `encodeURI`3회를 사용하지만, 현재 component 인코딩과 공식 URI 인코딩을 비교한2개 GET 모두200·동일144,896byte·OLE signature였다. 인코딩 결함으로 확정하지 않고 응용코드는 변경하지 않았다. 상세 진단은 정규식 보정 전후2회와 파일 비교에 필요한1회, 파일2회로 총5요청이다. 원문·쿠키·다운로드 인자는 저장하지 않았다.
+
+합천44432는 고정 공식 상세1회와 허용된 `/DownloadEx.do` 링크2개를 제한 진단했다. 정상200·ZIP87,214byte1개와 OLE159,232byte1개가 확인됐다. 후자는 HWPX라는 현재 표기와 맞지 않아 파일형식 기준을 완화하지 않았다. 이 진단은 실제 수집기 성공 영수증이 아니며 확보 수에 넣지 않는다.
+
+| 실제 수집기 관측 | 본문/상세 | 정상 파일 | 결과 |
+|---|---|---:|---|
+| GOESAN-29655 | AVAILABLE·FOUND | HWP1개·144,896byte | 표본 전체 첨부 완료·25초·JUnit1통과 |
+| HAPCHEON-44432 | 본문TIMEOUT·상세TRANSPORT_TIMEOUT | 0 | 미완료·48초·JUnit1실패 |
+
+명령은 `.\gradlew.bat --no-daemon --max-workers=1 :attachmentRegionalCollectionObservation -PsanebCollectionWindowsTrust=true -PsanebBbsObservationGroup=<GOESAN 또는 HAPCHEON> -PsanebCollectionReportLabel=<지역>-RECOVERY-20261001-I`다. 보고서는 `build/reports/attachment-regional-collection/<지역>-<ID>-<지역>-RECOVERY-20261001-I.json`, JUnit은 `build/qa-regional-recovery-20261001-i/{goesan,hapcheon}`에 보존했다. 상세/파일 제한을 늘리거나 다른 프로그램의 성공으로 실제 수집기 실패를 덮지 않았다.
+
+기존959영수증 보존·2개 추가·다른291표본 불변으로 **961영수증/293표본**, 현재 파일 확보 **208/223(93.3%)·미확보15=최초13+포항/합천 재확보2**다. 최초13은 은평·서대문·울산남구·성남·평택·이천·포천·강릉·속초·철원·영동·공주·의성이다. 울산남구 프로필 미연결1곳은 별도다. 엄격3적격표본 전체첨부16/223과 과거 확보210/223은 변함없다. 분모는2026-09-28 활성 수집원 스냅샷이며 운영 성공률 또는 전체goal 완료율이 아니다.
+
+실제 수집기 상한12요청·46MiB, 실제 예약7회·4,355,584byte다. 별도 진단8요청·최대36MiB를 포함하며 예약값과 wire 실측은 구분한다. 최초 임포터 dry-run은 빈 파일 배열을 undefined로 예상해 중단했고, 실제 스키마 `[]` 단언으로 수정한 후 기록했다. 원본정리true·운영쓰기0·추출/정책QA/기대값승인false, profile/inventory/생산클래스hash를 대조했다. Node49개 실패/생략0·961영수증 재현을 확인했다.
+
+최신 코드SHA의 Linux CI36833040869는 실행 중인 동일 handle을 조회했으며 재시작하지 않았다. 응용코드·리소스·DB/API·정책·운영·HWP고도화 변경0, 브라우저 정책상 미실행, 전체goal 미완료다. 다음은 합천의 진단/실제 수집기 전송 차이와 미확보15곳의 새 근거 기반 대응이다.
+
 ## 후속 CI: 참조 카탈로그 개수 계약 보정
 
 Linux CI36829764848(SHA5220a85)는 기본 Java4,495개 중1실패·320생략으로 종료했다. 실패는 `AttachmentPolicyValidationSnapshotFactoryTest.java:64`의 오래된 카탈로그 개수296 단언이다. 부평/남동 참조2개 추가 후 실제298개가 되었으며, 운영 수집이나 DB 장애로 단정할 근거는 없다. 필수 DB 테스트 Gate도 실패했으므로 전체 CI 통과로 보고하지 않는다. 수정 전 문서커밋307a645의 CI36831408440도 실패 종료했다.

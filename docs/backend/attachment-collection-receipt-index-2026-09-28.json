@@ -7747,6 +7747,22 @@
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
       "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
       "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/GOESAN-29655-GOESAN-RECOVERY-20261001-I.json",
+      "receiptHash": "bacd3d456a7cd8f686f08efef900a6e7536349336d39958b1b6362b704dbb85c",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
+    },
+    {
+      "kind": "LOCAL_COLLECTION_ONLY",
+      "path": "build/reports/attachment-regional-collection/HAPCHEON-44432-HAPCHEON-RECOVERY-20261001-I.json",
+      "receiptHash": "3d0e5ba0931b6fccde0272806e658d514fd95b191d9af6ac3ad7b7b40d2b8d7b",
+      "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+      "status": "IMPORTED_LOCAL_COLLECTION_ONLY",
+      "sampleCount": 1
     }
   ],
   "samples": [
@@ -10916,9 +10932,9 @@
       "caseCode": "GOESAN-29655",
       "profileCode": "LOCAL_GOESAN_GET_V1",
       "profileHash": "36cc7fcca2113a28c9ac1ac7534a598acad337f68fe7a617994575467f85c0a7",
-      "receiptHash": "951721ef50c3353896821b8dfdddbe88ff5bef88ff032283e84d64bc92c6dc47",
+      "receiptHash": "bacd3d456a7cd8f686f08efef900a6e7536349336d39958b1b6362b704dbb85c",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:45:57.542433900Z",
+      "observedAt": "2026-10-01T07:57:20.171785600Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 1,
       "titleStatus": "ELIGIBLE",
@@ -10930,8 +10946,11 @@
       "files": [
         {
           "locatorHash": "0c7bcf60bfc98478281ded860583f7b7c7b532dfd78cdb914844a337ee88d875",
-          "status": "FAILED",
-          "bytes": 0
+          "status": "SUCCEEDED",
+          "bytes": 144896,
+          "format": "HWP",
+          "binaryHash": "327ee751f085ed1c33c2762492eb98a384644af4178eba7e56b4c2af8bdb76e1",
+          "signatureVerified": true
         }
       ]
     },
@@ -12019,29 +12038,18 @@
       "caseCode": "HAPCHEON-44432",
       "profileCode": "LOCAL_HAPCHEON_SCMS_V1",
       "profileHash": "452c500e20690271708bbc469bd6bd3917f277c6eec492203fd9015c2a160f7b",
-      "receiptHash": "470176fcbff6ac3a774a485dfd03aad8930d7eb535d9f4eb860270ab6f00834a",
+      "receiptHash": "3d0e5ba0931b6fccde0272806e658d514fd95b191d9af6ac3ad7b7b40d2b8d7b",
       "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
-      "observedAt": "2026-10-01T06:56:24.787760400Z",
+      "observedAt": "2026-10-01T07:58:49.040373100Z",
       "evidenceScope": "LOCAL_COLLECTION_ONLY_REPORT",
       "expectedFileCount": 2,
       "titleStatus": "ELIGIBLE",
-      "detailIdentityVerified": true,
-      "discoveryStatus": "FAILED",
+      "detailIdentityVerified": false,
+      "discoveryStatus": "NOT_RUN",
       "discoveryComplete": false,
       "originalFilesRemoved": true,
       "productionWriteCount": 0,
-      "files": [
-        {
-          "locatorHash": "acd34a9c59680540ce5f328d2c8ef4cba78b9d3a0633100c852d464d9bf07e99",
-          "status": "FAILED",
-          "bytes": 0
-        },
-        {
-          "locatorHash": "177ebd196d725fa37f81da5da52563e2fe2e10e9caf9cc378551976180234d73",
-          "status": "FAILED",
-          "bytes": 159232
-        }
-      ]
+      "files": []
     },
     {
       "sourceCode": "LGS-000125",
@@ -18931,6 +18939,25 @@
     "failedFiles": 3,
     "requestReservationsIncludingBodyUpperBound": 20,
     "reservedBytesIncludingBodyUpperBound": 7335425,
+    "originalFilesRemoved": true,
+    "productionWriteCount": 0,
+    "isExtractionVerified": false,
+    "isPolicyQaPassed": false,
+    "isOperatingE2eVerified": false
+  },
+  "regionalRecovery20261001I": {
+    "scope": "GOESAN_RECOVERY_HAPCHEON_FAILURE_NOT_OPERATING_E2E",
+    "producerClassHash": "020fb8bc2256fab329fa07060218181a9fedb5d536b39a27d1a53d43e0c74e2b",
+    "diagnosticHttpRequests": 8,
+    "diagnosticMaximumBytes": 37748736,
+    "maximumRequestReservations": 12,
+    "maximumReservedBytes": 48234496,
+    "samples": 2,
+    "downloadedFiles": 1,
+    "downloadedBytes": 144896,
+    "failedSamples": 1,
+    "requestReservationsIncludingBodyUpperBound": 7,
+    "reservedBytesIncludingBodyUpperBound": 4355584,
     "originalFilesRemoved": true,
     "productionWriteCount": 0,
     "isExtractionVerified": false,
