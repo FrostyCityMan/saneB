@@ -47,7 +47,7 @@ COLLECTION_VERIFIED를 별도 표시하며 전체 실파일 검증 완료로 표
 - [x] 서비스 구현·대역 회귀: 계약별 실행·완료·게시·준비 범위·영향 조회 연결.
 - [x] UI 구현·비브라우저 계약: 수집 전용과 전체 검증을 명확히 구분.
 - [x] 단위 회귀: 과거 STRICT_V1, 수집 전용 성공, ENFORCE 재사용 거부, 변조·누락 거부.
-- [~] 실제 PostgreSQL migration/trigger 및 Linux 검증: 로컬 Docker Linux 엔진 pipe와 별도 Linux 배포판/psql이 없어 Linux CI로 검증한다. 2026-10-02 커밋·푸시·배포 없는 CI 승인을 받았으며 결과 확인 전 통과로 보고하지 않는다.
+- [x] 실제 PostgreSQL migration/trigger 및 Linux 검증: 2026-10-02 Linux36883912352/0fa8631 success. V85→V86 업그레이드·기존 checksum/행 보존·수집 게시 제약과 필수273시험의 실패·오류·생략0을 artifact XML로 확인했다. 최초36881855740 실패는 아래에 보존한다.
 - [x] 로컬 선택 test 453개(21 suite), 실패·오류·생략 0 및 bootJar 성공.
 - [x] Node 화면 계약 45개, 실패·생략 0. 브라우저는 현재 명시 지시가 없어 실행하지 않았다.
 
@@ -97,5 +97,42 @@ bootJar --no-daemon --console=plain --max-workers=1`로 실행했다. 20 suite/4
 실패·오류·생략0, BUILD SUCCESSFUL(1분34초)이다. 실제 DB 두 목록 projection의 검증은
 후속 Linux CI로 확인한다. 제품 코드나 migration은 이번 실패 보완에서 변경하지 않았다.
 
-성공 기준은 승인된 로컬 구현과 검증 완료다. 운영 수집 시작은 별도 Gate다.
+## 2026-10-02 Linux Gate 완료·설치 후보
+
+검증 SHA는 `0fa8631879e427e28c0470a515e6b56162df1d5c`다.
+[Linux CI 36883912352](https://github.com/FrostyCityMan/saneB/actions/runs/36883912352)는
+success이며 artifact `11174407016`의 XML과 필수 보고서 판정 결과를 회수했다.
+일반4596시험 중4215통과·381조건부생략·실패/오류0이다. 생략381을 통과로 산입하지 않는다.
+별도 필수273시험(산출물20·job DB212·migration18·runtime6·worker12·Flyway3·정책 부모2),
+추출기251시험, Node531시험은 실패·오류·생략0이다. 전체 Gradle/bootJar·독립 산출물 실행과
+정책 부모 연결·취소·정리도 통과했으며 `POLICY_DB_QA_CLEANUP=SUCCEEDED`를 확인했다.
+
+새 계약의 COLLECT_ONLY 게시·완료 이력 불변·ENFORCE 재사용 거부와 과거/새 목록 projection
+시험이 실제 PostgreSQL에서 실행됐다. 원문·운영 DB·외부 사이트 요청을 사용하는 시험은
+활성화하지 않았다. 이는 내부 계약 근거이며 운영 수집·실파일 전수 성공·브라우저 근거가 아니다.
+첫 실패와 미실행 단계 기록은 이전 실행 이력으로 유지한다.
+
+**Decision: Conditionally ready — 검증 SHA의 코드 설치 후보 범위.**
+
+| Gate | 상태 | 근거·필요 조치 |
+| --- | --- | --- |
+| Git·구현·빌드 | [x] | QA 브랜치 푸시와 고정 SHA Linux success; 후속 기록은 문서 전용 |
+| DB·호환성 | [x] | V86 실제 upgrade/trigger·checksum/행 보존; V1 및 과거 migration 미변경 |
+| 보안·격리·복구 계약 | [x] | runtime/worker/정책 부모 및 취소·정리 시험 통과 |
+| 운영 현재 기준선·백업·설정 | [ ] | 이번에는 운영을 조회하지 않음; 설치 직전 읽기 전용 확인 필요 |
+| 코드·V86 운영 설치 승인 | [ ] | 새 SHA 설치·migration·재시작은 이번 커밋/CI 승인에 미포함 |
+| 운영 수집·분류·브라우저 | [ ] | 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·브라우저 미실행 |
+
+실행 명령: `git commit -F ...`, QA 브랜치 `git push`, `gh run view/download`,
+기존 Linux workflow의 전체 Gradle·Node·독립 QA harness, artifact XML 집계다.
+미실행: 새 운영 설치·현재 health/DB/플래그/백업 조회·외부 공고 관측·운영 업무 E2E.
+브라우저는 사용자 정책에 따라 현재 명시 지시가 없어 실행하지 않았다.
+
+남은 위험: V86은 과거 파일을 수정하지 않지만 CHECK/보호 함수 교체를 포함하므로 JAR 원복과
+DB DDL 복구는 별개다. 설치 전 이전 JAR·추출기와 DB 복구 경로를 재확인한다.
+다음 순서는 설치 범위 승인 → 현재 기준선/복구 경로 확인 → 동일 SHA 배포 빌드 통과 →
+코드/V86 설치·재시작 → JAR/DB checksum·health·기존 설정 유지 확인이다.
+정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 적용은 해당 영향도와 범위 승인 후 별도 수행한다.
+
+성공 기준은 승인된 로컬 구현·커밋/푸시·Linux 검증 완료다. 운영 수집 시작은 별도 Gate다.
 일부 검증만 실행하거나 skip된 검증을 완료로 보고하지 않는다.

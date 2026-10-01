@@ -1,5 +1,9 @@
 # 첨부 부분 성공 보존과 지역 연결 우선 처리
 
+## 2026-10-02 수집 전용 계약 Linux 검증 완료
+
+`0fa8631`/Linux36883912352 success이며 V86 실제 업그레이드·기존 checksum/행 보존·수집 게시와 ENFORCE 재사용 차단을 확인했다. 별도필수273·추출기251·Node531 실패/생략0, 일반4596 실패0/조건부생략381이다. 최초 CI의 목록 projection 기대값 불일치2건은 전체 입력 비노출 검증을 유지·강화해 보완했다. 운영 설치·정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 적용은 실행하지 않았다. [검증 근거와 다음 설치 Gate](attachment-collection-safety-contract-2026-10-01.md)를 따른다.
+
 ## 2026-10-01 승인 후 로컬 구현
 
 사용자가 수집 전용 검증 계약의 설계·구현을 승인했다. V86과 `COLLECTION_SAFETY_V1` / `COLLECTION_VERIFIED`로 기존 엄격 검증과 분리하는 로컬 변경을 진행했다. 운영 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·추가 배포는 승인 범위에 포함하지 않는다. [현재 설계·검증 체크리스트](attachment-collection-safety-contract-2026-10-01.md)를 따른다. 아래 결정 대기 기록은 승인 전 확인 이력이다.
