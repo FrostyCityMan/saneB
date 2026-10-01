@@ -61,6 +61,20 @@ test('본문 전용 TIMEOUT을 다른 단계의 임의 오류 코드로 허용�
   assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]),
     [['FILE_DOWNLOAD', 'UNCLASSIFIED_ERROR']]);
 });
+test('본문 리다이렉트 한도 오류와 정상 첨부를 동시에 보존한다', () => {
+  const result = fixture([{...base, bodyStatus: 'FETCH_FAILED', bodyFailureCode: 'REDIRECT_LIMIT_EXCEEDED'}]).run();
+  assert.equal(result.availabilitySummary.observedDownloadRegionCount, 1);
+  assert.deepEqual(result.regions[0].issues.map(i => [i.stage, i.code]),
+    [['BODY_FETCH', 'REDIRECT_LIMIT_EXCEEDED']]);
+  assert.equal(result.currentHttpRequests, 0);
+  assert.equal(result.isOperatingE2eVerified, false);
+});
+test('본문 리다이렉트 코드를 파일 오류로 허용하거나 임의 URL을 복사하지 않는다', () => {
+  const result = fixture([{...base, failedStage: 'FILE_DOWNLOAD', failureCode: 'REDIRECT_LIMIT_EXCEEDED',
+    bodyStatus: 'FETCH_FAILED', bodyFailureCode: 'REDIRECT_LIMIT_EXCEEDED https://private.invalid/PRIVATE_CANARY'}]).run();
+  assert.ok(result.regions[0].issues.every(i => i.code === 'UNCLASSIFIED_ERROR'));
+  assert.ok(!JSON.stringify(result).includes('PRIVATE_CANARY'));
+});
 test('Content-Type mismatch remains a signature-stage error, not a verified download', () => {
   const result = fixture([{...base, status: 'COLLECTION_ONLY_PARTIAL_NOT_APPROVED', collectionStageComplete: false,
     files: [{locatorHash: hash, status: 'FAILED', bytes: 512, failedStage: 'FILE_SIGNATURE', failureCode: 'ATTACHMENT_CONTENT_TYPE_MISMATCH'}]}]).run();

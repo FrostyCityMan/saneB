@@ -1,5 +1,43 @@
 # 최신 프로필의 지역별 첨부 재검증
 
+## 후속 E 묶음: 37곳 중34곳 확보, 현재 지문152/223
+
+기준 HEAD `bb760d5d11f01e83926906296a17554300d19d99`. 서울·인천권·전북·충청37수집처의39고정 공고를5묶음으로 순차 관측하여 **34곳·35공고·정상54파일·6,516,679byte**를 확보했다. 응용 코드·프로필·규칙·운영 설정은 변경하지 않았다. 성공/오류를 함께 기록하며 파일 확보가 없는 수집처를 성공으로 처리하지 않는다.
+
+| 묶음 | 수집처 확보 / 대상 | 공고 | 정상 파일 / 바이트 | 관측 결과 |
+|---|---:|---:|---:|---|
+| 서울: 성동·송파·광진·동대문·성북·영등포·양천·관악 | 8 / 8 | 8 | 19 / 3,089,390 | 8통과·종료0·41초 |
+| 수도권: 마포·서울강서·강동·부평·동작·남동·검단 | 5 / 7 | 7 | 7 / 527,821 | 5통과/2실패·종료1·37초 |
+| 전북: 김제·완주·진안·무주·장수·임실·순창 | 7 / 7 | 7 | 8 / 661,632 | 7통과·종료0·33초 |
+| 충남: 서산·논산·당진·서천·청양·홍성·예산·태안 | 8 / 8 | 8 | 12 / 1,285,170 | 8통과·종료0·40초 |
+| 충북: 청주·제천·증평·진천·괴산·음성·단양 | 6 / 7 | 9 | 8 / 952,666 | 9통과·종료0·38초 |
+
+전체 관측39건은 **37통과/2실패·생략0**, 순차 실행기 최종 종료1이다. 이 테스트는 개별 파일 실패의 보존도 검증하므로 통과 수가 다운로드 성공 수는 아니다. 괴산은 파일 HTTP400을 보존하여 테스트가 통과했지만 정상 파일은0개다. 제천3공고 중1개는 제목 중단·요청0이고 나머지2공고에서3파일을 확보했다. 제천의 두 번째 적격 공고를 추가 지역으로 중복 집계하지 않았다.
+
+- `BUPYEONG-50550`: 본문 `HTTP_STATUS_ERROR`, 상세 `ATTACHMENT_HTTP_404`, 파일0.
+- `NAMDONG-71702`: 본문 `REDIRECT_LIMIT_EXCEEDED`, 상세 `ATTACHMENT_PATH_NOT_APPROVED`, 파일0. 경로 허용이나 redirect 제한을 완화하지 않았다.
+- `GOESAN-29655`: 본문/발견 후 파일 `ATTACHMENT_HTTP_400`, 파일0.
+- 김제·순창은 각각 본문 redirect 한도/HTTP 오류와 정상 파일을 함께 보존했다. 동대문·강동·당진의 발견 경고, 송파 상세 제목 경고, 영등포·장수 미지원 파일도 유지했다.
+- 집계 도구에서 본문 `REDIRECT_LIMIT_EXCEEDED`가 `UNCLASSIFIED_ERROR`로 축약되던 문제를 수정했다. 본문 단계에서만 고정 코드를 허용하며 파일 단계 오용·임의 URL 유출을 거부하는 회귀2개를 추가했다. 실제 수집기/API 계약 변경은 없다.
+
+현재 프로필 파일 확인 **118→152/223·미확인71**이다. 과거 확보210/223·최초 미확인13은 유지하고, 최신 표본은 **205/223·미확보18=최초13+포항·영도·부평·남동·괴산 재확보5**다. 엄격3적격표본·전체 첨부 집합11/223은 유지한다. 분모는2026-09-28 활성 수집원 스냅샷223이며 고유 지자체 수나 현재 운영 성공률·전체goal 완료율이 아니다.
+
+기존843영수증을 보존하고39개를 추가해 **882영수증/291표본**을 재현했다. 기존 다른252표본 불변·새 대상37곳과 기존 현재 성공118곳 비중복·profile/inventory/생산 클래스 hash 일치를 검증했다. 모든 신규 원본 정리true·운영쓰기0·추출/정책QA/기대값 승인false다. 두 JSON에 `currentRegionalRecheck20261001E`를 기록했다. 생산 클래스·인벤토리 hash는 D/B/C와 같다.
+
+초기 상한 안내226요청·854MiB는 제천 그룹의 추가2표본을 누락했으므로 **238요청·900MiB**로 정정했다. 표본별 기존 한도는 바꾸지 않았다. 실제 예약175회·94,403,636byte는 본문 예약 상한을 포함하며 실제 wire와 구분한다. B/C/D/E 합계 설정 상한1,223요청·4,239MiB, 그 이전 이력도 보존한다. 추가 진단·자동 반복0이며 Gradle은 `--no-daemon --max-workers=1`·관측 JVM384MiB로 순차 종료했다.
+
+실행 명령은 아래 그룹별 `.\gradlew.bat --no-daemon --max-workers=1 :attachmentRegionalCollectionObservation -PsanebCollectionWindowsTrust=true -PsanebBbsObservationGroup=<그룹> -PsanebCollectionReportLabel=<라벨>`이다. Windows 신뢰 저장소를 사용하고 TLS/호스트 검증을 유지했다.
+
+| 그룹 | 라벨 |
+|---|---|
+| `SEONGDONG,SONGPA,GWANGJIN,DONGDAEMUN,SEONGBUK,YEONGDEUNGPO,YANGCHEON,GWANAK` | `CURRENT-SEOUL-20261001-E` |
+| `MAPO,SEOUL_GANGSEO,GANGDONG,METRO_REMAINDER,NAMDONG,GEOMDAN` | `CURRENT-CAPITAL-20261001-E` |
+| `GIMJE,WANJU,JINAN,MUJU,JANGSU,IMSIL,SUNCHANG` | `CURRENT-JEONBUK-20261001-E` |
+| `SEOSAN,NONSAN,DANGJIN,SEOCHEON,CHEONGYANG,HONGSEONG,YESAN,TAEAN` | `CURRENT-CHUNGNAM-20261001-E` |
+| `CHEONGJU,JECHEON,JEUNGPYEONG,JINCHEON,GOESAN,EUMSEONG,DANYANG` | `CURRENT-CHUNGBUK-20261001-E` |
+
+JUnit XML은 `build/qa-current-regional-20261001-e/{seoul,capital,jeonbuk,chungnam,chungbuk}`에 보존했다. Node 수집/영수증/가용성/진단45개와 GitHub 영수증4개, 총49개 실패/생략0이며 `node scripts/qa/verify-collection-receipt-index.mjs`와 `git diff --check`도 통과했다. 전체 Java 단위·bootJar는 응용 코드 불변으로 재실행하지 않았다. 운영 DB·정책 게시·ENFORCE·기존 데이터 적용·배포0, HWP 고도화 보류·브라우저 정책상 미실행·전체goal 미완료다. 다음은 현재 코드 미확인71곳의 검증과 별도 오류 원인별 대응이다. 아래 수치는 과거 시점 기록이다.
+
 ## 후속 D 묶음: 부산·남부·서울32곳 확보, 현재 지문118/223
 
 기준 HEAD `76198becb1b751482794137a10af8d2a3666c10a`. 현재 코드로 확인하지 않은33수집처·66고정 공고를5묶음으로 순차 관측하여 **32곳·56공고·정상93파일·17,030,260byte**를 확보했다. 금산·강남은 기존 실패 표본 대신 이미 카탈로그에 등록된 유효 지원 공고 `GEUMSAN_SUPPORT`·`GANGNAM_SUPPORT`를 사용했다. 응용 코드·프로필·규칙·운영 설정은 변경하지 않았다.

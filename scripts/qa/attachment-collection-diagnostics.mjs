@@ -13,8 +13,9 @@ const codes = new Set(['BODY_SELECTOR_CHANGED', 'NETWORK_ERROR', 'HTTP_STATUS_ER
   'ATTACHMENT_FORMAT_MISMATCH', 'ATTACHMENT_DOWNLOAD_BLOCKED', 'TLS_FAILED', 'OBSERVATION_FAILED', 'TRANSPORT_FAILED',
   'OBSERVATION_ASSERTION_FAILED', 'ATTACHMENT_LINK_UNRESOLVED', 'ATTACHMENT_DETAIL_TITLE_UNAVAILABLE',
   'ATTACHMENT_SELECTOR_CHANGED', 'UNSUPPORTED_FORMAT']);
-// ProviderContentCodes의 본문 TIMEOUT은 파일 전송 TRANSPORT_TIMEOUT과 별개다.
-const safeCode = (value, stage) => (stage === 'BODY_FETCH' && value === 'TIMEOUT')
+// ProviderContentCodes의 본문 전용 코드는 다른 단계의 임의 오류로 허용하지 않는다.
+const bodyOnlyCodes = new Set(['TIMEOUT', 'REDIRECT_LIMIT_EXCEEDED']);
+const safeCode = (value, stage) => (stage === 'BODY_FETCH' && bodyOnlyCodes.has(value))
   || codes.has(value) || /^ATTACHMENT_HTTP_[1-5][0-9]{2}$/.test(value ?? '')
   ? value : 'UNCLASSIFIED_ERROR';
 const stages = new Set(['TITLE_CONFIRMATION', 'DETAIL_DISCOVERY', 'FILE_DOWNLOAD', 'FILE_SIGNATURE',
