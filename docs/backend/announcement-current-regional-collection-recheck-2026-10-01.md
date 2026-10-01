@@ -1,4 +1,38 @@
-# 최신 프로필의 경기·광역권·경북 첨부 재검증
+# 최신 프로필의 지역별 첨부 재검증
+
+## 후속 C 묶음: 44수집처·정상56파일, 현재 지문86/223
+
+기준 HEAD `ca7735aec387c631a11b9271aa0983828a4c67d4`. 기존 성공 이력은 있지만 현재 프로필 지문 근거가 없는44수집처·45고정 공고를6묶음으로 순차 실행했다. 새 코드·프로필·정책·카탈로그 변경 없이 **44곳 모두에서 정상56파일·12,945,322byte**를 확보했다. 정선의 별도 제목 부적격 표본1개는 요청0·파일0으로 중단했다.
+
+| 묶음 | 수집처 / 공고 | 정상 파일 / 바이트 | 관측 결과 |
+|---|---:|---:|---|
+| 경기: 남양주·김포·의정부·경기광주·하남·양주·군포 | 7 / 7 | 8 / 692,308 | 7통과·43초 |
+| 전북: 전북도·전주·군산·익산·정읍·남원·부안·고창 | 8 / 8 | 8 / 936,091 | 8통과·44초 |
+| 경북: 김천·구미·영천·청송·영양·청도·칠곡 | 7 / 7 | 9 / 737,919 | 7통과·42초 |
+| 인천권·대덕: 인천시·제물포·계양·강화·서해·대덕 | 6 / 6 | 13 / 6,532,916 | 6통과·38초 |
+| 강원·대전 서구: 원주·동해·홍천·화천·인제·고성·정선·대전 서구 | 8 / 9 | 10 / 3,412,514 | 제목 중단 포함9통과·43초 |
+| 대구권·대전 중구: 대구시·동구·서구·남구·북구·수성·군위·대전 중구 | 8 / 8 | 8 / 633,574 | 8통과·36초 |
+
+45관측 실패/생략0·6개 Gradle 명령 및 순차 실행기 종료0다. 단, `CHEONGSONG-22287`은 정상 파일2개와 `ATTACHMENT_LINK_UNRESOLVED` 경고가 함께 있어 부분 성공이다. `JEONGSEON-37876`은 `TITLE_NOT_ELIGIBLE_NOT_FETCHED`이며 같은 수집처의 적격34952 파일2개 성공과 분리한다. 나머지43적격 표본은 해당 파일 집합 수집 완료지만 지역별3공고·첨부 텍스트 분석·운영 승인을 의미하지 않는다.
+
+현재 프로필 파일 확인은 **42→86/223·미확인137**이다. 과거 성공210/223·최초 미확인13, 최신 표본209/223·미확보14(최초13+포항 재확보1)는 그대로다. 등록222/223·울산 남구 미연결1, 엄격3표본 전체집합0/223도 유지한다. 포항·안성 등 이전 오류를 이번 관측으로 복구했다고 표시하지 않았다. 분모223은 기존 활성 수집원 스냅샷이다.
+
+기존732영수증을 보존하고45개를 추가해 **777영수증/289표본**을 재현했다. 다른244개 표본 불변·새 관측 대상44개가 기존 현재 성공42개와 겹치지 않음·모든 새 profile hash/inventory hash/producer class hash 일치를 검증했다. 인벤토리와 생산 클래스 hash는 아래 B 묶음과 같다. metadata는 두 JSON 대장의 `currentRegionalRecheck20261001C`에 기록했다. 관련 Node43개·공백 검사 통과, 전체 Java 단위/bootJar 재실행 없음이다.
+
+이번 상한은 **309요청·1,092MiB**(화천44요청/80MiB, 계양7요청/23MiB, 나머지43표본 각6요청/23MiB)다. 실제 예약189회·113,786,259byte는 본문 상한을 포함하며 wire 사용량과 구분한다. B+C 합계 상한441요청·1,598MiB이며 이전 모든 관측 이력도 대장에 남긴다. 추가 진단·자동 재시도0, 원본 정리45건 모두true·운영쓰기0·추출/정책QA/기대값 승인false다. 각 실행은 `--no-daemon --max-workers=1`, 단일384MiB 관측 JVM이며 종료 후 다음 묶음으로 넘어갔다. JUnit XML은 `build/qa-current-regional-20261001-c/{capital,jeonbuk,gyeongbuk,incheon,gangwon,daegu}`에 보존했다.
+
+공통 명령은 `.\gradlew.bat --no-daemon --max-workers=1 :attachmentRegionalCollectionObservation -PsanebCollectionWindowsTrust=true`이고, 아래 그룹과 라벨을 각1회 지정했다. 인자 `-PsanebBbsObservationGroup=`와 `-PsanebCollectionReportLabel=`을 사용했다.
+
+| 그룹 | 보고서 라벨 |
+|---|---|
+| `NAMYANGJU,GIMPO,UIJEONGBU,GG_GWANGJU,HANAM,YANGJU,GUNPO` | `CURRENT-CAPITAL-20261001-C` |
+| `JEONBUK,JEONJU,GUNSAN,IKSAN,JEONGEUP,NAMWON,BUAN,GOCHANG` | `CURRENT-JEONBUK-20261001-C` |
+| `GIMCHEON,GUMI,YEONGCHEON,CHEONGSONG,YEONGYANG,CHEONGDO,CHILGOK` | `CURRENT-GYEONGBUK-20261001-C` |
+| `INCHEON_CITY,JEMULPO,GYEYANG,GANGHWA,SEOHAE,DAEDEOK` | `CURRENT-INCHEON-20261001-C` |
+| `EXISTING_SECOND,DONGHAE,HONGCHEON,HWACHEON,INJE,GW_GOSEONG,JEONGSEON` | `CURRENT-GANGWON-20261001-C` |
+| `DAEGU_CITY,DAEGU_DONGGU,DAEGU_SEOGU,DAEGU_NAMGU,DAEGU_BUKGU,SUSEONG,GUNWI,DAEJEON_JUNGGU` | `CURRENT-DAEGU-20261001-C` |
+
+운영 DB·worker·배포·정책 게시·ENFORCE·기존 데이터 적용 변경0, HWP 고도화 보류·브라우저 정책상 미실행·전체goal 미완료를 유지한다. 아래 B 묶음의42/223 등은 이전 시점 기록이다.
 
 ## 현재 단계 / Gate
 
