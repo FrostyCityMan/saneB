@@ -1,5 +1,9 @@
 # 첨부 추출 근거 오류의 파일 단위 분리
 
+## Linux 격리·DB 검증 후속 확인
+
+2026-10-01 회수한 SHA `116b9c5c7ca1114f124800c7fad7f88c2c87d4c4`/run36843364966/artifact11153295953의 전용 `attachmentRuntimeIntegrationTest` XML은6개 실패/생략0이다. `malformedChildEvidenceBecomesFileFailureAndNextExtractionRecovers`가 실제 Linux 격리 자식에서 실행돼 통과했다. 별도 worker12·job210·migration/backfill18·Flyway3·정책 부모2개도 실패/생략0이다. 아래 Windows 당시 미실행 항목 중 이 SHA의 Linux 계약 검증은 해소됐다. 공식 사이트·운영 수집·관리자 E2E 또는 이후 수정 SHA의 성공으로 일반화하지 않는다. 원본은 `build/qa-github-runs/36843364966/contracts/`에 보관했다.
+
 ## 현재 단계 / Gate
 
 전 지역 첨부 연결 우선 작업 중 공통 오류 처리 경계를 보완했다. 최초 기준 HEAD는 `65ea41595656dfcfc0ed26a45ae02a0fe05d821c`다. 신규 지역 연결 또는 운영 검증 완료로 계산하지 않는다.

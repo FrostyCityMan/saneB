@@ -213,6 +213,33 @@ class AnnouncementAttachmentWorkerIntegrationTest {
         assertThat(client.fileRequests.get(0)).isEqualTo(1);assertThat(client.fileRequests.get(1)).isEqualTo(1);
         assertThat(extractor.calls).isEqualTo(1);
         assertTemporaryEmpty();
+
+        // IDLE만으로 다음 공고의 진행을 입증하지 않는다. 새 공고를 실제 예약·처리한다.
+        var partialSet = set(request.sourceId());
+        var partialFiles = files(request.sourceId());
+        var partialBase = selectBase(request);
+        client.failureIndex = -1;
+        client.samples = List.of(new Sample("AR-006", "next-notice.hwpx"));
+        var nextRequest = selectRequest();
+        var nextBase = selectBase(nextRequest);
+        var nextJob = reserve(nextRequest);
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("EVALUATED");
+        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(nextJob.jobId()).jobStatusCode()).isEqualTo("SUCCEEDED");
+        assertThat(set(nextRequest.sourceId()).setStatusCode()).isEqualTo("SEALED");
+        assertThat(files(nextRequest.sourceId())).singleElement().satisfies(file -> {
+            assertThat(file.downloadStatusCode()).isEqualTo("SUCCEEDED");
+            assertThat(file.qualityCode()).isEqualTo("COMPLETE_TEXT");
+        });
+        assertThat(bean(AnnouncementAttachmentJobDao.class).selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo("PARTIAL_FAILED");
+        assertThat(set(request.sourceId())).isEqualTo(partialSet);
+        assertThat(files(request.sourceId())).isEqualTo(partialFiles);
+        assertThat(selectBase(request)).isEqualTo(partialBase);
+        assertThat(selectBase(nextRequest)).isEqualTo(nextBase);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id IN (?,?)", Integer.class,
+                request.sourceId(), nextRequest.sourceId())).isZero();
+        assertThat(client.requests).isEqualTo(5);assertThat(extractor.calls).isEqualTo(2);
+        assertThat(selectWorker().saveNextAttachmentJob().statusCode()).isEqualTo("IDLE");
+        assertTemporaryEmpty();
     }
     @Test void sourceDeletedDuringRealExtractionCannotBeRecreatedByLateWorkerResult() throws Exception {
         client.samples = List.of(new Sample("AR-006", "notice.hwpx"));

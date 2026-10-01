@@ -1,5 +1,15 @@
 # 첨부 부분 성공 보존과 지역 연결 우선 처리
 
+## 2026-10-01 Linux 근거 회수·다음 공고 진행 검증 보완
+
+SHA `116b9c5c7ca1114f124800c7fad7f88c2c87d4c4`의 [Linux36843364966](https://github.com/FrostyCityMan/saneB/actions/runs/36843364966)은 success다. artifact `11153295953`(487,237byte)의 전용 XML에서 실제 임시 DB worker12개·runtime6개·job210개·migration/backfill18개·Flyway3개·정책 부모2개가 실패/생략0임을 확인했다. 원래 부분 성공 즉시 저장, 정상 역할 보존, 잘못된 격리 응답의 파일 단위 실패와 다음 추출 복구가 포함된다. 기본 test의 조건부 생략과 전용 suite 실행을 구분하며 중복 합산하지 않는다. 실제 사이트 HTTP와 운영 상시 worker 성공의 증거는 아니다.
+
+검토 결과 `transientFileFailureSealsPartialResultsImmediatelyAndLeavesNextJobUnblocked`는 PARTIAL_FAILED 보존과 후속 IDLE만 검사했다. 이를 다음 공고의 실제 처리가 입증된 것으로 해석하지 않는다. 같은 시험에 별도 source의 작업 예약→실제 격리 HWPX 추출→SEALED/다운로드 성공/COMPLETE_TEXT→job SUCCEEDED를 추가했다. 첫 공고의 봉인 집합·성공/실패 파일·PARTIAL_FAILED 및 두 공고의 기존 제목/본문 평가가 그대로인지, 공고 link가 자동 생성되지 않는지, 자원 lease/임시 원본이 정리되는지도 검사한다. 합성 HTTP와 임시 DB이며 외부 사이트·운영 쓰기는 없다.
+
+로컬 `gradlew.bat --no-daemon --max-workers=1 :compileTestJava :test --tests '*AnnouncementAttachmentWorkerServiceTest' --tests '*AttachmentContractWorkflowTest' :bootJar`는31초 성공, worker46+workflow21=67개 실패/생략0이다. 보강한 Linux 전용 통합 시험은 Windows에서 컴파일만 확인했으며 다음 QA 브랜치 CI의 정확한 SHA 결과를 확인해야 한다. HWP 파서 개선·응용 동작·migration·정책은 이번 보완에서 변경하지 않았다.
+
+현황은 로컬 연결223/223·실파일210/223·미확보13이다. 잔여 오류를 전체 수집의 중단 조건으로 바꾸지 않되, 정책 게시/ENFORCE/운영 worker 활성화는 별도 승인과 검증 대상이다. 아래 초기27지역 및188미등록 수치는 당시 기준선이다.
+
 ## 승인·목표
 
 2026-09-29 사용자 지시: 파싱·수집 실패는 별도의 오류로 남기고 수집 가능한 자료부터 처리한다. HWP 추출기 1.0.16 추가 개선은 계속 보류한다. 모든 지역에서 첨부를 연결하는 작업이 개별 오류 복구나 지역별 세 표본 확보 때문에 정지하지 않도록 한다.
