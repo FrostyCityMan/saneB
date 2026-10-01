@@ -11,10 +11,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class RecoveredSupportDownloadContractTest {
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT","BUPYEONG_SUPPORT","NAMDONG_SUPPORT"})
     void newNoticeKeepsFailureHistoryAndExistingProfile(String group) {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
-        var old=AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group.replace("_SUPPORT", "")).toList().getFirst();
+        var old=group.equals("BUPYEONG_SUPPORT")?MetroRemainderDownloadCases.selectCase(true)
+                :AnnouncementAttachmentBbsOfficialObservationTest.selectCases(group.replace("_SUPPORT", "")).toList().getFirst();
         assertThat(sample.code()).isNotEqualTo(old.code());
         assertThat(sample.source().providerNoticeId()).isNotEqualTo(old.source().providerNoticeId());
         assertThat(sample.profile().selectProfileHash()).isEqualTo(old.profile().selectProfileHash());
@@ -25,7 +26,7 @@ class RecoveredSupportDownloadContractTest {
         assertThat(sample.listedFileCount()).isEqualTo(java.util.Set.of("GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT").contains(group)?1:2);
     }
 
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT","BUPYEONG_SUPPORT","NAMDONG_SUPPORT"})
     void titlePolicyAndFiniteBudgetAreNotRelaxed(String group) throws Exception {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
         var decision=new AnnouncementSourceClassificationEngine().selectDecision(new AnnouncementSourceClassificationInput(
@@ -41,7 +42,7 @@ class RecoveredSupportDownloadContractTest {
         assertThat(budget.maximumBytes).isLessThanOrEqualTo(44L*1024*1024);
     }
 
-    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT"})
+    @ParameterizedTest @ValueSource(strings={"GANGNAM_SUPPORT","GEUMSAN_SUPPORT","GEOCHANG_SUPPORT","MICHUHOL_SUPPORT","ASAN_SUPPORT","CHEONAN_SUPPORT","DONGDUCHEON_SUPPORT","BUPYEONG_SUPPORT","NAMDONG_SUPPORT"})
     void newCatalogReferenceCannotApprovePolicy(String group) throws Exception {
         var sample=RecoveredSupportDownloadCases.selectCase(group);
         var json=new ObjectMapper();

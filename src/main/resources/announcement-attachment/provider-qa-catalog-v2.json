@@ -3,6 +3,30 @@
   "catalogVersion": "2026-09-28-guro-collection-reference-v2",
   "notices": [
     {
+      "caseCode": "BUPYEONG-49419",
+      "profileCode": "LOCAL_BUPYEONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "3f336d57e0da2cb675bcc18489214aebd567780584be34930288dfee1e8d7ac3",
+        "sourceUrl": "https://www.icbp.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=49419",
+        "localSourceCode": "LGS-000060",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
+      "caseCode": "NAMDONG-69607",
+      "profileCode": "LOCAL_NAMDONG_PORTAL_V1",
+      "source": {
+        "providerCode": "LOCAL_GOV_NOTICE",
+        "providerNoticeId": "e085787e93ff8caa41ccb26fba91ea785da42fe97ab66201933f8a2dae509904",
+        "sourceUrl": "https://www.namdong.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no=69607",
+        "localSourceCode": "LGS-000059",
+        "listParserProfileCode": "HEURISTIC_NOTICE"
+      },
+      "expectation": null
+    },
+    {
       "caseCode": "CHEONAN-107953",
       "profileCode": "LOCAL_CHEONAN_GET_V1",
       "source": {

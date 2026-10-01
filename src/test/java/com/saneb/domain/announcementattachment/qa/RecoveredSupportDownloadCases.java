@@ -7,7 +7,7 @@ import java.util.Set;
 
 /** 공식 목록에서 확인한 추가 표본. 이전 상세 실패·정책 기대값은 변경하지 않는다. */
 final class RecoveredSupportDownloadCases {
-    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT", "MICHUHOL_SUPPORT", "ASAN_SUPPORT", "CHEONAN_SUPPORT", "DONGDUCHEON_SUPPORT");
+    static final Set<String> GROUPS=Set.of("GANGNAM_SUPPORT", "GEUMSAN_SUPPORT", "GEOCHANG_SUPPORT", "MICHUHOL_SUPPORT", "ASAN_SUPPORT", "CHEONAN_SUPPORT", "DONGDUCHEON_SUPPORT", "BUPYEONG_SUPPORT", "NAMDONG_SUPPORT");
 
     static ObservationCase selectCase(String group) {
         ObservationCase old;
@@ -62,6 +62,20 @@ final class RecoveredSupportDownloadCases {
                 title="2026년 소상공인 도로점용료 감면 신청 안내 공고";
                 url="https://www.ddc.go.kr/ddc/selectGosiData.do?key=340&not_ancmt_mgt_no="+id+"&not_ancmt_se_code=04";
                 files=1;
+            }
+            case "BUPYEONG_SUPPORT" -> {
+                old=MetroRemainderDownloadCases.selectCase(true);
+                id="49419";
+                title="「2026년 청각장애인 인공달팽이관 수술비 및 재활치료비 지원사업」대상자 모집 안내";
+                url="https://www.icbp.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no="+id;
+                files=2;
+            }
+            case "NAMDONG_SUPPORT" -> {
+                old=NamdongDownloadCases.selectCase();
+                id="69607";
+                title="2026년 남동구 중소기업육성자금 지원(금융기관 융자에 대한 이자차액 보전) 계획 공고";
+                url="https://www.namdong.go.kr/main/eminwon/eminwonAnnounceDetail.do?mgt_no="+id;
+                files=2;
             }
             default -> throw new IllegalArgumentException("QA_GROUP_REQUIRED");
         }
