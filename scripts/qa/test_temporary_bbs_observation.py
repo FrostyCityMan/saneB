@@ -20,6 +20,37 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('pathlib.Path.is_file', lambda p: p.as_posix() == '/usr/bin/aws'), patch('os.access', return_value=True):
             self.assertEqual('/usr/bin/aws', self.unit['aws_binary']())
 
+    def test_collection_six_preserves_failed_receipts_without_claiming_downloads(self):
+        import copy
+        mode='SEOUL_COLLECTION_01';scope=self.runner['SCOPES'][mode]
+        self.assertEqual((512,640),self.runner['select_memory_limits'](mode))
+        self.assertEqual((768,900),self.runner['select_memory_limits']('HWACHEON_SEGMENT'))
+        self.assertEqual((36,138*1024*1024),scope[2:])
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'MANIFEST_SCOPE_INVALID'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=scope[1][:-1]),mode)
+        rows=[dict(caseCode=code,status='INCOMPLETE',collectionOnly=True,originalFilesRemoved=True,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,isWholeTextAnalysisComplete=False,
+            productionWriteCount=0,maximumRequestReservations=6,maximumReservedBytes=24117248,
+            requestReservationsIncludingBodyUpperBound=3,reservedBytesIncludingBodyUpperBound=2097152,files=[]) for code in scope[1]]
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,executionCodeHash='a'*64,
+            completionMeaning='RECEIPTS_ONLY_NOT_COLLECTION_SUCCESS',productionDatabaseUsed=False,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,status='PASSED',reports=rows,downloadedFiles=0)
+        self.unit['validate_probe_scope'](report,mode)
+        for key,value in [('downloadedFiles',1),('isExtractionVerified',True),('reports',rows[:-1]),('executionCodeHash','b'*64)]:
+            changed=copy.deepcopy(report);changed[key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        for key,value in [('productionWriteCount',True),('maximumRequestReservations',7),('isPolicyQaPassed',True),('originalFilesRemoved',False)]:
+            changed=copy.deepcopy(report);changed['reports'][0][key]=value
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        report['reports'][-1]['files']=[dict(status='DOWNLOADED',bytes=102547,binaryHash='b'*64,format='HWPX'),dict(status='FAILED',failureCode='TIMEOUT')]
+        report['downloadedFiles']=1
+        self.unit['validate_probe_scope'](report,mode)
+        with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
+            self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
+
     def test_hwacheon_worker_pins_sample_and_preserves_partial_review(self):
         import copy
         mode='HWACHEON_SEGMENT';scope=self.runner['SCOPES'][mode]

@@ -66,3 +66,10 @@
 - 전체 기본 실행: `./gradlew.bat :test --no-daemon --console=plain`: XML 합계4,524건 중 **4,146통과·실패0·생략378**,12분35초. Windows 기본 테스트 결과이며 별도 Linux 임시DB/migration suite나 운영 QA 성공이 아니다. `bootJar`는 이번 테스트 전용 변경에서 별도 실행하지 않았다. 수정 후 Linux CI 결과는 별도 확인한다.
 - Node 대장 검증은704기록/289표본을 재현했다. 과거 성공208/223·최신 표본 미확보18·현재 코드 실파일16/223은 변동 없다. 새 공고 요청·새 파일 확보·운영 쓰기는0이며 브라우저는 사용자 실행 정책에 따라 미실행이다.
 - 서울 격리 QA 준비: 현재 Windows에서 신뢰하고 유효한 공개 루트61개를 명령 한정 CA로 검증한 뒤 STS 조회는 `AUTHENTICATION_REQUIRED`였다. 인증서 검증 우회나 전역 설정 변경 없이 로그인 갱신을 기다린다.
+
+### 수정 후 Linux 최종 결과
+
+- SHA `415ad3204f315002da5affdaede62098dafd1faf`, [run36797221074](https://github.com/FrostyCityMan/saneB/actions/runs/36797221074), job110163315265, 최초 실행이 최종 success로 종료됐다. artifact11134792281의 XML을 `build/qa-github-runs/36797221074`에 내려받아 검사했다.
+- 기본4,524건 중4,146통과/378생략/실패0. 별도 추출기251·패키징20·job210·migration18·runtime5·worker12·Flyway3·정책 부모2는 모두 실패/생략0. suite별 실행 수이며 중복 없는 고유 요구사항 수로 합산하지 않는다.
+- `bootJar` 실제 실행과 전체 Gradle8분57초 성공을 확인했다. 독립 산출물의 `SYNTHETIC_WORKER_DB_CONTRACTS_V2`는240개 발견/통과·실패/생략/미실행0이다. 정책 부모의 실제 임시DB 연결·취소 검증은PASSED, 정리는SUCCEEDED다. 합성 계약을 공식 사이트 실파일 검증이나 운영 DB 처리로 확대하지 않는다.
+- 화천 과거 승인 지문 차단은 그대로다. 새 화천 외부 실행·HWP 고도화·운영 배포·정책 활성화·브라우저 검증은 실행하지 않았다. 완료된 CI 감시 프로세스와 로컬 작업 프로세스가 남지 않았음을 확인했다. 이 문서 갱신은 로컬 미커밋이며, 동일 코드에 대해 새 CI를 유발하는 추가 push는 하지 않았다.

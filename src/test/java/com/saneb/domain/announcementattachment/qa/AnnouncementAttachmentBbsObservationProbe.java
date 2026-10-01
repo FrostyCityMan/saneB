@@ -491,6 +491,10 @@ public final class AnnouncementAttachmentBbsObservationProbe {
     }
 
     public static void main(String[] args) {
+        if (args.length == 2 && RegionalCollectionObservationProbe.MODE.equals(args[1])) {
+            RegionalCollectionObservationProbe.main(args);
+            return;
+        }
         PrintStream output = System.out;
         System.setOut(new PrintStream(OutputStream.nullOutputStream()));
         System.setErr(new PrintStream(OutputStream.nullOutputStream()));

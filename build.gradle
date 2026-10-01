@@ -704,7 +704,7 @@ tasks.register('attachmentBbsObservationProbeJar', Jar) {
     from(sourceSets.test.output.classesDirs) {
         include 'com/saneb/domain/announcementattachment/qa/*DownloadCases*.class'
         ['AnnouncementAttachmentBbsObservationProbe', 'AnnouncementAttachmentBbsOfficialObservationTest',
-         'ObservationDownloadTrace', 'ObservationResponseMetadata',
+         'ObservationDownloadTrace', 'ObservationResponseMetadata', 'RegionalCollectionObservationProbe',
          'GangbukSelectedDownloadDiagnosticTest',
          'AnnouncementAttachmentBbsFixedCaseQaTest',
          'AnnouncementAttachmentOfficialObservationTest', 'AnnouncementAttachmentRealFileQaTest',
