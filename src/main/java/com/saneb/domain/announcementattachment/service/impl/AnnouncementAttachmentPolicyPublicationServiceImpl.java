@@ -98,7 +98,7 @@ public class AnnouncementAttachmentPolicyPublicationServiceImpl implements Annou
         if(!request.expectedVersion().equals(scope.policyVersion()) || !request.scopeHash().equals(scope.scopeHash())
                 || scope.expiresAt()==null || !scope.expiresAt().isAfter(OffsetDateTime.now()) || !scopes.selectScopeCurrent(scope.scopeId()))
             throw conflict("승인한 게시 준비 범위가 만료되었거나 ID·상태·버전이 바뀌었습니다. 변경된 영향을 다시 검토하고 새 범위를 준비하세요.");
-        if(scope.qaRunId()==null || scope.qaSnapshotHash()==null)throw conflict("준비 범위에 최신 전체 QA 성공이 연결되지 않았습니다. 전체 QA 후 새 게시 범위를 준비하세요.");
+        if(scope.qaRunId()==null || scope.qaSnapshotHash()==null)throw conflict("준비 범위에 현재 모드의 최신 QA 성공이 연결되지 않았습니다. 해당 검증을 통과한 후 새 게시 범위를 준비하세요.");
         var policy=policies.selectPolicyDetails(policyId,false);
         if(policy==null || !policyId.equals(policy.policyId()) || !request.expectedVersion().equals(policy.rowVersion())
                 || !"DRAFT".equals(policy.policyStatusCode()) || !"ACTIVE".equals(policy.ruleReleaseStatusCode()))throw conflict("현재 ACTIVE 규칙의 최신 DRAFT 정책만 게시할 수 있습니다.");

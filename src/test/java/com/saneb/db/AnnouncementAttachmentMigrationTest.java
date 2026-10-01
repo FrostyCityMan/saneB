@@ -298,6 +298,11 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname='ct_att_segment_evaluation' AND tgdeferrable AND tginitdeferred AND tgenabled='O'",Integer.class)).isEqualTo(1);
             assertThat(workerSql.queryForObject("SELECT count(1) FROM information_schema.columns WHERE table_schema='public' AND table_name IN ('announcement_source_attachment_evaluation_inputs','announcement_source_attachment_matches') AND column_name='segment_analysis_id'",Integer.class)).isEqualTo(2);
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
+            var collectionContractUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("86").load();
+            assertThat(collectionContractUpgrade.migrate().migrationsExecuted).isEqualTo(1);collectionContractUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('protect_attachment_validation_run'::regproc)",String.class))
+                    .contains("COLLECTION_VERIFIED","attachment_validation_required_steps","OLD.input_snapshot_json");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {
                 assertThat(workerSql.queryForObject(snapshot.query(), String.class))

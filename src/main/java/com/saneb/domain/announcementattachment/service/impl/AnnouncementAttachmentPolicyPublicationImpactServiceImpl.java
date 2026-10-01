@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.*;
 /** 운영 게시 전 관측값만 제공한다. QA 상세 재실행/검증과 게시 transaction을 대신하지 않는다. */
 @Service
 public class AnnouncementAttachmentPolicyPublicationImpactServiceImpl implements AnnouncementAttachmentPolicyPublicationImpactService {
-    private static final List<String> STEPS=List.of("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY");
     private final AnnouncementAttachmentPolicyDao policies;
     private final AnnouncementAttachmentPolicyValidationDao validations;
     private final AnnouncementAttachmentPolicyPublicationImpactDao impact;
@@ -65,16 +64,20 @@ public class AnnouncementAttachmentPolicyPublicationImpactServiceImpl implements
         if(rows.isEmpty()){blockers.add("QA_NOT_REQUESTED");return null;}
         var run=rows.getFirst();
         if(run==null || run.runId()==null || run.ruleReleaseId()==null || !policy.policyId().equals(run.policyId()) || !nonnegative(run.policyVersion()) || !nonnegative(run.ruleVersion()) || !nonnegative(run.rowVersion())
-                || run.inputVersionsCurrent()==null || !digest(run.snapshotHash()) || !Set.of("PENDING","RUNNING","CANCEL_REQUESTED","CANCELLED","INCOMPLETE","CONFLICT","FAILED","VERIFIED").contains(run.statusCode()==null?"":run.statusCode()))throw conflict();
+                || run.inputVersionsCurrent()==null || !digest(run.snapshotHash()) || !Set.of("PENDING","RUNNING","CANCEL_REQUESTED","CANCELLED","INCOMPLETE","CONFLICT","FAILED","VERIFIED","COLLECTION_VERIFIED").contains(run.statusCode()==null?"":run.statusCode()))throw conflict();
         boolean current=Boolean.TRUE.equals(run.inputVersionsCurrent()) && policy.rowVersion().equals(run.policyVersion()) && policy.ruleReleaseId().equals(run.ruleReleaseId());
-        if(!current)blockers.add("QA_INPUT_VERSIONS_CHANGED");if(!"VERIFIED".equals(run.statusCode()))blockers.add("QA_NOT_VERIFIED");
+        var contract=AttachmentPolicyValidationContract.selectSnapshot(run.inputSnapshotJson());
+        var required=contract.selectSteps();
+        if(contract==AttachmentPolicyValidationContract.COLLECTION_SAFETY_V1 && !"COLLECT_ONLY".equals(policy.modeCode()))
+            blockers.add("QA_CONTRACT_MODE_MISMATCH");
+        if(!current)blockers.add("QA_INPUT_VERSIONS_CHANGED");if(!contract.selectSuccessStatus().equals(run.statusCode()))blockers.add("QA_NOT_VERIFIED");
         var saved=validations.selectStepList(run.runId());if(saved==null || saved.size()>4)throw conflict();
         var known=new HashMap<String,AttachmentPolicyValidationRows.Step>();
-        for(var s:saved)if(s==null || !run.runId().equals(s.runId()) || s.stepCode()==null || !STEPS.contains(s.stepCode()) || known.put(s.stepCode(),s)!=null
+        for(var s:saved)if(s==null || !run.runId().equals(s.runId()) || s.stepCode()==null || !required.contains(s.stepCode()) || known.put(s.stepCode(),s)!=null
                 || !Set.of("PASSED","FAILED","MISSING").contains(s.statusCode()==null?"":s.statusCode()) || !digest(s.evidenceHash()))throw conflict();
-        var steps=STEPS.stream().map(code->{var s=known.get(code);return new Step(code,s==null?"NOT_RUN":s.statusCode(),s==null?null:s.evidenceHash());}).toList();
+        var steps=required.stream().map(code->{var s=known.get(code);return new Step(code,s==null?"NOT_RUN":s.statusCode(),s==null?null:s.evidenceHash());}).toList();
         if(steps.stream().anyMatch(s->!"PASSED".equals(s.statusCode())))blockers.add("QA_REQUIRED_STEPS_NOT_PASSED");
-        return new Qa(run.runId(),run.statusCode(),run.rowVersion(),run.policyVersion(),run.ruleVersion(),current,run.snapshotHash(),steps,run.completedAt());
+        return new Qa(run.runId(),run.statusCode(),run.rowVersion(),run.policyVersion(),run.ruleVersion(),current,run.snapshotHash(),steps,run.completedAt(),contract.name());
     }
     private Long selectMaximum(AttachmentPolicyManagementRows.Row row) {
         try {

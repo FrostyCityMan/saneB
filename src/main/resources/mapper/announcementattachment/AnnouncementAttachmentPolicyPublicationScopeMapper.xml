@@ -23,16 +23,16 @@
         SELECT id,policy_id,requested_by,request_hash FROM announcement_attachment_policy_publication_scopes WHERE idempotency_key=#{key}
     </select>
     <insert id="insertScope">
-        -- DRAFT/ACTIVE 규칙만 준비한다. QA가 최신 동일 입력의 VERIFIED metadata가 아니면 연결하지 않는다.
+        -- 모드별 계약의 최신 성공 QA만 연결한다. 수집 전용 증거는 ENFORCE에 연결하지 않는다.
         -- 연결 자체는 실제 증거 재검증이나 게시 승인 완료가 아니다.
         INSERT INTO announcement_attachment_policy_publication_scopes(id,policy_id,policy_row_version,rule_release_id,rule_row_version,
             mode_code,qa_run_id,qa_snapshot_hash,requested_by,idempotency_key,request_hash,reason_hash,expires_at)
         SELECT #{scopeId},p.id,p.row_version,p.rule_release_id,r.row_version,p.mode_code,
-            CASE WHEN v.run_status_code='VERIFIED' AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.id END,
-            CASE WHEN v.run_status_code='VERIFIED' AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.snapshot_hash END,
+            CASE WHEN ((v.run_status_code='VERIFIED' AND coalesce(v.input_snapshot_json->>'validationContractCode','STRICT_V1')='STRICT_V1') OR (v.run_status_code='COLLECTION_VERIFIED' AND v.input_snapshot_json->>'validationContractCode'='COLLECTION_SAFETY_V1' AND p.mode_code='COLLECT_ONLY')) AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.id END,
+            CASE WHEN ((v.run_status_code='VERIFIED' AND coalesce(v.input_snapshot_json->>'validationContractCode','STRICT_V1')='STRICT_V1') OR (v.run_status_code='COLLECTION_VERIFIED' AND v.input_snapshot_json->>'validationContractCode'='COLLECTION_SAFETY_V1' AND p.mode_code='COLLECT_ONLY')) AND v.policy_row_version=p.row_version AND v.rule_row_version=r.row_version THEN v.snapshot_hash END,
             #{actorId},#{key},#{requestHash},#{reasonHash},clock_timestamp()+interval '10 minutes'
         FROM announcement_attachment_policies p JOIN announcement_source_classification_rule_releases r ON r.id=p.rule_release_id
-        LEFT JOIN LATERAL (SELECT q.id,q.run_status_code,q.policy_row_version,q.rule_row_version,q.snapshot_hash
+        LEFT JOIN LATERAL (SELECT q.id,q.run_status_code,q.policy_row_version,q.rule_row_version,q.snapshot_hash,q.input_snapshot_json
             FROM announcement_attachment_policy_validation_runs q WHERE q.policy_id=p.id AND q.rule_release_id=p.rule_release_id
             ORDER BY q.created_at DESC,q.id DESC LIMIT 1) v ON true
         WHERE p.id=#{policyId} AND p.row_version=#{expectedVersion} AND p.policy_status_code='DRAFT' AND r.release_status_code='ACTIVE'

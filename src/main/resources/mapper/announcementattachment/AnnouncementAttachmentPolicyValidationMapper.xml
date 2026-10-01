@@ -61,7 +61,8 @@
     </select>
     <select id="selectRunList" resultMap="RunMap" useCache="false">
         -- 관리자에게 snapshot 원문을 직렬화하지 않고 response projection만 반환한다.
-        SELECT <include refid="MetadataColumns"/>,NULL::text AS input_snapshot_json <include refid="Scope"/> WHERE v.policy_id=#{policyId}
+        SELECT <include refid="MetadataColumns"/>,jsonb_build_object('validationContractCode',coalesce(v.input_snapshot_json->>'validationContractCode','STRICT_V1'),
+            'modeCode',v.input_snapshot_json->>'modeCode')::text AS input_snapshot_json <include refid="Scope"/> WHERE v.policy_id=#{policyId}
         ORDER BY v.created_at DESC,v.id DESC LIMIT #{size} OFFSET #{offset}
     </select>
     <select id="selectStepList" resultMap="StepMap" useCache="false">

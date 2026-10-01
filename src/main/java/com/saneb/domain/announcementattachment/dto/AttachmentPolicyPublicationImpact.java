@@ -15,8 +15,12 @@ public record AttachmentPolicyPublicationImpact(AttachmentPolicyResponses.Summar
             Long linkedSourceCount,Long frozenCollectionJobCount,Long runningCollectionJobCount,
             Long applicationPendingJobCount,Long rollbackPendingJobCount,Long frozenCollectionPlanCount) { }
     public record Qa(UUID runId,String statusCode,Integer rowVersion,Integer policyVersion,Integer ruleVersion,
-            boolean inputVersionsCurrent,String snapshotHash,List<Step> steps,OffsetDateTime completedAt) {
+            boolean inputVersionsCurrent,String snapshotHash,List<Step> steps,OffsetDateTime completedAt,String validationContractCode) {
         public Qa {steps=List.copyOf(steps);}
+        public Qa(UUID runId,String statusCode,Integer rowVersion,Integer policyVersion,Integer ruleVersion,
+                boolean inputVersionsCurrent,String snapshotHash,List<Step> steps,OffsetDateTime completedAt) {
+            this(runId,statusCode,rowVersion,policyVersion,ruleVersion,inputVersionsCurrent,snapshotHash,steps,completedAt,"STRICT_V1");
+        }
     }
     public record Step(String stepCode,String statusCode,String evidenceHash) { }
 }

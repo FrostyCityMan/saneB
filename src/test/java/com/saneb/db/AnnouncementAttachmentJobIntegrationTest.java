@@ -1945,15 +1945,24 @@ class AnnouncementAttachmentJobIntegrationTest {
         return context.getBean(SqlSessionTemplate.class).getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyPublicationDao.class);
     }
     private com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope.Details publicationDatabaseFixture(){
-        UUID draft=publicationScopeDraft(),run=UUID.randomUUID(),token=UUID.randomUUID();
+        return publicationDatabaseFixture(false);
+    }
+    private com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope.Details publicationDatabaseFixture(boolean collection){
+        UUID draft=collection?policyService().insertPolicy(reviewActor(),UUID.randomUUID(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentPolicyRequests.Create(release,"COLLECT_ONLY",83886080L,"수집 계약 DB QA")).policy().policyId():publicationScopeDraft();
+        UUID run=UUID.randomUUID(),token=UUID.randomUUID();
         var validation=context.getBean(SqlSessionTemplate.class).getMapper(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentPolicyValidationDao.class);
         int ruleVersion=sql.queryForObject("SELECT row_version FROM announcement_source_classification_rule_releases WHERE id=?",Integer.class,release);
         // DB transition 계약을 위한 임시 metadata fixture다. 실제 QA 근거가 아니며 Java 게시 verifier를 통과하지 못한다.
         String input=sql.queryForObject("SELECT jsonb_build_object('installed',jsonb_build_object('runtimeHash',repeat('b',64)),'settings',settings_json)::text FROM announcement_attachment_policies WHERE id=?",String.class,draft);
+        if(collection)input=sql.queryForObject("SELECT (?::jsonb || '{\"validationContractCode\":\"COLLECTION_SAFETY_V1\",\"modeCode\":\"COLLECT_ONLY\"}'::jsonb)::text",String.class,input);
         validation.insertRun(new com.saneb.domain.announcementattachment.vo.AttachmentPolicyValidationRows.Insert(run,draft,0,release,ruleVersion,"c".repeat(64),input,actor,UUID.randomUUID(),"d".repeat(64)));
         validation.updateClaim(run,token);validation.insertExtractionLease(run,token);
-        for(String step:List.of("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY"))validation.insertStep(run,token,step,"PASSED","{}","e".repeat(64));
-        validation.updateFinished(run,token,"VERIFIED",null);validation.deleteExtractionLease(run,token);
+        if(collection)assertThatThrownBy(()->validation.insertStep(run,token,"PROVIDER_PROFILES","PASSED","{}","e".repeat(64)))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        for(String step:List.of("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME",collection?"COLLECTION_SAFETY":"PROVIDER_PROFILES","WORKER_DB_RECOVERY"))validation.insertStep(run,token,step,"PASSED","{}","e".repeat(64));
+        if(collection)assertThatThrownBy(()->validation.updateFinished(run,token,"VERIFIED",null)).isInstanceOf(DataIntegrityViolationException.class);
+        validation.updateFinished(run,token,collection?"COLLECTION_VERIFIED":"VERIFIED",null);validation.deleteExtractionLease(run,token);
         return publicationScopeService().insertScope(reviewActor(),draft,UUID.randomUUID(),new com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope.Prepare(0,"DB 게시 계약 QA"));
     }
     private UUID insertPublicationDatabaseReceipt(com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope.Summary scope){
@@ -2002,6 +2011,31 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(dao.selectJobDetails(reserved.jobId())).isEqualTo(before);
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links",Integer.class)).isZero();
         assertThatThrownBy(()->sql.update("DELETE FROM announcement_attachment_policy_publications WHERE id=?",id)).isInstanceOf(DataIntegrityViolationException.class);
+    }
+    @Test void collectionContractScopesAndPublishesOnlyCollectModeWithDistinctImmutableResult() {
+        var scope=publicationDatabaseFixture(true).scope();
+        assertThat(scope.qaRunId()).isNotNull();assertThat(scope.modeCode()).isEqualTo("COLLECT_ONLY");
+        var observed=publicationImpactService().selectImpactDetails(reviewActor(),scope.policyId());
+        assertThat(observed.latestQa().statusCode()).isEqualTo("COLLECTION_VERIFIED");
+        assertThat(observed.latestQa().validationContractCode()).isEqualTo("COLLECTION_SAFETY_V1");
+        assertThat(observed.blockingReasonCodes()).doesNotContain("QA_NOT_VERIFIED","QA_REQUIRED_STEPS_NOT_PASSED");
+        var tx=new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+        tx.executeWithoutResult(s->{UUID receipt=insertPublicationDatabaseReceipt(scope);
+            publicationDao().updatePreviousPolicyRetired(receipt);publicationDao().updatePolicyActive(receipt);});
+        assertThat(publicationDao().selectReceiptDetails(scope.policyId()).modeCode()).isEqualTo("COLLECT_ONLY");
+        assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_policy_validation_runs SET run_status_code='VERIFIED',row_version=row_version+1 WHERE id=?",scope.qaRunId()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links",Integer.class)).isZero();
+    }
+    @Test void collectionSuccessCannotBeReusedAfterPolicyChangesToEnforce() {
+        var scope=publicationDatabaseFixture(true).scope();
+        sql.update("UPDATE announcement_attachment_policies SET mode_code='ENFORCE',row_version=row_version+1 WHERE id=?",scope.policyId());
+        var prepared=publicationScopeService().insertScope(reviewActor(),scope.policyId(),UUID.randomUUID(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentPolicyPublicationScope.Prepare(1,"변경 후 범위 QA"));
+        assertThat(prepared.scope().qaRunId()).isNull();
+        var tx=new TransactionTemplate(context.getBean(PlatformTransactionManager.class));
+        assertPublicationScopeConstraint(()->tx.executeWithoutResult(s->insertPublicationDatabaseReceipt(scope)));
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_policy_publications",Integer.class)).isZero();
     }
     @Test void publicationDatabaseRejectsReceiptOnlyOrPartialPolicySwap() {
         var scope=publicationDatabaseFixture().scope();var tx=new TransactionTemplate(context.getBean(PlatformTransactionManager.class));

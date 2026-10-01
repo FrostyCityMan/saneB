@@ -20,6 +20,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void collectionValidationContractCannotBecomeStrictAndPreservesHistoricalInputs() throws IOException {
+        var sql=new ClassPathResource("db/migration/V86__separate_attachment_collection_validation_contract.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("COLLECTION_SAFETY_V1","STRICT_V1","COLLECTION_VERIFIED","COLLECTION_SAFETY",
+                "attachment_validation_required_steps", "exact contract validation scopes must pass",
+                "NEW.step_code=ANY", "IS TRUE", "p.mode_code='COLLECT_ONLY'",
+                "protect_attachment_validation_run", "protect_attachment_validation_step", "protect_attachment_policy_publication",
+                "NEW.input_snapshot_json", "OLD.input_snapshot_json", "attachment_policy_publication_lock()");
+        assertThat(sql).doesNotContain("UPDATE announcement_", "DELETE FROM", "DROP TABLE", "DISABLE TRIGGER");
+    }
     @Test void segmentEvaluationBindsAllFilesAndProtectsContextOnlyEvidence() throws IOException {
         var sql=new ClassPathResource("db/migration/V85__bind_attachment_segment_evaluations.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("fk_att_input_segment", "fk_att_match_segment_input", "ct_att_segment_evaluation",

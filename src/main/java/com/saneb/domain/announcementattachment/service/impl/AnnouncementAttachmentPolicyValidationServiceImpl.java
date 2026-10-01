@@ -27,7 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class AnnouncementAttachmentPolicyValidationServiceImpl implements AnnouncementAttachmentPolicyValidationService {
-    private static final List<String> STEPS=List.of("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY");
+    private static final List<String> STEPS=List.of("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY","COLLECTION_SAFETY");
     private final AnnouncementAttachmentPolicyDao policies;
     private final AnnouncementAttachmentPolicyValidationDao dao;
     private final AttachmentPolicyValidationSnapshotFactory snapshots;
@@ -121,6 +121,7 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
         String stage="PREPARE";
         try {
             var frozen=selectCurrentSnapshot(run);
+            var contract=AttachmentPolicyValidationContract.selectSnapshot(frozen.json());
             stage="CLASSIFICATION_GOLDEN";
             if(!selectAllowed(run)) return saveFinish(run,"CANCELLED","EXECUTION_STOPPED");
             var configuration=frozen.selectConfiguration();
@@ -138,21 +139,29 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
                     || !extracted.suiteHash().equals(frozen.runtime().runtimeSuiteHash())) throw conflict("설치 runtime QA 지문이 예약과 다릅니다.");
             saveStep(run,stage,"PASSED",extracted);
             // 실제 Provider 전체 파일 증거는 별도다. DB 합성 suite 성공으로 대신하지 않는다.
-            stage="PROVIDER_PROFILES";
-            var provider=providerQa.selectAssessment(frozen,run,()->selectAllowed(run));
-            if(provider==null || !Set.of("PASSED","MISSING","FAILED","CANCELLED").contains(provider.status()))throw conflict("수집원 QA 결과를 확인하지 못했습니다.");
-            if("CANCELLED".equals(provider.status()))return saveFinish(run,"CANCELLED","EXECUTION_STOPPED");
-            boolean providerPassed="PASSED".equals(provider.status());
-            if(providerPassed && provider.evidence()==null)throw conflict("수집원 QA가 통과했으나 전체 실행 근거가 없습니다.");
-            saveStep(run,stage,provider.status(),providerPassed?mapper.convertValue(provider.evidence(),Object.class):Map.of("reasonCode",provider.reasonCode()));
-            if("FAILED".equals(provider.status()))return saveFinish(run,"FAILED","PROVIDER_QA_FAILED");
+            boolean providerPassed;
+            if(contract==AttachmentPolicyValidationContract.COLLECTION_SAFETY_V1) {
+                stage="COLLECTION_SAFETY";
+                var evidence=new AttachmentCollectionSafetyGate(snapshots,mapper).selectEvidence(frozen,run);
+                saveStep(run,stage,"PASSED",mapper.convertValue(evidence,Object.class));
+                providerPassed=true;
+            } else {
+                stage="PROVIDER_PROFILES";
+                var provider=providerQa.selectAssessment(frozen,run,()->selectAllowed(run));
+                if(provider==null || !Set.of("PASSED","MISSING","FAILED","CANCELLED").contains(provider.status()))throw conflict("수집원 QA 결과를 확인하지 못했습니다.");
+                if("CANCELLED".equals(provider.status()))return saveFinish(run,"CANCELLED","EXECUTION_STOPPED");
+                providerPassed="PASSED".equals(provider.status());
+                if(providerPassed && provider.evidence()==null)throw conflict("수집원 QA가 통과했으나 전체 실행 근거가 없습니다.");
+                saveStep(run,stage,provider.status(),providerPassed?mapper.convertValue(provider.evidence(),Object.class):Map.of("reasonCode",provider.reasonCode()));
+                if("FAILED".equals(provider.status()))return saveFinish(run,"FAILED","PROVIDER_QA_FAILED");
+            }
             stage="WORKER_DB_RECOVERY";
             var database=workerDb.selectValidatedResult(frozen,run,()->selectAllowed(run));
             if(database==null) throw conflict("독립 DB QA의 실제 실행 근거가 없습니다.");
             // JSONB는 object field 순서를 보존하지 않는다. Map으로 정규화해 저장/게시 지문을 동일하게 계산한다.
             saveStep(run,stage,"PASSED",mapper.convertValue(database,Object.class));
             // saveFinish가 잠금 밖 설치 재검증 후 잠금 안 DB 입력을 재대조한다. 동일한 inventory를 두 번 실행하지 않는다.
-            return saveFinish(run,providerPassed?"VERIFIED":"INCOMPLETE",providerPassed?null:"REQUIRED_QA_EVIDENCE_MISSING");
+            return saveFinish(run,providerPassed?contract.selectSuccessStatus():"INCOMPLETE",providerPassed?null:"REQUIRED_QA_EVIDENCE_MISSING");
         } catch(AttachmentWorkerDbQaProcess.Failure exception) {
             saveFailureStep(run,stage,Map.of("reasonCode",exception.selectCode()));
             return saveFinish(run,"EXECUTION_STOPPED".equals(exception.selectCode())?"CANCELLED":"FAILED","WORKER_DB_QA_FAILED");
@@ -197,11 +206,14 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
             saveStep(run,step,"FAILED",evidence);
     }
     private String saveFinish(AttachmentPolicyValidationRows.Run run,String status,String error) {
-        var installed=Set.of("INCOMPLETE","VERIFIED").contains(status)?snapshots.selectRuntime():null;
+        var installed=Set.of("INCOMPLETE","VERIFIED","COLLECTION_VERIFIED").contains(status)?snapshots.selectRuntime():null;
         return write.execute(tx->{
-            if("VERIFIED".equals(status)) {
+            if(Set.of("VERIFIED","COLLECTION_VERIFIED").contains(status)) {
+                var contract=AttachmentPolicyValidationContract.selectSnapshot(run.inputSnapshotJson());
+                var required=contract.selectSteps();
+                if(!contract.selectSuccessStatus().equals(status))throw conflict("검증 계약과 완료 상태가 다릅니다.");
                 var stored=dao.selectStepList(run.runId());
-                if(stored.size()!=STEPS.size() || !stored.stream().map(AttachmentPolicyValidationRows.Step::stepCode).collect(java.util.stream.Collectors.toSet()).equals(Set.copyOf(STEPS))
+                if(stored.size()!=required.size() || !stored.stream().map(AttachmentPolicyValidationRows.Step::stepCode).collect(java.util.stream.Collectors.toSet()).equals(Set.copyOf(required))
                         || stored.stream().anyMatch(s->!run.runId().equals(s.runId()) || !"PASSED".equals(s.statusCode())))
                     throw conflict("필수 QA 네 단계의 저장된 통과 근거가 모두 있어야 검증을 완료할 수 있습니다.");
             }
@@ -230,7 +242,7 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
     private AttachmentPolicyValidationResponse selectResponse(AttachmentPolicyValidationRows.Run row) {
         var saved=dao.selectStepList(row.runId());
         List<AttachmentPolicyValidationResponse.Step> steps=new ArrayList<>();
-        for(String code:STEPS) {
+        for(String code:AttachmentPolicyValidationContract.selectSnapshot(row.inputSnapshotJson()).selectSteps()) {
             var step=saved.stream().filter(s->code.equals(s.stepCode())).findFirst().orElse(null);
             if(step==null) steps.add(new AttachmentPolicyValidationResponse.Step(code,"NOT_RUN",Map.of(),null));
             else try {
@@ -240,7 +252,7 @@ public class AnnouncementAttachmentPolicyValidationServiceImpl implements Announ
             } catch(Exception exception) {throw conflict("저장된 QA 단계 이력을 읽을 수 없습니다.");}
         }
         return new AttachmentPolicyValidationResponse(row.runId(),row.policyId(),row.policyVersion(),row.ruleReleaseId(),row.ruleVersion(),row.snapshotHash(),
-                row.statusCode(),row.rowVersion(),Boolean.TRUE.equals(row.inputVersionsCurrent()),row.errorCode(),row.createdAt(),row.startedAt(),row.completedAt(),steps);
+                row.statusCode(),row.rowVersion(),Boolean.TRUE.equals(row.inputVersionsCurrent()),row.errorCode(),row.createdAt(),row.startedAt(),row.completedAt(),steps,AttachmentPolicyValidationContract.selectSnapshot(row.inputSnapshotJson()).name());
     }
     private void validateDraft(AttachmentPolicyManagementRows.Row row,Integer version) {
         if(!"DRAFT".equals(row.policyStatusCode()) || !version.equals(row.rowVersion())) throw conflict("QA는 조회한 버전의 DRAFT 정책에서만 실행할 수 있습니다. 현재 초안을 확인하세요.");

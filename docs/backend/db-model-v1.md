@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 2026-10-01 로컬 V86 추가: 불변 정책 QA snapshot의 `validationContractCode`로 `STRICT_V1`과 `COLLECTION_SAFETY_V1`을 구분한다. 과거 누락 값은 STRICT_V1이다. 새 수집 전용 계약은 COLLECT_ONLY에서만 예약·게시할 수 있고, 성공은 `COLLECTION_VERIFIED`, 세 번째 단계는 `COLLECTION_SAFETY`다. 기존 `VERIFIED`·`PROVIDER_PROFILES` 의미는 유지한다. DB는 모드 혼합, 계약 변경, 다른 계약 단계 삽입 및 잘못된 완료 상태를 거부한다. 기존 입력·완료 이력·게시 잠금·정확한 범위·원자적 정책 교체 제약은 유지한다. 운영 적용은 하지 않았다. [설계와 검증 상태](attachment-collection-safety-contract-2026-10-01.md).
+
 > 2026-09-25 긴 서명란 구간 규칙 `segment-role-1.0.4`도 기존 V84의 버전/지문 유일성 및 V85의 실행 settings/평가 입력 FK로 구별한다. 기본값·기존0/2/3 분석·현재 운영 정책을 자동 변경하지 않으며 신규 DDL이나 migration 수정은 없다.4의 worker 저장/버전 조회/구버전 SHADOW 공존/최종 확인·DRAFT 멱등/QA stale 격리 테스트를 추가했다. 테스트 코드 존재는 실제 PostgreSQL 실행이나 운영 반영 성공을 뜻하지 않으며 실행 결과는 진행 기록을 따른다.
 
 > 2026-09-24 명시 구간 규칙 버전 연결: `segment-role-1.0.0`/`1.0.2`/`1.0.3`은 기존 V84의 `(extraction_id, analysis_version, rules_hash)` 유일성 및 V85의 정책 settings/평가 입력 FK로 구별한다. 신규 DDL이나 기존 migration 수정은 없다. worker는 예약 snapshot의 버전·hash로 분석하고, 일반 초안 수정·개정은 고정 버전을 유지한다. 서로 다른 버전의 분석 이력이 한 추출에 공존해도 기존 평가의 analysis FK는 교체하지 않는다. 운영 DB 반영·정책 활성화는 수행하지 않았으며 신규 버전별 공존/조회/최종 확인 시험의 실제 PG 실행 결과는 진행 기록에서 별도로 확인한다.1.0.3은 명시 선택 연결이며 기존1.0.2 실파일 저장 근거를1.0.3 저장 성공으로 간주하지 않는다.

@@ -128,6 +128,7 @@ public final class AttachmentPolicyValidationSnapshotFactory {
             }
             Map<String,Object> snapshot=new TreeMap<>();
             snapshot.put("schemaVersion",6); snapshot.put("policyId",policy.policyId()); snapshot.put("policyVersion",policy.rowVersion());
+            snapshot.put("validationContractCode",AttachmentPolicyValidationContract.selectForMode(policy.modeCode()).name());
             snapshot.put("modeCode",policy.modeCode()); snapshot.put("settings",settings); snapshot.put("profiles",registered); snapshot.put("targets",scope);
             snapshot.put("rule",rule); snapshot.put("installed",installed); snapshot.put("executionCodeHash",installed.executionCodeHash());
             var providerPlan=AttachmentProviderQaPlan.selectPlan(profiles.selectProfileList(),targets);

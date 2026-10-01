@@ -14,16 +14,24 @@
         &&Object.hasOwn(segmentVersions,d.configuration.segmentRuleVersion)
         &&segmentVersions[d.configuration.segmentRuleVersion]===d.configuration.segmentRulesHash;
     const steps=["CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","PROVIDER_PROFILES","WORKER_DB_RECOVERY"];
-    const runStates=["PENDING","RUNNING","CANCEL_REQUESTED","CANCELLED","INCOMPLETE","CONFLICT","FAILED","VERIFIED"];
+    const collectionSteps=["CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","COLLECTION_SAFETY","WORKER_DB_RECOVERY"];
+    const contract=r=>r?.validationContractCode??"STRICT_V1";
+    const required=r=>contract(r)==="COLLECTION_SAFETY_V1"?collectionSteps:steps;
+    const contractValid=r=>["STRICT_V1","COLLECTION_SAFETY_V1"].includes(contract(r))
+        &&(r.statusCode!=="VERIFIED"||contract(r)==="STRICT_V1")
+        &&(r.statusCode!=="COLLECTION_VERIFIED"||contract(r)==="COLLECTION_SAFETY_V1");
+    const runStates=["PENDING","RUNNING","CANCEL_REQUESTED","CANCELLED","INCOMPLETE","CONFLICT","FAILED","VERIFIED","COLLECTION_VERIFIED"];
     const labels={DRAFT:"초안 · 운영 미반영",ACTIVE:"게시 중",RETIRED:"퇴역 · 이력 보존",OFF:"새 첨부 수집 중지",
         COLLECT_ONLY:"수집·미리보기만",ENFORCE:"첨부 판정 적용 정책",PENDING:"QA 대기",RUNNING:"QA 실행 중",
         CANCEL_REQUESTED:"취소 요청됨 · 현재 파일 정리 대기",CANCELLED:"QA 취소됨",INCOMPLETE:"필수 QA 증거 부족 · 게시 불가",
-        CONFLICT:"QA 입력 변경 · 재검증 필요",FAILED:"QA 실행 실패",VERIFIED:"QA 검증됨 · 게시 재검증·승인은 별도",
+        CONFLICT:"QA 입력 변경 · 재검증 필요",FAILED:"QA 실행 실패",COLLECTION_VERIFIED:"수집 전용 검증됨 · 실파일 전체 성공·분류 적용 승인은 아님",
+        COLLECTION_SAFETY:"전체 대상 결합 점검 · 외부 수집 성공 아님",STRICT_V1:"전체 분류 검증 계약",COLLECTION_SAFETY_V1:"수집 전용 검증 계약",VERIFIED:"QA 검증됨 · 게시 재검증·승인은 별도",
         PASSED:"단계 통과",MISSING:"필수 증거 없음",NOT_RUN:"아직 실행하지 않음",
         CLASSIFICATION_GOLDEN:"분류 정답 세트",INSTALLED_RUNTIME:"설치된 격리 추출기",PROVIDER_PROFILES:"전체 수집 방식·실파일",
         WORKER_DB_RECOVERY:"격리 DB 작업·복구",POLICY_NOT_DRAFT:"게시·퇴역 정책입니다. 새 개정 초안이 필요합니다.",
         KEYWORD_RULE_NOT_ACTIVE:"연결 키워드 규칙이 게시 상태가 아닙니다. 규칙을 자동 게시하지 않습니다.",
-        QA_NOT_REQUESTED:"정책 QA 이력이 없습니다.",QA_NOT_VERIFIED:"최신 QA가 전체 검증을 통과하지 않았습니다.",
+        QA_NOT_REQUESTED:"정책 QA 이력이 없습니다.",QA_NOT_VERIFIED:"최신 QA가 해당 모드의 필수 검증을 통과하지 않았습니다.",
+        QA_CONTRACT_MODE_MISMATCH:"수집 전용 QA는 현재 모드에 사용할 수 없습니다. 현재 초안의 검증을 다시 예약하세요.",
         QA_INPUT_VERSIONS_CHANGED:"QA 이후 정책 또는 규칙 버전이 바뀌었습니다.",QA_REQUIRED_STEPS_NOT_PASSED:"필수 QA 단계 중 미통과 항목이 있습니다.",
         PUBLICATION_REVALIDATION_REQUIRED:"게시 직전 전체 증거·대상·영향 재검증과 별도 승인이 필요합니다.",
         REQUIRED_QA_EVIDENCE_MISSING:"전체 실파일 또는 작업 DB 증거가 없습니다.",ALL_PROFILE_REAL_FILE_QA_REQUIRED:"모든 대상 수집 방식의 실파일 QA가 필요합니다.",
@@ -45,12 +53,12 @@
         &&typeof d.isEditable==="boolean"&&typeof d.isDraftValidationRequired==="boolean"&&(!d.isEditable||d.policy.policyStatusCode==="DRAFT")
         &&(d.copiedFromPolicyId===null||uuid(d.copiedFromPolicyId))&&time(d.updatedAt)&&Array.isArray(d.systemProfileBindings)&&d.systemProfileBindings.length<=1000
         &&d.systemProfileBindings.every(p=>["BIZINFO","GOV24","GOV24_PUBLIC_SERVICE","LOCAL_GOV_NOTICE"].includes(p.providerCode)&&typeof p.profileCode==="string"&&hash(p.profileHash)));
-    const validSteps=list=>Array.isArray(list)&&list.length===4&&new Set(list.map(s=>s.stepCode)).size===4
-        &&list.every(s=>steps.includes(s.stepCode)&&["PASSED","FAILED","MISSING","NOT_RUN"].includes(s.statusCode)
+    const validSteps=(list,requiredSteps=steps)=>Array.isArray(list)&&list.length===4&&new Set(list.map(s=>s.stepCode)).size===4
+        &&list.every(s=>requiredSteps.includes(s.stepCode)&&["PASSED","FAILED","MISSING","NOT_RUN"].includes(s.statusCode)
             &&(s.statusCode==="NOT_RUN"?s.evidenceHash===null:hash(s.evidenceHash)));
     const run=(r,policyId)=>!!(r&&uuid(r.runId)&&r.policyId===policyId&&version(r.policyVersion)&&uuid(r.ruleReleaseId)&&version(r.ruleVersion)
         &&hash(r.snapshotHash)&&runStates.includes(r.statusCode)&&version(r.rowVersion)&&typeof r.inputVersionsCurrent==="boolean"
-        &&time(r.createdAt)&&(r.completedAt===null||time(r.completedAt))&&validSteps(r.steps));
+        &&time(r.createdAt)&&(r.completedAt===null||time(r.completedAt))&&contractValid(r)&&validSteps(r.steps,required(r)));
     const countFields={boundSourceCount:"정책 연결 원문",reviewRequiredSourceCount:"검수 필요 원문",effectiveAttachmentSourceCount:"첨부 판정 연결 원문",
         linkedSourceCount:"운영 공고 연결 원문",frozenCollectionJobCount:"고정된 미종료 수집 작업",runningCollectionJobCount:"실행 중 수집 작업",
         applicationPendingJobCount:"판정 적용 대기 작업",rollbackPendingJobCount:"원복 대기 작업",frozenCollectionPlanCount:"누적 고정 수집 계획"};
@@ -65,7 +73,7 @@
         &&Array.isArray(i.blockingReasonCodes)&&i.blockingReasonCodes.includes("PUBLICATION_REVALIDATION_REQUIRED")
         &&i.blockingReasonCodes.every(c=>typeof c==="string"&&/^[A-Z_]{1,100}$/.test(c))
         &&(i.latestQa===null||uuid(i.latestQa.runId)&&runStates.includes(i.latestQa.statusCode)&&version(i.latestQa.policyVersion)
-            &&version(i.latestQa.rowVersion)&&version(i.latestQa.ruleVersion)&&typeof i.latestQa.inputVersionsCurrent==="boolean"&&hash(i.latestQa.snapshotHash)&&validSteps(i.latestQa.steps)));
+            &&version(i.latestQa.rowVersion)&&version(i.latestQa.ruleVersion)&&typeof i.latestQa.inputVersionsCurrent==="boolean"&&hash(i.latestQa.snapshotHash)&&contractValid(i.latestQa)&&validSteps(i.latestQa.steps,required(i.latestQa))));
     const page=(p,n,size,validate)=>!!(p&&p.page===n&&p.size===size&&integer(p.totalCount)&&p.totalPages===Math.ceil(p.totalCount/size)
         &&Array.isArray(p.items)&&p.items.length===Math.min(size,Math.max(0,p.totalCount-(n-1)*size))&&p.items.every(validate));
     const rule=r=>!!(r&&uuid(r.releaseId)&&statuses.includes(r.releaseStatusCode)&&typeof r.releaseCode==="string"&&version(r.versionNo));
@@ -86,7 +94,8 @@
         return !!(details(d)&&d.isEditable&&d.policy.policyStatusCode==="DRAFT"&&d.policy.ruleReleaseStatusCode==="ACTIVE"
             &&d.policy.rowVersion<2147483647&&impact(i,d)&&scope(state.scope,d.policy.policyId)&&!state.scope.isExpired&&state.scope.isScopeCurrent
             &&Date.parse(s.expiresAt)>now&&s.policyVersion===d.policy.rowVersion&&s.ruleReleaseId===d.policy.ruleReleaseId&&s.modeCode===d.policy.modeCode
-            &&q&&q.statusCode==="VERIFIED"&&q.inputVersionsCurrent&&q.policyVersion===s.policyVersion&&q.ruleVersion===s.ruleVersion
+            &&q&&(q.statusCode==="VERIFIED"&&contract(q)==="STRICT_V1"
+                ||q.statusCode==="COLLECTION_VERIFIED"&&contract(q)==="COLLECTION_SAFETY_V1"&&d.policy.modeCode==="COLLECT_ONLY")&&q.inputVersionsCurrent&&q.policyVersion===s.policyVersion&&q.ruleVersion===s.ruleVersion
             &&q.runId===s.qaRunId&&q.snapshotHash===s.qaSnapshotHash&&q.steps.every(step=>step.statusCode==="PASSED")
             &&i.blockingReasonCodes.length===1&&i.blockingReasonCodes[0]==="PUBLICATION_REVALIDATION_REQUIRED");
     }
@@ -111,7 +120,7 @@
             path+=`/validation-runs/${r.runId}/cancellation`;payload.expectedVersion=r.rowVersion;method="PUT";keyed=false;
         } else if(kind==="prepare") {requireValue(d.isEditable&&impact(state.impact,d),"수정 가능한 초안과 게시 영향을 다시 조회하세요.");
             path+="/publication-scopes";payload.expectedVersion=d.policy.rowVersion;
-        } else if(kind==="publish") {requireValue(canPublish(state),"최신 전체 QA와 유효한 게시 준비 범위가 필요합니다. 정책·QA·범위를 다시 조회하세요.");
+        } else if(kind==="publish") {requireValue(canPublish(state),"현재 모드에 맞는 최신 QA와 유효한 게시 준비 범위가 필요합니다. 정책·QA·범위를 다시 조회하세요.");
             requireValue(input.acknowledgeNewCollectionBehavior===true&&input.acknowledgeExistingJobsUnchanged===true&&input.acknowledgeNoBackfill===true,
                 "신규 수집 영향·기존 고정 작업 보존·기존 데이터 별도 처리의 세 항목을 각각 확인하세요.");
             path+="/publication";Object.assign(payload,{scopeId:state.scope.scope.scopeId,scopeHash:state.scope.scope.scopeHash,expectedVersion:d.policy.rowVersion,

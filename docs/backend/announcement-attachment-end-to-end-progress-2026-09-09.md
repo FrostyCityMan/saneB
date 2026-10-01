@@ -2,6 +2,10 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 수집 전용 계약 커밋·푸시·배포 없는 Linux CI 승인을 받았다. 현재 QA 브랜치의 이번 변경만 반영하며 V86 업그레이드·게시 DB 제약·전체 기존 내부 계약 검증 결과를 확인한다. 외부 공고 관측·운영 배포·정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·브라우저는 이 후속 범위에서 실행하지 않는다. CI 결과 확인 전 실제 DB Gate를 완료로 보고하지 않는다.
+
+2026-10-01 [승인된 수집 전용 계약 로컬 구현](attachment-collection-safety-contract-2026-10-01.md): V86과 `COLLECTION_SAFETY_V1`/`COLLECTION_VERIFIED`를 추가하고 QA 실행·게시 verifier·준비 범위·영향 API·관리자 표시에 연결했다. 기존 STRICT_V1/VERIFIED와 ENFORCE의 전체 실파일 검증은 유지한다. 로컬 Java453/Node45 실패·생략0, bootJar 성공이다. 실제 PostgreSQL 업그레이드/게시 trigger 시험은 추가했지만 Linux CI 미실행이며, Docker 엔진 미가동으로 로컬 DB 검증도 완료하지 못했다. 커밋·푸시 승인을 요청한 상태다. 운영 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·추가 배포·브라우저는 실행하지 않았다. 전체 goal과 운영 수집 시작 Gate는 미완료다. 아래 승인 요청 기록은 이번 승인 이전 이력이다.
+
 2026-10-01 [상시 수집 진입 계약 차이 확인](announcement-attachment-best-effort-collection-2026-09-29.md): 운영 코드 설치 이후 확인한 게시 verifier/service/V77 DB trigger는 `COLLECT_ONLY`에도 전 대상 엄격 QA를 요구한다. 정상3공고/전체파일·텍스트 기대값의 전수 충족이 수집 시작 조건에 결합돼 있어, 부분 실패를 분리하고 가능한 대상부터 수집하려는 방향과 차이가 남는다. 현재 계약 회귀57시험·963영수증/293표본 재현 통과, 운영/외부 요청0. 수집 전용 검증 계약 분리의 설계·구현 승인을 요청하며 승인 전 기존 Gate/운영 정책을 변경하지 않는다. 전체goal은 active, 코드 설치 완료와 상시 수집 미실행을 유지한다.
 
 2026-10-01 [승인된 코드·V84/V85 운영 반영 완료](../deployment/attachment-runtime-baseline-2026-09-15.md): 승인SHA `b638ad7` Linux36846492081 success·필수통합271/추출기251통과, 배포36849039334 attempt2 success·CodeDeploy d-26M5PJ54L Succeeded다. bundle/설치 JAR 일치·추출기1.0.16·DB V85·migration82파일/82이력 checksum 일치·service active/내부health UP을 읽기 전용으로 확인했다. 첨부worker/정책QA 비활성·정책/파일/job0·기존 설정 유지. 최초 배포 경계시험1실패는 원인미확정으로 보존하고 동일SHA/시험/설정1회 재실행했으며 실패를 생략하지 않았다. **코드 설치 Gate 완료, 첨부 상시 수집/정책게시/ENFORCE/기존 데이터 적용/운영 브라우저 E2E는 미실행**이다. 연결223/223·격리 실파일210/223·미확보13 유지, HWP고도화보류·브라우저정책상미실행·전체goal미완료. 아래 배포 승인 대기 표기는 이번 설치 이전 이력이다.

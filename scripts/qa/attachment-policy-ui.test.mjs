@@ -58,6 +58,18 @@ test('QA history rejects missing/duplicate steps, unknown success and wrong poli
     for(const patch of [{policyId:id(9)},{steps:[]},{steps:[...steps().slice(0,3),steps()[0]]},{statusCode:'SUCCEEDED'},{steps:steps().map(s=>({...s,statusCode:'PASSED'}))},{policyVersion:-1}])assert.equal(P.run(run(patch),id(1)),false);
     assert.match(P.label('VERIFIED'),/게시 재검증/);assert.match(P.label('INCOMPLETE'),/증거 부족/);assert.notEqual(P.label('MISSING'),P.label('FAILED'));
 });
+test('collection validation stays separate and cannot authorize ENFORCE',()=>{
+    const collection=run({validationContractCode:'COLLECTION_SAFETY_V1',statusCode:'COLLECTION_VERIFIED',
+        steps:steps().map(s=>({...s,stepCode:s.stepCode==='PROVIDER_PROFILES'?'COLLECTION_SAFETY':s.stepCode,statusCode:'PASSED',evidenceHash:hash}))});
+    assert.equal(P.run(collection,id(1)),true);
+    assert.equal(P.run({...collection,statusCode:'VERIFIED'},id(1)),false);
+    assert.equal(P.run({...collection,validationContractCode:'STRICT_V1'},id(1)),false);
+    assert.equal(P.run({...collection,validationContractCode:'FUTURE'},id(1)),false);
+    const collect=detail({policy:summary({modeCode:'COLLECT_ONLY'})}),enforce=detail({policy:summary({modeCode:'ENFORCE'})});
+    assert.equal(P.impact(impact(collect,{latestQa:collection}),collect),true);
+    assert.equal(P.impact(impact(enforce,{latestQa:collection,blockingReasonCodes:['QA_CONTRACT_MODE_MISMATCH','PUBLICATION_REVALIDATION_REQUIRED']}),enforce),true);
+    assert.match(P.label('COLLECTION_VERIFIED'),/실파일 전체 성공.*아님/);
+});
 test('commands accept only contract fields and correct policy versus run version',()=>{
     const state={detail:detail({policy:summary({rowVersion:7})}),run:run({statusCode:'RUNNING',rowVersion:11})};
     assert.equal(P.command('qa',state,input(),'사유',true).payload.expectedVersion,7);
@@ -255,6 +267,14 @@ test('publish requires all latest QA steps and exact live scope, not success met
         s=>s.impact.blockingReasonCodes.push('QA_NOT_VERIFIED'),s=>s.detail.policy.ruleReleaseStatusCode='DRAFT',s=>s.detail.isEditable=false]){
         const s=ready();mutate(s);assert.equal(P.canPublish(s),false);assert.throws(()=>P.command('publish',s,consentInput(),'게시 사유',true));
     }
+});
+test('collection publication requires its own current contract and mode',()=>{
+    const s=ready();s.detail.policy.modeCode='COLLECT_ONLY';s.impact.policy.modeCode='COLLECT_ONLY';s.scope.scope.modeCode='COLLECT_ONLY';
+    s.impact.latestQa.validationContractCode='COLLECTION_SAFETY_V1';s.impact.latestQa.statusCode='COLLECTION_VERIFIED';
+    s.impact.latestQa.steps=s.impact.latestQa.steps.map(v=>({...v,stepCode:v.stepCode==='PROVIDER_PROFILES'?'COLLECTION_SAFETY':v.stepCode}));
+    assert.equal(P.canPublish(s),true);
+    s.detail.policy.modeCode='ENFORCE';s.impact.policy.modeCode='ENFORCE';s.scope.scope.modeCode='ENFORCE';
+    assert.equal(P.canPublish(s),false);
 });
 test('prepare does not send client QA evidence; publication needs three independent true consents',()=>{
     const s=ready(),prepared=P.command('prepare',s,{passed:true,scopeHash:'fake'},'범위 확인',true);assert.equal(prepared.path,P.base+'/'+id(1)+'/publication-scopes');

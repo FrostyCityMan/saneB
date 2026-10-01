@@ -168,6 +168,28 @@ class AnnouncementAttachmentPolicyValidationServiceTest {
                             new AttachmentProviderQaEvidenceGate.SegmentEvidence(1,UUID.randomUUID(),4,6,18,24,2400,"c".repeat(64),now.minusSeconds(1).toInstant().toString()))));
         }).when(providerQa).selectAssessment(any(),any(),any());
     }
+    @Test void collectionContractRunsSafetyInsteadOfFullProviderAndKeepsRuntimeAndDatabase() throws Exception {
+        var policy=new AttachmentPolicyManagementRows.Row(policyId,"ATT-QA",1,0,"DRAFT","COLLECT_ONLY",ruleId,"DRAFT",null,"{}","[]",actorId,now,now,null,null,null,null,null);
+        when(policies.selectPolicyDetails(eq(policyId),anyBoolean())).thenReturn(policy);
+        var profile=mock(com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile.class);
+        when(profile.selectProviderCode()).thenReturn("BIZINFO");when(profile.selectProfileCode()).thenReturn("BIZINFO_TEST");
+        when(profile.selectProfileHash()).thenReturn("a".repeat(64));
+        when(profile.selectSourceBindings()).thenReturn(List.of(new com.saneb.domain.announcementattachment.discovery.AttachmentDiscoveryProfile.SourceBinding(null,null)));
+        var plan=AttachmentProviderQaPlan.selectPlan(List.of(profile),List.of());
+        when(snapshots.selectProviderQaPlan()).thenReturn(plan);
+        var tree=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(frozen.json());
+        tree.put("validationContractCode","COLLECTION_SAFETY_V1");tree.put("modeCode","COLLECT_ONLY");
+        tree.set("providerQaPlan",mapper.valueToTree(plan));
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),tree.toString(),frozen.rule(),installed);
+        UUID id=reserve();assertThat(service.saveNextValidationRun()).isEqualTo("COLLECTION_VERIFIED");
+        var response=service.selectRunDetails(auth("ADMIN"),policyId,id);
+        assertThat(response.validationContractCode()).isEqualTo("COLLECTION_SAFETY_V1");
+        assertThat(response.steps()).extracting(AttachmentPolicyValidationResponse.Step::stepCode)
+                .containsExactly("CLASSIFICATION_GOLDEN","INSTALLED_RUNTIME","COLLECTION_SAFETY","WORKER_DB_RECOVERY");
+        verifyNoInteractions(providerQa);verify(runtime).selectValidatedResult(any(BooleanSupplier.class));
+        verify(workerDb).selectValidatedResult(any(),any(),any());verify(policies,never()).updatePolicyDraft(any());
+        assertThat(response.steps().get(2).evidence()).containsEntry("externalDownloadProven",false);
+    }
     @Test void allFourSavedStepsProduceVerifiedWithoutPublishingOrChangingPolicy() {
         providerPassed();UUID id=reserve();assertThat(service.saveNextValidationRun()).isEqualTo("VERIFIED");
         assertThat(steps).hasSize(4).allSatisfy(s->assertThat(s.statusCode()).isEqualTo("PASSED"));

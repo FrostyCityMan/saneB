@@ -5,7 +5,7 @@
     <nav aria-label="현재 위치"><a th:href="@{/app/admin/collected-announcements}">수집 공고 검수</a> / <span aria-current="page">공고 첨부 정책 관리</span></nav>
     <section class="plain-panel">
         <h2>첨부 정책 초안 → QA → 범위 고정 → 게시</h2>
-        <p>초안 저장, QA 통과, 실제 게시는 서로 다른 단계입니다. 전체 QA·설치·정확한 대상 범위의 최종 재검증과 관리자의 개별 영향 확인 후에만 게시합니다.</p>
+        <p>초안 저장, QA 통과, 실제 게시는 서로 다른 단계입니다. 모드별 QA·설치·정확한 대상 범위의 최종 재검증과 관리자의 개별 영향 확인 후에만 게시합니다.</p>
         <p>ENFORCE를 초안에 저장해도 운영에 활성화되지 않습니다. 기존 공고 일괄 처리와 외부 공고 자동 활성화도 하지 않습니다.</p>
         <p th:if="${not #lists.contains(page.auth.roles, 'ADMIN')}">운영자·승인자는 조회만 가능합니다. 초안 저장·개정·QA 예약·취소·게시 준비·실제 게시는 비밀번호 변경을 완료한 활성 관리자만 실행합니다.</p>
         <div class="attachment-actions"><a class="secondary-action" th:href="@{/app/admin/announcement-keywords}">키워드 규칙 관리</a><a class="secondary-action" th:href="@{/app/admin/announcement-attachment-batches}">첨부 배치 작업</a><a class="secondary-action" th:href="@{/app/admin/announcement-attachment-backfills}">기존 공고 전체 분할 관리</a><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></div>
@@ -44,14 +44,14 @@
                 <option value="segment-role-1.0.3">1.0.3 · 내부 신청안내 절·연속 중복 표제 보완</option>
                 <option value="segment-role-1.0.4">1.0.4 · 긴 신청인·복수 서명란 보완</option>
             </select>
-            <p id="policy-segment-help">구간 엔진 초안에서만 선택합니다. 기존 파일 단위 엔진은 새 정책 초안이 필요합니다. 지문은 서버가 고정하며 사이트 파서는 선택하지 않습니다. 변경 후 전체 QA가 필요하고 운영 게시·기존 데이터 재처리는 별도입니다.</p>
+            <p id="policy-segment-help">구간 엔진 초안에서만 선택합니다. 기존 파일 단위 엔진은 새 정책 초안이 필요합니다. 지문은 서버가 고정하며 사이트 파서는 선택하지 않습니다. 변경 후 현재 모드의 QA가 필요하고 운영 게시·기존 데이터 재처리는 별도입니다.</p>
             <label class="field-block" for="policy-bytes">공고별 누적 다운로드 한도 (바이트, 필수)</label><input id="policy-bytes" name="maximumSourceBytes" type="number" min="1" max="83886080" step="1" value="83886080" required aria-describedby="policy-bytes-help policy-error">
             <p id="policy-bytes-help">1~83,886,080바이트(80 MiB). 파일·시도별 한도와 작업자 전체 자원 제한도 별도로 적용됩니다.</p>
         </fieldset><p data-input-state role="status"></p><div class="attachment-actions"><button type="submit" class="primary-action" data-save disabled>초안 저장 내용 확인</button><button type="button" class="secondary-action" data-reset>입력 복원·사유 지우기</button><button type="button" class="secondary-action" data-revision disabled>새 개정 초안 내용 확인</button></div></form>
     </section>
     <section class="plain-panel" aria-labelledby="policy-qa-title">
         <h2 id="policy-qa-title">3. QA 예약·이력·취소</h2>
-        <p>정책 QA는 분류 정답 세트·설치된 격리 추출기·격리 작업 DB를 검증하고 별도 수집원 QA의 실제 근거를 재검증합니다. 전체 수집 방식·실파일 및 작업 DB 증거가 없으면 필수 증거 부족(INCOMPLETE)이며 게시할 수 없습니다.</p>
+        <p>수집 전용(COLLECT_ONLY)은 분류 정답·설치된 격리 추출기·전체 대상 결합·격리 작업 DB를 검증합니다. 수집 전용 검증 통과는 모든 지역의 다운로드·추출 성공을 의미하지 않습니다. 결합 오류와 실제 수집 실패는 별도로 확인하세요. 첨부 판정 적용(ENFORCE)은 기존 전체 수집 방식·실파일 정답 검증까지 통과해야 합니다.</p>
         <p>QA 작업자 활성 설정과 Linux 격리 환경이 필요합니다. 이 화면에서 서버 설정을 켜지 않습니다. 전역 1개, 같은 정책은 60초 간격·24시간 최대 3회입니다. 현재 외부 공고 요청은 0회입니다.</p>
         <button type="button" class="secondary-action" data-qa disabled>저장된 초안의 QA 예약 영향 확인</button><div data-qa-list></div><div class="attachment-actions" data-qa-pages></div>
         <h3>선택한 QA의 단계별 결과</h3><div data-run>아직 QA를 조회하지 않았습니다.</div><button type="button" class="secondary-action" data-cancel-qa disabled>선택 QA 취소 영향 확인</button>

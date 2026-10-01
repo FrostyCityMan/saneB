@@ -105,6 +105,22 @@ class AttachmentPolicyPublicationQaVerifierTest {
         assertThat(verifier.selectValidatedEvidenceHash(run,steps,frozen)).matches("[0-9a-f]{64}");
         verify(golden,times(2)).selectValidatedResult(frozen.rule().ruleSet(),frozen.rule().calculatedSnapshotHash(),frozen.selectConfiguration());
     }
+    @Test void collectionEvidenceHasDistinctCompletionAndCannotReplaceStrictEvidence() throws Exception {
+        var tree=(com.fasterxml.jackson.databind.node.ObjectNode)mapper.readTree(frozen.json());
+        tree.put("validationContractCode","COLLECTION_SAFETY_V1");tree.put("modeCode","COLLECT_ONLY");
+        frozen=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),tree.toString(),frozen.rule(),frozen.runtime());
+        run=new Run(runId,policyId,0,ruleId,1,frozen.hash(),frozen.json(),"COLLECTION_VERIFIED",2,UUID.randomUUID(),UUID.randomUUID(),
+                "a".repeat(64),null,null,null,now.minusSeconds(90),now.minusSeconds(60),now,true);
+        steps.set(2,new Step(runId,"COLLECTION_SAFETY","PASSED","{}","e".repeat(64),now.minusSeconds(1)));
+        var collection=new AttachmentPolicyPublicationQaVerifier(snapshots,golden,runtime,List.of(handler("COLLECTION_SAFETY"),handler("WORKER_DB_RECOVERY")),mapper);
+        assertThat(collection.selectValidatedEvidenceHash(run,steps,frozen)).matches("[0-9a-f]{64}");
+        collection.validateCurrentEvidence(run,steps,frozen);
+        tree.put("validationContractCode","STRICT_V1");tree.put("modeCode","ENFORCE");
+        var strict=new AttachmentPolicyValidationSnapshotFactory.Frozen(frozen.hash(),tree.toString(),frozen.rule(),frozen.runtime());
+        assertThatThrownBy(()->collection.selectValidatedEvidenceHash(run,steps,strict)).isInstanceOf(ApiException.class);
+        steps.set(2,new Step(runId,"PROVIDER_PROFILES","PASSED","{}","e".repeat(64),now.minusSeconds(1)));
+        assertThatThrownBy(()->collection.selectValidatedEvidenceHash(run,steps,frozen)).isInstanceOf(ApiException.class);
+    }
     @Test void changedFrozenSnapshotCannotReuseQa(){
         var changed=new AttachmentPolicyValidationSnapshotFactory.Frozen("f".repeat(64),frozen.json(),frozen.rule(),frozen.runtime());
         assertThatThrownBy(()->verifier.selectValidatedEvidenceHash(run,steps,changed)).isInstanceOf(ApiException.class);

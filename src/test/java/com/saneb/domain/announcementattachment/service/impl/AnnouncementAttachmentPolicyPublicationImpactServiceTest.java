@@ -53,6 +53,17 @@ class AnnouncementAttachmentPolicyPublicationImpactServiceTest {
         assertThat(result.latestQa().steps().getLast().statusCode()).isEqualTo("NOT_RUN");assertThat(result.latestQa().toString()).doesNotContain("private","must not expose");}
     @Test void evenFourPassedStepsDoNotReplaceRuntimeRevalidationOrPublicationConsent(){qa("VERIFIED",true,List.of(step("CLASSIFICATION_GOLDEN","PASSED"),step("INSTALLED_RUNTIME","PASSED"),step("PROVIDER_PROFILES","PASSED"),step("WORKER_DB_RECOVERY","PASSED")));
         var result=service.selectImpactDetails(actor(),policyId);assertThat(result.blockingReasonCodes()).containsExactly("PUBLICATION_REVALIDATION_REQUIRED");assertThat(result.requiresPublicationRevalidation()).isTrue();}
+    @Test void collectionHistoryRemainsReadableAfterModeChangeButCannotAuthorizePublication() {
+        var run=new AttachmentPolicyValidationRows.Run(runId,policyId,3,ruleId,4,"b".repeat(64),
+                "{\"validationContractCode\":\"COLLECTION_SAFETY_V1\",\"modeCode\":\"COLLECT_ONLY\"}",
+                "COLLECTION_VERIFIED",2,null,null,null,null,null,null,at,at,at,false);
+        when(qa.selectRunCount(any())).thenReturn(1L);when(qa.selectRunList(any())).thenReturn(List.of(run));
+        when(qa.selectStepList(runId)).thenReturn(List.of(step("CLASSIFICATION_GOLDEN","PASSED"),step("INSTALLED_RUNTIME","PASSED"),
+                step("COLLECTION_SAFETY","PASSED"),step("WORKER_DB_RECOVERY","PASSED")));
+        var result=service.selectImpactDetails(actor(),policyId);
+        assertThat(result.latestQa().validationContractCode()).isEqualTo("COLLECTION_SAFETY_V1");
+        assertThat(result.blockingReasonCodes()).contains("QA_CONTRACT_MODE_MISMATCH","QA_INPUT_VERSIONS_CHANGED");
+    }
     @Test void duplicateUnknownAndCrossRunStepsAreRejected(){var s=step("CLASSIFICATION_GOLDEN","PASSED");for(var steps:List.of(List.of(s,s),List.of(step("UNKNOWN","PASSED")),List.of(new AttachmentPolicyValidationRows.Step(UUID.randomUUID(),s.stepCode(),s.statusCode(),s.evidenceJson(),s.evidenceHash(),at)))){
         qa("INCOMPLETE",true,steps);assertThatThrownBy(()->service.selectImpactDetails(actor(),policyId)).isInstanceOf(ApiException.class);}}
     @Test void inconsistentCountsAndMultipleActivePoliciesAreRejected(){for(Counts value:List.of(counts(-1),counts(9007199254740992L),new Counts(1L,2L,0L,0L,0L,0L,0L,0L,0L),counts(4))){when(impact.selectCounts(ruleId)).thenReturn(value);assertThatThrownBy(()->service.selectImpactDetails(actor(),policyId)).isInstanceOf(ApiException.class);}

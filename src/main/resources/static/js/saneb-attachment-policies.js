@@ -28,7 +28,7 @@
             q("[data-cancel-qa]").disabled=frozen||!admin||stale||!state.run||!["PENDING","RUNNING"].includes(state.run.statusCode);
             q("[data-prepare]").disabled=frozen||!admin||stale||dirty||!state.detail?.isEditable;
             q("[data-publish]").disabled=frozen||!admin||stale||dirty||!P.canPublish(state);
-            q("[data-publication-condition]").textContent=!admin?"조회 전용 역할입니다. 게시 준비·실행은 활성 관리자만 가능합니다.":dirty?"미저장 초안 입력을 저장하거나 복원하세요.":stale?"최신 정책·QA·영향·범위 조회가 필요합니다.":P.canPublish(state)?"현재 조회 조건은 충족합니다. 세 가지 영향 확인 후에도 서버가 전체 증거·설치·범위를 최종 재검증합니다.":"최신 전체 QA 4단계 통과와 현재 정책에 연결된 유효한 준비 범위가 필요합니다. 준비 이력만으로 게시할 수 없습니다.";
+            q("[data-publication-condition]").textContent=!admin?"조회 전용 역할입니다. 게시 준비·실행은 활성 관리자만 가능합니다.":dirty?"미저장 초안 입력을 저장하거나 복원하세요.":stale?"최신 정책·QA·영향·범위 조회가 필요합니다.":P.canPublish(state)?"현재 조회 조건은 충족합니다. 세 가지 영향 확인 후에도 서버가 전체 증거·설치·범위를 최종 재검증합니다.":"현재 모드에 맞는 QA 4단계 통과와 현재 정책에 연결된 유효한 준비 범위가 필요합니다. 준비 이력만으로 게시할 수 없습니다.";
             q("[data-approval-fields]").disabled=frozen||!admin||!action;q("[data-approve]").disabled=frozen||!admin||!action;
             q("[data-publication-consents]").hidden=action?.kind!=="publish";q("[data-publication-consents]").disabled=frozen||action?.kind!=="publish";
             q("[data-approve]").textContent=action?.kind==="publish"?"확인한 정책을 실제 게시":action?.kind==="prepare"?"게시 준비 범위만 고정":"확인한 초안·QA 작업 실행";
@@ -83,10 +83,18 @@
         }
         function stepView(box,list){for(const s of list){const row=el(box,"article",null,"attachment-evidence-item");el(row,"p",`${P.label(s.stepCode)}: ${P.label(s.statusCode)}`);
             if(s.evidenceHash)el(row,"p",`단계 증거 지문: ${s.evidenceHash}`);
+            if(s.stepCode==="COLLECTION_SAFETY"&&s.statusCode==="PASSED") {
+                const evidence=s.evidence,counts=evidence?.bindingStatusCounts;
+                if(P.integer(evidence?.targetCount)&&counts) {
+                    el(row,"p",`고정 대상 ${evidence.targetCount}곳 · 결합 점검이며 외부 다운로드 성공 건수가 아닙니다.`);
+                    for(const [key,title]of Object.entries({SYSTEM_BINDING_MATCHED:"시스템 결합 일치",PROFILE_MISSING:"프로필 미등록",LIST_PARSER_MISMATCH:"목록 파서 불일치",PROFILE_AMBIGUOUS:"프로필 중복"}))
+                        if(P.integer(counts[key]))el(row,"p",`${title}: ${counts[key]}곳`);
+                }
+            }
             // 임의 evidence JSON·원문·URL은 화면에 출력하지 않는다.
             const code=s.evidence?.reasonCode;if(typeof code==="string"&&/^[A-Z_]{1,100}$/.test(code))el(row,"p",P.label(code));}}
         function showRun(r){P.requireValue(P.run(r,state.detail.policy.policyId));state.run=r;const box=clear("[data-run]");
-            meta(box,[["QA 실행 ID",r.runId],["상태",P.label(r.statusCode)],["QA 실행 조회 버전",r.rowVersion],["고정 정책/규칙 버전",`${r.policyVersion} / ${r.ruleVersion}`],
+            meta(box,[["QA 실행 ID",r.runId],["검증 계약",P.label(r.validationContractCode??"STRICT_V1")],["상태",P.label(r.statusCode)],["QA 실행 조회 버전",r.rowVersion],["고정 정책/규칙 버전",`${r.policyVersion} / ${r.ruleVersion}`],
                 ["현재 정책·규칙 DB 버전 일치",r.inputVersionsCurrent?"일치 · 설치·전체 QA 최신성을 보장하지 않음":"불일치 · 현재 초안 재검증 필요"],
                 ["예약 시각",date(r.createdAt)],["종료 시각",date(r.completedAt)],["고정 입력 지문",r.snapshotHash]]);
             if(r.errorCode)el(box,"p",P.label(r.errorCode));stepView(box,r.steps);el(box,"p","과거 실행의 통과를 현재 게시 승인으로 사용하지 않습니다.");}
@@ -154,7 +162,7 @@
                 revision:"원본을 보존하고 새 개정 초안을 만듭니다. 게시 상태·QA 성공은 복사하지 않습니다.",qa:"현재 저장된 초안으로 QA를 예약합니다. 현재 구현은 분류·합성 격리 실행이며 외부 공고 요청은 0회입니다. 전역 1개, 같은 정책은 60초 간격·24시간 최대 3회이고 실패·취소도 포함됩니다. 필수 증거가 없으면 게시할 수 없습니다.",
                 cancel:"선택한 QA만 취소 요청합니다. 실행 중이면 현재 파일의 제한된 처리·정리가 끝날 때까지 기다립니다. 정책·수집 배치·운영 데이터는 취소하지 않습니다.",
                 prepare:"현재 정책·규칙과 전체 보호 대상 ID/상태를 10분 유효한 준비 원장으로 고정합니다. 승인·정책 게시·외부 수집·기존 데이터 적용은 하지 않습니다.",
-                publish:"실제 게시 요청입니다. 서버가 전체 QA와 설치·현재 범위를 재검증한 뒤 같은 규칙의 이전 ACTIVE 정책을 퇴역시키고 이 초안을 게시합니다. 기존 고정 작업의 정책은 보존하고 기존 데이터는 일괄 적용하지 않습니다."};
+                publish:"실제 게시 요청입니다. 서버가 현재 모드의 QA와 설치·현재 범위를 재검증한 뒤 같은 규칙의 이전 ACTIVE 정책을 퇴역시키고 이 초안을 게시합니다. 기존 고정 작업의 정책은 보존하고 기존 데이터는 일괄 적용하지 않습니다."};
             el(box,"p",descriptions[kind]);if(planned.payload.expectedVersion!=null)el(box,"p",`확인한 ${kind==="cancel"?"QA 실행":"정책"} 버전: ${planned.payload.expectedVersion}`);
             if(["create","update"].includes(kind))meta(box,[["저장할 키워드 규칙",planned.payload.ruleReleaseId],["저장할 초안 모드",P.label(planned.payload.modeCode)],["공고별 상한",`${planned.payload.maximumSourceBytes.toLocaleString("ko-KR")}바이트`]]);
             if(["create","update"].includes(kind))meta(box,[["변경 전 구간 규칙",state.detail?.configuration.segmentRuleVersion||"연결 없음"],
