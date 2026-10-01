@@ -51,6 +51,31 @@ class TemporaryBbsObservationTest(unittest.TestCase):
         with patch('zipfile.ZipFile',side_effect=AssertionError('operating installation accessed')):
             self.assertEqual(pathlib.Path('/package/qa'),self.unit['select_qa_distribution'](pathlib.Path('/package'),mode))
 
+    def test_second_collection_batch_has_own_scope_and_two_seven_request_cases(self):
+        import copy
+        mode='SEOUL_COLLECTION_02';scope=self.runner['SCOPES'][mode]
+        self.assertEqual((38,138*1024*1024),scope[2:])
+        self.assertEqual((512,640),self.runner['select_memory_limits'](mode))
+        self.assertEqual(6,len(set(scope[1])))
+        self.assertFalse(set(scope[1]) & set(self.runner['SCOPES']['SEOUL_COLLECTION_01'][1]))
+        self.unit['cfg']={'codeHash':'a'*64}
+        manifest=dict(schemaVersion=1,caseCode=scope[0],caseCodes=scope[1],verificationMode=mode,executionCodeHash='a'*64)
+        self.unit['validate_manifest_scope'](manifest,mode)
+        with self.assertRaisesRegex(ValueError,'MANIFEST_SCOPE_INVALID'):
+            self.unit['validate_manifest_scope'](dict(manifest,caseCodes=self.runner['SCOPES']['SEOUL_COLLECTION_01'][1]),mode)
+        rows=[dict(caseCode=code,status='INCOMPLETE',collectionOnly=True,originalFilesRemoved=True,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,isWholeTextAnalysisComplete=False,
+            productionWriteCount=0,maximumRequestReservations=7 if i<2 else 6,maximumReservedBytes=24117248,
+            requestReservationsIncludingBodyUpperBound=3,reservedBytesIncludingBodyUpperBound=2097152,files=[]) for i,code in enumerate(scope[1])]
+        report=dict(kind='BBS_OBSERVATION_PROBE',verificationMode=mode,executionCodeHash='a'*64,
+            completionMeaning='RECEIPTS_ONLY_NOT_COLLECTION_SUCCESS',productionDatabaseUsed=False,
+            isPolicyQaPassed=False,isExpectationApproved=False,isExtractionVerified=False,status='PASSED',reports=rows,downloadedFiles=0)
+        self.unit['validate_probe_scope'](report,mode)
+        for i in range(6):
+            changed=copy.deepcopy(report);changed['reports'][i]['requestReservationsIncludingBodyUpperBound']=8
+            with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](changed,mode)
+        with self.assertRaisesRegex(ValueError,'PROBE_OUTPUT_INVALID'):self.unit['validate_probe_scope'](report,'SEOUL_COLLECTION_01')
+
     def test_hwacheon_worker_pins_sample_and_preserves_partial_review(self):
         import copy
         mode='HWACHEON_SEGMENT';scope=self.runner['SCOPES'][mode]

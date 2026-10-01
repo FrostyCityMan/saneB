@@ -34,6 +34,29 @@ class RegionalCollectionObservationProbeTest {
         assertEquals(RegionalCollectionObservationProbe.CASES, cases.stream().map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList());
     }
 
+    @Test void secondBatchHasSixDifferentFixedCasesAndThirtyEightRequestLimit() {
+        var cases = RegionalCollectionObservationProbe.selectCases(RegionalCollectionObservationProbe.MODE_TWO);
+        assertEquals(RegionalCollectionObservationProbe.CASES_TWO, cases.stream().map(AnnouncementAttachmentBbsOfficialObservationTest.ObservationCase::code).toList());
+        assertEquals(6, cases.stream().map(sample -> sample.source().localSourceCode()).distinct().count());
+        assertTrue(cases.stream().noneMatch(sample -> RegionalCollectionObservationProbe.CASES.contains(sample.code())));
+        assertEquals(38, cases.stream().mapToLong(sample -> AnnouncementAttachmentBbsOfficialObservationTest.selectBudget(sample.profile(), true, false).maximumRequests).sum());
+        assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectCases("SEOUL_COLLECTION_03"));
+    }
+
+    @Test void secondBatchReceiptsCannotBorrowFirstBatchOrExceedOwnBudget() {
+        for (int i = 0; i < 6; i++) {
+            var sample = RegionalCollectionObservationProbe.selectCases(RegionalCollectionObservationProbe.MODE_TWO).get(i);
+            var row = selectFailure(i);
+            row.put("caseCode", sample.code()).put("profileCode", sample.profile().selectProfileCode()).put("profileHash", sample.profile().selectProfileHash());
+            row.put("maximumRequestReservations", i < 2 ? 7 : 6);
+            assertEquals(sample.code(), RegionalCollectionObservationProbe.selectReport(row, RegionalCollectionObservationProbe.MODE_TWO, i, start, end).path("caseCode").asText());
+            int ordinal = i;
+            assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectReport(row, ordinal, start, end));
+            row.put("requestReservationsIncludingBodyUpperBound", 8);
+            assertThrows(IllegalArgumentException.class, () -> RegionalCollectionObservationProbe.selectReport(row, RegionalCollectionObservationProbe.MODE_TWO, ordinal, start, end));
+        }
+    }
+
     @Test void allFailuresAreValidReceiptsButNotCollectionSuccess() {
         for (int i = 0; i < 6; i++) {
             var safe = RegionalCollectionObservationProbe.selectReport(selectFailure(i), i, start, end);

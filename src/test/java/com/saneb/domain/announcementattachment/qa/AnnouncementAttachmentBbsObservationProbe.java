@@ -491,7 +491,7 @@ public final class AnnouncementAttachmentBbsObservationProbe {
     }
 
     public static void main(String[] args) {
-        if (args.length == 2 && RegionalCollectionObservationProbe.MODE.equals(args[1])) {
+        if (args.length == 2 && RegionalCollectionObservationProbe.selectSupportedMode(args[1])) {
             RegionalCollectionObservationProbe.main(args);
             return;
         }
