@@ -1,5 +1,35 @@
 # 울산 남구 공식 목록 Linux 진단
 
+## 2026-10-01 서울 구조 확인·등록 전 어댑터
+
+기준 HEAD `46ea381ef7eb8790fd0b6bde3a575848d86edc8d`. 승인된 서울 임시 QA에서 운영 설치·DB·설정을 변경하지 않고 Python 표준 라이브러리로 고정 공식 경로만 조회했다. root 계정의 프로젝트 대상 일치·서울 리전·Ubuntu 1대·SSM Online, 운영 배포 `d-NCB2HF3YK`/`9a1bb4569bcc3c13bf3bc30b51021b9149c67054` 불변을 확인했다.
+
+| 조회 | SSM 실행 ID | 결과 |
+| --- | --- | --- |
+| 공식 폼→소상공인 검색→첫 후보 상세 | `0d4aa3fd-2da5-4a76-8242-5013ec915f9e` | 3요청 모두200, 후보7건·53732의 HWPX 표기 링크1개 |
+| 53732 상세 단독 DOM 조회 | `1b506263-0eb3-43b9-b1de-89bb50ed93da` | 1요청 REQUEST_TIMEOUT, DOM 미확인 |
+| 공식 폼→같은 상세 DOM 비교 | `d0900e94-9477-4c67-8027-2f6f39b73ed2` | 2요청 모두200, 공개 세션 쿠키 없이 구조 확인 |
+
+첫 조회 시각은 17:45 KST다. 폼 16,813byte/SHA `01a08111db57ed6b8804ccab86885f6175b9dd4ca4a4fc89253bf90836ccd28a`, 검색 25,640byte/SHA `d85382fa2971570db1747dfd3de98414264b2ffe4e0df8d45bc72fde2a93ade6`, 상세 20,384byte/SHA `6c14c28d8b26eb99ce0953f35d9f739cc059fc5c2d6d17db0f26fc2aa27cf004`다. 마지막 상세 응답 hash도 같다. 마지막 진단 스크립트는 `build/qa-tools/ulsan-namgu-structure-readonly.py`, SHA `8b027434085ec731fac230528a219c31c2b3fbd12bfd11ad61dacfa8a5242503`다.
+
+공식 검색 후보 ID는53732·53628·53554·52786·52350·50575·49986이다. 진단의 후보 선택은 운영 제목 규칙 통과 판정이 아니다. 첫 후보 제목 길이37·SHA `2893374bb36426de317c4a6dc0a6e8f0553915b4aa3ec9129d0d0dba3e8c4108`만 보존했으며 다른 후보 상세는 요청하지 않았다.
+
+실제 구조는 `form[name=form1][method=post] > div.bbs_detail.bbs_detail_basic` 아래 제목 `div.bbs_detail_tit > h2`, 첫 번째 `ul.bbs_detail_content2`의 li/a 첨부 링크, 두 번째 같은 class 목록의 공고 정보, `div.bbs-view-content` 본문이다. table은0개다. 이전 표 라벨 중심 진단의 빈 배열을 첨부 부재로 해석하면 안 된다. `goDownLoad` 호출1개, `FileDown.jsp` 문자열과 encodeURI 호출3개를 확인했지만 불투명 인자/본문/파일명은 기록하지 않았다. 독립 GET 실패와 후속 성공만으로 세션 필수나 전송 오류 원인을 단정하지 않는다.
+
+서울 요청은 총6회·상한12MiB·실제 성공 응답100,034byte이며, 다운로드0·원문 저장0·운영쓰기0이다. 각 요청10초·프로세스 전체45초 경계와48초 watchdog, TLS/호스트 검증·redirect 금지·고정 호스트를 유지했다. 소유 임시 CA는 각 실행 후 정리했다.
+
+### 로컬 구현·검증 경계
+
+`UlsanNamguNoticePage`와 `UlsanNamguAttachmentDiscoveryProfile`을 추가했다. 공식 div/ul 영역 전체를 기존 새올 GET 엔진으로 전달하고 UNKNOWN 역할·최대10파일·고정 요청·미지원/미해석 링크 분리 계약을 유지한다. 빈 첨부 구조는 실제로 관측하지 않았으므로 NO_FILES로 확정하지 않는다. 두 번째 정보 목록에 파일 링크가 나타나는 등 영역 변경은 오류로 남긴다.
+
+**아직 Spring bean 등록·본문 provider 연결·QA 참조 추가를 하지 않았다.** 실제 HTML의 다운로드 인자를 새 어댑터로 파싱하고 파일까지 확보한 증거가 필요하다. 현재 코드는 등록 전 어댑터이며 유일 미연결 수집원1개가 해소됐다고 집계하지 않는다. 보조 supportBusiness 게시판으로 대체하지도 않았다.
+
+실제 클라이언트 확인용 `build/qa-tools/UlsanNamguFirstFileProbe.java`는 고정53732·목록 제목 hash 일치·기존 DRAFT 제목 판정 통과 후에만 파일1개를 처리하도록 작성했다. 요청 상한8(동일 URI redirect 포함)·예산22MiB·추출/운영 쓰기 없음이다. Windows 실행은 상세 수신 전에 `TRANSPORT_OR_PROBE_FAILED`·예약byte0으로 끝났다. 제목 판정과 파일 요청은 실행되지 않았고 소유 원본/임시 폴더는 정리했다. 이 결과를 다운로드 성공으로 계산하지 않는다.
+
+첫 컴파일은 fingerprint 함수 인자 수 불일치로 실패했고 기존 두 인자 계약의 hash 결합으로 수정했다. 최종 `.\gradlew.bat --no-daemon --max-workers=1 :test --tests '*UlsanNamguAttachmentDiscoveryProfileTest' --tests '*UlsanFirstDownloadContractTest' --tests '*SaeolGetAttachmentDiscoveryProfileTest' :bootJar`는37초·**43통과/실패·생략0**, bootJar 생성 성공이다. Node 울산 진단·영수증·가용성28개도 통과했다. 기존963영수증/293표본을 재현했다.
+
+다운로드 확보210/223·미확보13·프로필미연결1·엄격전체첨부16/223은 불변이다. HWP 고도화·DB/API/Flyway·운영 변경은 없으며 브라우저는 현재 명시 요청이 없어 정책상 미실행이다. 다음은 확보한 구조와 고정53732를 서울의 실제 Java 수집기 QA로 연결해 확인한 뒤 bean/본문/참조/인벤토리를 함께 등록하는 것이다. 동일 Windows 실패 요청의 자동 반복은 하지 않는다.
+
 ## 2026-10-01 고정 상세 직접 조회 후속
 
 기준 HEAD `71ea61563b7a9d7593582d03d629a61bac62823d`. 기존 Linux 목록 run36782051228에서 확보한 첫 ID54578을 기존 새올 상세 요청 계약으로 직접 조회했다. 실패했던 소상공인 검색 POST를 반복하거나 번호를 탐색하지 않았다.
