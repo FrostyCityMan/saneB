@@ -135,6 +135,52 @@ class AttachmentRuntimeGateIntegrationTest {
         return Arrays.asList(handle.info().arguments().orElse(new String[0])).contains(marker);
     }
 
+    @Test @Timeout(60)
+    void interruptedCallerKillsObservedChildAndRecoversWithoutRetainingOriginals() throws Exception {
+        Path distribution = selectFaultDistribution(temporary);
+        var extractor = new IsolatedAttachmentExtractor(new ObjectMapper(), distribution.toString());
+        var storage = new AttachmentTemporaryStorage(temporary.resolve("storage").toString());
+        String marker = "saneb-synthetic-cancel-" + UUID.randomUUID();
+        var caller = new java.util.concurrent.atomic.AtomicReference<Thread>();
+        var interrupted = new java.util.concurrent.atomic.AtomicBoolean();
+        var executor = Executors.newSingleThreadExecutor();
+        var execution = executor.submit(() -> {
+            caller.set(Thread.currentThread());
+            var result = selectFaultResult(extractor, storage, "TIMEOUT\n" + marker);
+            interrupted.set(Thread.currentThread().isInterrupted());
+            return result;
+        });
+        List<ProcessHandle> ownedChildren = List.of();
+        try {
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(12);
+            while (ownedChildren.isEmpty() && !execution.isDone() && System.nanoTime() < deadline) {
+                try (var descendants = ProcessHandle.current().descendants()) {
+                    ownedChildren = descendants.filter(handle -> selectOwnedChild(handle, marker)).toList();
+                }
+                if (ownedChildren.isEmpty()) Thread.sleep(25);
+            }
+            assertThat(ownedChildren).as("중단 전에 실제 격리 자식 JVM을 관측해야 합니다.").hasSize(1);
+            // Future 취소가 아니라 실제 호출 스레드를 중단하여 반환 상태와 정리를 관측한다.
+            caller.get().interrupt();
+            var result = execution.get(10, TimeUnit.SECONDS);
+            assertThat(result.path("errorCode").asText()).isEqualTo("CANCELLED");
+            assertThat(interrupted.get()).as("호출자의 중단 신호 보존").isTrue();
+            for (var child : ownedChildren) {
+                long exitDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+                while (child.isAlive() && System.nanoTime() < exitDeadline) Thread.sleep(25);
+                assertThat(child.isAlive()).as("중단 이후 시험 소유 자식 JVM 종료").isFalse();
+            }
+            validateStorageEmpty();
+            assertThat(selectFaultResult(extractor, storage, "RECOVER").path("qualityCode").asText()).isEqualTo("COMPLETE_TEXT");
+            validateStorageEmpty();
+        } finally {
+            execution.cancel(true);
+            for (var child : ownedChildren) if (child.isAlive() && selectOwnedChild(child, marker)) child.destroyForcibly();
+            executor.shutdownNow();
+            assertThat(executor.awaitTermination(5, TimeUnit.SECONDS)).as("중단 시험의 호출 스레드 종료").isTrue();
+        }
+    }
+
     private static JsonNode selectFaultResult(IsolatedAttachmentExtractor extractor, AttachmentTemporaryStorage storage, String scenario) throws Exception {
         Path original;
         JsonNode result;
