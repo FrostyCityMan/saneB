@@ -59,6 +59,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new BrowserCsrfTokenRequestHandler())
                         // 기존 API 계약은 유지하되 신규 첨부 변경 경로는 session CSRF 검증을 필수로 한다.
                         .ignoringRequestMatchers(
                                 new AntPathRequestMatcher("/api/v1/**"),

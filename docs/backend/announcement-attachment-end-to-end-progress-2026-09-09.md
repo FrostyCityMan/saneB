@@ -2,6 +2,8 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 CSRF 연동 수정 승인 후 재개: 실제 로그인 화면이 발급한 쿠키와 원본 헤더를 사용하는 초안 저장 회귀 시험에서 수정 전 403을 재현했다. `BrowserCsrfTokenRequestHandler`로 API 헤더의 원본 토큰과 Thymeleaf 폼의 XOR 토큰을 구분하며, CSRF 적용 경로·역할 권한·쿠키/헤더 일치 필터를 유지한다. 테스트 `csrf()` 도우미가 공유 저장소를 바꾸는 간섭은 별도 Spring context로 분리했다. Java 선택51개 및 Node 정책/CSRF55개 통과·bootJar 성공. 운영 사전 Runtime SSM b44d4e69-0a60-431a-b7d1-31adb1a7e7a1 Success: 52e068f/V86·health UP·정책QA true·첨부worker UNSET·복구 파일 존재. Linux CI·수정 코드 배포·운영 초안1건/QA1회는 대기다. 게시·상시 worker·ENFORCE·기존 데이터 처리는 비범위이며 전체 goal은 미완료다.
+
 2026-10-02 17:00 KST HTTP UUID 수정52e068f Linux36978950505 및 배포36980445726/CodeDeploy d-NJOOT9JU8 성공. bundle/운영JAR 일치·V86·health UP·정책QA true/첨부worker 비활성·복구 JAR/release 확인. 사용자 재로그인 후 정책 저장은 UUID 예외 없이 서버 요청에 도달했으나403으로 거부됐고 목록 재조회에서0건이다. QA는 미실행, 게시·상시 worker·ENFORCE·기존 데이터 미실행 유지. 공통 JS의 raw cookie 우선 전송/별도 header 일치 필터와 Spring 기본 XOR 검증 간 불일치를 정적 원인 후보로 확인했다. 실제 cookie/header 회귀 재현 및 공통 보안 연동 수정·재배포는 추가 범위 확인 대상이며 보안 비활성화나 우회는 하지 않았다. 운영 저장/QA Gate 및 전체 goal 미완료. 상세 증거는 운영 기준선의 HTTP 정책 요청 키 절에 기록했다.
 
 2026-10-02 16:30 KST HTTP 요청 키 오류 수정·시험·커밋/푸시·운영 배포·초안/QA 재개를 승인받았다. 정책 화면만 native randomUUID 또는 getRandomValues 기반 UUID v4로 생성하고, 안전한 난수 미지원 시 API 전송 전 한국어 오류와 기존 입력을 보존한다. 중복 요청 키/본문 재사용은 유지한다. Design Read: 기존 Thymeleaf/Bootstrap 관리자 편집·확인 UI를 보존하는 R1 저장 복구이며 운영 배포는 R2로 별도 결과 검증한다. 새 의존성·DB/API 변경 없음. Node 정책49/전체532통과·Windows에서 Linux전용3생략, Java 화면8통과·bootJar성공이다. 첫 Gradle 명령의 모듈 필터 실패는 `:test`로 범위를 명시해 해소했다. 배포 전 Runtime SSM70f734df-5934-4fd3-bd6c-bf9d94a8f5fc Success: 운영0fa8631/V86·health UP·정책QA true·첨부worker UNSET·복구 JAR/release 존재. Linux CI·실제 배포·브라우저 저장/QA 결과는 아직 미확인이다. 게시·상시 worker·ENFORCE·기존 데이터 배치는 비범위다.
