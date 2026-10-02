@@ -1,5 +1,20 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 최신 Linux·운영 증거 대조
+
+아래 날짜별 증분과 행의 과거 실행 대기는 당시 이력이다. 현재 코드 기준 `371b1acda13deed4740c5f3377cc0b298d4cee09`의 [Linux37005549445](https://github.com/FrostyCityMan/saneB/actions/runs/37005549445) success와 보관 XML을 다시 확인했다. job212·worker12·migration4·전체 분할14·Flyway3은 실패/생략0이다. 이는 새 테스트 실행이 아니라 동일 SHA의 실행 결과 재대조다. 최종 운영 경합·실파일·역할별 브라우저 요구는 남으므로 완료 수를 올리지 않는다.
+
+| 요구 | 최신 확인 증거 | 남은 검증 |
+|---|---|---|
+| ATT-044 | job `att040OffImmediatelyBlocksExternalBytesAndResourcesButNotSealedRecovery`, `offDoesNotPreventRoleReevaluationOfFrozenSealedEvidenceOrClearGuard` 통과. 운영 COLLECT_ONLY 개정2 게시·개정1 퇴역 영수증 확인 | 운영 OFF 전환·실제 작업 중 경계와 봉인 근거 복구 |
+| ATT-045 | 운영 관리자 로그인·동의·새 개정 저장·QA 예약·게시 성공 | OPERATOR/APPROVER/USER 실제 세션 및 CSRF 음성 경로. 관리자 성공만으로 전체 권한 검증 완료 아님 |
+| ATT-053 | migration `freshSchemaAndV71UpgradePreservePriorChecksums` 및 Flyway3 통과. 현재 테스트는 V86 단계까지 포함 | 09-22 완료 근거의 범위는 유지. 최신 운영 V86 직접 대조는 운영 기준선의 10-02 증거를 참조하며 이번 턴에는 서버 직접 조회하지 않음 |
+| ATT-055 | job `concurrentSameDraftRequestCreatesOneAnnouncement`, `concurrentConfirmationsAllowOneWriterAndReturnConflictForStaleVersion` 통과 | 실제 운영 두 세션 검수·DRAFT 경합 |
+| ATT-061 | job `att061PolicyProfileAndRuleMustMatchWithoutUpdatingSourceOnFailure`, `att061FrozenRunKeepsPublishedPolicyAfterRetirementAndOffPreventsClaim` 통과. 개정2의 새 QA·동일 규칙 정책 교체 확인 | 운영 release 불일치 음성 사례와 기존 고정 작업의 실제 경계 |
+| ATT-062 | job `currentProjectionSeparatesCollectOnlyPreviewFromListFiltersAndCount`, `collectOnlyHistoryIsPreviewAndHiddenSourceCannotExposeStoredEvidence`; worker `collectOnlyStoresPreviewWithoutBindingReviewOrChangingBaseOrCreatingAnnouncement` 통과 | 기존 양평 표본은 미리보기와 기본 판정 분리 확인. 본문 부족을 첨부가 보완해 ACCEPTED가 되는 요구의 실제 표본 및 최신 정책 신규 작업은 미검증 |
+
+운영 개정2 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c`, QA `733f9065-d4af-4065-9271-97b4451d1e8e`, 게시 영수증 `88e89d51-9a58-424c-be1a-03ba63c97846`의 상세는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)을 따른다. COLLECT_ONLY의 4단계 통과와 결합224/전체225는 STRICT 전체 실파일 통과가 아니다. 새 정책 단건 재수집은 영향 범위 승인 대기이며 실행하지 않았다. ENFORCE·기존 데이터 적용·최종 검수·DRAFT 및 전체 ATT 완료를 선언하지 않는다.
+
 ## 2026-09-22 ATT-053 완료 근거
 
 `272dafd527d7f37236b8728bd764a48d1a66be81`의 [Linux35693601984](https://github.com/FrostyCityMan/saneB/actions/runs/35693601984)가 success다. 보완한 `freshSchemaAndV71UpgradePreservePriorChecksums`는4.036초 통과/생략0이다. V71 합성 사용자·본문 확보/미확보 원문2건·분류2건·숨김 DRAFT·연결1건과 규칙 seed를 포함한 기존10테이블의 모든 기존 컬럼/행 지문이 V83 upgrade 후 동일하다. V71/upgrade/fresh DB의 attachment_analysis_enabled=true INSERT/UPDATE는 정확한 CHECK와 SQLSTATE23514로 거부됐다. 빈 DB validate 및 기존 순차 schema/checksum 검증도 유지했다.
@@ -82,7 +97,7 @@
 - 09-11 15:46 회귀: root1322건 중 **1188통과/134조건부 생략**, extractor25·Node30통과, 실패/오류0. BatchPreviewService16/HTTP18과 SEALED 근거·불변 이력·명시적 선택·0HTTP·입력 변경 충돌·삭제 수 구분의 당시 증거다. 최신 변경과 실제 운영 검증은 별도다.
 - 09-11 15:09 회귀: root 1279건 중 **1151통과/128조건부 생략**, extractor25·Node30통과, 실패/오류0. BatchService26/BatchController24/BatchClaim5와 수집 승인·중지/재개·전체 집계·고정 입력 충돌의 당시 증거다. 최신 변경의 검증은 위 실행과 구분한다.
 
-- [x] 해당 요구의 전체 필수 계층을 직접 검증. 현재는 운영/브라우저 Gate가 남아 전체 요구 [x]는 없다.
+- [x] 해당 요구의 전체 필수 계층을 직접 검증. ATT-053의 기록된 완료 근거만 해당하며, 나머지 요구와 전체 운영/브라우저 Gate 완료를 뜻하지 않는다.
 - [~] 코드·부분 로컬 테스트는 있으나 실제 파일/DB/운영/API/UI 중 필수 증거가 남음.
 - [ ] 구현 또는 직접 assertion을 추가해야 함.
 - [!] 해당 DB 검증이 현재 환경에서 차단. Windows Code Integrity 3077의 libpq.dll 로드 거부, Docker 시작 timeout. 기존 통과 기록을 최신 변경의 증거로 대체하지 않는다.
