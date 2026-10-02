@@ -39,6 +39,48 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
     public AttachmentBatchResponses.Preview selectScopePreview(Authentication actor,AttachmentBatchRequests.Scope scope) {
         selectActor(actor,false);return selectPrepared(normalize(scope),false).preview();
     }
+    @Override @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ,timeout=20)
+    public AttachmentLinkedBatchResponses.Preview selectLinkedScopePreview(Authentication actor,AttachmentLinkedBatchRequests.Scope scope) {
+        selectActor(actor,false);
+        if(scope==null || scope.policyId()==null || scope.sourceIds()==null || scope.sourceIds().isEmpty() || scope.sourceIds().size()>1000
+                || scope.sourceIds().stream().anyMatch(Objects::isNull) || !scope.isSourceIdsUnique()
+                || scope.maximumSourceBytes()==null || scope.maximumSourceBytes()<1 || scope.maximumSourceBytes()>83886080)
+            throw invalid("정책 ID와 중복·빈 값 없는 원문 ID 1~1000개, 공고별 1~80 MiB 다운로드 상한이 필요합니다.");
+        var ids=scope.sourceIds().stream().sorted().toList();
+        var policy=dao.selectPolicyDetails(scope.policyId(),false);
+        if(policy==null) throw notFound();
+        if(!"ACTIVE".equals(policy.policyStatusCode()) || !"ACTIVE".equals(policy.releaseStatusCode())
+                || !Set.of("COLLECT_ONLY","ENFORCE").contains(policy.modeCode()) || policy.policyHash()==null || !policy.policyHash().matches("[0-9a-f]{64}"))
+            throw conflict("연결 근거 수집에는 현재 ACTIVE 규칙에 게시된 COLLECT_ONLY 또는 ENFORCE 정책이 필요합니다.");
+        var configuration=selectConfiguration(policy);
+        if(scope.maximumSourceBytes()>configuration.maximumSourceBytes()) throw invalid("공고별 다운로드 상한은 게시 정책의 상한을 초과할 수 없습니다.");
+        var rows=dao.selectLinkedSourceCandidateList(ids);
+        var byId=new HashMap<UUID,AttachmentBatchRows.Candidate>();
+        for(var row:rows) if(byId.put(row.sourceId(),row)!=null) throw conflict("명시 원문의 현재 판정이 중복됐습니다.");
+        var candidates=new ArrayList<AttachmentLinkedBatchResponses.Candidate>();
+        var inputs=new ArrayList<Object>();
+        for(UUID id:ids) {
+            var row=byId.get(id);String ready="READY",linkHash=null;Object execution=null,locator=null;
+            if(row==null) ready="NOT_ELIGIBLE_OR_NOT_LINKED";
+            else {
+                linkHash=hash(dao.selectSourceLinkSnapshot(id));
+                if(!policy.ruleReleaseId().equals(row.ruleReleaseId())) ready="BASE_RECLASSIFICATION_REQUIRED";
+                else if(row.activeJobId()!=null) ready="ACTIVE_JOB";
+                else if(row.sourceVersion()==null || row.attachmentVersion()==null || row.sourceVersion()<0 || row.attachmentVersion()<0
+                        || row.sourceVersion()==Integer.MAX_VALUE || row.attachmentVersion()==Integer.MAX_VALUE) ready="VERSION_LIMIT";
+                else {
+                    execution=selectExecution(row,policy,configuration);
+                    if(execution==null) ready="PROFILE_REQUIRED";
+                    else locator=intake.selectSourceLocatorDetails(id);
+                }
+            }
+            candidates.add(new AttachmentLinkedBatchResponses.Candidate(id,ready,linkHash));
+            inputs.add(Arrays.asList(id,row,ready,linkHash,execution,locator));
+        }
+        String fingerprint=hash(Arrays.asList("linked-evidence-scope-v1",policy,scope.maximumSourceBytes(),inputs));
+        return new AttachmentLinkedBatchResponses.Preview(scope.policyId(),fingerprint,ids.size(),
+                candidates.stream().allMatch(c->"READY".equals(c.readinessCode())),scope.maximumSourceBytes()*ids.size(),132L*ids.size(),List.copyOf(candidates));
+    }
     @Override @Transactional(timeout=30)
     public AttachmentBatchResponses.Batch insertBatch(Authentication authentication,UUID key,AttachmentBatchRequests.Reservation request) {
         return insertPreparedBatch(authentication,key,request,null);

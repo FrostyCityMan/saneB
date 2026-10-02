@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 근거 명시 범위 조회
+
+별도 `POST /api/v2/admin/announcement-attachment-linked-evidence-batches/scope-preview`를 추가했다. 서버에서 입력/활성 정책/정책 상한을 재검증하고 요청 전체 ID를 유지하며 부적격·미연결 원문을 대체하지 않는다. 현재 연결 identity, 원문/첨부 버전·기존 확인·정책/profile/출처가 지문에 포함된다. 일반 Eligible은 변경하지 않았고 DB 읽기 외 동작은 없다.
+
+`:test --tests '*AnnouncementAttachmentBatchControllerSmokeTest' --tests '*AnnouncementAttachmentBatchServiceTest' attachmentJobIntegrationTest --tests '*linkedScopePreview*' bootJar --no-daemon --max-workers=1` 54초 성공. 일반/신규 MockMvc·서비스59건, 실제 DB1건, 실패/오류/생략0 및 JAR 생성 성공이다. DB는 연결 변경 지문 차이·일반 배치 연결 제외·누락ID 포함 전체분모·job/batch 생성0을 확인했다. 첫 권한 시험은 빈 본문400을403으로 기대한 시험 오류로 유효 본문으로 수정했고, 다음 CSRF 시험은 새 namespace 보호 누락을 발견하여 SecurityConfig의 CSRF 예외 제외 목록에 새 경로를 추가해 해결했다. 예약/실행 API·전체 성공 worker·관리자 UI·운영 검증은 아직 남는다.
+
 ## 2026-10-03 worker terminal 경고 저장 연결 — 전체 회귀 통과
 
 전체 회귀 종료: 같은 세션을 재시작하지 않고 완료를 확인했다. `attachmentJobIntegrationTest --no-daemon --max-workers=1`은10분39초 성공, JUnit222건/612.252초·실패/오류/생략0이다. 공통 작업 서비스의 기존 예약·lease·예산·검수·배치 회귀 결과이며 아직 열지 않은 연결 원문 외부 수집의 성공 증거는 아니다.

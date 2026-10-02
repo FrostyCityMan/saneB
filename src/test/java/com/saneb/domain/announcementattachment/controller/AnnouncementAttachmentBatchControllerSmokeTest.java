@@ -23,6 +23,23 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties="spring.flyway.enabled=false") @AutoConfigureMockMvc
 class AnnouncementAttachmentBatchControllerSmokeTest {
+    @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
+    void linkedScopePreviewAllowsInternalRolesWithCsrf(String role) throws Exception {
+        String body="{\"policyId\":\""+POLICY+"\",\"sourceIds\":[\""+UUID.randomUUID()+"\"],\"maximumSourceBytes\":1024}";
+        when(service.selectLinkedScopePreview(any(),any())).thenReturn(new AttachmentLinkedBatchResponses.Preview(POLICY,"a".repeat(64),1,false,1024,132,List.of()));
+        mvc.perform(post("/api/v2/admin/announcement-attachment-linked-evidence-batches/scope-preview")
+                .with(user("qa").roles(role)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andExpect(jsonPath("$.data.canReserve").value(false));
+    }
+    @Test void linkedScopePreviewRejectsUnauthorizedAndMissingCsrf() throws Exception {
+        String path="/api/v2/admin/announcement-attachment-linked-evidence-batches/scope-preview";
+        String body="{\"policyId\":\""+POLICY+"\",\"sourceIds\":[\""+UUID.randomUUID()+"\"],\"maximumSourceBytes\":1024}";
+        mvc.perform(post(path).with(user("qa").roles("USER")).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post(path).with(user("qa").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(service);
+    }
     private static final UUID POLICY=UUID.randomUUID(),BATCH=UUID.randomUUID(),KEY=UUID.randomUUID();
     private static final String ROOT="/api/v2/admin/announcement-attachment-batches";
     private static final String SCOPE="{\"policyId\":\""+POLICY+"\",\"providerCodes\":[\"BIZINFO\"],\"collectedFrom\":\"2026-08-01T00:00:00+09:00\",\"collectedBefore\":\"2026-09-01T00:00:00+09:00\",\"maximumCount\":100}";

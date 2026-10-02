@@ -3018,6 +3018,26 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
     }
 
+    @Test void linkedScopePreviewRetainsEveryRequestedIdAndHashesConnectionIdentity() {
+        UUID source=selectRequest().sourceId();insertCollectionLocator(source);
+        UUID announcement=UUID.randomUUID();
+        sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','범위 합성 공고','합성 기관','HIDDEN','DRAFT')",announcement);
+        sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",UUID.randomUUID(),source,announcement,actor);
+        var scope=new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Scope(policy,List.of(source),1024L);
+        var first=batchService().selectLinkedScopePreview(reviewActor(),scope);
+        assertThat(first.canReserve()).isTrue();assertThat(first.maximumDownloadBytes()).isEqualTo(1024);
+        assertThat(first.maximumHttpRequests()).isEqualTo(132);
+        assertThat(batchService().selectScopePreview(reviewActor(),batchScope(100)).selectedCount()).isZero();
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=?",UUID.randomUUID(),source);
+        assertThat(batchService().selectLinkedScopePreview(reviewActor(),scope).scopeHash()).isNotEqualTo(first.scopeHash());
+        UUID missing=UUID.randomUUID();
+        var incomplete=batchService().selectLinkedScopePreview(reviewActor(),new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Scope(policy,List.of(source,missing),1024L));
+        assertThat(incomplete.canReserve()).isFalse();assertThat(incomplete.requestedCount()).isEqualTo(2);
+        assertThat(incomplete.candidates()).extracting(com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchResponses.Candidate::sourceId).containsExactlyInAnyOrder(source,missing);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches",Integer.class)).isZero();
+    }
+
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));

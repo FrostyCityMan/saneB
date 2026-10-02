@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface AnnouncementAttachmentBatchDao {
+    List<AttachmentBatchRows.Candidate> selectLinkedSourceCandidateList(@Param("sourceIds") List<UUID> sourceIds);
+    String selectSourceLinkSnapshot(@Param("sourceId") UUID sourceId);
     AttachmentPolicyRow selectPolicyDetails(@Param("policyId") UUID policyId,@Param("lock") boolean lock);
     List<AttachmentBatchRows.Bucket> selectScopeCounts(AttachmentBatchRequests.Scope scope);
     List<AttachmentBatchRows.Candidate> selectCandidateList(AttachmentBatchRequests.Scope scope);

@@ -69,7 +69,8 @@ public class SecurityConfig {
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-sources/*/attachment-*/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-policies/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-backfills/**"),
-                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-batches/**")))))
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-batches/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-linked-evidence-batches/**")))))
                 )
                 .securityContext(securityContext -> securityContext
                         .securityContextRepository(securityContextRepository)

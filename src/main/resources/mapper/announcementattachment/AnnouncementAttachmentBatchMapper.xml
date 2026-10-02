@@ -98,6 +98,26 @@
         -- 동일 actor/입력의 배치 생성은 한 번만 기록한다.
         SELECT pg_advisory_xact_lock(hashtextextended(CAST(#{key} AS text),73105))::text
     </select>
+    <select id="selectSourceLinkSnapshot" resultType="string" useCache="false" flushCache="true">
+        -- V68 단일 연결의 ID와 대상 ID를 함께 지문화한다.
+        SELECT attachment_source_link_snapshot(#{sourceId})::text
+    </select>
+    <select id="selectLinkedSourceCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
+        -- 명시 원문만 조회한다. 일반 Eligible의 연결 제외 조건은 변경하지 않는다.
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+            s.current_attachment_evaluation_id AS current_evaluation_id,s.attachment_policy_id AS current_policy_id,
+            c.id AS confirmation_id,s.is_attachment_review_required AS review_required,
+            (SELECT j.id FROM announcement_attachment_jobs j WHERE j.source_id=s.id
+                AND j.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_job_id
+        FROM announcement_source_snapshots s JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        LEFT JOIN announcement_source_attachment_confirmations c ON c.source_id=s.id AND c.is_current
+        WHERE s.id IN <foreach collection="sourceIds" item="source" open="(" separator="," close=")">#{source}</foreach>
+          AND s.data_purpose_code='PRODUCTION' AND s.semantic_status_code&lt;&gt;'EXCLUDED' AND e.decision_status_code&lt;&gt;'EXCLUDED'
+          AND e.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED')
+          AND EXISTS (SELECT 1 FROM announcement_source_links l WHERE l.source_id=s.id)
+        ORDER BY s.id
+    </select>
     <sql id="BatchColumns">id AS batch_id,policy_id,batch_status_code,scope_hash,maximum_count,scope_item_count,deleted_item_count,
         row_version,scope_json::text AS scope_json,policy_snapshot_json::text AS policy_snapshot_json,requested_by,idempotency_key,request_hash,created_at</sql>
     <select id="selectRequestDetails" resultMap="BatchMap" useCache="false" flushCache="true">
