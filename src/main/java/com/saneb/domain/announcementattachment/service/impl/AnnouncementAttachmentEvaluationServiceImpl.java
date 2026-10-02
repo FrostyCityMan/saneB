@@ -201,6 +201,7 @@ public class AnnouncementAttachmentEvaluationServiceImpl implements Announcement
                 job.setId(), computed.inputHash(), decisionHash, job.expectedSourceVersion(), job.expectedAttachmentVersion()));
         requireOne(evaluations.updateJobCompleted(job.jobId(), token, evaluationId, previewHash,
                 incomplete ? "PARTIAL_FAILED" : "SUCCEEDED"));
+        if(!AttachmentLinkedEvidenceFinalizer.saveNotice(jobs,job.jobId())) return Optional.empty();
         return Optional.of(evaluations.selectEvaluationDetails(job.sourceId(), evaluationId));
     }
 

@@ -33,7 +33,11 @@ public interface AnnouncementAttachmentJobDao {
     int updateAttachmentEvaluationsStale(@Param("sourceId") UUID sourceId);
     int updateAttachmentConfirmationsStale(@Param("sourceId") UUID sourceId);
     AttachmentJobRow updateNextJobLease(@Param("leaseToken") UUID leaseToken, @Param("leaseSeconds") int leaseSeconds);
-    int updateExpiredJobLeases();
+    java.util.List<UUID> updateExpiredJobLeases();
+    java.util.List<UUID> selectLinkedConnectionLocks(@Param("sourceId") UUID sourceId);
+    Boolean selectLinkedTerminalConnectionState(@Param("jobId") UUID jobId);
+    int updateLinkedTerminalConflict(@Param("jobId") UUID jobId);
+    int insertLinkedReviewNotice(@Param("jobId") UUID jobId);
     int updateJobConflict(@Param("jobId") UUID jobId, @Param("leaseToken") UUID leaseToken);
     int updateJobFrozenInputConflict(@Param("jobId") UUID jobId,@Param("leaseToken") UUID leaseToken);
     int updateJobHeartbeat(@Param("jobId") UUID jobId, @Param("leaseToken") UUID leaseToken,

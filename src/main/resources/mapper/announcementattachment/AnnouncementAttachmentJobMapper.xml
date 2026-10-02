@@ -284,7 +284,7 @@
         FROM candidate c WHERE j.id = c.id
         RETURNING <include refid="JobColumns"/>
     </select>
-    <update id="updateExpiredJobLeases">
+    <select id="updateExpiredJobLeases" resultType="java.util.UUID" affectData="true" flushCache="true" useCache="false">
         -- 만료 회수는 최대 100개 단위로 처리하며 누적 예산과 불변 실행 입력은 유지한다.
         WITH expired AS (
             SELECT id FROM announcement_attachment_jobs
@@ -297,8 +297,37 @@
             next_attempt_at = CASE WHEN j.attempt_count &lt; 3 THEN clock_timestamp()
                 + (CASE WHEN j.attempt_count = 1 THEN 60 ELSE 300 END) * interval '1 second' ELSE NULL END,
             row_version = j.row_version + 1, updated_at = clock_timestamp()
-        FROM expired e WHERE j.id = e.id
+        FROM expired e WHERE j.id = e.id RETURNING j.id
+    </select>
+    <select id="selectLinkedConnectionLocks" resultType="java.util.UUID" flushCache="true" useCache="false">
+        -- 완료 저장 중 연결 삭제/교체를 막는다. source 잠금 다음 동일 순서로 획득한다.
+        SELECT id FROM announcement_source_links WHERE source_id=#{sourceId} ORDER BY id FOR SHARE
+    </select>
+    <select id="selectLinkedTerminalConnectionState" resultType="java.lang.Boolean" flushCache="true" useCache="false">
+        -- null은 일반 목적/미완료, false는 고정 연결 변경이다.
+        SELECT attachment_linked_job_connections_unchanged(j.id)
+        FROM announcement_attachment_jobs j JOIN announcement_attachment_batches b ON b.id=j.batch_id
+        WHERE j.id=#{jobId} AND b.purpose_code='LINKED_EVIDENCE_ONLY'
+          AND j.job_status_code IN ('SUCCEEDED','PARTIAL_FAILED','FAILED') FOR UPDATE OF j
+    </select>
+    <update id="updateLinkedTerminalConflict">
+        -- 변경된 연결에는 경고를 적용하지 않는다. 확보된 근거는 작업 이력에 남긴다.
+        UPDATE announcement_attachment_jobs SET job_status_code='CONFLICT',error_code='FROZEN_INPUT_CHANGED',
+            lease_token=NULL,lease_expires_at=NULL,next_attempt_at=NULL,row_version=row_version+1,updated_at=clock_timestamp()
+        WHERE id=#{jobId} AND job_status_code IN ('SUCCEEDED','PARTIAL_FAILED','FAILED')
+          AND EXISTS (SELECT 1 FROM announcement_attachment_batches b WHERE b.id=batch_id AND b.purpose_code='LINKED_EVIDENCE_ONLY')
     </update>
+    <insert id="insertLinkedReviewNotice">
+        -- 완료 상태와 같은 transaction에서 작업당 한 번만 기록한다. 상세 소속은 V89 trigger가 재검증한다.
+        INSERT INTO announcement_attachment_linked_review_notices(job_id,batch_id,source_id,set_id,evaluation_id,reason_code)
+        SELECT j.id,j.batch_id,j.source_id,j.set_id,j.preview_evaluation_id,
+            CASE j.job_status_code WHEN 'SUCCEEDED' THEN 'EVIDENCE_READY'
+              WHEN 'PARTIAL_FAILED' THEN 'EVIDENCE_PARTIAL' ELSE 'COLLECTION_FAILED' END
+        FROM announcement_attachment_jobs j JOIN announcement_attachment_batches b ON b.id=j.batch_id
+        WHERE j.id=#{jobId} AND b.purpose_code='LINKED_EVIDENCE_ONLY'
+          AND j.job_status_code IN ('SUCCEEDED','PARTIAL_FAILED','FAILED')
+        ON CONFLICT(job_id) DO NOTHING
+    </insert>
     <update id="updateJobConflict">
         -- 변경된 원문/검수 위에 오래된 작업 결과를 덮어쓰지 않는다.
         UPDATE announcement_attachment_jobs

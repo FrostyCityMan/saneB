@@ -1,5 +1,15 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 worker terminal 경고 저장 연결 — 전체 회귀 통과
+
+전체 회귀 종료: 같은 세션을 재시작하지 않고 완료를 확인했다. `attachmentJobIntegrationTest --no-daemon --max-workers=1`은10분39초 성공, JUnit222건/612.252초·실패/오류/생략0이다. 공통 작업 서비스의 기존 예약·lease·예산·검수·배치 회귀 결과이며 아직 열지 않은 연결 원문 외부 수집의 성공 증거는 아니다.
+
+후속 `:test --tests '*AttachmentLinkedBatchRequestsTest' bootJar --no-daemon --max-workers=1`은24초 성공, 입력 계약3건·실패/오류/생략0 및 JAR 생성 성공이다. 새 DTO는 정책·명시 원문1~1000개·중복/빈 ID 거부·1~80MiB bytes·지문·명시 확인·사유를 검증하고 임의 입력을 거부하며 식별자/사유 toString 노출을 제한한다. 아직 Controller/예약 서비스에 연결하지 않은 입력 계약이며 API 구현 완료가 아니다. 이 DTO는 전체222건 실행 시작 뒤 추가했으므로 별도3건 결과로만 검증한다.
+
+성공/부분 완료 평가 저장, 직접 실패 처리, 최대100건 lease 만료 회수에서 공통 후처리를 같은 transaction으로 호출하도록 구현했다. 연결 근거 목적의 terminal job만 경고를 기록하고, source/link 잠금 뒤 연결 불일치이면 CONFLICT/FROZEN_INPUT_CHANGED로 분리한다. 일반 목적·재시도 대기는 경고를 생성하지 않는다. 기존 입력 fence는 아직 연결 원문의 실제 실행을 허용하지 않으며 전용 예약/실행 API는 미구현이다.
+
+`attachmentJobIntegrationTest --tests '*linkedNotice*' --tests '*linkedSnapshot*' --no-daemon --max-workers=1` 52초 성공,8건·실패/오류/생략0. 새2건은 직접 실패 자동 기록/중복 콜백 무쓰기/연결 변경 충돌, lease 소진 회수의 자동 실패 경고를 검증한다. 성공·부분 완료의 실제 worker 경고와 전체 회귀 통과를 의미하지 않는다. 처음 지정한 단위 시험 클래스는 존재하지 않아 No tests found로 종료됐으며 통과 수에 포함하지 않는다. 공통 JobService 변경 영향 확인을 위해 전체 `attachmentJobIntegrationTest --no-daemon --max-workers=1`을 실행 중이다. 결과 확정 전 커밋·운영 반영하지 않는다.
+
 ## 2026-10-03 연결 재검수 경고 조회 API
 
 `GET /api/v2/admin/announcement-sources/{sourceId}/attachment-linked-review-notices`를 기존 Controller→ReadService→ServiceImpl→EvidenceDao→Mapper 경로에 추가했다. 내부 조회3역할·원문 적격성·페이지1~1000000/크기1~100·ApiResponse/PageResponse·no-store를 유지한다. 경고 이력과 조회 시 연결 일치 여부를 구분하고 원문/URL/lease는 반환하지 않는다. v1 변경 없음, 읽기만 수행한다.

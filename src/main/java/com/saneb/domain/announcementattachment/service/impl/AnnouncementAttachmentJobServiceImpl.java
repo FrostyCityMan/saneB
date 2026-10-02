@@ -106,7 +106,7 @@ public class AnnouncementAttachmentJobServiceImpl implements AnnouncementAttachm
     @Override
     @Transactional
     public Optional<AttachmentJobRow> saveNextJobClaim() {
-        dao.updateExpiredJobLeases();
+        for(UUID expiredId:dao.updateExpiredJobLeases()) AttachmentLinkedEvidenceFinalizer.saveNotice(dao,expiredId);
         AttachmentJobRow job = dao.updateNextJobLease(UUID.randomUUID(), JOB_LEASE_SECONDS);
         if (job == null) return Optional.empty();
         AttachmentSourceContextRow source = dao.selectSourceContextDetails(job.sourceId());
@@ -152,8 +152,10 @@ public class AnnouncementAttachmentJobServiceImpl implements AnnouncementAttachm
     @Transactional
     public boolean saveJobFailure(UUID jobId, UUID leaseToken, AttachmentFailureCode errorCode) {
         Objects.requireNonNull(errorCode, "고정 실패 코드가 필요합니다.");
-        return dao.updateJobFailure(jobId, leaseToken, errorCode.retryable(), errorCode.name(),
+        boolean updated=dao.updateJobFailure(jobId, leaseToken, errorCode.retryable(), errorCode.name(),
                 ThreadLocalRandom.current().nextInt(11)) == 1;
+        if(updated) AttachmentLinkedEvidenceFinalizer.saveNotice(dao,jobId);
+        return updated;
     }
 
     @Override

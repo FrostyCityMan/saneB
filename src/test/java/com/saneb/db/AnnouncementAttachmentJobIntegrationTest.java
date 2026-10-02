@@ -2990,6 +2990,34 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("notice cannot be deleted");
     }
 
+    private UUID startLinkedFixture(UUID job,boolean expired) {
+        UUID token=UUID.randomUUID();
+        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx -> {
+            sql.update("UPDATE announcement_attachment_batches SET batch_status_code='COLLECTION_PENDING',collection_started_at=now(),collection_approval_hash=repeat('a',64),approved_by=?,row_version=row_version+1 WHERE id=(SELECT batch_id FROM announcement_attachment_jobs WHERE id=?)",actor,job);
+            sql.update("UPDATE announcement_attachment_jobs SET job_status_code='RUNNING',attempt_count=3,lease_token=?,lease_expires_at=clock_timestamp()+(? * interval '1 second'),row_version=row_version+1 WHERE id=?",token,expired?-1:120,job);
+        });
+        return token;
+    }
+
+    @Test void linkedNoticeFailureServiceWritesOnceAndChangedConnectionBecomesConflict() {
+        UUID job=insertLinkedSnapshotFixture(true),token=startLinkedFixture(job,false);
+        assertThat(service.saveJobFailure(job,token,AttachmentFailureCode.DISCOVERY_FAILED)).isTrue();
+        assertThat(service.saveJobFailure(job,token,AttachmentFailureCode.DISCOVERY_FAILED)).isFalse();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_review_notices WHERE job_id=?",Integer.class,job)).isEqualTo(1);
+        UUID changed=insertLinkedSnapshotFixture(true),changedToken=startLinkedFixture(changed,false);
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=(SELECT source_id FROM announcement_attachment_jobs WHERE id=?)",UUID.randomUUID(),changed);
+        assertThat(service.saveJobFailure(changed,changedToken,AttachmentFailureCode.DISCOVERY_FAILED)).isTrue();
+        assertThat(dao.selectJobDetails(changed).jobStatusCode()).isEqualTo("CONFLICT");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_review_notices WHERE job_id=?",Integer.class,changed)).isZero();
+    }
+
+    @Test void linkedNoticeExhaustedLeaseRecoveryRecordsFailureWithoutManualCallback() {
+        UUID job=insertLinkedSnapshotFixture(true);startLinkedFixture(job,true);
+        assertThat(service.saveNextJobClaim()).isEmpty();
+        assertThat(dao.selectJobDetails(job).jobStatusCode()).isEqualTo("FAILED");
+        assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
+    }
+
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));
