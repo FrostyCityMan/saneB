@@ -4,6 +4,8 @@
 
 후속 실제 PostgreSQL 표적 시험 `attachmentJobIntegrationTest --tests '*linkedEvidencePurpose*' --no-daemon --max-workers=1`은34초 성공,2건·실패/오류/생략0이다. STANDARD 배치 목적 변경은 목적 불변 trigger, 고정 범위 없는 LINKED_EVIDENCE_ONLY 생성은 `ck_att_linked_batch_scope`에서 각각 SQLSTATE23514로 거부됐고 쓰기 실패 후 상태 유지·기존 STANDARD 생성 성공을 확인했다. 신규 경로의 정상 수집이나 job 적용/원복 효과 차단 전체 시험은 아니다. 같은 작업 suite 전체 회귀는 별도 실행 중이며 이 표적 결과로 전체 통과를 선언하지 않는다.
 
+전체 회귀 종료: `attachmentJobIntegrationTest --no-daemon --max-workers=1`은10분27초 성공, 전용 XML214건/600.049초·실패/오류/생략0이다. 실행 중 thread 관측은 loopback PostgreSQL 연결 응답 대기를 보였으나 시험 메서드가 계속 바뀌었고 실행을 재시작하지 않았다. 이 관측만으로 지연의 근본 원인을 확정하지 않는다. 종료 후 시험 JVM/Gradle PID 종료를 확인했다. V87 기존 DB/작업 계약 회귀 증거이며 미구현 ATT-051 전체 연결·경고/API/worker와 운영 검증은 여전히 남는다.
+
 구현 계약은 [연결 공고 첨부 근거 갱신 설계](announcement-attachment-linked-evidence-design-2026-10-03.md)에 정리했다. V87에는 STANDARD 기본값과 LINKED_EVIDENCE_ONLY 목적 불변·적용/원복 차단만 추가했다. 전체 링크 집합 고정·경고 원장·API·worker 연결은 미구현이다. 기존 외부 요청 fence는 완화하지 않아 연결 원문 수집은 아직 불가능하다.
 
 V87 정적 migration 계약97건 통과·실패/생략0, 21초 성공이다. `AnnouncementAttachmentMigrationTest`4건은 로컬 환경 조건으로 전부 생략됐다. V86→87 순차 upgrade/기존 데이터 보존 및 새 제약·trigger 조회 assertion을 추가했으나 실제 PostgreSQL 실행 성공은 아니다. 기존 V1~V86 파일 변경 없음, 운영 DB/정책/worker 변경 없음. 다음은 고정 연결·경고 원장과 SQL 동작 시험이다.
