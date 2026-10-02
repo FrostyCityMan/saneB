@@ -2,6 +2,10 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 18:05 KST 운영 브라우저 CSRF403 해소·승인 QA 완료: 사용자 재로그인 후 COLLECT_ONLY/segment-role-1.0.4/80MiB 초안 `e10860ae-dbab-445a-a7e5-c318b9353ee0` 1건 저장, QA `6b34e59f-c58e-4df3-bfdf-1a02abcd47d0` 1회가 COLLECTION_VERIFIED/4단계 PASSED로 종료됐다. 실제 운영 DB 단계 증거 조회 SSM385fa2ee-21f5-4bc2-9bfc-70ff7bc9281e에서 errorCode 없음·격리 DB 원본정리true·정책DRAFT1/ACTIVE0·QA1/활성QA0·첨부작업0·원문2945/활성223/V86을 확인했다. 결합점검225(일치224·미등록1)은 외부 파일 성공 수가 아니다. 운영 ebc3ce4·health UP이며 이번 CSRF 수정/배포/초안1건/QA1회 승인은 완료됐다. 정책 게시·상시 worker·ENFORCE·기존 데이터 처리는 미실행, 전체 goal은 미완료다. 다음은 수집 전용 정책 게시·worker 활성화 영향 범위의 별도 확정이며 신규/재수집 기존 공고 영향을 함께 설명해야 한다.
+
+2026-10-02 18:00 KST CSRF 수정 `ebc3ce4`의 Linux36984800660 및 배포36986473820/CodeDeploy d-XKE993R4L 성공. 일반4223통과/381조건부생략·필수273·추출기251·Node541통과, 정책 DB QA 정리 성공. 운영 JAR/bundle 일치·V86·내외부health UP·복구 release·기존 플래그 보존을 확인했다. Database SSM8e7aa025-3057-4a80-8f40-f9e5ede58f21은 정책/QA/첨부작업0·원문2945·활성223을 확인했다. 브라우저 재조회에서 로그인 만료가 표시되어 사용자 재로그인을 요청했다. 수정 후 초안1건/QA1회는 아직 미실행이며 게시·worker·ENFORCE·기존 데이터 처리는 비범위다. 현재 Gate는 재로그인 후 운영 저장·QA 검증, 전체 goal 미완료다. 상세 영수증은 운영 기준선의 CSRF 절에 기록했다.
+
 2026-10-02 CSRF 연동 수정 승인 후 재개: 실제 로그인 화면이 발급한 쿠키와 원본 헤더를 사용하는 초안 저장 회귀 시험에서 수정 전 403을 재현했다. `BrowserCsrfTokenRequestHandler`로 API 헤더의 원본 토큰과 Thymeleaf 폼의 XOR 토큰을 구분하며, CSRF 적용 경로·역할 권한·쿠키/헤더 일치 필터를 유지한다. 테스트 `csrf()` 도우미가 공유 저장소를 바꾸는 간섭은 별도 Spring context로 분리했다. Java 선택51개 및 Node 정책/CSRF55개 통과·bootJar 성공. 운영 사전 Runtime SSM b44d4e69-0a60-431a-b7d1-31adb1a7e7a1 Success: 52e068f/V86·health UP·정책QA true·첨부worker UNSET·복구 파일 존재. Linux CI·수정 코드 배포·운영 초안1건/QA1회는 대기다. 게시·상시 worker·ENFORCE·기존 데이터 처리는 비범위이며 전체 goal은 미완료다.
 
 2026-10-02 17:00 KST HTTP UUID 수정52e068f Linux36978950505 및 배포36980445726/CodeDeploy d-NJOOT9JU8 성공. bundle/운영JAR 일치·V86·health UP·정책QA true/첨부worker 비활성·복구 JAR/release 확인. 사용자 재로그인 후 정책 저장은 UUID 예외 없이 서버 요청에 도달했으나403으로 거부됐고 목록 재조회에서0건이다. QA는 미실행, 게시·상시 worker·ENFORCE·기존 데이터 미실행 유지. 공통 JS의 raw cookie 우선 전송/별도 header 일치 필터와 Spring 기본 XOR 검증 간 불일치를 정적 원인 후보로 확인했다. 실제 cookie/header 회귀 재현 및 공통 보안 연동 수정·재배포는 추가 범위 확인 대상이며 보안 비활성화나 우회는 하지 않았다. 운영 저장/QA Gate 및 전체 goal 미완료. 상세 증거는 운영 기준선의 HTTP 정책 요청 키 절에 기록했다.

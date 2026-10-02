@@ -1,5 +1,23 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 CSRF 쿠키·헤더 연동 수정 및 승인 배포
+
+- 승인 범위: CSRF 보호를 유지한 공통 연동 수정·시험·커밋/푸시·운영 재배포, 이후 COLLECT_ONLY 초안1건과 정책QA1회. 게시·상시 첨부 worker·ENFORCE·기존 데이터 처리는 제외한다.
+- 소스 `ebc3ce4366dbd8366de26294c22fb9e3046ac911`. 실제 로그인 화면 발급 쿠키와 원본 헤더를 전송하는 회귀 시험에서 수정 전201 대신403을 재현했다. API 원본 헤더와 Thymeleaf XOR 폼 토큰을 각각 해석하며, 기존 CSRF 적용 경로·쿠키/헤더 일치 필터·역할 권한을 그대로 유지한다. 새 migration·DB/API/의존성 변경 없음.
+- 기술 근거: [Spring Security 6.4.5 CSRF 공식 설명](https://github.com/spring-projects/spring-security/blob/6.4.5/docs/modules/ROOT/pages/servlet/exploits/csrf.adoc)의 JavaScript 쿠키 및 마스킹 폼 통합 방식. 보호를 끄지 않고 토큰 전달 계약을 맞춘다.
+- [x] 로컬 Java51·Node 정책/CSRF55 통과, bootJar 성공. 테스트 도우미 `csrf()`가 공유 저장소를 바꾸는 간섭은 실제 쿠키 계약 전용 Spring context로 분리했다. 누락/불일치/쿠키 없음/잘못된 형식 헤더·비관리자 거부와 마스킹 폼 로그아웃·새 토큰 발급을 확인했다.
+- [x] Linux Actions `36984800660` success/artifact `11217706648`: 일반4604 중4223통과/381조건부생략, 별도필수273·추출기251·Node541 실패/생략0. 독립 산출물 실행·정책 DB 연결/취소/정리 성공 및 `POLICY_DB_QA_CLEANUP=SUCCEEDED` 확인.
+- [x] 사전 Runtime SSM `b44d4e69-0a60-431a-b7d1-31adb1a7e7a1` Success: 기존52e068f/V86·health UP·정책QA true·첨부worker UNSET·복구 JAR/release 존재.
+- [x] 동일SHA 배포 Actions `36986473820` success, CodeDeploy `d-XKE993R4L` Succeeded. `attachment_qa=false`, `ATTACHMENT_SERVER_QA=NOT_REQUESTED` 유지.
+- [x] 사후 Runtime SSM `c78e404c-cf6a-4d3c-a92a-fae3d6531e34`, DeploymentEvidence `bf55eda8-17fb-4142-9fec-9bcf7b1a6220` Success. bundle/운영 JAR hash 모두 `21f9a2b6dea959d6912fecd295a5830ae845b35d267d4723974723592f76e8e5`. 서비스 active·내부health UP·외부HTTP200/UP. 이전52e068f JAR hash `ba6283e86ba57b3785933bbe5fb5aa41fb2d88eaa8864a5fa1ccdff81a47ac6f` 및 해당 release 존재.
+- [x] 추출기1.0.16의 이번 패키지 hash `139e0523f824e0ccfd2c76f4d3a2beee42530260beca2aff4da262582ee9a72a`, librarySet `6e0752d1aff98031454c45df3f8cc6800ec9274c0aa566976cbcca5da19ad073`, executionCode `5614d676f7e91c5e0ed2ff7c37942e46afbec076466e7ddee7ad3ea1ce60968b`. 설치/QA 추출기 및 worker/QA 경로가 현 JAR release와 일치한다. 정책QA true·첨부worker/ProviderQA/rollback UNSET·기존 수집 플래그 유지.
+- [x] Database SSM `8e7aa025-3057-4a80-8f40-f9e5ede58f21` Success: V86/실패0·정책/ACTIVE/첨부집합/파일/추출/job/batch/QA0, 기존 원문2945·활성 지역223/목록파서41. READ ONLY/ROLLBACK·writes0.
+- [x] 배포 후 인증 만료에 따른 사용자 재로그인 완료. 17:59:39 KST 운영 브라우저에서 초안 `e10860ae-dbab-445a-a7e5-c318b9353ee0` 1건 저장 성공. ASCR-000001·COLLECT_ONLY·segment-role-1.0.4·83,886,080바이트, DRAFT/version0·게시 시각 없음. CSRF403은 실제 저장 경로에서 해소됐다.
+- [x] 18:00:06 KST 정책QA `6b34e59f-c58e-4df3-bfdf-1a02abcd47d0` 1회 예약, 18:05:02 종료·`COLLECTION_VERIFIED`. COLLECTION_SAFETY_V1·정책/규칙버전0/1·고정입력 `9f4b7c0254b464eda7243eb7832458538c75727434b105e5326573db761a0ea5`. CLASSIFICATION_GOLDEN/INSTALLED_RUNTIME/COLLECTION_SAFETY/WORKER_DB_RECOVERY 4단계 PASSED, errorCode 없음. 결합 대상225(일치224·프로필 미등록1)은 실제 외부 다운로드 성공 수가 아니다.
+- [x] 브라우저 실제 저장/QA 영수증과 단계별 성공 확인. 증거 `build/qa-tools/policy-collection-qa-verified-20261002.png` 및 `policy-collection-qa-four-stages-20261002.png`. 운영403 해소·QA4단계 통과이며 정책은 DRAFT/version0, 게시 시각 없음.
+- [x] 사후 Database SSM `a23d8aea-1594-4efe-a525-0e56beab333a` 및 단계 증거 조회 `385fa2ee-21f5-4bc2-9bfc-70ff7bc9281e` Success: 정책1/DRAFT COLLECT_ONLY·ACTIVE0·QA1/진행중0·첨부집합/파일/추출/job/batch0·V86·기존 원문2945·활성지역223. WORKER_DB_RECOVERY `originalRemoved=true`, 단계 증거 hash `d5d596d46d8d37a70406c3e4d3fbe4da4bd3dfff8800063b4ab0837f6da876ac` 확인. DB 조회는 READ ONLY/ROLLBACK·writes0. 종료 후 외부health HTTP200/UP.
+- 이번 승인 범위는 완료했다. 정책 게시·상시 worker·ENFORCE·기존 데이터 처리는 미실행이며 다음 단계의 별도 범위 확정이 필요하다. worker를 활성화하면 신규뿐 아니라 다시 수집되는 기존 공고에도 영향을 줄 수 있으므로 신규 전용으로 설명하지 않는다. 전체 goal 및 상시 수집은 미완료다. HTTP 전송 위험과 HTTPS 전환은 별도 후속 범위로 남는다.
+
 ## 2026-10-02 HTTP 정책 요청 키 수정 및 승인 배포
 
 - 승인 범위: HTTP 호환 수정·검증·커밋/푸시·운영 코드 배포 후 COLLECT_ONLY 초안1건/정책QA1회 재개. 게시·상시 worker·ENFORCE·기존 데이터 배치는 제외한다.
