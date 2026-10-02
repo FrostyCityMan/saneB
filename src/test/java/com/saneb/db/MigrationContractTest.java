@@ -20,6 +20,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void linkedConnectionSnapshotStoresAllPairsAndRemainsSeparateFromExecutionFence() throws IOException {
+        var sql=new ClassPathResource("db/migration/V88__freeze_linked_attachment_job_connections.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("ORDER BY l.id", "'linkId',l.id,'announcementId',l.announcement_id",
+                "FOREIGN KEY (job_id,source_id)", "ON DELETE CASCADE", "FOR UPDATE", "FOR SHARE",
+                "NEW.links_json IS DISTINCT FROM attachment_source_link_snapshot(NEW.source_id)",
+                "DEFERRABLE INITIALLY DEFERRED", "linked attachment connection snapshot is immutable",
+                "linked attachment connection snapshot cannot be deleted", "attachment_linked_job_connections_unchanged");
+        assertThat(sql).doesNotContain("REFERENCES announcement_source_links", "UPDATE announcement_", "DELETE FROM",
+                "CREATE OR REPLACE FUNCTION attachment_batch_job_input_unchanged", "DISABLE TRIGGER");
+    }
+
     @Test void linkedEvidencePurposePreservesStandardBatchesAndCannotApplyOrRollback() throws IOException {
         var sql=new ClassPathResource("db/migration/V87__separate_linked_attachment_evidence_batch_purpose.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("NOT NULL DEFAULT 'STANDARD'", "LINKED_EVIDENCE_ONLY",

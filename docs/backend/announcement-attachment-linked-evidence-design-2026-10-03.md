@@ -1,6 +1,6 @@
 # ATT-051 연결 공고의 첨부 근거 갱신 계약
 
-상태: 저장소 조사에 기반한 구현 설계. V87에 배치 목적·효과 차단의 DB 기반만 추가했다. 전체 연결 snapshot·경고 원장·API·worker 연결은 아직 구현하지 않았다. 운영 미반영이다.
+상태: 구현 진행 중. V87에 배치 목적·효과 차단, V88에 작업별 불변 연결 snapshot과 비교 함수를 추가했다. V88 순차/빈 DB migration 및 연결 교체 비교는 실제 PostgreSQL에서 통과했다. snapshot 쓰기 거부·경합 시험, 경고 원장·API·worker 연결은 남아 있다. 운영 미반영이다.
 기준 HEAD: `0e840600a67973a2bf6f4a371173af68922d0589`.
 근거: `announcement-attachment-collection-design-2026-09-08.md` 12.2, `announcement-attachment-qa-plan-2026-09-08.md` ATT-051.
 
@@ -24,7 +24,7 @@
 | `AnnouncementAttachmentBatchServiceImpl` | 범위/locator/정책/이전 binding 고정, `applyToSource=false` 작업 | 전체 link 집합을 추가 고정, 일반 적용·원복 대상과 구분 |
 | V75 `attachment_batch_job_input_unchanged` | 매 요청 경계에서 링크 존재를 거부 | 명시 목적에만 전체 link 집합 일치 분기 허용 |
 | `AnnouncementAttachmentEvaluationServiceImpl.saveDecision` | batch이면 preview만 저장; 일반 job이면 current/confirmation 변경 | 반드시 batch 경로 사용, 별도 경고를 같은 transaction으로 저장 |
-| V26 `announcement_source_links` | unique(source_id, announcement_id), source 단독 unique 아님 | 단일 링크 가정 금지. 모든 링크 ID와 announcement ID 고정 |
+| V68 `announcement_source_links` | unique(source_id), 원문당 최대 1개 연결 | 개수뿐 아니라 link ID와 announcement ID를 고정하여 같은 건수의 교체 감지 |
 
 단건 일반 작업에 예외만 허용하면 current evaluation과 confirmation을 변경할 수 있으므로 사용하지 않는다. UI의 적용 버튼 숨김만으로 보호하지 않는다.
 
@@ -35,7 +35,7 @@
 ### 3.1 작업 목적과 고정 연결
 
 - batches에 `purpose_code NOT NULL DEFAULT 'STANDARD'` 추가: `STANDARD`, `LINKED_EVIDENCE_ONLY`만 허용. 기존 행/요청의 의미는 그대로다. 생성 후 변경 금지.
-- 별도 고정 연결 테이블은 batch_id, source_id, link_id, announcement_id를 저장한다. PK는 `(batch_id, source_id, link_id)`. batch와 source의 FK 및 조회 인덱스를 둔다. 기존 link가 삭제/교체되었을 때 고정 증거가 조용히 사라지지 않도록 live link 삭제 cascade는 사용하지 않는다.
+- V88의 별도 고정 연결 테이블은 job_id(PK), source_id, links_json을 저장한다. `(job_id, source_id)` 복합 FK로 작업 소속을 보장하고 JSON에는 linkId·announcementId 쌍을 저장한다. 현재 V68 제약상 연결은 최대 1개이며 배열 표현이 다중 연결을 허용한다는 뜻은 아니다. 기존 link가 삭제/교체되어도 고정 증거는 보존하며 live link 삭제 cascade는 사용하지 않는다.
 - 고정 source가 삭제될 때의 개인정보/원문 정리 정책은 기존 source 삭제 계약을 따른다. 삭제 항목은 batch의 고정 분모와 삭제 집계에 남기되 원문 URL·텍스트를 별도 보관하지 않는다.
 - 고정 연결은 예약 transaction에서 전체 집합을 저장한 뒤 불변이다. 단순 count/hash만 저장하지 않으며 link 추가·삭제·같은 개수의 교체를 모두 비교한다.
 - linked 목적 job은 `batch_id` 필수, operation은 기존 `COLLECT`, `application_status_code='NOT_REQUESTED'`, `rollback_status_code='NOT_REQUESTED'`, 선택 적용 false다. 다른 조합을 DB에서도 거부한다.
@@ -94,7 +94,7 @@
 
 필수 시험:
 
-1. 같은 source의 연결2개를 모두 고정. 한 개 추가/삭제/동일 건수 교체를 예약·시작·HTTP 전·봉인 전에 각각 충돌 처리.
+1. V68 원문당 단일 연결 제약을 유지한다. 연결 삭제·동일 건수의 link ID/공고 ID 교체를 예약·시작·HTTP 전·봉인 전에 각각 충돌 처리한다. 다른 원문의 연결은 해당 snapshot에 포함하지 않는다. V26만 보고 다중 연결 가능으로 판단했던 초기 설계를 V68과 실제 PostgreSQL 오류에 근거하여 정정했다.
 2. 정상 PDF/HWP/HWPX·부분/손상/미지원 혼합·첨부 없음·발견 실패에서 파일 분모/오류 보존 및 경고 사유 구분.
 3. 실제 DB에 연결된 공고의 상태·조건·신청/진행 행을 만들고 전후 모든 컬럼 snapshot을 비교. 변경0을 직접 assertion한다.
 4. base/current evaluation, confirmation, policy binding, source versions의 전후 동일성. 경고와 set/evaluation만 새 이력으로 증가.

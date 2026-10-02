@@ -310,6 +310,32 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('tr_att_batch_purpose','tr_att_linked_job_effect') AND tgenabled='O'",Integer.class)).isEqualTo(2);
             assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('attachment_batch_job_input_unchanged'::regproc)",String.class))
                     .contains("AND NOT EXISTS (SELECT 1 FROM announcement_source_links");
+            var linkedScopeUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("88").load();
+            assertThat(linkedScopeUpgrade.migrate().migrationsExecuted).isEqualTo(1);linkedScopeUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes",Integer.class)).isZero();
+            var linkTransaction=new org.springframework.transaction.support.TransactionTemplate(new org.springframework.jdbc.datasource.DataSourceTransactionManager(dataSource));
+            linkTransaction.executeWithoutResult(tx -> {
+                UUID source=workerSql.queryForObject("SELECT source_id FROM announcement_source_links ORDER BY id LIMIT 1",UUID.class);
+                UUID actor=workerSql.queryForObject("SELECT linked_by FROM announcement_source_links WHERE source_id=? ORDER BY id LIMIT 1",UUID.class,source);
+                String original=workerSql.queryForObject("SELECT attachment_source_link_snapshot(?)::text",String.class,source);
+                assertThat(workerSql.queryForObject("SELECT jsonb_array_length(attachment_source_link_snapshot(?))",Integer.class,source)).isEqualTo(1);
+                workerSql.update("DELETE FROM announcement_source_links WHERE source_id=?",source);
+                assertThat(workerSql.queryForObject("SELECT attachment_source_link_snapshot(?)::text",String.class,source)).isEqualTo("[]");
+                UUID announcement=UUID.randomUUID(),link=UUID.randomUUID();
+                workerSql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','연결 snapshot 시험','합성 기관','HIDDEN','DRAFT')",announcement);
+                workerSql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",link,source,announcement,actor);
+                String changedTarget=workerSql.queryForObject("SELECT attachment_source_link_snapshot(?)::text",String.class,source);
+                assertThat(workerSql.queryForObject("SELECT jsonb_array_length(attachment_source_link_snapshot(?))",Integer.class,source)).isEqualTo(1);
+                assertThat(changedTarget).contains(link.toString(),announcement.toString()).isNotEqualTo(original);
+                workerSql.update("DELETE FROM announcement_source_links WHERE id=?",link);
+                UUID replacement=UUID.randomUUID();
+                workerSql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",replacement,source,announcement,actor);
+                assertThat(workerSql.queryForObject("SELECT jsonb_array_length(attachment_source_link_snapshot(?))",Integer.class,source)).isEqualTo(1);
+                assertThat(workerSql.queryForObject("SELECT attachment_source_link_snapshot(?)::text",String.class,source))
+                        .contains(replacement.toString(),announcement.toString()).isNotEqualTo(changedTarget);
+                assertThat(workerSql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,UUID.randomUUID())).isFalse();
+                tx.setRollbackOnly();
+            });
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {

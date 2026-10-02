@@ -1,5 +1,13 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 V88 연결 snapshot 기반 검증
+
+V88은 작업/source 복합 FK, 예약 시 연결 ID·공고 ID snapshot 저장, snapshot 수정/단독 삭제 방지, 예약 transaction 종료 시 snapshot 존재 확인, 현재 연결과의 비교 함수를 추가한다. 기존 외부 요청 fence는 변경하지 않으며 경고 원장·전용 API·worker 연결은 남아 있다.
+
+첫 실제 DB 시험은 `uq_announcement_source_links_source` 위반으로 실패했다. V26만 근거로 같은 원문에 복수 연결을 허용한다고 판단했던 설계를 V68의 원문당 단일 연결 계약에 맞춰 정정했다. 제약을 완화하지 않고 시험을 연결 삭제·대상 교체·동일 대상의 link ID 교체로 수정했다.
+
+재실행 명령 `:test --tests '*MigrationContractTest' attachmentMigrationTest --tests '*freshSchemaAndV71UpgradePreservePriorChecksums' --no-daemon --max-workers=1`은50초 성공이다. 정적 계약98건 및 실제 PostgreSQL migration1건이 실패/오류/생략 없이 통과했다. V71→88 순차 적용·빈 DB validate·기존 행/checksum 보존과 snapshot 비교를 확인했다. snapshot 삽입/변경/삭제 거부 및 동시성 전체 계약을 입증한 것은 아니며 해당 시험은 후속으로 남긴다. 운영 DB·정책·worker 변경 없음.
+
 ## 2026-10-03 ATT-051 기능 누락 확인
 
 후속 실제 PostgreSQL 표적 시험 `attachmentJobIntegrationTest --tests '*linkedEvidencePurpose*' --no-daemon --max-workers=1`은34초 성공,2건·실패/오류/생략0이다. STANDARD 배치 목적 변경은 목적 불변 trigger, 고정 범위 없는 LINKED_EVIDENCE_ONLY 생성은 `ck_att_linked_batch_scope`에서 각각 SQLSTATE23514로 거부됐고 쓰기 실패 후 상태 유지·기존 STANDARD 생성 성공을 확인했다. 신규 경로의 정상 수집이나 job 적용/원복 효과 차단 전체 시험은 아니다. 같은 작업 suite 전체 회귀는 별도 실행 중이며 이 표적 결과로 전체 통과를 선언하지 않는다.
