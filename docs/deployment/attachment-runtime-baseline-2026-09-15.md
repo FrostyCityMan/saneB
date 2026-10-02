@@ -1,5 +1,20 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 21:41 KST 재현 빌드 수정 운영 설치 확인
+
+- `371b1acda13deed4740c5f3377cc0b298d4cee09` 배포 Actions `37007234074` success, CodeDeploy `d-R1AEF7V4L` Succeeded. Runtime SSM `b7377184-cce3-485e-9495-4efb51fe31f5`, DeploymentEvidence `4c55d16d-9255-41c8-a7b0-d5aea3c36433` Success. 설치/bundle JAR `403127f717293c73989685b874d487cf76e0031a6b7dd010833e7c9f8402b390` 일치, service active·health UP·V86·기존 플래그 유지, 이전 e831255 JAR/release 존재.
+- 설치 추출기1.0.16 SHA-256 `87963ba76fce94edac02c82e48ebcae2507da8c9163155af2bf5f8392f826e27`는 Windows 강제 빌드2회 결과와 정확히 같다. 38개 ZIP 엔트리 시각은 모두1980-02-01 00:00:00으로 고정되고, 내부 내용 지문은 이전과 같은51dfc77d다. librarySet `6ee140e3da8c458d862c122f30c1870b419201fdfc462c29a0e2347bef1a0241`, 실행 코드 지문은 이전과 같은7cb6406b다. worker/QA 추출기 경로와 librarySet도 일치한다. 파일 지문 검사를 우회하지 않았다.
+- Database SSM `7bfc3bbf-0cd3-4b2b-b791-d030d02ccbbf` Success: V86/실패0·원문2945·활성 지역223·ACTIVE COLLECT_ONLY1·첨부 집합/파일/추출/job 각1·진행중0·배치0·QA2/진행중0 유지. READ ONLY/ROLLBACK·writes0. 외부 파일 QA 자동 실행은 NOT_REQUESTED다.
+- 제공된 테스트 계정으로 재시작 후 로그인을 직접 복구했다. 새 설치의 기존 HWPX 파일 상세에서 처리 완료·11,398자와 COLLECT_ONLY 미적용·검수/DRAFT 비활성을 확인했다. 정책 검증 범위 조회 오류는 유지되어 신규 수집 준비 완료가 아니다. 해당 두 탭 console error0은 업무 조회 성공을 뜻하지 않는다. 증거 `build/qa-tools/provider-coverage-after-reproducible-deploy-20261002.png`.
+- 빌드 지문 변동 수정의 설치 Gate는 완료다. 동일 설정 정책 개정·QA·재게시 승인은 계속 대기 중이며 새 첨부 예약·ENFORCE·기존 데이터 적용·공고 공개를 하지 않았다. Linux Node550 실패/생략0도 로그로 확인했다. 전체9Gate와 업무 E2E는 미완료다.
+
+## 2026-10-02 21:31 KST 재현 빌드 수정 Linux 통과·배포 시작
+
+- 대상 `371b1acda13deed4740c5f3377cc0b298d4cee09`, Linux CI `37005549445` success. artifact `11226715045` XML: 일반4,608건 중4,227통과/381조건부생략/실패0, 필수통합273건·추출기251건 실패/생략0. 독립 namespace 실행과 정책 부모 DB 연결·취소·정리 성공, `POLICY_DB_QA_CLEANUP=SUCCEEDED`.
+- 배포 전 Runtime SSM `f240c2fe-f77c-47a3-8aff-48444816e1d9`, Database SSM `041d4f0c-5734-4464-892f-aafdc451c918` Success: e831255·V86·health UP, worker/정책QA true, 이전 JAR/release 존재. 기존 HWPX 집합/파일/추출/job 각1·진행중0·배치0·COLLECT_ONLY ACTIVE1 유지. 조회는 READ ONLY/ROLLBACK이며 쓰기0이다.
+- 정확한 원격 SHA를 재확인한 뒤 Actions `37007234074`를 `attachment_qa=false`로 시작했다. 이 기록 시점에는 새 설치·health·브라우저 성공이 아직 확인되지 않았다. DDL·정책·기존 데이터·분류 의미 변경은 배포 범위가 아니다.
+- 새 정책 개정은 원본 설정과 기존 설치 지문을 복사한다. 승인 후 새 DRAFT에 동일 COLLECT_ONLY·구간1.0.4·80MiB 설정을 저장하여 현재 시스템 구성을 갱신하고 새 QA·영향 조회·준비 범위·게시를 수행해야 한다. ACTIVE 정책을 직접 수정하거나 과거 QA를 새 설치의 통과 근거로 재사용하지 않는다. 재게시 승인은 대기 중이다.
+
 ## 2026-10-02 21:08 KST 후속 설치 및 추출기 빌드 지문 결함
 
 - e8312553ef70adeb95fbbc9b273d17e06f569679의 Linux37002599043와 배포37004084299 success, CodeDeploy d-CYEA7RU4L Succeeded. 코드 수정은 HTTP 요청 키와 ACTIVE 정책의 읽기 전용 검증 범위 조회이며 DDL·정책 변경 없음.
