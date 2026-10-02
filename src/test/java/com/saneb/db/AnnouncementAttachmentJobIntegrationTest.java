@@ -2844,6 +2844,45 @@ class AnnouncementAttachmentJobIntegrationTest {
         var preview=batchService().selectScopePreview(reviewActor(),scope);
         return new com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests.Reservation(scope,preview.scopeHash(),"테스트 소유 배치 범위");
     }
+    @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
+        UUID source=selectRequest().sourceId();insertCollectionLocator(source);
+        var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));
+        assertThat(sql.queryForObject("SELECT purpose_code FROM announcement_attachment_batches WHERE id=?",String.class,batch.batchId()))
+                .isEqualTo("STANDARD");
+        assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_batches SET purpose_code='LINKED_EVIDENCE_ONLY' WHERE id=?",batch.batchId()))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(error -> {
+                    var cause=((DataIntegrityViolationException)error).getMostSpecificCause();
+                    assertThat(cause).isInstanceOf(java.sql.SQLException.class);
+                    assertThat(((java.sql.SQLException)cause).getSQLState()).isEqualTo("23514");
+                    assertThat(cause.getMessage()).contains("attachment batch purpose is immutable");
+                });
+        assertThat(sql.queryForObject("SELECT purpose_code FROM announcement_attachment_batches WHERE id=?",String.class,batch.batchId()))
+                .isEqualTo("STANDARD");
+        assertThat(batchService().selectBatchDetails(reviewActor(),batch.batchId()).jobCounts()).containsEntry("SCOPE_READY",1L);
+    }
+
+    @Test void linkedEvidencePurposeRejectsMissingFrozenScopeWithoutBreakingLegacyStandardInsert() {
+        String insert="""
+                INSERT INTO announcement_attachment_batches
+                (id,batch_type_code,policy_id,scope_json,scope_hash,maximum_count,requested_by,reason_hash,idempotency_key,request_hash,purpose_code)
+                VALUES (?,'BACKFILL',?,'{}'::jsonb,repeat('a',64),1,?,repeat('b',64),?,repeat('c',64),?)
+                """;
+        UUID rejected=UUID.randomUUID();
+        assertThatThrownBy(()->sql.update(insert,rejected,policy,actor,UUID.randomUUID(),"LINKED_EVIDENCE_ONLY"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(error -> {
+                    var cause=((DataIntegrityViolationException)error).getMostSpecificCause();
+                    assertThat(cause).isInstanceOf(java.sql.SQLException.class);
+                    assertThat(((java.sql.SQLException)cause).getSQLState()).isEqualTo("23514");
+                    assertThat(cause.getMessage()).contains("ck_att_linked_batch_scope");
+                });
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches WHERE id=?",Integer.class,rejected)).isZero();
+        UUID standard=UUID.randomUUID();
+        assertThat(sql.update(insert,standard,policy,actor,UUID.randomUUID(),"STANDARD")).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT purpose_code FROM announcement_attachment_batches WHERE id=?",String.class,standard)).isEqualTo("STANDARD");
+    }
+
     @Test void batchScopeIsFrozenInJobsAndCannotBeClaimedBeforeCollection() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);var original=dao.selectSourceContextDetails(source);
         var request=batchRequest(batchScope(100));var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),request);
