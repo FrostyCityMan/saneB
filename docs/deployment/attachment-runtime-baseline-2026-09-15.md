@@ -1,5 +1,20 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 HTTP 정책 요청 키 수정 및 승인 배포
+
+- 승인 범위: HTTP 호환 수정·검증·커밋/푸시·운영 코드 배포 후 COLLECT_ONLY 초안1건/정책QA1회 재개. 게시·상시 worker·ENFORCE·기존 데이터 배치는 제외한다.
+- 소스 `52e068f180f5f0413320dc60c6ab3d7ff1fcc22d`. 정책 화면의 UUID만 native 또는 getRandomValues 기반 v4로 생성한다. 난수 미지원 시 요청 전 차단·한국어 안내·입력 보존, 재시도 시 기존 키/본문 유지. DB/API/의존성 변경 없음. 기존 화면과 확인 흐름을 재사용하며 시각 변경은 없다.
+- 로컬 정책 Node49 통과, 전체 Node532통과/Windows의 Linux전용3생략, Java 화면8통과/bootJar성공. 최초 Gradle의 서브프로젝트 테스트 필터 실패는 `:test` 명시로 해소했다.
+- Linux Actions36978950505 success/artifact11215118120: 일반4596 중4215통과/381조건부생략, 별도필수273·추출기251·Node535 실패/생략0. 독립 산출물 실행 및 정책 DB 연결/취소/정리 성공, `POLICY_DB_QA_CLEANUP=SUCCEEDED` 확인.
+- 배포 전 Runtime SSM70f734df-5934-4fd3-bd6c-bf9d94a8f5fc·Database f1836bae-2910-4614-a527-02dce196cc2e Success. 운영0fa8631/V86·health UP·정책QA true·첨부worker UNSET·정책/QA/첨부작업0, 이전 JAR/release 존재.
+- [x] 동일SHA 배포 Actions36980445726 success, CodeDeploy `d-NJOOT9JU8` Succeeded. `attachment_qa=false`이며 `ATTACHMENT_SERVER_QA=NOT_REQUESTED` 확인.
+- [x] Runtime SSM `8ce48ed0-ca43-4f2b-87bd-7193de0ccc4b`, DeploymentEvidence `3f97a632-3645-4a96-88ed-2d31432d395e` Success. bundle/설치 JAR hash 모두 `ba6283e86ba57b3785933bbe5fb5aa41fb2d88eaa8864a5fa1ccdff81a47ac6f`. 내부 및 외부 health UP/HTTP200, V86 유지, 정책QA true/첨부worker UNSET 유지. 이전0fa8631 JAR/release 존재.
+- [x] 추출기1.0.16의 이번 빌드 hash `07b7fb84c97a52d0533a9a9ee9caa1951e28abafbab9b647e21d1ac3abcf242b`, librarySet `70b881ce043fe9e9e756dae30790b18a84114e3e911479e54a2030827350f68e`, executionCode `873124ad328cd4781e28ff4a16674526c3edc2b1c47cdd1339bd2a973dda6163`. QA/worker 경로는 현재 JAR release와 일치한다.
+- [x] 설치 직후 Database SSM `f983fccd-f978-48b7-875b-bc9600a55704` Success: V86, 정책/QA/첨부작업0. READ ONLY/ROLLBACK, writes0.
+- [!] 관리자 재로그인 후 새 안내 문구가 포함된 화면에서 초안 저장1회 실행. UUID 예외는 해소됐지만 서버403으로 거부됐다. 확인창 종료 후 목록 재조회에서 정책0건 확인. QA 예약은 미실행이며 승인된 QA1회는 소비하지 않았다. 증거 `build/qa-tools/policy-draft-forbidden-20261002.png`.
+- 정적 원인 후보: `saneb-csrf.js`는 raw cookie 값을 우선 전송하고 `ApiCsrfHeaderFilter`도 cookie/header 동일값을 요구하지만, 신규 v2 보호 경로의 Spring 기본 XOR CSRF handler는 인코딩된 값을 기대한다. 기존 controller 시험의 `with(csrf())`는 실제 cookie→JS header 경로를 재현하지 않는다. 운영 응답만으로 어느 필터가 거부했는지는 아직 확정하지 않았다. 공통 CSRF 전달·검증 계약을 실제 session/cookie 요청으로 재현하고 수정할 추가 범위 확인이 필요하다. CSRF 비활성화·우회·권한 확대는 하지 않았다.
+- HTTP 호환 수정은 전송 암호화를 제공하지 않는다. HTTPS 전환과 다른 첨부 작업 화면의 직접 randomUUID 호출은 별도 후속 범위다.
+
 ## 2026-10-02 16:24 KST 정책 초안 저장 브라우저 오류
 
 - [x] 사용자 재로그인 후 관리자 대시보드와 정책 화면 접근 확인.
