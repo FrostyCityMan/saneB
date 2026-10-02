@@ -231,6 +231,6 @@
         const navigation={read:()=>{const p=new URL(root.location.href).searchParams,out={};for(const k of ["listPage","itemPage","previewPage","rollbackPage","historyPage"]){const n=Number(p.get(k));out[k]=Number.isInteger(n)&&n>=1&&n<=(k==="historyPage"?2147483647:1000000)?n:1;}for(const k of ["batchId","actionId","actionKind"])out[k]=p.get(k);
             if(p.has("historyVersion")){const v=Number(p.get("historyVersion"));if(B.count(v)&&v<=2147483647)out.historyVersion=v;}return out;},
             write:patch=>{const u=new URL(root.location.href);for(const[k,v]of Object.entries(patch)){if(v==null)u.searchParams.delete(k);else u.searchParams.set(k,String(v));}root.history.replaceState(null,"",u.pathname+u.search);}};
-        const app=mount({page,B,C,request:B.client(root.fetch.bind(root),C),doc:root.document,uuid:()=>root.crypto.randomUUID(),navigation});
+        const app=mount({page,B,C,request:B.client(root.fetch.bind(root),C),doc:root.document,uuid:()=>C.requestUuid(root.crypto),navigation});
         root.addEventListener("beforeunload",e=>{if(app.dirty){e.preventDefault();e.returnValue="";}});app.start();}
 })(globalThis);

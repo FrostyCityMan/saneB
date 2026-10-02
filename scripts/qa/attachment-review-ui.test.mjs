@@ -46,6 +46,54 @@ test('attachment collect, review and recovery entrypoints share the HTTP-compati
         assert.match(script,/C\.mutation\(\)/);
     }
 });
+
+for (const [entry,coreName,coreGlobal] of [
+    ['batches','review','SanebAttachmentReview'],
+    ['backfills','review','SanebAttachmentReview'],
+    ['provider-qa','policy','SanebAttachmentPolicy']
+]) {
+    test(`${entry} browser entrypoint wires HTTP-safe keys and refuses missing secure randomness`, async () => {
+        let factory,randomCalls=0;
+        const mounted=new Error('request factory captured');
+        const page={dataset:{isAdmin:'true'},querySelector:()=>({})};
+        const browser={document:{querySelector:()=>page},fetch:()=>{throw new Error('network must not run');},
+            crypto:{getRandomValues(bytes){bytes.fill(++randomCalls);return bytes;}}};
+        const read=name=>readFile(new URL(`../../src/main/resources/static/js/saneb-attachment-${name}.js`,import.meta.url),'utf8');
+        runInNewContext(await read(`${coreName}-core`),browser);
+        const capture=uuid=>{factory=uuid;throw mounted;};
+        browser.SanebAttachmentBatch={client:()=>()=>{},mutations:(_request,_core,uuid)=>capture(uuid)};
+        browser.SanebAttachmentBackfill={};
+        browser.SanebAttachmentProviderQa={mutations:(_request,uuid)=>capture(uuid)};
+        const script=await read(entry);
+        assert.doesNotMatch(script,/crypto\.randomUUID/);
+        assert.throws(()=>runInNewContext(script,browser),error=>error===mounted);
+        assert.equal(typeof factory,'function');
+        assert.equal(factory(),'01010101-0101-4101-8101-010101010101');
+        assert.equal(randomCalls,1);
+        browser.crypto={randomUUID:()=>id};assert.equal(factory(),id);
+        browser.crypto={};assert.throws(factory,/안전한 요청 식별자.*요청은 전송하지 않았습니다/);
+        browser.crypto={getRandomValues(){throw new Error('private crypto diagnostic');}};
+        assert.throws(factory,error=>/안전한 요청 식별자/.test(error.message)&&!error.message.includes('private'));
+        const html=await readFile(new URL(`../../src/main/resources/templates/app/announcement-attachment-${entry}.html`,import.meta.url),'utf8');
+        const dependency=html.indexOf(`saneb-attachment-${coreName}-core.js`);
+        assert.ok(dependency>=0 && dependency<html.indexOf(`saneb-attachment-${entry}.js`));
+        assert.equal(typeof browser[coreGlobal].requestUuid,'function');
+    });
+}
+
+test('batch HTTP keys stop before transport on crypto failure and retain identical retries', async () => {
+    const B=require('../../src/main/resources/static/js/saneb-attachment-batch-core.js');
+    let available=false,randomCalls=0;const sent=[];
+    const mutation=B.mutations(async(path,options)=>{sent.push({path,...options});if(sent.length===1)throw new C.RequestError('응답 유실');return {};},C,
+        ()=>C.requestUuid({getRandomValues(bytes){if(!available)throw new Error();bytes.fill(++randomCalls);return bytes;}}),()=>true);
+    const command={kind:'reserve',keyed:true,path:B.base,method:'POST',payload:{reason:'고정 범위 확인'}};
+    await assert.rejects(mutation.execute(command),/안전한 요청 식별자/);
+    assert.equal(sent.length,0);assert.equal(mutation.pending,false);assert.equal(mutation.sent,null);
+    available=true;await assert.rejects(mutation.execute(command),/응답 유실/);
+    assert.equal(mutation.uncertain,true);await mutation.execute();
+    assert.equal(sent.length,2);assert.deepEqual(sent[0],sent[1]);assert.equal(randomCalls,1);
+    assert.equal(mutation.uncertain,false);assert.equal(mutation.sent,null);
+});
 test('role evidence binds exact extraction and preserves manual overrides without claiming approval', async () => {
     const a={ruleVersion:'document-role-1.0.1',rulesHash:'a'.repeat(64),textHash:'b'.repeat(64),blocksHash:'c'.repeat(64),roleCode:'NOTICE',reasonCode:'ROLE_TEXT_STRUCTURE_MATCHED',
         evidence:['NOTICE_HEADING','TARGET_SECTION','SUPPORT_SECTION','APPLICATION_SECTION'].map((ruleCode,i)=>({ruleCode,blockIndex:i,startOffset:i*10,endOffset:i*10+5}))};

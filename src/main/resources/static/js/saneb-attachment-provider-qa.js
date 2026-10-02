@@ -124,7 +124,7 @@
     }
     if(typeof module!=="undefined"&&module.exports)module.exports={mount};
     else{const page=root.document.querySelector("[data-provider-qa]");if(!page)return;const P=root.SanebAttachmentPolicy,Q=root.SanebAttachmentProviderQa;
-        const app=mount({page,P,Q,request:P.client(root.fetch.bind(root)),doc:root.document,uuid:()=>root.crypto.randomUUID(),
+        const app=mount({page,P,Q,request:P.client(root.fetch.bind(root)),doc:root.document,uuid:()=>P.requestUuid(root.crypto),
             navigation:{search:()=>root.location.search,replace:nav=>root.history.replaceState(null,"",Q.route+"?"+new URLSearchParams(Object.entries(nav).filter(([,v])=>v!=null)))}});
         root.addEventListener("beforeunload",e=>{if(app.dirty){e.preventDefault();e.returnValue="";}});app.start();}
 })(globalThis);

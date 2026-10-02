@@ -144,6 +144,6 @@
     else{const page=root.document?.querySelector("[data-attachment-backfills]");if(!page)return;const B=root.SanebAttachmentBatch,C=root.SanebAttachmentReview,F=root.SanebAttachmentBackfill;
         const navigation={read:()=>{const p=new URL(root.location.href).searchParams,out={};for(const k of ["listPage","policyPage","segmentPage","itemPage","segmentNo"]){const n=Number(p.get(k));if(Number.isSafeInteger(n)&&n>=1)out[k]=n;}
             if(p.has("runId"))out.runId=p.get("runId");return out;}};
-        const app=mount({page,B,C,F,request:B.client(root.fetch.bind(root),C),doc:root.document,uuid:()=>root.crypto.randomUUID(),navigation});
+        const app=mount({page,B,C,F,request:B.client(root.fetch.bind(root),C),doc:root.document,uuid:()=>C.requestUuid(root.crypto),navigation});
         root.addEventListener("beforeunload",e=>{if(app.dirty){e.preventDefault();e.returnValue="";}});app.start();}
 })(globalThis);
