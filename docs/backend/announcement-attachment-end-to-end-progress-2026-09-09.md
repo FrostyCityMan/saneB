@@ -2,6 +2,10 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 21:12 KST 배포 완료·후속 재현 빌드 수정: e831255/Actions37004084299/CodeDeploy d-CYEA7RU4L 성공, bundle/설치 JAR 일치·V86·healthUP·worker true를 읽기 전용으로 확인했다. 사용자 제공 테스트 계정으로 세션을 복구했으나 ACTIVE 정책 범위 조회409는 지속됐다. 운영 이전/현재 추출기의 내부 파일 내용 지문은 같고 ZIP 엔트리 시각이 달라 전체 JAR hash가 변경된 사실을 SSM c1641efa로 확인했다. 게시 정책·worker의 실제 bytes 지문 검증은 유지하며 기존 성공1건과 새 수집 준비 상태를 구분한다. `attachment-extractor/build.gradle` jar task에 시각 비보존·재현 순서를 설정했다. 추가 정적 계약 시험은 수정 전1실패→수정 후통과, 배포 helper Node15통과/Windows 조건부3생략/실패0이다. `:attachment-extractor:jar --rerun-tasks --no-daemon --max-workers=1`을13초·12초 두 번 실행한 SHA-256은 모두87963ba76fce94edac02c82e48ebcae2507da8c9163155af2bf5f8392f826e27로 일치했다. 후속 `:attachment-extractor:test :bootJar`18초 성공(bootJar UP-TO-DATE)이며 새로운 Linux CI·배포·현재 지문으로 COLLECT_ONLY 개정/QA/재게시가 남는다. 동일 설정 재게시 승인을 요청했고 ENFORCE·기존 전체 적용·신규 수집 예약은 실행하지 않았다. 상세 근거와 사용자 경고는 운영 기준선·테스트 안내에 기록했다.
+
+2026-10-02 20:59 KST 후속 수정 배포 시작: `6b8a0df`의 HTTP 요청 키 보완과 `e8312553ef70adeb95fbbc9b273d17e06f569679`의 게시 정책 읽기 전용 범위 조회 복구를 커밋·푸시했다. 최신 SHA의 Linux37002599043 success/artifact11224583120 XML은 일반4608건 중4227통과/381조건부생략/실패0, 별도 필수273건과 추출기251건 실패·생략0이다. 독립 namespace/임시DB와 정책 부모 연결·취소·정리도 통과했다. 로컬 Windows 전체 `:test --no-daemon --max-workers=1`은14분25초 실패로 종료됐으며 XML4608건 중4075통과/152실패/381생략이다. 실패152건은 모두 임시 PostgreSQL `initdb.exe` 실행 실패이며 OS 수준 원인은 추가 진단하지 않았다. 시험/판정을 완화하지 않았고 사용 JVM 종료 및 이 실행이 만든 빈 임시 DB 디렉터리152개 정리를 확인했다. 최신 서울 읽기 전용 SSM b20376a6에서 기존700cfa1/V86·service active·health UP·worker true·복구 JAR/추출기 release 보존을 재확인했다. 승인된 코드 설치 Actions37004084299는 정확한 e831255와 `attachment_qa=false`로 시작했으며 아직 배포 성공/새 설치/운영 브라우저 재검증은 아니다. 일반 Git 원격 조회의 인증서 오류는 명령 단위 schannel 재조회로 SHA 일치를 확인했으며 TLS 검증을 해제하지 않았다. ENFORCE·기존 데이터 전체 적용·자동 활성화는 실행하지 않았다.
+
 2026-10-02 게시 정책의 기대 범위 조회 오류: 운영 ACTIVE COLLECT_ONLY 정책의 `수집원별 첨부 검증 범위`에서409 안내를 실제 브라우저로 확인했다. `selectTargetCoverageList`가 예약 준비 함수의 DRAFT 제한을 공유한 것이 원인이며 수정 전 새 회귀3건 모두 실패했다. 읽기 전용 기대 범위 조회만 DRAFT 제한에서 분리하고 설치·규칙·profile·catalog snapshot 검증을 유지했다. 새 실행 계획과 예약은 계속 DRAFT에서만 허용한다. ADMIN/OPERATOR/APPROVER 조회, ACTIVE/RETIRED 예약 차단, 잠금·원장·감사 쓰기/실행0 및 설치 근거 실패 보존을 검증했다. 표적 Java89건 실패/오류/생략0·bootJar성공(1분3초). API24.30에 읽기/예약 경계를 명시했으며 DDL·응답 shape 변경은 없다. 운영 오류 화면은 `build/qa-tools/provider-coverage-active-failure-20261002.png`에 저장했다. 새 코드의 운영 재검증은 배포 후 필요하며 과거 게시 QA를 현재 통과 근거로 만들지 않는다.
 
 2026-10-02 후속 배치 UI 보완: 단건 경로 외 배치·전체 분할·Provider QA 화면에 남은 직접 `crypto.randomUUID()` 호출 3곳을 기존 review/policy core의 `requestUuid`로 연결했다. HTTP의 `getRandomValues` 경로, 안전한 난수 부재 시 전송 0, 응답 유실 후 동일 key/body 재시도를 추가 검증했다. Design Read: 기존 Thymeleaf/Bootstrap 화면·확인 절차·서버 권한은 유지하고 관리자 R2 변경 요청의 안전한 식별자 생성만 복구한다. DB/API·정책·분류 의미·자동 활성화 변경은 없다. 표적 Node163통과, 전체 `node --test scripts/qa/*.test.mjs` 549건 중546통과/Windows 조건부3생략/실패0이다. 루트 화면 테스트55건 실패/오류/생략0과 bootJar 생성을 확인했다. 최초 `test --tests '*AnnouncementAttachment*View*'`는 추출기 하위 모듈에 동일 필터가 적용돼 `No tests found`로 실패했으며, `:test --tests '*AnnouncementAttachment*View*' :bootJar --no-daemon` 재검증은 앞서 실행된 루트 결과를 UP-TO-DATE로 재사용해 성공했다. 현재 운영 화면 최신 조회에서는 COLLECT_ONLY의 검수 저장·DRAFT 생성 차단을 재확인했다. 새 코드의 Linux CI·배포·변경 요청 브라우저 E2E는 아직 미검증이다. 기존 데이터 일괄 처리·ENFORCE는 실행하지 않았으며 ATT 전체 완료 상태를 변경하지 않는다.
@@ -1611,7 +1615,25 @@
 - 이전 서버 QA 문서에는 배포 69b7278 / CodeDeploy d-VHMRNZRPK 성공과 localhost health UP이 있다. 이번 작업의 현재 운영 확인을 대신하지 않는다.
 - 지원 범위: 일반 텍스트 PDF, HWP 5.x, HWPX. OCR 실행/암호 우회/매크로/재귀 수집은 비범위이며 실패·검수 상태는 구현 범위다.
 
-## 현재 Gate — 2026-10-02 15:14 KST 수집 전용 계약 운영 설치 후
+## 현재 Gate — 2026-10-02 21:12 KST 후속 배포 완료·추출기 빌드 지문 복구 중
+
+전체9개 Gate와 ATT-001~062를 유지한다. **Decision: Not ready — 전체 운영 완료 기준.** 수집·적재·조회 단건은 사용자 테스트 가능하지만 공고 입력용 DRAFT 전환까지 완료한 상태는 아니다.
+
+| Gate | 상태 | 확인 근거 / 남은 작업 |
+|---|---|---|
+| 0 맥락·범위·검증 목록 | [~] | 전체9Gate/62요구 유지. 기존 활성 지자체223·국가2채널 분리. 격리 관측과 운영 실수집을 별도 집계 |
+| 1 DB·API 계약 | [~] | e831255 Linux 필수273건·V86 upgrade 검증 통과. 게시 정책 기대 범위 읽기만 허용하고 신규 QA 예약 DRAFT 제한 유지. 실제 운영 검수·DRAFT 연계는 남음 |
+| 2 상시 worker·Provider | [~] | worker true, 이전 설치의 양평 HWPX1파일 SUCCEEDED·DB/API 조회 유지. 새 설치에서 JAR 시각 차이로 추출기 지문이 변경돼 새 수집 준비 완료로 간주하지 않음. 재현 빌드 수정과 정책 결합 복구 필요. 기존 격리 확보210/223·미확보13은 운영 성공 수가 아님 |
+| 3 분류·정책 | [~] | 운영 ACTIVE COLLECT_ONLY/version1 게시 및 QA4단계 영수증 확인. 미리보기와 기본 판정 분리. ENFORCE·관리자 최종 판정은 미실행 |
+| 4 관리자 API·화면 | [~] | 운영 단건 작업·문단 페이지·구간 근거 조회 확인. HTTP 배치 요청 키/게시 정책 범위 조회 오류 수정 및 시험 통과. 새 코드의 운영 화면 재검증 대기 |
+| 5 기존 데이터 | [~] | 범위 고정·분할·수집·적용·원복 코드와 임시DB 검증 존재. 운영 전체 일괄 처리 미실행. 정확한 범위·영향도 승인과 적용 후 대조 필요 |
+| 6 자동·실파일 QA | [~] | e831255 Linux 일반4227통과/381조건부생략·필수273·추출기251통과. Windows 일반152건 initdb 실패 보존. 전체 형식/지역/분류 품질 및 운영 실패 표본 증거는 별도 잔여 |
+| 7 운영 배포·활성화 | [~] | e831255 배포37004084299/CodeDeploy d-CYEA7RU4L 성공·설치/bundle 일치·healthUP·worker true. 기존 ACTIVE 수집 정책의 추출기 지문 결합 복구가 남아 전체 활성화 완료는 아님. 모드·DB·기존 데이터 변경 없음 |
+| 8 운영 브라우저 E2E | [~] | 실제 HWPX1건 수집→적재→문단/구간 조회 및 COLLECT_ONLY 검수/DRAFT 차단 확인. 수정된 조회·쓰기, PDF/HWP 운영 표본, 검수→DRAFT, 역할별·복구 검증은 남음 |
+
+현재 사용자 테스트 절차는 [운영 첨부 수집 안내](../deployment/attachment-operator-acceptance-2026-10-02.md)를 따른다. 기존 저장 근거 조회는 가능하지만 새 수집 준비 완료로 안내하지 않는다. 추출기 재현 빌드 수정의 Linux/배포·승인된 재게시와 브라우저 재검증 후 갱신한다. 테스트 로그인 정보는 저장소에 기록하지 않는다.
+
+## 과거 Gate — 2026-10-02 15:14 KST 수집 전용 계약 운영 설치 후
 
 전체9개 Gate와 ATT-001~062를 유지한다. **Decision: Not ready — 전체 운영 완료 기준.**
 새 계약의 Linux 성공은 내부 계약 근거이며 외부/운영/브라우저의 완료 근거가 아니다.

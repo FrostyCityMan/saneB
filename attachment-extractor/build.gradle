@@ -15,7 +15,12 @@ dependencies {
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('test') { useJUnitPlatform(); maxHeapSize = '256m'; maxParallelForks = 1 }
-tasks.named('jar') { manifest { attributes 'Implementation-Version': project.version } }
+tasks.named('jar') {
+    manifest { attributes 'Implementation-Version': project.version }
+    // 게시 정책은 실제 JAR 바이트를 고정한다. 빌드 시각만 다른 동일 코드가 정책을 무효화하지 않도록 한다.
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
 
 // 신뢰한 합성 입력만 빌드 시 생성한다. 파서 의존성을 Spring 서버 classpath에 추가하지 않는다.
 sourceSets {

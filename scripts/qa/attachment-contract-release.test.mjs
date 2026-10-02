@@ -12,6 +12,15 @@ const digest = value => createHash('sha256').update(value).digest('hex');
 const shellPath = value => value.replaceAll('\\', '/');
 const bashAvailable = existsSync(bash);
 
+test('추출기 재빌드는 파일 시각·순서로 게시 정책의 설치 지문을 바꾸지 않는다', () => {
+  const build = readFileSync('attachment-extractor/build.gradle', 'utf8');
+  const jar = build.slice(build.indexOf("tasks.named('jar')"), build.indexOf('// 신뢰한 합성 입력'));
+  assert.match(jar, /preserveFileTimestamps\s*=\s*false/);
+  assert.match(jar, /reproducibleFileOrder\s*=\s*true/);
+  const identity = readFileSync('src/main/java/com/saneb/domain/announcementattachment/extraction/AttachmentRuntimeIdentity.java', 'utf8');
+  assert(identity.includes('selectFileHash(jar, 64L * 1024 * 1024)'));
+});
+
 function fixture(t) {
   const work = mkdtempSync(join(tmpdir(), 'saneb-contract-release-test-'));
   t.after(() => rmSync(work, { recursive: true, force: true }));

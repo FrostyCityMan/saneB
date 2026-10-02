@@ -1,5 +1,13 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 21:08 KST 후속 설치 및 추출기 빌드 지문 결함
+
+- e8312553ef70adeb95fbbc9b273d17e06f569679의 Linux37002599043와 배포37004084299 success, CodeDeploy d-CYEA7RU4L Succeeded. 코드 수정은 HTTP 요청 키와 ACTIVE 정책의 읽기 전용 검증 범위 조회이며 DDL·정책 변경 없음.
+- Runtime SSM4e24161c-628c-4984-88e8-67b7383fe40d, DeploymentEvidence b26b8d4a-8d75-4e0f-9598-ad01d623f2d6 Success. bundle/설치 JAR `661a1ae760ef4bcb1377a9e9e4e1199bb73c9d045647b83bb370427ea579e89f` 일치·V86·service active·health UP·worker/정책QA true. 이전700cfa1 JAR/release 존재. 설치 성공을 새 수집 준비 완료로 확대하지 않는다.
+- 운영 로그인 복구 후 기존 ACTIVE 정책 범위 조회는409 지속. 기존 HWPX의 집합/판정과 COLLECT_ONLY의 미적용·DRAFT 차단 표시는 보존됐다. 신규 파일 예약이나 정책 재게시를 실행하지 않았다.
+- 읽기 전용 SSM c1641efa-8f95-4ac2-840a-abe48586b680에서 이전/현재 추출기 JAR 내부 파일 내용의 SHA-256은 모두 `51dfc77da12ecfccf294d5e06318a2b45de11bccc4e3ce06a82b55999858d16d`(38엔트리)이나 ZIP 시각은 이전11:03:54~11:07:44UTC/현재12:00:32~12:03:50UTC다. 실제 JAR hash는 이전ee41b433→현재befd71cb, librarySet df6635a3→7493bb58로 바뀌었다. `AttachmentRuntimeIdentity`는 실제 JAR bytes를 고정하고 snapshot/worker는 정책 실행 지문을 대조하므로 이를 같은 정책의 정상 수집 근거로 사용할 수 없다.
+- 추출기 jar task의 시각 보존 해제·엔트리 순서 고정을 보완 중이다. 지문 검사를 내용 hash 비교로 대체하지 않는다. 수정 배포 후 새 COLLECT_ONLY 개정·QA·재게시 승인을 요청했으며 ENFORCE·기존 전체 데이터 적용·공고 공개는 제외한다.
+
 ## 2026-10-02 운영 테스트 준비: 게시 근거·HTTP 단건 작업 수정
 
 - 사용자 승인 범위: 수집 전용 정책 게시, 첨부 worker 활성화, 실제 처리·DB 적재·운영 화면 확인. ENFORCE·기존 데이터 전체 일괄 적용·자동 활성화는 제외한다. 테스트 계정은 사용자 승인에 따라 로그인에만 사용하고 저장소에 기록하지 않는다.
