@@ -1,5 +1,24 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 ATT-051 기능 누락 확인
+
+구현 계약은 [연결 공고 첨부 근거 갱신 설계](announcement-attachment-linked-evidence-design-2026-10-03.md)에 정리했다. V87에는 STANDARD 기본값과 LINKED_EVIDENCE_ONLY 목적 불변·적용/원복 차단만 추가했다. 전체 링크 집합 고정·경고 원장·API·worker 연결은 미구현이다. 기존 외부 요청 fence는 완화하지 않아 연결 원문 수집은 아직 불가능하다.
+
+V87 정적 migration 계약97건 통과·실패/생략0, 21초 성공이다. `AnnouncementAttachmentMigrationTest`4건은 로컬 환경 조건으로 전부 생략됐다. V86→87 순차 upgrade/기존 데이터 보존 및 새 제약·trigger 조회 assertion을 추가했으나 실제 PostgreSQL 실행 성공은 아니다. 기존 V1~V86 파일 변경 없음, 운영 DB/정책/worker 변경 없음. 다음은 고정 연결·경고 원장과 SQL 동작 시험이다.
+
+후속 전용 실행으로 로컬 DB 차단을 재검증했다. Docker 엔진은 없지만 프로젝트 embedded PostgreSQL은 현재 실행 가능하다. `attachmentMigrationTest --tests '*AnnouncementAttachmentMigrationTest.freshSchemaAndV71UpgradePreservePriorChecksums' --no-daemon --max-workers=1` 46초 성공, 전용 XML1건/33.192초·실패/오류/생략0이다. V71→87 순차 적용, 빈 DB validate, 기존 업무 snapshot/checksum 보존, V87 기본값·제약3개·trigger2개 및 기존 연결 거부 fence 보존을 확인했다. 일반 test의4건 생략과 별개이며 V87 잘못된 쓰기 직접 거부·연결 근거 수집 전체 기능 통과로 확대하지 않는다. 임시 DB는 시험의 try-with-resources로 종료됐다.
+
+이 항목은 운영 검증만 남은 상태가 아니다. 원 설계 `announcement-attachment-collection-design-2026-09-08.md` 503행과 QA 계획 ATT-051은 연결된 원문을 별도 명시 범위에 포함하여 첨부 근거·재검수 경고만 갱신하는 경로를 요구한다. 현재 `AttachmentBatchRequests.Scope`에는 이를 지정할 입력이 없고, `AnnouncementAttachmentBatchMapper.xml`의 `Eligible`은 연결 원문을 무조건 제외한다. 범위 집계의 `LINKED_PROTECTED`는 제외 건수이지 해당 경로의 구현 증거가 아니다. 단건 Collection/Intake와 batch preview/application도 연결 원문을 차단한다.
+
+- [x] 기존 기본 제외·운영 공고 보호 코드 확인.
+- [ ] 별도 명시 범위의 연결 원문 수집·근거 저장·재검수 경고 경로 구현.
+- [ ] 연결된 공고의 상태·조건·신청 데이터를 전후 비교하는 실제 PostgreSQL 시험.
+- [ ] 승인된 운영 표본의 경고 표시·기존 업무 데이터 불변 검증.
+
+현재 기본 보호 회귀: `:test --tests '*AnnouncementAttachmentBatchServiceTest' --tests '*AnnouncementAttachmentBatchApplicationServiceTest' --tests '*AnnouncementAttachmentReviewServiceTest' --no-daemon --max-workers=1` 42초 성공. JUnit 각각31/23/41건, 총95통과·실패/오류/생략0이다. 서비스 대역 시험이므로 누락된 명시 포함 경로, 실제 PostgreSQL 및 운영 E2E의 성공 증거로 사용하지 않는다.
+
+다음 구현은 기존 보호 조건을 전역으로 제거하지 않는다. 먼저 additive DB 계약으로 별도 작업 목적·고정 source/link identity·근거 갱신 경고를 정의하고, 명시적 범위와 승인 지문에 결합한다. 기존 v1/일반 배치 기본값·DRAFT/적용/원복 차단은 유지한다. 별도 경로의 worker는 첨부 근거만 저장하고 운영 공고·조건·신청·연결을 변경하지 않아야 하며, 예약 이후 link 변경은 충돌로 남겨야 한다. 기존 계약의 의미 변경이 필요한 경우 신규 버전 경계를 먼저 명시한다. 이 문단은 설계 착수용 누락 기록이며 DB/API 구현 완료나 운영 실행 승인이 아니다.
+
 ## 2026-10-03 호출 중단·격리 자원 정리 검증
 
 `ce76b2db9bb9f276e77dd0ae5a0cac80a1047190`의 [Linux37031100334](https://github.com/FrostyCityMan/saneB/actions/runs/37031100334)가 success다. artifact11238805743의 전용 runtime XML7건은 실패/오류/생략0이며 신규 `interruptedCallerKillsObservedChildAndRecoversWithoutRetainingOriginals`가0.390초 통과했다. 실제 격리 자식 JVM의 고유 표식을 관측한 후 호출 스레드를 중단하여 CANCELLED 반환·중단 신호 보존·자식 종료·소유 원본 및 임시 폴더 정리·다음 추출 복구를 검증한다. 기존 실제30초 timeout 시험도30.238초 통과했다.
@@ -212,7 +231,7 @@ ATT-027/059의 합성 입력 Linux launcher 증거를 보강한다. 웹 UI의 �
 | ATT-048 | preview 뒤 버전 변경 충돌 | BatchPreview/Application CAS; BackfillService 전체 지문409, V75 분할 예약/시작/claim 입력 확인 및 기관 변경 차단 계약; 배치/분할 UI 응답 유실 동일키 유지·401/403/409 Node | [~] | 최신 PG·분할 예약/실행 실제 경합·운영 적용/충돌·실제 관리자 브라우저 |
 | ATT-049 | 추가 검수/전환 뒤 rollback 거부 | 배치 원복 영향/ADMIN·CSRF 승인 API와 전체 inputHash 재검증 worker; 일반 원복 UI의 버전·효과/충돌/유실 동일 요청·잠금; 배치 승인 이력/영수증 대조·다른 배치 결과 해제 Node/SSR; 새 검수·DRAFT·기관 변경 차단 PG | [~] | 실제 PostgreSQL·일반/배치 복구 브라우저·운영 검증 |
 | ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI. a884ac1 Linux35679213890 PG192/192·실패/생략0의 approvalHistoryPagesStayCompleteWhileLaterApprovalsAdvanceTheBatch·sourceDeletionDoesNotRewriteOrHideOriginalApprovalHistory·mixedApplicationAndRollbackHistoryRetainsOriginalImpactAfterCompletion 통과 XML 확인 | [~] | 운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
-| ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard | [~] | 명시 포함 batch의 보호/경고 정책·후속 신청 불변 |
+| ATT-051 | 연결된 운영 공고 보호 | Intake.selectProtectedLinkExists; 기존 link 멱등/guard. 기본 제외는 구현됨 | [~] | **구현 누락**: 연결 원문의 별도 명시 포함 수집·근거/재검수 경고 경로. 현 Scope 입력 없음·SQL 무조건 제외. 후속 신청/운영 공고 불변 DB·운영 시험도 필요 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
 | ATT-053 | 새 DB/업그레이드/checksum | Linux35693601984/272dafd의 freshSchemaAndV71UpgradePreservePriorChecksums4.036초 통과. 기존10테이블/V71 합성 업무 데이터 보존, V72~83 순차/빈 DB validate, false CHECK INSERT·UPDATE 실제 거부. 운영 설치 JAR 대 이력80/80 checksum 일치(SSM638ec0bb-b863-4bd0-a2b7-a87eb589f3c6, 쓰기0) | [x] | 이 요구의 필수 증거 충족. 전체 운영 업무/Provider/브라우저 완료를 의미하지 않음 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |

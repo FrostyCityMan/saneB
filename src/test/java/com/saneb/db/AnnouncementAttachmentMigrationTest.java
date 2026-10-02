@@ -302,6 +302,14 @@ class AnnouncementAttachmentMigrationTest {
             assertThat(collectionContractUpgrade.migrate().migrationsExecuted).isEqualTo(1);collectionContractUpgrade.validate();
             assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('protect_attachment_validation_run'::regproc)",String.class))
                     .contains("COLLECTION_VERIFIED","attachment_validation_required_steps","OLD.input_snapshot_json");
+            var linkedPurposeUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("87").load();
+            assertThat(linkedPurposeUpgrade.migrate().migrationsExecuted).isEqualTo(1);linkedPurposeUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT column_default FROM information_schema.columns WHERE table_schema='public' AND table_name='announcement_attachment_batches' AND column_name='purpose_code'",String.class))
+                    .contains("STANDARD");
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_constraint WHERE conname IN ('ck_att_batch_purpose','ck_att_linked_batch_scope','ck_att_linked_batch_collection_only') AND convalidated",Integer.class)).isEqualTo(3);
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM pg_trigger WHERE tgname IN ('tr_att_batch_purpose','tr_att_linked_job_effect') AND tgenabled='O'",Integer.class)).isEqualTo(2);
+            assertThat(workerSql.queryForObject("SELECT pg_get_functiondef('attachment_batch_job_input_unchanged'::regproc)",String.class))
+                    .contains("AND NOT EXISTS (SELECT 1 FROM announcement_source_links");
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {

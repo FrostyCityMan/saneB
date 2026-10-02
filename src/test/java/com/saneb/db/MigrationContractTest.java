@@ -20,6 +20,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void linkedEvidencePurposePreservesStandardBatchesAndCannotApplyOrRollback() throws IOException {
+        var sql=new ClassPathResource("db/migration/V87__separate_linked_attachment_evidence_batch_purpose.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("NOT NULL DEFAULT 'STANDARD'", "LINKED_EVIDENCE_ONLY",
+                "ck_att_linked_batch_scope", "IS TRUE", "ck_att_linked_batch_collection_only",
+                "NEW.purpose_code IS DISTINCT FROM OLD.purpose_code", "attachment batch purpose is immutable",
+                "NEW.operation_code IS DISTINCT FROM 'COLLECT'",
+                "NEW.application_status_code IS DISTINCT FROM 'NOT_REQUESTED'",
+                "NEW.rollback_status_code IS DISTINCT FROM 'NOT_REQUESTED'",
+                "NEW.is_selected_for_application IS DISTINCT FROM false",
+                "NEW.applied_evaluation_id IS NOT NULL", "NEW.applied_attachment_version IS NOT NULL",
+                "NEW.applied_source_version IS NOT NULL", "NEW.applied_input_hash IS NOT NULL",
+                "BEFORE INSERT OR UPDATE ON announcement_attachment_jobs");
+        assertThat(sql).doesNotContain("UPDATE announcement_", "DELETE FROM", "DROP TABLE", "DISABLE TRIGGER",
+                "CREATE OR REPLACE FUNCTION attachment_batch_job_input_unchanged");
+    }
+
     @Test void collectionValidationContractCannotBecomeStrictAndPreservesHistoricalInputs() throws IOException {
         var sql=new ClassPathResource("db/migration/V86__separate_attachment_collection_validation_contract.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("COLLECTION_SAFETY_V1","STRICT_V1","COLLECTION_VERIFIED","COLLECTION_SAFETY",
