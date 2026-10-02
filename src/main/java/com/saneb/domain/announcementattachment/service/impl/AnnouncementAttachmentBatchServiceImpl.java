@@ -42,11 +42,8 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
     @Override @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ,timeout=20)
     public AttachmentLinkedBatchResponses.Preview selectLinkedScopePreview(Authentication actor,AttachmentLinkedBatchRequests.Scope scope) {
         selectActor(actor,false);
-        if(scope==null || scope.policyId()==null || scope.sourceIds()==null || scope.sourceIds().isEmpty() || scope.sourceIds().size()>1000
-                || scope.sourceIds().stream().anyMatch(Objects::isNull) || !scope.isSourceIdsUnique()
-                || scope.maximumSourceBytes()==null || scope.maximumSourceBytes()<1 || scope.maximumSourceBytes()>83886080)
-            throw invalid("정책 ID와 중복·빈 값 없는 원문 ID 1~1000개, 공고별 1~80 MiB 다운로드 상한이 필요합니다.");
-        var ids=scope.sourceIds().stream().sorted().toList();
+        scope=normalizeLinkedScope(scope);
+        var ids=scope.sourceIds();
         var policy=dao.selectPolicyDetails(scope.policyId(),false);
         if(policy==null) throw notFound();
         if(!"ACTIVE".equals(policy.policyStatusCode()) || !"ACTIVE".equals(policy.releaseStatusCode())
@@ -80,6 +77,55 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
         String fingerprint=hash(Arrays.asList("linked-evidence-scope-v1",policy,scope.maximumSourceBytes(),inputs));
         return new AttachmentLinkedBatchResponses.Preview(scope.policyId(),fingerprint,ids.size(),
                 candidates.stream().allMatch(c->"READY".equals(c.readinessCode())),scope.maximumSourceBytes()*ids.size(),132L*ids.size(),List.copyOf(candidates));
+    }
+    private AttachmentLinkedBatchRequests.Scope normalizeLinkedScope(AttachmentLinkedBatchRequests.Scope scope) {
+        if(scope==null || scope.policyId()==null || scope.sourceIds()==null || scope.sourceIds().isEmpty() || scope.sourceIds().size()>1000
+                || scope.sourceIds().stream().anyMatch(Objects::isNull) || !scope.isSourceIdsUnique()
+                || scope.maximumSourceBytes()==null || scope.maximumSourceBytes()<1 || scope.maximumSourceBytes()>83886080)
+            throw invalid("정책 ID와 중복·빈 값 없는 원문 ID 1~1000개, 공고별 1~80 MiB 다운로드 상한이 필요합니다.");
+        return new AttachmentLinkedBatchRequests.Scope(scope.policyId(),scope.sourceIds().stream().sorted().toList(),scope.maximumSourceBytes());
+    }
+    @Override @Transactional(timeout=30)
+    public AttachmentBatchResponses.Batch insertLinkedBatch(Authentication authentication,UUID key,AttachmentLinkedBatchRequests.Reservation request) {
+        UUID actor=selectActor(authentication,true);
+        if(key==null || request==null || !Boolean.TRUE.equals(request.evidenceOnlyAcknowledged())
+                || request.expectedScopeHash()==null || !request.expectedScopeHash().matches("[0-9a-f]{64}"))
+            throw invalid("UUID 멱등 키·조회한 범위 지문·근거 전용 수집 확인이 필요합니다.");
+        validateReason(request.reason());var scope=normalizeLinkedScope(request.scope());
+        String requestHash=hash(Arrays.asList("linked-evidence-reservation-v1",actor,scope,request.expectedScopeHash(),request.reason().strip()));
+        dao.selectRequestLock(key);var existing=dao.selectRequestDetails(key);
+        if(existing!=null) {
+            if(!actor.equals(existing.requestedBy()) || !requestHash.equals(existing.requestHash())) throw conflict("이 멱등 키는 다른 운영자·목적·범위·사유에 사용됐습니다.");
+            return response(existing);
+        }
+        var ids=scope.sourceIds();
+        if(!new HashSet<>(dao.selectSourceLocks(ids)).equals(new HashSet<>(ids))) throw conflict("지정한 원문이 삭제됐습니다. 전체 범위를 다시 조회하세요.");
+        for(UUID id:ids) jobs.selectLinkedConnectionLocks(id);
+        var policy=dao.selectPolicyDetails(scope.policyId(),true);
+        var preview=selectLinkedScopePreview(authentication,scope);
+        if(!preview.canReserve() || !preview.scopeHash().equals(request.expectedScopeHash()))
+            throw conflict("조회 이후 연결·판정·정책·작업 상태가 변경됐거나 준비되지 않은 항목이 있습니다. 전체 범위를 다시 확인하세요.");
+        var configuration=selectConfiguration(policy);UUID batchId=UUID.randomUUID();
+        var savedScope=new TreeMap<String,Object>();savedScope.put("schemaVersion",1);savedScope.put("purposeCode","LINKED_EVIDENCE_ONLY");
+        savedScope.put("maximumSourceBytes",scope.maximumSourceBytes());savedScope.put("maximumDownloadBytes",preview.maximumDownloadBytes());
+        savedScope.put("maximumHttpRequests",preview.maximumHttpRequests());savedScope.put("policyHash",policy.policyHash());
+        requireOne(dao.insertLinkedBatch(new AttachmentBatchRows.Insert(batchId,scope.policyId(),preview.scopeHash(),ids.size(),ids.size(),
+                json(savedScope),json(policy),actor,key,requestHash,hash(request.reason().strip()))));
+        var rows=dao.selectLinkedSourceCandidateList(ids);
+        if(rows.size()!=ids.size()) throw conflict("예약 중 대상 집합이 변경됐습니다. 일부 예약하지 않고 전체를 취소합니다.");
+        for(var source:rows) {
+            UUID jobId=UUID.randomUUID();var execution=selectExecution(source,policy,configuration);
+            var locator=intake.selectSourceLocatorDetails(source.sourceId());
+            if(execution==null || locator==null) throw conflict("예약 중 수집 profile 또는 출처가 변경됐습니다.");
+            var job=new AttachmentJobInsertCommand(jobId,source.sourceId(),source.contentVersionId(),source.baseEvaluationId(),source.ruleReleaseId(),scope.policyId(),
+                    jobs.selectNextGeneration(source.sourceId(),source.contentVersionId(),scope.policyId()),source.sourceVersion(),source.attachmentVersion(),
+                    UUID.randomUUID(),hash(Arrays.asList(batchId,source,execution,hash(locator))),json(execution),scope.maximumSourceBytes(),null,false,
+                    Boolean.TRUE.equals(source.reviewRequired()),source.currentPolicyId(),source.currentEvaluationId(),source.confirmationId(),"COLLECT",null,actor,null);
+            requireOne(dao.insertScopeJob(new AttachmentBatchRows.ItemInsert(batchId,job,source.providerCode())));
+            requireOne(dao.insertLinkedJobSnapshot(jobId,source.sourceId()));
+        }
+        insertAudit(actor,batchId,"ATTACHMENT_LINKED_EVIDENCE_RESERVED",request.reason());
+        return response(selectBatch(batchId,false));
     }
     @Override @Transactional(timeout=30)
     public AttachmentBatchResponses.Batch insertBatch(Authentication authentication,UUID key,AttachmentBatchRequests.Reservation request) {

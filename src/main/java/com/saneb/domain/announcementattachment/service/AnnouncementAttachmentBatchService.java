@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
 public interface AnnouncementAttachmentBatchService {
+    com.saneb.domain.announcementattachment.dto.AttachmentBatchResponses.Batch insertLinkedBatch(Authentication actor,UUID key,
+            com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation request);
     com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchResponses.Preview selectLinkedScopePreview(
             Authentication actor,com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Scope scope);
     AttachmentBatchResponses.Preview selectScopePreview(Authentication actor,AttachmentBatchRequests.Scope scope);

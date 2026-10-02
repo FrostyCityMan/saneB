@@ -16,15 +16,23 @@ import org.springframework.web.bind.annotation.*;
 public class AnnouncementAttachmentLinkedBatchController {
     private final AnnouncementAttachmentBatchService service;
     public AnnouncementAttachmentLinkedBatchController(AnnouncementAttachmentBatchService service) {this.service=service;}
+    @PostMapping @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<com.saneb.domain.announcementattachment.dto.AttachmentBatchResponses.Batch>> insertBatch(Authentication actor,
+            @RequestHeader("Idempotency-Key") java.util.UUID key,@Valid @RequestBody AttachmentLinkedBatchRequests.Reservation request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).cacheControl(CacheControl.noStore())
+                .body(ApiResponse.success(service.insertLinkedBatch(actor,key,request)));
+    }
     @PostMapping("/scope-preview") @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','APPROVER')")
     public ResponseEntity<ApiResponse<AttachmentLinkedBatchResponses.Preview>> selectScopePreview(Authentication actor,
             @Valid @RequestBody AttachmentLinkedBatchRequests.Scope scope) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectLinkedScopePreview(actor,scope)));
     }
-    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.bind.MissingRequestHeaderException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiResponse<com.saneb.common.error.ErrorResponse>> handleInput() {
         return ResponseEntity.badRequest().cacheControl(CacheControl.noStore()).body(ApiResponse.failure(
                 com.saneb.common.error.ErrorResponse.of(com.saneb.common.error.ErrorCode.VALIDATION_FAILED),
-                "정책 ID·원문 ID는 UUID, 다운로드 상한은 정수로 입력하세요. URL·파서·실행 상태 등 정의하지 않은 필드는 지정할 수 없습니다."));
+                "정책 ID·원문 ID·Idempotency-Key는 UUID, 다운로드 상한은 정수로 입력하세요. 예약에는 멱등 키가 필요하며 URL·파서·실행 상태 등 정의하지 않은 필드는 지정할 수 없습니다."));
     }
 }

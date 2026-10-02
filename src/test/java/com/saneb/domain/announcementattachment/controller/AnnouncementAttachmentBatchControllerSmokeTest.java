@@ -23,6 +23,28 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties="spring.flyway.enabled=false") @AutoConfigureMockMvc
 class AnnouncementAttachmentBatchControllerSmokeTest {
+    private String linkedReservationBody() {
+        return """
+                {"scope":{"policyId":"%s","sourceIds":["%s"],"maximumSourceBytes":1024},
+                 "expectedScopeHash":"%s","evidenceOnlyAcknowledged":true,"reason":"근거 검증"}
+                """.formatted(POLICY,UUID.randomUUID(),"a".repeat(64));
+    }
+    @Test void linkedReservationRequiresAdminKeyAndCsrf() throws Exception {
+        String path="/api/v2/admin/announcement-attachment-linked-evidence-batches",body=linkedReservationBody();
+        when(service.insertLinkedBatch(any(),eq(KEY),any())).thenReturn(response("SCOPE_READY"));
+        mvc.perform(post(path).with(user("qa").roles("ADMIN")).with(csrf()).header("Idempotency-Key",KEY)
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isCreated())
+                .andExpect(header().string("Cache-Control","no-store")).andExpect(jsonPath("$.success").value(true));
+        clearInvocations(service);
+        for(String role:List.of("OPERATOR","APPROVER","USER","PARTNER"))
+            mvc.perform(post(path).with(user("qa").roles(role)).with(csrf()).header("Idempotency-Key",KEY)
+                    .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(path).with(user("qa").roles("ADMIN")).header("Idempotency-Key",KEY)
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(path).with(user("qa").roles("ADMIN")).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
     @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
     void linkedScopePreviewAllowsInternalRolesWithCsrf(String role) throws Exception {
         String body="{\"policyId\":\""+POLICY+"\",\"sourceIds\":[\""+UUID.randomUUID()+"\"],\"maximumSourceBytes\":1024}";

@@ -22,6 +22,8 @@ public interface AnnouncementAttachmentBatchDao {
     List<AttachmentBatchRows.Item> selectItemList(AttachmentBatchRows.Search search);
     List<AttachmentBatchRows.Bucket> selectJobCounts(@Param("batchId") UUID batchId);
     int insertBatch(AttachmentBatchRows.Insert command);
+    int insertLinkedBatch(AttachmentBatchRows.Insert command);
+    int insertLinkedJobSnapshot(@Param("jobId") UUID jobId,@Param("sourceId") UUID sourceId);
     int insertScopeJob(AttachmentBatchRows.ItemInsert command);
     int updateScopeCancellation(@Param("batchId") UUID batchId,@Param("expectedVersion") int expectedVersion);
     int updateScopeJobsCancelled(@Param("batchId") UUID batchId);

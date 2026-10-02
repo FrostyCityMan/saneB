@@ -168,6 +168,18 @@
             CAST(#{job.executionSnapshotJson} AS jsonb),#{job.downloadBudgetBytes},#{job.previousEvaluationId},#{job.previousConfirmationId},
             #{job.previousPolicyId},#{job.previousReviewRequired},'COLLECT',#{job.requestedBy},#{providerCode},attachment_source_locator_hash(#{job.sourceId}))
     </insert>
+    <insert id="insertLinkedBatch">
+        -- 별도 근거 목적과 고정 분모만 예약한다. 기존 STANDARD 배치 입력은 바꾸지 않는다.
+        INSERT INTO announcement_attachment_batches(id,batch_type_code,policy_id,batch_status_code,scope_json,scope_hash,maximum_count,
+            requested_by,reason_hash,idempotency_key,request_hash,scope_item_count,policy_snapshot_json,purpose_code)
+        VALUES (#{batchId},'BACKFILL',#{policyId},'SCOPE_READY',CAST(#{scopeJson} AS jsonb),#{scopeHash},#{maximumCount},
+            #{requestedBy},#{reasonHash},#{idempotencyKey},#{requestHash},#{itemCount},CAST(#{policySnapshotJson} AS jsonb),'LINKED_EVIDENCE_ONLY')
+    </insert>
+    <insert id="insertLinkedJobSnapshot">
+        -- 작업과 동일 transaction으로 연결 ID 쌍을 고정한다. V88이 소속·일치·불변성을 검증한다.
+        INSERT INTO announcement_attachment_linked_job_scopes(job_id,source_id,links_json)
+        VALUES (#{jobId},#{sourceId},attachment_source_link_snapshot(#{sourceId}))
+    </insert>
     <update id="updateScopeCancellation">
         -- 수집 시작 전 취소만 허용한다. 실행 중 중지/원복과 구분한다.
         UPDATE announcement_attachment_batches SET batch_status_code='CANCELLED',row_version=row_version+1,updated_at=clock_timestamp()

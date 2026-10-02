@@ -3036,6 +3036,23 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(incomplete.candidates()).extracting(com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchResponses.Candidate::sourceId).containsExactlyInAnyOrder(source,missing);
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs",Integer.class)).isZero();
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches",Integer.class)).isZero();
+        var current=batchService().selectLinkedScopePreview(reviewActor(),scope);
+        String before=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
+        UUID key=UUID.randomUUID();
+        var stale=new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation(scope,first.scopeHash(),true,"합성 근거 예약");
+        assertThatThrownBy(()->batchService().insertLinkedBatch(reviewActor(),key,stale)).isInstanceOf(ApiException.class);
+        var request=new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation(scope,current.scopeHash(),true,"합성 근거 예약");
+        var reserved=batchService().insertLinkedBatch(reviewActor(),key,request);
+        assertThat(reserved.statusCode()).isEqualTo("SCOPE_READY");
+        assertThat(batchService().insertLinkedBatch(reviewActor(),key,request).batchId()).isEqualTo(reserved.batchId());
+        assertThatThrownBy(()->batchService().insertLinkedBatch(reviewActor(),key,
+                new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation(scope,current.scopeHash(),true,"다른 사유")))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->batchService().insertLinkedBatch(reviewActor(),UUID.randomUUID(),request)).isInstanceOf(ApiException.class);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches",Integer.class)).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes",Integer.class)).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(before);
+        assertThat(service.saveNextJobClaim()).isEmpty();
     }
 
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {

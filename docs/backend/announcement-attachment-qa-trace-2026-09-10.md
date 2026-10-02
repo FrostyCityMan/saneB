@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 근거 멱등 예약
+
+별도 POST 기본 경로에 ADMIN/CSRF/Idempotency-Key/명시 확인을 적용했다. 서비스는 정렬한 source 잠금→link 잠금→정책 잠금 뒤 조회 지문과 전체 준비 상태를 재확인하고, LINKED_EVIDENCE_ONLY 배치·SCOPE_READY jobs·V88 snapshot을 한 transaction으로 기록한다. source/current/검수/운영 공고를 변경하지 않는다. 예약은 worker claim 대상이 아니다.
+
+검증 명령 `:test --tests '*AnnouncementAttachmentBatchControllerSmokeTest' --tests '*AnnouncementAttachmentBatchServiceTest' --tests '*AttachmentLinkedBatchRequestsTest' attachmentJobIntegrationTest --tests '*linkedScopePreview*' bootJar --no-daemon --max-workers=1` 1분1초 성공. MockMvc29/일반 서비스31/입력3/실제 DB1, 총64건 실패·오류·생략0 및 bootJar 성공이다. 실제 DB는 stale 연결 지문 거부·같은 키 동일 배치·다른 사유 충돌·새 키 중복 활성 작업 거부·원문 전체 컬럼 불변·snapshot1개·worker 미실행을 검증했다. 동시 예약 경합·전용 실행 API·성공/부분 첨부 worker·관리자 UI·운영은 후속 검증이다.
+
 ## 2026-10-03 연결 근거 명시 범위 조회
 
 별도 `POST /api/v2/admin/announcement-attachment-linked-evidence-batches/scope-preview`를 추가했다. 서버에서 입력/활성 정책/정책 상한을 재검증하고 요청 전체 ID를 유지하며 부적격·미연결 원문을 대체하지 않는다. 현재 연결 identity, 원문/첨부 버전·기존 확인·정책/profile/출처가 지문에 포함된다. 일반 Eligible은 변경하지 않았고 DB 읽기 외 동작은 없다.
