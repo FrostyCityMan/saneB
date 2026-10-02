@@ -194,3 +194,14 @@ service active/health UP, 이전 JAR/release 보존과 기존 플래그 유지 �
 정책 게시 안내의 모드 구분 누락을 로컬에서 수정하고 Node46/Java8/bootJar를 통과했다. 운영0fa8631에는 이 문구 수정이 미반영이다.
 다음 승인 범위는 COLLECT_ONLY 초안1건(구간1.0.4), 정책 QA 기능 활성화·재시작, 수집 전용 QA1회다.
 정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 배치는 이 준비 단계에 포함하지 않는다.
+
+### 2026-10-02 15:41 KST 안내 수정 Linux 검증 완료
+
+- [x] 고정 SHA `688dfe92d244889eb1bbcab9e9415e46b75b9c43`의 [Linux36973533218](https://github.com/FrostyCityMan/saneB/actions/runs/36973533218) success. 운영0fa8631과 비교한 제품 변경은 게시 안내 한 문장과 회귀 테스트뿐이며 migration·수집 로직 차이는0이다.
+- [x] artifact `11213545562`를 새 경로에 내려받아 XML 집계: 일반4596 중4215통과/381조건부생략/실패0. 별도필수273(계약20/job212/migration18/runtime6/worker12/정책DB2/Flyway3) 및 추출기251은 실패·오류·생략0이다.
+- [x] CI Node532통과/실패·생략0. 독립 패키지의 namespace·PostgreSQL 실행과 정책 부모의 실제 DB 연결·취소·정리 성공, `POLICY_DB_QA_CLEANUP=SUCCEEDED` 확인.
+- [x] 보고서 집계에 사용한 Node는 종료됐다. 이 CI는 외부 공고 요청·운영 배포·운영 쓰기 없는 내부 검증이며 브라우저 E2E 증거를 대신하지 않는다.
+- [!] 다음 운영 준비 승인 대기: COLLECT_ONLY 초안1건(구간1.0.4), 정책 QA 기능 활성화·서비스 재시작, 수집 전용 QA1회. 게시·상시 worker·ENFORCE·기존 데이터 배치는 제외한다. 미승인 설정을 변경하지 않는다.
+
+실행 근거: `gh run view 36973533218`, `gh run download 36973533218`, Node XML 헤더 집계와 `validateSuite`, CI의 TAP 집계·정리 결과 대조, `git diff --check`.
+검증 완료를 전체 goal 완료로 확대하지 않는다. 운영 설치는 여전히0fa8631/V86이고 안내 수정본은 미배포다.

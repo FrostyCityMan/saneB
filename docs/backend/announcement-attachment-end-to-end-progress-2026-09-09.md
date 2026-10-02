@@ -2,6 +2,8 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 15:41 KST [안내 수정 Linux 검증 완료](attachment-collection-safety-contract-2026-10-01.md): SHA688dfe9/Actions36973533218 success, artifact11213545562 XML에서 일반4215통과·381조건부생략, 별도필수273·추출기251 실패·생략0, CI Node532 실패·생략0 확인. 독립 실행·정책 부모 연결/취소/정리 성공이다. 승인 대기 중 운영 쓰기는 하지 않았다. 다음은 COLLECT_ONLY 초안1건·정책QA 설정/재시작·QA1회 승인이다. 게시/worker/ENFORCE/기존 데이터 배치는 별도이며 운영은0fa8631/V86, 전체 goal 미완료다.
+
 2026-10-02 [코드/V86 운영 설치 및 관리자 읽기 전용 QA](../deployment/attachment-runtime-baseline-2026-09-15.md): 고정SHA0fa8631/Actions36949131922 attempt2 success·CodeDeploy d-K9Y4RHO4L Succeeded. bundle/설치JAR 일치·V86/83개 migration checksum 일치·service active/내부health UP·이전 JAR/release 및 기존 플래그 보존을 확인했다. 사용자 로그인 후 정책/배치/기존 데이터/대기열/첨부 상세를 확인했다. 정책·배치0, 준비 후보0·3단계 미적용2945건, 표본의 검수/DRAFT 버튼 비활성이다. 정책 게시 안내의 모드 구분 누락만 로컬 수정하고 Node46/Java8/bootJar를 통과했다(운영 문구 미반영). 첨부 상시 수집은 아직 시작하지 않았다. 현재 goal은 active다. 정책 게시/worker/ENFORCE/기존 데이터 적용·검수/DRAFT E2E는 남아 있다. 아래 paused/배포 진행/인증 차단은 과거 이력이다.
 
 2026-10-02 장기 goal 재개: SSO 등록·최소 조회 검증과 별도로, 기존 승인된 `0fa8631879e427e28c0470a515e6b56162df1d5c` 코드/V86 설치를 재개했다. 기존 root 읽기 전용 진단에서 b638ad7/V85·health UP·migration82개 checksum 일치·첨부정책/파일/job0·활성 수집원223·원문2945를 재확인했다. Aurora 자동백업3개 available·7일 보존·PITR와 이전 JAR/release 존재도 확인했다. `gh run rerun 36949131922`로 동일 SHA attempt2를 실행했으며 현재 Linux 빌드/시험 진행 중이다. 아래 paused/cancelled는 attempt1의 과거 이력이다. 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용은 미실행이며 전체 goal은 active/미완료다.
