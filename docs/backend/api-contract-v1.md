@@ -2938,6 +2938,8 @@ REFERENCE_ONLY·TARGET_OUTSIDE_SCOPE·TARGET_BINDING_UNAVAILABLE·PROFILE_CHANGE
 | GET 기본 경로·`/{runId}`·`/{runId}/cases` | ADMIN/OPERATOR/APPROVER | 정책 소속 검사와 실행/항목 페이지. OFF에서도 조회 가능. 실제 DB 버전 현재성은 코드/운영 실행 성공을 뜻하지 않음 |
 | PUT `/{runId}/cancellation` | ADMIN | expectedVersion/reason, CSRF. READY/RUNNING만 취소. 미실행 항목은 취소로 남기고 실행 중 소유자는 스스로 정리. OFF에서도 허용 |
 
+2026-10-02 조회/예약 경계 보완: `GET /execution-plan/targets`는 DRAFT뿐 아니라 ACTIVE·RETIRED 정책에서도 현재 설치·규칙·profile·catalog가 일치하면 조회할 수 있다. 당시 게시 QA의 재현 또는 통과 증거가 아니라 현재 기대 범위 조회이며 `isQaPassed=false`를 유지한다. 정책 퇴역과 별개로 규칙 퇴역·설치 불일치 등 기존 snapshot 검증 실패는 여전히409다. `GET /execution-plan`과 신규 QA 예약은 DRAFT 제한을 유지한다. 응답 shape·DB·운영 정책은 변경하지 않는다.
+
 모든 관리 계정은 활성·필수 비밀번호 변경 완료 상태여야 한다. 임의 URL·파일 경로·source/profile/실행 옵션·성공 결과 입력은400, 다른 입력의 같은 멱등 키·현재성/정확한 예산 불일치는409다. scope/network 확인은true 필수이고 전체 기대값이 미완료이면 별도 인지 확인도true여야 한다. 이 확인은 일부 QA 분할 승인이지 전체 정책 게시/ENFORCE/기존 데이터 적용 승인이 아니다.
 
 원장/항목 응답에는 idempotency key·lease token·actor·requestHash·원문/추출문·증거 JSON을 노출하지 않는다. 과거 계획 없는 이력의 plan 필드는null이다. `isQaPassed`는 항상false이며 COMPLETED는 해당 분할 기대 동작 일치일 뿐이다. 새 예약이 OFF거나 실행 가능 분할이 없으면 isReservationEnabled=false다.

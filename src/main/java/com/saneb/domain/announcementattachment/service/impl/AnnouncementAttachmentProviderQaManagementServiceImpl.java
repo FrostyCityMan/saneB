@@ -65,7 +65,7 @@ public class AnnouncementAttachmentProviderQaManagementServiceImpl implements An
     @Override @Transactional(propagation=Propagation.NOT_SUPPORTED)
     public AttachmentProviderQaResponses.Coverage selectTargetCoverageList(Authentication actor,UUID policyId,int page,int size) {
         selectActor(actor,false);int offset=validatePage(page,size);
-        var prepared=selectPrepared(policyId);var plan=prepared.catalog().plan();
+        var prepared=selectPrepared(policyId,false);var plan=prepared.catalog().plan();
         int from=Math.min(offset,plan.targets().size()),to=(int)Math.min((long)from+size,plan.targets().size());
         return new AttachmentProviderQaResponses.Coverage(policyId,prepared.policy().rowVersion(),prepared.frozen().hash(),plan.catalogHash(),prepared.planHash(),
                 plan.isExpectationCoverageComplete(),false,plan.formatCoverage(),PageResponse.of(plan.targets().subList(from,to),page,size,plan.targets().size()));
@@ -208,11 +208,15 @@ public class AnnouncementAttachmentProviderQaManagementServiceImpl implements An
         });
     }
     private Prepared selectPrepared(UUID policyId) {
+        return selectPrepared(policyId,true);
+    }
+    private Prepared selectPrepared(UUID policyId,boolean requireDraft) {
         // 없는 정책은 비싼 설치 검증보다 먼저 거부한다. 쓰기 시에는 다시 잠금/현재성 대조한다.
-        read.execute(tx->{var policy=selectPolicy(policyId,false);validateDraft(policy,policy.rowVersion());return policy.policyId();});
+        // 기대 범위 조회는 게시·퇴역 후에도 허용하지만, 실행 계획/예약의 DRAFT 제한은 유지한다.
+        read.execute(tx->{var policy=selectPolicy(policyId,false);if(requireDraft)validateDraft(policy,policy.rowVersion());return policy.policyId();});
         var installed=snapshots.selectRuntime();
         return read.execute(tx->{
-            var policy=selectPolicy(policyId,false);validateDraft(policy,policy.rowVersion());var frozen=snapshots.selectSnapshot(policy,installed);
+            var policy=selectPolicy(policyId,false);if(requireDraft)validateDraft(policy,policy.rowVersion());var frozen=snapshots.selectSnapshot(policy,installed);
             try {
                 var json=mapper.readTree(frozen.json());
                 if(json.path("schemaVersion").asInt()!=6 || !json.path("targets").isArray() || !json.path("providerQaCatalog").isObject()) throw conflict("현재 전체 QA 계획이 snapshot에 없습니다.");

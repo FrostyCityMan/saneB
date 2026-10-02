@@ -145,6 +145,31 @@ class AnnouncementAttachmentProviderQaManagementServiceTest {
         assertThat(view.formatCoverage()).isEqualTo(coverage);assertThat(view.targets().items().getFirst().formatApplicability()).isEqualTo(applicability);
         assertThat(view.isQaPassed()).isFalse();verifyNoInteractions(ledger,audit,execution);
     }
+    @ParameterizedTest @ValueSource(strings={"ACTIVE","RETIRED"})
+    void targetCoverageRemainsReadableAfterPublicationButNewQaStillRequiresDraft(String status) throws Exception {
+        var policy=new AttachmentPolicyManagementRows.Row(policyId,"TEST",1,1,status,"COLLECT_ONLY",ruleId,"ACTIVE",
+                "a".repeat(64),"{}","[]",actorId,now,now,null,null,null,null,null);
+        when(policies.selectPolicyDetails(eq(policyId),anyBoolean())).thenReturn(policy);
+        for(String role:List.of("ADMIN","OPERATOR","APPROVER")) {
+            var view=service.selectTargetCoverageList(auth(role),policyId,1,20);
+            assertThat(view.policyVersion()).isEqualTo(1);
+            assertThat(view.targets().totalCount()).isEqualTo(2);
+            assertThat(view.isQaPassed()).isFalse();
+        }
+        assertThatThrownBy(()->service.selectExecutionPlan(auth("ADMIN"),policyId,1,20)).hasMessageContaining("DRAFT");
+        assertThatThrownBy(this::reserve).hasMessageContaining("DRAFT");
+        verifyNoInteractions(ledger,audit,execution);verify(dao,never()).insertPlan(any());
+        verify(policies,never()).selectPolicyDetails(any(),eq(true));
+        assertThat(txCount.get()).isZero();
+    }
+    @Test void publishedCoverageStillRequiresCurrentInstalledAndPolicyEvidence() {
+        var policy=new AttachmentPolicyManagementRows.Row(policyId,"TEST",1,1,"ACTIVE","COLLECT_ONLY",ruleId,"ACTIVE",
+                "a".repeat(64),"{}","[]",actorId,now,now,null,null,null,null,null);
+        when(policies.selectPolicyDetails(eq(policyId),anyBoolean())).thenReturn(policy);
+        when(snapshots.selectSnapshot(eq(policy),eq(runtime))).thenThrow(new IllegalArgumentException("invalid runtime binding"));
+        assertThatThrownBy(()->service.selectTargetCoverageList(auth("ADMIN"),policyId,1,20)).hasMessageContaining("invalid runtime binding");
+        verifyNoInteractions(ledger,audit,execution,catalog);assertThat(txCount.get()).isZero();
+    }
     @Test void targetCoverageValidatesPagingAndActorBeforeInstalledRuntime() {
         for(int[] range:List.of(new int[]{0,20},new int[]{1,0},new int[]{1,101},new int[]{Integer.MAX_VALUE,100}))
             assertThatThrownBy(()->service.selectTargetCoverageList(auth("ADMIN"),policyId,range[0],range[1])).isInstanceOf(ApiException.class);
