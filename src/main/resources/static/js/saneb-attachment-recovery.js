@@ -48,7 +48,7 @@
             && (j.actionId === null || uuid(j.actionId)) && [j.operationCode, j.jobStatusCode, j.applicationStatusCode, j.rollbackStatusCode].every(v => typeof v === "string")
             && (j.actionId === null || j.rollbackStatusCode === "ROLLED_BACK")));
     const mount = ({page, C, request, apiRoot, canRollback, text, meta, message, date, changed, blocked, refresh, navigation}) => {
-        const q = selector => page.querySelector(selector), form = q("[data-recovery-form]"), attempt = C.mutation(() => crypto.randomUUID());
+        const q = selector => page.querySelector(selector), form = q("[data-recovery-form]"), attempt = C.mutation();
         let source = null, preview = null, selection = null, list = null, number = 1, busy = false, stale = false, dirty = false, generation = 0, sent = null;
         const path = jobId => `${apiRoot}/attachment-jobs/${encodeURIComponent(jobId)}/rollback`;
         const gates = () => {

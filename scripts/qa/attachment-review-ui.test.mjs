@@ -2,10 +2,50 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
 const require = createRequire(import.meta.url);
 const C = require('../../src/main/resources/static/js/saneb-attachment-review-core.js');
 const id = '11111111-1111-4111-8111-111111111111';
 const path = `/api/v2/admin/announcement-sources/${id}`;
+
+test('HTTP attachment requests use cryptographic UUIDs without requiring randomUUID', () => {
+    assert.equal(C.requestUuid({randomUUID:()=>id}),id);
+    let calls=0;
+    const cryptoProvider={getRandomValues(bytes){calls++;bytes.fill(255);return bytes;}};
+    assert.equal(C.requestUuid(cryptoProvider),'ffffffff-ffff-4fff-bfff-ffffffffffff');
+    assert.equal(calls,1);
+    assert.throws(()=>C.requestUuid({}),/안전한 요청 식별자.*요청은 전송하지 않았습니다/);
+    assert.throws(()=>C.requestUuid({getRandomValues(){throw new Error('unavailable');}}),/요청은 전송하지 않았습니다/);
+});
+
+test('HTTP request keys preserve uncertain retries and recover from unavailable randomness', () => {
+    let available=false,calls=0;
+    const m=C.mutation(()=>C.requestUuid({getRandomValues(bytes){if(!available)throw new Error();bytes.fill(++calls);return bytes;}}));
+    const payload={reason:'공개 첨부 수집 확인'};
+    assert.throws(()=>m.prepare(payload),/안전한 요청 식별자/);
+    assert.equal(m.pending,false);assert.equal(m.original,null);
+    available=true;
+    const first=m.prepare(payload);m.fail({uncertain:true});
+    assert.deepEqual(m.prepare(payload),first);assert.equal(calls,1);
+    m.succeed();assert.notEqual(m.prepare(payload).key,first.key);
+});
+
+test('browser core defaults work when HTTP exposes getRandomValues but no randomUUID', async () => {
+    const code=await readFile(new URL('../../src/main/resources/static/js/saneb-attachment-review-core.js',import.meta.url),'utf8');
+    const browser={crypto:{getRandomValues(bytes){bytes.fill(7);return bytes;}}};
+    runInNewContext(code,browser);
+    const request=browser.SanebAttachmentReview.mutation().prepare({reason:'단건 수집'});
+    assert.match(request.key,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    assert.equal(JSON.parse(request.body).reason,'단건 수집');
+});
+
+test('attachment collect, review and recovery entrypoints share the HTTP-compatible key factory', async () => {
+    for(const name of ['saneb-announcement-attachment-review.js','saneb-attachment-operations.js','saneb-attachment-recovery.js']) {
+        const script=await readFile(new URL(`../../src/main/resources/static/js/${name}`,import.meta.url),'utf8');
+        assert.doesNotMatch(script,/crypto\.randomUUID/);
+        assert.match(script,/C\.mutation\(\)/);
+    }
+});
 test('role evidence binds exact extraction and preserves manual overrides without claiming approval', async () => {
     const a={ruleVersion:'document-role-1.0.1',rulesHash:'a'.repeat(64),textHash:'b'.repeat(64),blocksHash:'c'.repeat(64),roleCode:'NOTICE',reasonCode:'ROLE_TEXT_STRUCTURE_MATCHED',
         evidence:['NOTICE_HEADING','TARGET_SECTION','SUPPORT_SECTION','APPLICATION_SECTION'].map((ruleCode,i)=>({ruleCode,blockIndex:i,startOffset:i*10,endOffset:i*10+5}))};

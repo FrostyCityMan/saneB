@@ -133,7 +133,20 @@
         } finally { clearTimeout(timer); }
     };
     // 결과 유실 중에는 다른 payload를 전송하지 않는다. 원문/키는 탭 메모리에서만 유지한다.
-    const mutation = (uuid) => {
+    // HTTP에서도 암호학적 난수로 요청 키를 만든다. 안전한 난수가 없으면 전송 전에 중단한다.
+    function requestUuid(cryptoProvider=root.crypto) {
+        try {
+            if(typeof cryptoProvider?.randomUUID==="function")return cryptoProvider.randomUUID();
+            if(typeof cryptoProvider?.getRandomValues!=="function")throw new Error();
+            const bytes=new Uint8Array(16);cryptoProvider.getRandomValues(bytes);
+            bytes[6]=(bytes[6]&0x0f)|0x40;bytes[8]=(bytes[8]&0x3f)|0x80;
+            const hex=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+            return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+        } catch {
+            throw new Error("이 브라우저에서 안전한 요청 식별자를 생성할 수 없습니다. 최신 브라우저 또는 HTTPS 주소로 접속하세요. 요청은 전송하지 않았습니다.");
+        }
+    }
+    const mutation = (uuid=requestUuid) => {
         let attempt = null, uncertain = false, pending = false;
         return {
             prepare(payload) {
@@ -164,7 +177,7 @@
             &&a.evidence.every(e=>e&&rules.includes(e.ruleCode)&&Number.isSafeInteger(e.blockIndex)&&e.blockIndex>=0&&e.blockIndex<20000
                 &&Number.isSafeInteger(e.startOffset)&&Number.isSafeInteger(e.endOffset)&&e.startOffset>=0&&e.endOffset>e.startOffset&&e.endOffset<=1000000));
     };
-    const api = {targets, supports, label, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation};
+    const api = {targets, supports, label, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation, requestUuid};
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else root.SanebAttachmentReview = api;
 })(globalThis);

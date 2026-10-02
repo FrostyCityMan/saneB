@@ -9,7 +9,7 @@
     const canManage = page.dataset.canManage === "true";
     const q = selector => page.querySelector(selector);
     const reviewForm = q("[data-review-form]"), draftForm = q("[data-draft-form]");
-    const confirmAttempt = C.mutation(() => crypto.randomUUID()), draftAttempt = C.mutation(() => crypto.randomUUID());
+    const confirmAttempt = C.mutation(), draftAttempt = C.mutation();
     let source = null, context = null, epoch = 0, busy = false, locked = true, reviewDirty = false, draftDirty = false;
     let operations = null, recovery = null;
     let mutationStale = false;

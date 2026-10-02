@@ -68,7 +68,7 @@
     };
     const mount = ({page, C, request, apiRoot, canManage, text, meta, message, changed, blocked, refresh}) => {
         const q = selector => page.querySelector(selector), form = q("[data-operation-form]");
-        const attempt = C.mutation(() => crypto.randomUUID());
+        const attempt = C.mutation();
         let source = null, context = null, data = null, generation = 0, busy = false, locked = true, dirty = false, stale = false, jobId = null, sent = null;
         const selectedFiles = () => [...form.querySelectorAll("[data-retry-file]:checked")].map(n => n.value);
         const gates = () => {
