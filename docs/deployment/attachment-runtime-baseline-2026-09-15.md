@@ -1,5 +1,93 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 15:14 KST 코드·V86 운영 설치 완료
+
+**Decision: Ready to release — 승인된 코드 설치 하위 Gate 완료.** 전체 운영 수집과 업무 E2E는 미완료다.
+goal 재개 후 같은 SHA `0fa8631879e427e28c0470a515e6b56162df1d5c`의 Actions36949131922
+attempt2를 재실행했다. 테스트/빌드는5분33초 성공, 전체job6분54초 성공이며
+CodeDeploy `d-K9Y4RHO4L` Succeeded다. attempt1의 사용자 취소 이력은 아래에 보존한다.
+
+| 확인 | 설치 후 결과 |
+| --- | --- |
+| 설치/bundle JAR | 둘 다 `fb5f2a5d1f96cd3da885e1f8b9f42a857a4cd8a0607c37ca7fbdf6e9c245ed74` |
+| DB/Flyway | V86, 실패0,83파일/83이력 version/script/checksum/type/success 일치; 누락·추가·불일치·invalid0 |
+| 서비스 | active, 내부 actuator health UP |
+| 추출기 | 1.0.16, JAR `8f57d9f6e5b3902e7c40bff1cf3908f583c71a6ea470abc293d23f2352bef65d` |
+| 추출기 library set | `5535373de14756fbbe1ebf8d1d31115f24b0cfff4c217034cbdd83ec7f220982`; 공용 설치와 동일 JAR의 불변 QA release 일치 |
+| 실행 지문 | `5855e8bf8f502dd34b1b4d7308e8d77222047cf74705134974a3c339e8bb85da` |
+| 복구 자료 | 이전 b638ad7 JAR `7907d7bd6a4d77dc1e9f12624f4723fcfed1718685d8c284b295e93f8e4545df`와 불변 release 존재 |
+| 설정 | 첨부 worker/정책QA/ProviderQA/rollback UNSET→기본false. 기존 목록/BODY/분류V2/source batch/본문 재분류true 유지 |
+| 운영 데이터 | 첨부정책/ACTIVE/set/file/extraction/job/active job/batch0, 활성 수집원223/parser41/원문2945 |
+| 설치 hook | `ATTACHMENT_CONTRACT_INSTALL=INSTALLED`, `ATTACHMENT_SERVER_QA=NOT_REQUESTED`, 실파일 QA0 |
+
+설치 전 Aurora 자동백업3개 available·7일 보존·PITR 최신15:01:50 KST·암호화/삭제보호를 확인했다.
+실제 복원 시험은 하지 않았다. V86 DDL은 JAR 복구로 자동 되돌아가지 않는다.
+새 빌드의 추출기 버전명이 같아도 binary hash는 달라졌으므로 과거 운영 정책 QA 지문을 재사용하지 않는다.
+
+설치 후 SSM Runtime `7d0265c3-016f-4a14-99c3-2f43897eea26`, Database `3de7cbcf-7b15-45aa-9b48-e65a4aa4f310`,
+DeploymentEvidence `b07261d5-2fd5-4fed-b179-4dca390825ed`, MigrationIntegrity `a07a4c5b-9b86-4f51-8ffa-81db0d83632d` 모두 Success.
+마지막 검사는 실제 bundle 일치 hash를 고정하고83 migration을 대조했다. DB 진단은 READ ONLY/ROLLBACK/쓰기0이다.
+소유 임시 CA/전송 파일과 실행 프로세스는 정상 종료·정리했다.
+
+동일 SHA Linux36883912352 artifact11174407016을 다시 내려받아 XML을 집계했다.
+일반4596/생략381/실패0, 별도필수273/추출기251 실패·생략0을 재확인했다.
+보관 수집 대장963영수증/293표본 재현: 연결223/223, 실파일210/223, 미확보13, 부분 오류33, 엄격집합16이다.
+이 수치는 격리 관측이며 운영 첨부 수집0과 구별한다.
+
+브라우저는 장기 goal의 명시된 E2E 범위로 시작했다. 비로그인 관리자 접근은 인증 필요 화면으로
+이동했고, 재배포 후 사용자 로그인 완료 통지를 받아 관리자 세션을 확인했다.
+정책0·배치0·기존 데이터 고정 목록0, 최종 검증 준비0·3단계 미적용2945건을 실제 화면에서 확인했다.
+표본 SRC-017741은 첨부 버전0·발견 상태 미확인·첨부 집합 없음이며 검수 저장/DRAFT 생성이 비활성이다.
+미수집을 첨부 없음/최종 후보로 표시하지 않았고 화면은 외부 수집 미실행을 명시했다.
+탭 console warn/error0이다. 실제 검수/DRAFT/정책 게시·역할별·반응형 E2E는 미완료다.
+증거 화면은 로컬 `build/qa-tools/operating-attachment-review-20261002.png`에 보관했다.
+
+정책 게시 안내에 과거의 전체 실파일 QA 필수 문장이 남아 있는 것을 발견했다.
+기존 Thymeleaf 구조·동작은 보존하고 COLLECT_ONLY/ENFORCE의 검증 범위를 구분하도록 문구만 수정했다.
+frontend-design-core/ui-ux-operating-principles/frontend-ui-engineering 기준으로 잘못된 업무 안내를 교정했다.
+`node --test scripts/qa/attachment-policy-ui.test.mjs` 46/46, 정책 화면 Java smoke8/8,
+`gradlew.bat :test --tests '*AnnouncementAttachmentPolicyViewControllerSmokeTest' :bootJar --no-daemon --console=plain --max-workers=1` 성공.
+문구 수정은 로컬 검증이며 현재 운영0fa8631에는 미반영이다. 운영 화면 재검증도 미실행이다.
+정책 게시·worker 활성화·ENFORCE·기존 데이터 적용은 실행하지 않았다.
+후속 COLLECT_ONLY 상시 수집은 새 유입뿐 아니라 목록에서 재발견된 기존 원문도 조건에 따라
+예약할 수 있다(`AnnouncementAttachmentIntakeServiceImpl.saveCollectedSource`). 활성화 영향에 이를 포함한다.
+기존2945건 전수 배치·분류 적용·공고 자동 활성화와 동일하지 않다.
+
+Actions의 Node20 기반 action/Java setup v4 지원 종료 및 runner 이미지 변경 경고는 후속 유지보수 항목이다.
+이번 검증된 SHA의 설치 도중 workflow나 의존성을 변경하지 않았다.
+
+## 2026-10-02 사용자 일시정지 — V86 설치 미실행
+
+고정 ref의 [배포 Actions36949131922](https://github.com/FrostyCityMan/saneB/actions/runs/36949131922)를
+사용자 일시정지 요청에 따라 취소했고 최종 completed/cancelled를 확인했다.
+빌드/시험 cancelled, bundle/AWS 인증 설정/S3 업로드/CodeDeploy 생성 모두 skipped다.
+새 CodeDeploy·코드 설치·V86 운영 migration·서비스 재시작은 실행되지 않았다.
+goal은 paused이며 재개 지시 전 추가 실행하지 않는다. 아래 사전 기준선은 이번 중단 직전
+읽기 전용 확인이다. 기존 b638ad7/V85를 새 수집 전용 계약 설치 완료로 표현하지 않는다.
+
+## 2026-10-02 10:03 KST 코드·V86 설치 승인·사전 기준선
+
+**Decision: Ready to release — 고정SHA 코드 설치 승인 범위.** 사용자가 AWS 인증 갱신,
+`0fa8631879e427e28c0470a515e6b56162df1d5c` 코드/V86 설치·서비스 재시작을 승인했다.
+정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 처리·외부 파일 QA·브라우저는 제외한다.
+고정 ref `codex/redeploy-0fa8631-20261002`를 생성했고 원격 SHA가 승인SHA와 일치한다.
+
+- root principal/저장소 계정 일치·서울 리전·Ubuntu 대상1대·SSM Online 확인.
+- 기존 CodeDeploy `d-26M5PJ54L` Succeeded/revision b638ad7 유지. JAR SHA256
+  `7907d7bd6a4d77dc1e9f12624f4723fcfed1718685d8c284b295e93f8e4545df`·V85·service active/내부health UP.
+- migration82파일/82이력은 version/script/checksum/type/success 일치, 누락/추가/불일치/invalid0.
+- 첨부 정책/ACTIVE/set/file/extraction/job/active job/batch 모두0. 활성 지자체223/parser41/원문2945.
+- 첨부 worker/정책QA/ProviderQA/rollback UNSET→기본false, 기존 목록/BODY/분류V2/source batch/본문 재분류true.
+- 추출기1.0.16·공용/불변 QA 일치·이전 JAR/release 보존. 백업 JAR hash는 기존 `12985f8c...`다.
+- 실제 DB `saneb-dev-aurora` available, 자동백업3개 available·7일 보존·암호화/삭제보호true.
+  PITR 최신복원시각10월2일09:59:13 KST. 백업 가용성 조회이며 실제 복원/rollback 시험은 아니다.
+
+SSM Runtime `7518c3b7-9197-4225-b8dc-eabd2220efc4`, Database `0f917afe-05e4-4257-aed3-006a93cd91bd`,
+MigrationIntegrity `daf6e630-1db6-4325-a07a-be4fa44a884d` 모두 Success.
+DB 검사는 READ ONLY/on·ROLLBACK·쓰기0이며 소유 임시 CA/전송 파일을 정리했다.
+새 배포는 `attachment_qa=false`로 같은 SHA의 Linux 빌드/시험 통과 후 실행한다.
+새 설치 완료·health·V86 무결성·설정 유지 검증은 아직 미완료다.
+
 ## 2026-10-01 19:43 KST 승인 코드·V84/V85 운영 반영 완료
 
 **Decision: Ready to release — 승인된 코드 설치 Gate 완료.** 전체 첨부 상시 서비스/운영 E2E 완료 판정은 아니다. 정책 게시·ENFORCE·첨부 worker 활성화·기존 데이터 재처리는 실행하지 않았다.

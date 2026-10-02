@@ -2,6 +2,16 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 [코드/V86 운영 설치 및 관리자 읽기 전용 QA](../deployment/attachment-runtime-baseline-2026-09-15.md): 고정SHA0fa8631/Actions36949131922 attempt2 success·CodeDeploy d-K9Y4RHO4L Succeeded. bundle/설치JAR 일치·V86/83개 migration checksum 일치·service active/내부health UP·이전 JAR/release 및 기존 플래그 보존을 확인했다. 사용자 로그인 후 정책/배치/기존 데이터/대기열/첨부 상세를 확인했다. 정책·배치0, 준비 후보0·3단계 미적용2945건, 표본의 검수/DRAFT 버튼 비활성이다. 정책 게시 안내의 모드 구분 누락만 로컬 수정하고 Node46/Java8/bootJar를 통과했다(운영 문구 미반영). 첨부 상시 수집은 아직 시작하지 않았다. 현재 goal은 active다. 정책 게시/worker/ENFORCE/기존 데이터 적용·검수/DRAFT E2E는 남아 있다. 아래 paused/배포 진행/인증 차단은 과거 이력이다.
+
+2026-10-02 장기 goal 재개: SSO 등록·최소 조회 검증과 별도로, 기존 승인된 `0fa8631879e427e28c0470a515e6b56162df1d5c` 코드/V86 설치를 재개했다. 기존 root 읽기 전용 진단에서 b638ad7/V85·health UP·migration82개 checksum 일치·첨부정책/파일/job0·활성 수집원223·원문2945를 재확인했다. Aurora 자동백업3개 available·7일 보존·PITR와 이전 JAR/release 존재도 확인했다. `gh run rerun 36949131922`로 동일 SHA attempt2를 실행했으며 현재 Linux 빌드/시험 진행 중이다. 아래 paused/cancelled는 attempt1의 과거 이력이다. 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용은 미실행이며 전체 goal은 active/미완료다.
+
+2026-10-02 사용자 일시정지 요청으로 goal을 **paused**로 변경했다. 고정SHA `0fa8631`의 배포 Actions36949131922는 Linux 빌드/시험 단계에서 취소됐으며 최종 completed/cancelled를 확인했다. bundle 생성·AWS 인증 설정·S3 업로드·CodeDeploy 생성은 모두 skipped다. 새 코드 설치·V86 운영 migration·서비스 재시작은 실행되지 않았다. 운영은 직전 읽기 전용 확인의 b638ad7/V85이며 이번 배포로 변경하지 않았다. 로그인 갱신·사전 기준선/백업 확인·고정 ref 생성은 완료 이력으로 보존한다. 재개 지시 전 추가 실행하지 않는다.
+
+2026-10-02 10:03 KST 사용자가 AWS 로그인 갱신·고정SHA `0fa8631879e427e28c0470a515e6b56162df1d5c` 코드/V86 설치·서비스 재시작을 승인했다. root/저장소 계정 일치·서울 대상1대/SSM Online·기존 b638ad7/V85·service active/내부health UP을 새로 확인했다. migration82파일/82이력 checksum 일치·첨부정책/파일/job0·기존 플래그 유지·Aurora 자동백업/PITR 가용성과 이전 JAR/release 보존을 확인했다. 고정 ref `codex/redeploy-0fa8631-20261002`는 승인SHA와 일치한다. 정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 처리·외부 파일 QA·브라우저는 이번 설치 범위에서 제외한다. 배포 완료 및 설치 후 검증은 아직 진행 전이며 아래 인증 차단은 해소 전 이력이다.
+
+2026-10-02 운영 설치 사전 읽기 전용 인증에서 AWS_AUTH_REFRESH_REQUIRED를 확인했다. EC2/SSM·운영 DB/health/백업 조회 전 종료했고 임시CA를 정리했다. 설치 후보0fa8631의 Linux success·제품 코드 차이0·과거 migration82개 불변과 V86만 추가(현재83파일)를 재확인했다. 새 코드/V86 설치 승인과 로그인 갱신이 필요하며 새 배포·정책·worker·기존 데이터·브라우저 실행은0이다. 아래 전체9개 Gate 표를 최신 검증/권한/인증 상태에 맞춰 갱신했고 전체goal은 미완료다. 이번 후속 기록은 로컬 문서 변경이며 추가 커밋·푸시는 하지 않았다.
+
 2026-10-02 [수집 전용 계약 Linux Gate 완료](attachment-collection-safety-contract-2026-10-01.md): 고정SHA `0fa8631879e427e28c0470a515e6b56162df1d5c`/Linux36883912352 success, artifact11174407016에서 일반4596(4215통과/381조건부생략/실패0)·별도필수273·추출기251·Node531 실패0을 확인했다. 별도필수·추출기·Node 생략0, 실제V85→V86 upgrade/기존 checksum·행 보존·수집 게시/ENFORCE 재사용 차단·과거/새 목록 projection 통과다. 독립 산출물·정책 부모 실제 연결/취소/정리도 통과했다. 커밋·푸시·내부 Linux 검증 범위는 완료이며, 새 운영 설치/현재 운영 조회·정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·외부 관측·브라우저는 미실행이다. 연결223/223·격리 실파일210/223·미확보13은 기존 관측 기준으로 유지하며 운영 성공 수가 아니다. 다음 Gate는 새SHA 코드/V86 설치 승인과 설치 전 현재 기준선·복구 경로 확인이다. 전체goal은 미완료이며 아래 첫 CI 실패/진행 표기는 이전 실행 이력이다.
 
 2026-10-02 수집 전용 계약 첫 Linux36881855740/db4fca5는 목록 projection의 이전 null 기대값을 유지한 일반1/job DB1 시험 실패로 종료됐다. migration18·runtime6·worker12·Flyway3·산출물 계약20 실패·생략0과 신규 수집 게시/ENFORCE 차단 통과는 확인했지만 전체 Gate는 미완료다. 전체 snapshot 비노출 원칙을 보존하면서 계약/모드 두 필드만 반환하는 정적 SQL·실제 DB 검증으로 시험을 보완했다. 로컬20 suite/457시험 실패·생략0·bootJar 성공이며 후속 전체 Linux CI를 진행한다. 최초 실패와 앞 단계 실패로 미실행된 독립/정책 부모 검증을 성공으로 보고하지 않는다.
@@ -1567,7 +1577,32 @@
 - 이전 서버 QA 문서에는 배포 69b7278 / CodeDeploy d-VHMRNZRPK 성공과 localhost health UP이 있다. 이번 작업의 현재 운영 확인을 대신하지 않는다.
 - 지원 범위: 일반 텍스트 PDF, HWP 5.x, HWPX. OCR 실행/암호 우회/매크로/재귀 수집은 비범위이며 실패·검수 상태는 구현 범위다.
 
-## 현재 Gate — 2026-10-01 코드 설치 후
+## 현재 Gate — 2026-10-02 15:14 KST 수집 전용 계약 운영 설치 후
+
+전체9개 Gate와 ATT-001~062를 유지한다. **Decision: Not ready — 전체 운영 완료 기준.**
+새 계약의 Linux 성공은 내부 계약 근거이며 외부/운영/브라우저의 완료 근거가 아니다.
+AWS 인증과 승인된 설치를 완료했고 현재 운영0fa8631/V86·첨부정책/파일/job0을 직접 확인했다.
+
+| Gate | 상태 | 확인 근거 / 남은 작업 |
+|---|---|---|
+| 0 맥락·범위·검증 목록 | [~] | 전체9Gate/62요구 유지. 현재 운영 활성223/parser41/원문2945 확인. 보관963영수증/293표본 재현; 격리 관측과 운영 수집은 별도 |
+| 1 DB·API 계약 | [~] | 0fa8631 Linux job212/migration18/Flyway3와 V86 upgrade·수집 게시/ENFORCE 차단 통과. 운영 V86/83파일·이력 checksum 일치. 실제 업무 E2E는 남음 |
+| 2 상시 worker·Provider | [~] | 등록223/223·기존 실파일210/223/미확보13. 부분 실패 보존·다음 공고 진행의 임시DB/runtime 근거 유지. 현재 운영 상시 첨부 worker 실행·수집 결과는 미검증 |
+| 3 분류·정책 | [~] | COLLECTION_SAFETY_V1/COLLECTION_VERIFIED와 STRICT_V1/VERIFIED 분리·불변 입력·현재성·게시 검증 통과. 수집 전용 증거는 외부 다운로드/ENFORCE 근거 아님. 운영 정책 게시·분류 적용·최종 검수는 남음 |
+| 4 관리자 API·화면 | [~] | 계약/모드 projection 및 게시 영향 회귀 통과; CI Node531에는 비브라우저 관리자/판정기 시험 포함. 운영 검수·DRAFT·실패복구·역할별 렌더링/업무 E2E는 남음 |
+| 5 기존 데이터 | [~] | 고정·분할·수집·적용·원복 코드와 임시DB 근거 존재. 정확한 현재 범위·영향도 승인 후 운영 수집/적용/대조 필요. 과거 원문 수를 첨부 적격 수로 사용하지 않음 |
+| 6 자동·실파일 QA | [~] | 고정SHA Linux success: 일반4215통과/381조건부생략·별도필수273·추출기251·Node531 실패0; 별도필수/추출기/Node 생략0. 독립 산출물·정책 부모 취소/정리 통과. 기존 실파일210/223·엄격집합16/223은 정상텍스트/정답 전수와 별도; 이번 외부 요청0 |
+| 7 운영 배포·활성화 | [~] | 코드 설치 하위 Gate [x]: 0fa8631/V86/Actions36949131922 attempt2/CodeDeploy d-K9Y4RHO4L 성공. JAR/bundle·DBchecksum·health·설정 유지 확인. 정책 게시/worker/ENFORCE/기존 데이터는 별도 범위 승인 필요 |
+| 8 운영 브라우저 E2E | [~] | 현재0fa8631 관리자 로그인 및 정책/배치/기존 데이터/대기열/첨부 상세 읽기 전용 확인. 준비0·미적용2945와 표본 검수/DRAFT 비활성, console warn/error0. 실제 업무 변경·역할별·복구·반응형 검증은 남음 |
+
+실행 명령/결과: `gh run rerun/watch/view 36949131922` success,
+`Invoke-SanebAwsReadOnly.ps1 -Action Runtime/Database/DeploymentEvidence/MigrationIntegrity` Success,
+`BackupInventory` 가용성 확인, Linux36883912352 artifact XML 재집계, Node 설치 helper14통과/조건부생략3,
+보관 수집 대장 재현, `git diff --check` 통과.
+남은 위험: V86 DDL과 JAR 원복 경로 구분, 실제 복구 미시험, 운영 정책·데이터 영향 승인,
+전체 실파일/분류 품질 잔여 및 운영 업무 E2E. 현재 첨부 worker는 비활성으로 보존한다.
+
+## 과거 Gate — 2026-10-01 코드 설치 후
 
 전체 목표의9개 Gate와 ATT-001~062는 유지한다. 아래는 현재 근거로 갱신한 표이며, 코드 설치 하위 Gate만 완료한 것을 Gate7 전체 완료로 확대하지 않는다. 실행 로그의 개별 테스트 통과는 운영 업무 E2E의 대체 증거가 아니다.
 

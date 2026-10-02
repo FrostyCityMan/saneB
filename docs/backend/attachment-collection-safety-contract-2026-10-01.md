@@ -61,7 +61,7 @@ node --test scripts/qa/attachment-policy-ui.test.mjs
 git diff --check
 ```
 
-마지막 Gradle 실행은 1분48초 성공이다. 중간 실행에서 신규 테스트의 지역변수 선언 누락과
+2026-10-01 위 Gradle 명령 실행은 1분48초 성공이다. 중간 실행에서 신규 테스트의 지역변수 선언 누락과
 Mockito 중첩 stubbing 오류를 발견·수정한 후 동일 범위로 재실행했다. 테스트를 생략하지 않았다.
 V85→V86 업그레이드·기존 checksum/행 보존과 수집 계약 게시/ENFORCE 재사용 거부의
 실제 DB 시험을 기존 Linux harness에 추가했으나, 로컬 453개 통과 수에는 포함하지 않는다.
@@ -119,7 +119,7 @@ success이며 artifact `11174407016`의 XML과 필수 보고서 판정 결과를
 | Git·구현·빌드 | [x] | QA 브랜치 푸시와 고정 SHA Linux success; 후속 기록은 문서 전용 |
 | DB·호환성 | [x] | V86 실제 upgrade/trigger·checksum/행 보존; V1 및 과거 migration 미변경 |
 | 보안·격리·복구 계약 | [x] | runtime/worker/정책 부모 및 취소·정리 시험 통과 |
-| 운영 현재 기준선·백업·설정 | [ ] | 이번에는 운영을 조회하지 않음; 설치 직전 읽기 전용 확인 필요 |
+| 운영 현재 기준선·백업·설정 | [!] | 후속 읽기 전용 사전 인증에서 AWS_AUTH_REFRESH_REQUIRED; 로그인 갱신 후 확인 필요 |
 | 코드·V86 운영 설치 승인 | [ ] | 새 SHA 설치·migration·재시작은 이번 커밋/CI 승인에 미포함 |
 | 운영 수집·분류·브라우저 | [ ] | 정책 게시·worker 활성화·ENFORCE·기존 데이터 적용·브라우저 미실행 |
 
@@ -134,5 +134,63 @@ DB DDL 복구는 별개다. 설치 전 이전 JAR·추출기와 DB 복구 경로
 코드/V86 설치·재시작 → JAR/DB checksum·health·기존 설정 유지 확인이다.
 정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 적용은 해당 영향도와 범위 승인 후 별도 수행한다.
 
+## 2026-10-02 운영 설치 사전 확인 — 인증 갱신 필요
+
+자동 goal 후속 턴에서 기존 승인된 읽기 전용 진단의 `Invoke-SanebAwsReadOnly.ps1 -Action Inventory`를
+실행했다. STS 인증 단계에서 `AWS_AUTH_REFRESH_REQUIRED`로 종료되어 현재 계정/프로젝트 일치,
+EC2·SSM·운영 runtime/DB/health·백업·배포 상태는 조회하지 못했다. 과거10월1일의 V85/health/플래그
+확인을 현재 상태로 재사용하지 않는다. 새 배포 실행·운영 쓰기·브라우저 실행은0이다.
+도구는 TLS 검증을 유지하고 프로세스 환경을 복원했으며 `OWNED_CA_BUNDLE_REMOVED`를 확인했다.
+
+GitHub의 고정SHA `0fa8631`/Linux36883912352 success와 저장소 배포 변수5개의 존재를 재확인했다.
+Node로 Git blob을 대조하여 기존 migration82개 변경0·V86만 추가(현재83파일), 검증 SHA와
+현재 HEAD의 src/scripts/workflow 차이0을 확인했다. Node 실행은 종료됐다.
+남은 입력은 AWS 로그인 갱신과 고정SHA 코드/V86 설치·재시작 승인이다. 범위를 확대해
+정책 게시·worker 활성화·ENFORCE·기존 데이터 처리를 실행하지 않는다.
+
 성공 기준은 승인된 로컬 구현·커밋/푸시·Linux 검증 완료다. 운영 수집 시작은 별도 Gate다.
 일부 검증만 실행하거나 skip된 검증을 완료로 보고하지 않는다.
+
+## 2026-10-02 10:03 KST 코드·V86 설치 승인과 사전 확인
+
+사용자가 AWS 로그인 갱신과 고정SHA `0fa8631879e427e28c0470a515e6b56162df1d5c`
+코드/V86 설치·서비스 재시작을 승인했다. root/저장소 계정 일치·서울 대상1대/SSM Online을
+확인했고 인증 차단은 해소됐다. 기존 b638ad7/V85·service active/내부health UP,
+migration82파일/82이력 checksum 불일치0, 첨부정책/파일/job0과 기존 플래그를 재확인했다.
+실제 서비스 DB의 Aurora 자동백업3개 available·7일 보존·암호화/삭제보호·PITR 가용성과
+이전 JAR/불변 extractor release 보존을 확인했다. 실제 복원/rollback 시험은 미실행이다.
+
+고정 ref `codex/redeploy-0fa8631-20261002`를 승인SHA에 생성·대조했다.
+로컬 설치 helper Node17시험 중14통과/Windows 조건부생략3/실패0이다. Linux 전용3시험은
+Windows 성공 수에 포함하지 않으며 배포 Linux 검증에서 실행한다. Node는 종료됐다.
+배포는 `attachment_qa=false`로 실행하며 정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터
+처리·외부 파일 QA·브라우저는 제외한다. 새 설치 결과와 전체goal 완료를 미리 선언하지 않는다.
+
+## 2026-10-02 사용자 일시정지·배포 취소
+
+goal 상태는 paused다. 배포 Actions36949131922를 빌드/시험 단계에서 취소했고
+최종 completed/cancelled를 확인했다. bundle/AWS 인증 설정/S3 업로드/CodeDeploy 생성은
+모두 skipped이며 새 코드 설치·V86 운영 migration·서비스 재시작은 실행되지 않았다.
+사전 확인·인증 갱신과 고정 ref는 보존하며 재개 지시 전 추가 실행하지 않는다.
+
+## 2026-10-02 장기 goal 재개·동일 SHA 설치 재실행
+
+- [x] SSO 전환은 조회 전용으로 검증했으며 권한을 확대하지 않았다. 별도로 기존 승인된 root 읽기 전용 SSM 진단을 사용했다.
+- [x] Runtime `5dd694a1-0b34-4f0c-ae65-ebe118728931`, Database `7b336e89-1d84-4a19-abfb-003887056460`, MigrationIntegrity `ee4d403c-4950-4cb0-bbf0-449a8e1f89a9` 모두 Success. b638ad7/V85, 82개 migration checksum 일치, 서비스 active/health UP, 첨부정책·파일·job0, 기존 플래그 유지다.
+- [x] Aurora 자동백업3개 available/7일 보존, PITR 최신15:01:50 KST, 이전 JAR/release 보존 확인. 실제 복구 시험은 미실행이다.
+- [x] 설치 helper Node17개 중14통과/Windows 조건부생략3/실패0. 사용한 Node 종료. Git HTTPS 조회는 로컬 CA 오류였으며 TLS를 해제하지 않고 인증된 GitHub API로 고정 ref와 승인 SHA 일치를 확인했다.
+- [~] `gh run rerun 36949131922` attempt2/고정SHA0fa8631의 Linux 빌드·배포를 재실행했다. attempt1 취소는 이력으로 보존한다. 설치 결과와 V86 운영 적용은 아직 확인 전이다.
+- [ ] 정책 게시·첨부worker 활성화·ENFORCE·기존 데이터 적용·운영 업무 E2E는 별도 미완료다. 현재 설치 실행을 수집 시작이나 전체 goal 완료로 보고하지 않는다.
+
+### 15:14 KST 설치 후 검증 완료
+
+Actions36949131922 attempt2 success/CodeDeploy d-K9Y4RHO4L Succeeded.
+승인SHA0fa8631 bundle/설치JAR 일치, DB V86/83개 migration checksum 일치,
+service active/health UP, 이전 JAR/release 보존과 기존 플래그 유지 확인.
+첨부정책·파일·job0이며 정책 게시/worker/ENFORCE/기존 데이터 적용은 하지 않았다.
+상세 지문·SSM 영수증·검증 범위는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)의 최신 항목을 따른다.
+코드 설치 하위 Gate만 완료이며 전체 goal은 active다. 사용자 로그인 후 관리자 정책·배치·기존 데이터·대기열·첨부 상세를 읽기 전용으로 확인했다. 정책/배치0, 준비 후보0, 3단계 미적용2945건이며 표본의 검수/DRAFT 버튼은 비활성이다. 업무 변경 E2E는 남아 있다.
+
+정책 게시 안내의 모드 구분 누락을 로컬에서 수정하고 Node46/Java8/bootJar를 통과했다. 운영0fa8631에는 이 문구 수정이 미반영이다.
+다음 승인 범위는 COLLECT_ONLY 초안1건(구간1.0.4), 정책 QA 기능 활성화·재시작, 수집 전용 QA1회다.
+정책 게시·첨부 worker 활성화·ENFORCE·기존 데이터 배치는 이 준비 단계에 포함하지 않는다.

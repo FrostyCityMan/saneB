@@ -70,6 +70,16 @@ test('collection validation stays separate and cannot authorize ENFORCE',()=>{
     assert.equal(P.impact(impact(enforce,{latestQa:collection,blockingReasonCodes:['QA_CONTRACT_MODE_MISMATCH','PUBLICATION_REVALIDATION_REQUIRED']}),enforce),true);
     assert.match(P.label('COLLECTION_VERIFIED'),/실파일 전체 성공.*아님/);
 });
+test('게시 안내는 수집 전용과 첨부 판정 적용의 검증 범위를 구분한다',()=>{
+    const html=readFileSync(new URL('../../src/main/resources/templates/app/announcement-attachment-policies.html',import.meta.url),'utf8');
+    const evidence=html.match(/<p id="policy-publication-evidence">([^<]+)<\/p>/)?.[1];
+    assert.ok(evidence,'게시 증거 설명을 고정된 위치에 제공한다');
+    assert.match(evidence,/COLLECT_ONLY는 수집 전용 검증/);
+    assert.match(evidence,/ENFORCE는 전체 수집 방식·실파일 정답 검증/);
+    assert.match(evidence,/누락된 QA를 관리자 확인으로 대체할 수 없으며/);
+    assert.doesNotMatch(evidence,/전체 수집 방식·실파일 및 작업 DB QA의 현재 증거가 모두 필요합니다/);
+});
+
 test('commands accept only contract fields and correct policy versus run version',()=>{
     const state={detail:detail({policy:summary({rowVersion:7})}),run:run({statusCode:'RUNNING',rowVersion:11})};
     assert.equal(P.command('qa',state,input(),'사유',true).payload.expectedVersion,7);

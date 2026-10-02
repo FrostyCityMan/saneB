@@ -37,6 +37,9 @@ class AnnouncementAttachmentPolicyViewControllerSmokeTest {
         assertThat(html.select("link[href='/css/saneb-announcement-attachment-review.css']")).hasSize(1);
         assertThat(html.select("input[name=profile], select[name=profile], input[name=passed], [data-publication]")).isEmpty();
         assertThat(html.text()).contains("실제 게시는 서로 다른 단계", "운영에 활성화되지 않습니다", "원래 요청 그대로 재확인", "전체 수집 방식·실파일", "파서·수집 방식은 시스템이 고정", "불변 게시 영수증", "누락된 QA를 관리자 확인으로 대체할 수 없으며");
+        assertThat(html.selectFirst("#policy-publication-evidence").text())
+                .contains("COLLECT_ONLY는 수집 전용 검증", "ENFORCE는 전체 수집 방식·실파일 정답 검증")
+                .doesNotContain("전체 수집 방식·실파일 및 작업 DB QA의 현재 증거가 모두 필요합니다");
         assertThat(html.select("[data-prepare][disabled], [data-publish][disabled], [data-publication-consents][hidden][disabled]")).hasSize(3);
         assertThat(html.select("[data-publication-consents] input[required]")).hasSize(3);
         assertThat(html.select("[data-publication-consents] input[checked]")).isEmpty();

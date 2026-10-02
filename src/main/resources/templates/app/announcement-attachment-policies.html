@@ -64,7 +64,7 @@
     <section class="plain-panel" aria-labelledby="policy-scope-title">
         <h2 id="policy-scope-title">5. 게시 준비 범위와 실제 게시</h2>
         <p>준비는 현재 전체 보호 대상의 ID·상태를 10분 동안 고정하는 이력입니다. 공고·작업·정책·계획·수집원이 섞인 항목 수를 공고 건수로 해석하지 마세요. 준비만으로 게시하거나 외부 수집을 실행하지 않습니다.</p>
-        <p>전체 수집 방식·실파일 및 작업 DB QA의 현재 증거가 모두 필요합니다. 누락된 QA를 관리자 확인으로 대체할 수 없으며 증거가 부족하면 서버가 실제 게시를 차단합니다.</p>
+        <p id="policy-publication-evidence">현재 모드에 맞는 QA 증거가 필요합니다. COLLECT_ONLY는 수집 전용 검증, ENFORCE는 전체 수집 방식·실파일 정답 검증을 요구합니다. 누락된 QA를 관리자 확인으로 대체할 수 없으며 증거가 부족하면 서버가 실제 게시를 차단합니다.</p>
         <div class="attachment-actions"><button type="button" class="secondary-action" data-prepare disabled>게시 준비 범위 고정 내용 확인</button></div>
         <details><summary>게시 준비 이력</summary><div data-scope-list></div><div class="attachment-actions" data-scope-pages></div></details>
         <div data-scope>아직 준비 범위를 조회하지 않았습니다.</div>
