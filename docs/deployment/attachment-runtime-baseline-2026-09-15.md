@@ -1,5 +1,22 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 운영 테스트 준비: 게시 근거·HTTP 단건 작업 수정
+
+- 사용자 승인 범위: 수집 전용 정책 게시, 첨부 worker 활성화, 실제 처리·DB 적재·운영 화면 확인. ENFORCE·기존 데이터 전체 일괄 적용·자동 활성화는 제외한다. 테스트 계정은 사용자 승인에 따라 로그인에만 사용하고 저장소에 기록하지 않는다.
+- worker 활성화 SSM `b0c5a392-db09-4fb5-aa91-14db4fd79a3a` Success. 소유 drop-in의 worker flag만 true로 추가, 다른 설정/JAR 보존·재시작·health UP 확인. 활성 정책이 없어 당시 실제 수집은 시작되지 않았다.
+- 첫 정책 게시가 JSON 저장 전 LongNode/저장 후 IntNode 비교 차이로 거부되어 `393516c`로 수정했다. Linux `36995927191` success. 후속 HTTP 첨부 작업의 직접 randomUUID 호출을 발견해 배포 `36997381429`는 빌드 단계 취소, CodeDeploy 단계 skipped. 운영 배포 성공으로 계산하지 않는다.
+- 단건 수집·검수·복구 화면의 암호학적 UUID 기본 생성 및 멱등 재시도 보존을 `700cfa191b90f5f2e562de1e6654f7ca8cd6cb8b`로 반영했다. 로컬 선택 Node48·Java26 통과/생략0·bootJar 성공. Linux `36997894553` success: 일반4224통과/381조건부생략, 별도필수273·추출기251·Node545 실패·생략0. 독립 QA 및 정책 부모 임시 자원 정리 성공.
+- 동일 SHA 배포 `36998863944` success, CodeDeploy `d-SAYS0UT4L` Succeeded. `attachment_qa=false`, 별도 외부 파일 QA를 자동 실행하지 않았다.
+- Runtime SSM `80707040-3564-4fdd-b082-8d2cafde00be`·DeploymentEvidence `0bf0830f-7ee3-4750-bd5e-e9a6bbc20f62` Success. 운영/bundle JAR `abcb31d95e5e9f60dcf4d1d2a37db841a1e21ebf1dd669f70b02ba8fbea394fc` 일치, V86·service active·내부/외부health UP. 기존 ebc3ce4 JAR/release 존재.
+- worker/정책QA true, ProviderQA/rollback UNSET 및 기존 수집 플래그 유지. 실행 코드 `e9724e98a3a4d5624a15d47cc969cbfd82f332e1cf9cc3dddf724cd37663850d`, 추출기1.0.16 JAR `ee41b4338ebc2057aec91d5f0e552456f343167a400f252ba4ca12e4b2b32197`, librarySet `df6635a3c9c755eefa3a3eca6e7cbfbcf63dfa5820293c57d07e91e09708d60b`. worker/QA가 같은 release에 결합됨을 확인했다.
+- 관리자 브라우저 로그인 및 최신 정책 조회 성공. 새 코드 정책 QA `7ba9a283-7985-4fcc-8967-4887b192f373`을 20:11:32 KST 1회 예약했다. 초기 응답 대기 후 재전송 없이 정상 접수를 확인했다. 정책은 아직 DRAFT이며 QA 완료·게시·실제 파일 결과는 후속 기록 대상이다.
+- 승인 일정 ASSCH-000001의 오래된 nextRunAt은 관리자 화면 중지→재승인으로 2026-10-03 12:30 KST로 갱신했다. 기존 cron/244 URL 한도와 과거 실행 이력은 보존했다. 다음 정기 실행 성공이나 고아 실행 자동 복구 코드 수정은 아니다.
+- 운영 사용자 테스트 절차와 남은 Gate: [첨부 수집 사용자 테스트 준비](attachment-operator-acceptance-2026-10-02.md).
+- 새 QA는 20:16:29 KST COLLECTION_VERIFIED·4단계 PASSED·격리 DB originalRemoved=true로 종료됐다(SSM `05073b9a-f15c-4e49-81c5-cc1c7af227fd`). 새 준비 범위 `4c1db442-c9c7-441f-aa4b-bf3ddf929dc6`, 고정224혼합항목·범위지문 `df15298743b63e60ccb0e90c51a8c9e8976470eb0185c792ce3e121dd0263795`를 생성했다.
+- 게시 영수증 `d2b5f439-3200-4b68-b011-b109954dae0c`로 정책 e10860ae/version1 ACTIVE COLLECT_ONLY 확인. 이전 JSON 숫자 재검증 오류는 실제 운영 게시에서 해소됐다. 사후 DB SSM `ee3f2947-0c9d-4b73-bfc8-32ab5e8b30d9` ACTIVE1·당시 작업0·배치0 확인.
+- 운영 단건 SRC-017679를 24MiB 한도로 수집 예약했다. 작업 `a3b42a47-da52-4202-9d9a-117431c7b500` SUCCEEDED·시도1·실패코드없음, HWPX1파일116,740바이트·COMPLETE_TEXT11,398자/505문단·구간12개를 DB와 실제 UI에서 대조했다. SSM `d3fd2dba-b623-43f6-b028-263f383840f5`는 집합/파일/추출/job 각1·진행중0·배치0·V86을 확인했다. 판정은 COLLECT_ONLY 미리보기이며 기존 기본 판정 유지·초안 생성0·자동 활성화0이다.
+- 증거 화면: `build/qa-tools/attachment-policy-published-20261002.png`, `build/qa-tools/attachment-production-text-ready-20261002.png`. 단건 텍스트 문단1→2 및 저장 구간 조회 성공, 해당 첨부 탭 console error0. 전체 지역 실운영 성공·PDF/HWP 실운영 성공·부분 실패 실운영 표본·모바일/모든 역할 회귀를 이 증거로 확장하지 않는다. 테스트 표본의 과거 본문 메뉴/푸터·과다 태그와 미확정 구간은 알려진 한계로 남는다.
+
 ## 2026-10-02 CSRF 쿠키·헤더 연동 수정 및 승인 배포
 
 - 승인 범위: CSRF 보호를 유지한 공통 연동 수정·시험·커밋/푸시·운영 재배포, 이후 COLLECT_ONLY 초안1건과 정책QA1회. 게시·상시 첨부 worker·ENFORCE·기존 데이터 처리는 제외한다.
