@@ -59,4 +59,19 @@ class AttachmentCollectionSafetyGateTest {
         when(snapshots.selectProviderQaPlan()).thenReturn(selectPlan(false));
         assertThatThrownBy(()->gate.validateCurrentEvidence(evidence,frozen,run)).isInstanceOf(IllegalArgumentException.class);
     }
+    @Test void storedJsonEvidenceIsAcceptedAfterSerializationAndReload() throws Exception {
+        var plan=selectPlan(true);when(snapshots.selectProviderQaPlan()).thenReturn(plan);
+        when(snapshots.hash(any())).thenReturn("b".repeat(64));
+        var frozen=selectFrozen(plan);var run=selectRun();
+        var generated=gate.selectEvidence(frozen,run);
+        // DB JSONB는 Java 숫자 wrapper 타입을 보존하지 않는다. 게시 검증은 저장 후 JSON을 다시 읽는다.
+        var stored=mapper.readTree(mapper.writeValueAsBytes(generated));
+        assertThat(gate.selectValidatedEvidenceHash(stored,frozen,run)).isEqualTo("b".repeat(64));
+        gate.validateCurrentEvidence(stored,frozen,run);
+        for(var value:List.of(mapper.readTree("2"),mapper.readTree("1.0"),mapper.readTree("\"1\""),mapper.nullNode())) {
+            var changed=stored.deepCopy();
+            ((com.fasterxml.jackson.databind.node.ObjectNode)changed.path("bindingStatusCounts")).set("SYSTEM_BINDING_MATCHED",value);
+            assertThatThrownBy(()->gate.selectValidatedEvidenceHash(changed,frozen,run)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
 }

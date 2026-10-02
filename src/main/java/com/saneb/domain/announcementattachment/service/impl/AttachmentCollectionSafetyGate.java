@@ -23,9 +23,11 @@ public final class AttachmentCollectionSafetyGate implements AttachmentPolicyAdd
             var current = snapshots.selectProviderQaPlan();
             if (!mapper.valueToTree(current).equals(mapper.readTree(frozen.json()).path("providerQaPlan")))
                 throw new IllegalArgumentException();
-            var counts = new TreeMap<String, Long>();
-            current.items().forEach(item -> counts.merge(item.statusCode(), 1L, Long::sum));
-            if (counts.getOrDefault("SYSTEM_BINDING_MATCHED", 0L) < 1) throw new IllegalArgumentException();
+            // List 크기 범위의 정수로 고정한다. LongNode는 JSONB 저장 후 IntNode로 재조회되어
+            // 같은 수치도 JsonNode.equals에서 불일치하므로 정상 QA 게시를 차단할 수 있다.
+            var counts = new TreeMap<String, Integer>();
+            current.items().forEach(item -> counts.merge(item.statusCode(), 1, Integer::sum));
+            if (counts.getOrDefault("SYSTEM_BINDING_MATCHED", 0) < 1) throw new IllegalArgumentException();
             return mapper.valueToTree(Map.of("schemaVersion", 1, "validationContractCode", "COLLECTION_SAFETY_V1",
                     "policyRunId", run.runId().toString(), "snapshotHash", frozen.hash(),
                     "planHash", snapshots.hash(current), "targetCount", current.items().size(), "bindingStatusCounts", counts,
