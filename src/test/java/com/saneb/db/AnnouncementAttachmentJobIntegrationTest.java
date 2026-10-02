@@ -2849,6 +2849,10 @@ class AnnouncementAttachmentJobIntegrationTest {
     }
 
     private UUID insertLinkedSnapshotFixture(boolean includeSnapshot,boolean corruptSnapshot) {
+        return insertLinkedSnapshotFixture(includeSnapshot,corruptSnapshot,source -> {});
+    }
+
+    private UUID insertLinkedSnapshotFixture(boolean includeSnapshot,boolean corruptSnapshot,java.util.function.Consumer<UUID> beforeCommit) {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var standard=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));
         UUID oldJob=sql.queryForObject("SELECT id FROM announcement_attachment_jobs WHERE batch_id=?",UUID.class,standard.batchId());
@@ -2881,6 +2885,7 @@ class AnnouncementAttachmentJobIntegrationTest {
                 if(corruptSnapshot) snapshot="[{\"linkId\":\""+UUID.randomUUID()+"\",\"announcementId\":\""+announcement+"\"}]";
                 sql.update("INSERT INTO announcement_attachment_linked_job_scopes(job_id,source_id,links_json) VALUES (?,?,?::jsonb)",job,source,snapshot);
             }
+            beforeCommit.accept(source);
         });
         return job;
     }
@@ -2909,6 +2914,50 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("snapshot must contain all current connections");
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes",Integer.class)).isZero();
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches WHERE purpose_code='LINKED_EVIDENCE_ONLY'",Integer.class)).isZero();
+    }
+
+    @Test void linkedSnapshotReservationLocksLiveConnectionUntilCommit() {
+        UUID job=insertLinkedSnapshotFixture(true,false,source -> {
+            try(var executor=Executors.newSingleThreadExecutor()) {
+                var concurrent=executor.submit(()-> {
+                    try {
+                        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx -> {
+                            sql.execute("SET LOCAL lock_timeout='300ms'");
+                            sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=?",UUID.randomUUID(),source);
+                        });
+                        return "UNEXPECTED_WRITE";
+                    } catch(org.springframework.dao.DataAccessException error) {
+                        var cause=error.getMostSpecificCause();
+                        assertThat(cause).isInstanceOf(java.sql.SQLException.class);
+                        return ((java.sql.SQLException)cause).getSQLState();
+                    }
+                });
+                assertThat(concurrent.get(10,TimeUnit.SECONDS)).isEqualTo("55P03");
+            } catch(Exception error) {throw new AssertionError("연결 예약 잠금 경합 시험 실패",error);}
+        });
+        assertThat(sql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,job)).isTrue();
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=(SELECT source_id FROM announcement_attachment_jobs WHERE id=?)",UUID.randomUUID(),job);
+        assertThat(sql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,job)).isFalse();
+    }
+
+    @Test void linkedSnapshotSourceDeletionCleansIdentifiersButPreservesOperatingAnnouncement() {
+        UUID job=insertLinkedSnapshotFixture(true);
+        UUID source=sql.queryForObject("SELECT source_id FROM announcement_attachment_jobs WHERE id=?",UUID.class,job);
+        UUID batch=sql.queryForObject("SELECT batch_id FROM announcement_attachment_jobs WHERE id=?",UUID.class,job);
+        UUID announcement=sql.queryForObject("SELECT announcement_id FROM announcement_source_links WHERE source_id=?",UUID.class,source);
+        String before=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement);
+        assertThatThrownBy(()->sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",source))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("fk_announcement_source_links_source");
+        assertThat(sql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,job)).isTrue();
+        // 별도 업무에서 연결이 해제된 상황을 합성한다. 첨부 수집 서비스가 연결을 삭제하는 기능은 아니다.
+        sql.update("DELETE FROM announcement_source_links WHERE source_id=?",source);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes WHERE job_id=?",Integer.class,job)).isEqualTo(1);
+        sql.update("DELETE FROM announcement_source_snapshots WHERE id=?",source);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes WHERE job_id=?",Integer.class,job)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs WHERE id=?",Integer.class,job)).isZero();
+        assertThat(sql.queryForObject("SELECT deleted_item_count FROM announcement_attachment_batches WHERE id=?",Integer.class,batch)).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT scope_item_count FROM announcement_attachment_batches WHERE id=?",Integer.class,batch)).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(before);
     }
 
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {

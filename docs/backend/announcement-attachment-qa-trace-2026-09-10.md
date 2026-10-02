@@ -2,6 +2,8 @@
 
 ## 2026-10-03 V88 연결 snapshot 기반 검증
 
+경합/삭제 후속 검증: 같은 표적 명령은46초 성공,7건·실패/오류/생략0이다. 새 경합 시험은 snapshot 예약 transaction 내부에서 별도 연결의 link ID UPDATE가 lock_timeout=300ms·SQLSTATE55P03으로 차단되고, commit 이후 같은 변경이 성공하며 비교 함수가 false로 바뀌는 것을 검증했다. 삭제 시험은 기존 live link FK가 source 삭제를 거부함을 확인한 뒤, 합성 link를 별도로 해제하고 source 삭제 시 job/snapshot 정리·고정 분모1 유지·삭제 집계1·운영 공고 전체 컬럼 불변을 검증했다. 최초 삭제 시험의 FK 실패를 보호 완화로 해결하지 않았다. 예약 직렬화 증거이며 worker HTTP 전/완료 저장 경합 검증은 아니다. 이전 V87 SHA579e48f의 Linux37037830571은 success, V88 SHA4702f0f의37039105876은 cancelled로 확인되어 후자를 통과로 계산하지 않는다. SHA68ec436의37039782126은 조회 시 in_progress였다.
+
 후속 실제 PostgreSQL 표적 시험 `attachmentJobIntegrationTest --tests '*linkedSnapshot*' --tests '*linkedEvidencePurpose*' --no-daemon --max-workers=1`은41초 성공,5건·실패/오류/생략0이다. 신규3건은 정상 snapshot 예약 commit, 임의 수정/삭제 거부, link ID 교체 후 비교 false와 고정 이력 보존, snapshot 누락 시 commit 거부·배치/job 원복, 위조 link ID 삽입 거부·예약 원복을 검증한다. 기존 V87 목적 보호2건도 함께 통과했다. 처음 시험 준비의 job 단독 취소는 기존 배치 상태 일관성 제약에서 거부되어 기존 취소 서비스로 수정했다. 제약/trigger를 비활성화하지 않았다. 동시성·source 삭제 cascade·경고 원장·worker 및 운영 검증은 여전히 남는다.
 
 V88은 작업/source 복합 FK, 예약 시 연결 ID·공고 ID snapshot 저장, snapshot 수정/단독 삭제 방지, 예약 transaction 종료 시 snapshot 존재 확인, 현재 연결과의 비교 함수를 추가한다. 기존 외부 요청 fence는 변경하지 않으며 경고 원장·전용 API·worker 연결은 남아 있다.

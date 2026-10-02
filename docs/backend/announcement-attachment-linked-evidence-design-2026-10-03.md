@@ -1,6 +1,6 @@
 # ATT-051 연결 공고의 첨부 근거 갱신 계약
 
-상태: 구현 진행 중. V87에 배치 목적·효과 차단, V88에 작업별 불변 연결 snapshot과 비교 함수를 추가했다. V88 순차/빈 DB migration 및 연결 교체 비교는 실제 PostgreSQL에서 통과했다. snapshot 쓰기 거부·경합 시험, 경고 원장·API·worker 연결은 남아 있다. 운영 미반영이다.
+상태: 구현 진행 중. V87 목적·효과 차단, V88 작업별 불변 연결 snapshot을 추가했다. 실제 PostgreSQL에서 순차/빈 DB migration, 정상 snapshot 저장·누락/위조/수정/삭제 거부, 예약 중 link 변경 잠금, 연결 해제 후 source 삭제 cascade를 검증했다. 경고 원장·API·worker 연결과 실행/완료 시점 경합 검증은 남아 있다. 운영 미반영이다.
 기준 HEAD: `0e840600a67973a2bf6f4a371173af68922d0589`.
 근거: `announcement-attachment-collection-design-2026-09-08.md` 12.2, `announcement-attachment-qa-plan-2026-09-08.md` ATT-051.
 
@@ -37,6 +37,7 @@
 - batches에 `purpose_code NOT NULL DEFAULT 'STANDARD'` 추가: `STANDARD`, `LINKED_EVIDENCE_ONLY`만 허용. 기존 행/요청의 의미는 그대로다. 생성 후 변경 금지.
 - V88의 별도 고정 연결 테이블은 job_id(PK), source_id, links_json을 저장한다. `(job_id, source_id)` 복합 FK로 작업 소속을 보장하고 JSON에는 linkId·announcementId 쌍을 저장한다. 현재 V68 제약상 연결은 최대 1개이며 배열 표현이 다중 연결을 허용한다는 뜻은 아니다. 기존 link가 삭제/교체되어도 고정 증거는 보존하며 live link 삭제 cascade는 사용하지 않는다.
 - 고정 source가 삭제될 때의 개인정보/원문 정리 정책은 기존 source 삭제 계약을 따른다. 삭제 항목은 batch의 고정 분모와 삭제 집계에 남기되 원문 URL·텍스트를 별도 보관하지 않는다.
+- 현재 live link의 FK는 연결 중 source 삭제를 거부한다. 첨부 기능은 이 보호를 완화하거나 link를 해제하지 않는다. 별도 업무에서 link가 해제된 뒤 source가 삭제되면 job→고정 snapshot cascade와 배치 삭제 건수 기록을 따른다. 운영 공고 자체는 삭제·수정하지 않는다.
 - 고정 연결은 예약 transaction에서 전체 집합을 저장한 뒤 불변이다. 단순 count/hash만 저장하지 않으며 link 추가·삭제·같은 개수의 교체를 모두 비교한다.
 - linked 목적 job은 `batch_id` 필수, operation은 기존 `COLLECT`, `application_status_code='NOT_REQUESTED'`, `rollback_status_code='NOT_REQUESTED'`, 선택 적용 false다. 다른 조합을 DB에서도 거부한다.
 - 예약 및 경고 저장 시 source를 먼저 잠그고 같은 순서로 링크를 확인한다. link 생성·삭제의 경합이 source 잠금만으로 직렬화되는지 기존 쓰기 경로를 확인한다. 보장되지 않으면 additive trigger/명시적 잠금 프로토콜로 보강한다. 단순 사전 SELECT로 충분하다고 간주하지 않는다.
