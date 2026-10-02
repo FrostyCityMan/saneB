@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 호출 중단·격리 자원 정리 검증
+
+`ce76b2db9bb9f276e77dd0ae5a0cac80a1047190`의 [Linux37031100334](https://github.com/FrostyCityMan/saneB/actions/runs/37031100334)가 success다. artifact11238805743의 전용 runtime XML7건은 실패/오류/생략0이며 신규 `interruptedCallerKillsObservedChildAndRecoversWithoutRetainingOriginals`가0.390초 통과했다. 실제 격리 자식 JVM의 고유 표식을 관측한 후 호출 스레드를 중단하여 CANCELLED 반환·중단 신호 보존·자식 종료·소유 원본 및 임시 폴더 정리·다음 추출 복구를 검증한다. 기존 실제30초 timeout 시험도30.238초 통과했다.
+
+ATT-027/059의 합성 입력 Linux launcher 증거를 보강한다. 웹 UI의 취소 기능이나 운영 서버의 강제 종료·OS OOM killer·모든 악성 문서 검증을 추가한 것은 아니다. 일반 test task에서 같은 클래스7건은 조건부 생략됐고, 별도 필수 runtime task에서 실제 실행된 결과를 사용한다. 보고서 판정기는 최소7건을 요구하며 이전6건만 있으면 실패한다. 운영 main 코드·DB·정책은 변경하지 않았으며 전체 ATT 완료 상태는 올리지 않는다.
+
 ## 2026-10-03 양평 개정2 단건 운영 근거
 
 승인된 SRC-017679 재수집 작업 `e7796154-4de8-47c8-9875-97598358ac58`이 처리 완료됐다. 새 집합 `846733ce-2bc4-369a-aac1-1b3a3eb1204f`의 HWPX1개·11,398자·505문단·12구간을 운영 화면에서 조회하고 기존 집합 보존과 기본 판정 불변을 확인했다. 정책 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c`에 연결된 신규 미리보기다. 아래 최신 정책 신규 작업 승인 대기/미실행은 이 실행 이전 기록이다.
