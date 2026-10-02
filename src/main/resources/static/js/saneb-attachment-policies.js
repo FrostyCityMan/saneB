@@ -222,6 +222,6 @@
             for(const k of ["policyId","runId","scopeId"])if(p.has(k))out[k]=p.get(k);if(["DRAFT","ACTIVE","RETIRED"].includes(p.get("status")))out.status=p.get("status");return out;},
             url:patch=>{const p=new URLSearchParams();for(const[k,v]of Object.entries({...navigation.read(),...patch}))if(v!=null)p.set(k,String(v));return `/app/admin/announcement-attachment-policies?${p}`;},
             replace:patch=>root.history.replaceState(null,"",navigation.url(patch))};
-        const app=mount({page,P,request:P.client(root.fetch.bind(root)),doc:root.document,uuid:()=>root.crypto.randomUUID(),navigation,confirmDiscard:message=>root.confirm(message)});
+        const app=mount({page,P,request:P.client(root.fetch.bind(root)),doc:root.document,uuid:()=>P.requestUuid(root.crypto),navigation,confirmDiscard:message=>root.confirm(message)});
         root.addEventListener("beforeunload",e=>{if(app.dirty){e.preventDefault();e.returnValue="";}});app.start();}
 })(globalThis);

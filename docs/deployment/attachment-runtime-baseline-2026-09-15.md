@@ -1,5 +1,29 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-02 16:24 KST 정책 초안 저장 브라우저 오류
+
+- [x] 사용자 재로그인 후 관리자 대시보드와 정책 화면 접근 확인.
+- [!] ASCR-000001·COLLECT_ONLY·segment-role-1.0.4·83,886,080바이트로 초안 저장 1회 시도 시 `root.crypto.randomUUID is not a function`. 확인 창을 닫고 목록 재조회한 결과 정책0건이다.
+- [ ] QA 예약은 미실행이며 승인된 QA1회를 소비하지 않았다. 정책 게시·상시 worker·ENFORCE·기존 데이터 배치도 미실행이다.
+- 원인: HTTP 운영 화면에서 보안 컨텍스트 전용 `crypto.randomUUID()`를 무조건 호출한다. 로컬 UI/core 코드상 요청 키 생성은 API 요청 직전보다 앞이며, 이 예외에서 요청 단계에 도달하지 않는다. 브라우저 보안 우회나 콘솔 주입은 하지 않았다.
+- 증거: `build/qa-tools/policy-draft-http-uuid-error-20261002.png`. 이번 확인에서는 AWS 설정·서비스 재시작·코드 배포를 추가 실행하지 않았다. 이전 승인으로 켠 정책 QA 설정은 유지한다.
+- 다음 Gate: HTTP 호환 요청 키 생성 및 회귀 검증을 포함한 수정·추가 코드 배포 승인. 초안 저장/QA는 해당 수정 후 재개한다.
+
+## 2026-10-02 16:15 KST 승인된 정책 QA 기능 준비
+
+사용자는 수집 전용 초안1건·정책 QA 기능 활성화/재시작·QA1회를 승인했다.
+게시·상시 첨부 worker·ENFORCE·기존 데이터 배치는 제외한다.
+
+- [x] 사전 Runtime SSM `0bd95cb6-8017-41c0-8f5f-7ea2a4a2147c`, Database `73bb1b32-3858-442a-85d7-55b94ada9c4b` Success. 운영0fa8631/V86·health UP·정책/첨부 작업0·QA 플래그 UNSET을 확인했다.
+- [x] 승인 실행 SSM `c1ef1cb5-14ad-4ed1-a682-7a0e9ead0d51` Success. 고정 JAR hash와 ubuntu 서비스 계정을 확인한 후 `/etc/systemd/system/saneb.service.d/90-saneb-policy-qa.conf`에 정책 QA 플래그 true만 추가하고 daemon-reload/restart했다. 기존 비밀정보 EnvironmentFile은 수정하지 않았다.
+- [x] 실행 후 실제 프로세스의 정책 QA true, 나머지8개 플래그·DB 설정·추출기/QA 경로 불변, JAR 불변, 내부health UP을 검증했다. 별도 Node HTTP 조회에서도 외부 health HTTP200/UP이다.
+- [x] 후속 Database SSM `7db7d938-666f-4382-9cfd-1828a3b980fe` Success. V86·정책/ACTIVE/첨부집합/파일/추출/job/batch0, QA 실행/활성 실행0, 기존 원문2945/활성 지역223 유지다. 모든 DB 진단은 READ ONLY/ROLLBACK이다.
+- [~] 재시작 후 관리자 인증 만료를 확인해 새 인앱 탭을 사내비 로그인 화면에 준비했다. 초안 생성·QA 예약은 아직 하지 않았고 사용자 재로그인을 요청했다. 새 승인 QA1회는 아직 소비하지 않았다.
+
+설정 변경은 QA만 준비한 것이며 게시 또는 상시 수집 시작이 아니다. 원복이 필요하면 위에서 생성한 drop-in 한 파일만 확인 후 제거·daemon-reload/restart하는 별도 작업으로 다룬다.
+PowerShell 구문 검사는 통과했으나 로컬 `python` 실행 별칭은 미설치로 구문 검사를 실행하지 못했다. 운영 Python 스크립트 실제 실행 성공과 구분한다. 소유 SSM 호출 프로세스와 임시 CA/전송 파일은 종료·정리했다.
+재시작 중 기존 브라우저 탭이 연결 오류 문서에 남아 제어·정리가 제한됐다. 새 탭에서는 인증 경계와 로그인 화면을 확인했다. 로그인 화면 증거: 로컬 `build/qa-tools/policy-qa-login-required-20261002.png`.
+
 ## 2026-10-02 15:14 KST 코드·V86 운영 설치 완료
 
 **Decision: Ready to release — 승인된 코드 설치 하위 Gate 완료.** 전체 운영 수집과 업무 E2E는 미완료다.

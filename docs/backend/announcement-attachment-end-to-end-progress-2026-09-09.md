@@ -2,6 +2,12 @@
 
 ## 목표와 승인 범위
 
+2026-10-02 16:30 KST HTTP 요청 키 오류 수정·시험·커밋/푸시·운영 배포·초안/QA 재개를 승인받았다. 정책 화면만 native randomUUID 또는 getRandomValues 기반 UUID v4로 생성하고, 안전한 난수 미지원 시 API 전송 전 한국어 오류와 기존 입력을 보존한다. 중복 요청 키/본문 재사용은 유지한다. Design Read: 기존 Thymeleaf/Bootstrap 관리자 편집·확인 UI를 보존하는 R1 저장 복구이며 운영 배포는 R2로 별도 결과 검증한다. 새 의존성·DB/API 변경 없음. Node 정책49/전체532통과·Windows에서 Linux전용3생략, Java 화면8통과·bootJar성공이다. 첫 Gradle 명령의 모듈 필터 실패는 `:test`로 범위를 명시해 해소했다. 배포 전 Runtime SSM70f734df-5934-4fd3-bd6c-bf9d94a8f5fc Success: 운영0fa8631/V86·health UP·정책QA true·첨부worker UNSET·복구 JAR/release 존재. Linux CI·실제 배포·브라우저 저장/QA 결과는 아직 미확인이다. 게시·상시 worker·ENFORCE·기존 데이터 배치는 비범위다.
+
+2026-10-02 16:24 KST 관리자 재로그인 후 운영 브라우저에서 ASCR-000001·COLLECT_ONLY·segment-role-1.0.4·80MiB 초안 저장을 1회 시도했다. `root.crypto.randomUUID is not a function`으로 실패했고, 목록 재조회에서 정책0건을 확인했다. 현재 HTTP 페이지에서 보안 컨텍스트 전용 randomUUID를 무조건 호출하는 UI 오류다. 로컬 `saneb-attachment-policies.js:225` 및 `saneb-attachment-policy-core.js:168`에서 요청 키 생성이 API 요청보다 먼저 실행됨을 확인했다. QA 예약은 실행하지 않았다. 정책 QA 설정 true는 앞선 승인대로 유지하며 게시·worker·ENFORCE·기존 데이터는 변경하지 않았다. 저장 오류 수정·검증·추가 코드 배포 승인이 다음 선행 조건이다. 증거: `build/qa-tools/policy-draft-http-uuid-error-20261002.png`. 전체 goal 미완료.
+
+2026-10-02 16:15 KST [정책 QA 준비 승인 및 설정 반영](../deployment/attachment-runtime-baseline-2026-09-15.md): 정책 QA 플래그만 true로 추가하고 서비스 재시작·내외부health UP·기존 설정/JAR 불변을 확인했다. 운영0fa8631/V86·정책/첨부/QA 실행0을 재조회했다. 관리자 인증이 만료되어 사내비 재로그인을 요청했다. 승인된 초안1건/QA1회는 아직 실행하지 않았고 게시·상시 worker·ENFORCE·기존 데이터는 계속 비범위다. 이전의 운영 준비 승인 대기는 해소됐으며 현재 선행 조건은 관리자 재로그인이다.
+
 2026-10-02 15:41 KST [안내 수정 Linux 검증 완료](attachment-collection-safety-contract-2026-10-01.md): SHA688dfe9/Actions36973533218 success, artifact11213545562 XML에서 일반4215통과·381조건부생략, 별도필수273·추출기251 실패·생략0, CI Node532 실패·생략0 확인. 독립 실행·정책 부모 연결/취소/정리 성공이다. 승인 대기 중 운영 쓰기는 하지 않았다. 다음은 COLLECT_ONLY 초안1건·정책QA 설정/재시작·QA1회 승인이다. 게시/worker/ENFORCE/기존 데이터 배치는 별도이며 운영은0fa8631/V86, 전체 goal 미완료다.
 
 2026-10-02 [코드/V86 운영 설치 및 관리자 읽기 전용 QA](../deployment/attachment-runtime-baseline-2026-09-15.md): 고정SHA0fa8631/Actions36949131922 attempt2 success·CodeDeploy d-K9Y4RHO4L Succeeded. bundle/설치JAR 일치·V86/83개 migration checksum 일치·service active/내부health UP·이전 JAR/release 및 기존 플래그 보존을 확인했다. 사용자 로그인 후 정책/배치/기존 데이터/대기열/첨부 상세를 확인했다. 정책·배치0, 준비 후보0·3단계 미적용2945건, 표본의 검수/DRAFT 버튼 비활성이다. 정책 게시 안내의 모드 구분 누락만 로컬 수정하고 Node46/Java8/bootJar를 통과했다(운영 문구 미반영). 첨부 상시 수집은 아직 시작하지 않았다. 현재 goal은 active다. 정책 게시/worker/ENFORCE/기존 데이터 적용·검수/DRAFT E2E는 남아 있다. 아래 paused/배포 진행/인증 차단은 과거 이력이다.

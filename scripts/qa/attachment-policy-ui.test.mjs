@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFileSync} from 'node:fs';
+import {webcrypto} from 'node:crypto';
 const require=createRequire(import.meta.url),P=require('../../src/main/resources/static/js/saneb-attachment-policy-core.js'),UI=require('../../src/main/resources/static/js/saneb-attachment-policies.js');
 const id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`,hash='a'.repeat(64),now='2026-09-12T00:00:00Z';
 const summary=(patch={})=>({policyId:id(1),policyCode:'ATT-QA',versionNo:1,rowVersion:0,policyStatusCode:'DRAFT',modeCode:'OFF',ruleReleaseId:id(2),ruleReleaseStatusCode:'ACTIVE',policyHash:null,createdAt:now,publishedAt:null,...patch});
@@ -31,6 +32,45 @@ test('explicit segment choices are allowlisted and omitted update preserves exac
     for(const v of Object.keys(P.segmentVersions))assert.equal(P.command('create',{}, {...input(),segmentRuleVersion:v},'새 초안',true).payload.segmentRuleVersion,v);
 });
 const cmd=(kind='qa')=>P.command(kind,{detail:detail(),run:run({statusCode:'RUNNING'})},input(),'업무 확인',true);
+
+test('요청 UUID는 native 메서드의 수신 객체와 HTTP 난수 대안을 보존한다',()=>{
+    const native={randomUUID(){assert.equal(this,native);return id(99);},getRandomValues(){assert.fail('native 우선');}};
+    assert.equal(P.requestUuid(native),id(99));
+    const http={getRandomValues(bytes){assert.equal(this,http);assert.equal(bytes.length,16);bytes.fill(255);return bytes;}};
+    assert.equal(P.requestUuid(http),'ffffffff-ffff-4fff-bfff-ffffffffffff');
+    assert.equal(P.requestUuid({getRandomValues:bytes=>bytes.fill(0)}),'00000000-0000-4000-8000-000000000000');
+    const actual={getRandomValues:bytes=>webcrypto.getRandomValues(bytes)};
+    const keys=Array.from({length:128},()=>P.requestUuid(actual));
+    assert.equal(new Set(keys).size,128);
+    for(const key of keys)assert.match(key,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    const script=readFileSync(new URL('../../src/main/resources/static/js/saneb-attachment-policies.js',import.meta.url),'utf8');
+    assert.match(script,/uuid:\(\)=>P.requestUuid\(root.crypto\)/);
+    assert.doesNotMatch(script,/root.crypto.randomUUID\(/);
+});
+
+test('HTTP 대안으로 만든 요청 키는 결과 미확정 재시도에서도 동일하다',async()=>{
+    let generated=0;const calls=[];
+    const crypto={getRandomValues(bytes){generated++;return webcrypto.getRandomValues(bytes);}};
+    const m=P.mutations(async(path,options)=>{calls.push(options);if(calls.length===1)throw new P.RequestError('미확정');return detail();},()=>P.requestUuid(crypto));
+    await assert.rejects(m.execute(cmd('create')));await m.execute();
+    assert.equal(generated,1);assert.equal(calls.length,2);
+    assert.equal(calls[0].headers['Idempotency-Key'],calls[1].headers['Idempotency-Key']);
+    assert.equal(calls[0].body,calls[1].body);
+});
+
+test('안전한 난수 미지원·실패는 요청 전 차단하고 입력과 사유를 보존한다',async()=>{
+    for(const crypto of [null,{}, {getRandomValues(){throw new Error('private details');}}]){
+        const h=harness({nav:{},uuid:()=>P.requestUuid(crypto)});await h.app.start();
+        h.fields.get('ruleReleaseId').value=id(2);h.fields.get('modeCode').value='COLLECT_ONLY';
+        h.fields.get('segmentRuleVersion').value='segment-role-1.0.4';
+        await h.q('[data-editor]').fire('input');h.app.arm('save');h.ack.checked=true;await h.app.submit();
+        assert.equal(h.calls.some(c=>c.method),false);assert.equal(h.app.mutation.sent,null);
+        assert.equal(h.app.mutation.uncertain,false);assert.equal(h.reason.value,'업무 확인');
+        assert.equal(h.fields.get('modeCode').value,'COLLECT_ONLY');assert.equal(h.app.dirty,true);
+        assert.match(h.q('[data-error]').textContent,/안전한 요청 식별자.*HTTPS.*요청은 전송하지 않았습니다/);
+        assert.doesNotMatch(h.q('[data-error]').textContent,/private details/);
+    }
+});
 
 test('strict details and impact distinguish counts, zero and absent data',()=>{
     assert.equal(P.details(detail()),true);assert.equal(P.impact(impact(),detail()),true);
@@ -132,7 +172,7 @@ class Element {
     querySelectorAll(tag){return this.children.flatMap(c=>[...(c.tag===tag?[c]:[]),...c.querySelectorAll(tag)]);}
 }
 const text=e=>[e.textContent,...e.children.map(text)].join(' ');
-function harness({admin=true,nav={policyId:id(1)},request:custom,confirm=true}={}){
+function harness({admin=true,nav={policyId:id(1)},request:custom,confirm=true,uuid:makeUuid=()=>id(9)}={}){
     const nodes=new Map(),q=s=>{if(!nodes.has(s))nodes.set(s,new Element());return nodes.get(s);},fields=new Map(Object.entries(input()).map(([k,v])=>{const e=new Element();e.value=v;return[k,e];}));
     fields.set('segmentRuleVersion',new Element());
     q('[data-editor]').elements={namedItem:n=>fields.get(n)};q('[data-editor]').reportValidity=()=>true;
@@ -146,7 +186,7 @@ function harness({admin=true,nav={policyId:id(1)},request:custom,confirm=true}={
         if(url.includes('/validation-runs?'))return paged([run()]);if(url.includes('/validation-runs/'))return run();return detail({isEditable:admin});
     };
     const request=async(url,o={})=>{calls.push({url,...o});return custom?custom(url,o,fallback):fallback(url);};
-    const app=UI.mount({page:{dataset:{isAdmin:String(admin)},querySelector:q,setAttribute(){}},P,request,doc:{createElement:t=>new Element(t)},uuid:()=>id(9),navigation,confirmDiscard:()=>confirm});
+    const app=UI.mount({page:{dataset:{isAdmin:String(admin)},querySelector:q,setAttribute(){}},P,request,doc:{createElement:t=>new Element(t)},uuid:makeUuid,navigation,confirmDiscard:()=>confirm});
     return {app,q,calls,fields,reason,ack,consents,params};
 }
 test('policy workspace deep link shows QA incomplete and global impact without any writes',async()=>{

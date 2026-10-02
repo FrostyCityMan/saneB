@@ -3,6 +3,19 @@
     "use strict";
     const base="/api/v2/admin/announcement-attachment-policies",rules="/api/v1/admin/announcement-source-rule-releases";
     const uuid=v=>typeof v==="string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    // HTTP에서도 제공되는 암호학적 난수를 사용한다. 시간·Math.random 기반 키는 허용하지 않는다.
+    function requestUuid(cryptoProvider=root.crypto) {
+        try {
+            if(typeof cryptoProvider?.randomUUID==="function")return cryptoProvider.randomUUID();
+            if(typeof cryptoProvider?.getRandomValues!=="function")throw new Error();
+            const bytes=new Uint8Array(16);cryptoProvider.getRandomValues(bytes);
+            bytes[6]=(bytes[6]&0x0f)|0x40;bytes[8]=(bytes[8]&0x3f)|0x80;
+            const hex=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+            return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+        } catch {
+            throw new Error("이 브라우저에서 안전한 요청 식별자를 생성할 수 없습니다. 최신 브라우저 또는 HTTPS 주소로 접속하세요. 요청은 전송하지 않았습니다.");
+        }
+    }
     const hash=v=>typeof v==="string" && /^[0-9a-f]{64}$/.test(v),integer=v=>Number.isSafeInteger(v)&&v>=0;
     const version=v=>integer(v)&&v<=2147483647,time=v=>typeof v==="string"&&Number.isFinite(Date.parse(v));
     const modes=["OFF","COLLECT_ONLY","ENFORCE"],statuses=["DRAFT","ACTIVE","RETIRED"];
@@ -181,7 +194,7 @@
             get sent(){return sent;},get pending(){return pending;},get uncertain(){return uncertain;}
         };
     }
-    const api={base,rules,uuid,hash,integer,version,time,label,requireValue,summary,details,run,impact,page,rule,steps,countFields,segmentVersions,segmentEditable,
+    const api={base,rules,uuid,requestUuid,hash,integer,version,time,label,requireValue,summary,details,run,impact,page,rule,steps,countFields,segmentVersions,segmentEditable,
         scopeSummary,scope,scopeItem,publication,canPublish,command,receipt,RequestError,client,mutations};
     if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.SanebAttachmentPolicy=api;
 })(globalThis);
