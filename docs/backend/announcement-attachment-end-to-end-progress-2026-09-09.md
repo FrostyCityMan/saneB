@@ -2,6 +2,8 @@
 
 ## 목표와 승인 범위
 
+2026-10-03 00:51 KST: 승인된 양평 SRC-017679 단건을 개정2 COLLECT_ONLY에서 재수집했다. 작업 e7796154 처리 완료·실패 코드 없음, 신규 HWPX1개/11,398자/505문단/12구간의 저장·운영 조회를 확인했다. 이전 집합 보존, 원문/첨부 버전2/4, 기본 판정 유지, 새 미리보기38800183, 검수·DRAFT 비활성을 확인했다. health UP·현재 탭 console error0. 직접 DB/전송량 조회는 이번 실행에 포함하지 않았으며 다른 지역·형식 성공으로 확대하지 않는다. 운영 테스트 안내의 최신 기록을 기준으로 아래 신규 작업 미실행 상태를 갱신한다. ENFORCE·기존 데이터 적용·공고 공개와 전체 goal은 미완료다.
+
 2026-10-03 00:16 KST: 승인된 동일 설정 COLLECT_ONLY 개정·QA·재게시 완료. 새 정책 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c` 개정2/조회버전2 ACTIVE, 기존 e10860ae RETIRED. QA `733f9065-d4af-4065-9271-97b4451d1e8e` 4단계 통과, 게시 영수증 `88e89d51-9a58-424c-be1a-03ba63c97846`. 구간1.0.4·80MiB 유지, 기존 데이터·ENFORCE·공고 공개 미실행. 새 ACTIVE 정책 검증 범위 조회 정상(225곳·전체 기대값 미완료), health UP. SSO 메타데이터 조회 성공이나 default 인증 만료로 설치/DB 직접 SSM 재확인은 미실행이다. 새 실파일 작업은 실행하지 않았으므로 전체 goal과 공고 입력 연계 E2E는 미완료다. 상세 증거와 한계는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)의 최신 절을 따른다. 아래 재게시 승인 대기는 과거 상태다.
 
 2026-10-02 21:41 KST: 371b1ac 배포37007234074/CodeDeploy d-R1AEF7V4L 성공. Runtime b7377184·DeploymentEvidence4c55d16d·Database7bfc3bbf는 설치/bundle403127f7 일치·healthUP·V86·기존 플래그/데이터 보존을 확인했다. 추출기87963ba7은 로컬 강제 빌드2회와 운영 설치가 동일하고 ZIP 시각이 고정됐다. 로그인 직접 복구 후 기존 HWPX11,398자 조회 성공, 정책 범위 오류 지속, 신규 수집·ENFORCE·기존 데이터 적용 없음. 동일 설정 정책 개정/재저장/QA/재게시 승인 대기이며 설치 성공을 전체 운영 완료로 확대하지 않는다. [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)과 [사용자 테스트 안내](../deployment/attachment-operator-acceptance-2026-10-02.md)를 갱신했다.

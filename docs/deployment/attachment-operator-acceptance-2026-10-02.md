@@ -38,6 +38,17 @@
 
 ## 운영 화면에서 확인할 순서
 
+### 2026-10-03 00:51 KST 승인된 양평 단건 재수집 결과
+
+- 사용자 승인 대상은 양평 `SRC-017679` 한 건이다. 개정2 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c` COLLECT_ONLY에서 전체 재수집을 한 번 예약했다. 상한은 10파일·132 HTTP 요청·총24MiB이며 실제 요청 횟수·전송 바이트를 이번 화면 조회로 측정한 것은 아니다.
+- 작업 `e7796154-4de8-47c8-9875-97598358ac58`: 운영 화면에서 처리 완료·실패 코드 없음. 새 집합 `846733ce-2bc4-369a-aac1-1b3a3eb1204f`은 00:51:04 생성, 발견 완료·파일1/1·경고 없음이다. 이전 집합 `c422ebf9-2aac-354e-92cf-ab42bcda35ab`도 보존되어 총2집합이 조회된다.
+- 새 파일 `f85ff0f5-e04b-3d4e-9f33-17be2f2b29e8`: HWPX 다운로드 완료·추출 완료·11,398자·505문단·이전 추출 재사용 기록 없음. 저장 문단1→2 조회에서 공식 공고번호와 프로그램 제목을 확인했다.
+- 새 미리보기 판정 `38800183-cf8b-4cdd-9218-0c608995e3e4`에 위 개정2 정책과12구간이 연결된다. 신청 양식2구간·역할 미확정10구간으로 관리자 검수 필요가 남는다. 추출 성공은 자동 분류 정확성이나 최종 검증 완료를 뜻하지 않는다.
+- 원문/첨부 버전은2/4이다. 기본 판정 `53685148-efd2-4346-a60d-a38b870911c8`은 유지됐고 검수 확인·DRAFT 생성은 비활성 상태다. ENFORCE·일괄 적용·공고 공개는 실행하지 않았다.
+- 증거: 운영 브라우저의 저장 근거 조회·현재 탭 콘솔 error0·완료 후 health UP. 화면 증거 `build/qa-tools/yangpyeong-recollection-result-20261003.png`. 새 직접 DB/SSM 조회는 수행하지 않았으므로 DB 내부 집계·실전송량·다른 지역/형식의 성공으로 확대하지 않는다.
+- 이 기록은 새 운영 코드 배포 없이 승인된 단건 작업만 실행한 결과다. 기존 본문 정제 문제, PDF/HWP 운영 표본, 실제 부분 실패 표본, 검수→공고 입력 전환 Gate는 여전히 별도다.
+- 후속 로컬 회귀: `:test --tests '*LocalGovernmentNoticeProviderContentClientTest' --tests '*AnnouncementAttachmentReviewServiceTest' --tests '*AnnouncementAttachmentReviewControllerSmokeTest' --no-daemon --max-workers=1`은 1분3초 성공, 각각157/41/14건(합212건)이다. 양평의 현행 내용 셀 선택·메뉴 제외, COLLECT_ONLY 확인 차단, DRAFT 멱등/오래된 확인 차단과 권한·CSRF 계약을 검증했다. 이 시험은 합성 HTML·서비스 대역·MockMvc이며 새 실사이트 본문 요청, 실제 DB 경합, 운영 검수→DRAFT 성공은 아니다. 과거 저장 본문은 이번 첨부 재수집으로 갱신되지 않았다.
+
 1. [정책 관리](http://15.165.36.6:8080/app/admin/announcement-attachment-policies)에서 선택 정책이 `게시 중`, 모드가 `수집·미리보기만`인지 확인한다. 초안·QA 통과·게시 성공을 혼동하지 않는다.
 2. [외부 공고 수집](http://15.165.36.6:8080/app/admin/announcement-sources)에서 승인 일정의 다음 실행 시각과 수집 이력을 확인한다. `실행 중`이라는 오래된 이력이나 feature flag만으로 성공을 판단하지 않는다.
 3. [수집 공고 검수](http://15.165.36.6:8080/app/admin/collected-announcements)에서 실제 첨부 작업이 완료된 공고를 선택한다.
