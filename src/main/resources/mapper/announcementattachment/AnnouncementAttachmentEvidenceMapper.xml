@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvidenceDao">
+    <resultMap id="LinkedNoticeMap" type="com.saneb.domain.announcementattachment.dto.AttachmentEvidenceResponses$LinkedReviewNotice">
+        <constructor>
+            <idArg column="id" javaType="java.util.UUID"/>
+            <arg column="job_id" javaType="java.util.UUID"/>
+            <arg column="batch_id" javaType="java.util.UUID"/>
+            <arg column="set_id" javaType="java.util.UUID"/>
+            <arg column="evaluation_id" javaType="java.util.UUID"/>
+            <arg column="reason_code" javaType="java.lang.String"/>
+            <arg column="job_status_code" javaType="java.lang.String"/>
+            <arg column="error_code" javaType="java.lang.String"/>
+            <arg column="connections_unchanged" javaType="_boolean"/>
+            <arg column="created_at" javaType="java.time.OffsetDateTime"/>
+        </constructor>
+    </resultMap>
+    <select id="selectLinkedReviewNoticeCount" resultType="long">
+        -- 원문별 별도 재검수 경고 수. 현재 판정이나 공개 공고 수가 아니다.
+        SELECT count(1) FROM announcement_attachment_linked_review_notices WHERE source_id=#{sourceId}
+    </select>
+    <select id="selectLinkedReviewNoticeList" resultMap="LinkedNoticeMap">
+        -- 고정 근거 이력과 현재 연결 일치 여부를 구분한다. 원문/URL/lease는 반환하지 않는다.
+        SELECT n.id,n.job_id,n.batch_id,n.set_id,n.evaluation_id,n.reason_code,j.job_status_code,j.error_code,
+            attachment_linked_job_connections_unchanged(n.job_id) AS connections_unchanged,n.created_at
+        FROM announcement_attachment_linked_review_notices n
+        JOIN announcement_attachment_jobs j ON j.id=n.job_id AND j.source_id=n.source_id
+        WHERE n.source_id=#{sourceId}
+        ORDER BY n.created_at DESC,n.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
     <select id="selectFileCheckpoint" resultType="string">
         -- 같은 작업/고정 입력/유효 lease의 성공 근거만 읽는다. 다른 generation의 binary 재확인을 생략하지 않는다.
         SELECT c.file_result_json::text

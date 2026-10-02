@@ -9,6 +9,9 @@ import java.util.UUID;
 /** 조회용 계약에는 binary 경로, fetch URL, safe locator 원문, lease token을 포함하지 않습니다. */
 public final class AttachmentEvidenceResponses {
     private AttachmentEvidenceResponses() { }
+    /** 별도 재검수 경고이며 기존 운영 공고의 확정 상태를 의미하지 않습니다. */
+    public record LinkedReviewNotice(UUID noticeId, UUID jobId, UUID batchId, UUID setId, UUID evaluationId,
+            String reasonCode, String jobStatusCode, String errorCode, boolean connectionsUnchanged, OffsetDateTime createdAt) { }
     public record SetSummary(UUID setId, UUID contentVersionId, UUID policyId, String discoveryStatusCode,
             String setStatusCode, String manifestHash, String profileHash, int discoveredCount, int processedCount,
             boolean discoveryComplete, OffsetDateTime createdAt, OffsetDateTime discoveredAt, OffsetDateTime sealedAt,

@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 재검수 경고 조회 API
+
+`GET /api/v2/admin/announcement-sources/{sourceId}/attachment-linked-review-notices`를 기존 Controller→ReadService→ServiceImpl→EvidenceDao→Mapper 경로에 추가했다. 내부 조회3역할·원문 적격성·페이지1~1000000/크기1~100·ApiResponse/PageResponse·no-store를 유지한다. 경고 이력과 조회 시 연결 일치 여부를 구분하고 원문/URL/lease는 반환하지 않는다. v1 변경 없음, 읽기만 수행한다.
+
+`:test --tests '*AnnouncementAttachmentReadServiceTest' --tests '*AnnouncementAttachmentControllerSmokeTest' attachmentJobIntegrationTest --tests '*linkedNotice*' --no-daemon --max-workers=1`은59초 성공: 서비스12/MockMvc14/실제 PostgreSQL·MyBatis1건, 총27건 실패·오류·생략0이다. DB 시험은 저장된 실패 경고의 DTO/페이지/다른 원문 미노출을 확인했다. `bootJar --no-daemon --max-workers=1`은13초 성공이다. 전용 예약 API·worker 자동 기록·관리자 UI·운영 브라우저 검증은 미완료이며 조회 API 통과를 그 증거로 사용하지 않는다.
+
 ## 2026-10-03 V89 연결 공고 재검수 경고 원장
 
 V89에 작업당 1개 불변 경고 원장을 추가했다. source/job·set/evaluation 복합 FK와 실제 terminal job의 source/batch/set/preview/상태 비교, 고정 연결 재검증, source/link 잠금으로 다른 근거의 삽입을 제한한다. 사유는 EVIDENCE_READY/EVIDENCE_PARTIAL/COLLECTION_FAILED이며 원문/개인정보 metadata는 저장하지 않는다. 기존 source pointer/운영 공고/확인은 수정하지 않는다. worker 자동 기록·API/UI·terminal 경고 누락 강제는 후속 구현이며 ATT-051 완료가 아니다.

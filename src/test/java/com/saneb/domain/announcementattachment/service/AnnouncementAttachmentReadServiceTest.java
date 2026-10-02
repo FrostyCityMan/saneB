@@ -29,14 +29,26 @@ class AnnouncementAttachmentReadServiceTest {
     void ineligibleSourceCannotReadSetsFilesOrTextEvenIfItStillExists(String state) {
         source(state);
         assertThatThrownBy(()->service.selectAttachmentSetList(source,1,20)).isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->service.selectLinkedReviewNoticeList(source,1,20)).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->service.selectAttachmentFileList(source,set,1,20)).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->service.selectAttachmentBlockList(source,extraction,1,10,0,2000)).isInstanceOf(ApiException.class);
         verifyNoInteractions(evidence);
     }
     @Test void missingOrNullSourceNeverReadsEvidence() {
+        assertThatThrownBy(()->service.selectLinkedReviewNoticeList(null,1,20)).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->service.selectAttachmentSetList(source,1,20)).isInstanceOf(ApiException.class);
         assertThatThrownBy(()->service.selectAttachmentSetList(null,1,20)).isInstanceOf(ApiException.class);
         verifyNoInteractions(evidence);
+    }
+    @Test void linkedNoticesArePagedAndInvalidPagesNeverReachDao() {
+        source("ALLOWED");when(evidence.selectLinkedReviewNoticeList(source,20,20)).thenReturn(List.of());
+        when(evidence.selectLinkedReviewNoticeCount(source)).thenReturn(20L);
+        assertThat(service.selectLinkedReviewNoticeList(source,2,20).totalCount()).isEqualTo(20L);
+        verify(evidence).selectLinkedReviewNoticeList(source,20,20);
+        clearInvocations(jobs,evidence);
+        assertThatThrownBy(()->service.selectLinkedReviewNoticeList(source,0,20)).isInstanceOf(ApiException.class);
+        assertThatThrownBy(()->service.selectLinkedReviewNoticeList(source,1,101)).isInstanceOf(ApiException.class);
+        verifyNoInteractions(jobs,evidence);
     }
     @Test void otherSourceSetOrExtractionIs404RatherThanEmptyData() {
         source("ALLOWED");

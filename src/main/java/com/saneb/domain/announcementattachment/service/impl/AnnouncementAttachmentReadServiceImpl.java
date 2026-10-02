@@ -29,6 +29,12 @@ public class AnnouncementAttachmentReadServiceImpl implements AnnouncementAttach
         return PageResponse.of(evidence.selectSetList(sourceId, (page - 1) * size, size).stream()
                 .map(AttachmentEvidenceResponses.SetSummary::from).toList(), page, size, evidence.selectSetCount(sourceId));
     }
+    @Override public PageResponse<AttachmentEvidenceResponses.LinkedReviewNotice> selectLinkedReviewNoticeList(UUID sourceId, int page, int size) {
+        validatePage(page,size,100);
+        validateSource(sourceId);
+        return PageResponse.of(evidence.selectLinkedReviewNoticeList(sourceId,(page-1)*size,size),page,size,
+                evidence.selectLinkedReviewNoticeCount(sourceId));
+    }
     @Override public PageResponse<AttachmentEvidenceResponses.FileSummary> selectAttachmentFileList(UUID sourceId, UUID setId, int page, int size) {
         validatePage(page, size, 100);
         validateSource(sourceId);

@@ -25,6 +25,12 @@ public class AnnouncementAttachmentController {
     private final AnnouncementAttachmentReadService service;
     public AnnouncementAttachmentController(AnnouncementAttachmentReadService service) { this.service = service; }
 
+    @GetMapping("/attachment-linked-review-notices")
+    public ResponseEntity<ApiResponse<PageResponse<AttachmentEvidenceResponses.LinkedReviewNotice>>> selectLinkedReviewNoticeList(
+            @PathVariable UUID sourceId,@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="20") int size) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.selectLinkedReviewNoticeList(sourceId,page,size)));
+    }
+
     @GetMapping("/attachment-sets")
     public ResponseEntity<ApiResponse<PageResponse<AttachmentEvidenceResponses.SetSummary>>> selectAttachmentSetList(
             @PathVariable UUID sourceId, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size) {

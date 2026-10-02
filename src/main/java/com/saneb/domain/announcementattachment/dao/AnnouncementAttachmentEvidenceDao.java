@@ -11,6 +11,9 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface AnnouncementAttachmentEvidenceDao {
+    long selectLinkedReviewNoticeCount(@Param("sourceId") UUID sourceId);
+    List<com.saneb.domain.announcementattachment.dto.AttachmentEvidenceResponses.LinkedReviewNotice> selectLinkedReviewNoticeList(
+            @Param("sourceId") UUID sourceId,@Param("offset") int offset,@Param("size") int size);
     String selectFileCheckpoint(@Param("jobId") UUID jobId,@Param("leaseToken") UUID leaseToken,@Param("locatorHash") String locatorHash);
     int insertFileCheckpoint(@Param("jobId") UUID jobId,@Param("leaseToken") UUID leaseToken,
                              @Param("locatorHash") String locatorHash,@Param("fileJson") String fileJson);

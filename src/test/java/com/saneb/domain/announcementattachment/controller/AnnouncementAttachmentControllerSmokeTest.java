@@ -37,6 +37,11 @@ class AnnouncementAttachmentControllerSmokeTest {
 
     @ParameterizedTest @ValueSource(strings = {"ADMIN", "OPERATOR", "APPROVER"})
     void internalReadRolesReceivePagedWrapper(String role) throws Exception {
+        when(service.selectLinkedReviewNoticeList(SOURCE,1,20)).thenReturn(PageResponse.of(List.of(),1,20,0));
+        mvc.perform(get(ROOT+"/attachment-linked-review-notices").with(user("qa").roles(role)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.success").value(true))
+                .andExpect(header().string("Cache-Control","no-store"))
+                .andExpect(jsonPath("$.data.items").isArray()).andExpect(jsonPath("$.data.totalCount").value(0));
         when(service.selectAttachmentSetList(SOURCE, 1, 20)).thenReturn(PageResponse.of(List.of(), 1, 20, 0));
         mvc.perform(get(ROOT + "/attachment-sets").with(user("qa").roles(role)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.success").value(true))
@@ -47,12 +52,14 @@ class AnnouncementAttachmentControllerSmokeTest {
 
     @ParameterizedTest @ValueSource(strings = {"USER", "PARTNER", "REVIEWER"})
     void externalRolesCannotReadAttachmentEvidence(String role) throws Exception {
+        mvc.perform(get(ROOT+"/attachment-linked-review-notices").with(user("qa").roles(role))).andExpect(status().isForbidden());
         mvc.perform(get(ROOT + "/attachment-sets").with(user("qa").roles(role)))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(service);
     }
 
     @Test void anonymousCannotReadEvidence() throws Exception {
+        mvc.perform(get(ROOT+"/attachment-linked-review-notices")).andExpect(status().isUnauthorized());
         mvc.perform(get(ROOT + "/attachment-sets")).andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false));
         verifyNoInteractions(service);

@@ -2975,6 +2975,14 @@ class AnnouncementAttachmentJobIntegrationTest {
         });
         assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
         assertThat(sql.queryForObject("SELECT set_id FROM announcement_attachment_linked_review_notices WHERE job_id=?",UUID.class,job)).isNull();
+        UUID source=sql.queryForObject("SELECT source_id FROM announcement_attachment_jobs WHERE id=?",UUID.class,job);
+        var notices=context.getBean(AnnouncementAttachmentReadService.class).selectLinkedReviewNoticeList(source,1,20);
+        assertThat(notices.totalCount()).isEqualTo(1);
+        assertThat(notices.items().getFirst().jobId()).isEqualTo(job);
+        assertThat(notices.items().getFirst().reasonCode()).isEqualTo("COLLECTION_FAILED");
+        assertThat(notices.items().getFirst().connectionsUnchanged()).isTrue();
+        assertThat(evidenceDao.selectLinkedReviewNoticeList(UUID.randomUUID(),0,20)).isEmpty();
+        assertThat(evidenceDao.selectLinkedReviewNoticeList(source,1,20)).isEmpty();
         assertThatThrownBy(()->sql.update(insert,job)).isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_linked_review_notices SET reason_code='EVIDENCE_READY' WHERE job_id=?",job))
                 .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("notice is immutable");
