@@ -2,6 +2,8 @@
 
 ## 목표와 승인 범위
 
+2026-10-03 00:16 KST: 승인된 동일 설정 COLLECT_ONLY 개정·QA·재게시 완료. 새 정책 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c` 개정2/조회버전2 ACTIVE, 기존 e10860ae RETIRED. QA `733f9065-d4af-4065-9271-97b4451d1e8e` 4단계 통과, 게시 영수증 `88e89d51-9a58-424c-be1a-03ba63c97846`. 구간1.0.4·80MiB 유지, 기존 데이터·ENFORCE·공고 공개 미실행. 새 ACTIVE 정책 검증 범위 조회 정상(225곳·전체 기대값 미완료), health UP. SSO 메타데이터 조회 성공이나 default 인증 만료로 설치/DB 직접 SSM 재확인은 미실행이다. 새 실파일 작업은 실행하지 않았으므로 전체 goal과 공고 입력 연계 E2E는 미완료다. 상세 증거와 한계는 [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)의 최신 절을 따른다. 아래 재게시 승인 대기는 과거 상태다.
+
 2026-10-02 21:41 KST: 371b1ac 배포37007234074/CodeDeploy d-R1AEF7V4L 성공. Runtime b7377184·DeploymentEvidence4c55d16d·Database7bfc3bbf는 설치/bundle403127f7 일치·healthUP·V86·기존 플래그/데이터 보존을 확인했다. 추출기87963ba7은 로컬 강제 빌드2회와 운영 설치가 동일하고 ZIP 시각이 고정됐다. 로그인 직접 복구 후 기존 HWPX11,398자 조회 성공, 정책 범위 오류 지속, 신규 수집·ENFORCE·기존 데이터 적용 없음. 동일 설정 정책 개정/재저장/QA/재게시 승인 대기이며 설치 성공을 전체 운영 완료로 확대하지 않는다. [운영 기준선](../deployment/attachment-runtime-baseline-2026-09-15.md)과 [사용자 테스트 안내](../deployment/attachment-operator-acceptance-2026-10-02.md)를 갱신했다.
 
 2026-10-02 21:31 KST: 재현 빌드 수정371b1ac의 Linux37005549445 success/artifact11226715045 XML에서 일반4,227통과/381조건부생략, 필수통합273·추출기251 실패/생략0을 확인했다. 독립 실행·정책 부모 연결/취소/정리 통과다. 사전 운영 Runtime f240c2fe/Database041d4f0c는 e831255/V86·healthUP·진행중첨부0/배치0·기존 HWPX1건 보존을 확인했다. 동일SHA 코드 설치37007234074를 attachment_qa=false로 시작했으며 아직 설치 성공은 아니다. 동일 설정 정책 개정/QA/재게시 승인 대기, ENFORCE·기존 전체 데이터 적용·공고 공개 미실행, 전체9Gate/ATT-001~062 미완료를 유지한다.

@@ -1,5 +1,15 @@
 # 첨부 3단계 처리 운영 기준선 및 QA 패키지 배포
 
+## 2026-10-03 00:16 KST 동일 설정 개정 2 재게시 완료
+
+- 사용자 승인 범위는 기존 정책의 새 개정 1건, 동일 COLLECT_ONLY·segment-role-1.0.4·83,886,080바이트 유지, 새 QA·영향 재확인·재게시다. ENFORCE·기존 데이터 재처리·공고 공개·코드 재배포는 실행하지 않았다.
+- 관리자 UI에서 기존 e10860ae 정책을 보존하고 개정 2 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c`를 생성·동일 설정으로 재저장했다. QA `733f9065-d4af-4065-9271-97b4451d1e8e`는 00:08:38~00:13:24 KST에 COLLECTION_VERIFIED, 분류 정답·설치 추출기·전체 대상 결합·격리 DB 작업/복구 4단계 통과를 UI에서 확인했다. 입력 지문 `88c3d36238dfe4d356186a434353ae770a6daeff491fbfb11e2bf9c4def9c4fc`. 서버 DB 단계 원문 증거를 SSM으로 새로 조회한 것은 아니다.
+- 게시 직전 선택 규칙/전체 규칙의 연결 원문·검수 원문·판정 연결·운영 공고 연결·미종료/실행/적용/원복 작업·누적 고정 계획이 모두 0건임을 확인했다. 준비 범위 `be9788df-0836-4ccf-8a5b-2aae4b8f2a1c`, 혼합 항목 225개(공고 수 아님), 지문 `9897a0b6d259d66b356d65d5055e4c15344d10e20aa1ead96e0d66f70661c1e7`를 고정했다.
+- 00:16:41 KST 게시 영수증 `88e89d51-9a58-424c-be1a-03ba63c97846` 확인. 개정 2/조회 버전 2 ACTIVE COLLECT_ONLY, 기존 개정 1 RETIRED·이력 보존. 게시 후 QA/준비의 버전 불일치는 게시로 정책 버전이 증가한 결과이며 당시 성공 영수증과 구분한다.
+- 새 정책의 QA 진행 중 검증 범위 화면은 409 안내를 보였으나 게시 후 재조회는 정상 완료됐다. 전체 225곳/12페이지·현재 20곳, 전체 기대값 미완료를 확인했다. 결합 점검은 224곳 일치·정부24 1곳 모델 미등록이며 실파일 다운로드 성공 수가 아니다. 오류의 상세 원인은 확정하지 않았다. 두 탭 콘솔 error 0. 증거: `build/qa-tools/attachment-policy-republished-20261003.png`, `build/qa-tools/provider-coverage-republished-20261003.png`.
+- 사전/사후 외부 health UP, GitHub 최신 배포는 기존 371b1ac/37007234074 success. SSO Inventory는 정확한 계정·역할·서울 확인, 서버 1대/SSM Online/DB available·암호화/삭제보호 true, 원격 명령·쓰기 0. 기존 default 기반 Runtime 조회는 AWS_AUTH_REFRESH_REQUIRED로 실패했다. SSO는 메타데이터 전용이므로 이번 턴의 실제 설치 SHA·DB 직접 대조·worker 설정 재확인을 대신하지 않는다. TLS 임시 CA는 정리됐다.
+- 이번 범위의 정책 복구는 완료했지만 새 외부 파일 작업은 예약하지 않았다. 최신 설치의 실파일 E2E, 전체 지역 상시 수집, PDF/HWP 운영 증거, ENFORCE·검수·DRAFT 전환·기존 데이터 배치는 별도 잔여 Gate다. 과거 양평 HWPX 성공을 이번 개정의 새 수집 성공으로 재사용하지 않는다.
+
 ## 2026-10-02 21:41 KST 재현 빌드 수정 운영 설치 확인
 
 - `371b1acda13deed4740c5f3377cc0b298d4cee09` 배포 Actions `37007234074` success, CodeDeploy `d-R1AEF7V4L` Succeeded. Runtime SSM `b7377184-cce3-485e-9495-4efb51fe31f5`, DeploymentEvidence `4c55d16d-9255-41c8-a7b0-d5aea3c36433` Success. 설치/bundle JAR `403127f717293c73989685b874d487cf76e0031a6b7dd010833e7c9f8402b390` 일치, service active·health UP·V86·기존 플래그 유지, 이전 e831255 JAR/release 존재.
