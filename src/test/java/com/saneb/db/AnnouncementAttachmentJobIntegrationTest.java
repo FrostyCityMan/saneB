@@ -2844,6 +2844,73 @@ class AnnouncementAttachmentJobIntegrationTest {
         var preview=batchService().selectScopePreview(reviewActor(),scope);
         return new com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests.Reservation(scope,preview.scopeHash(),"테스트 소유 배치 범위");
     }
+    private UUID insertLinkedSnapshotFixture(boolean includeSnapshot) {
+        return insertLinkedSnapshotFixture(includeSnapshot,false);
+    }
+
+    private UUID insertLinkedSnapshotFixture(boolean includeSnapshot,boolean corruptSnapshot) {
+        UUID source=selectRequest().sourceId();insertCollectionLocator(source);
+        var standard=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));
+        UUID oldJob=sql.queryForObject("SELECT id FROM announcement_attachment_jobs WHERE batch_id=?",UUID.class,standard.batchId());
+        batchService().updateScopeCancellation(reviewActor(),standard.batchId(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests.Cancellation(standard.rowVersion(),"합성 연결 근거 시험 준비"));
+        UUID announcement=UUID.randomUUID(),job=UUID.randomUUID(),batch=UUID.randomUUID();
+        sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','연결 근거 합성 공고','합성 기관','HIDDEN','DRAFT')",announcement);
+        sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",UUID.randomUUID(),source,announcement,actor);
+        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx -> {
+            sql.update("""
+                    INSERT INTO announcement_attachment_batches(id,batch_type_code,policy_id,batch_status_code,scope_json,scope_hash,maximum_count,
+                        requested_by,reason_hash,idempotency_key,request_hash,scope_item_count,policy_snapshot_json,purpose_code)
+                    SELECT ?,'BACKFILL',policy_id,'SCOPE_READY',scope_json || '{"purposeCode":"LINKED_EVIDENCE_ONLY"}'::jsonb,scope_hash,maximum_count,
+                        requested_by,reason_hash,?,request_hash,scope_item_count,policy_snapshot_json,'LINKED_EVIDENCE_ONLY'
+                    FROM announcement_attachment_batches WHERE id=?
+                    """,batch,UUID.randomUUID(),standard.batchId());
+            sql.update("""
+                    INSERT INTO announcement_attachment_jobs(id,source_id,content_version_id,base_evaluation_id,rule_release_id,policy_id,batch_id,
+                        generation,expected_source_version,expected_attachment_version,job_status_code,idempotency_key,request_hash,
+                        execution_snapshot_json,download_budget_bytes,previous_attachment_evaluation_id,previous_confirmation_id,
+                        previous_policy_id,previous_is_review_required,operation_code,requested_by,frozen_provider_code,frozen_locator_hash)
+                    SELECT ?,source_id,content_version_id,base_evaluation_id,rule_release_id,policy_id,?,generation+1,
+                        expected_source_version,expected_attachment_version,'SCOPE_READY',?,request_hash,execution_snapshot_json,download_budget_bytes,
+                        previous_attachment_evaluation_id,previous_confirmation_id,previous_policy_id,previous_is_review_required,
+                        'COLLECT',requested_by,frozen_provider_code,frozen_locator_hash
+                    FROM announcement_attachment_jobs WHERE id=?
+                    """,job,batch,UUID.randomUUID(),oldJob);
+            if(includeSnapshot) {
+                String snapshot=sql.queryForObject("SELECT attachment_source_link_snapshot(?)::text",String.class,source);
+                if(corruptSnapshot) snapshot="[{\"linkId\":\""+UUID.randomUUID()+"\",\"announcementId\":\""+announcement+"\"}]";
+                sql.update("INSERT INTO announcement_attachment_linked_job_scopes(job_id,source_id,links_json) VALUES (?,?,?::jsonb)",job,source,snapshot);
+            }
+        });
+        return job;
+    }
+
+    @Test void linkedSnapshotCommitsAndRejectsMutationWhileDetectingReplacedConnection() {
+        UUID job=insertLinkedSnapshotFixture(true);
+        assertThat(sql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,job)).isTrue();
+        String frozen=sql.queryForObject("SELECT links_json::text FROM announcement_attachment_linked_job_scopes WHERE job_id=?",String.class,job);
+        assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_linked_job_scopes SET links_json=links_json WHERE job_id=?",job))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("snapshot is immutable");
+        assertThatThrownBy(()->sql.update("DELETE FROM announcement_attachment_linked_job_scopes WHERE job_id=?",job))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("snapshot cannot be deleted");
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=(SELECT source_id FROM announcement_attachment_jobs WHERE id=?)",UUID.randomUUID(),job);
+        assertThat(sql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,job)).isFalse();
+        assertThat(sql.queryForObject("SELECT links_json::text FROM announcement_attachment_linked_job_scopes WHERE job_id=?",String.class,job)).isEqualTo(frozen);
+    }
+
+    @Test void linkedSnapshotMissingAtCommitRollsBackPurposeBatchAndJob() {
+        assertThatThrownBy(()->insertLinkedSnapshotFixture(false)).hasStackTraceContaining("requires a frozen connection snapshot");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches WHERE purpose_code='LINKED_EVIDENCE_ONLY'",Integer.class)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_jobs WHERE job_status_code='SCOPE_READY'",Integer.class)).isZero();
+    }
+
+    @Test void linkedSnapshotForgedIdentityIsRejectedWithoutPersistingReservation() {
+        assertThatThrownBy(()->insertLinkedSnapshotFixture(true,true))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("snapshot must contain all current connections");
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes",Integer.class)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_batches WHERE purpose_code='LINKED_EVIDENCE_ONLY'",Integer.class)).isZero();
+    }
+
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));

@@ -2,6 +2,8 @@
 
 ## 2026-10-03 V88 연결 snapshot 기반 검증
 
+후속 실제 PostgreSQL 표적 시험 `attachmentJobIntegrationTest --tests '*linkedSnapshot*' --tests '*linkedEvidencePurpose*' --no-daemon --max-workers=1`은41초 성공,5건·실패/오류/생략0이다. 신규3건은 정상 snapshot 예약 commit, 임의 수정/삭제 거부, link ID 교체 후 비교 false와 고정 이력 보존, snapshot 누락 시 commit 거부·배치/job 원복, 위조 link ID 삽입 거부·예약 원복을 검증한다. 기존 V87 목적 보호2건도 함께 통과했다. 처음 시험 준비의 job 단독 취소는 기존 배치 상태 일관성 제약에서 거부되어 기존 취소 서비스로 수정했다. 제약/trigger를 비활성화하지 않았다. 동시성·source 삭제 cascade·경고 원장·worker 및 운영 검증은 여전히 남는다.
+
 V88은 작업/source 복합 FK, 예약 시 연결 ID·공고 ID snapshot 저장, snapshot 수정/단독 삭제 방지, 예약 transaction 종료 시 snapshot 존재 확인, 현재 연결과의 비교 함수를 추가한다. 기존 외부 요청 fence는 변경하지 않으며 경고 원장·전용 API·worker 연결은 남아 있다.
 
 첫 실제 DB 시험은 `uq_announcement_source_links_source` 위반으로 실패했다. V26만 근거로 같은 원문에 복수 연결을 허용한다고 판단했던 설계를 V68의 원문당 단일 연결 계약에 맞춰 정정했다. 제약을 완화하지 않고 시험을 연결 삭제·대상 교체·동일 대상의 link ID 교체로 수정했다.
