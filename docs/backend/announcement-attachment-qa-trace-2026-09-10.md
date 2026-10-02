@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 V89 연결 공고 재검수 경고 원장
+
+V89에 작업당 1개 불변 경고 원장을 추가했다. source/job·set/evaluation 복합 FK와 실제 terminal job의 source/batch/set/preview/상태 비교, 고정 연결 재검증, source/link 잠금으로 다른 근거의 삽입을 제한한다. 사유는 EVIDENCE_READY/EVIDENCE_PARTIAL/COLLECTION_FAILED이며 원문/개인정보 metadata는 저장하지 않는다. 기존 source pointer/운영 공고/확인은 수정하지 않는다. worker 자동 기록·API/UI·terminal 경고 누락 강제는 후속 구현이며 ATT-051 완료가 아니다.
+
+실행: `:test --tests '*MigrationContractTest' attachmentJobIntegrationTest --tests '*linkedNotice*' --tests '*linkedSnapshot*' attachmentMigrationTest --tests '*freshSchemaAndV71UpgradePreservePriorChecksums' --no-daemon --max-workers=1` 1분21초 성공. 정적99건/작업DB6건/마이그레이션1건 실패·오류·생략0. 신규 시험은 진행 중 job 경고 거부, 첨부 set 없는 FAILED 경고 저장, 중복/수정/단독 삭제 거부를 검증했다. V71→89/빈 DB 적용·기존 업무행/checksum 보존도 통과했다. 최초 V89 구문 오류는 미커밋 V89의 CASE 괄호 수정으로 해결했으며 기존 migration은 변경하지 않았다. 성공/부분실패 실제 worker 결과, 경고 FK 악성 교차 소속·완료 경합·UI·운영은 아직 미검증이다.
+
 ## 2026-10-03 V88 연결 snapshot 기반 검증
 
 경합/삭제 후속 검증: 같은 표적 명령은46초 성공,7건·실패/오류/생략0이다. 새 경합 시험은 snapshot 예약 transaction 내부에서 별도 연결의 link ID UPDATE가 lock_timeout=300ms·SQLSTATE55P03으로 차단되고, commit 이후 같은 변경이 성공하며 비교 함수가 false로 바뀌는 것을 검증했다. 삭제 시험은 기존 live link FK가 source 삭제를 거부함을 확인한 뒤, 합성 link를 별도로 해제하고 source 삭제 시 job/snapshot 정리·고정 분모1 유지·삭제 집계1·운영 공고 전체 컬럼 불변을 검증했다. 최초 삭제 시험의 FK 실패를 보호 완화로 해결하지 않았다. 예약 직렬화 증거이며 worker HTTP 전/완료 저장 경합 검증은 아니다. 이전 V87 SHA579e48f의 Linux37037830571은 success, V88 SHA4702f0f의37039105876은 cancelled로 확인되어 후자를 통과로 계산하지 않는다. SHA68ec436의37039782126은 조회 시 in_progress였다.

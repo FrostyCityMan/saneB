@@ -2960,6 +2960,28 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(before);
     }
 
+    @Test void linkedNoticeRequiresTerminalJobAndRetainsFailureWithoutAttachmentSet() {
+        UUID job=insertLinkedSnapshotFixture(true);
+        String insert="""
+                INSERT INTO announcement_attachment_linked_review_notices(job_id,batch_id,source_id,set_id,evaluation_id,reason_code)
+                SELECT id,batch_id,source_id,set_id,preview_evaluation_id,'COLLECTION_FAILED' FROM announcement_attachment_jobs WHERE id=?
+                """;
+        assertThatThrownBy(()->sql.update(insert,job)).isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("requires matching terminal job");
+        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx -> {
+            sql.update("UPDATE announcement_attachment_batches SET batch_status_code='COLLECTION_PENDING',collection_started_at=now(),collection_approval_hash=repeat('a',64),approved_by=?,row_version=row_version+1 WHERE id=(SELECT batch_id FROM announcement_attachment_jobs WHERE id=?)",actor,job);
+            sql.update("UPDATE announcement_attachment_jobs SET job_status_code='FAILED',error_code='DISCOVERY_FAILED',row_version=row_version+1 WHERE id=?",job);
+            assertThat(sql.update(insert,job)).isEqualTo(1);
+        });
+        assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
+        assertThat(sql.queryForObject("SELECT set_id FROM announcement_attachment_linked_review_notices WHERE job_id=?",UUID.class,job)).isNull();
+        assertThatThrownBy(()->sql.update(insert,job)).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_linked_review_notices SET reason_code='EVIDENCE_READY' WHERE job_id=?",job))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("notice is immutable");
+        assertThatThrownBy(()->sql.update("DELETE FROM announcement_attachment_linked_review_notices WHERE job_id=?",job))
+                .isInstanceOf(DataIntegrityViolationException.class).hasMessageContaining("notice cannot be deleted");
+    }
+
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));

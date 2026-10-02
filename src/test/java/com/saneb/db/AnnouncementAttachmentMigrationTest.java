@@ -336,6 +336,9 @@ class AnnouncementAttachmentMigrationTest {
                 assertThat(workerSql.queryForObject("SELECT attachment_linked_job_connections_unchanged(?)",Boolean.class,UUID.randomUUID())).isFalse();
                 tx.setRollbackOnly();
             });
+            var linkedNoticeUpgrade=Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").target("89").load();
+            assertThat(linkedNoticeUpgrade.migrate().migrationsExecuted).isEqualTo(1);linkedNoticeUpgrade.validate();
+            assertThat(workerSql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_review_notices",Integer.class)).isZero();
             assertThat(workerSql.queryForObject("SELECT count(1) FROM prior_checksums p JOIN flyway_schema_history f USING(version) WHERE p.checksum IS DISTINCT FROM f.checksum",Integer.class)).isZero();
             assertLegacyAttachmentCheck(workerSql);
             for (var snapshot : legacySnapshots) {

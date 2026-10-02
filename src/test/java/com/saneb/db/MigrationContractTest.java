@@ -20,6 +20,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void linkedReviewNoticeIsSeparateImmutableTerminalEvidence() throws IOException {
+        var sql=new ClassPathResource("db/migration/V89__add_linked_attachment_review_notices.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("job_id uuid NOT NULL UNIQUE","FOREIGN KEY(job_id,source_id)",
+                "FOREIGN KEY(evaluation_id,set_id,source_id)","FOR UPDATE","FOR SHARE",
+                "attachment_linked_job_connections_unchanged", "job_row.preview_evaluation_id IS DISTINCT FROM NEW.evaluation_id",
+                "WHEN 'FAILED' THEN 'COLLECTION_FAILED'", "review notice is immutable", "review notice cannot be deleted");
+        assertThat(sql).doesNotContain("UPDATE announcement_source_snapshots", "UPDATE announcements", "DISABLE TRIGGER");
+    }
+
     @Test void linkedConnectionSnapshotStoresAllPairsAndRemainsSeparateFromExecutionFence() throws IOException {
         var sql=new ClassPathResource("db/migration/V88__freeze_linked_attachment_job_connections.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("ORDER BY l.id", "'linkId',l.id,'announcementId',l.announcement_id",

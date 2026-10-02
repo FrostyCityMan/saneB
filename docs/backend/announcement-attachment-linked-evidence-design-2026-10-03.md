@@ -44,7 +44,7 @@
 
 ### 3.2 재검수 경고 이력
 
-- `announcement_attachment_linked_review_notices`(제안명): id, batch_id, job_id, source_id, set_id(nullable), evaluation_id(nullable), reason_code, created_at.
+- V89 `announcement_attachment_linked_review_notices`: id, batch_id, job_id, source_id, set_id(nullable), evaluation_id(nullable), reason_code, created_at. 실제 job의 source/batch/set/preview와 완료 상태가 일치하고 고정 연결이 유지될 때만 삽입한다. worker 연결 전 자동 생성은 하지 않는다.
 - UNIQUE(job_id): 완료 응답 유실·lease 재시도에서 경고를 중복 생성하지 않는다.
 - FK는 source/set/evaluation의 실제 composite identity에 맞춘다. 다른 source의 set/evaluation 연결은 SQL에서 거부한다.
 - 사유: 근거 수집 완료 후 확인 필요 / 부분 수집·추출 확인 필요 / 수집 실패. 구체적인 기존 실패 코드는 job/file 근거로 조회한다. 원문·계정정보·운영 공고 조건을 metadata로 복사하지 않는다.
