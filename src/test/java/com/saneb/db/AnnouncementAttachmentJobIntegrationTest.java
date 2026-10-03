@@ -3024,6 +3024,36 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(service.selectExternalExecutionAllowed(job,token)).isFalse();
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"IDENTITY","ANNOUNCEMENT","DELETE"})
+    void linkedLateEvaluationConflictsAfterSealedEvidenceConnectionChanges(String mutation) {
+        UUID jobId=insertLinkedSnapshotFixture(true),token=startLinkedFixture(jobId,false);
+        var job=dao.selectJobDetails(jobId);UUID source=job.sourceId();
+        String before=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
+        UUID originalAnnouncement=sql.queryForObject("SELECT announcement_id FROM announcement_source_links WHERE source_id=?",UUID.class,source);
+        String original=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,originalAnnouncement);
+        assertThat(service.saveDownloadBytes(jobId,token,15)).isTrue();
+        evidenceService.saveAttachmentSet(jobId,token,new AttachmentSetEvidence("FOUND",true,List.of(selectFileEvidence(100)))).orElseThrow();
+        UUID setId=dao.selectJobDetails(jobId).setId();
+        if("DELETE".equals(mutation)) sql.update("DELETE FROM announcement_source_links WHERE source_id=?",source);
+        else if("IDENTITY".equals(mutation)) sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=?",UUID.randomUUID(),source);
+        else {
+            UUID other=UUID.randomUUID();
+            sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','다른 연결 공고','합성 기관','HIDDEN','DRAFT')",other);
+            sql.update("UPDATE announcement_source_links SET announcement_id=? WHERE source_id=?",other,source);
+        }
+        var evaluator=context.getBean(AnnouncementAttachmentEvaluationService.class);
+        assertThat(evaluator.saveJobEvaluation(jobId,token)).isEmpty();
+        assertThat(evaluator.saveJobEvaluation(jobId,token)).isEmpty();
+        var completed=dao.selectJobDetails(jobId);
+        assertThat(completed.jobStatusCode()).isEqualTo("CONFLICT");
+        assertThat(completed.errorCode()).isEqualTo("FROZEN_INPUT_CHANGED");
+        assertThat(completed.setId()).isEqualTo(setId);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_review_notices WHERE job_id=?",Integer.class,jobId)).isZero();
+        assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(before);
+        assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,originalAnnouncement)).isEqualTo(original);
+    }
+
     @Test void linkedNoticeExhaustedLeaseRecoveryRecordsFailureWithoutManualCallback() {
         UUID job=insertLinkedSnapshotFixture(true);startLinkedFixture(job,true);
         assertThat(service.saveNextJobClaim()).isEmpty();

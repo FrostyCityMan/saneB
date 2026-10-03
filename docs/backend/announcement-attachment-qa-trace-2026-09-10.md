@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 봉인 후 연결 변경과 늦은 평가
+
+실제 PostgreSQL에서 합성 첨부 집합 봉인 뒤 link ID 교체·announcement ID 교체·link 삭제를 각각 확정한 후 평가 서비스를 호출했다. 세 경우 모두 Optional.empty, job CONFLICT/FROZEN_INPUT_CHANGED, 재호출도 empty, 경고0을 검증했다. 확보한 set ID와 source/기존 운영 공고 전체 행은 유지된다. 실행 상태는 시험 fixture로 준비했으며 외부 HTTP/실제 파일 추출과 동시 transaction 교착 검증은 아니다.
+
+`attachmentJobIntegrationTest --tests '*linkedLateEvaluation*' --no-daemon --max-workers=1` 52초 성공,3건 실패/오류/생략0. 기존 완료 후처리 코드가 작동하여 운영 코드 변경 없음. UI·운영 E2E는 미완료다.
+
 ## 2026-10-03 연결 근거 미리보기의 검수·DRAFT 오용 거부
 
 실제 PostgreSQL의 성공/부분 완료 연결 근거 판정 ID와 실제 집합 hash를 검수 확인·DRAFT 전환 서비스에 전달했다. 연결 유지 시 기존 연결 보호 오류로 거부되고, 시험 transaction에서만 연결을 해제해도 현재 판정 불일치로 거부된다. 연결 해제는 rollback하며 확인0·연결1·전체 공고 수 증가0·source/운영 공고 행 불변을 확인했다. 기존 보호 코드가 작동하여 운영 코드 변경은 없다.
