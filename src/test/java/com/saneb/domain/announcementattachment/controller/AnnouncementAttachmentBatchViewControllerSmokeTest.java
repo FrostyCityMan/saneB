@@ -5,6 +5,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,6 +48,18 @@ class AnnouncementAttachmentBatchViewControllerSmokeTest {
         assertThat(html.selectFirst("#batch-receipt-title").attr("tabindex")).isEqualTo("-1");
         assertThat(html.selectFirst("#batch-history-title").text()).isEqualTo("적용·원복 승인 전체 이력");
         assertThat(html.text()).contains("승인 당시 범위와 현재 처리 결과는 별도", "일반 감사 로그가 아닙니다");
+        if ("true".equals(System.getenv("SANEB_ATTACHMENT_BATCH_VIEW_EXPORT")) && "ADMIN".equals(role)) {
+            html.select("meta[name=_csrf], meta[name=_csrf_header], input[name=_csrf], link[href^=http]").remove();
+            html.select("script").stream().filter(e -> !java.util.Set.of(
+                    "/js/saneb-attachment-review-core.js", "/js/saneb-attachment-batch-core.js",
+                    "/js/saneb-attachment-batches.js", "/js/saneb-layout.js")
+                    .contains(e.attr("src"))).forEach(org.jsoup.nodes.Element::remove);
+            html.selectFirst("[data-attachment-batches]").prependElement("p").attr("role", "note")
+                    .text("합성 QA 전용 화면입니다. 운영 DB·인증·정책·수집원과 연결하지 않습니다.");
+            var target=Path.of("build", "attachment-batch-ui-qa", "index.html");
+            Files.createDirectories(target.getParent());
+            Files.writeString(target,html.outerHtml(),StandardCharsets.UTF_8);
+        }
     }
     @ParameterizedTest @ValueSource(strings={"USER","PARTNER","REVIEWER"})
     void externalRolesCannotReadWorkspace(String role) throws Exception {mvc.perform(get(PATH).with(user("batch-view-qa").roles(role))).andExpect(status().isForbidden());}

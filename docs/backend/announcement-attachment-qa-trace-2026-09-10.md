@@ -1,5 +1,31 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 근거 예약 로컬 브라우저 검증
+
+- 후속 브라우저 검증: 동일 합성 배치를 예약→수집 시작→중지→재개하여 SCOPE_READY/0→COLLECTION_PENDING/1→COLLECTION_PAUSED/2→COLLECTING/3을 확인했다. 각 승인 확인 체크는 초기화되고 최초132회·24MiB 예산은 유지된다. 실제 worker가 없는 합성 상태 전환이며 실파일 다운로드 성공을 의미하지 않는다.
+- 조회 전용 페이지는 동일 배치 조회가 가능하고 수집 제어 대신 관리자 요청 안내가 표시된다. 두 탭의 console error/warn 0건. 모바일 override375×812에서 실제 document clientWidth/scrollWidth는360/360으로 가로 넘침이 없었다. 모든 반응형 구간·모든 폼을 검증했다는 의미는 아니다. `linked-resumed.jpg`, `linked-readonly-mobile.jpg`를 같은 build 증거 폴더에 저장했다. viewport 복원·생성 탭 종료·서버 PID40256 종료 완료.
+- 테스트 서버의 재개 응답을 실제 클라이언트 계약인 COLLECTING으로 정정했다. 이 정정은 합성 서버에만 적용되며 제품 코드에는 변경이 없다.
+
+- 실제 Thymeleaf 배치 화면을 `SANEB_ATTACHMENT_BATCH_VIEW_EXPORT=true`일 때만 내보내는 테스트 경로와 `scripts/qa/attachment-linked-batch-fixture-server.mjs`를 추가했다. localhost 임의 포트의 단일 탭 합성 API이며 운영 DB·인증·외부 수집에 연결하지 않는다. 운영 보안·worker 검증 대체물이 아니다.
+- 실행: `:test --tests '*AnnouncementAttachmentBatchViewControllerSmokeTest' --no-daemon --max-workers=1` 36초 성공, XML 8건/실패0/오류0/생략0. `node --test scripts/qa/attachment-batch-ui.test.mjs` 37건 통과, `node --check scripts/qa/attachment-linked-batch-fixture-server.mjs` 성공.
+- 실제 인앱 브라우저에서 합성 UUID 1건·24MiB 상한 입력 → 준비 상태 조회 → 영향 확인 → 사유·확인 체크 → 예약 응답과 선택 배치 조회까지 검증했다. `SCOPE_READY`·1건·132요청 상한, 연결 근거 전용 표시 및 별도 수집 시작 버튼을 확인했다. 예약만으로 수집하지 않았다. 해당 탭 console error/warn 0건.
+- 증거: `build/attachment-batch-ui-qa/linked-reserved.jpg` 전체 화면. 실제 운영 E2E, 모바일 viewport, 수집 시작/일시정지/재개 브라우저 상호작용, 응답 유실·조회 역할 브라우저 시나리오는 이번 실행에서 미검증이다. 테스트 전용 서버 PID25964와 생성 탭은 종료했다.
+- 재실행: 위 환경변수로 SSR 테스트 수행 후 `node scripts/qa/attachment-linked-batch-fixture-server.mjs`; 출력된 loopback URL만 사용한다. 이 서버의 역할/메모리 상태는 프로세스 단위이므로 다중 사용자 검증에는 사용하지 않는다. 종료하면 합성 예약은 소멸한다.
+
+## 2026-10-03 수정 SHA Linux 통합 검증 통과
+
+`68cd3a61962e2c4824e0f831572264b84ff205b7`의 GitHub Actions run37085618683 completed/success를 확인했다. artifact11259989027의 XML 직접 대조: QA 산출물20, 작업229, migration/Backfill18, 정책 DB QA2, 격리 runtime7, worker12, Flyway3 모두 실패/오류/생략0이다. 일반 test 디렉터리(앱/추출기 합산)는4891건 중399건 조건부 생략이며 별도 task에서 실행한 DB/worker 시험도 이 생략 목록에 포함된다. 모든 실사이트 QA까지 통과했다고 확대하지 않는다.
+
+독립 산출물 실행 로그의 SYNTHETIC_WORKER_DB_CONTRACTS_V2는 discovered259/passed259/failed0/skipped0/notRun0, ATTACHMENT_CONTRACT_QA_CLEANUP 및 POLICY_DB_QA_CLEANUP 모두 SUCCEEDED다. 운영 파일 수집·운영 DB·브라우저 E2E 증거가 아니라 Linux 격리 합성 검증이다. 원 보고서는 GitHub artifact에 보관되어 있으며 로컬 검토 사본은 build/ci-evidence-37085618683-383987d22282401f87c1dd4da7a71440이다.
+
+운영 코드·V87~V90 반영은 조건부 승인 요청 상태이며 아직 실행하지 않았다. 배포 전 진행 중 작업·현재 버전·이전 JAR/추출기 및 DB 복구 기준 확인이 남는다. 정책 게시/ENFORCE/기존 데이터 적용은 별도다. 검증 SHA를 유지하기 위해 이 결과 기록만으로 추가 CI를 발생시키지 않는다.
+
+## 2026-10-03 68cd3a6 전체 DB 회귀
+
+코드 HEAD `68cd3a61962e2c4824e0f831572264b84ff205b7`에서 `attachmentJobIntegrationTest attachmentMigrationTest --no-daemon --max-workers=1`을 실행했다. 동일 세션20169를 유지하여13분43초 정상 종료를 확인했다. 새 XML 기준 작업229·Backfill14·migration4, 총247건 실패/오류/생략0이다. 기존 migration diff는 운영 기준371b1ac 대비 V87~V90 추가4개뿐이며 기존 파일 수정0이다. 로컬 임시 PostgreSQL 검증은 운영 DB 반영 증거가 아니다.
+
+장시간 무출력 구간에서도 재시작하지 않았다. 중간 JVM 진단은 Windows attach 접근 거부로 미실행이었으나 이후 작업→migration 진행과 정상 종료를 확인했다. 수정 전 Linux 실패를 로컬 통과로 덮지 않으며 수정 SHA run37085618683의 최종 결과는 별도 확인한다. 운영 health UP 조회는 기존 설치의 기동 증거뿐이다. 운영 코드·정책·데이터 변경은 실행하지 않았다.
+
 ## 2026-10-03 Linux QA 산출물의 정적 시험 목록 계약 복구
 
 선행 `2a643c7` Linux run37084709367은 `AttachmentContractQaPackageTest.fixedSuiteInventoryCannotOmitDynamicallyRegisteredTestCases`에서 실패했다. 새 linked 통합 시험의 ParameterizedTest 두 개가 독립 QA 산출물의 사전 시험 목록 고정 규칙과 충돌한 원인이다. 검사/기대값을 약화하지 않고 동일5사례(연결 ID 교체·공고 ID 교체·삭제, 정상·부분 완료)를 명시적 @Test5개와 공통 private helper로 변환했다. 총 linked 사례17개는 유지한다. 최신 `bf6a564` run37085319530은 조회 당시 in_progress이며 아직 수정 전 코드다.
