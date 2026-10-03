@@ -48,7 +48,7 @@
             if(!data.items.length && p>1){await loadList(Math.max(1,data.totalPages));return;}
             listPage=p;navigation.write({listPage});const box=clear("[data-list]");
             if(!data.items.length)el(box,"p","예약된 배치가 없습니다. 새 범위를 조회하면 보호 제외와 준비 상태를 확인할 수 있습니다.");
-            for(const b of data.items){const row=el(box,"article",null,"attachment-evidence-item");el(row,"p",`${b.batchId} · ${label(b.statusCode)} · 전체 ${fmt(b.itemCount)} / 삭제 ${fmt(b.deletedItemCount)} · ${date(b.createdAt)}`);
+            for(const b of data.items){const row=el(box,"article",null,"attachment-evidence-item");el(row,"p",`${b.batchId} · ${B.linked(b)?"연결 공고 근거 전용":"일반 배치"} · ${label(b.statusCode)} · 전체 ${fmt(b.itemCount)} / 삭제 ${fmt(b.deletedItemCount)} · ${date(b.createdAt)}`);
                 button(row,"이 배치의 단계·결과 확인",()=>{if(state.selectionDirty && state.batch?.batchId!==b.batchId){error(new Error("미저장 선택이 있습니다. 선택을 저장하거나 ‘미저장 선택을 버리고 저장된 선택 복원’ 후 다른 배치를 여세요."));return;}return read(async()=>{itemPage=previewPage=rollbackPage=1;receipt=null;navigation.write({batchId:b.batchId,itemPage:1,previewPage:1,rollbackPage:1,actionId:null,actionKind:null});await loadBatch(b.batchId);q("#batch-work").focus();});});}
             pages("[data-list-pages]",data,loadList);
         }
@@ -74,8 +74,9 @@
             for(const i of p.items)el(details,"p",`${i.sourceId} · ${label(i.providerCode)} · ${label(i.readinessCode)}`);
         }
         function batchView(b){const box=clear("[data-detail]");meta(box,[["배치",b.batchId],["상태",label(b.statusCode)],["버전",b.rowVersion],["정책",b.policyId],
+            ["작업 목적",B.linked(b)?"연결 공고 근거 전용 · 현재 판정 적용 안 함":"일반 배치"],
             ["최초 전체 고정 범위",fmt(b.itemCount)],["현재 남은 작업",fmt(b.remainingItemCount)],["삭제된 작업",fmt(b.deletedItemCount)],
-            ["예약 당시 범위 밖 잔여 후보",fmt(b.frozenScope.remainingCount)],["최초 전체 HTTP 상한",`${b.frozenScope.maximumHttpRequests}회`],
+            ["예약 당시 범위 밖 잔여 후보",B.linked(b)?"해당 없음 · 명시한 원문만 수집":fmt(b.frozenScope.remainingCount)],["최초 전체 HTTP 상한",`${b.frozenScope.maximumHttpRequests}회`],
             ["최초 전체 다운로드 상한",`${b.frozenScope.maximumDownloadBytes}바이트`],["고정 범위 지문",b.scopeHash],["생성 시각",date(b.createdAt)]]);
             const f=b.frozenScope.filter; if(f)el(box,"p",`고정 필터: ${f.providerCodes.map(label).join(", ")} · ${date(f.collectedFrom)} 이상 ~ ${date(f.collectedBefore)} 미만 · 마감일 ${f.deadlineFrom||"제한 없음"} ~ ${f.deadlineThrough||"제한 없음"}`);
             if(B.uuid(b.frozenScope.backfillRunId) && B.count(b.frozenScope.backfillSegmentNo) && b.frozenScope.backfillSegmentNo>=1){
@@ -101,7 +102,7 @@
                 const items=await B.loadPreviewItems(request,b,p);state.previewItems=items;state.selectionComplete=true;
                 state.selected=old?.previewId===p.previewId && old.previewHash===p.previewHash && wasDirty?oldSelection:new Set(items.filter(i=>i.selected).map(i=>i.jobId));
                 state.selectionDirty=old?.previewId===p.previewId && wasDirty;previewView();
-            }else{state.selected=new Set();state.selectionDirty=false;el(q("[data-preview]"),"p","수집 종료 후 결과 미리보기를 직접 생성하세요. 아직 선택·적용 기준이 없습니다.");}
+            }else{state.selected=new Set();state.selectionDirty=false;el(q("[data-preview]"),"p",B.linked(b)?"연결 공고 근거 전용입니다. 아래 공고별 본문·첨부 화면에서 새 근거와 재검수 경고를 확인하세요. 현재 판정 적용·선택·원복은 제공하지 않습니다.":"수집 종료 후 결과 미리보기를 직접 생성하세요. 아직 선택·적용 기준이 없습니다.");}
             if(["APPLIED","APPLY_PARTIAL_FAILED","APPLY_PAUSED"].includes(b.statusCode))await loadRollback();
             else if(hasRollback(b.statusCode)){el(q("[data-rollback]"),"p","원복 승인 이후에는 새 원복 미리보기를 만들지 않습니다. 항목별 결과와 기존 접수 기록을 확인하세요.");await loadRollbackItems(rollbackPage);}
             stale=false;actionsView();if(receipt?.batchId===id)await loadReceipt();
@@ -153,7 +154,7 @@
         const names={reserve:"범위 고정 예약",collection:"첨부 수집 시작","collection-pause":"수집 중지","collection-resume":"수집 재개","scope-cancellation":"수집 전 예약 취소",preview:"봉인 결과 미리보기 생성",selection:"전체 선택 저장",apply:"선택한 판정 적용","apply-pause":"판정 적용 중지","apply-resume":"판정 적용 재개",rollback:"이전 연결 원복 승인"};
         function actionsView(){const box=clear("[data-actions]"),s=state.batch.statusCode;if(!admin){el(box,"p","조회 전용입니다. 실행은 관리자에게 요청하세요.");return;}
             const actions=[];if(s==="SCOPE_READY")actions.push("collection","scope-cancellation");if(["COLLECTING","COLLECTION_PENDING"].includes(s))actions.push("collection-pause");if(s==="COLLECTION_PAUSED")actions.push("collection-resume");
-            if(["COLLECTED","COLLECTION_PARTIAL_FAILED","PREVIEW_READY","PREVIEW_PARTIAL_FAILED"].includes(s))actions.push("preview");
+            if(!B.linked(state.batch) && ["COLLECTED","COLLECTION_PARTIAL_FAILED","PREVIEW_READY","PREVIEW_PARTIAL_FAILED"].includes(s))actions.push("preview");
             if(B.editable(state.batch,state.preview) && state.preview.selectedItemCount>0)actions.push("apply");if(s==="APPLYING")actions.push("apply-pause");if(s==="APPLY_PAUSED")actions.push("apply-resume");
             if(["APPLIED","APPLY_PARTIAL_FAILED","APPLY_PAUSED"].includes(s) && state.rollback?.eligibleCount>0)actions.push("rollback");
             for(const kind of actions)button(box,`${names[kind]} 영향 확인`,()=>arm(kind));
@@ -167,7 +168,9 @@
                     if(kind==="selection" || kind.startsWith("apply"))meta(box,[["미리보기 지문",state.preview.previewHash],["선택",fmt(kind==="selection"?state.selected.size:state.preview.selectedItemCount)]]);
                     if(kind==="rollback")meta(box,[["대상/적격/충돌",`${fmt(state.rollback.targetCount)} / ${fmt(state.rollback.eligibleCount)} / ${fmt(state.rollback.conflictCount)}`],["기본 경로 재개 / 이전 확인 복구",`${fmt(state.rollback.baseReopenCount)} / ${fmt(state.rollback.confirmationRestoreCount)}`],["적용 대기 취소",fmt(state.rollback.cancelPendingCount)],["원복 지문",state.rollback.previewHash]]);}
                 const warnings=kind==="reserve"?"고정 예약만 생성합니다. 아직 파일 수집·판정 적용을 하지 않습니다. 다른 수집과 충돌할 수 있으며 수집 전 예약 취소로 해제합니다.":kind.startsWith("collection")?"수집 시작·재개는 고정 범위의 외부 요청을 허용합니다. 새 예산을 추가하지 않습니다. 중지는 새 요청을 막지만 이미 전송 중인 요청의 즉시 중단을 보장하지 않습니다.":kind==="scope-cancellation"?"아직 수집하지 않은 예약을 취소합니다. 이력은 보존하며 원문을 삭제하지 않습니다.":kind==="preview"?"저장된 봉인 근거만 사용합니다. 새 미리보기의 선택은 0건이며 이전 선택을 자동 복사하지 않습니다. 외부 요청 0회입니다.":kind==="selection"?"전체 페이지의 선택 목록을 새 이력으로 저장합니다. 판정은 적용하지 않습니다. 외부 요청 0회입니다.":kind==="rollback"?"적용 완료분 전체의 조건부 원복을 접수합니다. 이전 판정과 유효했던 확인만 복구하며 남은 적용 대기는 취소됩니다. 실패·충돌은 남고 외부 요청은 0회입니다.":"적용/중지/재개 요청을 접수합니다. 적용은 고정 ACTIVE ENFORCE 정책에서만 가능하며 이전 첨부 확인은 STALE이 되어 재검수가 필요합니다. COLLECT_ONLY를 승격하지 않습니다. 외부 요청 0회이며 운영 공고를 자동 활성화하지 않습니다.";
-                el(box,"p",warnings);q("[data-approve]").textContent=names[kind];q("#batch-approval-title").focus();gates();
+                el(box,"p",warnings);
+                if(kind!=="reserve" && B.linked(state.batch))el(box,"p","연결 공고 근거 전용: 기존 공고·현재 판정·검수 확인을 변경하지 않습니다. 새 근거와 재검수 경고만 기록하며 자동 공개하지 않습니다.");
+                q("[data-approve]").textContent=names[kind];q("#batch-approval-title").focus();gates();
             }catch(e){disarm();gates();error(e);}}
         async function submit(retry=false){if(busy || mutation.pending || !admin || (!retry && mutation.uncertain))return;
             let next;try{if(!retry){B.requireValue(action,"실행할 작업의 영향을 먼저 확인하세요.");if(!approval.reportValidity())return;next=B.command(action,state,approval.elements.namedItem("reason").value,approval.elements.namedItem("acknowledged").checked);}}

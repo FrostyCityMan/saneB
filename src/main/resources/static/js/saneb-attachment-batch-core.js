@@ -2,6 +2,8 @@
 ((root) => {
     "use strict";
     const base = "/api/v2/admin/announcement-attachment-batches";
+    const linkedBase = "/api/v2/admin/announcement-attachment-linked-evidence-batches";
+    const linked = b => b?.frozenScope?.purposeCode === "LINKED_EVIDENCE_ONLY";
     const uuid = v => typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
     const hash = v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
     const count = v => Number.isSafeInteger(v) && v >= 0;
@@ -22,7 +24,8 @@
         && count(b.itemCount) && b.itemCount > 0 && b.itemCount <= 1000 && count(b.remainingItemCount) && count(b.deletedItemCount)
         && b.remainingItemCount + b.deletedItemCount === b.itemCount && typeof b.statusCode === "string"
         && b.jobCounts && Object.values(b.jobCounts).every(count) && Object.values(b.jobCounts).reduce((a,v)=>a+v,0) === b.remainingItemCount
-        && b.frozenScope?.schemaVersion === 1 && time(b.createdAt));
+        && b.frozenScope?.schemaVersion === 1 && [undefined,"STANDARD","LINKED_EVIDENCE_ONLY"].includes(b.frozenScope.purposeCode)
+        && (!linked(b) || ["SCOPE_READY","COLLECTION_PENDING","COLLECTING","COLLECTION_PAUSED","COLLECTED","COLLECTION_PARTIAL_FAILED","CANCELLED"].includes(b.statusCode)) && time(b.createdAt));
     const validPage = (p, page, size, validator) => !!(p && p.page === page && p.size === size && count(p.totalCount)
         && p.totalPages === Math.ceil(p.totalCount / size) && Array.isArray(p.items)
         && p.items.length === Math.min(size, Math.max(0, p.totalCount - (page-1)*size)) && p.items.every(validator));
@@ -77,6 +80,9 @@
             payload={scope:s.scope,expectedScopeHash:s.scopeHash,reason};path=base;
         } else {
             requireValue(validBatch(b) && b.rowVersion<2147483647);path=`${base}/${b.batchId}`;
+            requireValue(!linked(b) || ["collection","collection-resume","collection-pause","scope-cancellation"].includes(kind),
+                "연결 공고 근거 전용 배치는 판정 적용·선택·원복할 수 없습니다. 공고별 첨부 근거와 재검수 경고를 확인하세요.");
+            if(linked(b) && kind!=="scope-cancellation")path=`${linkedBase}/${b.batchId}`;
             payload={expectedVersion:b.rowVersion,reason};
             if(["collection","collection-resume","collection-pause","scope-cancellation"].includes(kind)) {
                 const allowed={collection:["SCOPE_READY"],"collection-resume":["COLLECTION_PAUSED"],"collection-pause":["COLLECTION_PENDING","COLLECTING"],"scope-cancellation":["SCOPE_READY"]};
@@ -166,7 +172,7 @@
     }
     function client(fetcher,C,timeout=20000) {
         return async (url,options={}) => {
-            requireValue(/^\/api\/v2\/admin\/announcement-attachment-(?:batches|policies|backfills)(?:\/[a-zA-Z0-9-]+)*(?:\?[a-zA-Z0-9=&-]+)?$/.test(url),"허용되지 않은 배치 요청 경로입니다.");
+            requireValue(/^\/api\/v2\/admin\/announcement-attachment-(?:batches|linked-evidence-batches|policies|backfills)(?:\/[a-zA-Z0-9-]+)*(?:\?[a-zA-Z0-9=&-]+)?$/.test(url),"허용되지 않은 배치 요청 경로입니다.");
             const abort=new AbortController(), timer=setTimeout(()=>abort.abort(),timeout);
             try {
                 const response=await fetcher(url,{...options,credentials:"same-origin",cache:"no-store",redirect:"error",signal:abort.signal,
@@ -210,6 +216,6 @@
         if(p.inputsCurrent)requireValue(items.filter(i=>i.selected).length===p.selectedItemCount && items.every(i=>!i.selected || i.eligible && i.readinessCode==="READY"));
         return items;
     }
-    const api={base,uuid,hash,count,requireValue,label,validBatch,validPage,validPreview,validItem,editable,scope,validScope,validRollback,command,validReceipt,validActionReceipt,validHistoryEntry,validHistory,validHistoricalReceipt,client,mutations,loadPreviewItems};
+    const api={base,linkedBase,linked,uuid,hash,count,requireValue,label,validBatch,validPage,validPreview,validItem,editable,scope,validScope,validRollback,command,validReceipt,validActionReceipt,validHistoryEntry,validHistory,validHistoricalReceipt,client,mutations,loadPreviewItems};
     if(typeof module!=="undefined" && module.exports)module.exports=api;else root.SanebAttachmentBatch=api;
 })(globalThis);

@@ -27,6 +27,40 @@ test('scope uses server provider codes, explicit intervals and bounded maximum',
     assert.equal(B.label('GOV24_PUBLIC_SERVICE'),'정부24');assert.equal(B.label('GOV24'),'정부24');
     for(const patch of [{providerCodes:[]},{providerCodes:['GOV24_PUBLIC_SERVICE']},{policyId:'bad'},{maximumCount:1001},{maximumCount:0},{maximumCount:1.5},{collectedBefore:scope.collectedFrom},{deadlineFrom:'2026-09-12',deadlineThrough:'2026-09-11'}])assert.throws(()=>B.scope({...scope,...patch}));
 });
+
+const linkedBatch=status=>{const b=batch(status);return {...b,frozenScope:{schemaVersion:1,purposeCode:'LINKED_EVIDENCE_ONLY',maximumDownloadBytes:10000,maximumHttpRequests:264}};};
+test('linked collection transport accepts only same-origin namespace and retains caps',async()=>{
+    const calls=[],cmd=B.command('collection',state(linkedBatch('SCOPE_READY')),'근거 시작',true);
+    const request=B.client(async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({success:true,data:{...linkedBatch('COLLECTION_PENDING'),rowVersion:5}})};},C);
+    const mutations=B.mutations(request,C,()=>id(99));
+    const result=await mutations.execute(cmd);
+    assert.equal(result.data.statusCode,'COLLECTION_PENDING');assert.equal(calls.length,1);
+    assert.equal(calls[0].url,`${B.linkedBase}/${id(1)}/collection`);
+    assert.equal(calls[0].options.credentials,'same-origin');
+    assert.equal(JSON.parse(calls[0].options.body).expectedMaximumDownloadBytes,10000);
+    await assert.rejects(request(`https://example.com${cmd.path}`));assert.equal(calls.length,1);
+});
+test('linked collection commands use dedicated endpoints and forbid application purposes',()=>{
+    for(const [kind,status] of [['collection','SCOPE_READY'],['collection-pause','COLLECTING'],['collection-resume','COLLECTION_PAUSED']]) {
+        const cmd=B.command(kind,state(linkedBatch(status)),'연결 근거 수집',true);
+        assert.equal(cmd.path,`${B.linkedBase}/${id(1)}/${kind}`);assert.equal(cmd.method,'PUT');assert.equal(cmd.keyed,false);
+    }
+    assert.equal(B.command('scope-cancellation',state(linkedBatch('SCOPE_READY')),'예약 취소',true).path,`${B.base}/${id(1)}/scope-cancellation`);
+    for(const kind of ['preview','selection','apply','apply-pause','apply-resume','rollback'])
+        assert.throws(()=>B.command(kind,state(linkedBatch('COLLECTED')),'금지',true),/연결 공고 근거 전용/);
+    assert.equal(B.validBatch(linkedBatch('APPLIED')),false);
+    assert.equal(B.validBatch({...batch(),frozenScope:{...batch().frozenScope,purposeCode:'UNKNOWN'}}),false);
+});
+
+test('linked workspace hides apply preview and explains preserved current data',async()=>{
+    const h=harness({nav:{batchId:id(1)},batchValue:linkedBatch('COLLECTED')});await h.app.start();
+    const text=n=>[n.textContent,...n.children.map(text)].join(' ');
+    assert.match(text(h.q('[data-detail]')),/연결 공고 근거 전용/);
+    assert.match(text(h.q('[data-preview]')),/현재 판정 적용·선택·원복은 제공하지 않습니다/);
+    assert.equal(h.q('[data-actions]').querySelectorAll('button').length,0);
+    assert.equal(h.calls.some(c=>c.url.includes('/classification-preview')),false);
+    assert.equal(h.calls.some(c=>c.method),false);
+});
 test('scope never calls a selected subset the whole candidate scope',()=>{
     const s={scope,scopeHash:hash,ruleReleaseId:id(4),policyHash:hash,counts:[{providerCode:'BIZINFO',reasonCode:'CANDIDATE',count:102}],candidateCount:102,selectedCount:100,remainingCount:2,
         maximumDownloadBytes:10000,maximumHttpRequests:13200,currentHttpRequests:0,canReserve:true,items:Array.from({length:100},(_,n)=>({sourceId:id(n+100),sourceVersion:1,attachmentVersion:1,readinessCode:'READY'}))};
