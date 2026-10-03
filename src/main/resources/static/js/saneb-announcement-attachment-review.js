@@ -62,6 +62,7 @@
         q("[data-create-draft]").textContent = draftAttempt.pending ? "초안 생성 중…" : "비활성 공고 초안 1건 생성";
         operations?.gates();
         recovery?.gates();
+        q("[data-load-linked-notices]").disabled = busy || !source;
     };
     // 각각의 페이지/조회 응답은 소유 패널과 전체 기준 세대에 묶어 늦은 응답이 새 근거를 덮지 못하게 한다.
     const paged = (container, path, render, empty, size = 10, onLoaded = null) => {
@@ -165,6 +166,18 @@
             }
         }, `파일 기록이 없습니다. 집합 ${title}의 발견 상태를 함께 확인하세요.`);
     };
+    const showLinkedNotices = () => paged(q("[data-linked-notices]"), `${root}/attachment-linked-review-notices`, (parent, notice) => {
+        if (!C.validLinkedNotice(notice)) throw new Error("경고의 작업 상태·근거 식별자가 일치하지 않습니다. 경고 이력을 다시 조회하세요.");
+        const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
+        text(item, "h3", C.linkedNoticeLabel(notice.reasonCode));
+        meta(item, [["기록 시각", date(notice.createdAt)], ["작업 상태", C.label(notice.jobStatusCode)],
+            ["작업 ID", notice.jobId], ["배치 ID", notice.batchId], ["실패 사유", notice.errorCode ? C.label(notice.errorCode) : "기록 없음"],
+            ["현재 공고 연결", notice.connectionsUnchanged ? "수집 당시 연결과 일치" : "연결 변경됨 · 과거 수집 당시의 경고"]]);
+        if (!notice.connectionsUnchanged) text(item, "p", "현재 연결 공고에 대한 검증 결과로 사용하지 마세요. 수집 당시 근거와 현재 연결을 별도로 확인하세요.", "attachment-error");
+        if (notice.setId) action(item, "이 경고의 첨부 근거 확인", () => showFiles(notice.setId, "연결 공고의 별도 근거 · 현재 판정 아님",
+            notice.evaluationId ? {evaluationId: notice.evaluationId} : null));
+        else text(item, "p", "저장된 첨부 집합이 없는 실패입니다. 작업 실패 사유를 확인하세요.");
+    }, "기록된 재검수 경고가 없습니다. 수집 완료나 첨부 없음이 확인됐다는 뜻은 아닙니다.");
     const showSets = () => paged(q("[data-sets]"), `${root}/attachment-sets`, (parent, set) => {
         const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
         const active = source?.effectiveClassification?.setId === set.setId;
@@ -256,6 +269,7 @@
         if (busy || operations?.busy || recovery?.busy || uncertain()) return;
         const currentEpoch = ++epoch; busy = true; locked = true; mutationStale = false; context = null; gates();
         segments.reset();
+        clear(q("[data-linked-notices]"));
         message("[data-page-error]", ""); message("[data-page-status]", "입력을 유지하고 현재 원문·검수 기준을 조회 중입니다.");
         try {
             const details = await request(root);
@@ -338,6 +352,7 @@
     q("[data-retry-draft]").addEventListener("click", () => submit("draft", draftAttempt.original));
     q("[data-refresh]").addEventListener("click", refresh);
     q("[data-load-history]").addEventListener("click", () => { if (source) showHistory(); });
+    q("[data-load-linked-notices]").addEventListener("click", () => { if (source && !busy) showLinkedNotices(); });
     operations = window.SanebAttachmentOperations.mount({page, C, request, apiRoot: root, canManage, text, meta, message,
         changed: gates, blocked: () => busy || mutationStale || confirmAttempt.uncertain || draftAttempt.uncertain || !!recovery?.busy || !!recovery?.uncertain || !!recovery?.stale, refresh});
     recovery = window.SanebAttachmentRecovery.mount({page, C, request, apiRoot: root, canRollback: page.dataset.canRollback === "true", text, meta, message, date,

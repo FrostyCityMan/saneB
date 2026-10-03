@@ -177,7 +177,17 @@
             &&a.evidence.every(e=>e&&rules.includes(e.ruleCode)&&Number.isSafeInteger(e.blockIndex)&&e.blockIndex>=0&&e.blockIndex<20000
                 &&Number.isSafeInteger(e.startOffset)&&Number.isSafeInteger(e.endOffset)&&e.startOffset>=0&&e.endOffset>e.startOffset&&e.endOffset<=1000000));
     };
-    const api = {targets, supports, label, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation, requestUuid};
+    const linkedNoticeLabel = value => ({EVIDENCE_READY:"새 첨부 근거 확인 필요", EVIDENCE_PARTIAL:"부분 수집·추출 근거 확인 필요", COLLECTION_FAILED:"첨부 수집 실패 확인 필요"}[value] || "경고 유형 확인 필요");
+    const validLinkedNotice = n => {
+        const id=v=>typeof v==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+        return !!(n && [n.noticeId,n.jobId,n.batchId].every(id) && (n.setId===null||id(n.setId))
+            && (n.evaluationId===null||id(n.evaluationId)) && typeof n.connectionsUnchanged==="boolean"
+            && typeof n.createdAt==="string" && Number.isFinite(Date.parse(n.createdAt))
+            && ({EVIDENCE_READY:"SUCCEEDED",EVIDENCE_PARTIAL:"PARTIAL_FAILED",COLLECTION_FAILED:"FAILED"}[n.reasonCode]===n.jobStatusCode)
+            && ["EVIDENCE_READY","EVIDENCE_PARTIAL","COLLECTION_FAILED"].includes(n.reasonCode)
+            && (n.reasonCode==="COLLECTION_FAILED" || (id(n.setId)&&id(n.evaluationId))));
+    };
+    const api = {targets, supports, label, linkedNoticeLabel, validLinkedNotice, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation, requestUuid};
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else root.SanebAttachmentReview = api;
 })(globalThis);

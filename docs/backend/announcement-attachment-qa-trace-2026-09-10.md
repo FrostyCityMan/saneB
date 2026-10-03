@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 관리자 연결 공고 재검수 경고 조회 UI
+
+Design Read: 기존 Thymeleaf/Bootstrap 검수 화면·plain-panel/attachment-evidence-item 및 공통 CSS를 재사용하는 R0 읽기 전용 보조 영역이다. 내부 운영자·승인자의 경고→저장 첨부 근거 확인을 지원한다. 새 라이브러리·모션·자동 수집·현재 판정 변경은 없다. 정상/부분/실패 및 현재 연결 변경 여부를 한글로 구분하고, 실패 집합 없음·빈 이력·조회 오류 재시도·페이지 이동을 제공한다. 기존 epoch/panel 응답 차단으로 최신 기준 조회 뒤 오래된 경고 응답을 버린다.
+
+검증: `node --test scripts/qa/attachment-review-ui.test.mjs`29건 및 `node --check src/main/resources/static/js/saneb-announcement-attachment-review.js` 통과. `:test --tests '*AnnouncementAttachmentControllerSmokeTest' --tests '*AnnouncementAttachmentReadServiceTest' bootJar --no-daemon --max-workers=1`43초,26건 및 bootJar 통과. `:test --tests '*AnnouncementAttachmentViewControllerSmokeTest' --no-daemon --max-workers=1`38초,9건 통과. 모든 실행의 실패/오류/생략0. SSR/정적 계약 검증은 실제 브라우저 상호작용·반응형·스크린리더·운영 데이터 검증을 대신하지 않는다. 이번 증분은 미배포이며 브라우저 검증은 후속 Gate다. 전용 배치 예약/실행 UI도 별도 미완료다.
+
 ## 2026-10-03 봉인 후 연결 변경과 늦은 평가
 
 실제 PostgreSQL에서 합성 첨부 집합 봉인 뒤 link ID 교체·announcement ID 교체·link 삭제를 각각 확정한 후 평가 서비스를 호출했다. 세 경우 모두 Optional.empty, job CONFLICT/FROZEN_INPUT_CHANGED, 재호출도 empty, 경고0을 검증했다. 확보한 set ID와 source/기존 운영 공고 전체 행은 유지된다. 실행 상태는 시험 fixture로 준비했으며 외부 HTTP/실제 파일 추출과 동시 transaction 교착 검증은 아니다.

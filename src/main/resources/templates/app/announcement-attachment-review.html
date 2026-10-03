@@ -22,6 +22,12 @@
     <section class="plain-panel" aria-labelledby="attachment-evidence-title">
         <h2 id="attachment-evidence-title">2. 첨부 집합·파일·추출 근거</h2>
         <p>처리 종료는 모든 파일의 추출 성공을 뜻하지 않습니다. 실패한 파일은 기술 복구 상태를 먼저 확인하고, 불완전한 근거로 최종 검증할 때는 원문 전체 직접 확인 절차를 사용합니다. 과거 집합 조회는 현재 검수 기준을 바꾸지 않습니다.</p>
+        <details>
+            <summary>연결 공고 재검수 경고</summary>
+            <p>연결 공고의 새 첨부 근거와 실패 이력입니다. 현재 판정·기존 검수·운영 공고를 변경하거나 무효화하지 않습니다. 경고 조회는 재수집이나 공고 공개를 실행하지 않습니다.</p>
+            <button type="button" class="secondary-action" data-load-linked-notices disabled>재검수 경고 이력 조회</button>
+            <div data-linked-notices aria-live="polite"></div>
+        </details>
         <div data-sets></div><div data-files></div>
         <div data-segments role="region" aria-label="선택한 첨부의 문서 구간 근거" tabindex="-1"></div>
         <div data-blocks role="region" aria-label="선택한 첨부의 추출 문단" tabindex="-1"></div>

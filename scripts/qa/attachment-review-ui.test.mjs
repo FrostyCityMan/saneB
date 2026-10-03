@@ -8,6 +8,34 @@ const C = require('../../src/main/resources/static/js/saneb-attachment-review-co
 const id = '11111111-1111-4111-8111-111111111111';
 const path = `/api/v2/admin/announcement-sources/${id}`;
 
+test('linked evidence notices distinguish success partial failure and changed connections', () => {
+    const notice={noticeId:id,jobId:id,batchId:id,setId:id,evaluationId:id,reasonCode:'EVIDENCE_READY',
+        jobStatusCode:'SUCCEEDED',errorCode:null,connectionsUnchanged:true,createdAt:'2026-10-03T01:00:00+09:00'};
+    assert.equal(C.validLinkedNotice(notice),true);
+    assert.equal(C.linkedNoticeLabel(notice.reasonCode),'새 첨부 근거 확인 필요');
+    assert.equal(C.validLinkedNotice({...notice,reasonCode:'EVIDENCE_PARTIAL',jobStatusCode:'PARTIAL_FAILED',connectionsUnchanged:false}),true);
+    assert.equal(C.validLinkedNotice({...notice,reasonCode:'COLLECTION_FAILED',jobStatusCode:'FAILED',setId:null,evaluationId:null}),true);
+    for(const changed of [{jobStatusCode:'FAILED'},{setId:null},{evaluationId:null},{noticeId:'javascript:alert(1)'},
+        {connectionsUnchanged:'true'},{createdAt:'invalid'},{reasonCode:'UNKNOWN'}])
+        assert.equal(C.validLinkedNotice({...notice,...changed}),false,JSON.stringify(changed));
+    assert.equal(C.validLinkedNotice(null),false);
+});
+
+test('linked notice UI reads stored evidence without promoting current classification', async () => {
+    const script=await readFile(new URL('../../src/main/resources/static/js/saneb-announcement-attachment-review.js',import.meta.url),'utf8');
+    const html=await readFile(new URL('../../src/main/resources/templates/app/announcement-attachment-review.html',import.meta.url),'utf8');
+    assert.match(html,/data-load-linked-notices disabled/);
+    assert.match(html,/data-linked-notices aria-live="polite"/);
+    const section=script.slice(script.indexOf('const showLinkedNotices'),script.indexOf('const showSets'));
+    assert.match(section,/attachment-linked-review-notices/);
+    assert.match(section,/C\.validLinkedNotice/);
+    assert.match(section,/notice\.connectionsUnchanged/);
+    assert.match(section,/showFiles\(notice\.setId/);
+    assert.match(section,/현재 판정 아님/);
+    assert.doesNotMatch(section,/method:|\.innerHTML|insertConfirmation|insertOperationalAnnouncement/);
+    assert.match(script,/clear\(q\("\[data-linked-notices\]"\)\)/);
+});
+
 test('HTTP attachment requests use cryptographic UUIDs without requiring randomUUID', () => {
     assert.equal(C.requestUuid({randomUUID:()=>id}),id);
     let calls=0;

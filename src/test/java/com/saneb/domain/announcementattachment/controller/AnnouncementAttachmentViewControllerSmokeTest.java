@@ -32,6 +32,10 @@ class AnnouncementAttachmentViewControllerSmokeTest {
         assertThat(html.selectFirst("[data-attachment-review-page]").attr("data-can-rollback")).isEqualTo(String.valueOf(role.equals("ADMIN")));
         assertThat(html.select("[data-review-fields][disabled], [data-draft-fields][disabled]")).hasSize(2);
         assertThat(html.select("[data-confirm][disabled], [data-create-draft][disabled]")).hasSize(2);
+        assertThat(html.select("button[data-load-linked-notices][disabled]")).hasSize(1);
+        assertThat(html.select("[data-linked-notices][aria-live=polite]")).hasSize(1);
+        assertThat(html.selectFirst("button[data-load-linked-notices]").parent().text())
+                .contains("연결 공고 재검수 경고", "현재 판정·기존 검수·운영 공고를 변경하거나 무효화하지 않습니다");
         assertThat(html.selectFirst("label[for=attachment-note]").text()).contains("검수 사유");
         assertThat(html.select("script:not([src])")).isEmpty();
         assertThat(html.select("link[href='/css/saneb-announcement-attachment-review.css']")).hasSize(1);
