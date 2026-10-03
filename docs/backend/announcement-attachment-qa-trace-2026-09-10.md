@@ -1,5 +1,13 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 최신 QA 도구 커밋의 Linux 재검증 완료
+
+`00d16d9cecd01159006a316c5cc7be3c30fd64f6` / run37087157343은 completed/success다. artifact11261158314 XML 대조 결과: QA20, 작업229, migration/Backfill18, 정책DB2, runtime7, worker12, Flyway3 모두 실패/오류/생략0. 일반 test4891건은 실패/오류0·조건부 생략399건이며 일부 DB 시험은 별도 task에서 실행됐다. 실사이트 선택 실행과 운영 E2E까지 통과했다고 해석하지 않는다.
+
+독립 실행 보고서 SYNTHETIC_WORKER_DB_CONTRACTS_V2는 discovered259/passed259/failed0/skipped0/notRun0이다. ATTACHMENT_CONTRACT_QA_CLEANUP 및 POLICY_DB_QA_CLEANUP 모두 SUCCEEDED. 로컬 증거 사본: `build/ci-evidence-37087157343-a8a74611b1f24cd48350ba68a34138f7`.
+
+읽기 전용 운영 metadata 재확인: 서울 runningInstances1·SSM Online·DB available·삭제보호/암호화 true·health UP. remoteCommands0/writes0. 최신 성공 배포 이력은371b1ac이나 현재 설치 SHA/DB migration을 직접 조회한 증거가 아니므로 구분한다. V87~V90 설치·재시작 승인과 배포 전 진행 중 작업/복구 기준 확인이 남는다. 정책 게시·ENFORCE·신규 수집 예약·기존 데이터 적용은 실행하지 않았다.
+
 ## 2026-10-03 연결 근거 예약 로컬 브라우저 검증
 
 - 후속 브라우저 검증: 동일 합성 배치를 예약→수집 시작→중지→재개하여 SCOPE_READY/0→COLLECTION_PENDING/1→COLLECTION_PAUSED/2→COLLECTING/3을 확인했다. 각 승인 확인 체크는 초기화되고 최초132회·24MiB 예산은 유지된다. 실제 worker가 없는 합성 상태 전환이며 실파일 다운로드 성공을 의미하지 않는다.

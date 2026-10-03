@@ -1,7 +1,7 @@
 # ATT-051 연결 공고의 첨부 근거 갱신 계약
 
-상태: 구현 진행 중. V87 목적·효과 차단, V88 불변 연결 snapshot, V89 경고 원장, V90 고정 연결 실행 검사를 추가했다. 경고 조회·명시 범위 조회·멱등 예약·전용 시작/중지/재개 API와 실패/만료 경고 저장을 구현했다. 실제 PostgreSQL에서 예약/실행/중지/재개 및 연결 변경 거부를 검증했다. 성공/부분 첨부 평가와 경고의 전체 연결, 관리자 UI, 실행/완료 시점 경합, 운영 E2E는 남아 있다. 운영 미반영이다. 아래 구현 차이 표는 최초 설계 조사 시점이며 최신 검증은 QA 추적표를 따른다.
-기준 HEAD: `0e840600a67973a2bf6f4a371173af68922d0589`.
+상태: 로컬 구현 및 Linux 격리 계약 검증 완료, 운영 검증 미완료. V87~V90, 경고 조회·명시 범위 예약·전용 수집 제어 API와 관리자 UI를 구현했다. 성공/부분 첨부 평가·경고 저장 및 기존 공고·조건·신청/진행 데이터 불변을 실제 격리 PostgreSQL에서 검증했다. 실제 외부 파일 worker의 연결 공고 처리, 완료 시점 경합의 전체 시나리오, 운영 E2E는 남아 있다. 운영 미반영이다. 아래 구현 차이 표는 최초 설계 조사 시점이며 최신 검증은 QA 추적표를 따른다.
+최초 조사 HEAD: `0e840600a67973a2bf6f4a371173af68922d0589`. 제품 코드 Linux 통과 기준: `68cd3a61962e2c4824e0f831572264b84ff205b7` / run37085618683. 로컬 브라우저 검증 도구·기록: `00d16d9cecd01159006a316c5cc7be3c30fd64f6`(제품 코드 변경 없음), 후속 run37087157343도 성공 및 보고서 대조 완료.
 근거: `announcement-attachment-collection-design-2026-09-08.md` 12.2, `announcement-attachment-qa-plan-2026-09-08.md` ATT-051.
 
 ## 1. 목표와 불변 조건
@@ -55,15 +55,17 @@
 
 기존 `/api/v1`과 현재 일반 `/api/v2/admin/announcement-attachment-batches` 요청의 의미는 유지한다. 기존 scope에 `includeLinked=true`를 추가하여 넓게 우회하지 않는다. 동일 wrapper/권한 규칙의 별도 v2 하위 자원을 추가한다.
 
-제안 기본 경로: `/api/v2/admin/announcement-attachment-linked-evidence-batches`.
+명시 범위·예약·수집 제어 기본 경로: `/api/v2/admin/announcement-attachment-linked-evidence-batches`. 조회와 수집 전 취소는 아래와 같이 기존 배치 자원을 재사용한다. 신규 Controller에 GET 또는 취소 경로가 있다고 가정하지 않는다.
 
 | 동작 | 계약 |
 |---|---|
 | POST `/scope-preview` | policyId, 중복 없는 sourceIds 1~1000개, maximumSourceBytes. DB 읽기 전용·외부 HTTP 0. 전체 링크와 버전/정책/locator를 서버에서 고정 지문으로 계산 |
 | POST 기본 경로 | 위 입력 + expectedScopeHash + 사유 + 명시적 영향 확인, Idempotency-Key. ADMIN만 SCOPE_READY 예약 |
-| GET `/{id}` 및 `/items` | 일반 wrapper/PageResponse. 목적·고정/현재 링크 대조·전체 분모·성공/부분/실패/삭제·경고 표시 |
+| GET `/api/v2/admin/announcement-attachment-batches/{id}` 및 `/{id}/items` | 기존 배치 조회를 재사용. 일반 wrapper/PageResponse와 목적·전체/잔여/삭제 분모·작업 상태 표시 |
 | PUT `/{id}/collection` | 기존 수집 시작 수준의 버전·지문·고정 대상 수·최대 요청/bytes 명시 확인. 예약만으로 외부 요청하지 않음 |
-| 중지/재개/수집 전 취소 | 기존 collection 상태 전이와 자원 한도 재사용. 임의 항목 추가·상한 변경 불가 |
+| PUT `/{id}/collection-pause`, `/{id}/collection-resume` | 전용 linked 경로. 기존 collection 상태 전이와 자원 한도 재사용 |
+| PUT `/api/v2/admin/announcement-attachment-batches/{id}/scope-cancellation` | 기존 수집 전 취소 경로 재사용. 임의 항목 추가·상한 변경 불가 |
+| GET `/api/v2/admin/announcement-sources/{sourceId}/attachment-linked-review-notices` | 원문별 경고 이력 페이지. 연결된 집합·평가 근거와 기존 현재 판정을 구분 |
 
 - 읽기는 ADMIN/OPERATOR/APPROVER, 예약/실행은 ADMIN. 모든 변경은 서버 인증·CSRF·입력 검증을 사용한다.
 - apply/rollback/confirmation/DRAFT API는 이 목적을 명시적으로 거부한다. 일반 API에 linked batch ID를 넣어도 거부한다.
@@ -87,10 +89,12 @@
 - [x] 원 설계·QA 요구와 현재 보호 경계 조사.
 - [x] 로컬 DB migration V87~V90: 목적/목적 불변·적용 금지, 고정 연결, 경고 소속 제약, 실행 fence 추가. 순차/빈 DB migration·기존 행/checksum 보존과 잘못된 snapshot/경고 쓰기 거부 검증. 운영 반영은 미완료.
 - [x] scope/예약 Service/DAO/Mapper/DTO와 신규 v2 Controller, 전용 시작·중지·재개. 일반 scope regression 유지.
-- [~] source/link 예약 잠금·매 요청 fence·실패/만료 경고 저장 검증. 합성 첨부의 성공/부분 결과·경고·배치 집계 통합14건 회귀 통과. 실제 외부 worker와 최종 완료 경합 검증은 남음.
+- [~] source/link 예약 잠금·매 요청 fence·실패/만료 경고 저장 검증. linked 통합17건에서 성공/부분 근거·경고·업무 데이터 불변과 연결 교체 충돌 등을 확인했다. 실제 외부 worker와 최종 완료 경합의 전체 검증은 남음.
 - [x] 일반 적용 미리보기/apply/rollback 서비스의 명시적 목적 거부 및 실제 DB 검증. 연결 근거 미리보기로 review/DRAFT 호출 시 연결 보호·현재 판정 불일치 거부, 확인/공고 신규 생성0 검증. 운영 브라우저 검증은 별도.
-- [ ] 현재 근거와 연결 공고 재검수 경고를 구분하는 관리자 조회/UI. UI 구현 전 frontend/UI-UX 스킬 적용.
-- [ ] Linux 실제 PostgreSQL/worker 계약 및 브라우저 검증.
+- [x] 현재 근거와 연결 공고 재검수 경고를 구분하는 관리자 조회/UI 구현 및 로컬 계약 검증. `saneb-attachment-review.js`, `attachment-review-ui.test.mjs`, 읽기 Service/Controller 시험 참조. 실제 운영 경고 표본 검증은 별도다.
+- [x] 명시 UUID·정책·예산 입력→준비 조회→예약→수집 시작/중지/재개 UI 구현 및 실제 로컬 브라우저 합성 API 검증. 조회 전용 역할의 제어 미제공·단계별 확인 초기화·상한 유지 확인. 실파일 수집 증거는 아니다.
+- [x] Linux 격리 PostgreSQL/worker 계약 run37085618683 통과. 합성 worker 계약259건 실패/생략0. 전체 실사이트 또는 운영 E2E 통과를 뜻하지 않는다.
+- [ ] 연결 공고의 실제 외부 파일 worker·운영 브라우저 검증. 일반 경로 양평 단건 성공을 이 경로의 증거로 재사용하지 않는다.
 - [ ] 사용자가 지정·승인한 운영 링크 표본 1건부터 수집. 승인 전 운영 쓰기 없음.
 
 필수 시험:
