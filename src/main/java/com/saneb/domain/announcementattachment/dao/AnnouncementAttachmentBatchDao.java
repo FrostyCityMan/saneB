@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface AnnouncementAttachmentBatchDao {
+    boolean selectLinkedPurpose(@Param("batchId") UUID batchId);
+    List<AttachmentBatchRows.Candidate> selectFixedLinkedCandidateList(@Param("batchId") UUID batchId);
     List<AttachmentBatchRows.Candidate> selectLinkedSourceCandidateList(@Param("sourceIds") List<UUID> sourceIds);
     String selectSourceLinkSnapshot(@Param("sourceId") UUID sourceId);
     AttachmentPolicyRow selectPolicyDetails(@Param("policyId") UUID policyId,@Param("lock") boolean lock);

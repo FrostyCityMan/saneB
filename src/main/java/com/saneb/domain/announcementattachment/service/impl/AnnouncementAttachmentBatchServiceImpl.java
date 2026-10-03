@@ -205,20 +205,36 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
     }
     @Override @Transactional(timeout=30)
     public AttachmentBatchResponses.Batch updateCollectionStart(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request) {
+        return updateCollectionStart(authentication,batchId,request,false);
+    }
+    @Override @Transactional(timeout=30)
+    public AttachmentBatchResponses.Batch updateLinkedCollectionStart(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request) {
+        return updateCollectionStart(authentication,batchId,request,true);
+    }
+    private AttachmentBatchResponses.Batch updateCollectionStart(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request,boolean linked) {
         UUID actor=selectActor(authentication,true);validateCollectionRequest(request);
         var row=selectExecutionLocks(batchId);
+        validatePurpose(row,linked);
         validateCollectionScope(row,request,"SCOPE_READY");
         if(row.deletedItemCount()!=0) throw conflict("예약 후 삭제된 원문이 있습니다. 수집 전 예약을 취소하고 남은 범위를 새로 고정하세요.");
-        validateFrozenExecution(row,true);
+        validateFrozenExecution(row,true,linked);
         requireOne(dao.updateCollectionStart(batchId,row.rowVersion(),actor,hash(Arrays.asList("attachment-batch-collection-v1",actor,batchId,request))));
         if(dao.updateCollectionJobsPending(batchId)!=row.itemCount()) throw conflict("수집 시작 중 예약 항목 상태가 바뀌었습니다. 일부만 시작하지 않고 전체 요청을 취소했습니다.");
         insertAudit(actor,batchId,"ATTACHMENT_BATCH_COLLECTION_STARTED",request.reason());return response(selectBatch(batchId,false));
     }
     @Override @Transactional(timeout=30)
     public AttachmentBatchResponses.Batch updateCollectionPause(Authentication authentication,UUID batchId,AttachmentBatchRequests.Pause request) {
+        return updateCollectionPause(authentication,batchId,request,false);
+    }
+    @Override @Transactional(timeout=30)
+    public AttachmentBatchResponses.Batch updateLinkedCollectionPause(Authentication authentication,UUID batchId,AttachmentBatchRequests.Pause request) {
+        return updateCollectionPause(authentication,batchId,request,true);
+    }
+    private AttachmentBatchResponses.Batch updateCollectionPause(Authentication authentication,UUID batchId,AttachmentBatchRequests.Pause request,boolean linked) {
         UUID actor=selectActor(authentication,true);
         if(request==null || request.expectedVersion()==null || request.expectedVersion()<0) throw invalid("중지할 배치의 현재 버전이 필요합니다.");
         validateReason(request.reason());var row=selectBatch(batchId,true);
+        validatePurpose(row,linked);
         if(!request.expectedVersion().equals(row.rowVersion()) || !Set.of("COLLECTION_PENDING","COLLECTING").contains(row.statusCode()))
             throw conflict("수집 대기·진행 중인 배치의 현재 버전만 중지할 수 있습니다. 현재 상태를 다시 조회하세요.");
         requireOne(dao.updateCollectionPause(batchId,row.rowVersion()));
@@ -226,19 +242,31 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
     }
     @Override @Transactional(timeout=30)
     public AttachmentBatchResponses.Batch updateCollectionResume(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request) {
+        return updateCollectionResume(authentication,batchId,request,false);
+    }
+    @Override @Transactional(timeout=30)
+    public AttachmentBatchResponses.Batch updateLinkedCollectionResume(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request) {
+        return updateCollectionResume(authentication,batchId,request,true);
+    }
+    private AttachmentBatchResponses.Batch updateCollectionResume(Authentication authentication,UUID batchId,AttachmentBatchRequests.Collection request,boolean linked) {
         UUID actor=selectActor(authentication,true);validateCollectionRequest(request);
         var row=selectExecutionLocks(batchId);validateCollectionScope(row,request,"COLLECTION_PAUSED");
-        validateFrozenExecution(row,false);
+        validatePurpose(row,linked);
+        validateFrozenExecution(row,false,linked);
         requireOne(dao.updateCollectionResume(batchId,row.rowVersion()));
         insertAudit(actor,batchId,"ATTACHMENT_BATCH_COLLECTION_RESUMED",request.reason());return response(selectBatch(batchId,false));
     }
     @Override @Transactional(timeout=10)
     public int saveCollectionProgress() {return dao.updateCollectionProgress();}
+    private void validatePurpose(AttachmentBatchRows.Row row,boolean linked) {
+        if(dao.selectLinkedPurpose(row.batchId())!=linked) throw conflict("배치 목적에 맞는 일반 수집 또는 연결 근거 전용 수집 API를 사용하세요.");
+    }
     private AttachmentBatchRows.Row selectExecutionLocks(UUID batchId) {
         var observed=selectBatch(batchId,false);
         var ids=dao.selectItemList(new AttachmentBatchRows.Search(batchId,1000,0)).stream().map(AttachmentBatchRows.Item::sourceId).sorted().toList();
         if(!ids.isEmpty() && !new HashSet<>(dao.selectSourceLocks(ids)).equals(new HashSet<>(ids)))
             throw conflict("수집 제어 중 원문이 삭제됐습니다. 삭제 건수와 현재 버전을 다시 확인하세요.");
+        if(dao.selectLinkedPurpose(batchId)) for(UUID id:ids) jobs.selectLinkedConnectionLocks(id);
         dao.selectPolicyDetails(observed.policyId(),true);
         return selectBatch(batchId,true);
     }
@@ -264,7 +292,7 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
                 throw conflict("확인한 최대 bytes/HTTP가 고정 범위 상한과 다릅니다. 임의로 상한을 늘리거나 줄일 수 없습니다.");
         } catch(ApiException exception) {throw exception;}catch(Exception exception) {throw conflict("배치 실행 상한을 읽을 수 없습니다.");}
     }
-    private void validateFrozenExecution(AttachmentBatchRows.Row row,boolean starting) {
+    private void validateFrozenExecution(AttachmentBatchRows.Row row,boolean starting,boolean linked) {
         try {
             var policy=dao.selectPolicyDetails(row.policyId(),true);
             if(policy==null || !"ACTIVE".equals(policy.policyStatusCode()) || !"ACTIVE".equals(policy.releaseStatusCode())
@@ -272,9 +300,11 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
                     || !policy.equals(mapper.readValue(row.policySnapshotJson(),AttachmentPolicyRow.class)))
                 throw conflict("예약한 게시 정책·규칙이 변경 또는 퇴역됐습니다. 기존 배치를 새 정책으로 자동 실행하지 않습니다.");
             var configuration=selectConfiguration(policy);var fixed=dao.selectExecutionItemList(row.batchId());
+            long budget=linked?mapper.readTree(row.scopeJson()).path("maximumSourceBytes").asLong(0):configuration.maximumSourceBytes();
+            if(budget<1 || budget>configuration.maximumSourceBytes()) throw conflict("고정 공고별 다운로드 상한이 게시 정책 범위를 벗어났습니다.");
             if(fixed.size()+row.deletedItemCount()!=row.itemCount()) throw conflict("고정 대상과 현재 작업·삭제 건수 합계가 다릅니다.");
             var current=new HashMap<UUID,AttachmentBatchRows.Candidate>();
-            for(var value:dao.selectFixedCandidateList(row.batchId())) {
+            for(var value:linked?dao.selectFixedLinkedCandidateList(row.batchId()):dao.selectFixedCandidateList(row.batchId())) {
                 if(current.put(value.sourceId(),value)!=null) throw conflict("고정 원문의 현재 판정이 중복됐습니다.");
             }
             for(var item:fixed) {
@@ -284,7 +314,7 @@ public class AnnouncementAttachmentBatchServiceImpl implements AnnouncementAttac
                 var source=current.get(item.sourceId());
                 if(source==null || source.activeJobId()!=null || !policy.ruleReleaseId().equals(source.ruleReleaseId())
                         || !item.providerCode().equals(source.providerCode()) || !Boolean.TRUE.equals(item.locatorUnchanged())
-                        || !Objects.equals(item.downloadBudgetBytes(),configuration.maximumSourceBytes()))
+                        || !Objects.equals(item.downloadBudgetBytes(),budget) || (linked && !jobs.selectBatchExecutionUnchanged(item.jobId())))
                     throw conflict("고정 대상의 기본 판정·출처·연결 공고·다운로드 예산이 달라졌습니다. 현재 항목을 확인하세요.");
                 var execution=selectExecution(source,policy,configuration);var locator=intake.selectSourceLocatorDetails(source.sourceId());
                 if(execution==null || locator==null || !execution.equals(mapper.readValue(item.executionSnapshotJson(),AttachmentExecutionSnapshot.class))

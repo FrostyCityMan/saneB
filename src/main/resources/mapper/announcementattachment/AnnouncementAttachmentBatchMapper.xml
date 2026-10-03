@@ -102,6 +102,27 @@
         -- V68 단일 연결의 ID와 대상 ID를 함께 지문화한다.
         SELECT attachment_source_link_snapshot(#{sourceId})::text
     </select>
+    <select id="selectLinkedPurpose" resultType="boolean" useCache="false" flushCache="true">
+        -- JSON 표시값이 아닌 DB의 불변 작업 목적을 확인한다.
+        SELECT EXISTS (SELECT 1 FROM announcement_attachment_batches WHERE id=#{batchId} AND purpose_code='LINKED_EVIDENCE_ONLY')
+    </select>
+    <select id="selectFixedLinkedCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
+        -- 전용 목적만 고정 연결을 재검증한다. 자신의 예약은 활성 충돌에서 제외한다.
+        SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,
+            s.classification_row_version AS source_version,s.attachment_row_version AS attachment_version,
+            s.current_attachment_evaluation_id AS current_evaluation_id,s.attachment_policy_id AS current_policy_id,
+            c.id AS confirmation_id,s.is_attachment_review_required AS review_required,
+            (SELECT other.id FROM announcement_attachment_jobs other WHERE other.source_id=s.id AND other.id&lt;&gt;j.id
+                AND other.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED')) AS active_job_id
+        FROM announcement_attachment_jobs j JOIN announcement_attachment_batches b ON b.id=j.batch_id
+        JOIN announcement_source_snapshots s ON s.id=j.source_id
+        JOIN announcement_source_classification_evaluations e ON e.source_id=s.id AND e.is_current
+        LEFT JOIN announcement_source_attachment_confirmations c ON c.source_id=s.id AND c.is_current
+        WHERE j.batch_id=#{batchId} AND b.purpose_code='LINKED_EVIDENCE_ONLY' AND s.data_purpose_code='PRODUCTION'
+          AND s.semantic_status_code&lt;&gt;'EXCLUDED' AND e.decision_status_code&lt;&gt;'EXCLUDED'
+          AND e.title_stage_code IN ('GROUP_A_MATCHED','COMBINATION_MATCHED') AND attachment_linked_job_connections_unchanged(j.id)
+        ORDER BY s.id
+    </select>
     <select id="selectLinkedSourceCandidateList" resultMap="CandidateMap" useCache="false" flushCache="true">
         -- 명시 원문만 조회한다. 일반 Eligible의 연결 제외 조건은 변경하지 않는다.
         SELECT s.id AS source_id,s.provider_code,e.content_version_id,e.id AS base_evaluation_id,e.rule_release_id,

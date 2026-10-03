@@ -1,6 +1,8 @@
 package com.saneb.domain.announcementattachment.controller;
 
 import com.saneb.common.response.ApiResponse;
+import com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests;
+import com.saneb.domain.announcementattachment.dto.AttachmentBatchResponses;
 import com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests;
 import com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchResponses;
 import com.saneb.domain.announcementattachment.service.AnnouncementAttachmentBatchService;
@@ -16,6 +18,21 @@ import org.springframework.web.bind.annotation.*;
 public class AnnouncementAttachmentLinkedBatchController {
     private final AnnouncementAttachmentBatchService service;
     public AnnouncementAttachmentLinkedBatchController(AnnouncementAttachmentBatchService service) {this.service=service;}
+    @PutMapping("/{batchId}/collection") @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AttachmentBatchResponses.Batch>> updateCollectionStart(Authentication actor,
+            @PathVariable java.util.UUID batchId,@Valid @RequestBody AttachmentBatchRequests.Collection request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.updateLinkedCollectionStart(actor,batchId,request)));
+    }
+    @PutMapping("/{batchId}/collection-pause") @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AttachmentBatchResponses.Batch>> updateCollectionPause(Authentication actor,
+            @PathVariable java.util.UUID batchId,@Valid @RequestBody AttachmentBatchRequests.Pause request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.updateLinkedCollectionPause(actor,batchId,request)));
+    }
+    @PutMapping("/{batchId}/collection-resume") @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AttachmentBatchResponses.Batch>> updateCollectionResume(Authentication actor,
+            @PathVariable java.util.UUID batchId,@Valid @RequestBody AttachmentBatchRequests.Collection request) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(ApiResponse.success(service.updateLinkedCollectionResume(actor,batchId,request)));
+    }
     @PostMapping @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<com.saneb.domain.announcementattachment.dto.AttachmentBatchResponses.Batch>> insertBatch(Authentication actor,
             @RequestHeader("Idempotency-Key") java.util.UUID key,@Valid @RequestBody AttachmentLinkedBatchRequests.Reservation request) {

@@ -20,6 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class MigrationContractTest {
+    @Test void linkedExecutionGatePreservesStandardProtectionAndFrozenBindings() throws IOException {
+        var sql=new ClassPathResource("db/migration/V90__gate_linked_attachment_execution_by_frozen_connections.sql").getContentAsString(StandardCharsets.UTF_8);
+        assertThat(sql).contains("b.purpose_code='LINKED_EVIDENCE_ONLY'", "attachment_linked_job_connections_unchanged(j.id)",
+                "ELSE NOT EXISTS (SELECT 1 FROM announcement_source_links", "attachment_backfill_batch_input_unchanged(j.id)",
+                "j.previous_attachment_evaluation_id", "j.previous_policy_id", "j.previous_confirmation_id", "attachment_source_locator_hash");
+        assertThat(sql).doesNotContain("UPDATE announcement_", "DELETE FROM", "DISABLE TRIGGER");
+    }
     @Test void linkedReviewNoticeIsSeparateImmutableTerminalEvidence() throws IOException {
         var sql=new ClassPathResource("db/migration/V89__add_linked_attachment_review_notices.sql").getContentAsString(StandardCharsets.UTF_8);
         assertThat(sql).contains("job_id uuid NOT NULL UNIQUE","FOREIGN KEY(job_id,source_id)",

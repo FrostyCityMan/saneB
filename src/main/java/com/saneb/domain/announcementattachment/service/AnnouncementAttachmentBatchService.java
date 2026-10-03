@@ -7,6 +7,9 @@ import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
 public interface AnnouncementAttachmentBatchService {
+    AttachmentBatchResponses.Batch updateLinkedCollectionStart(Authentication actor,UUID batchId,AttachmentBatchRequests.Collection request);
+    AttachmentBatchResponses.Batch updateLinkedCollectionPause(Authentication actor,UUID batchId,AttachmentBatchRequests.Pause request);
+    AttachmentBatchResponses.Batch updateLinkedCollectionResume(Authentication actor,UUID batchId,AttachmentBatchRequests.Collection request);
     com.saneb.domain.announcementattachment.dto.AttachmentBatchResponses.Batch insertLinkedBatch(Authentication actor,UUID key,
             com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation request);
     com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchResponses.Preview selectLinkedScopePreview(

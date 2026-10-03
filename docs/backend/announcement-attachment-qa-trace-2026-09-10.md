@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 근거 수집 시작·중지·재개
+
+V90은 일반 배치의 연결 제외를 유지하면서 LINKED_EVIDENCE_ONLY에만 V88 불변 연결 비교를 적용한다. 전용 PUT collection/collection-pause/collection-resume은 ADMIN·CSRF·현재 버전 확인이 필요하다. 일반/전용 목적 혼용을 거부하고, 시작·재개 시 source/link/정책 잠금 뒤 고정 지문·예산·연결을 재검증한다. 운영에는 반영하지 않았다.
+
+`:test --tests '*AnnouncementAttachmentBatchServiceTest' --tests '*AnnouncementAttachmentBatchControllerSmokeTest' attachmentJobIntegrationTest --tests '*linkedScopePreviewRetains*' --tests '*linkedExecutionFence*' --tests '*linkedEvidencePurposeCannot*' bootJar --no-daemon --max-workers=1`은 1분34초 성공. 서비스31·MockMvc30·실제 PostgreSQL3, 총64건 실패/오류/생략0이며 bootJar 성공이다. 예약→전용 시작→claim→중지 시 외부 실행 차단→재개→연결 ID 교체 후 재개 거부, 원문 전체 컬럼 불변을 검증했다. 실제 외부 HTTP·성공/부분 첨부 평가와 경고의 전체 연결·관리자 UI·운영 E2E는 미검증이다. 이전 기록의 실행 API 미구현 상태는 이 증분으로 갱신한다.
+
 ## 2026-10-03 연결 근거 멱등 예약
 
 별도 POST 기본 경로에 ADMIN/CSRF/Idempotency-Key/명시 확인을 적용했다. 서비스는 정렬한 source 잠금→link 잠금→정책 잠금 뒤 조회 지문과 전체 준비 상태를 재확인하고, LINKED_EVIDENCE_ONLY 배치·SCOPE_READY jobs·V88 snapshot을 한 transaction으로 기록한다. source/current/검수/운영 공고를 변경하지 않는다. 예약은 worker claim 대상이 아니다.

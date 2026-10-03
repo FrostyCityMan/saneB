@@ -3011,6 +3011,19 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_review_notices WHERE job_id=?",Integer.class,changed)).isZero();
     }
 
+    @Test void linkedExecutionFenceAllowsOnlyUnchangedExplicitConnectionsAndRetainsPauseControl() {
+        UUID job=insertLinkedSnapshotFixture(true),token=startLinkedFixture(job,false);
+        assertThat(dao.selectBatchExecutionUnchanged(job)).isTrue();
+        assertThat(service.selectExternalExecutionAllowed(job,token)).isTrue();
+        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(tx -> {
+            sql.update("UPDATE announcement_attachment_batches SET batch_status_code='COLLECTION_PAUSED',row_version=row_version+1 WHERE id=(SELECT batch_id FROM announcement_attachment_jobs WHERE id=?)",job);
+            assertThat(service.selectExternalExecutionAllowed(job,token)).isFalse();tx.setRollbackOnly();
+        });
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=(SELECT source_id FROM announcement_attachment_jobs WHERE id=?)",UUID.randomUUID(),job);
+        assertThat(dao.selectBatchExecutionUnchanged(job)).isFalse();
+        assertThat(service.selectExternalExecutionAllowed(job,token)).isFalse();
+    }
+
     @Test void linkedNoticeExhaustedLeaseRecoveryRecordsFailureWithoutManualCallback() {
         UUID job=insertLinkedSnapshotFixture(true);startLinkedFixture(job,true);
         assertThat(service.saveNextJobClaim()).isEmpty();
@@ -3053,11 +3066,29 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcement_attachment_linked_job_scopes",Integer.class)).isEqualTo(1);
         assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(before);
         assertThat(service.saveNextJobClaim()).isEmpty();
+        assertThatThrownBy(()->batchService().updateCollectionStart(reviewActor(),reserved.batchId(),batchCollection(reserved))).isInstanceOf(ApiException.class);
+        var started=batchService().updateLinkedCollectionStart(reviewActor(),reserved.batchId(),batchCollection(reserved));
+        assertThat(started.statusCode()).isEqualTo("COLLECTION_PENDING");
+        var job=service.saveNextJobClaim().orElseThrow();
+        assertThat(service.selectExternalExecutionAllowed(job.jobId(),job.leaseToken())).isTrue();
+        var paused=batchService().updateLinkedCollectionPause(reviewActor(),reserved.batchId(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests.Pause(started.rowVersion(),"연결 근거 중지"));
+        assertThat(service.selectExternalExecutionAllowed(job.jobId(),job.leaseToken())).isFalse();
+        var resumed=batchService().updateLinkedCollectionResume(reviewActor(),reserved.batchId(),batchCollection(paused));
+        assertThat(resumed.statusCode()).isEqualTo("COLLECTING");
+        assertThat(service.selectExternalExecutionAllowed(job.jobId(),job.leaseToken())).isTrue();
+        var pausedAgain=batchService().updateLinkedCollectionPause(reviewActor(),reserved.batchId(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentBatchRequests.Pause(resumed.rowVersion(),"연결 변경 검증"));
+        sql.update("UPDATE announcement_source_links SET id=? WHERE source_id=?",UUID.randomUUID(),source);
+        assertThatThrownBy(()->batchService().updateLinkedCollectionResume(reviewActor(),reserved.batchId(),batchCollection(pausedAgain))).isInstanceOf(ApiException.class);
+        assertThat(batchService().selectBatchDetails(reviewActor(),reserved.batchId()).statusCode()).isEqualTo("COLLECTION_PAUSED");
+        assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(before);
     }
 
     @Test void linkedEvidencePurposeCannotBeEnabledByChangingAnExistingStandardBatch() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         var batch=batchService().insertBatch(reviewActor(),UUID.randomUUID(),batchRequest(batchScope(100)));
+        assertThatThrownBy(()->batchService().updateLinkedCollectionStart(reviewActor(),batch.batchId(),batchCollection(batch))).isInstanceOf(ApiException.class);
         assertThat(sql.queryForObject("SELECT purpose_code FROM announcement_attachment_batches WHERE id=?",String.class,batch.batchId()))
                 .isEqualTo("STANDARD");
         assertThatThrownBy(()->sql.update("UPDATE announcement_attachment_batches SET purpose_code='LINKED_EVIDENCE_ONLY' WHERE id=?",batch.batchId()))

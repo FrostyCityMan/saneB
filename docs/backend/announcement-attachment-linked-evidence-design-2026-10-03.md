@@ -1,6 +1,6 @@
 # ATT-051 연결 공고의 첨부 근거 갱신 계약
 
-상태: 구현 진행 중. V87 목적·효과 차단, V88 작업별 불변 연결 snapshot을 추가했다. 실제 PostgreSQL에서 순차/빈 DB migration, 정상 snapshot 저장·누락/위조/수정/삭제 거부, 예약 중 link 변경 잠금, 연결 해제 후 source 삭제 cascade를 검증했다. 경고 원장·API·worker 연결과 실행/완료 시점 경합 검증은 남아 있다. 운영 미반영이다.
+상태: 구현 진행 중. V87 목적·효과 차단, V88 불변 연결 snapshot, V89 경고 원장, V90 고정 연결 실행 검사를 추가했다. 경고 조회·명시 범위 조회·멱등 예약·전용 시작/중지/재개 API와 실패/만료 경고 저장을 구현했다. 실제 PostgreSQL에서 예약/실행/중지/재개 및 연결 변경 거부를 검증했다. 성공/부분 첨부 평가와 경고의 전체 연결, 관리자 UI, 실행/완료 시점 경합, 운영 E2E는 남아 있다. 운영 미반영이다. 아래 구현 차이 표는 최초 설계 조사 시점이며 최신 검증은 QA 추적표를 따른다.
 기준 HEAD: `0e840600a67973a2bf6f4a371173af68922d0589`.
 근거: `announcement-attachment-collection-design-2026-09-08.md` 12.2, `announcement-attachment-qa-plan-2026-09-08.md` ATT-051.
 

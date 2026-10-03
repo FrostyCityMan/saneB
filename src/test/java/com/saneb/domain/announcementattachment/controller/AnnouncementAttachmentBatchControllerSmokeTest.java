@@ -23,6 +23,25 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties="spring.flyway.enabled=false") @AutoConfigureMockMvc
 class AnnouncementAttachmentBatchControllerSmokeTest {
+    @Test void linkedCollectionControlsRequireAdminCsrfAndUseDedicatedService() throws Exception {
+        String root="/api/v2/admin/announcement-attachment-linked-evidence-batches/"+BATCH;
+        when(service.updateLinkedCollectionStart(any(),eq(BATCH),any())).thenReturn(response("COLLECTION_PENDING"));
+        when(service.updateLinkedCollectionPause(any(),eq(BATCH),any())).thenReturn(response("COLLECTION_PAUSED"));
+        when(service.updateLinkedCollectionResume(any(),eq(BATCH),any())).thenReturn(response("COLLECTING"));
+        for(String suffix:List.of("collection","collection-pause","collection-resume")) {
+            String body=suffix.equals("collection-pause")?"{\"expectedVersion\":0,\"reason\":\"중지\"}":COLLECTION;
+            mvc.perform(put(root+"/"+suffix).with(user("qa").roles("ADMIN")).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
+                    .andExpect(jsonPath("$.data.statusCode").value(suffix.equals("collection")?"COLLECTION_PENDING":suffix.equals("collection-pause")?"COLLECTION_PAUSED":"COLLECTING"));
+            mvc.perform(put(root+"/"+suffix).with(user("qa").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+            for(String role:List.of("OPERATOR","APPROVER","USER","PARTNER","REVIEWER"))
+                mvc.perform(put(root+"/"+suffix).with(user("qa").roles(role)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        }
+        verify(service).updateLinkedCollectionStart(any(),eq(BATCH),any());
+        verify(service).updateLinkedCollectionPause(any(),eq(BATCH),any());
+        verify(service).updateLinkedCollectionResume(any(),eq(BATCH),any());
+        verifyNoMoreInteractions(service);
+    }
     private String linkedReservationBody() {
         return """
                 {"scope":{"policyId":"%s","sourceIds":["%s"],"maximumSourceBytes":1024},
