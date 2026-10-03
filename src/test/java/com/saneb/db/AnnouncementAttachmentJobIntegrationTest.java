@@ -3068,6 +3068,13 @@ class AnnouncementAttachmentJobIntegrationTest {
         UUID announcement=UUID.randomUUID();
         sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','연결 근거 합성 공고','합성 기관','HIDDEN','DRAFT')",announcement);
         sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",UUID.randomUUID(),source,announcement,actor);
+        UUID step=UUID.randomUUID(),matching=UUID.randomUUID(),progress=UUID.randomUUID();
+        sql.update("INSERT INTO announcement_numeric_conditions(announcement_id,condition_scope_code,condition_key,comparator_code,value_number) VALUES (?,'BUSINESS','annual_revenue','LTE',100000000)",announcement);
+        sql.update("INSERT INTO announcement_progress_steps(id,announcement_id,step_order,step_name,completion_condition_code) VALUES (?,?,1,'합성 접수 단계','MANUAL')",step,announcement);
+        sql.update("INSERT INTO matching_cases(id,announcement_id,member_user_id,status_code) VALUES (?,?,?,'PROGRESSED')",matching,announcement,actor);
+        sql.update("INSERT INTO application_progresses(id,matching_case_id,announcement_id,member_user_id,current_step_id,status_code,receipt_no) VALUES (?,?,?,?,?,'IN_PROGRESS','SYNTHETIC-QA')",progress,matching,announcement,actor,step);
+        sql.update("INSERT INTO application_step_states(progress_id,step_id,status_code,started_at) VALUES (?,?,'IN_PROGRESS',now())",progress,step);
+        String workflowBefore=selectLinkedWorkflowSnapshot(announcement);
         String sourceBefore=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
         String announcementBefore=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement);
         int announcementCountBefore=sql.queryForObject("SELECT count(1) FROM announcements",Integer.class);
@@ -3140,6 +3147,21 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT count(1) FROM announcements",Integer.class)).isEqualTo(announcementCountBefore);
         assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(sourceBefore);
         assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(announcementBefore);
+        assertThat(selectLinkedWorkflowSnapshot(announcement)).isEqualTo(workflowBefore);
+    }
+
+    private String selectLinkedWorkflowSnapshot(UUID announcement) {
+        // 시험용 합성 업무 데이터 전체 행을 정렬해 비교한다. 원문/개인정보를 출력하지 않는다.
+        return sql.queryForObject("""
+                SELECT jsonb_build_object(
+                    'conditions',(SELECT jsonb_agg(to_jsonb(c) ORDER BY c.id) FROM announcement_numeric_conditions c WHERE c.announcement_id=?),
+                    'steps',(SELECT jsonb_agg(to_jsonb(s) ORDER BY s.id) FROM announcement_progress_steps s WHERE s.announcement_id=?),
+                    'matching',(SELECT jsonb_agg(to_jsonb(m) ORDER BY m.id) FROM matching_cases m WHERE m.announcement_id=?),
+                    'progress',(SELECT jsonb_agg(to_jsonb(p) ORDER BY p.id) FROM application_progresses p WHERE p.announcement_id=?),
+                    'states',(SELECT jsonb_agg(to_jsonb(st) ORDER BY st.id) FROM application_step_states st
+                        JOIN application_progresses p ON p.id=st.progress_id WHERE p.announcement_id=?)
+                )::text
+                """,String.class,announcement,announcement,announcement,announcement,announcement);
     }
 
     @Test void linkedScopePreviewRetainsEveryRequestedIdAndHashesConnectionIdentity() {
