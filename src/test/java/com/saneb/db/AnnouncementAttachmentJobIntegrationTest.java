@@ -3031,6 +3031,52 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void linkedCompletedEvidenceCreatesOneNoticeWithoutChangingSourceOrAnnouncement(boolean partial) {
+        UUID source=selectRequest().sourceId();insertCollectionLocator(source);
+        UUID announcement=UUID.randomUUID();
+        sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','연결 근거 합성 공고','합성 기관','HIDDEN','DRAFT')",announcement);
+        sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",UUID.randomUUID(),source,announcement,actor);
+        String sourceBefore=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
+        String announcementBefore=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement);
+        var scope=new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Scope(policy,List.of(source),1024L);
+        var preview=batchService().selectLinkedScopePreview(reviewActor(),scope);
+        var batch=batchService().insertLinkedBatch(reviewActor(),UUID.randomUUID(),
+                new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Reservation(scope,preview.scopeHash(),true,"합성 첨부 완료 검증"));
+        batchService().updateLinkedCollectionStart(reviewActor(),batch.batchId(),batchCollection(batch));
+        var job=service.saveNextJobClaim().orElseThrow();
+        assertThat(service.saveDownloadBytes(job.jobId(),job.leaseToken(),15)).isTrue();
+        var files=new java.util.ArrayList<AttachmentSetEvidence.File>();files.add(selectFileEvidence(100));
+        if(partial) files.add(new AttachmentSetEvidence.File(new AttachmentSetEvidence.Locator(EXECUTION.profileCode(),
+                "/download/file",java.util.Map.of("fileId","linked-failed")),"추가 공고문.pdf",null,
+                "NOTICE","PROFILE","FAILED",0,null,AttachmentFailureCode.NETWORK_TIMEOUT,null));
+        evidenceService.saveAttachmentSet(job.jobId(),job.leaseToken(),new AttachmentSetEvidence("FOUND",true,files)).orElseThrow();
+        var evaluator=context.getBean(AnnouncementAttachmentEvaluationService.class);
+        var evaluation=evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow();
+        assertThat(evaluation.current()).isFalse();
+        assertThat(evaluator.saveJobEvaluation(job.jobId(),job.leaseToken()).orElseThrow().evaluationId()).isEqualTo(evaluation.evaluationId());
+        assertThat(dao.selectJobDetails(job.jobId()).jobStatusCode()).isEqualTo(partial?"PARTIAL_FAILED":"SUCCEEDED");
+        var notices=context.getBean(AnnouncementAttachmentReadService.class).selectLinkedReviewNoticeList(source,1,20);
+        assertThat(notices.totalCount()).isEqualTo(1);
+        assertThat(notices.items()).singleElement().satisfies(notice->{
+            assertThat(notice.jobId()).isEqualTo(job.jobId());
+            assertThat(notice.evaluationId()).isEqualTo(evaluation.evaluationId());
+            assertThat(notice.setId()).isNotNull();
+            assertThat(notice.reasonCode()).isEqualTo(partial?"EVIDENCE_PARTIAL":"EVIDENCE_READY");
+            assertThat(notice.connectionsUnchanged()).isTrue();
+        });
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_evaluation_inputs WHERE evaluation_id=?",Integer.class,evaluation.evaluationId())).isEqualTo(partial?2:1);
+        if(partial) assertThat(evaluation.warningCodesJson()).contains("NETWORK_TIMEOUT");
+        assertThat(batchService().saveCollectionProgress()).isEqualTo(1);
+        var completed=batchService().selectBatchDetails(reviewActor(),batch.batchId());
+        assertThat(completed.statusCode()).isEqualTo(partial?"COLLECTION_PARTIAL_FAILED":"COLLECTED");
+        assertThat(completed.jobCounts()).containsEntry(partial?"PARTIAL_FAILED":"SUCCEEDED",1L);
+        assertThat(batchService().saveCollectionProgress()).isZero();
+        assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(sourceBefore);
+        assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(announcementBefore);
+    }
+
     @Test void linkedScopePreviewRetainsEveryRequestedIdAndHashesConnectionIdentity() {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         UUID announcement=UUID.randomUUID();

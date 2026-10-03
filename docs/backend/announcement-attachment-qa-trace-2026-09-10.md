@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 근거 성공·부분 결과와 경고 통합
+
+실제 PostgreSQL에서 전용 범위 조회→예약→시작→claim→합성 첨부 집합 봉인→평가→경고 조회→배치 최종 집계를 검증했다. 정상1파일은 SUCCEEDED/EVIDENCE_READY/COLLECTED, 정상1+다운로드 실패1은 PARTIAL_FAILED/EVIDENCE_PARTIAL/COLLECTION_PARTIAL_FAILED다. 부분 실패에서도 입력2개와 NETWORK_TIMEOUT 근거가 남는다. 평가 재호출은 같은 ID이며 경고1개만 존재한다. source 및 연결 announcements 전체 행이 전후 동일하고 평가 current=false다.
+
+`attachmentJobIntegrationTest --tests '*linkedCompletedEvidence*' --no-daemon --max-workers=1` 41초 성공 후, 배치 집계를 추가하여 `attachmentJobIntegrationTest --tests '*linked*' --no-daemon --max-workers=1` 1분15초 성공. 최종 결과14건·실패/오류/생략0. 이 시험은 합성 추출 근거이며 외부 HTTP·실제 PDF/HWP/HWPX 추출·신청/진행 하위 행·최종 저장 경합·관리자 UI·운영 E2E는 증명하지 않는다. 운영 변경 없음.
+
 ## 2026-10-03 연결 근거 수집 시작·중지·재개
 
 V90은 일반 배치의 연결 제외를 유지하면서 LINKED_EVIDENCE_ONLY에만 V88 불변 연결 비교를 적용한다. 전용 PUT collection/collection-pause/collection-resume은 ADMIN·CSRF·현재 버전 확인이 필요하다. 일반/전용 목적 혼용을 거부하고, 시작·재개 시 source/link/정책 잠금 뒤 고정 지문·예산·연결을 재검증한다. 운영에는 반영하지 않았다.

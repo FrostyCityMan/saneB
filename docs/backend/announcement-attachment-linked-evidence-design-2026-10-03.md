@@ -62,7 +62,7 @@
 | POST `/scope-preview` | policyId, 중복 없는 sourceIds 1~1000개, maximumSourceBytes. DB 읽기 전용·외부 HTTP 0. 전체 링크와 버전/정책/locator를 서버에서 고정 지문으로 계산 |
 | POST 기본 경로 | 위 입력 + expectedScopeHash + 사유 + 명시적 영향 확인, Idempotency-Key. ADMIN만 SCOPE_READY 예약 |
 | GET `/{id}` 및 `/items` | 일반 wrapper/PageResponse. 목적·고정/현재 링크 대조·전체 분모·성공/부분/실패/삭제·경고 표시 |
-| POST `/{id}/collection` | 기존 수집 시작 수준의 버전·지문·고정 대상 수·최대 요청/bytes 명시 확인. 예약만으로 외부 요청하지 않음 |
+| PUT `/{id}/collection` | 기존 수집 시작 수준의 버전·지문·고정 대상 수·최대 요청/bytes 명시 확인. 예약만으로 외부 요청하지 않음 |
 | 중지/재개/수집 전 취소 | 기존 collection 상태 전이와 자원 한도 재사용. 임의 항목 추가·상한 변경 불가 |
 
 - 읽기는 ADMIN/OPERATOR/APPROVER, 예약/실행은 ADMIN. 모든 변경은 서버 인증·CSRF·입력 검증을 사용한다.
@@ -85,9 +85,9 @@
 ## 6. 구현 체크리스트와 검증
 
 - [x] 원 설계·QA 요구와 현재 보호 경계 조사.
-- [~] DB migration: V87 목적/목적 불변·적용 금지 추가. 로컬 embedded PostgreSQL의 V71→87/빈 DB·기존 행/checksum 보존1건 통과. 고정 연결/경고·소속 제약 및 잘못된 쓰기 직접 거부 시험은 남음.
-- [ ] scope/예약 Service/DAO/Mapper/DTO와 신규 v2 Controller. 일반 scope regression 유지.
-- [ ] source/link 경합 직렬화, 매 요청 fence, terminal 결과·경고 원자 저장.
+- [x] 로컬 DB migration V87~V90: 목적/목적 불변·적용 금지, 고정 연결, 경고 소속 제약, 실행 fence 추가. 순차/빈 DB migration·기존 행/checksum 보존과 잘못된 snapshot/경고 쓰기 거부 검증. 운영 반영은 미완료.
+- [x] scope/예약 Service/DAO/Mapper/DTO와 신규 v2 Controller, 전용 시작·중지·재개. 일반 scope regression 유지.
+- [~] source/link 예약 잠금·매 요청 fence·실패/만료 경고 저장 검증. 합성 첨부의 성공/부분 결과·경고·배치 집계 통합14건 회귀 통과. 실제 외부 worker와 최종 완료 경합 검증은 남음.
 - [ ] 일반 apply/rollback/review/DRAFT 경로의 목적 우회 차단.
 - [ ] 현재 근거와 연결 공고 재검수 경고를 구분하는 관리자 조회/UI. UI 구현 전 frontend/UI-UX 스킬 적용.
 - [ ] Linux 실제 PostgreSQL/worker 계약 및 브라우저 검증.
