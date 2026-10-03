@@ -145,7 +145,7 @@ public class AnnouncementAttachmentBatchApplicationServiceImpl implements Announ
         return new AttachmentBatchApplicationResponse(action.id(),action.batchId(),action.previewId(),action.actionCode(),action.expectedVersion(),batch.statusCode(),batch.rowVersion(),
                 action.itemCount(),action.selectedCount(),c.remaining(),batch.deletedItemCount(),c.selectedRemaining(),c.pending(),c.applied(),c.conflicts(),c.failed(),0,action.createdAt());
     }
-    private AttachmentBatchRows.Row batch(UUID id,boolean lock) {var row=id==null?null:batches.selectBatchDetails(id,lock);if(row==null)throw notFound();return row;}
+    private AttachmentBatchRows.Row batch(UUID id,boolean lock) {var row=id==null?null:batches.selectBatchDetails(id,lock);if(row==null)throw notFound();if(batches.selectLinkedPurpose(id))throw conflict("연결 근거 전용 배치는 판정 적용 미리보기·적용·원복 대상이 아닙니다. 첨부 근거와 재검수 경고 조회를 사용하세요.");return row;}
     private void validate(UUID key,String code,AttachmentBatchApplicationRequest r) {
         if(key==null || !Set.of("START","PAUSE","RESUME").contains(code==null?"":code) || r==null || r.expectedVersion()==null || r.expectedVersion()<0 || r.expectedVersion()>Integer.MAX_VALUE-1
                 || r.expectedPreviewId()==null || r.expectedPreviewHash()==null || !r.expectedPreviewHash().matches("[0-9a-f]{64}")

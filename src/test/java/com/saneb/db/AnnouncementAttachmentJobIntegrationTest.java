@@ -3073,6 +3073,18 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(completed.statusCode()).isEqualTo(partial?"COLLECTION_PARTIAL_FAILED":"COLLECTED");
         assertThat(completed.jobCounts()).containsEntry(partial?"PARTIAL_FAILED":"SUCCEEDED",1L);
         assertThat(batchService().saveCollectionProgress()).isZero();
+        assertThatThrownBy(()->context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentBatchPreviewService.class)
+                .insertPreview(reviewActor(),batch.batchId(),UUID.randomUUID(),
+                        new com.saneb.domain.announcementattachment.dto.AttachmentBatchPreviewRequests.Preparation(completed.rowVersion(),completed.scopeHash(),"잘못된 적용 미리보기")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("연결 근거 전용 배치");
+        assertThatThrownBy(()->context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentBatchApplicationService.class)
+                .insertAction(reviewActor(),batch.batchId(),UUID.randomUUID(),"START",
+                        new com.saneb.domain.announcementattachment.dto.AttachmentBatchApplicationRequest(completed.rowVersion(),UUID.randomUUID(),"a".repeat(64),1,1,0,true,"잘못된 적용")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("연결 근거 전용 배치");
+        assertThatThrownBy(()->context.getBean(com.saneb.domain.announcementattachment.service.AnnouncementAttachmentBatchRollbackService.class)
+                .selectPreviewDetails(reviewActor(),batch.batchId()))
+                .isInstanceOf(ApiException.class).hasMessageContaining("연결 근거 전용 배치");
+        assertThat(batchService().selectBatchDetails(reviewActor(),batch.batchId())).isEqualTo(completed);
         assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(sourceBefore);
         assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(announcementBefore);
     }

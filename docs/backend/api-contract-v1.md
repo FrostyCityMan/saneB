@@ -1,5 +1,7 @@
 # saneB Backend API Contract v1
 
+> 2026-10-03 연결 근거 목적 보호: 일반 배치의 적용 미리보기·적용·원복 서비스에 LINKED_EVIDENCE_ONLY 배치를 전달하면409와 목적 제한 안내를 반환한다. 이 배치의 첨부 판정은 근거 조회용이며 현재 판정 적용이나 원복 승인의 입력으로 사용할 수 없다. DB 목적 제약도 유지한다. 운영 미반영.
+
 > 2026-10-03 연결 근거 실행: `PUT /api/v2/admin/announcement-attachment-linked-evidence-batches/{batchId}/collection`, `/collection-pause`, `/collection-resume`을 추가한다. ADMIN·CSRF 필수, ApiResponse<Batch>·no-store를 유지한다. 시작/재개 입력은 기존 Collection 계약(expectedVersion, expectedScopeHash, expectedItemCount, expectedDeletedItemCount, expectedMaximumDownloadBytes, expectedMaximumHttpRequests, reason), 중지는 Pause(expectedVersion, reason)다. 시작은 SCOPE_READY, 중지는 COLLECTION_PENDING/COLLECTING, 재개는 COLLECTION_PAUSED만 허용한다. 목적 혼용·오래된 버전·변경된 연결/정책/입력은409로 거부한다. 재개는 실패 작업을 새로 만들거나 예산·시도를 초기화하지 않는다. V90 필요, 운영 미반영. 아래 과거 항목의 전용 실행 API 미구현 표기는 이 증분으로 갱신된다.
 
 > 2026-10-03 연결 근거 예약: `POST /api/v2/admin/announcement-attachment-linked-evidence-batches`, ADMIN+CSRF+UUID Idempotency-Key 필수. 본문은 scope(위 범위 조회 입력), expectedScopeHash, evidenceOnlyAcknowledged=true, reason(공백 아닌1~1000자)다. 서버는 source/link/정책 잠금 후 지문·전체 준비 상태를 재검증하며 stale/중복 진행/다른 키 재사용 요청은409다. 같은 운영자·키·정규화한 범위·지문·사유는 같은 배치를 반환한다. 201 ApiResponse.data는 기존 Batch 응답 형태이며 frozenScope.purposeCode=LINKED_EVIDENCE_ONLY, 상태 SCOPE_READY다. jobs와 V88 연결 snapshot을 한 transaction에 저장하고 source/current 판정/확인/운영 공고는 변경하지 않는다. 예약은 외부 요청이나 수집 시작 승인이 아니며 전용 실행 API는 아직 미구현이다. 아래 범위 조회 항목의 예약 endpoint 미구현 표기는 이 증분으로 갱신된다.

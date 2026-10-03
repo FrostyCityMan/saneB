@@ -1,5 +1,11 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 연결 전용 배치의 일반 적용 경로 차단
+
+일반 적용 미리보기·적용·원복 서비스의 배치 조회에 DB 목적 검사를 추가했다. LINKED_EVIDENCE_ONLY는 DB 상태 제약 오류에 도달하기 전에409 업무 오류로 거부하며 첨부 근거/경고 조회를 안내한다. 일반 STANDARD 의미와 V87 DB 제약은 유지한다.
+
+`:test --tests '*AnnouncementAttachmentBatchPreviewServiceTest' --tests '*AnnouncementAttachmentBatchApplicationServiceTest' --tests '*AnnouncementAttachmentBatchRollbackServiceTest' attachmentJobIntegrationTest --tests '*linkedCompletedEvidence*' bootJar --no-daemon --max-workers=1` 1분2초 성공. 서비스16/23/20 및 실제 PostgreSQL2, 총61건 실패/오류/생략0, bootJar 성공. 실제 DB는 성공/부분 완료 linked 배치를 일반 미리보기 생성·적용 START·원복 미리보기에 넣어 명시적 목적 오류와 배치/source/운영 공고 불변을 확인한다. 검수 확인·DRAFT API 직접 오용과 운영 E2E는 이 시험 범위가 아니다.
+
 ## 2026-10-03 연결 근거 성공·부분 결과와 경고 통합
 
 실제 PostgreSQL에서 전용 범위 조회→예약→시작→claim→합성 첨부 집합 봉인→평가→경고 조회→배치 최종 집계를 검증했다. 정상1파일은 SUCCEEDED/EVIDENCE_READY/COLLECTED, 정상1+다운로드 실패1은 PARTIAL_FAILED/EVIDENCE_PARTIAL/COLLECTION_PARTIAL_FAILED다. 부분 실패에서도 입력2개와 NETWORK_TIMEOUT 근거가 남는다. 평가 재호출은 같은 ID이며 경고1개만 존재한다. source 및 연결 announcements 전체 행이 전후 동일하고 평가 current=false다.

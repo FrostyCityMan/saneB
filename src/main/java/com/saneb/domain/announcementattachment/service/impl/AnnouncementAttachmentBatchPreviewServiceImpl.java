@@ -162,7 +162,7 @@ public class AnnouncementAttachmentBatchPreviewServiceImpl implements Announceme
     private void validateVersion(AttachmentBatchRows.Row batch,int version,Set<String> states) {
         if(!states.contains(batch.statusCode()) || batch.rowVersion()!=version)throw conflict("배치 단계 또는 버전이 바뀌었습니다. 수집 종료/현재 미리보기와 최신 버전을 확인하세요.");
     }
-    private AttachmentBatchRows.Row selectBatch(UUID id,boolean lock) {var value=id==null?null:batches.selectBatchDetails(id,lock);if(value==null)throw notFound();return value;}
+    private AttachmentBatchRows.Row selectBatch(UUID id,boolean lock) {var value=id==null?null:batches.selectBatchDetails(id,lock);if(value==null)throw notFound();if(batches.selectLinkedPurpose(id))throw conflict("연결 근거 전용 배치는 판정 적용 미리보기·적용·원복 대상이 아닙니다. 첨부 근거와 재검수 경고 조회를 사용하세요.");return value;}
     private AttachmentBatchPreviewRows.Preview selectPreview(UUID batchId,UUID id) {var value=id==null?null:dao.selectPreviewDetails(batchId,id);if(value==null)throw notFound();return value;}
     private UUID selectActor(Authentication authentication,boolean change) {
         if(authentication==null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthenticatedUserDetails actor))
