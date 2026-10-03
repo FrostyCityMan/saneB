@@ -51,6 +51,28 @@
         requireValue([d1,d2].every(d=>d===null || /^\d{4}-\d{2}-\d{2}$/.test(d) && time(d)) && (!d1 || !d2 || d1<=d2), "마감일 범위의 시작과 끝을 확인하세요.");
         return {policyId:input.policyId,providerCodes:providers,collectedFrom:new Date(from).toISOString(),collectedBefore:new Date(before).toISOString(),deadlineFrom:d1,deadlineThrough:d2,maximumCount};
     }
+    function linkedScope(input) {
+        requireValue(uuid(input?.policyId), "게시 정책을 선택하세요.");
+        requireValue(Array.isArray(input.sourceIds) && input.sourceIds.length>=1 && input.sourceIds.length<=1000
+            && input.sourceIds.every(uuid), "원문 UUID를 1~1000개 지정하세요. 공고 표시번호나 URL은 사용할 수 없습니다.");
+        const ids=input.sourceIds.map(v=>v.toLowerCase());
+        requireValue(new Set(ids).size===ids.length, "원문 ID가 중복됐습니다. 중복 항목을 제거한 뒤 다시 조회하세요.");
+        const bytes=Number(input.maximumSourceBytes);
+        requireValue(count(bytes) && bytes>=1 && bytes<=83886080, "공고별 다운로드 상한은 1~83,886,080바이트의 정수로 입력하세요.");
+        return {policyId:input.policyId.toLowerCase(),sourceIds:ids.sort(),maximumSourceBytes:bytes};
+    }
+    function validLinkedScope(p,input) {
+        try {
+            const s=linkedScope(input), codes=["READY","NOT_ELIGIBLE_OR_NOT_LINKED","BASE_RECLASSIFICATION_REQUIRED","ACTIVE_JOB","VERSION_LIMIT","PROFILE_REQUIRED"];
+            return !!(p && p.policyId===s.policyId && hash(p.scopeHash) && p.requestedCount===s.sourceIds.length
+                && p.maximumDownloadBytes===s.maximumSourceBytes*s.sourceIds.length && p.maximumHttpRequests===132*s.sourceIds.length
+                && Array.isArray(p.candidates) && p.candidates.length===s.sourceIds.length
+                && new Set(p.candidates.map(c=>c.sourceId)).size===s.sourceIds.length
+                && p.candidates.every(c=>s.sourceIds.includes(c.sourceId) && codes.includes(c.readinessCode)
+                    && (c.readinessCode==="NOT_ELIGIBLE_OR_NOT_LINKED"?c.connectionSnapshotHash===null:hash(c.connectionSnapshotHash)))
+                && p.canReserve===p.candidates.every(c=>c.readinessCode==="READY"));
+        } catch { return false; }
+    }
     const sameScope = (a,b) => JSON.stringify(scope(a)) === JSON.stringify(scope(b));
     function validScope(p, s) {
         try { return !!(p && sameScope(p.scope,s) && hash(p.scopeHash) && hash(p.policyHash) && uuid(p.ruleReleaseId)
@@ -74,7 +96,12 @@
         requireValue(typeof reason==="string" && reason.trim().length>0 && reason.length<=1000, "작업 사유를 공백이 아닌 1~1000자로 입력하세요.");
         const b=state.batch, p=state.preview, r=state.rollback, s=state.scope;
         let payload, path, method="POST", keyed=true;
-        if(kind==="reserve") {
+        if(kind==="linked-reserve") {
+            requireValue(!state.selectionDirty,"미저장 선택을 저장하거나 명시적으로 복원한 뒤 새 배치를 예약하세요.");
+            const ls=state.linkedScope;
+            requireValue(validLinkedScope(ls,ls?.scope) && ls.canReserve,"지정한 모든 연결 원문이 예약 가능한지 다시 조회하세요.");
+            payload={scope:linkedScope(ls.scope),expectedScopeHash:ls.scopeHash,evidenceOnlyAcknowledged:true,reason};path=linkedBase;
+        } else if(kind==="reserve") {
             requireValue(!state.selectionDirty,"미저장 선택을 저장하거나 명시적으로 복원한 뒤 새 배치를 예약하세요.");
             requireValue(validScope(s,s?.scope) && s.canReserve, "예약 가능한 범위를 다시 조회하세요.");
             payload={scope:s.scope,expectedScopeHash:s.scopeHash,reason};path=base;
@@ -120,6 +147,9 @@
     }
     function validReceipt(data, sent) {
         const p=sent.payload,k=sent.kind;
+        if(k==="linked-reserve")return validBatch(data) && linked(data) && data.scopeHash===p.expectedScopeHash && data.policyId===p.scope.policyId
+            && data.itemCount===p.scope.sourceIds.length && data.frozenScope.maximumSourceBytes===p.scope.maximumSourceBytes
+            && data.frozenScope.maximumDownloadBytes===p.scope.maximumSourceBytes*data.itemCount && data.frozenScope.maximumHttpRequests===132*data.itemCount;
         if(k==="reserve")return validBatch(data) && data.scopeHash===p.expectedScopeHash && data.policyId===p.scope.policyId && sameScope(data.frozenScope.filter,p.scope);
         if(["collection","collection-resume","collection-pause","scope-cancellation"].includes(k))return validBatch(data) && data.batchId===sent.batchId && data.scopeHash===sent.scopeHash && data.rowVersion===p.expectedVersion+1
             && data.statusCode===({collection:"COLLECTION_PENDING","collection-resume":"COLLECTING","collection-pause":"COLLECTION_PAUSED","scope-cancellation":"CANCELLED"})[k];
@@ -216,6 +246,6 @@
         if(p.inputsCurrent)requireValue(items.filter(i=>i.selected).length===p.selectedItemCount && items.every(i=>!i.selected || i.eligible && i.readinessCode==="READY"));
         return items;
     }
-    const api={base,linkedBase,linked,uuid,hash,count,requireValue,label,validBatch,validPage,validPreview,validItem,editable,scope,validScope,validRollback,command,validReceipt,validActionReceipt,validHistoryEntry,validHistory,validHistoricalReceipt,client,mutations,loadPreviewItems};
+    const api={base,linkedBase,linked,linkedScope,validLinkedScope,uuid,hash,count,requireValue,label,validBatch,validPage,validPreview,validItem,editable,scope,validScope,validRollback,command,validReceipt,validActionReceipt,validHistoryEntry,validHistory,validHistoricalReceipt,client,mutations,loadPreviewItems};
     if(typeof module!=="undefined" && module.exports)module.exports=api;else root.SanebAttachmentBatch=api;
 })(globalThis);

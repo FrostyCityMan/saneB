@@ -29,6 +29,30 @@ test('scope uses server provider codes, explicit intervals and bounded maximum',
 });
 
 const linkedBatch=status=>{const b=batch(status);return {...b,frozenScope:{schemaVersion:1,purposeCode:'LINKED_EVIDENCE_ONLY',maximumDownloadBytes:10000,maximumHttpRequests:264}};};
+const linkedScope=()=>B.linkedScope({policyId:id(2),sourceIds:[id(102),id(101)],maximumSourceBytes:5000});
+const linkedScopePreview=()=>({scope:linkedScope(),policyId:id(2),scopeHash:hash,requestedCount:2,canReserve:true,maximumDownloadBytes:10000,maximumHttpRequests:264,
+    candidates:[101,102].map(n=>({sourceId:id(n),readinessCode:'READY',connectionSnapshotHash:hash}))});
+test('linked scope keeps explicit identities and rejects omissions replacements duplicates and wrong budgets',()=>{
+    const s=linkedScope(),p=linkedScopePreview();assert.deepEqual(s.sourceIds,[id(101),id(102)]);assert.equal(B.validLinkedScope(p,s),true);
+    for(const patch of [{sourceIds:[]},{sourceIds:[id(101),id(101)]},{sourceIds:['SRC-017679']},{maximumSourceBytes:0},{maximumSourceBytes:83886081},{maximumSourceBytes:1.2}])assert.throws(()=>B.linkedScope({...s,...patch}));
+    for(const patch of [{requestedCount:1},{policyId:id(99)},{maximumDownloadBytes:10001},{maximumHttpRequests:132},{candidates:p.candidates.slice(0,1)},
+        {candidates:[p.candidates[0],p.candidates[0]]},{candidates:[p.candidates[0],{...p.candidates[1],sourceId:id(999)}]},
+        {candidates:[p.candidates[0],{...p.candidates[1],connectionSnapshotHash:null}]},{canReserve:false}])assert.equal(B.validLinkedScope({...p,...patch},s),false);
+    const rejected={...p,canReserve:false,candidates:[p.candidates[0],{sourceId:id(102),readinessCode:'NOT_ELIGIBLE_OR_NOT_LINKED',connectionSnapshotHash:null}]};
+    assert.equal(B.validLinkedScope(rejected,s),true);assert.throws(()=>B.command('linked-reserve',{linkedScope:rejected},'검증',true));
+});
+test('linked reservation requires acknowledgement and binds purpose scope count and budget in receipt',async()=>{
+    const st={linkedScope:linkedScopePreview()},cmd=B.command('linked-reserve',st,'근거 확인',true);
+    assert.equal(cmd.path,B.linkedBase);assert.equal(cmd.keyed,true);assert.equal(cmd.payload.evidenceOnlyAcknowledged,true);
+    assert.throws(()=>B.command('linked-reserve',st,'근거 확인',false));assert.throws(()=>B.command('linked-reserve',{...st,selectionDirty:true},'근거 확인',true));
+    const good={...linkedBatch('SCOPE_READY'),frozenScope:{...linkedBatch('SCOPE_READY').frozenScope,maximumSourceBytes:5000}};
+    assert.equal(B.validReceipt(good,cmd),true);
+    for(const patch of [{scopeHash:'b'.repeat(64)},{policyId:id(99)},{frozenScope:{...good.frozenScope,purposeCode:'STANDARD'}},
+        {frozenScope:{...good.frozenScope,maximumSourceBytes:6000}}])assert.equal(B.validReceipt({...good,...patch},cmd),false);
+    const calls=[];let fail=true;const m=B.mutations(async(url,options)=>{calls.push({url,options});if(fail){fail=false;throw new C.RequestError('응답 유실');}return good;},C,()=>id(99));
+    await assert.rejects(m.execute(cmd));assert.equal(m.uncertain,true);await m.execute();
+    assert.deepEqual(calls[0],calls[1]);assert.equal(m.uncertain,false);
+});
 test('linked collection transport accepts only same-origin namespace and retains caps',async()=>{
     const calls=[],cmd=B.command('collection',state(linkedBatch('SCOPE_READY')),'근거 시작',true);
     const request=B.client(async(url,options)=>{calls.push({url,options});return {ok:true,json:async()=>({success:true,data:{...linkedBatch('COLLECTION_PENDING'),rowVersion:5}})};},C);
