@@ -3024,9 +3024,11 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(service.selectExternalExecutionAllowed(job,token)).isFalse();
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings={"IDENTITY","ANNOUNCEMENT","DELETE"})
-    void linkedLateEvaluationConflictsAfterSealedEvidenceConnectionChanges(String mutation) {
+    @Test void linkedLateEvaluationRejectsReplacedLinkIdentity() { assertLinkedLateEvaluationConflict("IDENTITY"); }
+    @Test void linkedLateEvaluationRejectsReplacedAnnouncement() { assertLinkedLateEvaluationConflict("ANNOUNCEMENT"); }
+    @Test void linkedLateEvaluationRejectsDeletedConnection() { assertLinkedLateEvaluationConflict("DELETE"); }
+
+    private void assertLinkedLateEvaluationConflict(String mutation) {
         UUID jobId=insertLinkedSnapshotFixture(true),token=startLinkedFixture(jobId,false);
         var job=dao.selectJobDetails(jobId);UUID source=job.sourceId();
         String before=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
@@ -3061,9 +3063,10 @@ class AnnouncementAttachmentJobIntegrationTest {
         assertThat(sql.queryForObject("SELECT reason_code FROM announcement_attachment_linked_review_notices WHERE job_id=?",String.class,job)).isEqualTo("COLLECTION_FAILED");
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
-    void linkedCompletedEvidenceCreatesOneNoticeWithoutChangingSourceOrAnnouncement(boolean partial) {
+    @Test void linkedCompletedEvidencePreservesOperatingWorkflow() { assertLinkedCompletedEvidence(false); }
+    @Test void linkedCompletedEvidencePartialFailurePreservesOperatingWorkflow() { assertLinkedCompletedEvidence(true); }
+
+    private void assertLinkedCompletedEvidence(boolean partial) {
         UUID source=selectRequest().sourceId();insertCollectionLocator(source);
         UUID announcement=UUID.randomUUID();
         sql.update("INSERT INTO announcements(id,target_type_code,title,agency_name,manual_status_code,approval_status_code) VALUES (?,'BUSINESS','연결 근거 합성 공고','합성 기관','HIDDEN','DRAFT')",announcement);

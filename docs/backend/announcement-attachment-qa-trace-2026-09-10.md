@@ -1,5 +1,13 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-03 Linux QA 산출물의 정적 시험 목록 계약 복구
+
+선행 `2a643c7` Linux run37084709367은 `AttachmentContractQaPackageTest.fixedSuiteInventoryCannotOmitDynamicallyRegisteredTestCases`에서 실패했다. 새 linked 통합 시험의 ParameterizedTest 두 개가 독립 QA 산출물의 사전 시험 목록 고정 규칙과 충돌한 원인이다. 검사/기대값을 약화하지 않고 동일5사례(연결 ID 교체·공고 ID 교체·삭제, 정상·부분 완료)를 명시적 @Test5개와 공통 private helper로 변환했다. 총 linked 사례17개는 유지한다. 최신 `bf6a564` run37085319530은 조회 당시 in_progress이며 아직 수정 전 코드다.
+
+정정 후 `attachmentContractQaTest attachmentJobIntegrationTest --tests '*linked*' --tests '*fixedSuiteInventoryCannotOmitDynamicallyRegisteredTestCases' --no-daemon --max-workers=1`1분49초 성공. QA runner10·산출물6·정책 DB QA runner4·실제 PostgreSQL linked17, 총37건 실패/오류/생략0이다. QA 산출물 재생성·시험은 로컬에서 통과했으며 수정 SHA의 Linux 전체 실행은 별도 확인해야 한다.
+
+관리자 배치/전체 범위/검수/복구/정책/큐/구간/운영/Provider QA/Provider coverage 및 CSRF Node 회귀283건 실패/생략0을 확인했다. 현재 서울 SSO Inventory 읽기 전용 조회는 계정/역할 pin 일치, 실행 EC2 1대·SSM Online·DB available·삭제 방지/암호화 true였다. 원격 명령0·운영 쓰기0이며 임시 CA 제거를 확인했다. 이는 앱 버전/health/worker/E2E 검증이 아니다. V87~V90 운영 migration 및 복구 검증은 여전히 미완료다.
+
 ## 2026-10-03 연결 근거 수집의 신청·진행 하위 데이터 보존
 
 ATT-051 성공/부분 완료 통합 fixture에 수치 조건·공고 진행 단계·매칭·신청 진행·단계 상태를 실제 격리 PostgreSQL 행으로 추가했다. 예약→시작→합성 첨부 봉인→평가/경고→일반 적용 및 검수/DRAFT 오용 거부 이후 다섯 테이블의 대상 행 전체 JSON snapshot이 전후 동일함을 검증한다. source/announcements 전체 행 불변 검증도 유지한다. 기존 공고 조건·신청 데이터의 빈 테이블만 비교하는 시험이 아니다.
