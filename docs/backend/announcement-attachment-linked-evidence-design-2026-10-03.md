@@ -88,7 +88,7 @@
 - [x] 로컬 DB migration V87~V90: 목적/목적 불변·적용 금지, 고정 연결, 경고 소속 제약, 실행 fence 추가. 순차/빈 DB migration·기존 행/checksum 보존과 잘못된 snapshot/경고 쓰기 거부 검증. 운영 반영은 미완료.
 - [x] scope/예약 Service/DAO/Mapper/DTO와 신규 v2 Controller, 전용 시작·중지·재개. 일반 scope regression 유지.
 - [~] source/link 예약 잠금·매 요청 fence·실패/만료 경고 저장 검증. 합성 첨부의 성공/부분 결과·경고·배치 집계 통합14건 회귀 통과. 실제 외부 worker와 최종 완료 경합 검증은 남음.
-- [ ] 일반 apply/rollback/review/DRAFT 경로의 목적 우회 차단.
+- [x] 일반 적용 미리보기/apply/rollback 서비스의 명시적 목적 거부 및 실제 DB 검증. 연결 근거 미리보기로 review/DRAFT 호출 시 연결 보호·현재 판정 불일치 거부, 확인/공고 신규 생성0 검증. 운영 브라우저 검증은 별도.
 - [ ] 현재 근거와 연결 공고 재검수 경고를 구분하는 관리자 조회/UI. UI 구현 전 frontend/UI-UX 스킬 적용.
 - [ ] Linux 실제 PostgreSQL/worker 계약 및 브라우저 검증.
 - [ ] 사용자가 지정·승인한 운영 링크 표본 1건부터 수집. 승인 전 운영 쓰기 없음.

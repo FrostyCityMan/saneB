@@ -3040,6 +3040,7 @@ class AnnouncementAttachmentJobIntegrationTest {
         sql.update("INSERT INTO announcement_source_links(id,source_id,announcement_id,linked_by) VALUES (?,?,?,?)",UUID.randomUUID(),source,announcement,actor);
         String sourceBefore=sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source);
         String announcementBefore=sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement);
+        int announcementCountBefore=sql.queryForObject("SELECT count(1) FROM announcements",Integer.class);
         var scope=new com.saneb.domain.announcementattachment.dto.AttachmentLinkedBatchRequests.Scope(policy,List.of(source),1024L);
         var preview=batchService().selectLinkedScopePreview(reviewActor(),scope);
         var batch=batchService().insertLinkedBatch(reviewActor(),UUID.randomUUID(),
@@ -3085,6 +3086,28 @@ class AnnouncementAttachmentJobIntegrationTest {
                 .selectPreviewDetails(reviewActor(),batch.batchId()))
                 .isInstanceOf(ApiException.class).hasMessageContaining("연결 근거 전용 배치");
         assertThat(batchService().selectBatchDetails(reviewActor(),batch.batchId())).isEqualTo(completed);
+        var reviewVersion=new AttachmentReviewRequests.Version(job.baseEvaluationId(),evaluation.evaluationId(),
+                job.expectedSourceVersion(),job.expectedAttachmentVersion(),
+                sql.queryForObject("SELECT manifest_hash FROM announcement_source_attachment_sets WHERE id=?",String.class,dao.selectJobDetails(job.jobId()).setId()));
+        var confirmationRequest=new AttachmentReviewRequests.Confirmation(reviewVersion,List.of("BUSINESS"),List.of("POLICY_FINANCE"),
+                "MANUAL_SOURCE_CHECK",List.of(),"연결 미리보기 오용 검증");
+        var conversionRequest=new AttachmentReviewRequests.Conversion(reviewVersion,UUID.randomUUID(),"BUSINESS",null);
+        assertThatThrownBy(()->reviewService().insertConfirmation(reviewActor(),source,UUID.randomUUID(),confirmationRequest))
+                .isInstanceOf(ApiException.class).hasMessageContaining("이미 공고에 연결");
+        assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),source,conversionRequest))
+                .isInstanceOf(ApiException.class).hasMessageContaining("이미 공고에 연결");
+        // 별도 업무에서 연결이 사라져도 미리보기는 현재 판정으로 승격되지 않는다.
+        new TransactionTemplate(context.getBean(PlatformTransactionManager.class)).executeWithoutResult(transaction->{
+            sql.update("DELETE FROM announcement_source_links WHERE source_id=?",source);
+            assertThatThrownBy(()->reviewService().insertConfirmation(reviewActor(),source,UUID.randomUUID(),confirmationRequest))
+                    .isInstanceOf(ApiException.class).hasMessageContaining("본문 또는 첨부 판정이 변경");
+            assertThatThrownBy(()->reviewService().insertOperationalAnnouncement(reviewActor(),source,conversionRequest))
+                    .isInstanceOf(ApiException.class).hasMessageContaining("본문 또는 첨부 판정이 변경");
+            transaction.setRollbackOnly();
+        });
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_attachment_confirmations WHERE source_id=?",Integer.class,source)).isZero();
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcement_source_links WHERE source_id=?",Integer.class,source)).isEqualTo(1);
+        assertThat(sql.queryForObject("SELECT count(1) FROM announcements",Integer.class)).isEqualTo(announcementCountBefore);
         assertThat(sql.queryForObject("SELECT to_jsonb(s)::text FROM announcement_source_snapshots s WHERE id=?",String.class,source)).isEqualTo(sourceBefore);
         assertThat(sql.queryForObject("SELECT to_jsonb(a)::text FROM announcements a WHERE id=?",String.class,announcement)).isEqualTo(announcementBefore);
     }
