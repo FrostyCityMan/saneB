@@ -26,6 +26,12 @@ class AnnouncementAttachmentBatchViewControllerSmokeTest {
         var html=Jsoup.parse(response.getContentAsString(StandardCharsets.UTF_8));
         assertThat(html.selectFirst("[data-attachment-batches]").attr("data-is-admin")).isEqualTo(String.valueOf(role.equals("ADMIN")));
         assertThat(html.select("[data-scope-fields][disabled], [data-approval-fields][disabled], [data-approve][disabled]")).hasSize(3);
+        assertThat(html.select("[data-linked-fields][disabled], [data-linked-submit][disabled], [data-linked-reserve][disabled]")).hasSize(3);
+        assertThat(html.selectFirst("label[for=linked-sources]").text()).contains("UUID", "1~1000");
+        assertThat(html.selectFirst("textarea#linked-sources").attr("aria-describedby")).contains("linked-source-help");
+        assertThat(html.selectFirst("input#linked-bytes").attr("max")).isEqualTo("83886080");
+        assertThat(html.selectFirst("[data-linked-result]").attr("aria-live")).isEqualTo("polite");
+        assertThat(html.text()).contains("기존 운영 공고·현재 판정·검수 확인은 변경하지 않습니다", "SRC 표시번호");
         assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("required")).isTrue();
         assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("checked")).isFalse();
         assertThat(html.selectFirst("label[for=batch-reason]").text()).contains("1~1000자");

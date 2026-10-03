@@ -171,14 +171,49 @@ function harness({admin=true,request:custom,nav={},batchValue=null,historyReques
     const fields=new Map();for(const n of ['policyId','collectedFrom','collectedBefore','deadlineFrom','deadlineThrough','maximumCount'])fields.set(n,new Element('input'));
     fields.get('policyId').value=id(2);fields.get('collectedFrom').value='2026-09-01T00:00';fields.get('collectedBefore').value='2026-09-10T00:00';fields.get('maximumCount').value='100';
     const sf=q('[data-scope-form]');sf.elements={namedItem:n=>fields.get(n)};sf.reportValidity=()=>true;sf.querySelectorAll=()=>[{value:'BIZINFO'}];
+    const linkedFields=new Map(['policyId','sourceIds','maximumSourceBytes'].map(n=>[n,new Element('input')]));
+    linkedFields.get('policyId').value=id(2);linkedFields.get('sourceIds').value=`${id(101)}\n${id(102)}`;linkedFields.get('maximumSourceBytes').value='5000';
+    q('[data-linked-form]').elements={namedItem:n=>linkedFields.get(n)};q('[data-linked-form]').reportValidity=()=>true;
     const reason=new Element('textarea'),ack=new Element('input');reason.value='관리자 검토';q('[data-approval-form]').elements={namedItem:n=>n==='reason'?reason:ack};q('[data-approval-form]').reportValidity=()=>true;
     const b=batchValue||batch(),p=preview(b),items=[item(1,true),item(2)];
     const request=async(url,o={})=>{calls.push({url,...o});if(historyRequest && (url.includes('/action-history') || url.includes('/actions/')))return historyRequest(url,o);if(custom)return custom(url,o);
         if(url.includes('policies?'))return page([],1,20);if(url.includes('/classification-preview/'))return page(items,1,100);
         if(url.endsWith('/classification-preview'))return p;if(url.includes('/items?'))return page(items);if(url.includes('batches?page'))return page([b],1,10);return b;};
     const app=UI.mount({page:{dataset:{isAdmin:String(admin)},querySelector:q},B,C,request,doc:{createElement:t=>new Element(t)},uuid:()=>id(99),navigation:{read:()=>nav,write:p=>writes.push(p)}});
-    return {app,q,calls,writes,reason,ack,fields};
+    return {app,q,calls,writes,reason,ack,fields,linkedFields};
 }
+test('linked form previews exact scope reserves explicitly and opens the returned batch without collecting',async()=>{
+    const good={...linkedBatch('SCOPE_READY'),frozenScope:{...linkedBatch('SCOPE_READY').frozenScope,maximumSourceBytes:5000}};
+    const h=harness({request:async(url,o)=>{
+        if(url===`${B.linkedBase}/scope-preview`){assert.deepEqual(JSON.parse(o.body),linkedScope());return linkedScopePreview();}
+        if(url===B.linkedBase){assert.equal(JSON.parse(o.body).evidenceOnlyAcknowledged,true);assert.ok(o.headers['Idempotency-Key']);return good;}
+        if(url.includes('policies?'))return page([],1,20);if(url.includes('batches?page'))return page([good],1,10);
+        if(url.includes('/items?'))return page([item(1),item(2)]);return good;
+    }});
+    await h.app.start();await h.q('[data-linked-form]').fire('submit');assert.equal(h.app.state.linkedScope.canReserve,true);
+    assert.equal(h.q('[data-linked-reserve]').disabled,false);await h.q('[data-linked-reserve]').fire('click');
+    assert.equal(h.ack.checked,false);assert.equal(h.calls.filter(c=>c.url===B.linkedBase).length,0);
+    h.ack.checked=true;await h.q('[data-approval-form]').fire('submit');
+    assert.equal(h.app.state.batch.batchId,good.batchId);assert.equal(h.app.state.linkedScope,null);
+    assert.equal(h.calls.filter(c=>c.url===B.linkedBase).length,1);assert.equal(h.calls.some(c=>c.method && c.url.endsWith('/collection')),false);
+    assert.ok(h.writes.some(w=>w.batchId===good.batchId));
+});
+test('linked form changes invalidate consent and read-only roles cannot reserve',async()=>{
+    for(const admin of [true,false]){
+        const h=harness({admin});await h.app.start();h.app.state.linkedScope=linkedScopePreview();h.app.gates();
+        assert.equal(h.q('[data-linked-reserve]').disabled,!admin);h.app.arm('linked-reserve');
+        if(admin){h.ack.checked=true;await h.q('[data-linked-form]').fire('input');assert.equal(h.ack.checked,false);assert.equal(h.app.state.linkedScope,null);}
+        else {h.ack.checked=true;await h.app.submit();assert.equal(h.calls.some(c=>c.method),false);}
+    }
+});
+test('linked scope failure clears old reservation authority and preserves entered IDs for retry',async()=>{
+    const h=harness({request:async url=>{if(url.endsWith('/scope-preview'))throw new C.RequestError('다시 조회하세요',409);if(url.includes('policies?'))return page([],1,20);return page([],1,10);}});
+    await h.app.start();h.app.state.linkedScope=linkedScopePreview();h.app.gates();h.reason.value='';
+    assert.equal(h.app.dirty,true);await h.q('[data-linked-form]').fire('submit');
+    assert.equal(h.app.state.linkedScope,null);assert.equal(h.q('[data-linked-reserve]').disabled,true);
+    assert.equal(h.linkedFields.get('sourceIds').value,`${id(101)}\n${id(102)}`);assert.equal(h.q('[data-error]').hidden,false);
+    assert.equal(h.calls.some(c=>c.url===B.linkedBase),false);
+});
 test('workspace deep link loads exact batch and all preview items without writes',async()=>{
     const h=harness({nav:{batchId:id(1)}});await h.app.start();assert.equal(h.app.state.batch.batchId,id(1));assert.equal(h.app.state.selectionComplete,true);assert.equal(h.calls.some(c=>c.method),false);
     assert.equal(h.q('[data-save-selection]').disabled,true);assert.equal(h.q('[data-refresh]').disabled,false);assert.equal(h.q('[data-scope-submit]').disabled,false);

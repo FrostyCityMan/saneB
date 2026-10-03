@@ -44,6 +44,19 @@
             <div data-scope-result></div><button type="button" class="secondary-action" data-reserve disabled>이 범위의 예약 영향 확인</button>
         </details>
     </section>
+    <section class="plain-panel">
+        <details><summary>연결 공고의 첨부 근거만 갱신 예약</summary>
+            <p id="linked-scope-help">기존 운영 공고·현재 판정·검수 확인은 변경하지 않습니다. 명시한 원문 전체를 확인하며 부적격 항목을 몰래 제외하거나 다른 공고로 보충하지 않습니다. 조회·예약은 외부 요청 0회이며 수집 시작은 별도입니다.</p>
+            <form data-linked-form><fieldset data-linked-fields disabled><legend>연결된 원문 지정</legend>
+                <label class="field-block" for="linked-policy">게시 정책 (필수)</label><select id="linked-policy" name="policyId" required><option value="">게시 정책을 조회하세요</option></select>
+                <label class="field-block" for="linked-sources">원문 UUID 목록 (1~1000개, 필수)</label><textarea id="linked-sources" name="sourceIds" rows="4" required maxlength="38000" aria-describedby="linked-source-help linked-scope-help"></textarea>
+                <p id="linked-source-help">공고별 본문·첨부 화면 주소의 원문 UUID를 줄바꿈 또는 쉼표로 구분해 입력하세요. SRC 표시번호·전체 URL·중복 ID는 허용하지 않습니다. 입력값은 이 탭에서만 유지됩니다.</p>
+                <label class="field-block" for="linked-bytes">공고별 다운로드 상한 (바이트, 필수)</label><input id="linked-bytes" name="maximumSourceBytes" type="number" min="1" max="83886080" step="1" required aria-describedby="linked-bytes-help">
+                <p id="linked-bytes-help">1~83,886,080바이트 범위이며 게시 정책 상한 이하여야 합니다. 예: 24 MiB는 25,165,824바이트입니다. 정책과 대상별 준비 상태는 서버에서 다시 확인합니다.</p>
+            </fieldset><button type="submit" class="secondary-action" data-linked-submit disabled>연결 원문 전체 준비 상태 조회</button></form>
+            <div data-linked-result aria-live="polite"></div><button type="button" class="secondary-action" data-linked-reserve disabled>근거 전용 예약 영향 확인</button>
+        </details>
+    </section>
     <section class="plain-panel" id="batch-work" tabindex="-1" aria-labelledby="batch-detail-title">
         <h2 id="batch-detail-title">2. 선택 배치와 다음 단계</h2>
         <button type="button" class="secondary-action" data-refresh disabled>입력을 유지하고 최신 배치 조회</button>

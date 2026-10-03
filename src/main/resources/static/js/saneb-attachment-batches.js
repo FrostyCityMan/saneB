@@ -3,10 +3,11 @@
     "use strict";
     function mount({page,B,C,request,doc,uuid,navigation}) {
         const q=s=>page.querySelector(s), admin=page.dataset.isAdmin==="true", label=v=>B.label(v,C.label);
-        const state={batch:null,preview:null,rollback:null,scope:null,previewItems:[],selected:new Set(),selectionComplete:false,selectionDirty:false};
+        const state={batch:null,preview:null,rollback:null,scope:null,linkedScope:null,previewItems:[],selected:new Set(),selectionComplete:false,selectionDirty:false};
         const mutation=B.mutations(request,C,uuid), policyOptions=new Map();
         let busy=false,stale=true,action=null,listPage=1,itemPage=1,previewPage=1,rollbackPage=1,receipt=null,casCurrent=null,historyPage=1,historyVersion=null,historyBatchId=null;
         const scopeForm=q("[data-scope-form]"),approval=q("[data-approval-form]"),field=n=>scopeForm.elements.namedItem(n);
+        const linkedForm=q("[data-linked-form]"),linkedField=n=>linkedForm.elements.namedItem(n),reservation=k=>["reserve","linked-reserve"].includes(k);
         const el=(parent,tag,value,css)=>{const n=doc.createElement(tag);if(value!=null)n.textContent=String(value);if(css)n.className=css;parent.append(n);return n;};
         const clear=s=>{const n=q(s);n.replaceChildren();return n;};
         const meta=(parent,pairs)=>{const dl=el(parent,"dl",null,"attachment-meta");pairs.forEach(([k,v])=>{el(dl,"dt",k);el(dl,"dd",v==null?"미확인":v);});};
@@ -19,6 +20,8 @@
         function gates(){
             q("[data-list-refresh]").disabled=locked();q("[data-policy-refresh]").disabled=locked();
             q("[data-scope-fields]").disabled=locked();q("[data-scope-submit]").disabled=locked();
+            q("[data-linked-fields]").disabled=locked();q("[data-linked-submit]").disabled=locked();
+            q("[data-linked-reserve]").disabled=locked() || !admin || !state.linkedScope?.canReserve;
             q("[data-refresh]").disabled=locked() || !state.batch;
             q("[data-history-refresh]").disabled=locked() || !state.batch;
             q("[data-reserve]").disabled=locked() || !admin || !state.scope?.canReserve;
@@ -61,6 +64,8 @@
                 if(p.ruleReleaseStatusCode==="ACTIVE" && ["COLLECT_ONLY","ENFORCE"].includes(p.modeCode))policyOptions.set(p.policyId,p);}
             const select=field("policyId"),old=select.value;select.replaceChildren();const placeholder=el(select,"option","게시 정책을 선택하세요");placeholder.value="";
             for(const p of policyOptions.values()){const o=el(select,"option",`${p.policyCode} v${p.versionNo} · ${label(p.modeCode)} · ${p.policyId}`);o.value=p.policyId;}select.value=old;
+            const linkedSelect=linkedField("policyId"),linkedOld=linkedSelect.value;linkedSelect.replaceChildren();el(linkedSelect,"option","게시 정책을 선택하세요").value="";
+            for(const p of policyOptions.values()){const o=el(linkedSelect,"option",`${p.policyCode} v${p.versionNo} · ${label(p.modeCode)} · ${p.policyId}`);o.value=p.policyId;}linkedSelect.value=linkedOld;
             pages("[data-policy-pages]",data,loadPolicies);
         }
         function scopeInput(){const koreanTime=n=>field(n).value?(field(n).value.length===16?field(n).value+":00":field(n).value)+"+09:00":"";
@@ -72,6 +77,13 @@
             for(const c of p.counts)el(box,"p",`${label(c.providerCode)} · ${label(c.reasonCode)}: ${fmt(c.count)}`);
             const details=el(box,"details");el(details,"summary",`이번 예약 대상 ${fmt(p.items.length)}와 준비 사유`);
             for(const i of p.items)el(details,"p",`${i.sourceId} · ${label(i.providerCode)} · ${label(i.readinessCode)}`);
+        }
+        function linkedScopeView(p){const box=clear("[data-linked-result]");
+            meta(box,[["명시한 원문 전체",fmt(p.requestedCount)],["전체 다운로드 상한",`${p.maximumDownloadBytes}바이트`],["전체 HTTP 상한",`${p.maximumHttpRequests}회`],
+                ["예약 준비",p.canReserve?"전체 예약 가능 · 아직 수집하지 않음":"준비 불가 항목 확인 · 일부 예약하지 않음"],["범위 지문",p.scopeHash]]);
+            const names={READY:"예약 준비 완료",NOT_ELIGIBLE_OR_NOT_LINKED:"대상 조건 불충족 또는 운영 공고 미연결",BASE_RECLASSIFICATION_REQUIRED:"기본 판정 규칙 갱신 필요",ACTIVE_JOB:"다른 작업 진행 중",VERSION_LIMIT:"버전 증가 한도",PROFILE_REQUIRED:"시스템 수집 설정 필요"};
+            const details=el(box,"details");el(details,"summary",`원문 ${fmt(p.candidates.length)} 전체 준비 사유`);
+            for(const c of p.candidates)el(details,"p",`${c.sourceId} · ${names[c.readinessCode]} · 연결 지문 ${c.connectionSnapshotHash||"없음"}`);
         }
         function batchView(b){const box=clear("[data-detail]");meta(box,[["배치",b.batchId],["상태",label(b.statusCode)],["버전",b.rowVersion],["정책",b.policyId],
             ["작업 목적",B.linked(b)?"연결 공고 근거 전용 · 현재 판정 적용 안 함":"일반 배치"],
@@ -159,17 +171,19 @@
             if(["APPLIED","APPLY_PARTIAL_FAILED","APPLY_PAUSED"].includes(s) && state.rollback?.eligibleCount>0)actions.push("rollback");
             for(const kind of actions)button(box,`${names[kind]} 영향 확인`,()=>arm(kind));
             if(!actions.length)el(box,"p","현재 가능한 변경 작업이 없습니다. 처리 중이면 최신 배치를 조회하고, 실패·충돌은 항목별 근거를 확인하세요.");}
-        function arm(kind){if(locked() || !admin || (stale && kind!=="reserve"))return;
+        names["linked-reserve"]="연결 공고 근거 전용 예약";
+        function arm(kind){if(locked() || !admin || (stale && !reservation(kind)))return;
             try{B.command(kind,state,"영향 확인",true);action=kind;approval.elements.namedItem("acknowledged").checked=false;q("[data-approval]").hidden=false;
                 const box=clear("[data-impact]");el(box,"h3",names[kind]);
-            if(kind==="reserve"){B.requireValue(!state.selectionDirty,"미저장 선택을 저장하거나 명시적으로 복원한 뒤 새 배치를 예약하세요.");scopeView(state.scope);meta(box,[["범위 지문",state.scope.scopeHash],["예약 대상",fmt(state.scope.selectedCount)],["이번 배치 밖 잔여",fmt(state.scope.remainingCount)],["외부 요청","0회"]]);}
+            if(kind==="linked-reserve"){const p=state.linkedScope;linkedScopeView(p);meta(box,[["범위 지문",p.scopeHash],["원문 전체",fmt(p.requestedCount)],["전체 HTTP 상한",`${p.maximumHttpRequests}회`],["전체 다운로드 상한",`${p.maximumDownloadBytes}바이트`],["이번 예약 외부 요청","0회"]]);}
+            else if(kind==="reserve"){B.requireValue(!state.selectionDirty,"미저장 선택을 저장하거나 명시적으로 복원한 뒤 새 배치를 예약하세요.");scopeView(state.scope);meta(box,[["범위 지문",state.scope.scopeHash],["예약 대상",fmt(state.scope.selectedCount)],["이번 배치 밖 잔여",fmt(state.scope.remainingCount)],["외부 요청","0회"]]);}
                 else{meta(box,[["배치",state.batch.batchId],["현재 버전",state.batch.rowVersion],["최초 전체/현재 삭제",`${fmt(state.batch.itemCount)} / ${fmt(state.batch.deletedItemCount)}`],["고정 범위 지문",state.batch.scopeHash]]);
                     if(kind.startsWith("collection"))meta(box,[["최초 전체 HTTP 상한",`${state.batch.frozenScope.maximumHttpRequests}회`],["최초 전체 다운로드 상한",`${state.batch.frozenScope.maximumDownloadBytes}바이트`]]);
                     if(kind==="selection" || kind.startsWith("apply"))meta(box,[["미리보기 지문",state.preview.previewHash],["선택",fmt(kind==="selection"?state.selected.size:state.preview.selectedItemCount)]]);
                     if(kind==="rollback")meta(box,[["대상/적격/충돌",`${fmt(state.rollback.targetCount)} / ${fmt(state.rollback.eligibleCount)} / ${fmt(state.rollback.conflictCount)}`],["기본 경로 재개 / 이전 확인 복구",`${fmt(state.rollback.baseReopenCount)} / ${fmt(state.rollback.confirmationRestoreCount)}`],["적용 대기 취소",fmt(state.rollback.cancelPendingCount)],["원복 지문",state.rollback.previewHash]]);}
                 const warnings=kind==="reserve"?"고정 예약만 생성합니다. 아직 파일 수집·판정 적용을 하지 않습니다. 다른 수집과 충돌할 수 있으며 수집 전 예약 취소로 해제합니다.":kind.startsWith("collection")?"수집 시작·재개는 고정 범위의 외부 요청을 허용합니다. 새 예산을 추가하지 않습니다. 중지는 새 요청을 막지만 이미 전송 중인 요청의 즉시 중단을 보장하지 않습니다.":kind==="scope-cancellation"?"아직 수집하지 않은 예약을 취소합니다. 이력은 보존하며 원문을 삭제하지 않습니다.":kind==="preview"?"저장된 봉인 근거만 사용합니다. 새 미리보기의 선택은 0건이며 이전 선택을 자동 복사하지 않습니다. 외부 요청 0회입니다.":kind==="selection"?"전체 페이지의 선택 목록을 새 이력으로 저장합니다. 판정은 적용하지 않습니다. 외부 요청 0회입니다.":kind==="rollback"?"적용 완료분 전체의 조건부 원복을 접수합니다. 이전 판정과 유효했던 확인만 복구하며 남은 적용 대기는 취소됩니다. 실패·충돌은 남고 외부 요청은 0회입니다.":"적용/중지/재개 요청을 접수합니다. 적용은 고정 ACTIVE ENFORCE 정책에서만 가능하며 이전 첨부 확인은 STALE이 되어 재검수가 필요합니다. COLLECT_ONLY를 승격하지 않습니다. 외부 요청 0회이며 운영 공고를 자동 활성화하지 않습니다.";
-                el(box,"p",warnings);
-                if(kind!=="reserve" && B.linked(state.batch))el(box,"p","연결 공고 근거 전용: 기존 공고·현재 판정·검수 확인을 변경하지 않습니다. 새 근거와 재검수 경고만 기록하며 자동 공개하지 않습니다.");
+                el(box,"p",kind==="linked-reserve"?"지정한 원문 전체를 근거 전용으로 고정 예약합니다. 예약만으로 수집하지 않으며 수집 시작은 별도 확인합니다. 수집 전 예약 취소가 가능합니다.":warnings);
+                if(kind==="linked-reserve" || kind!=="reserve" && B.linked(state.batch))el(box,"p","연결 공고 근거 전용: 기존 공고·현재 판정·검수 확인을 변경하지 않습니다. 새 근거와 재검수 경고만 기록하며 자동 공개하지 않습니다.");
                 q("[data-approve]").textContent=names[kind];q("#batch-approval-title").focus();gates();
             }catch(e){disarm();gates();error(e);}}
         async function submit(retry=false){if(busy || mutation.pending || !admin || (!retry && mutation.uncertain))return;
@@ -178,8 +192,8 @@
             try{const result=await mutation.execute(next);const sent=result.sent,data=result.data;receipt=null;
                 if(data.actionId){receipt={batchId:sent.batchId,actionId:data.actionId,kind:sent.kind==="rollback"?"rollback":"application"};navigation.write({actionId:receipt.actionId,actionKind:receipt.kind});receiptView(data,receipt.kind);}
                 else{navigation.write({actionId:null,actionKind:null});el(clear("[data-receipt]"),"p",`${names[sent.kind]} 응답 확인 · 배치 ${data.batchId}. 원문 처리 완료 여부는 최신 단계·항목 결과에서 확인하세요.`);}
-                disarm();stale=true;state.scope=null;clear("[data-scope-result]");
-                const id=sent.kind==="reserve"?data.batchId:sent.batchId;navigation.write({batchId:id});if(B.validBatch(data))state.batch=data;
+                disarm();stale=true;state.scope=null;state.linkedScope=null;clear("[data-scope-result]");clear("[data-linked-result]");
+                const id=reservation(sent.kind)?data.batchId:sent.batchId;navigation.write({batchId:id});if(B.validBatch(data))state.batch=data;
                 await loadBatch(id);await loadList(listPage);
                 note("요청 응답과 최신 상태를 조회했습니다. 접수는 비동기 처리 완료를 뜻하지 않습니다.");
             }catch(e){stale=true;error(e);note(mutation.uncertain?"처리 결과 미확정 · 원래 요청 재확인 필요":"요청 또는 최신 조회 실패 · 입력을 유지하고 최신 배치를 다시 조회하세요.");}
@@ -210,6 +224,12 @@
         }
         scopeForm.addEventListener("submit",event=>{event.preventDefault();return read(async()=>{if(!scopeForm.reportValidity())return;const s=scopeInput();state.scope=null;clear("[data-scope-result]");const p=await request(`${B.base}/scope-preview`,{method:"POST",body:JSON.stringify(s)});B.requireValue(B.validScope(p,s));state.scope=p;scopeView(p);note("범위 조회 완료 · 외부 요청 0회 · 예약/수집은 별도 승인입니다.");});});
         scopeForm.addEventListener("input",()=>{if(locked())return;state.scope=null;clear("[data-scope-result]");disarm();gates();});
+        linkedForm.addEventListener("submit",event=>{event.preventDefault();return read(async()=>{state.linkedScope=null;clear("[data-linked-result]");if(!linkedForm.reportValidity())return;
+            const s=B.linkedScope({policyId:linkedField("policyId").value,sourceIds:linkedField("sourceIds").value.trim().split(/[\s,]+/),maximumSourceBytes:linkedField("maximumSourceBytes").value});
+            const p=await request(`${B.linkedBase}/scope-preview`,{method:"POST",body:JSON.stringify(s)});B.requireValue(B.validLinkedScope(p,s),"지정한 원문 전체·정책·예산과 응답이 일치하지 않습니다. 범위를 다시 조회하세요.");
+            state.linkedScope={...p,scope:s};linkedScopeView(p);note("연결 원문 준비 상태 조회 완료 · 외부 요청 0회 · 예약과 수집은 별도입니다.");});});
+        linkedForm.addEventListener("input",()=>{if(locked())return;state.linkedScope=null;clear("[data-linked-result]");disarm();gates();});
+        q("[data-linked-reserve]").addEventListener("click",()=>arm("linked-reserve"));
         approval.addEventListener("input",e=>{if(e.target!==approval.elements.namedItem("acknowledged"))approval.elements.namedItem("acknowledged").checked=false;});
         approval.addEventListener("submit",e=>{e.preventDefault();return submit();});
         q("[data-reserve]").addEventListener("click",()=>arm("reserve"));q("[data-save-selection]").addEventListener("click",()=>arm("selection"));
@@ -224,7 +244,7 @@
             try{const b=await request(`${B.base}/${mutation.sent.batchId}`);B.requireValue(B.validBatch(b) && b.batchId===mutation.sent.batchId);casCurrent=b;batchView(b);note("최신 상태 조회만 완료했습니다. 최초 수집 제어 요청의 성공 여부는 미확정입니다.");}catch(e){error(e);}finally{busy=false;gates();}});
         q("[data-cas-ack]").addEventListener("change",gates);
         q("[data-cas-continue]").addEventListener("click",()=>{if(busy)return;try{mutation.resolveCas(casCurrent,q("[data-cas-ack]").checked);disarm();return read(()=>loadBatch(casCurrent.batchId));}catch(e){error(e);}});
-        return {state,mutation,arm,submit,loadBatch:id=>read(()=>loadBatch(id)),get dirty(){return !!approval.elements.namedItem("reason").value || state.selectionDirty || mutation.uncertain || mutation.pending;},
+        return {state,mutation,arm,submit,loadBatch:id=>read(()=>loadBatch(id)),get dirty(){return !!approval.elements.namedItem("reason").value || !!linkedField("sourceIds").value || state.selectionDirty || mutation.uncertain || mutation.pending;},
             async start(){const nav=navigation.read();listPage=nav.listPage||1;itemPage=nav.itemPage||1;previewPage=nav.previewPage||1;rollbackPage=nav.rollbackPage||1;
                 if(B.uuid(nav.batchId) && B.count(nav.historyVersion) && nav.historyVersion<=2147483647){historyBatchId=nav.batchId;historyVersion=nav.historyVersion;historyPage=nav.historyPage||1;}
                 await read(async()=>{await loadList(listPage);await loadPolicies();if(B.uuid(nav.batchId)){if(B.uuid(nav.actionId) && ["application","rollback"].includes(nav.actionKind))receipt={batchId:nav.batchId,actionId:nav.actionId,kind:nav.actionKind};await loadBatch(nav.batchId);}else note("배치를 선택하거나 새 범위를 조회하세요. 변경 작업은 자동 실행되지 않습니다.");});},gates};
