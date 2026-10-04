@@ -16,6 +16,10 @@ def aws(*args):
     if result.returncode:
         if args[:2] == ('ssm', 'get-command-invocation') and '(InvocationDoesNotExist)' in result.stderr:
             raise InvocationNotReady()
+        code = next((code for code in ('AccessDeniedException', 'AccessDenied', 'UnauthorizedOperation',
+                     'DeploymentDoesNotExistException', 'InvalidInstanceId', 'ExpiredToken')
+                     if '(' + code + ')' in result.stderr), 'AWS_CALL_FAILED')
+        print(json.dumps({'kind': 'PREFLIGHT_AWS_ERROR', 'operation': '/'.join(args[:2]), 'code': code}))
         raise ValueError('AWS_CALL_FAILED')
     return json.loads(result.stdout)
 
@@ -67,5 +71,9 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as error:
-        print(json.dumps({'kind': 'PREFLIGHT_DISPATCH', 'status': 'FAILED', 'errorType': type(error).__name__}))
+        allowed = {'AWS_CALL_FAILED', 'INVALID_DEPLOYMENT', 'DEPLOYMENT_TARGET_MISMATCH',
+                   'DEPLOYMENT_IS_NOT_CURRENT', 'DEPLOYMENT_IN_PROGRESS', 'INSTANCE_SCOPE_INVALID',
+                   'REMOTE_PREFLIGHT_FAILED', 'PREFLIGHT_RESULT_PENDING_DO_NOT_RESUBMIT'}
+        print(json.dumps({'kind': 'PREFLIGHT_DISPATCH', 'status': 'FAILED', 'errorType': type(error).__name__,
+                          'code': str(error) if str(error) in allowed else 'UNEXPECTED_ERROR'}))
         raise SystemExit(1)
