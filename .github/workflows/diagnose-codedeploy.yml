@@ -17,6 +17,11 @@ on:
         required: true
         default: false
         type: boolean
+      ssm_deployment_preflight:
+        description: "승인된 서버 내부 읽기 전용 사전 점검 (설치·진행 작업·복구 JAR)"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -31,6 +36,14 @@ jobs:
     name: Read-only deployment diagnosis
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout approved diagnostic probe
+        if: ${{ inputs.ssm_deployment_preflight }}
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify diagnostic safety contracts
+        if: ${{ inputs.ssm_deployment_preflight }}
+        run: python3 -B scripts/qa/test_deployment_preflight.py
       - name: Validate repository variables
         shell: bash
         run: |
@@ -118,6 +131,13 @@ jobs:
               --query 'deploymentInfo.{DeploymentId:deploymentId,Status:status,ErrorCode:errorInformation.code,CompleteTime:completeTime}' \
               --output json
           fi
+
+      - name: Approved read-only deployment preflight
+        if: ${{ inputs.ssm_deployment_preflight }}
+        timeout-minutes: 4
+        env:
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+        run: python3 scripts/qa/dispatch-deployment-preflight.py
 
       - name: Classify application startup failure through SSM
         if: ${{ inputs.ssm_app_log_check }}
