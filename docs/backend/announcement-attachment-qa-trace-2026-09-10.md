@@ -1,5 +1,21 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-05 정부24 상세 저장 증분 Linux 증거
+
+`4b482c3c6ba234d3c2be1240797ffa58be9de290`의 run37260946511이 completed/success로 종료됐다. artifact11324493047을 `build/ci-evidence-37260946511`에 내려받아 XML을 직접 대조했다. 일반 test(앱·추출기 합산)4,921건/조건부 생략400건/실패·오류0, 별도 QA20·작업229·migration/Backfill18·정책DB2·runtime7·worker12·Flyway4건은 실패·오류·생략0이다.
+
+Flyway XML에는 `gov24DetailContentVersionsKeepSummaryProvenanceAndDeduplicateIdenticalBody`의 실제 실행이 포함된다. 독립 보고서 SYNTHETIC_WORKER_DB_CONTRACTS_V2는 discovered259/passed259/failed0/skipped0/notRun0이며 두 정리 표식 ATTACHMENT_CONTRACT_QA_CLEANUP/POLICY_DB_QA_CLEANUP은 SUCCEEDED다. 이 결과는 합성 제공자·임시 DB 검증이며 실제 정부24 API/첨부·운영 E2E 증거가 아니다.
+
+후속 공통 중복 SQL null 매개변수 수정과 수집 service 통합 사례를 포함한 최신 `5f0e274`의 run37261775271은 현재 실행 중이다. 위 선행 결과를 최신 SHA의 전체 통과로 대체하지 않는다. 새 run 종료 후 Flyway5건과 신규 수집 service 사례의 실제 실행을 별도로 대조해야 한다.
+
+## 2026-10-05 설치 증거와 잔여 운영 Gate 정합성 정정
+
+운영 설치 증거는 `docs/deployment/diagnostic-iam-preflight-2026-10-05.md`의 11:56 KST 진단을 기준으로 한다. `00d16d9` 배포37256870718/CodeDeploy d-A8GG4SJ6L 성공, DB V90·migration 실패0·설치/배포 JAR 지문 일치·worker/source batch true를 확인한 이력이다. 현재 시각의 운영 상태를 다시 조회한 결과는 아니다.
+
+12:00 KST 브라우저 조회 증거는 `docs/deployment/attachment-operator-acceptance-2026-10-02.md`를 따른다. 정책 검증 범위 조회 및 기존 HWPX 저장 근거 조회 성공은 신규 다운로드·연결 공고 처리·검수/DRAFT 성공을 뜻하지 않는다. ATT-051/059의 오래된 배포 중/worker 비활성 설명만 정정하며 완료 상태를 올리지 않는다.
+
+정부24 상세 본문 후속 코드 `5f0e274`는 위 설치에 포함되지 않는다. 해당 코드의 Linux 실행37261775271은 결과 확인 전이며, 정부24 첨부 profile·실제 API·운영 활성화는 별도 미완료다. 상세 구현·로컬 검증은 `announcement-attachment-gov24-gap-audit-2026-10-05.md`에 기록한다.
+
 ## 2026-10-03 최신 QA 도구 커밋의 Linux 재검증 완료
 
 `00d16d9cecd01159006a316c5cc7be3c30fd64f6` / run37087157343은 completed/success다. artifact11261158314 XML 대조 결과: QA20, 작업229, migration/Backfill18, 정책DB2, runtime7, worker12, Flyway3 모두 실패/오류/생략0. 일반 test4891건은 실패/오류0·조건부 생략399건이며 일부 DB 시험은 별도 task에서 실행됐다. 실사이트 선택 실행과 운영 E2E까지 통과했다고 해석하지 않는다.
@@ -391,7 +407,7 @@ ATT-027/059의 합성 입력 Linux launcher 증거를 보강한다. 웹 UI의 �
 | ATT-048 | preview 뒤 버전 변경 충돌 | BatchPreview/Application CAS; BackfillService 전체 지문409, V75 분할 예약/시작/claim 입력 확인 및 기관 변경 차단 계약; 배치/분할 UI 응답 유실 동일키 유지·401/403/409 Node | [~] | 최신 PG·분할 예약/실행 실제 경합·운영 적용/충돌·실제 관리자 브라우저 |
 | ATT-049 | 추가 검수/전환 뒤 rollback 거부 | 배치 원복 영향/ADMIN·CSRF 승인 API와 전체 inputHash 재검증 worker; 일반 원복 UI의 버전·효과/충돌/유실 동일 요청·잠금; 배치 승인 이력/영수증 대조·다른 배치 결과 해제 Node/SSR; 새 검수·DRAFT·기관 변경 차단 PG | [~] | 실제 PostgreSQL·일반/배치 복구 브라우저·운영 검증 |
 | ATT-050 | 변경 없는 binding 원복 | 배치 고정 승인/조건부 CAS; 일반 APPLIED/실패 예약 원자적 복구·확인/실패 보존·무효 확인 STALE; 일반/배치/전체 분할 UI. a884ac1 Linux35679213890 PG192/192·실패/생략0의 approvalHistoryPagesStayCompleteWhileLaterApprovalsAdvanceTheBatch·sourceDeletionDoesNotRewriteOrHideOriginalApprovalHistory·mixedApplicationAndRollbackHistoryRetainsOriginalImpactAfterCompletion 통과 XML 확인 | [~] | 운영 되돌리기·일반/전체 배치 브라우저·승인 범위 분할 실행/대조 |
-| ATT-051 | 연결된 운영 공고 보호 | 기존 일반 경로 보호 유지. V87~V90, LINKED_EVIDENCE_ONLY 전용 범위·예약·수집 제어·불변 연결 snapshot·별도 재검수 경고 구현. 00d16d9 Linux CI37087157343 성공과 합성 worker/DB 계약 증거는 본 문서 최신 기록 및 linked-evidence 설계 문서 참조 | [~] | 실제 연결 공고의 외부 파일 worker·운영 브라우저·운영 업무 데이터 불변 검증 필요. 배포37256870718 진행 중이며 설치 완료 전이다. 운영 표본 수집은 대상·영향 승인 후 실행 |
+| ATT-051 | 연결된 운영 공고 보호 | 기존 일반 경로 보호 유지. V87~V90, LINKED_EVIDENCE_ONLY 전용 범위·예약·수집 제어·불변 연결 snapshot·별도 재검수 경고 구현. 00d16d9 Linux CI37087157343 성공과 합성 worker/DB 계약 증거는 본 문서 최신 기록 및 linked-evidence 설계 문서 참조. 10-05 11:56 배포37256870718 성공·운영 V90 설치 확인 | [~] | 실제 연결 공고의 외부 파일 worker·운영 브라우저·운영 업무 데이터 불변 검증 필요. 설치 성공은 연결 공고 E2E 성공이 아니다. 운영 표본 수집은 대상·영향 승인 후 실행 |
 | ATT-052 | 원문/secret/XSS 분리 | D.formIsBoundedImmutableAndDoesNotAppearInDiagnosticStrings; 근거/History HTTP no-store·좌표만 반환; PG.att036And052…; 합성 브라우저 HTML 문자 비실행·코드포인트 강조, 새 SSR/Node 테스트 | [~] | 운영 실제 로그·HAR·화면 검증; 수집 오류 로그 점검 |
 | ATT-053 | 새 DB/업그레이드/checksum | Linux35693601984/272dafd의 freshSchemaAndV71UpgradePreservePriorChecksums4.036초 통과. 기존10테이블/V71 합성 업무 데이터 보존, V72~83 순차/빈 DB validate, false CHECK INSERT·UPDATE 실제 거부. 운영 설치 JAR 대 이력80/80 checksum 일치(SSM638ec0bb-b863-4bd0-a2b7-a87eb589f3c6, 쓰기0) | [x] | 이 요구의 필수 증거 충족. 전체 운영 업무/Provider/브라우저 완료를 의미하지 않음 |
 | ATT-054 | OFF/COLLECT_ONLY 기존 Golden 유지 | 기존 분류/수집 회귀와 E/CurrentServiceTest | [~] | 정책별 통합 Golden + 운영 ACTIVE 동일 release |
@@ -399,7 +415,7 @@ ATT-027/059의 합성 입력 Linux launcher 증거를 보강한다. 웹 UI의 �
 | ATT-056 | 문단/불명확 셀 AND 금지 | E.separateParagraphsCannotSatisfyAnd; E.unknownRoleAndUnreliablePdfScopeRequireReview | [~] | 실제 PDF/HWP/HWPX 표/문단 worker evidence |
 | ATT-057 | OPEN/pending 판정 ID null | PG.att031UnsealedOrExpiredWorker…; CurrentServiceTest.enforcePending…; HistoryService pending의 과거 판정은 NOT_CURRENT | [~] | 최신 PG 및 운영 화면 pending→sealed |
 | ATT-058 | source 같아도 다른 입력 조합 거부 | Linux35050057694 immutableEvidenceRejectsMismatchedBindingsAndCascadesWithSource·역할 근거 소속 시험 통과 | [~] | 최신 운영 API에서 교차 set/policy/base 거부 검증 |
-| ATT-059 | 추출기 비밀·망·파일 격리 | f496d2e Linux35631537040 및9a1bb45 Linux35681482535의 실제 subprocess 환경/호스트 파일/loopback 차단·입력/라이브러리 read-only 통과. 09-22 운영9a1bb45의 CI 코드 지문·추출기1.0.3·JAR별 QA/worker 경로·공용/QA library set·bwrap/prlimit 존재 대조 | [~] | 운영 worker는 비활성으로 실제 작업 격리 실행은 미검증. 합성 canary/설치 metadata 일치를 모든 악성 파일/자원 고갈·운영 E2E 검증으로 확대하지 않음 |
+| ATT-059 | 추출기 비밀·망·파일 격리 | f496d2e Linux35631537040 및9a1bb45 Linux35681482535의 실제 subprocess 환경/호스트 파일/loopback 차단·입력/라이브러리 read-only 통과. 09-22 운영9a1bb45의 CI 코드 지문·추출기1.0.3·JAR별 QA/worker 경로·공용/QA library set·bwrap/prlimit 존재 대조. 10-05 11:56 worker true 확인 이력과 기존 HWPX 단건 처리 이력은 운영 인수 문서 참조 | [~] | worker 활성화·일반 파일 처리 이력은 운영의 비밀·망·호스트 파일 격리 직접 검증을 대신하지 않는다. 최신 설치의 격리 검증 필요. 합성 canary/설치 metadata 일치를 모든 악성 파일/자원 고갈·운영 E2E 검증으로 확대하지 않음 |
 | ATT-060 | 전역 동시성/한도 상향 금지 | PG.att060DownloadAndHostAndExtractionCaps…; PG.att024And060…; D/T 한도 검사; CollectionService 공유 수동 한도·132 HTTP 상한; PolicyService/HTTP 초안 1~80 MiB·임의 실행 설정 거부 | [~] | 최신 PG + 두 실제 worker·실제 정책 검증/게시 상한 |
 | ATT-061 | base/정책 release 불일치 | E.mismatchedRuleReleaseIsRejectedBeforeEvaluation; PG.att061PolicyProfileAndRule…; Intake/SourceService/MapperBinding 미일치 ENFORCE·퇴역 규칙 준비 차단; PolicyService 초안 DRAFT/ACTIVE 규칙 허용; PublicationImpact 최신 QA/필수 재검증 및 정책 UI의 조회 버전·QA 누락/불일치·퇴역 선택 차단 | [~] | 최신 PG 실행·정책 전체 QA/게시/교체·운영 검증 |
 | ATT-062 | COLLECT_ONLY는 preview만 변경 | CurrentServiceTest.collectOnlyKeepsBaseEffective…; HistoryService CURRENT_PREVIEW와 AUTO 태그 구분; Current/History PG projection | [~] | 최신 PG 목록/count/태그와 운영 브라우저 |
