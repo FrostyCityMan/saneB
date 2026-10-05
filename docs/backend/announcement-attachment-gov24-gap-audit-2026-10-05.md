@@ -85,3 +85,20 @@ git diff --check
 2026-10-05 12:36 KST경 14분59초로 정상 종료했다. root `:test` XML 전체4,662건 중4,263통과/399조건부 생략/실패0/오류0이다. 정부24 목록·상세 제공자43건, 상세 응답13건, 본문 준비 gate6건은 합계62건 모두 통과했다. 별도 extractor/독립 worker DB/Flyway task를 이번 명령으로 실행한 것은 아니다. bootJar 생성과 `git diff --check`는 통과했다.
 
 긴 실행 중 같은 세션을 유지했고 thread stack에서 카탈로그→첨부 서비스→Spring 클래스 경로 파일 탐색 진행을 확인했다. 네트워크 대기나 실패로 단정하여 테스트를 중복 시작하지 않았다. 종료 후 이번 Gradle 관련 JVM 3개가 남지 않았으며 XML 집계 Node도 종료했다. 운영 배포·실제 인증 API·브라우저 검증은 미실행이다. 응답 전송 자원 제한과 실제 상세 DB 저장 검증은 다음 필수 작업이며, 현재 코드의 로컬 테스트 성공만으로 운영 활성화를 승인하지 않는다.
+
+## 후속 증분: 상세 응답 전송 상한
+
+앞선 `22ddcc9`의 전송 자원 제한 미완료 항목을 보완한다. 상세 조회만 `selectBoundedDetailJson` 경로를 사용하며 기존 목록 transport의 동작은 변경하지 않는다.
+
+- 최대 다운로드 2MiB. `BoundedJsonBodySubscriber`가 수신 chunk를 복사하기 전에 남은 예산을 검사하며 초과 시 subscription을 취소한다. 초과 응답 전체를 저장한 뒤 잘라서 정상 JSON으로 취급하지 않는다.
+- 전체 헤더·본문 수신 deadline은 기존 timeout 설정(최소1초), 최대10초다. headers 후 본문이 멈춰도 제한 시간을 넘겨 기다리지 않으며 pending 요청을 취소한다. 이 deadline은 JSON 파싱 CPU 시간까지 보장하는 값은 아니다.
+- HTTP 자동 redirect/재시도는 추가하지 않는다. 고정 공식 endpoint 검사와 API key 비출력은 유지한다. `Accept-Encoding: identity`를 요청하며 압축 해제 경로를 새로 만들지 않는다.
+- 원격 오류 메시지/URL을 예외의 원인으로 노출하지 않는다. 실패는 기존 상세 실패 경로로 전달하며 다른 서비스·이전 응답·첨부를 대신 사용하지 않는다.
+- unit subscriber 검증은 정확한 경계/여러 chunk/초과 chunk 미소비·취소/실패 후 성공 전환 금지/원격 오류 비노출/중복 subscription 거부를 포함한다.
+- 실제 HTTP 검증은 loopback 가짜 서버만 사용한다. 정상 JSON, 정상 헤더 후 정지하는 본문, 유효 JSON이지만 2MiB보다 큰 chunked 응답을 포함한다. 서버와 executor는 finally에서 정리한다. 정부24 운영 실요청 증거가 아니다.
+
+실제 상세 DB snapshot/version 연결, 활성화 승인, 공식 표본·첨부 발견·운영 브라우저 E2E는 계속 미완료다. 정책 게시·ENFORCE·기존 데이터 재처리·자동 활성화는 하지 않았다.
+
+검증 명령: `.\gradlew.bat :test --tests '*Gov24*Test' --tests '*BoundedJsonBodySubscriberTest' --tests '*AnnouncementSourceServiceImplTest' bootJar --offline --no-daemon --console=plain --max-workers=1`
+
+첫35초 실행 후 용량 초과 fixture를 파싱 가능한 큰 JSON으로 강화하고 재실행했다. 최종28초 실행에서92건 통과/실패0/오류0/생략0이며 subscriber4건·로컬 HTTP3건을 포함한다. bootJar는 첫 실행에서 생성했고 테스트 fixture만 수정한 최종 실행에서는 UP-TO-DATE다. 전체 root 회귀는 직전 `22ddcc9`의 결과이며 이번 전송 변경 뒤 전체 재실행으로 과장하지 않는다. 독립 DB/Flyway/실제 정부24/운영 브라우저는 미실행이다. Node·단회 Gradle·가짜 HTTP 서버·executor를 종료했다.

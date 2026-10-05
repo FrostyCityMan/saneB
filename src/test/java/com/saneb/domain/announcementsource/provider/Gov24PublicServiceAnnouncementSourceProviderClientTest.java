@@ -292,5 +292,11 @@ class Gov24PublicServiceAnnouncementSourceProviderClientTest {
             requests.add(uri);
             return response;
         }
+
+        @Override
+        protected JsonNode selectBoundedDetailJson(URI uri) {
+            requests.add(uri);
+            return response;
+        }
     }
 }

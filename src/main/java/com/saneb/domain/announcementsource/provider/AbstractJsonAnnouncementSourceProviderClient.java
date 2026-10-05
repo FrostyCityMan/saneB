@@ -102,6 +102,30 @@ abstract class AbstractJsonAnnouncementSourceProviderClient implements Announcem
         }
     }
 
+    /** 상세 전용: 헤더와 본문 수신 전체에 동일 deadline, 수신 중 바이트 상한을 적용한다. */
+    protected JsonNode selectBoundedDetailJson(URI uri) {
+        int deadlineMillis = Math.min(timeoutMillis, 10_000);
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .timeout(Duration.ofMillis(deadlineMillis)).GET()
+                .header("Accept", "application/json").header("Accept-Encoding", "identity").build();
+        var pending = httpClient.sendAsync(request, ignored -> new BoundedJsonBodySubscriber(2 * 1024 * 1024));
+        try {
+            var response = pending.get(deadlineMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IOException("DETAIL_HTTP_FAILED");
+            }
+            return objectMapper.readTree(response.body());
+        } catch (InterruptedException exception) {
+            pending.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, HttpStatus.BAD_GATEWAY, "정부24 상세 응답 수신이 중단되었습니다.");
+        } catch (IOException | java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException exception) {
+            pending.cancel(true);
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, HttpStatus.BAD_GATEWAY,
+                    "정부24 상세 응답의 수신 또는 해석에 실패했습니다. 다운로드 상한 2MiB와 전체 대기시간 최대 10초를 확인해 주세요.");
+        }
+    }
+
     /**
      * URL query 값을 인코딩합니다.
      *

@@ -60,7 +60,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
             }
             URI uri = URI.create("https://" + OFFICIAL_HOST + "/api/gov24/v3/serviceDetail?serviceKey="
                     + encode(apiKey) + "&page=1&perPage=1&" + encode("cond[서비스ID::EQ]") + "=" + encode(providerNoticeId));
-            var detail = Gov24ServiceDetailResponse.selectDetails(providerNoticeId, selectJson(uri));
+            var detail = Gov24ServiceDetailResponse.selectDetails(providerNoticeId, selectBoundedDetailJson(uri));
             var body = new StringBuilder();
             appendDetail(body, detail.purpose());
             appendDetail(body, detail.target());
