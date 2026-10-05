@@ -1,5 +1,13 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-05 최신 앱 코드 Linux 통합 검증 완료
+
+앱 코드 `5f0e274ea88e6c700a8fc671d098df6807e784ca`의 run37261775271이 completed/success로 종료됐다. artifact11325571457을 `build/ci-evidence-37261775271`에 내려받아 XML을 대조했다. 일반 test(앱·추출기 합산)4,922건 중4,521통과/401조건부 생략/실패·오류0이다. 별도 QA20·작업229·migration/Backfill18·정책DB2·runtime7·worker12·Flyway5건은 모두 실패·오류·생략0이다.
+
+Flyway5건에서 정부24 본문 버전 저장 사례와 `gov24CollectionRunRefreshesSnapshotAndRetainsPreviousContentVersion`이 실제 실행됐음을 확인했다. 독립 보고서 SYNTHETIC_WORKER_DB_CONTRACTS_V2는259발견/259통과/실패0/생략0/미실행0이며 ATTACHMENT_CONTRACT_QA_CLEANUP/POLICY_DB_QA_CLEANUP 모두 SUCCEEDED다. 일반 test의 생략을 통과로 합산하지 않으며, 독립 시험259건은 별도 task 사례와 중복되므로 총 고유 사례 수로 더하지 않는다.
+
+문서 전용 후속 HEAD `96f576d`는 검증 앱 SHA와 main 코드가 동일하다. 최신 Linux 코드 검증 하위 Gate는 통과했지만 실제 정부24 API/첨부 profile·최신 코드 운영 설치·검수/DRAFT·기존 데이터 적용·운영 E2E는 남는다. 정확한 앱 SHA 설치·재시작 승인을 요청했으며 정책/기능 활성화 승인을 대신하지 않는다.
+
 ## 2026-10-05 정부24 상세 저장 증분 Linux 증거
 
 `4b482c3c6ba234d3c2be1240797ffa58be9de290`의 run37260946511이 completed/success로 종료됐다. artifact11324493047을 `build/ci-evidence-37260946511`에 내려받아 XML을 직접 대조했다. 일반 test(앱·추출기 합산)4,921건/조건부 생략400건/실패·오류0, 별도 QA20·작업229·migration/Backfill18·정책DB2·runtime7·worker12·Flyway4건은 실패·오류·생략0이다.
