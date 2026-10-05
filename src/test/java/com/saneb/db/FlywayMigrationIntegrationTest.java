@@ -100,6 +100,95 @@ class FlywayMigrationIntegrationTest {
     @Autowired
     private com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationPersistenceService classificationPersistenceService;
 
+    @Autowired
+    private org.springframework.context.ApplicationContext applicationContext;
+
+    @Test
+    @Transactional
+    void gov24CollectionRunRefreshesSnapshotAndRetainsPreviousContentVersion() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
+        assertThat(applicationContext.getBean(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class)
+                .selectExactSourceAcrossProviders("GOV24_PUBLIC_SERVICE", null, "없는 제목", "없는 기관", null)).isNull();
+        UUID actorId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                -- 임시 DB의 규칙 게시 검증에만 사용하는 합성 관리자다.
+                INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required)
+                VALUES (?,'gov24-run-fixture','unused','합성 검증 관리자','ACTIVE',false)
+                """, actorId);
+        var principal = new AuthenticatedUserDetails(new AuthUserDetailsRow(actorId, "gov24-run-fixture", "unused",
+                "합성 검증 관리자", "ACTIVE", false, null, null, null), List.of("ADMIN"));
+        var authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+        UUID releaseId = jdbcTemplate.queryForObject("""
+                -- 운영 release가 아닌 이 임시 DB의 초기 seed를 선택한다.
+                SELECT id FROM announcement_source_classification_rule_releases WHERE release_code='ASCR-000001'
+                """, UUID.class);
+        var golden = ruleReleaseService.insertGoldenSetRun(authentication, releaseId, new AnnouncementSourceRuleGoldenSetRunRequest(0));
+        ruleReleaseService.updateRuleReleasePublication(authentication, releaseId,
+                new AnnouncementSourceRulePublicationRequest(0, "임시 DB 정부24 수집 검증", golden.goldenSetRunId()));
+        var detailText = new java.util.concurrent.atomic.AtomicReference<>("소상공인 지원금 첫 번째 상세 내용");
+        var detailCalls = new java.util.concurrent.atomic.AtomicInteger();
+        var provider = new com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderClient() {
+            @Override public String selectProviderCode() { return "GOV24_PUBLIC_SERVICE"; }
+            @Override public boolean isDetailBodyEnabled() { return true; }
+            @Override public List<com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem> selectSourceItemList(
+                    com.saneb.domain.announcementsource.vo.AnnouncementSourceCollectionRequestRow request) {
+                return List.of(selectGov24Item("동일 목록 요약"));
+            }
+            @Override public ProviderDetailBody selectDetailBody(String noticeId) {
+                assertThat(noticeId).isEqualTo("GOV24-DETAIL-FIXTURE");
+                detailCalls.incrementAndGet();
+                return new ProviderDetailBody(detailText.get(),
+                        com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.AVAILABLE);
+            }
+        };
+        var coordinator = new com.saneb.domain.announcementsource.service.impl.AnnouncementSourceClassificationCoordinatorImpl(
+                true,
+                applicationContext.getBean(com.saneb.domain.announcementsource.service.AnnouncementSourceActiveRuleService.class),
+                applicationContext.getBean(com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao.class),
+                applicationContext.getBean(com.saneb.domain.announcementsource.classification.AnnouncementSourceSearchPlanBuilder.class),
+                classificationPersistenceService, "GOV24_PUBLIC_SERVICE", 50);
+        var service = new com.saneb.domain.announcementsource.service.impl.AnnouncementSourceServiceImpl(
+                applicationContext.getBean(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class),
+                applicationContext.getBean(com.saneb.domain.announcementsource.dao.LocalGovernmentNoticeDao.class),
+                applicationContext.getBean(com.saneb.domain.announcement.dao.AnnouncementDao.class),
+                applicationContext.getBean(com.saneb.domain.announcementsource.service.AnnouncementSourceHighlightService.class),
+                List.of(provider), List.of(), coordinator,
+                applicationContext.getBean(org.springframework.transaction.PlatformTransactionManager.class));
+        UUID requestId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                -- 외부 통신이 없는 합성 제공자에 대한 임시 승인 요청이다.
+                INSERT INTO announcement_source_collection_requests(id,provider_code,request_type_code,request_status_code,max_count)
+                VALUES (?,'GOV24_PUBLIC_SERVICE','MANUAL','APPROVED',1)
+                """, requestId);
+        var first = service.insertCollectionRun(requestId);
+        assertThat(first.failedCount()).isZero();
+        assertThat(first.collectedCount()).isEqualTo(1);
+        detailText.set("소상공인 지원금 두 번째 상세 내용");
+        var changed = service.insertCollectionRun(requestId);
+        assertThat(changed.failedCount()).isZero();
+        assertThat(changed.collectedCount()).isEqualTo(1);
+        var repeated = service.insertCollectionRun(requestId);
+        assertThat(repeated.failedCount()).isZero();
+        assertThat(repeated.duplicateCount()).isEqualTo(1);
+        assertThat(detailCalls.get()).isEqualTo(3);
+        UUID sourceId = jdbcTemplate.queryForObject("""
+                -- 제공자 원문 ID는 세 번 수집해도 하나다.
+                SELECT id FROM announcement_source_snapshots WHERE provider_code='GOV24_PUBLIC_SERVICE' AND provider_notice_id='GOV24-DETAIL-FIXTURE'
+                """, UUID.class);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 수집 서비스가 실제 snapshot 본문을 새 상세로 갱신한다.
+                SELECT body_text FROM announcement_source_snapshots WHERE id=?
+                """, String.class, sourceId)).isEqualTo(detailText.get());
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 이전 상세 이력과 변경 상세 이력을 모두 보존한다.
+                SELECT count(1) FROM announcement_source_content_versions WHERE source_id=? AND body_source_code='PROVIDER_FULL_TEXT'
+                """, Long.class, sourceId)).isEqualTo(2L);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 목록 hash가 같아도 상세 변경을 수집하고 원문 hash는 보존한다.
+                SELECT raw_hash FROM announcement_source_snapshots WHERE id=?
+                """, String.class, sourceId)).isEqualTo("a".repeat(64));
+    }
+
     @Test
     @Transactional
     void gov24DetailContentVersionsKeepSummaryProvenanceAndDeduplicateIdenticalBody() {

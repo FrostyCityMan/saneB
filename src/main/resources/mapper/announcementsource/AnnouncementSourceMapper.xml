@@ -961,9 +961,9 @@
         FROM announcement_source_snapshots ass
         WHERE ass.provider_code &lt;&gt; #{providerCode}
           AND (
-              (#{canonicalSourceUrl} IS NOT NULL AND ass.canonical_source_url = #{canonicalSourceUrl})
+              (CAST(#{canonicalSourceUrl} AS text) IS NOT NULL AND ass.canonical_source_url = #{canonicalSourceUrl})
               OR (
-                  #{postedDate} IS NOT NULL
+                  CAST(#{postedDate} AS date) IS NOT NULL
                   AND ass.normalized_title = #{normalizedTitle}
                   AND ass.normalized_agency_name = #{normalizedAgencyName}
                   AND ass.posted_date = #{postedDate}

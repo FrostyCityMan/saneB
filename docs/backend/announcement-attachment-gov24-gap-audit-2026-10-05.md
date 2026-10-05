@@ -120,3 +120,19 @@ git diff --check
 첫 실행50초 성공, XML4건 통과/실패0/오류0/생략0이며 정부24 신규 사례가 실제 실행됐음을 확인했다. 해당 task는 부모 DB 환경변수를 비우고 소유 loopback DB를 사용하며 운영 worker/배치를 비활성화한다. Node 집계 후 Java/PostgreSQL 프로세스가 남지 않았다. 운영 변경·실제 정부24 요청은 없다.
 
 SQL 주석 정리 후 최종 재실행도51초 성공했다. XML4건 통과/실패·오류·생략0을 재확인했고 Node·Java·임시 PostgreSQL을 정리했다. 이번 변경은 테스트·문서뿐이며 앱 JAR·migration·API·운영 설정 변경은 없다.
+
+## 후속 증분: 수집 service에서 snapshot까지 연결
+
+`gov24CollectionRunRefreshesSnapshotAndRetainsPreviousContentVersion`은 소유 임시 PostgreSQL에서 실제 수집 service·분류 coordinator/engine·활성 규칙 조회·DAO·Mapper·transaction manager를 연결한다. 외부 제공자만 합성 목록/상세 응답이며 네트워크를 호출하지 않는다. 규칙 seed는 임시 DB 안에서 기존 Golden Gate/게시 service로 활성화한다. 이 동작은 운영 정책 게시가 아니다. 첨부 intake는 이 사례의 연결 대상이 아니므로 상시 worker E2E로 계산하지 않는다.
+
+신규 수집→목록 hash는 같고 상세 본문만 변경→동일 상세 재수신의 세 실행을 검증한다. snapshot은 최신 상세로 바뀌고 원문은 한 개, content version은 두 개, 마지막 실행은 중복이며 상세 요청은 실행당1개다. 목록 raw hash는 보존한다.
+
+첫 컴파일에서 DAO 패키지명 오기를 수정했다. 다음 실제 DB 실행에서는 `selectExactSourceAcrossProviders`의 null 게시일 조건에서 PostgreSQL이 매개변수 자료형을 추론하지 못하는 오류를 발견했다. fixture에 임의 날짜를 채우지 않고 독립 null 검사 매개변수에 text/date CAST를 추가했다. URL·게시일이 모두 없는 경우도 직접 Mapper 호출로 검증한다. 중복 판정 의미·기존 컬럼·migration·API 계약은 변경하지 않는다. 이 오류는 기존 공통 중복 검사 SQL에 있으며 정부24 전용 SQL이 아니다.
+
+운영의 실제 발생 여부는 이번 임시 검증으로 단정하지 않는다. 실제 정부24 API/첨부 발견/상시 worker/운영 관리자 화면·정책 적용/공고 DRAFT 전환은 여전히 미완료다.
+
+최종 검증:
+
+- `flywayIntegrationTest -PsanebFlywayEphemeral=true bootJar --offline --no-daemon --console=plain --max-workers=1`: 55초 성공, 임시 PostgreSQL5건 모두 통과/생략0. 신규 실제 수집 service 경로 사례도 실행됐으며 bootJar를 생성했다.
+- `:test --tests '*MigrationContractTest' --tests '*AnnouncementSourceServiceImplTest' --tests '*Gov24*Test' --offline --no-daemon --console=plain --max-workers=1`: 25초 성공,188건 통과/실패0/오류0/생략0.
+- `git diff --check` 통과. Node·Gradle JVM·임시 PostgreSQL 종료. 이번 공통 SQL 수정 후 전체 root 회귀/실제 운영 DB/브라우저는 재실행하지 않았다. 최종 운영 반영 전 Linux CI·배포 검증은 별도로 필요하다.
