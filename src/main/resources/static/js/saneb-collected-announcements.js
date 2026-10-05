@@ -26,6 +26,9 @@
     let selectedSourceId = null;
     let selectedSource = null;
     let currentView = "ACTION_REQUIRED";
+    let detailSequence = 0;
+    let listSequence = 0;
+    const attachmentClient = window.SanebAttachmentReview.client(window.fetch.bind(window));
 
     const labels = {
         BIZINFO: "기업마당",
@@ -164,6 +167,7 @@
     };
 
     const showDetailMessage = (message, isError = false) => {
+        detailSequence++;
         sourceDetail.replaceChildren();
         const wrapper = document.createElement("div");
         wrapper.className = `collected-detail-empty${isError ? " is-error" : ""}`;
@@ -262,12 +266,21 @@
     };
 
     const renderList = async () => {
+        const sequence = ++listSequence;
+        showDetailMessage("공고 목록을 조회하고 있습니다.");
         sourceList.replaceChildren(appendText(document.createDocumentFragment(), "p", "수집 공고를 조회하고 있습니다.", "collected-empty-state"));
         const params = new URLSearchParams(new FormData(filterForm));
         [...params.entries()].forEach(([key, value]) => { if (!value) params.delete(key); });
         params.set("page", String(currentPage));
         params.set("size", "15");
-        const data = await requestJson(`${sourceUrl}?${params.toString()}`);
+        let data;
+        try {
+            data = await requestJson(`${sourceUrl}?${params.toString()}`);
+        } catch (error) {
+            if (sequence !== listSequence) return;
+            throw error;
+        }
+        if (sequence !== listSequence) return;
 
         currentPage = data.page || 1;
         totalPages = Math.max(1, data.totalPages || 1);
@@ -459,11 +472,11 @@
     const renderAttachments = (attachments) => {
         const section = document.createElement("section");
         section.className = "collected-detail-section attachment-reference-panel";
-        appendText(section, "h4", "첨부파일 · 원문 확인용");
-        appendText(section, "p", "첨부파일은 분류 판정에 사용하지 않습니다.", "classification-scope-note");
+        appendText(section, "h4", "원문 첨부 링크 · 과거 수집 정보");
+        appendText(section, "p", "아래 링크 유무는 첨부 다운로드·추출 상태와 다릅니다. 실제 처리 상태는 첨부 근거에서 확인하세요.", "classification-scope-note");
         const list = document.createElement("div");
         list.className = "collected-attachment-list";
-        if (!attachments?.length) appendText(list, "p", "수집된 첨부파일이 없습니다.", "muted-copy");
+        if (!attachments?.length) appendText(list, "p", "이전 수집 정보에 첨부 링크가 없습니다. 실제 첨부 없음이 확인된 것은 아닙니다.", "muted-copy");
         (attachments || []).forEach((attachment) => {
             const safeUrl = safeHttpUrl(attachment.fileUrl);
             if (safeUrl) {
@@ -488,12 +501,20 @@
 
     const renderSourceDetail = async (sourceId) => {
         showDetailMessage("상세 정보를 불러오고 있습니다.");
-        const data = await requestJson(`${sourceUrl}/${encodeURIComponent(sourceId)}`);
+        const sequence = detailSequence;
+        let data;
+        try {
+            data = await requestJson(`${sourceUrl}/${encodeURIComponent(sourceId)}`);
+        } catch (error) {
+            if (sequence === detailSequence && sourceId === selectedSourceId) showDetailMessage(error.message, true);
+            return;
+        }
         try {
             data.classification = await requestJson(`${sourceUrl}/${encodeURIComponent(sourceId)}/classification`);
         } catch (error) {
             data.classificationLoadError = error.message;
         }
+        if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
         selectedSource = data;
         const classification = classificationOf(data);
         const semanticStatus = classification.semanticStatusCode || data.semanticStatusCode;
@@ -546,6 +567,7 @@
         renderCollectionDiagnosticPanel(data, classification);
         renderDuplicateCandidates(data);
         renderSourceDuplicates(data);
+        if (semanticStatus !== "EXCLUDED") renderAttachmentOverview(data.sourceId, sequence);
         renderAttachments(data.attachments);
 
         const bodySection = document.createElement("section");
@@ -553,6 +575,128 @@
         appendText(bodySection, "h4", "원문 본문");
         appendText(bodySection, "pre", data.bodyText || "본문 정보가 없습니다.", "source-body");
         sourceDetail.append(bodySection);
+        if (canManage && data.providerCode === "LOCAL_GOV_NOTICE" && semanticStatus !== "EXCLUDED") {
+            renderBodyRefresh(bodySection, data.sourceId, sequence);
+        }
+    };
+
+    const renderBodyRefresh = (parent, sourceId, sequence) => {
+        const panel = document.createElement("details");
+        appendText(panel, "summary", "기존 본문 복구 · 단건 미리보기");
+        appendText(panel, "p", "등록된 공식 상세 페이지 1건을 제한된 재시도·리디렉션 범위에서 조회합니다. 첨부파일은 다시 받지 않습니다. 미리보기는 30분 동안 적용할 수 있으며, 적용 전에는 현재 본문과 판정을 바꾸지 않습니다.");
+        const result = document.createElement("div");
+        result.setAttribute("aria-live", "polite");
+        const previewButton = appendText(panel, "button", "공식 본문 조회 후 변경 미리보기", "secondary-action small-action");
+        previewButton.type = "button";
+        panel.append(result);
+        parent.append(panel);
+        const path = `/api/v2/admin/announcement-sources/${encodeURIComponent(sourceId)}/body-refresh-previews`;
+        previewButton.addEventListener("click", async () => {
+            previewButton.disabled = true;
+            result.replaceChildren();
+            appendText(result, "p", "공식 본문을 조회·정제하고 있습니다.");
+            try {
+                const preview = await attachmentClient(path, {method: "POST"});
+                if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                if (!preview || preview.sourceId !== sourceId || !preview.previewId || typeof preview.afterBody !== "string") {
+                    throw new Error("공고 식별자 또는 정제 본문 응답이 올바르지 않습니다. 새 미리보기를 생성하세요.");
+                }
+                result.replaceChildren();
+                appendText(result, "p", `판정 변경: ${statusLabel(preview.beforeStatusCode)} → ${statusLabel(preview.afterStatusCode)}`);
+                appendText(result, "p", `새 판정 근거: ${reasonLabel(preview.reasonCode)}`);
+                appendText(result, "p", `지원대상: ${(preview.targetCategoryCodes || []).map(statusLabel).join(", ") || "없음"} / 지원형태: ${(preview.supportTypeCodes || []).map(statusLabel).join(", ") || "없음"}`);
+                appendText(result, "h5", "적용할 정제 본문");
+                appendText(result, "pre", preview.afterBody, "source-body");
+                appendText(result, "p", `적용 유효기간: ${formatDateTime(preview.expiresAt)}`);
+                if (!preview.isChanged) {
+                    appendText(result, "p", "기존 본문과 같습니다. 새 버전을 생성하지 않습니다.");
+                    return;
+                }
+                const label = document.createElement("label"), acknowledged = document.createElement("input");
+                acknowledged.type = "checkbox";
+                label.append(acknowledged, document.createTextNode(" 이 공고 1건의 본문·기본 판정을 새 버전으로 저장하고 이전 첨부 근거는 재확인해야 함을 확인했습니다. 운영 공고·첨부 정책은 바꾸지 않습니다."));
+                result.append(label);
+                const apply = appendText(result, "button", "확인한 본문 1건 적용", "primary-action small-action");
+                apply.type = "button"; apply.disabled = true;
+                const receipt = appendText(result, "p", "적용 전입니다.");
+                acknowledged.addEventListener("change", () => { apply.disabled = !acknowledged.checked; });
+                apply.addEventListener("click", async () => {
+                    apply.disabled = true; acknowledged.disabled = true; previewButton.disabled = true;
+                    receipt.textContent = "고정한 본문을 적용하고 있습니다. 외부 파일을 요청하지 않습니다.";
+                    try {
+                        const applied = await attachmentClient(`${path}/${encodeURIComponent(preview.previewId)}/apply`, {method:"POST"});
+                        if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                        if (!applied || applied.sourceId !== sourceId || applied.previewId !== preview.previewId || !applied.evaluationId || applied.statusCode !== "APPLIED") {
+                            const mismatch = new Error("본문 적용 영수증을 확인하지 못했습니다. 같은 미리보기로 재시도하여 결과를 확인하세요.");
+                            mismatch.uncertain = true;
+                            throw mismatch;
+                        }
+                        receipt.textContent = "본문과 기본 판정의 새 버전이 저장됐습니다. 최신 첨부 근거를 준비한 뒤 최종 검수하세요.";
+                        apply.hidden = true;
+                        const refresh = appendText(result, "button", "최신 본문·첨부 상태 조회", "secondary-action small-action");
+                        refresh.type = "button";
+                        refresh.addEventListener("click", () => runAction(() => renderSourceDetail(sourceId)));
+                    } catch (error) {
+                        if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                        receipt.textContent = error.message;
+                        apply.textContent = error.uncertain ? "적용 결과 미확정 · 같은 미리보기로 재시도" : "같은 미리보기 적용 재시도";
+                        apply.disabled = false;
+                        // 불확실한 적용 결과를 확인하기 전에는 새 본문으로 대체하지 않는다.
+                        previewButton.disabled = !!error.uncertain;
+                    }
+                });
+            } catch (error) {
+                if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                result.replaceChildren();
+                appendText(result, "p", `본문 미리보기를 준비하지 못했습니다. ${error.message}`, "is-error");
+            } finally {
+                previewButton.disabled = false;
+            }
+        });
+    };
+
+    const renderAttachmentOverview = (sourceId, sequence) => {
+        const section = document.createElement("section");
+        section.className = "collected-detail-section";
+        section.setAttribute("aria-label", "현재 첨부 처리 상태");
+        const content = document.createElement("div");
+        content.setAttribute("role", "status");
+        appendText(section, "h4", "현재 첨부 처리 상태");
+        section.append(content);
+        const link = document.createElement("a");
+        link.href = `/app/admin/collected-announcements/${encodeURIComponent(sourceId)}/attachments`;
+        link.textContent = "첨부 파일·추출 텍스트·검수 근거 확인";
+        section.append(link);
+        sourceDetail.append(section);
+        const load = async () => {
+            content.replaceChildren();
+            appendText(content, "p", "첨부 처리 상태를 조회하고 있습니다.");
+            try {
+                const source = await attachmentClient(`/api/v2/admin/announcement-sources/${encodeURIComponent(sourceId)}/attachment-classification`);
+                if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                if (source.sourceId !== sourceId) throw new Error("공고 식별자가 일치하지 않습니다. 다시 조회하세요.");
+                const summary = window.SanebAttachmentReview.attachmentOverview(source);
+                content.replaceChildren();
+                appendText(content, "strong", summary.status);
+                appendText(content, "p", summary.progress);
+                appendText(content, "p", `작업: ${summary.job || "미확인"}`);
+                if (summary.error) appendText(content, "p", summary.error, "is-error");
+                if (summary.stale) appendText(content, "p", "이전 첨부 근거입니다. 현재 본문·판정과 연결된 최신 근거를 확인하세요.", "is-error");
+                appendText(content, "p", summary.applied ? "첨부 판정 적용 대상 · 최종 검수 상태는 근거 화면에서 확인" : "첨부 판정 미적용 · 미리보기와 현재 분류는 별개");
+                appendText(content, "p", summary.guidance);
+            } catch (error) {
+                if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
+                content.replaceChildren();
+                appendText(content, "p", `첨부 상태를 불러오지 못했습니다. ${error.message}`, "is-error");
+                const retry = document.createElement("button");
+                retry.type = "button";
+                retry.className = "secondary-action small-action";
+                retry.textContent = "첨부 상태 다시 조회";
+                retry.addEventListener("click", load);
+                content.append(retry);
+            }
+        };
+        void load();
     };
 
     const refreshAfterChange = async () => {

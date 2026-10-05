@@ -50,6 +50,52 @@ import org.springframework.transaction.annotation.Transactional;
 @Import(FlywayMigrationIntegrationTest.EphemeralDatabase.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FlywayMigrationIntegrationTest {
+    @Test @Transactional
+    void bodyRefreshPreviewMapperPreservesFrozenEvidenceAndVersions() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
+        UUID sourceId=UUID.randomUUID(),actorId=UUID.randomUUID();
+        jdbcTemplate.update("""
+                -- 테스트 소유 임시 DB의 합성 계정. 운영 계정/외부 API를 사용하지 않는다.
+                INSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required)
+                VALUES (?,'body-refresh-fixture','unused','본문 복구 검증','ACTIVE',false)
+                """,actorId);
+        UUID releaseId=jdbcTemplate.queryForObject("-- 초기 규칙 FK만 사용한다.\nSELECT id FROM announcement_source_classification_rule_releases WHERE release_code='ASCR-000001'",UUID.class);
+        jdbcTemplate.update("""
+                -- 파일 수집과 무관한 합성 본문 저장 fixture다.
+                INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,body_text,raw_hash,semantic_status_code)
+                VALUES (?,'GOV24_PUBLIC_SERVICE','BODY-REFRESH-FIXTURE','소상공인 지원','이전 본문',repeat('a',64),'REVIEW_REQUIRED')
+                """,sourceId);
+        UUID base=classificationPersistenceService.saveNewContentEvaluation(sourceId,null,releaseId,selectGov24Item("이전 본문"),selectGov24Result("PROVIDER_FULL_TEXT","AVAILABLE"),"REVIEW_PENDING");
+        var ctx=applicationContext.getBean(com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentJobDao.class).selectSourceContextDetailsForUpdate(sourceId);
+        var dao=applicationContext.getBean(com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao.class);
+        assertThat(dao.selectBoundaryDetails(sourceId)).isNull(); // 정부24는 실제 복구 경로에서 제외된다.
+        UUID localSource=jdbcTemplate.queryForObject("-- 임시 DB의 등록 수집처만 조회한다.\nSELECT id FROM local_government_notice_sources ORDER BY id LIMIT 1",UUID.class);
+        jdbcTemplate.update("-- transaction 종료 시 원복되는 격리 fixture다.\nUPDATE local_government_notice_sources SET is_enabled=true,deleted_at=NULL WHERE id=?",localSource);
+        UUID localSnapshot=UUID.randomUUID();
+        jdbcTemplate.update("""
+                -- 실제 다운로드 없이 등록 수집처 경계와 record 매핑을 확인한다.
+                INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,raw_hash,local_government_source_id)
+                VALUES (?,'LOCAL_GOV_NOTICE','BODY-BOUNDARY-FIXTURE','본문 경계 검증',repeat('b',64),?)
+                """,localSnapshot,localSource);
+        var boundary=dao.selectBoundaryDetails(localSnapshot);
+        assertThat(boundary.registeredSourceId()).isEqualTo(localSource);
+        assertThat(boundary.registeredSourceUrl()).isNotBlank();
+        assertThat(boundary.blocked()).isFalse();
+        var preview=new com.saneb.domain.announcementsource.vo.SourceBodyRefreshRows.Preview(UUID.randomUUID(),sourceId,actorId,base,ctx.contentVersionId(),releaseId,
+                ctx.sourceVersion(),ctx.attachmentVersion(),"정제 본문","a".repeat(64),"NOTICE_BODY_2",java.time.OffsetDateTime.now().plusMinutes(30),null);
+        assertThat(dao.insertPreview(preview)).isEqualTo(1);
+        var stored=dao.selectPreviewDetailsForUpdate(sourceId,preview.id());
+        assertThat(stored.bodyText()).isEqualTo("정제 본문");
+        assertThat(stored.requestedBy()).isEqualTo(actorId);
+        assertThat(dao.updateBody(sourceId,"정제 본문",ctx.sourceVersion()+1)).isZero();
+        assertThat(dao.updateBody(sourceId,"정제 본문",ctx.sourceVersion())).isEqualTo(1);
+        UUID applied=classificationPersistenceService.saveChangedContentEvaluation(sourceId,null,releaseId,selectGov24Item("정제 본문"),selectGov24Result("PROVIDER_FULL_TEXT","AVAILABLE"),"REVIEW_PENDING",ctx.sourceVersion());
+        assertThat(dao.updateApplied(preview.id(),applied)).isEqualTo(1);
+        assertThat(dao.selectPreviewDetailsForUpdate(sourceId,preview.id()).appliedEvaluationId()).isEqualTo(applied);
+        assertThat(jdbcTemplate.queryForObject("-- 이전 본문 버전을 보존한다.\nSELECT count(1) FROM announcement_source_content_versions WHERE source_id=?",Long.class,sourceId)).isEqualTo(2L);
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->jdbcTemplate.update("-- 고정 본문 변조는 DB trigger로 차단한다.\nUPDATE announcement_source_body_refresh_previews SET body_text='변경' WHERE id=?",preview.id()))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
 
     /** 명시 실행 모드만 별도 loopback DB를 소유한다. 기본 외부 DB 모드는 기존 계약을 보존한다. */
     @TestConfiguration(proxyBeanMethods = false)

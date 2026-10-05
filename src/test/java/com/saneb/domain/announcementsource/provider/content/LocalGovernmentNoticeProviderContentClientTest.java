@@ -1693,7 +1693,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     }
 
     @Test
-    void selectContentExcludesNavigationWhenOnlyBodyFallbackIsAvailable() {
+    void selectContentRejectsWholePageWhenOnlyBodyFallbackIsAvailable() {
         StubTransport transport = new StubTransport();
         transport.enqueue(html("""
                 <body>
@@ -1706,9 +1706,26 @@ class LocalGovernmentNoticeProviderContentClientTest {
 
         ProviderContentResult result = client(true, transport, publicValidator()).selectContent(request());
 
-        assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문 탐색 메뉴 변경 안내도 본문 문장이면 보존합니다.");
+        assertThat(result.statusCode()).isEqualTo(StatusCode.FETCH_FAILED);
+        assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(result.bodyText()).isNull();
         assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
+    }
+
+    @Test
+    void selectContentRejectsAmbiguousMainAndRemovesExplicitPageChrome() {
+        StubTransport ambiguous = new StubTransport();
+        ambiguous.enqueue(html("<main>첫 공고</main><main>다른 공고</main>"));
+        var failed = client(true, ambiguous, publicValidator()).selectContent(request());
+        assertThat(failed.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        assertThat(failed.bodyText()).isNull();
+
+        StubTransport clean = new StubTransport();
+        clean.enqueue(html("<header>사이트 메뉴</header><main><div role='banner'>수출 메뉴</div>"
+                + "<p>소상공인 지원금</p><table><tr><td>접수기간 10월</td></tr></table>"
+                + "<div role='contentinfo'>저작권 정책</div></main><footer>사이트맵</footer>"));
+        var result = client(true, clean, publicValidator()).selectContent(request());
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 접수기간 10월");
     }
 
     @Test
@@ -1748,7 +1765,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         transport.enqueue(redirect("/notices/43"));
         transport.enqueue(redirect("/notices/44"));
         transport.enqueue(redirect("/notices/45"));
-        transport.enqueue(html("<html><body>소상공인 정책자금</body></html>"));
+        transport.enqueue(html("<html><body><main>소상공인 정책자금</main></body></html>"));
         LocalGovernmentNoticeProviderContentClient client = client(true, transport, publicValidator());
 
         ProviderContentResult result = client.selectContent(request());
@@ -1791,7 +1808,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     void selectContentRetriesTimeoutOnce() {
         StubTransport transport = new StubTransport();
         transport.enqueue(new TimeoutException("stub timeout"));
-        transport.enqueue(html("<html><body>청년 지원사업</body></html>"));
+        transport.enqueue(html("<html><body><main>청년 지원사업</main></body></html>"));
         LocalGovernmentNoticeProviderContentClient client = client(true, transport, publicValidator());
 
         ProviderContentResult result = client.selectContent(request());
@@ -1867,7 +1884,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         Charset ms949 = Charset.forName("MS949");
         byte[] body = """
                 <html><head><meta charset="MS949"></head>
-                <body>소상공인 보조금 안내</body></html>
+                <body><main>소상공인 보조금 안내</main></body></html>
                 """.getBytes(ms949);
         StubTransport transport = new StubTransport();
         transport.enqueue(response(200, "text/html", body));
@@ -2099,7 +2116,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             firstTwo.countDown();
             try {
                 release.await();
-                return html("<html><body>소상공인 지원사업</body></html>");
+                return html("<html><body><main>소상공인 지원사업</main></body></html>");
             } finally {
                 active.decrementAndGet();
             }

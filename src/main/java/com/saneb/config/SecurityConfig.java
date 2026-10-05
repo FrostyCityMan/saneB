@@ -67,6 +67,7 @@ public class SecurityConfig {
                                 new AndRequestMatcher(new AntPathRequestMatcher("/api/v2/**"),
                                         new NegatedRequestMatcher(new OrRequestMatcher(
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-sources/*/attachment-*/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-sources/*/body-refresh-previews/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-policies/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-backfills/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-batches/**"),

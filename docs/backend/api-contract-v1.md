@@ -3018,3 +3018,11 @@ DDL/migration·v1·운영 쓰기 없음. 실제 PostgreSQL/운영 브라우저 �
 - 관리자 상세는 역할 출처/현재 역할/자동 제안/사유/버전, 펼침 영역의 지문·근거 문단 링크를 한글로 표시한다. 기존 native details·텍스트 렌더링·문단 강조를 재사용한다. 연결 불일치는 오류로 표시하고 강조하지 않는다. 정책 화면은 규칙 미연결과 새 규칙 연결을 구분하고, 조회만으로 게시/재처리를 실행하지 않는다.
 
 UI 적용 기준: ADMIN/OPERATOR/APPROVER가 근거를 읽는 R0 조회이며, 기존 관리자 역할 변경/게시의 권한·확인·사유·CAS는 그대로다. 실제 검수 비용은 잘못된 역할을 확정할 때 높으므로 미확정/오류/과거 제안을 명시한다. 작은 화면의 기존 메타데이터 줄바꿈·키보드 native controls를 유지하고 새 라이브러리·모션은 추가하지 않는다. 수용 기준은 같은 추출의 근거 조회, 수동 역할 보존, legacy null 표시, 자동 승인 오해 방지다. Node 계약 검증과 실제 운영 브라우저 결과는 구분한다.
+
+### V2 본문 단건 복구 추가 계약 (2026-10-05)
+
+- `POST /api/v2/admin/announcement-sources/{sourceId}/body-refresh-previews`: 공식 본문 조회·정제 후 고정 미리보기 저장. 현재 본문·판정은 변경하지 않는다.
+- `POST /api/v2/admin/announcement-sources/{sourceId}/body-refresh-previews/{previewId}/apply`: 외부 재조회 없이 같은 요청자의 미리보기와 현재 버전을 검증하여 새 본문·판정 버전을 저장한다. 같은 미리보기 재시도는 같은 적용 영수증을 반환한다.
+- ADMIN/OPERATOR, 세션 CSRF 필수, ApiResponse/no-store. UUID 형식 오류는 400, 권한/CSRF는 403, 만료·버전 충돌·보호 대상은 구체적인 409 안내를 반환한다.
+- 첨부 재수집·정책 게시·ENFORCE·운영 공고 자동 활성화를 실행하지 않는다. 기존 `/api/v1` 응답·첨부 링크 의미는 바꾸지 않는다.
+- 상세 필드·미리보기 30분 유효기간·보호 대상은 [본문·첨부 정합성 개선](announcement-body-attachment-qa-fixes-2026-10-05.md)을 따른다.

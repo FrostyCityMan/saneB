@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao">
+    <select id="selectBoundaryDetails" resultType="com.saneb.domain.announcementsource.vo.SourceBodyRefreshRows$Boundary" useCache="false" flushCache="true">
+        -- 실제 등록 지자체만 허용하며 연결 공고와 진행 중 첨부 작업은 복구 대상에서 보호한다.
+        SELECT l.id AS registered_source_id,coalesce(nullif(l.collection_endpoint_url,''),l.notice_url) AS registered_source_url,
+            (EXISTS (SELECT 1 FROM announcement_source_links a WHERE a.source_id=s.id)
+             OR EXISTS (SELECT 1 FROM announcement_attachment_jobs j WHERE j.source_id=s.id
+                AND j.job_status_code IN ('SCOPE_READY','PENDING','RUNNING','RETRY_WAIT','PAUSED'))) AS blocked
+        FROM announcement_source_snapshots s
+        JOIN local_government_notice_sources l ON l.id=s.local_government_source_id AND l.is_enabled AND l.deleted_at IS NULL
+        WHERE s.id=#{sourceId} AND s.data_purpose_code='PRODUCTION' AND s.provider_code='LOCAL_GOV_NOTICE'
+    </select>
+    <insert id="insertPreview">
+        -- 미리보기만 고정한다. 원문 snapshot/판정/정책/첨부 작업은 변경하지 않는다.
+        INSERT INTO announcement_source_body_refresh_previews
+            (id,source_id,requested_by,base_evaluation_id,content_version_id,rule_release_id,
+             source_version,attachment_version,body_text,body_hash,extractor_version,expires_at)
+        VALUES (#{id},#{sourceId},#{requestedBy},#{baseEvaluationId},#{contentVersionId},#{ruleReleaseId},
+                #{sourceVersion},#{attachmentVersion},#{bodyText},#{bodyHash},#{extractorVersion},#{expiresAt})
+    </insert>
+    <select id="selectPreviewDetailsForUpdate" resultType="com.saneb.domain.announcementsource.vo.SourceBodyRefreshRows$Preview" useCache="false" flushCache="true">
+        -- source 행 다음 preview 행 잠금. 다른 공고의 preview를 재사용하지 않는다.
+        SELECT id,source_id,requested_by,base_evaluation_id,content_version_id,rule_release_id,
+               source_version,attachment_version,body_text,body_hash,extractor_version,expires_at,applied_evaluation_id
+        FROM announcement_source_body_refresh_previews WHERE id=#{previewId} AND source_id=#{sourceId} FOR UPDATE
+    </select>
+    <update id="updateBody">
+        -- 다른 메타데이터/수집 원시 해시는 보존한다. 판정 저장이 같은 transaction에서 버전을 증가시킨다.
+        UPDATE announcement_source_snapshots SET body_text=#{bodyText},updated_at=clock_timestamp()
+        WHERE id=#{sourceId} AND classification_row_version=#{expectedVersion} AND NOT is_attachment_review_required
+    </update>
+    <update id="updateApplied">
+        -- 같은 preview 재시도는 저장된 evaluation receipt를 반환한다.
+        UPDATE announcement_source_body_refresh_previews SET applied_evaluation_id=#{evaluationId},applied_at=clock_timestamp()
+        WHERE id=#{previewId} AND applied_evaluation_id IS NULL
+    </update>
+</mapper>

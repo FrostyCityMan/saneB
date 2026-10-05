@@ -928,3 +928,7 @@ V81은 `attachment_policy_publication_lock()`의 기존18테이블/순서를 유
 - 기존 `check_attachment_backfill_segment_batch()` 함수만 additive V83에서 교체한다. source/content/base/release/provider의 다섯 값으로 정렬한 실제 전체 tuple 배열을 직접 비교한다. 해시 비교가 아니며 중복·NULL·누락·다른 소속·입력 순서의 의미를 보존한다. 각 분할은 기존1~1000건 제한을 유지한다.
 - 기존 batch/receipt/job 지연 trigger, 삭제 전후 분모, 전체 job count, 표시된 batch의 필수 receipt, 기존 예외/SQLSTATE23514, source cascade 및 불변/잠금 규칙은 유지한다. 이력/데이터/기존 V1~V82를 수정하지 않는다.
 - 검증은 이전 양방향 EXISTS와 새 배열 비교의 양성/음성·순서/중복/NULL/5개 tuple 변경 동등성, V82→V83 함수 교체와 지연 trigger 유지, 기존1,001건 전수 예약·경합·삭제·원복 시험이다. 최신 직접 확인한 Linux 시험 결과는 상단 근거 문서에 기록하며, API/UI 계약과 운영 승인 범위는 바뀌지 않는다.
+
+### 본문 단건 복구 고정 미리보기 — V91
+
+`announcement_source_body_refresh_previews`에 공고·요청자·기본 판정·본문·규칙·첨부 버전, 고정 본문/SHA-256/정제 버전, 30분 적용 유효기간과 적용 영수증을 보관한다. 기존 원문/판정 이력은 보존하며 적용 시 새 버전을 추가한다. 감사 metadata에는 본문을 복사하지 않는다. 미리보기 불변 trigger와 공고별 복합 FK를 적용한다. 운영 반영 여부는 migration 파일의 존재와 구분한다. 상세 계약과 제한은 [본문·첨부 정합성 개선](announcement-body-attachment-qa-fixes-2026-10-05.md)을 따른다.

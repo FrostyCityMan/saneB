@@ -46,7 +46,7 @@
         LIMIT_EXCEEDED: "처리 한도 초과", EXTRACTION_FAILED: "텍스트 추출 실패", ISOLATION_UNAVAILABLE: "격리 실행 환경 사용 불가",
         DISCOVERY_CHANGED: "발견한 첨부 목록 변경", WORKER_PROCESSING_FAILED: "처리 작업 실패"};
     const flowMessages = {
-        NOT_APPLIED: ["3단계 종합 판정 미적용", "첨부 미리보기는 기본 판정을 변경하지 않습니다. 자동 분석 완료나 최종 검증 완료가 아닙니다."],
+        NOT_APPLIED: ["3단계 종합 판정 미적용", "첨부 판정이 현재 분류에 적용되지 않았습니다. 수집·미리보기 결과만으로 검수 저장이나 초안을 생성할 수 없습니다. 시스템 담당자가 적용 정책의 검증·게시와 현재 근거의 판정 적용을 완료한 뒤 다시 조회하세요. 자동 분석 완료나 최종 검증 완료가 아닙니다."],
         CLASSIFICATION_PENDING: ["제목·본문 자동 판정 대기", "기본 판정이 아직 없습니다. 최종 검수 입력 없이 처리 상태를 확인하세요."],
         CONFIGURATION_REQUIRED: ["자동 분석 설정 보완 필요", "수집 방식·규칙·정책 결합을 시스템 담당자가 확인해야 합니다. 공고 내용 검수로 해결할 수 없습니다."],
         AUTOMATIC_PROCESSING: ["자동 분석 대기·진행 중", "제목·본문·첨부 근거를 처리 중이거나 접수 대기 중입니다. 최종 검수 입력은 아직 필요하지 않습니다."],
@@ -59,6 +59,23 @@
     const label = code => code == null || code === "" ? "미확인" : labels[code] || flowMessages[code]?.[0] || `확인 필요 (${code})`;
     const flowGuidance = source => flowMessages[source?.processingFlow?.statusCode]?.[1]
         || "자동 처리 상태를 확인하지 못했습니다. 최신 기준을 다시 조회하세요. 검수 저장은 잠겨 있습니다.";
+    // 처리 건수는 추출 성공 건수가 아니다. 발견하지 못한 상태를 파일 0개로 표시하지 않는다.
+    const attachmentOverview = source => {
+        const s = source?.attachmentSummary;
+        if (!s) return {status: "첨부 상태 미확인", progress: "상태를 다시 조회하세요."};
+        const count = v => Number.isSafeInteger(v) && v >= 0;
+        let status = "첨부 확인 전";
+        if (s.discoveryStatusCode === "DISCOVERY_FAILED") status = "첨부 확인 실패";
+        else if (s.discoveryStatusCode === "NO_FILES" && s.isDiscoveryComplete === true && s.totalCount === 0) status = "원문에서 첨부 없음 확인";
+        else if (s.discoveryStatusCode === "FOUND" && count(s.totalCount) && s.totalCount > 0) status = `첨부 ${s.totalCount}개 발견`;
+        else if (s.jobId || s.discoveryStatusCode) status = "첨부 발견 미완료 · 확인 필요";
+        const progress = count(s.totalCount) && count(s.processedCount) && s.processedCount <= s.totalCount
+            ? `파일 처리 ${s.processedCount}/${s.totalCount}개 · 다운로드·추출 성공 여부는 파일별 근거에서 확인`
+            : "파일 처리 건수 미확인";
+        return {status, progress, job: label(s.jobStatusCode), error: s.errorCode ? label(s.errorCode) : null,
+            stale: s.isStale === true, applied: source.isAttachmentReviewRequired === true,
+            guidance: flowGuidance(source)};
+    };
     const canRequestFinalReview = source => {
         const flow = source?.processingFlow;
         return !!(source?.isAttachmentReviewRequired && flow?.isFinalReviewAvailable === true
@@ -187,7 +204,7 @@
             && ["EVIDENCE_READY","EVIDENCE_PARTIAL","COLLECTION_FAILED"].includes(n.reasonCode)
             && (n.reasonCode==="COLLECTION_FAILED" || (id(n.setId)&&id(n.evaluationId))));
     };
-    const api = {targets, supports, label, linkedNoticeLabel, validLinkedNotice, roleOrigin, validRoleAssessment, flowGuidance, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation, requestUuid};
+    const api = {targets, supports, label, linkedNoticeLabel, validLinkedNotice, roleOrigin, validRoleAssessment, flowGuidance, attachmentOverview, canRequestFinalReview, matchesContext, confirmedCurrent, sameVersion, safeSourceUrl, blockParts, RequestError, client, mutation, requestUuid};
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else root.SanebAttachmentReview = api;
 })(globalThis);

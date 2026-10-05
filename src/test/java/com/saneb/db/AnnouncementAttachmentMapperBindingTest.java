@@ -16,6 +16,21 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** XML/namespace/parameter type 검증이다. 실제 PostgreSQL SQL/trigger 실행 성공을 뜻하지 않는다. */
 class AnnouncementAttachmentMapperBindingTest {
+    @Test void bodyRefreshPreviewBindsSourceAndKeepsCurrentBodyUpdateVersioned() {
+        String prefix="com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao.";
+        for(var method:com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao.class.getDeclaredMethods())
+            assertThat(configuration.hasStatement(prefix+method.getName())).as(method.getName()).isTrue();
+        var input=configuration.getMappedStatement(prefix+"selectBoundaryDetails").getBoundSql(Map.of("sourceId",UUID.randomUUID()));
+        assertThat(input.getSql()).contains("announcement_source_links","announcement_attachment_jobs","s.data_purpose_code='PRODUCTION'",
+                "s.provider_code='LOCAL_GOV_NOTICE'").doesNotContain("SELECT *");
+        var update=configuration.getMappedStatement(prefix+"updateBody").getBoundSql(Map.of("sourceId",UUID.randomUUID(),"bodyText","본문","expectedVersion",2));
+        assertThat(update.getSql()).contains("classification_row_version=?","NOT is_attachment_review_required")
+                .doesNotContain("raw_hash=","attachment_policy_id=","DELETE ");
+        var preview=new com.saneb.domain.announcementsource.vo.SourceBodyRefreshRows.Preview(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),
+                UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),2,3,"본문","a".repeat(64),"NOTICE_BODY_2",OffsetDateTime.now().plusMinutes(30),null);
+        var insert=configuration.getMappedStatement(prefix+"insertPreview").getBoundSql(preview);
+        assertThat(insert.getParameterMappings()).hasSize(12).allSatisfy(p->assertThat(p.getTypeHandler()).isNotNull());
+    }
     @Test void reviewSegmentsComeOnlyFromCurrentEvaluationInputsAndPinnedPolicy() {
         var statement=configuration.getMappedStatement("com.saneb.domain.announcementattachment.dao.AnnouncementAttachmentEvaluationDao.selectSegmentReviewList");
         var bound=statement.getBoundSql(Map.of("sourceId",UUID.randomUUID(),"evaluationId",UUID.randomUUID()));

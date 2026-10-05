@@ -465,7 +465,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         document.select("script, style, noscript, template, iframe, object, embed").remove();
         // main 내부 또는 body 대체 경로에서도 메뉴의 키워드를 공고 본문 근거로 사용하지 않는다.
         // 일반 링크·문장·기관명은 유지하며, 명시된 탐색 역할만 제거한다.
-        document.select("nav, [role=navigation]").remove();
+        document.select("nav, [role=navigation], [role=banner], [role=contentinfo], body > header, body > footer").remove();
         deleteAttachmentLinkElements(document);
         Element contentElement = chuncheonJson || damyangJson ? document.body() : selectContentElement(document, sourceUri);
         String bodyText = contentElement.text()
@@ -993,12 +993,17 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
             return content.getFirst();
         }
         for (String selector : new String[]{"main", "[role=main]", "article"}) {
-            Element candidate = document.selectFirst(selector);
-            if (candidate != null) {
-                return candidate;
+            var candidates = document.select(selector);
+            if (candidates.size() > 1) {
+                throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
+            }
+            if (candidates.size() == 1) {
+                return candidates.getFirst();
             }
         }
-        return document.body();
+        // 본문 영역을 확인하지 못한 전체 페이지를 분류 근거로 저장하지 않는다.
+        // 수집 실패 결과만 반환하며 다른 공고/첨부 처리 중단 여부를 결정하지 않는다.
+        throw new ContentFailureException(FailureCode.BODY_SELECTOR_CHANGED);
     }
 
     private Element selectCompactBbsContentElement(Document document, URI sourceUri, String board, String menu) {
