@@ -88,3 +88,7 @@ git diff --check
 - 앞선 관련 Java 대상 시험은 931개 통과했으나, 이 숫자는 마지막 대상 316개와 중복되므로 합산하지 않는다.
 - 별도 전체 root 회귀 `:test flywayIntegrationTest -PsanebFlywayEphemeral=true :bootJar`는 약 24분 실행 후 중단했다. 전체 회귀 통과 증거는 확보하지 못했다. 마지막 성공 명령은 전체 회귀가 아닌 위 대상 검증이다.
 - 브라우저/운영 적용/기존 운영 데이터 복구는 실행하지 않았다. 커밋·푸시하지 않았다.
+
+## 후속 운영 반영 승인
+
+위 결과는 로컬 구현 종료 시점의 기록이다. 이후 사용자의 운영 반영 요청으로 `2815c3c`를 커밋·푸시하고 고정 태그를 배포했다. Linux 전체 테스트·빌드 성공, CodeDeploy 성공, 운영 DB V91 및 health UP을 확인했다. 기존 데이터 본문 복구·첨부 재수집·정책 게시·브라우저 QA는 실행하지 않았다. 상세 사전/사후 증거는 [운영 반영 기록](../deployment/announcement-body-refresh-release-2026-10-05.md)을 따른다.
