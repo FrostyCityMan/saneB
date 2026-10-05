@@ -1,5 +1,17 @@
 # 서울 진단 IAM 보완 및 운영 사전 점검
 
+## 2026-10-05 19:09 KST 승인 앱 코드 후속 설치 완료
+
+- 사용자는 앱 코드 `5f0e274ea88e6c700a8fc671d098df6807e784ca`의 서울 서버 설치·재시작을 승인했다. 정부24 상세 기능 활성화·신규 수집·정책 게시·ENFORCE·기존 데이터 적용은 제외했다.
+- Linux 계약 CI37261775271 성공과 실제 XML 검토 기록을 재확인했다. 기존 설치00d16d9 대비 migration/배포 hook 변경0이다. 로컬 Node 배포 계약18건 중15통과·Linux 전용3생략; 서버 성공으로 확대하지 않는다.
+- 배포 전 읽기 전용 진단37293642573/SSM c5e03de0-4ccd-40ab-9764-c32fa2215a06 성공. V90·migration 실패0, 첨부 active/waiting job·QA·대기 일정0, 설치/기존 배포 JAR 일치. 과거 미종결 일정은 동일 ID·시각이었다.
+- 불변 태그 `deploy-approved-5f0e274-20261005`를 승인 SHA로 생성·푸시하고 배포37293800988을 실행했다. headSha 일치, attachment_qa=false, CodeDeploy `d-378ZM2S6L` 성공이다. 진단/문서 최신 HEAD를 앱 코드로 대신 배포하지 않았다.
+- 후속 읽기 전용 진단37294663729/SSM 99c1223b-8eb7-486f-bade-8b1ccf9ac639 성공. 서비스 시작19:07:03 KST, DB V90·migration 실패0·READ ONLY/ROLLBACK·진단 업무 쓰기0. 공개 health HTTP200/UP 확인.
+- 설치/배포 원본 JAR SHA-256: `c9b7eeef6dee1b2bd00c41374dbdbf9d7884dc292273b6f49f7e7043964be667`. 이전 복구 JAR는 V90, `5cc938a7be4aa1228b2602c68fbbb9c1f731ecc0821f9f341d21c81fb4e23a0e`로 배포 직전 설치와 일치한다. 복구 실행 자체를 시험한 것은 아니다.
+- 기존 개정2 COLLECT_ONLY 정책 ID/hash/row_version은 사전·사후 동일하다. worker/source batch true 유지, 정부24 상세 환경변수 UNSET 유지. 승인 코드 기본값 false이며 활성화 설정을 추가하지 않았다. 프로세스 환경변수 관측을 모든 외부 Spring 설정의 유효값 검증으로 확대하지 않는다.
+- 후속 첨부 active/waiting job·정책/공급자 QA·대기 일정0. 과거 미종결 일정1건은 동일 ID·시각으로 남았다. 전체 업무 데이터 불변을 별도 전수 대조한 것은 아니다.
+- 코드 설치 하위 Gate만 완료했다. 정부24 실제 API·첨부 모델·실파일 수집·검수/DRAFT·기존 데이터 적용·운영 브라우저 E2E는 별도 미완료다. 이번 요청은 설치 승인으로 한정되어 브라우저 검증은 미실행이다.
+
 ## 승인과 변경 범위
 
 - 사용자가 기존 GitHub 배포 역할의 최소 SSM 권한 보완을 승인하고 root 계정을 지정했다. 로그인 갱신 후 STS root 계정, 저장소 역할 ARN, 최신 성공 배포의 단일 인스턴스와 로컬 대상 pin의 일치를 확인했다.

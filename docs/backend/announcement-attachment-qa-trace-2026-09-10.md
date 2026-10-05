@@ -1,5 +1,9 @@
 # 첨부 수집 ATT-001~062 구현·검증 추적표
 
+## 2026-10-05 19:09 KST 승인 앱 코드 운영 설치
+
+사용자 승인으로 앱5f0e274 배포37293800988/CodeDeploy d-378ZM2S6L 성공. 후속 읽기 전용 진단37294663729에서 설치/배포 JAR 일치·이전 V90 JAR 보존·DB V90/실패0·health UP을 확인했다. 기존 COLLECT_ONLY 정책·worker/source batch 플래그를 유지했고 정부24 상세 활성화·신규 수집·정책/ENFORCE·기존 데이터 적용·브라우저는 실행하지 않았다. 상세 근거는 `docs/deployment/diagnostic-iam-preflight-2026-10-05.md`의19:09 기록을 따른다. 운영 설치 하위 Gate 완료이며 ATT 각 항목의 실파일/업무 E2E 완료를 대신하지 않는다.
+
 ## 2026-10-05 최신 앱 코드 Linux 통합 검증 완료
 
 앱 코드 `5f0e274ea88e6c700a8fc671d098df6807e784ca`의 run37261775271이 completed/success로 종료됐다. artifact11325571457을 `build/ci-evidence-37261775271`에 내려받아 XML을 대조했다. 일반 test(앱·추출기 합산)4,922건 중4,521통과/401조건부 생략/실패·오류0이다. 별도 QA20·작업229·migration/Backfill18·정책DB2·runtime7·worker12·Flyway5건은 모두 실패·오류·생략0이다.
