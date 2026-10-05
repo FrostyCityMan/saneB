@@ -22,6 +22,28 @@ dispatch = load('dispatch', 'dispatch-deployment-preflight.py')
 
 
 class PreflightTests(unittest.TestCase):
+    def test_flags_include_gov24_without_exposing_other_environment(self):
+        result = probe.public_flags({
+            'GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED': 'TRUE',
+            'SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED': 'false',
+            'SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED': 'true',
+            'GOV24_PUBLIC_SERVICE_API_KEY': 'fixture-private-value'})
+        self.assertEqual('true', result['GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED'])
+        self.assertEqual('false', result['SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED'])
+        self.assertEqual(3, len(result))
+        self.assertNotIn('fixture-private-value', json.dumps(result))
+        self.assertNotIn('GOV24_PUBLIC_SERVICE_API_KEY', result)
+
+    def test_missing_flag_is_unset_not_false(self):
+        self.assertEqual({'UNSET'}, set(probe.public_flags({}).values()))
+
+    def test_invalid_flag_never_echoes_raw_value(self):
+        for value in ('', '1', 'yes', 'fixture-private-value', 'true; anything'):
+            result = probe.public_flags({'GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED': value})
+            self.assertEqual('UNVERIFIED', result['GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED'])
+            if value:
+                self.assertNotIn(value, json.dumps(result))
+
     def test_database_readonly_and_ssl(self):
         env = probe.pg_environment({'DB_URL': 'jdbc:postgresql://example.invalid/db?sslmode=verify-full',
                                     'DB_USERNAME': 'fixture', 'DB_PASSWORD': 'fixture-only'})

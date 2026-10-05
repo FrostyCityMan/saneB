@@ -168,3 +168,9 @@ Decision: **Not ready**. 현재 설치 확인 이력 `00d16d9`와 대상 `5f0e27
 실행 명령: `git diff --stat 00d16d9 5f0e274`, 동일 범위 migration/name-status 및 application.yml/Mapper diff, `gh run view 37261775271`, `git diff --check`. 이 절에서는 새 빌드·운영 smoke·브라우저·배포·정책 게시·기존 데이터 적용을 실행하지 않았다.
 
 출시 전 순서: 최신 CI XML/정리 결과 확인 → 정확한 설치 범위 승인 → 운영 읽기 전용 사전 점검 → 승인 SHA 설치/health·설치 지문 대조. 정부24 상세 기능 활성화와 실제 요청은 추가 요청량·대상 건수·실패 처리 범위를 승인한 뒤 수행한다. 성공하더라도 정부24 첨부·검수/DRAFT·기존 배치·전체 운영 E2E Gate는 별도로 남는다.
+
+### 사전 진단의 상세 기능 플래그 관측 보완
+
+`deployment-preflight-readonly.py`의 허용 목록에 `GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED`를 추가했다. worker/source batch와 함께 true/false만 정규화하며 미설정은 UNSET, 그 외 값은 UNVERIFIED로 출력한다. 기존 미설정 표시 UNVERIFIED를 UNSET으로 구분했고, 임의 값·다른 환경변수/API key는 출력하지 않는다. 이 값은 서비스 프로세스 환경변수 관측이며 JVM 옵션·외부 Spring 설정 등의 우선순위를 모두 검증한 유효 설정 판정이 아니다. UNSET을 비활성 확정으로 취급하지 않는다.
+
+오프라인 `python -B scripts/qa/test_deployment_preflight.py` 13건 통과. 새3건은 허용 목록·대소문자·미설정·잘못된 값 비노출을 검증하며 AWS/SSM/운영 DB를 호출하지 않는다. Node 범위 검사와 diff 검사 통과, 프로세스 종료. 진단 도구만 변경됐으며 앱 설치 대상5f0e274는 바뀌지 않는다. 변경한 원격 진단은 아직 실행하지 않았다.

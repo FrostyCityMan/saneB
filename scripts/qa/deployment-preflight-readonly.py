@@ -75,6 +75,21 @@ def deployment_jar_metadata(deployment):
     metadata = jar_metadata(paths[0])
     return {'verified': metadata.get('exists', False), **metadata}
 
+def public_flags(values):
+    # 값 원문과 다른 환경변수는 출력하지 않는다. UNSET은 유효 설정 false의 증거가 아니다.
+    flags = ['SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED',
+             'SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED',
+             'GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED']
+    result = {}
+    for key in flags:
+        if key not in values:
+            result[key] = 'UNSET'
+        else:
+            value = values[key].strip().lower()
+            result[key] = value if value in ('true', 'false') else 'UNVERIFIED'
+    return result
+
+
 def main():
     result = subprocess.run(['systemctl', 'show', 'saneb.service', '--property=MainPID', '--value'],
                             capture_output=True, text=True, timeout=5, check=True)
@@ -94,7 +109,6 @@ def main():
     rows = [json.loads(line) for line in result.stdout.splitlines() if line.startswith('{')]
     if len(rows) != 1 or rows[0].get('readOnly') != 'on':
         raise ValueError('READ_ONLY_RESULT_INVALID')
-    flags = ['SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED', 'SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED']
     started = subprocess.run(['systemctl', 'show', 'saneb.service', '--property=ActiveEnterTimestamp', '--value'],
                              capture_output=True, text=True, timeout=5, check=True).stdout.strip()
     print(json.dumps({'kind': 'DEPLOYMENT_PREFLIGHT', 'database': rows[0],
@@ -103,7 +117,7 @@ def main():
         'installed': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar')),
         'previous': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar.previous')),
         'databaseEndpointSha256': hashlib.sha256(env['PGHOST'].lower().encode()).hexdigest(),
-        'flags': {key: values[key].lower() if values.get(key, '').lower() in ('true', 'false') else 'UNVERIFIED' for key in flags},
+        'flags': public_flags(values),
         'writes': 0, 'transaction': 'ROLLED_BACK'}))
 
 if __name__ == '__main__':
