@@ -34,6 +34,13 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.pg_environment({'DB_URL': 'jdbc:mysql://example.invalid/db'})
 
+    def test_running_schedule_probe_is_bounded_and_metadata_only(self):
+        self.assertIn('LIMIT 10', probe.SQL)
+        self.assertIn('LEFT JOIN announcement_source_collection_runs', probe.SQL)
+        self.assertNotIn('error_message', probe.SQL)
+        self.assertNotIn('source_url', probe.SQL)
+        self.assertNotIn('SELECT *', probe.SQL)
+
     def test_jar_metadata(self):
         with tempfile.TemporaryDirectory() as directory:
             path = pathlib.Path(directory, 'fixture.jar')

@@ -17,7 +17,16 @@ SELECT json_build_object('readOnly',current_setting('transaction_read_only'),
  'activePolicyQa',(SELECT count(*) FROM announcement_attachment_policy_validation_runs WHERE run_status_code IN ('PENDING','RUNNING','CANCEL_REQUESTED')),
  'activeProviderQa',(SELECT count(*) FROM announcement_attachment_provider_qa_runs WHERE run_status_code IN ('BUILDING','READY','RUNNING','CANCEL_REQUESTED')),
  'queuedSchedules',(SELECT count(*) FROM announcement_source_schedule_executions WHERE execution_status_code='QUEUED'),
- 'runningSchedules',(SELECT count(*) FROM announcement_source_schedule_executions WHERE execution_status_code='RUNNING'));
+ 'runningSchedules',(SELECT count(*) FROM announcement_source_schedule_executions WHERE execution_status_code='RUNNING'),
+ 'runningScheduleDetails',(SELECT coalesce(json_agg(details),'[]'::json) FROM (
+   SELECT e.id AS execution_id,e.scheduled_for,e.updated_at,e.execution_status_code,
+          r.public_code AS run_code,r.run_status_code,r.started_at,r.finished_at,
+          r.total_count,r.collected_count,r.failed_count,
+          (SELECT max(i.created_at) FROM announcement_source_collection_run_items i WHERE i.run_id=r.id) AS last_item_at
+   FROM announcement_source_schedule_executions e
+   LEFT JOIN announcement_source_collection_runs r ON r.id=e.run_id
+   WHERE e.execution_status_code='RUNNING' ORDER BY e.scheduled_for LIMIT 10
+ ) details));
 ROLLBACK;
 """
 
@@ -72,7 +81,10 @@ def main():
     if len(rows) != 1 or rows[0].get('readOnly') != 'on':
         raise ValueError('READ_ONLY_RESULT_INVALID')
     flags = ['SANEB_ANNOUNCEMENT_ATTACHMENT_WORKER_ENABLED', 'SANEB_ANNOUNCEMENT_SOURCE_BATCH_ENABLED']
+    started = subprocess.run(['systemctl', 'show', 'saneb.service', '--property=ActiveEnterTimestamp', '--value'],
+                             capture_output=True, text=True, timeout=5, check=True).stdout.strip()
     print(json.dumps({'kind': 'DEPLOYMENT_PREFLIGHT', 'database': rows[0],
+        'serviceStartedAt': started,
         'installed': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar')),
         'previous': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar.previous')),
         'databaseEndpointSha256': hashlib.sha256(env['PGHOST'].lower().encode()).hexdigest(),
