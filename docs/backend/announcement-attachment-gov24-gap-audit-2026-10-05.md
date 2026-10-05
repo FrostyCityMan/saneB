@@ -102,3 +102,21 @@ git diff --check
 검증 명령: `.\gradlew.bat :test --tests '*Gov24*Test' --tests '*BoundedJsonBodySubscriberTest' --tests '*AnnouncementSourceServiceImplTest' bootJar --offline --no-daemon --console=plain --max-workers=1`
 
 첫35초 실행 후 용량 초과 fixture를 파싱 가능한 큰 JSON으로 강화하고 재실행했다. 최종28초 실행에서92건 통과/실패0/오류0/생략0이며 subscriber4건·로컬 HTTP3건을 포함한다. bootJar는 첫 실행에서 생성했고 테스트 fixture만 수정한 최종 실행에서는 UP-TO-DATE다. 전체 root 회귀는 직전 `22ddcc9`의 결과이며 이번 전송 변경 뒤 전체 재실행으로 과장하지 않는다. 독립 DB/Flyway/실제 정부24/운영 브라우저는 미실행이다. Node·단회 Gradle·가짜 HTTP 서버·executor를 종료했다.
+
+## 후속 증분: 임시 PostgreSQL content version 저장 검증
+
+`FlywayMigrationIntegrationTest.gov24DetailContentVersionsKeepSummaryProvenanceAndDeduplicateIdenticalBody`를 추가했다. 기존 소유 임시 PostgreSQL이 존재할 때만 실행하며 외부 DB 실행 모드에서는 이 사례를 생략한다. 실제 Flyway schema·Spring persistence service·DAO·Mapper로 다음을 검증한다.
+
+- 동일 목록 원문 hash에서 목록 요약과 정부24 상세 본문이 다른 content version으로 저장된다.
+- 상세 본문에 `PROVIDER_FULL_TEXT/AVAILABLE` 출처·상태가 함께 저장된다.
+- 같은 상세를 다시 저장해도 content version 2개를 유지한다.
+- 상세 조회 실패와 요약 fallback은 별도의 세 번째 버전이며 현재 evaluation은 `FETCH_FAILED` 한 개다.
+- 목록 원문 hash가 보존되고 `announcements` 행 수는 증가하지 않는다.
+
+합성 Provider item과 합성 분류 결과를 저장 계층에 전달하는 검증이다. 실제 정부24 API·제목 분류 엔진→수집 run→snapshot refresh 전체 흐름·관리자 UI를 실행한 것은 아니다. 특히 persistence service는 본문 content version과 판정 projection을 담당하며 목록 snapshot 본문 갱신은 상위 수집 service의 별도 책임이다. 따라서 정부24 전체 DB/E2E 완료로 승격하지 않는다.
+
+실행 명령: `.\gradlew.bat flywayIntegrationTest -PsanebFlywayEphemeral=true --offline --no-daemon --console=plain --max-workers=1`
+
+첫 실행50초 성공, XML4건 통과/실패0/오류0/생략0이며 정부24 신규 사례가 실제 실행됐음을 확인했다. 해당 task는 부모 DB 환경변수를 비우고 소유 loopback DB를 사용하며 운영 worker/배치를 비활성화한다. Node 집계 후 Java/PostgreSQL 프로세스가 남지 않았다. 운영 변경·실제 정부24 요청은 없다.
+
+SQL 주석 정리 후 최종 재실행도51초 성공했다. XML4건 통과/실패·오류·생략0을 재확인했고 Node·Java·임시 PostgreSQL을 정리했다. 이번 변경은 테스트·문서뿐이며 앱 JAR·migration·API·운영 설정 변경은 없다.

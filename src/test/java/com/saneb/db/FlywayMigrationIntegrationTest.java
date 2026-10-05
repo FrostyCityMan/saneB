@@ -97,6 +97,78 @@ class FlywayMigrationIntegrationTest {
     @Autowired
     private AnnouncementSourceReclassificationRunService reclassificationRunService;
 
+    @Autowired
+    private com.saneb.domain.announcementsource.service.AnnouncementSourceClassificationPersistenceService classificationPersistenceService;
+
+    @Test
+    @Transactional
+    void gov24DetailContentVersionsKeepSummaryProvenanceAndDeduplicateIdenticalBody() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null,
+                "정부24 상세 이력 검증은 소유한 임시 PostgreSQL에서만 실행합니다.");
+        UUID sourceId = UUID.randomUUID();
+        UUID releaseId = jdbcTemplate.queryForObject("""
+                -- 임시 migration seed의 FK만 사용한다. 규칙 게시·외부 호출은 하지 않는다.
+                SELECT id FROM announcement_source_classification_rule_releases WHERE release_code = 'ASCR-000001'
+                """, UUID.class);
+        Long announcementsBefore = jdbcTemplate.queryForObject("-- 저장 계층 호출 전 공고 수를 고정한다.\nSELECT count(1) FROM announcements", Long.class);
+        jdbcTemplate.update("""
+                -- 이 테스트의 합성 정부24 원문만 생성한다.
+                INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,body_text,raw_hash,semantic_status_code)
+                VALUES (?,'GOV24_PUBLIC_SERVICE','GOV24-DETAIL-FIXTURE','소상공인 지원','목록 요약',repeat('a',64),'REVIEW_REQUIRED')
+                """, sourceId);
+        var summary = selectGov24Item("목록 요약");
+        var detail = summary.withBodyText("소상공인 대상 상세 지원 내용");
+        var summaryResult = selectGov24Result("PROVIDER_SUMMARY", "AVAILABLE");
+        var detailResult = selectGov24Result("PROVIDER_FULL_TEXT", "AVAILABLE");
+        classificationPersistenceService.saveNewContentEvaluation(sourceId, null, releaseId, summary, summaryResult, "REVIEW_PENDING");
+        classificationPersistenceService.saveChangedContentEvaluation(sourceId, null, releaseId, detail, detailResult, "REVIEW_PENDING", 1);
+        classificationPersistenceService.saveChangedContentEvaluation(sourceId, null, releaseId, detail, detailResult, "REVIEW_PENDING", 2);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 같은 상세를 다시 저장해도 content version은 증가하지 않는다.
+                SELECT count(1) FROM announcement_source_content_versions WHERE source_id = ?
+                """, Long.class, sourceId)).isEqualTo(2L);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 상세 본문과 출처가 실제 DB에 함께 남는다.
+                SELECT body_text FROM announcement_source_content_versions
+                WHERE source_id = ? AND body_source_code = 'PROVIDER_FULL_TEXT' AND body_availability_code = 'AVAILABLE'
+                """, String.class, sourceId)).isEqualTo(detail.bodyText());
+        classificationPersistenceService.saveChangedContentEvaluation(sourceId, null, releaseId, summary,
+                selectGov24Result("PROVIDER_FULL_TEXT", "FETCH_FAILED"), "REVIEW_PENDING", 3);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 요약 fallback과 상세 실패 상태도 이전 성공과 다른 이력이다.
+                SELECT count(1) FROM announcement_source_content_versions WHERE source_id = ?
+                """, Long.class, sourceId)).isEqualTo(3L);
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 현재 판정은 하나이며 조회 실패가 정상 가용으로 덮이지 않는다.
+                SELECT body_availability_code FROM announcement_source_classification_evaluations
+                WHERE source_id = ? AND is_current
+                """, String.class, sourceId)).isEqualTo("FETCH_FAILED");
+        assertThat(jdbcTemplate.queryForObject("""
+                -- 목록 원문 hash를 상세 해시로 덮어쓰지 않는다.
+                SELECT raw_hash FROM announcement_source_snapshots WHERE id = ?
+                """, String.class, sourceId)).isEqualTo("a".repeat(64));
+        assertThat(jdbcTemplate.queryForObject("-- 저장 계층에서 운영 공고를 생성하지 않았는지 확인한다.\nSELECT count(1) FROM announcements", Long.class)).isEqualTo(announcementsBefore);
+    }
+
+    private com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem selectGov24Item(String body) {
+        return new com.saneb.domain.announcementsource.provider.AnnouncementSourceProviderItem(
+                "GOV24_PUBLIC_SERVICE", "GOV24-DETAIL-FIXTURE", "소상공인 지원", "합성 기관", null, null, null, null,
+                "https://example.invalid/fixture", body, null, null, "PARTIAL", "[]", "{}", "a".repeat(64), List.of(), null);
+    }
+
+    private com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationResult selectGov24Result(String source, String availability) {
+        boolean failed = "FETCH_FAILED".equals(availability);
+        return new com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationResult(
+                "GOV24_PUBLIC_SERVICE", "ASCR-000001",
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.SemanticStatusCode.valueOf(failed ? "REVIEW_REQUIRED" : "ACCEPTED"),
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.ReasonCode.valueOf(failed ? "BODY_FETCH_FAILED" : "TARGET_SUPPORT_CONFIRMED"),
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.TitleStageCode.COMBINATION_MATCHED,
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyStageCode.valueOf(failed ? "FETCH_FAILED" : "COMBINATION_CONFIRMED"),
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodySourceCode.valueOf(source),
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.valueOf(availability),
+                List.of(), List.of(), List.of(), List.of(), List.of());
+    }
+
     @Test
     @Transactional
     void initialClassificationDraftPublishesThroughMapperAndServerGoldenGate() {
