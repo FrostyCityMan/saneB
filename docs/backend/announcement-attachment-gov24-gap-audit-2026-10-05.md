@@ -51,3 +51,17 @@ git diff --check
 결과: Gradle 45초 성공. XML 기준 목록 제공자40건·QA 계획6건, 총46건 통과/실패0/오류0/생략0. 합성 입력과 등록 계약 검증이며 실제 정부24 수집 증거가 아니다. Node 단회 실행으로 XML 건수를 확인했고 프로세스는 종료했다. 단회 Gradle 실행도 종료했다. 앱 코드 변경이 없으므로 bootJar/전체 회귀/운영 배포는 실행하지 않았다.
 
 이번 작업은 공개 명세·로컬 코드 감사와 오프라인 회귀에 한정한다. 운영 DB/정책/worker 설정, 양평 단건 수집 예약, 배포, 브라우저 조작은 하지 않았다. 양평 SRC-017546 수집 승인 대기는 정부24 구현 누락과 별개다.
+
+## 후속 증분: 공식 상세 응답 검증 모듈
+
+`Gov24ServiceDetailResponse`를 추가했다. 공식 상세의 단건 응답(page=1/perPage=1)을 검사하고 요청 서비스ID와 응답 서비스ID의 일치를 요구한다. 빈 결과, 잘못된 건수/형식, 다른 서비스, 빈 제목을 성공 본문으로 바꾸지 않는다. 구비서류 안내·온라인 신청 링크·지원내용은 별도 필드이며 파일 descriptor를 만들지 않는다. 오류와 `toString`에는 원격 텍스트/URL을 복사하지 않는다.
+
+아직 HTTP 호출과 서비스 흐름에는 연결하지 않았다. 준비 모듈이며 정부24 상세 수집 완료가 아니다. 다음 연결 시 `AnnouncementSourceServiceImpl.selectProviderContent`가 현재 목록 본문 우선/지자체 전용이라는 점을 반영해야 한다. 기존 `ProviderContentRequest`에 가짜 지자체 ID를 넣지 않고, 제목 gate 통과 후 호출·요청 예산·상세 실패 보존·본문 출처 `PROVIDER_FULL_TEXT`·snapshot/hash 경계를 함께 검증해야 한다. 첨부 OFF/COLLECT_ONLY 계약을 이용해 기존 판정을 무조건 바꾸지 않는다. 운영 활성화는 별도다.
+
+검증 명령:
+
+```powershell
+.\gradlew.bat :test --tests '*Gov24ServiceDetailResponseTest' --tests '*Gov24PublicServiceAnnouncementSourceProviderClientTest' --offline --no-daemon --console=plain --max-workers=1
+```
+
+26초 성공. XML 기준 상세 응답13건·기존 목록40건, 총53건 통과/실패0/오류0/생략0이다. 합성 입력 검증이며 Node와 단회 Gradle은 종료했다. bootJar/전체 테스트/실제 API/브라우저/운영 배포는 이번 증분에서 실행하지 않았다.
