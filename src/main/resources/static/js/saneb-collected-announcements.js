@@ -248,8 +248,35 @@
         });
     };
 
+    // 현재 방문 항목에 조회 조건만 보관한다. 원문·검수 입력은 저장하지 않는다.
+    const navigationStateKey = "sanebCollectedList";
+    const filterNames = ["providerCode", "reviewStatusCode", "targetCategoryCode", "supportTypeCode",
+        "matchedGroupKindCode", "matchLocationCode", "ruleReleaseId", "keyword"];
+    let appliedFilters = {};
+    const saveNavigationState = () => {
+        window.history.replaceState({...window.history.state, [navigationStateKey]: {
+            version: 1, view: currentView, page: currentPage, sourceId: selectedSourceId,
+            filters: {...appliedFilters}
+        }}, "");
+    };
+    const restoreNavigationState = () => {
+        const saved = window.history.state?.[navigationStateKey];
+        filterForm.reset();
+        const valid = saved?.version === 1 && Object.hasOwn(viewLabels, saved.view);
+        applyView(valid ? saved.view : "ACTION_REQUIRED");
+        if (valid) {
+            filterNames.forEach((name) => {
+                const value = saved.filters?.[name];
+                if (typeof value === "string") filterForm.elements[name].value = value;
+            });
+        }
+        currentPage = valid && Number.isSafeInteger(saved.page) && saved.page > 0 ? saved.page : 1;
+        selectedSourceId = valid && typeof saved.sourceId === "string" ? saved.sourceId : null;
+    };
+
     const selectSource = async (sourceId, selectedButton) => {
         selectedSourceId = sourceId;
+        saveNavigationState();
         updateSelectedButton(selectedButton);
         await renderSourceDetail(sourceId);
     };
@@ -267,6 +294,8 @@
 
     const renderList = async () => {
         const sequence = ++listSequence;
+        appliedFilters = Object.fromEntries(filterNames.map((name) => [name, filterForm.elements[name].value]));
+        saveNavigationState();
         showDetailMessage("공고 목록을 조회하고 있습니다.");
         sourceList.replaceChildren(appendText(document.createDocumentFragment(), "p", "수집 공고를 조회하고 있습니다.", "collected-empty-state"));
         const params = new URLSearchParams(new FormData(filterForm));
@@ -294,6 +323,7 @@
         const items = data.items || data.content || [];
         if (!items.length) {
             selectedSourceId = null;
+            saveNavigationState();
             appendText(sourceList, "p", "조건에 맞는 수집 공고가 없습니다.", "collected-empty-state");
             showDetailMessage("분류함 또는 검색 조건을 바꾸어 주세요.");
             return;
@@ -301,6 +331,7 @@
 
         const selectedItem = items.find((item) => item.sourceId === selectedSourceId) || items[0];
         selectedSourceId = selectedItem.sourceId;
+        saveNavigationState();
         let selectedButton = null;
         items.forEach((item) => {
             const classification = classificationOf(item);
@@ -854,6 +885,13 @@
     pagePrev.addEventListener("click", () => { if (currentPage > 1) { currentPage -= 1; selectedSourceId = null; runAction(renderList); } });
     pageNext.addEventListener("click", () => { if (currentPage < totalPages) { currentPage += 1; selectedSourceId = null; runAction(renderList); } });
 
-    applyView("ACTION_REQUIRED", false);
-    runAction(async () => { await Promise.all([renderSummary(), renderList()]); });
+    const restoreAndLoad = () => {
+        restoreNavigationState();
+        runAction(async () => { await Promise.all([renderSummary(), renderList()]); });
+    };
+    // pageshow 이후 복원해야 브라우저의 자동 폼 복원과 조회 조건이 엇갈리지 않는다.
+    // BFCache 복귀도 같은 경로로 처리하고, 떠난 페이지의 늦은 응답은 무효화한다.
+    window.addEventListener("pagehide", () => { listSequence++; detailSequence++; });
+    window.addEventListener("pageshow", restoreAndLoad);
+    if (document.readyState === "complete") restoreAndLoad();
 })();
