@@ -40,7 +40,7 @@ export function checkRequiredReports(root, startedAtMs) {
     ['attachmentRuntimeIntegrationTest', 'com.saneb.domain.announcementattachment.extraction.AttachmentRuntimeGateIntegrationTest', 7],
     ['attachmentWorkerIntegrationTest', 'com.saneb.db.AnnouncementAttachmentWorkerIntegrationTest'],
     ['attachmentPolicyDbQaIntegrationTest', 'com.saneb.domain.announcementattachment.service.impl.AttachmentWorkerDbQaLinuxIntegrationTest'],
-    ['flywayIntegrationTest', 'com.saneb.db.FlywayMigrationIntegrationTest', 3],
+    ['flywayIntegrationTest', 'com.saneb.db.FlywayMigrationIntegrationTest', 5],
   ];
   return required.map(([task, name, minimumTests = 1]) => {
     let xml, modifiedAtMs;

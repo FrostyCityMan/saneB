@@ -79,9 +79,11 @@ test('DB 성공만으로 설치 격리 실행의 누락·생략을 통과 처리
     assert.throws(() => checkRequiredReports(root, start), /flywayIntegrationTest/);
     save(reports[6], { tests: '3', skipped: '1' });
     assert.throws(() => checkRequiredReports(root, start), /생략/);
-    save(reports[6], { tests: '2' });
-    assert.throws(() => checkRequiredReports(root, start), /일부가 실행되지/);
-    save(reports[6], { tests: '3' });
+    for (const tests of ['2', '3', '4']) {
+      save(reports[6], { tests });
+      assert.throws(() => checkRequiredReports(root, start), /일부가 실행되지/);
+    }
+    save(reports[6], { tests: '5' });
     assert.equal(checkRequiredReports(root, start).length, 7);
   } finally {
     // mkdtemp가 이 테스트만을 위해 반환한 경로만 정리한다.

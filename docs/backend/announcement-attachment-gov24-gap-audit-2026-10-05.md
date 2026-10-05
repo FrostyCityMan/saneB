@@ -136,3 +136,10 @@ SQL 주석 정리 후 최종 재실행도51초 성공했다. XML4건 통과/실�
 - `flywayIntegrationTest -PsanebFlywayEphemeral=true bootJar --offline --no-daemon --console=plain --max-workers=1`: 55초 성공, 임시 PostgreSQL5건 모두 통과/생략0. 신규 실제 수집 service 경로 사례도 실행됐으며 bootJar를 생성했다.
 - `:test --tests '*MigrationContractTest' --tests '*AnnouncementSourceServiceImplTest' --tests '*Gov24*Test' --offline --no-daemon --console=plain --max-workers=1`: 25초 성공,188건 통과/실패0/오류0/생략0.
 - `git diff --check` 통과. Node·Gradle JVM·임시 PostgreSQL 종료. 이번 공통 SQL 수정 후 전체 root 회귀/실제 운영 DB/브라우저는 재실행하지 않았다. 최종 운영 반영 전 Linux CI·배포 검증은 별도로 필요하다.
+
+## 후속 확인: Linux 필수 집계와 공개 상세 표본
+
+- CI는 QA 브랜치 push로 자동 실행되며 전역 concurrency가 선행 실행을 보존한다. `13ab4fc`의 실행 `37261473762`는 확인 시점에 pending, 선행 `4b482c3` 실행 `37260946511`은 in_progress였다. 대기 시간을 실패로 처리하거나 중복 dispatch하지 않았다. 이 기록은 성공 판정이 아니며 최신 SHA의 종료 결과를 다시 확인해야 한다.
+- `attachment-contract-report.mjs`의 필수 Flyway suite 최소값을3→5로 강화했다. 새 정부242사례가 추가된 현재 suite에서3/4건만 실행된 보고서도 거부한다. 보고서 최소 개수는 개별 요구사항의 충분한 증명이 아니므로 실제 XML의 신규 method 실행도 함께 확인한다. 검증기 회귀 `node --test scripts/qa/attachment-contract-report.test.mjs`는10건 전부 통과했고 임시 fixture/Node를 정리했다.
+- 공개 정부24 상세 `https://www.gov.kr/portal/rcvfvrSvc/dtlEx/161300000103`는 로컬 비인증 GET에서HTTP200/HTML167,804자를 반환했다. 파일 바이너리·API key 호출·신청·로그인은 실행하지 않았다. 원문을 파일로 보관하지 않고 구조 확인만 했다. 구비서류 안내와 신청서 해당없음 표시는 확인했으나 이 표본에서 첨부 영역을 식별하지 못했다.
+- 위 관측은 정부24 전체에 첨부가 없다는 증거가 아니다. 해당없음 표기 하나만으로 첨부 profile을 전역 `NO_FILES` 처리하지 않는다. `O00100100001`에 대한 웹 읽기는 내부 오류였으며 정부24 서버의 장애/차단으로 단정하지 않는다. 공식 파일 제공 표본과 다운로드 규칙은 여전히 확보해야 한다.
