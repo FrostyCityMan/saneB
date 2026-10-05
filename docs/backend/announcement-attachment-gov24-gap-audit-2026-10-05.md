@@ -56,7 +56,7 @@ git diff --check
 
 `Gov24ServiceDetailResponse`를 추가했다. 공식 상세의 단건 응답(page=1/perPage=1)을 검사하고 요청 서비스ID와 응답 서비스ID의 일치를 요구한다. 빈 결과, 잘못된 건수/형식, 다른 서비스, 빈 제목을 성공 본문으로 바꾸지 않는다. 구비서류 안내·온라인 신청 링크·지원내용은 별도 필드이며 파일 descriptor를 만들지 않는다. 오류와 `toString`에는 원격 텍스트/URL을 복사하지 않는다.
 
-아직 HTTP 호출과 서비스 흐름에는 연결하지 않았다. 준비 모듈이며 정부24 상세 수집 완료가 아니다. 다음 연결 시 `AnnouncementSourceServiceImpl.selectProviderContent`가 현재 목록 본문 우선/지자체 전용이라는 점을 반영해야 한다. 기존 `ProviderContentRequest`에 가짜 지자체 ID를 넣지 않고, 제목 gate 통과 후 호출·요청 예산·상세 실패 보존·본문 출처 `PROVIDER_FULL_TEXT`·snapshot/hash 경계를 함께 검증해야 한다. 첨부 OFF/COLLECT_ONLY 계약을 이용해 기존 판정을 무조건 바꾸지 않는다. 운영 활성화는 별도다.
+이 모듈만 추가한 커밋 `21451cd`에서는 HTTP 호출과 서비스 흐름에 연결하지 않았다. 아래 후속 연결 증분과 구분한다. 운영 활성화는 별도다.
 
 검증 명령:
 
@@ -65,3 +65,23 @@ git diff --check
 ```
 
 26초 성공. XML 기준 상세 응답13건·기존 목록40건, 총53건 통과/실패0/오류0/생략0이다. 합성 입력 검증이며 Node와 단회 Gradle은 종료했다. bootJar/전체 테스트/실제 API/브라우저/운영 배포는 이번 증분에서 실행하지 않았다.
+
+## 후속 증분: 제목 gate 이후 상세 연결
+
+- 내부 제공자 인터페이스의 상세 본문 기능은 기본 비활성이다. 정부24만 `GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED` 설정을 읽으며 기본값은 false다. 운영 설정은 변경하지 않는다.
+- `AnnouncementSourceServiceImpl.selectProviderContent`는 정부24/기능 활성/분류 run 활성/제목 A 또는 대상·지원 조합 통과를 모두 만족할 때 상세를 요청한다. 가짜 지자체 ID를 만들거나 지자체 전용 DTO 검증을 완화하지 않는다.
+- 공식 HTTPS 목록 endpoint가 설정된 경우에만 동일 공식 호스트의 고정 상세 경로를 호출한다. 서비스ID EQ/page1/perPage1이며 자동 재시도·다음 페이지·임의 URL 탐색은 없다. 중계 API endpoint는 미지원으로 남긴다.
+- 중복 병합 후 처리 공고당 최대1개 상세 요청이 추가된다. 기능 활성화 시 승인 수집 건수만큼 추가 요청이 발생할 수 있으므로 목록 검색 요청량에 상세 요청 상한을 더해 운영 범위를 승인해야 한다. 기존 승인 범위를 자동 확대하지 않는다.
+- 공식 본문 필드의 값만 문단 단위로 조합하며 시스템이 생성한 필드명, 서비스명, 신청 URL, 문의처는 본문에 섞지 않는다. 구비서류 안내는 본문 문자열이며 실제 첨부를 뜻하지 않는다. 빈 본문/100,000자 초과는 실패로 남긴다. 현재 HTTP 계층은 기존 JSON 제공자 transport를 공유하므로 이 문자 제한은 다운로드 바이트 상한을 의미하지 않는다. 운영 활성화 전 응답 바이트/시간 자원 제한 검증을 추가해야 한다.
+- 성공 시 `PROVIDER_FULL_TEXT/AVAILABLE`, 실패 시 기존 요약은 보존하고 상세 availability 실패/미지원 상태를 전달한다. 기존 raw payload/hash에 상세나 첨부를 덧붙이지 않는다. content snapshot/version 처리는 기존 분류 저장 경로를 사용하나 실제 DB 상세 증분의 통합 검증은 아직 별도다.
+- 실제 공고의 본문이 달라지므로 이 flag 활성화는 첨부 COLLECT_ONLY와 독립된 판정 입력 변경이다. 과거 데이터의 재처리·정책 게시·ENFORCE·DRAFT 전환은 자동 실행하지 않는다.
+
+신규 `Gov24DetailBodyGateTest`는 본문 준비 단계의 flag/run/title gate와 실패 보존을 검사한다. private 단계 단위 검증이며 DB/E2E 증거가 아니다. 정부24 제공자 테스트는 고정 상세 경로/단건 요청/비활성 네트워크0/다른 서비스 거부/중계 endpoint 미호출을 합성 transport로 검증한다. 실제 정부24 API/파일 다운로드와 운영 브라우저는 미실행이다.
+
+### 연결 증분 검증 결과
+
+명령: `.\gradlew.bat :test bootJar --offline --no-daemon --console=plain --max-workers=1`
+
+2026-10-05 12:36 KST경 14분59초로 정상 종료했다. root `:test` XML 전체4,662건 중4,263통과/399조건부 생략/실패0/오류0이다. 정부24 목록·상세 제공자43건, 상세 응답13건, 본문 준비 gate6건은 합계62건 모두 통과했다. 별도 extractor/독립 worker DB/Flyway task를 이번 명령으로 실행한 것은 아니다. bootJar 생성과 `git diff --check`는 통과했다.
+
+긴 실행 중 같은 세션을 유지했고 thread stack에서 카탈로그→첨부 서비스→Spring 클래스 경로 파일 탐색 진행을 확인했다. 네트워크 대기나 실패로 단정하여 테스트를 중복 시작하지 않았다. 종료 후 이번 Gradle 관련 JVM 3개가 남지 않았으며 XML 집계 Node도 종료했다. 운영 배포·실제 인증 API·브라우저 검증은 미실행이다. 응답 전송 자원 제한과 실제 상세 DB 저장 검증은 다음 필수 작업이며, 현재 코드의 로컬 테스트 성공만으로 운영 활성화를 승인하지 않는다.

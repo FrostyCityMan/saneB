@@ -37,6 +37,53 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
     private final String baseUrl;
     private final String apiKey;
 
+    @Value("${saneb.announcement-source.providers.gov24.detail-body-enabled:false}")
+    private boolean detailBodyEnabled;
+
+    @Override public boolean isDetailBodyEnabled() { return detailBodyEnabled; }
+
+    @Override public ProviderDetailBody selectDetailBody(String providerNoticeId) {
+        var unsupported = com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNSUPPORTED;
+        var failed = com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.FETCH_FAILED;
+        var available = com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.AVAILABLE;
+        if (!isDetailBodyEnabled() || !isConfigured()) return new ProviderDetailBody(null, unsupported);
+        try {
+            URI endpoint = selectEndpoint();
+            if (!"https".equalsIgnoreCase(endpoint.getScheme()) || !OFFICIAL_HOST.equalsIgnoreCase(endpoint.getHost())
+                    || (endpoint.getPort() != -1 && endpoint.getPort() != 443)
+                    || !OFFICIAL_LIST_PATH.equals(endpoint.getRawPath()) || endpoint.getRawQuery() != null
+                    || endpoint.getRawUserInfo() != null || endpoint.getRawFragment() != null) {
+                return new ProviderDetailBody(null, unsupported);
+            }
+            if (providerNoticeId == null || providerNoticeId.isBlank() || providerNoticeId.length() > 200) {
+                return new ProviderDetailBody(null, failed);
+            }
+            URI uri = URI.create("https://" + OFFICIAL_HOST + "/api/gov24/v3/serviceDetail?serviceKey="
+                    + encode(apiKey) + "&page=1&perPage=1&" + encode("cond[서비스ID::EQ]") + "=" + encode(providerNoticeId));
+            var detail = Gov24ServiceDetailResponse.selectDetails(providerNoticeId, selectJson(uri));
+            var body = new StringBuilder();
+            appendDetail(body, detail.purpose());
+            appendDetail(body, detail.target());
+            appendDetail(body, detail.selectionCriteria());
+            appendDetail(body, detail.supportContent());
+            appendDetail(body, detail.applicationPeriod());
+            appendDetail(body, detail.applicationMethod());
+            appendDetail(body, detail.requiredDocuments());
+            if (body.isEmpty() || body.length() > 100_000) return new ProviderDetailBody(null, failed);
+            return new ProviderDetailBody(body.toString(), available);
+        } catch (ApiException | IllegalArgumentException exception) {
+            // 원격 URL·인증정보·원문을 진단 메시지에 복사하지 않는다. 자동 재시도 없음.
+            return new ProviderDetailBody(null, failed);
+        }
+    }
+
+    private static void appendDetail(StringBuilder body, String text) {
+        if (text == null) return;
+        if (!body.isEmpty()) body.append("\n\n");
+        // 시스템이 만든 필드명(지원내용 등)을 분류 키워드 근거에 섞지 않는다.
+        body.append(text);
+    }
+
     /**
      * 객체를 생성합니다.
      *

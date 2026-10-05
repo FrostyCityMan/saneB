@@ -93,6 +93,7 @@ saneb:
         base-url: ${GOV24_PUBLIC_SERVICE_API_BASE_URL:}
         api-key: ${GOV24_PUBLIC_SERVICE_API_KEY:}
         timeout-millis: ${GOV24_PUBLIC_SERVICE_API_TIMEOUT_MILLIS:5000}
+        detail-body-enabled: ${GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED:false}
     local-government:
       timeout-millis: ${SANEB_LOCAL_GOV_NOTICE_TIMEOUT_MILLIS:15000}
       max-response-bytes: ${SANEB_LOCAL_GOV_NOTICE_MAX_RESPONSE_BYTES:2097152}

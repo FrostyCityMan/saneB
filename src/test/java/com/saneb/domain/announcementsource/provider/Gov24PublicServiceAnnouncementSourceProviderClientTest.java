@@ -243,6 +243,41 @@ class Gov24PublicServiceAnnouncementSourceProviderClientTest {
         return values;
     }
 
+    @Test
+    void detailIsOptInAndUsesExactlyOneOfficialServiceIdRequest() {
+        var response = envelope(1, "테스트 공고");
+        ((ObjectNode) response.path("data").get(0)).put("지원내용", "원문 본문")
+                .put("온라인신청사이트URL", "https://example.invalid/not-a-file");
+        var client = new RecordingClient(ENDPOINT, response);
+        assertThat(client.selectDetailBody("FIXTURE-0").availability().name()).isEqualTo("UNSUPPORTED");
+        assertThat(client.requests).isEmpty();
+        org.springframework.test.util.ReflectionTestUtils.setField(client, "detailBodyEnabled", true);
+        var result = client.selectDetailBody("FIXTURE-0");
+        assertThat(result.availability().name()).isEqualTo("AVAILABLE");
+        assertThat(result.text()).isEqualTo("원문 본문");
+        assertThat(client.requests).singleElement().satisfies(uri -> {
+            assertThat(uri.getPath()).isEqualTo("/api/gov24/v3/serviceDetail");
+            assertThat(query(uri)).containsEntry("cond[서비스ID::EQ]", "FIXTURE-0")
+                    .containsEntry("page", "1").containsEntry("perPage", "1");
+        });
+    }
+
+    @Test
+    void detailFailuresNeverFallBackToAnotherServiceOrRetry() {
+        var client = new RecordingClient(ENDPOINT, envelope(1, "다른 공고"));
+        org.springframework.test.util.ReflectionTestUtils.setField(client, "detailBodyEnabled", true);
+        assertThat(client.selectDetailBody("OTHER-ID").availability().name()).isEqualTo("FETCH_FAILED");
+        assertThat(client.requests).hasSize(1);
+    }
+
+    @Test
+    void relayEndpointCannotReceiveOfficialDetailCredentials() {
+        var client = new RecordingClient("https://example.invalid/list", envelope(1, "테스트"));
+        org.springframework.test.util.ReflectionTestUtils.setField(client, "detailBodyEnabled", true);
+        assertThat(client.selectDetailBody("FIXTURE-0").availability().name()).isEqualTo("UNSUPPORTED");
+        assertThat(client.requests).isEmpty();
+    }
+
     private static final class RecordingClient extends Gov24PublicServiceAnnouncementSourceProviderClient {
         private final JsonNode response;
         private final List<URI> requests = new ArrayList<>();

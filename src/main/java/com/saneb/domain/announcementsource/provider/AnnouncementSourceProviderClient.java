@@ -19,6 +19,20 @@ import java.util.UUID;
 
 public interface AnnouncementSourceProviderClient {
 
+    /** 상세 API 본문 보완은 명시적으로 활성화한 제공자만 수행한다. */
+    default boolean isDetailBodyEnabled() { return false; }
+
+    /** 제목 gate 이후 공고당 최대 1회 호출한다. 기본 제공자는 호출하지 않는다. */
+    default ProviderDetailBody selectDetailBody(String providerNoticeId) {
+        return new ProviderDetailBody(null,
+                com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode.UNSUPPORTED);
+    }
+
+    record ProviderDetailBody(String text,
+            com.saneb.domain.announcementsource.classification.AnnouncementSourceClassificationCodes.BodyAvailabilityCode availability) {
+        @Override public String toString() { return "ProviderDetailBody[availability=" + availability + ", text=REDACTED]"; }
+    }
+
     /**
      * 외부 제공자 호출에 필요한 설정이 준비됐는지 확인합니다.
      *

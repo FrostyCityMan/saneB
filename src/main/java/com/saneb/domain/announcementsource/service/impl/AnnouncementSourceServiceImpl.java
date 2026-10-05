@@ -641,6 +641,15 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceClassificationCoordinator.RunContext runContext,
             AnnouncementSourceProviderItem item
     ) {
+        AnnouncementSourceProviderClient provider = providerClients.get(item.providerCode());
+        if ("GOV24_PUBLIC_SERVICE".equals(item.providerCode()) && provider != null
+                && provider.isDetailBodyEnabled() && runContext != null && runContext.enabled()
+                && classificationCoordinator != null && classificationCoordinator.selectBodyFetchRequired(runContext, item)) {
+            var detail = provider.selectDetailBody(item.providerNoticeId());
+            return new PreparedProviderContent(
+                    detail.availability() == BodyAvailabilityCode.AVAILABLE ? item.withBodyText(detail.text()) : item,
+                    BodySourceCode.PROVIDER_FULL_TEXT, detail.availability());
+        }
         if (item.bodyText() != null && !item.bodyText().isBlank()) {
             BodySourceCode sourceCode = "LOCAL_GOV_NOTICE".equals(item.providerCode())
                     ? BodySourceCode.DETAIL_PAGE_TEXT
