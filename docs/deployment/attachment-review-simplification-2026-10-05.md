@@ -15,11 +15,11 @@
 ## Gate
 
 - [x] 기준선 fd86c49, 기존 사용자 미추적 파일 보존.
-- [x] 관련 Node 회귀 69건 + 신규 화면 상태 6건 통과.
+- [x] 관련 Node 회귀·목록 복귀·신규 화면 상태 총 85건 통과.
 - [x] JavaScript 문법 검사.
-- [~] 로컬 Gradle test/bootJar 진행.
+- [x] 로컬 화면 HTTP 테스트 9건, `:test --tests '*AnnouncementAttachmentViewControllerSmokeTest' :bootJar` 성공.
 - [ ] 동일 SHA Linux CI.
-- [ ] 운영 사전 진단.
+- [x] 운영 사전 진단 37320301091 성공. V91, migration 실패 0, active/waiting 작업 0, COLLECT_ONLY 개정2 유지. 9월의 과거 미종결 일정은 연결 run 없음 상태로 이전 진단과 동일.
 - [ ] 고정 커밋 배포.
 - [ ] 사후 health·정적 자산·설치 지문 확인.
 - [ ] 브라우저 QA: 현재 요청 정책상 미실행. 실제 렌더링·접근성은 통과로 보고하지 않음.
@@ -35,3 +35,9 @@ DB migration 없음. 기존 배포 백업/복구 hook을 유지한다. 화면 �
 `node --test scripts/qa/attachment-simple-workspace.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-segments-ui.test.mjs`
 
 `gradlew.bat test bootJar --no-daemon --console=plain --max-workers=1`
+
+## 재검증 이력
+
+첫 Linux CI 37320413214에서 기존 화면 안내 문구 계약 3건 실패. 테스트를 약화하지 않고 자동 활성화 금지·과거 집합 기준 불변 안내를 복원했다. 로컬 전체 테스트는 이 실패 원인 확인 후 본 작업의 Java 프로세스만 종료했고 전체 통과로 보고하지 않는다.
+
+이후 HTTP 테스트 9건은 실패 0으로 끝났으나 `test --tests`가 하위 추출기 모듈에도 적용되어 명령 전체는 실패했다. 루트 `:test`로 지정한 재실행은 BUILD SUCCESSFUL. 수정 SHA의 Linux 전체 CI는 별도로 재실행한다.

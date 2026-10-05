@@ -26,7 +26,7 @@
         <div data-files></div>
         <div data-blocks role="region" aria-label="선택한 첨부의 추출 문단" tabindex="-1"></div>
         <div data-segments role="region" aria-label="선택한 첨부의 문서 구간 근거" tabindex="-1"></div>
-        <details class="attachment-technical"><summary>수집 이력 · 다른 시점의 파일 보기</summary><p>과거 이력 조회는 현재 검수 기준을 바꾸지 않습니다.</p><div data-sets></div></details>
+        <details class="attachment-technical"><summary>수집 이력 · 다른 시점의 파일 보기</summary><p>과거 집합 조회는 현재 검수 기준을 바꾸지 않습니다.</p><div data-sets></div></details>
         <details>
             <summary>연결 공고 재검수 경고</summary>
             <p>연결 공고의 새 첨부 근거와 실패 이력입니다. 현재 판정·기존 검수·운영 공고를 변경하거나 무효화하지 않습니다. 경고 조회는 재수집이나 공고 공개를 실행하지 않습니다.</p>
@@ -150,7 +150,7 @@
         <p data-draft-result role="status"></p>
         <a class="secondary-action" th:href="@{/app/announcements/input}">공고 관리로 이동</a>
     </section>
-    <details class="attachment-help"><summary>로그인·이용 안내</summary><p>제목 1차 → 본문 2차 → 첨부 텍스트 3차 자동 분석 후 최종 검증합니다. 유효 후보는 최종 선정이 아닙니다.</p><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></details>
+    <details class="attachment-help"><summary>로그인·이용 안내</summary><p>제목 1차 → 본문 2차 → 첨부 텍스트 3차 자동 분석 후 최종 검증합니다. 유효 후보는 최종 선정이 아니며 공고를 자동 활성화하지 않습니다.</p><a class="secondary-action" href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></details>
     </div>
     </div>
     <script th:src="@{/js/saneb-attachment-review-core.js}"></script>
