@@ -12,6 +12,9 @@ BEGIN READ ONLY;
 SELECT json_build_object('readOnly',current_setting('transaction_read_only'),
  'migration',(SELECT max(version::integer) FROM flyway_schema_history WHERE success AND version ~ '^[0-9]+$'),
  'migrationFailures',(SELECT count(*) FROM flyway_schema_history WHERE NOT success),
+ 'activePolicies',(SELECT coalesce(json_agg(p),'[]'::json) FROM (
+   SELECT id,version_no,mode_code,policy_hash,row_version FROM announcement_attachment_policies
+   WHERE policy_status_code='ACTIVE' ORDER BY id LIMIT 10) p),
  'activeJobs',(SELECT count(*) FROM announcement_attachment_jobs WHERE job_status_code IN ('PENDING','RUNNING','RETRY_WAIT')),
  'waitingJobs',(SELECT count(*) FROM announcement_attachment_jobs WHERE job_status_code IN ('SCOPE_READY','PAUSED')),
  'activePolicyQa',(SELECT count(*) FROM announcement_attachment_policy_validation_runs WHERE run_status_code IN ('PENDING','RUNNING','CANCEL_REQUESTED')),
@@ -61,6 +64,17 @@ def pg_environment(values):
         env['PGSSLMODE'] = mode
     return env
 
+
+def deployment_jar_metadata(deployment):
+    if not isinstance(deployment, str) or not re.fullmatch(r'd-[A-Z0-9]+', deployment):
+        return {'verified': False}
+    paths = list(pathlib.Path('/opt/codedeploy-agent/deployment-root').glob(
+        '*/' + deployment + '/deployment-archive/app.jar'))
+    if len(paths) != 1:
+        return {'verified': False}
+    metadata = jar_metadata(paths[0])
+    return {'verified': metadata.get('exists', False), **metadata}
+
 def main():
     result = subprocess.run(['systemctl', 'show', 'saneb.service', '--property=MainPID', '--value'],
                             capture_output=True, text=True, timeout=5, check=True)
@@ -85,6 +99,7 @@ def main():
                              capture_output=True, text=True, timeout=5, check=True).stdout.strip()
     print(json.dumps({'kind': 'DEPLOYMENT_PREFLIGHT', 'database': rows[0],
         'serviceStartedAt': started,
+        'deploymentBundle': deployment_jar_metadata(globals().get('DEPLOYMENT_ID')),
         'installed': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar')),
         'previous': jar_metadata(pathlib.Path('/home/ubuntu/app/app.jar.previous')),
         'databaseEndpointSha256': hashlib.sha256(env['PGHOST'].lower().encode()).hexdigest(),

@@ -41,6 +41,10 @@ class PreflightTests(unittest.TestCase):
         self.assertNotIn('source_url', probe.SQL)
         self.assertNotIn('SELECT *', probe.SQL)
 
+    def test_deployment_path_requires_fixed_id(self):
+        for value in (None, '../other', 'd-ABC/../other', 'd-abc'):
+            self.assertEqual({'verified': False}, probe.deployment_jar_metadata(value))
+
     def test_jar_metadata(self):
         with tempfile.TemporaryDirectory() as directory:
             path = pathlib.Path(directory, 'fixture.jar')

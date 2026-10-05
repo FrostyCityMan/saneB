@@ -40,7 +40,7 @@ def main():
         raise ValueError('INSTANCE_SCOPE_INVALID')
     probe = pathlib.Path('scripts/qa/deployment-preflight-readonly.py').read_bytes()
     encoded = base64.b64encode(probe).decode()
-    command = "python3 -c \"import base64;exec(compile(base64.b64decode('" + encoded + "'),'<preflight>','exec'))\""
+    command = "python3 -c \"import base64;DEPLOYMENT_ID='" + deployment + "';exec(compile(base64.b64decode('" + encoded + "'),'<preflight>','exec'))\""
     sent = aws('ssm', 'send-command', '--instance-ids', instances[0], '--document-name', 'AWS-RunShellScript',
                '--comment', 'saneB approved read-only deployment preflight', '--parameters',
                json.dumps({'commands': [command], 'executionTimeout': ['90']}))
