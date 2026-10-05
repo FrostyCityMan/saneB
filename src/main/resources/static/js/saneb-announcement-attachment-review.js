@@ -63,6 +63,9 @@
         operations?.gates();
         recovery?.gates();
         q("[data-load-linked-notices]").disabled = busy || !source;
+        // 표시만 단계화한다. 권한·버전·불확실 요청의 기존 서버/클라이언트 Gate는 유지한다.
+        q("[data-review-editor]").hidden = !(C.matchesContext(source, context) && !context?.linkedAnnouncement) && !reviewDirty && !confirmAttempt.uncertain;
+        q("[data-draft-section]").hidden = !(C.confirmedCurrent(context) || context?.linkedAnnouncement || draftDirty || draftAttempt.uncertain || q("[data-draft-result]").textContent);
     };
     // 각각의 페이지/조회 응답은 소유 패널과 전체 기준 세대에 묶어 늦은 응답이 새 근거를 덮지 못하게 한다.
     const paged = (container, path, render, empty, size = 10, onLoaded = null) => {
@@ -131,12 +134,17 @@
         readEpoch: () => epoch, text, meta, action, date, core: C,
         showBlocks: (file, match, blockPage) => { showBlocks(file, match, blockPage); q("[data-blocks]").focus(); }});
     const showFiles = (setId, title, evaluation = null) => {
+        message("[data-selected-evidence]", `표시 중인 자료: ${title}. 다른 이력 조회는 현재 판정을 변경하지 않습니다.`);
         segments.reset();
         clear(q("[data-blocks]"));
         return paged(q("[data-files]"), `${root}/attachment-sets/${encodeURIComponent(setId)}/files`, (parent, file) => {
             const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
             text(item, "h3", file.displayName || "이름 미확인 파일");
-            meta(item, [["집합", title], ["파일 ID", file.fileId], ["형식", file.detectedTypeCode || "미확인"],
+            text(item, "p", `${file.detectedTypeCode || "형식 미확인"} · ${C.label(file.qualityCode)} · ${file.characterCount == null ? "글자 수 미집계" : `${file.characterCount}자`}`, "attachment-file-summary");
+            if (file.downloadErrorCode || file.extractionErrorCode) text(item, "p", `확인 필요: ${listLabels([file.downloadErrorCode, file.extractionErrorCode].filter(Boolean))}`, "attachment-error");
+            if (file.documentRoleCode === "UNKNOWN") text(item, "p", "문서 역할 미확정 · 공고와 신청서 등의 문맥을 직접 확인하세요.", "attachment-file-note");
+            const technical = document.createElement("details"); item.append(technical); text(technical, "summary", "파일 처리·문서 역할 상세");
+            meta(technical, [["집합", title], ["파일 ID", file.fileId], ["형식", file.detectedTypeCode || "미확인"],
                 ["문서 역할", C.label(file.documentRoleCode)], ["역할 출처", C.roleOrigin(file.roleOriginCode)], ["다운로드", C.label(file.downloadStatusCode)],
                 ["다운로드 실패", file.downloadErrorCode ? C.label(file.downloadErrorCode) : "기록 없음"],
                 ["추출 품질", C.label(file.qualityCode)], ["추출 실패", file.extractionErrorCode ? C.label(file.extractionErrorCode) : "기록 없음"],
@@ -144,19 +152,19 @@
                 ["이전 추출 재사용", file.reusedFromExtractionId || "재사용 기록 없음"]]);
             action(item, "이 파일의 추출 텍스트 확인", () => showBlocks(file), !file.extractionId);
             if (evaluation) action(item, "선택한 판정에 연결된 구간 근거 확인", () => segments.show(file, setId, evaluation), !file.extractionId);
-            action(item, "독립 구간 분석 확인 (기존 1.0.0)", () => segments.show(file, setId), !file.extractionId);
+            action(technical, "독립 구간 분석 확인 (기존 1.0.0)", () => segments.show(file, setId), !file.extractionId);
             if (!file.extractionId) text(item, "p", "추출 이력이 없어 텍스트를 조회할 수 없습니다.");
             if (file.roleAssessment == null) {
-                text(item, "p", "텍스트 역할 판정 근거가 없습니다. 기존 정책·수동 지정 또는 미완료 추출일 수 있으며, 역할 자동 판정 완료로 간주하지 않습니다.");
+                text(technical, "p", "텍스트 역할 판정 근거가 없습니다. 기존 정책·수동 지정 또는 미완료 추출일 수 있으며, 역할 자동 판정 완료로 간주하지 않습니다.");
             } else if (!C.validRoleAssessment(file)) {
                 text(item, "p", "역할 근거와 추출 이력이 일치하지 않습니다. 자동 강조하지 않습니다. 최신 근거를 다시 조회하고 담당자에게 확인하세요.", "attachment-error").setAttribute("role", "alert");
             } else {
                 const a=file.roleAssessment;
-                meta(item, [["텍스트 규칙 제안", C.label(a.roleCode)], ["역할 판정 사유", C.label(a.reasonCode)], ["역할 규칙 버전", a.ruleVersion]]);
-                text(item, "p", file.roleOriginCode === "MANUAL"
+                meta(technical, [["텍스트 규칙 제안", C.label(a.roleCode)], ["역할 판정 사유", C.label(a.reasonCode)], ["역할 규칙 버전", a.ruleVersion]]);
+                text(technical, "p", file.roleOriginCode === "MANUAL"
                     ? "현재 역할은 관리자 지정값입니다. 아래 자동 제안은 변경 전 근거이며 관리자 지정값을 덮어쓰지 않습니다."
                     : "문서 역할 판정입니다. 공고의 지원대상 확정이나 관리자 최종 검증 완료를 의미하지 않습니다.");
-                const details=document.createElement("details"); item.append(details); text(details, "summary", `역할 판정 근거 ${a.evidence.length}개와 지문 확인`);
+                const details=document.createElement("details"); technical.append(details); text(details, "summary", `역할 판정 근거 ${a.evidence.length}개와 지문 확인`);
                 meta(details, [["역할 근거 추출 ID", file.roleExtractionId], ["규칙 지문", a.rulesHash], ["텍스트 지문", a.textHash], ["문단 지문", a.blocksHash]]);
                 if (!a.evidence.length) text(details, "p", "확정할 수 있는 역할 구조 근거가 없습니다. 추출 품질과 판정 사유를 함께 확인하세요.");
                 a.evidence.forEach(e => {
@@ -178,7 +186,7 @@
             notice.evaluationId ? {evaluationId: notice.evaluationId} : null));
         else text(item, "p", "저장된 첨부 집합이 없는 실패입니다. 작업 실패 사유를 확인하세요.");
     }, "기록된 재검수 경고가 없습니다. 수집 완료나 첨부 없음이 확인됐다는 뜻은 아닙니다.");
-    const showSets = () => paged(q("[data-sets]"), `${root}/attachment-sets`, (parent, set) => {
+    const showSets = (selectLatest = false) => paged(q("[data-sets]"), `${root}/attachment-sets`, (parent, set) => {
         const item = document.createElement("article"); item.className = "attachment-evidence-item"; parent.append(item);
         const active = source?.effectiveClassification?.setId === set.setId;
         const preview = source?.previewClassification?.setId === set.setId;
@@ -190,7 +198,12 @@
         const classification = active ? source.effectiveClassification : preview ? source.previewClassification : null;
         action(item, "이 집합의 파일 확인", () => showFiles(set.setId, usage,
             classification?.decisionId ? {evaluationId: classification.decisionId} : null));
-    }, "첨부 집합 기록이 없습니다. 첨부 없음으로 단정할 수 없습니다.");
+    }, "첨부 집합 기록이 없습니다. 첨부 없음으로 단정할 수 없습니다.", 10, data => {
+        if (selectLatest && data.items.length) {
+            selectLatest = false;
+            showFiles(data.items[0].setId, "최신 수집 이력 · 현재 판정 연결 없음");
+        }
+    });
     const showMatches = evaluation => {
         const container = q("[data-matches]");
         return paged(container, `${root}/attachment-classification/${encodeURIComponent(evaluation.evaluationId)}/matches`, (parent, match) => {
@@ -213,12 +226,23 @@
     const renderCurrent = content => {
         const node = q("[data-current-summary]"); clear(node); text(node, "h3", source.title);
         const a = source.attachmentSummary || {};
-        text(node, "h3", C.label(source.processingFlow?.statusCode));
-        text(node, "p", C.flowGuidance(source));
-        text(node, "p", source.processingFlow?.isAutomaticAnalysisComplete === true
+        text(node, "p", `${source.publicCode} · ${C.label(source.providerCode)}`, "attachment-muted");
+        const status = document.createElement("div"); status.className = "attachment-status-box"; node.append(status);
+        text(status, "strong", C.label(source.processingFlow?.statusCode));
+        text(status, "p", C.flowGuidance(source));
+        const overview = C.attachmentOverview(source);
+        text(node, "p", `${overview.status} · ${overview.progress}`, "attachment-file-summary");
+        if (overview.error) text(node, "p", overview.error, "attachment-error");
+        const applied = source.effectiveClassification;
+        if (applied) {
+            text(node, "p", `현재 적용 판정: ${C.label(applied.semanticStatusCode)} · ${C.label(applied.reasonCode)}`);
+            text(node, "p", `지원대상: ${listLabels(applied.targetCategoryCodes)} / 지원형태: ${listLabels(applied.supportTypeCodes)}`, "attachment-muted");
+        }
+        const technical = document.createElement("details"); node.append(technical); text(technical, "summary", "기술 상세 · 판정 이력 비교");
+        text(technical, "p", source.processingFlow?.isAutomaticAnalysisComplete === true
             ? "자동 분석 완료 · 관리자 최종 검증/공고 공개 여부와 별개"
             : "자동 분석 완료로 확인되지 않음 · 수동 확인으로 이 상태를 성공 처리하지 않음");
-        meta(node, [["공고", `${source.publicCode} · ${C.label(source.providerCode)}`], ["원문 버전 / 첨부 버전", `${source.sourceVersion} / ${source.attachmentVersion}`],
+        meta(technical, [["공고", `${source.publicCode} · ${C.label(source.providerCode)}`], ["원문 버전 / 첨부 버전", `${source.sourceVersion} / ${source.attachmentVersion}`],
             ["첨부 검수 정책", source.isAttachmentReviewRequired ? "현재 적용 · 자동 분석 후 최종 검증" : "미적용 · 미리보기로 기본 판정을 변경하지 않음"],
             ["작업", C.label(a.jobStatusCode)], ["실패 코드", a.errorCode ? C.label(a.errorCode) : "기록 없음"],
             ["접수 상태", a.intakeStatusCode ? C.label(a.intakeStatusCode) : "접수 기록 없음"], ["첨부 발견", C.label(a.discoveryStatusCode)],
@@ -226,9 +250,9 @@
             ["파일 진행", a.totalCount == null ? "미집계" : `${a.processedCount ?? "미집계"}/${a.totalCount}개`],
             ["판정 최신성", a.isStale ? "이전 근거 · 다시 검수 필요" : "조회 시점 기준"], ["검수 확인", C.label(source.confirmationStatusCode)]]);
         [["1·2차 제목·본문 판정 이력 · 중간 근거", source.baseClassification], ["현재 적용 판정", source.effectiveClassification], ["첨부 미리보기 · 적용 안 됨", source.previewClassification]].forEach(([title, c]) => {
-            text(node, "h3", title);
-            if (!c) { text(node, "p", "판정 기록 없음"); return; }
-            meta(node, [["판정", c.decisionId ? C.label(c.semanticStatusCode) : "종합 판정 미생성 · 상단 자동 처리 상태 확인"], ["사유", C.label(c.reasonCode)], ["판정 ID", c.decisionId || "아직 생성되지 않음"],
+            text(technical, "h3", title);
+            if (!c) { text(technical, "p", "판정 기록 없음"); return; }
+            meta(technical, [["판정", c.decisionId ? C.label(c.semanticStatusCode) : "종합 판정 미생성 · 상단 자동 처리 상태 확인"], ["사유", C.label(c.reasonCode)], ["판정 ID", c.decisionId || "아직 생성되지 않음"],
                 ["지원대상", listLabels(c.targetCategoryCodes)], ["지원형태", listLabels(c.supportTypeCodes)]]);
         });
         if (source.confirmationStatusCode === "CURRENT") text(node, "p", "현재 분류 항목에는 저장된 관리자 확정 분류가 반영됩니다. 자동 판정 당시의 근거는 아래 분류 이력에서 확인하세요.");
@@ -245,6 +269,7 @@
             : context.linkedAnnouncement ? "이미 공고에 연결된 원문입니다. 새 검수 확인과 중복 초안 생성은 사용할 수 없습니다."
                 : "최신 검수 기준을 읽었습니다. 아래 분류와 필수 사유를 직접 확인하세요."));
         if (!ready) return;
+        if (!reviewDirty && !confirmAttempt.uncertain) q("[data-review-editor]").open = !C.confirmedCurrent(context);
         const ack = q("[data-acknowledgements]"); clear(ack);
         if (context.requiredAcknowledgementCodes.length) choices(ack, "acknowledgedErrorCodes", Object.fromEntries(context.requiredAcknowledgementCodes.map(code => [code, C.label(code)])));
         else text(ack, "p", "현재 별도 확인이 필요한 실패·검수 사유가 없습니다.");
@@ -284,10 +309,16 @@
             await operations.load(source, !!context?.linkedAnnouncement);
             await recovery.load(source);
             ["[data-files]", "[data-blocks]", "[data-history]", "[data-matches]"].forEach(selector => clear(q(selector)));
-            showSets();
+            // 현재 판정에 연결된 근거를 우선하며 최신 미적용 이력과 혼동하지 않는다.
+            const evidence = source.effectiveClassification?.setId ? source.effectiveClassification : source.previewClassification;
+            showSets(!evidence?.setId);
+            if (evidence?.setId) showFiles(evidence.setId, source.effectiveClassification?.setId === evidence.setId
+                ? "현재 적용 판정의 첨부" : "첨부 미리보기 · 적용 안 됨", evidence.decisionId ? {evaluationId: evidence.decisionId} : null);
+            else message("[data-selected-evidence]", "판정에 연결된 첨부 기록이 없습니다. 최신 수집 이력을 조회합니다.");
             message("[data-page-status]", `조회 시각: ${date(new Date().toISOString())}. 외부 수집을 실행하지 않았습니다.`);
         } catch (error) {
             source = null; context = null; locked = true;
+            message("[data-selected-evidence]", "최신 자료 조회 실패 · 첨부 없음으로 판단하지 마세요.");
             await operations.load(null);
             await recovery.load(null);
             ["[data-current-summary]", "[data-source-content]", "[data-sets]", "[data-files]", "[data-blocks]", "[data-history]", "[data-matches]", "[data-acknowledgements]"].forEach(selector => clear(q(selector)));

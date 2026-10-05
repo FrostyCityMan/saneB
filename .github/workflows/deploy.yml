@@ -68,6 +68,7 @@ jobs:
           set -euo pipefail
           chmod +x ./gradlew
           node --test scripts/qa/attachment-contract-release.test.mjs
+          node --test scripts/qa/attachment-simple-workspace.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-recovery-ui.test.mjs scripts/qa/attachment-segments-ui.test.mjs
           ./gradlew clean test bootJar :attachment-extractor:test :attachment-extractor:installDist installAttachmentContractQa attachmentContractQaTest attachmentQaRuleSnapshot --no-daemon --console=plain --max-workers=1
 
       - name: Build CodeDeploy bundle

@@ -32,3 +32,23 @@ html { min-width: 0; }
 .attachment-skip:focus { position: static; width: auto; height: auto; }
 @media (max-width: 575px) { .attachment-meta { grid-template-columns: 1fr; gap: .2rem; } .attachment-meta dd { margin-bottom: .65rem; } .attachment-actions > * { width: 100%; } }
 @media (forced-colors: active) { .attachment-review-page :focus-visible, .saneb-main .attachment-review-page :focus-visible { outline-color: Highlight; } }
+
+/* 검수 화면 단순화: 기존 공통 색·패널·버튼을 유지하고 자료와 행동을 분리한다. */
+.attachment-page-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:.7rem 1.2rem; }
+.attachment-page-heading > p, .attachment-page-heading > noscript { flex-basis:100%; margin:0; }
+.attachment-page-heading h1 { font-weight:750; margin:0 0 .5rem; }
+.attachment-page-heading p, .attachment-muted { color:var(--saneb-muted); font-size:.875rem; }
+.attachment-work-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:1.25rem; align-items:start; }
+.attachment-decision-column { display:grid; gap:1.25rem; min-width:0; }
+.attachment-review-page .attachment-eyebrow { color:var(--saneb-muted); font-size:.875rem; margin-bottom:.5rem; }
+[data-current-summary] > h3 { font-size:1.35rem; line-height:1.5; margin-top:0; }
+.attachment-status-box { padding:1rem 1.2rem; margin:1rem 0; background:#fff5df; border-left:3px solid #aa7015; }
+.attachment-status-box p { margin:.4rem 0 0; font-size:.9rem; }
+.attachment-file-summary { font-size:.875rem; color:var(--saneb-teal); }
+.attachment-file-note { font-size:.875rem; padding:.75rem; background:var(--saneb-panel); border-left:3px solid var(--saneb-border-strong); }
+.attachment-technical, .attachment-help { border-top:1px solid var(--saneb-border); padding-top:.65rem; }
+.attachment-evidence-item > button { margin:.4rem .5rem .4rem 0; }
+.attachment-review-page [data-review-editor] > summary { color:var(--saneb-teal); }
+.attachment-review-page [data-confirm], .attachment-review-page [data-create-draft] { width:100%; justify-content:center; text-align:center; }
+.attachment-review-page [data-confirm]:disabled, .attachment-review-page [data-create-draft]:disabled { opacity:1; color:#555c54; background:#e7e7df; border-color:#c9ccc3; }
+@media(max-width:1100px) { .attachment-work-grid { grid-template-columns:1fr; } }
