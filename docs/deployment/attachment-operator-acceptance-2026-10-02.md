@@ -2,6 +2,12 @@
 
 ## 범위와 현재 Gate
 
+### 2026-10-05 11:56 KST V90 코드 설치 확인
+
+승인 코드 `00d16d9` 배포37256870718/CodeDeploy `d-A8GG4SJ6L`이 성공했다. 후속 읽기 전용 진단37257357172에서 운영 DB V90·migration 실패0, 설치/배포 원본 JAR SHA-256 일치, 이전 V86 JAR 보존, health UP을 확인했다. 기존 개정2 COLLECT_ONLY와 worker/source batch true는 유지했다. 정책 게시·ENFORCE·기존 데이터 재처리는 실행하지 않았다.
+
+현재 설치에서 정책 검증 범위와 실제 파일·운영 화면 E2E를 다시 확인해야 한다. 아래 단건 HWPX 결과는 과거 설치의 이력이며 이번 배포의 E2E 성공 증거가 아니다. 코드 설치 하위 Gate 완료를 전체 사용자 테스트 준비 완료로 확대하지 않는다. 상세 증거는 `diagnostic-iam-preflight-2026-10-05.md` 참조.
+
 ### 2026-10-03 00:16 KST 개정 2 재게시 완료
 
 동일 COLLECT_ONLY·구간 규칙1.0.4·80MiB 개정2 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c`를 새 QA4단계 통과 후 게시했다. 영수증 `88e89d51-9a58-424c-be1a-03ba63c97846`, 기존 개정1은 퇴역·이력 보존이다. 새 정책의 [검증 범위](http://15.165.36.6:8080/app/admin/announcement-attachment-provider-coverage?policyId=7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c) 조회는 정상이며 전체225곳·기대값 미완료를 표시한다. QA의 결합 일치224곳은 외부 파일 성공 수가 아니며 정부24는 첨부 모델이 없다.

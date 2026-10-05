@@ -52,5 +52,15 @@
 
 ## 참고
 
+### 배포 후 직접 검증 — 2026-10-05 11:56 KST
+
+- 배포 run37256870718 성공, 정확한 코드 `00d16d9cecd01159006a316c5cc7be3c30fd64f6`, CodeDeploy `d-A8GG4SJ6L`. Linux 테스트·빌드 단계 5분19초 성공.
+- 후속 진단 https://github.com/FrostyCityMan/saneB/actions/runs/37257357172 성공. SSM `0b5d725b-2f1a-44b3-8580-54ab0be7657c`, DB READ ONLY/ROLLBACK, 진단 업무 쓰기0.
+- 운영 DB V90, migration 실패0. 서비스 시작 2026-10-05 11:55:04 KST, 공개 health UP.
+- 설치 JAR와 해당 배포 원본 JAR의 SHA-256이 `5cc938a7be4aa1228b2602c68fbbb9c1f731ecc0821f9f341d21c81fb4e23a0e`로 일치한다. 이전 V86 JAR은 `403127f717293c73989685b874d487cf76e0031a6b7dd010833e7c9f8402b390`으로 보존됐다.
+- 활성 정책은 기존 개정2 `7df4c0a2-0d6f-402b-bb63-6ce39f2fef9c`, COLLECT_ONLY, row_version2. 정책 재게시·ENFORCE·기존 데이터 처리 없음.
+- 첨부 active/waiting job·정책/공급자 QA·대기 일정0. 과거 미종결 일정1은 동일 ID/시각으로 보존. worker/source batch 플래그 true 유지.
+- 코드 설치·migration 하위 Gate는 완료했다. 현재 설치에 대한 정책 지문/검증 범위, 실제 파일 worker, 운영 브라우저, 검수→DRAFT 및 기존 데이터 배치의 전체 Gate는 별도 미완료다.
+
 - AWS 권한 참조: https://docs.aws.amazon.com/service-authorization/latest/reference/list_ssm.html
 - 로컬 실행 도구: `build/qa-tools/Invoke-SanebApprovedIamDiagnostic.ps1` (Git 제외 경로). 기본 조회, `-Apply`는 동일 이름 정책 존재 시 덮어쓰지 않고 중단한다.
