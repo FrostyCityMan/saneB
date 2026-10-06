@@ -33,7 +33,7 @@
 
 - `gradlew.bat compileJava --no-daemon --max-workers=1`: 성공.
 - `gradlew.bat :test --tests '*ApplicationProgressServiceImplTest' --tests '*AnnouncementSourceTargetContextTest' --tests '*AnnouncementSourceClassificationEngine*' --tests '*AnnouncementSourceV2ConversionServiceImplTest' --no-daemon --max-workers=1`: 성공. 이후 추가 테스트는 전체 회귀에 포함한다.
-- Node 지정 11개 suite: 149건 중 146 통과, 3 Windows 미지원 Linux 심볼릭 링크 검사 생략, 실패 0. 브라우저 대역 실행이며 실제 브라우저 성공으로 표현하지 않는다.
+- Node 지정 11개 suite: 151건 중 148 통과, 3 Windows 미지원 Linux 심볼릭 링크 검사 생략, 실패 0. 브라우저 대역 실행이며 실제 브라우저 성공으로 표현하지 않는다.
 - unqualified `test --tests`는 extractor 모듈의 대상 없음으로 실패했다. `:test`로 올바른 루트 범위를 지정한 재실행은 성공했다. 실패 이력은 성공으로 바꾸지 않는다.
 - Windows Docker daemon 미접속: 실제 PostgreSQL은 운영 DB가 아닌 Linux CI의 임시 loopback DB로 검증한다.
 - 서울 읽기 전용 사전 점검 `37479311260`: CodeDeploy `d-7870D16X8`의 설치/bundle JAR 동일, DB V91·migration 실패 0, COLLECT_ONLY 정책 v2, 활성 첨부 작업 0, 이전 JAR 존재. 오래된 스케줄 RUNNING 1건은 보존하며 이번 회귀 수정과 분리한다. DB transaction READ ONLY/ROLLBACK, writes=0.

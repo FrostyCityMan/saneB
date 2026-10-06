@@ -28,7 +28,7 @@ async function harness(opts={}) {
     const version={expectedBaseDecisionId:base,expectedAttachmentDecisionId:id,expectedSourceVersion:1,expectedAttachmentVersion:2,expectedSetHash:'a'.repeat(64)};
     const source={sourceId:id,title:'검증 공고',publicCode:'SRC-TEST',providerCode:'LOCAL_GOV_NOTICE',isAttachmentReviewRequired:true,sourceVersion:1,attachmentVersion:2,
         processingFlow:{statusCode:opts.statusCode||(opts.blocked?'RUNNING':'READY_FOR_FINAL_REVIEW'),isFinalReviewAvailable:!opts.blocked},attachmentSummary:{jobStatusCode:opts.blocked?'RUNNING':'SUCCEEDED'},
-        baseClassification:{decisionId:base},effectiveClassification:{decisionId:id,setId:opts.noSet?null:id,setHash:'a'.repeat(64),targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT']}};
+        baseClassification:{decisionId:base,targetCategoryCodes:['BUSINESS'],supportTypeCodes:['GENERAL_SUPPORT']},effectiveClassification:{decisionId:id,setId:opts.noSet?null:id,setHash:'a'.repeat(64),targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT']}};
     const context=()=>({sourceId:id,version:{...version},requiredAcknowledgementCodes:opts.manual?['DISCOVERY_FAILED']:[],manualSourceCheckRequired:!!opts.manual,
         linkedAnnouncement:linked?{announcementId:id,announcementCode:'ANN-TEST'}:null,confirmedClassification:confirmed?{targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT'],confirmation:{confirmationId:id,sourceId:id,evaluationId:id,isCurrent:true,sourceVersion:1,attachmentVersion:2,setHash:'a'.repeat(64)}}:null});
     const request=async(url,options={})=>{
@@ -51,7 +51,7 @@ async function harness(opts={}) {
     const page={dataset:{sourceId:id,canManage:String(opts.manage!==false)},querySelector:q};
     runInNewContext(script,{window:{SanebAttachmentReview:{...core,client:()=>request,mutation:()=>core.mutation(()=>id)},fetch(){},addEventListener(){}},document:{querySelector:()=>page,createElement:tag=>new El(tag),createTextNode:t=>t}});
     const settle=async()=>{for(let i=0;i<35;i++)await Promise.resolve();};await settle();
-    const fill=()=>{form.elements.primaryTargetCategoryCode.value='PERSONAL';form.elements.incomeJudgementCode.value='NO_LIMIT';form.elements.reviewNote.value='원문 확인';form.elements.acknowledged.checked=true;};
+    const fill=()=>{form.elements.primaryTargetCategoryCode.value=opts.base?'BUSINESS':'PERSONAL';form.elements.incomeJudgementCode.value='NO_LIMIT';form.elements.reviewNote.value='원문 확인';form.elements.acknowledged.checked=true;};
     const submit=async()=>{fill();form.events.submit({preventDefault(){}});await settle();};
     return {q,form,calls,source,submit,settle,fill,counts:()=>({confirmCount,draftCount})};
 }
@@ -106,7 +106,8 @@ test('base review combines confirmation and draft without using attachment confi
     assert.equal(writes.length,1);assert.match(writes[0].url,/base-review\/announcements$/);
     const body=JSON.parse(writes[0].options.body);
     assert.equal(body.reviewNote,'원문 확인');assert.equal(body.classification.expectedClassificationDecisionId,base);
-    assert.equal(body.classification.expectedVersion,1);assert.equal(body.classification.primaryTargetCategoryCode,'PERSONAL');
+    assert.equal(body.classification.expectedVersion,1);assert.equal(body.classification.primaryTargetCategoryCode,'BUSINESS');
+    assert.deepEqual(body.classification.targetCategoryCodes,['BUSINESS']);
     assert.equal(h.q('[data-result]').children.find(el=>el.tag==='a').href,`/app/announcements/input?announcementId=${id}`);
 });
 

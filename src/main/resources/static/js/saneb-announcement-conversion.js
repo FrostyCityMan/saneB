@@ -195,8 +195,11 @@
                 ? `/app/announcements/input?announcementId=${encodeURIComponent(context.linkedAnnouncement.announcementId)}` : '/app/announcements/input';
         }
         if (!ready) return;
+        const initialClassification = baseMode()
+            ? (baseContext.confirmed ? baseContext : source.baseClassification)
+            : (context.confirmedClassification || source.effectiveClassification);
         if (!dirty) ['targetCategoryCodes', 'supportTypeCodes'].forEach(name => form.querySelectorAll(`input[name="${name}"]`).forEach(input => {
-            input.checked = (context.confirmedClassification?.[name] || source.effectiveClassification?.[name] || []).includes(input.value);
+            input.checked = (initialClassification?.[name] || []).includes(input.value);
         }));
         primaryOptions();
         choices('[data-acknowledgements]', 'acknowledgedErrorCodes', Object.fromEntries(context.requiredAcknowledgementCodes.map(code => [code, C.label(code)])));

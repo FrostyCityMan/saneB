@@ -29,6 +29,9 @@ public class AnnouncementSourceBaseReviewServiceImpl implements AnnouncementSour
     @Override @Transactional
     public AnnouncementSourceLinkResponse insertReviewedAnnouncement(Authentication authentication, UUID sourceId,
             AnnouncementSourceBaseReviewRequest request) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof com.saneb.domain.auth.vo.AuthenticatedUserDetails)) {
+            throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
         var source = sources.selectSourceDetailsForUpdate(sourceId);
         if (source == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "수집 원문을 찾을 수 없습니다.");
         var linked = sources.selectLinkedAnnouncementDetails(sourceId);
