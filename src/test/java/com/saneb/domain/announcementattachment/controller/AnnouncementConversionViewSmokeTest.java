@@ -28,6 +28,8 @@ class AnnouncementConversionViewSmokeTest {
         assertThat(html.select("[data-fields][disabled], [data-convert][disabled]")).hasSize(2);
         assertThat(html.select("[data-operation-form], [data-recovery-form], [data-load-history], script:not([src])")).isEmpty();
         assertThat(html.select("[data-acknowledgements], [data-retry], [data-blocks]")).hasSize(3);
+        assertThat(html.select("[data-classification][hidden], #conversion-blocker[role=status]")).hasSize(2);
+        assertThat(html.selectFirst("[data-form]").attr("aria-describedby")).isEqualTo("conversion-blocker");
         assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("required")).isTrue();
         assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("checked")).isFalse();
         assertThat(html.text()).contains("검수 사유", "자동 활성화하지 않습니다");

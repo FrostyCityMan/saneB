@@ -57,3 +57,37 @@ Node `attachment-conversion.test.mjs`와 기존 첨부 UI 회귀 테스트를 �
 - Decision: **Conditionally ready**. 승인된 코드 적용과 비브라우저 검증은 완료. 현재 사용자 요청 정책에 따라 실브라우저 시각·모바일·실제 클릭 QA는 미실행이다.
 - 실제 공고 검수 저장·초안 생성·재수집은 검증 과정에서 실행하지 않았다. 서버 판정 미적용 등 기존 차단 조건은 유지한다.
 - 사용한 Node, 일회성 Gradle, CLI 감시 프로세스는 종료되었다. 기존 사용자 파일과 프로세스는 보존했다.
+
+## 브라우저 QA 후속 수정 — 로컬, 미배포
+
+이번 절은 위 배포 기록과 별개인 후속 변경이다. 작업 기준 HEAD는 `bb7691be459717bce9d4b5e51891290585247181`이다.
+
+- Design Read: 기존 Thymeleaf·공통 CSS를 유지하며, 관리자가 전환 차단 사유를 이해하고 여러 첨부 문단을 연속 열람하도록 한다.
+- 사용자/과업: 관리자·운영자의 자료 확인, 분류 검수, 비공개 초안 생성. 데스크톱 중심이며 모바일·키보드 접근도 유지한다.
+- 위험: 화면 수정은 R1. 저장 조건을 잘못 완화하면 데이터 무결성에 영향을 주므로 서버 버전·권한·필수 확인·미확정 요청 재시도 조건은 변경하지 않는다.
+- 범위: 안내·조회 UI만 수정. 본문 재수집, 판정 적용, 정책 게시, DB/API/migration 변경, 업무 데이터 쓰기, 커밋·푸시·배포는 하지 않는다.
+
+### 변경 사항
+
+- `saneb-announcement-conversion.js`: 첨부 20문단/쪽 연속 열람, 열람 쪽 이동, 문단별 4,000자 이어 읽기. 기존 GET API의 한도를 그대로 사용하고 자동 전체 다운로드/반복 조회는 하지 않는다.
+- 긴 문단 조회 실패 시 읽은 내용 보존 및 동일 위치 재시도. 파일 변경·새로고침 뒤 늦게 도착한 응답은 폐기한다. 텍스트 위치는 서버 코드 포인트 오프셋을 사용한다.
+- 판정 미적용·처리 대기·설정 문제·근거 변경을 원인/다음 행동으로 안내한다. 전환 불가 시 빈 폼 대신 읽기 전용 분류를 표시하고 미리보기와 적용 분류를 구분한다. 작성 중인 폼은 보존한다.
+- `announcement-conversion-review.html`: 차단 사유 접근성 연결과 읽기 전용 분류 영역 추가.
+- `saneb-announcement-attachment-review.css`: 문단 구분·쪽 이동 컨트롤 스타일. 기존 디자인 토큰과 포커스·반응형 규칙을 재사용한다.
+- `attachment-conversion.test.mjs`, `AnnouncementConversionViewSmokeTest.java`: 페이지 경계, 입력 오류, 부분 조회 실패, 응답 경합, 잠금 유지 및 SSR 계약 검증 추가.
+
+### 검증 명령과 완료 기준
+
+```powershell
+node --test scripts/qa/attachment-conversion.test.mjs scripts/qa/attachment-simple-workspace.test.mjs scripts/qa/attachment-review-ui.test.mjs scripts/qa/attachment-operations-ui.test.mjs scripts/qa/attachment-segments-ui.test.mjs scripts/qa/attachment-policy-ui.test.mjs scripts/qa/collected-attachment-overview.test.mjs scripts/qa/collected-navigation.test.mjs
+.\gradlew.bat :test --tests '*AnnouncementAttachmentViewControllerSmokeTest' --tests '*AnnouncementConversionViewSmokeTest' :bootJar --no-daemon --console=plain --max-workers=1
+git diff --check
+```
+
+- [x] Node 141건 통과, 실패/생략 0. 전환 화면 23건을 포함한다.
+- [x] HTTP/SSR 15건 통과, 실패/생략 0. bootJar 성공.
+- [x] API·DB·서버 전환 조건을 변경하지 않음.
+- [ ] 수정 후 브라우저 QA: 현재 수정 요청에는 명시 지시가 없어 사용자 정책에 따라 미실행. 실제 반응형·키보드·스크린리더 확인은 남아 있다.
+- [ ] 운영 적용: 미실행. 앞 절의 배포 성공을 이번 수정의 배포 근거로 사용하지 않는다.
+
+한계: 20문단 연속 열람과 쪽 이동이며, 문서 전체 검색은 제공하지 않는다. 파일 원본 쪽수와 열람 쪽수는 다르다. `SRC-017842`에서 확인된 본문 미확보·첨부 판정 미적용 상태를 이 UI 변경이 해결하거나 우회하지 않는다.

@@ -50,24 +50,69 @@
     const action = (parent, label, callback, disabled = false) => {
         const button = text(parent, 'button', label, 'secondary-action'); button.type = 'button'; button.disabled = disabled;
         button.addEventListener('click', callback);
+        return button;
     };
-    const loadBlocks = async (file, number = 1, offset = 0) => {
+    const blockPageSize = 20;
+    const loadBlocks = async (file, number = 1) => {
         const expected = epoch, node = q('[data-blocks]'); node.replaceChildren();
         const token = {}; node.requestToken = token;
         text(node, 'p', '첨부 내용을 불러오는 중입니다.');
         try {
-            const data = await request(`${root}/attachment-extractions/${encodeURIComponent(file.extractionId)}/blocks?page=${number}&size=1&textOffset=${offset}&textLimit=2000`);
+            const endpoint = `${root}/attachment-extractions/${encodeURIComponent(file.extractionId)}/blocks`;
+            const data = await request(`${endpoint}?page=${number}&size=${blockPageSize}&textOffset=0&textLimit=4000`);
             if (expected !== epoch || node.requestToken !== token) return;
             node.replaceChildren(); text(node, 'h3', file.displayName || '첨부 내용');
-            const block = data.items[0];
-            if (!block) { text(node, 'p', '추출한 내용이 없습니다. 외부 원문을 확인하세요.'); return; }
-            text(node, 'p', `문단 ${data.page}/${data.totalPages}`, 'attachment-muted'); text(node, 'pre', block.text);
-            action(node, '이전 문단', () => loadBlocks(file, number - 1), number <= 1);
-            action(node, '다음 문단', () => loadBlocks(file, number + 1), number >= data.totalPages);
-            action(node, '문단 처음', () => loadBlocks(file, number), offset === 0);
-            action(node, '다음 내용', () => loadBlocks(file, number, block.textEndOffset - block.startOffset), !block.hasMoreText);
+            if (!data.items.length) { text(node, 'p', '추출한 내용이 없습니다. 외부 원문을 확인하세요.'); return; }
+            const first = (number - 1) * blockPageSize + 1;
+            text(node, 'p', `문단 ${first}~${first + data.items.length - 1} / 전체 ${data.totalCount}개 · 열람 ${number}/${data.totalPages}쪽`, 'attachment-muted');
+            text(node, 'p', '한 번에 20문단씩 읽습니다. 긴 문단은 이어 읽기를 누르세요. 추출되지 않은 내용은 외부 원문에서 확인하세요.', 'attachment-muted');
+            const navigation = text(node, 'div', '', 'attachment-actions');
+            action(navigation, '이전 20문단', () => loadBlocks(file, number - 1), number <= 1);
+            action(navigation, '다음 20문단', () => loadBlocks(file, number + 1), number >= data.totalPages);
+            const jumpLabel = text(navigation, 'label', '열람 쪽 이동 ', 'conversion-page-jump');
+            const jump = document.createElement('input'); jump.type = 'number'; jump.min = '1'; jump.max = String(data.totalPages); jump.value = String(number); jumpLabel.append(jump);
+            const jumpError = text(node, 'p', '', 'attachment-error'); jumpError.hidden = true; jumpError.setAttribute('role', 'alert');
+            action(navigation, '해당 쪽 보기', () => {
+                const target = Number(jump.value);
+                if (!Number.isInteger(target) || target < 1 || target > data.totalPages) {
+                    jumpError.textContent = `쪽 번호를 1~${data.totalPages} 사이의 정수로 입력하세요.`; jumpError.hidden = false; jump.focus(); return;
+                }
+                loadBlocks(file, target);
+            });
+            data.items.forEach((block, index) => {
+                const section = text(node, 'section', '', 'conversion-text-block');
+                const ordinal = first + index;
+                text(section, 'h4', `문단 ${ordinal}`);
+                const contents = text(section, 'div', ''); text(contents, 'pre', block.text);
+                if (!block.hasMoreText) return;
+                const status = text(section, 'p', '긴 문단의 앞부분입니다. 이어 읽기로 나머지를 확인하세요.', 'attachment-muted'); status.setAttribute('role', 'status');
+                let current = block;
+                const more = action(section, `문단 ${ordinal} 이어 읽기`, async () => {
+                    if (more.disabled) return;
+                    more.disabled = true; status.textContent = '이어서 불러오는 중입니다.';
+                    try {
+                        const offset = current.textEndOffset - current.startOffset;
+                        const next = await request(`${endpoint}?page=${ordinal}&size=1&textOffset=${offset}&textLimit=4000`);
+                        if (expected !== epoch || node.requestToken !== token) return;
+                        const part = next.items[0];
+                        if (!part || part.blockIndex !== block.blockIndex || part.startOffset !== block.startOffset || part.endOffset !== block.endOffset
+                            || part.textStartOffset !== current.textEndOffset || part.textEndOffset <= current.textEndOffset) {
+                            throw new Error('문단의 이어지는 내용을 확인하지 못했습니다. 다시 시도하거나 외부 원문을 확인하세요.');
+                        }
+                        // 코드 포인트 위치는 서버 응답을 사용한다. 다른 문단과 기존 내용은 보존한다.
+                        text(contents, 'pre', part.text); current = part;
+                        more.hidden = !part.hasMoreText;
+                        status.textContent = part.hasMoreText ? '이 문단에 읽을 내용이 더 있습니다.' : '이 문단의 추출 내용을 모두 불러왔습니다.';
+                    } catch (error) {
+                        if (expected === epoch && node.requestToken === token) status.textContent = `${error.message} 기존 내용은 유지됩니다. 이어 읽기를 다시 누르세요.`;
+                    } finally { more.disabled = false; }
+                });
+            });
+            const footer = text(node, 'div', '', 'attachment-actions');
+            action(footer, '이전 20문단', () => loadBlocks(file, number - 1), number <= 1);
+            action(footer, '다음 20문단', () => loadBlocks(file, number + 1), number >= data.totalPages);
             node.focus();
-        } catch (error) { if (expected === epoch && node.requestToken === token) { node.replaceChildren(); text(node, 'p', error.message, 'attachment-error'); action(node, '내용 다시 조회', () => loadBlocks(file, number, offset)); } }
+        } catch (error) { if (expected === epoch && node.requestToken === token) { node.replaceChildren(); text(node, 'p', error.message, 'attachment-error'); action(node, '내용 다시 조회', () => loadBlocks(file, number)); } }
     };
     const loadFiles = async (setId, number = 1) => {
         const expected = epoch, node = q('[data-files]'), token = {}; node.requestToken = token;
@@ -117,7 +162,26 @@
         if (evidence?.setId) loadFiles(evidence.setId);
         else loadLatestFiles();
         const ready = C.matchesContext(source, context);
-        message('[data-blocker]', ready ? (context.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.' : '') : C.flowGuidance(source));
+        const blockedMessages = {
+            NOT_APPLIED: '공고 전환 준비가 필요합니다. 첨부 분석 결과가 아직 분류에 반영되지 않았습니다. 시스템 담당자에게 이 공고의 판정 적용을 요청하고, 완료 안내를 받은 뒤 ‘최신 자료 확인’을 누르세요. 지금은 자료 열람만 가능합니다.',
+            CLASSIFICATION_PENDING: '제목·본문 분류 결과가 없어 전환할 수 없습니다. 시스템 담당자에게 분류 처리를 요청한 뒤 최신 자료를 확인하세요.',
+            CONFIGURATION_REQUIRED: '수집·분류 설정 확인이 필요합니다. 시스템 담당자에게 이 공고를 전달하세요. 검수 내용을 입력해도 해결되지 않습니다.',
+            AUTOMATIC_PROCESSING: '자료 분석을 기다리고 있습니다. 처리가 끝난 뒤 ‘최신 자료 확인’을 누르세요. 지금은 자료 열람만 가능합니다.',
+            EVIDENCE_STALE: '자료가 변경되어 이전 판정을 사용할 수 없습니다. 최신 자료 확인 후에도 같으면 시스템 담당자에게 재분석을 요청하세요.'
+        };
+        const blocker = ready ? (context.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.' : '')
+            : blockedMessages[source.processingFlow?.statusCode] || '현재 자료와 검수 기준을 확인하지 못해 전환할 수 없습니다. ‘최신 자료 확인’ 후에도 같으면 시스템 담당자에게 이 공고를 전달하세요.';
+        message('[data-blocker]', blocker ? `${blocker} (${source.publicCode})` : '');
+        const classification = q('[data-classification]'); classification.replaceChildren(); classification.hidden = ready;
+        if (!ready) {
+            const current = source.effectiveClassification || source.previewClassification || source.baseClassification;
+            const label = source.effectiveClassification ? '저장된 분류 · 전환 기준 확인 필요' : source.previewClassification ? '미리보기 분류 · 적용 전' : '제목·본문 분류 · 첨부 미반영';
+            text(classification, 'h3', label);
+            text(classification, 'p', `지원대상: ${current?.targetCategoryCodes?.map(C.label).join(', ') || '미확인'}`);
+            text(classification, 'p', `지원형태: ${current?.supportTypeCodes?.map(C.label).join(', ') || '미확인'}`);
+        }
+        // 잠긴 빈 입력란 대신 조회용 분류를 표시한다. 작성 중인 값은 숨기거나 삭제하지 않는다.
+        form.hidden = !ready && !dirty;
         q('[data-result]').replaceChildren(); q('[data-result]').hidden = !context?.linkedAnnouncement;
         if (context?.linkedAnnouncement) {
             text(q('[data-result]'), 'p', `연결된 공고: ${context.linkedAnnouncement.announcementCode}. 공개 상태는 공고 관리에서 확인하세요.`);
@@ -149,7 +213,8 @@
             return !locked;
         } catch (error) {
             source = null; context = null; locked = true;
-            ['[data-body]', '[data-files]', '[data-blocks]', '[data-result]'].forEach(selector => q(selector).replaceChildren());
+            ['[data-body]', '[data-files]', '[data-blocks]', '[data-result]', '[data-classification]'].forEach(selector => q(selector).replaceChildren());
+            message('[data-blocker]', '자료 조회에 실패하여 전환을 잠갔습니다. ‘최신 자료 확인’을 다시 누르세요.');
             message('[data-title]', '최신 공고 조회 실패'); message('[data-summary]', '입력은 유지됩니다. 최신 자료 확인을 다시 실행하세요.');
             message('[data-evidence]', '첨부 조회 미완료 · 첨부 없음으로 판단하지 마세요.');
             message('[data-error]', error.message, true); message('[data-status]', '조회 실패 · 전환할 수 없습니다.'); return false;

@@ -67,4 +67,11 @@ html { min-width: 0; }
 .conversion-review .conversion-file p { flex-basis:100%; margin:0; }
 .conversion-review [data-convert]:disabled { background:#e7e7df; color:#555c54; border:1px solid #c9ccc3; opacity:1; }
 .conversion-review [data-result] { padding:1rem; background:#edf3ed; }
+.conversion-review [data-blocks] { min-width:0; }
+.conversion-review .conversion-text-block { border-bottom:1px solid var(--saneb-border); padding:.75rem 0; }
+.conversion-review .conversion-text-block h4 { font-size:.875rem; color:var(--saneb-muted); }
+.conversion-review .conversion-text-block pre { margin:0; padding:.65rem; }
+.conversion-review .conversion-page-jump { display:flex; align-items:center; gap:.5rem; margin:0; }
+.conversion-review .conversion-page-jump input { max-width:6rem; }
+.conversion-review [data-classification] { margin:1rem 0; }
 @media(max-width:760px) { .conversion-review .conversion-materials,.conversion-review .conversion-grid { grid-template-columns:1fr; } .conversion-review .conversion-action { flex-direction:column; align-items:stretch; } }
