@@ -3,6 +3,7 @@
       th:replace="~{fragments/layout :: page('기본 정보 입력', ~{::main})}">
 <main class="dashboard-page"
       data-member-basic-info-app
+      data-basic-info-simple
       th:data-basic-info-url="@{/api/v1/member/basic-info}"
       th:data-address-search-url="@{/api/v1/addresses/road}">
     <section class="dashboard-simple-grid" aria-label="기본 정보 입력">
@@ -10,7 +11,7 @@
             <div class="summary-header">
                 <div>
                     <div class="section-label">기본 정보 입력</div>
-                    <p>사업자·개인·가족 기본정보를 저장하면 사내비가 공고 조건과 비교할 수 있습니다.</p>
+                    <p>확실한 정보부터 입력하고, 필요한 서류만 펼쳐서 보완하세요.</p>
                 </div>
                 <span class="soft-status">사용자 첫 행동</span>
             </div>
@@ -23,7 +24,7 @@
                 <article class="top-summary-card">
                     <span>선택 입력</span>
                     <strong>서류 기반 값</strong>
-                    <small>누락 시 일부 매칭 또는 입증에서 불리할 수 있습니다.</small>
+                    <small>서류는 미리 준비되어 있습니다. 아는 값만 입력하세요.</small>
                 </article>
                 <article class="top-summary-card">
                     <span>다음 단계</span>
@@ -33,7 +34,10 @@
             </div>
         </section>
 
+        <div class="basic-info-load-actions"><button class="secondary-action" type="button" data-basic-info-retry hidden>기본정보 다시 불러오기</button></div>
         <form class="plain-panel basic-info-form" data-basic-info-form novalidate>
+            <nav class="basic-info-section-links" aria-label="입력 항목 바로가기"><a href="#basicPersonal">본인</a><a href="#basicBusiness">사업자</a><a href="#basicDocuments">서류·가족</a></nav>
+            <div id="basicPersonal">
             <div class="panel-heading compact-heading">
                 <div>
                     <span class="eyebrow">개인</span>
@@ -107,7 +111,7 @@
                     <input id="basicIncomeAmount" name="incomeAmount" type="number" min="0" step="10000" placeholder="예: 30000000">
                     <small>확실하지 않으면 비워 둘 수 있습니다.</small>
                 </div>
-                <div class="field-block span-2">
+                <div class="field-block span-2" hidden>
                     <label for="basicHealthInsuranceBasisCode">건강보험 자격</label>
                     <select id="basicHealthInsuranceBasisCode" name="healthInsuranceBasisCode">
                         <option value="">선택 안 함</option>
@@ -118,8 +122,10 @@
                     </select>
                 </div>
             </div>
+            </div>
 
-            <div class="option-section">
+            <details class="option-section basic-info-collapsible" id="basicBusiness">
+                <summary>사업자 기본정보 <span>사업장·매출·고용 정보 입력</span></summary>
                 <div class="panel-heading compact-heading">
                     <div>
                         <span class="eyebrow">사업자</span>
@@ -272,9 +278,10 @@
                         </select>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <div class="option-section">
+            <details class="option-section basic-info-collapsible">
+                <summary>간단 인터뷰 <span>지원 이력·제한 사항 확인</span></summary>
                 <div class="panel-heading compact-heading">
                     <div>
                         <span class="eyebrow">확인 질문</span>
@@ -324,40 +331,38 @@
                         <textarea id="basicOtherRestrictionNote" name="interviewOtherRestrictionNote" rows="3" maxlength="1000" placeholder="필요한 경우만 입력하세요"></textarea>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <div class="option-section">
+            <div class="option-section" data-family-section>
                 <div class="panel-heading compact-heading">
                     <div>
                         <span class="eyebrow">가족</span>
-                        <h2>가족 기본정보</h2>
+                        <h2>가족별 기본정보</h2>
                     </div>
                     <button class="secondary-action" type="button" data-family-add>가족 추가</button>
                 </div>
                 <p class="field-help">배우자, 자녀, 부모 1단계 범위만 입력합니다. 배우자 소득, 자녀 학령/재학, 부모 동거/부양 여부는 아는 경우만 선택합니다.</p>
                 <div class="family-list" data-family-list></div>
+                <p class="field-help" data-family-empty>입력한 가족이 없습니다. 배우자·자녀·부모님을 한 명씩 추가하세요.</p>
+                <div class="basic-info-family-undo" data-family-undo-row hidden><span>가족 입력란을 제거했습니다. 저장 전에는 되돌릴 수 있습니다.</span><button type="button" class="secondary-action" data-family-undo>최근 제거 취소</button></div>
             </div>
 
-            <div class="option-section">
+            <div class="option-section" id="basicDocuments">
                 <div class="panel-heading compact-heading">
                     <div>
                         <span class="eyebrow">서류</span>
-                        <h2>서류별 선택 입력</h2>
+                        <h2>서류 기준 정보</h2>
                     </div>
                 </div>
-                <p class="field-help">사용자가 발급한 전자증명 또는 증빙자료를 보고 필요한 값만 입력합니다. 모든 서류 값은 선택 입력입니다.</p>
-                <div class="document-input-toolbar">
-                    <select data-document-type-select aria-label="추가할 서류 선택">
-                        <option value="">서류 선택</option>
-                    </select>
-                    <button class="secondary-action" type="button" data-document-add>서류 추가</button>
-                </div>
+                <p class="field-help">서류 목록은 미리 준비되어 있습니다. 발급한 서류를 보고 필요한 값만 입력하세요. 파일 업로드나 서류 추가는 필요하지 않습니다.</p>
+                <p class="field-help">모든 서류 값은 선택 입력입니다. 미입력은 ‘없음’이나 ‘완납’으로 처리하지 않습니다.</p>
                 <div class="member-document-list" data-document-list></div>
             </div>
 
-            <div class="basic-info-message" data-basic-info-message role="status"></div>
+            <p class="field-help">저장하면 기본정보 기준 후보를 다시 확인합니다. 후보는 선정 결과가 아니며, 진행 공고는 관리자가 최종 확인합니다.</p>
+            <div class="basic-info-message" data-basic-info-message role="status" tabindex="-1"></div>
             <div class="form-actions">
-                <button class="primary-action button-action" type="submit" data-basic-info-submit>기본 정보 저장</button>
+                <button class="primary-action button-action" type="submit" data-basic-info-submit disabled>기본 정보 저장</button>
                 <a class="secondary-action" th:href="@{/app/matching/basic-candidates}">결과 확인하기</a>
             </div>
         </form>
@@ -384,6 +389,8 @@
             <div class="address-search-results" data-address-search-results></div>
         </section>
     </div>
+    <script th:src="@{/js/saneb-member-basic-info-core.js}"></script>
+    <script th:src="@{/js/saneb-member-basic-info-simple.js}"></script>
     <script th:src="@{/js/saneb-member-basic-info.js}"></script>
 </main>
 </html>

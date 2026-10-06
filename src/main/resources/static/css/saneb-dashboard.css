@@ -2948,6 +2948,51 @@ svg {
     gap: 18px;
 }
 
+/* 일반 사용자 기본정보: 기존 폼을 유지하고 선택 서류의 입력 부담만 줄인다. */
+[data-basic-info-simple] [hidden] { display: none !important; }
+[data-basic-info-simple] .basic-info-section-links { display: flex; flex-wrap: wrap; gap: 8px; }
+[data-basic-info-simple] .basic-info-section-links a {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px;
+    border: 1px solid var(--saneb-border); border-radius: 6px; background: var(--saneb-surface);
+}
+[data-basic-info-simple] .basic-info-collapsible > summary {
+    cursor: pointer; min-height: 44px; padding: 12px 0; font-size: 16px; font-weight: 800;
+}
+[data-basic-info-simple] .basic-info-collapsible > summary span { font-size: 12px; font-weight: 400; color: var(--saneb-muted); margin-left: 10px; }
+[data-basic-info-simple] .basic-info-collapsible > .panel-heading { display: none; }
+[data-basic-info-simple] .basic-info-document { display: block; background: var(--saneb-surface); padding: 0 18px; }
+[data-basic-info-simple] .basic-info-document-summary { cursor: pointer; min-height: 56px; padding: 18px 0; font-size: 14px; }
+[data-basic-info-simple] .basic-info-document-status { color: var(--saneb-muted); font-size: 12px; margin-left: 14px; white-space: nowrap; }
+[data-basic-info-simple] .basic-info-document-body { padding: 4px 0 20px; }
+[data-basic-info-simple] .basic-info-single-choice { border: 0; padding: 0; margin: 0; min-width: 0; }
+[data-basic-info-simple] .basic-info-single-choice legend { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+[data-basic-info-simple] .basic-info-radio-options { display: flex; flex-wrap: wrap; gap: 10px; }
+[data-basic-info-simple] .basic-info-radio-option {
+    display: flex; align-items: center; gap: 9px; cursor: pointer; min-height: 46px;
+    border: 1px solid var(--saneb-border-strong); border-radius: 6px; padding: 10px 16px; font-size: 14px;
+}
+[data-basic-info-simple] .basic-info-radio-option:has(input:checked) { background: #edf5f1; border-color: var(--saneb-teal-light); color: var(--saneb-teal); }
+[data-basic-info-simple] .basic-info-radio-option input { width: 18px; height: 18px; accent-color: var(--saneb-teal); }
+[data-basic-info-simple] .basic-info-choice-warning { margin: 12px 0 0; }
+[data-basic-info-simple] .basic-info-text-action { min-height: 44px; border: 0; padding: 8px 4px; background: transparent; color: var(--saneb-teal-light); text-decoration: underline; font-size: 13px; }
+[data-basic-info-simple] .family-row { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
+[data-basic-info-simple] .basic-info-family-title { grid-column: 1 / -1; font-size: 15px; margin: 0; }
+[data-basic-info-simple] .family-remove-button { grid-column: 1 / -1; min-height: 44px; }
+[data-basic-info-simple] .basic-info-family-undo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 13px; margin-top: 12px; }
+[data-basic-info-simple] .basic-info-legacy-values { margin-top: 18px; }
+[data-basic-info-simple] .basic-info-legacy-values summary { cursor: pointer; padding: 10px 0; min-height: 44px; font-size: 13px; }
+[data-basic-info-simple] .basic-info-legacy-values p { white-space: pre-wrap; overflow-wrap: anywhere; }
+[data-basic-info-simple] :is(a,button,summary,input,select,textarea):focus-visible { outline: 3px solid var(--saneb-teal-light); outline-offset: 3px; }
+[data-basic-info-simple] :is(details,input,select,textarea) { scroll-margin-top: 100px; }
+[data-basic-info-simple] .basic-info-load-actions:has(button[hidden]) { display: none; }
+@media (max-width: 760px) {
+    [data-basic-info-simple] .family-row { grid-template-columns: minmax(0, 1fr); }
+    [data-basic-info-simple] .basic-info-document { padding: 0 12px; }
+    [data-basic-info-simple] .basic-info-document-summary strong { overflow-wrap: anywhere; }
+    [data-basic-info-simple] .basic-info-collapsible > summary span { display: block; margin-left: 0; }
+    [data-basic-info-simple] .basic-info-document-status { display: inline-block; margin-left: 6px; }
+}
+
 .field-label-row {
     display: flex;
     align-items: center;

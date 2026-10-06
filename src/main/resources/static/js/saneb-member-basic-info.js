@@ -5,6 +5,7 @@
     }
 
     const isAdminApp = app.hasAttribute("data-admin-member-basic-info-app");
+    const isSimpleApp = !isAdminApp && app.hasAttribute("data-basic-info-simple");
     const apiUrl = app.dataset.basicInfoUrl || "";
     const adminBaseUrl = app.dataset.baseUrl || "";
     const addressSearchUrl = app.dataset.addressSearchUrl || "";
@@ -26,6 +27,17 @@
     const addressResults = app.querySelector("[data-address-search-results]");
     const ageOutput = app.querySelector("[data-age-output]");
     const businessYearsOutput = app.querySelector("[data-business-years-output]");
+    const retryButton = app.querySelector("[data-basic-info-retry]");
+    let loaded = false;
+    let busy = false;
+    let dirty = false;
+    let familySequence = 0;
+    const removedFamilies = [];
+    const disabledBeforeBusy = new WeakMap();
+    if (isSimpleApp && (!window.SanebMemberBasicInfo || !window.SanebMemberBasicInfoUI)) {
+        message.textContent = "서류 입력 기능을 불러오지 못했습니다. 새로고침 후 다시 시도하세요. 저장은 실행되지 않았습니다.";
+        return;
+    }
 
     const regionOptions = [
         ["SEOUL", "서울"],
@@ -163,15 +175,27 @@
         message.classList.toggle("is-error", status === "error");
     };
 
-    const setBusy = (busy) => {
+    const setBusy = (nextBusy) => {
+        busy = nextBusy;
+        if (isSimpleApp) {
+            form.querySelectorAll("input,select,textarea,button").forEach(control => {
+                if (nextBusy) {
+                    if (!disabledBeforeBusy.has(control)) disabledBeforeBusy.set(control, control.disabled);
+                    control.disabled = true;
+                } else {
+                    control.disabled = disabledBeforeBusy.get(control) || false;
+                    disabledBeforeBusy.delete(control);
+                }
+            });
+        }
         if (!submitButton) {
             return;
         }
         if (!submitButton.dataset.defaultText) {
             submitButton.dataset.defaultText = submitButton.textContent;
         }
-        submitButton.disabled = busy;
-        submitButton.textContent = busy ? "저장 중" : submitButton.dataset.defaultText;
+        submitButton.disabled = nextBusy || (isSimpleApp && !loaded);
+        submitButton.textContent = nextBusy ? (loaded ? "저장 중" : "불러오는 중") : submitButton.dataset.defaultText;
     };
 
     const valueOf = (name) => {
@@ -420,6 +444,7 @@
         setFieldValue(fieldName("BuildingManagementNo"), item.buildingManagementNo);
         setFieldValue(fieldName("AddressSourceCode"), "JUSO_API");
         hideAddressModal();
+        if (isSimpleApp) dirty = true;
         form.querySelector(`[name='${fieldName("DetailAddress")}']`)?.focus();
     };
 
@@ -511,6 +536,18 @@
             </div>
             <button class="secondary-action family-remove-button" type="button" data-family-remove>삭제</button>
         `;
+        familySequence += 1;
+        row.querySelectorAll(".field-block").forEach(block => {
+            const input = block.querySelector("input,select");
+            input.id = `basic-family-${familySequence}-${input.name}`;
+            block.querySelector("label").htmlFor = input.id;
+        });
+        if (isSimpleApp) {
+            const heading = document.createElement("h3");
+            heading.className = "basic-info-family-title";
+            row.prepend(heading);
+            row.querySelector("[data-family-remove]").textContent = "입력란 제거";
+        }
         row.querySelector("[name='relationTypeCode']").value = family.relationTypeCode || "";
         row.querySelector("[name='familyBirthYear']").value = family.birthYear == null ? "" : String(family.birthYear);
         row.querySelector("[name='familySchoolAgeStatusCode']").value = family.schoolAgeStatusCode || "";
@@ -520,6 +557,7 @@
         row.querySelector("[name='familyIncomePresenceCode']").value = family.incomePresenceCode || "";
         row.querySelector("[name='familyIncomeAmount']").value = family.incomeAmount == null ? "" : String(family.incomeAmount);
         familyList.append(row);
+        return row;
     };
 
     const renderDocumentSelector = () => {
@@ -589,6 +627,8 @@
                 input.dataset.documentValueType = "text";
                 appendOption(input, "", "선택 안 함");
                 options.forEach(([value, labelText]) => appendOption(input, value, labelText));
+                const existingValue = currentDocumentValue(field);
+                if (existingValue && !options.some(([value]) => value === existingValue)) appendOption(input, existingValue, `기존 값: ${existingValue}`);
                 input.value = currentDocumentValue(field);
             } else {
                 input = document.createElement("input");
@@ -605,6 +645,9 @@
             input.value = currentDocumentValue(field);
         }
         input.dataset.documentInput = "true";
+        input.id = `basic-document-${field.standardFieldId}`;
+        label.htmlFor = input.id;
+        if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") input.maxLength = 2000;
         block.append(input);
 
         if (field.helpText) {
@@ -668,6 +711,25 @@
         renderDocumentList();
     };
 
+    const simpleUi = isSimpleApp ? window.SanebMemberBasicInfoUI.create({
+        app, form, list: documentList, familySection: app.querySelector("[data-family-section]"),
+        renderField: renderDocumentField,
+        onHealthChange: value => setSelectValue("healthInsuranceBasisCode", value),
+        onDirty: () => { dirty = true; }
+    }) : null;
+
+    const refreshFamilies = () => {
+        if (!isSimpleApp) return;
+        const rows = [...familyList.querySelectorAll(".family-row")];
+        app.querySelector("[data-family-empty]").hidden = rows.length > 0;
+        app.querySelector("[data-family-undo-row]").hidden = removedFamilies.length === 0;
+        rows.forEach((row, index) => {
+            row.querySelector("h3").textContent = `가족 ${index + 1}`;
+            row.querySelector("[data-family-remove]").setAttribute("aria-label", `가족 ${index + 1} 입력란 제거`);
+        });
+        simpleUi.refresh();
+    };
+
     const renderResponse = (data) => {
         setFieldValue("birthYear", data.birthYear);
         setSelectValue("regionCode", data.regionCode);
@@ -729,7 +791,11 @@
                 .filter((documentInput) => documentInput.selected === true)
                 .map((documentInput) => documentInput.documentTypeCode)
         );
-        renderDocuments();
+        if (isSimpleApp) {
+            removedFamilies.length = 0;
+            simpleUi.render(documentCatalog, data.healthInsuranceBasisCode);
+            refreshFamilies(); dirty = false;
+        } else renderDocuments();
     };
 
     const renderInterviewResponses = (responses) => {
@@ -826,11 +892,12 @@
     };
 
     const buildDocumentPayload = () => {
-        return Array.from(documentList?.querySelectorAll(".member-document-card") || [])
+        const rendered = Array.from(documentList?.querySelectorAll(".member-document-card") || [])
             .map((card) => ({
                 documentTypeCode: card.dataset.documentTypeCode,
                 fields: Array.from(card.querySelectorAll(".document-field-block")).map(buildDocumentFieldPayload)
             }));
+        return isSimpleApp ? simpleUi.merge(rendered) : rendered;
     };
 
     const buildInterviewPayload = () => {
@@ -885,6 +952,10 @@
         if (!currentApiUrl) {
             return;
         }
+        if (isSimpleApp) {
+            if (busy) return;
+            loaded = false; setBusy(true); retryButton.hidden = true;
+        }
         try {
             const data = await withAppLoading(
                 () => requestJson(currentApiUrl),
@@ -896,9 +967,16 @@
                 }
             );
             renderResponse(data);
+            loaded = true;
             setMessage(isAdminApp ? "선택한 회원의 정보를 불러왔습니다." : "저장된 기본정보를 불러왔습니다.", "success");
         } catch (error) {
             setMessage(error.message || "기본정보를 불러오지 못했습니다.", "error");
+            if (isSimpleApp) retryButton.hidden = false;
+        } finally {
+            if (isSimpleApp) {
+                setBusy(false);
+                if (!loaded) form.querySelectorAll("input,select,textarea,button").forEach(control => { control.disabled = true; });
+            }
         }
     };
 
@@ -928,7 +1006,8 @@
     };
 
     addFamilyButton?.addEventListener("click", () => {
-        renderFamilyRow();
+        const row = renderFamilyRow();
+        if (isSimpleApp) { dirty = true; refreshFamilies(); row.querySelector("select").focus(); }
     });
 
     familyList?.addEventListener("click", (event) => {
@@ -936,7 +1015,21 @@
         if (!removeButton) {
             return;
         }
-        removeButton.closest(".family-row")?.remove();
+        const row = removeButton.closest(".family-row");
+        if (isSimpleApp && row) removedFamilies.push({ row, next: row.nextElementSibling });
+        row?.remove();
+        if (isSimpleApp) { dirty = true; refreshFamilies(); addFamilyButton.focus(); }
+    });
+    app.querySelector("[data-family-undo]")?.addEventListener("click", () => {
+        const entry = removedFamilies.pop();
+        if (!entry) return;
+        familyList.insertBefore(entry.row, entry.next?.parentNode === familyList ? entry.next : null);
+        dirty = true; refreshFamilies(); entry.row.querySelector("select").focus();
+    });
+    retryButton?.addEventListener("click", () => {
+        // 초기 조회 실패로 잠근 입력을 다시 읽기 전용 상태로 초기화한다.
+        form.querySelectorAll("input,select,textarea,button").forEach(control => { control.disabled = false; });
+        load();
     });
 
     addDocumentButton?.addEventListener("click", () => {
@@ -1002,6 +1095,33 @@
 
     form?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (busy || (isSimpleApp && !loaded)) return;
+        if (isSimpleApp) {
+            const choiceError = simpleUi.validate();
+            if (choiceError) { setMessage(choiceError, "error"); return; }
+            const invalid = [...form.querySelectorAll("input,select,textarea")].find(input => !input.disabled && (
+                input.validity.badInput || input.validity.rangeUnderflow || input.validity.rangeOverflow || input.validity.tooLong || input.validity.typeMismatch
+            ));
+            if (invalid) {
+                let parent = invalid.parentElement;
+                while (parent) { if (parent.tagName === "DETAILS") parent.open = true; parent = parent.parentElement; }
+                const label = invalid.labels?.[0]?.textContent || "입력값";
+                const reason = invalid.validity.rangeUnderflow ? `${invalid.min} 이상으로 입력하세요.`
+                    : invalid.validity.rangeOverflow ? `${invalid.max} 이하로 입력하세요.`
+                    : invalid.validity.tooLong ? `${invalid.maxLength}자 이하로 입력하세요.`
+                    : invalid.type === "number" ? "숫자로 입력하세요." : "표시된 입력 형식에 맞게 입력하세요.";
+                setMessage(`${label}: ${reason}`, "error"); invalid.focus(); return;
+            }
+            const familyMissingRelation = [...familyList.querySelectorAll(".family-row")].find(row =>
+                !rowValueOf(row, "relationTypeCode") && [...row.querySelectorAll("input,select")].some(input => input.value !== "")
+            );
+            if (familyMissingRelation) {
+                const familyDocument = familyMissingRelation.closest("details");
+                if (familyDocument) familyDocument.open = true;
+                setMessage(`${familyMissingRelation.querySelector("h3").textContent}: 배우자·자녀·부모 중 관계를 선택하세요.`, "error");
+                familyMissingRelation.querySelector("select").focus(); return;
+            }
+        }
         const currentApiUrl = selectApiUrl();
         if (!currentApiUrl) {
             setMessage("먼저 입력할 회원을 선택하세요.", "error");
@@ -1043,5 +1163,12 @@
 
     if (!isAdminApp) {
         load();
+    }
+    if (isSimpleApp) {
+        form.addEventListener("input", () => { dirty = true; });
+        form.addEventListener("change", () => { dirty = true; });
+        window.addEventListener("beforeunload", event => {
+            if (dirty) { event.preventDefault(); event.returnValue = ""; }
+        });
     }
 })();
