@@ -27,7 +27,7 @@ async function harness(opts={}) {
     const version={expectedBaseDecisionId:base,expectedAttachmentDecisionId:id,expectedSourceVersion:1,expectedAttachmentVersion:2,expectedSetHash:'a'.repeat(64)};
     const source={sourceId:id,title:'검증 공고',publicCode:'SRC-TEST',providerCode:'LOCAL_GOV_NOTICE',isAttachmentReviewRequired:true,sourceVersion:1,attachmentVersion:2,
         processingFlow:{statusCode:opts.blocked?'RUNNING':'READY_FOR_FINAL_REVIEW',isFinalReviewAvailable:!opts.blocked},attachmentSummary:{jobStatusCode:opts.blocked?'RUNNING':'SUCCEEDED'},
-        baseClassification:{decisionId:base},effectiveClassification:{decisionId:id,setId:id,setHash:'a'.repeat(64),targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT']}};
+        baseClassification:{decisionId:base},effectiveClassification:{decisionId:id,setId:opts.noSet?null:id,setHash:'a'.repeat(64),targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT']}};
     const context=()=>({sourceId:id,version:{...version},requiredAcknowledgementCodes:opts.manual?['DISCOVERY_FAILED']:[],manualSourceCheckRequired:!!opts.manual,
         linkedAnnouncement:linked?{announcementId:id,announcementCode:'ANN-TEST'}:null,confirmedClassification:confirmed?{targetCategoryCodes:['PERSONAL'],supportTypeCodes:['GENERAL_SUPPORT'],confirmation:{confirmationId:id,sourceId:id,evaluationId:id,isCurrent:true,sourceVersion:1,attachmentVersion:2,setHash:'a'.repeat(64)}}:null});
     const request=async(url,options={})=>{
@@ -41,6 +41,7 @@ async function harness(opts={}) {
         if(opts.lookupFail)throw new core.RequestError('자료 조회 실패');
         if(url.endsWith('/review-context')) {const c=context();if(opts.stale&&confirmed)c.version.expectedSourceVersion++;return c;}
         if(url.endsWith(`/${id}`))return {source,content:{bodyText:'확인할 본문',sourceUrl:'javascript:alert(1)'}};
+        if(url.endsWith('/attachment-sets?page=1&size=1'))return {items:[{setId:base,discoveryComplete:true,discoveryStatusCode:'FOUND'}]};
         return {items:[],page:1,totalPages:0,totalCount:0};
     };
     const page={dataset:{sourceId:id,canManage:String(opts.manage!==false)},querySelector:q};
@@ -86,6 +87,9 @@ test('editing saved categories invalidates saved shortcut',async()=>{
     const h=await harness({saved:true});h.form.events.input({target:{name:'targetCategoryCodes'}});await h.submit();assert.equal(h.counts().confirmCount,1);
 });
 test('source javascript URL never rendered as a link',async()=>{const h=await harness();assert.ok(!h.q('[data-body]').children.some(el=>el.tag==='a'));});
+test('unapplied source can read latest collected files without enabling conversion',async()=>{
+    const h=await harness({blocked:true,noSet:true});assert.ok(h.calls.some(c=>c.url.includes(`/attachment-sets/${base}/files`)));assert.equal(h.q('[data-convert]').disabled,true);assert.match(h.q('[data-evidence]').textContent,/최근 수집/);
+});
 test('double submit is locked and result links to the exact draft',async()=>{
     const h=await harness();h.fill();h.form.events.submit({preventDefault(){}});h.form.events.submit({preventDefault(){}});await h.settle();
     assert.deepEqual(h.counts(),{confirmCount:1,draftCount:1});assert.equal(h.q('[data-result]').children.find(el=>el.tag==='a').href,`/app/announcements/input?announcementId=${id}`);

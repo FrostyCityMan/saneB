@@ -85,6 +85,24 @@
             if (data.totalPages > 1) { action(node, '이전 첨부', () => loadFiles(setId, number - 1), number <= 1); action(node, '다음 첨부', () => loadFiles(setId, number + 1), number >= data.totalPages); }
         } catch (error) { if (expected === epoch && node.requestToken === token) { node.replaceChildren(); text(node, 'p', error.message, 'attachment-error'); action(node, '첨부 다시 조회', () => loadFiles(setId, number)); } }
     };
+    const loadLatestFiles = async () => {
+        const expected = epoch;
+        try {
+            // 판정이 아직 없어도 수집된 최신 자료는 열람한다. 과거 이력 목록은 노출하지 않는다.
+            const data = await request(`${root}/attachment-sets?page=1&size=1`);
+            if (expected !== epoch) return;
+            const latest = data.items[0];
+            if (!latest) return;
+            message('[data-evidence]', latest.discoveryComplete && latest.discoveryStatusCode === 'NO_FILES'
+                ? '최신 수집에서 첨부 없음이 확인되었습니다.' : '최근 수집한 자료입니다. 현재 판정에 사용된 근거와는 구분됩니다.');
+            await loadFiles(latest.setId);
+        } catch (error) {
+            if (expected !== epoch) return;
+            const node = q('[data-files]'); node.replaceChildren();
+            text(node, 'p', '첨부 조회를 완료하지 못했습니다. 첨부 없음으로 판단하지 마세요.', 'attachment-error');
+            action(node, '첨부 다시 조회', loadLatestFiles);
+        }
+    };
     const render = details => {
         message('[data-title]', source.title); message('[data-source-label]', `${source.publicCode} · ${C.label(source.providerCode)}`);
         const body = q('[data-body]'); body.replaceChildren();
@@ -97,6 +115,7 @@
         message('[data-evidence]', evidence?.setId ? (source.effectiveClassification?.setId === evidence.setId ? '현재 판정에 사용한 첨부입니다.' : '미리보기 자료입니다. 현재 판정에 적용되지 않았습니다.') : '판정에 연결된 첨부가 없습니다. 첨부 없음이 확인된 상태와는 다릅니다.');
         q('[data-files]').replaceChildren(); q('[data-blocks]').replaceChildren();
         if (evidence?.setId) loadFiles(evidence.setId);
+        else loadLatestFiles();
         const ready = C.matchesContext(source, context);
         message('[data-blocker]', ready ? (context.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.' : '') : C.flowGuidance(source));
         q('[data-result]').replaceChildren(); q('[data-result]').hidden = !context?.linkedAnnouncement;
