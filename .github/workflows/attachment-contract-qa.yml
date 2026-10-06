@@ -332,6 +332,8 @@ jobs:
         run: |
           set -euo pipefail
           printf 'ATTACHMENT_QA_STARTED_AT=%s\n' "$(date +%s%3N)" >> "$GITHUB_ENV"
+          # 본문 오류 목록의 실제 SQL 회귀를 먼저 확인해 전체 suite 전에 빠르게 실패시킨다.
+          bash ./gradlew :flywayIntegrationTest -PsanebFlywayEphemeral=true --tests '*FlywayMigrationIntegrationTest.bodyFailureListPartitionPreservesLegacyAndRecoveredSources' --no-daemon --console=plain --max-workers=1
           bash ./gradlew :test :attachment-extractor:test attachmentContractQaTest attachmentJobIntegrationTest attachmentMigrationTest attachmentRuntimeIntegrationTest attachmentWorkerIntegrationTest flywayIntegrationTest -PsanebFlywayEphemeral=true bootJar :attachment-extractor:installDist installAttachmentContractQa --rerun-tasks --no-daemon --console=plain --max-workers=1 --continue
 
       - name: 독립 산출물의 임시 namespace·PostgreSQL 실행

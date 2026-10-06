@@ -40,6 +40,8 @@ node --test scripts/qa/collected-navigation.test.mjs scripts/qa/collected-attach
 
 첫 Linux CI `37426176730`에서는 migration이 실행됐으나 신규 합성 fixture가 `semantic_reason_code`의 NOT NULL 제약을 위반해 실패했다. 실제 V56 기본값과 동일한 `PROVIDER_TRUSTED`를 사용하도록 테스트를 정정했다. 운영 schema/제약을 완화하지 않으며 수정 SHA의 전체 재검증을 요구한다.
 
+두 번째 Linux CI `37427138667`은 같은 테스트의 합성 원문들이 동일한 `raw_hash`를 사용하여 V26 `(provider_code,raw_hash)` 유일성 제약에서 실패했다. 각 합성 UUID 기반의 서로 다른64자리 해시로 정정했다. 반복 대기 비용을 줄이기 위해 이 DB 회귀를 전체 suite보다 먼저 실행한다. 선행 검증 성공도 전체 CI 성공의 대체 근거로 사용하지 않는다.
+
 ## 운영 Gate
 
 - [x] 사용자가 코드 배포·서비스 재시작·SRC-017843 단건 본문/분류 버전 갱신을 승인했다.

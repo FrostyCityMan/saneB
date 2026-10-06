@@ -59,8 +59,9 @@ class FlywayMigrationIntegrationTest {
             jdbcTemplate.update("""
                     -- 운영 원문 없이 오류 분리만 검증하는 합성 fixture다.
                     INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,raw_hash,semantic_status_code,semantic_reason_code)
-                    VALUES (?,'GOV24_PUBLIC_SERVICE',?,'BODY-PARTITION-FIXTURE',repeat('c',64),'REVIEW_REQUIRED',?)
-                    """, id, id.toString(), id.equals(legacy) ? "BODY_FETCH_FAILED" : "PROVIDER_TRUSTED");
+                    VALUES (?,'GOV24_PUBLIC_SERVICE',?,'BODY-PARTITION-FIXTURE',?,'REVIEW_REQUIRED',?)
+                    """, id, id.toString(), id.toString().replace("-", "").repeat(2),
+                    id.equals(legacy) ? "BODY_FETCH_FAILED" : "PROVIDER_TRUSTED");
         }
         for (UUID id : List.of(failed, recovered)) {
             classificationPersistenceService.saveNewContentEvaluation(id, null, releaseId, selectGov24Item(null),
