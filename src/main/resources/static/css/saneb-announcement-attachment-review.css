@@ -52,3 +52,19 @@ html { min-width: 0; }
 .attachment-review-page [data-confirm], .attachment-review-page [data-create-draft] { width:100%; justify-content:center; text-align:center; }
 .attachment-review-page [data-confirm]:disabled, .attachment-review-page [data-create-draft]:disabled { opacity:1; color:#555c54; background:#e7e7df; border-color:#c9ccc3; }
 @media(max-width:1100px) { .attachment-work-grid { grid-template-columns:1fr; } }
+
+/* 전환 중심 기본 화면. 유지보수 보기와 공통 도구의 스타일은 변경하지 않는다. */
+.conversion-review { max-width:1120px; margin:0 auto; }
+.conversion-review .conversion-materials,.conversion-review .conversion-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem 2rem; }
+.conversion-review [data-fields],.conversion-review .conversion-grid fieldset { border:0; padding:0; margin:0; }
+.conversion-review label { margin-top:.6rem; }
+.conversion-review [data-review-inputs] { margin-top:1.4rem; }
+.conversion-review .attachment-choices { gap:.4rem; }
+.conversion-review .attachment-choices label { padding:.45rem .65rem; border:1px solid var(--saneb-border); border-radius:5px; font-size:.85rem; }
+.conversion-review .attachment-choices label:has(:checked) { background:#edf3ed; border-color:var(--saneb-teal); }
+.conversion-review .conversion-action { display:flex; justify-content:space-between; align-items:center; gap:1rem; border-top:1px solid var(--saneb-border); padding-top:1.2rem; margin-top:1rem; }
+.conversion-review .conversion-file { display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; border-top:1px solid var(--saneb-border); padding:.7rem 0; }
+.conversion-review .conversion-file p { flex-basis:100%; margin:0; }
+.conversion-review [data-convert]:disabled { background:#e7e7df; color:#555c54; border:1px solid #c9ccc3; opacity:1; }
+.conversion-review [data-result] { padding:1rem; background:#edf3ed; }
+@media(max-width:760px) { .conversion-review .conversion-materials,.conversion-review .conversion-grid { grid-template-columns:1fr; } .conversion-review .conversion-action { flex-direction:column; align-items:stretch; } }

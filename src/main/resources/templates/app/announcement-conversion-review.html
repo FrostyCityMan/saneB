@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(${page.pageTitle}, ~{::main})}">
+<main class="attachment-review-page conversion-review" data-conversion-review
+      th:attr="data-source-id=${sourceId},data-can-manage=${#lists.contains(page.auth.roles, 'ADMIN') or #lists.contains(page.auth.roles, 'OPERATOR')}">
+    <a class="attachment-skip" href="#conversion-form">전환할 공고 정보로 건너뛰기</a>
+    <nav aria-label="현재 위치"><a th:href="@{/app/admin/collected-announcements}">수집 공고 검수</a> / <span aria-current="page">공고로 전환하기</span></nav>
+    <header class="attachment-page-heading"><div><h1>공고로 전환하기</h1><p>자료를 확인하고 분류를 정리하면 공고 입력을 이어갈 수 있습니다.</p></div><button type="button" class="secondary-action" data-refresh>최신 자료 확인</button><p data-status role="status" aria-live="polite">자료를 불러오는 중입니다.</p></header>
+    <section class="plain-panel" aria-labelledby="source-title"><p class="attachment-eyebrow">수집한 자료</p><h2 id="source-title" data-title>공고를 불러오는 중입니다.</h2><p data-source-label class="attachment-muted"></p><p data-summary></p><div class="conversion-materials"><details><summary>본문·원문 보기</summary><div data-body></div></details><details><summary>첨부 보기</summary><p data-evidence class="attachment-muted"></p><div data-files></div><div data-blocks role="region" aria-label="첨부 추출 내용" tabindex="-1"></div></details></div></section>
+    <p data-blocker class="attachment-file-note" role="status" hidden></p>
+    <p data-error class="attachment-error" role="alert" tabindex="-1" hidden></p>
+    <section class="plain-panel" aria-labelledby="conversion-title"><h2 id="conversion-title">전환할 공고 정보</h2><p class="attachment-muted">분류와 검수 사유를 확인하세요. 상세 조건은 초안 생성 후 입력합니다.</p>
+        <p th:if="${not (#lists.contains(page.auth.roles, 'ADMIN') or #lists.contains(page.auth.roles, 'OPERATOR'))}">조회 전용 계정입니다. 초안 생성은 관리자 또는 운영자가 진행합니다.</p>
+        <form id="conversion-form" data-form>
+            <fieldset data-fields disabled><legend class="visually-hidden">검수와 초안 설정</legend>
+                <div class="conversion-grid"><fieldset><legend>지원대상 · 복수 선택</legend><div data-targets class="attachment-choices"></div></fieldset><fieldset><legend>지원형태 · 복수 선택</legend><div data-supports class="attachment-choices"></div></fieldset>
+                    <div><label for="conversion-primary">대표 지원대상 (필수)</label><select id="conversion-primary" name="primaryTargetCategoryCode" required></select></div>
+                    <div><label for="conversion-income">소득·매출 판단 기준 (필수)</label><select id="conversion-income" name="incomeJudgementCode" required><option value="">기준을 선택하세요</option><option value="VAT_TAX_BASE_ONLY">부가세 기준</option><option value="INCOME_CERT_ONLY">소득증명 기준</option><option value="HEALTH_INSURANCE_ONLY">건강보험료 기준</option><option value="INCOME_OR_HEALTH_INSURANCE">소득증명 또는 건강보험료</option><option value="ANY_ONE_DOCUMENT">서류 중 하나</option><option value="NO_LIMIT">제한 없음</option></select></div>
+                </div>
+                <div data-review-inputs><label for="conversion-method">검수 방법 (필수)</label><select id="conversion-method" name="reviewMethodCode" required><option value="EXTRACTED_TEXT">추출 텍스트 확인</option><option value="MANUAL_SOURCE_CHECK">원문 전체 직접 확인</option></select><p data-manual-help class="attachment-muted" hidden>확보하지 못했거나 불확실한 자료가 있습니다. 외부 원문 전체를 직접 확인해야 합니다.</p>
+                    <fieldset data-ack-section hidden><legend>추가로 확인할 내용</legend><div data-acknowledgements></div></fieldset>
+                    <label for="conversion-note">검수 사유 (필수 · 1~1,000자)</label><textarea id="conversion-note" name="reviewNote" required maxlength="1000" rows="2" aria-describedby="conversion-note-help"></textarea><p id="conversion-note-help" class="attachment-muted">직접 확인한 근거를 적어주세요. 개인정보·인증 정보는 입력하지 마세요. 입력은 브라우저 저장소에는 보관하지 않습니다.</p>
+                </div>
+                <label class="attachment-check"><input name="acknowledged" type="checkbox" required>자료와 분류를 확인했으며, 사용자에게 공개되지 않는 공고 초안 1건을 만듭니다.</label>
+            </fieldset>
+            <div class="conversion-action"><p class="attachment-muted">비공개 초안으로 생성하며 자동 활성화하지 않습니다.</p><button class="primary-action" type="submit" data-convert disabled>검수 확인 후 공고 초안 만들기</button></div>
+        </form>
+        <button type="button" class="secondary-action" data-retry hidden>결과 미확정 · 동일 요청 재확인</button>
+        <div data-result role="status" hidden></div>
+    </section>
+    <details class="attachment-help"><summary>로그인 안내</summary><p>로그인이 만료되면 입력을 유지하고 다른 탭에서 로그인하세요.</p><a href="/login" target="_blank" rel="noopener noreferrer">다른 탭에서 로그인</a></details>
+    <noscript>자료 조회와 전환에는 JavaScript가 필요합니다. 활성화한 뒤 새로고침하세요. 현재 상태에서는 저장하지 않습니다.</noscript>
+    <script th:src="@{/js/saneb-attachment-review-core.js}"></script>
+    <script th:src="@{/js/saneb-announcement-conversion.js}"></script>
+</main>
+</html>

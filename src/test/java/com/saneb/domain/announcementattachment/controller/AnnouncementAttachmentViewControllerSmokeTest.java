@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(properties="spring.flyway.enabled=false")
 @AutoConfigureMockMvc
 class AnnouncementAttachmentViewControllerSmokeTest {
-    private static final String PATH="/app/admin/collected-announcements/"+UUID.randomUUID()+"/attachments";
+    private static final String PATH="/app/admin/collected-announcements/"+UUID.randomUUID()+"/attachments?tools=true";
     @Autowired MockMvc mvc;
     @ParameterizedTest @ValueSource(strings={"ADMIN","OPERATOR","APPROVER"})
     void internalRolesReceiveNoStoreShellAndDisabledVersionBoundForms(String role) throws Exception {

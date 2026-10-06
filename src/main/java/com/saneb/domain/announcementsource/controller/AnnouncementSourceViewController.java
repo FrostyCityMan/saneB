@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
@@ -98,13 +99,13 @@ public class AnnouncementSourceViewController {
     @GetMapping("/app/admin/collected-announcements/{sourceId}/attachments")
     @PreAuthorize("hasAnyRole('OPERATOR', 'APPROVER', 'ADMIN')")
     public String selectAttachmentReviewPage(Authentication authentication, @PathVariable UUID sourceId,
-            Model model, HttpServletResponse response) {
+            @RequestParam(defaultValue = "false") boolean tools, Model model, HttpServletResponse response) {
         var authMe = authService.selectAuthMe(authentication);
         model.addAttribute("page", AnnouncementSourcePageModel.from(authMe, "COLLECTED_ANNOUNCEMENTS", "공고 첨부 검수"));
         model.addAttribute("sourceId", sourceId);
         model.addAttribute("attachmentWorkspace", true);
         response.setHeader("Cache-Control", "no-store");
-        return "app/announcement-attachment-review";
+        return tools ? "app/announcement-attachment-review" : "app/announcement-conversion-review";
     }
 
     @GetMapping("/app/admin/announcement-attachment-batches")

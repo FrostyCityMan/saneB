@@ -2569,7 +2569,16 @@
     updateTargetUi();
     updateApprovalUi("");
     renderDynamicRequirements([]);
-    loadStandardDocumentFields().catch((error) => {
+    loadStandardDocumentFields().then(async () => {
+        // 수집 공고 검수에서 생성한 초안을 기존 입력 화면으로 불러온다. 조회만 수행한다.
+        const announcementId = new URL(window.location.href).searchParams.get("announcementId");
+        if (!announcementId) return;
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(announcementId)) {
+            setMessage("공고 식별자 형식이 올바르지 않습니다. 공고 목록에서 다시 선택하세요.", "error");
+            return;
+        }
+        await loadDetails(announcementId);
+    }).catch((error) => {
         setMessage(error.message, "error");
     });
     loadAnnouncementList();
