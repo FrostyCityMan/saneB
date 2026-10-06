@@ -91,3 +91,23 @@ git diff --check
 - [ ] 운영 적용: 미실행. 앞 절의 배포 성공을 이번 수정의 배포 근거로 사용하지 않는다.
 
 한계: 20문단 연속 열람과 쪽 이동이며, 문서 전체 검색은 제공하지 않는다. 파일 원본 쪽수와 열람 쪽수는 다르다. `SRC-017842`에서 확인된 본문 미확보·첨부 판정 미적용 상태를 이 UI 변경이 해결하거나 우회하지 않는다.
+
+## 후속 수정 운영 배포 결과 — 2026-10-06
+
+사용자의 별도 운영 반영 요청에 따라 위 로컬 수정 6개 파일만 커밋·푸시·배포했다. 미추적 파일은 포함하지 않았다.
+
+- 코드 SHA: `381c2c9f58b9124f80c208c0ab607732e27cf2d9`, 고정 태그 `deploy-approved-381c2c9-20261006`.
+- [사전 읽기 전용 점검 37412677869](https://github.com/FrostyCityMan/saneB/actions/runs/37412677869): 성공. V91·migration 실패 0, 첨부 active/waiting 0, COLLECT_ONLY 개정2. 설치 JAR이 이전 배포 원본과 일치하며 복구 JAR 존재. 기존 미종결 일정 1건은 별도 미해결 기록으로 유지한다.
+- [Linux CI 37412677980](https://github.com/FrostyCityMan/saneB/actions/runs/37412677980): 전체 성공. 독립 DB·worker 계약 259건 통과, 실패/생략/미실행 0. 연결·취소·정리 검증 통과.
+- [배포 37413943953](https://github.com/FrostyCityMan/saneB/actions/runs/37413943953): 고정 태그, `attachment_qa=false`, 전체 테스트·빌드·배포 성공.
+- CodeDeploy `d-3R44LH97L`: Succeeded, revision `deployments/FrostyCityMan/saneB/381c2c9f58b9124f80c208c0ab607732e27cf2d9.zip`.
+- 서비스 재시작: 2026-10-06 13:35:39 KST. `/actuator/health`: UP.
+- 공개 JS `saneb-announcement-conversion.js` 및 CSS `saneb-announcement-attachment-review.css`: HTTP 200, 로컬 커밋 파일과 개행 정규화 비교 일치.
+- [사후 읽기 전용 점검 37414560555](https://github.com/FrostyCityMan/saneB/actions/runs/37414560555): 성공. 현재 배포 그룹 일치 및 lifecycle 검증, V91·migration 실패 0, 첨부 active/waiting 0, COLLECT_ONLY 개정2 유지, 진단 쓰기 0·트랜잭션 rollback.
+- 설치/배포 원본 JAR SHA-256: `33d930a44423158674cb9c49d87b0c55b6023ec26282a87cc3765a494dc09c3f`.
+- 복구 JAR SHA-256: `ad5851f2f74be0c7af8a23b31e9ed9736999a7acf1a2aeda9fbdb3a1ec7933d5`. 배포 직전 설치 파일과 일치한다.
+- worker/source-batch=true, GOV24 본문 상세 설정 UNSET 유지. 정책 게시·재수집·판정 적용·검수 저장·초안 생성은 실행하지 않았다.
+
+Decision: **Conditionally ready**. 승인된 UI 배포 및 비브라우저 사후 검증 완료. 수정 후 브라우저·모바일·실제 전환 QA는 현재 요청에 명시되지 않아 정책상 미실행이며, `SRC-017842`의 본문 미확보·판정 미적용 조건은 해결하지 않았다. 배포 전 필수 blocker는 없으며, 실제 전환 가능 상태와 UI 시각 검증은 별도 확인 항목이다.
+
+실행 명령: 기존 Node 회귀 141건, `git diff --cached --check`, 범위 지정 commit/push, `gh workflow run deploy.yml --ref deploy-approved-381c2c9-20261006 -f attachment_qa=false`, 배포 전후 `diagnose-codedeploy.yml`의 `ssm_deployment_preflight=true`, health·정적 파일 HTTP GET 비교. 브라우저나 상주 로컬 서버는 시작하지 않았으며 일회성 Node/CLI 실행은 종료했다.
