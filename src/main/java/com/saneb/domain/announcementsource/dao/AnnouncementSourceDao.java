@@ -53,6 +53,8 @@ public interface AnnouncementSourceDao {
     /** 첨부 검수 연결과 기존 변경 경로를 같은 원문 행 잠금으로 직렬화합니다. */
     Boolean selectAttachmentReviewRequiredDetailsForUpdate(@Param("sourceId") UUID sourceId);
 
+    Boolean selectAttachmentReviewRequiredDetails(@Param("sourceId") UUID sourceId);
+
     /**
      * 공고 수집 운영 변경을 감사 로그에 기록합니다.
      *

@@ -85,6 +85,8 @@ public interface AnnouncementService {
      */
     AnnouncementDetailsResponse selectAnnouncementDetails(UUID announcementId);
 
+    AnnouncementDetailsResponse selectAnnouncementByCodeDetails(String announcementCode);
+
     /**
      * 업무 데이터를 수정합니다.
      *

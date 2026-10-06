@@ -8,6 +8,9 @@
     const form = q('[data-form]'), fields = form.elements;
     const confirmation = C.mutation(), draft = C.mutation();
     let source = null, context = null, busy = false, dirty = false, locked = true, epoch = 0, chain = null;
+    let baseContext = null;
+    const baseMode = () => baseContext && baseContext.modeCode !== 'ATTACHMENT_REVIEW';
+    const matches = () => baseMode() ? baseContext.convertible : C.matchesContext(source, context);
     const text = (parent, tag, value, className) => {
         const el = document.createElement(tag); el.textContent = value || '';
         if (className) el.className = className; parent.append(el); return el;
@@ -28,9 +31,9 @@
     choices('[data-targets]', 'targetCategoryCodes', C.targets);
     choices('[data-supports]', 'supportTypeCodes', C.supports);
     const uncertain = () => confirmation.uncertain || draft.uncertain;
-    const saved = () => C.confirmedCurrent(context) && !dirty;
+    const saved = () => !baseMode() && C.confirmedCurrent(context) && !dirty;
     const gates = () => {
-        const ready = !locked && C.matchesContext(source, context) && !context?.linkedAnnouncement;
+        const ready = !locked && matches() && !context?.linkedAnnouncement;
         q('[data-fields]').disabled = busy || uncertain() || !ready || page.dataset.canManage !== 'true';
         q('[data-convert]').disabled = q('[data-fields]').disabled;
         q('[data-convert]').textContent = busy ? '처리 중…' : saved() ? '저장된 검수로 공고 초안 만들기' : '검수 확인 후 공고 초안 만들기';
@@ -161,15 +164,17 @@
         q('[data-files]').replaceChildren(); q('[data-blocks]').replaceChildren();
         if (evidence?.setId) loadFiles(evidence.setId);
         else loadLatestFiles();
-        const ready = C.matchesContext(source, context);
+        const ready = matches();
         const blockedMessages = {
-            NOT_APPLIED: '공고 전환 준비가 필요합니다. 첨부 분석 결과가 아직 분류에 반영되지 않았습니다. 시스템 담당자에게 이 공고의 판정 적용을 요청하고, 완료 안내를 받은 뒤 ‘최신 자료 확인’을 누르세요. 지금은 자료 열람만 가능합니다.',
+            NOT_APPLIED: '첨부 판정은 적용되지 않았습니다. 본문 기준 검수 가능 여부를 확인하세요. 첨부 정책을 변경할 필요는 없습니다.',
             CLASSIFICATION_PENDING: '제목·본문 분류 결과가 없어 전환할 수 없습니다. 시스템 담당자에게 분류 처리를 요청한 뒤 최신 자료를 확인하세요.',
             CONFIGURATION_REQUIRED: '수집·분류 설정 확인이 필요합니다. 시스템 담당자에게 이 공고를 전달하세요. 검수 내용을 입력해도 해결되지 않습니다.',
             AUTOMATIC_PROCESSING: '자료 분석을 기다리고 있습니다. 처리가 끝난 뒤 ‘최신 자료 확인’을 누르세요. 지금은 자료 열람만 가능합니다.',
             EVIDENCE_STALE: '자료가 변경되어 이전 판정을 사용할 수 없습니다. 최신 자료 확인 후에도 같으면 시스템 담당자에게 재분석을 요청하세요.'
         };
-        const blocker = ready ? (context.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.' : '')
+        const blocker = baseMode() ? (baseContext.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.'
+                : baseContext.blockedReason || '본문 기준 검수 가능 · 첨부 자료는 참고용이며 판정에는 적용되지 않았습니다.')
+            : ready ? (context.linkedAnnouncement ? '이미 공고로 연결되었습니다. 아래 공고 관리에서 이어서 확인하세요.' : '')
             : blockedMessages[source.processingFlow?.statusCode] || '현재 자료와 검수 기준을 확인하지 못해 전환할 수 없습니다. ‘최신 자료 확인’ 후에도 같으면 시스템 담당자에게 이 공고를 전달하세요.';
         message('[data-blocker]', blocker ? `${blocker} (${source.publicCode})` : '');
         const classification = q('[data-classification]'); classification.replaceChildren(); classification.hidden = ready;
@@ -206,13 +211,17 @@
         message('[data-status]', '최신 자료를 확인하고 있습니다.');
         try {
             const details = await request(root);
-            const review = C.canRequestFinalReview(details.source) ? await request(`${root}/attachment-classification/review-context`) : null;
+            const capability = await request(`${root}/conversion-context`);
+            const review = capability.modeCode === 'ATTACHMENT_REVIEW' && C.canRequestFinalReview(details.source)
+                ? await request(`${root}/attachment-classification/review-context`) : null;
             if (expected !== epoch) return false;
-            source = details.source; context = review; locked = !C.matchesContext(source, context);
+            source = details.source; baseContext = capability;
+            context = review || {linkedAnnouncement:capability.linkedAnnouncement, requiredAcknowledgementCodes:[], manualSourceCheckRequired:false};
+            locked = !matches();
             render(details); message('[data-status]', saved() ? '검수 저장 완료 · 초안을 만들 수 있습니다.' : '조회 완료 · 공고는 자동 공개되지 않습니다.');
             return !locked;
         } catch (error) {
-            source = null; context = null; locked = true;
+            source = null; context = null; baseContext = null; locked = true;
             ['[data-body]', '[data-files]', '[data-blocks]', '[data-result]', '[data-classification]'].forEach(selector => q(selector).replaceChildren());
             message('[data-blocker]', '자료 조회에 실패하여 전환을 잠갔습니다. ‘최신 자료 확인’을 다시 누르세요.');
             message('[data-title]', '최신 공고 조회 실패'); message('[data-summary]', '입력은 유지됩니다. 최신 자료 확인을 다시 실행하세요.');
@@ -224,14 +233,15 @@
         const attempt = kind === 'confirm' ? confirmation : draft;
         const prepared = attempt.prepare(payload);
         try {
-            const result = await request(`${root}/attachment-classification/${kind === 'confirm' ? 'confirmations' : 'announcements'}`, {method:'POST', body:prepared.body, headers:kind === 'confirm' ? {'Idempotency-Key':prepared.key} : {}});
+            const endpoint = kind === 'base' ? `${root}/base-review/announcements` : `${root}/attachment-classification/${kind === 'confirm' ? 'confirmations' : 'announcements'}`;
+            const result = await request(endpoint, {method:'POST', body:prepared.body, headers:kind === 'confirm' ? {'Idempotency-Key':prepared.key} : {}});
             if (!/^[0-9a-f-]{36}$/i.test(kind === 'confirm' ? result.confirmationId : result.announcementId)) throw new C.RequestError('저장 결과를 확인하지 못했습니다. 동일 요청으로 다시 확인하세요.');
             attempt.succeed(); return result;
         } catch (error) { attempt.fail(error); throw error; }
     };
     const convert = async (retry = false) => {
         if (busy || page.dataset.canManage !== 'true') return;
-        if (!retry && (locked || uncertain() || !C.matchesContext(source, context) || context.linkedAnnouncement)) return;
+        if (!retry && (locked || uncertain() || !matches() || context.linkedAnnouncement)) return;
         message('[data-error]', '');
         if (!retry) {
             if (!form.reportValidity()) return;
@@ -246,7 +256,15 @@
         }
         busy = true; gates();
         try {
-            if (retry && draft.uncertain) {
+            if (baseMode()) {
+                const payload = retry && draft.uncertain ? draft.original : {
+                    classification:{primaryTargetCategoryCode:chain.primary, incomeJudgementCode:chain.income,
+                        targetCategoryCodes:checked('targetCategoryCodes'), supportTypeCodes:checked('supportTypeCodes'),
+                        expectedClassificationDecisionId:baseContext.decisionId, expectedVersion:baseContext.version},
+                    reviewNote:fields.reviewNote.value.trim()
+                };
+                await mutate('base', payload);
+            } else if (retry && draft.uncertain) {
                 await mutate('draft', draft.original);
             } else {
                 if (!saved() || confirmation.uncertain) {

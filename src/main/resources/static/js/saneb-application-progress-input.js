@@ -12,6 +12,7 @@
     const submitButton = app.querySelector("[data-progress-dynamic-submit]");
     let currentValues = [];
     let currentRequirements = new Map();
+    let ready = false, saving = false, dirty = false, loadEpoch = 0;
 
     const optionFieldTypes = new Set(["SELECT", "RADIO", "MULTI_SELECT"]);
 
@@ -32,13 +33,15 @@
     };
 
     const setBusy = (busy) => {
+        saving = busy;
+        fieldContainer?.querySelectorAll("input,select,textarea").forEach(control => { control.disabled = busy || !ready; });
         if (!submitButton) {
             return;
         }
         if (!submitButton.dataset.defaultText) {
             submitButton.dataset.defaultText = submitButton.textContent;
         }
-        submitButton.disabled = busy;
+        submitButton.disabled = busy || !ready;
         submitButton.textContent = busy ? "저장 중" : submitButton.dataset.defaultText;
     };
 
@@ -289,7 +292,7 @@
                 return;
             }
             const serverBlocked = actionButton.dataset.serverBlocked === "true";
-            actionButton.disabled = serverBlocked || missingRequired.length > 0;
+            actionButton.disabled = serverBlocked || !ready || saving || dirty || missingRequired.length > 0;
             if (!serverBlocked) {
                 actionButton.title = missingRequired.length > 0 ? "필수 입력값 저장 후 진행할 수 있습니다." : "";
             }
@@ -351,12 +354,14 @@
     };
 
     const buildSaveRequest = () => ({
-        values: Array.from(app.querySelectorAll("[data-requirement-id]"))
+        values: Array.from(fieldContainer.querySelectorAll("[data-requirement-id]"))
                 .map(selectFieldValue)
                 .filter(Boolean)
     });
 
     const loadDynamicInputs = async () => {
+        const expected = ++loadEpoch;
+        ready = false; setBusy(false); updateRequiredState();
         setSummary("불러오는 중");
         const { values, requirements } = await withAppLoading(
                 async () => {
@@ -377,22 +382,27 @@
                     delayMs: 200
                 }
         );
+        if (expected !== loadEpoch) return;
         currentRequirements = new Map((requirements.requirements || [])
                 .map((requirement) => [requirement.requirementId, requirement]));
         currentValues = values.values || [];
+        ready = true; dirty = false;
         renderFields();
+        setBusy(false); updateRequiredState();
     };
 
     if (form) {
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+            if (!ready || saving) { setMessage("입력 항목을 불러온 뒤 저장하세요.", "error"); return; }
             setMessage("");
+            const payload = JSON.stringify(buildSaveRequest());
             try {
                 setBusy(true);
                 const response = await withAppLoading(
                         () => requestJson(app.dataset.inputValuesUrl, {
                             method: "PUT",
-                            body: JSON.stringify(buildSaveRequest())
+                            body: payload
                         }),
                         {
                             preset: "save",
@@ -401,15 +411,19 @@
                         }
                 );
                 currentValues = response.values || [];
+                dirty = false;
                 renderFields();
                 setMessage("입력값이 저장되었습니다.", "success");
             } catch (error) {
                 setMessage(error.message, "error");
             } finally {
                 setBusy(false);
+                updateRequiredState();
             }
         });
     }
+
+    form?.addEventListener("input", () => { dirty = true; updateRequiredState(); setSummary("변경한 입력값을 저장한 뒤 진행하세요."); });
 
     loadDynamicInputs().catch((error) => {
         setSummary("불러오기 실패");

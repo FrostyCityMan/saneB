@@ -19,6 +19,10 @@ public record ProgressReceiptCommand(
         UUID progressId,
         String receiptNo,
         LocalDate receiptDate,
-        UUID actorUserId
+        UUID actorUserId,
+        String statusCode
 ) {
+    public ProgressReceiptCommand(UUID progressId, String receiptNo, LocalDate receiptDate, UUID actorUserId) {
+        this(progressId, receiptNo, receiptDate, actorUserId, "WAITING_RESULT");
+    }
 }

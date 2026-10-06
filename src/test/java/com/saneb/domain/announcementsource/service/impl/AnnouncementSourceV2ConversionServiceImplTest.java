@@ -92,6 +92,25 @@ class AnnouncementSourceV2ConversionServiceImplTest {
     }
 
     @Test
+    void conversionContextKeepsRequiredAttachmentsInStrictMode() {
+        when(announcementSourceDao.selectSourceDetails(SOURCE_ID)).thenReturn(sourceRow());
+        when(announcementSourceDao.selectAttachmentReviewRequiredDetails(SOURCE_ID)).thenReturn(true);
+        var context=service.selectConversionContextDetails(SOURCE_ID);
+        assertThat(context.modeCode()).isEqualTo("ATTACHMENT_REVIEW");
+        assertThat(context.convertible()).isFalse();verifyNoInteractions(announcementDao);
+    }
+
+    @Test
+    void conversionContextBlocksLatestBodyFailureEvenIfAnOlderBodyRemains() {
+        when(announcementSourceDao.selectSourceDetails(SOURCE_ID)).thenReturn(sourceRow());
+        when(classificationDao.selectClassificationStateDetails(SOURCE_ID)).thenReturn(new AnnouncementSourceClassificationStateRow(
+                SOURCE_ID,DECISION_ID,"REVIEW_REQUIRED","BODY_FETCH_FAILED","REVIEW_PENDING",3,0L,0L,0L));
+        var context=service.selectConversionContextDetails(SOURCE_ID);
+        assertThat(context.modeCode()).isEqualTo("BLOCKED");assertThat(context.convertible()).isFalse();
+        assertThat(context.blockedReason()).contains("최근 본문 수집에 실패");verifyNoInteractions(announcementDao);
+    }
+
+    @Test
     void insertOperationalAnnouncementReturnsExistingLinkWithoutAnyWrite() {
         UUID announcementId = UUID.fromString("94000000-0000-0000-0000-000000000003");
         when(announcementSourceDao.selectSourceDetailsForUpdate(SOURCE_ID)).thenReturn(sourceRow());

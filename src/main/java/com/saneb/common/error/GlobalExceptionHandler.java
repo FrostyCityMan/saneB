@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.failure(
                         ErrorResponse.of(ErrorCode.VALIDATION_FAILED, fieldErrors),
-                        "요청 값이 올바르지 않습니다."
+                        fieldErrors.isEmpty() ? "입력 항목의 필수값과 허용 범위를 확인하세요." : fieldErrors.getFirst().message()
                 ));
     }
 

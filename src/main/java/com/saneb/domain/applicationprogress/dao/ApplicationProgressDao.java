@@ -61,6 +61,9 @@ public interface ApplicationProgressDao {
      */
     ApplicationProgressRow selectApplicationProgressDetails(@Param("progressId") UUID progressId);
 
+    /** 상태 변경 전 부모 행을 잠근다. 모든 변경은 부모→단계 순서로 처리한다. */
+    UUID selectApplicationProgressForUpdate(@Param("progressId") UUID progressId);
+
     /**
      * 업무 데이터를 조회합니다.
      *

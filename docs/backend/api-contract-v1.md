@@ -1,5 +1,14 @@
 # saneB Backend API Contract v1
 
+## 2026-10-06 전체 사이클 회귀 수정 추가 계약
+
+- 기존 v1 응답 필드·wrapper·권한을 보존한다. `GET /api/v1/announcements/by-code/{announcementCode}`는 ADMIN/OPERATOR의 정확한 공고 코드 조회를 위한 additive 경로다. UUID 상세 화면으로 연결하며 pagination으로 코드를 찾지 않는다. 코드 형식은 `ANN-` + 6자리 이상 숫자이며 형식 오류/없는 코드는 구체적인 400/404다.
+- `GET /api/v2/admin/announcement-sources/{sourceId}/conversion-context`는 ADMIN/OPERATOR/APPROVER 읽기 전용이다. `{modeCode,convertible,blockedReason,decisionId,version,confirmed,targetCategoryCodes,supportTypeCodes,linkedAnnouncement}`를 ApiResponse로 반환한다. 모드는 BASE_REVIEW/ATTACHMENT_REVIEW/BLOCKED/ALREADY_LINKED다. 첨부 필수 모드의 `convertible=false`는 기본 경로 불가라는 의미이며 기존 첨부 review-context 검증을 사용한다.
+- `POST /api/v2/admin/announcement-sources/{sourceId}/base-review/announcements`는 ADMIN/OPERATOR·CSRF 검증 후 `{classification:{primaryTargetCategoryCode,targetCategoryCodes,supportTypeCodes,incomeJudgementCode,expectedClassificationDecisionId,expectedVersion},reviewNote}`를 받는다. 분류 확인·검수·초안 생성·원문 연결을 한 transaction으로 수행한다. 실패는 전체 rollback, 이미 연결된 원문의 재전송은 같은 UUID/코드를 반환한다. 첨부 필수 guard·본문 확보·최신 본문 실패·판정 버전·중복 후보 검증을 우회하지 않는다. DRAFT 생성이며 자동 활성화하지 않는다.
+- 사용자 현재 BASIC 후보 목록과 대시보드는 승인·NORMAL·KST 접수 기간·유효 후보 상태를 조회 때 적용한다. 관리자 매칭 이력 및 기존 진행 이력은 보존한다. 숨김/접수 기간 밖 공고의 신규 진행은 서버에서도 차단한다.
+- 확정 결과가 있는 진행의 일반 단계 행동/접수 변경은 결과와 진행 상태를 보존한다. 기존 불일치는 409와 운영자 정정 안내를 반환하며 자동 보정하지 않는다. 결과·행동·접수·체크리스트 수정은 진행 부모 행 잠금으로 직렬화한다.
+- 수치 양수 제약·필수 입력 계약을 유지한다. 오류 wrapper/HTTP 상태는 유지하고 구체적인 필드/정책 메시지를 제공한다. 실행 증거와 미완료 항목은 [구현 기록](full-cycle-qa-remediation-implementation-2026-10-06.md)을 따른다.
+
 > 2026-10-03 연결 근거 목적 보호: 일반 배치의 적용 미리보기·적용·원복 서비스에 LINKED_EVIDENCE_ONLY 배치를 전달하면409와 목적 제한 안내를 반환한다. 이 배치의 첨부 판정은 근거 조회용이며 현재 판정 적용이나 원복 승인의 입력으로 사용할 수 없다. DB 목적 제약도 유지한다. 운영 미반영.
 
 > 2026-10-03 연결 근거 실행: `PUT /api/v2/admin/announcement-attachment-linked-evidence-batches/{batchId}/collection`, `/collection-pause`, `/collection-resume`을 추가한다. ADMIN·CSRF 필수, ApiResponse<Batch>·no-store를 유지한다. 시작/재개 입력은 기존 Collection 계약(expectedVersion, expectedScopeHash, expectedItemCount, expectedDeletedItemCount, expectedMaximumDownloadBytes, expectedMaximumHttpRequests, reason), 중지는 Pause(expectedVersion, reason)다. 시작은 SCOPE_READY, 중지는 COLLECTION_PENDING/COLLECTING, 재개는 COLLECTION_PAUSED만 허용한다. 목적 혼용·오래된 버전·변경된 연결/정책/입력은409로 거부한다. 재개는 실패 작업을 새로 만들거나 예산·시도를 초기화하지 않는다. V90 필요, 운영 미반영. 아래 과거 항목의 전용 실행 API 미구현 표기는 이 증분으로 갱신된다.

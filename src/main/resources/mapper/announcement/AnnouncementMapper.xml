@@ -216,6 +216,11 @@
         <include refid="AnnouncementSearchWhere"/>
     </select>
 
+    <select id="selectAnnouncementIdByCodeDetails" resultType="java.util.UUID">
+        -- Resolve a legacy exact public code independently of pagination.
+        SELECT a.id FROM announcements a WHERE a.public_code = #{announcementCode}
+    </select>
+
     <select id="selectAnnouncementDetails" resultMap="AnnouncementDetailsRowMap">
         -- Select announcement details by primary key.
         SELECT

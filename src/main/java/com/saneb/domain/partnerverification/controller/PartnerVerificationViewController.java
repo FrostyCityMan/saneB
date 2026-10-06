@@ -320,7 +320,7 @@ public class PartnerVerificationViewController {
     }
 
     private static String dateTimeText(OffsetDateTime value) {
-        return value == null ? "기록 없음" : value.format(DATE_TIME_FORMAT);
+        return value == null ? "기록 없음" : value.atZoneSameInstant(java.time.ZoneId.of("Asia/Seoul")).format(DATE_TIME_FORMAT);
     }
 
     private static String blankToNull(String value) {

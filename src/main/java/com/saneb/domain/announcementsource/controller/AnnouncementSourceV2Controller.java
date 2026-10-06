@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,5 +43,12 @@ public class AnnouncementSourceV2Controller {
             @Valid @RequestBody AnnouncementSourceV2ToAnnouncementRequest request
     ) {
         return ApiResponse.success(conversionService.insertOperationalAnnouncement(authentication, sourceId, request));
+    }
+
+    @GetMapping("/{sourceId}/conversion-context")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN', 'APPROVER')")
+    public ApiResponse<com.saneb.domain.announcementsource.dto.AnnouncementSourceConversionContextResponse> selectConversionContextDetails(
+            @PathVariable UUID sourceId) {
+        return ApiResponse.success(conversionService.selectConversionContextDetails(sourceId));
     }
 }

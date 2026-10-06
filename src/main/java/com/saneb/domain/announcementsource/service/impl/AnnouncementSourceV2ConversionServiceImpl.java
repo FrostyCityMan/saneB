@@ -19,6 +19,7 @@ import com.saneb.domain.announcement.vo.AnnouncementTargetCategoryAssignmentComm
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceClassificationDao;
 import com.saneb.domain.announcementsource.dao.AnnouncementSourceDao;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceLinkResponse;
+import com.saneb.domain.announcementsource.dto.AnnouncementSourceConversionContextResponse;
 import com.saneb.domain.announcementsource.dto.AnnouncementSourceV2ToAnnouncementRequest;
 import com.saneb.domain.announcementsource.service.AnnouncementSourceV2ConversionService;
 import com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand;
@@ -70,6 +71,37 @@ public class AnnouncementSourceV2ConversionServiceImpl implements AnnouncementSo
     }
 
     @Override
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public AnnouncementSourceConversionContextResponse selectConversionContextDetails(UUID sourceId) {
+        var source = announcementSourceDao.selectSourceDetails(sourceId);
+        if (source == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "수집 원문을 찾을 수 없습니다.");
+        var linked = announcementSourceDao.selectLinkedAnnouncementDetails(sourceId);
+        var state = classificationDao.selectClassificationStateDetails(sourceId);
+        boolean required = Boolean.TRUE.equals(announcementSourceDao.selectAttachmentReviewRequiredDetails(sourceId));
+        String reason = required ? null : selectBaseBlocker(source, state);
+        if (!required && reason == null && (announcementSourceDao.selectPendingDuplicateCandidateCount(sourceId) > 0
+                || announcementSourceDao.selectPendingSnapshotDuplicateCount(sourceId) > 0)) {
+            reason = "중복 또는 유사 공고 후보를 먼저 검수해야 합니다.";
+        }
+        boolean confirmed = state != null && state.confirmedForCurrentDecision();
+        return new AnnouncementSourceConversionContextResponse(linked != null ? "ALREADY_LINKED" : required ? "ATTACHMENT_REVIEW"
+                : reason == null ? "BASE_REVIEW" : "BLOCKED", linked == null && !required && reason == null, reason,
+                state == null ? null : state.decisionId(), state == null ? null : state.classificationRowVersion(), confirmed,
+                confirmed ? classificationDao.selectConfirmedTargetCategoryCodeList(sourceId) : List.of(),
+                confirmed ? classificationDao.selectConfirmedSupportTypeCodeList(sourceId) : List.of(),
+                linked == null ? null : new AnnouncementSourceLinkResponse(sourceId, source.publicCode(), linked.announcementId(), linked.announcementCode()));
+    }
+
+    private String selectBaseBlocker(AnnouncementSourceSnapshotRow source, AnnouncementSourceClassificationStateRow state) {
+        if ("EXCLUDED".equals(source.reviewStatusCode()) || "ARCHIVED".equals(source.reviewStatusCode())) return "제외·보관된 자료는 공고로 전환할 수 없습니다.";
+        if (source.bodyText() == null || source.bodyText().isBlank()) return "본문을 확보하지 못했습니다. 본문 수집 오류를 먼저 해결해야 합니다.";
+        if (state == null || state.decisionId() == null) return "제목·본문 분류가 필요합니다. 최신 판정을 확인하세요.";
+        if ("BODY_FETCH_FAILED".equals(state.reasonCode())) return "최근 본문 수집에 실패했습니다. 본문 수집 오류를 먼저 해결해야 합니다.";
+        if (!"ACCEPTED".equals(state.decisionStatusCode()) && !"REVIEW_REQUIRED".equals(state.decisionStatusCode())) return "현재 분류 상태에서는 공고로 전환할 수 없습니다.";
+        return null;
+    }
+
+    @Override
     @Transactional
     public AnnouncementSourceLinkResponse insertOperationalAnnouncement(
             Authentication authentication,
@@ -95,6 +127,8 @@ public class AnnouncementSourceV2ConversionServiceImpl implements AnnouncementSo
                 announcementSourceDao.selectAttachmentReviewRequiredDetailsForUpdate(sourceId));
         AnnouncementSourceClassificationStateRow state = classificationDao.selectClassificationStateDetails(sourceId);
         validateState(source, state, request);
+        String blocker = selectBaseBlocker(source, state);
+        if (blocker != null) throw notConvertible(blocker);
 
         List<String> targetCodes = normalizeCodes(request.targetCategoryCodes(), TARGET_CODES, "targetCategoryCodes");
         List<String> supportCodes = normalizeCodes(request.supportTypeCodes(), SUPPORT_CODES, "supportTypeCodes");

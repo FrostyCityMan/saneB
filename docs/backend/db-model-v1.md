@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 2026-10-06 전체 사이클 회귀 수정: 신규 DDL/migration 없이 V91까지의 schema를 보존한다. 진행 수정은 `application_progresses` 부모 행 FOR UPDATE 후 상태·결과를 읽고 직렬화한다. 일반 행동/접수는 기존 확정 결과를 덮지 않는다. 신규 진행 가능 여부는 승인·NORMAL·KST 기간을 조회하며 공고 행 FOR SHARE로 숨김 변경과 경합을 제어한다. 사용자 현재 후보/집계는 동일 predicate를 적용하지만 매칭/진행 이력을 삭제하지 않는다. 기본 검수·관리자 확정 태그·초안/원문 연결은 기존 테이블과 한 transaction을 사용한다. 운영 데이터 보정·재분류는 실행하지 않는다. [구현 기록](full-cycle-qa-remediation-implementation-2026-10-06.md)에서 검증 상태를 확인한다.
+
 > 2026-10-06 본문 수집 실패 진단 보강(로컬 구현): 신규 DDL/migration 없이 기존 `announcement_source_collection_run_items.error_message`에 정상 수집 실행 중 본문 실패 코드·HTTP 상태·시도/리다이렉트 횟수만 기록한다. URL·본문·예외 원문은 기록하지 않는다. 과거 실패 항목은 소급 보정하지 않는다. 일반 검수/오류 목록 분리는 현재 `announcement_source_classification_evaluations.body_stage_code=FETCH_FAILED` 기준이며, 현재 평가가 없는 레거시 원문만 `semantic_reason_code=BODY_FETCH_FAILED`로 보완한다. 원문·판정·첨부·운영 연결을 삭제하거나 변경하지 않는다. 운영 반영 여부는 별도 검증 대상이다.
 
 > 2026-10-01 로컬 V86 추가: 불변 정책 QA snapshot의 `validationContractCode`로 `STRICT_V1`과 `COLLECTION_SAFETY_V1`을 구분한다. 과거 누락 값은 STRICT_V1이다. 새 수집 전용 계약은 COLLECT_ONLY에서만 예약·게시할 수 있고, 성공은 `COLLECTION_VERIFIED`, 세 번째 단계는 `COLLECTION_SAFETY`다. 기존 `VERIFIED`·`PROVIDER_PROFILES` 의미는 유지한다. DB는 모드 혼합, 계약 변경, 다른 계약 단계 삽입 및 잘못된 완료 상태를 거부한다. 기존 입력·완료 이력·게시 잠금·정확한 범위·원자적 정책 교체 제약은 유지한다. 운영 적용은 하지 않았다. [설계와 검증 상태](attachment-collection-safety-contract-2026-10-01.md).

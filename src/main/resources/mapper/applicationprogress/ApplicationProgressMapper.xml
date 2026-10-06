@@ -143,6 +143,14 @@
         <include refid="ApplicationProgressSearchWhere"/>
     </select>
 
+    <select id="selectApplicationProgressForUpdate" resultType="java.util.UUID" flushCache="true" useCache="false">
+        -- Serialize progress mutations and discard stale session reads before inspecting the result.
+        SELECT ap.id
+        FROM application_progresses ap
+        WHERE ap.id = #{progressId}
+        FOR UPDATE
+    </select>
+
     <select id="selectApplicationProgressDetails" resultMap="ApplicationProgressRowMap">
         -- Select application progress details by primary key.
         SELECT
@@ -208,7 +216,10 @@
             mc.status_code,
             mc.matching_stage_code
         FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
         WHERE mc.id = #{matchingCaseId}
+          AND <include refid="com.saneb.domain.matching.dao.MatchingDao.CurrentCandidateAnnouncementWhere"/>
+        FOR SHARE OF a
     </select>
 
     <select id="selectActiveAnnouncementProgressStepList" resultMap="AnnouncementProgressStepRowMap">
@@ -493,12 +504,12 @@
     </insert>
 
     <update id="updateApplicationProgressReceipt">
-        -- Save receipt fields and move progress to waiting result.
+        -- Save receipt fields without replacing a previously confirmed result.
         UPDATE application_progresses
         SET
             receipt_no = #{receiptNo},
             receipt_date = #{receiptDate},
-            status_code = 'WAITING_RESULT',
+            status_code = #{statusCode},
             updated_by = #{actorUserId},
             updated_at = now()
         WHERE id = #{progressId}

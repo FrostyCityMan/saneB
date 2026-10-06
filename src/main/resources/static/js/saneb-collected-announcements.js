@@ -547,6 +547,15 @@
         } catch (error) {
             data.classificationLoadError = error.message;
         }
+        let conversionContext = null;
+        let conversionContextError = "";
+        if (classificationV2Enabled) {
+            try {
+                conversionContext = await requestJson(`/api/v2/admin/announcement-sources/${encodeURIComponent(sourceId)}/conversion-context`);
+            } catch (error) {
+                conversionContextError = error.message;
+            }
+        }
         if (sequence !== detailSequence || sourceId !== selectedSourceId) return;
         selectedSource = data;
         const classification = classificationOf(data);
@@ -582,7 +591,10 @@
                         : classificationV2Enabled && classificationUnavailable
                             ? "분류 판정 식별자와 버전을 확인한 뒤 전환하세요."
                             : "";
-            appendActionButton(actions, "운영 공고 전환", "primary-action small-action", () => openConversionDialog(data), disabled, reason);
+            const v2Disabled = !conversionContext || conversionContext.modeCode === "BLOCKED";
+            appendActionButton(actions, "운영 공고 전환", "primary-action small-action", () => openConversionDialog(data),
+                classificationV2Enabled ? v2Disabled : disabled,
+                classificationV2Enabled ? (conversionContext?.blockedReason || conversionContextError) : reason);
         }
         sourceDetail.append(actions);
 
@@ -759,6 +771,10 @@
     };
 
     const openConversionDialog = (data) => {
+        if (classificationV2Enabled) {
+            window.location.href = `/app/admin/collected-announcements/${encodeURIComponent(data.sourceId)}/attachments`;
+            return;
+        }
         selectedSource = data;
         const classification = classificationOf(data);
         conversionForm.reset();
@@ -824,7 +840,8 @@
                     }
                 );
                 closeConversionDialog();
-                window.location.href = `/app/announcements/input?announcementCode=${encodeURIComponent(result.announcementCode || "")}`;
+                if (!result.announcementId) throw new Error("생성된 공고 식별자를 확인하지 못했습니다. 수집 자료의 연결 공고를 다시 확인하세요.");
+                window.location.href = `/app/announcements/input?announcementId=${encodeURIComponent(result.announcementId)}`;
             } catch (error) {
                 message.textContent = error.message;
             }
@@ -856,7 +873,8 @@
                 })
             });
             closeConversionDialog();
-            window.location.href = `/app/announcements/input?announcementCode=${encodeURIComponent(result.announcementCode || "")}`;
+            if (!result.announcementId) throw new Error("생성된 공고 식별자를 확인하지 못했습니다. 수집 자료의 연결 공고를 다시 확인하세요.");
+            window.location.href = `/app/announcements/input?announcementId=${encodeURIComponent(result.announcementId)}`;
         } catch (error) {
             message.textContent = classificationConfirmed
                 ? `분류 태그는 확정했지만 운영 공고 전환에 실패했습니다. ${error.message}`

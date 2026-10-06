@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 
 public interface AnnouncementSourceV2ConversionService {
 
+    com.saneb.domain.announcementsource.dto.AnnouncementSourceConversionContextResponse selectConversionContextDetails(UUID sourceId);
+
     AnnouncementSourceLinkResponse insertOperationalAnnouncement(
             Authentication authentication,
             UUID sourceId,

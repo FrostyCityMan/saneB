@@ -270,13 +270,14 @@ public final class AnnouncementSourceClassificationEngine {
                 boolean protectedMetadataRule = compiledTerm.rule().groupKindCode()
                         == RuleGroupKindCode.PROTECTED_METADATA;
                 boolean masked = protectedMetadataRule || selectContainedByProtectedSpan(occurrence, protectedSpans);
+                boolean procedural = selectProceduralTargetMention(compiledTerm, text, occurrence);
                 AnnouncementSourceNormalizedText.OriginalRange originalRange = text.selectOriginalRange(
                         occurrence.startOffset(),
                         occurrence.endOffset()
                 );
                 AppliedActionCode actionCode = masked
                         ? AppliedActionCode.MASK_ONLY
-                        : selectAppliedAction(compiledTerm.rule().groupKindCode(), locationCode);
+                        : procedural ? AppliedActionCode.CONTEXT_ONLY : selectAppliedAction(compiledTerm.rule().groupKindCode(), locationCode);
                 if (matches.size() >= maximumMatches) throw new IllegalArgumentException("ATTACHMENT_MATCH_LIMIT");
                 matches.add(new AnnouncementSourceClassificationMatch(
                         compiledTerm.rule().ruleCode(),
@@ -291,7 +292,7 @@ public final class AnnouncementSourceClassificationEngine {
                         actionCode,
                         masked
                 ));
-                if (!masked) {
+                if (!masked && !procedural) {
                     applyClassificationMatch(
                             compiledTerm.rule(),
                             targetStrengths,
@@ -311,6 +312,19 @@ public final class AnnouncementSourceClassificationEngine {
                 List.copyOf(groupBCodes),
                 selectCombinationMatched(targetStrengths, supportStrengths)
         );
+    }
+
+    /** 신청 주체 안내와 근로자 휴직 용어는 수혜대상 근거로 사용하지 않는다. A/B 규칙에는 적용하지 않는다. */
+    private boolean selectProceduralTargetMention(CompiledRuleTerm term, AnnouncementSourceNormalizedText text, NormalizedSpan occurrence) {
+        if (term.rule().groupKindCode() != RuleGroupKindCode.TARGET) return false;
+        int[] points = text.normalizedCodePoints();
+        String matched = new String(points, occurrence.startOffset(), occurrence.endOffset() - occurrence.startOffset());
+        String after = new String(points, occurrence.endOffset(), Math.min(18, points.length - occurrence.endOffset()));
+        if (term.rule().targetCategoryCode() == TargetCategoryCode.PERSONAL && matched.equals("본인")) {
+            return after.matches("(?s)^\\s*(?:이\\s*)?(?:직접\\s*)?신청.*");
+        }
+        return term.rule().targetCategoryCode() == TargetCategoryCode.CHILD
+                && ((matched.equals("육아") && after.matches("(?s)^\\s*휴직.*")) || matched.equals("육아휴직"));
     }
 
     private List<NormalizedSpan> selectProtectedSpans(

@@ -400,8 +400,20 @@
     };
     let defaultStepRequests = [];
     let standardDocumentFields = [];
+    let detailEpoch = 0;
+    let detailLocked = false;
+    const lockDetailForms = locked => {
+        detailLocked = locked;
+        app.querySelectorAll("form button[type='submit']").forEach(button => { button.disabled = locked; });
+    };
+    app.addEventListener("submit", event => {
+        if (detailLocked) { event.preventDefault(); event.stopImmediatePropagation(); setMessage("공고 조회가 완료되지 않았습니다. 공고 목록에서 다시 선택한 뒤 저장하세요.", "error"); }
+    }, true);
 
     const selectErrorMessage = (payload, fallback) => {
+        if (payload?.data?.fieldErrors?.length && payload.data.fieldErrors[0].message) {
+            return payload.data.fieldErrors[0].message;
+        }
         if (payload && typeof payload.message === "string" && payload.message.trim() !== "") {
             return payload.message;
         }
@@ -814,7 +826,7 @@
         conditionRows(list, selector).forEach((row, index, rows) => {
             const removeButton = row.querySelector(removeSelector);
             if (removeButton) {
-                removeButton.disabled = rows.length <= 1;
+                removeButton.disabled = rows.length <= 1 && !row.matches("[data-option-condition-row]");
             }
             const sortOrder = row.querySelector("[name='sortOrder']");
             if (sortOrder) {
@@ -847,7 +859,7 @@
 
     const removeConditionRow = (button, list, selector, removeSelector) => {
         const row = button.closest(selector);
-        if (conditionRows(list, selector).length <= 1) {
+        if (conditionRows(list, selector).length <= 1 && !row?.matches("[data-option-condition-row]")) {
             clearConditionRow(row);
         } else {
             row?.remove();
@@ -860,7 +872,7 @@
             return;
         }
         list.replaceChildren();
-        const rows = values && values.length > 0 ? values : [null];
+        const rows = values && values.length > 0 ? values : selector === "[data-option-condition-row]" ? [] : [null];
         rows.forEach((value) => {
             const row = template.cloneNode(true);
             clearConditionRow(row);
@@ -1798,6 +1810,7 @@
     };
 
     const loadDynamicRequirements = async (announcementId) => {
+        const expected = detailEpoch;
         if (!announcementId || !dynamicRequirementsList) {
             renderDynamicRequirements([]);
             setDynamicRequirementSummary("공고 저장 후 설정");
@@ -1805,6 +1818,7 @@
         }
         setDynamicRequirementSummary("불러오는 중");
         const data = await requestJson(`${baseUrl}/${encodeURIComponent(announcementId)}/input-requirements`, { method: "GET" });
+        if (expected !== detailEpoch || currentAnnouncementId !== announcementId) return;
         renderDynamicRequirements(data ? data.requirements : []);
     };
 
@@ -1945,7 +1959,7 @@
         renderStepRows(steps || []);
     };
 
-    const populateDetails = (details) => {
+    const populateDetails = (details, includeDynamic = true) => {
         updateCurrentAnnouncement(details.announcementId, details.announcementCode);
         const primaryTargetCode = details.primaryTargetCategoryCode || details.targetTypeCode || "BUSINESS";
         const targetField = app.querySelector(`input[name='primaryTargetCategoryCode'][value='${primaryTargetCode}']`);
@@ -1982,19 +1996,27 @@
             approvalForm.querySelector("[name='approvalStatusCode']").value = "APPROVED";
             approvalForm.querySelector("[name='decisionNote']").value = "";
         }
-        loadDynamicRequirements(details.announcementId).catch((error) => {
+        if (includeDynamic) loadDynamicRequirements(details.announcementId).catch((error) => {
             setMessage(error.message, "error");
         });
     };
 
     const loadDetails = async (announcementId) => {
+        const expected = ++detailEpoch;
+        lockDetailForms(true);
         setMessage("공고 상세를 불러오는 중입니다.");
         const details = await requestJson(`${baseUrl}/${encodeURIComponent(announcementId)}`, { method: "GET" });
-        populateDetails(details);
+        if (expected !== detailEpoch) return;
+        populateDetails(details, false);
+        await loadDynamicRequirements(details.announcementId);
+        if (expected !== detailEpoch) return;
+        lockDetailForms(false);
         setMessage("공고 상세를 입력 폼에 반영했습니다.", "success");
     };
 
     const resetForNewInput = () => {
+        ++detailEpoch;
+        lockDetailForms(false);
         updateCurrentAnnouncement("");
         basicForm.reset();
         applyConditions({
@@ -2569,13 +2591,22 @@
     updateTargetUi();
     updateApprovalUi("");
     renderDynamicRequirements([]);
+    if (new URL(window.location.href).searchParams.has("announcementId") || new URL(window.location.href).searchParams.has("announcementCode")) lockDetailForms(true);
+    optionConditionList?.replaceChildren();
     loadStandardDocumentFields().then(async () => {
         // 수집 공고 검수에서 생성한 초안을 기존 입력 화면으로 불러온다. 조회만 수행한다.
-        const announcementId = new URL(window.location.href).searchParams.get("announcementId");
-        if (!announcementId) return;
+        const params = new URL(window.location.href).searchParams;
+        const announcementCode = params.get("announcementCode");
+        let announcementId = params.get("announcementId");
+        if (!announcementId && !announcementCode) return;
+        lockDetailForms(true);
+        if (announcementCode) {
+            const resolved = await requestJson(`${baseUrl}/by-code/${encodeURIComponent(announcementCode)}`, {method:"GET"});
+            if (announcementId && announcementId !== resolved.announcementId) throw new Error("공고 식별자와 공고 코드가 일치하지 않습니다. 공고 목록에서 다시 선택하세요.");
+            announcementId = resolved.announcementId;
+        }
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(announcementId)) {
-            setMessage("공고 식별자 형식이 올바르지 않습니다. 공고 목록에서 다시 선택하세요.", "error");
-            return;
+            throw new Error("공고 식별자 형식이 올바르지 않습니다. 공고 목록에서 다시 선택하세요.");
         }
         await loadDetails(announcementId);
     }).catch((error) => {

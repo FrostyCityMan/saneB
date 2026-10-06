@@ -50,6 +50,165 @@ import org.springframework.transaction.annotation.Transactional;
 @Import(FlywayMigrationIntegrationTest.EphemeralDatabase.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FlywayMigrationIntegrationTest {
+    @Test
+    void baseReviewRollsBackConfirmationOnInvalidDraftAndRetriesIdempotently() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
+        UUID actor=insertRemediationActor(), sourceId=UUID.randomUUID();
+        UUID releaseId=jdbcTemplate.queryForObject("-- 합성 fixture의 초기 규칙 FK만 조회한다.\nSELECT id FROM announcement_source_classification_rule_releases WHERE release_code='ASCR-000001'",UUID.class);
+        jdbcTemplate.update("""
+                -- 외부 요청 없이 본문 확보된 합성 원문을 임시 DB에 저장한다.
+                INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,body_text,raw_hash,semantic_status_code)
+                VALUES (?,'GOV24_PUBLIC_SERVICE',?,'소상공인 지원','합성 본문',repeat('c',64),'ACCEPTED')
+                """,sourceId,sourceId.toString());
+        UUID decision=classificationPersistenceService.saveNewContentEvaluation(sourceId,null,releaseId,selectGov24Item("합성 본문"),selectGov24Result("PROVIDER_FULL_TEXT","AVAILABLE"),"REVIEW_PENDING");
+        var conversion=applicationContext.getBean(com.saneb.domain.announcementsource.service.AnnouncementSourceV2ConversionService.class);
+        var service=applicationContext.getBean(com.saneb.domain.announcementsource.service.AnnouncementSourceBaseReviewService.class);
+        var context=conversion.selectConversionContextDetails(sourceId);
+        assertThat(context.modeCode()).isEqualTo("BASE_REVIEW");assertThat(context.convertible()).isTrue();
+        var invalid=new com.saneb.domain.announcementsource.dto.AnnouncementSourceBaseReviewRequest(
+                new com.saneb.domain.announcementsource.dto.AnnouncementSourceV2ToAnnouncementRequest("PERSONAL",List.of("BUSINESS"),List.of("GENERAL_SUPPORT"),"NO_LIMIT",decision,context.version()),"합성 검수");
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->service.insertReviewedAnnouncement(remediationAuthentication(actor),sourceId,invalid))
+                .isInstanceOf(com.saneb.common.error.ApiException.class);
+        var afterFailure=conversion.selectConversionContextDetails(sourceId);
+        assertThat(afterFailure.version()).isEqualTo(context.version());assertThat(afterFailure.confirmed()).isFalse();
+        assertThat(afterFailure.linkedAnnouncement()).isNull();
+        var valid=new com.saneb.domain.announcementsource.dto.AnnouncementSourceBaseReviewRequest(
+                new com.saneb.domain.announcementsource.dto.AnnouncementSourceV2ToAnnouncementRequest("BUSINESS",List.of("BUSINESS"),List.of("GENERAL_SUPPORT"),"NO_LIMIT",decision,context.version()),"합성 검수");
+        var first=service.insertReviewedAnnouncement(remediationAuthentication(actor),sourceId,valid);
+        var second=service.insertReviewedAnnouncement(remediationAuthentication(actor),sourceId,valid);
+        assertThat(second).isEqualTo(first);
+        var announcement=applicationContext.getBean(com.saneb.domain.announcement.service.AnnouncementService.class).selectAnnouncementDetails(first.announcementId());
+        assertThat(announcement.approvalStatusCode()).isEqualTo("DRAFT");
+        assertThat(applicationContext.getBean(com.saneb.domain.announcement.service.AnnouncementService.class).selectAnnouncementByCodeDetails(first.announcementCode()).announcementId()).isEqualTo(first.announcementId());
+        assertThat(jdbcTemplate.queryForObject("-- 재전송해도 원문 연결은 하나만 생성된다.\nSELECT count(1) FROM announcement_source_links WHERE source_id=?",Long.class,sourceId)).isEqualTo(1L);
+    }
+
+    @Test @Transactional
+    void currentCandidatesExcludeHiddenAndNonMatchesWithoutRemovingProgressHistory() {
+        UUID actor = insertRemediationActor();
+        var fixture = insertRemediationProgress(actor);
+        var matching = applicationContext.getBean(com.saneb.domain.matching.dao.MatchingDao.class);
+        var dashboard = applicationContext.getBean(com.saneb.domain.dashboard.dao.DashboardDao.class);
+        var condition = new com.saneb.domain.matching.vo.MatchingCaseSearchCondition(null,actor,null,null,"BASIC",null,1,1,0,true);
+        jdbcTemplate.update("-- 임시 DB fixture를 BASIC 현재 후보로 표시한다.\nUPDATE matching_cases SET matching_stage_code='BASIC' WHERE id=?",fixture.matching());
+        assertThat(matching.selectMatchingCaseCount(condition)).isEqualTo(1);
+        assertThat(matching.selectMatchingCaseList(condition)).hasSize(1);
+        assertThat(dashboard.selectCandidateSummary(actor).businessTargetCount()).isEqualTo(1);
+        jdbcTemplate.update("-- 사용자 조회가 재매칭 없이 차단되는지 검증한다.\nUPDATE announcements SET manual_status_code='HIDDEN' WHERE id=?",fixture.announcement());
+        assertThat(matching.selectMatchingCaseCount(condition)).isZero();
+        assertThat(matching.selectMatchingCaseList(condition)).isEmpty();
+        assertThat(dashboard.selectCandidateSummary(actor).businessTargetCount()).isZero();
+        assertThat(applicationContext.getBean(com.saneb.domain.applicationprogress.dao.ApplicationProgressDao.class)
+                .selectApplicationProgressDetails(fixture.progress())).isNotNull();
+        jdbcTemplate.update("-- 비후보 상태도 노출하지 않는다.\nUPDATE announcements SET manual_status_code='NORMAL' WHERE id=?",fixture.announcement());
+        jdbcTemplate.update("-- 별도 재매칭 수행 없이 상태 필터를 검증한다.\nUPDATE matching_cases SET status_code='NOT_MATCHED' WHERE id=?",fixture.matching());
+        assertThat(matching.selectMatchingCaseCount(condition)).isZero();
+        assertThat(matching.selectMatchingCaseList(condition)).isEmpty();
+        var history = new com.saneb.domain.matching.vo.MatchingCaseSearchCondition(null,actor,null,null,"BASIC",null,1,20,0);
+        assertThat(matching.selectMatchingCaseCount(history)).isEqualTo(1);
+        jdbcTemplate.update("-- 유효 후보를 복구하고 KST 접수 기간 경계를 검증한다.\nUPDATE matching_cases SET status_code='MATCHED' WHERE id=?",fixture.matching());
+        var today=java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        jdbcTemplate.update("-- 오늘 마감 공고는 오늘 후보에 포함된다.\nUPDATE announcements SET application_start_date=?,application_end_date=? WHERE id=?",today,today,fixture.announcement());
+        assertThat(matching.selectMatchingCaseCount(condition)).isEqualTo(1);
+        jdbcTemplate.update("-- 어제 마감된 공고는 재매칭 없이 제외한다.\nUPDATE announcements SET application_start_date=?,application_end_date=? WHERE id=?",today.minusDays(2),today.minusDays(1),fixture.announcement());
+        assertThat(matching.selectMatchingCaseCount(condition)).isZero();
+        assertThat(applicationContext.getBean(com.saneb.domain.applicationprogress.dao.ApplicationProgressDao.class).selectMatchingCaseForProgress(fixture.matching())).isNull();
+        jdbcTemplate.update("-- 접수일 제한을 제거한 합성 후보.\nUPDATE announcements SET application_start_date=NULL,application_end_date=NULL WHERE id=?",fixture.announcement());
+        var other=insertRemediationProgress(actor);
+        jdbcTemplate.update("-- 두 번째 현재 후보로 pagination을 검증한다.\nUPDATE matching_cases SET matching_stage_code='BASIC' WHERE id=?",other.matching());
+        assertThat(matching.selectMatchingCaseCount(condition)).isEqualTo(2);
+        var secondPage=new com.saneb.domain.matching.vo.MatchingCaseSearchCondition(null,actor,null,null,"BASIC",null,2,1,1,true);
+        assertThat(matching.selectMatchingCaseList(condition)).hasSize(1);
+        assertThat(matching.selectMatchingCaseList(secondPage)).hasSize(1);
+        assertThat(matching.selectMatchingCaseList(condition).getFirst().matchingCaseId()).isNotEqualTo(matching.selectMatchingCaseList(secondPage).getFirst().matchingCaseId());
+        assertThat(dashboard.selectCandidateSummary(actor).businessTargetCount()).isEqualTo(2);
+    }
+
+    @Test @Transactional
+    void finalDashboardCountAlsoExcludesHiddenAnnouncements() {
+        UUID actor=insertRemediationActor();var fixture=insertRemediationProgress(actor);
+        var dashboard=applicationContext.getBean(com.saneb.domain.dashboard.dao.DashboardDao.class);
+        assertThat(dashboard.selectCandidateSummary(actor).finalMatchedCount()).isEqualTo(1);
+        jdbcTemplate.update("-- FINAL 건수도 같은 현재 노출 predicate를 사용한다.\nUPDATE announcements SET manual_status_code='HIDDEN' WHERE id=?",fixture.announcement());
+        assertThat(dashboard.selectCandidateSummary(actor).finalMatchedCount()).isZero();
+    }
+
+    @Test @Transactional
+    void finalStepAndReceiptPreserveConfirmedResultOnRealMapper() {
+        UUID actor = insertRemediationActor(); var fixture = insertRemediationProgress(actor);
+        var service = applicationContext.getBean(com.saneb.domain.applicationprogress.service.ApplicationProgressService.class);
+        var auth = remediationAuthentication(actor);
+        service.updateProgressResult(auth,fixture.progress(),new com.saneb.domain.applicationprogress.dto.ProgressResultSaveRequest(
+                "APPROVED","합성 검증",java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")),java.math.BigDecimal.ZERO));
+        var completed = service.updateProgressStepAction(auth,fixture.progress(),fixture.step(),
+                new com.saneb.domain.applicationprogress.dto.ProgressActionRequest("DONE",java.util.Map.of()));
+        assertThat(completed.statusCode()).isEqualTo("APPROVED");
+        assertThat(completed.resultCode()).isEqualTo("APPROVED");
+        var corrected = service.updateProgressReceipt(auth,fixture.progress(),new com.saneb.domain.applicationprogress.dto.ProgressReceiptSaveRequest(
+                "QA-RECEIPT",java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"))));
+        assertThat(corrected.statusCode()).isEqualTo("APPROVED");
+        assertThat(corrected.receivedAmount()).isEqualByComparingTo(java.math.BigDecimal.ZERO);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.updateProgressStepAction(auth,fixture.progress(),fixture.step(),
+                new com.saneb.domain.applicationprogress.dto.ProgressActionRequest("DONE",java.util.Map.of())))
+                .isInstanceOf(com.saneb.common.error.ApiException.class);
+        assertThat(jdbcTemplate.queryForObject("-- 중복 행동 로그를 생성하지 않는다.\nSELECT count(1) FROM application_action_logs WHERE progress_id=?",Long.class,fixture.progress())).isEqualTo(1);
+    }
+
+    @Test
+    void resultAndFinalStepSerializeInBothOrdersOnRealPostgres() throws Exception {
+        var service = applicationContext.getBean(com.saneb.domain.applicationprogress.service.ApplicationProgressService.class);
+        var manager = applicationContext.getBean(org.springframework.transaction.PlatformTransactionManager.class);
+        UUID actor = insertRemediationActor(); var auth = remediationAuthentication(actor);
+        for (boolean resultFirst : List.of(true,false)) {
+            var fixture = insertRemediationProgress(actor);
+            var locked = new java.util.concurrent.CountDownLatch(1);
+            var release = new java.util.concurrent.CountDownLatch(1);
+            var started = new java.util.concurrent.CountDownLatch(1);
+            var executor = java.util.concurrent.Executors.newFixedThreadPool(2);
+            Runnable result = () -> service.updateProgressResult(auth,fixture.progress(),new com.saneb.domain.applicationprogress.dto.ProgressResultSaveRequest(
+                    "APPROVED","합성 동시성 검증",java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")),java.math.BigDecimal.TEN));
+            Runnable action = () -> service.updateProgressStepAction(auth,fixture.progress(),fixture.step(),
+                    new com.saneb.domain.applicationprogress.dto.ProgressActionRequest("DONE",java.util.Map.of()));
+            try {
+                var first = executor.submit(() -> new org.springframework.transaction.support.TransactionTemplate(manager).executeWithoutResult(status -> {
+                    (resultFirst ? result : action).run(); locked.countDown();
+                    try { if (!release.await(10,java.util.concurrent.TimeUnit.SECONDS)) throw new IllegalStateException("LOCK_RELEASE_TIMEOUT"); }
+                    catch (InterruptedException e) { Thread.currentThread().interrupt(); throw new IllegalStateException(e); }
+                }));
+                assertThat(locked.await(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                var second = executor.submit(() -> { started.countDown(); (resultFirst ? action : result).run(); });
+                assertThat(started.await(5,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                org.assertj.core.api.Assertions.assertThatThrownBy(() -> second.get(200,java.util.concurrent.TimeUnit.MILLISECONDS))
+                        .isInstanceOf(java.util.concurrent.TimeoutException.class);
+                release.countDown(); first.get(10,java.util.concurrent.TimeUnit.SECONDS); second.get(10,java.util.concurrent.TimeUnit.SECONDS);
+                var actual = service.selectApplicationProgressDetails(fixture.progress());
+                assertThat(actual.statusCode()).isEqualTo("APPROVED"); assertThat(actual.resultCode()).isEqualTo("APPROVED");
+                assertThat(actual.receivedAmount()).isEqualByComparingTo(java.math.BigDecimal.TEN);
+            } finally { release.countDown(); executor.shutdownNow(); assertThat(executor.awaitTermination(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue(); }
+        }
+    }
+
+    private UUID insertRemediationActor() {
+        UUID actor = UUID.randomUUID();
+        jdbcTemplate.update("-- 이 테스트 소유의 임시 DB에만 합성 계정을 만든다.\nINSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,?,'unused','합성 검증','ACTIVE',false)",actor,"remediation-"+actor);
+        return actor;
+    }
+    private record RemediationProgress(UUID announcement, UUID matching, UUID step, UUID progress) { }
+    private RemediationProgress insertRemediationProgress(UUID actor) {
+        UUID announcement=UUID.randomUUID(), matching=UUID.randomUUID(), step=UUID.randomUUID(), progress=UUID.randomUUID();
+        jdbcTemplate.update("-- 합성 승인 공고. 외부 원문·결제·기관 호출은 없다.\nINSERT INTO announcements(id,target_type_code,title,agency_name,approval_status_code) VALUES (?,'BUSINESS',?,'검증기관','APPROVED')",announcement,"합성 검증 "+announcement);
+        jdbcTemplate.update("-- 실제 FK와 기존 FINAL 계약으로 합성 매칭을 생성한다.\nINSERT INTO matching_cases(id,announcement_id,member_user_id,status_code,matching_stage_code) VALUES (?,?,?,'MATCHED','FINAL')",matching,announcement,actor);
+        jdbcTemplate.update("-- 마지막 행동 완료를 검증하는 합성 단계.\nINSERT INTO announcement_progress_steps(id,announcement_id,step_order,step_name,completion_condition_code) VALUES (?,?,1,'합성 마지막 단계','USER_ACTION')",step,announcement);
+        jdbcTemplate.update("-- 기존 버튼 계약을 사용한다.\nINSERT INTO announcement_step_buttons(step_id,button_code,button_label,button_action_code) VALUES (?,'DONE','완료','MOVE_NEXT')",step);
+        jdbcTemplate.update("-- 임시 DB에서만 진행 fixture를 생성한다.\nINSERT INTO application_progresses(id,matching_case_id,announcement_id,member_user_id,current_step_id,status_code) VALUES (?,?,?,?,?,'IN_PROGRESS')",progress,matching,announcement,actor,step);
+        jdbcTemplate.update("-- 잠금·중복 클릭 검증을 위한 READY 상태.\nINSERT INTO application_step_states(progress_id,step_id,status_code) VALUES (?,?,'READY')",progress,step);
+        return new RemediationProgress(announcement,matching,step,progress);
+    }
+    private org.springframework.security.core.Authentication remediationAuthentication(UUID actor) {
+        var principal = new AuthenticatedUserDetails(new AuthUserDetailsRow(actor,"remediation-fixture","unused","합성 검증","ACTIVE",false,null,null,null),List.of("ADMIN"));
+        return new UsernamePasswordAuthenticationToken(principal,null,principal.getAuthorities());
+    }
+
     @Test @Transactional
     void bodyFailureListPartitionPreservesLegacyAndRecoveredSources() {
         org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);

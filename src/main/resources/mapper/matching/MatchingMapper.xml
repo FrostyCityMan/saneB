@@ -87,8 +87,19 @@
         </constructor>
     </resultMap>
 
+    <sql id="CurrentCandidateAnnouncementWhere">
+        a.approval_status_code = 'APPROVED'
+        AND a.manual_status_code = 'NORMAL'
+        AND (a.application_start_date IS NULL OR a.application_start_date &lt;= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::date)
+        AND (a.application_end_date IS NULL OR a.application_end_date &gt;= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::date)
+    </sql>
+
     <sql id="MatchingCaseSearchWhere">
         <where>
+            <if test="currentCandidateOnly">
+                mc.status_code IN ('MATCHED', 'REVIEW_REQUIRED', 'PROGRESSED')
+                AND <include refid="CurrentCandidateAnnouncementWhere"/>
+            </if>
             <if test="announcementId != null">
                 AND mc.announcement_id = #{announcementId}
             </if>
@@ -183,6 +194,7 @@
         SELECT
             count(1)
         FROM matching_cases mc
+        INNER JOIN announcements a ON a.id = mc.announcement_id
         <include refid="MatchingCaseSearchWhere"/>
     </select>
 
@@ -353,8 +365,8 @@
         ) doc ON true
         WHERE a.approval_status_code = 'APPROVED'
           AND a.manual_status_code = 'NORMAL'
-          AND (a.application_start_date IS NULL OR a.application_start_date &lt;= current_date)
-          AND (a.application_end_date IS NULL OR a.application_end_date &gt;= current_date)
+          AND (a.application_start_date IS NULL OR a.application_start_date &lt;= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::date)
+          AND (a.application_end_date IS NULL OR a.application_end_date &gt;= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::date)
           AND NOT EXISTS (
               SELECT
                   1

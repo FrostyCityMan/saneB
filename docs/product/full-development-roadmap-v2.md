@@ -1,5 +1,7 @@
 # saneB Full Development Roadmap v2
 
+> 2026-10-06 갱신: 아래 초기 로드맵의 V68/V69 및 feature flag 수치는 과거 기준이다. 이번 운영 읽기 전용 사전 점검은 DB V91, 첨부 정책 COLLECT_ONLY, worker/source batch 설정 유지, 첨부 진행 작업 0건을 확인했다. 전체 사이클 회귀 수정 구현·검증·배포 증거는 [구현 기록](../backend/full-cycle-qa-remediation-implementation-2026-10-06.md)을 따른다. 코드 설치·테스트와 관리자→사용자 전체 브라우저 사이클 완료는 구분한다. 규칙 게시·기존 데이터 재분류·보정·실결제는 이번 범위가 아니다.
+
 작성일: 2026-06-02
 
 ## 1. 전환 결정

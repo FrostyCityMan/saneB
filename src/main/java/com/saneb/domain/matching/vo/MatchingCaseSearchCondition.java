@@ -23,6 +23,12 @@ public record MatchingCaseSearchCondition(
         String matchingBasisCode,
         int page,
         int size,
-        int offset
+        int offset,
+        boolean currentCandidateOnly
 ) {
+    public MatchingCaseSearchCondition(UUID announcementId, UUID memberUserId, UUID verificationId,
+            String statusCode, String matchingStageCode, String matchingBasisCode, int page, int size, int offset) {
+        this(announcementId, memberUserId, verificationId, statusCode, matchingStageCode, matchingBasisCode,
+                page, size, offset, false);
+    }
 }

@@ -88,6 +88,12 @@ public class AnnouncementController {
 		return ApiResponse.success(announcementService.selectAnnouncementDetails(announcementId));
 	}
 
+    @GetMapping("/by-code/{announcementCode}")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    public ApiResponse<AnnouncementDetailsResponse> selectAnnouncementByCodeDetails(@PathVariable String announcementCode) {
+        return ApiResponse.success(announcementService.selectAnnouncementByCodeDetails(announcementCode));
+    }
+
 	@PutMapping("/{announcementId}")
 	@PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
 	public ApiResponse<AnnouncementDetailsResponse> updateAnnouncement(

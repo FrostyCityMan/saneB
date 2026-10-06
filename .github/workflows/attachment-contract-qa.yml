@@ -154,6 +154,9 @@ jobs:
       - name: 기본정보 단일 선택·기존 값 보존·가족 입력 검증
         run: node --test scripts/qa/member-basic-info-simple.test.cjs scripts/qa/member-basic-info-view.test.cjs
 
+      - name: 사용자 동적 입력 로딩·첫 저장·오류 복구 검증
+        run: node --test scripts/qa/progress-input-state.test.mjs
+
       - name: 수집 공고 검색 복귀·첨부 요약 회귀 검증
         run: node --test scripts/qa/collected-navigation.test.mjs scripts/qa/collected-attachment-overview.test.mjs scripts/qa/attachment-simple-workspace.test.mjs scripts/qa/attachment-conversion.test.mjs
 

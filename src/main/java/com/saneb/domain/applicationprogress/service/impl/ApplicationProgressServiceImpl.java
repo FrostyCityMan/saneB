@@ -304,7 +304,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
             ProgressActionRequest request
     ) {
         UUID actorUserId = selectRequiredPrincipal(authentication).userId();
-        ApplicationProgressRow progress = selectApplicationProgressRow(progressId);
+        ApplicationProgressRow progress = selectApplicationProgressLockedRow(progressId);
         ApplicationStepStateRow stepState = selectApplicationStepState(progressId, stepId);
         if (!Set.of("READY", "IN_PROGRESS").contains(stepState.statusCode())) {
             throw new ApiException(ErrorCode.PROGRESS_STEP_LOCKED, HttpStatus.CONFLICT, "Progress step is locked.");
@@ -320,6 +320,11 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
         }
 
         boolean stopProgress = ACTION_STOP_PROGRESS.equals(normalizeOptionalCode(button.buttonActionCode()));
+        String completedStatus = selectOrdinaryMutationStatus(progress, "WAITING_RESULT");
+        if (stopProgress && progress.resultCode() != null) {
+            throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT,
+                    "결과가 확정된 진행은 일반 중단 행동으로 변경할 수 없습니다. 운영자에게 결과 정정을 요청하세요.");
+        }
         if (!stopProgress) {
             validateCurrentStepCanMove(progress, stepState);
         }
@@ -342,15 +347,16 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
                 button.buttonCode(),
                 safeActionInputJson(button.buttonCode(), request.input() != null && !request.input().isEmpty())
         ));
-        applicationProgressDao.updateApplicationStepStateStatus(progressId, stepId, "COMPLETED", actorUserId);
+        validateMutationCount(applicationProgressDao.updateApplicationStepStateStatus(progressId, stepId, "COMPLETED", actorUserId));
 
         if (stopProgress) {
-            applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, "STOPPED", actorUserId);
+            validateMutationCount(applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, "STOPPED", actorUserId));
         } else if (nextStepId == null) {
-            applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, "WAITING_RESULT", actorUserId);
+            validateMutationCount(applicationProgressDao.updateApplicationProgressCurrentStep(progressId, null, completedStatus, actorUserId));
         } else {
-            applicationProgressDao.updateApplicationStepStateStatus(progressId, nextStepId, "READY", actorUserId);
-            applicationProgressDao.updateApplicationProgressCurrentStep(progressId, nextStepId, "IN_PROGRESS", actorUserId);
+            validateMutationCount(applicationProgressDao.updateApplicationStepStateStatus(progressId, nextStepId, "READY", actorUserId));
+            validateMutationCount(applicationProgressDao.updateApplicationProgressCurrentStep(progressId, nextStepId,
+                    selectOrdinaryMutationStatus(progress, "IN_PROGRESS"), actorUserId));
         }
 
         insertAudit(actorUserId, "APPLICATION_PROGRESS_STEP_ACTION", progressId, metadata(
@@ -396,7 +402,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
             ProgressChecklistSaveRequest request
     ) {
         UUID actorUserId = selectRequiredPrincipal(authentication).userId();
-        selectApplicationProgressRow(progressId);
+        selectApplicationProgressLockedRow(progressId);
         selectApplicationStepState(progressId, stepId);
 
         for (ProgressChecklistSaveRequest.DocumentRequest document : nullToEmpty(request.documents())) {
@@ -454,19 +460,21 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
             ProgressReceiptSaveRequest request
     ) {
         UUID actorUserId = selectRequiredPrincipal(authentication).userId();
-        selectApplicationProgressRow(progressId);
+        ApplicationProgressRow progress = selectApplicationProgressLockedRow(progressId);
+        String statusCode = selectOrdinaryMutationStatus(progress, "WAITING_RESULT");
         int updatedCount = applicationProgressDao.updateApplicationProgressReceipt(new ProgressReceiptCommand(
                 progressId,
                 trimToNull(request.receiptNo()),
                 request.receiptDate(),
-                actorUserId
+                actorUserId,
+                statusCode
         ));
         if (updatedCount == 0) {
             throw notFound();
         }
         insertAudit(actorUserId, "APPLICATION_PROGRESS_RECEIPT_SAVE", progressId, metadata(
                 "receiptSaved", "true",
-                "statusCode", "WAITING_RESULT",
+                "statusCode", statusCode,
                 "dateProvided", "true"
         ));
         return selectApplicationProgressDetails(progressId);
@@ -502,7 +510,7 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
             ProgressResultSaveRequest request
     ) {
         UUID actorUserId = selectRequiredPrincipal(authentication).userId();
-        selectApplicationProgressRow(progressId);
+        selectApplicationProgressLockedRow(progressId);
         String resultCode = normalizeRequiredCode("resultCode", request.resultCode(), RESULT_CODES);
         if (request.receivedAmount() != null && request.receivedAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw validationFailed("receivedAmount must be zero or positive.");
@@ -538,6 +546,27 @@ public class ApplicationProgressServiceImpl implements ApplicationProgressServic
      *
      * @return 처리 결과
      */
+    private ApplicationProgressRow selectApplicationProgressLockedRow(UUID progressId) {
+        if (applicationProgressDao.selectApplicationProgressForUpdate(progressId) == null) {
+            throw notFound();
+        }
+        return selectApplicationProgressRow(progressId);
+    }
+
+    private String selectOrdinaryMutationStatus(ApplicationProgressRow progress, String otherwise) {
+        if (progress.resultCode() == null) return otherwise;
+        if (!RESULT_CODES.contains(progress.resultCode()) || !progress.resultCode().equals(progress.statusCode())) {
+            throw new ApiException(ErrorCode.PROGRESS_CONDITION_NOT_MET, HttpStatus.CONFLICT,
+                    "진행 상태와 저장된 결과가 일치하지 않습니다. 운영자가 결과 이력을 확인한 뒤 정정해야 합니다.");
+        }
+        return progress.statusCode();
+    }
+
+    private void validateMutationCount(int count) {
+        if (count != 1) throw new ApiException(ErrorCode.PROGRESS_STEP_LOCKED, HttpStatus.CONFLICT,
+                "진행 정보가 변경되었습니다. 최신 상태를 다시 확인한 뒤 진행하세요.");
+    }
+
     private ApplicationProgressRow selectApplicationProgressRow(UUID progressId) {
         ApplicationProgressRow row = applicationProgressDao.selectApplicationProgressDetails(progressId);
         if (row == null) {

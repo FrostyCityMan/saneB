@@ -4,6 +4,11 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.saneb.domain.announcementsource.dao.AnnouncementSourceDao">
 
+    <select id="selectAttachmentReviewRequiredDetails" resultType="java.lang.Boolean">
+        -- Read the source-specific review policy without taking a write lock.
+        SELECT is_attachment_review_required FROM announcement_source_snapshots WHERE id = #{sourceId}
+    </select>
+
     <select id="selectAttachmentReviewRequiredDetailsForUpdate" resultType="java.lang.Boolean"
             flushCache="true" useCache="false">
         -- Lock even an unbound source so attachment binding cannot race a legacy mutation.

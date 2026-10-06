@@ -16,6 +16,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
@@ -35,6 +40,8 @@ import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -63,6 +70,7 @@ class ApplicationProgressServiceImplTest {
                 applicationProgressDao,
                 dynamicAnnouncementInputDao
         );
+        when(applicationProgressDao.selectApplicationProgressForUpdate(PROGRESS_ID)).thenReturn(PROGRESS_ID);
     }
 
     /**
@@ -141,6 +149,58 @@ class ApplicationProgressServiceImplTest {
                 now,
                 now
         );
+    }
+
+    private ApplicationProgressRow resultRow(String result, String status) {
+        var row = progressRow();
+        return new ApplicationProgressRow(row.progressId(), row.matchingCaseId(), row.announcementId(), row.memberUserId(),
+                row.progressCode(), row.matchingCaseCode(), row.announcementCode(), row.memberUserCode(), STEP_ID, status,
+                "QA-RECEIPT", java.time.LocalDate.of(2026, 10, 6), result, "합성 결과",
+                result == null ? null : java.time.LocalDate.of(2026, 10, 6),
+                "APPROVED".equals(result) ? java.math.BigDecimal.ZERO : null, row.createdAt(), row.updatedAt());
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"APPROVED", "REJECTED", "SUPPLEMENT_REQUESTED", "STOPPED"})
+    void lastStepPreservesExistingResult(String result) {
+        when(applicationProgressDao.selectApplicationProgressDetails(PROGRESS_ID)).thenReturn(resultRow(result, result));
+        when(applicationProgressDao.selectApplicationStepState(PROGRESS_ID, STEP_ID)).thenReturn(stepState("RESULT_SAVED"));
+        when(applicationProgressDao.selectStepButton(STEP_ID, "DONE")).thenReturn(new StepButtonRow(STEP_ID, "DONE", "저장", "MOVE_NEXT", null, 1));
+        when(applicationProgressDao.updateApplicationStepStateStatus(eq(PROGRESS_ID), eq(STEP_ID), eq("COMPLETED"), eq(USER_ID))).thenReturn(1);
+        when(applicationProgressDao.updateApplicationProgressCurrentStep(eq(PROGRESS_ID), eq(null), eq(result), eq(USER_ID))).thenReturn(1);
+        applicationProgressService.updateProgressStepAction(authentication(), PROGRESS_ID, STEP_ID, new ProgressActionRequest("DONE", Map.of()));
+        verify(applicationProgressDao).updateApplicationProgressCurrentStep(PROGRESS_ID, null, result, USER_ID);
+        verify(applicationProgressDao, never()).updateApplicationProgressResult(any());
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"APPROVED", "REJECTED", "SUPPLEMENT_REQUESTED", "STOPPED"})
+    void receiptCorrectionPreservesExistingResult(String result) {
+        when(applicationProgressDao.selectApplicationProgressDetails(PROGRESS_ID)).thenReturn(resultRow(result, result));
+        when(applicationProgressDao.updateApplicationProgressReceipt(any())).thenReturn(1);
+        applicationProgressService.updateProgressReceipt(authentication(), PROGRESS_ID,
+                new com.saneb.domain.applicationprogress.dto.ProgressReceiptSaveRequest("QA-CORRECT", java.time.LocalDate.of(2026,10,6)));
+        var command = org.mockito.ArgumentCaptor.forClass(com.saneb.domain.applicationprogress.vo.ProgressReceiptCommand.class);
+        verify(applicationProgressDao).updateApplicationProgressReceipt(command.capture());
+        assertThat(command.getValue().statusCode()).isEqualTo(result);
+        verify(applicationProgressDao, never()).updateApplicationProgressResult(any());
+    }
+
+    @Test void noResultLastStepWaitsForResult() {
+        when(applicationProgressDao.selectApplicationProgressDetails(PROGRESS_ID)).thenReturn(resultRow(null, "IN_PROGRESS"));
+        when(applicationProgressDao.selectApplicationStepState(PROGRESS_ID, STEP_ID)).thenReturn(stepState("USER_ACTION"));
+        when(applicationProgressDao.selectStepButton(STEP_ID, "DONE")).thenReturn(new StepButtonRow(STEP_ID, "DONE", "완료", "MOVE_NEXT", null, 1));
+        when(applicationProgressDao.updateApplicationStepStateStatus(eq(PROGRESS_ID), eq(STEP_ID), eq("COMPLETED"), eq(USER_ID))).thenReturn(1);
+        when(applicationProgressDao.updateApplicationProgressCurrentStep(eq(PROGRESS_ID), eq(null), eq("WAITING_RESULT"), eq(USER_ID))).thenReturn(1);
+        applicationProgressService.updateProgressStepAction(authentication(), PROGRESS_ID, STEP_ID, new ProgressActionRequest("DONE", Map.of()));
+        verify(applicationProgressDao).updateApplicationProgressCurrentStep(PROGRESS_ID, null, "WAITING_RESULT", USER_ID);
+    }
+
+    @Test void inconsistentResultDoesNotWriteAction() {
+        when(applicationProgressDao.selectApplicationProgressDetails(PROGRESS_ID)).thenReturn(resultRow("APPROVED", "WAITING_RESULT"));
+        when(applicationProgressDao.selectApplicationStepState(PROGRESS_ID, STEP_ID)).thenReturn(stepState("RESULT_SAVED"));
+        when(applicationProgressDao.selectStepButton(STEP_ID, "DONE")).thenReturn(new StepButtonRow(STEP_ID,"DONE","완료","MOVE_NEXT",null,1));
+        assertThatThrownBy(() -> applicationProgressService.updateProgressStepAction(authentication(),PROGRESS_ID,STEP_ID,new ProgressActionRequest("DONE",Map.of())))
+                .isInstanceOf(ApiException.class).hasMessageContaining("일치하지 않습니다");
+        verify(applicationProgressDao,never()).insertApplicationActionLog(any());
     }
 
     /**

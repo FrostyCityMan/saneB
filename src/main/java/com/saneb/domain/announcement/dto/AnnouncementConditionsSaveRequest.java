@@ -59,13 +59,13 @@ public record AnnouncementConditionsSaveRequest(
             @Size(max = 30, message = "comparatorCode must be 30 characters or less")
             String comparatorCode,
 
-            @DecimalMin(value = "0", inclusive = false, message = "valueNumber must be greater than 0")
+            @DecimalMin(value = "0", inclusive = false, message = "수치 조건 기준값은 0보다 커야 합니다. 양수를 입력하세요.")
             BigDecimal valueNumber,
 
-            @DecimalMin(value = "0", inclusive = false, message = "minNumber must be greater than 0")
+            @DecimalMin(value = "0", inclusive = false, message = "수치 조건 최솟값은 0보다 커야 합니다. 양수를 입력하세요.")
             BigDecimal minNumber,
 
-            @DecimalMin(value = "0", inclusive = false, message = "maxNumber must be greater than 0")
+            @DecimalMin(value = "0", inclusive = false, message = "수치 조건 최댓값은 0보다 커야 합니다. 양수를 입력하세요.")
             BigDecimal maxNumber,
 
             @Size(max = 30, message = "unitCode must be 30 characters or less")

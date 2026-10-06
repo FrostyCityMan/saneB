@@ -73,6 +73,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AnnouncementServiceImpl implements AnnouncementService {
 
+    @Override
+    public AnnouncementDetailsResponse selectAnnouncementByCodeDetails(String announcementCode) {
+        if (announcementCode == null || !announcementCode.matches("ANN-[0-9]{6,}")) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST, "공고 코드는 ANN-000001 형식이어야 합니다.");
+        }
+        UUID id = announcementDao.selectAnnouncementIdByCodeDetails(announcementCode);
+        if (id == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "해당 공고 코드를 찾을 수 없습니다. 공고 목록에서 다시 선택하세요.");
+        return selectAnnouncementDetails(id);
+    }
+
     private static final int MAX_PAGE_SIZE = 100;
 
     private static final Set<String> TARGET_TYPE_CODES = Set.of(

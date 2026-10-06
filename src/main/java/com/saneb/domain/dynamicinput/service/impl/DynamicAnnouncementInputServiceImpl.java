@@ -473,7 +473,7 @@ public class DynamicAnnouncementInputServiceImpl implements DynamicAnnouncementI
                 .collect(Collectors.toSet());
         for (AnnouncementInputRequirementRow requirement : requirements) {
             if (Boolean.TRUE.equals(requirement.required()) && !submittedRequirementIds.contains(requirement.requirementId())) {
-                throw progressConditionNotMet("Required input value is missing.");
+                throw progressConditionNotMet("필수 입력 항목 ‘" + requirement.fieldLabel() + "’을 입력하고 저장하세요.");
             }
         }
         for (ApplicationInputValuesSaveRequest.InputValueRequest value : values) {

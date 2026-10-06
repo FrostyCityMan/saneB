@@ -128,14 +128,17 @@
                 SELECT
                     count(1)
                 FROM matching_cases final_mc
+                INNER JOIN announcements a ON a.id = final_mc.announcement_id
                 WHERE final_mc.member_user_id = #{userId}
                   AND final_mc.matching_stage_code = 'FINAL'
                   AND final_mc.status_code IN ('MATCHED', 'PROGRESSED')
+                  AND <include refid="com.saneb.domain.matching.dao.MatchingDao.CurrentCandidateAnnouncementWhere"/>
             ) AS integer) AS final_matched_count,
             min(a.min_amount) AS min_amount,
             max(a.max_amount) AS max_amount
         FROM candidate_cases cc
         INNER JOIN announcements a ON a.id = cc.announcement_id
+        WHERE <include refid="com.saneb.domain.matching.dao.MatchingDao.CurrentCandidateAnnouncementWhere"/>
     </select>
 
     <select id="selectProgressSummary" resultMap="DashboardProgressSummaryRowMap">

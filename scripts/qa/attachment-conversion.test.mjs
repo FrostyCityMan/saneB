@@ -41,6 +41,8 @@ async function harness(opts={}) {
             linked=true;return {announcementId:id,announcementCode:'ANN-TEST'};
         }
         if(opts.lookupFail)throw new core.RequestError('자료 조회 실패');
+        if(url.endsWith('/conversion-context'))return {modeCode:opts.base?'BASE_REVIEW':'ATTACHMENT_REVIEW',convertible:!!opts.base,
+            decisionId:base,version:1,linkedAnnouncement:linked?{announcementId:id,announcementCode:'ANN-TEST'}:null};
         if(url.endsWith('/review-context')) {const c=context();if(opts.stale&&confirmed)c.version.expectedSourceVersion++;return c;}
         if(url.endsWith(`/${id}`))return {source,content:{bodyText:'확인할 본문',sourceUrl:'javascript:alert(1)'}};
         if(url.endsWith('/attachment-sets?page=1&size=1'))return {items:[{setId:base,discoveryComplete:true,discoveryStatusCode:'FOUND'}]};
@@ -96,6 +98,26 @@ test('double submit is locked and result links to the exact draft',async()=>{
     const h=await harness();h.fill();h.form.events.submit({preventDefault(){}});h.form.events.submit({preventDefault(){}});await h.settle();
     assert.deepEqual(h.counts(),{confirmCount:1,draftCount:1});assert.equal(h.q('[data-result]').children.find(el=>el.tag==='a').href,`/app/announcements/input?announcementId=${id}`);
 });
+
+test('base review combines confirmation and draft without using attachment confirmation',async()=>{
+    const h=await harness({base:true,statusCode:'NOT_APPLIED'});await h.submit();
+    assert.deepEqual(h.counts(),{confirmCount:0,draftCount:1});
+    const writes=h.calls.filter(c=>c.options.method==='POST');
+    assert.equal(writes.length,1);assert.match(writes[0].url,/base-review\/announcements$/);
+    const body=JSON.parse(writes[0].options.body);
+    assert.equal(body.reviewNote,'원문 확인');assert.equal(body.classification.expectedClassificationDecisionId,base);
+    assert.equal(body.classification.expectedVersion,1);assert.equal(body.classification.primaryTargetCategoryCode,'PERSONAL');
+    assert.equal(h.q('[data-result]').children.find(el=>el.tag==='a').href,`/app/announcements/input?announcementId=${id}`);
+});
+
+test('base review response loss retries an identical atomic request',async()=>{
+    const h=await harness({base:true,draftFail:true});await h.submit();
+    h.q('[data-retry]').events.click();await h.settle();
+    const writes=h.calls.filter(c=>c.options.method==='POST');
+    assert.equal(writes.length,2);assert.equal(writes[0].options.body,writes[1].options.body);
+    assert.ok(writes.every(c=>c.url.endsWith('/base-review/announcements')));
+    assert.equal(h.counts().confirmCount,0);
+});
 test('announcement input deep link validates UUID and only loads details',async()=>{
     const input=readFileSync(new URL('../../src/main/resources/static/js/saneb-announcement-input.js',import.meta.url),'utf8');
     const start=input.lastIndexOf('loadStandardDocumentFields().then');
@@ -103,10 +125,35 @@ test('announcement input deep link validates UUID and only loads details',async(
     const snippet=input.slice(start,end);
     for(const [value,expected] of [[id,1],['javascript:alert(1)',0],['',0]]) {
         const loaded=[],messages=[];
-        runInNewContext(snippet,{loadStandardDocumentFields:async()=>{},loadDetails:async v=>loaded.push(v),setMessage:m=>messages.push(m),window:{location:{href:`https://example.test/app/announcements/input?announcementId=${encodeURIComponent(value)}`}},URL});
+        runInNewContext(snippet,{lockDetailForms(){},loadStandardDocumentFields:async()=>{},loadDetails:async v=>loaded.push(v),setMessage:m=>messages.push(m),window:{location:{href:`https://example.test/app/announcements/input?announcementId=${encodeURIComponent(value)}`}},URL});
         for(let i=0;i<5;i++)await Promise.resolve();
         assert.equal(loaded.length,expected);if(expected)assert.equal(loaded[0],id);if(value&& !expected)assert.equal(messages.length,1);
     }
+});
+
+test('legacy code links resolve exact UUID and conflicting identifiers cannot load a form',async()=>{
+    const input=readFileSync(new URL('../../src/main/resources/static/js/saneb-announcement-input.js',import.meta.url),'utf8');
+    const start=input.lastIndexOf('loadStandardDocumentFields().then'),end=input.indexOf('    loadAnnouncementList();',start);
+    for(const conflict of [false,true]){
+        const loaded=[],messages=[],calls=[];
+        runInNewContext(input.slice(start,end),{lockDetailForms(){},loadStandardDocumentFields:async()=>{},loadDetails:async v=>loaded.push(v),setMessage:m=>messages.push(m),
+            baseUrl:'/api/v1/announcements',requestJson:async url=>{calls.push(url);return {announcementId:id};},
+            window:{location:{href:`https://example.test/app/announcements/input?announcementCode=ANN-000070${conflict?`&announcementId=${base}`:''}`}},URL});
+        for(let i=0;i<12;i++)await Promise.resolve();
+        assert.deepEqual(calls,['/api/v1/announcements/by-code/ANN-000070']);
+        assert.equal(loaded.length,conflict?0:1);if(conflict)assert.match(messages[0],/일치하지 않습니다/);else assert.equal(loaded[0],id);
+    }
+});
+
+test('optional condition rows can be empty and the last row is removed rather than reset',()=>{
+    const input=readFileSync(new URL('../../src/main/resources/static/js/saneb-announcement-input.js',import.meta.url),'utf8');
+    const start=input.indexOf('    const removeConditionRow ='),end=input.indexOf('    const renderConditionRows =',start);
+    let removed=0,cleared=0;
+    const row={matches:()=>true,remove:()=>removed++};
+    runInNewContext(input.slice(start,end)+"removeConditionRow({closest:()=>row},null,'[data-option-condition-row]',null);",{
+        row,conditionRows:()=>[row],clearConditionRow:()=>cleared++,normalizeConditionRows(){}});
+    assert.equal(removed,1);assert.equal(cleared,0);
+    assert.match(input,/selector === "\[data-option-condition-row\]" \? \[\] : \[null\]/);
 });
 
 const button=(node,label)=>node.all().find(el=>el.tag==='button'&&el.textContent===label);
@@ -120,7 +167,7 @@ const reader=callback=>async url=>{
 
 test('unapplied evidence shows actionable blocker and read-only categories without enabling writes',async()=>{
     const h=await harness({blocked:true,statusCode:'NOT_APPLIED'});
-    assert.match(h.q('[data-blocker]').textContent,/판정 적용을 요청/);
+    assert.match(h.q('[data-blocker]').textContent,/첨부 정책을 변경할 필요는 없습니다/);
     assert.match(h.q('[data-blocker]').textContent,/SRC-TEST/);
     assert.match(contents(h.q('[data-classification]')),/본인\(개인\).*일반 지원/);
     assert.equal(h.form.hidden,true);await h.submit();assert.equal(h.counts().confirmCount,0);

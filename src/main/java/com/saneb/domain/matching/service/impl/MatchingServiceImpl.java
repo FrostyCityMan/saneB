@@ -534,7 +534,13 @@ public class MatchingServiceImpl implements MatchingService {
             int size
     ) {
         UUID userId = selectRequiredActorUserId(authentication);
-        return selectMatchingCaseList(null, userId, null, null, BASIC_STAGE_CODE, null, page, size);
+        validatePageRequest(page, size);
+        MatchingCaseSearchCondition condition = new MatchingCaseSearchCondition(
+                null, userId, null, null, BASIC_STAGE_CODE, null, page, size, (page - 1) * size, true);
+        long totalCount = matchingDao.selectMatchingCaseCount(condition);
+        List<MatchingCaseSummaryResponse> items = matchingDao.selectMatchingCaseList(condition)
+                .stream().map(this::toSummaryResponse).toList();
+        return PageResponse.of(items, page, size, totalCount);
     }
 
     /**
