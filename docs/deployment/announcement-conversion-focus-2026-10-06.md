@@ -19,8 +19,8 @@
 - [x] 승인된 기존 디자인을 사용하고 전환 행동을 중심에 배치
 - [x] 버전/역할/필수 근거/불확실 응답/중복 클릭 방어의 Node 테스트
 - [x] SSR 권한·템플릿 15건 실패·생략 0, bootJar 성공
-- [ ] 동일 SHA Linux 전체 CI 및 임시 DB 계약
-- [ ] 운영 사전 진단·배포·health·자산 동일성 확인
+- [x] 동일 SHA Linux 전체 CI 및 임시 DB 계약 259건 성공
+- [x] 운영 사전 진단·배포·health·자산 동일성 확인
 - [ ] 브라우저 QA: 사용자 현재 요청에 명시되지 않아 정책상 미실행
 
 ## 검증 및 복구 계획
@@ -33,7 +33,27 @@ Node `attachment-conversion.test.mjs`와 기존 첨부 UI 회귀 테스트를 �
 
 ## 사전 검증 결과
 
-- Node 신규 전환 13건, 기존 첨부 UI 75건 통과. 생성/유실 재시도/부분 저장/버전 변경/권한/중복 클릭/공고 입력 딥링크를 포함한다.
+- Node 신규 전환 14건, 기존 첨부 UI 75건 통과. 생성/유실 재시도/부분 저장/버전 변경/권한/중복 클릭/공고 입력 딥링크/판정 전 최신 첨부 조회를 포함한다.
 - `gradlew.bat :test --tests '*AnnouncementAttachmentViewControllerSmokeTest' --tests '*AnnouncementConversionViewSmokeTest' :bootJar --no-daemon --console=plain --max-workers=1`: 성공, HTTP 15건.
 - 사전 진단 GitHub run `37403793751`: 성공, V91·migration 실패 0, active/waiting 첨부 작업 0, COLLECT_ONLY 개정2 유지, 업무 쓰기 0. 9월 미종결 일정 1건은 연결 run 없음인 기존 상태이며 정상 종료로 표시하지 않는다.
 - 설치 JAR과 직전 배포 원본 SHA-256 `d67c4830cf60efa999c7499c1af716a71c3bfbdf4a517ec8b2a61e1691056681` 일치.
+
+## 최종 코드와 CI
+
+- 코드 SHA: `a47959e8c49f8deb0af46444d01bc50e3dfbe1ec`, 태그 `deploy-approved-a47959e-20261006`.
+- [Linux CI 37403984465](https://github.com/FrostyCityMan/saneB/actions/runs/37403984465): 전체 성공. 격리 DB·worker 계약 259건 통과, 실패/생략/미실행 0. 정책 부모 DB QA 연결·취소·정리 검증 성공.
+- 이전 후보 `362563c`의 CI는 최신 첨부 조회 보완 후 취소했다. 취소 실행을 통과로 집계하지 않는다.
+- 배포 직전 추가 진단 `37405375236`: 성공, V91, migration 실패 0, active/waiting 첨부 작업 0, 설치/배포 원본 지문 일치, 복구 JAR 존재, COLLECT_ONLY, 업무 쓰기 0.
+- [운영 배포 37405457148](https://github.com/FrostyCityMan/saneB/actions/runs/37405457148): 고정 태그·`attachment_qa=false`로 시작. 최종 결과는 아래 사후 검증에 기록한다.
+
+## 운영 사후 검증
+
+- CodeDeploy `d-QAA52L77L`: Succeeded, revision `deployments/FrostyCityMan/saneB/a47959e8c49f8deb0af46444d01bc50e3dfbe1ec.zip`.
+- 배포 workflow 전체 테스트/bootJar 성공. 서비스 시작 2026-10-06 11:47:52 KST.
+- `/actuator/health`: UP. 운영 `saneb-announcement-conversion.js`, `saneb-announcement-input.js`, `saneb-announcement-attachment-review.css`는 커밋된 파일과 개행 정규화 비교 일치.
+- [사후 진단 37406022445](https://github.com/FrostyCityMan/saneB/actions/runs/37406022445): 성공. 설치/배포 원본 JAR 지문 일치, V91·migration 실패 0, active/waiting 첨부 작업 0, COLLECT_ONLY 개정2 유지. worker/source-batch=true, GOV24 본문 상세 설정 UNSET 유지. 읽기 전용·업무 쓰기 0.
+- 설치 JAR SHA-256: `ad5851f2f74be0c7af8a23b31e9ed9736999a7acf1a2aeda9fbdb3a1ec7933d5`.
+- 이전 JAR SHA-256: `d67c4830cf60efa999c7499c1af716a71c3bfbdf4a517ec8b2a61e1691056681`. 배포 전 운영 JAR과 일치한다.
+- Decision: **Conditionally ready**. 승인된 코드 적용과 비브라우저 검증은 완료. 현재 사용자 요청 정책에 따라 실브라우저 시각·모바일·실제 클릭 QA는 미실행이다.
+- 실제 공고 검수 저장·초안 생성·재수집은 검증 과정에서 실행하지 않았다. 서버 판정 미적용 등 기존 차단 조건은 유지한다.
+- 사용한 Node, 일회성 Gradle, CLI 감시 프로세스는 종료되었다. 기존 사용자 파일과 프로세스는 보존했다.
