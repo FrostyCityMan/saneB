@@ -45,9 +45,11 @@ node --test scripts/qa/collected-navigation.test.mjs scripts/qa/collected-attach
 ## 운영 Gate
 
 - [x] 사용자가 코드 배포·서비스 재시작·SRC-017843 단건 본문/분류 버전 갱신을 승인했다.
-- [ ] 고정 SHA Linux 전체 CI와 실제 PostgreSQL 통합 테스트 통과.
-- [ ] 같은 SHA 코드 배포, 설치 JAR/health/기존 정책 유지 확인.
+- [x] 고정 SHA `019dae3`의 Linux 전체 CI37428267307 성공. Flyway DB7건 실패·생략0.
+- [x] 같은 SHA 배포37430315039/CodeDeploy d-7870D16X8 성공. 설치 JAR/health/기존 정책 유지 확인.
 - [ ] 인증된 관리자 복구 API로 미리보기 생성·동일 미리보기 적용·결과 확인.
 - [ ] 브라우저 조작은 별도 명시 승인 후에만 수행한다.
 
 전체 재수집·다른 공고 재분류·정책 게시·자동 활성화는 하지 않는다. 복구 적용은 기존 본문 복구 API의 버전/소유자/활성 작업/운영 연결 보호를 유지하며 직접 SQL로 우회하지 않는다. 코드 롤백은 직전 정상 JAR로 가능하지만 이미 생성된 분류 이력을 삭제하는 rollback은 수행하지 않는다.
+
+배포 후 읽기 전용 재현 `aef161b8-941c-4b41-a648-a6d08f6a1b84`: 배포 산출물의 실제 본문 클라이언트가 HTTP200/AVAILABLE/본문718자로 성공했다. 이후 DB 읽기 `f4cc7769-abef-485c-8a41-48803ffa37f6`에서는 SRC-017843 본문이 여전히 null이고 현재 판정이 FETCH_FAILED임을 확인했다. 단건 복구 쓰기는 아직 수행하지 않았다. 사용자 정책상 브라우저 조작 명시 승인 응답이 없어 관리자 화면 실행은 보류했다. [배포 보고](../deployment/cheongyang-body-recovery-release-2026-10-06.md).
