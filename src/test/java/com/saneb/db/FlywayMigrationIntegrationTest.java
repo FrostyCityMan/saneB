@@ -95,6 +95,7 @@ class FlywayMigrationIntegrationTest {
         assertThat(matching.selectMatchingCaseList(condition)).hasSize(1);
         assertThat(dashboard.selectCandidateSummary(actor).businessTargetCount()).isEqualTo(1);
         jdbcTemplate.update("-- 사용자 조회가 재매칭 없이 차단되는지 검증한다.\nUPDATE announcements SET manual_status_code='HIDDEN' WHERE id=?",fixture.announcement());
+        clearRemediationReadCache();
         assertThat(matching.selectMatchingCaseCount(condition)).isZero();
         assertThat(matching.selectMatchingCaseList(condition)).isEmpty();
         assertThat(dashboard.selectCandidateSummary(actor).businessTargetCount()).isZero();
@@ -102,6 +103,7 @@ class FlywayMigrationIntegrationTest {
                 .selectApplicationProgressDetails(fixture.progress())).isNotNull();
         jdbcTemplate.update("-- 비후보 상태도 노출하지 않는다.\nUPDATE announcements SET manual_status_code='NORMAL' WHERE id=?",fixture.announcement());
         jdbcTemplate.update("-- 별도 재매칭 수행 없이 상태 필터를 검증한다.\nUPDATE matching_cases SET status_code='NOT_MATCHED' WHERE id=?",fixture.matching());
+        clearRemediationReadCache();
         assertThat(matching.selectMatchingCaseCount(condition)).isZero();
         assertThat(matching.selectMatchingCaseList(condition)).isEmpty();
         var history = new com.saneb.domain.matching.vo.MatchingCaseSearchCondition(null,actor,null,null,"BASIC",null,1,20,0);
@@ -109,13 +111,16 @@ class FlywayMigrationIntegrationTest {
         jdbcTemplate.update("-- 유효 후보를 복구하고 KST 접수 기간 경계를 검증한다.\nUPDATE matching_cases SET status_code='MATCHED' WHERE id=?",fixture.matching());
         var today=java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
         jdbcTemplate.update("-- 오늘 마감 공고는 오늘 후보에 포함된다.\nUPDATE announcements SET application_start_date=?,application_end_date=? WHERE id=?",today,today,fixture.announcement());
+        clearRemediationReadCache();
         assertThat(matching.selectMatchingCaseCount(condition)).isEqualTo(1);
         jdbcTemplate.update("-- 어제 마감된 공고는 재매칭 없이 제외한다.\nUPDATE announcements SET application_start_date=?,application_end_date=? WHERE id=?",today.minusDays(2),today.minusDays(1),fixture.announcement());
+        clearRemediationReadCache();
         assertThat(matching.selectMatchingCaseCount(condition)).isZero();
         assertThat(applicationContext.getBean(com.saneb.domain.applicationprogress.dao.ApplicationProgressDao.class).selectMatchingCaseForProgress(fixture.matching())).isNull();
         jdbcTemplate.update("-- 접수일 제한을 제거한 합성 후보.\nUPDATE announcements SET application_start_date=NULL,application_end_date=NULL WHERE id=?",fixture.announcement());
         var other=insertRemediationProgress(actor);
         jdbcTemplate.update("-- 두 번째 현재 후보로 pagination을 검증한다.\nUPDATE matching_cases SET matching_stage_code='BASIC' WHERE id=?",other.matching());
+        clearRemediationReadCache();
         assertThat(matching.selectMatchingCaseCount(condition)).isEqualTo(2);
         var secondPage=new com.saneb.domain.matching.vo.MatchingCaseSearchCondition(null,actor,null,null,"BASIC",null,2,1,1,true);
         assertThat(matching.selectMatchingCaseList(condition)).hasSize(1);
@@ -130,6 +135,7 @@ class FlywayMigrationIntegrationTest {
         var dashboard=applicationContext.getBean(com.saneb.domain.dashboard.dao.DashboardDao.class);
         assertThat(dashboard.selectCandidateSummary(actor).finalMatchedCount()).isEqualTo(1);
         jdbcTemplate.update("-- FINAL 건수도 같은 현재 노출 predicate를 사용한다.\nUPDATE announcements SET manual_status_code='HIDDEN' WHERE id=?",fixture.announcement());
+        clearRemediationReadCache();
         assertThat(dashboard.selectCandidateSummary(actor).finalMatchedCount()).isZero();
     }
 
@@ -192,6 +198,11 @@ class FlywayMigrationIntegrationTest {
         UUID actor = UUID.randomUUID();
         jdbcTemplate.update("-- 이 테스트 소유의 임시 DB에만 합성 계정을 만든다.\nINSERT INTO users(id,login_id,password_hash,name,status_code,password_reset_required) VALUES (?,?,'unused','합성 검증','ACTIVE',false)",actor,"remediation-"+actor);
         return actor;
+    }
+    private void clearRemediationReadCache() {
+        // JDBC fixture 변경은 MyBatis 캐시를 무효화하지 않는다. 별도 HTTP 조회의 새 SQL 실행을 재현한다.
+        // 실제 서비스의 Mapper UPDATE는 기존 flushCache 계약을 유지한다. 조회 조건/기대값은 완화하지 않는다.
+        applicationContext.getBean(org.mybatis.spring.SqlSessionTemplate.class).clearCache();
     }
     private record RemediationProgress(UUID announcement, UUID matching, UUID step, UUID progress) { }
     private RemediationProgress insertRemediationProgress(UUID actor) {

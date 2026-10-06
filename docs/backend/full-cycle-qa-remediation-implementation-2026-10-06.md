@@ -36,6 +36,9 @@
 - Node 지정 11개 suite: 151건 중 148 통과, 3 Windows 미지원 Linux 심볼릭 링크 검사 생략, 실패 0. 브라우저 대역 실행이며 실제 브라우저 성공으로 표현하지 않는다.
 - unqualified `test --tests`는 extractor 모듈의 대상 없음으로 실패했다. `:test`로 올바른 루트 범위를 지정한 재실행은 성공했다. 실패 이력은 성공으로 바꾸지 않는다.
 - Windows Docker daemon 미접속: 실제 PostgreSQL은 운영 DB가 아닌 Linux CI의 임시 loopback DB로 검증한다.
+- 로컬 전체 `test bootJar`: 루트 4,720건 중 4,313 통과·407 조건부 생략·실패 0, 추출기 251/251 통과. 최종 보완 후 추가 단위 54/54와 bootJar도 통과했다. 실행 대상/시점이 다른 집계는 합산하지 않는다.
+- Linux `37480859698`: Flyway 12건 중 10 통과·2 실패. 실패는 같은 테스트 transaction에서 JdbcTemplate 변경 후 MyBatis가 기존 조회 값을 재사용한 후보/FINAL 집계 기대값이었다. JDBC fixture 변경 뒤 테스트 세션 캐시를 명시적으로 비워 별도 HTTP 조회의 새 SQL 실행을 재현한다. 운영 쿼리/기대값/필수 Gate는 완화하지 않는다. 결과 보존·양방향 경합·기본 전환 rollback/중복 영수증은 이 실행에서 통과했지만 전체 CI 성공으로 표현하지 않는다. 실패 artifact는 `output/qa/remediation-ci-37480859698`에 보존했다. 수정 후 최신 SHA 전체 Linux 재검증이 필요하다.
+- `7ffaef4` CI `37480259111`은 최종 보완 SHA로 대체되어 취소했으며 성공 근거가 아니다.
 - 서울 읽기 전용 사전 점검 `37479311260`: CodeDeploy `d-7870D16X8`의 설치/bundle JAR 동일, DB V91·migration 실패 0, COLLECT_ONLY 정책 v2, 활성 첨부 작업 0, 이전 JAR 존재. 오래된 스케줄 RUNNING 1건은 보존하며 이번 회귀 수정과 분리한다. DB transaction READ ONLY/ROLLBACK, writes=0.
 
 ## 운영 반영 및 남은 위험
