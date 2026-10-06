@@ -145,9 +145,15 @@ public class AnnouncementSourceController {
             @RequestParam(required = false) String matchLocationCode,
             @RequestParam(required = false) UUID ruleReleaseId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean bodyFetchFailed,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
+        if (bodyFetchFailed != null) {
+            return ApiResponse.success(announcementSourceService.selectSourceList(providerCode, reviewStatusCode,
+                    semanticStatusCode, targetCategoryCode, supportTypeCode, matchedGroupCode, matchedGroupKindCode,
+                    matchLocationCode, ruleReleaseId, keyword, page, size, bodyFetchFailed));
+        }
         return ApiResponse.success(announcementSourceService.selectSourceList(
                 providerCode,
                 reviewStatusCode,

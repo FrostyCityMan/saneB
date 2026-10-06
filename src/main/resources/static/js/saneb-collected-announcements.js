@@ -92,7 +92,7 @@
         TITLE_GROUP_A_MATCHED: "제목에 관리자 검수 문구가 있습니다.",
         TITLE_COMBINATION_NOT_MATCHED: "제목에서 지원대상과 지원형태 조합을 확인하지 못했습니다.",
         BODY_UNAVAILABLE: "확인할 본문이 없어 관리자가 검수해야 합니다.",
-        BODY_FETCH_FAILED: "본문을 가져오지 못해 관리자가 검수해야 합니다.",
+        BODY_FETCH_FAILED: "본문 수집 오류입니다. 수집 원인을 확인하고 복구한 뒤 공고를 검수하세요.",
         BODY_GROUP_B_MATCHED: "본문에 자동 제외 검토 문구가 있어 관리자가 확인해야 합니다.",
         BODY_GROUP_A_MATCHED: "본문에 관리자 검수 문구가 있습니다.",
         BODY_COMBINATION_NOT_CONFIRMED: "본문에서 지원대상과 지원형태 조합을 다시 확인하지 못했습니다.",
@@ -105,7 +105,8 @@
         ACTION_REQUIRED: "조치 필요 공고",
         ACCEPTED: "유효 후보 공고",
         EXCLUDED: "자동 제외 공고",
-        ALL: "전체 수집 공고"
+        BODY_ERRORS: "본문 수집 오류 공고",
+        ALL: "전체 수집 공고(오류 포함)"
     };
 
     const statusLabel = (code) => labels[code] || code || "-";
@@ -214,9 +215,9 @@
 
     const renderSummary = async () => {
         const [actionData, acceptedData, excludedData] = await Promise.all([
-            requestJson(`${sourceUrl}?semanticStatusCode=REVIEW_REQUIRED&page=1&size=1`),
-            requestJson(`${sourceUrl}?semanticStatusCode=ACCEPTED&page=1&size=1`),
-            requestJson(`${sourceUrl}?semanticStatusCode=EXCLUDED&page=1&size=1`)
+            requestJson(`${sourceUrl}?semanticStatusCode=REVIEW_REQUIRED&bodyFetchFailed=false&page=1&size=1`),
+            requestJson(`${sourceUrl}?semanticStatusCode=ACCEPTED&bodyFetchFailed=false&page=1&size=1`),
+            requestJson(`${sourceUrl}?semanticStatusCode=EXCLUDED&bodyFetchFailed=false&page=1&size=1`)
         ]);
         page.querySelector("[data-collected-action-count]").textContent = `${actionData.totalCount || 0}건`;
         page.querySelector("[data-collected-accepted-count]").textContent = `${acceptedData.totalCount || 0}건`;
@@ -227,7 +228,8 @@
         currentView = viewCode;
         const semanticField = filterForm.elements.semanticStatusCode;
         const reviewField = filterForm.elements.reviewStatusCode;
-        semanticField.value = viewCode === "ACTION_REQUIRED" ? "REVIEW_REQUIRED" : viewCode === "ALL" ? "" : viewCode;
+        semanticField.value = viewCode === "ACTION_REQUIRED" ? "REVIEW_REQUIRED" : ["ALL", "BODY_ERRORS"].includes(viewCode) ? "" : viewCode;
+        filterForm.elements.bodyFetchFailed.value = viewCode === "BODY_ERRORS" ? "true" : viewCode === "ALL" ? "" : "false";
         if (resetOperationalStatus) {
             reviewField.value = viewCode === "ACTION_REQUIRED" ? "REVIEW_PENDING" : "";
         }

@@ -22,7 +22,7 @@
         </div>
         <div class="classification-scope-notice" role="note">
             <strong>제목·본문 기준 목록</strong>
-            <span>첨부 처리 여부는 공고별 ‘본문·첨부 근거와 검수’에서 확인하세요. 첨부 미리보기와 현재 적용 판정은 다르며, 이 목록은 첨부 상시 수집의 성공을 보장하지 않습니다.</span>
+            <span>본문 수집 실패 공고는 일반 검수 목록에서 제외하고 ‘본문 수집 오류’에 보존합니다. 첨부 처리 여부는 공고별 ‘본문·첨부 근거와 검수’에서 확인하세요. 첨부 미리보기와 현재 적용 판정은 다르며, 이 목록은 첨부 상시 수집의 성공을 보장하지 않습니다.</span>
         </div>
     </section>
 
@@ -60,10 +60,12 @@
             <button type="button" role="tab" aria-selected="true" class="is-active" data-collected-view="ACTION_REQUIRED">조치 필요</button>
             <button type="button" role="tab" aria-selected="false" data-collected-view="ACCEPTED">유효 후보</button>
             <button type="button" role="tab" aria-selected="false" data-collected-view="EXCLUDED">자동 제외</button>
-            <button type="button" role="tab" aria-selected="false" data-collected-view="ALL">전체</button>
+            <button type="button" role="tab" aria-selected="false" data-collected-view="BODY_ERRORS">본문 수집 오류</button>
+            <button type="button" role="tab" aria-selected="false" data-collected-view="ALL">전체(오류 포함)</button>
         </div>
         <form class="collected-announcement-filter" data-collected-filter-form>
             <input name="semanticStatusCode" type="hidden" value="REVIEW_REQUIRED">
+            <input name="bodyFetchFailed" type="hidden" value="false">
             <label class="field-block">
                 <span>수집처</span>
                 <select name="providerCode">

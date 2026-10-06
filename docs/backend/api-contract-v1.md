@@ -1018,6 +1018,10 @@ Member / Business / Family API skeleton 착수 기준:
 
 #### AnnouncementSourceSummaryResponse
 
+2026-10-06 추가(로컬 구현): `GET /api/v1/admin/announcement-sources`의 선택 query `bodyFetchFailed`는 `true`이면 본문 수집 실패만, `false`이면 실패를 제외한다. 생략 시 기존 조회 범위를 유지한다. 기존 검색 조건과 AND 결합하며 목록/count에 동일 적용한다. 현재 본문 판정이 `FETCH_FAILED`인지 검사하고, 현재 판정이 없는 레거시 원문만 `semanticReasonCode=BODY_FETCH_FAILED`로 보완한다. 이전 실패 이력만으로 복구된 원문을 오류 목록에 남기지 않는다. 응답 필드·wrapper·권한은 변경하지 않는다. 잘못된 Boolean 값은400이다.
+
+수집 검수 UI의 일반 탭과 요약 건수는 `bodyFetchFailed=false`, **본문 수집 오류** 탭은 `true`, **전체(오류 포함)** 탭은 생략을 사용한다. 오류 탭은 의미 판정/검수 상태 제한을 초기화하지만 검색어 등 사용자가 선택한 나머지 조건은 유지한다. 이는 조회 분리이며 원문·첨부·실패 이력 삭제, 재분류, 자동 활성화를 실행하지 않는다.
+
 ```json
 {
   "sourceId": "uuid",

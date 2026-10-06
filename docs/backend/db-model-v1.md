@@ -1,5 +1,7 @@
 # saneB Backend DB Model v1
 
+> 2026-10-06 본문 수집 실패 진단 보강(로컬 구현): 신규 DDL/migration 없이 기존 `announcement_source_collection_run_items.error_message`에 정상 수집 실행 중 본문 실패 코드·HTTP 상태·시도/리다이렉트 횟수만 기록한다. URL·본문·예외 원문은 기록하지 않는다. 과거 실패 항목은 소급 보정하지 않는다. 일반 검수/오류 목록 분리는 현재 `announcement_source_classification_evaluations.body_stage_code=FETCH_FAILED` 기준이며, 현재 평가가 없는 레거시 원문만 `semantic_reason_code=BODY_FETCH_FAILED`로 보완한다. 원문·판정·첨부·운영 연결을 삭제하거나 변경하지 않는다. 운영 반영 여부는 별도 검증 대상이다.
+
 > 2026-10-01 로컬 V86 추가: 불변 정책 QA snapshot의 `validationContractCode`로 `STRICT_V1`과 `COLLECTION_SAFETY_V1`을 구분한다. 과거 누락 값은 STRICT_V1이다. 새 수집 전용 계약은 COLLECT_ONLY에서만 예약·게시할 수 있고, 성공은 `COLLECTION_VERIFIED`, 세 번째 단계는 `COLLECTION_SAFETY`다. 기존 `VERIFIED`·`PROVIDER_PROFILES` 의미는 유지한다. DB는 모드 혼합, 계약 변경, 다른 계약 단계 삽입 및 잘못된 완료 상태를 거부한다. 기존 입력·완료 이력·게시 잠금·정확한 범위·원자적 정책 교체 제약은 유지한다. 운영 적용은 하지 않았다. [설계와 검증 상태](attachment-collection-safety-contract-2026-10-01.md).
 
 > 2026-09-25 긴 서명란 구간 규칙 `segment-role-1.0.4`도 기존 V84의 버전/지문 유일성 및 V85의 실행 settings/평가 입력 FK로 구별한다. 기본값·기존0/2/3 분석·현재 운영 정책을 자동 변경하지 않으며 신규 DDL이나 migration 수정은 없다.4의 worker 저장/버전 조회/구버전 SHADOW 공존/최종 확인·DRAFT 멱등/QA stale 격리 테스트를 추가했다. 테스트 코드 존재는 실제 PostgreSQL 실행이나 운영 반영 성공을 뜻하지 않으며 실행 결과는 진행 기록을 따른다.

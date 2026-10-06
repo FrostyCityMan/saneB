@@ -51,6 +51,36 @@ import org.springframework.transaction.annotation.Transactional;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FlywayMigrationIntegrationTest {
     @Test @Transactional
+    void bodyFailureListPartitionPreservesLegacyAndRecoveredSources() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
+        UUID releaseId = jdbcTemplate.queryForObject("-- 임시 DB seed만 사용한다.\nSELECT id FROM announcement_source_classification_rule_releases WHERE release_code='ASCR-000001'", UUID.class);
+        UUID failed = UUID.randomUUID(), recovered = UUID.randomUUID(), legacy = UUID.randomUUID(), untouched = UUID.randomUUID();
+        for (UUID id : List.of(failed, recovered, legacy, untouched)) {
+            jdbcTemplate.update("""
+                    -- 운영 원문 없이 오류 분리만 검증하는 합성 fixture다.
+                    INSERT INTO announcement_source_snapshots(id,provider_code,provider_notice_id,title,raw_hash,semantic_status_code,semantic_reason_code)
+                    VALUES (?,'GOV24_PUBLIC_SERVICE',?,'BODY-PARTITION-FIXTURE',repeat('c',64),'REVIEW_REQUIRED',?)
+                    """, id, id.toString(), id.equals(legacy) ? "BODY_FETCH_FAILED" : null);
+        }
+        for (UUID id : List.of(failed, recovered)) {
+            classificationPersistenceService.saveNewContentEvaluation(id, null, releaseId, selectGov24Item(null),
+                    selectGov24Result("PROVIDER_FULL_TEXT", "FETCH_FAILED"), "REVIEW_PENDING");
+        }
+        classificationPersistenceService.saveChangedContentEvaluation(recovered, null, releaseId, selectGov24Item("복구된 본문"),
+                selectGov24Result("PROVIDER_FULL_TEXT", "AVAILABLE"), "REVIEW_PENDING", 1);
+        var dao = applicationContext.getBean(com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.class);
+        for (Boolean errorOnly : new Boolean[] {null, true, false}) {
+            var condition = new com.saneb.domain.announcementsource.vo.AnnouncementSourceSearchCondition(
+                    null, null, null, null, null, null, null, null, null, "BODY-PARTITION-FIXTURE", 20, 0, errorOnly);
+            var expected = errorOnly == null ? List.of(failed, recovered, legacy, untouched)
+                    : errorOnly ? List.of(failed, legacy) : List.of(recovered, untouched);
+            assertThat(dao.selectSourceCount(condition)).isEqualTo(expected.size());
+            assertThat(dao.selectSourceList(condition)).extracting(row -> row.sourceId()).containsExactlyInAnyOrderElementsOf(expected);
+        }
+        assertThat(jdbcTemplate.queryForObject("-- 실패 이력은 삭제하지 않는다.\nSELECT count(1) FROM announcement_source_classification_evaluations WHERE source_id=?", Long.class, recovered)).isEqualTo(2L);
+    }
+
+    @Test @Transactional
     void bodyRefreshPreviewMapperPreservesFrozenEvidenceAndVersions() {
         org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
         UUID sourceId=UUID.randomUUID(),actorId=UUID.randomUUID();

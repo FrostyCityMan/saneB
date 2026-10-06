@@ -265,6 +265,17 @@
 
     <sql id="SourceWhere">
         <where>
+            <if test="bodyFetchFailed != null">
+                AND (
+                    -- Partition current body-fetch failures without deleting or reclassifying source evidence.
+                    EXISTS (SELECT 1 FROM announcement_source_classification_evaluations body_failure
+                            WHERE body_failure.source_id = ass.id AND body_failure.is_current = TRUE
+                              AND body_failure.body_stage_code = 'FETCH_FAILED')
+                    OR (coalesce(ass.semantic_reason_code = 'BODY_FETCH_FAILED', false)
+                        AND NOT EXISTS (SELECT 1 FROM announcement_source_classification_evaluations body_current
+                                        WHERE body_current.source_id = ass.id AND body_current.is_current = TRUE))
+                ) = #{bodyFetchFailed}
+            </if>
             <if test="providerCode != null and providerCode != ''">
                 AND ass.provider_code = #{providerCode}
             </if>

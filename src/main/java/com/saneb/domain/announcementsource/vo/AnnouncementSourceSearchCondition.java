@@ -24,6 +24,13 @@ public record AnnouncementSourceSearchCondition(
         java.util.UUID ruleReleaseId,
         String keyword,
         int size,
-        int offset
+        int offset,
+        Boolean bodyFetchFailed
 ) {
+    public AnnouncementSourceSearchCondition(String providerCode, String reviewStatusCode, String semanticStatusCode,
+            String targetCategoryCode, String supportTypeCode, String matchedGroupCode, String matchedGroupKindCode,
+            String matchLocationCode, java.util.UUID ruleReleaseId, String keyword, int size, int offset) {
+        this(providerCode, reviewStatusCode, semanticStatusCode, targetCategoryCode, supportTypeCode, matchedGroupCode,
+                matchedGroupKindCode, matchLocationCode, ruleReleaseId, keyword, size, offset, null);
+    }
 }

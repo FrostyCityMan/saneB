@@ -5,6 +5,7 @@ import {runInNewContext} from 'node:vm';
 
 // 실제 페이지 스크립트를 DOM/HTTP 대역에서 실행한다. 브라우저 검증과 구분한다.
 const script = await readFile(new URL('../../src/main/resources/static/js/saneb-collected-announcements.js', import.meta.url), 'utf8');
+const template = await readFile(new URL('../../src/main/resources/templates/app/collected-announcements.html', import.meta.url), 'utf8');
 class Element {
     constructor() { this.children = []; this.events = {}; this.dataset = {}; this.value = ''; this.textContent = ''; this.classList = {toggle() {}, add() {}}; }
     appendChild(child) { this.children.push(child); return child; }
@@ -16,7 +17,7 @@ class Element {
     fire(name) { this.events[name]?.({preventDefault() {}}); }
 }
 const settle = async () => { for (let n = 0; n < 5; n++) await new Promise(resolve => setImmediate(resolve)); };
-const names = ['semanticStatusCode', 'providerCode', 'reviewStatusCode', 'targetCategoryCode', 'supportTypeCode', 'matchedGroupKindCode', 'matchLocationCode', 'ruleReleaseId', 'keyword'];
+const names = ['semanticStatusCode', 'bodyFetchFailed', 'providerCode', 'reviewStatusCode', 'targetCategoryCode', 'supportTypeCode', 'matchedGroupKindCode', 'matchLocationCode', 'ruleReleaseId', 'keyword'];
 async function harness(state = null) {
     const nodes = new Map();
     const one = selector => { if (!nodes.has(selector)) nodes.set(selector, new Element()); return nodes.get(selector); };
@@ -24,10 +25,10 @@ async function harness(state = null) {
     form.elements = Object.fromEntries(names.map(name => [name, new Element()]));
     form.reset = () => { names.forEach(name => { form.elements[name].value = ''; }); form.elements.reviewStatusCode.value = 'REVIEW_PENDING'; };
     form.reset();
-    const tabs = ['ACTION_REQUIRED', 'ACCEPTED', 'EXCLUDED', 'ALL'].map(view => {
+    const tabs = [...template.matchAll(/data-collected-view="([A-Z_]+)"/g)].map(([,view]) => {
         const node = new Element(); node.dataset.collectedView = view; return node;
     });
-    const page = {dataset: {sourceUrl:'/api/v2/admin/announcement-sources'}, querySelector:one,
+    const page = {dataset: {sourceUrl:template.match(/data-source-url="([^"]+)"/)[1]}, querySelector:one,
         querySelectorAll: selector => selector === '[data-collected-view]' ? tabs : []};
     const events = {}, calls = [];
     const win = {history: {state, replaceState(next) { this.state = structuredClone(next); }},
@@ -49,6 +50,23 @@ async function harness(state = null) {
 }
 const listCalls = h => h.calls.filter(url => url.includes('size=15')).map(url => new URL(url, 'https://saneb.invalid'));
 
+test('normal review excludes body failures, errors preserve them, and all remains unfiltered', async () => {
+    const h = await harness(); await h.show();
+    assert.equal(listCalls(h).at(-1).searchParams.get('bodyFetchFailed'), 'false');
+    assert.ok(h.calls.filter(url => url.includes('size=1') && !url.includes('size=15')).every(url => url.includes('bodyFetchFailed=false')));
+    h.tabs.find(tab => tab.dataset.collectedView === 'BODY_ERRORS').fire('click'); await settle();
+    let params = listCalls(h).at(-1).searchParams;
+    assert.equal(params.get('bodyFetchFailed'), 'true');
+    assert.equal(params.get('semanticStatusCode'), null);
+    assert.equal(params.get('reviewStatusCode'), null);
+    const restored = await harness(h.win.history.state); await restored.show();
+    assert.equal(listCalls(restored).at(-1).searchParams.get('bodyFetchFailed'), 'true');
+    h.tabs.find(tab => tab.dataset.collectedView === 'ALL').fire('click'); await settle();
+    assert.equal(listCalls(h).at(-1).searchParams.get('bodyFetchFailed'), null);
+    h.one('[data-collected-filter-reset]').fire('click'); await settle();
+    assert.equal(listCalls(h).at(-1).searchParams.get('bodyFetchFailed'), 'false');
+});
+
 test('initial request waits for pageshow and synchronizes browser-restored inputs', async () => {
     const h = await harness();
     assert.equal(h.calls.length, 0);
@@ -61,7 +79,7 @@ test('initial request waits for pageshow and synchronizes browser-restored input
 
 test('back navigation restores submitted filters, tab, page and selected source together', async () => {
     const h = await harness(); await h.show();
-    h.tabs[3].fire('click'); await settle();
+    h.tabs.find(tab => tab.dataset.collectedView === 'ALL').fire('click'); await settle();
     h.form.elements.keyword.value = 'SRC-017679';
     h.form.elements.providerCode.value = 'LOCAL_GOV_NOTICE';
     h.form.fire('submit'); await settle();
@@ -80,7 +98,7 @@ test('back navigation restores submitted filters, tab, page and selected source 
     assert.equal(params.get('page'), '2');
     assert.equal(restored.form.elements.keyword.value, 'SRC-017679');
     assert.equal(restored.win.history.state.sanebCollectedList.sourceId, 'source-b');
-    assert.equal(restored.tabs[3]['aria-selected'], 'true');
+    assert.equal(restored.tabs.find(tab => tab.dataset.collectedView === 'ALL')['aria-selected'], 'true');
 });
 
 test('BFCache pageshow also restores applied filters before reloading', async () => {

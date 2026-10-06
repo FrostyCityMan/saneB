@@ -676,8 +676,9 @@ class AnnouncementSourceServiceImplTest {
                 .containsExactly("Q1-1", "Q2-1", "Q3-1", "Q1-2", "Q2-2");
     }
 
-    @Test
-    void insertCollectionRunFetchesDetailBodyOnlyAfterTitleGateAllowsIt() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void insertCollectionRunFetchesDetailBodyOnlyAfterTitleGateAllowsIt(boolean fetchFailed) {
         UUID localSourceId = UUID.fromString("93000000-0000-0000-0000-000000000010");
         AnnouncementSourceProviderClient localProvider = mock(AnnouncementSourceProviderClient.class);
         ProviderContentClient contentClient = mock(ProviderContentClient.class);
@@ -708,6 +709,9 @@ class AnnouncementSourceServiceImplTest {
                 .thenReturn(localGovernmentSource(localSourceId));
         when(contentClient.selectContent(any())).thenAnswer(invocation -> {
             ProviderContentRequest request = invocation.getArgument(0);
+            if (fetchFailed) return ProviderContentResult.failure(request,
+                    com.saneb.domain.announcementsource.provider.content.ProviderContentCodes.FailureCode.BODY_SELECTOR_CHANGED,
+                    URI.create(request.officialDetailUrl()), 200, 1, 0);
             return ProviderContentResult.available(
                     request,
                     "상세 본문",
@@ -742,6 +746,22 @@ class AnnouncementSourceServiceImplTest {
         verify(contentClient).selectContent(contentRequestCaptor.capture());
         assertThat(contentRequestCaptor.getValue().officialDetailUrl()).isEqualTo(fetchItem.sourceUrl());
         verify(localGovernmentNoticeDao).selectSourceDetails(localSourceId);
+        var savedItems = ArgumentCaptor.forClass(AnnouncementSourceCollectionRunItemCommand.class);
+        verify(announcementSourceDao, times(2)).insertCollectionRunItem(savedItems.capture());
+        assertThat(savedItems.getAllValues().get(0).errorMessage()).isNull();
+        assertThat(savedItems.getAllValues().get(1).errorMessage()).isEqualTo(fetchFailed
+                ? "BODY_FETCH_FAILED: BODY_SELECTOR_CHANGED; http=200; attempts=1; redirects=0" : null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void selectSourceListPassesBodyFailureFilterToCountAndPage(boolean failed) {
+        service.selectSourceList(null,null,null,null,null,null,null,null,null,null,2,15,failed);
+        var filter=ArgumentCaptor.forClass(com.saneb.domain.announcementsource.vo.AnnouncementSourceSearchCondition.class);
+        verify(announcementSourceDao).selectSourceCount(filter.capture());
+        assertThat(filter.getValue().bodyFetchFailed()).isEqualTo(failed);
+        assertThat(filter.getValue().offset()).isEqualTo(15);
+        verify(announcementSourceDao).selectSourceList(filter.getValue());
     }
 
     @Test

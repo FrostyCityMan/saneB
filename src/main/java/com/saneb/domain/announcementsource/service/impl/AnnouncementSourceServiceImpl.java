@@ -627,11 +627,11 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                         );
         AnnouncementSourceProviderItem item = preparedClassification.item();
         if (itemTransactionTemplate == null) {
-            return saveProviderItem(runId, item, preparedClassification, attachmentPlan);
+            return saveProviderItem(runId, item, preparedClassification, attachmentPlan, providerContent.failureDetails());
         }
         return Objects.requireNonNull(
                 itemTransactionTemplate.execute(ignored ->
-                        saveProviderItem(runId, item, preparedClassification, attachmentPlan)
+                        saveProviderItem(runId, item, preparedClassification, attachmentPlan, providerContent.failureDetails())
                 ),
                 "item transaction result is required"
         );
@@ -691,7 +691,10 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         return new PreparedProviderContent(
                 enrichedItem,
                 result.bodySourceCode(),
-                result.bodyAvailabilityCode()
+                result.bodyAvailabilityCode(),
+                result.statusCode() == StatusCode.FETCH_FAILED ? "BODY_FETCH_FAILED: " + result.failureCode()
+                        + "; http=" + result.httpStatus() + "; attempts=" + result.attemptCount()
+                        + "; redirects=" + result.redirectCount() : null
         );
     }
 
@@ -699,13 +702,14 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             UUID runId,
             AnnouncementSourceProviderItem item,
             AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification,
-            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan,
+            String bodyFailureDetails
     ) {
         if ("EXCLUDED".equals(item.semanticStatusCode())) {
             return saveExcludedProviderItem(runId, item, preparedClassification);
         }
         if (item.applicationEndDate() != null && item.applicationEndDate().isBefore(LocalDate.now())) {
-            insertRunItem(runId, null, item, "SKIPPED_ENDED", null);
+            insertRunItem(runId, null, item, "SKIPPED_ENDED", bodyFailureDetails);
             updateProviderItemResult(runId, item, "SKIPPED_ENDED");
             return ItemSaveOutcome.SKIPPED_ENDED;
         }
@@ -723,11 +727,12 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                         duplicate,
                         item,
                         preparedClassification,
-                        attachmentPlan
+                        attachmentPlan,
+                        bodyFailureDetails
                 );
             }
             saveAttachmentIntake(duplicate.sourceId(),attachmentPlan,false);
-            insertRunItem(runId, duplicate.sourceId(), item, "DUPLICATE", null);
+            insertRunItem(runId, duplicate.sourceId(), item, "DUPLICATE", bodyFailureDetails);
             updateProviderItemResult(runId, item, "DUPLICATE");
             return ItemSaveOutcome.DUPLICATE;
         }
@@ -791,7 +796,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         saveAttachmentIntake(sourceId,attachmentPlan,true);
         if (exactDuplicate != null) {
             insertCrossProviderDuplicate(sourceId, exactDuplicate, "EXACT_DUPLICATE", "AUTO_CONFIRMED");
-            insertRunItem(runId, sourceId, item, "DUPLICATE", null);
+            insertRunItem(runId, sourceId, item, "DUPLICATE", bodyFailureDetails);
             updateProviderItemResult(runId, item, "DUPLICATE");
             return ItemSaveOutcome.DUPLICATE;
         }
@@ -799,7 +804,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             insertCrossProviderDuplicate(sourceId, similar, "SIMILAR", "PENDING");
         }
         insertDuplicateCandidates(sourceId);
-        insertRunItem(runId, sourceId, item, "COLLECTED", null);
+        insertRunItem(runId, sourceId, item, "COLLECTED", bodyFailureDetails);
         updateProviderItemResult(runId, item, "COLLECTED");
         return ItemSaveOutcome.COLLECTED;
     }
@@ -877,7 +882,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             AnnouncementSourceSnapshotRow existingSource,
             AnnouncementSourceProviderItem item,
             AnnouncementSourceClassificationCoordinator.PreparedClassification preparedClassification,
-            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan
+            com.saneb.domain.announcementattachment.vo.AttachmentCollectionPlan attachmentPlan,
+            String bodyFailureDetails
     ) {
         if (existingSource.classificationRowVersion() == null) {
             throw new IllegalStateException("기존 공고 원문의 분류 버전을 확인할 수 없습니다.");
@@ -937,7 +943,7 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
         String itemStatusCode = "EXCLUDED".equals(item.semanticStatusCode())
                 ? "EXCLUDED"
                 : "COLLECTED";
-        insertRunItem(runId, existingSource.sourceId(), item, itemStatusCode, null);
+        insertRunItem(runId, existingSource.sourceId(), item, itemStatusCode, bodyFailureDetails);
         updateProviderItemResult(runId, item, itemStatusCode);
         return "EXCLUDED".equals(itemStatusCode)
                 ? ItemSaveOutcome.EXCLUDED
@@ -1045,6 +1051,17 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
             int page,
             int size
     ) {
+        return selectSourceList(providerCode, reviewStatusCode, semanticStatusCode, targetCategoryCode, supportTypeCode,
+                matchedGroupCode, matchedGroupKindCode, matchLocationCode, ruleReleaseId, keyword, page, size, null);
+    }
+
+    @Override
+    public PageResponse<AnnouncementSourceSummaryResponse> selectSourceList(
+            String providerCode, String reviewStatusCode, String semanticStatusCode,
+            String targetCategoryCode, String supportTypeCode, String matchedGroupCode,
+            String matchedGroupKindCode, String matchLocationCode, UUID ruleReleaseId,
+            String keyword, int page, int size, Boolean bodyFetchFailed
+    ) {
         AnnouncementSourceSearchCondition condition = new AnnouncementSourceSearchCondition(
                 normalizeOptionalCode(providerCode),
                 normalizeOptionalCode(reviewStatusCode),
@@ -1057,7 +1074,8 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
                 ruleReleaseId,
                 nullIfBlank(keyword),
                 size,
-                (page - 1) * size
+                (page - 1) * size,
+                bodyFetchFailed
         );
         long totalCount = announcementSourceDao.selectSourceCount(condition);
         List<AnnouncementSourceSnapshotRow> sourceRows = announcementSourceDao.selectSourceList(condition);
@@ -1955,8 +1973,13 @@ public class AnnouncementSourceServiceImpl implements AnnouncementSourceService 
     private record PreparedProviderContent(
             AnnouncementSourceProviderItem item,
             BodySourceCode bodySourceCode,
-            BodyAvailabilityCode bodyAvailabilityCode
+            BodyAvailabilityCode bodyAvailabilityCode,
+            String failureDetails
     ) {
+        private PreparedProviderContent(AnnouncementSourceProviderItem item, BodySourceCode source, BodyAvailabilityCode availability) {
+            this(item, source, availability, availability == BodyAvailabilityCode.FETCH_FAILED
+                    ? "BODY_FETCH_FAILED: DETAIL_FAILURE_UNSPECIFIED" : null);
+        }
     }
 
     private enum ItemSaveOutcome {

@@ -16,6 +16,31 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** XML/namespace/parameter type 검증이다. 실제 PostgreSQL SQL/trigger 실행 성공을 뜻하지 않는다. */
 class AnnouncementAttachmentMapperBindingTest {
+    @Test void sourceBodyFailureFilterIsOptionalCurrentAndIdenticalForCountAndPage() {
+        String prefix = "com.saneb.domain.announcementsource.dao.AnnouncementSourceDao.";
+        for (Boolean failed : new Boolean[] {null, false, true}) {
+            var search = new com.saneb.domain.announcementsource.vo.AnnouncementSourceSearchCondition(
+                    null, null, null, null, null, null, null, null, null, null, 20, 0, failed);
+            var page = configuration.getMappedStatement(prefix + "selectSourceList").getBoundSql(search);
+            var count = configuration.getMappedStatement(prefix + "selectSourceCount").getBoundSql(search);
+            for (var bound : java.util.List.of(page, count)) {
+                assertThat(bound.getSql()).doesNotContain("DELETE ", "UPDATE ", "INSERT ");
+                assertThat(bound.getSql().replaceAll("--[^\\r\\n]*", " ").replaceAll("\\s+", " ")).doesNotContain("WHERE AND ", "WHERE OR ");
+                if (failed == null) {
+                    assertThat(bound.getSql()).doesNotContain("body_failure", "body_current");
+                    assertThat(bound.getParameterMappings()).extracting(p -> p.getProperty()).doesNotContain("bodyFetchFailed");
+                } else {
+                    assertThat(bound.getSql()).contains("body_failure.is_current = TRUE", "body_failure.body_stage_code = 'FETCH_FAILED'",
+                            "coalesce(ass.semantic_reason_code = 'BODY_FETCH_FAILED', false)", "body_current.is_current = TRUE");
+                    assertThat(bound.getParameterMappings()).extracting(p -> p.getProperty()).contains("bodyFetchFailed");
+                }
+            }
+            if (failed != null) {
+                String countWhere = count.getSql().substring(count.getSql().indexOf("WHERE"));
+                assertThat(page.getSql()).contains(countWhere.strip());
+            }
+        }
+    }
     @Test void bodyRefreshPreviewBindsSourceAndKeepsCurrentBodyUpdateVersioned() {
         String prefix="com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao.";
         for(var method:com.saneb.domain.announcementsource.dao.AnnouncementSourceBodyRefreshDao.class.getDeclaredMethods())

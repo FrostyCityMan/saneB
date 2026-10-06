@@ -215,6 +215,12 @@ public interface AnnouncementSourceService {
      */
     AnnouncementSourceDetailsResponse selectSourceDetails(UUID sourceId);
 
+    PageResponse<AnnouncementSourceSummaryResponse> selectSourceList(
+            String providerCode, String reviewStatusCode, String semanticStatusCode,
+            String targetCategoryCode, String supportTypeCode, String matchedGroupCode,
+            String matchedGroupKindCode, String matchLocationCode, UUID ruleReleaseId,
+            String keyword, int page, int size, Boolean bodyFetchFailed);
+
     /**
      * 업무 데이터를 수정합니다.
      *

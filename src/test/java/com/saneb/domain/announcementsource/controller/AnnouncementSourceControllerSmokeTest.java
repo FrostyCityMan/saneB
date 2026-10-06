@@ -157,6 +157,18 @@ class AnnouncementSourceControllerSmokeTest {
      * @throws Exception 처리 중 예외가 발생한 경우
      */
     @Test
+    void bodyFailureFilterIsOptionalAndRoutedWithoutChangingLegacyList() throws Exception {
+        when(announcementSourceService.selectSourceList(any(),any(),any(),any(),any(),any(),any(),any(),any(),any(),eq(1),eq(20),eq(true)))
+                .thenReturn(PageResponse.of(List.of(sourceSummary()),1,20,1));
+        mockMvc.perform(get("/api/v1/admin/announcement-sources").with(user(operatorPrincipal())).param("bodyFetchFailed","true"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalCount").value(1));
+        mockMvc.perform(get("/api/v1/admin/announcement-sources").with(user(operatorPrincipal())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.totalCount").value(1));
+        mockMvc.perform(get("/api/v1/admin/announcement-sources").with(user(operatorPrincipal())).param("bodyFetchFailed","invalid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void selectSourceDetailsReturnsHighlightsAndAttachments() throws Exception {
         mockMvc.perform(get("/api/v1/admin/announcement-sources/{sourceId}", SOURCE_ID)
                         .with(user(operatorPrincipal())))

@@ -31,6 +31,23 @@ import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 
 class LocalGovernmentNoticeProviderContentClientTest {
+    @Test void cheongyangBodyUsesOnlyMeasuredCellAndRejectsAmbiguousStructure() {
+        String url="https://eminwon.cheongyang.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=37959&subCheck=Y";
+        String page="<form name=form method=post><table width=98% border=0 cellspacing=1 cellpadding=0><tr><td>제목</td><td>소상공인 사회보험료 지원 공고</td><td>담당부서</td><td>수출</td></tr><tr><td colspan=4 style='word-break:break-all;'>소상공인 사회보험료 지원<script>viewer()</script></td></tr><tr><td colspan=4><table><tr><td>첨부파일</td><td>특허 첨부.hwp</td></tr></table></td></tr></table></form>";
+        for(String selected:List.of(page,page+page,page.replace("word-break:break-all;","color:red;"),
+                page.replace("소상공인 사회보험료 지원<script>","<script>"),page.replace("name=form ","name=changed "),
+                page.replace("소상공인 사회보험료 지원<script>","<table><tr><td>다른 문서</td></tr></table><script>"))) {
+            var transport=new StubTransport(); transport.enqueue(html("<nav>투자</nav>"+selected+"<footer>행정 메뉴</footer>"));
+            var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,url));
+            if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE); assertThat(result.bodyText()).isEqualTo("소상공인 사회보험료 지원"); }
+            else if(selected.contains("break-all;'><script>")) assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_TEXT_EMPTY);
+            else assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+        for(String changed:List.of(url+"&extra=1",url+"&subCheck=Y",url.replace("subCheck=Y","subCheck=N"))) {
+            var transport=new StubTransport(); transport.enqueue(html(page));
+            assertThat(client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,url,changed)).failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);
+        }
+    }
     @Test void ulsanNamguBodyUsesMeasuredContentWithoutAttachmentOrContactMetadata() {
         String url="https://eminwon.ulsannamgu.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&subCheck=Y&not_ancmt_mgt_no=53732";
         String page="<form name=form1 method=post><div class='bbs_detail bbs_detail_basic'><div class=bbs_detail_tit><h2>소상공인 융자지원 공고</h2><ul class=info><li>담당자 수출</li></ul></div><ul class=bbs_detail_content2><li>특허 첨부파일</li></ul><ul class=bbs_detail_content2><li>행정 정보</li></ul><div class=bbs-view-content>소상공인 경영안정자금 지원<script>viewer()</script></div></div></form>";
