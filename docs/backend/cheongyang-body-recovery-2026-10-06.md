@@ -38,6 +38,8 @@ node --test scripts/qa/collected-navigation.test.mjs scripts/qa/collected-attach
 
 위 Gradle 결합 명령의 최종 상태는 DB 환경 오류로 실패다. 통과한 개별 task와 전체 명령 성공을 혼동하지 않는다.
 
+첫 Linux CI `37426176730`에서는 migration이 실행됐으나 신규 합성 fixture가 `semantic_reason_code`의 NOT NULL 제약을 위반해 실패했다. 실제 V56 기본값과 동일한 `PROVIDER_TRUSTED`를 사용하도록 테스트를 정정했다. 운영 schema/제약을 완화하지 않으며 수정 SHA의 전체 재검증을 요구한다.
+
 ## 운영 Gate
 
 - [x] 사용자가 코드 배포·서비스 재시작·SRC-017843 단건 본문/분류 버전 갱신을 승인했다.
