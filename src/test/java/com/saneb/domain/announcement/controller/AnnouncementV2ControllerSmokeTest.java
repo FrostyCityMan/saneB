@@ -159,7 +159,8 @@ class AnnouncementV2ControllerSmokeTest {
                 new AnnouncementDetailsResponse.ConditionsResponse(
                         List.of(), List.of(), List.of(), List.of()
                 ),
-                List.of()
+                List.of(),
+                null
         );
     }
 

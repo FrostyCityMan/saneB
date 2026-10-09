@@ -944,7 +944,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                                 documentsByStepId.getOrDefault(step.stepId(), List.of()),
                                 buttonsByStepId.getOrDefault(step.stepId(), List.of())
                         ))
-                        .toList()
+                        .toList(),
+                announcementDao.selectAnnouncementSourceUrlDetails(row.announcementId())
         );
     }
 

@@ -243,6 +243,18 @@
         WHERE a.id = #{announcementId}
     </select>
 
+    <select id="selectAnnouncementSourceUrlDetails" resultType="string">
+        -- 운영 공고에 연결된 수집 원문 중 주소가 있는 최근 연결 하나를 조회합니다.
+        SELECT src.source_url
+        FROM announcement_source_links link
+        INNER JOIN announcement_source_snapshots src ON src.id = link.source_id
+        WHERE link.announcement_id = #{announcementId}
+          AND src.data_purpose_code = 'PRODUCTION'
+          AND nullif(trim(src.source_url), '') IS NOT NULL
+        ORDER BY link.linked_at DESC, link.id DESC
+        LIMIT 1
+    </select>
+
     <select id="selectAnnouncementOptionList" resultMap="AnnouncementOptionRowMap">
         -- Select announcement option codes.
         SELECT

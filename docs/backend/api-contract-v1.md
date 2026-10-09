@@ -1,5 +1,10 @@
 # saneB Backend API Contract v1
 
+## 2026-10-08 공고 입력 원문 링크
+
+- 공고 상세 응답에 nullable `sourceUrl`을 추가한다. 운영 공고에 연결된 PRODUCTION 수집 원문 중 주소가 있는 최근 연결 하나를 반환하며, 연결이 없으면 null이다. 기존 필드와 저장 요청은 유지한다.
+- 공고 입력 화면은 유효한 HTTP(S) 주소만 1단계 위의 `원문 보기 (새 창)` 링크 하나로 표시한다. 신규 입력·상세 전환 시 이전 링크를 지운다.
+
 ## 2026-10-06 전체 사이클 회귀 수정 추가 계약
 
 - 기존 v1 응답 필드·wrapper·권한을 보존한다. `GET /api/v1/announcements/by-code/{announcementCode}`는 ADMIN/OPERATOR의 정확한 공고 코드 조회를 위한 additive 경로다. UUID 상세 화면으로 연결하며 pagination으로 코드를 찾지 않는다. 코드 형식은 `ANN-` + 6자리 이상 숫자이며 형식 오류/없는 코드는 구체적인 400/404다.

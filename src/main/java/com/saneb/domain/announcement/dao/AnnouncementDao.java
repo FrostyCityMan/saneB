@@ -77,6 +77,8 @@ public interface AnnouncementDao {
 
     UUID selectAnnouncementIdByCodeDetails(@Param("announcementCode") String announcementCode);
 
+    String selectAnnouncementSourceUrlDetails(@Param("announcementId") UUID announcementId);
+
     /**
      * 업무 데이터를 조회합니다.
      *

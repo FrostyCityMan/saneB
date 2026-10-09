@@ -1959,7 +1959,25 @@
         renderStepRows(steps || []);
     };
 
+    const renderSourceLink = (sourceUrl) => {
+        const container = app.querySelector("[data-announcement-source]");
+        const link = app.querySelector("[data-announcement-source-link]");
+        if (!container || !link) return;
+        container.hidden = true;
+        link.removeAttribute("href");
+        if (typeof sourceUrl !== "string" || !sourceUrl.trim()) return;
+        try {
+            const url = new URL(sourceUrl.trim());
+            if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return;
+            link.href = url.href;
+            container.hidden = false;
+        } catch {
+            // 유효한 외부 원문 주소가 없으면 링크를 표시하지 않습니다.
+        }
+    };
+
     const populateDetails = (details, includeDynamic = true) => {
+        renderSourceLink(details.sourceUrl);
         updateCurrentAnnouncement(details.announcementId, details.announcementCode);
         const primaryTargetCode = details.primaryTargetCategoryCode || details.targetTypeCode || "BUSINESS";
         const targetField = app.querySelector(`input[name='primaryTargetCategoryCode'][value='${primaryTargetCode}']`);
@@ -2003,6 +2021,7 @@
 
     const loadDetails = async (announcementId) => {
         const expected = ++detailEpoch;
+        renderSourceLink(null);
         lockDetailForms(true);
         setMessage("공고 상세를 불러오는 중입니다.");
         const details = await requestJson(`${baseUrl}/${encodeURIComponent(announcementId)}`, { method: "GET" });
@@ -2016,6 +2035,7 @@
 
     const resetForNewInput = () => {
         ++detailEpoch;
+        renderSourceLink(null);
         lockDetailForms(false);
         updateCurrentAnnouncement("");
         basicForm.reset();

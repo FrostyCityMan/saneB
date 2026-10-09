@@ -107,6 +107,23 @@ class AnnouncementServiceImplTest {
         assertThat(response.supportTypeCodes()).containsExactly("POLICY_FINANCE", "INTEREST_SUPPORT");
     }
 
+    @Test
+    void selectDetailsIncludesLinkedSourceUrl() {
+        stubDetailsQueries();
+        when(announcementDao.selectAnnouncementSourceUrlDetails(ANNOUNCEMENT_ID))
+                .thenReturn("https://example.org/notice/123");
+
+        assertThat(service.selectAnnouncementDetails(ANNOUNCEMENT_ID).sourceUrl())
+                .isEqualTo("https://example.org/notice/123");
+    }
+
+    @Test
+    void selectDetailsWithoutLinkedSourceHasNoSourceUrl() {
+        stubDetailsQueries();
+
+        assertThat(service.selectAnnouncementDetails(ANNOUNCEMENT_ID).sourceUrl()).isNull();
+    }
+
     private void stubDetailsQueries() {
         when(announcementDao.selectAnnouncementDetails(any())).thenReturn(new AnnouncementDetailsRow(
                 ANNOUNCEMENT_ID,

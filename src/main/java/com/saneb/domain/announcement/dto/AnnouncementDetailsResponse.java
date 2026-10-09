@@ -42,7 +42,8 @@ public record AnnouncementDetailsResponse(
         OffsetDateTime updatedAt,
         List<OptionResponse> options,
         ConditionsResponse conditions,
-        List<ProgressStepResponse> steps
+        List<ProgressStepResponse> steps,
+        String sourceUrl
 ) {
 
     public record OptionResponse(
