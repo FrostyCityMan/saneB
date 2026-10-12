@@ -28,8 +28,9 @@
             wrapper.append(input, document.createTextNode(label));
         });
     };
-    choices('[data-targets]', 'targetCategoryCodes', C.targets);
-    choices('[data-supports]', 'supportTypeCodes', C.supports);
+    const classificationForDraft = () => baseMode()
+        ? (baseContext.confirmed ? baseContext : source?.baseClassification)
+        : (context?.confirmedClassification || source?.effectiveClassification);
     const uncertain = () => confirmation.uncertain || draft.uncertain;
     const saved = () => !baseMode() && C.confirmedCurrent(context) && !dirty;
     const gates = () => {
@@ -42,13 +43,6 @@
         // 저장된 검수로 재시도할 때는 확인된 기록을 다시 쓰지 않는다.
         q('[data-review-inputs]').hidden = saved();
         fields.reviewNote.required = !saved(); fields.reviewMethodCode.required = !saved();
-    };
-    const primaryOptions = () => {
-        const prior = fields.primaryTargetCategoryCode.value;
-        fields.primaryTargetCategoryCode.replaceChildren();
-        const blank = text(fields.primaryTargetCategoryCode, 'option', '대표 지원대상을 선택하세요'); blank.value = '';
-        checked('targetCategoryCodes').forEach(code => { const option = text(fields.primaryTargetCategoryCode, 'option', C.label(code)); option.value = code; });
-        fields.primaryTargetCategoryCode.value = checked('targetCategoryCodes').includes(prior) ? prior : '';
     };
     const action = (parent, label, callback, disabled = false) => {
         const button = text(parent, 'button', label, 'secondary-action'); button.type = 'button'; button.disabled = disabled;
@@ -195,17 +189,9 @@
                 ? `/app/announcements/input?announcementId=${encodeURIComponent(context.linkedAnnouncement.announcementId)}` : '/app/announcements/input';
         }
         if (!ready) return;
-        const initialClassification = baseMode()
-            ? (baseContext.confirmed ? baseContext : source.baseClassification)
-            : (context.confirmedClassification || source.effectiveClassification);
-        if (!dirty) ['targetCategoryCodes', 'supportTypeCodes'].forEach(name => form.querySelectorAll(`input[name="${name}"]`).forEach(input => {
-            input.checked = (initialClassification?.[name] || []).includes(input.value);
-        }));
-        primaryOptions();
         choices('[data-acknowledgements]', 'acknowledgedErrorCodes', Object.fromEntries(context.requiredAcknowledgementCodes.map(code => [code, C.label(code)])));
         q('[data-ack-section]').hidden = !context.requiredAcknowledgementCodes.length;
         q('[data-manual-help]').hidden = !context.manualSourceCheckRequired;
-        fields.acknowledged.checked = false;
         if (context.manualSourceCheckRequired) fields.reviewMethodCode.value = 'MANUAL_SOURCE_CHECK';
     };
     const refresh = async () => {
@@ -248,30 +234,32 @@
         message('[data-error]', '');
         if (!retry) {
             if (!form.reportValidity()) return;
-            const targets = checked('targetCategoryCodes'), supports = checked('supportTypeCodes'), acknowledgements = checked('acknowledgedErrorCodes');
-            const problem = !targets.length || !supports.length ? '지원대상과 지원형태를 각각 한 개 이상 선택하세요.'
-                : !targets.includes(fields.primaryTargetCategoryCode.value) ? '선택한 지원대상 중 대표 지원대상을 선택하세요.'
+            const classification = classificationForDraft();
+            const targets = classification?.targetCategoryCodes || [], supports = classification?.supportTypeCodes || [];
+            const acknowledgements = checked('acknowledgedErrorCodes');
+            const problem = !targets.length || !supports.length ? '초안에 이어받을 분류가 없습니다. 최신 자료를 확인하고, 계속 같으면 담당자에게 분류 처리를 요청하세요.'
                 : !saved() && !fields.reviewNote.value.trim() ? '검수 사유를 1~1,000자로 입력하세요.'
                 : !saved() && context.requiredAcknowledgementCodes.some(code => !acknowledgements.includes(code)) ? '추가로 확인할 내용을 모두 확인하고 체크하세요.'
                 : !saved() && context.manualSourceCheckRequired && fields.reviewMethodCode.value !== 'MANUAL_SOURCE_CHECK' ? '불완전한 자료가 있습니다. 원문 전체 직접 확인이 필요합니다.' : null;
             if (problem) { message('[data-error]', problem, true); return; }
-            chain = {version:{...context.version}, primary:fields.primaryTargetCategoryCode.value, income:fields.incomeJudgementCode.value};
+            // 현재 분류를 초안 초기값으로 이어받는다. 대표 대상과 소득 기준은 공고 입력에서 수정한다.
+            chain = {version:{...context.version}, primary:targets[0], targets:[...targets], supports:[...supports]};
         }
         busy = true; gates();
         try {
             if (baseMode()) {
                 const payload = retry && draft.uncertain ? draft.original : {
-                    classification:{primaryTargetCategoryCode:chain.primary, incomeJudgementCode:chain.income,
-                        targetCategoryCodes:checked('targetCategoryCodes'), supportTypeCodes:checked('supportTypeCodes'),
+                    classification:{primaryTargetCategoryCode:chain.primary,
+                        targetCategoryCodes:chain.targets, supportTypeCodes:chain.supports,
                         expectedClassificationDecisionId:baseContext.decisionId, expectedVersion:baseContext.version},
-                    reviewNote:fields.reviewNote.value.trim()
+                    reviewNote:fields.reviewNote.value.trim(), reviewMethodCode:fields.reviewMethodCode.value
                 };
                 await mutate('base', payload);
             } else if (retry && draft.uncertain) {
                 await mutate('draft', draft.original);
             } else {
                 if (!saved() || confirmation.uncertain) {
-                    const payload = confirmation.uncertain ? confirmation.original : {version:context.version, targetCategoryCodes:checked('targetCategoryCodes'), supportTypeCodes:checked('supportTypeCodes'), acknowledgedErrorCodes:checked('acknowledgedErrorCodes'), reviewMethodCode:fields.reviewMethodCode.value, reviewNote:fields.reviewNote.value.trim()};
+                    const payload = confirmation.uncertain ? confirmation.original : {version:context.version, targetCategoryCodes:chain.targets, supportTypeCodes:chain.supports, acknowledgedErrorCodes:checked('acknowledgedErrorCodes'), reviewMethodCode:fields.reviewMethodCode.value, reviewNote:fields.reviewNote.value.trim()};
                     const receipt = await mutate('confirm', payload); dirty = false;
                     // 검수 저장 직후 최신 연결을 확인한다. 다른 검수나 버전 변경은 자동 진행하지 않는다.
                     const next = await request(`${root}/attachment-classification/review-context`);
@@ -280,9 +268,9 @@
                     }
                     context = next;
                 }
-                await mutate('draft', {version:context.version, expectedConfirmationId:context.confirmedClassification.confirmation.confirmationId, primaryTargetCategoryCode:chain.primary, incomeJudgementCode:chain.income});
+                await mutate('draft', {version:context.version, expectedConfirmationId:context.confirmedClassification.confirmation.confirmationId, primaryTargetCategoryCode:chain.primary});
             }
-            dirty = false; fields.acknowledged.checked = false; busy = false;
+            dirty = false; fields.reviewNote.value = ''; busy = false;
             await refresh();
         } catch (error) {
             if (!uncertain()) locked = true;
@@ -290,14 +278,12 @@
         } finally { busy = false; gates(); }
     };
     form.addEventListener('input', event => {
-        if (['targetCategoryCodes', 'supportTypeCodes', 'reviewMethodCode', 'reviewNote', 'acknowledgedErrorCodes'].includes(event.target.name)) dirty = true;
-        if (event.target.name !== 'acknowledged') fields.acknowledged.checked = false;
-        if (event.target.name === 'targetCategoryCodes') primaryOptions();
+        if (['reviewMethodCode', 'reviewNote', 'acknowledgedErrorCodes'].includes(event.target.name)) dirty = true;
         gates();
     });
     form.addEventListener('submit', event => { event.preventDefault(); convert(); });
     q('[data-retry]').addEventListener('click', () => convert(true));
     q('[data-refresh]').addEventListener('click', refresh);
-    window.addEventListener('beforeunload', event => { if (dirty || busy || uncertain() || fields.reviewNote.value || fields.incomeJudgementCode.value) { event.preventDefault(); event.returnValue = ''; } });
+    window.addEventListener('beforeunload', event => { if (dirty || busy || uncertain() || fields.reviewNote.value) { event.preventDefault(); event.returnValue = ''; } });
     refresh();
 })();

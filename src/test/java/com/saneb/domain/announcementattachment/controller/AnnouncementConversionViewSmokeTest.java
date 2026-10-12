@@ -30,8 +30,8 @@ class AnnouncementConversionViewSmokeTest {
         assertThat(html.select("[data-acknowledgements], [data-retry], [data-blocks]")).hasSize(3);
         assertThat(html.select("[data-classification][hidden], #conversion-blocker[role=status]")).hasSize(2);
         assertThat(html.selectFirst("[data-form]").attr("aria-describedby")).isEqualTo("conversion-blocker");
-        assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("required")).isTrue();
-        assertThat(html.selectFirst("input[name=acknowledged]").hasAttr("checked")).isFalse();
+        assertThat(html.select("input[name=acknowledged], [data-targets], [data-supports], [name=primaryTargetCategoryCode], [name=incomeJudgementCode]")).isEmpty();
+        assertThat(html.select("[name=reviewMethodCode][required], [name=reviewNote][required]")).hasSize(2);
         assertThat(html.text()).contains("검수 사유", "자동 활성화하지 않습니다");
         assertThat(html.select("script[src]").eachAttr("src")).contains("/js/saneb-announcement-conversion.js");
     }

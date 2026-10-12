@@ -22,9 +22,9 @@ async function harness(opts={}) {
     const nodes=new Map(),calls=[], pending=[];let confirmed=!!opts.saved,linked=!!opts.linked,confirmCount=0,draftCount=0;
     const q=s=>{if(!nodes.has(s))nodes.set(s,new El());return nodes.get(s);};
     const form=q('[data-form]');
-    form.elements=Object.fromEntries(['primaryTargetCategoryCode','incomeJudgementCode','reviewNote','reviewMethodCode','acknowledged'].map(n=>[n,new El()]));
+    form.elements=Object.fromEntries(['reviewNote','reviewMethodCode'].map(n=>[n,new El()]));
     form.elements.reviewMethodCode.value='EXTRACTED_TEXT';
-    form.append(q('[data-targets]'),q('[data-supports]'),q('[data-acknowledgements]'));
+    form.append(q('[data-acknowledgements]'));
     const version={expectedBaseDecisionId:base,expectedAttachmentDecisionId:id,expectedSourceVersion:1,expectedAttachmentVersion:2,expectedSetHash:'a'.repeat(64)};
     const source={sourceId:id,title:'검증 공고',publicCode:'SRC-TEST',providerCode:'LOCAL_GOV_NOTICE',isAttachmentReviewRequired:true,sourceVersion:1,attachmentVersion:2,
         processingFlow:{statusCode:opts.statusCode||(opts.blocked?'RUNNING':'READY_FOR_FINAL_REVIEW'),isFinalReviewAvailable:!opts.blocked},attachmentSummary:{jobStatusCode:opts.blocked?'RUNNING':'SUCCEEDED'},
@@ -51,13 +51,14 @@ async function harness(opts={}) {
     const page={dataset:{sourceId:id,canManage:String(opts.manage!==false)},querySelector:q};
     runInNewContext(script,{window:{SanebAttachmentReview:{...core,client:()=>request,mutation:()=>core.mutation(()=>id)},fetch(){},addEventListener(){}},document:{querySelector:()=>page,createElement:tag=>new El(tag),createTextNode:t=>t}});
     const settle=async()=>{for(let i=0;i<35;i++)await Promise.resolve();};await settle();
-    const fill=()=>{form.elements.primaryTargetCategoryCode.value=opts.base?'BUSINESS':'PERSONAL';form.elements.incomeJudgementCode.value='NO_LIMIT';form.elements.reviewNote.value='원문 확인';form.elements.acknowledged.checked=true;};
+    const fill=()=>{form.elements.reviewNote.value='원문 확인';};
     const submit=async()=>{fill();form.events.submit({preventDefault(){}});await settle();};
     return {q,form,calls,source,submit,settle,fill,counts:()=>({confirmCount,draftCount})};
 }
 test('focused shell has one conversion action and no operational history controls',()=>{
     assert.doesNotMatch(html,/data-operation|data-recovery|data-load-history|data-segments/);
     assert.match(html,/data-acknowledgements/);assert.match(html,/자동 활성화하지 않습니다/);
+    assert.doesNotMatch(html,/data-targets|data-supports|name="primaryTargetCategoryCode"|name="incomeJudgementCode"|name="acknowledged"/);
     assert.doesNotMatch(script,/innerHTML|localStorage|sessionStorage|\/publication|\/attachment-jobs/);
 });
 test('confirmation then draft uses saved receipt and immutable version',async()=>{
@@ -66,6 +67,34 @@ test('confirmation then draft uses saved receipt and immutable version',async()=
     assert.equal(JSON.parse(writes[1].options.body).expectedConfirmationId,id);assert.ok(writes[0].options.headers['Idempotency-Key']);assert.equal(h.q('[data-convert]').disabled,true);
 });
 test('saved confirmation bypasses new confirmation and only creates draft',async()=>{const h=await harness({saved:true});await h.submit();assert.deepEqual(h.counts(),{confirmCount:0,draftCount:1});});
+
+test('review-only form carries all current attachment tags and leaves income to draft default',async()=>{
+    const h=await harness();h.source.effectiveClassification.targetCategoryCodes=['SPOUSE','CHILD'];
+    h.source.effectiveClassification.supportTypeCodes=['GRANT_SUBSIDY','VOUCHER_BENEFIT'];
+    await h.submit();const writes=h.calls.filter(c=>c.options.method==='POST').map(c=>JSON.parse(c.options.body));
+    assert.deepEqual(writes[0].targetCategoryCodes,['SPOUSE','CHILD']);
+    assert.deepEqual(writes[0].supportTypeCodes,['GRANT_SUBSIDY','VOUCHER_BENEFIT']);
+    assert.equal(writes[1].primaryTargetCategoryCode,'SPOUSE');assert.equal(writes[1].incomeJudgementCode,undefined);
+});
+
+test('missing classification cannot fabricate tags to create a draft',async()=>{
+    for(const baseMode of [true,false]){
+        const h=await harness({base:baseMode});
+        h.source[baseMode?'baseClassification':'effectiveClassification'].targetCategoryCodes=[];
+        await h.submit();assert.equal(h.calls.filter(c=>c.options.method==='POST').length,0);
+        assert.match(h.q('[data-error]').textContent,/이어받을 분류가 없습니다/);
+    }
+});
+
+test('base review carries current base tags rather than unapplied attachment suggestions',async()=>{
+    const h=await harness({base:true});h.source.baseClassification.targetCategoryCodes=['PARENT','SPOUSE'];
+    h.source.baseClassification.supportTypeCodes=['INTEREST_SUPPORT'];
+    h.form.elements.reviewMethodCode.value='MANUAL_SOURCE_CHECK';
+    await h.submit();const body=JSON.parse(h.calls.find(c=>c.options.method==='POST').options.body);
+    assert.deepEqual(body.classification.targetCategoryCodes,['PARENT','SPOUSE']);
+    assert.deepEqual(body.classification.supportTypeCodes,['INTEREST_SUPPORT']);
+    assert.equal(body.reviewMethodCode,'MANUAL_SOURCE_CHECK');
+});
 test('draft response loss retries only exact draft body',async()=>{
     const h=await harness({draftFail:true});await h.submit();assert.equal(h.q('[data-retry]').hidden,false);h.q('[data-retry]').events.click();await h.settle();
     assert.deepEqual(h.counts(),{confirmCount:1,draftCount:2});const writes=h.calls.filter(c=>c.url.endsWith('/announcements'));assert.equal(writes[0].options.body,writes[1].options.body);
@@ -87,8 +116,8 @@ test('manual requirements remain mandatory',async()=>{
     h.form.querySelectorAll('input[name="acknowledgedErrorCodes"]')[0].checked=true;h.form.elements.reviewMethodCode.value='EXTRACTED_TEXT';await h.submit();assert.match(h.q('[data-error]').textContent,/원문 전체/);
     h.form.elements.reviewMethodCode.value='MANUAL_SOURCE_CHECK';await h.submit();assert.equal(h.counts().draftCount,1);
 });
-test('editing saved categories invalidates saved shortcut',async()=>{
-    const h=await harness({saved:true});h.form.events.input({target:{name:'targetCategoryCodes'}});await h.submit();assert.equal(h.counts().confirmCount,1);
+test('editing review note invalidates saved shortcut',async()=>{
+    const h=await harness({saved:true});h.form.events.input({target:{name:'reviewNote'}});await h.submit();assert.equal(h.counts().confirmCount,1);
 });
 test('source javascript URL never rendered as a link',async()=>{const h=await harness();assert.ok(!h.q('[data-body]').children.some(el=>el.tag==='a'));});
 test('unapplied source can read latest collected files without enabling conversion',async()=>{
@@ -106,6 +135,7 @@ test('base review combines confirmation and draft without using attachment confi
     assert.equal(writes.length,1);assert.match(writes[0].url,/base-review\/announcements$/);
     const body=JSON.parse(writes[0].options.body);
     assert.equal(body.reviewNote,'원문 확인');assert.equal(body.classification.expectedClassificationDecisionId,base);
+    assert.equal(body.reviewMethodCode,'EXTRACTED_TEXT');assert.equal(body.classification.incomeJudgementCode,undefined);
     assert.equal(body.classification.expectedVersion,1);assert.equal(body.classification.primaryTargetCategoryCode,'BUSINESS');
     assert.deepEqual(body.classification.targetCategoryCodes,['BUSINESS']);
     assert.equal(h.q('[data-result]').children.find(el=>el.tag==='a').href,`/app/announcements/input?announcementId=${id}`);

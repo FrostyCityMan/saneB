@@ -32,6 +32,11 @@ public class AnnouncementSourceBaseReviewServiceImpl implements AnnouncementSour
         if (authentication == null || !(authentication.getPrincipal() instanceof com.saneb.domain.auth.vo.AuthenticatedUserDetails)) {
             throw new ApiException(ErrorCode.AUTH_REQUIRED, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
+        String method = request.reviewMethodCode();
+        if (method != null && !java.util.Set.of("EXTRACTED_TEXT", "MANUAL_SOURCE_CHECK").contains(method)) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, HttpStatus.BAD_REQUEST,
+                    "검수 방법은 추출 텍스트 확인 또는 원문 전체 직접 확인을 선택하세요.");
+        }
         var source = sources.selectSourceDetailsForUpdate(sourceId);
         if (source == null) throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, "수집 원문을 찾을 수 없습니다.");
         var linked = sources.selectLinkedAnnouncementDetails(sourceId);
@@ -52,8 +57,15 @@ public class AnnouncementSourceBaseReviewServiceImpl implements AnnouncementSour
             sourceService.updateSourceReviewStatus(authentication, sourceId,
                     new AnnouncementSourceReviewStatusUpdateRequest("REVIEW_COMPLETED", request.reviewNote()));
         }
-        return conversion.insertOperationalAnnouncement(authentication, sourceId, new AnnouncementSourceV2ToAnnouncementRequest(
+        var result = conversion.insertOperationalAnnouncement(authentication, sourceId, new AnnouncementSourceV2ToAnnouncementRequest(
                 value.primaryTargetCategoryCode(), value.targetCategoryCodes(), value.supportTypeCodes(), value.incomeJudgementCode(),
                 confirmed.decisionId(), confirmed.version()));
+        if (method != null) {
+            var actor = (com.saneb.domain.auth.vo.AuthenticatedUserDetails) authentication.getPrincipal();
+            sources.insertAuditLog(new com.saneb.domain.announcementsource.vo.AnnouncementSourceAuditLogCommand(
+                    actor.userId(), "SOURCE_BASE_REVIEW_METHOD", "ANNOUNCEMENT_SOURCE", sourceId, "SUCCESS",
+                    "{\"reviewMethodCode\":\"" + method + "\"}"));
+        }
+        return result;
     }
 }
