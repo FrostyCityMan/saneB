@@ -19,9 +19,9 @@
     --saneb-page-gap: 18px;
     --saneb-control-border: #d6d0c3;
     --saneb-control-radius: 7px;
-    --saneb-nav-major-size: 16px;
-    --saneb-nav-middle-size: 14px;
-    --saneb-nav-minor-size: 13px;
+    --saneb-nav-section-size: 13px;
+    --saneb-nav-item-size: 14px;
+    --saneb-nav-subitem-size: 13px;
     /* 기존 수집 화면의 레거시 이름도 동일한 디자인 토큰을 참조한다. */
     --line: var(--saneb-border);
     --line-strong: var(--saneb-border-strong);
@@ -67,10 +67,9 @@ a {
     flex-direction: column;
     gap: 20px;
     height: 100vh;
-    padding: 28px 20px;
+    padding: 28px 16px;
     border-right: 1px solid var(--saneb-border);
-    background: rgba(255, 251, 244, 0.88);
-    backdrop-filter: blur(16px);
+    background: var(--saneb-panel);
     overflow: hidden;
 }
 
@@ -156,7 +155,7 @@ svg {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 7px;
+    gap: 16px;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -196,24 +195,27 @@ svg {
     border: 0;
     border-radius: 7px;
     background: transparent;
-    color: var(--saneb-teal);
-    padding: 8px 10px;
-    font-size: var(--saneb-nav-major-size);
-    font-weight: 800;
+    color: var(--saneb-muted);
+    padding: 8px;
+    font-size: var(--saneb-nav-section-size);
+    font-weight: 750;
     line-height: 1.4;
     text-align: left;
 }
 
 .nav-group-toggle:hover,
-.nav-group-toggle:focus-visible,
-.nav-group.has-active-link .nav-group-toggle {
+.nav-group-toggle:focus-visible {
     background: #f2ecdf;
     color: var(--saneb-teal);
 }
 
+.nav-group.has-active-link .nav-group-toggle {
+    color: var(--saneb-teal);
+}
+
 .nav-group-toggle:focus-visible {
-    outline: 3px solid rgba(37, 107, 91, 0.3);
-    outline-offset: 1px;
+    outline: 2px solid var(--saneb-teal);
+    outline-offset: -2px;
 }
 
 .nav-group-title,
@@ -229,6 +231,8 @@ svg {
 }
 
 .nav-group-icon {
+    /* 일반 폭에서는 섹션 제목만 표시하고, 축소 사이드바에서는 아이콘을 복원한다. */
+    display: none;
     flex: 0 0 auto;
     width: 18px;
     height: 18px;
@@ -253,9 +257,9 @@ svg {
 .nav-group-items {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     width: 100%;
-    padding-left: 12px;
+    padding-left: 0;
 }
 
 .nav-group-items[hidden] {
@@ -266,51 +270,25 @@ svg {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
     min-height: 44px;
-    padding: 10px 8px 10px 28px;
+    padding: 10px;
     border-radius: 7px;
-    color: #3d4541;
-    font-size: var(--saneb-nav-middle-size);
+    color: var(--saneb-text);
+    font-size: var(--saneb-nav-item-size);
     font-weight: 650;
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
 
-/* 문자가 아닌 장식용 선으로 부모·자식 관계를 표시한다. 마지막 항목은 └ 형태로 닫는다. */
-.nav-group-items > .side-link::before,
-.nav-group-items > .side-link::after {
-    content: "";
-    position: absolute;
-    left: 8px;
-    pointer-events: none;
-    border-color: var(--saneb-soft);
-}
-
-.nav-group-items > .side-link::before {
-    top: -4px;
-    bottom: 0;
-    border-left: 1px solid var(--saneb-soft);
-}
-
-.nav-group-items > .side-link:last-child::before {
-    bottom: 50%;
-}
-
-.nav-group-items > .side-link::after {
-    top: 50%;
-    width: 12px;
-    border-top: 1px solid var(--saneb-soft);
-}
-
-/* 현재 메뉴는 2단이다. 실제 중첩 소메뉴가 추가되어도 크기·들여쓰기 위계를 유지한다. */
+/* 참고 이미지의 섹션형 목록: 연결선 없이 아이콘과 그룹 간격으로 구분한다. */
 .nav-group-items .nav-group-items {
     padding-left: 16px;
 }
 
 .nav-group-items .nav-group-items > .side-link {
-    font-size: var(--saneb-nav-minor-size);
+    font-size: var(--saneb-nav-subitem-size);
     font-weight: 600;
 }
 
@@ -318,19 +296,29 @@ svg {
     min-width: 0;
 }
 
-.side-link:hover,
-.side-link.active {
+.side-link:hover {
     background: #eee9db;
     color: var(--saneb-teal);
 }
 
 .side-link.active {
-    box-shadow: inset 3px 0 0 var(--saneb-teal);
+    background: var(--saneb-teal);
+    color: var(--saneb-surface);
+    font-weight: 750;
+}
+
+.side-link.active:hover {
+    background: var(--saneb-teal-light);
 }
 
 .side-link:focus-visible {
     outline: 2px solid var(--saneb-teal);
     outline-offset: -2px;
+}
+
+.side-link.active:focus-visible {
+    outline-color: var(--saneb-border-strong);
+    outline-offset: -3px;
 }
 
 .side-link .nav-icon {
@@ -5355,11 +5343,6 @@ svg {
         padding-left: 0;
     }
 
-    .nav-group-items > .side-link::before,
-    .nav-group-items > .side-link::after {
-        display: none;
-    }
-
     .nav-group-toggle {
         justify-content: center;
         width: 52px;
@@ -5373,6 +5356,7 @@ svg {
     }
 
     .nav-group-icon {
+        display: inline-flex;
         width: 21px;
         height: 21px;
     }
@@ -5543,11 +5527,15 @@ svg {
         width: 100%;
         min-height: 44px;
         margin: 0;
-        padding: 8px 12px;
+        padding: 8px;
     }
 
     .nav-group-title {
         justify-content: flex-start;
+    }
+
+    .nav-group-icon {
+        display: none;
     }
 
     .nav-group-label,
@@ -5572,20 +5560,15 @@ svg {
         justify-content: flex-start;
         width: 100%;
         min-height: 44px;
-        padding: 10px 8px 10px 28px;
+        padding: 10px;
     }
 
     .nav-group-items {
-        padding-left: 12px;
+        padding-left: 0;
     }
 
     .nav-group-items .nav-group-items {
         padding-left: 16px;
-    }
-
-    .nav-group-items > .side-link::before,
-    .nav-group-items > .side-link::after {
-        display: block;
     }
 
     .side-link span:not(.nav-icon) {

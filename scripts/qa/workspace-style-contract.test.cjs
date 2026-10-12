@@ -75,34 +75,48 @@ test('선택·입력·포커스와 좁은 본문 전환 화면의 별도 너비�
     assert.doesNotMatch(consultation, /\.consultation-workspace input,/);
 });
 
-test('사이드바 글자 크기와 굵기는 대·중·소 순으로 작아진다', () => {
-    const size = level => Number(common.match(new RegExp(`--saneb-nav-${level}-size:\\s*(\\d+)px`))[1]);
-    assert.ok(size('major') > size('middle') && size('middle') > size('minor'));
-    assert.ok(size('minor') >= 13);
-    const major = exact(common, '.nav-group-toggle').body;
-    const middle = exact(common, '.side-link').body;
-    const minor = exact(common, '.nav-group-items .nav-group-items > .side-link').body;
-    assert.match(major, /font-size: var\(--saneb-nav-major-size\)/);
-    assert.match(middle, /font-size: var\(--saneb-nav-middle-size\)/);
-    assert.match(minor, /font-size: var\(--saneb-nav-minor-size\)/);
-    const weight = body => Number(body.match(/font-weight:\s*(\d+)/)[1]);
-    assert.ok(weight(major) > weight(middle) && weight(middle) > weight(minor));
-    assert.match(major, /min-height: 44px/);
-    assert.match(middle, /min-height: 44px/);
+// 새 참고안은 이전 트리 위계 대신 작은 섹션 라벨과 평면 아이콘 목록을 사용한다.
+test('사이드바는 작은 섹션 제목과 일정한 아이콘 메뉴 간격을 사용한다', () => {
+    assert.match(common, /--saneb-nav-section-size: 13px/);
+    assert.match(common, /--saneb-nav-item-size: 14px/);
+    assert.match(exact(common, '.nav-group-toggle').body, /font-size: var\(--saneb-nav-section-size\)/);
+    assert.match(exact(common, '.side-link').body, /font-size: var\(--saneb-nav-item-size\)/);
+    assert.match(exact(common, '.side-nav').body, /gap: 16px/);
+    assert.match(exact(common, '.nav-group-items').body, /padding-left: 0/);
+    assert.match(exact(common, '.side-link').body, /padding: 10px;/);
+    for (const selector of ['.nav-group-toggle', '.side-link']) {
+        assert.match(exact(common, selector).body, /min-height: 44px/);
+    }
+    assert.doesNotMatch(common, /\.nav-group-items > \.side-link::(?:before|after)/);
 });
 
-test('사이드바 연결선은 장식이며 마지막 항목에서 끝나고 모바일에서 복원된다', () => {
-    const connector = exact(common, '.nav-group-items > .side-link::before').body;
-    assert.match(connector, /content: ""/);
-    assert.match(connector, /pointer-events: none/);
-    assert.match(exact(common, '.nav-group-items > .side-link:last-child::before').body, /bottom: 50%/);
+test('선택 메뉴는 사내비 청록 배경·밝은 글자이며 각 폭의 제목 아이콘 처리를 보존한다', () => {
+    const active = exact(common, '.side-link.active').body;
+    assert.match(active, /background: var\(--saneb-teal\)/);
+    assert.match(active, /color: var\(--saneb-surface\)/);
+    assert.match(active, /font-weight: 750/);
+    assert.match(exact(common, '.saneb-sidebar').body, /background: var\(--saneb-panel\)/);
+    const desktop = common.slice(0, common.indexOf('@media (max-width: 1180px)'));
+    const groupIcon = rules(desktop).filter(rule => rule.selectors.includes('.nav-group-icon')).at(-1);
+    assert.match(groupIcon.body, /display: none/);
     const responsive = common.slice(common.indexOf('@media (max-width: 1180px)'));
     const mobile = responsive.slice(responsive.indexOf('@media (max-width: 760px)'));
-    assert.match(responsive, /\.nav-group-items > \.side-link::after\s*\{\s*display: none/);
-    assert.match(mobile, /\.nav-group-items > \.side-link::after\s*\{\s*display: block/);
-    assert.match(mobile, /\.nav-group-items\s*\{\s*padding-left: 12px/);
+    assert.match(responsive, /\.nav-group-icon\s*\{\s*display: inline-flex/);
+    assert.match(mobile, /\.nav-group-icon\s*\{\s*display: none/);
+    assert.match(mobile, /\.nav-group-items\s*\{\s*padding-left: 0/);
     assert.match(exact(common, '.side-link:focus-visible').body, /outline:/);
-    assert.ok(rules(common).some(rule => rule.selectors.includes('.side-link.active') && /box-shadow:/.test(rule.body)));
+    assert.match(exact(common, '.side-link.active:focus-visible').body, /outline-color: var\(--saneb-border-strong\)/);
+});
+
+test('사이드바 텍스트 색상 쌍은 4.5:1 이상 대비를 유지한다 — 정적 색상 검증', () => {
+    const color = name => common.match(new RegExp(`--saneb-${name}: #([0-9a-f]{6});`))[1];
+    const luminance = hex => hex.match(/../g).map(value => parseInt(value, 16) / 255)
+        .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+        .reduce((total, value, i) => total + value * [.2126, .7152, .0722][i], 0);
+    for (const [foreground, background] of [['muted', 'panel'], ['text', 'panel'], ['surface', 'teal'], ['surface', 'teal-light']]) {
+        const values = [luminance(color(foreground)), luminance(color(background))].sort((a, b) => a - b);
+        assert.ok((values[1] + .05) / (values[0] + .05) >= 4.5, foreground + '/' + background);
+    }
 });
 
 test('모든 사이드바 링크는 축소 화면 아이콘을 가지며 기존 그룹·접기 계약을 보존한다', () => {
