@@ -74,3 +74,46 @@ test('선택·입력·포커스와 좁은 본문 전환 화면의 별도 너비�
     assert.match(attachment, /\.attachment-check input\s*\{[^}]*width: 20px/);
     assert.doesNotMatch(consultation, /\.consultation-workspace input,/);
 });
+
+test('사이드바 글자 크기와 굵기는 대·중·소 순으로 작아진다', () => {
+    const size = level => Number(common.match(new RegExp(`--saneb-nav-${level}-size:\\s*(\\d+)px`))[1]);
+    assert.ok(size('major') > size('middle') && size('middle') > size('minor'));
+    assert.ok(size('minor') >= 13);
+    const major = exact(common, '.nav-group-toggle').body;
+    const middle = exact(common, '.side-link').body;
+    const minor = exact(common, '.nav-group-items .nav-group-items > .side-link').body;
+    assert.match(major, /font-size: var\(--saneb-nav-major-size\)/);
+    assert.match(middle, /font-size: var\(--saneb-nav-middle-size\)/);
+    assert.match(minor, /font-size: var\(--saneb-nav-minor-size\)/);
+    const weight = body => Number(body.match(/font-weight:\s*(\d+)/)[1]);
+    assert.ok(weight(major) > weight(middle) && weight(middle) > weight(minor));
+    assert.match(major, /min-height: 44px/);
+    assert.match(middle, /min-height: 44px/);
+});
+
+test('사이드바 연결선은 장식이며 마지막 항목에서 끝나고 모바일에서 복원된다', () => {
+    const connector = exact(common, '.nav-group-items > .side-link::before').body;
+    assert.match(connector, /content: ""/);
+    assert.match(connector, /pointer-events: none/);
+    assert.match(exact(common, '.nav-group-items > .side-link:last-child::before').body, /bottom: 50%/);
+    const responsive = common.slice(common.indexOf('@media (max-width: 1180px)'));
+    const mobile = responsive.slice(responsive.indexOf('@media (max-width: 760px)'));
+    assert.match(responsive, /\.nav-group-items > \.side-link::after\s*\{\s*display: none/);
+    assert.match(mobile, /\.nav-group-items > \.side-link::after\s*\{\s*display: block/);
+    assert.match(mobile, /\.nav-group-items\s*\{\s*padding-left: 12px/);
+    assert.match(exact(common, '.side-link:focus-visible').body, /outline:/);
+    assert.ok(rules(common).some(rule => rule.selectors.includes('.side-link.active') && /box-shadow:/.test(rule.body)));
+});
+
+test('모든 사이드바 링크는 축소 화면 아이콘을 가지며 기존 그룹·접기 계약을 보존한다', () => {
+    const layout = read('templates/fragments/layout.html');
+    const nav = layout.match(/<nav class="side-nav"[\s\S]*?<\/nav>/)[0];
+    const links = [...nav.matchAll(/<a class="side-link"[\s\S]*?<\/a>/g)];
+    assert.ok(links.length >= 20);
+    for (const [link] of links) assert.match(link, /class="nav-icon" aria-hidden="true"/);
+    assert.equal((nav.match(/data-nav-group-id=/g) || []).length, 6);
+    assert.equal((nav.match(/class="nav-group-items"/g) || []).length, 6);
+    assert.match(common, /\.nav-group-items\[hidden\]\s*\{\s*display: none/);
+    assert.match(read('static/js/saneb-layout.js'), /setAttribute\("aria-expanded", String\(expanded\)\)/);
+    assert.match(read('static/js/saneb-layout.js'), /event.key === "Escape"/);
+});

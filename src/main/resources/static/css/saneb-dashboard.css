@@ -19,6 +19,9 @@
     --saneb-page-gap: 18px;
     --saneb-control-border: #d6d0c3;
     --saneb-control-radius: 7px;
+    --saneb-nav-major-size: 16px;
+    --saneb-nav-middle-size: 14px;
+    --saneb-nav-minor-size: 13px;
     /* 기존 수집 화면의 레거시 이름도 동일한 디자인 토큰을 참조한다. */
     --line: var(--saneb-border);
     --line-strong: var(--saneb-border-strong);
@@ -189,14 +192,15 @@ svg {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    min-height: 40px;
+    min-height: 44px;
     border: 0;
     border-radius: 7px;
     background: transparent;
-    color: #68645b;
-    padding: 0 10px;
-    font-size: 13px;
+    color: var(--saneb-teal);
+    padding: 8px 10px;
+    font-size: var(--saneb-nav-major-size);
     font-weight: 800;
+    line-height: 1.4;
     text-align: left;
 }
 
@@ -231,9 +235,8 @@ svg {
 }
 
 .nav-group-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .nav-group-chevron {
@@ -252,6 +255,7 @@ svg {
     flex-direction: column;
     gap: 4px;
     width: 100%;
+    padding-left: 12px;
 }
 
 .nav-group-items[hidden] {
@@ -259,21 +263,87 @@ svg {
 }
 
 .side-link {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 14px;
-    min-height: 46px;
-    padding: 0 16px;
+    gap: 8px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 8px 10px 28px;
     border-radius: 7px;
     color: #3d4541;
-    font-size: 15px;
+    font-size: var(--saneb-nav-middle-size);
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* 문자가 아닌 장식용 선으로 부모·자식 관계를 표시한다. 마지막 항목은 └ 형태로 닫는다. */
+.nav-group-items > .side-link::before,
+.nav-group-items > .side-link::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    pointer-events: none;
+    border-color: var(--saneb-soft);
+}
+
+.nav-group-items > .side-link::before {
+    top: -4px;
+    bottom: 0;
+    border-left: 1px solid var(--saneb-soft);
+}
+
+.nav-group-items > .side-link:last-child::before {
+    bottom: 50%;
+}
+
+.nav-group-items > .side-link::after {
+    top: 50%;
+    width: 12px;
+    border-top: 1px solid var(--saneb-soft);
+}
+
+/* 현재 메뉴는 2단이다. 실제 중첩 소메뉴가 추가되어도 크기·들여쓰기 위계를 유지한다. */
+.nav-group-items .nav-group-items {
+    padding-left: 16px;
+}
+
+.nav-group-items .nav-group-items > .side-link {
+    font-size: var(--saneb-nav-minor-size);
     font-weight: 600;
+}
+
+.side-link > span:not(.nav-icon) {
+    min-width: 0;
 }
 
 .side-link:hover,
 .side-link.active {
     background: #eee9db;
     color: var(--saneb-teal);
+}
+
+.side-link.active {
+    box-shadow: inset 3px 0 0 var(--saneb-teal);
+}
+
+.side-link:focus-visible {
+    outline: 2px solid var(--saneb-teal);
+    outline-offset: -2px;
+}
+
+.side-link .nav-icon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+}
+
+@media (forced-colors: active) {
+    .side-link.active {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
 }
 
 .nav-icon {
@@ -5280,6 +5350,16 @@ svg {
         width: 100%;
     }
 
+    .nav-group-items,
+    .nav-group-items .nav-group-items {
+        padding-left: 0;
+    }
+
+    .nav-group-items > .side-link::before,
+    .nav-group-items > .side-link::after {
+        display: none;
+    }
+
     .nav-group-toggle {
         justify-content: center;
         width: 52px;
@@ -5463,7 +5543,7 @@ svg {
         width: 100%;
         min-height: 44px;
         margin: 0;
-        padding: 0 12px;
+        padding: 8px 12px;
     }
 
     .nav-group-title {
@@ -5492,7 +5572,20 @@ svg {
         justify-content: flex-start;
         width: 100%;
         min-height: 44px;
-        padding: 0 14px;
+        padding: 10px 8px 10px 28px;
+    }
+
+    .nav-group-items {
+        padding-left: 12px;
+    }
+
+    .nav-group-items .nav-group-items {
+        padding-left: 16px;
+    }
+
+    .nav-group-items > .side-link::before,
+    .nav-group-items > .side-link::after {
+        display: block;
     }
 
     .side-link span:not(.nav-icon) {
