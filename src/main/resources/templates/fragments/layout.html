@@ -97,7 +97,7 @@
                     <a class="side-link"
                        th:title="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'"
                        th:if="${#lists.contains(page.auth.roles, 'USER') or #lists.contains(page.auth.roles, 'OPERATOR') or #lists.contains(page.auth.roles, 'ADMIN')}"
-                       th:href="@{/app/consultations}"
+                       th:href="${#lists.contains(page.auth.roles, 'ADMIN') or #lists.contains(page.auth.roles, 'OPERATOR')} ? @{/app/admin/consultations} : @{/app/consultations}"
                        th:classappend="${page.activeNav == 'CONSULTATIONS'} ? ' active' : ''">
                         <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.2h14v10.5H8.2L5 18.8V5.2Z"/><path d="M8.2 8.8h7.6M8.2 12h4.6"/></svg></span>
                         <span th:text="${page.auth.primaryRole == 'USER'} ? '상담 요청' : '상담 관리'">상담 요청</span>

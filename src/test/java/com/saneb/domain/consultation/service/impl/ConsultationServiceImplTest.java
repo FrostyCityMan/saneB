@@ -60,6 +60,68 @@ class ConsultationServiceImplTest {
     private ConsultationServiceImpl consultationService;
 
     @Test
+    void managementDetailsUsesServerTransitionsAndRejectsNonOperators() {
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(slotlessReservation("REQUESTED"));
+        assertThat(consultationService.selectConsultationManagementDetails(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID)
+                .allowedNextStatusCodes()).containsExactly("ASSIGNED", "CONFIRMED", "CANCELED");
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(slotlessReservation("COMPLETED"));
+        assertThat(consultationService.selectConsultationManagementDetails(authentication(USER_ID, List.of("OPERATOR")), RESERVATION_ID)
+                .allowedNextStatusCodes()).isEmpty();
+        assertThatThrownBy(() -> consultationService.selectConsultationManagementDetails(authentication(USER_ID, List.of("USER")), RESERVATION_ID))
+                .isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void staleManagementVersionHasNoWriteSideEffects() {
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(slotlessReservation("REQUESTED"));
+        assertThatThrownBy(() -> consultationService.updateConsultationManagementStatus(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID,
+                new com.saneb.domain.consultation.dto.ConsultationManagementStatusRequest("CANCELED", null, "메모", START_AT)))
+                .isInstanceOf(ApiException.class).extracting(e -> ((ApiException)e).errorCode()).isEqualTo(ErrorCode.CONSULTATION_VERSION_CONFLICT);
+        verify(consultationDao, never()).updateConsultationReservationStatus(any());
+        verify(consultationDao, never()).insertConsultationHistory(any());
+        verify(consultationDao, never()).insertAuditLog(any());
+    }
+
+    @Test
+    void managementSuccessfulSaveCarriesExactVersionAndHistory() {
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(slotlessReservation("REQUESTED"), slotlessReservation("CANCELED"));
+        when(consultationDao.updateConsultationReservationStatus(any())).thenReturn(1);
+        var result = consultationService.updateConsultationManagementStatus(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID,
+                new com.saneb.domain.consultation.dto.ConsultationManagementStatusRequest("CANCELED", null, " 사유 ", START_AT.minusDays(1)));
+        assertThat(result.allowedNextStatusCodes()).isEmpty();
+        var command = ArgumentCaptor.forClass(ConsultationReservationStatusCommand.class);
+        verify(consultationDao).updateConsultationReservationStatus(command.capture());
+        assertThat(command.getValue().expectedUpdatedAt()).isEqualTo(START_AT.minusDays(1));
+        assertThat(command.getValue().note()).isEqualTo("사유");
+        verify(consultationDao).insertConsultationHistory(any());
+        verify(consultationDao).insertAuditLog(any());
+    }
+
+    @Test
+    void concurrentLegacySaveIsRejectedBeforeSlotAndHistoryWrites() {
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(reservation("CONFIRMED"));
+        when(consultationDao.updateConsultationReservationStatus(any())).thenReturn(0);
+        assertThatThrownBy(() -> consultationService.updateConsultationReservationStatus(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID,
+                new ConsultationReservationStatusUpdateRequest("COMPLETED", null, null, null, "완료")))
+                .isInstanceOf(ApiException.class).extracting(e -> ((ApiException)e).errorCode()).isEqualTo(ErrorCode.CONSULTATION_VERSION_CONFLICT);
+        verify(consultationDao, never()).updateConsultationSlotStatus(any());
+        verify(consultationDao, never()).insertConsultationHistory(any());
+    }
+
+    @Test
+    void managementRejectsInactiveAssigneeAndSlotMismatch() {
+        when(consultationDao.selectConsultationReservationDetails(RESERVATION_ID)).thenReturn(reservation("REQUESTED"));
+        var request = new com.saneb.domain.consultation.dto.ConsultationManagementStatusRequest("CONFIRMED", USER_ID, null, START_AT.minusDays(1));
+        assertThatThrownBy(() -> consultationService.updateConsultationManagementStatus(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID, request))
+                .isInstanceOf(ApiException.class).hasMessageContaining("활성 상담 담당자");
+        when(consultationDao.selectAssignablePartnerCount(USER_ID)).thenReturn(1L);
+        when(consultationDao.selectConsultationSlotDetails(SLOT_ID)).thenReturn(slot("HELD"));
+        assertThatThrownBy(() -> consultationService.updateConsultationManagementStatus(authentication(USER_ID, List.of("ADMIN")), RESERVATION_ID, request))
+                .isInstanceOf(ApiException.class).hasMessageContaining("예약된 상담 시간");
+        verify(consultationDao, never()).updateConsultationReservationStatus(any());
+    }
+
+    @Test
     void lookupServiceChecksRoleAndPageAndMapsOnlyIdentityFields() {
         consultationService = new ConsultationServiceImpl(consultationDao);
         assertThatThrownBy(() -> consultationService.selectConsultationPartnerLookupList(

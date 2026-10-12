@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
           chmod +x ./gradlew
           node --test scripts/qa/member-basic-info-simple.test.cjs scripts/qa/member-basic-info-view.test.cjs
-          node --test scripts/qa/person-identity.test.cjs
+          node --test scripts/qa/person-identity.test.cjs scripts/qa/consultation-management.test.cjs
           node --test scripts/qa/attachment-contract-release.test.mjs
           node --test scripts/qa/progress-input-state.test.mjs
           node --test scripts/qa/collected-summary.test.mjs scripts/qa/collected-navigation.test.mjs

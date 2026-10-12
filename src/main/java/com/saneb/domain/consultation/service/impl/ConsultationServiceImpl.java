@@ -13,6 +13,8 @@
 package com.saneb.domain.consultation.service.impl;
 
 import com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse;
+import com.saneb.domain.consultation.dto.ConsultationManagementDetailsResponse;
+import com.saneb.domain.consultation.dto.ConsultationManagementStatusRequest;
 import com.saneb.domain.consultation.vo.ConsultationPartnerLookupCondition;
 
 import com.saneb.common.error.ApiException;
@@ -73,6 +75,50 @@ public class ConsultationServiceImpl implements ConsultationService {
      */
     public ConsultationServiceImpl(ConsultationDao consultationDao) {
         this.consultationDao = consultationDao;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ConsultationManagementDetailsResponse selectConsultationManagementDetails(
+            Authentication authentication, UUID reservationId) {
+        validateManagementAccess(authentication);
+        var reservation = toReservationResponse(selectReservationRow(reservationId));
+        return new ConsultationManagementDetailsResponse(reservation, selectAllowedStatuses(reservation.statusCode()));
+    }
+
+    @Override
+    @Transactional
+    public ConsultationManagementDetailsResponse updateConsultationManagementStatus(
+            Authentication authentication, UUID reservationId, ConsultationManagementStatusRequest request) {
+        validateManagementAccess(authentication);
+        if (request.expectedUpdatedAt() == null) {
+            throw validationFailed("최신 상담 내용을 다시 조회한 뒤 저장하세요.");
+        }
+        var reservation = updateReservationStatus(authentication, reservationId,
+                new ConsultationReservationStatusUpdateRequest(request.statusCode(), request.partnerUserId(),
+                        null, null, request.note()), request.expectedUpdatedAt());
+        return new ConsultationManagementDetailsResponse(reservation, selectAllowedStatuses(reservation.statusCode()));
+    }
+
+    private void validateManagementAccess(Authentication authentication) {
+        if (!hasOperatingRole(selectRequiredPrincipal(authentication))) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN,
+                    "관리자 또는 운영자만 상담관리 상세 화면을 이용할 수 있습니다.");
+        }
+    }
+
+    private List<String> selectAllowedStatuses(String currentStatus) {
+        return switch (currentStatus) {
+            case "REQUESTED" -> List.of("ASSIGNED", "CONFIRMED", "CANCELED");
+            case "ASSIGNED" -> List.of("CONFIRMED", "CANCELED");
+            case "CONFIRMED" -> List.of("COMPLETED", "NO_SHOW", "CANCELED");
+            default -> List.of();
+        };
+    }
+
+    private ApiException versionConflict() {
+        return new ApiException(ErrorCode.CONSULTATION_VERSION_CONFLICT, HttpStatus.CONFLICT,
+                "다른 사용자가 상담을 수정했습니다. 최신 내용을 확인한 뒤 다시 저장하세요.");
     }
 
     @Override
@@ -384,6 +430,11 @@ public class ConsultationServiceImpl implements ConsultationService {
             UUID reservationId,
             ConsultationReservationStatusUpdateRequest request
     ) {
+        return updateReservationStatus(authentication, reservationId, request, null);
+    }
+
+    private ConsultationReservationResponse updateReservationStatus(Authentication authentication,
+            UUID reservationId, ConsultationReservationStatusUpdateRequest request, OffsetDateTime expectedUpdatedAt) {
         AuthenticatedUserDetails actor = selectRequiredPrincipal(authentication);
         String afterStatusCode = normalizeRequiredCode(
                 "statusCode",
@@ -391,6 +442,17 @@ public class ConsultationServiceImpl implements ConsultationService {
                 RESERVATION_UPDATE_STATUS_CODES
         );
         ConsultationReservationRow reservation = selectReservationRow(reservationId);
+        if (expectedUpdatedAt != null && !expectedUpdatedAt.isEqual(reservation.updatedAt())) {
+            throw versionConflict();
+        }
+        if (expectedUpdatedAt != null && request.partnerUserId() != null
+                && consultationDao.selectAssignablePartnerCount(request.partnerUserId()) == 0) {
+            throw validationFailed("선택한 담당자는 활성 상담 담당자가 아닙니다. 성함·아이디로 다시 검색해 선택하세요.");
+        }
+        if (expectedUpdatedAt != null && reservation.slotId() != null && request.partnerUserId() != null
+                && !request.partnerUserId().equals(selectSlotRow(reservation.slotId()).partnerUserId())) {
+            throw validationFailed("예약된 상담 시간의 담당자와 다른 담당자로 변경할 수 없습니다.");
+        }
         ConsultationSlotRow assignedSlot = request.slotId() == null ? null : selectReservableSlot(request.slotId());
         UUID assignedPartnerUserId = selectAssignedPartnerUserId(
                 request.partnerUserId(),
@@ -408,10 +470,12 @@ public class ConsultationServiceImpl implements ConsultationService {
                 assignedPartnerUserId,
                 assignedSlot == null ? null : assignedSlot.slotId(),
                 trimToNull(request.note()),
-                actor.userId()
+                actor.userId(),
+                reservation.updatedAt()
         ));
         if (updatedCount == 0) {
-            throw notFound("상담 예약을 찾을 수 없습니다.");
+            selectReservationRow(reservationId);
+            throw versionConflict();
         }
         updateReservationSlotStatus(reservation, assignedSlot, afterStatusCode, actor.userId());
         consultationDao.insertConsultationHistory(new ConsultationHistoryCommand(
@@ -617,12 +681,7 @@ public class ConsultationServiceImpl implements ConsultationService {
      * @param afterStatusCode 입력 값
      */
     private void validateReservationTransition(String beforeStatusCode, String afterStatusCode) {
-        boolean allowed = switch (beforeStatusCode) {
-            case "REQUESTED" -> Set.of("ASSIGNED", "CONFIRMED", "CANCELED").contains(afterStatusCode);
-            case "ASSIGNED" -> Set.of("CONFIRMED", "CANCELED").contains(afterStatusCode);
-            case "CONFIRMED" -> Set.of("COMPLETED", "NO_SHOW", "CANCELED").contains(afterStatusCode);
-            default -> false;
-        };
+        boolean allowed = selectAllowedStatuses(beforeStatusCode).contains(afterStatusCode);
         if (!allowed) {
             throw new ApiException(ErrorCode.INVALID_STATUS_TRANSITION, HttpStatus.BAD_REQUEST, "허용되지 않는 상담 예약 상태 변경입니다.");
         }

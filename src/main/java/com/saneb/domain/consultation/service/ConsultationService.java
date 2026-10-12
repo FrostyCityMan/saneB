@@ -13,6 +13,8 @@
 package com.saneb.domain.consultation.service;
 
 import com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse;
+import com.saneb.domain.consultation.dto.ConsultationManagementDetailsResponse;
+import com.saneb.domain.consultation.dto.ConsultationManagementStatusRequest;
 
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.consultation.dto.ConsultationReservationCreateRequest;
@@ -26,6 +28,13 @@ import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
 public interface ConsultationService {
+
+    ConsultationManagementDetailsResponse selectConsultationManagementDetails(
+            Authentication authentication, UUID reservationId);
+
+    ConsultationManagementDetailsResponse updateConsultationManagementStatus(
+            Authentication authentication, UUID reservationId,
+            ConsultationManagementStatusRequest request);
 
     PageResponse<ConsultationPartnerLookupResponse> selectConsultationPartnerLookupList(
             Authentication authentication, String keyword, int page, int size);

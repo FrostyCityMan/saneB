@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('상담 접수', ~{::main})}">
+<main class="consultation-workspace" data-consultation-management="new" >
+<link rel="stylesheet" th:href="@{/css/saneb-consultation-management.css}">
+<nav class="cm-breadcrumb" aria-label="현재 위치"><a href="/app/admin/consultations" data-list-link>상담 관리</a><span aria-hidden="true"> / </span><span>상담 접수</span></nav>
+<header class="cm-heading"><div><h1>상담 접수</h1><p>요청 접수 후 상세 화면에서 담당자를 배정합니다.</p></div>
+<a class="secondary-action" href="/app/admin/consultations" data-list-link>목록으로</a></header>
+<p data-feedback role="status" class="cm-notice" hidden></p>
+<p data-error role="alert" tabindex="-1" class="cm-notice cm-error" hidden></p>
+<section class="plain-panel cm-new-panel"><form data-create-form><fieldset data-fields><legend class="cm-sr-only">신규 상담 접수</legend>
+<div class="field-block" data-person-picker="member" data-lookup-url="/api/v1/matching/cases/member-lookups">
+<label for="member-query">회원 검색</label>
+<input id="member-query" data-person-query type="search" maxlength="100" placeholder="성함 또는 로그인 아이디" aria-describedby="member-help">
+<button type="button" class="secondary-action" data-person-search>회원 검색</button>
+<label for="member-results">회원 선택</label>
+<select id="member-results" data-person-results><option value="">검색 후 회원을 선택하세요</option></select>
+<div class="form-actions"><button type="button" class="secondary-action" data-person-prev disabled>이전 결과</button><button type="button" class="secondary-action" data-person-next disabled>다음 결과</button></div>
+<input type="hidden" name="memberUserId"><p data-person-selected class="field-help">선택된 회원이 없습니다.</p>
+<p id="member-help" data-person-message class="field-help" role="status">성함과 아이디를 확인해 선택하세요.</p></div>
+<div class="field-block"><label for="request-note">상담 요청 내용 (필수 · 1,000자 이내)</label><textarea id="request-note" name="requestNote" rows="8" maxlength="1000" required></textarea></div>
+<button class="primary-action" type="submit" data-save>상담 접수</button></fieldset></form></section>
+<script th:src="@{/js/saneb-person-identity.js}"></script>
+<script th:src="@{/js/saneb-person-picker.js}"></script>
+<script th:src="@{/js/saneb-consultation-management-model.js}"></script>
+<script th:src="@{/js/saneb-consultation-management.js}"></script>
+</main></html>

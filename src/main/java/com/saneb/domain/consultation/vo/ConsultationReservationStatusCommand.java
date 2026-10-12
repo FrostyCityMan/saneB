@@ -20,6 +20,11 @@ public record ConsultationReservationStatusCommand(
         UUID partnerUserId,
         UUID slotId,
         String note,
-        UUID actorUserId
+        UUID actorUserId,
+        java.time.OffsetDateTime expectedUpdatedAt
 ) {
+    public ConsultationReservationStatusCommand(UUID reservationId, String statusCode, UUID partnerUserId,
+            UUID slotId, String note, UUID actorUserId) {
+        this(reservationId, statusCode, partnerUserId, slotId, note, actorUserId, null);
+    }
 }

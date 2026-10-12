@@ -1895,7 +1895,7 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 }
 ```
 
-일반 사용자는 본인 상담 요청만 생성할 수 있다. `slotId` 없이 접수할 수 있으며, 운영자와 관리자는 `memberUserId` 또는 `memberUserCode`, `partnerUserId` 또는 `partnerUserCode`, `slotId`를 지정해 수기 접수할 수 있다. 화면에서는 `memberUserCode`, `partnerUserCode`를 우선 사용한다. 사용자가 생성한 요청의 담당자 배정은 운영자 또는 관리자가 수행한다.
+일반 사용자는 본인 상담 요청만 생성할 수 있다. `slotId` 없이 접수할 수 있으며, 운영자와 관리자는 `memberUserId` 또는 `memberUserCode`, `partnerUserId` 또는 `partnerUserCode`, `slotId`를 지정해 수기 접수할 수 있다. 현재 운영 화면은 성함·로그인 아이디 검색 후 선택한 UUID를 전송한다. 기존 코드 입력 API 계약은 유지한다. 사용자가 생성한 요청의 담당자 배정은 운영자 또는 관리자가 수행한다.
 
 #### ConsultationReservationStatusUpdateRequest
 
@@ -1909,7 +1909,18 @@ Frontend는 아래 표시값을 1차 착수 기준으로 사용한다. 목록에
 }
 ```
 
-예약 상태 흐름은 `REQUESTED -> ASSIGNED|CONFIRMED|CANCELED`, `ASSIGNED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. `ASSIGNED`, `CONFIRMED` 처리에는 담당자 `partnerUserId` 또는 `partnerUserCode`가 필요하다. 화면에서는 `partnerUserCode`를 우선 사용한다. 일반 사용자는 본인 예약 취소만 가능하다.
+예약 상태 흐름은 `REQUESTED -> ASSIGNED|CONFIRMED|CANCELED`, `ASSIGNED -> CONFIRMED|CANCELED`, `CONFIRMED -> COMPLETED|NO_SHOW|CANCELED`만 허용한다. `ASSIGNED`, `CONFIRMED` 처리에는 담당자가 필요하며 기존 배정값을 유지할 수 있다. 운영 화면은 성함·아이디로 담당자를 선택하고 UUID를 전송한다. 일반 사용자는 본인 예약 취소만 가능하다.
+
+### 14.1 관리자 상담 상세 V2 (2026-10-12, additive)
+
+- 화면: `/app/admin/consultations`, `/app/admin/consultations/new`, `/app/admin/consultations/{reservationId}`. ADMIN/OPERATOR만 접근하며 이 역할의 기존 `/app/consultations`는 목록으로 이동한다. USER/PARTNER 화면은 기존 주소를 유지한다.
+- 목록·접수·회원/담당자 검색은 기존 v1 계약을 재사용한다. 목록은 상태와 20/50건 페이지 이동을 지원한다. 신규 화면은 회원 명시 선택과 공백이 아닌 요청 내용을 요구하되, v1 요청 필수값은 변경하지 않는다.
+- `GET /api/v2/admin/consultation-reservations/{reservationId}`: `ApiResponse<{reservation, allowedNextStatusCodes}>`. reservation은 기존 응답 구조이며 다음 상태 목록은 서버의 동일 전이 함수에서 계산한다. 종료 상태는 빈 배열이다.
+- `PATCH /api/v2/admin/consultation-reservations/{reservationId}/status`: `{statusCode, partnerUserId?, note?, expectedUpdatedAt}`. `expectedUpdatedAt`은 필수이며 조회된 원본 timestamp를 정밀도 손실 없이 그대로 전달한다. 응답은 위 상세 구조다. ADMIN/OPERATOR, 세션 CSRF 필수, 응답 `Cache-Control: no-store`.
+- 상태 미선택·전이 위반·비활성/비담당자 선택·기존 예약 시간의 담당자와 다른 선택은 400, 권한/CSRF 403, 없는 상담 404, 오래된 버전/경합은 409 `CONSULTATION_VERSION_CONFLICT`다. `partnerUserId=null`은 기존 담당자 유지이며 배정 해제가 아니다. 현재 UI는 담당자가 바뀔 때만 새 UUID를 보낸다. 빈 메모는 기존 메모를 지운다.
+- v2는 요청 버전 검증 후 `WHERE id AND updated_at` 조건부 갱신을 수행한다. v1도 서비스에서 읽은 버전으로 조건부 갱신하여 동시 요청 간 상태/이력 정합성을 지킨다. v1 요청에 필수 토큰은 추가하지 않으므로 오래된 v1 편집 화면까지 감지한다는 보장은 없다.
+- 예약·slot 상태·상담 이력·감사는 같은 트랜잭션이며 0건 갱신 시 부수 효과 없이 종료한다. `updated_at`은 실제 변경 때 증가한다. DB schema/migration 변경은 없다.
+- 저장 실패·409에서는 입력을 유지한다. 최신 내용은 별도로 조회해 표시하며 명시적 확인 후 작성값을 교체한다. 메모 단독 저장, 종료 상태 재개, 자동 배정은 제공하지 않는다.
 
 ## 15. Subscription / Payment API
 

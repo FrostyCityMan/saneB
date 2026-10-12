@@ -14,6 +14,8 @@ package com.saneb.domain.consultation.controller;
 
 import com.saneb.domain.auth.dto.AuthMeResponse;
 import com.saneb.domain.auth.service.AuthService;
+import java.util.UUID;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -33,8 +35,33 @@ public class ConsultationViewController {
     @PreAuthorize("hasAnyRole('USER', 'PARTNER', 'OPERATOR', 'ADMIN')")
     public String selectConsultationPage(Authentication authentication, Model model) {
         AuthMeResponse authMe = authService.selectAuthMe(authentication);
+        if (authMe.roles().contains("ADMIN") || authMe.roles().contains("OPERATOR")) {
+            return "redirect:/app/admin/consultations";
+        }
         model.addAttribute("page", ConsultationPageModel.from(authMe));
         return "app/consultations";
+    }
+
+    @GetMapping("/app/admin/consultations")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    public String selectManagementList(Authentication authentication, Model model) {
+        model.addAttribute("page", ConsultationPageModel.from(authService.selectAuthMe(authentication)));
+        return "app/consultation-management-list";
+    }
+
+    @GetMapping("/app/admin/consultations/new")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    public String selectManagementNew(Authentication authentication, Model model) {
+        model.addAttribute("page", ConsultationPageModel.from(authService.selectAuthMe(authentication)));
+        return "app/consultation-management-new";
+    }
+
+    @GetMapping("/app/admin/consultations/{reservationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    public String selectManagementDetails(Authentication authentication, Model model, @PathVariable UUID reservationId) {
+        model.addAttribute("page", ConsultationPageModel.from(authService.selectAuthMe(authentication)));
+        model.addAttribute("reservationId", reservationId);
+        return "app/consultation-management-detail";
     }
 
     public record ConsultationPageModel(

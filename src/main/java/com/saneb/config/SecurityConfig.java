@@ -60,7 +60,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new BrowserCsrfTokenRequestHandler())
-                        // 기존 API 계약은 유지하되 신규 첨부 변경 경로는 session CSRF 검증을 필수로 한다.
+                        // 기존 API 계약은 유지하되 신규 첨부·상담 관리 변경 경로는 session CSRF 검증을 필수로 한다.
                         .ignoringRequestMatchers(
                                 new AntPathRequestMatcher("/api/v1/**"),
                                 new AntPathRequestMatcher("/actuator/**"),
@@ -71,7 +71,8 @@ public class SecurityConfig {
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-policies/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-backfills/**"),
                                                 new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-batches/**"),
-                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-linked-evidence-batches/**")))))
+                                                new AntPathRequestMatcher("/api/v2/admin/announcement-attachment-linked-evidence-batches/**"),
+                                                new AntPathRequestMatcher("/api/v2/admin/consultation-reservations/**")))))
                 )
                 .securityContext(securityContext -> securityContext
                         .securityContextRepository(securityContextRepository)

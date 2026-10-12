@@ -35,6 +35,14 @@
         <include refid="ConsultationPartnerLookupWhere"/>
     </select>
 
+    <select id="selectAssignablePartnerCount" resultType="long">
+        -- 선택한 담당자의 활성 상태와 상담 운영 역할을 저장 시 재검증합니다.
+        SELECT count(1) FROM users u
+        WHERE u.id = #{userId} AND u.status_code = 'ACTIVE'
+          AND EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id
+                      AND ur.role_code IN ('PARTNER', 'OPERATOR', 'ADMIN'))
+    </select>
+
     <resultMap id="ConsultationSlotRowMap" type="com.saneb.domain.consultation.vo.ConsultationSlotRow">
         <constructor>
             <arg column="slot_id" javaType="java.util.UUID"/>
@@ -344,8 +352,11 @@
                 ELSE completed_at
             END,
             updated_by = #{actorUserId},
-            updated_at = now()
+            updated_at = GREATEST(clock_timestamp(), updated_at + interval '1 microsecond')
         WHERE id = #{reservationId}
+        <if test="expectedUpdatedAt != null">
+            AND updated_at = #{expectedUpdatedAt}
+        </if>
     </update>
 
     <insert id="insertConsultationHistory">

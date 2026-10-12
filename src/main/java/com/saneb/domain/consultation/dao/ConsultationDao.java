@@ -130,6 +130,8 @@ public interface ConsultationDao {
      */
     ConsultationReservationRow selectConsultationReservationDetails(@Param("reservationId") UUID reservationId);
 
+    long selectAssignablePartnerCount(@Param("userId") UUID userId);
+
     /**
      * 업무 데이터를 등록합니다.
      *

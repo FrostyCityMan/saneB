@@ -85,19 +85,54 @@ class ConsultationViewControllerSmokeTest {
         when(authService.selectAuthMe(any())).thenReturn(authResponse("ADMIN"));
 
         mockMvc.perform(get("/app/consultations"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl("/app/admin/consultations"));
+        mockMvc.perform(get("/app/admin/consultations"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("app/consultations"))
+                .andExpect(view().name("app/consultation-management-list"))
                 .andExpect(content().string(containsString("상담 관리 | 사내비")))
-                .andExpect(content().string(containsString("상담 관리")))
-                .andExpect(content().string(containsString("운영자는 요청 건을 확인해 담당자와 상태를 수동으로 배정합니다.")))
-                .andExpect(content().string(containsString("담당자 배정 및 상태 변경")))
+                .andExpect(content().string(containsString("data-pagination")))
+                .andExpect(content().string(containsString("<table")))
+                .andExpect(content().string(not(containsString("data-status-form"))))
+                .andExpect(content().string(not(containsString("data-create-form"))));
+        mockMvc.perform(get("/app/admin/consultations/new"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/consultation-management-new"))
                 .andExpect(content().string(containsString("성함 또는 로그인 아이디")))
                 .andExpect(content().string(containsString("name=\"memberUserId\"")))
+                .andExpect(content().string(not(containsString("data-status-form"))));
+        mockMvc.perform(get("/app/admin/consultations/10000000-0000-0000-0000-000000000099"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("app/consultation-management-detail"))
                 .andExpect(content().string(containsString("name=\"partnerUserId\"")))
-                .andExpect(content().string(containsString("상담 요청을 먼저 선택하세요")))
-                .andExpect(content().string(containsString("value=\"REQUESTED\" disabled")))
+                .andExpect(content().string(containsString("처리할 상태를 선택하세요")))
+                .andExpect(content().string(containsString("data-reservation-id=\"10000000-0000-0000-0000-000000000099\"")))
                 .andExpect(content().string(not(containsString("USR-"))))
                 .andExpect(content().string(not(containsString("담당자 코드"))));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void managementRoutesRejectNormalUser() throws Exception {
+        for (String path : List.of("", "/new", "/10000000-0000-0000-0000-000000000099")) {
+            mockMvc.perform(get("/app/admin/consultations" + path)).andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
+    @WithMockUser(roles = "OPERATOR")
+    void operatorGetsListAndLegacyRedirect() throws Exception {
+        when(authService.selectAuthMe(any())).thenReturn(authResponse("OPERATOR"));
+        mockMvc.perform(get("/app/consultations")).andExpect(status().is3xxRedirection());
+        mockMvc.perform(get("/app/admin/consultations")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "PARTNER")
+    void partnerKeepsOriginalPage() throws Exception {
+        when(authService.selectAuthMe(any())).thenReturn(authResponse("PARTNER"));
+        mockMvc.perform(get("/app/consultations")).andExpect(status().isOk())
+                .andExpect(view().name("app/consultations"));
     }
 
     /**
