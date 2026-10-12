@@ -14,6 +14,17 @@
     --saneb-danger: #be4b31;
     --saneb-shadow: 0 18px 48px rgba(73, 50, 18, 0.07);
     --saneb-radius: 8px;
+    --saneb-page-width: 1320px;
+    --saneb-page-padding: 30px clamp(18px, 3vw, 34px);
+    --saneb-page-gap: 18px;
+    --saneb-control-border: #d6d0c3;
+    --saneb-control-radius: 7px;
+    /* 기존 수집 화면의 레거시 이름도 동일한 디자인 토큰을 참조한다. */
+    --line: var(--saneb-border);
+    --line-strong: var(--saneb-border-strong);
+    --ink: var(--saneb-text);
+    --muted: var(--saneb-muted);
+    --accent: var(--saneb-teal);
 }
 
 * {
@@ -307,6 +318,30 @@ svg {
 
 .saneb-main {
     min-width: 0;
+}
+
+/* 별도 내부 shell이 없는 업무 화면의 공통 바깥 여백. 기존 전용 shell은 유지한다. */
+.consultation-workspace,
+.attachment-review-page,
+.notification-page,
+.operation-task-page,
+.billing-page,
+.consultation-page {
+    display: grid;
+    align-content: start;
+    gap: var(--saneb-page-gap);
+    min-width: 0;
+    width: 100%;
+    max-width: var(--saneb-page-width);
+    margin: 0 auto;
+    padding: var(--saneb-page-padding);
+}
+
+@media (max-width: 760px) {
+    :root {
+        --saneb-page-padding: 18px 14px;
+        --saneb-page-gap: 14px;
+    }
 }
 
 .topbar {
@@ -2689,8 +2724,8 @@ svg {
     width: 100%;
     min-width: 0;
     min-height: 43px;
-    border: 1px solid #d6d0c3;
-    border-radius: 7px;
+    border: 1px solid var(--saneb-control-border);
+    border-radius: var(--saneb-control-radius);
     background-color: #fffdf8;
     background-image:
         linear-gradient(45deg, transparent 50%, #6c746d 50%),
@@ -2725,8 +2760,8 @@ svg {
 .announcement-search input {
     width: 100%;
     min-width: 0;
-    border: 1px solid #d6d0c3;
-    border-radius: 7px;
+    border: 1px solid var(--saneb-control-border);
+    border-radius: var(--saneb-control-radius);
     background: #fffdf8;
     color: var(--saneb-text);
     padding: 10px 12px;

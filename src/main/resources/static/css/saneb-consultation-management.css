@@ -1,18 +1,21 @@
 /* 기존 사내비 패널·색상과 합의된 목록/상세 목업의 업무 레이아웃을 재사용합니다. */
 .consultation-workspace { min-width:0; }
 .consultation-workspace [hidden] { display:none !important; }
-.consultation-workspace .cm-breadcrumb { margin-bottom:16px; font-size:14px; }
-.consultation-workspace .cm-heading { display:flex; justify-content:space-between; gap:18px; align-items:center; margin-bottom:22px; }
-.consultation-workspace h1 { margin:0 0 8px; font-size:28px; }
+.consultation-workspace .cm-breadcrumb { font-size:13px; color:var(--saneb-muted); }
+.consultation-workspace .cm-heading { display:flex; justify-content:space-between; gap:16px; align-items:center; margin:0; }
+.consultation-workspace .cm-heading .section-label { margin:0 0 7px; font-size:17px; font-weight:850; }
 .consultation-workspace h2 { font-size:20px; margin:0 0 20px; }
 .consultation-workspace h3 { font-size:16px; margin-top:24px; }
-.consultation-workspace .cm-heading p { margin:0; color:var(--saneb-muted); }
+.consultation-workspace .cm-heading p { margin:0; color:var(--saneb-muted); font-size:14px; line-height:1.6; }
 .consultation-workspace .cm-filters { display:flex; align-items:end; flex-wrap:wrap; gap:12px; border-bottom:1px solid var(--saneb-border); padding-bottom:20px; }
 .consultation-workspace .cm-filters .field-block { width:180px; margin:0; }
 .consultation-workspace .field-block { display:grid; gap:8px; margin-bottom:20px; min-width:0; }
-.consultation-workspace input,.consultation-workspace select,.consultation-workspace textarea { width:100%; min-width:0; min-height:44px; border:1px solid var(--saneb-border-strong); border-radius:6px; padding:10px 12px; background:var(--saneb-surface); color:var(--saneb-text); }
+.consultation-workspace input:not([type="hidden"]),.consultation-workspace select,.consultation-workspace textarea { min-height:44px; }
 .consultation-workspace textarea { resize:vertical; line-height:1.7; }
 .consultation-workspace button,.consultation-workspace .secondary-action { min-height:44px; }
+.consultation-workspace > [data-reload] { justify-self:start; }
+.consultation-workspace .cm-filters .primary-action { min-width:auto; padding:0 14px; font-size:13px; }
+.consultation-workspace .field-help { color:var(--saneb-muted); font-size:12px; line-height:1.6; }
 .consultation-workspace :focus-visible { outline:3px solid var(--saneb-teal); outline-offset:3px; }
 .consultation-workspace fieldset { border:0; padding:0; margin:0; min-width:0; }
 .consultation-workspace fieldset:disabled { opacity:.7; }
@@ -29,7 +32,7 @@
 .consultation-workspace .cm-pagination { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-top:24px; }
 .consultation-workspace .cm-pagination a { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; border:1px solid var(--saneb-border); border-radius:5px; }
 .consultation-workspace .cm-pagination [aria-current] { background:var(--saneb-teal); color:white; }
-.consultation-workspace .cm-detail-grid { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,1fr); gap:22px; align-items:start; margin-top:20px; }
+.consultation-workspace .cm-detail-grid { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,1fr); gap:22px; align-items:start; }
 .consultation-workspace .cm-info { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .consultation-workspace .cm-info dt { font-size:13px; color:var(--saneb-muted); }
 .consultation-workspace .cm-info dd { margin:4px 0 0; overflow-wrap:anywhere; }

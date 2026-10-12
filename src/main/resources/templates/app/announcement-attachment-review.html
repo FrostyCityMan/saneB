@@ -4,8 +4,8 @@
       th:attr="data-source-id=${sourceId},data-can-manage=${#lists.contains(page.auth.roles, 'ADMIN') or #lists.contains(page.auth.roles, 'OPERATOR')},data-can-rollback=${#lists.contains(page.auth.roles, 'ADMIN')}">
     <a class="attachment-skip" href="#attachment-current">현재 판정으로 건너뛰기</a>
     <nav aria-label="현재 위치"><a th:href="@{/app/admin/collected-announcements}">수집 공고 검수</a> / <a th:href="@{/app/admin/announcement-attachment-queue}">최종 검증 대기열</a> / <span aria-current="page">본문·첨부 검수</span></nav>
-    <header class="attachment-page-heading">
-        <div><h1 class="attachment-workspace-title">수집 공고 검수</h1>
+    <header class="summary-panel attachment-page-heading">
+        <div><h2>수집 공고 검수</h2>
         <p>자료 확인 → 관리자 검수 → 비활성 초안 생성. 공고는 자동 공개되지 않습니다.</p></div>
         <p data-read-permission th:if="${not (#lists.contains(page.auth.roles, 'ADMIN') or #lists.contains(page.auth.roles, 'OPERATOR'))}">승인자는 조회만 가능합니다. 검수 확인·초안 생성은 관리자 또는 운영자가 담당합니다.</p>
         <div class="attachment-actions"><button type="button" class="secondary-action" data-refresh>입력을 유지하고 최신 기준 조회</button></div>

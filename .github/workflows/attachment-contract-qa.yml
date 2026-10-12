@@ -351,6 +351,9 @@ jobs:
       - name: 사람 식별 UI 회귀 검증
         run: node --test scripts/qa/person-identity.test.cjs scripts/qa/consultation-management.test.cjs
 
+      - name: 업무 화면 공통 스타일 계약 검증
+        run: node --test scripts/qa/workspace-style-contract.test.cjs
+
       - name: 사람 식별 실제 DB 검증 누락·생략 차단
         if: always()
         run: |

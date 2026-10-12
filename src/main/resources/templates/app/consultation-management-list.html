@@ -2,8 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('상담 관리', ~{::main})}">
 <main class="consultation-workspace" data-consultation-management="list" >
 <link rel="stylesheet" th:href="@{/css/saneb-consultation-management.css}">
-<nav class="cm-breadcrumb" aria-label="현재 위치"><a href="/app/admin/consultations" data-list-link>상담 관리</a></nav>
-<header class="cm-heading"><div><h1>상담 관리</h1><p>목록에서 상담을 찾고 상세에서 한 건씩 처리합니다.</p></div>
+<header class="summary-panel summary-header cm-heading"><div><h2 class="section-label">상담 관리</h2><p>목록에서 상담을 찾고 상세에서 한 건씩 처리합니다.</p></div>
 <a class="secondary-action" href="/app/admin/consultations/new" data-new-link>상담 접수</a></header>
 <p data-feedback role="status" class="cm-notice" hidden></p>
 <p data-error role="alert" tabindex="-1" class="cm-notice cm-error" hidden></p>
