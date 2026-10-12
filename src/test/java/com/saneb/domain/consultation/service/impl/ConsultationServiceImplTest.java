@@ -59,6 +59,25 @@ class ConsultationServiceImplTest {
 
     private ConsultationServiceImpl consultationService;
 
+    @Test
+    void lookupServiceChecksRoleAndPageAndMapsOnlyIdentityFields() {
+        consultationService = new ConsultationServiceImpl(consultationDao);
+        assertThatThrownBy(() -> consultationService.selectConsultationPartnerLookupList(
+                authentication(USER_ID, List.of("USER")), null, 1, 10)).isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> consultationService.selectConsultationPartnerLookupList(
+                authentication(USER_ID, List.of("ADMIN")), null, 0, 10)).isInstanceOf(ApiException.class);
+        when(consultationDao.selectConsultationPartnerLookupList(any())).thenReturn(List.of(
+                new com.saneb.domain.consultation.vo.ConsultationPartnerLookupRow(PARTNER_USER_ID, "김담당", "demo.partner")));
+        when(consultationDao.selectConsultationPartnerLookupCount(any())).thenReturn(11L);
+        var result = consultationService.selectConsultationPartnerLookupList(authentication(USER_ID, List.of("ADMIN")), " 김담당 ", 2, 10);
+        assertThat(result.items().getFirst().name()).isEqualTo("김담당");
+        assertThat(result.totalPages()).isEqualTo(2);
+        var condition = ArgumentCaptor.forClass(com.saneb.domain.consultation.vo.ConsultationPartnerLookupCondition.class);
+        verify(consultationDao).selectConsultationPartnerLookupList(condition.capture());
+        assertThat(condition.getValue().keyword()).isEqualTo("김담당");
+        assertThat(condition.getValue().offset()).isEqualTo(10);
+    }
+
     /**
      * 업무 처리를 수행합니다.
      */
@@ -227,6 +246,7 @@ class ConsultationServiceImplTest {
                 "USR-000001",
                 PARTNER_USER_ID,
                 "USR-000002",
+                "홍회원", "demo.member", "김담당", "demo.partner",
                 null,
                 null,
                 null,
@@ -260,6 +280,7 @@ class ConsultationServiceImplTest {
                 "USR-000001",
                 null,
                 null,
+                "홍회원", "demo.member", null, null,
                 null,
                 null,
                 null,

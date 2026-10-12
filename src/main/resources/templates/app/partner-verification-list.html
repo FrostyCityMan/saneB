@@ -80,14 +80,14 @@
                                 <span th:text="${item.verificationCode}">검증 코드</span>
                             </h3>
                             <p>
-                                회원 번호
-                                <span th:text="${item.memberUserCode}">회원 코드</span>
+                                회원
+                                <span th:text="${item.memberDisplayName}">회원 성함(아이디)</span>
                             </p>
                         </div>
                         <dl class="flow-summary-list compact-summary-list">
                             <div>
                                 <dt>담당 파트너</dt>
-                                <dd th:text="${item.partnerUserCode == null ? '미지정' : item.partnerUserCode}">담당자 코드</dd>
+                                <dd th:text="${item.partnerDisplayName}">담당자 성함(아이디)</dd>
                             </div>
                             <div>
                                 <dt>현재 검증</dt>

@@ -65,7 +65,8 @@ class ConsultationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("상담 요청")))
                 .andExpect(content().string(containsString("상담이 필요한 내용을 남기면 운영자가 확인한 뒤 담당자를 배정합니다.")))
                 .andExpect(content().string(not(containsString("상담 관리"))))
-                .andExpect(content().string(not(containsString("담당자 배정 및 상태 변경"))));
+                .andExpect(content().string(not(containsString("담당자 배정 및 상태 변경"))))
+                .andExpect(content().string(not(containsString("data-person-picker"))));
     }
 
     /**
@@ -89,7 +90,12 @@ class ConsultationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("상담 관리 | 사내비")))
                 .andExpect(content().string(containsString("상담 관리")))
                 .andExpect(content().string(containsString("운영자는 요청 건을 확인해 담당자와 상태를 수동으로 배정합니다.")))
-                .andExpect(content().string(containsString("담당자 배정 및 상태 변경")));
+                .andExpect(content().string(containsString("담당자 배정 및 상태 변경")))
+                .andExpect(content().string(containsString("성함 또는 로그인 아이디")))
+                .andExpect(content().string(containsString("name=\"memberUserId\"")))
+                .andExpect(content().string(containsString("name=\"partnerUserId\"")))
+                .andExpect(content().string(not(containsString("USR-"))))
+                .andExpect(content().string(not(containsString("담당자 코드"))));
     }
 
     /**

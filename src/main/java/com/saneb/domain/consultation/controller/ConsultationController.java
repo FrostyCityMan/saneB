@@ -12,6 +12,9 @@
 
 package com.saneb.domain.consultation.controller;
 
+import com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse;
+import jakarta.validation.constraints.Size;
+
 import com.saneb.common.response.ApiResponse;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.consultation.dto.ConsultationReservationCreateRequest;
@@ -47,6 +50,17 @@ public class ConsultationController {
 
     public ConsultationController(ConsultationService consultationService) {
         this.consultationService = consultationService;
+    }
+
+    @GetMapping("/consultation-reservations/partner-lookups")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    public ApiResponse<PageResponse<ConsultationPartnerLookupResponse>> selectConsultationPartnerLookupList(
+            Authentication authentication,
+            @RequestParam(required = false) @Size(max = 100) String keyword,
+            @RequestParam(defaultValue = "1") @Min(1) @Max(10000) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+    ) {
+        return ApiResponse.success(consultationService.selectConsultationPartnerLookupList(authentication, keyword, page, size));
     }
 
     @GetMapping("/consultation-slots")

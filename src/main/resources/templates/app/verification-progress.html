@@ -114,12 +114,12 @@
                         <dd th:text="${page.details.verifiedAtText}">기록 없음</dd>
                     </div>
                     <div>
-                        <dt>회원 번호</dt>
-                        <dd th:text="${page.details.memberUserCode}">회원 코드</dd>
+                        <dt>회원</dt>
+                        <dd th:text="${page.details.memberDisplayName}">회원 성함(아이디)</dd>
                     </div>
                     <div>
-                        <dt>파트너 번호</dt>
-                        <dd th:text="${page.details.partnerUserCode == null ? '미지정' : page.details.partnerUserCode}">담당자 코드</dd>
+                        <dt>담당 파트너</dt>
+                        <dd th:text="${page.details.partnerDisplayName}">담당자 성함(아이디)</dd>
                     </div>
                 </dl>
             </section>

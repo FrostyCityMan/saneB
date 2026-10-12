@@ -12,6 +12,8 @@
 
 package com.saneb.domain.consultation.service;
 
+import com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse;
+
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.consultation.dto.ConsultationReservationCreateRequest;
 import com.saneb.domain.consultation.dto.ConsultationReservationResponse;
@@ -24,6 +26,9 @@ import java.util.UUID;
 import org.springframework.security.core.Authentication;
 
 public interface ConsultationService {
+
+    PageResponse<ConsultationPartnerLookupResponse> selectConsultationPartnerLookupList(
+            Authentication authentication, String keyword, int page, int size);
 
     /**
      * 업무 데이터를 조회합니다.

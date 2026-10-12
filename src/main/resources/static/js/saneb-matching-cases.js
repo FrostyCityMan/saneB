@@ -271,7 +271,7 @@
             ["지원 주체", targetLabels[item.targetTypeCode] || item.targetTypeCode || "-"],
             ["예상 금액", amountRangeText(item.minAmount, item.maxAmount)],
             ["접수 기간", periodText(item.applicationStartDate, item.applicationEndDate)],
-            ["회원", item.memberName || item.memberLoginId || item.memberUserCode],
+            ["회원", window.SanebPersonIdentity.label(item.memberName, item.memberLoginId)],
             ["매칭 단계", stageLabels[item.matchingStageCode] || item.matchingStageCode || "-"],
             ["판단 기준", basisLabels[item.matchingBasisCode] || item.matchingBasisCode || "-"],
             ["차단 사유", item.blockedReasonCode || "없음"]
@@ -287,7 +287,7 @@
 
         const ids = document.createElement("p");
         ids.className = "matching-id-line";
-        ids.textContent = `공고 코드: ${item.announcementCode || "-"} · 회원 코드: ${item.memberUserCode || "-"} · 매칭 코드: ${item.matchingCaseCode || "-"}`;
+        ids.textContent = `공고 코드: ${item.announcementCode || "-"} · 매칭 코드: ${item.matchingCaseCode || "-"}`;
 
         const resultButton = document.createElement("button");
         resultButton.className = "secondary-action";
@@ -494,10 +494,10 @@
         items.forEach((item) => {
             results.append(renderLookupButton(
                     "member",
-                    item.name || item.loginId || "이름 없음",
-                    `${item.userCode || "회원 코드 없음"} · ${item.loginId || "아이디 없음"} · ${item.statusCode || "상태 없음"}`,
+                    window.SanebPersonIdentity.label(item.name, item.loginId),
+                    "성함과 아이디를 확인한 뒤 선택하세요.",
                     item.userId,
-                    item.userCode || item.loginId || item.userId
+                    window.SanebPersonIdentity.label(item.name, item.loginId)
             ));
         });
     };
@@ -523,7 +523,7 @@
                 setBusy(button, true, "생성 중");
                 const body = {
                     announcementId: validateUuidText(valueOf(createForm, "announcementId"), "공고 코드"),
-                    memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 코드")
+                    memberUserId: validateUuidText(valueOf(createForm, "memberUserId"), "회원 선택")
                 };
                 await requestJson(baseUrl, {
                     method: "POST",
@@ -546,7 +546,7 @@
             const button = app.querySelector("[data-matching-candidate-submit]");
             try {
                 setBusy(button, true, "생성 중");
-                const memberUserId = validateUuidText(valueOf(candidateForm, "memberUserId"), "회원 코드");
+                const memberUserId = validateUuidText(valueOf(candidateForm, "memberUserId"), "회원 선택");
                 const data = await requestJson(finalRecalculateUrl, {
                     method: "POST",
                     body: JSON.stringify({ memberUserId })
@@ -554,6 +554,7 @@
                 const searchMemberField = searchForm.querySelector("[name='memberUserId']");
                 if (searchMemberField) {
                     searchMemberField.value = memberUserId;
+                    searchForm.querySelector("[name='memberUserCodeDisplay']").value = valueOf(candidateForm, "memberUserCodeDisplay");
                 }
                 renderList(data ? data.candidates : []);
                 setMessage(`최종 매칭 ${data.createdCount || 0}건을 새로 반영했습니다.`, "success");
@@ -645,7 +646,7 @@
             }
             closeLookupModal(lookupSelect.closest("[data-lookup-modal]"));
             activeLookupForm = null;
-            setMessage(type === "announcement" ? "공고 코드를 선택했습니다." : "회원 코드를 선택했습니다.", "success");
+            setMessage(type === "announcement" ? "공고 코드를 선택했습니다." : "회원을 선택했습니다.", "success");
             return;
         }
 

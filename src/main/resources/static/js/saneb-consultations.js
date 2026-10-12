@@ -13,6 +13,8 @@
     const statusButton = app.querySelector("[data-consultation-status-submit]");
     const refreshButton = app.querySelector("[data-consultation-refresh]");
     const list = app.querySelector("[data-consultation-list]");
+    let selectedReservation = null;
+    const personLabel = window.SanebPersonIdentity.label;
 
     const statusLabels = {
         REQUESTED: "요청 접수",
@@ -67,6 +69,9 @@
         return payload.data;
     };
 
+    const memberPicker = window.SanebPersonPicker(app.querySelector('[data-person-picker="member"]'), requestJson);
+    const partnerPicker = window.SanebPersonPicker(app.querySelector('[data-person-picker="partner"]'), requestJson);
+
     const formatDateTime = (value) => {
         if (!value) {
             return "기록 없음";
@@ -87,7 +92,9 @@
         if (reservationCodeField) {
             reservationCodeField.value = reservation.reservationCode || "";
         }
-        statusForm.querySelector("[name='partnerUserCode']").value = reservation.partnerUserCode || "";
+        selectedReservation = reservation;
+        app.querySelector('[data-consultation-current-partner]').textContent = '현재 담당자: ' + (reservation.partnerUserId ? personLabel(reservation.partnerName, reservation.partnerLoginId) : '미배정');
+        partnerPicker.set(reservation.partnerUserId, reservation.partnerName, reservation.partnerLoginId);
         statusForm.querySelector("[name='note']").value = reservation.statusNote || "";
         setMessage(statusMessage, "선택한 상담 요청을 처리할 수 있습니다.", "success");
     };
@@ -107,18 +114,24 @@
         reservations.forEach((reservation) => {
             const card = document.createElement("article");
             card.className = "consultation-card";
-            card.innerHTML = `
-                <div>
-                    <span class="eyebrow">${statusLabels[reservation.statusCode] || reservation.statusCode}</span>
-                    <h3>${reservation.requestNote || "상담 요청"}</h3>
-                </div>
-                <dl class="flow-summary-list">
-                    <div><dt>상담 요청 코드</dt><dd>${reservation.reservationCode || "-"}</dd></div>
-                    <div><dt>회원 코드</dt><dd>${reservation.memberUserCode || "-"}</dd></div>
-                    <div><dt>담당자 코드</dt><dd>${reservation.partnerUserCode || "미배정"}</dd></div>
-                    <div><dt>접수일</dt><dd>${formatDateTime(reservation.createdAt)}</dd></div>
-                </dl>
-            `;
+            const appendText = (parent, tag, value, className) => {
+                const node = document.createElement(tag); node.textContent = value;
+                if (className) node.className = className;
+                parent.append(node); return node;
+            };
+            const heading = appendText(card, 'div', '');
+            appendText(heading, 'span', statusLabels[reservation.statusCode] || reservation.statusCode, 'eyebrow');
+            appendText(heading, 'h3', reservation.requestNote || '상담 요청');
+            const details = appendText(card, 'dl', '', 'flow-summary-list');
+            for (const [label, value] of [
+                ['상담 요청 코드', reservation.reservationCode || '-'],
+                ['회원', personLabel(reservation.memberName, reservation.memberLoginId)],
+                ['담당자', reservation.partnerUserId ? personLabel(reservation.partnerName, reservation.partnerLoginId) : '미배정'],
+                ['접수일', formatDateTime(reservation.createdAt)]
+            ]) {
+                const pair = appendText(details, 'div', '');
+                appendText(pair, 'dt', label); appendText(pair, 'dd', value);
+            }
             if (operating) {
                 const button = document.createElement("button");
                 button.type = "button";
@@ -153,18 +166,24 @@
             setMessage(requestMessage, "상담 요청 내용을 입력하세요.", "error");
             return;
         }
-        const memberUserCode = operating ? textOrNull(valueOf(requestForm, "memberUserCode")) : null;
+        if (requestButton.disabled) return;
+        const memberUserId = operating ? textOrNull(valueOf(requestForm, "memberUserId")) : null;
+        if (operating && (!memberUserId || memberPicker.unresolved())) {
+            setMessage(requestMessage, "성함 또는 아이디로 검색한 뒤 접수할 회원을 선택하세요.", "error");
+            return;
+        }
         setBusy(requestButton, true, "접수 중");
         setMessage(requestMessage, "");
         try {
             await requestJson("/api/v1/consultation-reservations", {
                 method: "POST",
                 body: JSON.stringify({
-                    memberUserCode,
+                    memberUserId,
                     requestNote
                 })
             });
             requestForm.reset();
+            memberPicker?.set(null);
             setMessage(requestMessage, "상담 요청을 접수했습니다.", "success");
             await loadReservations();
         } catch (error) {
@@ -176,22 +195,37 @@
 
     statusForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (statusButton.disabled) return;
         const reservationId = textOrNull(valueOf(statusForm, "reservationId"));
         if (!reservationId) {
             setMessage(statusMessage, "처리할 상담 요청을 선택하세요.", "error");
             return;
         }
+        if (partnerPicker.unresolved()) {
+            setMessage(statusMessage, "검색 결과에서 담당자를 선택하거나 검색어를 비워 기존 담당자를 유지하세요.", "error");
+            return;
+        }
+        const partnerUserId = textOrNull(valueOf(statusForm, "partnerUserId"));
+        const nextPartner = partnerUserId || selectedReservation?.partnerUserId;
+        if (['ASSIGNED', 'CONFIRMED'].includes(valueOf(statusForm, 'statusCode')) && !nextPartner) {
+            setMessage(statusMessage, "담당자 배정 또는 상담 확정에는 담당자 선택이 필요합니다.", "error");
+            return;
+        }
+        if (partnerUserId && partnerUserId !== selectedReservation?.partnerUserId && !window.confirm(
+            `${selectedReservation?.reservationCode || '선택한 상담'}의 담당자를 변경합니다.\n${app.querySelector('[data-person-picker="partner"] [data-person-selected]').textContent}\n저장하시겠습니까?`
+        )) return;
         setBusy(statusButton, true, "저장 중");
         setMessage(statusMessage, "");
         try {
-            await requestJson(`/api/v1/consultation-reservations/${encodeURIComponent(reservationId)}/status`, {
+            const updated = await requestJson(`/api/v1/consultation-reservations/${encodeURIComponent(reservationId)}/status`, {
                 method: "PATCH",
                 body: JSON.stringify({
                     statusCode: valueOf(statusForm, "statusCode"),
-                    partnerUserCode: textOrNull(valueOf(statusForm, "partnerUserCode")),
+                    partnerUserId,
                     note: textOrNull(valueOf(statusForm, "note"))
                 })
             });
+            selectReservation(updated);
             setMessage(statusMessage, "상담 상태를 저장했습니다.", "success");
             await loadReservations();
         } catch (error) {

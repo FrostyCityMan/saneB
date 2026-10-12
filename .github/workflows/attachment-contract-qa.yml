@@ -348,6 +348,20 @@ jobs:
         if: ${{ !cancelled() && steps.contracts.outcome == 'success' }}
         run: bash scripts/qa/run-policy-db-qa-isolated-user.sh
 
+      - name: 사람 식별 UI 회귀 검증
+        run: node --test scripts/qa/person-identity.test.cjs
+
+      - name: 사람 식별 실제 DB 검증 누락·생략 차단
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('build/test-results/test/TEST-com.saneb.db.PersonIdentityMapperTest.xml').getroot()
+          assert int(root.attrib['tests']) >= 1
+          assert all(int(root.attrib.get(k, '0')) == 0 for k in ('failures', 'errors', 'skipped'))
+          print('PERSON_IDENTITY_DB_PASS')
+          PY
+
       - name: 필수 DB 테스트 누락·생략·실패 차단
         if: always()
         run: node scripts/qa/attachment-contract-report.mjs

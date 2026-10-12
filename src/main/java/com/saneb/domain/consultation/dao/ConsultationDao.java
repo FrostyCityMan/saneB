@@ -12,6 +12,9 @@
 
 package com.saneb.domain.consultation.dao;
 
+import com.saneb.domain.consultation.vo.ConsultationPartnerLookupCondition;
+import com.saneb.domain.consultation.vo.ConsultationPartnerLookupRow;
+
 import com.saneb.domain.consultation.vo.ApplicationProgressOwnerRow;
 import com.saneb.domain.consultation.vo.AuditLogCommand;
 import com.saneb.domain.consultation.vo.ConsultationHistoryCommand;
@@ -31,6 +34,11 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface ConsultationDao {
+
+    List<ConsultationPartnerLookupRow> selectConsultationPartnerLookupList(
+            ConsultationPartnerLookupCondition condition);
+
+    long selectConsultationPartnerLookupCount(ConsultationPartnerLookupCondition condition);
 
     /**
      * 업무 데이터를 조회합니다.

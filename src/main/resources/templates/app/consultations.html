@@ -23,9 +23,16 @@
                 </div>
             </div>
             <form data-consultation-request-form novalidate>
-                <div class="field-block" th:if="${page.operating}">
-                    <label for="consultationMemberUserCode">회원 코드</label>
-                    <input id="consultationMemberUserCode" name="memberUserCode" type="text" placeholder="예: USR-000001">
+                <div class="field-block" th:if="${page.operating}" data-person-picker="member" data-lookup-url="/api/v1/matching/cases/member-lookups">
+                    <label for="consultationMemberSearch">회원 검색</label>
+                    <input id="consultationMemberSearch" data-person-query type="search" maxlength="100" placeholder="성함 또는 로그인 아이디" aria-describedby="consultationMemberHelp">
+                    <button type="button" class="secondary-action" data-person-search>회원 검색</button>
+                    <label for="consultationMemberResult">회원 선택</label>
+                    <select id="consultationMemberResult" data-person-results aria-describedby="consultationMemberHelp"><option value="">검색 후 회원을 선택하세요</option></select>
+                    <div class="form-actions"><button type="button" class="secondary-action" data-person-prev disabled>이전 결과</button><button type="button" class="secondary-action" data-person-next disabled>다음 결과</button></div>
+                    <input name="memberUserId" type="hidden">
+                    <p data-person-selected class="field-help">선택된 회원이 없습니다.</p>
+                    <p id="consultationMemberHelp" data-person-message class="field-help" role="status">동명이인은 아이디로 구분하세요. 검색 결과에서 회원을 선택해야 접수할 수 있습니다.</p>
                 </div>
                 <div class="field-block">
                     <label for="consultationRequestNote">상담 요청 내용</label>
@@ -77,9 +84,17 @@
                         <option value="CANCELED">취소</option>
                     </select>
                 </div>
-                <div class="field-block">
-                    <label for="consultationPartnerUserCode">담당자 코드</label>
-                    <input id="consultationPartnerUserCode" name="partnerUserCode" type="text" placeholder="예: USR-000002">
+                <div class="field-block" data-person-picker="partner" data-lookup-url="/api/v1/consultation-reservations/partner-lookups">
+                    <label for="consultationPartnerSearch">담당자 검색</label>
+                    <input id="consultationPartnerSearch" data-person-query type="search" maxlength="100" placeholder="성함 또는 로그인 아이디" aria-describedby="consultationPartnerHelp">
+                    <button type="button" class="secondary-action" data-person-search>담당자 검색</button>
+                    <label for="consultationPartnerResult">담당자 선택</label>
+                    <select id="consultationPartnerResult" data-person-results aria-describedby="consultationPartnerHelp"><option value="">검색 후 담당자를 선택하세요</option></select>
+                    <div class="form-actions"><button type="button" class="secondary-action" data-person-prev disabled>이전 결과</button><button type="button" class="secondary-action" data-person-next disabled>다음 결과</button></div>
+                    <input name="partnerUserId" type="hidden">
+                    <p data-consultation-current-partner class="field-help">먼저 처리할 상담 요청을 선택하세요.</p>
+                    <p data-person-selected class="field-help">담당자 미배정</p>
+                    <p id="consultationPartnerHelp" data-person-message class="field-help" role="status">현재 담당자는 유지됩니다. 변경하려면 성함·아이디로 검색한 뒤 선택하세요.</p>
                 </div>
                 <div class="field-block span-2">
                     <label for="consultationStatusNote">상담 메모</label>
@@ -95,6 +110,8 @@
             </div>
         </form>
     </section>
+    <script th:src="@{/js/saneb-person-identity.js}"></script>
+    <script th:src="@{/js/saneb-person-picker.js}"></script>
     <script th:src="@{/js/saneb-consultations.js}"></script>
 </main>
 </html>

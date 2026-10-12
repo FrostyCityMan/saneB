@@ -90,7 +90,10 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("검증 번호")))
                 .andExpect(content().string(containsString("입력 화면")))
                 .andExpect(content().string(not(containsString("Partner Verification"))))
-                .andExpect(content().string(not(containsString("검증 ID"))));
+                .andExpect(content().string(not(containsString("검증 ID"))))
+                .andExpect(content().string(containsString("홍회원 (demo.member)")))
+                .andExpect(content().string(not(containsString("USR-000001"))))
+                .andExpect(content().string(not(containsString("USR-000002"))));
     }
 
     /**
@@ -109,7 +112,10 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("서류")))
                 .andExpect(content().string(not(containsString("Partner Verification"))))
                 .andExpect(content().string(not(containsString("Documents"))))
-                .andExpect(content().string(not(containsString("검증 ID"))));
+                .andExpect(content().string(not(containsString("검증 ID"))))
+                .andExpect(content().string(containsString("홍회원 (demo.member)")))
+                .andExpect(content().string(not(containsString("USR-000001"))))
+                .andExpect(content().string(not(containsString("USR-000002"))));
     }
 
     /**
@@ -130,7 +136,10 @@ class PartnerVerificationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("대상")))
                 .andExpect(content().string(not(containsString("Partner Input"))))
                 .andExpect(content().string(not(containsString("Target"))))
-                .andExpect(content().string(not(containsString("검증 ID"))));
+                .andExpect(content().string(not(containsString("검증 ID"))))
+                .andExpect(content().string(containsString("홍회원 (demo.member)")))
+                .andExpect(content().string(not(containsString("USR-000001"))))
+                .andExpect(content().string(not(containsString("USR-000002"))));
     }
 
     /**
@@ -184,6 +193,7 @@ class PartnerVerificationViewControllerSmokeTest {
                 "VRF-000001",
                 "USR-000001",
                 "USR-000002",
+                "홍회원", "demo.member", "김담당", "demo.partner",
                 "DRAFT",
                 true,
                 false,
@@ -209,6 +219,7 @@ class PartnerVerificationViewControllerSmokeTest {
                 "VRF-000001",
                 "USR-000001",
                 "USR-000002",
+                "홍회원", "demo.member", "김담당", "demo.partner",
                 "DRAFT",
                 true,
                 false,

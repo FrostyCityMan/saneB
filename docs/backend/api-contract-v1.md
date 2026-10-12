@@ -1,5 +1,14 @@
 # saneB Backend API Contract v1
 
+## 2026-10-12 회원·담당자 성함 및 아이디 표시
+
+- 상담 예약 목록·등록·상태 변경 응답과 파트너 검증 목록·상세 응답에 `memberName`, `memberLoginId`, `partnerName`, `partnerLoginId`를 추가한다. 기존 `memberUserCode`, `partnerUserCode`, UUID와 wrapper는 보존한다. 본인·담당 건·운영 범위의 기존 조회 권한을 유지한다.
+- 화면은 사람을 `성함 (로그인 아이디)`로 표시한다. 이름 누락은 아이디, 아이디 누락은 이름, 모두 누락은 ‘계정 정보 확인 필요’다. 미배정은 별도로 표시한다. UUID·USR 코드를 표시용 대체값으로 사용하지 않는다.
+- 상담 접수 UI는 기존 `GET /api/v1/matching/cases/member-lookups`의 ACTIVE/USER 검색을 재사용하고 선택된 `memberUserId`를 기존 POST에 전송한다. 일반 사용자의 본인 접수 흐름에는 회원 검색을 노출하지 않는다.
+- `GET /api/v1/consultation-reservations/partner-lookups`: ADMIN/OPERATOR 전용 읽기 API. `keyword`(성함·로그인 아이디, 최대 100자), `page`(기본 1, 1~10000), `size`(기본 10, 1~50). 응답 `ApiResponse<PageResponse<{userId,name,loginId}>>`. ACTIVE이며 PARTNER/OPERATOR/ADMIN 중 하나의 역할이 있는 계정을 중복 없이 반환한다. 개인정보 연락처·비밀번호·회원 코드는 반환하지 않는다.
+- 상담 상태 UI는 선택된 `partnerUserId`를 기존 PATCH에 전송한다. 검색어 자체는 저장하지 않는다. 담당자를 변경하지 않으면 기존 배정 유지이며 배정 해제 기능은 추가하지 않는다. 기존 v1 코드 입력 계약·상태 전이·slot 담당자 일치·서버 권한 검증은 변경하지 않는다. 새 후보 목록의 역할 필터를 기존 모든 v1 호출의 강화된 배정 자격 검증으로 해석하지 않는다.
+- 매칭 검색 결과·선택값·목록과 검증 3개 화면에도 같은 표시 원칙을 적용한다. DB 키·schema·기존 코드 데이터는 변경하지 않는다. 검색 UI는 명시 선택·페이지 이동·결과 없음·실패·재시도·검색어 변경 시 선택 해제를 지원한다.
+
 ## 2026-10-12 자동 제외 이력 요약
 
 - `GET /api/v2/admin/announcement-source-exclusions/summary`: ADMIN/OPERATOR/APPROVER, ApiResponse, `Cache-Control: no-store`. 읽기 전용 요약이며 목록/원문 조회나 쓰기 API가 아니다. 기존 v1 목록의 의미는 바꾸지 않는다.

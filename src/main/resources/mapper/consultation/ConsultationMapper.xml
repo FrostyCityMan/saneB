@@ -4,6 +4,37 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.saneb.domain.consultation.dao.ConsultationDao">
 
+    <resultMap id="ConsultationPartnerLookupRowMap" type="com.saneb.domain.consultation.vo.ConsultationPartnerLookupRow">
+        <constructor>
+            <arg column="user_id" javaType="java.util.UUID"/>
+            <arg column="name" javaType="java.lang.String"/>
+            <arg column="login_id" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="ConsultationPartnerLookupWhere">
+        WHERE u.status_code = 'ACTIVE'
+          AND EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_code IN ('PARTNER', 'OPERATOR', 'ADMIN'))
+        <if test="keyword != null and keyword != ''">
+          AND (u.name ILIKE concat('%', #{keyword}, '%') OR u.login_id ILIKE concat('%', #{keyword}, '%'))
+        </if>
+    </sql>
+
+    <select id="selectConsultationPartnerLookupList" resultMap="ConsultationPartnerLookupRowMap">
+        -- 운영 상담에서 성함·아이디로 선택 가능한 활성 담당자를 조회합니다.
+        SELECT u.id AS user_id, u.name, u.login_id
+        FROM users u
+        <include refid="ConsultationPartnerLookupWhere"/>
+        ORDER BY u.name ASC, u.login_id ASC, u.id ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectConsultationPartnerLookupCount" resultType="long">
+        -- 담당자 검색 결과의 전체 건수를 조회합니다.
+        SELECT count(1) FROM users u
+        <include refid="ConsultationPartnerLookupWhere"/>
+    </select>
+
     <resultMap id="ConsultationSlotRowMap" type="com.saneb.domain.consultation.vo.ConsultationSlotRow">
         <constructor>
             <arg column="slot_id" javaType="java.util.UUID"/>
@@ -26,6 +57,10 @@
             <arg column="member_user_code" javaType="java.lang.String"/>
             <arg column="partner_user_id" javaType="java.util.UUID"/>
             <arg column="partner_user_code" javaType="java.lang.String"/>
+            <arg column="member_name" javaType="java.lang.String"/>
+            <arg column="member_login_id" javaType="java.lang.String"/>
+            <arg column="partner_name" javaType="java.lang.String"/>
+            <arg column="partner_login_id" javaType="java.lang.String"/>
             <arg column="progress_id" javaType="java.util.UUID"/>
             <arg column="progress_code" javaType="java.lang.String"/>
             <arg column="verification_id" javaType="java.util.UUID"/>
@@ -191,6 +226,10 @@
             member_user.public_code AS member_user_code,
             cr.partner_user_id,
             partner_user.public_code AS partner_user_code,
+            member_user.name AS member_name,
+            member_user.login_id AS member_login_id,
+            partner_user.name AS partner_name,
+            partner_user.login_id AS partner_login_id,
             cr.progress_id,
             ap.public_code AS progress_code,
             cr.verification_id,
@@ -236,6 +275,10 @@
             member_user.public_code AS member_user_code,
             cr.partner_user_id,
             partner_user.public_code AS partner_user_code,
+            member_user.name AS member_name,
+            member_user.login_id AS member_login_id,
+            partner_user.name AS partner_name,
+            partner_user.login_id AS partner_login_id,
             cr.progress_id,
             ap.public_code AS progress_code,
             cr.verification_id,

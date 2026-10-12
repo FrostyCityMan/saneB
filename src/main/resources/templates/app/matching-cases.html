@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingCandidateMemberUserCode">회원 코드</label>
+                    <label for="matchingCandidateMemberUserCode">회원</label>
                     <div class="lookup-input-row">
                         <input id="matchingCandidateMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="돋보기로 회원 선택" readonly required>
                         <input name="memberUserId" type="hidden">
@@ -96,7 +96,7 @@
                     </div>
                 </div>
                 <div class="field-block">
-                    <label for="matchingSearchMemberUserCode">회원 코드</label>
+                    <label for="matchingSearchMemberUserCode">회원</label>
                     <div class="lookup-input-row">
                         <input id="matchingSearchMemberUserCode" name="memberUserCodeDisplay" type="text" placeholder="선택 입력" readonly>
                         <input name="memberUserId" type="hidden">
@@ -165,6 +165,7 @@
             </div>
         </section>
     </section>
+    <script th:src="@{/js/saneb-person-identity.js}"></script>
     <script th:src="@{/js/saneb-matching-cases.js}"></script>
 </main>
 </html>

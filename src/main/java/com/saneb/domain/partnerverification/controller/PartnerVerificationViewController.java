@@ -12,6 +12,8 @@
 
 package com.saneb.domain.partnerverification.controller;
 
+import com.saneb.common.util.PersonDisplayName;
+
 import com.saneb.common.error.ApiException;
 import com.saneb.common.response.PageResponse;
 import com.saneb.domain.auth.dto.AuthMeResponse;
@@ -377,6 +379,8 @@ public class PartnerVerificationViewController {
             String verificationCode,
             String memberUserCode,
             String partnerUserCode,
+            String memberDisplayName,
+            String partnerDisplayName,
             String statusCode,
             String statusLabel,
             boolean current,
@@ -395,6 +399,8 @@ public class PartnerVerificationViewController {
                     response.verificationCode(),
                     response.memberUserCode(),
                     response.partnerUserCode(),
+                    PersonDisplayName.format(response.memberName(), response.memberLoginId()),
+                    response.partnerUserId() == null ? "미배정" : PersonDisplayName.format(response.partnerName(), response.partnerLoginId()),
                     response.statusCode(),
                     verificationStatusLabel(response.statusCode()),
                     response.current(),
@@ -448,6 +454,8 @@ public class PartnerVerificationViewController {
             String verificationCode,
             String memberUserCode,
             String partnerUserCode,
+            String memberDisplayName,
+            String partnerDisplayName,
             String statusCode,
             String statusLabel,
             boolean current,
@@ -467,6 +475,8 @@ public class PartnerVerificationViewController {
                     response.verificationCode(),
                     response.memberUserCode(),
                     response.partnerUserCode(),
+                    PersonDisplayName.format(response.memberName(), response.memberLoginId()),
+                    response.partnerUserId() == null ? "미배정" : PersonDisplayName.format(response.partnerName(), response.partnerLoginId()),
                     response.statusCode(),
                     verificationStatusLabel(response.statusCode()),
                     response.current(),

@@ -12,6 +12,9 @@
 
 package com.saneb.domain.consultation.service.impl;
 
+import com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse;
+import com.saneb.domain.consultation.vo.ConsultationPartnerLookupCondition;
+
 import com.saneb.common.error.ApiException;
 import com.saneb.common.error.ErrorCode;
 import com.saneb.common.response.PageResponse;
@@ -70,6 +73,24 @@ public class ConsultationServiceImpl implements ConsultationService {
      */
     public ConsultationServiceImpl(ConsultationDao consultationDao) {
         this.consultationDao = consultationDao;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ConsultationPartnerLookupResponse> selectConsultationPartnerLookupList(
+            Authentication authentication, String keyword, int page, int size) {
+        if (!hasOperatingRole(selectRequiredPrincipal(authentication))) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, HttpStatus.FORBIDDEN, "상담 담당자 검색은 관리자와 운영자만 사용할 수 있습니다.");
+        }
+        String search = keyword == null ? null : keyword.trim();
+        if (page < 1 || page > 10000 || size < 1 || size > 50 || (search != null && search.length() > 100)) {
+            throw validationFailed("검색어는 100자 이내, 페이지는 1~10000, 조회 개수는 1~50으로 지정하세요.");
+        }
+        var condition = new ConsultationPartnerLookupCondition(search, size, (page - 1) * size);
+        var items = consultationDao.selectConsultationPartnerLookupList(condition).stream()
+                .map(row -> new ConsultationPartnerLookupResponse(row.userId(), row.name(), row.loginId()))
+                .toList();
+        return PageResponse.of(items, page, size, consultationDao.selectConsultationPartnerLookupCount(condition));
     }
 
     /**
@@ -836,6 +857,10 @@ public class ConsultationServiceImpl implements ConsultationService {
                 row.memberUserCode(),
                 row.partnerUserId(),
                 row.partnerUserCode(),
+                row.memberName(),
+                row.memberLoginId(),
+                row.partnerName(),
+                row.partnerLoginId(),
                 row.progressId(),
                 row.progressCode(),
                 row.verificationId(),

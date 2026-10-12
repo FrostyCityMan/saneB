@@ -13,6 +13,10 @@
             <arg column="verification_code" javaType="java.lang.String"/>
             <arg column="member_user_code" javaType="java.lang.String"/>
             <arg column="partner_user_code" javaType="java.lang.String"/>
+            <arg column="member_name" javaType="java.lang.String"/>
+            <arg column="member_login_id" javaType="java.lang.String"/>
+            <arg column="partner_name" javaType="java.lang.String"/>
+            <arg column="partner_login_id" javaType="java.lang.String"/>
             <arg column="status_code" javaType="java.lang.String"/>
             <arg column="is_current" javaType="java.lang.Boolean"/>
             <arg column="is_matching_blocked" javaType="java.lang.Boolean"/>
@@ -111,6 +115,10 @@
             pv.public_code AS verification_code,
             member_user.public_code AS member_user_code,
             partner_user.public_code AS partner_user_code,
+            member_user.name AS member_name,
+            member_user.login_id AS member_login_id,
+            partner_user.name AS partner_name,
+            partner_user.login_id AS partner_login_id,
             pv.status_code,
             pv.is_current,
             pv.is_matching_blocked,
@@ -147,6 +155,10 @@
             pv.public_code AS verification_code,
             member_user.public_code AS member_user_code,
             partner_user.public_code AS partner_user_code,
+            member_user.name AS member_name,
+            member_user.login_id AS member_login_id,
+            partner_user.name AS partner_name,
+            partner_user.login_id AS partner_login_id,
             pv.status_code,
             pv.is_current,
             pv.is_matching_blocked,

@@ -57,6 +57,27 @@ class ConsultationControllerSmokeTest {
     @MockitoBean
     private ConsultationService consultationService;
 
+    @Test
+    void partnerLookupIsRestrictedPagedAndContainsNoPublicCode() throws Exception {
+        String url = "/api/v1/consultation-reservations/partner-lookups";
+        when(consultationService.selectConsultationPartnerLookupList(any(), any(), eq(1), eq(10)))
+                .thenReturn(PageResponse.of(List.of(new com.saneb.domain.consultation.dto.ConsultationPartnerLookupResponse(
+                        PARTNER_USER_ID, "김담당", "demo.partner")), 1, 10, 1));
+        for (String role : List.of("ADMIN", "OPERATOR")) {
+            mockMvc.perform(get(url).with(user("operator").roles(role)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.items[0].name").value("김담당"))
+                    .andExpect(jsonPath("$.data.items[0].loginId").value("demo.partner"))
+                    .andExpect(jsonPath("$.data.items[0].userCode").doesNotExist());
+        }
+        for (String role : List.of("USER", "PARTNER", "REVIEWER", "APPROVER")) {
+            mockMvc.perform(get(url).with(user("other").roles(role))).andExpect(status().isForbidden());
+        }
+        mockMvc.perform(get(url)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get(url).with(user("operator").roles("ADMIN")).param("size", "51"))
+                .andExpect(status().isBadRequest());
+    }
+
     /**
      * 업무 처리를 수행합니다.
      */
@@ -186,7 +207,12 @@ class ConsultationControllerSmokeTest {
                         .param("size", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.items[0].reservationId").value(RESERVATION_ID.toString()));
+                .andExpect(jsonPath("$.data.items[0].reservationId").value(RESERVATION_ID.toString()))
+                .andExpect(jsonPath("$.data.items[0].memberName").value("홍회원"))
+                .andExpect(jsonPath("$.data.items[0].memberLoginId").value("demo.member"))
+                .andExpect(jsonPath("$.data.items[0].partnerName").value("김담당"))
+                .andExpect(jsonPath("$.data.items[0].partnerLoginId").value("demo.partner"))
+                .andExpect(jsonPath("$.data.items[0].memberUserCode").value("USR-000001"));
     }
 
     /**
@@ -225,6 +251,7 @@ class ConsultationControllerSmokeTest {
                 "USR-000001",
                 PARTNER_USER_ID,
                 "USR-000002",
+                "홍회원", "demo.member", "김담당", "demo.partner",
                 null,
                 null,
                 null,
