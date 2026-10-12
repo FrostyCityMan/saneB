@@ -76,3 +76,70 @@ test('검증 3개 화면은 표시 이름을 참조하며 코드 필드는 렌�
         assert.match(html,/memberDisplayName/);
     }
 });
+
+// 실제 상담 스크립트의 선택/저장 이벤트를 브라우저 없이 회귀 검증한다.
+async function consultationHarness(rows, patch = async body => ({...rows[0], statusCode: body.statusCode})) {
+    const node = () => Object.assign(new Element(), {dataset:{},classList:{toggle(){}}});
+    const fields = new Map();
+    const statusForm = node();
+    statusForm.querySelector = key => {if(!fields.has(key))fields.set(key,node());return fields.get(key);};
+    const list = node(), statusButton = node(), message = node(), currentPartner = node();
+    const controls = new Map([
+        ['[data-consultation-status-form]',statusForm],['[data-consultation-list]',list],
+        ['[data-consultation-status-submit]',statusButton],['[data-consultation-status-message]',message],
+        ['[data-consultation-current-partner]',currentPartner]
+    ]);
+    const app = {dataset:{operating:'true'},querySelector:key=>controls.get(key)||null};
+    const requests=[];
+    const fetch = async (url,options) => {
+        requests.push({url,options});
+        if(options.method==='PATCH') {
+            try {const data=await patch(JSON.parse(options.body));return {ok:true,json:async()=>({success:true,data})};}
+            catch(error){return {ok:false,json:async()=>({success:false,message:error.message})};}
+        }
+        return {ok:true,json:async()=>({success:true,data:{items:rows}})};
+    };
+    const window={SanebPersonIdentity:identity,SanebPersonPicker:()=>({set(){},unresolved:()=>false}),confirm:()=>true};
+    vm.runInNewContext(fs.readFileSync(path.join(base,'static/js/saneb-consultations.js'),'utf8'),{
+        document:{querySelector:()=>app,createElement:()=>node()},window,fetch
+    });
+    await new Promise(resolve=>setImmediate(resolve));
+    return {field:name=>statusForm.querySelector(`[name='${name}']`),
+        select:index=>list.children[index].children.at(-1).events.click(),
+        submit:()=>statusForm.events.submit({preventDefault(){}}),requests,message,statusButton};
+}
+const reservation = statusCode => ({reservationId:'case-'+statusCode,reservationCode:'CNS-QA',statusCode,
+    partnerUserId:'staff',partnerName:'담당자',partnerLoginId:'staff',statusNote:'기존 메모'});
+test('상담 완료 포함 모든 상태와 다른 상담 재선택 시 서버 현재 상태를 반영한다',async()=>{
+    const codes=['COMPLETED','REQUESTED','ASSIGNED','CONFIRMED','CANCELED','NO_SHOW'];
+    const h=await consultationHarness(codes.map(reservation));
+    codes.forEach((code,index)=>{h.field('statusCode').value='ASSIGNED';h.select(index);assert.equal(h.field('statusCode').value,code);});
+    assert.equal(h.requests.filter(r=>r.options.method==='PATCH').length,0);
+});
+test('미선택·알 수 없는 상태는 담당자 배정으로 대체하지 않는다',async()=>{
+    const h=await consultationHarness([reservation('UNKNOWN')]);h.select(0);
+    assert.equal(h.field('statusCode').value,'');await h.submit();
+    assert.equal(h.requests.filter(r=>r.options.method==='PATCH').length,0);
+    const html=fs.readFileSync(path.join(base,'templates/app/consultations.html'),'utf8');
+    assert.match(html,/<option value="" disabled selected>상담 요청을 먼저 선택하세요/);
+    assert.match(html,/<option value="REQUESTED" disabled>요청 접수/);
+});
+test('완료·요청접수·동일 상태 저장은 전송 없이 구체적으로 안내한다',async()=>{
+    for(const code of ['COMPLETED','NO_SHOW','CANCELED','REQUESTED','ASSIGNED','CONFIRMED']){
+        const h=await consultationHarness([reservation(code)]);h.select(0);await h.submit();
+        assert.equal(h.requests.filter(r=>r.options.method==='PATCH').length,0,code);
+        assert.match(h.message.textContent,/상태를 변경할 수 없습니다|변경할 상태를 선택/);
+    }
+});
+test('상태 저장 성공 응답을 폼에 반영하고 목록도 다시 조회한다',async()=>{
+    const h=await consultationHarness([reservation('CONFIRMED')]);h.select(0);h.field('statusCode').value='COMPLETED';
+    await h.submit();assert.equal(h.field('statusCode').value,'COMPLETED');
+    assert.equal(JSON.parse(h.requests.find(r=>r.options.method==='PATCH').options.body).statusCode,'COMPLETED');
+    assert.equal(h.requests.length,3);assert.equal(h.statusButton.disabled,false);
+});
+test('서버 저장 실패 시 선택한 값과 메모를 보존하고 재시도를 허용한다',async()=>{
+    const h=await consultationHarness([reservation('CONFIRMED')],async()=>{throw new Error('상태 변경을 허용하지 않습니다.');});
+    h.select(0);h.field('statusCode').value='COMPLETED';await h.submit();
+    assert.equal(h.field('statusCode').value,'COMPLETED');assert.equal(h.field('note').value,'기존 메모');
+    assert.match(h.message.textContent,/상태 변경을 허용하지 않습니다/);assert.equal(h.statusButton.disabled,false);
+});

@@ -94,6 +94,8 @@ class ConsultationViewControllerSmokeTest {
                 .andExpect(content().string(containsString("성함 또는 로그인 아이디")))
                 .andExpect(content().string(containsString("name=\"memberUserId\"")))
                 .andExpect(content().string(containsString("name=\"partnerUserId\"")))
+                .andExpect(content().string(containsString("상담 요청을 먼저 선택하세요")))
+                .andExpect(content().string(containsString("value=\"REQUESTED\" disabled")))
                 .andExpect(content().string(not(containsString("USR-"))))
                 .andExpect(content().string(not(containsString("담당자 코드"))));
     }

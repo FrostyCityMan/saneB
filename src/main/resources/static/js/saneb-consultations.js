@@ -93,6 +93,7 @@
             reservationCodeField.value = reservation.reservationCode || "";
         }
         selectedReservation = reservation;
+        statusForm.querySelector("[name='statusCode']").value = Object.hasOwn(statusLabels, reservation.statusCode) ? reservation.statusCode : "";
         app.querySelector('[data-consultation-current-partner]').textContent = '현재 담당자: ' + (reservation.partnerUserId ? personLabel(reservation.partnerName, reservation.partnerLoginId) : '미배정');
         partnerPicker.set(reservation.partnerUserId, reservation.partnerName, reservation.partnerLoginId);
         statusForm.querySelector("[name='note']").value = reservation.statusNote || "";
@@ -199,6 +200,14 @@
         const reservationId = textOrNull(valueOf(statusForm, "reservationId"));
         if (!reservationId) {
             setMessage(statusMessage, "처리할 상담 요청을 선택하세요.", "error");
+            return;
+        }
+        const nextStatus = valueOf(statusForm, "statusCode");
+        if (!nextStatus || nextStatus === 'REQUESTED' || nextStatus === selectedReservation?.statusCode) {
+            const terminal = ['COMPLETED', 'NO_SHOW', 'CANCELED'].includes(selectedReservation?.statusCode);
+            setMessage(statusMessage, terminal
+                ? "상담 완료·미참석·취소된 요청은 상태를 변경할 수 없습니다."
+                : "현재 상태와 다른 변경할 상태를 선택하세요. 요청 접수 상태로는 저장할 수 없습니다.", "error");
             return;
         }
         if (partnerPicker.unresolved()) {

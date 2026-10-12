@@ -77,6 +77,8 @@
                 <div class="field-block">
                     <label for="consultationStatusCode">상태</label>
                     <select id="consultationStatusCode" name="statusCode">
+                        <option value="" disabled selected>상담 요청을 먼저 선택하세요</option>
+                        <option value="REQUESTED" disabled>요청 접수</option>
                         <option value="ASSIGNED">담당자 배정</option>
                         <option value="CONFIRMED">상담 확정</option>
                         <option value="COMPLETED">상담 완료</option>
