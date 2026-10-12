@@ -29,18 +29,26 @@
     <section class="top-summary-grid collected-announcement-metrics" aria-label="수집 공고 분류 현황">
         <article class="top-summary-card is-action-required">
             <span>조치 필요</span>
-            <strong data-collected-action-count aria-live="polite">0건</strong>
+            <strong data-collected-action-count aria-live="polite">집계 중</strong>
+            <p data-summary-message="action" role="status"></p>
+            <button type="button" class="secondary-action small-action" data-summary-retry="action" hidden>다시 집계</button>
             <p>관리자 검수 또는 조건 입력 필요</p>
         </article>
         <article class="top-summary-card is-accepted">
             <span>유효 후보</span>
-            <strong data-collected-accepted-count aria-live="polite">0건</strong>
+            <strong data-collected-accepted-count aria-live="polite">집계 중</strong>
+            <p data-summary-message="accepted" role="status"></p>
+            <button type="button" class="secondary-action small-action" data-summary-retry="accepted" hidden>다시 집계</button>
             <p>제목·본문 분류를 통과한 후보</p>
         </article>
         <article class="top-summary-card is-excluded">
-            <span>자동 제외</span>
-            <strong data-collected-excluded-count aria-live="polite">0건</strong>
-            <p>제목 제외 원문은 조회 대상에서 제외</p>
+            <span>자동 제외 이력</span>
+            <strong data-collected-excluded-count aria-live="polite">집계 중</strong>
+            <p data-summary-message="excluded" role="status"></p>
+            <p>누적 · 같은 수집원 내 중복 제외</p>
+            <p data-exclusion-scope-note class="muted-copy"></p>
+            <button type="button" class="secondary-action small-action" data-exclusion-open aria-controls="exclusion-summary">제외 현황 보기</button>
+            <button type="button" class="secondary-action small-action" data-summary-retry="excluded" hidden>다시 집계</button>
         </article>
         <article class="top-summary-card">
             <span>현재 조회</span>
@@ -48,6 +56,16 @@
             <p>선택한 탭과 필터의 결과</p>
         </article>
     </section>
+
+    <p class="muted-copy">앞의 세 카드는 목록 필터와 별개인 전체 현황입니다. 자동 제외 이력은 누적 기록이므로 현재 공고 수와 합산하지 않습니다.</p>
+    <details id="exclusion-summary" class="plain-panel" data-exclusion-summary>
+        <summary data-exclusion-heading>자동 제외 이력 · 집계 기준과 현황</summary>
+        <p>최근 연결된 수집 실행에서 운영 용도가 확인된 보존 기록을 집계합니다. QA와 용도 미확인 기록은 본 집계에서 제외합니다. 같은 공고가 다른 수집원에 있으면 각각 집계하며, 이후 다시 수집되어도 과거 제외 이력은 남습니다.</p>
+        <p>제외된 제목·본문·원문 주소는 제공하지 않습니다. 사유는 마지막 저장값이며, 기간별 발생 횟수가 아닙니다.</p>
+        <p data-exclusion-asof role="status">집계 중</p>
+        <div data-exclusion-breakdown></div>
+        <p><a th:href="@{/app/admin/announcement-sources}">수집 관리에서 실행별 제외 횟수 확인</a></p>
+    </details>
 
     <section class="plain-panel collected-announcement-filter-panel">
         <div class="panel-heading compact-heading">
@@ -59,7 +77,6 @@
         <div class="classification-view-tabs" role="tablist" aria-label="공고 분류함">
             <button type="button" role="tab" aria-selected="true" class="is-active" data-collected-view="ACTION_REQUIRED">조치 필요</button>
             <button type="button" role="tab" aria-selected="false" data-collected-view="ACCEPTED">유효 후보</button>
-            <button type="button" role="tab" aria-selected="false" data-collected-view="EXCLUDED">자동 제외</button>
             <button type="button" role="tab" aria-selected="false" data-collected-view="BODY_ERRORS">본문 수집 오류</button>
             <button type="button" role="tab" aria-selected="false" data-collected-view="ALL">전체(오류 포함)</button>
         </div>
@@ -217,6 +234,7 @@
     </dialog>
 
     <script th:src="@{/js/saneb-attachment-review-core.js}"></script>
+    <script th:src="@{/js/saneb-collected-summary.js}"></script>
     <script th:src="@{/js/saneb-collected-announcements.js}"></script>
 </main>
 </html>

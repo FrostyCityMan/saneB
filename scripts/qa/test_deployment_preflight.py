@@ -22,6 +22,13 @@ dispatch = load('dispatch', 'dispatch-deployment-preflight.py')
 
 
 class PreflightTests(unittest.TestCase):
+    def test_exclusion_counts_are_purpose_partitioned_without_content(self):
+        self.assertIn('exclusionPurposeCounts', probe.SQL)
+        self.assertIn("q.data_purpose_code='PRODUCTION'", probe.SQL)
+        self.assertIn("q.data_purpose_code='QA'", probe.SQL)
+        self.assertIn('q.data_purpose_code IS NULL', probe.SQL)
+        self.assertNotIn('identity_hash', probe.SQL)
+
     def test_flags_include_gov24_without_exposing_other_environment(self):
         result = probe.public_flags({
             'GOV24_PUBLIC_SERVICE_DETAIL_BODY_ENABLED': 'TRUE',

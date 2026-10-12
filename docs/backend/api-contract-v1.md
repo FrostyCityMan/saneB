@@ -1,5 +1,15 @@
 # saneB Backend API Contract v1
 
+## 2026-10-12 자동 제외 이력 요약
+
+- `GET /api/v2/admin/announcement-source-exclusions/summary`: ADMIN/OPERATOR/APPROVER, ApiResponse, `Cache-Control: no-store`. 읽기 전용 요약이며 목록/원문 조회나 쓰기 API가 아니다. 기존 v1 목록의 의미는 바꾸지 않는다.
+- 응답: `uniqueExcludedCount`, `unknownPurposeCount`, `byProvider:[{code,count}]`, `byLatestReason:[{code,count}]`, `countingBasis=PROVIDER_IDENTITY_UNIQUE`, `scope=RETAINED_PRODUCTION_BY_LATEST_RUN`, `asOf`.
+- V70 제외 기록의 마지막 연결 실행 → 요청의 용도가 PRODUCTION인 행만 본 집계한다. QA는 제외하고 실행 연결이 없어 용도를 확인할 수 없는 행은 `unknownPurposeCount`로 분리한다. tombstone에는 고정 용도 컬럼이 없으므로 마지막 연결 실행 기준임을 명시한다. 과거 전체 운영 제외 수를 복원했다고 주장하지 않는다.
+- 고유 기준은 `(provider_code, identity_hash)`. 반복 발견 횟수는 합산하지 않으며 수집원 간 동일 공고는 별개다. 현재 유효 후보 수와 합산할 수 없는 누적 이력이다. 사유는 마지막 저장된 TITLE_GROUP_B_MATCHED/TITLE_COMBINATION_NOT_MATCHED, 나머지는 OTHER_LEGACY로 묶는다. 이력 행의 과거 사유/기간별 발생 횟수/제외율은 제공하지 않는다.
+- 단일 SQL 스냅샷에서 용도·수집원·사유 집계와 DB 기준 시각을 반환한다. 빈 테이블도 시각을 반환하며 오류를 0건으로 대체하지 않는다. 원문·해시·내부 UUID·URL은 응답하지 않는다.
+- 화면은 기존 자동 제외 원문 목록 탭을 제거하고 누적 카드·접기/펼치기 통계를 제공한다. 앞의 세 카드는 전역, 현재 조회만 목록 필터 기준이다. 실패한 카드만 재시도하며 다른 카드/목록은 유지한다. 예전 EXCLUDED 저장 탐색 상태 및 `?view=EXCLUDED`는 원문 조회 대신 이력 안내로 연결한다.
+- DB migration·새 의존성·수집 정책·기존 데이터 변경 없음. 정상 0/조회 중/실패/로그인 만료/권한 부족/부분 실패/늦은 응답을 구분한다. 조회 UI R0이며 기존 한국어·공통 스타일·네이티브 details/summary·버튼 키보드 동작을 사용한다. 브라우저 검증은 명시 요청 시에만 수행한다.
+
 ## 2026-10-12 공고 전환 검수 입력 간소화
 
 - 공고 전환 화면은 검수 방법과 검수 사유를 입력받는다. 지원대상·지원형태·대표 지원대상·소득 판단 기준의 중복 입력은 제거하고 공고 입력 화면에서 확인·수정한다. 자료 오류에 대한 서버 필수 추가 확인은 유지한다.

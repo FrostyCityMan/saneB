@@ -127,3 +127,9 @@ test('invalid saved view or page cannot override safe defaults', async () => {
     assert.equal(listCalls(h).at(-1).searchParams.get('keyword'), null);
     assert.equal(h.win.history.state.sanebCollectedList.view, 'ACTION_REQUIRED');
 });
+test('legacy excluded navigation never queries an excluded source list', async () => {
+    const h=await harness({sanebCollectedList:{version:1,view:'EXCLUDED',page:2,filters:{keyword:'stale'}}});
+    await h.show();
+    assert.equal(listCalls(h).at(-1).searchParams.get('semanticStatusCode'),'REVIEW_REQUIRED');
+    assert.equal(listCalls(h).at(-1).searchParams.get('keyword'),null);
+});

@@ -104,7 +104,6 @@
     const viewLabels = {
         ACTION_REQUIRED: "조치 필요 공고",
         ACCEPTED: "유효 후보 공고",
-        EXCLUDED: "자동 제외 공고",
         BODY_ERRORS: "본문 수집 오류 공고",
         ALL: "전체 수집 공고(오류 포함)"
     };
@@ -211,17 +210,6 @@
         badge.className = `classification-badge ${kind}`.trim();
         badge.textContent = statusLabel(code);
         return badge;
-    };
-
-    const renderSummary = async () => {
-        const [actionData, acceptedData, excludedData] = await Promise.all([
-            requestJson(`${sourceUrl}?semanticStatusCode=REVIEW_REQUIRED&bodyFetchFailed=false&page=1&size=1`),
-            requestJson(`${sourceUrl}?semanticStatusCode=ACCEPTED&bodyFetchFailed=false&page=1&size=1`),
-            requestJson(`${sourceUrl}?semanticStatusCode=EXCLUDED&bodyFetchFailed=false&page=1&size=1`)
-        ]);
-        page.querySelector("[data-collected-action-count]").textContent = `${actionData.totalCount || 0}건`;
-        page.querySelector("[data-collected-accepted-count]").textContent = `${acceptedData.totalCount || 0}건`;
-        page.querySelector("[data-collected-excluded-count]").textContent = `${excludedData.totalCount || 0}건`;
     };
 
     const applyView = (viewCode, resetOperationalStatus = true) => {
@@ -745,7 +733,8 @@
     };
 
     const refreshAfterChange = async () => {
-        await Promise.all([renderSummary(), renderList()]);
+        await renderList();
+        window.SanebCollectedSummary?.refresh();
     };
 
     const updateSourceStatus = async (sourceId, reviewStatusCode) => {
@@ -907,7 +896,7 @@
 
     const restoreAndLoad = () => {
         restoreNavigationState();
-        runAction(async () => { await Promise.all([renderSummary(), renderList()]); });
+        runAction(renderList);
     };
     // pageshow 이후 복원해야 브라우저의 자동 폼 복원과 조회 조건이 엇갈리지 않는다.
     // BFCache 복귀도 같은 경로로 처리하고, 떠난 페이지의 늦은 응답은 무효화한다.

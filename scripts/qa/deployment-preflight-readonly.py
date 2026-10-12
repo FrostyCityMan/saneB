@@ -12,6 +12,13 @@ BEGIN READ ONLY;
 SELECT json_build_object('readOnly',current_setting('transaction_read_only'),
  'migration',(SELECT max(version::integer) FROM flyway_schema_history WHERE success AND version ~ '^[0-9]+$'),
  'migrationFailures',(SELECT count(*) FROM flyway_schema_history WHERE NOT success),
+ 'exclusionPurposeCounts',(SELECT json_build_object(
+   'production',count(1) FILTER (WHERE q.data_purpose_code='PRODUCTION'),
+   'qa',count(1) FILTER (WHERE q.data_purpose_code='QA'),
+   'unknown',count(1) FILTER (WHERE q.data_purpose_code IS NULL))
+   FROM announcement_source_exclusion_tombstones t
+   LEFT JOIN announcement_source_collection_runs r ON r.id=t.run_id
+   LEFT JOIN announcement_source_collection_requests q ON q.id=r.request_id),
  'activePolicies',(SELECT coalesce(json_agg(p),'[]'::json) FROM (
    SELECT id,version_no,mode_code,policy_hash,row_version FROM announcement_attachment_policies
    WHERE policy_status_code='ACTIVE' ORDER BY id LIMIT 10) p),

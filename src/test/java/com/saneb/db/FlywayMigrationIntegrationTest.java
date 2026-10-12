@@ -50,6 +50,42 @@ import org.springframework.transaction.annotation.Transactional;
 @Import(FlywayMigrationIntegrationTest.EphemeralDatabase.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FlywayMigrationIntegrationTest {
+    @Test @Transactional
+    void exclusionSummaryCountsUniqueProductionRecordsWithUnknownPurposeSeparate() {
+        var service=applicationContext.getBean(com.saneb.domain.announcementsource.service.AnnouncementSourceExclusionService.class);
+        var session=applicationContext.getBean(org.mybatis.spring.SqlSessionTemplate.class);
+        var before=service.selectSummaryDetails();
+        UUID productionRun=insertExclusionSummaryRun("PRODUCTION"), qaRun=insertExclusionSummaryRun("QA");
+        UUID record=UUID.randomUUID(); String identity=record.toString().replace("-","").repeat(2);
+        for (var spec:List.of(new Object[]{record,"BIZINFO",productionRun},new Object[]{UUID.randomUUID(),"GOV24_PUBLIC_SERVICE",productionRun},
+                new Object[]{UUID.randomUUID(),"LOCAL_GOV_NOTICE",qaRun},new Object[]{UUID.randomUUID(),"LOCAL_GOV_NOTICE",null})) {
+            String hash=spec[2]==null?UUID.randomUUID().toString().replace("-","").repeat(2):identity;
+            jdbcTemplate.update("""
+                    -- 합성 제외 기록은 원문 없이 임시 DB에만 저장하며 테스트 종료 시 rollback한다.
+                    INSERT INTO announcement_source_exclusion_tombstones
+                    (id,provider_code,identity_hash,last_raw_hash,run_id,semantic_reason_code,decision_source_code,occurrence_count,first_excluded_at,last_seen_at)
+                    VALUES (?,?,?,repeat('c',64),?,'TITLE_GROUP_B_MATCHED','V2_ENGINE',100,now(),now())
+                    """,spec[0],spec[1],hash,spec[2]);
+        }
+        session.clearCache(); var after=service.selectSummaryDetails();
+        assertThat(after.uniqueExcludedCount()).isEqualTo(before.uniqueExcludedCount()+2);
+        assertThat(after.unknownPurposeCount()).isEqualTo(before.unknownPurposeCount()+1);
+        assertThat(after.byProvider().stream().mapToLong(i->i.count()).sum()).isEqualTo(after.uniqueExcludedCount());
+        assertThat(after.byLatestReason().stream().mapToLong(i->i.count()).sum()).isEqualTo(after.uniqueExcludedCount());
+        jdbcTemplate.update("-- 반복 발견과 최신 사유 변경은 새로운 고유 건수가 아니다.\nUPDATE announcement_source_exclusion_tombstones SET occurrence_count=101,semantic_reason_code='NEW_UNKNOWN_REASON' WHERE id=?",record);
+        session.clearCache(); var repeated=service.selectSummaryDetails();
+        assertThat(repeated.uniqueExcludedCount()).isEqualTo(after.uniqueExcludedCount());
+        assertThat(repeated.byLatestReason().stream().filter(i->i.code().equals("OTHER_LEGACY")).findFirst().orElseThrow().count())
+                .isEqualTo(after.byLatestReason().stream().filter(i->i.code().equals("OTHER_LEGACY")).findFirst().orElseThrow().count()+1);
+    }
+
+    private UUID insertExclusionSummaryRun(String purpose) {
+        UUID request=UUID.randomUUID(), run=UUID.randomUUID();
+        jdbcTemplate.update("-- 집계용 합성 실행 요청.\nINSERT INTO announcement_source_collection_requests(id,provider_code,request_type_code,data_purpose_code) VALUES (?,'BIZINFO','MANUAL',?)",request,purpose);
+        jdbcTemplate.update("-- 집계용 합성 실행.\nINSERT INTO announcement_source_collection_runs(id,request_id) VALUES (?,?)",run,request);
+        return run;
+    }
+
     @Test
     void baseReviewRollsBackConfirmationOnInvalidDraftAndRetriesIdempotently() {
         org.junit.jupiter.api.Assumptions.assumeTrue(ephemeralPostgres != null);
