@@ -237,6 +237,9 @@
 
     const validateUuidText = (value, label) => {
         if (!value) {
+            if (label === "회원 선택") {
+                throw new Error("성함 또는 아이디로 검색한 뒤 회원을 선택하세요.");
+            }
             throw new Error(`${label}를 입력하세요.`);
         }
         return value;

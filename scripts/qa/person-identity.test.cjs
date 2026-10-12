@@ -67,6 +67,7 @@ test('매칭 선택 결과가 코드를 우선 표시하지 않는다',()=>{
     const html=fs.readFileSync(path.join(base,'templates/app/matching-cases.html'),'utf8');
     assert.ok(!/회원 코드|회원 코드를|item.userCode \|\||item.memberUserCode/.test(js));
     assert.match(js,/SanebPersonIdentity.label/);assert.match(html,/saneb-person-identity.js/);
+    assert.ok(js.includes('성함 또는 아이디로 검색한 뒤 회원을 선택하세요.'));
 });
 test('검증 3개 화면은 표시 이름을 참조하며 코드 필드는 렌더링하지 않는다',()=>{
     for(const file of ['partner-verification-list','partner-verification-input','verification-progress']){
