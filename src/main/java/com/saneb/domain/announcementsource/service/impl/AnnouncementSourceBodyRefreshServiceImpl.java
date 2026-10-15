@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** 단건 복구: 외부 조회는 preview만, apply는 고정 본문으로 새 버전만 추가한다. */
 @Service
 public class AnnouncementSourceBodyRefreshServiceImpl implements AnnouncementSourceBodyRefreshService {
-    static final String EXTRACTOR_VERSION="NOTICE_BODY_2";
+    static final String EXTRACTOR_VERSION="NOTICE_BODY_3";
     private final AnnouncementSourceBodyRefreshDao dao;
     private final AnnouncementAttachmentJobDao jobs;
     private final AnnouncementSourceDao sources;

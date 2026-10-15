@@ -31,14 +31,14 @@ class AnnouncementSourceBodyRefreshServiceImplTest {
     private final ProviderContentClient client=mock(ProviderContentClient.class);
     private final Authentication auth=mock(Authentication.class);
     private final AnnouncementSourceBodyRefreshServiceImpl service=new AnnouncementSourceBodyRefreshServiceImpl(dao,jobs,sources,rules,persistence,List.of(client));
-    private final String body="소상공인 지원금 신청기간 10월";
+    private final String body="소상공인 지원금\n\n신청기간 10월";
     private AttachmentSourceContextRow context(boolean required,int version) {
         return new AttachmentSourceContextRow(source,"LOCAL_GOV_NOTICE","PRODUCTION","ACCEPTED",base,content,rule,
                 "COMBINATION_MATCHED",version,4,required,null,null);
     }
     private SourceBodyRefreshRows.Preview preview(OffsetDateTime expiry) {
         return new SourceBodyRefreshRows.Preview(UUID.randomUUID(),source,actor,base,content,rule,2,4,body,
-                AnnouncementSourceBodyRefreshServiceImpl.selectHash(body),"NOTICE_BODY_2",expiry,null);
+                AnnouncementSourceBodyRefreshServiceImpl.selectHash(body),"NOTICE_BODY_3",expiry,null);
     }
     @BeforeEach void setup() {
         var principal=mock(AuthenticatedUserDetails.class);
@@ -104,6 +104,14 @@ class AnnouncementSourceBodyRefreshServiceImplTest {
         when(jobs.selectSourceContextDetailsForUpdate(source)).thenReturn(context(false,2));
         var expired=preview(OffsetDateTime.now().minusMinutes(1));when(dao.selectPreviewDetailsForUpdate(source,expired.id())).thenReturn(expired);
         assertThatThrownBy(()->service.savePreview(auth,source,expired.id())).hasMessageContaining("유효기간");
+        verifyNoInteractions(client,persistence);verify(dao,never()).updateBody(any(),any(),anyInt());
+    }
+    @Test void previewFromOldFlatteningExtractorCannotBeAppliedAfterRelease() {
+        var p=preview(OffsetDateTime.now().plusMinutes(20));
+        var old=new SourceBodyRefreshRows.Preview(p.id(),source,actor,base,content,rule,2,4,body,
+                p.bodyHash(),"NOTICE_BODY_2",p.expiresAt(),null);
+        when(dao.selectPreviewDetailsForUpdate(source,p.id())).thenReturn(old);
+        assertThatThrownBy(()->service.savePreview(auth,source,p.id())).hasMessageContaining("정제 버전");
         verifyNoInteractions(client,persistence);verify(dao,never()).updateBody(any(),any(),anyInt());
     }
     @Test void otherActorAndMissingAuthenticationDoNotWrite() {

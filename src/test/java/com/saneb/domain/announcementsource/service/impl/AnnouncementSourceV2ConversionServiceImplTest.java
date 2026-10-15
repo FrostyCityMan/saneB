@@ -14,6 +14,7 @@ package com.saneb.domain.announcementsource.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -154,7 +155,8 @@ class AnnouncementSourceV2ConversionServiceImplTest {
         assertThat(response.sourceId()).isEqualTo(SOURCE_ID);
         assertThat(response.sourcePublicCode()).isEqualTo("SRC-000001");
         assertThat(response.announcementCode()).isEqualTo("ANN-000100");
-        verify(announcementDao).insertAnnouncement(any());
+        verify(announcementDao).insertAnnouncement(argThat(command ->
+                "지원사업 본문\n\n신청 대상\n신청 방법".equals(command.summary())));
         verify(announcementDao, times(2)).insertAnnouncementTargetCategoryAssignment(
                 any(AnnouncementTargetCategoryAssignmentCommand.class)
         );
@@ -246,7 +248,7 @@ class AnnouncementSourceV2ConversionServiceImplTest {
                 NOW,
                 NOW,
                 "https://example.com/announcements/1",
-                "지원사업 본문",
+                "지원사업 본문\n\n신청 대상\n신청 방법",
                 "문의처",
                 "온라인 신청",
                 "COMPLETE",

@@ -1,6 +1,7 @@
 package com.saneb.domain.announcementsource.provider.content;
 
 import com.saneb.domain.announcementsource.provider.content.ProviderContentCodes.FailureCode;
+import com.saneb.domain.announcementsource.provider.AnnouncementBodyTextExtractor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -468,10 +469,7 @@ public class LocalGovernmentNoticeProviderContentClient implements ProviderConte
         document.select("nav, [role=navigation], [role=banner], [role=contentinfo], body > header, body > footer").remove();
         deleteAttachmentLinkElements(document);
         Element contentElement = chuncheonJson || damyangJson ? document.body() : selectContentElement(document, sourceUri);
-        String bodyText = contentElement.text()
-                .replace('\u00a0', ' ')
-                .replaceAll("\\s+", " ")
-                .trim();
+        String bodyText = AnnouncementBodyTextExtractor.selectText(contentElement);
         if (bodyText.isEmpty()) {
             throw new ContentFailureException(FailureCode.BODY_TEXT_EMPTY);
         }

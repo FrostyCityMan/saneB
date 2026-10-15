@@ -140,7 +140,7 @@ public class BizInfoAnnouncementSourceProviderClient extends AbstractJsonAnnounc
         String agencyName = selectText(node, "jrsdInsttNm", "author");
         String providerNoticeId = selectText(node, "pblancId", "seq");
         String sourceUrl = selectText(node, "pblancUrl", "link", "rceptEngnHmpgUrl");
-        String bodyText = selectText(node, "bsnsSumryCn", "description");
+        String bodyText = selectBodyText(node, "bsnsSumryCn", "description");
         String applicationMethodText = selectText(node, "reqstMthPapersCn", "rceptEngnHmpgUrl");
         String inquiryText = selectText(node, "refrncNm");
         DateRange dateRange = selectDateRange(selectText(node, "reqstBeginEndDe", "reqstDt"));

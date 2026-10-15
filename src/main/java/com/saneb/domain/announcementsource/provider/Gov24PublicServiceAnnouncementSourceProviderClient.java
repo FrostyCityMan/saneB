@@ -293,7 +293,7 @@ public class Gov24PublicServiceAnnouncementSourceProviderClient extends Abstract
         String agencyName = selectText(node, "소관기관명", "jurMnofNm", "agencyName", "author", "jrsdInsttNm");
         String providerNoticeId = selectText(node, "서비스ID", "svcId", "serviceId", "id", "pblancId");
         String sourceUrl = selectText(node, "상세조회URL", "dtlUrl", "detailUrl", "sourceUrl", "link", "pblancUrl");
-        String bodyText = selectText(node, "지원내용", "서비스목적요약", "sprtCn", "summary", "description", "bsnsSumryCn");
+        String bodyText = selectBodyText(node, "지원내용", "서비스목적요약", "sprtCn", "summary", "description", "bsnsSumryCn");
         String applicationMethodText = selectText(node, "신청방법", "신청방법명", "aplyMtdNm", "applicationMethod", "reqstMthPapersCn");
         String inquiryText = selectText(node, "문의처", "문의처명", "전화문의", "inqplCtadrList", "inquiry", "refrncNm");
         DateRange dateRange = selectDateRange(selectText(node, "신청기한", "신청기간", "aplyEndYmd", "reqstBeginEndDe"));

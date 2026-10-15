@@ -679,7 +679,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
             var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
             var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.hampyeong.go.kr/pg/GosiList.do?pageId=www273","https://www.hampyeong.go.kr/pg/GosiDetail.do?SEQ=32368&pageId=www273&notAncmtSeCode=01,02,03,04"));
-            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
             else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
         }
     }
@@ -690,7 +690,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
             var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
             var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,list,list+"?idx=37905&mode=view"));
-            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금 수출기업 제외");}
+            if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년 지원금\n수출기업 제외");}
             else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
         }
     }
@@ -703,7 +703,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
             }
         }
@@ -718,7 +718,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년농업인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("청년농업인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
             }
             if(asan){var transport=new StubTransport();var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://www.asan.go.kr/main/cms/?no=257",url.replace("www.asan.go.kr","asan.go.kr")));assertThat(result.failureCode()).isEqualTo(FailureCode.DETAIL_HOST_NOT_ALLOWED);}
@@ -734,7 +734,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+site.listPath,url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
             }
         }
@@ -748,7 +748,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+site.listPath,"https://"+site.host+site.path+"?notAncmtMgtNo=1"));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
             }
         }
@@ -764,7 +764,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -781,7 +781,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -798,7 +798,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금\n수출기업 제외"); }
                 else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull(); }
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -815,7 +815,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,"<main>내용 없음</main>")) {
                 var transport=new StubTransport();transport.enqueue(html("<nav>수출 메뉴</nav>"+selected+"<footer>푸터</footer>"));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금\n수출기업 제외"); }
                 else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull(); }
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -832,7 +832,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,page.replace("class='view_cont'","class='changed'"))) {
                 var transport=new StubTransport();transport.enqueue(html(selected));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/list",url));
-                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE); assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외"); }
+                if(selected.equals(page)) { assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE); assertThat(result.bodyText()).isEqualTo("사업자 지원금\n수출기업 제외"); }
                 else { assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED); assertThat(result.bodyText()).isNull(); }
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -847,7 +847,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
             String url="https://"+s.host+s.path+"?"+s.menuKey+"="+s.menu+"&"+s.idKey+"=1"+(gimpo?"&cate_cd=1":!pt?"&not_ancmt_se_code=04":"");
             for(String selected:List.of(page,page+page,"<main>게시기간이 아닙니다.</main>")) {
                 var t=new StubTransport();t.enqueue(html(selected));var r=client(true,t,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+s.host+"/list",url));
-                if(selected.equals(page)){assertThat(r.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(r.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외");}
+                if(selected.equals(page)){assertThat(r.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(r.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외");}
                 else {assertThat(r.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(r.bodyText()).isNull();}assertThat(t.callCount()).isEqualTo(1);
             }
         }
@@ -866,7 +866,8 @@ class LocalGovernmentNoticeProviderContentClientTest {
             for(String selected:List.of(page,page+page,page.replace(hanam?"title='내용'":"<th>내용</th>",hanam?"title='변경'":"<th>변경</th>"))) {
                 var transport=new StubTransport();transport.enqueue(html(selected));
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/www/list.do",url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 수출기업 제외");}
+                // textarea 원문에 없는 줄바꿈은 만들지 않고, 다른 게시판의 표 경계만 보존한다.
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo(hanam ? "사업자 지원금 수출기업 제외" : "사업자 지원금\n수출기업 제외");}
                 else {assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -885,7 +886,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 var transport=new StubTransport();transport.enqueue(html(selected));
                 String url="https://"+site.host+CapitalEminwonNoticePage.DETAIL+"?key="+site.menu+"&not_ancmt_mgt_no=1"+(site==CapitalEminwonNoticePage.Site.GUNPO?"&Not_ancmt_se_code=01&notAncmtSeCd=01":"");
                 var result=client(true,transport,publicValidator()).selectContent(new ProviderContentRequest("LOCAL_GOV_NOTICE",SOURCE_ID,"https://"+site.host+"/www/selectEminwonList.do?key="+site.menu,url));
-                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금 대상 청년 수출기업 제외");}
+                if(selected.equals(page)){assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);assertThat(result.bodyText()).isEqualTo("사업자 지원금\n대상 청년\n수출기업 제외");}
                 else{assertThat(result.failureCode()).isEqualTo(FailureCode.BODY_SELECTOR_CHANGED);assertThat(result.bodyText()).isNull();}
                 assertThat(transport.callCount()).isEqualTo(1);
             }
@@ -907,7 +908,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         var result = chungjuResult("?key=510&ancmt_mgt_no=72039&pageIndex=1&method=", chungjuHtml(
                 "소상공인 지원금 <table><tr><th>지원대상</th><td>사업자</td></tr></table><nav>메뉴</nav>수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원대상 사업자 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원대상 사업자\n수출기업 제외 신청");
     }
     @Test void chungjuNeverSubstitutesMissingDuplicateOrNestedSelectorsWithPageText() {
         String valid = chungjuHtml("본문");
@@ -947,7 +948,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 "소상공인 지원금 <nav>메뉴</nav><table><tr><th>지원대상</th><td>사업자</td></tr></table>"
                         + "수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원대상 사업자 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원대상 사업자\n수출기업 제외 신청");
     }
 
     @Test void wonjuMissingOrAmbiguousStructureNeverUsesPageText() {
@@ -988,7 +989,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 "소상공인 지원금 <nav>스타트업 메뉴</nav><table><tr><th>지원형태</th><td>보조금</td></tr></table>"
                         + "수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원형태 보조금\n수출기업 제외 신청");
     }
 
     @Test void jecheonMissingOrNestedStructureDoesNotUsePageOrFileNames() {
@@ -1020,7 +1021,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 "소상공인 지원금 <nav>스타트업 메뉴</nav><table><tr><th>지원형태</th><td>보조금</td></tr></table>"
                         + "특허 보유 수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원형태 보조금\n특허 보유 수출기업 제외 신청");
     }
 
     private static String yangpyeongHtml(String body) {
@@ -1032,7 +1033,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         var result = bbsResult(host, query, yangpyeongHtml("소상공인 지원금 <nav>스타트업 메뉴</nav>"
                 + "<table><tr><th>지원형태</th><td>보조금</td></tr></table>특허 보유 수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원형태 보조금\n특허 보유 수출기업 제외 신청");
         String valid = yangpyeongHtml("지원사업 본문");
         for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
                 valid.replace("p-table__subject_text", "changed"), valid.replace("내용</th>", "변경</th>"),
@@ -1055,7 +1056,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         var result = bbsResult(host, query, bbsHtml(true, "소상공인 지원금 <nav>스타트업 메뉴</nav>"
                 + "<table><tr><th>지원형태</th><td>보조금</td></tr></table>특허 보유 수출기업 제외"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원형태 보조금\n특허 보유 수출기업 제외");
         String valid = bbsHtml(true, "지원사업 본문");
         for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
                 valid.replace("p-table__subject_text", "changed"), valid.replace("title='내용'", "title='변경'"),
@@ -1077,7 +1078,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 "소상공인 지원금 <nav>스타트업 메뉴</nav><table><tr><th>지원형태</th><td>보조금</td></tr></table>"
                         + "특허 보유 수출기업 제외 <a href='/apply'>신청</a>"));
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 지원형태 보조금 특허 보유 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n지원형태 보조금\n특허 보유 수출기업 제외 신청");
         String valid = bbsHtml(true, "지원사업 본문");
         for (String page : List.of("<main>지원사업</main>", valid + valid, valid.replace("p-table block", "p-table"),
                 valid.replace("p-table__subject_text", "changed"), valid.replace("title='내용'", "title='변경'"),
@@ -1336,7 +1337,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                     "소상공인 지원금 <nav>수출 메뉴</nav><table><tr><td colspan='4' style='word-break:break-all;'>"
                             + "수출기업 제외</td></tr></table><a href='/apply'>신청</a>"));
             assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-            assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+            assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외\n신청");
         }
     }
 
@@ -1399,7 +1400,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     @Test void busanBodyUsesOnlyUniqueContentDefinitionAndRetainsRealExclusionContext() {
         var result = legalBodyResult(true, "?sno=42&gosiGbn=A&curPage=1", busanBodyHtml(
                 "소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table><a href='/apply'>신청</a><nav>특허 메뉴</nav>"), true);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외\n신청");
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
     }
 
@@ -1459,7 +1460,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     @Test void gangbukBodyMatchesHiddenNoticeIdAndExcludesMetadataAndLicenceText() {
         var result = legalBodyResult(false, "?menuNo=200082&nttId=42", gangbukBodyHtml(
                 "소상공인 지원금 <dl><dt>수출기업</dt><dd>제외</dd></dl><a href='/apply'>신청</a>"), true);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업\n제외\n신청");
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
     }
 
@@ -1507,7 +1508,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
     @Test void hwacheonBodyUsesThLabelAndSubCheckNWithNoAttachmentTableContamination() {
         var result = saeolResult("eminwon.ihc.go.kr", SAEOL_QUERY.replace("subCheck=Y", "subCheck=N"), hwacheonBodyHtml(
                 "소상공인 지원금 <table><tr><td>수출기업 제외</td></tr></table><a href='/apply'>신청</a>"));
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 수출기업 제외 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n수출기업 제외\n신청");
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
     }
 
@@ -1603,7 +1604,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         ProviderContentResult result = client.selectContent(request());
 
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문 상세보기 온라인 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문\n\n상세보기\n온라인 신청");
         assertThat(result.bodyText()).doesNotContain(
                 "수출자료.pdf",
                 "R&D자료.hwp",
@@ -1685,7 +1686,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         ProviderContentResult result = client.selectContent(request());
 
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 정책자금 안내 신청 대상과 지원 내용입니다.");
+        assertThat(result.bodyText()).isEqualTo("소상공인 정책자금 안내\n\n신청 대상과 지원 내용입니다.");
         assertThat(result.bodyText()).doesNotContain("수출바우처", "채용공고");
     }
 
@@ -1705,7 +1706,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
         ProviderContentResult result = client(true, transport, publicValidator()).selectContent(request());
 
         assertThat(result.statusCode()).isEqualTo(StatusCode.AVAILABLE);
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문 수출기업은 지원 대상에서 제외합니다. 온라인 신청");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 본문\n\n수출기업은 지원 대상에서 제외합니다.\n\n온라인 신청");
         assertThat(transport.requestUris()).containsExactly(URI.create(DETAIL_URL));
     }
 
@@ -1742,7 +1743,7 @@ class LocalGovernmentNoticeProviderContentClientTest {
                 + "<p>소상공인 지원금</p><table><tr><td>접수기간 10월</td></tr></table>"
                 + "<div role='contentinfo'>저작권 정책</div></main><footer>사이트맵</footer>"));
         var result = client(true, clean, publicValidator()).selectContent(request());
-        assertThat(result.bodyText()).isEqualTo("소상공인 지원금 접수기간 10월");
+        assertThat(result.bodyText()).isEqualTo("소상공인 지원금\n\n접수기간 10월");
     }
 
     @Test

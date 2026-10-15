@@ -197,13 +197,17 @@ abstract class AbstractJsonAnnouncementSourceProviderClient implements Announcem
         return null;
     }
 
-    /**
-     * HTML 태그를 제거합니다.
-     *
-     * @param text 입력 값
-     *
-     * @return 처리 결과
-     */
+    /** 본문만 문단을 보존한다. 제목·기관명 등 기존 단일 필드 정제 계약은 바꾸지 않는다. */
+    protected String selectBodyText(JsonNode node, String... fieldNames) {
+        for (String fieldName : fieldNames) {
+            JsonNode value = node.path(fieldName);
+            if (!value.isMissingNode() && !value.isNull() && !value.asText().isBlank()) {
+                return AnnouncementBodyTextExtractor.selectText(value.asText());
+            }
+        }
+        return null;
+    }
+
     protected String stripHtml(String text) {
         if (text == null) {
             return null;

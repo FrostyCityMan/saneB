@@ -32,6 +32,17 @@ class Gov24PublicServiceAnnouncementSourceProviderClientTest {
     private static final String TEST_CREDENTIAL = "fixture-only+/=";
 
     @Test
+    void preservesBodyParagraphsWithoutChangingTitleOrMakingExtraRequests() {
+        ObjectNode response = envelope(1, "소상공인 지원");
+        ((ObjectNode) response.path("data").get(0)).put("지원내용", "<p>대상: 소상공인</p><p>신청 방법<br>온라인 접수</p>");
+        RecordingClient client = new RecordingClient(ENDPOINT, response);
+        var result = client.selectSourceItemList(request(null, 1));
+        assertThat(result.getFirst().bodyText()).isEqualTo("대상: 소상공인\n\n신청 방법\n온라인 접수");
+        assertThat(result.getFirst().title()).isEqualTo("소상공인 지원");
+        assertThat(client.requests).hasSize(1);
+    }
+
+    @Test
     void usesOfficialPaginationAndEncodedTitleConditionWithoutLegacyParameters() {
         RecordingClient client = new RecordingClient(ENDPOINT, envelope(7, "소상공인 지원"));
         var result = client.selectSourceItemList(request("소상공인 + 지원", 7));
