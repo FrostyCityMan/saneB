@@ -42,14 +42,33 @@
 
 ## Gate
 
-Decision: **Conditionally ready**. 로컬 표적 검증 완료. Linux 전체 검증 성공을 조건으로 배포하며, 아래 사후 기록이 작성되기 전에는 운영 배포 완료를 의미하지 않는다.
+Decision: **Conditionally ready**. 로컬 표적·Linux 배포 검증, 운영 설치·health·사후 읽기 전용 진단을 완료했다. 브라우저와 실공고 저장 QA는 수행하지 않았으며 별도 DB 강화 CI는 보고 시점 실행 중이다. 운영 배포 완료와 모든 종류의 QA 완료를 구분한다.
 
 | Gate | 상태 | 근거 |
 |---|---|---|
 | 변경 범위·DB/API 보존 | [x] | 본문 정제 및 관련 회귀 테스트 한정 |
 | Java 표적 테스트·bootJar | [x] | 표적 289건, 최종 명령 성공 |
-| Linux 전체 회귀 | [ ] | 배포 파이프라인에서 검증 후에만 설치 |
+| Linux 전체 회귀 | [x] | 배포 파이프라인 전체 명령 성공, 별도 DB 강화 CI는 실행 중 |
 | Node 회귀 | [x] | 69건 통과 |
 | 운영 사전 진단·복구 | [x] | 고정 운영 배포의 읽기 전용 진단 |
-| 운영 배포·사후 진단 | [ ] | 검증 후 실행 |
+| 운영 배포·사후 진단 | [x] | CodeDeploy 성공/health UP, 설치 hash·DB·정책 유지 확인 |
 | 브라우저 QA·실공고 전환 저장 | [ ] | 정책상 미실행, 운영 데이터 수정 테스트 없음 |
+
+## 배포 결과
+
+- 코드: `3dec908f7fa8ca0da97e3bfbfd53c2fd4b1a4f84`, 고정 태그 `deploy-approved-3dec908-20261015`.
+- [배포 실행 38708165991](https://github.com/FrostyCityMan/saneB/actions/runs/38708165991) 성공. CodeDeploy `d-450DD4BDL`.
+- Linux 검증 명령: `./gradlew clean test bootJar :attachment-extractor:test :attachment-extractor:installDist installAttachmentContractQa attachmentContractQaTest attachmentQaRuleSnapshot --no-daemon --console=plain --max-workers=1` — BUILD SUCCESSFUL (5분 33초). 프로파일별 통합 검증까지 모두 실행했다는 의미는 아니다.
+- 배포 Node 회귀: 7개 실행 묶음 합계 205건 통과/실패 0.
+- 외부 health: `Invoke-WebRequest http://15.165.36.6:8080/actuator/health` — HTTP 200, UP.
+- [사후 읽기 전용 진단 38709110977](https://github.com/FrostyCityMan/saneB/actions/runs/38709110977): 성공. 설치/bundle SHA-256 모두 `f2e245c6828d324c8607f884e99ee52c7147ce94b295a657b758f875a0bb713f`로 일치. previous는 사전 설치 hash `19cfdb04b288bed4f84916d1ed61c190a5ecad9c9c00332f4e13ddf2e01ac887`와 일치한다.
+- 재시작 시각: 2026-10-15 17:53:31 KST. DB V91/실패 0, endpoint hash·COLLECT_ONLY v2 정책 hash/row version·worker/source batch flag·정부24 UNSET 모두 사전 기준선 유지. 활성/대기 첨부 작업 0, 오래된 RUNNING 일정 1건도 보존. 진단 writes=0/readOnly=on/ROLLED_BACK.
+- [별도 첨부 DB·작업 계약 Linux QA 38708147498](https://github.com/FrostyCityMan/saneB/actions/runs/38708147498): 실행 중. 완료되지 않은 검증을 통과로 간주하지 않는다.
+- 사용한 Node QA와 Gradle 단발 프로세스는 종료됐으며 추가 서버·브라우저를 실행하지 않았다. 기존 사용자 미추적 파일은 수정·삭제·커밋하지 않았다.
+
+## 확인하지 않은 항목과 잔여 경계
+
+- 현재 요청에 브라우저 지시가 없어 정책상 미실행. 운영 브라우저의 입력·저장·재조회 성공을 주장하지 않는다.
+- 운영 공고를 새로 생성하거나 기존 메모를 덮어쓰는 실데이터 테스트는 하지 않았다. 수집 원문 → 운영 메모 전달은 로컬 회귀 테스트로 검증했다.
+- 이미 평탄화된 공고의 개행 복구는 별도 원문 재수집이 필요하며 이번 배포에 포함하지 않는다.
+- 원문 자체에 개행·문단 구조가 없는 경우 줄바꿈을 임의 생성하지 않는다. CSS 줄바꿈, 표의 열 너비·병합 모양까지 복제하지 않는다.
